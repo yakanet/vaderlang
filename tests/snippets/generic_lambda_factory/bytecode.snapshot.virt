@@ -8,10 +8,10 @@ type 5 struct __lambda_env_snippet_1 {  }
 type 6 primitive usize
 type 7 fn () -> 1
 type 8 primitive string
-type 9 struct std_core$Buffer {  }
-type 10 primitive i64
-type 11 primitive u8
-type 12 array 11
+type 9 primitive u8
+type 10 struct std_core$Buffer {  }
+type 11 primitive i64
+type 12 array 9
 type 13 primitive isize
 string 0 "lambda mismatches="
 string 1 "named  mismatches="
@@ -19,7 +19,7 @@ string 2 "\n"
 import 0 byte_len std_core$byte_len result_type=6 param_types=8 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=12 param_types=8 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=2,12,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 9 ByteAccess
+impl 10 ByteAccess
 export main 3
 
 fn 0 snippet$new_row () -> ref

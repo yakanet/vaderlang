@@ -27,7 +27,7 @@ import "vader/types"
 /// @return       the matching `Const` `Symbol`, or `null` when none is found.
 export lookup_const_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Symbol | null {
     for symbol in typed.resolved.symbols {
-        if symbol.kind != SymbolKind.Const { continue }
+        if symbol.kind != .Const { continue }
         if symbol.name == decl.name { return symbol }
     }
     return null
@@ -473,6 +473,11 @@ export TypedProgram :: struct {
     /// variable (or label) is `<name>` — innermost-first. Its `.len()` is also
     /// the loop-nesting depth, if ever needed.
     loop_stack: EnclosingLoop[]! = []
+    /// Non-zero while the arguments of an OVERLOADED call are being checked.
+    /// W0016 reads it: at such an argument the enum prefix is what picked the
+    /// candidate, so `expected` already reflects it and advising the bare form
+    /// would silently reach another overload.
+    overloaded_arg_depth: i32 = 0
 
     /// Resolution result for var-targeted loop jumps : `ForStmt.id` → the
     /// iteration-variable name a `break <var>` / `continue <var>` targeted it by.

@@ -5,6 +5,6 @@ export add :: fn(a: i32, b: i32) -> i32 {
 }
 
 main :: fn() -> i32 {
-    f := add
+    f :: add
     return f(2, 3)
 }

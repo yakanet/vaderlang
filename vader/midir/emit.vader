@@ -41,12 +41,12 @@ AST :: import "toolchain/ast"
 // ============================================================================
 
 reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx!) -> void {
-    signature :: build_cfg_signature(cfg_fn.params, cfg_fn.return_type, ctx)
+    signature :: build_cfg_signature(cfg_fn.params, cfg_fn.return_type, cfg_fn.scalarised_results, ctx)
     function_index :: i32(ctx.functions.len())
-    empty_body: Op[]! = []
-    empty_debug: (DebugPos | null)[]! = []
-    empty_jump_table: i32[]! = []
-    empty_locals: BcLocal[]! = []
+    empty_body: Op[]!: []
+    empty_debug: (DebugPos | null)[]!: []
+    empty_jump_table: i32[]!: []
+    empty_locals: BcLocal[]!: []
     ctx.functions.push(BcFunction { .name = cfg_fn.mangled, .is_main = cfg_fn.origin.is_main, .signature = signature, .locals = empty_locals, .body = empty_body, .debug = empty_debug, .jump_table = empty_jump_table })
     if cfg_fn.origin.symbol is Symbol as sym {
         ctx.function_index_by_symbol_id[sym.id] = function_index
@@ -84,11 +84,11 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx!) -> vo
         // lands on a real op rather than an unbound host import ; genuine host
         // shims (`string` FNV `Hash`) forward via `call.import`.
         body :: build_intrinsic_wrapper_body(imp, import_index)
-        debug: (DebugPos | null)[]! = []
+        debug: (DebugPos | null)[]!: []
         for _d in 0..<body.len() { debug.push(null) }
-        jump_table: i32[]! = []
+        jump_table: i32[]!: []
         for _j in 0..<body.len() { jump_table.push(-1) }
-        no_locals: BcLocal[]! = []
+        no_locals: BcLocal[]!: []
         fn_index :: i32(ctx.functions.len())
         ctx.functions.push(BcFunction { .name = "${imp.mangled_name}_vt", .is_main = false, .signature = imp.signature, .locals = no_locals, .body = body, .debug = debug, .jump_table = jump_table })
         ctx.function_index_by_mangle[imp.mangled_name] = fn_index
@@ -96,7 +96,7 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx!) -> vo
 }
 
 reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx!) -> void {
-    base :: build_cfg_signature(ext.params, ext.return_type, ctx)
+    base :: build_cfg_signature(ext.params, ext.return_type, [], ctx)
     // `@c_pointer` is read straight off the origin AST rather than threaded
     // through `CFGParam`: it exists only on an `@extern`, which has no body to
     // lower, so there is nothing for the intervening passes to carry it on.
@@ -144,7 +144,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
             record_slot_type(ctx, idx, struct_type)
             ctx.types.push(BcRef { .trait_name = s.mangled })
         }
-        fields: BcField[]! = []
+        fields: BcField[]!: []
         for f in s.fields {
             type_index :: intern_type(f.type, ctx)
             fields.push(BcField { .name = f.name, .type_index = type_index })
@@ -160,7 +160,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
     // intern dance for symmetry with the symbol-bearing branch.
     new_index :: i32(ctx.types.len())
     ctx.types.push(BcRef { .trait_name = s.mangled })
-    fields: BcField[]! = []
+    fields: BcField[]!: []
     for f in s.fields {
         type_index :: intern_type(f.type, ctx)
         fields.push(BcField { .name = f.name, .type_index = type_index })
@@ -210,7 +210,7 @@ with_by_address :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature {
     if d !is AST.FnDecl {
         return sig
     }
-    flags: bool[]! = []
+    flags: bool[]!: []
     any := false
     for pm in d.params {
         by_addr := false
@@ -227,25 +227,43 @@ with_by_address :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature {
     if !any {
         return sig
     }
-    return BcSignature {
-        .params = sig.params, .result = sig.result, .param_types = sig.param_types,
-        .result_type = sig.result_type, .param_names = sig.param_names,
-        .param_mutable = sig.param_mutable, .param_by_address = flags,
-    }
+    return BcSignature { ...sig, .param_by_address = flags }
 }
 
-build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx!) -> BcSignature {
-    params_val: ValType[]! = []
-    param_types: i32[]! = []
-    param_names: string[]! = []
-    param_mutable: bool[]! = []
+build_cfg_signature :: fn(
+    params: CFGParam[], return_type: Type, scalarised_results: Type[], ctx: EmitterCtx!,
+) -> BcSignature {
+    params_val: ValType[]!: []
+    param_types: i32[]!: []
+    param_names: string[]!: []
+    param_mutable: bool[]!: []
     for p in params {
         params_val.push(val_type_of_type(p.type))
         param_types.push(intern_type(p.type, ctx))
         param_names.push(p.name)
         param_mutable.push(is_mutable_slot(p.type))
     }
-    return BcSignature { .params = params_val, .result = val_type_of_type(return_type), .param_types = param_types, .result_type = intern_type(return_type, ctx), .param_names = param_names, .param_mutable = param_mutable }
+    // One value unless the pass scalarised the return ; a VOID return still gets
+    // one entry holding `ValType.Void`, which is the representation.
+    results: ValType[]!: []
+    result_types: i32[]!: []
+    if scalarised_results.len() > 1 {
+        for r in scalarised_results {
+            results.push(val_type_of_type(r))
+            result_types.push(intern_type(r, ctx))
+        }
+    } else {
+        results.push(val_type_of_type(return_type))
+        result_types.push(intern_type(return_type, ctx))
+    }
+    return BcSignature {
+        .params = params_val,
+        .results = results,
+        .param_types = param_types,
+        .result_types = result_types,
+        .param_names = param_names,
+        .param_mutable = param_mutable,
+    }
 }
 
 /// Whether the callee may write THROUGH the slot.
@@ -301,7 +319,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // via `CallImport`.
     synthesise_cfg_intrinsic_wrappers(cfg, ctx)
     // Pre-translate CFG string indices into bytecode pool indices.
-    string_index_map: i32[]! = []
+    string_index_map: i32[]!: []
     for s in cfg.strings { string_index_map.push(intern_string(s, ctx)) }
     // Intern each pooled read-only `string[]`'s values into the module string table
     // so the comptime atom table (built from `module.strings`) covers them — the
@@ -403,13 +421,13 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         // Collect (trait, method) keys actually dispatched on so the
         // vtable-target rooting AND the impl-table type pinning below
         // can both gate on real virtual.call sites.
-        used_vt_keys: MutableMap<string, bool> = MutableMap<string, bool> {}
+        used_vt_keys: MutableMap<string, bool>: MutableMap<string, bool> {}
         for f in ctx.functions {
             for op in f.body {
                 if op is VirtualCall { used_vt_keys[op.vtable_key] = true }
             }
         }
-        vtable_roots: i32[]! = []
+        vtable_roots: i32[]!: []
         for ve in cfg.vtable_entries {
             key :: "${ve.trait_name}.${ve.method_name}"
             if used_vt_keys[key] !is bool { continue }
@@ -465,14 +483,14 @@ resolve_vtable_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 {
 build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!) -> VtableRow[] {
     // Collect every `(trait, method)` key referenced by a surviving
     // VirtualCall — only rows in this set survive.
-    used_keys: MutableMap<string, bool> = MutableMap<string, bool> {}
+    used_keys: MutableMap<string, bool>: MutableMap<string, bool> {}
     for f in ctx.functions {
         for op in f.body {
             if op is VirtualCall { used_keys[op.vtable_key] = true }
         }
     }
-    rows_by_key: MutableMap<string, usize> = MutableMap<string, usize> {}
-    out: VtableRow[]! = []
+    rows_by_key: MutableMap<string, usize>: MutableMap<string, usize> {}
+    out: VtableRow[]!: []
     for ve in entries {
         key :: "${ve.trait_name}.${ve.method_name}"
         if used_keys[key] !is bool { continue }
@@ -491,7 +509,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
             out[existing].entries.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
         } else {
             new_idx :: out.len()
-            entries_arr: BcVtableEntry[]! = []
+            entries_arr: BcVtableEntry[]!: []
             entries_arr.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
             out.push(VtableRow { .key = key, .entries = entries_arr })
             rows_by_key[key] = new_idx
@@ -504,7 +522,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
 // trait_name) seen in the vtable entries. Sole builder — the CFG emit path is
 // the only bytecode emit path there is.
 build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]!>, ctx: EmitterCtx) -> BcImplEntry[] {
-    out: BcImplEntry[]! = []
+    out: BcImplEntry[]!: []
     seen :: MutableMap<string, bool> {}
     for entry in entries {
         // Only honour vtable entries whose receiver struct is *already*
@@ -617,14 +635,14 @@ emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx!,
     // Open this function's per-call type-pin bucket (see `pinned_types_by_fn`) ;
     // the same array is cached on `fn_ctx.pinned_types_bucket` below so the
     // per-call emit appends to it directly (no per-op map lookup).
-    pins_bucket: i32[]! = []
+    pins_bucket: i32[]!: []
     ctx.pinned_types_by_fn[fn_idx] = pins_bucket
     // Map CFG locals to bytecode slots. Params take slots 0..N-1 ;
     // additional locals get fresh slots indexed AFTER the params.
     // (slot.locals only contains the non-param locals — params live
     // in signature.params — so the surviving slot indices need the
     // n_params offset added when pushing.)
-    local_to_slot: i32[]! = []
+    local_to_slot: i32[]!: []
     n_params :: cfg_fn.params.len()
     for i in 0..<cfg_fn.locals.len() {
         if i < n_params {
@@ -684,7 +702,7 @@ cf_end :: fn(ctx: FnEmitCfg!, span: Span) -> void {
     if sp == 0 { return }
     top :: ctx.scopes[sp - 1]
     // Pop top scope.
-    new_scopes: ScopeFrame[]! = []
+    new_scopes: ScopeFrame[]!: []
     for j in 0..<sp - 1 {
         new_scopes.push(ctx.scopes[j])
     }
@@ -738,7 +756,7 @@ defer_or_resolve_branch :: fn(ctx: FnEmitCfg!, target_blk: BlockId, pc: i32) -> 
 
 drain_pending :: fn(ctx: FnEmitCfg!, target_blk: BlockId, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
     resolved_pc :: if is_loop { opener_pc + 1 } else { end_pc + 1 }
-    kept: PendingBranch[]! = []
+    kept: PendingBranch[]!: []
     for entry in ctx.pending {
         if entry.target_blk == target_blk {
             ctx.slot.jump_table[usize(entry.branch_pc)] = resolved_pc
@@ -837,6 +855,31 @@ loop_exit_present :: fn(ctx: FnEmitCfg, b: BlockId) -> bool {
 /// Emit one block's instructions and dispatch on its terminator.
 /// Returns the BlockId to continue from (linear fall-through), or `-1`
 /// when the terminator already left the current scope.
+// Box a CONCRETE primitive flowing into an ERASED `ref`/union return, tagging it
+// with its semantic type so a downstream `is T` matches. The C-emit's implicit
+// return-coercion only sees the coarse ValType (`I64`) and would box `usize` as
+// `i64` — breaking `is usize`. An already-ref value (erased field) keeps its tag,
+// so it is excluded.
+emit_return_boxing :: fn(ctx: FnEmitCfg!, value: LocalId, index: usize, span: Span) -> void {
+    rv_type :: ctx.fn_.locals[usize(value)].type
+    rv_val :: val_type_of_type(rv_type)
+    // A scalarised return hands back each value under ITS OWN declared type, so
+    // that is what decides whether it needs boxing. Judging by `return_type`
+    // there would see the composite — a `ref` — and box every concrete element
+    // into a slot the signature says is an `i32`.
+    declared :: if ctx.fn_.scalarised_results.len() > index {
+        ctx.fn_.scalarised_results[index]
+    } else {
+        ctx.fn_.return_type
+    }
+    ret_val :: val_type_of_type(declared)
+    erased_return :: ret_val == .Ref || ret_val == .Any
+    concrete_prim :: !(rv_val == .Ref || rv_val == .Any || rv_val == .Void)
+    if erased_return && concrete_prim {
+        push_emit(ctx, Box { .type_id = intern_type(rv_type, ctx.project) }, span)
+    }
+}
+
 emit_block_contents :: fn(ctx: FnEmitCfg!, block_id: BlockId, until: BlockId) -> BlockId {
     block :: ctx.fn_.blocks[usize(block_id)]
     for i in 0..<block.instructions.len() {
@@ -844,27 +887,23 @@ emit_block_contents :: fn(ctx: FnEmitCfg!, block_id: BlockId, until: BlockId) ->
     }
     t :: block.terminator
     if t is TermReturn {
-        if t.value !is null {
-            if !ctx.hints.skip_terminator_get.contains(block_id) {
-                emit_get(ctx, t.value, t.span)
+        // Values are pushed in the order the caller receives them, so the first
+        // goes down first. `skip_terminator_get` only ever applies to a lone
+        // value: with several, leaving the first on the stack would bury it
+        // under the rest.
+        single :: term_return_single(t)
+        for i in 0..<t.values.len() {
+            v :: t.values[i]
+            if !(single != null && ctx.hints.skip_terminator_get.contains(block_id)) {
+                emit_get(ctx, v, t.span)
             }
-            // Box a CONCRETE primitive flowing into an ERASED `ref`/union return,
-            // tagging it with its semantic type so a downstream `is T` matches.
-            // The C-emit's implicit return-coercion only sees the coarse ValType
-            // (`I64`) and would box `usize` as `i64` — breaking `is usize`. An
-            // already-ref value (erased field) keeps its tag, so it's excluded.
-            rv_type :: ctx.fn_.locals[usize(t.value)].type
-            rv_val :: val_type_of_type(rv_type)
-            ret_val :: val_type_of_type(ctx.fn_.return_type)
-            erased_return :: ret_val == ValType.Ref || ret_val == ValType.Any
-            concrete_prim :: !(rv_val == ValType.Ref || rv_val == ValType.Any || rv_val == ValType.Void)
-            if erased_return && concrete_prim {
-                push_emit(ctx, Box { .type_id = intern_type(rv_type, ctx.project) }, t.span)
-            }
+            emit_return_boxing(ctx, v, i, t.span)
         }
-        // Fuse `<const> + Return → ReturnLit X` post-emit.
+        // Fuse `<const> + Return → ReturnLit X` post-emit. Only for a lone
+        // value: `ReturnLit` carries ONE literal, so on a scalarised return it
+        // would keep the last and drop the rest.
         body :: ctx.slot.body
-        if body.len() > 0 {
+        if body.len() > 0 && term_return_single(t) != null {
             last :: body[body.len() - 1]
             cv :: const_op_of(last)
             if cv !is null {
@@ -1062,7 +1101,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         for a in ins.args {
             pins.push(intern_type(ctx.fn_.locals[usize(a)].type, ctx.project))
         }
-        if ins.dst is LocalId as cdst {
+        for cdst in ins.dsts {
             pins.push(intern_type(ctx.fn_.locals[usize(cdst)].type, ctx.project))
         }
         for ai in 0..<ins.args.len() {
@@ -1110,7 +1149,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
                 }
             }
         }
-        emit_result_if_any(ctx, pos, ins.dst, ins.span)
+        emit_call_results(ctx, pos, ins.dsts, ins.span)
         return
     }
     if ins is InstrUnOp {
@@ -1580,6 +1619,22 @@ emit_result_if_any :: fn(ctx: FnEmitCfg!, pos: i64, dst: LocalId | null, span: S
     emit_result(ctx, pos, dst, span)
 }
 
+// Store a call's results into their locals.
+//
+// The callee pushed them in the order the caller receives them, so the LAST is
+// on top and they store back to front. Only the first store can take the
+// scheduler's skip hint — the ones under it have values above them on the stack.
+emit_call_results :: fn(ctx: FnEmitCfg!, pos: i64, dsts: LocalId[], span: Span) -> void {
+    if dsts.len() <= 1 {
+        emit_result_if_any(ctx, pos, if dsts.len() == 0 { null } else { dsts[0] }, span)
+        return
+    }
+    for i in 0..<dsts.len() {
+        // Never the skip hint: it only ever applies to a lone value.
+        emit_set(ctx, dsts[dsts.len() - 1 - i], span)
+    }
+}
+
 // True when a struct.get / array.get / cell-deref result needs an
 // unboxing `ref.cast` to recover its static primitive type. Skips
 // ref-class statics (ref/any/void) where no narrowing is meaningful.
@@ -1595,7 +1650,7 @@ needs_ref_cast :: fn(t: Type) -> bool {
 // array's element type, set at construction.
 array_element_val_type :: fn(t: Type) -> ValType {
     if t is ArrayType { return val_type_of_type(t.element) }
-    return ValType.Any
+    return .Any
 }
 
 // Pop the trailing `local.get N` from the body and replace with a fused

@@ -118,6 +118,77 @@ export bce_hoist_tag :: fn(project: LoweredProject) -> void {
     }
 }
 
+// ---- the report: count the STATE, not the attempt ---------------------------
+//
+// An element access inside a loop that ends the pass without `bounds_safe` will
+// re-check its bounds on every iteration. That is the fact worth reporting, and
+// it is reached by every route — a hoist that was tried and refused, AND a loop
+// whose bound was never an `arr.len()` to pair with (`for i in 0..<n` with `n` a
+// separate local, which is `bench/arr_rw` and is why counting refusals missed
+// it entirely).
+//
+// Only accesses INSIDE a loop are counted: a one-shot `a[i]` checks once, which
+// is the cost of the language, not a missed optimisation.
+
+/// Collect every in-loop element access still carrying a bounds check.
+export bce_unproven_accesses :: fn(project: LoweredProject, ctx: LowerProjectCtx!) -> void {
+    if !ctx.opt_report {
+        return
+    }
+    for [_, m] in project.modules {
+        for d in m.decls {
+            if d is LoweredFnDecl {
+                body :: d.body
+                if body != null {
+                    bh_scan_block(body, false, ctx)
+                }
+            }
+        }
+    }
+}
+
+bh_scan_block :: fn(b: LoweredBlock, in_loop: bool, ctx: LowerProjectCtx!) -> void {
+    for st in b.stmts {
+        bh_scan_stmt(st, in_loop, ctx)
+    }
+    trailing :: b.trailing
+    if trailing != null {
+        bh_scan_expr(trailing, in_loop, ctx)
+    }
+}
+
+bh_scan_stmt :: fn(s: LoweredStmt, in_loop: bool, ctx: LowerProjectCtx!) -> void {
+    match s {
+        is LoweredLet       -> { bh_scan_expr(s.value, in_loop, ctx) }
+        is LoweredAssign    -> { bh_scan_expr(s.target, in_loop, ctx)  bh_scan_expr(s.value, in_loop, ctx) }
+        is LoweredExprStmt  -> { bh_scan_expr(s.expr, in_loop, ctx) }
+        is LoweredReturn    -> {
+            v :: s.value
+            if v != null {
+                bh_scan_expr(v, in_loop, ctx)
+            }
+        }
+        is LoweredLoop      -> { bh_scan_block(s.body, true, ctx) }
+        _                   -> {}
+    }
+}
+
+bh_scan_expr :: fn(e: LoweredExpr, in_loop: bool, ctx: LowerProjectCtx!) -> void {
+    if e is LoweredIndex {
+        if in_loop && !e.bounds_safe {
+            record_miss(ctx, "array bounds-check", e.span,
+                "an in-loop element access the compiler could not prove in range — "
+                + "it re-resolves the buffer and re-checks bounds on every iteration")
+        }
+        bh_scan_expr(e.target, in_loop, ctx)
+        bh_scan_expr(e.index, in_loop, ctx)
+        return
+    }
+    if e is LoweredBlock {
+        bh_scan_block(e, in_loop, ctx)
+    }
+}
+
 // ---- descent : reach every block, pair a recheck-len with its sibling loop ----
 
 bh_block :: fn(b: LoweredBlock!, pctx: BcePurityCtx!) -> void {
@@ -446,22 +517,32 @@ bce_test_ctx :: fn() -> BcePurityCtx = BcePurityCtx {
 }
 
 bce_test_sym :: fn(id: i32, name: string) -> Symbol = Symbol {
-    .id = id, .kind = SymbolKind.Fn, .name = name, .module = "test",
+    .id = id, .kind = .Fn,
+    .name = name,
+    .module = "test",
     .module_name = "test",
-    .visibility = AST.Visibility.Private, .defined_at = null,
+    .visibility = .Private,
+    .defined_at = null,
 }
 
 bce_test_fn :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl {
     // MonoEntry shape mirrors `synth_mono_entry` (lower_lambda.vader) — kept inline
     // because that helper needs a FnLowerCtx the fixture deliberately doesn't build.
-    entry :: MonoEntry {
-        .id = sym.id, .is_main = false, .mangled = sym.name,
-        .decl = stub_decl_for(sym), .symbol = sym, .subst = new_substitution(),
-        .type_arguments = [], .module = null,
-    }
     return LoweredFnDecl {
-        .mangled = sym.name, .params = [], .return_type = TY_VOID,
-        .body = body, .origin = entry,
+        .mangled = sym.name,
+        .params = [],
+        .return_type = TY_VOID,
+        .body = body,
+        .origin = MonoEntry {
+            .id = sym.id,
+            .is_main = false,
+            .mangled = sym.name,
+            .decl = stub_decl_for(sym),
+            .symbol = sym,
+            .subst = new_substitution(),
+            .type_arguments = [],
+            .module = null,
+        },
     }
 }
 

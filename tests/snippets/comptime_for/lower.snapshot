@@ -88,7 +88,7 @@
                     __off_3 :usize
                   arg2:
                     cast → u64
-                      int(16) :usize
+                      int(4) :usize
             ~>
               call :string
                 callee:
@@ -227,7 +227,7 @@
                     __off_9 :usize
                   arg2:
                     cast → u64
-                      int(16) :usize
+                      int(4) :usize
             ~>
               call :string
                 callee:

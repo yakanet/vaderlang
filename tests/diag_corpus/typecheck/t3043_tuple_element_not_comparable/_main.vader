@@ -1,0 +1,43 @@
+// T3043 / T3001 — what a tuple `==` refuses.
+//
+// The rewrite is unconditional (`lower_binary.vader::try_lower_tuple_eq`), so
+// anything this gate lets through must have a working `==` at every position.
+// What cannot: an array, a struct with no `Equals`, a fn value, and a type
+// parameter — whose element access is emitted before the erased-receiver vcall
+// path could route it.
+//
+// T3043 names the ELEMENT's type, not the tuple's: that is what needs the impl.
+// Mismatched shapes are T3001 instead, and the check is `equals_type`, not an
+// arity test — the lowerer drives both sides from the left type, and equality is
+// what makes that sound at every depth.
+
+module "snippet"
+
+import "std/io"
+
+Box :: struct { v: i32 }
+
+f :: fn(x: i32) -> i32 = x + 1
+
+no_equals   :: fn() -> [i32, Box] = [1, Box { .v = 2 }]
+with_array  :: fn() -> [i32, i32[]] = [1, [2, 3]]
+with_fn     :: fn() -> [i32, fn(i32) -> i32] = [1, f]
+
+// A type parameter is erased at the element position.
+via_param :: fn<T: Equals>(a: [T, i32], b: [T, i32]) -> bool = a == b
+
+swapped_a :: fn() -> [i32, string] = [1, "x"]
+swapped_b :: fn() -> [string, i32] = ["x", 1]
+
+nested_a :: fn() -> [i32, [i32, i32]] = [1, [2, 3]]
+nested_b :: fn() -> [i32, [i32, i32, i32]] = [1, [2, 3, 9]]
+
+main :: fn() -> i32 {
+    println("${via_param([1, 2], [1, 2])}")
+    println("${no_equals() == no_equals()}")
+    println("${with_array() == with_array()}")
+    println("${with_fn() == with_fn()}")
+    println("${swapped_a() == swapped_b()}")
+    println("${nested_a() == nested_b()}")
+    return 0
+}

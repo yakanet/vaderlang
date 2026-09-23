@@ -6,6 +6,6 @@
 module "snippet"
 
 main :: fn() -> i32 {
-    items: [i32] = [1, 2, 3]
+    items: [i32]: [1, 2, 3]
     return 0
 }

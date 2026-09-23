@@ -1,0 +1,27 @@
+# Comptime
+
+## tests/snippets/for_in_null_elements
+
+## generic instances
+  __genstate_maybe<i32 | null>
+  __genstate_array_iter<T>
+  ArrayOps<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<i32 | null>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Async<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>

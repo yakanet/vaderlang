@@ -27,7 +27,7 @@ main :: fn() -> i32 {
     joined_length: i64 = 0
     for 0..<PASS_COUNT {
         parts :: split(text, SEPARATOR)
-        kept: string[]! = []
+        kept: string[]!: []
         for part in parts {
             if part.byte_len() % 2 == 1 {
                 kept.push(part)
@@ -43,7 +43,7 @@ main :: fn() -> i32 {
 }
 
 build_text :: fn() -> string {
-    parts: string[]! = []
+    parts: string[]!: []
     for index in 0..<FIELD_COUNT {
         parts.push("${i64(index) * STRIDE % 1000003}")
     }

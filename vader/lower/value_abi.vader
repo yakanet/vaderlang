@@ -1,0 +1,560 @@
+// vader/lower/value_abi — which composites could cross a call in registers.
+//
+// A composite that crosses a call boundary is a heap object today: a
+// `fn(…) -> [A, B]` allocates in the callee and hands back a `void*` the caller
+// destructures and drops. This file answers ELIGIBILITY only — it emits nothing
+// and changes nothing. It exists so "how many sites would a value ABI reach, in
+// code that is not a benchmark" has an answer before any IR moves. Record:
+// `.claude/plans/2026-09-22-tuple-value-abi.md`.
+//
+// The predicate lives HERE and not in `vader/types` because judging a struct
+// needs its field types, which a bare `Type` does not carry — a lowered decl
+// does. `vader/midir`, `vader/bytecode` and `vader/c_emit` all import
+// `vader/lower`, so every consumer the plan names reaches it from here.
+//
+// Two shapes the first cut of the criterion missed, both surfaced by running the
+// report rather than by reading it:
+//
+//   - `T | null` counts. A fallible lookup returns `T | null`, and a criterion
+//     that only took bare composites scores zero on a shape the chantier exists
+//     for. The crossing needs one register for the tag, which
+//     `ValueAbiSite.nullable` records.
+//   - A `!` parameter does not. `f: Factory!` is a borrow the callee writes
+//     through, and a callee that gets a copy is a different function. Size says
+//     nothing about that ; the mutability marker does.
+
+module "vader/lower"
+
+import "std/collections"
+import "std/string_builder"
+import "vader/types"
+import "vader/typecheck"
+
+/// Widest payload that crosses in registers rather than through memory.
+///
+/// arm64 AAPCS and x86-64 SysV both pass a composite of at most 16 bytes in two
+/// registers ; past that the C compiler inserts the hidden pointer itself, and
+/// the two forms converge. At 8 the bound would leave `[char, usize]` (12 bytes)
+/// behind, and that pair is what `for c in s` decodes with.
+export VALUE_ABI_MAX_BYTES: i64: 16
+
+/// One place a value-ABI candidate crosses a call boundary.
+export ValueAbiSite :: struct {
+    /// Mangled name of the function the crossing belongs to.
+    fn_name: string
+    /// `return`, or the parameter's name.
+    position: string
+    /// The candidate's rendered type, for a reader scanning the report.
+    type_name: string
+    /// Payload size in bytes — the axis the 16-byte bound is about.
+    bytes: i64
+    /// The site is `T | null`: the crossing needs a tag register on top of the
+    /// payload.
+    nullable: bool
+    /// A RETURN whose every `return` hands back a value the callee built.
+    ///
+    /// The gate a struct return needs before it can be scalarised — see
+    /// `returns_only_fresh_composites`. False on a parameter, which the question
+    /// does not apply to.
+    fresh: bool
+}
+
+/// Payload size of `t` under the value-ABI rule, or -1 when it does not qualify.
+///
+/// Qualifying means: a composite — tuple, distinct, struct, or one of those
+/// under a `| null` — whose every leaf is a NON-REFERENCE primitive, summed
+/// without padding, no wider than `VALUE_ABI_MAX_BYTES`. The sum ignores padding
+/// because the answer only has to be CONSERVATIVE: under-counting can reject
+/// something the ABI would have taken, never admit something it would refuse.
+///
+/// A bare primitive answers -1: there is nothing to unbox, it already crosses in
+/// a register.
+///
+/// @param t        the type at the crossing.
+/// @param structs  lowered struct decls keyed by `LoweredStructDecl.mangled`.
+/// @param typed    the typed project — `shape_mangle` needs it to spell the key
+///                 a `StructType` maps to.
+export value_abi_size :: fn(
+    t: Type, structs: MutableMap<string, LoweredStructDecl>, typed: TypedProject,
+) -> i64 = value_abi_sized(value_abi_payload(t), structs, typed, VALUE_ABI_MAX_BYTES)
+
+/// What a `T | null` promises, or `t` itself.
+///
+/// A wider union keeps its variants and so fails the size walk at its own
+/// `_ -> -1` — there is no case to special-case.
+export value_abi_payload :: fn(t: Type) -> Type = subtract_type(t, TY_NULL)
+
+// `t`'s payload size, or -1. `budget` is what is left of the 16 bytes: it bounds
+// the total AND the recursion, since a struct field that is itself a struct
+// costs at least one byte per level and an empty struct is rejected outright. A
+// separate depth cap would be a second constant free to disagree with this one —
+// `Node { next: Node }` terminates on the budget.
+value_abi_sized :: fn(
+    t: Type, structs: MutableMap<string, LoweredStructDecl>, typed: TypedProject, budget: i64,
+) -> i64 {
+    if budget <= 0 {
+        return -1
+    }
+    direct :: value_abi_type_size(t)
+    if direct >= 0 {
+        return over(direct, budget)
+    }
+    if t !is StructType {
+        return -1
+    }
+    // An empty struct is a tag, not a payload: nothing crosses, so there is
+    // nothing here for the chantier to make cheaper.
+    key :: shape_mangle(t, typed) ?? return -1
+    decl :: structs[key] ?? return -1
+    if decl.fields.len() == 0 {
+        return -1
+    }
+    total: i64 = 0
+    for f in decl.fields {
+        leaf :: value_abi_leaf_size(f.type)
+        size :: if leaf >= 0 {
+            leaf
+        } else {
+            value_abi_sized(f.type, structs, typed, budget - total - 1)
+        }
+        if size < 0 || total + size > budget {
+            return -1
+        }
+        total = total + size
+    }
+    return total
+}
+
+/// Size of a composite a bare `Type` can judge on its own — a tuple, or a
+/// distinct over one — or -1 when it does not qualify.
+///
+/// A struct is not here: only a lowered decl carries its field types.
+///
+/// Exported because `vader/midir/value_return.vader` decides what to scalarise
+/// with it. Two answers to "is this eligible" would drift, and the report would
+/// then describe a set the pass does not act on.
+export value_abi_type_size :: fn(t: Type) -> i64 {
+    // @partial: the two composites below are the only ones a `Type` can size.
+    // Every other variant answers "not a candidate", which is one answer for all
+    // of them, not a degraded placeholder.
+    @partial match t {
+        is TupleType    -> { return value_abi_sum_leaves(t.elements) }
+        is DistinctType -> { return value_abi_type_size(t.backing) }
+        _               -> { return -1 }
+    }
+}
+
+/// The elements a tuple return can be handed back as, or null when it cannot.
+///
+/// The single gate both the report and `vader/midir/value_return.vader` ask.
+/// ONE element is refused: it already crosses in a register, and the object
+/// exists only because the tuple type does — splitting it buys nothing and the
+/// caller would rebuild it anyway.
+export value_abi_tuple_elements :: fn(t: Type) -> Type[] | null {
+    if t is DistinctType {
+        return value_abi_tuple_elements(t.backing)
+    }
+    if t !is TupleType {
+        return null
+    }
+    if t.elements.len() < 2 {
+        return null
+    }
+    if value_abi_sum_leaves(t.elements) < 0 {
+        return null
+    }
+    return t.elements
+}
+
+/// Summed size of `members` as leaves, or -1 when one disqualifies the whole or
+/// the total passes the bound.
+///
+/// A tuple's elements, a struct's fields and a scalarised return's results are
+/// the same question asked of three carriers — `midir/value_return` asks it of
+/// the third, so that no second answer to "does this fit in registers" exists to
+/// drift from this one.
+///
+/// @param members  the leaves to sum, in the order they cross.
+/// @return         the total byte size, or -1.
+export value_abi_sum_leaves :: fn(members: Type[]) -> i64 {
+    if members.len() == 0 {
+        return -1
+    }
+    total: i64 = 0
+    for m in members {
+        leaf :: value_abi_leaf_size(m)
+        // Bail inside the loop: past the bound no later member brings the total
+        // back down, and each one costs a recursive walk.
+        if leaf < 0 || total + leaf > VALUE_ABI_MAX_BYTES {
+            return -1
+        }
+        total = total + leaf
+    }
+    return total
+}
+
+// One leaf of a candidate composite: a non-reference primitive, an enum (its
+// `repr`), or a nested composite flattened into the same registers.
+/// Size of one LEAF of a candidate composite, or -1 when the leaf disqualifies
+/// it.
+///
+/// A leaf must cross in ONE register, so it is a non-reference primitive or an
+/// enum (which rides its `repr`) — and nothing else. A nested composite is NOT a
+/// leaf: it is a heap object of its own, and returning it as a "value" would
+/// hand back a reference under a name that promises otherwise. Flattening it
+/// recursively is a different ABI, and nothing implements it.
+///
+/// @partial: the three shapes below are what a composite can hold and still
+/// qualify. Every other variant is a reference or names no storage — one answer
+/// for all of them, not a degraded placeholder.
+export value_abi_leaf_size :: fn(t: Type) -> i64 = @partial match t {
+    is PrimitiveType -> if is_reference_name(t.name) || primitive_size(t.name) == 0 {
+        -1
+    } else {
+        primitive_size(t.name)
+    }
+    is EnumType -> primitive_size(t.repr)
+    _           -> -1
+}
+
+over :: fn(size: i64, budget: i64) -> i64 = if size > budget { -1 } else { size }
+
+/// Whether every `return` in `body` hands back a value the callee BUILT, so no
+/// caller can hold the object it returns.
+///
+/// The condition a struct return needs and a tuple does not. A tuple has no
+/// observable identity (`t[0] = x` is T3008), so handing back its elements is
+/// the same value by another route. A struct has reference semantics: returning
+/// one the callee received from elsewhere, and rebuilding it at the caller,
+/// would break an alias someone else still holds. Building it on the spot at
+/// every return is the proof that nobody does — and it makes the `@value`
+/// question moot rather than answering it.
+///
+/// `null` counts as built: it holds nothing to alias.
+export returns_only_fresh_composites :: fn(body: LoweredBlock) -> bool {
+    return block_returns_fresh(body)
+}
+
+block_returns_fresh :: fn(b: LoweredBlock) -> bool {
+    for st in b.stmts {
+        if !stmt_returns_fresh(st) {
+            return false
+        }
+    }
+    return true
+}
+
+// @partial: only the statements that can CARRY a return matter. Every other
+// variant holds no `return` of its own, so it cannot break the property.
+stmt_returns_fresh :: fn(st: LoweredStmt) -> bool = @partial match st {
+    is LoweredReturn -> is_fresh_composite(st.value)
+    is LoweredLoop   -> block_returns_fresh(st.body)
+    is LoweredExprStmt -> expr_returns_fresh(st.expr)
+    _ -> true
+}
+
+// A returned value the callee minted here, or nothing at all.
+is_fresh_composite :: fn(v: LoweredExpr | null) -> bool {
+    if v == null {
+        return true
+    }
+    if v is LoweredStructLit {
+        return true
+    }
+    // A literal `null` is the absent case of a `T | null` return.
+    return v is LoweredNullLit
+}
+
+// An `if` / `match` in statement position holds the arms a return lives in.
+// @partial: the two nesting expressions ; anything else carries no return.
+expr_returns_fresh :: fn(e: LoweredExpr) -> bool = @partial match e {
+    is LoweredIf    -> block_returns_fresh(e.then_block) && else_returns_fresh(e.else_block)
+    is LoweredBlock -> block_returns_fresh(e)
+    _ -> true
+}
+
+else_returns_fresh :: fn(b: LoweredBlock | null) -> bool {
+    if b == null {
+        return true
+    }
+    return block_returns_fresh(b)
+}
+
+// ---- report ---------------------------------------------------------------
+
+/// Render which crossings a value ABI would reach.
+///
+/// Returns "" when the report is off or nothing qualifies, so the caller can
+/// print unconditionally.
+///
+/// @param ctx      carries the cached `$VADER_OPT_REPORT` flag — the env is read
+///                 once per lowering run, never per site.
+/// @param project  the finished lowered project ; the sweep needs every decl, so
+///                 this runs after the last pass that can still add one.
+/// @param typed    the typed project, for `shape_mangle`.
+export render_value_abi_report :: fn(
+    ctx: LowerProjectCtx, project: LoweredProject, typed: TypedProject,
+) -> string {
+    if !ctx.opt_report {
+        return ""
+    }
+    structs :: index_struct_decls(project)
+    sites: ValueAbiSite[]!: []
+    held_back: i64 = 0
+    for [_, m] in project.modules {
+        for d in m.decls {
+            if d is LoweredFnDecl {
+                held_back = held_back + collect_value_abi_sites(d, structs, typed, sites)
+            }
+        }
+    }
+    if sites.len() == 0 {
+        return ""
+    }
+    returns: i64 = 0
+    nullables: i64 = 0
+    fresh_returns: i64 = 0
+    for s in sites {
+        // A parameter can never be named `return` — it is a keyword.
+        if s.position == "return" {
+            returns = returns + 1
+            if s.fresh {
+                fresh_returns = fresh_returns + 1
+            }
+        }
+        if s.nullable {
+            nullables = nullables + 1
+        }
+    }
+    out :: StringBuilder {}
+    out.append("\n[VADER_OPT_REPORT] composites that could cross a call in registers\n")
+    out.append("  (every leaf a non-reference primitive, payload at most ")
+    out.append("${VALUE_ABI_MAX_BYTES} bytes)\n")
+    out.append("  returns: ${returns}   parameters: ${i64(sites.len()) - returns}")
+    out.append("   of which `T | null`: ${nullables}\n")
+    out.append("  held back, a parameter the callee writes through: ${held_back}\n")
+    out.append("  returns whose every `return` builds its value on the spot: ${fresh_returns}\n")
+    out.append("    (the gate a STRUCT return needs ; a tuple has no identity to break)\n\n  sites:\n")
+    for s in sites {
+        tag :: if s.nullable { " +tag" } else { "" }
+        mint :: if s.position == "return" && s.fresh { " fresh" } else { "" }
+        out.append("    ${s.fn_name}  ${s.position}: ${s.type_name} (${s.bytes} B${tag})${mint}\n")
+    }
+    return out.to_string()
+}
+
+// Lowered struct decls under the mangle every other consumer dedups on, so a
+// `StructType` at a crossing finds its decl through `shape_mangle` rather than
+// through a key this file would own alone.
+index_struct_decls :: fn(project: LoweredProject) -> MutableMap<string, LoweredStructDecl> {
+    out :: MutableMap<string, LoweredStructDecl> {}
+    for [_, m] in project.modules {
+        for d in m.decls {
+            if d is LoweredStructDecl {
+                out[d.mangled] = d
+            }
+        }
+    }
+    return out
+}
+
+// Every crossing `fd` carries — its return type, then each parameter. Returns
+// how many parameters a mutable borrow held back, so the report can say what the
+// marker costs instead of dropping those sites in silence.
+collect_value_abi_sites :: fn(
+    fd: LoweredFnDecl, structs: MutableMap<string, LoweredStructDecl>, typed: TypedProject,
+    out: ValueAbiSite[]!,
+) -> i64 {
+    body :: fd.body
+    fresh :: body != null && returns_only_fresh_composites(body)
+    push_site(
+        out, fd.mangled, "return", fd.return_type,
+        value_abi_size(fd.return_type, structs, typed), fresh)
+    held_back: i64 = 0
+    for p in fd.params {
+        size :: value_abi_size(p.type, structs, typed)
+        if size < 0 {
+            continue
+        }
+        if type_grants_mutation(p.type) {
+            held_back = held_back + 1
+            continue
+        }
+        push_site(out, fd.mangled, p.name, p.type, size, false)
+    }
+    return held_back
+}
+
+// `size` comes from the caller, which already had to compute it to decide.
+push_site :: fn(
+    out: ValueAbiSite[]!, fn_name: string, position: string, t: Type, size: i64, fresh: bool,
+) -> void {
+    if size < 0 {
+        return
+    }
+    out.push(ValueAbiSite {
+        .fn_name = fn_name,
+        .position = position,
+        .type_name = display_type_key(t),
+        .bytes = size,
+        .nullable = t is UnionType,
+        .fresh = fresh,
+    })
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_value_abi_takes_two_words :: fn() -> void {
+    i32_t :: mk_primitive("i32")
+    assert_eq(value_abi_type_size(mk_tuple([i32_t, i32_t], true)), 8)
+}
+
+@test
+test_value_abi_takes_twelve_bytes :: fn() -> void {
+    // `utf8_decode_len`'s shape — the one an 8-byte bound would have missed.
+    decoded :: mk_tuple([mk_primitive("char"), mk_primitive("usize")], true)
+    assert_eq(value_abi_type_size(decoded), 12)
+}
+
+@test
+test_value_abi_rejects_past_sixteen :: fn() -> void {
+    u64_t :: mk_primitive("u64")
+    assert_eq(value_abi_type_size(mk_tuple([u64_t, u64_t, u64_t], true)), -1)
+}
+
+@test
+test_value_abi_rejects_a_string_leaf :: fn() -> void {
+    // An interned atom is a GC root : taking a local's address means rooting it
+    // before the call, which the all-primitive first cut avoids.
+    named :: mk_tuple([mk_primitive("i32"), mk_primitive("string")], true)
+    assert_eq(value_abi_type_size(named), -1)
+}
+
+@test
+test_value_abi_rejects_a_c_pointer_leaf :: fn() -> void {
+    // Eight bytes like a `u64`, and the size is exactly what must not decide it.
+    holder :: mk_tuple([mk_primitive("i32"), mk_primitive("CPointer")], true)
+    assert_eq(value_abi_type_size(holder), -1)
+}
+
+@test
+test_value_abi_rejects_an_array_leaf :: fn() -> void {
+    holder :: mk_tuple([mk_primitive("i32"), mk_array(mk_primitive("i32"), false)], true)
+    assert_eq(value_abi_type_size(holder), -1)
+}
+
+@test
+test_value_abi_rejects_a_bare_primitive :: fn() -> void {
+    assert_eq(value_abi_type_size(mk_primitive("i32")), -1)
+}
+
+@test
+test_value_abi_rejects_an_empty_tuple :: fn() -> void {
+    assert_eq(value_abi_type_size(mk_tuple([], true)), -1)
+}
+
+@test
+test_value_abi_sees_through_a_distinct :: fn() -> void {
+    i32_t :: mk_primitive("i32")
+    coord :: mk_distinct(value_abi_test_sym(), mk_tuple([i32_t, i32_t], true))
+    assert_eq(value_abi_type_size(coord), 8)
+}
+
+@test
+test_value_abi_reads_through_a_nullable :: fn() -> void {
+    pair :: mk_tuple([mk_primitive("char"), mk_primitive("usize")], true)
+    assert_eq(display_type_key(value_abi_payload(mk_union([pair, TY_NULL]))), "[char, usize]")
+}
+
+@test
+test_value_abi_keeps_a_three_way_union_whole :: fn() -> void {
+    wide :: mk_union([mk_primitive("i32"), mk_primitive("f64"), TY_NULL])
+    assert_eq(value_abi_type_size(value_abi_payload(wide)), -1)
+}
+
+value_abi_test_sym :: fn() -> Symbol = Symbol {
+    .id = 9001,
+    .kind = .TypeAlias,
+    .name = "Coord",
+    .module = "test",
+    .module_name = "test",
+    .visibility = .Private,
+    .defined_at = null,
+}
+
+@test
+test_fresh_returns_accepts_a_built_struct :: fn() -> void {
+    // `return Pair { .a = c }` — the callee minted it, so no caller can be
+    // holding it.
+    body :: fresh_test_body([
+        LoweredReturn {
+            .span = empty_span(),
+            .value = LoweredStructLit {
+                .span = empty_span(),
+                .type = mk_primitive("i32"),
+                .fields = [],
+            },
+        },
+    ])
+    assert(returns_only_fresh_composites(body), "a struct literal is freshly built")
+}
+
+@test
+test_fresh_returns_accepts_null :: fn() -> void {
+    // The absent case of a `T | null` holds nothing to alias.
+    body :: fresh_test_body([
+        LoweredReturn { .span = empty_span(), .value = LoweredNullLit { .span = empty_span(), .type = TY_NULL } },
+    ])
+    assert(returns_only_fresh_composites(body), "null holds nothing to alias")
+}
+
+@test
+test_fresh_returns_refuses_a_forwarded_value :: fn() -> void {
+    // `return self.cached` hands back an object the caller may already hold —
+    // rebuilding it at the call site would break that alias.
+    body :: fresh_test_body([
+        LoweredReturn {
+            .span = empty_span(),
+            .value = LoweredIdent {
+                .span = empty_span(),
+                .type = mk_primitive("i32"),
+                .symbol = value_abi_test_sym(),
+            },
+        },
+    ])
+    assert(!returns_only_fresh_composites(body), "a forwarded value may be aliased")
+}
+
+@test
+test_fresh_returns_looks_inside_an_if :: fn() -> void {
+    // The early `return null` of an iterator's `next` lives in an `if` arm.
+    forwarded :: LoweredReturn {
+        .span = empty_span(),
+        .value = LoweredIdent {
+            .span = empty_span(),
+            .type = mk_primitive("i32"),
+            .symbol = value_abi_test_sym(),
+        },
+    }
+    nested :: LoweredExprStmt {
+        .span = empty_span(),
+        .expr = LoweredIf {
+            .span = empty_span(),
+            .type = TY_VOID,
+            .cond = LoweredNullLit { .span = empty_span(), .type = TY_NULL },
+            .then_block = fresh_test_body([forwarded]),
+            .else_block = null,
+        },
+    }
+    assert(!returns_only_fresh_composites(fresh_test_body([nested])), "an arm's return counts")
+}
+
+fresh_test_body :: fn(stmts: LoweredStmt[]) -> LoweredBlock = LoweredBlock {
+    .span = empty_span(),
+    .type = TY_VOID,
+    .stmts = stmts,
+    .trailing = null,
+}

@@ -36,11 +36,17 @@ Lo :: import "vader/lower"
 /// Returning the rewritten body keeps the by-value rebuild
 /// contract identical to `run_bc_peephole`.
 export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
+    // `ReturnLit` carries ONE literal, so it can only stand in for a return that
+    // hands back one value. A scalarised return leaves several on the stack and
+    // the fold would keep the last and drop the rest.
+    if bc_result_arity(function.signature) > 1 {
+        return bc_peephole_unchanged(function)
+    }
     body :: function.body
     n :: body.len()
-    out: Op[]! = []
+    out: Op[]!: []
     out_len: usize = 0
-    old_to_new: i32[]! = []
+    old_to_new: i32[]!: []
     for p in 0..<n { old_to_new.push(-1) }
     i: usize = 0
     for i < n {
@@ -73,7 +79,7 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
 /// per-old-PC `old_to_new` map (entries < 0 mark removed ops).
 /// New entries default to -1.
 export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[]! {
-    new_jt: i32[]! = []
+    new_jt: i32[]!: []
     for p in 0..<new_len { new_jt.push(-1) }
     old_n :: old_jt.len()
     i: usize = 0
@@ -110,7 +116,7 @@ export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) 
 /// @param n           body length (bitmap size).
 /// @return            length-`n` bool array, `true` at each branch target.
 export mark_jump_targets :: fn(jump_table: i32[], n: usize) -> bool[] {
-    is_target: bool[]! = [false] * n
+    is_target: bool[]!: [false] * n
     for k in 0..<jump_table.len() {
         t :: jump_table[k]
         if t >= 0 && usize(t) < n { is_target[usize(t)] = true }
@@ -129,6 +135,16 @@ export BcPeepholeOut :: struct {
     debug:      (DebugPos | null)[]!
 }
 
+/// `function`'s three tables, unchanged — what a peephole returns when it
+/// rewrites nothing.
+///
+/// @param function  the fn the pass declined to rewrite.
+export bc_peephole_unchanged :: fn(function: BcFunction) -> BcPeepholeOut = BcPeepholeOut {
+    .body = function.body,
+    .jump_table = function.jump_table,
+    .debug = function.debug,
+}
+
 /// Remap a debug table from old PC space to new PC space, parallel to
 /// `remap_jump_table` but simpler : each surviving op copies its own
 /// source position. `old_to_new[old_pc]` is the new PC (or `< 0` when
@@ -144,7 +160,7 @@ export BcPeepholeOut :: struct {
 remap_debug :: fn(old_debug: (DebugPos | null)[], old_to_new: i32[], new_len: usize) -> (DebugPos | null)[]! {
     // `old_debug` and `old_to_new` are always parallel to the old body (both
     // grown one entry per op), so a plain walk over `old_debug` is safe.
-    new_debug: (DebugPos | null)[]! = [null] * new_len
+    new_debug: (DebugPos | null)[]!: [null] * new_len
     for i in 0..<old_debug.len() {
         np :: old_to_new[i]
         if np < 0 { continue }
@@ -166,9 +182,9 @@ remap_debug :: fn(old_debug: (DebugPos | null)[], old_to_new: i32[], new_len: us
 export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
     body :: function.body
     n :: body.len()
-    out: Op[]! = []
+    out: Op[]!: []
     out_len: usize = 0
-    old_to_new: i32[]! = []
+    old_to_new: i32[]!: []
     for pp in 0..<n { old_to_new.push(-1) }
     for i in 0..<n {
         op :: body[i]
@@ -230,6 +246,7 @@ try_fold_arith :: fn(op: Op, out: Op[], out_len: usize) -> Op | null {
 /// @param function  the emitted fn to rewrite (not mutated — see the return).
 /// @return          the rewritten body with `jump_table` / `debug` remapped.
 export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
+    multi_value :: bc_result_arity(function.signature) > 1
     body :: function.body
     n :: body.len()
     // Per-slot set / get / tee counts over the original body. They keep the
@@ -248,9 +265,9 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     // `get ; set` pairs, no tees yet, so `tee_count` is 0 here — the
     // discriminant that actually fires is `set_count`.)
     total_slots :: function.signature.params.len() + function.locals.len()
-    set_count: i32[]! = []
-    get_count: i32[]! = []
-    tee_count: i32[]! = []
+    set_count: i32[]!: []
+    get_count: i32[]!: []
+    tee_count: i32[]!: []
     for 0..<total_slots {
         set_count.push(0)
         get_count.push(0)
@@ -271,10 +288,10 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     // exits ; the `jump_table` carries the non-structured match/loop edges
     // that this guards.
     is_jump_target :: mark_jump_targets(function.jump_table, n)
-    out: Op[]! = []
+    out: Op[]!: []
     out_len: usize = 0
     // Per-old-PC : new PC in `out` (or -1 when the op was dropped).
-    old_to_new: i32[]! = []
+    old_to_new: i32[]!: []
     for p in 0..<n { old_to_new.push(-1) }
     i: usize = 0
     for i < n {
@@ -323,8 +340,9 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
 
         // Return.lit fold — `<const>.const X ; Return` → `ReturnLit X`.
         // Branches don't target the collapsed Return op (terminator) so
-        // depth-safety holds.
-        if op is Return {
+        // depth-safety holds. Skipped on a scalarised return: `ReturnLit` carries
+        // ONE literal and the fold would keep the last value and drop the rest.
+        if op is Return && !multi_value {
             cur_len :: out.len()
             if cur_len > 0 {
                 prev :: out[cur_len - 1]
@@ -412,11 +430,11 @@ export propagate_const_single_use :: fn(function: BcFunction!) -> BcFunction! {
 
     // Per-slot stats : how many sets / gets / tees ; index of the (only)
     // set + (only) get when there's exactly one of each.
-    set_count: i32[]! = []
-    get_count: i32[]! = []
-    tee_count: i32[]! = []
-    set_idx:   i32[]! = []
-    get_idx:   i32[]! = []
+    set_count: i32[]!: []
+    get_count: i32[]!: []
+    tee_count: i32[]!: []
+    set_idx:   i32[]!: []
+    get_idx:   i32[]!: []
     for s in 0..<total_slots {
         set_count.push(0)
         get_count.push(0)
@@ -442,8 +460,8 @@ export propagate_const_single_use :: fn(function: BcFunction!) -> BcFunction! {
     }
 
     // Decide which (set_pc, get_pc) pairs to rewrite.
-    to_delete_set: MutableMap<i32, bool> = MutableMap<i32, bool> {}
-    replace_with: MutableMap<i32, Op> = MutableMap<i32, Op> {}
+    to_delete_set: MutableMap<i32, bool>: MutableMap<i32, bool> {}
+    replace_with: MutableMap<i32, Op>: MutableMap<i32, Op> {}
     for k in param_count..<total_slots {
         valid := true
         if tee_count[k] != 0 { valid = false }
@@ -478,9 +496,9 @@ export propagate_const_single_use :: fn(function: BcFunction!) -> BcFunction! {
     if to_delete_set.is_empty() { return function }
 
     // Rewrite the body : skip deleted indices, replace `local.get` sites.
-    new_body: Op[]! = []
-    new_debug: (DebugPos | null)[]! = []
-    old_to_new: i32[]! = []
+    new_body: Op[]!: []
+    new_debug: (DebugPos | null)[]!: []
+    old_to_new: i32[]!: []
     for pp in 0..<n { old_to_new.push(-1) }
     j: usize = 0
     for j < n {
@@ -513,13 +531,13 @@ export propagate_const_single_use :: fn(function: BcFunction!) -> BcFunction! {
 /// non-integer const kinds, where the const op and the slot share an exact
 /// ValType.
 const_val_type :: fn(c: ConstOp) -> ValType = match c {
-    is I32Const    -> ValType.I32
-    is I64Const    -> ValType.I64
-    is F64Const    -> ValType.F64
-    is BoolConst   -> ValType.Bool
-    is CharConst   -> ValType.Char
-    is StringConst -> ValType.String
-    is NullConst   -> ValType.Null
+    is I32Const    -> .I32
+    is I64Const    -> .I64
+    is F64Const    -> .F64
+    is BoolConst   -> .Bool
+    is CharConst   -> .Char
+    is StringConst -> .String
+    is NullConst   -> .Null
 }
 
 /// True when constant `cv` can be inlined into a slot of ValType `slot`
@@ -549,7 +567,7 @@ const_fills_slot :: fn(cv: ConstOp, slot: ValType) -> bool {
 export drop_dead_stores :: fn(function: BcFunction!) -> BcFunction! {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()
-    reads: i32[]! = []
+    reads: i32[]!: []
     for s in 0..<total_slots {
         reads.push(0)
     }
@@ -564,7 +582,7 @@ export drop_dead_stores :: fn(function: BcFunction!) -> BcFunction! {
         }
     }
     // Mark dead = non-param local slots with zero reads.
-    dead: bool[]! = []
+    dead: bool[]!: []
     for j in 0..<total_slots {
         dead.push(false)
     }
@@ -578,7 +596,7 @@ export drop_dead_stores :: fn(function: BcFunction!) -> BcFunction! {
     if !has_dead { return function }
 
     // Build slot remap : surviving slots stay dense from 0 upward.
-    remap: i32[]! = []
+    remap: i32[]!: []
     for n in 0..<total_slots {
         remap.push(-1)
     }
@@ -593,9 +611,9 @@ export drop_dead_stores :: fn(function: BcFunction!) -> BcFunction! {
     // Rewrite the body : drop dead writes, renumber surviving accesses.
     // Dead `local.tee` ops are dropped entirely — track an old→new PC
     // map so jump_table indices remap. Other ops keep a 1:1 mapping.
-    out: Op[]! = []
+    out: Op[]!: []
     body_len :: function.body.len()
-    old_to_new_pc: i32[]! = []
+    old_to_new_pc: i32[]!: []
     for init_pc in 0..<body_len { old_to_new_pc.push(-1) }
     pc: usize = 0
     for pc < body_len {
@@ -652,7 +670,7 @@ export drop_dead_stores :: fn(function: BcFunction!) -> BcFunction! {
     // Compact the locals list. Param slots aren't in `function.locals`
     // (they live in `signature.params`), so we only filter the per-fn
     // locals tail.
-    new_locals: BcLocal[]! = []
+    new_locals: BcLocal[]!: []
     for q in param_count..<total_slots {
         if !dead[q] { new_locals.push(function.locals[q - param_count]) }
     }
@@ -675,7 +693,7 @@ export drop_dead_stores :: fn(function: BcFunction!) -> BcFunction! {
 ///                      when no dedicated op exists).
 /// @return              the wrapper's op list (`local.get`* + op/import + return).
 export build_intrinsic_wrapper_body :: fn(imp: BcImport, import_index: i32) -> Op[]! {
-    body: Op[]! = []
+    body: Op[]!: []
     for i in 0..<imp.signature.params.len() {
         body.push(LocalGet { .slot = i32(i) })
     }
@@ -703,18 +721,18 @@ ends_with_return :: fn(body: Op[]) -> bool {
 import "std/testing"
 
 @test test_ends_with_return_empty_body :: fn() -> void {
-    body: Op[] = []
+    body: Op[]: []
     assert_eq(ends_with_return(body), false)
 }
 
 @test test_ends_with_return_terminated_body :: fn() -> void {
-    body: Op[]! = []
+    body: Op[]!: []
     body.push(Return {})
     assert_eq(ends_with_return(body), true)
 }
 
 @test test_convert_target_of_i32_maps_to_i32 :: fn() -> void {
-    target :: convert_target_of(ValType.I32)
+    target :: convert_target_of(.I32)
     if target is null {
         assert_eq("expected non-null target", "")
         return
@@ -726,7 +744,7 @@ import "std/testing"
 }
 
 @test test_convert_target_of_i64_widths_collapse_to_i64 :: fn() -> void {
-    target :: convert_target_of(ValType.Usize)
+    target :: convert_target_of(.Usize)
     if target is null {
         assert_eq("expected non-null target", "")
         return
@@ -738,15 +756,15 @@ import "std/testing"
 }
 
 @test test_convert_target_of_bool_returns_null :: fn() -> void {
-    target :: convert_target_of(ValType.Bool)
+    target :: convert_target_of(.Bool)
     assert_eq(target is null, true)
 }
 
 @test test_remap_debug_identity_preserves_positions :: fn() -> void {
-    old_debug: (DebugPos | null)[]! = []
+    old_debug: (DebugPos | null)[]!: []
     old_debug.push(DebugPos { .file = "f", .line = 1, .column = 1 })
     old_debug.push(DebugPos { .file = "f", .line = 2, .column = 1 })
-    old_to_new: i32[]! = []
+    old_to_new: i32[]!: []
     old_to_new.push(0)
     old_to_new.push(1)
     out :: remap_debug(old_debug, old_to_new, 2)
@@ -757,10 +775,10 @@ import "std/testing"
 
 @test test_remap_debug_fold_keeps_first_nonnull :: fn() -> void {
     // Two old ops fold onto the same new pc ; the head's real position wins.
-    old_debug: (DebugPos | null)[]! = []
+    old_debug: (DebugPos | null)[]!: []
     old_debug.push(DebugPos { .file = "f", .line = 10, .column = 1 })
     old_debug.push(DebugPos { .file = "f", .line = 20, .column = 1 })
-    old_to_new: i32[]! = []
+    old_to_new: i32[]!: []
     old_to_new.push(0)
     old_to_new.push(0)
     out :: remap_debug(old_debug, old_to_new, 1)
@@ -771,11 +789,11 @@ import "std/testing"
 @test test_remap_debug_null_head_yields_to_real :: fn() -> void {
     // A synthetic (null) head must not shadow a later real position on the
     // same folded slot — first NON-NULL wins.
-    synthetic: DebugPos | null = null
-    old_debug: (DebugPos | null)[]! = []
+    synthetic: DebugPos | null: null
+    old_debug: (DebugPos | null)[]!: []
     old_debug.push(synthetic)
     old_debug.push(DebugPos { .file = "f", .line = 42, .column = 1 })
-    old_to_new: i32[]! = []
+    old_to_new: i32[]!: []
     old_to_new.push(0)
     old_to_new.push(0)
     out :: remap_debug(old_debug, old_to_new, 1)
@@ -783,10 +801,10 @@ import "std/testing"
 }
 
 @test test_remap_debug_drops_removed_ops :: fn() -> void {
-    old_debug: (DebugPos | null)[]! = []
+    old_debug: (DebugPos | null)[]!: []
     old_debug.push(DebugPos { .file = "f", .line = 5, .column = 1 })
     old_debug.push(DebugPos { .file = "f", .line = 6, .column = 1 })
-    old_to_new: i32[]! = []
+    old_to_new: i32[]!: []
     old_to_new.push(-1)   // dropped
     old_to_new.push(0)
     out :: remap_debug(old_debug, old_to_new, 1)

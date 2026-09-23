@@ -99,8 +99,8 @@ walk_type :: fn(registry: InstanceRegistry!, t: Type) -> void {
     }
 }
 
-// Filter that allows TypeParam through — the registry stores `Yield<T>`
-// etc. as observed alongside `Yield<i32>`. Rejects only types that signal
+// Filter that allows TypeParam through — the registry stores `Range<T>`
+// etc. as observed alongside `Range<i32>`. Rejects only types that signal
 // "not yet resolved" or "free literal".
 all_concrete_enough :: fn(args: Type[]) -> bool {
     for arg in args {
@@ -201,7 +201,7 @@ import "vader/parser"
     registry :: InstanceRegistry {}
     sym :: dummy_struct_symbol("Foo")
     i32_type :: mk_primitive("i32")
-    args: Type[] = [i32_type]
+    args: Type[]: [i32_type]
     registry.add(sym, args)
     registry.add(sym, args)
     assert_eq(registry.order.len(), 1)
@@ -210,7 +210,7 @@ import "vader/parser"
 @test test_observe_struct_instance :: fn() -> void {
     registry :: InstanceRegistry {}
     sym :: dummy_struct_symbol("List")
-    args: Type[] = [mk_primitive("i32")]
+    args: Type[]: [mk_primitive("i32")]
     list_type :: mk_struct(sym, args, immutable = false)
     registry.observe(list_type)
     assert_eq(registry.order.len(), 1)

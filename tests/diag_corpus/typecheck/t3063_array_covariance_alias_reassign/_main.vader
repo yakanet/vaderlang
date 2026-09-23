@@ -5,7 +5,7 @@
 module "snippet"
 
 main :: fn() -> i32 {
-    a: i32[]! = [1, 2, 3]
+    a: i32[]!: [1, 2, 3]
     b: (i32 | string)[]! = ["x"]
     b = a
     b[0] = "hello"

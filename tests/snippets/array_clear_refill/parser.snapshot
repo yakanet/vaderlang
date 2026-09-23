@@ -49,7 +49,7 @@
         "stmts": [
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "local"
@@ -485,7 +485,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "src"

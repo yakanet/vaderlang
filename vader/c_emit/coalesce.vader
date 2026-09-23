@@ -83,8 +83,8 @@ export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
     //    A single byte walk tracks the line counter — no `split` (which would
     //    intern one throwaway atom per line). A `t<digits>` token never spans a
     //    newline, so line granularity is exact.
-    first: i32[]! = []
-    last:  i32[]! = []
+    first: i32[]!: []
+    last:  i32[]!: []
     for i in 0..<n { first.push(-1)  last.push(-1) }
     b :: fused.bytes()
     blen :: b.len()
@@ -114,9 +114,9 @@ export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
     //    strictly before this temp begins (equal endpoints share a line, so
     //    they overlap and must not merge).
     order :: order_by_first(first, n)
-    remap: i32[]! = [-1] * n
-    new_types: ValType[]! = []
-    slot_end:  i32[]! = []
+    remap: i32[]!: [-1] * n
+    new_types: ValType[]!: []
+    slot_end:  i32[]!: []
     for k in 0..<order.len() {
         oi :: order[k]
         d :: first[oi]
@@ -176,7 +176,7 @@ temp_token_at :: fn(b: u8[], i: usize, len: usize) = slot_token_at(b, i, len, 't
 // (ties by index, via the stable sort). Temps that never appear (first < 0) are
 // dropped — they hold no slot and are never referenced.
 order_by_first :: fn(first: i32[], n: usize) -> usize[] {
-    idx: usize[]! = []
+    idx: usize[]!: []
     for i in 0..<n {
         if first[i] >= 0 { idx.push(i) }
     }
@@ -218,7 +218,7 @@ rewrite_temps :: fn(body: string, remap: i32[]) -> string {
 
 // Occurrence count of each temp id `0..<n` across the whole body.
 count_temp_occurrences :: fn(body: string, n: usize) -> i32[] {
-    count: i32[]! = []
+    count: i32[]!: []
     for i in 0..<n { count.push(0) }
     b :: body.bytes()
     blen :: b.len()
@@ -298,7 +298,7 @@ fuse_temp_local_copies :: fn(body: string, n: usize) -> string {
     count :: count_temp_occurrences(body, n)
     lines :: body.split("\n")
     nlines :: lines.len()
-    out: string[]! = []
+    out: string[]!: []
     li: usize = 0
     for li < nlines {
         if li + 1 < nlines {
@@ -326,7 +326,7 @@ import "std/testing"
     // t0 (lines 0-1) and t1 (lines 3-4) are strictly disjoint Refs -> one slot,
     // and every `t1` is rewritten to the shared `t0`.
     body :: "t0 = a;\nuse(t0);\nsep();\nt1 = b;\nuse(t1);\n"
-    r :: coalesce_temps(body, [ValType.Ref, ValType.Ref])
+    r :: coalesce_temps(body, [.Ref, .Ref])
     assert_eq(r.types.len(), 1)
     assert_eq(r.body, "t0 = a;\nuse(t0);\nsep();\nt0 = b;\nuse(t0);\n")
 }
@@ -334,14 +334,14 @@ import "std/testing"
 @test test_coalesce_adjacent_no_merge :: fn() -> void {
     // t0's last read is the line t1 is defined on -> ranges touch -> two slots.
     body :: "t0 = a;\nt1 = f(t0);\nuse(t1);\n"
-    r :: coalesce_temps(body, [ValType.Ref, ValType.Ref])
+    r :: coalesce_temps(body, [.Ref, .Ref])
     assert_eq(r.types.len(), 2)
 }
 
 @test test_coalesce_per_type_bucketing :: fn() -> void {
     // Disjoint ranges but different ValTypes never share a slot.
     body :: "t0 = a;\nuse(t0);\nt1 = b;\nuse(t1);\n"
-    r :: coalesce_temps(body, [ValType.Ref, ValType.I32])
+    r :: coalesce_temps(body, [.Ref, .I32])
     assert_eq(r.types.len(), 2)
 }
 
@@ -350,7 +350,7 @@ import "std/testing"
     // rewritten. Without the skip, the path's `t1` would extend t1's range
     // (blocking the merge) AND get corrupted to `t0` on rewrite.
     body :: "#line 3 \"t1.vader\"\nt0 = a;\nuse(t0);\nt1 = b;\nuse(t1);\n"
-    r :: coalesce_temps(body, [ValType.Ref, ValType.Ref])
+    r :: coalesce_temps(body, [.Ref, .Ref])
     assert_eq(r.types.len(), 1)
     assert_eq(r.body, "#line 3 \"t1.vader\"\nt0 = a;\nuse(t0);\nt0 = b;\nuse(t0);\n")
 }

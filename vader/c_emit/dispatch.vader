@@ -51,19 +51,27 @@ find_vtable_row :: fn(ctx: EmitCtx, key: string) -> VtableRow | null {
 vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
     first :: ctx.module.functions[usize(row.entries[0].fn_index)]
     first_sig :: first.signature
+    // Bound once each: loop-invariant, and re-asking is a call where reading a
+    // field used to be free.
+    first_result :: bc_single_result(first_sig)
+    first_result_type :: bc_single_result_type(first_sig)
     uniform := true
     for e in row.entries {
         f :: ctx.module.functions[usize(e.fn_index)]
-        if f.signature.result != first_sig.result || f.signature.result_type != first_sig.result_type {
+        if bc_single_result(f.signature) != first_result
+            || bc_single_result_type(f.signature) != first_result_type {
             uniform = false
         }
     }
     if uniform { return first_sig }
     return BcSignature {
         .params = first_sig.params,
-        .result = .Any,
+        // The receiver's own result type, so the two arrays stay the same
+        // length — a vtable target is never scalarised (`value_return.vader`
+        // drops every function a row names), so this is always one entry.
+        .results = [.Any],
         .param_types = first_sig.param_types,
-        .result_type = first_sig.result_type,
+        .result_types = [first_result_type],
         .param_names = first_sig.param_names,
     }
 }
@@ -98,7 +106,7 @@ emit_vtable_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
             continue
         }
         sig :: vtable_sig_for_row(ctx, row)
-        out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(sig.result)} ${vtable_helper_name(row.key)}(${dispatcher_formal(sig)});\n")
+        out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(bc_single_result(sig))} ${vtable_helper_name(row.key)}(${dispatcher_formal(sig)});\n")
     }
 }
 
@@ -117,14 +125,14 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         if row.entries.len() == 0 { continue }
         sig :: vtable_sig_for_row(ctx, row)
         helper :: vtable_helper_name(row.key)
-        out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(sig.result)} ${helper}(${dispatcher_formal(sig)}) {\n")
+        out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(bc_single_result(sig))} ${helper}(${dispatcher_formal(sig)}) {\n")
         out.append("    switch (recv.tag) {\n")
         // A distinct (newtype) over a primitive shares its backing's runtime
         // tag, so several entries can map to one tag (e.g. i32 + a distinct
         // BlockId/LocalId → tag 4). Emit one `case` per tag : the first (the
         // backing's, whose delegating impl is equivalent) wins. Without this
         // the C carries a `duplicate case value`.
-        seen_tags: i32[]! = []
+        seen_tags: i32[]!: []
         for e in row.entries {
             dup := false
             for st in seen_tags {
@@ -138,35 +146,38 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
             seen_tags.push(e.receiver_type_index)
             callee :: ctx.module.functions[usize(e.fn_index)]
             csig :: callee.signature
-            args: string[]! = [coerce_expr(types, "recv", .Any, csig.params[0])]
+            args: string[]!: [coerce_expr(types, "recv", .Any, csig.params[0])]
             tail :: i32(csig.params.len()) - 1
             for i in 0..<tail {
                 args.push(coerce_expr(types, "a${i}", .Any, csig.params[usize(i + 1)]))
             }
             call_expr :: "${sanitise(callee.name)}(${args.join(", ")})"
-            if sig.result == ValType.Void {
+            if bc_single_result(sig) == .Void {
                 out.append("        case ${e.receiver_type_index}u: ${call_expr}; return;\n")
             } else {
-                out.append("        case ${e.receiver_type_index}u: return ${dispatcher_result(types, call_expr, csig.result, sig.result)};\n")
+                out.append("        case ${e.receiver_type_index}u: return ${dispatcher_result(types, call_expr, bc_single_result(csig), bc_single_result(sig))};\n")
             }
         }
         out.append("        default: vader_unreachable(\"vtable miss in ${row.key}\");\n")
         out.append("    }\n")
-        if sig.result != ValType.Void {
+        if bc_single_result(sig) != .Void {
             out.append("    vader_unreachable(\"vtable miss in ${row.key}\");\n")
         }
         out.append("}\n")
     }
 }
 
-/// The per-arm return expression : box the impl's primitive result when the
-/// dispatcher returns the erased `any`, otherwise return it as-is (ref / any
-/// impls pass through ; matching concrete results need no wrap).
-dispatcher_result :: fn(types: BcType[], call_expr: string, impl_result: ValType, sig_result: ValType) -> string {
-    impl_is_box :: impl_result == ValType.Any || impl_result == ValType.Ref || impl_result == ValType.Void
-    boxes :: sig_result == ValType.Any && !impl_is_box
-    if boxes { return coerce_expr(types, call_expr, impl_result, .Any) }
-    return call_expr
-}
+/// The per-arm return expression : wrap the impl's result when the dispatcher
+/// returns the erased `any` and the impl does not.
+///
+/// A `Ref` is NOT already a box — it is a bare `void*`, and returning one from a
+/// `vader_box_t` function does not compile. `Void` has nothing to wrap and `Any`
+/// is already the target shape; everything else does.
+dispatcher_result :: fn(types: BcType[], call_expr: string, impl_result: ValType, sig_result: ValType) -> string =
+    if sig_result == .Any && impl_result != .Any && impl_result != .Void {
+        coerce_expr(types, call_expr, impl_result, .Any)
+    } else {
+        call_expr
+    }
 
 

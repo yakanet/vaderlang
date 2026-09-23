@@ -124,7 +124,7 @@ new_ctx :: fn(
     m: BytecodeModule, release: bool, split: bool, universe: string[] = [],
     internal_fns: bool[] = [],
 ) -> EmitCtx {
-    names: string[]! = []
+    names: string[]!: []
     for i in 0..<m.types.len() {
         match m.types[i] {
             is BcStruct as s -> names.push(struct_c_name(s.name))
@@ -185,7 +185,7 @@ fn_linkage_prefix :: fn(ctx: EmitCtx, index: i32) -> string {
 /// @return         atom ids parallel to `strings`.
 compute_atom_ids :: fn(strings: string[], universe: string[]) -> i32[] {
     if universe.is_empty() {
-        ids: i32[]! = []
+        ids: i32[]!: []
         next_id: i32 = 1
         for i in 0..<strings.len() {
             if strings[i] == "" {
@@ -207,7 +207,7 @@ compute_atom_ids :: fn(strings: string[], universe: string[]) -> i32[] {
             index[universe[i]] = i32(i) + 1
         }
     }
-    ids: i32[]! = []
+    ids: i32[]!: []
     for i in 0..<strings.len() {
         if strings[i] == "" {
             ids.push(0)
@@ -224,7 +224,7 @@ atom_table_of :: fn(strings: string[], universe: string[]) -> string[] {
     if universe.len() != 0 {
         return universe
     }
-    out: string[]! = []
+    out: string[]!: []
     for i in 0..<strings.len() {
         if strings[i] != "" {
             out.push(strings[i])
@@ -246,7 +246,7 @@ export atom_universe_gaps :: fn(strings: string[], universe: string[]) -> string
     for u in universe {
         have.add(u)
     }
-    out: string[]! = []
+    out: string[]!: []
     for s in strings {
         if s != "" && !have.contains(s) {
             out.push(s)
@@ -388,9 +388,9 @@ emit_atom_comptime_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // `ctx.atom_table` is already in id order (id k at index k-1) — the
     // module's own non-empty literals, or the shared universe when one was
     // given. Empty literals carry no atom; they alias VADER_ATOM_EMPTY (0).
-    blob_lines: string[]! = []
-    offsets: i32[]! = []
-    lens: i32[]! = []
+    blob_lines: string[]!: []
+    offsets: i32[]!: []
+    lens: i32[]!: []
     offset: i32 = 0
     for i in 0..<ctx.atom_table.len() {
         s :: ctx.atom_table[i]
@@ -537,7 +537,7 @@ emit_global_const_roots :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// @param indices  the mutable entries' pool indices.
 /// @return         C address expressions, arrays first then their buffers.
 boxed_pool_objects :: fn(pool: BcDataEntry[], indices: usize[]) -> string[] {
-    out: string[]! = []
+    out: string[]!: []
     for i in indices { out.push("&vader_data_${i}") }
     for i in indices {
         if pool[i] !is BcPrimData { out.push("&vader_data_${i}_buf") }
@@ -552,7 +552,7 @@ boxed_pool_objects :: fn(pool: BcDataEntry[], indices: usize[]) -> string[] {
 /// @param pool  the module's data pool.
 /// @return      the indices whose entry is mutable ; empty when none.
 mutable_pool_indices :: fn(pool: BcDataEntry[]) -> usize[] {
-    out: usize[]! = []
+    out: usize[]!: []
     for i in 0..<pool.len() {
         if data_entry_mutable(pool[i]) { out.push(i) }
     }
@@ -564,8 +564,8 @@ mutable_pool_indices :: fn(pool: BcDataEntry[]) -> usize[] {
 // (children before parents) so the C forward-refs resolve.
 emit_agg_data_entry :: fn(out: StringBuilder!, i: usize, ad: BcAggregateData, array_type_id: i32, elem_tag: i32, atom_of: MutableMap<string, i32>, ctx: EmitCtx) -> void {
     n :: ad.elements.len()
-    boxed_kind :: array_kind_index(ArrayKind.Boxed)
-    slot_exprs: string[]! = []
+    boxed_kind :: array_kind_index(.Boxed)
+    slot_exprs: string[]!: []
     for k in 0..<n {
         slot_exprs.push(box_slot_c(ctx, out, ad.elements[k], "vader_data_${i}_e${k}", elem_tag, atom_of))
     }
@@ -592,7 +592,7 @@ emit_data_value :: fn(ctx: EmitCtx, out: StringBuilder!, v: BcDataValue, name: s
     if v is BcValStruct {
         type_id :: type_id_for_struct_symbol(ctx.module.types, v.symbol_id)
         cname :: ctx.struct_c_names[usize(type_id)]
-        parts: string[]! = ["{ ${type_id}u, 0u, 0u, 0u, NULL }"]
+        parts: string[]!: ["{ ${type_id}u, 0u, 0u, 0u, NULL }"]
         if ctx.module.types[usize(type_id)] is BcStruct as bcs {
             for k in 0..<v.fields.len() {
                 field_tid :: if k < bcs.fields.len() { bcs.fields[k].type_index } else { 0 }
@@ -618,17 +618,17 @@ emit_nested_array :: fn(ctx: EmitCtx, out: StringBuilder!, a: BcValArray, name: 
     elem_tag :: type_index_for_name(ctx.module.types, a.element_type_name)
     arr_tid :: array_type_index_for_element(ctx.module.types, elem_tag)
     link :: linkage_prefix(ctx.split)
-    if elem_kind == ArrayKind.Boxed {
-        slot_exprs: string[]! = []
+    if elem_kind == .Boxed {
+        slot_exprs: string[]!: []
         for k in 0..<n {
             slot_exprs.push(box_slot_c(ctx, out, a.elements[k], "${name}_x${k}", elem_tag, atom_of))
         }
         out.append("${link}const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[${n}]; } ${name}_buf = {\n")
-        out.append("    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, ${elem_tag}u, ${array_kind_index(ArrayKind.Boxed)}u, { 0u, 0u, 0u },\n")
+        out.append("    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, ${elem_tag}u, ${array_kind_index(.Boxed)}u, { 0u, 0u, 0u },\n")
         out.append("    { ${join_commas(slot_exprs)} }\n};\n")
     } else {
         cty :: c_type_for_array_kind(elem_kind)
-        slots: string[]! = []
+        slots: string[]!: []
         for el in a.elements {
             if el is BcValPrim { slots.push(data_slot_c(el.kind, el.bits, cty)) }
         }
@@ -650,7 +650,7 @@ struct_field_init :: fn(ctx: EmitCtx, out: StringBuilder!, v: BcDataValue, name:
     expr :: emit_data_value(ctx, out, v, name, atom_of)
     // T12: a concrete-ref field (struct/array/fn) is a raw `void*` ; an erased
     // field (union / open ref) stays a tagged `vader_box_t` slot.
-    if val_type_of_bc_type(ctx.module.types[usize(field_tid)]) == ValType.Ref {
+    if val_type_of_bc_type(ctx.module.types[usize(field_tid)]) == .Ref {
         return "(void*) ${expr}"
     }
     return "{ ${field_tid}u, 0u, { .obj = (void*) ${expr} } }"
@@ -667,9 +667,9 @@ box_slot_c :: fn(ctx: EmitCtx, out: StringBuilder!, v: BcDataValue, name: string
 // Storage kind of an array's elements — the first element's prim kind (enum/prim
 // arrays store at the repr width), or Boxed for struct / string / array elements.
 element_storage_kind :: fn(elements: BcDataValue[]) -> ArrayKind {
-    if elements.len() == 0 { return ArrayKind.Boxed }
+    if elements.len() == 0 { return .Boxed }
     if elements[0] is BcValPrim as p { return p.kind }
-    return ArrayKind.Boxed
+    return .Boxed
 }
 
 // Type-table index of the `BcStruct` declared by `symbol_id`. Load-bearing here
@@ -755,7 +755,7 @@ data_entry_mutable :: fn(e: BcDataEntry) -> bool = match e {
 // box tagged with the string element type, payload `.s` = the interned atom id.
 emit_str_data_entry :: fn(out: StringBuilder!, i: usize, sd: BcStrData, array_type_id: i32, elem_tag: i32, atom_of: MutableMap<string, i32>, split: bool) -> void {
     n :: sd.values.len()
-    boxed_kind :: array_kind_index(ArrayKind.Boxed)
+    boxed_kind :: array_kind_index(.Boxed)
     link :: linkage_prefix(split) + storage_qualifier(sd.mutable)
     out.append("${link}struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[${n}]; } vader_data_${i}_buf = {\n")
     out.append("    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, ${elem_tag}u, ${boxed_kind}u, { 0u, 0u, 0u },\n")
@@ -797,7 +797,7 @@ atom_for :: fn(atom_of: MutableMap<string, i32>, value: string) -> i32 {
 // Recover each data-pool entry's array type_id by scanning every fn's ops for
 // the `data.const` that references it (the entry struct doesn't store it).
 data_pool_type_ids :: fn(module: BytecodeModule) -> i32[] {
-    out: i32[]! = [0] * module.data_pool.len()
+    out: i32[]!: [0] * module.data_pool.len()
     for f in module.functions {
         for op in f.body {
             if op is DataConst {
@@ -816,8 +816,8 @@ data_pool_type_ids :: fn(module: BytecodeModule) -> i32[] {
 // re-render the value as a C float literal (`float_lit`), so `2.5` lands as the
 // double `2.5`, not the integer `0x4004…` cast to double.
 data_slot_c :: fn(kind: ArrayKind, bits: u64, cty: string) -> string {
-    if kind == ArrayKind.F64 { return "(${cty}) ${float_lit(bits.from_bits())}" }
-    if kind == ArrayKind.F32 { return "(${cty}) ${float_lit(f64(u32(bits).from_bits()))}" }
+    if kind == .F64 { return "(${cty}) ${float_lit(bits.from_bits())}" }
+    if kind == .F32 { return "(${cty}) ${float_lit(f64(u32(bits).from_bits()))}" }
     return "(${cty}) UINT64_C(${bits})"
 }
 
@@ -878,10 +878,31 @@ signature_for :: fn(function: BcFunction) -> string {
         if i > 0 { sb.append(", ") }
         sb.append("${c_type_for_val_bare(params[i])} l${i}")
     }
+    // A multi-value return has no C spelling, so it becomes out-params appended
+    // after the declared ones and the function itself returns void. Measured as
+    // the fastest of the three shapes a composite can cross in — out-params,
+    // a flat struct by value, or the heap object this replaces — and the only
+    // one that needs no ABI threshold to be known. Record:
+    // `.claude/plans/2026-09-22-tuple-value-abi.md` §2.
+    results :: function.signature.results
+    if bc_result_arity(function.signature) > 1 {
+        for i in 0..<results.len() {
+            if params.len() > 0 || i > 0 { sb.append(", ") }
+            sb.append("${c_type_for_val_bare(results[i])}* ${out_param_name(i)}")
+        }
+        return "void ${sanitise(function.name)}(${sb})"
+    }
     param_list :: if params.len() == 0 { "void" } else { "${sb}" }
-    cret :: c_type_for_val_bare(function.signature.result)
+    cret :: c_type_for_val_bare(bc_single_result(function.signature))
     return "${cret} ${sanitise(function.name)}(${param_list})"
 }
+
+/// Name of the `i`-th out-param in a scalarised multi-value signature.
+///
+/// One place, because the callee's `return` writes through it and every call
+/// site takes its address — a mismatch between the two is a C compile error at
+/// best and the wrong slot at worst.
+export out_param_name :: fn(i: usize) -> string = "__o${i}"
 
 /// Per-`BcFn` function-pointer typedef + per-arity canonical erased
 /// typedef. The canonical erased family is always emitted at least for
@@ -947,7 +968,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // Per-type pre-classification : for each struct, capture its three
     // offset lists once ; the info row downstream reads only the
     // lengths. Non-struct kinds emit their fixed `_ptrs[]` immediately.
-    struct_offsets: StructOffsets[]! = []
+    struct_offsets: StructOffsets[]!: []
     for i in 0..<count {
         match types[i] {
             is BcStruct as s -> {
@@ -1012,9 +1033,9 @@ StructOffsets :: struct {
 }
 
 empty_struct_offsets :: fn() -> StructOffsets {
-    p: string[]! = []
-    s: string[]! = []
-    r: string[]! = []
+    p: string[]!: []
+    s: string[]!: []
+    r: string[]!: []
     return StructOffsets { .ptr_offsets = p, .str_offsets = s, .ref_offsets = r }
 }
 
@@ -1044,7 +1065,7 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> St
         // a `str_offsets` tracking slot ; other primitives carry no heap ref.
         if ftype is BcPrimitive {
             if is_string_val(ftype.val) { offsets.str_offsets.push(offset) }
-        } else if val_type_of_bc_type(ftype) == ValType.Ref {
+        } else if val_type_of_bc_type(ftype) == .Ref {
             offsets.ref_offsets.push(offset)
         } else {
             offsets.ptr_offsets.push(offset)
@@ -1144,7 +1165,7 @@ emit_main :: fn(ctx: EmitCtx, out: StringBuilder!, entry_mangled: string) -> voi
         }
         // The entry's `argv: [string]` param is a concrete array → a raw `void*`
         // (`.Ref`) under T12 ; pass the array pointer directly. (`.Any` would box.)
-        if function.signature.params[0] == ValType.Ref {
+        if function.signature.params[0] == .Ref {
             out.append("    void* __args = (void*) vader_runtime_argv(argc, argv, ${arr_idx}u, ${str_idx}u);\n")
         } else {
             out.append("    vader_box_t __args = vader_box_obj(${arr_idx}u, vader_runtime_argv(argc, argv, ${arr_idx}u, ${str_idx}u));\n")
@@ -1154,7 +1175,7 @@ emit_main :: fn(ctx: EmitCtx, out: StringBuilder!, entry_mangled: string) -> voi
         out.append("    (void)argc; (void)argv;\n")
     }
 
-    if function.signature.result == ValType.Void {
+    if bc_single_result(function.signature) == .Void {
         out.append("    ${cname}(${call_args});\n")
         out.append("    return 0;\n")
     } else {
@@ -1194,7 +1215,7 @@ null_primitive_tag :: fn(types: BcType[]) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
         if t is BcPrimitive {
-            if t.val == ValType.Null { return i32(i) }
+            if t.val == .Null { return i32(i) }
         }
     }
     return 0

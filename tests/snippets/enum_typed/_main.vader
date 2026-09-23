@@ -29,7 +29,7 @@ main :: fn() -> i32 {
     println(describe(.North))
     println(describe(.West))
 
-    op: Op = .Pop
+    op: Op: .Pop
     match op {
         .Halt -> println("halt")
         .Push -> println("push")

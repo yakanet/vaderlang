@@ -32,14 +32,7 @@ export push :: fn(self: Scope!) -> void {
 /// Drop the innermost scope. No-op on an empty stack — the body walker
 /// over-pops on malformed AST rather than crashing.
 export pop :: fn(self: Scope!) -> void {
-    n :: self.frames.len()
-    if n == 0 { return }
-    // Arrays don't have `pop` yet, so slice everything but the last entry.
-    new_frames: MutableMap<string, Symbol>[]! = []
-    for i in 0..<usize(n - 1) {
-        new_frames.push(self.frames[i])
-    }
-    self.frames = new_frames
+    _ :: self.frames.remove_last()
 }
 
 /// Bind `name` in the innermost frame. Silently shadows any outer

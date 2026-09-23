@@ -77,26 +77,26 @@ export val_type_name :: fn(v: ValType) -> string = match v {
 /// @return      the matching `ValType` variant, or `null` when the
 ///              name isn't a recognised primitive / reference shape.
 export parse_val_type :: fn(name: string) -> ValType | null {
-    if name == "i8" { return ValType.I8 }
-    if name == "i16" { return ValType.I16 }
-    if name == "i32" { return ValType.I32 }
-    if name == "i64" { return ValType.I64 }
-    if name == "isize" { return ValType.Isize }
-    if name == "u8" { return ValType.U8 }
-    if name == "u16" { return ValType.U16 }
-    if name == "u32" { return ValType.U32 }
-    if name == "u64" { return ValType.U64 }
-    if name == "usize" { return ValType.Usize }
-    if name == "f32" { return ValType.F32 }
-    if name == "f64" { return ValType.F64 }
-    if name == "bool" { return ValType.Bool }
-    if name == "char" { return ValType.Char }
-    if name == "string" { return ValType.String }
-    if name == "null" { return ValType.Null }
-    if name == "void" { return ValType.Void }
-    if name == "pointer" { return ValType.Pointer }
-    if name == "ref" { return ValType.Ref }
-    if name == "any" { return ValType.Any }
+    if name == "i8" { return .I8 }
+    if name == "i16" { return .I16 }
+    if name == "i32" { return .I32 }
+    if name == "i64" { return .I64 }
+    if name == "isize" { return .Isize }
+    if name == "u8" { return .U8 }
+    if name == "u16" { return .U16 }
+    if name == "u32" { return .U32 }
+    if name == "u64" { return .U64 }
+    if name == "usize" { return .Usize }
+    if name == "f32" { return .F32 }
+    if name == "f64" { return .F64 }
+    if name == "bool" { return .Bool }
+    if name == "char" { return .Char }
+    if name == "string" { return .String }
+    if name == "null" { return .Null }
+    if name == "void" { return .Void }
+    if name == "pointer" { return .Pointer }
+    if name == "ref" { return .Ref }
+    if name == "any" { return .Any }
     return null
 }
 
@@ -630,7 +630,7 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
     is BcStruct -> true
     is BcArray -> true
     is BcFn -> true
-    is BcPrimitive -> t.val == ValType.Null
+    is BcPrimitive -> t.val == .Null
     is BcRef -> false
     is BcUnion -> {
         for v in t.variants {
@@ -654,11 +654,11 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
 /// @return         the storage discriminator the runtime reads off the buffer.
 export array_kind_of :: fn(element: BcType, types: BcType[]) -> ArrayKind = match element {
     is BcPrimitive -> array_kind_of_val(element.val)
-    is BcStruct -> ArrayKind.Ref
-    is BcArray -> ArrayKind.Ref
-    is BcFn -> ArrayKind.Ref
-    is BcUnion -> if is_ref_only_element(element, types) { ArrayKind.Ref } else { ArrayKind.Boxed }
-    is BcRef -> ArrayKind.Boxed
+    is BcStruct -> .Ref
+    is BcArray -> .Ref
+    is BcFn -> .Ref
+    is BcUnion -> if is_ref_only_element(element, types) { .Ref } else { .Boxed }
+    is BcRef -> .Boxed
 }
 
 /// `array_kind_of` specialisation when the caller already narrowed to
@@ -667,26 +667,26 @@ export array_kind_of :: fn(element: BcType, types: BcType[]) -> ArrayKind = matc
 /// @return   the matching storage discriminator (`Boxed` for `String`
 ///           / `Null` / `Void` / `Ref` / `Any`).
 export array_kind_of_val :: fn(v: ValType) -> ArrayKind = match v {
-    .U8 -> ArrayKind.U8
-    .U16 -> ArrayKind.U16
-    .U32 -> ArrayKind.U32
-    .U64 -> ArrayKind.U64
-    .Usize -> ArrayKind.U64
-    .I8 -> ArrayKind.I8
-    .I16 -> ArrayKind.I16
-    .I32 -> ArrayKind.I32
-    .I64 -> ArrayKind.I64
-    .Isize -> ArrayKind.I64
-    .F32 -> ArrayKind.F32
-    .F64 -> ArrayKind.F64
-    .Char -> ArrayKind.Char
-    .Bool -> ArrayKind.Bool
-    .String -> ArrayKind.Boxed
-    .Null -> ArrayKind.Boxed
-    .Void -> ArrayKind.Boxed
-    .Pointer -> ArrayKind.U64
-    .Ref -> ArrayKind.Ref
-    .Any -> ArrayKind.Boxed
+    .U8 -> .U8
+    .U16 -> .U16
+    .U32 -> .U32
+    .U64 -> .U64
+    .Usize -> .U64
+    .I8 -> .I8
+    .I16 -> .I16
+    .I32 -> .I32
+    .I64 -> .I64
+    .Isize -> .I64
+    .F32 -> .F32
+    .F64 -> .F64
+    .Char -> .Char
+    .Bool -> .Bool
+    .String -> .Boxed
+    .Null -> .Boxed
+    .Void -> .Boxed
+    .Pointer -> .U64
+    .Ref -> .Ref
+    .Any -> .Boxed
 }
 
 // ---- canonical keys -------------------------------------------------------
@@ -727,7 +727,7 @@ export bc_type_key :: fn(types: BcType[], idx: i32) -> string {
 /// Join the keys of `indices` with `sep` — the shared shape behind a union's
 /// variants and a fn's parameters.
 key_join :: fn(types: BcType[], indices: i32[], sep: string) -> string {
-    parts: string[]! = []
+    parts: string[]!: []
     for i in indices {
         parts.push(bc_type_key(types, i))
     }

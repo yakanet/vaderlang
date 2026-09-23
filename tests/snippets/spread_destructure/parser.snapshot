@@ -63,7 +63,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "TupleBinding",
               "elements": [
@@ -182,7 +182,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "TupleBinding",
               "elements": [
@@ -270,7 +270,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "TupleBinding",
               "elements": [

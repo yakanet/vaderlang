@@ -12,7 +12,7 @@
 //   1. a `match` over a union (emits an `unreachable` non-exhaustive fallback
 //      arm + a merge block both arms reach),
 //   2. two levels of nested `if` after the match,
-//   3. a `for x in <array>` loop (the ArrayIterator `.next()`/`Yield` CFG, not
+//   3. a `for x in <array>` loop (the iterator `.next()` step CFG, not
 //      a range loop) whose body has a `continue`.
 // The structurer re-emits the post-match continuation per branch instead of
 // once at the merge ; the second emission re-enters the already-wrapped inner

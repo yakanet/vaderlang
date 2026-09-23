@@ -3,7 +3,7 @@ module "snippet"
 import "std/io"
 
 main :: fn() -> i32 {
-    record: [[i32, string], bool] = [[42, "answer"], true]
+    record: [[i32, string], bool]: [[42, "answer"], true]
     match record {
         [[id, label], active] -> println("id=${id} label=${label} active=${active}")
     }

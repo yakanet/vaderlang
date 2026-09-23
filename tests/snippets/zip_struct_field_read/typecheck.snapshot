@@ -3,11 +3,11 @@
 ## tests/snippets/zip_struct_field_read
   FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point!
-  expr 17:24    SeqLitExpr     :: string[]
-  expr 17:25    StringLitExpr  :: string
-  expr 17:30    StringLitExpr  :: string
-  expr 17:35    StringLitExpr  :: string
-  expr 18:20    SeqLitExpr     :: Point[]
+  expr 17:23    SeqLitExpr     :: string[]
+  expr 17:24    StringLitExpr  :: string
+  expr 17:29    StringLitExpr  :: string
+  expr 17:34    StringLitExpr  :: string
+  expr 18:19    SeqLitExpr     :: Point[]
   expr 19:9     StructLitExpr  :: Point!
   expr 20:9     StructLitExpr  :: Point!
   expr 21:9     StructLitExpr  :: Point!

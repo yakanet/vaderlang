@@ -149,6 +149,9 @@ first_terminator_operand :: fn(t: Terminator) -> LocalId | null {
         is TermBranch      -> { return null }
         is TermUnreachable -> { return null }
         is TermCondBranch  -> { return t.cond }
-        is TermReturn      -> { return t.value }
+        // Only a single-value return can hand its operand to the scheduler:
+        // with several, the first is pushed BEFORE the rest, so letting it stay
+        // on the stack would put the others on top of it.
+        is TermReturn      -> { return term_return_single(t) }
     }
 }

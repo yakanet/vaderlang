@@ -157,6 +157,13 @@ export PrimitiveMeta :: struct {
     is_int:    bool
     is_signed: bool
     is_float:  bool
+    /// The value is a handle the runtime follows, not storage the slot owns.
+    /// `string` is an interned atom the collector tracks ; `CPointer` addresses
+    /// memory the Vader side does not own. A pass deciding whether a value can
+    /// be copied into registers, embedded in a flat layout, or taken the address
+    /// of has to ask this — the size alone says `CPointer` is eight bytes like a
+    /// `u64`, and that is the wrong answer.
+    is_reference: bool = false
 }
 
 export PRIMITIVE_META: PrimitiveMeta[]: [
@@ -174,10 +181,10 @@ export PRIMITIVE_META: PrimitiveMeta[]: [
     PrimitiveMeta { .name = "f64",    .size = 8,  .is_int = false, .is_signed = false, .is_float = true  },
     PrimitiveMeta { .name = "bool",   .size = 1,  .is_int = false, .is_signed = false, .is_float = false },
     PrimitiveMeta { .name = "char",   .size = 4,  .is_int = false, .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "string", .size = 16, .is_int = false, .is_signed = false, .is_float = false },
+    PrimitiveMeta { .name = "string", .size = 4,  .is_int = false, .is_signed = false, .is_float = false, .is_reference = true },
     PrimitiveMeta { .name = "void",   .size = 0,  .is_int = false, .is_signed = false, .is_float = false },
     PrimitiveMeta { .name = "null",   .size = 0,  .is_int = false, .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "CPointer", .size = 8, .is_int = false, .is_signed = false, .is_float = false },
+    PrimitiveMeta { .name = "CPointer", .size = 8, .is_int = false, .is_signed = false, .is_float = false, .is_reference = true },
 ]
 
 /// The `PrimitiveMeta` row for `name`, or null when `name` is not a primitive.
@@ -189,6 +196,15 @@ export primitive_meta :: fn(name: string) -> PrimitiveMeta | null {
 }
 
 export is_primitive_name :: fn(name: string) -> bool = primitive_meta(name) != null
+
+/// Whether `name` is a primitive the runtime reaches through a handle.
+///
+/// False for anything that is not a primitive at all — the question only has a
+/// meaning for a row of the table.
+export is_reference_name :: fn(name: string) -> bool {
+    m :: primitive_meta(name)
+    return m != null && m.is_reference
+}
 
 export is_int_name :: fn(name: string) -> bool {
     m :: primitive_meta(name)
@@ -223,6 +239,57 @@ export primitive_size :: fn(name: string) -> i64 {
 
 /// Alignment in bytes — equal to size on the 64-bit target.
 export primitive_align :: fn(name: string) -> i64 = primitive_size(name)
+
+/// Width in bytes of the SLOT that carries a `t` — a struct field, a local, a
+/// parameter. Not the size of the object a reference points at.
+///
+/// This is what `@size_of` reports, and the operational truth is
+/// `bytecode::val_type_of_type` composed with `c_emit::c_type_for_val_bare`:
+/// those two decide the C declaration, and any disagreement with this function
+/// is a bug here. It lives in `vader/types` because `vader/comptime` folds
+/// `@size_of` and cannot reach `vader/bytecode` without inverting an import
+/// edge; the colocated tests below pin one case per class against the emitted C.
+///
+/// A concrete reference is EIGHT bytes, not sixteen: since T12 a struct, array,
+/// tuple or fn value rides as a bare `void*` and recovers its tag from the
+/// object header. Only an ERASED slot — a trait object, a union, `any` — still
+/// carries a `vader_box_t`, whose tag it needs because no single object header
+/// answers for every variant it may hold.
+///
+/// @return  0 for the comptime-only and unsized kinds — they name no storage.
+export slot_byte_size :: fn(t: Type) -> i64 = match t {
+    is PrimitiveType -> primitive_size(t.name)
+    // An enum rides its `repr`, so `enum(u8)` is one byte and the i32 default
+    // four. Reporting a uniform 16 was the difference between a packed array of
+    // enums and one that is four times denser.
+    is EnumType     -> primitive_size(t.repr)
+    is DistinctType -> slot_byte_size(t.backing)
+    is StructType | ArrayType | TupleType | FnType   -> REF_SLOT_BYTES
+    is TraitType | UnionType | AnyType               -> BOX_SLOT_BYTES
+    is TypeMetaType | TypeParamType | SelfType | UnresolvedType
+     | FreeIntType | FreeFloatType | FreeCharType | NeverType -> 0
+}
+
+/// Alignment in bytes of that slot.
+///
+/// Every scalar aligns to its own width on the 64-bit target ; a `vader_box_t`
+/// is 16 bytes wide but its widest member is a word, so it aligns to 8.
+export slot_byte_align :: fn(t: Type) -> i64 {
+    size :: slot_byte_size(t)
+    if size > WORD_BYTES {
+        return WORD_BYTES
+    }
+    return size
+}
+
+/// A concrete heap reference — `void*` since T12.
+export REF_SLOT_BYTES: i64: 8
+
+/// An erased slot — `vader_box_t`, a tag plus a word of payload.
+export BOX_SLOT_BYTES: i64: 16
+
+/// Pointer width on the 64-bit target.
+export WORD_BYTES: i64: 8
 
 /// Friendly type-name aliases that collapse to a canonical primitive
 /// (`int → i32`, …). Consumed by the resolver's builtin scope and typecheck's
@@ -264,8 +331,13 @@ export TRAIT_INDEX_SET  :: @type_name(IndexSet)
 
 /// Names of stdlib core structs the compiler refers to by symbol.
 export STRUCT_RANGE          :: @type_name(Range)
-export STRUCT_ARRAY_ITERATOR :: @type_name(ArrayIterator)
-export STRUCT_YIELD          :: @type_name(Yield)
+
+/// `std/core::Continuation` and its variants — what an `Iterator.next` pairs its
+/// element with. The lowerer builds the comparison, so the spellings live beside
+/// the type.
+export ENUM_CONTINUATION     :: @type_name(Continuation)
+export CONTINUATION_STOP     :: "Stop"
+export CONTINUATION_CONTINUE :: "Continue"
 export STRUCT_SUSPENDED      :: @type_name(Suspended)
 export STRUCT_FIELD          :: @type_name(Field)
 
@@ -287,7 +359,6 @@ export METHOD_RESUME     :: "resume"
 export METHOD_CANCEL     :: "cancel"
 export METHOD_TO_STRING  :: "to_string"
 export METHOD_HASH       :: "hash"
-export METHOD_ITER       :: "iter"
 export METHOD_AT         :: "at"
 export METHOD_SET_AT     :: "set_at"
 
@@ -340,7 +411,7 @@ export mk_fn_drop_self :: fn(src: FnType, params: Type[], ret: Type) -> Type {
     if src.params_mutable.len() == 0 {
         return mk_fn(params, ret)
     }
-    tail: bool[]! = []
+    tail: bool[]!: []
     for i in 1..<src.params_mutable.len() {
         tail.push(src.params_mutable[i])
     }
@@ -463,6 +534,25 @@ export display_type :: fn(t: Type) -> string {
 /// registration wrote `"Cfg::bump"` and the whole impl dispatch would miss —
 /// silently, since a miss just means "no such method".
 export display_type_key :: fn(t: Type) -> string {
+    // Fast path, and it reaches FURTHER than `display_type`'s : with the
+    // mutability marker off, a nominal type with no args renders to the name it
+    // already carries. `StringBuilder {}` costs two allocations before the first
+    // character (the struct, then its `parts`), so the builder existed only to
+    // hand back a string the type was holding.
+    match t {
+        is PrimitiveType -> {
+            return t.name
+        }
+        is EnumType | DistinctType | TypeParamType -> {
+            return t.symbol.name
+        }
+        is StructType | TraitType                  -> {
+            if t.args.len() == 0 {
+                return t.symbol.name
+            }
+        }
+        _                                          -> {}  // fall through for composite types
+    }
     sb :: StringBuilder {}
     sb.write_type_mut(t, false)
     return sb.to_string()
@@ -738,7 +828,7 @@ export tuple_backing :: fn(t: Type) -> TupleType | null {
 /// @param args  the concrete type arguments.
 /// @return      `args` with every distinct collapsed to its backing.
 export strip_distinct_each :: fn(args: Type[]) -> Type[] {
-    out: Type[]! = []
+    out: Type[]!: []
     for a in args { out.push(strip_distinct(a)) }
     return out
 }
@@ -774,24 +864,24 @@ test_display_array :: fn() -> void {
 
 @test
 test_display_tuple :: fn() -> void {
-    el0: Type = mk_primitive("i32")
-    el1: Type = mk_primitive("string")
+    el0: Type: mk_primitive("i32")
+    el1: Type: mk_primitive("string")
     t :: mk_tuple([el0, el1], false)
     assert_eq(display_type(t), "[i32, string]!")
 }
 
 @test
 test_display_fn :: fn() -> void {
-    p0: Type = mk_primitive("i32")
-    p1: Type = mk_primitive("string")
+    p0: Type: mk_primitive("i32")
+    p1: Type: mk_primitive("string")
     f :: mk_fn([p0, p1], mk_primitive("bool"))
     assert_eq(display_type(f), "fn(i32, string) -> bool")
 }
 
 @test
 test_display_union :: fn() -> void {
-    v0: Type = mk_primitive("i32")
-    v1: Type = mk_primitive("string")
+    v0: Type: mk_primitive("i32")
+    v1: Type: mk_primitive("string")
     u :: mk_union([v0, v1])
     assert_eq(display_type(u), "i32 | string")
 }
@@ -800,8 +890,8 @@ test_display_union :: fn() -> void {
 test_display_struct_with_args :: fn() -> void {
     factory :: SymbolFactory {}
     sym :: factory.make(.Struct, "MutableMap", "test", "test", .Public, null)
-    a0: Type = mk_primitive("string")
-    a1: Type = mk_primitive("i32")
+    a0: Type: mk_primitive("string")
+    a1: Type: mk_primitive("i32")
     s :: mk_struct(sym, [a0, a1], false)
     assert_eq(display_type(s), "MutableMap<string, i32>!")
 }
@@ -845,19 +935,85 @@ test_primitive_meta_partition :: fn() -> void {
     assert(is_signed_int_name("i64") && !is_unsigned_int_name("i64"), "i64 is signed int")
     assert(is_float_name("f32") && !is_int_name("f32"), "f32 is float not int")
     assert(!is_numeric_name("char") && !is_numeric_name("string"), "char/string not numeric")
-    assert_eq(primitive_size("string"), 16)
+    // An atom id, not the retired `{ptr, len}` fat pointer.
+    assert_eq(primitive_size("string"), 4)
     assert_eq(primitive_size("i32"), 4)
     assert_eq(resolve_primitive_alias("byte"), "u8")
     assert_eq(resolve_primitive_alias("i32"), "i32")
 }
 
 @test
+test_slot_size_of_a_string_is_an_atom_id :: fn() -> void {
+    // `typedef vader_atom_t vader_string_t` — a u32. The `{ptr, len}` fat
+    // pointer this used to report went out of the runtime with T12.
+    assert_eq(slot_byte_size(mk_primitive("string")), 4)
+}
+
+@test
+test_slot_size_of_a_byte_enum_is_one :: fn() -> void {
+    // `enum(u8)` emits a `uint8_t` field ; a uniform 16 was the difference
+    // between a packed array of enums and one four times larger.
+    assert_eq(slot_byte_size(slot_size_test_enum("u8")), 1)
+}
+
+@test
+test_slot_size_of_a_default_enum_is_four :: fn() -> void {
+    assert_eq(slot_byte_size(slot_size_test_enum("i32")), 4)
+}
+
+@test
+test_slot_size_of_a_concrete_ref_is_a_word :: fn() -> void {
+    // Since T12 a struct field emits `void*`, not a `vader_box_t`.
+    assert_eq(slot_byte_size(mk_array(mk_primitive("i32"), false)), REF_SLOT_BYTES)
+}
+
+@test
+test_slot_size_of_an_erased_slot_is_a_box :: fn() -> void {
+    // A union has no single object header to recover a tag from, so it keeps
+    // the boxed slot.
+    either :: mk_union([mk_primitive("i32"), mk_primitive("string")])
+    assert_eq(slot_byte_size(either), BOX_SLOT_BYTES)
+}
+
+@test
+test_slot_size_of_an_abstract_kind_is_zero :: fn() -> void {
+    assert_eq(slot_byte_size(TY_NEVER), 0)
+}
+
+@test
+test_slot_align_caps_at_a_word :: fn() -> void {
+    either :: mk_union([mk_primitive("i32"), mk_primitive("string")])
+    assert_eq(slot_byte_align(either), WORD_BYTES)
+}
+
+@test
+test_slot_align_of_a_narrow_scalar_is_its_width :: fn() -> void {
+    assert_eq(slot_byte_align(mk_primitive("i16")), 2)
+}
+
+slot_size_test_enum :: fn(repr: string) -> Type = EnumType {
+    .symbol = slot_size_test_sym(),
+    .repr = repr,
+    .indices = MutableMap<string, i64> {},
+}
+
+slot_size_test_sym :: fn() -> Symbol = Symbol {
+    .id = 9002,
+    .kind = .TypeAlias,
+    .name = "Color",
+    .module = "test",
+    .module_name = "test",
+    .visibility = .Private,
+    .defined_at = null,
+}
+
+@test
 test_display_nested :: fn() -> void {
     // fn(i32[], string) -> i32 | null
-    arr: Type = mk_array(mk_primitive("i32"), false)
-    str: Type = mk_primitive("string")
-    i32_t: Type = mk_primitive("i32")
-    null_t: Type = mk_primitive("null")
+    arr: Type: mk_array(mk_primitive("i32"), false)
+    str: Type: mk_primitive("string")
+    i32_t: Type: mk_primitive("i32")
+    null_t: Type: mk_primitive("null")
     ret :: mk_union([i32_t, null_t])
     f :: mk_fn([arr, str], ret)
     assert_eq(display_type(f), "fn(i32[]!, string) -> i32 | null")

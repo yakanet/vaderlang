@@ -14,19 +14,19 @@ type 11 array 12
 type 12 fn () -> 4
 type 13 ref Async
 type 14 union 7,15
-type 15 struct std_async$TimeoutError { ms:20 }
+type 15 struct std_async$TimeoutError { ms:21 }
 type 16 ref Error
 type 17 primitive bool
-type 18 primitive usize
-type 19 struct std_core$Buffer {  }
-type 20 primitive i64
-type 21 primitive u8
-type 22 array 21
-type 23 struct std_async$Timeout__string { child:1,timer:25,ms:20 }
+type 18 primitive u8
+type 19 primitive usize
+type 20 struct std_core$Buffer {  }
+type 21 primitive i64
+type 22 array 18
+type 23 struct std_async$Timeout__string { child:1,timer:25,ms:21 }
 type 24 union 7,8,15
 type 25 ref Async
 type 26 ref Async
-type 27 struct std_async$Sleep { ms:20,deadline:20,armed:17 }
+type 27 struct std_async$Sleep { ms:21,deadline:21,armed:17 }
 type 28 union 0,8
 type 29 ref Async
 type 30 primitive isize
@@ -39,16 +39,16 @@ string 4 "\n"
 string 5 "operation timed out after "
 string 6 "ms"
 string 7 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len result_type=18 param_types=7 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=19 param_types=7 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=22 param_types=7 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=30 param_types=2,22,18 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-import 3 sched_now std_runtime$sched_now result_type=20 () -> i64
-import 4 sched_arm std_runtime$sched_arm result_type=4 param_types=20 param_mutable=0 param_by_address= (i64) -> void
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=30 param_types=2,22,19 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 sched_now std_runtime$sched_now result_type=21 () -> i64
+import 4 sched_arm std_runtime$sched_arm result_type=4 param_types=21 param_mutable=0 param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=2 () -> i32
 import 6 panic std_abort$panic result_type=4 param_types=7 param_mutable=0 param_by_address= (string) -> void
 impl 5 Async
 impl 9 Async
-impl 19 ByteAccess
+impl 20 ByteAccess
 impl 23 Async
 impl 27 Async
 impl 15 Error
@@ -788,7 +788,7 @@ fn 15 std_async$Timeout$Async$resume__string (ref) -> any
     local.field 0 23 0   ; arg 0.child
     virtual.call 1 Async.cancel
     local.field 0 23 2   ; arg 0.ms
-    ref.cast 20   ; -> i64
+    ref.cast 21   ; -> i64
     struct.new 15   ; std_async$TimeoutError
     return
   end $L0
@@ -835,7 +835,7 @@ fn 19 std_async$Sleep$Async$resume (ref) -> any
     call.import 3   ; std_runtime$sched_now
     local.set 1   ; $call_4
     local.field 0 27 0   ; arg 0.ms
-    ref.cast 20   ; -> i64
+    ref.cast 21   ; -> i64
     local.set 2   ; $field_5
     local.get 1   ; $call_4
     local.get 2   ; $field_5
@@ -845,13 +845,13 @@ fn 19 std_async$Sleep$Async$resume (ref) -> any
     local.get 1   ; $call_4
     struct.set 27 1   ; std_async$Sleep.deadline
     local.field 0 27 1   ; arg 0.deadline
-    ref.cast 20   ; -> i64
+    ref.cast 21   ; -> i64
     call.import 4   ; std_runtime$sched_arm
   end $L0
   call.import 3   ; std_runtime$sched_now
   local.set 1   ; $call_4
   local.field 0 27 1   ; arg 0.deadline
-  ref.cast 20   ; -> i64
+  ref.cast 21   ; -> i64
   local.set 2   ; $field_5
   local.get 1   ; $call_4
   local.get 2   ; $field_5
@@ -884,7 +884,7 @@ fn 21 std_async$TimeoutError$Error$message (ref) -> string
   call 10   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 15 0   ; arg 0.ms
-  ref.cast 20   ; -> i64
+  ref.cast 21   ; -> i64
   local.set 3   ; $field_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1

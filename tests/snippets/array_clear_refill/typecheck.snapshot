@@ -4,7 +4,7 @@
   FnDecl         main                 :: fn() -> i32
   ConstDecl      SEEN                 :: string[]!
   expr 22:18    SeqLitExpr     :: string[]!
-  expr 25:21    SeqLitExpr     :: i32[]!
+  expr 25:20    SeqLitExpr     :: i32[]!
   expr 26:14    RangeExpr      :: Range<i32>!
   expr 27:20    IdentExpr      :: i32
   expr 27:9     CallExpr       :: void
@@ -64,7 +64,7 @@
   expr 47:50    CallExpr       :: usize
   expr 47:50    FieldExpr      :: fn() -> usize
   expr 47:50    IdentExpr      :: string[]!
-  expr 50:19    SeqLitExpr     :: i32[]!
+  expr 50:18    SeqLitExpr     :: i32[]!
   expr 51:13    IdentExpr      :: i32[]!
   expr 51:13    IndexExpr      :: i32[]!
   expr 51:17    RangeExpr      :: Range<i32>!

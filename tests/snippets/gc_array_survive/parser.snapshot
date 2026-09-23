@@ -37,7 +37,7 @@
         "stmts": [
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "list"
@@ -141,7 +141,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "before"
@@ -169,7 +169,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "after"
@@ -186,7 +186,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "diff"

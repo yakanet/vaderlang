@@ -23,7 +23,7 @@
   expr 13:8     BinaryExpr     :: bool
   expr 13:8     IdentExpr      :: u8[]
   expr 13:8     IndexExpr      :: u8
-  expr 16:16    BinaryExpr     :: u32
+  expr 16:15    BinaryExpr     :: u32
   expr 17:28    CallExpr       :: void
   expr 17:28    IdentExpr      :: fn(T) -> void
   expr 17:36    StringLitExpr  :: string

@@ -91,7 +91,7 @@
 [21:21-21:22] lbrace         "{"
 [22:1-22:1  ] newline        "\n"
 [23:5-23:7  ] ident          "n1"
-[23:8-23:10 ] decl_var       ":="
+[23:8-23:10 ] decl_const     "::"
 [23:11-23:21] ident          "both_equal"
 [23:21-23:22] lparen         "("
 [23:22-23:23] int_literal    "1" =1n
@@ -102,7 +102,7 @@
 [23:29-23:30] rparen         ")"
 [24:1-24:1  ] newline        "\n"
 [25:5-25:7  ] ident          "n2"
-[25:8-25:10 ] decl_var       ":="
+[25:8-25:10 ] decl_const     "::"
 [25:11-25:21] ident          "both_equal"
 [25:21-25:22] lparen         "("
 [25:22-25:23] int_literal    "5" =5n
@@ -113,7 +113,7 @@
 [25:29-25:30] rparen         ")"
 [26:1-26:1  ] newline        "\n"
 [27:5-27:7  ] ident          "n3"
-[27:8-27:10 ] decl_var       ":="
+[27:8-27:10 ] decl_const     "::"
 [27:11-27:21] ident          "both_equal"
 [27:21-27:22] lparen         "("
 [27:22-27:25] int_literal    "100" =100n

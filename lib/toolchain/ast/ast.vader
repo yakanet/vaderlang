@@ -1153,7 +1153,7 @@ export type_expr_marks_mutable :: fn(ty: TypeExpr | null) -> bool {
     if ty == null { return false }
     if ty is MutableTypeExpr { return true }
     if ty is BinaryExpr {
-        if ty.op == BinaryOp.BitOr {
+        if ty.op == .BitOr {
             return type_expr_marks_mutable(ty.left) || type_expr_marks_mutable(ty.right)
         }
     }
@@ -1194,7 +1194,7 @@ export param_is_mutable :: fn(p: FnParam) -> bool = p.mutable || type_expr_marks
 /// single-element list. Used by `vader/fmt` and `vader/typecheck` to
 /// avoid hand-rolling the same recursion on each side.
 export collect_bitor_variants :: fn(e: Expr) -> Expr[] {
-    out: Expr[]! = []
+    out: Expr[]!: []
     append_bitor_variants(e, out)
     return out
 }

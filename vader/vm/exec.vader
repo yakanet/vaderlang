@@ -134,14 +134,14 @@ NULL_VALUE :: NullVal {}
 /// True when `t` marks a value `read_i32` accepts (i32 / char / i64 carriers).
 /// Mirrors `read_i32`'s @partial match EXACTLY — a stricter test would reject
 /// bytecode the boxed path accepted.
-is_i32_tag :: fn(t: StackTag) = t == StackTag.I32 || t == StackTag.Char || t == StackTag.I64
+is_i32_tag :: fn(t: StackTag) = t == .I32 || t == .Char || t == .I64
 
 /// True when `t` marks a value `read_i64` accepts (i64 / i32 carriers).
-is_i64_tag :: fn(t: StackTag) = t == StackTag.I64 || t == StackTag.I32
+is_i64_tag :: fn(t: StackTag) = t == .I64 || t == .I32
 
 /// True when `t` marks a value `read_f64` accepts. `read_f64` is STRICT (it does
 /// not coerce integers), so this is an exact tag test.
-is_f64_tag :: fn(t: StackTag) = t == StackTag.F64
+is_f64_tag :: fn(t: StackTag) = t == .F64
 
 /// Cold path for an arithmetic arm whose operand carries an unexpected tag.
 /// The fast arms read `payload` directly, which for a `Ref` / `Null` slot holds
@@ -170,7 +170,7 @@ convert_int_fast :: fn(frame: Frame!, target: ConvertTarget, from_name: string) 
     idx :: frame.sp - 1
     t :: frame.tag[idx]
     n: i64 = 0
-    if t == StackTag.I32 {
+    if t == .I32 {
         // Only a widening to i64 can see above bit 31 — an `.I32` target truncates
         // back to the same low word either way. `starts_with` is not the test: it
         // allocates a byte view per call, and this runs once per executed convert.
@@ -179,21 +179,21 @@ convert_int_fast :: fn(frame: Frame!, target: ConvertTarget, from_name: string) 
         } else {
             n = i64(i32(frame.payload[idx]))
         }
-    } else if t == StackTag.I64 {
+    } else if t == .I64 {
         n = frame.payload[idx]
-    } else if t == StackTag.Char {
+    } else if t == .Char {
         n = i64(u32(frame.payload[idx]))
-    } else if t == StackTag.Bool {
+    } else if t == .Bool {
         n = if frame.payload[idx] != 0 { 1 } else { 0 }
     } else {
         return false
     }
     if target == .I32 {
         frame.payload[idx] = i64(i32(n))
-        frame.tag[idx] = StackTag.I32
+        frame.tag[idx] = .I32
     } else {
         frame.payload[idx] = n
-        frame.tag[idx] = StackTag.I64
+        frame.tag[idx] = .I64
     }
     return true
 }
@@ -206,7 +206,7 @@ convert_int_fast :: fn(frame: Frame!, target: ConvertTarget, from_name: string) 
 /// for calling it at all — see `stack_needs_grow`.
 stack_grow :: fn(frame: Frame!) -> void {
     frame.payload.push(0)
-    frame.tag.push(StackTag.Null)
+    frame.tag.push(.Null)
     frame.stack.push(NULL_VALUE)
 }
 
@@ -236,28 +236,28 @@ push_val :: fn(frame: Frame!, cursor: usize, value: Value!) -> void {
     match value {
         is I32Val -> {
             frame.payload[cursor] = i64(value.value)
-            frame.tag[cursor] = StackTag.I32
+            frame.tag[cursor] = .I32
         }
         is I64Val -> {
             frame.payload[cursor] = value.value
-            frame.tag[cursor] = StackTag.I64
+            frame.tag[cursor] = .I64
         }
         is F64Val -> {
             frame.payload[cursor] = i64((value.value).to_bits())
-            frame.tag[cursor] = StackTag.F64
+            frame.tag[cursor] = .F64
         }
         is BoolVal -> {
             frame.payload[cursor] = if value.value { 1 } else { 0 }
-            frame.tag[cursor] = StackTag.Bool
+            frame.tag[cursor] = .Bool
         }
         is CharVal -> {
             frame.payload[cursor] = i64(u32(value.value))
-            frame.tag[cursor] = StackTag.Char
+            frame.tag[cursor] = .Char
         }
-        is NullVal -> { frame.tag[cursor] = StackTag.Null }
+        is NullVal -> { frame.tag[cursor] = .Null }
         _ -> {
             frame.stack[cursor] = value
-            frame.tag[cursor] = StackTag.Ref
+            frame.tag[cursor] = .Ref
         }
     }
 }
@@ -318,35 +318,35 @@ slot_val :: fn(frame: Frame, slot: usize) -> Value {
 slot_set :: fn(frame: Frame!, slot: usize, value: Value!) -> void = match value {
     is I32Val -> {
         frame.slot_payload[slot] = i64(value.value)
-        frame.slot_tag[slot] = StackTag.I32
+        frame.slot_tag[slot] = .I32
     }
     is I64Val -> {
         frame.slot_payload[slot] = value.value
-        frame.slot_tag[slot] = StackTag.I64
+        frame.slot_tag[slot] = .I64
     }
     is F64Val -> {
         frame.slot_payload[slot] = i64((value.value).to_bits())
-        frame.slot_tag[slot] = StackTag.F64
+        frame.slot_tag[slot] = .F64
     }
     is BoolVal -> {
         frame.slot_payload[slot] = if value.value { 1 } else { 0 }
-        frame.slot_tag[slot] = StackTag.Bool
+        frame.slot_tag[slot] = .Bool
     }
     is CharVal -> {
         frame.slot_payload[slot] = i64(u32(value.value))
-        frame.slot_tag[slot] = StackTag.Char
+        frame.slot_tag[slot] = .Char
     }
-    is NullVal -> { frame.slot_tag[slot] = StackTag.Null }
+    is NullVal -> { frame.slot_tag[slot] = .Null }
     _ -> {
         frame.slots[slot] = value
-        frame.slot_tag[slot] = StackTag.Ref
+        frame.slot_tag[slot] = .Ref
     }
 }
 
 /// Materialise stack values `[start, endx)` as a boxed `Value[]` for the call /
 /// host boundaries (`build_callee_frame`, `dispatch_import`).
 peek_range :: fn(frame: Frame, start: usize, endx: usize) -> Value[] {
-    out: Value[]! = [] * (endx - start)
+    out: Value[]!: [] * (endx - start)
     for i in start..<endx { out.push(peek_val(frame, i)) }
     return out
 }
@@ -387,7 +387,7 @@ pop_frame :: fn(cursor: usize[]!) -> void {
 /// @param bc_mod  the running module — for fn names + the per-op `debug` table.
 /// @return        a `PauseCtx` snapshot safe to hand across the module boundary.
 build_pause_ctx :: fn(reason: string, frames: Frame[], count: usize, bc_mod: bc.BytecodeModule) -> PauseCtx {
-    projected: PauseFrame[]! = []
+    projected: PauseFrame[]!: []
     i: i64 = i64(count) - 1
     for i >= 0 {
         f :: frames[usize(i)]
@@ -428,8 +428,8 @@ project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule
     // when the current pc is inside it (`optimize = false` gives each source
     // local its own slot, so the window ≈ its lexical scope). This hides
     // not-yet-declared locals and the `v` of already-finished sibling loops.
-    first: i32[]! = [-1] * total_slots
-    last:  i32[]! = [-1] * total_slots
+    first: i32[]!: [-1] * total_slots
+    last:  i32[]!: [-1] * total_slots
     for pc in 0..<fn_body.body.len() {
         s :: slot_touched_by(fn_body.body[pc])
         if s >= 0 && usize(s) < total_slots {
@@ -438,7 +438,7 @@ project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule
         }
     }
 
-    out: PauseVar[]! = []
+    out: PauseVar[]!: []
     // Params live the whole frame — always shown, named from the signature
     // (`param_names`, empty on name-less paths → `arg<i>`).
     for p in 0..<param_count {
@@ -503,8 +503,8 @@ project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32)
 // `BcStruct.fields` (falling back to `field<i>` if the entry isn't a struct or
 // is shorter than the value's field list).
 project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar[]! {
-    out: PauseVar[]! = []
-    names: string[]! = []
+    out: PauseVar[]!: []
+    names: string[]!: []
     if usize(s.type_id) < bc_mod.types.len() {
         entry :: bc_mod.types[usize(s.type_id)]
         if entry is bc.BcStruct {
@@ -586,7 +586,7 @@ push_callee_frame :: fn(frames: Frame![]!, cursor: usize[]!, function_index: i32
         for _ in f.slot_payload.len()..<total {
             f.slots.push(NULL_VALUE)
             f.slot_payload.push(0)
-            f.slot_tag.push(StackTag.Null)
+            f.slot_tag.push(.Null)
         }
     }
     env_off: usize = 0
@@ -601,7 +601,7 @@ push_callee_frame :: fn(frames: Frame![]!, cursor: usize[]!, function_index: i32
     }
     for i in param_count..<total {
         f.slot_payload[i] = 0
-        f.slot_tag[i] = StackTag.Null
+        f.slot_tag[i] = .Null
         f.slots[i] = NULL_VALUE
     }
     // Release every ref the pool would otherwise PIN. The columns are grow-only
@@ -653,13 +653,13 @@ build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Fra
     // columns : no boxing, no materialisation, no per-slot decompose. Args
     // occupy `caller[arg_base ..]` ; `env` (closures) takes slot 0 ahead of them.
     total :: callee.signature.params.len() + callee.locals.len()
-    slots: Value![]! = []
-    slot_payload: i64[]! = []
-    slot_tag: StackTag[]! = []
+    slots: Value![]!: []
+    slot_payload: i64[]!: []
+    slot_tag: StackTag[]!: []
     for _ in 0..<total {
         slots.push(NULL_VALUE)
         slot_payload.push(0)
-        slot_tag.push(StackTag.Null)
+        slot_tag.push(.Null)
     }
     result :: Frame {
         .function_index = function_index,
@@ -694,9 +694,9 @@ build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Fra
 /// stack, so they are decomposed one-off through `slot_set`.
 build_entry_frame :: fn(function_index: i32, callee: bc.BcFunction, args: Value![]) -> Frame {
     total :: callee.signature.params.len() + callee.locals.len()
-    slots: Value![]! = [NULL_VALUE] * total
-    slot_payload: i64[]! = [0] * total
-    slot_tag: StackTag[]! = [StackTag.Null] * total
+    slots: Value![]!: [NULL_VALUE] * total
+    slot_payload: i64[]!: [0] * total
+    slot_tag: StackTag[]!: [.Null] * total
     result :: Frame {
         .function_index = function_index,
         .slots          = slots,
@@ -765,6 +765,53 @@ const_op_value :: fn(c: bc.ConstOp, strings: string[], pc: i32) -> Value | Trap 
 ///                      executor should stop ; `null` when execution
 ///                      should continue with the caller frame.
 /// @error               main returned a non-i32 value.
+// Hand `arity` values from the returning frame to its caller, in the order the
+// caller receives them.
+//
+// Separate from `finalise_return` rather than a widening of it: that one also
+// owns the OUTERMOST frame, where a return becomes the process exit code or the
+// comptime capture — and neither takes several values. A function returning a
+// pair is never the entry point, so the case cannot arise, and folding it in
+// would mean inventing an answer for it.
+finalise_multi_return :: fn(
+    frame: Frame!, frames: Frame![]!, frame_count: usize[]!, signature: bc.BcSignature,
+) -> VmResult | null {
+    arity :: bc.bc_result_arity(signature)
+    if frame.sp < arity {
+        return Trap {
+            .message = "return: the frame holds fewer values than the signature declares",
+        }
+    }
+    base :: frame.sp - arity
+    values: Value[]!: []
+    for i in 0..<arity {
+        // Narrowed per value: each carries its own type, so a `u8` beside an
+        // `i64` truncates on its own terms.
+        values.push(narrow_mask(peek_val(frame, base + i), signature.results[i]))
+    }
+    pop_frame(frame_count)
+    if frame_count[0] == 0 {
+        return Trap {
+            .message = "return: a multi-value return reached the outermost frame",
+        }
+    }
+    caller :: frames[frame_count[0] - 1]
+    for v in values {
+        if stack_needs_grow(caller, caller.sp) {
+            stack_grow(caller)
+        }
+        push_val(caller, caller.sp, v)
+        caller.sp = caller.sp + 1
+    }
+    return null
+}
+
+// Whether the callee's lone result needs the width truncation a narrow C return
+// would apply. Multi-value answers false: each value carries its own type and
+// the narrowing is applied per value, not once for the frame.
+is_single_narrow_result :: fn(sig: bc.BcSignature) -> bool =
+    bc.bc_result_arity(sig) == 1 && is_narrow_valtype(sig.results[0])
+
 finalise_return :: fn(return_value: Value!, has_value: bool, at_pc: i32, frames: Frame![]!, frame_count: usize[]!, main_label: string, capture: Value[]! | null) -> VmResult | null {
     pop_frame(frame_count)
     if frame_count[0] == 0 {
@@ -801,8 +848,8 @@ apply_eq_binop :: fn(frame: Frame!, op_label: string, negate: bool) -> Trap | nu
     lt :: frame.tag[frame.sp - 2]
     rt :: frame.tag[frame.sp - 1]
     eq: bool = false
-    if lt == StackTag.Null || rt == StackTag.Null {
-        eq = lt == StackTag.Null && rt == StackTag.Null
+    if lt == .Null || rt == .Null {
+        eq = lt == .Null && rt == .Null
     } else if is_i32_tag(lt) && is_i32_tag(rt) {
         // Fast path : both operands already sit unboxed in the payload column.
         eq = i32(frame.payload[frame.sp - 2]) == i32(frame.payload[frame.sp - 1])
@@ -816,7 +863,7 @@ apply_eq_binop :: fn(frame: Frame!, op_label: string, negate: bool) -> Trap | nu
         eq = left.value == right.value
     }
     frame.payload[frame.sp - 2] = if (if negate { !eq } else { eq }) { 1 } else { 0 }
-    frame.tag[frame.sp - 2] = StackTag.Bool
+    frame.tag[frame.sp - 2] = .Bool
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
     return null
@@ -862,7 +909,7 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
 ///                               to tag the boxed array.
 /// @return                       the `Value[]` to seed the main frame's slots.
 build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_type_id: i32) -> Value![] {
-    out: Value![]! = []
+    out: Value![]!: []
     if parameter_count != 1 { return out }
     // Pushed per branch rather than through a joined local : the fallback is a fresh
     // literal (mutable) and `host_argv` is a read-only borrow, so a join would have
@@ -902,7 +949,7 @@ export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(
 export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
     idx :: state.fn_index_by_name[mangled]
     if !(idx is null) {
-        no_args: string[] = []
+        no_args: string[]: []
         return exec_entry(state, idx, no_args, null, false, null)
     }
     return Trap { .message = "exec_fn: no function named '${mangled}'" }
@@ -924,8 +971,8 @@ export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
 export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
     idx :: state.fn_index_by_name[mangled]
     if !(idx is null) {
-        no_args: string[]! = []
-        capture: Value[]! = [zero_value()]
+        no_args: string[]!: []
+        capture: Value[]!: [zero_value()]
         outcome :: exec_entry(state, idx, no_args, capture, true, null)
         if outcome is Trap { return outcome }
         return ValueOk { .value = capture[0] }
@@ -947,7 +994,7 @@ narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
     // Only the sub-32-bit widths need masking ; i32/i64 (and the unsigned u32/u64
     // read back through the unsigned view) already wrap at their width.
     if !is_narrow_valtype(vt) { return v }
-    bits: i64 = if vt == bc.ValType.U8 || vt == bc.ValType.I8 { 8 } else { 16 }
+    bits: i64: if vt == .U8 || vt == .I8 { 8 } else { 16 }
     // A narrow slot only ever holds an int (carried as I32Val / I64Val).
     raw: i64 = 0
     if v is I32Val {
@@ -958,7 +1005,7 @@ narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
         return v
     }
     m :: raw & ((i64(1) << bits) - i64(1))
-    signed :: vt == bc.ValType.I8 || vt == bc.ValType.I16
+    signed :: vt == .I8 || vt == .I16
     out: i64 = m
     if signed && (m & (i64(1) << (bits - i64(1)))) != i64(0) {
         // top bit set ⇒ sign-extend
@@ -976,13 +1023,13 @@ slot_valtype :: fn(body: bc.BcFunction, slot: i32) -> bc.ValType {
     if s < np { return body.signature.params[s] }
     li :: s - np
     if li < body.locals.len() { return body.locals[li].val }
-    return bc.ValType.I32     // defensive : unknown slot ⇒ no masking
+    return .I32     // defensive : unknown slot ⇒ no masking
 }
 
 // True when `vt` is a sub-32-bit width whose stored VM value must be truncated
 // to that width (`narrow_mask`). Single source of truth for "narrow" : both
 // `narrow_mask`'s fast-out and the per-frame `cur_has_narrow` gate consult it.
-is_narrow_valtype :: fn(vt: bc.ValType) = vt == bc.ValType.U8 || vt == bc.ValType.I8 || vt == bc.ValType.U16 || vt == bc.ValType.I16
+is_narrow_valtype :: fn(vt: bc.ValType) = vt == .U8 || vt == .I8 || vt == .U16 || vt == .I16
 
 // True when any of `body`'s param / local slots is a narrow width. Computed once
 // per frame entry (on the interpreter loop's body reload) and cached in
@@ -1003,10 +1050,10 @@ fn_has_narrow_slot :: fn(body: bc.BcFunction) -> bool {
 // Backs the `struct.new` narrow-field mask : a struct literal builds its fields
 // straight from the stack (`build_struct`) with no intervening narrow `local.set`.
 field_valtype :: fn(types: bc.BcType[], type_index: i32) -> bc.ValType {
-    if type_index < 0 || usize(type_index) >= types.len() { return bc.ValType.Ref }
+    if type_index < 0 || usize(type_index) >= types.len() { return .Ref }
     t :: types[usize(type_index)]
     if t is bc.BcPrimitive { return t.val }
-    return bc.ValType.Ref
+    return .Ref
 }
 
 /// Core interpreter loop, entered at `entry_index`. `exec` / `exec_fn` pick the
@@ -1016,8 +1063,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
         return Trap { .message = "no entry function (index=${entry_index})" }
     }
 
-    frames: Frame![]! = []
-    frame_count: usize[]! = [0]
+    frames: Frame![]!: []
+    frame_count: usize[]!: [0]
     // 1-element box for the GC-collection counter — the Vader VM has no
     // arena, but `std/runtime.collect` / `collections` snippet tests just
     // need the counter to be present + monotonic. `dispatch_import`
@@ -1026,13 +1073,13 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // Increments monotonically within this invocation only — the box is
     // discarded when `exec` returns, so cross-call persistence is not
     // implied. Snippet tests check `after - before == N` within one run.
-    gc_state: usize[]! = [0]
+    gc_state: usize[]!: [0]
 
     // Async scheduler state, mirroring the C runtime's (invisible to the VM).
     // Index 0 = the virtual clock `now` ; indices 1.. = pending wake deadlines.
     // `dispatch_import` arms `sched_arm` (push) / `sched_park` (pop nearest +
     // advance now). Boxed for the same reason as `gc_state` ; per-invocation.
-    sched_state: usize[]! = [0]
+    sched_state: usize[]!: [0]
 
     // The `string[]` ArrayType index — stamped onto every host-produced
     // string array (argv, `read_dir`, `split`) so `is string[]` narrows
@@ -1098,7 +1145,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     cur_slot_count := body.signature.params.len() + body.locals.len()
     // Whether `return` has to truncate its value. A per-FUNCTION fact, cached
     // beside `cur_has_narrow` rather than recomputed on every `return`.
-    cur_narrow_result := is_narrow_valtype(body.signature.result)
+    cur_narrow_result := is_single_narrow_result(body.signature)
     // Monotonic synthetic object-handle source for `buffer.new` (diagnostics
     // only — object identity is the `ObjVal` reference itself, never a machine
     // address). A 1-cell array so element mutation survives the `::` binding.
@@ -1122,7 +1169,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     //   step_base_depth : frame depth when the current step began — Over/Out
     //                     compare against it.
     last_line: i32 = -1
-    step_mode: StepMode = StepMode.Continue
+    step_mode: StepMode = .Continue
     step_base_depth: i32 = 0
 
     // Panic-unwind (mirror of the C runtime's defer-on-trap) — on a trap, the
@@ -1166,7 +1213,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             op_count = cur_ops.len()
             cur_has_narrow = fn_narrow_tbl[usize(frame.function_index)]
             cur_slot_count = body.signature.params.len() + body.locals.len()
-            cur_narrow_result = is_narrow_valtype(body.signature.result)
+            cur_narrow_result = is_single_narrow_result(body.signature)
             cur_top = top
         }
 
@@ -1238,7 +1285,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp] = i64(instr.value)
-                frame.tag[frame.sp] = StackTag.I32
+                frame.tag[frame.sp] = .I32
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -1257,7 +1304,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 st_a :: frame.slot_tag[sidx_a]
                 frame.payload[frame.sp] = frame.slot_payload[sidx_a]
                 frame.tag[frame.sp] = st_a
-                if st_a == StackTag.Ref { frame.stack[frame.sp] = frame.slots[sidx_a] }
+                if st_a == .Ref { frame.stack[frame.sp] = frame.slots[sidx_a] }
                 if stack_needs_grow(frame, frame.sp + 1) {
                     stack_grow(frame)
                 }
@@ -1265,7 +1312,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 st_b :: frame.slot_tag[sidx_b]
                 frame.payload[frame.sp + 1] = frame.slot_payload[sidx_b]
                 frame.tag[frame.sp + 1] = st_b
-                if st_b == StackTag.Ref { frame.stack[frame.sp + 1] = frame.slots[sidx_b] }
+                if st_b == .Ref { frame.stack[frame.sp + 1] = frame.slots[sidx_b] }
                 frame.sp = frame.sp + 2
                 frame.pc = frame.pc + 1
             }
@@ -1283,12 +1330,12 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 st_set :: frame.tag[frame.sp - 1]
                 frame.slot_payload[sidx_set] = frame.payload[frame.sp - 1]
                 frame.slot_tag[sidx_set] = st_set
-                if st_set == StackTag.Ref { frame.slots[sidx_set] = frame.stack[frame.sp - 1] }
+                if st_set == .Ref { frame.slots[sidx_set] = frame.stack[frame.sp - 1] }
                 sidx_get :: usize(instr.get_slot)
                 st_get :: frame.slot_tag[sidx_get]
                 frame.payload[frame.sp - 1] = frame.slot_payload[sidx_get]
                 frame.tag[frame.sp - 1] = st_get
-                if st_get == StackTag.Ref { frame.stack[frame.sp - 1] = frame.slots[sidx_get] }
+                if st_get == .Ref { frame.stack[frame.sp - 1] = frame.slots[sidx_get] }
                 frame.pc = frame.pc + 1
             }
             // `local.get A ; <int>.const V`.
@@ -1303,7 +1350,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 st :: frame.slot_tag[sidx]
                 frame.payload[frame.sp] = frame.slot_payload[sidx]
                 frame.tag[frame.sp] = st
-                if st == StackTag.Ref { frame.stack[frame.sp] = frame.slots[sidx] }
+                if st == .Ref { frame.stack[frame.sp] = frame.slots[sidx] }
                 if stack_needs_grow(frame, frame.sp + 1) {
                     stack_grow(frame)
                 }
@@ -1323,7 +1370,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 st :: frame.slot_tag[sidx]
                 frame.payload[frame.sp] = frame.slot_payload[sidx]
                 frame.tag[frame.sp] = st
-                if st == StackTag.Ref { frame.stack[frame.sp] = frame.slots[sidx] }
+                if st == .Ref { frame.stack[frame.sp] = frame.slots[sidx] }
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -1341,7 +1388,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     st :: frame.tag[frame.sp - 1]
                     frame.slot_payload[sidx] = frame.payload[frame.sp - 1]
                     frame.slot_tag[sidx] = st
-                    if st == StackTag.Ref { frame.slots[sidx] = frame.stack[frame.sp - 1] }
+                    if st == .Ref { frame.slots[sidx] = frame.stack[frame.sp - 1] }
                 }
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
@@ -1365,7 +1412,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     st :: frame.tag[frame.sp - 1]
                     frame.slot_payload[sidx] = frame.payload[frame.sp - 1]
                     frame.slot_tag[sidx] = st
-                    if st == StackTag.Ref { frame.slots[sidx] = frame.stack[frame.sp - 1] }
+                    if st == .Ref { frame.slots[sidx] = frame.stack[frame.sp - 1] }
                 }
                 frame.pc = frame.pc + 1
             }
@@ -1396,7 +1443,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     continue
                 }
                 new_sp := arg_base
-                if info.signature.result != bc.ValType.Void {
+                if bc_single_result(info.signature) != .Void {
                     push_val(frame, new_sp, dispatch_outcome.value)
                     new_sp += 1
                 }
@@ -1480,15 +1527,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                         // for a real `call.import`. `params` carries one `Any`
                         // slot per arg purely for the arity read ; `result` is a
                         // non-Void placeholder so the result gets pushed back.
-                        synth_params: bc.ValType[] = [bc.ValType.Any] * usize(instr.parameter_count)
+                        synth_params: bc.ValType[]: [.Any] * usize(instr.parameter_count)
                         synth_info :: bc.BcImport {
                             .extern_name  = "",
                             .mangled_name = host_mangle,
                             .signature    = bc.BcSignature {
                                 .params      = synth_params,
-                                .result      = bc.ValType.Any,
+                                .results     = [.Any],
                                 .param_types = [],
-                                .result_type = 0,
+                                .result_types = [0],
                                 .param_names = [],
                             },
                             .is_extern    = false,
@@ -1661,7 +1708,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 1] = i64(i32(array_unwrap.length))
-                frame.tag[frame.sp - 1] = StackTag.I32
+                frame.tag[frame.sp - 1] = .I32
                 frame.pc = frame.pc + 1
             }
             is bc.ArraySlice -> {
@@ -1690,7 +1737,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     if stack_needs_grow(frame, frame.sp - 1) {
                         stack_grow(frame)
                     }
-                    frame.tag[frame.sp - 1] = StackTag.Null
+                    frame.tag[frame.sp - 1] = .Null
                 } else {
                     last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
                     // Shrink the SHARED backing when this array owns the tail —
@@ -1791,14 +1838,14 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 1] = i64(size)
-                frame.tag[frame.sp - 1] = StackTag.I64
+                frame.tag[frame.sp - 1] = .I64
                 frame.pc = frame.pc + 1
             }
             is bc.I32Add -> {
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.add") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.add") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) + i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1806,7 +1853,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.sub") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.sub") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) - i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1814,7 +1861,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.mul") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.mul") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) * i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1823,7 +1870,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.div") }
                 if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "i32.div by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) / i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1832,7 +1879,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.mod") }
                 if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "i32.mod by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) % i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1848,7 +1895,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.lt") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.lt") }
                 frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) < i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1856,7 +1903,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.le") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.le") }
                 frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) <= i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1864,7 +1911,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.gt") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.gt") }
                 frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) > i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1872,27 +1919,27 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.ge") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.ge") }
                 frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) >= i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I32Neg -> {
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.neg") }
                 frame.payload[frame.sp - 1] = i64(-i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 1] = StackTag.I32
+                frame.tag[frame.sp - 1] = .I32
                 frame.pc = frame.pc + 1
             }
             is bc.I32BitNot -> {
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitnot") }
                 frame.payload[frame.sp - 1] = i64(~i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 1] = StackTag.I32
+                frame.tag[frame.sp - 1] = .I32
                 frame.pc = frame.pc + 1
             }
             is bc.I32BitAnd -> {
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.bitand") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitand") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) & i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1900,7 +1947,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.bitor") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitor") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) | i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1908,7 +1955,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.bitxor") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitxor") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) ^ i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1916,7 +1963,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.shl") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.shl") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) << i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1924,7 +1971,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.shr") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.shr") }
                 frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) >> i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1936,7 +1983,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // the result back as i32. Mirrors `>>>` in JS / `>>` on
                 // unsigned C types.
                 frame.payload[frame.sp - 2] = i64(i32(u32(i32(frame.payload[frame.sp - 2])) >> u32(i32(frame.payload[frame.sp - 1]))))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1949,7 +1996,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.div") }
                 if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "u32.div by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(i32(u32(i32(frame.payload[frame.sp - 2])) / u32(i32(frame.payload[frame.sp - 1]))))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1958,7 +2005,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.mod") }
                 if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "u32.rem by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(i32(u32(i32(frame.payload[frame.sp - 2])) % u32(i32(frame.payload[frame.sp - 1]))))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1966,7 +2013,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.lt") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.lt") }
                 frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) < u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1974,7 +2021,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.le") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.le") }
                 frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) <= u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1982,7 +2029,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.gt") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.gt") }
                 frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) > u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1990,7 +2037,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.ge") }
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.ge") }
                 frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) >= u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -1999,7 +2046,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp] = i64((instr.value).to_bits())
-                frame.tag[frame.sp] = StackTag.F64
+                frame.tag[frame.sp] = .F64
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -2008,7 +2055,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp] = instr.value
-                frame.tag[frame.sp] = StackTag.I64
+                frame.tag[frame.sp] = .I64
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -2016,7 +2063,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.add") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.add") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] + frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2024,7 +2071,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.sub") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.sub") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] - frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2032,7 +2079,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.mul") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.mul") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] * frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2041,7 +2088,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.div") }
                 if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "i64.div by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] / frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2050,21 +2097,21 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.mod") }
                 if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "i64.rem by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] % frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Neg -> {
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.neg") }
                 frame.payload[frame.sp - 1] = -frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 1] = StackTag.I64
+                frame.tag[frame.sp - 1] = .I64
                 frame.pc = frame.pc + 1
             }
             is bc.I64Eq -> {
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.eq") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.eq") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] == frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2072,7 +2119,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.ne") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.ne") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] != frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2080,7 +2127,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.lt") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.lt") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] < frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2088,7 +2135,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.le") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.le") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] <= frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2096,7 +2143,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.gt") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.gt") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] > frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2104,7 +2151,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.ge") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.ge") }
                 frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] >= frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2116,7 +2163,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.div") }
                 if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "u64.div by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) / u64(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2125,7 +2172,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.mod") }
                 if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "u64.rem by zero at pc=${frame.pc}" } }
                 frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) % u64(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2133,7 +2180,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.lt") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.lt") }
                 frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) < u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2141,7 +2188,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.le") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.le") }
                 frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) <= u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2149,7 +2196,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.gt") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.gt") }
                 frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) > u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2157,7 +2204,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.ge") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.ge") }
                 frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) >= u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2167,7 +2214,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.bitand") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitand") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] & frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2175,7 +2222,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.bitor") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitor") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] | frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2183,21 +2230,21 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.bitxor") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitxor") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] ^ frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64BitNot -> {
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitnot") }
                 frame.payload[frame.sp - 1] = ~frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 1] = StackTag.I64
+                frame.tag[frame.sp - 1] = .I64
                 frame.pc = frame.pc + 1
             }
             is bc.I64Shl -> {
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.shl") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.shl") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] << frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2205,7 +2252,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.shr") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.shr") }
                 frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] >> frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2213,7 +2260,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.shru") }
                 if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.shru") }
                 frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) >> u64(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2221,7 +2268,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.add") }
                 if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.add") }
                 frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() + (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
-                frame.tag[frame.sp - 2] = StackTag.F64
+                frame.tag[frame.sp - 2] = .F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2229,7 +2276,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.sub") }
                 if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.sub") }
                 frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() - (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
-                frame.tag[frame.sp - 2] = StackTag.F64
+                frame.tag[frame.sp - 2] = .F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2237,7 +2284,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.mul") }
                 if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.mul") }
                 frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() * (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
-                frame.tag[frame.sp - 2] = StackTag.F64
+                frame.tag[frame.sp - 2] = .F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2245,21 +2292,21 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.div") }
                 if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.div") }
                 frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() / (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
-                frame.tag[frame.sp - 2] = StackTag.F64
+                frame.tag[frame.sp - 2] = .F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.F64Neg -> {
                 if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.neg") }
                 frame.payload[frame.sp - 1] = i64((-(u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
-                frame.tag[frame.sp - 1] = StackTag.F64
+                frame.tag[frame.sp - 1] = .F64
                 frame.pc = frame.pc + 1
             }
             is bc.F64Eq -> {
                 if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.eq") }
                 if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.eq") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() == (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2267,7 +2314,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.ne") }
                 if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.ne") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() != (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2275,7 +2322,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.lt") }
                 if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.lt") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() < (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2283,7 +2330,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.le") }
                 if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.le") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() <= (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2291,7 +2338,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.gt") }
                 if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.gt") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() > (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2299,7 +2346,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.ge") }
                 if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.ge") }
                 frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() >= (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2307,7 +2354,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if stack_needs_grow(frame, frame.sp) {
                     stack_grow(frame)
                 }
-                frame.tag[frame.sp] = StackTag.Null
+                frame.tag[frame.sp] = .Null
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -2316,7 +2363,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp] = if instr.value { 1 } else { 0 }
-                frame.tag[frame.sp] = StackTag.Bool
+                frame.tag[frame.sp] = .Bool
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -2325,7 +2372,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp] = i64(u32(instr.value))
-                frame.tag[frame.sp] = StackTag.Char
+                frame.tag[frame.sp] = .Char
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -2338,7 +2385,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = if left.value == right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2351,7 +2398,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = if left.value != right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2364,7 +2411,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = if left.value && right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2377,7 +2424,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = if left.value || right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2389,7 +2436,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 1] = if !operand.value { 1 } else { 0 }
-                frame.tag[frame.sp - 1] = StackTag.Bool
+                frame.tag[frame.sp - 1] = .Bool
                 frame.pc = frame.pc + 1
             }
             is bc.StringEq -> {
@@ -2401,7 +2448,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = if left.value == right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2414,7 +2461,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = if left.value != right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2430,7 +2477,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = if outcome { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2442,7 +2489,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = if !outcome { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = StackTag.Bool
+                frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2461,7 +2508,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 1] = if matched { 1 } else { 0 }
-                frame.tag[frame.sp - 1] = StackTag.Bool
+                frame.tag[frame.sp - 1] = .Bool
                 frame.pc = frame.pc + 1
             }
             is bc.TypeConst -> {
@@ -2570,17 +2617,25 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
             }
             is bc.Return -> {
-                has_value :: frame.sp > 0
-                // Fast path: the value moves from this frame's top slot to the
-                // caller's, and both are payload+tag columns — no `Value` in
-                // between.
-                //
-                // Deliberately NOT taken for a narrow result (it truncates, so it
-                // goes through `narrow_mask`) nor for the outermost frame, which is
-                // where `finalise_return` coerces the exit code or publishes
-                // `capture`. Those two keep the boxed route and its one
-                // implementation.
-                if has_value && frame_count[0] > 1 && !cur_narrow_result {
+                // Several values take their own route: the frame's top `arity`
+                // slots move to the caller in the order it receives them. The
+                // single-value path below stays exactly as it was — it owns the
+                // outermost frame, where a return becomes the exit code.
+                if bc.bc_result_arity(body.signature) > 1 {
+                    outcome :: finalise_multi_return(frame, frames, frame_count, body.signature)
+                    if !(outcome is null) {
+                        return outcome
+                    }
+                } else if frame.sp > 0 && frame_count[0] > 1 && !cur_narrow_result {
+                    // Fast path: the value moves from this frame's top slot to the
+                    // caller's, and both are payload+tag columns — no `Value` in
+                    // between.
+                    //
+                    // Deliberately NOT taken for a narrow result (it truncates, so
+                    // it goes through `narrow_mask`) nor for the outermost frame,
+                    // which is where `finalise_return` coerces the exit code or
+                    // publishes `capture`. Those two keep the boxed route and its
+                    // one implementation.
                     src :: frame.sp - 1
                     st  :: frame.tag[src]
                     pay :: frame.payload[src]
@@ -2591,14 +2646,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     }
                     caller.payload[caller.sp] = pay
                     caller.tag[caller.sp] = st
-                    if st == StackTag.Ref {
+                    if st == .Ref {
                         caller.stack[caller.sp] = frame.stack[src]
                     }
                     caller.sp = caller.sp + 1
                 } else {
+                    has_value :: frame.sp > 0
                     return_value: Value = I32Val { .value = 0 }
                     // Narrow return type ⇒ truncate to width, like a C `uint8_t` return.
-                    if has_value { return_value = narrow_mask(peek_val(frame, frame.sp - 1), body.signature.result) }
+                    if has_value { return_value = narrow_mask(peek_val(frame, frame.sp - 1), bc_single_result(body.signature)) }
                     outcome :: finalise_return(return_value, has_value, frame.pc, frames, frame_count, "return from main", capture)
                     if !(outcome is null) { return outcome }
                 }
@@ -2606,7 +2662,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.ReturnLit -> {
                 raw_ret :: const_op_value(instr.value, state.bc.strings, frame.pc)
                 if raw_ret is Trap { return raw_ret }
-                return_value :: narrow_mask(raw_ret, body.signature.result)
+                return_value :: narrow_mask(raw_ret, bc_single_result(body.signature))
                 outcome :: finalise_return(return_value, true, frame.pc, frames, frame_count, "return.lit from main", capture)
                 if !(outcome is null) { return outcome }
             }
@@ -2622,7 +2678,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = i64(i32(raw))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2633,7 +2689,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = i64(i32(raw))
-                frame.tag[frame.sp - 2] = StackTag.I32
+                frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2644,7 +2700,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = i64(raw)
-                frame.tag[frame.sp - 2] = StackTag.I64
+                frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2655,7 +2711,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 2] = i64(((u64(raw)).from_bits()).to_bits())
-                frame.tag[frame.sp - 2] = StackTag.F64
+                frame.tag[frame.sp - 2] = .F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
@@ -2733,7 +2789,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 1] = i64((fv.value).to_bits())
-                frame.tag[frame.sp - 1] = StackTag.I64
+                frame.tag[frame.sp - 1] = .I64
                 frame.pc = frame.pc + 1
             }
             is bc.BitsToF64 -> {
@@ -2746,7 +2802,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 1] = i64(((u64(iv.value)).from_bits()).to_bits())
-                frame.tag[frame.sp - 1] = StackTag.F64
+                frame.tag[frame.sp - 1] = .F64
                 frame.pc = frame.pc + 1
             }
             is bc.F32ToBits -> {
@@ -2760,7 +2816,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 1] = i64(i32((f32(fv.value)).to_bits()))
-                frame.tag[frame.sp - 1] = StackTag.I32
+                frame.tag[frame.sp - 1] = .I32
                 frame.pc = frame.pc + 1
             }
             is bc.BitsToF32 -> {
@@ -2773,7 +2829,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     stack_grow(frame)
                 }
                 frame.payload[frame.sp - 1] = i64((f64((u32(iv.value)).from_bits())).to_bits())
-                frame.tag[frame.sp - 1] = StackTag.F64
+                frame.tag[frame.sp - 1] = .F64
                 frame.pc = frame.pc + 1
             }
         }
@@ -2802,7 +2858,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame!) -> Trap | null {
         return Trap { .message = "array.new type ${type_id} needs ${needed} initial element(s) but stack has ${frame.sp} at pc=${frame.pc}" }
     }
     arg_base :: frame.sp - needed
-    elements: Value[]! = [] * needed
+    elements: Value[]!: [] * needed
     for element_index in 0..<needed {
         elements.push(peek_val(frame, arg_base + element_index))
     }
@@ -2839,7 +2895,7 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame!) -> Trap | nu
         return Trap { .message = "struct.new type ${type_id} needs ${field_count} field value(s) but stack has ${frame.sp} at pc=${frame.pc}" }
     }
     arg_base :: frame.sp - field_count
-    fields: Value[]! = []
+    fields: Value[]!: []
     for field_index in 0..<field_count {
         // Narrow-typed field ⇒ truncate to width, mirroring a C narrow struct
         // field ; the literal's field value comes straight off the stack with no
@@ -2887,7 +2943,7 @@ build_buffer :: fn(frame: Frame!, handle_cell: i32[]!) -> Trap | null {
             .message = "buffer.new size ${size_unwrap.value} is negative at pc=${frame.pc}",
         }
     }
-    bytes: u8[]! = [] * usize(size_unwrap.value)
+    bytes: u8[]!: [] * usize(size_unwrap.value)
     for _ in 0..<usize(size_unwrap.value) {
         bytes.push(0)
     }
@@ -3057,7 +3113,7 @@ do_memory_copy :: fn(frame: Frame!) -> Trap | null {
     if dst_off + n > dst_unwrap.bytes.len() {
         return Trap { .message = "memory_copy dest range [${dst_off}, ${dst_off + n}) exceeds ${dst_unwrap.bytes.len()} at pc=${frame.pc}" }
     }
-    snapshot: u8[]! = [] * n
+    snapshot: u8[]!: [] * n
     for i in 0..<n {
         snapshot.push(src_unwrap.bytes[src_off + i])
     }

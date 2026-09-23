@@ -67,7 +67,7 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
             }
         }
         is AST.FnTypeExpr -> {
-            new_params: AST.TypeExpr[]! = []
+            new_params: AST.TypeExpr[]!: []
             for p in expr.params { new_params.push(substitute_type_expr(p, subst)) }
             rt :: expr.return_type
             new_rt: AST.TypeExpr | null = null
@@ -103,7 +103,7 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
         is AST.SeqLitExpr -> {
             // Bracketed type tuple `[T1, T2, ...]` ; elements are all TypeExprs
             // in this position.
-            new_elements: AST.Expr[]! = []
+            new_elements: AST.Expr[]!: []
             for el in expr.elements { new_elements.push(substitute_type_expr(el, subst)) }
             return AST.SeqLitExpr {
                 .span = expr.span,
@@ -114,7 +114,7 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
         is AST.GenericInstExpr -> {
             // In type position, callee is always an IdentExpr (parser invariant).
             // Substitute type-args ; preserve callee as-is.
-            new_args: AST.TypeExpr[]! = []
+            new_args: AST.TypeExpr[]!: []
             for a in expr.type_args { new_args.push(substitute_type_expr(a, subst)) }
             return AST.GenericInstExpr {
                 .span = expr.span,
@@ -174,8 +174,8 @@ test_substitute_passes_through_when_unbound :: fn() -> void {
 @test
 test_substitute_recurses_into_fn_type :: fn() -> void {
     // `fn(T) -> T` with T → i32 should yield `fn(i32) -> i32`.
-    t: AST.TypeExpr = make_ident("T")
-    params: AST.TypeExpr[] = [t]
+    t: AST.TypeExpr: make_ident("T")
+    params: AST.TypeExpr[]: [t]
     src :: AST.FnTypeExpr {
         .span = empty_span(),
         .id = AST.UNASSIGNED_NODE_ID,
@@ -210,8 +210,8 @@ test_substitute_recurses_into_generic_inst :: fn() -> void {
     // Two-step typing: Vader's typechecker infers `[make_ident("T")]` as
     // `IdentExpr[]` and refuses to widen to `TypeExpr[]` — annotating
     // the element first ropes it into the wider type.
-    t: AST.TypeExpr = make_ident("T")
-    type_args: AST.TypeExpr[] = [t]
+    t: AST.TypeExpr: make_ident("T")
+    type_args: AST.TypeExpr[]: [t]
     src :: AST.GenericInstExpr {
         .span = empty_span(),
         .id = AST.UNASSIGNED_NODE_ID,

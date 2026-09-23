@@ -30,7 +30,7 @@ export check_block :: fn(
     // { return … }`) so subsequent stmts see the complement type.
     // Each entry holds the binding's sym_id + the static type to
     // restore on block exit (mirrors `pop_narrow` semantics).
-    divergent_narrows: DivergentNarrow[]! = []
+    divergent_narrows: DivergentNarrow[]!: []
     // W0002 — track the first stmt past a divergent guard so we can
     // warn once per block.
     first_unreachable_span: Span | null = null
@@ -426,6 +426,24 @@ export check_fn_body :: fn(
                 typed,
                 diags,
             )
+        } else if got !is NeverType {
+            // T3083 — no trailing expression, and the body does not diverge, so
+            // control reaches the closing brace with nothing to hand back. The
+            // sibling case (a value of the WRONG type) is T3020 just above;
+            // without this arm the two halves disagreed, since `if c { return 7 }`
+            // was already an error while a body with no `return` at all was not.
+            //
+            // `got` is `never` exactly when `check_block` saw the last statement
+            // diverge — a `return` / `break` / `continue`, a `@no_return` call, or
+            // a loop nothing can leave.
+            if !is_void(effective_return) && effective_return !is UnresolvedType {
+                diags.push(
+                    typecheck_error(
+                        .BodyFallsOffEnd, fn_decl.name_span,
+                        "`${fn_decl.name}` promises ${display_type(effective_return)}",
+                    ),
+                )
+            }
         }
     }
     typed.current_fn_ctx = prev
@@ -689,6 +707,14 @@ check_assign :: fn(
     diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
+    // `[a, b] = pair` — destructuring assignment. Checked here rather than in a
+    // pattern walk because the parser reads the target as a `SeqLitExpr`, not as
+    // a binding: every element is an assignment TARGET that already exists, not
+    // a name being introduced.
+    if s.target is AST.SeqLitExpr as seq {
+        check_destructuring_assign(seq, s, typed, diags, check_expr_fn)
+        return
+    }
     // T3041 : bare-ident assignment to a `::`-bound local. Surface
     // the diag and skip the value-side typing so the dump doesn't
     // carry extra expr_types for a rejected write.
@@ -875,6 +901,120 @@ emit_assign_mismatch_if :: fn(
             "cannot assign a value of type ${display_type(got)} to a slot of type ${display_type(expected)}",
         ),
     )
+}
+
+/// Check `[t0, t1, …] = value` — one assignment per element, against the
+/// element types of a tuple or array `value`.
+///
+/// Arity is fixed for a tuple and unknown for an array, so only the tuple case
+/// can be counted here ; an array of the wrong length is a runtime trap on the
+/// element read, exactly as `arr[i]` is elsewhere.
+check_destructuring_assign :: fn(
+    seq: AST.SeqLitExpr!,
+    s: AST.AssignStmt!,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> void {
+    // The targets are typed FIRST so their slots can be handed to the source as
+    // the expected shape : without it a free literal defaults to `i32` and
+    // `[u, v] = [1, 2]` over two `usize` slots fails on both elements, where
+    // `u = 1` passes. Same order as the plain assignment path below.
+    slot_types: Type[]!: []
+    for el in seq.elements {
+        slot_types.push(check_expr_fn(el, null, typed, diags))
+    }
+    value_ty :: check_expr_fn(s.value, mk_tuple(slot_types, true), typed, diags)
+    elem_types :: destructure_element_types(value_ty, seq.elements.len())
+    if elem_types == null {
+        diags.push(typecheck_error(
+            .CannotDestructure, s.value.span,
+            "cannot destructure `${display_type(value_ty)}` into ${seq.elements.len()} elements"))
+        return
+    }
+    for i in 0..<seq.elements.len() {
+        check_destructure_target(seq.elements[i], elem_types[i], typed, diags, check_expr_fn)
+    }
+}
+
+/// Element types a destructuring target of `count` elements would read, or null
+/// when `value_ty` cannot be destructured that way. A tuple answers per position
+/// and must match `count` exactly ; an array answers its element type for every
+/// position.
+destructure_element_types :: fn(value_ty: Type, count: usize) -> Type[] | null {
+    backing :: tuple_backing(value_ty)
+    if backing is TupleType {
+        if backing.elements.len() != count {
+            return null
+        }
+        return backing.elements
+    }
+    arr :: array_backing(value_ty)
+    if arr is ArrayType {
+        out: Type[]!: []
+        for _ in 0..<count {
+            out.push(arr.element)
+        }
+        return out
+    }
+    return null
+}
+
+/// One element of a destructuring target. Holds it to the same rules a bare
+/// assignment would: a `::` local is still frozen, an immutable path is still
+/// closed, and the element type must fit the slot.
+check_destructure_target :: fn(
+    target: AST.Expr!,
+    elem_ty: Type,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> void {
+    if target is AST.IdentExpr {
+        if is_const_reassign(target, typed) {
+            diags.push(typecheck_error(
+                .CannotReassignConst, target.span,
+                "`${target.name}` is declared with `::` — use `:=` to allow mutation"))
+            return
+        }
+    } else if target is AST.FieldExpr {
+        // T3070 — the same closed path a bare `p.x = v` is held to. Checking the
+        // CONTAINER first records its type: the level that decides is the field's
+        // OWNER, and `expr_types` is empty for it until something checks it.
+        _ :: check_expr_fn(target.target, null, typed, diags)
+        if push_immutability_diag_for(
+            container_is_immutable(target.target, typed), .CannotMutateImmutableBinding,
+            target.span, "`${target.field}` is reached through an immutable path",
+            target.target, typed, diags,
+        ) {
+            return
+        }
+    } else if target is AST.IndexExpr {
+        // T3042 then T3070 — a read-only `T[]` leaf first, then a mutable array
+        // reached through an immutable path. Skipping these would let a
+        // destructuring assignment write through a read-only borrow.
+        recv_ty :: check_expr_fn(target.target, null, typed, diags)
+        if recv_ty is ArrayType {
+            if recv_ty.immutable {
+                diags.push(typecheck_error(
+                    .CannotMutateImmutableArray, target.target.span,
+                    "cannot mutate `${display_type(recv_ty)}`"
+                        + field_annotate_hint(target.target, typed)
+                        + mutation_fix_hint(target.target, typed)))
+                return
+            }
+        }
+        if push_immutable_path_write(target.target, target.span, typed, diags) {
+            return
+        }
+    } else {
+        diags.push(typecheck_error(
+            .InvalidAssignTarget, target.span,
+            "a destructuring assignment writes to names, fields and indices — not to this"))
+        return
+    }
+    slot_ty :: check_expr_fn(target, elem_ty, typed, diags)
+    emit_assign_mismatch_if(elem_ty, slot_ty, target.span, target.id, typed, diags)
 }
 
 is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
@@ -1733,7 +1873,7 @@ push_divergent_narrow_if :: fn(
 // `else` side in `expr_if.vader` where the pushes would overwrite.
 push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram!, stack: DivergentNarrow[]!) -> void {
     if cond is AST.BinaryExpr {
-        if cond.op == AST.BinaryOp.Or {
+        if cond.op == .Or {
             push_guard_narrows(cond.left, typed, stack)
             push_guard_narrows(cond.right, typed, stack)
             return
@@ -1786,7 +1926,129 @@ is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
             return true
         }
     }
+    // A `for { … }` no `break` can leave has no exit edge, so whatever follows
+    // it cannot run. A `return` in the body doesn't reopen one — it leaves the
+    // fn, not the loop.
+    if s is AST.ForStmt {
+        return loop_never_exits(s)
+    }
     return false
+}
+
+/// True when `s` is an infinite `for { … }` that no `break` can leave.
+///
+/// Only the `InfiniteFor` form qualifies. `for cond` and `for x in xs` both
+/// carry an exit edge, and deciding that one is never taken would need
+/// value-range reasoning the checker does not do — so `for true { }` is
+/// deliberately NOT divergent here.
+loop_never_exits :: fn(s: AST.ForStmt) -> bool {
+    if s.form !is AST.InfiniteFor {
+        return false
+    }
+    return !block_breaks_loop(s.body, s.label, true)
+}
+
+/// True when `block` holds a `break` that leaves the loop it is the body of.
+///
+/// `label` is that loop's label, and `bare_counts` says whether an unlabelled
+/// `break` still targets it — false once the walk has entered a NESTED loop,
+/// which swallows bare `break`s. A labelled `break` is followed at any depth
+/// since it can name an outer loop ; an infinite `for` has no iteration
+/// variable, so its label is the only name that reaches it (see
+/// `resolve_loop_target`). Lambda bodies are not descended — a `break` there is
+/// illegal anyway.
+block_breaks_loop :: fn(block: AST.BlockExpr, label: string | null, bare_counts: bool) -> bool {
+    for s in block.stmts {
+        if stmt_breaks_loop(s, label, bare_counts) {
+            return true
+        }
+    }
+    // A body whose only item is `if p { break }` parses as the block's trailing
+    // expression, not a statement — descend it too.
+    if block.trailing !is null {
+        if expr_breaks_loop(block.trailing, label, bare_counts) {
+            return true
+        }
+    }
+    return false
+}
+
+// Does this `break` leave the loop being judged ? A bare one targets the
+// innermost loop, so `bare_counts` says whether that is still the one at hand ;
+// a labelled one reaches any enclosing loop carrying that label.
+break_targets_loop :: fn(b: AST.BreakStmt, label: string | null, bare_counts: bool) -> bool {
+    named :: b.label ?? return bare_counts
+    return label != null && named == label
+}
+
+stmt_breaks_loop :: fn(s: AST.Stmt, label: string | null, bare_counts: bool) -> bool = match s {
+    is AST.BreakStmt -> { return break_targets_loop(s, label, bare_counts) }
+    is AST.ForStmt   -> { return block_breaks_loop(s.body, label, false) }
+    is AST.ExprStmt  -> { return expr_breaks_loop(s.expr, label, bare_counts) }
+    is AST.DeferStmt -> {
+        match s.body {
+            is AST.DeferStmtBody as b  -> { return stmt_breaks_loop(b.stmt, label, bare_counts) }
+            is AST.DeferBlockBody as b -> { return block_breaks_loop(b.block, label, bare_counts) }
+        }
+    }
+    // `p :: next() ?? break` puts the exit inside a bound VALUE, not a stmt of
+    // its own — the shape `std/io::read_dir` drains a directory with. Every
+    // value-carrying stmt is descended for that reason.
+    is AST.LetStmt    -> { return expr_breaks_loop(s.value, label, bare_counts) }
+    is AST.AssignStmt -> {
+        if expr_breaks_loop(s.target, label, bare_counts) {
+            return true
+        }
+        return expr_breaks_loop(s.value, label, bare_counts)
+    }
+    is AST.YieldStmt  -> { return expr_breaks_loop(s.value, label, bare_counts) }
+    is AST.ReturnStmt -> {
+        v :: s.value ?? return false
+        return expr_breaks_loop(v, label, bare_counts)
+    }
+    is AST.ContinueStmt -> { return false }
+}
+
+// A `break` is a statement, so it only appears in a block's stmt list — but a
+// `?? break` fallback rides inside an expression, so the expression forms that
+// carry blocks or fallbacks are descended too, skipping lambdas. Exhaustive so
+// a new block-bearing Expr variant trips T3013 here rather than being silently
+// missed.
+expr_breaks_loop :: fn(e: AST.Expr, label: string | null, bare_counts: bool) -> bool = match e {
+    is AST.BlockExpr -> { return block_breaks_loop(e, label, bare_counts) }
+    is AST.IfExpr    -> { return if_breaks_loop(e, label, bare_counts) }
+    is AST.MatchExpr -> {
+        for arm in e.arms {
+            if expr_breaks_loop(arm.body, label, bare_counts) {
+                return true
+            }
+        }
+        return false
+    }
+    is AST.NullCoalesceExpr -> {
+        if expr_breaks_loop(e.left, label, bare_counts) {
+            return true
+        }
+        // `?? break` — the fallback IS the jump, and `coalesce_fallback_expr`
+        // hands back null for it, there being no expression to return.
+        if e.fallback is AST.BreakStmt as jump {
+            return break_targets_loop(jump, label, bare_counts)
+        }
+        inner :: AST.coalesce_fallback_expr(e.fallback) ?? return false
+        return expr_breaks_loop(inner, label, bare_counts)
+    }
+    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.StringLitExpr | AST.IdentExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.MutableTypeExpr | AST.AwaitExpr -> { return false }
+}
+
+if_breaks_loop :: fn(i: AST.IfExpr, label: string | null, bare_counts: bool) -> bool {
+    if block_breaks_loop(i.then_block, label, bare_counts) {
+        return true
+    }
+    match i.else_branch {
+        is null                 -> { return false }
+        is AST.IfElseIf as e    -> { return if_breaks_loop(e.branch, label, bare_counts) }
+        is AST.IfElseBlock as e -> { return block_breaks_loop(e.block, label, bare_counts) }
+    }
 }
 
 stmt_span :: fn(s: AST.Stmt) -> Span {
@@ -1814,7 +2076,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     // Mirrors `expr_if.vader::detect_is_narrow` at a narrower result shape —
     // the divergent-guard case only needs the else-type.
     if cond is AST.UnaryExpr {
-        if cond.op == AST.UnaryOp.Not {
+        if cond.op == .Not {
             inner :: detect_is_narrow_for_block(cond.operand, typed) ?? return null
             // Compose `!(x is T)`'s fall-through from the CURRENT narrowing
             // (after prior guards), not `inner.static_ty` (declared) — which
@@ -1841,7 +2103,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     // `x == null` / `x != null` / `null == x` / `null != x` — both
     // orderings flip the same way ; divergent guard pushes the
     // complement narrowing for the rest of the block.
-    if cond.op == AST.BinaryOp.Eq || cond.op == AST.BinaryOp.Neq {
+    if cond.op == .Eq || cond.op == .Neq {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
         if ident_side !is null {
             sym :: typed.resolved.idents[ident_side.span.hash()] ?? return null
@@ -1857,7 +2119,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             }
             current :: narrow_for_binding(typed, sym.id, base)
             null_ty :: TY_NULL
-            if cond.op == AST.BinaryOp.Eq {
+            if cond.op == .Eq {
                 return BlockNarrow {
                     .sym_id = sym.id,
                     .static_ty = base,
@@ -1872,7 +2134,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             if target !is null {
                 null_ty :: TY_NULL
                 current :: narrow_for_field(typed, target.field_key, target.static_ty)
-                if cond.op == AST.BinaryOp.Eq {
+                if cond.op == .Eq {
                     return BlockNarrow {
                         .sym_id = 0,
                         .static_ty = target.static_ty,
@@ -1890,7 +2152,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         }
         return null
     }
-    if cond.op != AST.BinaryOp.Is {
+    if cond.op != .Is {
         return null
     }
     // Bare-ident scrutinee : narrow the symbol slot for the complement.
@@ -2145,7 +2407,7 @@ stub_check_module :: fn(src: string) -> StubResult {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     declare_module(parsed.program.decls, rm, typed, factory, diags)
     for decl in parsed.program.decls {
         if decl is AST.FnDecl {

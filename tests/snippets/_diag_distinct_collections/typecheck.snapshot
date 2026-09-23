@@ -24,11 +24,11 @@
   expr 25:16    CallExpr       :: i64
   expr 25:16    IdentExpr      :: type
   expr 25:20    IdentExpr      :: UserId
-  expr 29:21    SeqLitExpr     :: UserId[]
-  expr 29:22    CallExpr       :: UserId
-  expr 29:22    IdentExpr      :: type
-  expr 29:34    CallExpr       :: UserId
-  expr 29:34    IdentExpr      :: type
+  expr 29:20    SeqLitExpr     :: UserId[]
+  expr 29:21    CallExpr       :: UserId
+  expr 29:21    IdentExpr      :: type
+  expr 29:33    CallExpr       :: UserId
+  expr 29:33    IdentExpr      :: type
   expr 30:16    CallExpr       :: i32
   expr 30:16    IdentExpr      :: fn(null | UserId, i32) -> i32
   expr 30:26    CallExpr       :: UserId

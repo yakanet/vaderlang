@@ -163,7 +163,7 @@
                 int(1) :usize
     return int(0) :i32
   struct __genstate_concat_decls { s0: FileMod[], s1: FileMod[], s2: usize, s3: usize, s4: FileMod, s5: Decl[], s6: usize, s7: usize, s8: Decl, state: i32 }
-  fn snippet$__genstate_concat_decls$Iterator$next(self: __genstate_concat_decls!) -> Yield<Decl>! | null
+  fn snippet$__genstate_concat_decls$Iterator$next(self: __genstate_concat_decls!) -> [Decl, Continuation]!
     loop
       if :void
         cond:
@@ -349,10 +349,11 @@
                                         value:
                                           int(6) :i32
                                       return
-                                        Yield<Decl>! {
-                                          value:
+                                        [Decl, Continuation]! {
+                                          _0:
                                             .s8 :Decl
                                               __self_6 :__genstate_concat_decls!
+                                          _1: int(0) :u8
                                         }
                                     else:
                                       if :void
@@ -482,7 +483,11 @@
                                                         value:
                                                           int(2) :i32
                                                     else:
-                                                      return null
+                                                      return
+                                                        [Decl, Continuation]! {
+                                                          _0: null
+                                                          _1: int(1) :u8
+                                                        }
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

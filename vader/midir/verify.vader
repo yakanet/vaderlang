@@ -119,6 +119,53 @@ verify_cfg_function :: fn(
     reachable :: if ids_ok { reachable_blocks(fn_) } else { all_blocks(fn_) }
     verify_locals(fn_, reachable, where, diags)
     verify_fn_references(fn_, resolution, reachable, where, diags)
+    verify_return_arity(fn_, reachable, where, diags)
+}
+
+// I7010 — every `return` hands back what the signature will declare.
+//
+// The invariant the value ABI introduces, and the one worth checking here: the
+// arity has to survive from `scalarise_value_returns` to three backends, and a
+// `CFGFunction` rebuild that drops `scalarised_results` leaves the body handing
+// back two values under a signature that promises one. Nothing downstream
+// compares the two — the C emitter writes the signature from the field and the
+// body from the terminator, and the mismatch surfaces as a stack-depth ICE in a
+// different function, or not at all.
+verify_return_arity :: fn(
+    fn_: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[]!,
+) -> void {
+    // A scalarised fn hands back its elements ; every other fn hands back one
+    // value, or none when it returns void.
+    expected :: if fn_.scalarised_results.len() > 1 {
+        fn_.scalarised_results.len()
+    } else if is_void(fn_.return_type) {
+        usize(0)
+    } else {
+        usize(1)
+    }
+    for b in fn_.blocks {
+        if !reachable.contains(b.id) {
+            continue
+        }
+        t :: b.terminator
+        if t !is TermReturn {
+            continue
+        }
+        // An empty `return` on a value-returning fn is the dead trailing return
+        // the lowerer emits when every path already returned ; `c_emit` turns it
+        // into a trap. Not a break.
+        if t.values.len() == 0 || t.values.len() == expected {
+            continue
+        }
+        // A `void` fn whose last statement is a `@no_return` call returns that
+        // call's result, typed `never`. Nothing is produced and no backend reads
+        // it — the terminator just names the divergent value.
+        if returns_only_never(fn_, t.values) {
+            continue
+        }
+        diags.push(internal_error(.ReturnArityMismatch, t.span,
+            "${where}: bb${b.id} returns ${t.values.len()} value(s), the signature declares ${expected}"))
+    }
 }
 
 // ---- structural checks ----------------------------------------------------
@@ -165,8 +212,13 @@ verify_locals :: fn(
     for p in fn_.params { written.add(p.local) }
     for b in fn_.blocks {
         for ins in b.instructions {
-            d :: dst_of(ins)
-            if d != null { written.add(d) }
+            multi :: multi_dsts(ins)
+            if multi != null {
+                for l in multi { written.add(l) }
+            } else {
+                d :: dst_of(ins)
+                if d != null { written.add(d) }
+            }
         }
     }
 
@@ -270,4 +322,18 @@ fn_value_kind :: fn(ins: InstrFnRef | InstrFnAddr | InstrMakeClosure) = match in
 fn_span :: fn(fn_: CFGFunction) -> Span {
     if fn_.blocks.len() == 0 { return empty_span() }
     return fn_.blocks[0].span
+}
+
+// Whether every value the terminator names is `never` — the result of a
+// divergent call, which produces nothing to hand back.
+returns_only_never :: fn(fn_: CFGFunction, values: LocalId[]) -> bool {
+    for v in values {
+        if usize(v) >= fn_.locals.len() {
+            return false
+        }
+        if fn_.locals[usize(v)].type !is NeverType {
+            return false
+        }
+    }
+    return true
 }

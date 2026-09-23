@@ -1,0 +1,13 @@
+module "snippet"
+
+Cfg :: struct { width: i32, height: i32 }
+
+CFG :: Cfg { .width = 1, .height = 2 }
+
+main :: fn() -> i32 {
+    x := 0
+    // A destructuring element is held to the same closed path a bare
+    // `CFG.height = 7` is.
+    [CFG.height, x] = [7, 8]
+    return 0
+}

@@ -41,7 +41,7 @@
         "stmts": [
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "out"
@@ -88,7 +88,7 @@
         "stmts": [
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "numbers"
@@ -162,7 +162,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "words"

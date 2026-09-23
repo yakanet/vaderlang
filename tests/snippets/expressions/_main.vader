@@ -5,16 +5,16 @@ export add :: fn(x: i32, y: i32) -> i32 {
 }
 
 export demo :: fn() -> i32 {
-    a := 1 + 2 * 3
-    b := (1 + 2) * 3
-    c := -a + b
-    d := !true && false || true
-    e := 0..<10
-    arr := [1, 2, 3]
-    f := arr[0]
-    h := add(1, 2)
-    i := add(x = 10, y = 20)
-    cond := true
-    j := if (cond) { 1 } else { 2 }
+    a :: 1 + 2 * 3
+    b :: (1 + 2) * 3
+    c :: -a + b
+    d :: !true && false || true
+    e :: 0..<10
+    arr :: [1, 2, 3]
+    f :: arr[0]
+    h :: add(1, 2)
+    i :: add(x = 10, y = 20)
+    cond :: true
+    j :: if (cond) { 1 } else { 2 }
     return a
 }

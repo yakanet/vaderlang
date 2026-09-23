@@ -18,6 +18,6 @@ Pair :: struct<A, B> {
 main :: fn() -> i32 {
     a :: identity(10)
     b :: swap(1, 2)
-    p := Pair<i32, i32> { .first = 30, .second = 0 }
+    p :: Pair<i32, i32> { .first = 30, .second = 0 }
     return a + b + p.first
 }

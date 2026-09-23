@@ -10,7 +10,7 @@
   expr 15:19    StringLitExpr  :: string
   expr 16:19    StringLitExpr  :: string
   expr 17:19    StringLitExpr  :: string
-  expr 22:20    DotVariantExpr :: Direction
+  expr 22:19    DotVariantExpr :: Direction
   expr 23:13    CallExpr       :: string
   expr 23:13    IdentExpr      :: fn(Direction) -> string
   expr 23:22    IdentExpr      :: Direction
@@ -51,3 +51,4 @@
 
 # Diagnostics
 [21:1] error[T3033] invalid `main` signature: main must return i32
+[24:22] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.North`

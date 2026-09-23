@@ -26,7 +26,7 @@ export infer_lambda :: fn(
         is FnType -> { expected_fn = expected }
         _ -> {}
     }
-    param_types: Type[]! = []
+    param_types: Type[]!: []
     for i in 0..<e.params.len() {
         param_types.push(infer_param(e.params[i], i, expected_fn, typed, diags))
     }
@@ -41,6 +41,28 @@ export infer_lambda :: fn(
     typed.current_fn_ctx = ctx
     body :: check_block(e.body, expected_ret, typed, diags, ctx, check_expr_fn)
     typed.current_fn_ctx = prev_ctx
+    // T3083 — the same obligation `check_fn_body` puts on a named fn. A body with
+    // no trailing expression that does not diverge reaches its closing brace with
+    // nothing to hand back, and the slot was promised a value. Unchecked, such a
+    // lambda compiled and trapped at RUN time (`unreachable return`), which is
+    // worse than the named case it mirrors.
+    //
+    // Only when a type was actually promised: `expected_ret` is null exactly when
+    // nothing annotates or expects one, and the return is then inferred from the
+    // body — a body that falls through simply infers `void`.
+    if e.body.trailing is null && body !is NeverType {
+        // No expectation reads as "promises nothing", which the void gate below
+        // already rejects — so the two cases need only one test.
+        promised :: expected_ret ?? TY_VOID
+        if !is_void(promised) && promised !is UnresolvedType {
+            diags.push(
+                typecheck_error(
+                    .BodyFallsOffEnd, e.span,
+                    "this lambda promises ${display_type(promised)}",
+                ),
+            )
+        }
+    }
     ret :: pick_final_return(expected_ret, body, ctx)
     return FnType {
         .params         = param_types,
@@ -108,7 +130,7 @@ pick_final_return :: fn(expected: Type | null, body: Type, ctx: FnContext) -> Ty
     }
     if expected == null { return default_if_free(effective_body) }
     // Expected might still carry unbound TypeParams (`U`,
-    // `U[]`, `Yield<U>`, …) or a Free* leftover from a
+    // `U[]`, `Box<U>`, …) or a Free* leftover from a
     // tentative unify. Fall back to the body's defaulted type
     // in those cases so the lambda's signature reports the
     // concrete shape its body actually produces.

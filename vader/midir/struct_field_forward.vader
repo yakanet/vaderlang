@@ -1,0 +1,193 @@
+// vader/midir/struct_field_forward — reads of a freshly built struct, forwarded.
+//
+// The value ABI hands a small composite back in registers, and the caller
+// rebuilds it so every consumer keeps reading `pair._0` / `pair._1` as before —
+// no consumer had to learn the split. This pass is what makes that rebuild free:
+// a read of a field whose source local is still known becomes a `Move` from that
+// local, the object loses its readers, and `eliminate_dead_cfg` drops the
+// `struct.new`.
+//
+// What it knows is a map from an object local to the locals its fields were
+// built from. That record survives a `Move` (the builder emits
+// `call → move → field_get`, so the reads name an alias), and dies as soon as
+// the object local — or any of the field locals — is written again.
+//
+// ACROSS BLOCKS: a block starts from what holds on EVERY way in — the
+// intersection of its predecessors' end states. One predecessor hands its state
+// over whole, which is the `for x in it` shape (the step is rebuilt and its `_1`
+// tested in one block, `_0` read in the single-entry block the test branches
+// to); several hand over what they agree on, which is the shape where a pair is
+// built before an `if` and read after the join, and where the whole rebuild —
+// and the function's GC frame with it — falls away.
+//
+// Deliberately NOT cleared on a side-effecting instruction, unlike
+// `array_load_forward`: a tuple field cannot be written (T3008), and the structs
+// admitted here are built by the rebuild and never escape before the read. That
+// is the assumption to revisit before widening this to named structs.
+
+module "vader/midir"
+
+import "std/collections"
+
+/// Forward struct-field reads across every block of every function. The
+/// transform is value-preserving — a `Move` from the local the field was built
+/// from replaces a read of that field — so it needs no diagnostics.
+///
+/// @param p  the CFG project, after `scalarise_value_returns` planted the
+///           rebuilds this pass exists to undo.
+/// @return   a fresh project with forwardable `FieldGet`s rewritten to `Move`.
+export struct_field_forward_project :: fn(p: CFGProject!) -> CFGProject {
+    out :: MutableMap<string, CFGModule> {}
+    for [id, m] in p.modules {
+        new_fns: CFGFunction[]!: []
+        for f in m.functions {
+            new_fns.push(forward_struct_fields_in_fn(f))
+        }
+        out[id] = CFGModule { ...m, .functions = new_fns }
+    }
+    return CFGProject { ...p, .modules = out }
+}
+
+// `exits` holds what each walked block knew when it ended, keyed by block id.
+// A block with no entry there has not been walked — which is how a back edge
+// reports itself, and why the join treats it as contributing nothing.
+forward_struct_fields_in_fn :: fn(fn_: CFGFunction!) -> CFGFunction {
+    preds :: predecessors_of(fn_)
+    order :: reverse_postorder(fn_)
+    exits :: MutableMap<i32, MutableMap<i32, LocalId[]>> {}
+    rewritten :: MutableMap<i32, Instruction[]> {}
+    // ONE pass, in reverse postorder — deliberately not iterated to a fixed
+    // point. Iterating converges (the per-block transfer's gen/kill does not
+    // depend on the incoming state, and the join is an intersection, so the
+    // system is monotone over a finite lattice), but it buys nothing here: a
+    // fixed-point variant was measured against this one and produced the same
+    // bytecode for the compiler and for every snippet. What it would add is
+    // precision across a back edge, and nothing reads a rebuilt tuple there.
+    //
+    // A single pass is conservative by construction: a predecessor not yet
+    // walked is a back edge, and it contributes nothing rather than something
+    // unproven. That is also what keeps a record from crossing an iteration —
+    // a loop header always has two predecessors, one of them unwalked, so its
+    // entry state is empty every time.
+    for id in order {
+        entry :: join_of_predecessors(preds, exits, id)
+        rewritten[i32(id)] = forward_block_with(fn_.blocks[usize(id)].instructions, entry)
+        exits[i32(id)] = entry
+    }
+    new_blocks: BasicBlock[]!: []
+    for b in fn_.blocks {
+        done :: rewritten[i32(b.id)]
+        if done == null {
+            // Unreachable from the entry, so `reverse_postorder` never named it.
+            // `eliminate_dead_cfg` owns whether it survives at all.
+            new_blocks.push(b)
+        } else {
+            new_blocks.push(BasicBlock { ...b, .instructions = done })
+        }
+    }
+    return CFGFunction { ...fn_, .blocks = new_blocks }
+}
+
+// What holds on EVERY way into this block: the intersection of its walked
+// predecessors' end states. A record survives only if each of them built the
+// same object from the same fields — one disagreeing path makes the read unsafe.
+// A predecessor not yet walked (a back edge, on the first round) contributes
+// nothing, which costs coverage on that round and is recovered by the next.
+join_of_predecessors :: fn(
+    preds: BlockId[][], exits: MutableMap<i32, MutableMap<i32, LocalId[]>>, id: BlockId,
+) -> MutableMap<i32, LocalId[]> {
+    fresh :: MutableMap<i32, LocalId[]> {}
+    if usize(id) >= preds.len() {
+        return fresh
+    }
+    mine :: preds[usize(id)]
+    if mine.len() == 0 {
+        return fresh
+    }
+    first :: exits[i32(mine[0])] ?? return fresh
+    for [obj, fields] in first {
+        fresh[obj] = fields
+    }
+    for i in 1..<mine.len() {
+        other :: exits[i32(mine[i])] ?? return MutableMap<i32, LocalId[]> {}
+        doomed: i32[]!: []
+        for [obj, fields] in fresh {
+            theirs :: other[obj]
+            if theirs == null {
+                doomed.push(obj)
+            } else if !same_fields(theirs, fields) {
+                doomed.push(obj)
+            }
+        }
+        for k in doomed {
+            _ :: fresh.remove(k)
+        }
+    }
+    return fresh
+}
+
+same_fields :: fn(a: LocalId[], b: LocalId[]) -> bool {
+    if a.len() != b.len() {
+        return false
+    }
+    for i in 0..<a.len() {
+        if a[i] != b[i] {
+            return false
+        }
+    }
+    return true
+}
+
+// The intra-block walk, starting from `built` rather than from nothing. Mutates
+// `built` so the caller can hand it to a single successor.
+forward_block_with :: fn(
+    instrs: Instruction[], built: MutableMap<i32, LocalId[]>!,
+) -> Instruction[] {
+    out: Instruction[]!: []
+    for ins in instrs {
+        if built.len() > 0 {
+            // The name now points elsewhere — as an object, or as one of the
+            // fields an object was built from. Every written local, not just
+            // `dst_of`: a scalarised call writes several.
+            multi :: multi_dsts(ins)
+            if multi != null {
+                for l in multi { drop_records_touching(built, l) }
+            } else {
+                d :: dst_of(ins)
+                if d != null { drop_records_touching(built, d) }
+            }
+        }
+        if ins is InstrStructNew {
+            built[i32(ins.dst)] = ins.fields
+            out.push(ins)
+            continue
+        }
+        // A copy carries the record with it. The builder emits
+        // `call → move → field_get`, so without this the reads name an alias of
+        // the object and nothing matches.
+        if ins is InstrMove {
+            aliased :: built[i32(ins.src)]
+            if aliased != null {
+                built[i32(ins.dst)] = aliased
+            }
+            out.push(ins)
+            continue
+        }
+        if ins is InstrFieldGet {
+            fields :: built[i32(ins.target)]
+            if fields != null {
+                index :: tuple_field_index(ins.field)
+                if index >= 0 && usize(index) < fields.len() {
+                    out.push(InstrMove {
+                        .span = ins.span,
+                        .dst = ins.dst,
+                        .src = fields[usize(index)],
+                    })
+                    continue
+                }
+            }
+        }
+        out.push(ins)
+    }
+    return out
+}

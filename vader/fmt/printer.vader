@@ -180,7 +180,7 @@ flush_remaining_comments :: fn(self: Printer!) -> void {
 // fns produced by the `@comptime` const-sugar desugar. Every other decl passes
 // through in order.
 emittable_decls :: fn(decls: p.Decl[]) -> p.Decl[] {
-    out: p.Decl[]! = []
+    out: p.Decl[]!: []
     for d in decls {
         if d is p.FnDecl {
             if d.comptime_synthetic { continue }
@@ -341,7 +341,7 @@ decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
 // decls all see the same width — the max name length in the group — so
 // every name in the group aligns to the same column.
 compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> usize[] {
-    out: usize[]! = []
+    out: usize[]!: []
     i: usize = 0
     for i < decls.len() {
         if !decl_is_alignable(decls[i]) {
@@ -384,7 +384,7 @@ decl_span :: fn(d: p.Decl) -> Span {
 // by the parser. For "what line does this decl visually start on" we want
 // the first decorator's line if any, else the decl's own span start.
 decl_first_line :: fn(d: p.Decl) -> i32 {
-    decos:= match d {
+    decos :: match d {
         is p.ImportDecl    -> d.decorators
         is p.FnDecl        -> d.decorators
         is p.StructDecl    -> d.decorators
@@ -616,7 +616,7 @@ emit_struct_decl :: fn(self: Printer!, d: p.StructDecl) -> void {
         // name ; use THAT line for the blank-line check so a doc directly above
         // it isn't split off by a spurious blank line.
         self.newline()
-        node_line :: if f.visibility == p.Visibility.Private {
+        node_line :: if f.visibility == .Private {
             f.span.start.line - 1
         } else {
             f.span.start.line
@@ -640,14 +640,14 @@ emit_struct_decl :: fn(self: Printer!, d: p.StructDecl) -> void {
 // True when any field opts out of the public default via `@internal`
 // (`.Private`) — such a struct can't use the inline single-line form.
 has_internal_field :: fn(fields: p.StructField[]) -> bool {
-    for f in fields { if f.visibility == p.Visibility.Private { return true } }
+    for f in fields { if f.visibility == .Private { return true } }
     return false
 }
 
 emit_struct_field :: fn(self: Printer!, f: p.StructField) -> void {
     // Fields are public by default ; a `.Private` field carries the
     // `@internal` decorator, emitted on its own line above the field.
-    if f.visibility == p.Visibility.Private {
+    if f.visibility == .Private {
         self.write("@internal")
         self.nl_indent()
     }
@@ -766,7 +766,7 @@ emit_trait_decl :: fn(self: Printer!, d: p.TraitDecl) -> void {
 // consecutive signature-only fns with matching visibility and decorator
 // set share a group.
 compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> usize[] {
-    out: usize[]! = []
+    out: usize[]!: []
     i: usize = 0
     for i < members.len() {
         m :: members[i]
@@ -1571,30 +1571,28 @@ emit_binary_operand :: fn(self: Printer!, operand: p.Expr, parent_op: p.BinaryOp
 // (parser bp 20, non-associative). Rank 4 is reserved for ranges (parser bp
 // 30) and consulted by `range_operand_needs_parens`. Adding a `BinaryOp`
 // variant trips T3013 here, forcing a rank decision.
-binary_precedence :: fn(op: p.BinaryOp) -> i32 {
-    match op {
-        .Or     -> 1
-        .And    -> 2
-        .Eq     -> 3
-        .Neq    -> 3
-        .Lt     -> 3
-        .Lte    -> 3
-        .Gt     -> 3
-        .Gte    -> 3
-        .Is     -> 3
-        .In     -> 3
-        .NotIn  -> 3
-        .BitOr  -> 5
-        .BitXor -> 6
-        .BitAnd -> 7
-        .Shl    -> 8
-        .Shr    -> 8
-        .Add    -> 9
-        .Sub    -> 9
-        .Mul    -> 10
-        .Div    -> 10
-        .Mod    -> 10
-    }
+binary_precedence :: fn(op: p.BinaryOp) -> i32 = match op {
+    .Or     -> 1
+    .And    -> 2
+    .Eq     -> 3
+    .Neq    -> 3
+    .Lt     -> 3
+    .Lte    -> 3
+    .Gt     -> 3
+    .Gte    -> 3
+    .Is     -> 3
+    .In     -> 3
+    .NotIn  -> 3
+    .BitOr  -> 5
+    .BitXor -> 6
+    .BitAnd -> 7
+    .Shl    -> 8
+    .Shr    -> 8
+    .Add    -> 9
+    .Sub    -> 9
+    .Mul    -> 10
+    .Div    -> 10
+    .Mod    -> 10
 }
 
 // Non-associative binary ops (parser bp 20, `non_assoc = true`) — a chained
@@ -1807,7 +1805,7 @@ if_cond_width :: fn(s: p.Stmt, source: string) -> usize {
 // `if`s (a lookup table), the max condition width across the run ; 0 otherwise.
 // Mirrors the `::` decl-group width computation in `alignment_widths`.
 compute_if_align :: fn(stmts: p.Stmt[], source: string) -> usize[] {
-    out: usize[]! = []
+    out: usize[]!: []
     i: usize = 0
     for i < stmts.len() {
         if !inline_if_stmt(stmts[i]) {

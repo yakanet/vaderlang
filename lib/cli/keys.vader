@@ -120,7 +120,7 @@ decode_escape :: fn(bytes: u8[], from: usize, remaining: usize) -> DecodedKey {
     }
     final :: bytes[from + 2]
     arrow :: arrow_for(final)
-    if arrow != Key.Unknown {
+    if arrow != .Unknown {
         return DecodedKey {
             .press = KeyPress { .key = arrow, .text = "" },
             .consumed = 3,
@@ -206,7 +206,7 @@ codepoint_width :: fn(lead: u8) -> usize {
 /// @return       every press in order; empty when `burst` is empty.
 export decode_burst :: fn(burst: string) -> KeyPress[] {
     bytes :: burst.bytes()
-    out: KeyPress[]! = []
+    out: KeyPress[]!: []
     i := usize(0)
     for i < bytes.len() {
         d :: decode_key(bytes, i)

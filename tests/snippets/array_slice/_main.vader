@@ -10,7 +10,7 @@ module "snippet"
 import "std/io"
 
 main :: fn() -> i32 {
-    arr: i32[] = [10, 20, 30, 40, 50]
+    arr: i32[]: [10, 20, 30, 40, 50]
 
     // half-open literal range
     s1 :: arr[1..<4]
@@ -29,7 +29,7 @@ main :: fn() -> i32 {
     for v in s3 { println("  ${v}") }
 
     // usize-typed bounds
-    n: usize = 3
+    n: usize: 3
     s4 :: arr[0..<n]
     println("s4.len = ${s4.len()}")
     for v in s4 { println("  ${v}") }

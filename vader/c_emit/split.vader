@@ -144,7 +144,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, header_name: str
 
     // ---- function TUs : one per MODULE, plus unit 0 for the fixed code ----
     names :: unit_names_of(m.functions, buckets)
-    units: string[]! = []
+    units: string[]!: []
     for k in 0..<buckets.len() {
         u :: StringBuilder {}
         u.append("#include \"${header_name}\"\n\n")
@@ -222,8 +222,8 @@ emit_internal_forward_decls :: fn(ctx: EmitCtx, bucket: i32[], out: StringBuilde
 /// @return               flags parallel to `m.functions`.
 internal_fn_flags :: fn(m: BytecodeModule, buckets: i32[][], entry_mangled: string) -> bool[] {
     n :: m.functions.len()
-    unit_of: i32[]! = []
-    external: bool[]! = []
+    unit_of: i32[]!: []
+    external: bool[]!: []
     for i in 0..<n {
         unit_of.push(-1)
         external.push(false)
@@ -262,7 +262,7 @@ internal_fn_flags :: fn(m: BytecodeModule, buckets: i32[][], entry_mangled: stri
         }
     }
 
-    out: bool[]! = []
+    out: bool[]!: []
     for i in 0..<n {
         out.push(!external[i])
     }
@@ -359,7 +359,7 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
             cur.push(idx)
         }
     }
-    buckets: i32[]![]! = [[]]
+    buckets: i32[]![]!: [[]]
     for m in sorted_module_stems(of_module) {
         buckets.push(of_module[m] ?? [])
     }
@@ -368,7 +368,7 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
 
 // The module stems, sorted — the deterministic unit order.
 sorted_module_stems :: fn(of_module: MutableMap<string, i32[]!>) -> string[] {
-    stems: string[]! = []
+    stems: string[]!: []
     for [m, _] in of_module {
         stems.push(m)
     }
@@ -387,7 +387,7 @@ sorted_module_stems :: fn(of_module: MutableMap<string, i32[]!>) -> string[] {
 // route that produced several `_root`s; the check closes the one a module
 // literally stemmed `_glue` or `_root` would still take.
 unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
-    out: string[]! = [GLUE_UNIT]
+    out: string[]!: [GLUE_UNIT]
     for k in 1..<buckets.len() {
         stem :: module_stem_of(fns[usize(buckets[k][0])].name)
         // A stem names a MODULE, so every byte of it is an identifier byte. An
@@ -429,7 +429,7 @@ module_stem_of :: fn(name: string) -> string {
 
 /// Fn indices sorted by mangled name — the deterministic visit order.
 sorted_fn_indices :: fn(fns: BcFunction[]) -> i32[] {
-    idxs: i32[]! = []
+    idxs: i32[]!: []
     for i in 0..<fns.len() { idxs.push(i32(i)) }
     return sort(idxs, (a: i32, b: i32) -> compare_ascending(fns[usize(a)].name, fns[usize(b)].name))
 }

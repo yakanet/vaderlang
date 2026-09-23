@@ -4,7 +4,7 @@ import "std/io"
 import "std/collections"
 
 main :: fn() -> i32 {
-    s := MutableSet<i32> {}
+    s :: MutableSet<i32> {}
     println("new? ${s.add(10)}")
     println("new? ${s.add(20)}")
     println("new? ${s.add(10)}")  // duplicate

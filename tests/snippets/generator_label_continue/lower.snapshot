@@ -16,21 +16,24 @@
     block :void
       let __iter_0: Iterator<i32> = it :__genstate_gen<i32>!
       loop
-        let __step_1: Yield<i32>! | null =
-          vcall Iterator.next :Yield<i32>! | null
+        let __step_1: [i32, Continuation]! =
+          vcall Iterator.next :[i32, Continuation]!
             recv:
               __iter_0 :Iterator<i32>
         if :void
           cond:
-            is null :bool
-              __step_1 :Yield<i32>! | null
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_1 :[i32, Continuation]!
+              r:
+                int(1) :u8
           then:
             break
           else:
             let v: i32 =
-              .value :i32
-                cast → Yield<i32>!
-                  __step_1 :Yield<i32>! | null
+              ._0 :i32
+                __step_1 :[i32, Continuation]!
             call :void
               callee:
                 std_io$println__string :void
@@ -67,7 +70,7 @@
                         __off_3 :usize
     return int(0) :i32
   struct __genstate_gen { s0: i32, s1: i32, state: i32 }
-  fn snippet$__genstate_gen$Iterator$next(self: __genstate_gen!) -> Yield<i32>! | null
+  fn snippet$__genstate_gen$Iterator$next(self: __genstate_gen!) -> [i32, Continuation]!
     loop
       if :void
         cond:
@@ -251,8 +254,8 @@
                                         value:
                                           int(6) :i32
                                       return
-                                        Yield<i32>! {
-                                          value:
+                                        [i32, Continuation]! {
+                                          _0:
                                             add :i32
                                               l:
                                                 mul :i32
@@ -264,6 +267,7 @@
                                               r:
                                                 .s1 :i32
                                                   __self_0 :__genstate_gen!
+                                          _1: int(0) :u8
                                         }
                                     else:
                                       if :void
@@ -417,7 +421,11 @@
                                                                     value:
                                                                       int(2) :i32
                                                                 else:
-                                                                  return null
+                                                                  return
+                                                                    [i32, Continuation]! {
+                                                                      _0: int(0) :i32
+                                                                      _1: int(1) :u8
+                                                                    }
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

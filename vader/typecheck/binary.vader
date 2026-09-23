@@ -39,7 +39,7 @@ export infer_binary :: fn(
     // `x is T` — right side is a type expression. Record its
     // resolved type directly so dump entries show e.g. `i32`
     // instead of the `type` metatype.
-    if e.op == AST.BinaryOp.Is {
+    if e.op == .Is {
         rhs_ty :: type_from_expr(e.right, typed.resolved, diags)
         typed.expr_types[e.right.id] = rhs_ty
         // `node_spans` / `expr_kinds` here are dump-only (the right side of
@@ -64,7 +64,7 @@ export infer_binary :: fn(
     // Conjunction only. A disjunction's right operand runs exactly when the left
     // was false, so it could see the left's NEGATIVE narrowings ; not wired.
     cond_narrows: IsNarrow[] = []
-    if e.op == AST.BinaryOp.And {
+    if e.op == .And {
         cond_narrows = collect_and_narrows(e.left, typed)
     }
     pushed :: push_then_narrows(cond_narrows, typed)
@@ -263,11 +263,11 @@ carries_mutable_state :: fn(t: Type, typed: TypedProgram) -> bool {
 }
 
 arith_trait_method :: fn(op: AST.BinaryOp) -> string {
-    if op == AST.BinaryOp.Add { return METHOD_ADD }
-    if op == AST.BinaryOp.Sub { return METHOD_SUB }
-    if op == AST.BinaryOp.Mul { return METHOD_MUL }
-    if op == AST.BinaryOp.Div { return METHOD_DIV }
-    if op == AST.BinaryOp.Mod { return METHOD_REM }
+    if op == .Add { return METHOD_ADD }
+    if op == .Sub { return METHOD_SUB }
+    if op == .Mul { return METHOD_MUL }
+    if op == .Div { return METHOD_DIV }
+    if op == .Mod { return METHOD_REM }
     return ""
 }
 
@@ -482,6 +482,29 @@ check_equality :: fn(
         numeric_result(e, left, right, diags)
         return TY_BOOL
     }
+    // A tuple's `==` compares its ELEMENTS (`lower/lower_tuple_eq.vader`), so it is
+    // exactly as comparable as they are, and the rewrite is unconditional:
+    // anything this gate lets through must have a working `==` at every position.
+    //
+    // `equals_type` is the compatibility the lowerer needs — it drives both sides
+    // from the left type, at every depth — and a distinct over a tuple compares
+    // through its backing, the nominal wrapper holding no identity of its own.
+    left_tuple  :: tuple_backing(left)
+    right_tuple :: tuple_backing(right)
+    if left_tuple != null && right_tuple != null {
+        if !equals_type(left, right) {
+            diags.push(typecheck_error(.TypeMismatch, e.span,
+                "expected ${display_type(left)}, got ${display_type(right)}"))
+            return TY_BOOL
+        }
+        // Equal types, so walking one side is enough and the diagnostic cannot
+        // depend on operand order.
+        bad :: first_incomparable_element(left_tuple, typed)
+        if bad != null {
+            push_trait_missing(e, bad, TRAIT_EQUALS, diags)
+        }
+        return TY_BOOL
+    }
     // `struct` and `array` are the only kinds with NO built-in `==` — a bare
     // `a == b` on them lowers to a scalar eq on a reference and traps at runtime.
     // Both require an `Equals` impl (the lowerer rewrites `a == b` into
@@ -504,6 +527,41 @@ check_equality :: fn(
         }
     }
     return TY_BOOL
+}
+
+// The first element of `t` with no working `==`, or null when every one has.
+//
+// What reaches `ref.eq` — and therefore has to be refused — is every kind the VM
+// will not compare: it accepts null / i32 / bool / char / string only
+// (`vm/value.vader`). A primitive never gets that far, since op-select picks the
+// typed eq from the static type. So: an array (never has an impl), a struct
+// without one, a fn value, and a type parameter — whose element access is emitted
+// before the erased-receiver vcall path could route it. A nested tuple asks the
+// same question one level down.
+//
+// A UNION element is deliberately absent: `Box | null == Box | null` traps the
+// same way OUTSIDE any tuple, which is the reference-compare policy the gate
+// above describes and the compiler itself leans on. Refusing it here would be a
+// stricter rule inside a tuple than outside one.
+first_incomparable_element :: fn(t: TupleType, typed: TypedProgram) -> Type | null {
+    for el in t.elements {
+        match el {
+            is TupleType -> {
+                inner :: first_incomparable_element(el, typed)
+                if inner != null {
+                    return inner
+                }
+            }
+            is ArrayType | FnType | TypeParamType -> { return el }
+            is StructType -> {
+                if !struct_implements_trait(el, TRAIT_EQUALS, typed) {
+                    return el
+                }
+            }
+            _ -> {}
+        }
+    }
+    return null
 }
 
 is_null_type :: fn(t: Type) -> bool {
@@ -666,7 +724,7 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
 
 is_enum_like :: fn(t: Type) -> bool {
     if t is EnumType         { return true }
-    if t is StructType { return t.symbol.kind == SymbolKind.Enum }
+    if t is StructType { return t.symbol.kind == .Enum }
     return false
 }
 
@@ -875,7 +933,7 @@ expect_binary :: fn(src: string) -> ExpectedBinary {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
@@ -903,7 +961,7 @@ ExpectedBinary :: struct {
 
 synthetic_binary :: fn() -> AST.BinaryExpr {
     sp :: empty_span()
-    int_lit: AST.Expr = AST.IntLitExpr {
+    int_lit: AST.Expr: AST.IntLitExpr {
         .span = sp,
         .id = AST.UNASSIGNED_NODE_ID,
         .value = 0,
@@ -921,7 +979,7 @@ synthetic_binary :: fn() -> AST.BinaryExpr {
 @test
 test_arith_int_returns_concrete :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> i32 { return a + b }")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "i32")
     assert_eq(diags.len(), 0)
 }
@@ -929,7 +987,7 @@ test_arith_int_returns_concrete :: fn() -> void {
 @test
 test_arith_string_concat :: fn() -> void {
     eb :: expect_binary("""f :: fn(a: string, b: string) -> string { return a + b }""")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     assert_eq(
         display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)),
         "string",
@@ -939,14 +997,14 @@ test_arith_string_concat :: fn() -> void {
 @test
 test_compare_returns_bool :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a < b }")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "bool")
 }
 
 @test
 test_logical_requires_bool :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: bool) -> bool { return a && b }")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -962,7 +1020,7 @@ test_in_requires_contains :: fn() -> void {
     // `a in b` where `b : i32` has no `Contains` impl — a clean T3043, not a
     // stub that lowers to an `unreachable` trap (a runtime crash).
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a in b }")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -976,7 +1034,7 @@ test_in_requires_contains :: fn() -> void {
 @test
 test_arith_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i64) -> i64 { return a + b }")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -990,7 +1048,7 @@ test_arith_width_mismatch_emits_T3017 :: fn() -> void {
 @test
 test_compare_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i64) -> bool { return a < b }")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -1004,7 +1062,7 @@ test_compare_width_mismatch_emits_T3017 :: fn() -> void {
 @test
 test_compare_cross_family_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: f64, b: i32) -> bool { return a < b }")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -1018,7 +1076,7 @@ test_compare_cross_family_emits_T3017 :: fn() -> void {
 @test
 test_equality_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: u32, b: i32) -> bool { return a == b }")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -1032,7 +1090,7 @@ test_equality_width_mismatch_emits_T3017 :: fn() -> void {
 @test
 test_equality_same_width_ok :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a == b }")
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "bool")
     assert_eq(diags.len(), 0)
 }
@@ -1045,7 +1103,7 @@ repeat_diagnostics :: fn(src: string) -> Diagnostic[] {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     check_module_with_bodies(parsed.program, rm, factory, diags)
     return diags
 }

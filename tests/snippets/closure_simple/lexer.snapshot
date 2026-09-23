@@ -14,7 +14,7 @@
 [3:21-3:22  ] lbrace         "{"
 [4:1-4:1    ] newline        "\n"
 [4:5-4:6    ] ident          "x"
-[4:7-4:9    ] decl_var       ":="
+[4:7-4:9    ] decl_const     "::"
 [4:10-4:12  ] int_literal    "10" =10n
 [5:1-5:1    ] newline        "\n"
 [5:5-5:10   ] ident          "add_x"

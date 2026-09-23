@@ -23,7 +23,7 @@ PASSES :: 15
 main :: fn() -> i32 {
     text :: repeat(LINE, usize(REPS))
     data :: text.bytes()
-    nb: usize = data.len()
+    nb: usize: data.len()
     words: i64 = 0
     lines: i64 = 0
     total: i64 = 0

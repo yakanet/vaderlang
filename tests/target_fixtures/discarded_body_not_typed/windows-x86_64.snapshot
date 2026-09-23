@@ -3,8 +3,8 @@
 [main-windows.vader:19:35] error[R2006] unresolved identifier: `no_such_function_anywhere`
 
 # Baked
-VADER_OS = Os.Windows
-VADER_ARCH = Arch.X86_64
+VADER_OS = .Windows
+VADER_ARCH = .X86_64
 
 # Selected body
 main$platform_kind <- main-windows.vader:19

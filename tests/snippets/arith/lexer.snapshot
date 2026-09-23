@@ -38,7 +38,7 @@
 [7:21-7:22  ] lbrace         "{"
 [8:1-8:1    ] newline        "\n"
 [8:5-8:6    ] ident          "x"
-[8:7-8:9    ] decl_var       ":="
+[8:7-8:9    ] decl_const     "::"
 [8:10-8:13  ] ident          "add"
 [8:13-8:14  ] lparen         "("
 [8:14-8:15  ] int_literal    "2" =2n

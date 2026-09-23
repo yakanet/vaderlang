@@ -139,7 +139,7 @@ export fit :: fn(s: string, width: i32) -> string {
 export render_select :: fn(
     question: string, options: string[], cursor: usize, width: i32,
 ) -> string {
-    lines: string[]! = [fit("? ${question}  (up/down, Enter to choose, Esc to cancel)", width)]
+    lines: string[]!: [fit("? ${question}  (up/down, Enter to choose, Esc to cancel)", width)]
     for i in 0..<options.len() {
         marker :: if i == cursor { ">" } else { " " }
         lines.push(fit("${marker} ${options[i]}", width))
@@ -176,10 +176,10 @@ export select :: fn(question: string, options: string[]) -> usize | PromptError 
         if press is PromptError {
             return press
         }
-        if press.key == Key.Enter {
+        if press.key == .Enter {
             return cursor
         }
-        if press.key == Key.Escape || press.key == Key.Interrupt {
+        if press.key == .Escape || press.key == .Interrupt {
             return cancelled()
         }
         cursor = moved(cursor, options.len(), press.key)
@@ -194,16 +194,16 @@ export select :: fn(question: string, options: string[]) -> usize | PromptError 
 /// @param key     the press to apply; anything that does not move returns
 ///                `cursor` unchanged.
 export moved :: fn(cursor: usize, count: usize, key: Key) -> usize {
-    if key == Key.Up {
+    if key == .Up {
         return if cursor == 0 { count - 1 } else { cursor - 1 }
     }
-    if key == Key.Down {
+    if key == .Down {
         return if cursor + 1 >= count { 0 } else { cursor + 1 }
     }
-    if key == Key.Home {
+    if key == .Home {
         return 0
     }
-    if key == Key.End {
+    if key == .End {
         return count - 1
     }
     return cursor
@@ -218,7 +218,7 @@ export render_multiselect :: fn(
     question: string, options: string[], checked: bool[], cursor: usize, width: i32,
 ) -> string {
     header :: "? ${question}  (Space to toggle, Enter to confirm, Esc to cancel)"
-    lines: string[]! = [fit(header, width)]
+    lines: string[]!: [fit(header, width)]
     for i in 0..<options.len() {
         marker :: if i == cursor { ">" } else { " " }
         box :: if checked[i] { "[x]" } else { "[ ]" }
@@ -240,7 +240,7 @@ export multiselect :: fn(question: string, options: string[]) -> usize[] | Promp
     }
     defer TTY.raw_mode_end()
     reader :: new_key_reader()
-    checked: bool[]! = [false] * options.len()
+    checked: bool[]!: [false] * options.len()
     cursor := usize(0)
     drawn := 0
     for {
@@ -251,13 +251,13 @@ export multiselect :: fn(question: string, options: string[]) -> usize[] | Promp
         if press is PromptError {
             return press
         }
-        if press.key == Key.Enter {
+        if press.key == .Enter {
             return checked_indices(checked)
         }
-        if press.key == Key.Escape || press.key == Key.Interrupt {
+        if press.key == .Escape || press.key == .Interrupt {
             return cancelled()
         }
-        if press.key == Key.Space {
+        if press.key == .Space {
             checked[cursor] = !checked[cursor]
             continue
         }
@@ -267,7 +267,7 @@ export multiselect :: fn(question: string, options: string[]) -> usize[] | Promp
 
 /// The indices set in `checked`, in order.
 export checked_indices :: fn(checked: bool[]) -> usize[] {
-    out: usize[]! = []
+    out: usize[]!: []
     for i in 0..<checked.len() {
         if checked[i] {
             out.push(i)
@@ -306,7 +306,7 @@ export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError 
             TTY.raw_print(if answer { "yes" } else { "no" })
             return answer
         }
-        if press.key == Key.Escape || press.key == Key.Interrupt {
+        if press.key == .Escape || press.key == .Interrupt {
             TTY.raw_print("")
             return cancelled()
         }
@@ -316,10 +316,10 @@ export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError 
 /// How one press answers a yes/no, or null when it decides nothing. Pure, so the
 /// accepted spellings are pinned by a test rather than by trying them.
 export confirm_answer :: fn(press: KeyPress, default_yes: bool) -> bool | null {
-    if press.key == Key.Enter {
+    if press.key == .Enter {
         return default_yes
     }
-    if press.key != Key.Char {
+    if press.key != .Char {
         return null
     }
     lowered :: press.text.to_lower()
@@ -365,23 +365,23 @@ export text :: fn(question: string, default_value: string) -> string | PromptErr
             TTY.raw_print("")
             return press
         }
-        if press.key == Key.Enter {
+        if press.key == .Enter {
             TTY.raw_print("")
             return if typed == "" { default_value } else { typed }
         }
-        if press.key == Key.Escape || press.key == Key.Interrupt {
+        if press.key == .Escape || press.key == .Interrupt {
             TTY.raw_print("")
             return cancelled()
         }
-        if press.key == Key.Backspace {
+        if press.key == .Backspace {
             typed = drop_last(typed)
             continue
         }
-        if press.key == Key.Space {
+        if press.key == .Space {
             typed = typed + " "
             continue
         }
-        if press.key == Key.Char {
+        if press.key == .Char {
             typed = typed + press.text
         }
     }
@@ -418,11 +418,11 @@ import "std/testing"
 
 @test test_cursor_wraps_at_both_ends :: fn() -> void {
     // A long list must be reachable from either direction.
-    assert_eq(moved(usize(0), usize(3), Key.Up), usize(2))
-    assert_eq(moved(usize(2), usize(3), Key.Down), usize(0))
-    assert_eq(moved(usize(1), usize(3), Key.Home), usize(0))
-    assert_eq(moved(usize(1), usize(3), Key.End), usize(2))
-    assert_eq(moved(usize(1), usize(3), Key.Char), usize(1))
+    assert_eq(moved(usize(0), usize(3), .Up), usize(2))
+    assert_eq(moved(usize(2), usize(3), .Down), usize(0))
+    assert_eq(moved(usize(1), usize(3), .Home), usize(0))
+    assert_eq(moved(usize(1), usize(3), .End), usize(2))
+    assert_eq(moved(usize(1), usize(3), .Char), usize(1))
 }
 
 @test test_checked_indices_keeps_order :: fn() -> void {

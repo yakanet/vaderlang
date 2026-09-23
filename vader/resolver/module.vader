@@ -101,7 +101,7 @@ export concat_file_decls :: fn(files: SourceFile[]) -> Decl![] {
     if files.len() == 1 {
         return files[0].program.decls
     }
-    out: Decl![]! = []
+    out: Decl![]!: []
     for f in files {
         for d in f.program.decls {
             out.push(d)
@@ -208,7 +208,7 @@ export list_vader_files :: fn(root_path: string) -> string[] {
         return []
     }
     raw :: try_read_dir(root_path) ?? return []
-    files: string[]! = []
+    files: string[]!: []
     for name in raw {
         if !name.ends_with(".vader") {
             continue
@@ -396,7 +396,7 @@ export Manifest :: struct {
 /// One pass matters : the LSP re-loads the project on every didOpen / didChange,
 /// so re-reading + re-parsing the manifest per field would double the I/O.
 export read_manifest :: fn(project_root: string) -> Manifest {
-    include_paths: string[]! = []
+    include_paths: string[]!: []
     manifest_path :: join_path(project_root, MANIFEST_FILENAME)
     if !exists(manifest_path) {
         return Manifest { .include_paths = include_paths }
@@ -447,10 +447,10 @@ test_read_manifest_reads_repo_include_paths :: fn() -> void {
 test_origin_of_root_asks_the_marker_not_the_name :: fn() -> void {
     // A directory is the toolchain's because it holds `std/io/io.vader`, never
     // because it is spelled `lib`. This repo's own tree is the fixture.
-    assert_eq(origin_of_root(LIBRARY_ROOT_DIR), ModuleOrigin.Toolchain)
-    assert_eq(origin_of_root("vader"), ModuleOrigin.Build)
-    assert_eq(origin_of_root("runtime"), ModuleOrigin.Build)
-    assert_eq(origin_of_root("/no/such/dir"), ModuleOrigin.Build)
+    assert_eq(origin_of_root(LIBRARY_ROOT_DIR), .Toolchain)
+    assert_eq(origin_of_root("vader"), .Build)
+    assert_eq(origin_of_root("runtime"), .Build)
+    assert_eq(origin_of_root("/no/such/dir"), .Build)
 }
 
 @test

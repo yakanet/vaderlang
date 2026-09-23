@@ -13,7 +13,7 @@ expect_lparen :: fn(s: string) -> string {
 }
 
 main :: fn() -> i32 {
-    matched := false
+    matched :: false
     if matched {
         // body's trailing expression returns a value, but the if is used as
         // a statement so that value is discarded.

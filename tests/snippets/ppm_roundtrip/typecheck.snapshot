@@ -5,7 +5,7 @@
   expr 10:13    StringLitExpr  :: string
   expr 10:16    CallExpr       :: string
   expr 10:16    IdentExpr      :: fn() -> string
-  expr 11:16    SeqLitExpr     :: u8[]
+  expr 11:15    SeqLitExpr     :: u8[]
   expr 12:12    StructLitExpr  :: Ppm!
   expr 12:68    IdentExpr      :: u8[]
   expr 14:12    CallExpr       :: PpmError | u8[]

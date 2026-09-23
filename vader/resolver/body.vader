@@ -72,6 +72,8 @@ export resolve_program :: fn(
         .immutable_locals = MutableMap<i32, bool> {},
         .immutable_borrows = MutableMap<i32, bool> {},
         .type_param_bounds = MutableMap<i32, AST.Expr> {},
+        .mutable_decls = [],
+        .reassigned = MutableSet<i32> {},
         .diags = [],
         .scope = new_scope(top_level_seed),
         .module_path = module_path,
@@ -81,6 +83,7 @@ export resolve_program :: fn(
     for d in program.decls {
         state.walk_decl(d)
     }
+    state.report_unreassigned_mutables()
     return ResolvedFile {
         .top_level = top_level_seed,
         .idents = state.idents,
@@ -103,11 +106,14 @@ ResolveState :: struct {
     /// resulting `immutable_borrows`, and nothing downstream needs to know which
     /// policy produced it.
     ///
-    /// ON since the W0014 rollout: a write through a bare parameter is a WARNING
-    /// while modules are annotated, so the tree keeps building. It becomes an error
-    /// once every module is clean.
+    /// On everywhere: the whole tree is annotated, and no construction site sets
+    /// it. Writes through a bare parameter are T3070 / T3071 / T3072 outright.
     params_immutable_default: bool = true
     type_param_bounds: MutableMap<i32, AST.Expr>
+    /// W0015 candidates, in declaration order — one entry per `:=` statement.
+    mutable_decls:    MutableDecl[]!
+    /// Symbol ids an assignment rebinds. Read once the file is walked.
+    reassigned:       MutableSet<i32>
     diags:            Diagnostic[]!
     scope:            Scope
     module_path:      string
@@ -369,15 +375,11 @@ walk_block :: fn(self: ResolveState!, b: AST.BlockExpr) -> void {
 
 walk_stmt :: fn(self: ResolveState!, s: AST.Stmt) -> void {
     match s {
-        is AST.LetStmt -> {
-            self.walk_opt_expr(s.ty)
-            self.walk_expr(s.value)
-            self.bind_let_binding(s.binding)
-            if !s.mutable { self.mark_binding_immutable(s.binding) }
-        }
+        is AST.LetStmt -> { self.walk_let(s) }
         is AST.AssignStmt -> {
             self.walk_expr(s.target)
             self.walk_expr(s.value)
+            self.note_rebind(s.target)
         }
         is AST.ExprStmt -> { self.walk_expr(s.expr) }
         is AST.ReturnStmt -> { self.walk_opt_expr(s.value) }
@@ -386,6 +388,21 @@ walk_stmt :: fn(self: ResolveState!, s: AST.Stmt) -> void {
         is AST.BreakStmt -> {}
         is AST.ContinueStmt -> {}
         is AST.DeferStmt -> { self.walk_defer(s) }
+    }
+}
+
+walk_let :: fn(self: ResolveState!, s: AST.LetStmt) -> void {
+    self.walk_opt_expr(s.ty)
+    self.walk_expr(s.value)
+    bound: Symbol[]!: []
+    self.bind_let_binding(s.binding, bound)
+    if !s.mutable {
+        for sym in bound {
+            self.immutable_locals[sym.id] = true
+        }
+    } else if bound.len() > 0 {
+        // `_ := f()` binds nothing, so there is no name to name.
+        self.mutable_decls.push(MutableDecl { .syms = bound, .span = binding_span(s.binding) })
     }
 }
 
@@ -399,10 +416,7 @@ walk_defer :: fn(self: ResolveState!, d: AST.DeferStmt) -> void {
 // Record a parameter as an immutable borrow root — a param WITHOUT `!` is a
 // read-only borrow of the caller's value.
 //
-// Gated on `params_immutable_default`, which is still false everywhere: the
-// default flips module-by-module in a later step, so this writes nothing today
-// and the table stays empty. Keeping the write site here (rather than adding it
-// with the flip) means the flip is one flag, not new plumbing.
+// Gated on `params_immutable_default`, which is on everywhere today.
 mark_param_borrow :: fn(self: ResolveState!, p: AST.FnParam, sym: Symbol) -> void {
     if AST.param_is_mutable(p) {
         return
@@ -410,34 +424,11 @@ mark_param_borrow :: fn(self: ResolveState!, p: AST.FnParam, sym: Symbol) -> voi
     if !self.params_immutable_default {
         return
     }
-    // `true` = implicit: immutable only because the default flipped, so a write
-    // through it is W0014 (migration) rather than a hard error.
+    // The value is unread — `stmt.vader` tests membership only.
     self.immutable_borrows[sym.id] = true
 }
 
-mark_binding_immutable :: fn(self: ResolveState!, b: AST.LetBinding) -> void {
-    match b {
-        is AST.SimpleBinding -> {
-            sym :: self.scope.lookup(b.name)
-            match sym {
-                is Symbol -> { self.immutable_locals[sym.id] = true }
-                is null -> {}
-            }
-        }
-        is AST.TupleBinding -> {
-            for inner in b.elements { self.mark_binding_immutable(inner) }
-        }
-        is AST.RestBinding -> {
-            sym :: self.scope.lookup(b.name)
-            if sym is Symbol {
-                self.immutable_locals[sym.id] = true
-            }
-        }
-        _ -> {}
-    }
-}
-
-bind_let_binding :: fn(self: ResolveState!, b: AST.LetBinding) -> void {
+bind_let_binding :: fn(self: ResolveState!, b: AST.LetBinding, out: Symbol[]!) -> void {
     match b {
         is AST.SimpleBinding -> {
             sym :: self.bind_local_checked(.Local, b.name, b.name_span)
@@ -448,14 +439,16 @@ bind_let_binding :: fn(self: ResolveState!, b: AST.LetBinding) -> void {
             // Mirrors the Param / TypeParam pattern at the top of
             // this file (mint then index into `idents`).
             self.idents[b.name_span.hash()] = sym
+            out.push(sym)
         }
         is AST.TupleBinding -> {
-            for e in b.elements { self.bind_let_binding(e) }
+            for e in b.elements { self.bind_let_binding(e, out) }
         }
         is AST.WildcardBinding -> {}
         is AST.RestBinding -> {
             sym :: self.bind_local_checked(.Local, b.name, b.span)
             self.idents[b.span.hash()] = sym
+            out.push(sym)
         }
     }
 }
@@ -480,7 +473,12 @@ walk_for :: fn(self: ResolveState!, s: AST.ForStmt) -> void {
                     sym :: self.bind_local_checked(.Local, nv.name, nv.span)
                     self.idents[nv.span.hash()] = sym
                 }
-                is AST.DestructureVar as dv -> { self.bind_let_binding(dv.pattern) }
+                is AST.DestructureVar as dv -> {
+                    // A loop variable is declared by no operator, so it joins
+                    // neither `immutable_locals` nor the W0015 candidates.
+                    scratch: Symbol[]!: []
+                    self.bind_let_binding(dv.pattern, scratch)
+                }
                 is AST.DiscardVar           -> {}
             }
         }
@@ -490,6 +488,85 @@ walk_for :: fn(self: ResolveState!, s: AST.ForStmt) -> void {
     self.walk_block(s.body)
     self.scope.pop()
 }
+
+// ---- W0015 : a `:=` nothing reassigns -------------------------------------
+
+/// One `name := …` declaration awaiting proof that it is ever reassigned.
+///
+/// The unit is the DECLARATION, not the name: `[a, b] := pair` carries a single
+/// `:=` for both, so reassigning either one justifies it.
+MutableDecl :: struct {
+    syms: Symbol[]
+    span: Span
+}
+
+// Record what an assignment target rebinds, for W0015.
+//
+// A bare name as the WHOLE target is the form that rebinds it; `x.f = 1` and
+// `x[0] = 1` mutate what `x` designates, which a `::` local allows, so counting
+// them would demand `:=` where `::` is right. `[a, b] = pair` is the third form:
+// SPEC only destructures in a `let` and in match arms, and this one currently
+// lowers to nothing at all (TODO.md), but it READS as a rebinding — counting it
+// keeps the warning right whichever way that gets settled.
+//
+// The mirror check reads the same `idents` table the same way, one pass later:
+// `typecheck/stmt.vader::is_const_reassign`, which rejects a write to a `::`.
+note_rebind :: fn(self: ResolveState!, target: AST.Expr) -> void {
+    if target is AST.IdentExpr {
+        sym :: self.idents[target.span.hash()] ?? return
+        // `add` reports whether the id was new; as the `if`'s last expression a
+        // bare call would make this `void` body return `bool | void`.
+        _ :: self.reassigned.add(sym.id)
+    } else if target is AST.SeqLitExpr {
+        for el in target.elements {
+            self.note_rebind(el)
+        }
+    }
+}
+
+// Where W0015 points: the whole `[a, b]` for a destructure, since the warning's
+// unit is the declaration. That is what `Symbol.defined_at` cannot give — it
+// carets the first leaf — so this is not a re-derivation of it. Each variant
+// names the field the mint site used, and is spelled out because a common-field
+// read on a bare union takes a FIXED offset.
+binding_span :: fn(b: AST.LetBinding) -> Span = match b {
+    is AST.SimpleBinding   -> b.name_span
+    is AST.TupleBinding    -> b.span
+    is AST.RestBinding     -> b.span
+    is AST.WildcardBinding -> b.span
+}
+
+// W0015 — every `:=` nothing ever reassigned. Reported at the end of the file
+// rather than at each `scope.pop()`, which the scope stack would also allow:
+// it is the cheaper seam, and `render_diagnostics` sorts by offset, so push
+// order never reaches the user.
+report_unreassigned_mutables :: fn(self: ResolveState!) -> void {
+    for d in self.mutable_decls {
+        if self.has_reassignment(d.syms) {
+            continue
+        }
+        names: string[]!: []
+        for sym in d.syms {
+            names.push(sym.name)
+        }
+        joined :: names.join("`, `")
+        self.diags.push(warning(.MutableNeverReassigned, d.span, "`${joined}`"))
+    }
+}
+
+has_reassignment :: fn(self: ResolveState, syms: Symbol[]) -> bool {
+    for sym in syms {
+        if sym.id in self.reassigned {
+            return true
+        }
+    }
+    return false
+}
+
+// `out` receives every Symbol minted, in binding order. Both of `walk_stmt`'s
+// axes read it — `::` marks them immutable, `:=` groups them into one W0015
+// candidate — so neither walks the binding tree a second time to look the names
+// back up. A caller with no use for the list passes one it discards.
 
 // ---- expr walkers ---------------------------------------------------------
 
@@ -616,12 +693,12 @@ walk_if :: fn(self: ResolveState!, e: AST.IfExpr) -> void {
 // but still minted so the use doesn't cascade into a spurious R2006.
 bind_cond_is_as :: fn(self: ResolveState!, cond: AST.Expr, in_conjunction: bool) -> void {
     if cond is AST.BinaryExpr {
-        if cond.op == AST.BinaryOp.And {
+        if cond.op == .And {
             self.bind_cond_is_as(cond.left, true)
             self.bind_cond_is_as(cond.right, true)
             return
         }
-        if cond.op == AST.BinaryOp.Is {
+        if cond.op == .Is {
             self.walk_expr(cond.left)
             self.walk_expr(cond.right)
             if cond.bind_as != "" {
@@ -757,7 +834,7 @@ main :: fn() -> i32 {
     match hit {
         is Symbol -> {
             assert_eq(hit.name, "x")
-            assert(hit.kind == SymbolKind.Local, "should resolve to a Local")
+            assert(hit.kind == .Local, "should resolve to a Local")
         }
         is null -> {
             assert(false, "expected to find resolution for x at 3:12")
@@ -780,7 +857,7 @@ f :: fn(x: i32) -> i32 {
     hit :: resolved.idents[span_at("test.vader", 2, 12).hash()]
     match hit {
         is Symbol -> {
-            assert(hit.kind == SymbolKind.Param, "should resolve to a Param")
+            assert(hit.kind == .Param, "should resolve to a Param")
         }
         is null -> {
             assert(false, "expected to find resolution for x at 2:12")

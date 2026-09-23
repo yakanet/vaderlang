@@ -3,6 +3,7 @@
 ## tests/snippets/enum_basic
 
 ## generic instances
+  __genstate_array_iter<T>
   Into<Target>
   Add<Rhs, Out>
   ArrayOps<T>
@@ -15,18 +16,14 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
 
 # Diagnostics
 [21:1] error[T3033] invalid `main` signature: main must return i32
+[24:22] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.North`

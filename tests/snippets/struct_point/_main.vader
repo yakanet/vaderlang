@@ -11,7 +11,7 @@ module "snippet"
 Point :: struct { x: i32, y: i32 }
 
 main :: fn() -> i32 {
-    p := Point { .x = 3, .y = 4 }
+    p :: Point { .x = 3, .y = 4 }
     p.x = p.x + 10
     return p.x + p.y
 }

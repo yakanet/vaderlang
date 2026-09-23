@@ -24,7 +24,7 @@
 [11:21-11:22] lbrace         "{"
 [12:1-12:1  ] newline        "\n"
 [12:5-12:6  ] ident          "m"
-[12:7-12:9  ] decl_var       ":="
+[12:7-12:9  ] decl_const     "::"
 [12:10-12:20] ident          "MutableMap"
 [12:20-12:21] lt             "<"
 [12:21-12:27] ident          "string"

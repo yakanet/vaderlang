@@ -135,7 +135,7 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool) -> stri
 ///
 /// @param argv  the command line being built, appended to in place.
 export push_math_library :: fn(argv: string[]!) -> void {
-    if VADER_OS == Os.Linux {
+    if VADER_OS == .Linux {
         argv.push("-Wl,--no-as-needed")
         // And EXPORT the executable's own symbols, or the interpreter cannot
         // reach them. An `@extern` naming a `runtime/c/` accessor —
@@ -179,7 +179,7 @@ export push_ldflags :: fn(argv: string[]!, ldflags: string) -> void {
 export cc_argv :: fn(
     cc: string, c_file: string, out: Path, release: bool, ldflags: string, runtime_root: string,
 ) -> string[] {
-    argv: string[]! = [cc]
+    argv: string[]!: [cc]
     argv.push_all(cc_opt_flags(release))
     rt :: if runtime_root == "" { runtime_c_root() } else { runtime_root }
     argv.push("-I")
@@ -213,7 +213,7 @@ export write_out :: fn(path: Path, content: string) -> i32 {
 /// on the build target: it names a program to spawn HERE, so a cross build has to
 /// name its own — `--cc=x86_64-w64-mingw32-gcc` on the command line, `ctx.cc` from
 /// a driver.
-export default_cc :: fn() -> string = if current_os() == Os.Windows { "gcc" } else { "cc" }
+export default_cc :: fn() -> string = if current_os() == .Windows { "gcc" } else { "cc" }
 
 /// Write `c` beside `out` and link it into a native binary.
 ///

@@ -1,92 +1,90 @@
 module _main
 type 0 primitive null
-type 1 struct snippet$Countdown { current:5 }
-type 2 union 0,3
-type 3 struct std_core$Yield__i32 { value:5 }
+type 1 struct snippet$Countdown { current:2 }
+type 2 primitive i32
+type 3 primitive u8
 type 4 primitive usize
-type 5 primitive i32
-type 6 primitive string
-type 7 struct std_core$Buffer {  }
-type 8 primitive i64
-type 9 primitive u8
-type 10 array 9
-type 11 primitive void
-type 12 primitive isize
-type 13 union 3,0
+type 5 primitive string
+type 6 struct std_core$Buffer {  }
+type 7 primitive i64
+type 8 array 3
+type 9 primitive void
+type 10 primitive isize
 string 0 "\n"
-import 0 byte_len std_core$byte_len result_type=4 param_types=6 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=10 param_types=6 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=5,10,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=4 param_types=5 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=8 param_types=5 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=2,8,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 1 Iterator
-impl 7 ByteAccess
+impl 6 ByteAccess
 export main 1
 
-fn 0 snippet$Countdown$Iterator$next (ref) -> any
+fn 0 snippet$Countdown$Iterator$next$v (ref) -> (i32,u8)
   local v i32
-  local $sub_9 i32
+  local $sub_11 i32
   local.field 0 1 0   ; arg 0.current
-  ref.cast 5   ; -> i32
+  ref.cast 2   ; -> i32
   i32.const 0
   i32.le
   if $L0 void
-    null.const
-    box 0   ; -> null
+    i32.const 0
+    i32.const 1
     return
   end $L0
   local.field 0 1 0   ; arg 0.current
-  ref.cast 5   ; -> i32
+  ref.cast 2   ; -> i32
   local.set 1   ; v
   local.field 0 1 0   ; arg 0.current
-  ref.cast 5   ; -> i32
+  ref.cast 2   ; -> i32
   i32.const 1
   i32.sub
-  local.set 2   ; $sub_9
+  local.set 2   ; $sub_11
   local.get 0   ; arg 0
-  local.get 2   ; $sub_9
+  local.get 2   ; $sub_11
   struct.set 1 0   ; snippet$Countdown.current
   local.get 1   ; v
-  struct.new 3   ; std_core$Yield__i32
+  i32.const 0
   return
 end
 
 fn 1 snippet$main () -> i32
   local __iter_0 ref
-  local __step_1 any
   local x i32
   local __buf_2 ref
   local __off_3 usize
-  local $cast_15 i64
+  local $cast_16 i64
+  local $call_elem_20 i32
+  local $call_elem_21 u8
   i32.const 5
   struct.new 1   ; snippet$Countdown
   local.set 0   ; __iter_0
   block $L0 void
     loop $L1 void
       local.get 0   ; __iter_0
-      call 0   ; snippet$Countdown$Iterator$next
-      local.tee 1   ; __step_1
-      type_check 0   ; null
+      call 0   ; snippet$Countdown$Iterator$next$v
+      local.set 6   ; $call_elem_21
+      local.set 5   ; $call_elem_20
+      local.get 6   ; $call_elem_21
+      i32.const 1
+      i32.eq
       if $L2 void
       else
-        local.get 1   ; __step_1
-        ref.cast 3   ; -> std_core$Yield__i32
-        struct.get 3 0   ; std_core$Yield__i32.value
-        ref.cast 5   ; -> i32
-        local.set 2   ; x
+        local.get 5   ; $call_elem_20
+        local.set 1   ; x
         i64.const 20
         call 3   ; std_core$new_byte_buffer
-        local.set 3   ; __buf_2
+        local.set 2   ; __buf_2
         i64.const 0
-        local.set 4   ; __off_3
-        local.get 2   ; x
+        local.set 3   ; __off_3
+        local.get 1   ; x
         i32.to_i64
-        local.set 5   ; $cast_15
-        local.get 3   ; __buf_2
-        local.get 4   ; __off_3
-        local.get 5   ; $cast_15
+        local.set 4   ; $cast_16
+        local.get 2   ; __buf_2
+        local.get 3   ; __off_3
+        local.get 4   ; $cast_16
         call 5   ; std_core$write_int
-        local.set 4   ; __off_3
-        local.get 3   ; __buf_2
-        local.get 4   ; __off_3
+        local.set 3   ; __off_3
+        local.get 2   ; __buf_2
+        local.get 3   ; __off_3
         call 4   ; std_core$finish_buffer
         call 8   ; std_io$println__string
         br $L1
@@ -282,7 +280,7 @@ fn 6 std_io$write (i32,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 8   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

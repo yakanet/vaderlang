@@ -7,8 +7,8 @@ export add :: fn(a: usize, b: usize) -> usize {
 }
 
 main :: fn() -> i32 {
-    n: usize = 10
-    m: usize = add(n, 32)
+    n: usize: 10
+    m: usize: add(n, 32)
     println("${m}")
     return 0
 }

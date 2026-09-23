@@ -9,8 +9,8 @@
 [main.vader:25:1] warning[W0007] declaration is never used in its module: `overlapping` is never used
 
 # Baked
-VADER_OS = Os.Windows
-VADER_ARCH = Arch.X86_64
+VADER_OS = .Windows
+VADER_ARCH = .X86_64
 
 # Selected body
 main$leaky <- main-windows.vader:11

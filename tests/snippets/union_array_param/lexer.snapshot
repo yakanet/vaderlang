@@ -65,16 +65,16 @@
 [15:8-15:10 ] ident          "u8"
 [15:10-15:11] lbracket       "["
 [15:11-15:12] rbracket       "]"
-[15:13-15:14] assign         "="
-[15:15-15:16] lbracket       "["
-[15:16-15:17] int_literal    "1" =1n
-[15:17-15:18] comma          ","
-[15:19-15:20] int_literal    "2" =2n
-[15:20-15:21] comma          ","
-[15:22-15:23] int_literal    "3" =3n
-[15:23-15:24] comma          ","
-[15:25-15:26] int_literal    "4" =4n
-[15:26-15:27] rbracket       "]"
+[15:12-15:13] colon          ":"
+[15:14-15:15] lbracket       "["
+[15:15-15:16] int_literal    "1" =1n
+[15:16-15:17] comma          ","
+[15:18-15:19] int_literal    "2" =2n
+[15:19-15:20] comma          ","
+[15:21-15:22] int_literal    "3" =3n
+[15:22-15:23] comma          ","
+[15:24-15:25] int_literal    "4" =4n
+[15:25-15:26] rbracket       "]"
 [16:1-16:1  ] newline        "\n"
 [16:5-16:12 ] ident          "println"
 [16:12-16:13] lparen         "("

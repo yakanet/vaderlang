@@ -4,7 +4,7 @@
 // A `generator fn -> Iterator<U>` returns the honest erased `Iterator<U>` in
 // source, but a call to it is typed as the concrete synthesized state struct
 // `<fn>$State` (which `implements Iterator<U>`), erased to `Iterator<U>` only at
-// boundaries. This makes a combinator chain `arr.iter().map(f).filter(p)` resolve
+// boundaries. This makes a combinator chain `arr.map(f).filter(p)` resolve
 // field/UFCS on a CONCRETE nominal receiver, instead of the erased trait
 // receiver that mis-resolves to a virtual dispatch.
 // The state-struct symbol is derived DETERMINISTICALLY from the fn symbol so the
@@ -39,11 +39,11 @@ GEN_STATE_ID_BASE :: -1000000
 /// (the registry) needn't fabricate a throwaway `Symbol` just to be re-read.
 export gen_state_symbol_of :: fn(fn_id: i32, fn_name: string, module: string) -> Symbol = Symbol {
     .id         = GEN_STATE_ID_BASE - fn_id,
-    .kind       = SymbolKind.Struct,
+    .kind       = .Struct,
     .name       = gen_state_name(fn_name),
     .module     = module,
     .module_name = module,
-    .visibility = Visibility.Private,
+    .visibility = .Private,
     .defined_at = null,
 }
 
@@ -73,9 +73,9 @@ GenStateEntry :: struct { name: string, module: string, id: i32, element: Type }
 /// but not decl_types, so a copy in a consuming module's `fn_decls` yields
 /// `TY_UNRESOLVED` and is skipped, deduping the collection to one entry per fn.
 export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedProgram!>) -> void {
-    entries: GenStateEntry[]! = []
+    entries: GenStateEntry[]!: []
     for [_, owner] in per_module {
-        sink: Diagnostic[]! = []
+        sink: Diagnostic[]!: []
         for [sym_id, fn_decl] in owner.fn_decls {
             if !fn_is_generator(fn_decl) { continue }
             elem :: generator_element_type(fn_decl, lookup_return_type(fn_decl, owner), sink)
@@ -97,8 +97,8 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
             record_struct_trait_args(tp, state_ty, TRAIT_ITERATOR, [e.element])
             tp.iter_element_types[gen_state_name(e.name)] = e.element
             tp.generator_symbols[e.name] = Symbol {
-                .id = e.id, .kind = SymbolKind.Fn, .name = e.name,
-                .module = e.module, .module_name = e.module, .visibility = Visibility.Private, .defined_at = null,
+                .id = e.id, .kind = .Fn, .name = e.name,
+                .module = e.module, .module_name = e.module, .visibility = .Private, .defined_at = null,
             }
         }
     }
@@ -162,7 +162,7 @@ is_generator_symbol :: fn(sym: Symbol, typed: TypedProgram) -> bool {
 // authoritative for `map` / `filter` / `take` / `skip`, which are now ONLY the
 // lazy `generator`s (the eager `T[]` overloads were dropped). A bare array
 // receiver selects the lazy combinator too : `arr.map(f)` is lazy and fuses over
-// the raw array (`T[] implements Into<Iterator<T>>` — the implicit `.iter()` head).
+// the raw array (`T[] implements Into<Iterator<T>>` — the implicit array head).
 ufcs_generator_symbol :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> Symbol | null {
     gen_sym :: typed.generator_symbols[name] ?? return null
     if generator_receiver_is_iterator(recv_ty, typed) { return gen_sym }

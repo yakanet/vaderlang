@@ -3,6 +3,7 @@
 ## tests/snippets/async_defer
 
 ## generic instances
+  __genstate_array_iter<T>
   All<E | U>
   All<E | U>
   All<T>
@@ -76,9 +77,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T[]>
   Async<(E | U)[] | Error>
   Async<E | U>
@@ -100,6 +99,3 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

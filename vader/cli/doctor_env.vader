@@ -76,7 +76,7 @@ ENV_TOGGLES: EnvToggle[]: [
 // Every environment override in force, one check each. Unset variables produce
 // nothing — a report listing what is NOT set would bury what is.
 check_environment :: fn() -> Check[] {
-    out: Check[]! = []
+    out: Check[]!: []
     for name in GC_BYTE_VARS {
         raw :: get_env(name)
         if raw == null {
@@ -249,13 +249,13 @@ import "std/testing"
     // The check that pays for the command: `512M` compiles, runs, and gives a
     // 512-BYTE arena. Nothing else in the toolchain says so.
     c :: gc_bytes_check("VADER_GC_OLD_MAX", "512M")
-    assert(c.status == CheckStatus.Fail, "a dropped suffix is a failure")
+    assert(c.status == .Fail, "a dropped suffix is a failure")
     assert("512" in c.summary, "and the summary names the value actually read")
 }
 
 @test test_gc_byte_plain_count_is_ok :: fn() -> void {
     c :: gc_bytes_check("VADER_GC_OLD_MAX", "536870912")
-    assert(c.status == CheckStatus.Ok, "a plain byte count is what the runtime wants")
+    assert(c.status == .Ok, "a plain byte count is what the runtime wants")
     assert_eq(c.name, "vader_gc_old_max")
 }
 
@@ -263,12 +263,12 @@ import "std/testing"
     // `strtoul` returns 0 for a non-number, and 0 does not mean "default" here —
     // it turns the heuristic off.
     c :: gc_ratio_check("two")
-    assert(c.status == CheckStatus.Warn, "a typo is worth reporting")
+    assert(c.status == .Warn, "a typo is worth reporting")
     assert("OFF" in c.summary, "and it says what the typo actually does")
 }
 
 @test test_gc_percent_out_of_range_is_ignored :: fn() -> void {
-    assert(gc_percent_check("0").status == CheckStatus.Warn, "0 is outside (0, 100]")
-    assert(gc_percent_check("120").status == CheckStatus.Warn, "so is 120")
-    assert(gc_percent_check("50").status == CheckStatus.Ok, "50 is honoured")
+    assert(gc_percent_check("0").status == .Warn, "0 is outside (0, 100]")
+    assert(gc_percent_check("120").status == .Warn, "so is 120")
+    assert(gc_percent_check("50").status == .Ok, "50 is honoured")
 }

@@ -1,0 +1,92 @@
+// W0015 — a local declared mutable that nothing ever reassigns.
+//
+// The distinction the check rests on: `:=` grants REBINDING, and only a bare
+// name as the whole assignment target uses it. Writing through a field or an
+// index mutates what the name designates, which `::` already allows — so those
+// warn, while a compound assign or a rebinding from a nested scope does not.
+
+module "snippet"
+
+import "std/io"
+
+Box :: struct { v: i32 }
+
+// Reassigned somewhere — quiet.
+rebound :: fn() -> i32 {
+    n := 1
+    n = 2
+    return n
+}
+
+// A compound assign is a reassignment.
+bumped :: fn() -> i32 {
+    n := 0
+    n += 3
+    return n
+}
+
+// The rebinding sits in a nested scope, and still counts.
+nested :: fn(flag: bool) -> i32 {
+    n := 0
+    if flag {
+        n = 1
+    }
+    return n
+}
+
+// Writing a FIELD leaves the binding alone — W0015.
+field_write :: fn() -> i32 {
+    b := Box { .v = 1 }
+    b.v = 7
+    return b.v
+}
+
+// Same for an element.
+index_write :: fn() -> i32 {
+    xs: i32[]! = [1, 2]
+    xs[0] = 5
+    return xs[0]
+}
+
+// Never touched at all — W0015.
+untouched :: fn() -> i32 {
+    n := 4
+    return n
+}
+
+// One `:=` covers both names, so reassigning either one justifies it.
+half_rebound :: fn() -> i32 {
+    [a, b] := [1, 2]
+    a = 9
+    return a + b
+}
+
+// Neither name rebound — one warning for the declaration, naming both, and its
+// caret sits on the whole `[a, b]` pattern rather than on `a`.
+tuple_untouched :: fn() -> i32 {
+    [a, b] := [1, 2]
+    return a + b
+}
+
+// A destructuring assignment reads as a rebinding of every name in it. It is
+// not a SPEC form and currently lowers to nothing (TODO.md), which is why the
+// values below are unchanged — but it must not make W0015 fire.
+tuple_rebound :: fn() -> i32 {
+    [a, b] := [1, 2]
+    [a, b] = [3, 4]
+    return a + b
+}
+
+// The ascription form is the same declaration — its fix is `n: i32: 6`.
+ascribed :: fn() -> i32 {
+    n: i32 = 6
+    return n
+}
+
+main :: fn() -> i32 {
+    println("${rebound()} ${bumped()} ${nested(true)}")
+    println("${field_write()} ${index_write()} ${untouched()}")
+    println("${half_rebound()} ${ascribed()}")
+    println("${tuple_untouched()} ${tuple_rebound()}")
+    return 0
+}

@@ -19,7 +19,7 @@
 [10:21-10:22] lbrace         "{"
 [11:1-11:1  ] newline        "\n"
 [11:5-11:8  ] ident          "arr"
-[11:9-11:11 ] decl_var       ":="
+[11:9-11:11 ] decl_const     "::"
 [11:12-11:13] lbracket       "["
 [11:13-11:15] int_literal    "10" =10n
 [11:15-11:16] comma          ","
@@ -33,7 +33,7 @@
 [11:31-11:32] rbracket       "]"
 [12:1-12:1  ] newline        "\n"
 [12:5-12:9  ] ident          "view"
-[12:10-12:12] decl_var       ":="
+[12:10-12:12] decl_const     "::"
 [12:13-12:16] ident          "arr"
 [12:16-12:17] lbracket       "["
 [12:17-12:18] int_literal    "1" =1n
@@ -160,7 +160,7 @@
 [23:33-23:34] rparen         ")"
 [24:1-24:1  ] newline        "\n"
 [28:5-28:10 ] ident          "indep"
-[28:11-28:13] decl_var       ":="
+[28:11-28:13] decl_const     "::"
 [28:14-28:18] ident          "view"
 [29:1-29:1  ] newline        "\n"
 [29:5-29:10 ] ident          "indep"

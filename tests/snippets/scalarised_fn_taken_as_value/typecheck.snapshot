@@ -1,0 +1,31 @@
+# Typecheck
+
+## tests/snippets/scalarised_fn_taken_as_value
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         pair                 :: fn(i32) -> [i32, i32]
+  expr 18:36    SeqLitExpr     :: [i32, i32]!
+  expr 18:37    IdentExpr      :: i32
+  expr 18:40    BinaryExpr     :: i32
+  expr 18:40    IdentExpr      :: i32
+  expr 21:15    CallExpr       :: [i32, i32]
+  expr 21:15    IdentExpr      :: fn(i32) -> [i32, i32]
+  expr 22:10    IdentExpr      :: fn(i32) -> [i32, i32]
+  expr 23:15    CallExpr       :: [i32, i32]
+  expr 23:15    IdentExpr      :: fn(i32) -> [i32, i32]
+  expr 24:13    StringLitExpr  :: string
+  expr 24:25    IdentExpr      :: i32
+  expr 24:32    IdentExpr      :: i32
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:13    StringLitExpr  :: string
+  expr 25:25    IdentExpr      :: i32
+  expr 25:32    IdentExpr      :: i32
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 26:12    BinaryExpr     :: i32
+  expr 26:12    BinaryExpr     :: i32
+  expr 26:12    BinaryExpr     :: i32
+  expr 26:12    IdentExpr      :: i32
+  expr 26:16    IdentExpr      :: i32
+  expr 26:20    IdentExpr      :: i32
+  expr 26:24    IdentExpr      :: i32

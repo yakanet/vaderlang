@@ -53,7 +53,7 @@ export zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 ///                 matched against `string[]` so the tag is moot).
 /// @return         an `ArrayVal` whose elements are `StringVal`s of `items`.
 export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
-    elements: Value[]! = []
+    elements: Value[]!: []
     for s in items { elements.push(StringVal { .value = s }) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
@@ -70,7 +70,7 @@ export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
 /// @param type_id  the module's `u8[]` ArrayType index, or 0 when absent.
 /// @return         an `ArrayVal` whose elements are the UTF-8 bytes of `s`.
 export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
-    elements: Value[]! = []
+    elements: Value[]!: []
     for b in s.bytes() { elements.push(I32Val { .value = i32(b) }) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
@@ -83,7 +83,7 @@ export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
 /// @param type_id  the module's `u8[]` ArrayType index (see `find_u8_array_type_id`).
 /// @return         an `ArrayVal` whose elements are the bytes of `bs`.
 export u8_array_to_value :: fn(bs: u8[], type_id: i32) -> ArrayVal {
-    elements: Value[]! = []
+    elements: Value[]!: []
     for b in bs { elements.push(I32Val { .value = i32(b) }) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
@@ -100,7 +100,7 @@ export find_string_array_type_id :: fn(types: bc.BcType[]) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
         if t is bc.BcPrimitive {
-            if t.val == bc.ValType.String { string_idx = i32(i) }
+            if t.val == .String { string_idx = i32(i) }
         }
     }
     if string_idx < 0 { return 0 }
@@ -130,7 +130,7 @@ export find_u8_array_type_id :: fn(types: bc.BcType[]) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
         if t is bc.BcPrimitive {
-            if t.val == bc.ValType.U8 { u8_idx = i32(i) }
+            if t.val == .U8 { u8_idx = i32(i) }
         }
     }
     if u8_idx < 0 { return 0 }
@@ -333,7 +333,7 @@ export detach_array_view :: fn(a: ArrayVal!) -> void {
     if !is_array_view(a) {
         return
     }
-    fresh: Value[]! = [] * a.length
+    fresh: Value[]!: [] * a.length
     for j in 0..<a.length {
         fresh.push(a.elements[a.offset + j])
     }
@@ -403,8 +403,8 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
 
 /// Erasure-aware sibling check : returns true when both struct types
 /// come from the same generic source declaration. Post-path-γ a value
-/// may carry a sibling shape's tag (e.g. `Yield<Any>` runtime flowing
-/// into a match arm typed `is Yield<i32>`). We approximate a
+/// may carry a sibling shape's tag (e.g. a `Box<Any>` runtime value flowing
+/// into a match arm typed `is Box<i32>`). We approximate a
 /// `symbolId`-based grouping by comparing mangled-name prefixes up to
 /// the first `__` (which separates the source name from the type-arg
 /// suffix).

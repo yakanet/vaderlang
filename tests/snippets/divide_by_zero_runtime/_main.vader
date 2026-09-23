@@ -11,6 +11,6 @@ module "snippet"
 
 main :: fn() -> i32 {
     numerator :: 100
-    divisor := 0
+    divisor :: 0
     return numerator / divisor
 }

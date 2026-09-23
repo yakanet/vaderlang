@@ -3,6 +3,7 @@
 ## tests/snippets/async_cancel_defer
 
 ## generic instances
+  __genstate_array_iter<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -15,9 +16,7 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<i32>
   Async<T>
   Range<i32>
@@ -25,6 +24,3 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

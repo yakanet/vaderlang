@@ -33,7 +33,7 @@ export find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type
     match symbol {
         is null -> { return null }
         is Symbol -> {
-            if symbol.kind != SymbolKind.Struct { return null }
+            if symbol.kind != .Struct { return null }
             return mk_struct(symbol, args, immutable = false)
         }
     }
@@ -52,19 +52,58 @@ export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | nul
     match raw {
         is null -> { return null }
         is Symbol -> {
-            if raw.kind != SymbolKind.Trait { return null }
+            if raw.kind != .Trait { return null }
             return raw
         }
     }
 }
 
-/// Build the `Yield<T> | null` union the for-in step loop uses as the
-/// `Iterator<T>.next()` return type.
-/// @param yielded  the element type yielded by the iterator.
-/// @return         the resolved union type.
-export union_of_yield_null :: fn(yielded: Type) -> Type {
-    return mk_union([yielded, TY_NULL])
+/// Resolve a `std/core` ENUM type by name.
+///
+/// Separate from `find_core_type` because an enum decl reaches lowering as a
+/// placeholder `StructType` whose symbol is `SymbolKind.Enum` — the variant
+/// indices live on the `EnumType` the TYPER built, and only the module that
+/// typed the decl holds it.
+///
+/// Returns null rather than that placeholder when the lookup fails: a variant
+/// looked up against a placeholder yields `unreachable(...)`, a value-shaped
+/// hole that lowers into a branch which never breaks and a `return` which never
+/// runs. Null makes the caller say so instead.
+///
+/// @param ctx   the fn-body context.
+/// @param name  the source-level enum name (e.g. `"Continuation"`).
+/// @return      the enum type, or `null` when not resolvable.
+export find_core_enum :: fn(ctx: FnLowerCtx!, name: string) -> Type | null {
+    cached :: ctx.project.core_enum_types[name]
+    if cached != null {
+        return cached
+    }
+    symbol :: lookup_core_symbol(ctx, name) ?? return null
+    if symbol.kind != .Enum {
+        return null
+    }
+    // `unwrap_enum_type` reads `ctx.typed.decl_types`, the CURRENT module's, and
+    // a core enum is declared in std/core — so it is never there. `Symbol.id` is
+    // unique project-wide, so at most one module answers. Memoised because the
+    // answer is one per project and this runs at every for-in that falls through.
+    for [_, program] in ctx.project.typed.modules {
+        real :: program.decl_types[symbol.id]
+        if real is EnumType {
+            ctx.project.core_enum_types[name] = real
+            return real
+        }
+    }
+    return null
 }
+
+/// The pair an `Iterator<T>.next` hands back once the wrapper is gone: the
+/// element, then whether the iteration goes on.
+///
+/// @param element  the iterator's element type.
+/// @param cont     the `Continuation` enum type.
+/// @return         the tuple type `[T, Continuation]`.
+export iterator_step_type :: fn(element: Type, cont: Type) -> Type =
+    mk_tuple([element, cont], immutable = false)
 
 /// Build the `T | Suspended` union an `async fn`'s synthesised `resume`
 /// returns. Flattening (via `union_of`) keeps a fallible `T = U | Error` from
@@ -127,8 +166,8 @@ import "vader/resolver"
     assert(find_core_trait(project, "Display") is null, "expected miss to return null")
 }
 
-@test test_union_of_yield_null_renders :: fn() -> void {
-    union_ty :: union_of_yield_null(mk_primitive("i32"))
-    // `display_type` for a 2-arm union joins with ` | `.
-    assert_eq(display_type(union_ty), "i32 | null")
+@test test_iterator_step_type_renders :: fn() -> void {
+    step :: iterator_step_type(mk_primitive("i32"), mk_primitive("u8"))
+    // `display_type` for a tuple joins with `, ` inside brackets.
+    assert_eq(display_type(step), "[i32, u8]!")
 }

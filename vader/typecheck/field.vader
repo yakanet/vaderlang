@@ -27,6 +27,7 @@ import "vader/types"
 /// T3008/T3009 when nothing matches.
 export infer_field :: fn(
     e: AST.FieldExpr!,
+    expected: Type | null,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
@@ -77,7 +78,7 @@ export infer_field :: fn(
     if candidate !is null {
         return candidate
     }
-    candidate = try_enum_variant_dispatch(target_ty, e, diags)
+    candidate = try_enum_variant_dispatch(target_ty, e, expected, typed, diags)
     if candidate !is null {
         return candidate
     }
@@ -208,7 +209,7 @@ dispatch_bounded_method_trait :: fn(
     typed: TypedProgram,
 ) -> string {
     if bound is AST.BinaryExpr {
-        if bound.op == AST.BinaryOp.BitAnd {
+        if bound.op == .BitAnd {
             l :: dispatch_bounded_method_trait(bound.left, name, typed)
             if l != "" {
                 return l
@@ -379,6 +380,8 @@ try_union_common_field_dispatch :: fn(
 try_enum_variant_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
+    expected: Type | null,
+    typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> Type | null {
     if target_ty !is EnumType {
@@ -394,6 +397,14 @@ try_enum_variant_dispatch :: fn(
             ),
         )
         return TY_UNRESOLVED
+    }
+    // W0016 — the slot already pins this enum, so the name in front of the dot
+    // is dead weight. Only when the shorthand would land on the SAME enum: a
+    // slot whose union carries two enums sharing this variant name resolves the
+    // bare form to the first, and there the prefix is what disambiguates.
+    inferred :: enum_for_bare_variant(expected, e.field, typed)
+    if inferred !is null && typed.overloaded_arg_depth == 0 && equals_type(inferred, target_ty) {
+        diags.push(warning(.NeedlessEnumTypePrefix, e.span, "write `.${e.field}`"))
     }
     return target_ty
 }
@@ -565,7 +576,7 @@ export declared_struct_field_type :: fn(
     st :: struct_backing(recv_ty) ?? return null
     decl :: typed.struct_decls[st.symbol.id] ?? return null
     // Discard sink : the read-side check already emitted any field error.
-    discard: Diagnostic[]! = []
+    discard: Diagnostic[]!: []
     found :: resolved_field_type(st.symbol.id, decl, field, typed, discard) ?? return null
     return substitute_struct_field(found, decl, st)
 }
@@ -602,7 +613,7 @@ export check_internal_field :: fn(
     }
     for field in decl.fields {
         if field.name == field_name {
-            if field.visibility == AST.Visibility.Private {
+            if field.visibility == .Private {
                 diags.push(
                     typecheck_error(
                         .InternalFieldAccess,
@@ -699,35 +710,35 @@ export substitute_by_name :: fn(
             return mk_array(substitute_by_name(t.element, tps, args), t.immutable)
         }
         is TupleType -> {
-            els: Type[]! = []
+            els: Type[]!: []
             for el in t.elements {
                 els.push(substitute_by_name(el, tps, args))
             }
             return mk_tuple(els, t.immutable)
         }
         is StructType -> {
-            sargs: Type[]! = []
+            sargs: Type[]!: []
             for a in t.args {
                 sargs.push(substitute_by_name(a, tps, args))
             }
             return mk_struct(t.symbol, sargs, t.immutable)
         }
         is TraitType -> {
-            rargs: Type[]! = []
+            rargs: Type[]!: []
             for a in t.args {
                 rargs.push(substitute_by_name(a, tps, args))
             }
             return mk_trait(t.symbol, rargs)
         }
         is UnionType -> {
-            vs: Type[]! = []
+            vs: Type[]!: []
             for v in t.variants {
                 vs.push(substitute_by_name(v, tps, args))
             }
             return union_of(vs)
         }
         is FnType -> {
-            ps: Type[]! = []
+            ps: Type[]!: []
             for p in t.params {
                 ps.push(substitute_by_name(p, tps, args))
             }
@@ -796,27 +807,27 @@ substitute_array_element :: fn(t: Type, element: Type) -> Type {
         is TypeParamType -> { return element }
         is ArrayType -> { return mk_array(substitute_array_element(t.element, element), t.immutable) }
         is TupleType -> {
-            els: Type[]! = []
+            els: Type[]!: []
             for el in t.elements { els.push(substitute_array_element(el, element)) }
             return mk_tuple(els, t.immutable)
         }
         is StructType -> {
-            sargs: Type[]! = []
+            sargs: Type[]!: []
             for a in t.args { sargs.push(substitute_array_element(a, element)) }
             return mk_struct(t.symbol, sargs, t.immutable)
         }
         is TraitType -> {
-            rargs: Type[]! = []
+            rargs: Type[]!: []
             for a in t.args { rargs.push(substitute_array_element(a, element)) }
             return mk_trait(t.symbol, rargs)
         }
         is UnionType -> {
-            vs: Type[]! = []
+            vs: Type[]!: []
             for v in t.variants { vs.push(substitute_array_element(v, element)) }
             return union_of(vs)
         }
         is FnType -> {
-            ps: Type[]! = []
+            ps: Type[]!: []
             for p in t.params { ps.push(substitute_array_element(p, element)) }
             return mk_fn_like(t, ps, substitute_array_element(t.return_type, element))
         }
@@ -851,7 +862,7 @@ union_common_field :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> Type | null {
-    types: Type[]! = []
+    types: Type[]!: []
     index := -1
     for v in u.variants {
         if v !is StructType {
@@ -882,7 +893,7 @@ union_common_field :: fn(
 // a human-readable account of who puts it where ; `null` otherwise (the field is
 // missing somewhere, or the positions agree and the access is fine).
 union_field_position_clash :: fn(u: UnionType, name: string, typed: TypedProgram) -> string | null {
-    parts: string[]! = []
+    parts: string[]!: []
     index := -1
     differs := false
     for v in u.variants {
@@ -919,28 +930,28 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
         is SelfType -> { return self_ty }
         is ArrayType -> { return mk_array(substitute_self(t.element, self_ty), t.immutable) }
         is StructType -> {
-            args: Type[]! = []
+            args: Type[]!: []
             for a in t.args {
                 args.push(substitute_self(a, self_ty))
             }
             return mk_struct(t.symbol, args, t.immutable)
         }
         is FnType -> {
-            ps: Type[]! = []
+            ps: Type[]!: []
             for p in t.params {
                 ps.push(substitute_self(p, self_ty))
             }
             return mk_fn_like(t, ps, substitute_self(t.return_type, self_ty))
         }
         is UnionType -> {
-            vs: Type[]! = []
+            vs: Type[]!: []
             for v in t.variants {
                 vs.push(substitute_self(v, self_ty))
             }
             return union_of(vs)
         }
         is TupleType -> {
-            els: Type[]! = []
+            els: Type[]!: []
             for el in t.elements {
                 els.push(substitute_self(el, self_ty))
             }
@@ -959,7 +970,7 @@ dispatch_bounded_method :: fn(
 ) -> Type | null {
     // Intersection : `A & B` — recurse on each side.
     if bound is AST.BinaryExpr {
-        if bound.op == AST.BinaryOp.BitAnd {
+        if bound.op == .BitAnd {
             l :: dispatch_bounded_method(bound.left, name, typed)
             if l !is null {
                 return l
@@ -1002,7 +1013,7 @@ try_default_trait_method :: fn(
             if m.name != name { continue }
             if m.body is null { continue }
             // require default body
-            params: Type[]! = []
+            params: Type[]!: []
             for i in 1..<m.params.len() {
                 p :: m.params[i]
                 params.push(type_from_expr_opt_in(p.ty, owner_resolved))
@@ -1034,7 +1045,7 @@ substitute_trait_typeparams :: fn(
     // implementing struct (`Range<T> implements Iterator<T>` records
     // `[T]` where T is Range's). Resolve those against the receiver's
     // concrete args first so `(10..=15).last()` ends up `i32 | null`.
-    resolved_args: Type[]! = []
+    resolved_args: Type[]!: []
     struct_decl :: typed.struct_decls[target_ty.symbol.id]
     for a in impl_args {
         if struct_decl is null {
@@ -1072,7 +1083,7 @@ pad_trait_default_args :: fn(
     if args.len() >= tps.len() {
         return args
     }
-    out: Type[]! = [] * tps.len()
+    out: Type[]!: [] * tps.len()
     // final size is args + filled defaults, ≤ tps.len()
     out.push_all(args)
     for i in args.len()..<tps.len() {
@@ -1098,7 +1109,7 @@ try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type 
         if m.name != name {
             continue
         }
-        params: Type[]! = []
+        params: Type[]!: []
         for i in 1..<m.params.len() {
             p :: m.params[i]
             params.push(type_from_expr_opt_in(p.ty, owner_resolved))
@@ -1200,7 +1211,7 @@ export UfcsMethod :: struct {
 ///                   so a sibling file's imports must not be offered here.
 /// @param typed      the module's typechecked program.
 export ufcs_methods_for :: fn(target_ty: Type, file: string, typed: TypedProgram) -> UfcsMethod[] {
-    out: UfcsMethod[]! = []
+    out: UfcsMethod[]!: []
     seen :: MutableMap<string, bool> {}
     for [name, bucket] in typed.resolved.fn_overloads {
         for sym in bucket {
@@ -1246,7 +1257,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
         if !receiver_fits_first_param(target_ty, ft.params[0], typed) {
             return null
         }
-        rest: Type[]! = []
+        rest: Type[]!: []
         for i in 1..<ft.params.len() {
             rest.push(ft.params[i])
         }
@@ -1265,7 +1276,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
     if !receiver_fits_first_param(target_ty, fitted_first, typed) {
         return null
     }
-    rest: Type[]! = []
+    rest: Type[]!: []
     for i in 1..<ft.params.len() {
         rest.push(substitute_map(ft.params[i], bindings))
     }
@@ -1363,7 +1374,7 @@ export namespace_base_mod_id :: fn(base: AST.Expr, typed: TypedProgram) -> strin
         return null
     }
     sym :: typed.resolved.idents[base.span.hash()] ?? return null
-    if sym.kind != SymbolKind.ImportBinding {
+    if sym.kind != .ImportBinding {
         return null
     }
     targets :: typed.import_targets ?? return null
@@ -1376,7 +1387,7 @@ export namespace_base_mod_id :: fn(base: AST.Expr, typed: TypedProgram) -> strin
 /// unbound or its bound doesn't resolve to a trait.
 export typeparam_bound_method_names :: fn(tp: TypeParamType, typed: TypedProgram) -> string[] {
     bound :: typed.resolved.type_param_bounds[tp.symbol.id] ?? return []
-    out: string[]! = []
+    out: string[]!: []
     collect_bound_method_names(bound, typed, out)
     return out
 }
@@ -1385,7 +1396,7 @@ export typeparam_bound_method_names :: fn(tp: TypeParamType, typed: TypedProgram
 // `A & B`) into `out`. Mirrors `dispatch_bounded_method`'s bound walk.
 collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out: string[]!) -> void {
     if bound is AST.BinaryExpr {
-        if bound.op == AST.BinaryOp.BitAnd {
+        if bound.op == .BitAnd {
             collect_bound_method_names(bound.left, typed, out)
             collect_bound_method_names(bound.right, typed, out)
             return
@@ -1438,7 +1449,7 @@ field_check_stub :: fn(
         is AST.IntLitExpr as x -> { return TY_FREE_INT }
         is AST.StringLitExpr as x -> { return TY_STRING }
         is AST.IdentExpr -> { return infer_ident(e, typed) }
-        is AST.FieldExpr -> { return infer_field(e, typed, diags, field_check_stub) }
+        is AST.FieldExpr -> { return infer_field(e, null, typed, diags, field_check_stub) }
         _ -> { return TY_UNRESOLVED }
     }
 }
@@ -1459,7 +1470,7 @@ first_field_in_last_fn :: fn(src: string) -> FieldFixture {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl {
@@ -1493,8 +1504,8 @@ get_x :: fn(p: Point) -> i32 { return p.x }
     match fx.field {
         is null -> { assert(false, "expected a field expr") }
         is AST.FieldExpr as f -> {
-            diags: Diagnostic[]! = []
-            assert_eq(display_type(infer_field(f, fx.typed, diags, field_check_stub)), "i32")
+            diags: Diagnostic[]!: []
+            assert_eq(display_type(infer_field(f, null, fx.typed, diags, field_check_stub)), "i32")
             assert_eq(diags.len(), 0)
         }
     }
@@ -1512,8 +1523,8 @@ get_z :: fn(p: Point) -> i32 { return p.z }
     match fx.field {
         is null -> { assert(false, "expected a field expr") }
         is AST.FieldExpr as f -> {
-            diags: Diagnostic[]! = []
-            infer_field(f, fx.typed, diags, field_check_stub)
+            diags: Diagnostic[]!: []
+            infer_field(f, null, fx.typed, diags, field_check_stub)
             assert(diags.len() >= 1, "expected a diagnostic")
             assert_eq(diags[0].code.id, "T3009")
         }
@@ -1529,8 +1540,8 @@ f :: fn(n: i32) -> i32 { return n.x }
     match fx.field {
         is null -> { assert(false, "expected a field expr") }
         is AST.FieldExpr as f -> {
-            diags: Diagnostic[]! = []
-            infer_field(f, fx.typed, diags, field_check_stub)
+            diags: Diagnostic[]!: []
+            infer_field(f, null, fx.typed, diags, field_check_stub)
             assert(diags.len() >= 1, "expected a diagnostic")
             assert_eq(diags[0].code.id, "T3008")
         }

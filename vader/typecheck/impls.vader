@@ -37,7 +37,7 @@ export ImplEntry :: struct {
     /// mangle the impl's lowered/surfaced decl is registered under.
     module: string = ""
     /// True when the impl references ≥1 type parameter (`Range<T>
-    /// implements<T> …`, `ArrayIterator<T> implements …`). Mirrors
+    /// implements<T> …`, `Range<T> implements …`). Mirrors
     /// `is_empty_substitution(build_impl_mixed_subst(...))` in the lowerer
     /// (`lower_mono_struct.vader`) :
     /// generic impls erase their instance args to `Any` when mangling
@@ -97,7 +97,7 @@ collect_impl :: fn(
     resolved: ResolvedModule,
 ) -> void {
     trait_sym :: by_name[impl_.trait_name] ?? return
-    if trait_sym.kind != SymbolKind.Trait {
+    if trait_sym.kind != .Trait {
         return
     }
     for_sym :: for_type_symbol(impl_.for_type, by_name)
@@ -139,12 +139,12 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
 
 name_is_type_param :: fn(resolved: ResolvedModule, name: string) -> bool {
     for s in resolved.symbols {
-        if s.name == name && s.kind == SymbolKind.TypeParam {
+        if s.name == name && s.kind == .TypeParam {
             return true
         }
     }
     for [_, s] in resolved.idents {
-        if s.name == name && s.kind == SymbolKind.TypeParam {
+        if s.name == name && s.kind == .TypeParam {
             return true
         }
     }

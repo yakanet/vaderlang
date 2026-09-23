@@ -32,7 +32,7 @@ churn :: fn(x: i32) -> void {
 main :: fn() -> i32 {
     lend_set_cb(churn)
 
-    xs: i32[]! = [5, 3, 9, 1, 7, 2, 8, 4]
+    xs: i32[]!: [5, 3, 9, 1, 7, 2, 8, 4]
     lend_fill_array(xs, 8)
     ok := true
     for i in 0..<8 {

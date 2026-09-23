@@ -4,8 +4,8 @@
   StructDecl     Cat                  :: Cat!
   StructDecl     Dog                  :: Dog!
   FnDecl         main                 :: fn() -> i32
-  expr 16:20    StructLitExpr  :: Cat!
-  expr 16:34    StringLitExpr  :: string
+  expr 16:19    StructLitExpr  :: Cat!
+  expr 16:33    StringLitExpr  :: string
   expr 17:13    StringLitExpr  :: string
   expr 17:23    FieldExpr      :: string
   expr 17:23    IdentExpr      :: Cat | Dog
@@ -16,8 +16,8 @@
   expr 18:23    IdentExpr      :: Cat | Dog
   expr 18:5     CallExpr       :: void
   expr 18:5     IdentExpr      :: fn(T) -> void
-  expr 20:20    StructLitExpr  :: Dog!
-  expr 20:34    StringLitExpr  :: string
+  expr 20:19    StructLitExpr  :: Dog!
+  expr 20:33    StringLitExpr  :: string
   expr 21:13    StringLitExpr  :: string
   expr 21:23    FieldExpr      :: string
   expr 21:23    IdentExpr      :: Cat | Dog

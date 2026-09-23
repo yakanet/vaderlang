@@ -1,10 +1,10 @@
 // A generator combinator (an `@generator` whose FIRST param is the source
 // iterator) fuses as a `descend_chain` LAYER, recursing into the receiver — so a
-// single combinator over `arr.iter()` and a nested direct-call chain both flatten
+// single combinator over a bare array and a nested direct-call chain both flatten
 // to one loop (0 boxed `next()` in `main`).
 //
 // KNOWN LIMIT (stream-fusion §5.3): the fluent UFCS chain form
-// `arr.iter().my_map(f).my_filter(p)` does NOT fuse — the 2nd combinator's
+// `arr.my_map(f).my_filter(p)` does NOT fuse — the 2nd combinator's
 // receiver is the 1st's ERASED `Iterator<U>` result, which the typer resolves to
 // a virtual `Iterator.my_filter` dispatch instead of a free-fn UFCS call, so the
 // chain never forms. The direct-call form below sidesteps that (the iterator is a
@@ -22,7 +22,7 @@ my_filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {
 }
 
 main :: fn() -> i32 {
-    // single combinator over a concrete `arr.iter()` receiver (UFCS)
+    // single combinator over a bare-array receiver (UFCS)
     for v in [1, 2, 3, 4, 5].my_map((x: i32) -> x * 10) { println("m ${v}") }
     for v in [1, 2, 3, 4, 5].my_filter((x: i32) -> x % 2 == 1) { println("f ${v}") }
     // nested direct-call chain: my_filter(my_map(...)) — fuses end to end

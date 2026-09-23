@@ -66,7 +66,7 @@ const vader_type_info_t vader_type_info_table[15] = {
     [4] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_4_ptrs, 1, 0, NULL, 0, NULL },
     [5] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_5_ptrs, 1, 0, NULL, 0, NULL },
     [7] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_Div_t), NULL, 0, 0, NULL, 0, NULL },
-    [9] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [10] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
     [12] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_12_ptrs, 1, 0, NULL, 0, NULL },
 };
 const size_t vader_type_info_count = 15;
@@ -81,9 +81,9 @@ const size_t vader_type_size[15] = {
     [6] = 8u,
     [7] = 16u,
     [8] = 1u,
-    [9] = 16u,
-    [10] = 8u,
-    [11] = 1u,
+    [9] = 1u,
+    [10] = 16u,
+    [11] = 8u,
     [12] = 16u,
     [13] = 8u,
     [14] = 8u,
@@ -113,7 +113,7 @@ static void vader_host_snippet_lend_fill_array(void* a0, size_t a1) { vader_slic
 static void vader_host_snippet_lend_fill_div(void* a0) { div_t p0 = {0}; p0.quot = (__typeof__(p0.quot)) ((vader_struct_snippet_Div_t*) a0)->f_quot; p0.rem = (__typeof__(p0.rem)) ((vader_struct_snippet_Div_t*) a0)->f_rem; void** __wb_roots[1] = { &a0 }; VADER_GC_PUSH_RAW(__wb_frame, __wb_roots, 1); lend_fill_div(&p0); VADER_GC_POP_FRAME(__wb_frame); ((vader_struct_snippet_Div_t*) a0)->f_quot = (__typeof__(((vader_struct_snippet_Div_t*) a0)->f_quot)) p0.quot; ((vader_struct_snippet_Div_t*) a0)->f_rem = (__typeof__(((vader_struct_snippet_Div_t*) a0)->f_rem)) p0.rem; return; }
 static int32_t vader_host_snippet_c_abs(int32_t a0) { return abs(a0); }
 static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
-static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 12u, 11u); }
+static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 12u, 9u); }
 static void vader_host_std_runtime_collect(void) { vader_gc_collect(); }
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
 

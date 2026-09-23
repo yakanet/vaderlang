@@ -18,10 +18,10 @@ type 15 fn () -> 8
 type 16 union 1,2
 type 17 ref Error
 type 18 primitive bool
-type 19 primitive usize
-type 20 primitive u64
-type 21 primitive u8
-type 22 array 21
+type 19 primitive u8
+type 20 primitive usize
+type 21 primitive u64
+type 22 array 19
 type 23 struct std_core$Buffer {  }
 type 24 ref _
 type 25 struct std_async$Any__string__Any { children:32,errors:34,last:35 }
@@ -37,8 +37,8 @@ type 34 struct std_collections$MutableSet__usize { inner:39 }
 type 35 union 24,0,2
 type 36 primitive isize
 type 37 array 4
-type 38 array 19
-type 39 struct std_collections$MutableMap__usize__bool { ekeys:38,evals:40,index:37,mask:19,size:19,tombs:19 }
+type 38 array 20
+type 39 struct std_collections$MutableMap__usize__bool { ekeys:38,evals:40,index:37,mask:20,size:20,tombs:20 }
 type 40 array 18
 type 41 array 3
 type 42 ref _
@@ -49,9 +49,9 @@ string 3 "all failed: "
 string 4 "first success: "
 string 5 "\n"
 string 6 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len result_type=19 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=20 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=22 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=36 param_types=4,22,19 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=36 param_types=4,22,20 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 import 3 sched_now std_runtime$sched_now result_type=27 () -> i64
 import 4 sched_arm std_runtime$sched_arm result_type=8 param_types=27 param_mutable=0 param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=4 () -> i32
@@ -1136,7 +1136,7 @@ fn 29 std_collections$rehash__usize__bool (ref,usize) -> void
   block $L3 void
     loop $L4 void
       local.field 0 39 4   ; arg 0.size
-      ref.cast 19   ; -> usize
+      ref.cast 20   ; -> usize
       local.set 5   ; $field_15
       local.get 4   ; e
       local.get 5   ; $field_15
@@ -1201,7 +1201,7 @@ fn 30 std_collections$write_entry__usize__bool (ref,usize,bool) -> void
   local $len_5 usize
   local $field_7 ref
   local.field 0 39 4   ; arg 0.size
-  ref.cast 19   ; -> usize
+  ref.cast 20   ; -> usize
   local.set 3   ; $field_3
   local.field 0 39 0   ; arg 0.ekeys
   array.len
@@ -1213,7 +1213,7 @@ fn 30 std_collections$write_entry__usize__bool (ref,usize,bool) -> void
     local.field 0 39 0   ; arg 0.ekeys
     local.set 5   ; $field_7
     local.field 0 39 4   ; arg 0.size
-    ref.cast 19   ; -> usize
+    ref.cast 20   ; -> usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -1222,7 +1222,7 @@ fn 30 std_collections$write_entry__usize__bool (ref,usize,bool) -> void
     local.field 0 39 1   ; arg 0.evals
     local.set 5   ; $field_7
     local.field 0 39 4   ; arg 0.size
-    ref.cast 19   ; -> usize
+    ref.cast 20   ; -> usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -1231,7 +1231,7 @@ fn 30 std_collections$write_entry__usize__bool (ref,usize,bool) -> void
   else
     local.field 0 39 0   ; arg 0.ekeys
     local.get 1   ; arg 1
-    array.push 19   ; usize[]
+    array.push 20   ; usize[]
     local.field 0 39 1   ; arg 0.evals
     local.get 2   ; arg 2
     array.push 18   ; bool[]
@@ -1251,10 +1251,10 @@ fn 31 std_collections$put__usize__bool (ref,usize,bool) -> void
   local.get 0   ; arg 0
   call 28   ; std_collections$ensure_index__usize__bool
   local.field 0 39 4   ; arg 0.size
-  ref.cast 19   ; -> usize
+  ref.cast 20   ; -> usize
   local.set 3   ; $field_3
   local.field 0 39 5   ; arg 0.tombs
-  ref.cast 19   ; -> usize
+  ref.cast 20   ; -> usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -1265,7 +1265,7 @@ fn 31 std_collections$put__usize__bool (ref,usize,bool) -> void
   i64.mul
   local.set 3   ; $field_3
   local.field 0 39 3   ; arg 0.mask
-  ref.cast 19   ; -> usize
+  ref.cast 20   ; -> usize
   i64.const 1
   i64.add
   i64.const 3
@@ -1280,7 +1280,7 @@ fn 31 std_collections$put__usize__bool (ref,usize,bool) -> void
     block $L1 void
       loop $L2 void
         local.field 0 39 4   ; arg 0.size
-        ref.cast 19   ; -> usize
+        ref.cast 20   ; -> usize
         i64.const 1
         i64.add
         i64.const 4
@@ -1310,7 +1310,7 @@ fn 31 std_collections$put__usize__bool (ref,usize,bool) -> void
   call 12   ; std_core$usize$Hash$hash
   local.set 6   ; $call_28
   local.field 0 39 3   ; arg 0.mask
-  ref.cast 19   ; -> usize
+  ref.cast 20   ; -> usize
   local.set 3   ; $field_3
   local.get 6   ; $call_28
   local.get 3   ; $field_3
@@ -1367,7 +1367,7 @@ fn 31 std_collections$put__usize__bool (ref,usize,bool) -> void
         i64.add
         local.set 5   ; $mul_24
         local.field 0 39 3   ; arg 0.mask
-        ref.cast 19   ; -> usize
+        ref.cast 20   ; -> usize
         local.set 8   ; $field_58
         local.get 5   ; $mul_24
         local.get 8   ; $field_58
@@ -1393,7 +1393,7 @@ fn 31 std_collections$put__usize__bool (ref,usize,bool) -> void
   i64.ge
   if $L11 void
     local.field 0 39 5   ; arg 0.tombs
-    ref.cast 19   ; -> usize
+    ref.cast 20   ; -> usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -1408,7 +1408,7 @@ fn 31 std_collections$put__usize__bool (ref,usize,bool) -> void
   local.field 0 39 2   ; arg 0.index
   local.set 9   ; $field_69
   local.field 0 39 4   ; arg 0.size
-  ref.cast 19   ; -> usize
+  ref.cast 20   ; -> usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -1418,7 +1418,7 @@ fn 31 std_collections$put__usize__bool (ref,usize,bool) -> void
   local.get 10   ; $cast_73
   store_slot_i32
   local.field 0 39 4   ; arg 0.size
-  ref.cast 19   ; -> usize
+  ref.cast 20   ; -> usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -1445,7 +1445,7 @@ fn 32 std_collections$contains_key__usize__bool (ref,usize) -> bool
   call 12   ; std_core$usize$Hash$hash
   local.set 2   ; $call_7
   local.field 0 39 3   ; arg 0.mask
-  ref.cast 19   ; -> usize
+  ref.cast 20   ; -> usize
   local.set 3   ; $field_8
   local.get 2   ; $call_7
   local.get 3   ; $field_8
@@ -1486,7 +1486,7 @@ fn 32 std_collections$contains_key__usize__bool (ref,usize) -> bool
         i64.add
         local.set 5   ; $add_30
         local.field 0 39 3   ; arg 0.mask
-        ref.cast 19   ; -> usize
+        ref.cast 20   ; -> usize
         local.set 6   ; $field_31
         local.get 5   ; $add_30
         local.get 6   ; $field_31
@@ -1516,7 +1516,7 @@ end
 fn 34 std_collections$len__usize (ref) -> usize
   local.field 0 34 0   ; arg 0.inner
   struct.get 39 4   ; std_collections$MutableMap__usize__bool.size
-  ref.cast 19   ; -> usize
+  ref.cast 20   ; -> usize
   return
 end
 

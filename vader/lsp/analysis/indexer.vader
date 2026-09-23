@@ -134,9 +134,9 @@ export LoopJump :: struct {
 export build_index :: fn(uri: string, source: string, encoding: PositionEncoding) -> DocIndex {
     parsed :: parse_source(source, uri)
     cmap :: scan_comments(source)
-    entries: DeclEntry[]! = []
-    imports: ImportEntry[]! = []
-    wildcard_paths: string[]! = []
+    entries: DeclEntry[]!: []
+    imports: ImportEntry[]!: []
+    wildcard_paths: string[]!: []
     namespace_aliases :: MutableMap<string, string> {}
     for d in parsed.program.decls {
         collect_decl(d, source, cmap, entries, imports, wildcard_paths, namespace_aliases)
@@ -163,7 +163,7 @@ LjFrame :: struct { span: Span, binding: string | null, label: string | null }
 /// descended (a jump there can't target an enclosing loop) ; unresolved jumps
 /// (outside any loop, or a name matching nothing) are simply not recorded.
 collect_loop_jumps :: fn(decls: Decl[]) -> LoopJump[] {
-    out: LoopJump[]! = []
+    out: LoopJump[]!: []
     for d in decls { lj_decl(d, out) }
     return out
 }
@@ -179,7 +179,7 @@ lj_decl :: fn(d: Decl, out: LoopJump[]!) -> void {
 
 lj_fn_body :: fn(body: BlockExpr | null, out: LoopJump[]!) -> void {
     if body is BlockExpr {
-        stack: LjFrame[]! = []
+        stack: LjFrame[]!: []
         lj_block(body, stack, out)
     }
 }
@@ -711,7 +711,7 @@ local_type_hint :: fn(l: LetStmt, source: string) -> string {
 type_expr_slice :: fn(t: Expr, source: string) -> string {
     // Every Expr variant shares a `.span` field, but `Expr` is a
     // union — match exhaustively and slice the corresponding span.
-    sp: Span = match t {
+    sp: Span: match t {
         is IntLitExpr        -> t.span
         is NullCoalesceExpr  -> t.span
         is FloatLitExpr      -> t.span
@@ -872,7 +872,7 @@ collect_import :: fn(
         is DestructureImport as de -> {
             for n in de.names {
                 local_name := n.name
-                local_span := n.span
+                local_span :: n.span
                 match n.alias {
                     is null -> {}
                     is string as alias -> { local_name = alias }
@@ -915,7 +915,7 @@ head_signature :: fn(span: Span, source: string) -> string {
 slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
     sb :: source.bytes()
     cap :: sb.len()
-    up: usize = if upper > cap { cap } else { upper }
+    up: usize: if upper > cap { cap } else { upper }
     cursor: usize = start
     for cursor < up {
         b :: sb[cursor]

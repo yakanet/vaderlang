@@ -228,7 +228,7 @@ walk_stmt :: fn(
             // (an outer closure capturing through a defer body still needs the
             // heap-promotion).
             defer_scope :: empty_scope()
-            defer_captures: Capture[]! = []
+            defer_captures: Capture[]!: []
             defer_seen :: MutableSet<i32> {}
             match stmt.body {
                 is AST.DeferStmtBody as dsb -> { walk_stmt(dsb.stmt, defer_scope, defer_captures, defer_seen, ctx) }
@@ -327,8 +327,20 @@ walk_expr :: fn(
             walk_expr(expr.right, scope, out_captures, out_seen, ctx)
         }
         is AST.IfExpr -> {
+            // `if x is T as a` binds `a` across cond + then-block only
+            // (`resolver/body.vader::walk_cond`), minted at `cond.right.span` —
+            // NOT at the condition's own span. Without this the alias reads as a
+            // free variable and a lambda around it captures a symbol the
+            // enclosing fn has no local for : `tests/snippets/_diag_as_alias_scope`.
+            added: i32[]!: []
+            if expr.cond is AST.BinaryExpr as cond {
+                if cond.op == .Is {
+                    add_bind_as(cond.bind_as, cond.right.span, scope, ctx.symbol_index, added)
+                }
+            }
             walk_expr(expr.cond, scope, out_captures, out_seen, ctx)
             walk_body(expr.then_block, scope, out_captures, out_seen, ctx)
+            for id in added { _ :: scope.remove(id) }
             match expr.else_branch {
                 is null -> {}
                 is AST.IfElseIf as eif -> {
@@ -341,6 +353,11 @@ walk_expr :: fn(
         }
         is AST.MatchExpr -> {
             walk_expr(expr.scrutinee, scope, out_captures, out_seen, ctx)
+            // `match e as x` binds ONE alias around every arm, minted at the
+            // match's own span (`resolver/body.vader::walk_match`). Same hazard
+            // as the `if` above, and it survives the whole arm loop.
+            match_added: i32[]!: []
+            add_bind_as(expr.bind_as, expr.span, scope, ctx.symbol_index, match_added)
             for arm in expr.arms {
                 // An arm's pattern bindings are scoped to that arm : add them to
                 // the shared scope, walk the arm, then drop exactly what this arm
@@ -349,7 +366,7 @@ walk_expr :: fn(
                 // id in place. Locals declared in the arm BODY are not isolated —
                 // no more than for an `if` or a nested block above, and harmless:
                 // an ident only ever resolves to a binding lexically in scope.
-                added: i32[]! = []
+                added: i32[]!: []
                 walk_pattern_for_bindings(arm.pattern, scope, ctx.symbol_index, added)
                 if arm.guard !is null {
                     walk_expr(arm.guard, scope, out_captures, out_seen, ctx)
@@ -357,6 +374,7 @@ walk_expr :: fn(
                 walk_expr(arm.body, scope, out_captures, out_seen, ctx)
                 for id in added { _ :: scope.remove(id) }
             }
+            for id in match_added { _ :: scope.remove(id) }
         }
         is AST.BlockExpr -> {
             walk_body(expr, scope, out_captures, out_seen, ctx)
@@ -484,6 +502,25 @@ add_local_to_scope :: fn(binding: AST.LetBinding, scope: MutableSet<i32>!, symbo
     }
 }
 
+/// Put the symbol an `as` alias mints at `span` into `scope`, recording it in
+/// `added` when it is new so the caller drops exactly what it introduced.
+///
+/// The alias of an `if` / `match` is a binding like any other, but it lives on
+/// the expression rather than in a pattern, so `walk_pattern_for_bindings` below
+/// never sees it. `alias` is `""` when absent.
+add_bind_as :: fn(
+    alias: string, span: Span, scope: MutableSet<i32>!,
+    symbol_index: MutableMap<u64, Symbol>, added: i32[]!,
+) -> void {
+    if alias == "" {
+        return
+    }
+    symbol :: lookup_symbol_by_span(symbol_index, span) ?? return
+    if scope.add(symbol.id) {
+        added.push(symbol.id)
+    }
+}
+
 walk_pattern_for_bindings :: fn(
     pattern: AST.Pattern, scope: MutableSet<i32>!, symbol_index: MutableMap<u64, Symbol>, added: i32[]!,
 ) -> void {
@@ -558,7 +595,7 @@ process_lambda :: fn(
     outer_captures: Capture[]! | null, outer_seen: MutableSet<i32>! | null, ctx: WalkCtx!,
 ) -> void {
     own_scope :: collect_owned_scope_for_params(lambda.params, ctx.symbol_index)
-    captures: Capture[]! = []
+    captures: Capture[]!: []
     seen :: empty_scope()
     walk_body(lambda.body, own_scope, captures, seen, ctx)
 

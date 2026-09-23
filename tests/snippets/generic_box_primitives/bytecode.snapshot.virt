@@ -29,10 +29,9 @@ type 26 primitive u32
 type 27 struct std_core$FloatDec32 { mantissa:26,exp:1 }
 type 28 struct std_core$Dec64 { mantissa:24,exp:1 }
 type 29 struct __Tuple_u64_u64_u64_2d035edd { _0:24,_1:24,_2:24 }
-type 30 struct __Tuple_u64_u64_2959d966 { _0:24,_1:24 }
-type 31 primitive void
-type 32 primitive isize
-type 33 array 24
+type 30 primitive void
+type 31 primitive isize
+type 32 array 24
 string 0 "hi"
 string 1 "u8="
 string 2 " bool="
@@ -62,7 +61,7 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 import 0 byte_len std_core$byte_len result_type=22 param_types=13 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes_to_string std_core$bytes_to_string result_type=13 param_types=25 param_mutable=0 param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=25 param_types=13 param_mutable=0 param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=32 param_types=1,25,22 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=31 param_types=1,25,22 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 23 ByteAccess
 export main 0
 
@@ -1903,11 +1902,11 @@ fn 23 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.mul
     local.set 15   ; $cast_74
-    data.const 0 33   ; pool[0] : u64[]
+    data.const 0 32   ; pool[0] : u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 33   ; pool[0] : u64[]
+    data.const 0 32   ; pool[0] : u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2017,11 +2016,11 @@ fn 23 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.mul
     local.set 15   ; $cast_74
-    data.const 1 33   ; pool[1] : u64[]
+    data.const 1 32   ; pool[1] : u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 33   ; pool[1] : u64[]
+    data.const 1 32   ; pool[1] : u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2444,7 +2443,7 @@ fn 27 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
   local $data_const_3 ref
   local $cast_4 usize
   local $idx_5 u64
-  data.const 2 33   ; pool[2] : u64[]
+  data.const 2 32   ; pool[2] : u64[]
   local.set 3   ; $data_const_3
   local.get 1   ; arg 1
   i32.to_i64
@@ -2483,7 +2482,7 @@ fn 30 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
   local $data_const_3 ref
   local $cast_4 usize
   local $idx_5 u64
-  data.const 3 33   ; pool[3] : u64[]
+  data.const 3 32   ; pool[3] : u64[]
   local.set 3   ; $data_const_3
   local.get 1   ; arg 1
   i32.to_i64
@@ -2743,7 +2742,6 @@ end
 
 fn 35 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local m u64
-  local __tup_0 ref
   local tmp u64
   local lo u64
   local lo1 u64
@@ -2758,181 +2756,171 @@ fn 35 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.tee 5   ; m
   local.get 1   ; arg 1
   call 44   ; std_core$umul128
-  local.set 6   ; __tup_0
-  local.field 6 30 0   ; __tup_0._0
-  ref.cast 24   ; -> u64
-  local.set 7   ; tmp
-  local.field 6 30 1   ; __tup_0._1
-  ref.cast 24   ; -> u64
-  local.set 8   ; lo
+  local.set 7   ; lo
+  local.set 6   ; tmp
   local.get 5   ; m
   local.get 2   ; arg 2
   call 44   ; std_core$umul128
-  local.set 6   ; __tup_0
-  local.field 6 30 0   ; __tup_0._0
-  ref.cast 24   ; -> u64
+  local.set 8   ; lo1
   local.set 5   ; m
-  local.field 6 30 1   ; __tup_0._1
-  ref.cast 24   ; -> u64
-  local.set 9   ; lo1
-  local.get 7   ; tmp
-  local.get 9   ; lo1
+  local.get 6   ; tmp
+  local.get 8   ; lo1
   i64.add
-  local.tee 9   ; lo1
-  local.get 7   ; tmp
+  local.tee 8   ; lo1
+  local.get 6   ; tmp
   u64.lt
   call 33   ; std_core$b2u
-  local.set 7   ; tmp
+  local.set 6   ; tmp
   local.get 5   ; m
-  local.get 7   ; tmp
+  local.get 6   ; tmp
   i64.add
   local.set 5   ; m
-  local.get 8   ; lo
+  local.get 7   ; lo
   local.get 1   ; arg 1
   i64.add
-  local.set 7   ; tmp
-  local.get 9   ; lo1
+  local.set 6   ; tmp
+  local.get 8   ; lo1
   local.get 2   ; arg 2
   i64.add
-  local.set 10   ; $add_28
-  local.get 7   ; tmp
-  local.get 8   ; lo
+  local.set 9   ; $add_28
+  local.get 6   ; tmp
+  local.get 7   ; lo
   u64.lt
   call 33   ; std_core$b2u
-  local.set 7   ; tmp
-  local.get 10   ; $add_28
-  local.get 7   ; tmp
+  local.set 6   ; tmp
+  local.get 9   ; $add_28
+  local.get 6   ; tmp
   i64.add
-  local.tee 7   ; tmp
-  local.get 9   ; lo1
+  local.tee 6   ; tmp
+  local.get 8   ; lo1
   u64.lt
   call 33   ; std_core$b2u
-  local.set 10   ; $add_28
+  local.set 9   ; $add_28
   local.get 5   ; m
-  local.get 10   ; $add_28
+  local.get 9   ; $add_28
   i64.add
-  local.set 10   ; $add_28
+  local.set 9   ; $add_28
   local.get 3   ; arg 3
   i32.const 64
   i32.sub
   i32.const 1
   i32.sub
   i32.to_i64
-  local.set 11   ; $cast_41
-  local.get 7   ; tmp
-  local.get 10   ; $add_28
-  local.get 11   ; $cast_41
+  local.set 10   ; $cast_41
+  local.get 6   ; tmp
+  local.get 9   ; $add_28
+  local.get 10   ; $cast_41
   call 45   ; std_core$shiftright128
-  local.set 7   ; tmp
+  local.set 6   ; tmp
   i64.const 0
-  local.set 10   ; $add_28
+  local.set 9   ; $add_28
   local.get 4   ; arg 4
   i64.const 1
   i64.eq
   if $L0 void
-    local.get 8   ; lo
+    local.get 7   ; lo
     local.get 1   ; arg 1
     i64.sub
-    local.set 11   ; $cast_41
-    local.get 9   ; lo1
+    local.set 10   ; $cast_41
+    local.get 8   ; lo1
     local.get 2   ; arg 2
     i64.sub
-    local.set 12   ; $sub_50
-    local.get 11   ; $cast_41
-    local.get 8   ; lo
+    local.set 11   ; $sub_50
+    local.get 10   ; $cast_41
+    local.get 7   ; lo
     u64.gt
     call 33   ; std_core$b2u
-    local.set 11   ; $cast_41
-    local.get 12   ; $sub_50
-    local.get 11   ; $cast_41
+    local.set 10   ; $cast_41
+    local.get 11   ; $sub_50
+    local.get 10   ; $cast_41
     i64.sub
-    local.tee 11   ; $cast_41
-    local.get 9   ; lo1
+    local.tee 10   ; $cast_41
+    local.get 8   ; lo1
     u64.gt
     call 33   ; std_core$b2u
-    local.set 12   ; $sub_50
+    local.set 11   ; $sub_50
     local.get 5   ; m
-    local.get 12   ; $sub_50
+    local.get 11   ; $sub_50
     i64.sub
-    local.set 12   ; $sub_50
+    local.set 11   ; $sub_50
     local.get 3   ; arg 3
     i32.const 64
     i32.sub
     i32.const 1
     i32.sub
     i32.to_i64
-    local.set 13   ; $cast_63
-    local.get 11   ; $cast_41
-    local.get 12   ; $sub_50
-    local.get 13   ; $cast_63
+    local.set 12   ; $cast_63
+    local.get 10   ; $cast_41
+    local.get 11   ; $sub_50
+    local.get 12   ; $cast_63
     call 45   ; std_core$shiftright128
-    local.set 10   ; $add_28
+    local.set 9   ; $add_28
   else
-    local.get 8   ; lo
-    local.get 8   ; lo
+    local.get 7   ; lo
+    local.get 7   ; lo
     i64.add
-    local.set 11   ; $cast_41
-    local.get 9   ; lo1
-    local.get 9   ; lo1
+    local.set 10   ; $cast_41
+    local.get 8   ; lo1
+    local.get 8   ; lo1
     i64.add
-    local.set 12   ; $sub_50
-    local.get 11   ; $cast_41
-    local.get 8   ; lo
+    local.set 11   ; $sub_50
+    local.get 10   ; $cast_41
+    local.get 7   ; lo
     u64.lt
     call 33   ; std_core$b2u
-    local.set 8   ; lo
-    local.get 12   ; $sub_50
-    local.get 8   ; lo
+    local.set 7   ; lo
+    local.get 11   ; $sub_50
+    local.get 7   ; lo
     i64.add
-    local.set 8   ; lo
+    local.set 7   ; lo
     local.get 5   ; m
     local.get 5   ; m
     i64.add
-    local.set 12   ; $sub_50
-    local.get 8   ; lo
-    local.get 9   ; lo1
+    local.set 11   ; $sub_50
+    local.get 7   ; lo
+    local.get 8   ; lo1
     u64.lt
     call 33   ; std_core$b2u
-    local.set 13   ; $cast_63
-    local.get 12   ; $sub_50
-    local.get 13   ; $cast_63
+    local.set 12   ; $cast_63
+    local.get 11   ; $sub_50
+    local.get 12   ; $cast_63
     i64.add
-    local.set 12   ; $sub_50
-    local.get 11   ; $cast_41
+    local.set 11   ; $sub_50
+    local.get 10   ; $cast_41
     local.get 1   ; arg 1
     i64.sub
-    local.set 13   ; $cast_63
-    local.get 8   ; lo
+    local.set 12   ; $cast_63
+    local.get 7   ; lo
     local.get 2   ; arg 2
     i64.sub
-    local.set 14   ; $sub_79
-    local.get 13   ; $cast_63
-    local.get 11   ; $cast_41
+    local.set 13   ; $sub_79
+    local.get 12   ; $cast_63
+    local.get 10   ; $cast_41
     u64.gt
     call 33   ; std_core$b2u
-    local.set 11   ; $cast_41
-    local.get 14   ; $sub_79
-    local.get 11   ; $cast_41
+    local.set 10   ; $cast_41
+    local.get 13   ; $sub_79
+    local.get 10   ; $cast_41
     i64.sub
-    local.tee 11   ; $cast_41
-    local.get 8   ; lo
+    local.tee 10   ; $cast_41
+    local.get 7   ; lo
     u64.gt
     call 33   ; std_core$b2u
-    local.set 8   ; lo
-    local.get 12   ; $sub_50
-    local.get 8   ; lo
+    local.set 7   ; lo
+    local.get 11   ; $sub_50
+    local.get 7   ; lo
     i64.sub
-    local.set 8   ; lo
+    local.set 7   ; lo
     local.get 3   ; arg 3
     i32.const 64
     i32.sub
     i32.to_i64
-    local.set 12   ; $sub_50
-    local.get 11   ; $cast_41
-    local.get 8   ; lo
-    local.get 12   ; $sub_50
+    local.set 11   ; $sub_50
+    local.get 10   ; $cast_41
+    local.get 7   ; lo
+    local.get 11   ; $sub_50
     call 45   ; std_core$shiftright128
-    local.set 10   ; $add_28
+    local.set 9   ; $add_28
   end $L0
   local.get 3   ; arg 3
   i32.const 64
@@ -2940,13 +2928,13 @@ fn 35 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   i32.const 1
   i32.sub
   i32.to_i64
-  local.set 8   ; lo
-  local.get 9   ; lo1
+  local.set 7   ; lo
+  local.get 8   ; lo1
   local.get 5   ; m
-  local.get 8   ; lo
+  local.get 7   ; lo
   call 45   ; std_core$shiftright128
-  local.get 7   ; tmp
-  local.get 10   ; $add_28
+  local.get 6   ; tmp
+  local.get 9   ; $add_28
   struct.new 29   ; __Tuple_u64_u64_u64_2d035edd
   return
 end
@@ -3214,7 +3202,7 @@ fn 43 std_core$insert_point (ref,usize,i32,i32) -> usize
   return
 end
 
-fn 44 std_core$umul128 (u64,u64) -> ref
+fn 44 std_core$umul128 (u64,u64) -> (u64,u64)
   local a_lo u64
   local a_hi u64
   local b_lo u64
@@ -3299,7 +3287,6 @@ fn 44 std_core$umul128 (u64,u64) -> ref
   local.set 2   ; a_lo
   local.get 3   ; a_hi
   local.get 2   ; a_lo
-  struct.new 30   ; __Tuple_u64_u64_2959d966
   return
 end
 

@@ -158,7 +158,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "m"
@@ -328,7 +328,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "s"

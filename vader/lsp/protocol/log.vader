@@ -29,5 +29,5 @@ export log :: fn(level: LogLevel, message: string) -> void {
     write_frame(encode_notification("window/logMessage", params))
 }
 
-export log_warn  :: fn(message: string) -> void { log(LogLevel.Warning, message) }
-export log_info  :: fn(message: string) -> void { log(LogLevel.Info, message) }
+export log_warn  :: fn(message: string) -> void { log(.Warning, message) }
+export log_info  :: fn(message: string) -> void { log(.Info, message) }

@@ -3,8 +3,8 @@ module "snippet"
 import "std/io"
 
 main :: fn() -> i32 {
-    name := "Vader"
-    age := 1
+    name :: "Vader"
+    age :: 1
     println("Hello, ${name}! You are ${age} year(s) old.")
     return 0
 }

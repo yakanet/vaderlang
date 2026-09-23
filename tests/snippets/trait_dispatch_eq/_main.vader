@@ -20,10 +20,10 @@ export both_equal :: fn<T: Equals>(a: T, b: T, c: T) -> i32 {
 
 main :: fn() -> i32 {
     // 1 == 1 (n=1), 1 != 2, 1 != 2  →  1
-    n1 := both_equal(1, 1, 2)
+    n1 :: both_equal(1, 1, 2)
     // 5 == 5 (n=1), 5 == 5 (n=10), 5 == 5 (n=100)  →  111
-    n2 := both_equal(5, 5, 5)
+    n2 :: both_equal(5, 5, 5)
     // 100 != 200, 100 == 100 (n=10), 200 != 100  →  10
-    n3 := both_equal(100, 200, 100)
+    n3 :: both_equal(100, 200, 100)
     return n1 + n2 + n3
 }

@@ -35,7 +35,7 @@ main :: fn() -> i32 {
     }
     // One environment per closure, then called round-robin so no single
     // callee stays in an inline cache.
-    adders: (fn(i64) -> i64)[]! = []
+    adders: (fn(i64) -> i64)[]!: []
     for index in 0..<ADDERS {
         adders.push(make_adder(i64(index)))
     }

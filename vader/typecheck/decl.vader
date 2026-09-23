@@ -151,7 +151,7 @@ declare_decl :: fn(
                 // A private field (`@internal`) is invisible across the module
                 // boundary, so it never leaks — only public fields of an
                 // exported struct expose their type through the interface.
-                struct_public :: decl.visibility == Visibility.Public
+                struct_public :: decl.visibility == .Public
                 for f in decl.fields {
                     // A field is read-only unless its type says otherwise — same
                     // default as a parameter, and for the same reason : a field is
@@ -160,7 +160,7 @@ declare_decl :: fn(
                     // `buf: u8[]!` = append to the array itself).
                     fty :: apply_readonly_default(type_from_expr(f.ty, resolved, diags), f.ty)
                     fields_map[f.name] = fty
-                    if struct_public && f.visibility == Visibility.Public {
+                    if struct_public && f.visibility == .Public {
                         report_private_leak(fty, f.ty.span, decl.name, "exposes a field of type", diags)
                     }
                 }
@@ -212,7 +212,7 @@ declare_named_with_args :: fn(
     mk: fn(Symbol, Type[]) -> Type,
 ) -> void {
     sym :: by_name[name] ?? return
-    args: Type[]! = []
+    args: Type[]!: []
     for tp in type_params {
         tp_sym :: factory.make(.TypeParam, tp.name, module_path, module_path, .Private, tp.span)
         args.push(mk_type_param(tp_sym))
@@ -229,7 +229,7 @@ declare_fn :: fn(
     typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> void {
-    params: Type[]! = []
+    params: Type[]!: []
     for p in decl.params {
         params.push(declare_fn_param(p, resolved, typed, diags))
     }
@@ -326,7 +326,7 @@ check_public_fn_visibility :: fn(
     return_type: Type,
     diags: Diagnostic[]!,
 ) -> void {
-    if decl.visibility != Visibility.Public {
+    if decl.visibility != .Public {
         return
     }
     ret_span :: if decl.return_type != null { decl.return_type.span } else { decl.span }
@@ -1200,7 +1200,7 @@ marks_mutable_anywhere :: fn(w: AST.TypeExpr) -> bool {
         return false
     }
     if w is AST.BinaryExpr {
-        if w.op == BinaryOp.BitOr {
+        if w.op == .BitOr {
             return marks_mutable_anywhere(w.left) || marks_mutable_anywhere(w.right)
         }
     }
@@ -1294,7 +1294,7 @@ declared_type :: fn(src: string, name: string) -> string {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     declare_module(parsed.program.decls, rm, typed, factory, diags)
     for s in rm.symbols {
         if s.name != name {

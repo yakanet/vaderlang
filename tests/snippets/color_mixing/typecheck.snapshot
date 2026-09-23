@@ -39,7 +39,7 @@
   expr 52:38    IdentExpr      :: Color
   expr 52:5     CallExpr       :: void
   expr 52:5     IdentExpr      :: fn(T) -> void
-  expr 54:16    SeqLitExpr     :: Coord
+  expr 54:15    SeqLitExpr     :: Coord
   expr 55:13    StringLitExpr  :: string
   expr 55:16    FieldExpr      :: i32
   expr 55:16    IdentExpr      :: Coord
@@ -54,8 +54,8 @@
   expr 57:20    IdentExpr      :: i32
   expr 57:5     CallExpr       :: void
   expr 57:5     IdentExpr      :: fn(T) -> void
-  expr 59:17    SeqLitExpr     :: Swatch
-  expr 59:18    IdentExpr      :: Color
+  expr 59:16    SeqLitExpr     :: Swatch
+  expr 59:17    IdentExpr      :: Color
   expr 60:13    StringLitExpr  :: string
   expr 60:16    FieldExpr      :: Color
   expr 60:16    FieldExpr      :: i32

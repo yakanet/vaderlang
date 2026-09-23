@@ -4,7 +4,7 @@
   StructDecl     Counter              :: Counter!
   FnDecl         main                 :: fn() -> i32
   expr 15:20    UnaryExpr      :: isize
-  expr 28:18    UnaryExpr      :: isize
+  expr 28:17    UnaryExpr      :: isize
   expr 30:13    StringLitExpr  :: string
   expr 30:24    IdentExpr      :: i8
   expr 30:30    IdentExpr      :: i16
@@ -33,7 +33,7 @@
   expr 37:48    IdentExpr      :: u64
   expr 37:5     CallExpr       :: void
   expr 37:5     IdentExpr      :: fn(T) -> void
-  expr 40:18    UnaryExpr      :: isize
+  expr 40:17    UnaryExpr      :: isize
   expr 41:13    BinaryExpr     :: isize
   expr 41:13    IdentExpr      :: isize
   expr 42:13    StringLitExpr  :: string
@@ -61,10 +61,10 @@
   expr 53:17    StringLitExpr  :: string
   expr 53:9     CallExpr       :: void
   expr 53:9     IdentExpr      :: fn(T) -> void
-  expr 58:18    SeqLitExpr     :: i32[]
-  expr 59:16    CallExpr       :: usize
-  expr 59:16    FieldExpr      :: fn() -> usize
-  expr 59:16    IdentExpr      :: i32[]
+  expr 58:17    SeqLitExpr     :: i32[]
+  expr 59:15    CallExpr       :: usize
+  expr 59:15    FieldExpr      :: fn() -> usize
+  expr 59:15    IdentExpr      :: i32[]
   expr 60:12    IdentExpr      :: i32[]
   expr 60:12    IndexExpr      :: i32[]
   expr 60:16    RangeExpr      :: Range<usize>!

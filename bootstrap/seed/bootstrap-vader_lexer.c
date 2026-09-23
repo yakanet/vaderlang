@@ -57,16 +57,14 @@ static void vader_lexer_advance(void* l0, size_t l1) {
                 vader_array_t* _a0_slotarr = ((vader_array_t*) l5);
                 if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
                 if ((size_t) l6 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
-                t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l6, 177u);
+                t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l6, 182u);
                 t1 = ((uint8_t) t0.payload.i);
                 l7 = ((int32_t) (uint8_t) t1);
                 if (l7 == INT32_C(10)) {
                     t2 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_line;
                     l8 = (t2 + INT32_C(1));
                     ((vader_struct_vader_lexer_Lexer_t*) l0)->f_line = l8;
-                    VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                     ((vader_struct_vader_lexer_Lexer_t*) l0)->f_col = INT32_C(1);
-                    VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                 } else {
                     if (l7 == INT32_C(13)) {
                         t3 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_pos;
@@ -79,7 +77,7 @@ static void vader_lexer_advance(void* l0, size_t l1) {
                             vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_vader_lexer_Lexer_t*) l0)->f_bytes);
                             if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
                             if ((size_t) l9 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
-                            t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l9, 177u);
+                            t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l9, 182u);
                             t1 = ((uint8_t) t0.payload.i);
                             l11 = t1 != INT32_C(10);
                         }
@@ -87,9 +85,7 @@ static void vader_lexer_advance(void* l0, size_t l1) {
                             t2 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_line;
                             l12 = (t2 + INT32_C(1));
                             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_line = l12;
-                            VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_col = INT32_C(1);
-                            VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                         }
                     } else {
                         if ((l7 < INT32_C(128))) {
@@ -101,7 +97,6 @@ static void vader_lexer_advance(void* l0, size_t l1) {
                             t2 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_col;
                             l14 = (t2 + INT32_C(1));
                             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_col = l14;
-                            VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                         }
                     }
                 }
@@ -109,7 +104,6 @@ static void vader_lexer_advance(void* l0, size_t l1) {
                 t4 = (t3 + INT64_C(1));
                 l15 = (size_t) (int64_t) t4;
                 ((vader_struct_vader_lexer_Lexer_t*) l0)->f_pos = l15;
-                VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
                 t4 = (l2 + INT64_C(1));
                 l2 = (size_t) (int64_t) t4;
                 goto loop_3;
@@ -164,7 +158,7 @@ static void vader_lexer_consume_digits(void* l0, int32_t l1, void* l2) {
                     }
                     if (l9) {
                         l10 = vader_lexer_error_span(l0, l2);
-                        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l10, 2296u);
+                        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l10, 2360u);
                     }
                     l3 = true;
                     l4 = false;
@@ -183,7 +177,7 @@ static void vader_lexer_consume_digits(void* l0, int32_t l1, void* l2) {
     }
     if (l3) {
         l10 = vader_lexer_error_span(l0, l2);
-        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l10, 2296u);
+        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l10, 2360u);
     }
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -197,7 +191,6 @@ static void vader_lexer_emit(void* l0, void* l1) {
     vader_array_push((vader_array_t*) ((vader_struct_vader_lexer_Lexer_t*) l0)->f_tokens, vader_ref_box(l1));
     l2 = ((vader_struct_vader_lexer_Token_t*) l1)->f_kind;
     ((vader_struct_vader_lexer_Lexer_t*) l0)->f_last_kind = l2;
-    VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
@@ -225,14 +218,14 @@ void* vader_lexer_empty_file_span(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     vader_struct_toolchain_span_Position_t* _a0_obj = (vader_struct_toolchain_span_Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Position_t));
-    vader_obj_header_init(_a0_obj, 480u);
+    vader_obj_header_init(_a0_obj, 449u);
     _a0_obj->f_file = l0;
     _a0_obj->f_offset = (size_t) (int64_t) INT64_C(0);
     _a0_obj->f_line = INT32_C(1);
     _a0_obj->f_column = INT32_C(1);
     l1 = (void*) _a0_obj;
     vader_struct_toolchain_span_Span_t* _a1_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a1_obj, 481u);
+    vader_obj_header_init(_a1_obj, 450u);
     _a1_obj->f_start = l1;
     _a1_obj->f_end = l1;
     t0 = (void*) _a1_obj;
@@ -248,7 +241,7 @@ static void* vader_lexer_error_span(void* l0, void* l1) {
     vader_gc_top = &gc_frame;
     l2 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a0_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a0_obj, 481u);
+    vader_obj_header_init(_a0_obj, 450u);
     _a0_obj->f_start = l1;
     _a0_obj->f_end = l2;
     t0 = (void*) _a0_obj;
@@ -269,12 +262,12 @@ static void vader_lexer_flush_string_part(void* l0, void* l1, void* l2, bool l3)
     l4 = std_string_builder_StringBuilder_Display_to_string(l1);
     l5 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a0_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a0_obj, 481u);
+    vader_obj_header_init(_a0_obj, 450u);
     _a0_obj->f_start = l2;
     _a0_obj->f_end = l5;
     l5 = (void*) _a0_obj;
     l5 = vader_lexer_make_token((uint8_t) (int32_t) INT32_C(7), l4, l5);
-    ((vader_struct_vader_lexer_Token_t*) l5)->f_value = vader_box_string(171u, l4);
+    ((vader_struct_vader_lexer_Token_t*) l5)->f_value = vader_box_string(176u, l4);
     VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l5);
     vader_lexer_emit(l0, l5);
     { vader_gc_top = gc_frame.prev; return; }
@@ -314,7 +307,7 @@ static void vader_lexer_handle_newline(void* l0) {
     }
     l1 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a0_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a0_obj, 481u);
+    vader_obj_header_init(_a0_obj, 450u);
     _a0_obj->f_start = l1;
     _a0_obj->f_end = l1;
     l1 = (void*) _a0_obj;
@@ -351,247 +344,247 @@ static bool vader_lexer_is_ident_start(uint32_t l0) {
 vader_string_t vader_lexer_kind_name(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(2)) {
-        l1 = 1715u;
+        l1 = 1764u;
     } else {
         if (l0 == INT32_C(3)) {
-            l1 = 1758u;
+            l1 = 1807u;
         } else {
             if (l0 == INT32_C(4)) {
-                l1 = 1618u;
+                l1 = 1666u;
             } else {
                 if (l0 == INT32_C(5)) {
-                    l1 = 1387u;
+                    l1 = 1431u;
                 } else {
                     if (l0 == INT32_C(6)) {
-                        l1 = 2137u;
+                        l1 = 2195u;
                     } else {
                         if (l0 == INT32_C(7)) {
-                            l1 = 2139u;
+                            l1 = 2197u;
                         } else {
                             if (l0 == INT32_C(8)) {
-                                l1 = 2138u;
+                                l1 = 2196u;
                             } else {
                                 if (l0 == INT32_C(9)) {
-                                    l1 = 1766u;
+                                    l1 = 1815u;
                                 } else {
                                     if (l0 == INT32_C(10)) {
-                                        l1 = 1765u;
+                                        l1 = 1814u;
                                     } else {
                                         if (l0 == INT32_C(11)) {
-                                            l1 = 1810u;
+                                            l1 = 1860u;
                                         } else {
                                             if (l0 == INT32_C(12)) {
-                                                l1 = 1821u;
+                                                l1 = 1871u;
                                             } else {
                                                 if (l0 == INT32_C(13)) {
-                                                    l1 = 1822u;
+                                                    l1 = 1872u;
                                                 } else {
                                                     if (l0 == INT32_C(14)) {
-                                                        l1 = 1813u;
+                                                        l1 = 1863u;
                                                     } else {
                                                         if (l0 == INT32_C(15)) {
-                                                            l1 = 1807u;
+                                                            l1 = 1857u;
                                                         } else {
                                                             if (l0 == INT32_C(16)) {
-                                                                l1 = 1812u;
+                                                                l1 = 1862u;
                                                             } else {
                                                                 if (l0 == INT32_C(17)) {
-                                                                    l1 = 1806u;
+                                                                    l1 = 1856u;
                                                                 } else {
                                                                     if (l0 == INT32_C(18)) {
-                                                                        l1 = 1817u;
+                                                                        l1 = 1867u;
                                                                     } else {
                                                                         if (l0 == INT32_C(19)) {
-                                                                            l1 = 1816u;
+                                                                            l1 = 1866u;
                                                                         } else {
                                                                             if (l0 == INT32_C(20)) {
-                                                                                l1 = 1811u;
+                                                                                l1 = 1861u;
                                                                             } else {
                                                                                 if (l0 == INT32_C(21)) {
-                                                                                    l1 = 1815u;
+                                                                                    l1 = 1865u;
                                                                                 } else {
                                                                                     if (l0 == INT32_C(22)) {
-                                                                                        l1 = 1819u;
+                                                                                        l1 = 1869u;
                                                                                     } else {
                                                                                         if (l0 == INT32_C(23)) {
-                                                                                            l1 = 1824u;
+                                                                                            l1 = 1874u;
                                                                                         } else {
                                                                                             if (l0 == INT32_C(24)) {
-                                                                                                l1 = 1801u;
+                                                                                                l1 = 1851u;
                                                                                             } else {
                                                                                                 if (l0 == INT32_C(25)) {
-                                                                                                    l1 = 1805u;
+                                                                                                    l1 = 1855u;
                                                                                                 } else {
                                                                                                     if (l0 == INT32_C(26)) {
-                                                                                                        l1 = 1802u;
+                                                                                                        l1 = 1852u;
                                                                                                     } else {
                                                                                                         if (l0 == INT32_C(27)) {
-                                                                                                            l1 = 1804u;
+                                                                                                            l1 = 1854u;
                                                                                                         } else {
                                                                                                             if (l0 == INT32_C(28)) {
-                                                                                                                l1 = 1814u;
+                                                                                                                l1 = 1864u;
                                                                                                             } else {
                                                                                                                 if (l0 == INT32_C(29)) {
-                                                                                                                    l1 = 1800u;
+                                                                                                                    l1 = 1850u;
                                                                                                                 } else {
                                                                                                                     if (l0 == INT32_C(30)) {
-                                                                                                                        l1 = 1808u;
+                                                                                                                        l1 = 1858u;
                                                                                                                     } else {
                                                                                                                         if (l0 == INT32_C(31)) {
-                                                                                                                            l1 = 1823u;
+                                                                                                                            l1 = 1873u;
                                                                                                                         } else {
                                                                                                                             if (l0 == INT32_C(32)) {
-                                                                                                                                l1 = 1809u;
+                                                                                                                                l1 = 1859u;
                                                                                                                             } else {
                                                                                                                                 if (l0 == INT32_C(33)) {
-                                                                                                                                    l1 = 1818u;
+                                                                                                                                    l1 = 1868u;
                                                                                                                                 } else {
                                                                                                                                     if (l0 == INT32_C(34)) {
-                                                                                                                                        l1 = 1820u;
+                                                                                                                                        l1 = 1870u;
                                                                                                                                     } else {
                                                                                                                                         if (l0 == INT32_C(35)) {
-                                                                                                                                            l1 = 1803u;
+                                                                                                                                            l1 = 1853u;
                                                                                                                                         } else {
                                                                                                                                             if (l0 == INT32_C(36)) {
-                                                                                                                                                l1 = 1974u;
+                                                                                                                                                l1 = 2029u;
                                                                                                                                             } else {
                                                                                                                                                 if (l0 == INT32_C(37)) {
-                                                                                                                                                    l1 = 1896u;
+                                                                                                                                                    l1 = 1948u;
                                                                                                                                                 } else {
                                                                                                                                                     if (l0 == INT32_C(38)) {
-                                                                                                                                                        l1 = 2058u;
+                                                                                                                                                        l1 = 2115u;
                                                                                                                                                     } else {
                                                                                                                                                         if (l0 == INT32_C(39)) {
-                                                                                                                                                            l1 = 2049u;
+                                                                                                                                                            l1 = 2106u;
                                                                                                                                                         } else {
                                                                                                                                                             if (l0 == INT32_C(40)) {
-                                                                                                                                                                l1 = 1970u;
+                                                                                                                                                                l1 = 2025u;
                                                                                                                                                             } else {
                                                                                                                                                                 if (l0 == INT32_C(41)) {
-                                                                                                                                                                    l1 = 1205u;
+                                                                                                                                                                    l1 = 1243u;
                                                                                                                                                                 } else {
                                                                                                                                                                     if (l0 == INT32_C(42)) {
-                                                                                                                                                                        l1 = 1973u;
+                                                                                                                                                                        l1 = 2028u;
                                                                                                                                                                     } else {
                                                                                                                                                                         if (l0 == INT32_C(43)) {
-                                                                                                                                                                            l1 = 1378u;
+                                                                                                                                                                            l1 = 1422u;
                                                                                                                                                                         } else {
                                                                                                                                                                             if (l0 == INT32_C(44)) {
-                                                                                                                                                                                l1 = 2188u;
+                                                                                                                                                                                l1 = 2250u;
                                                                                                                                                                             } else {
                                                                                                                                                                                 if (l0 == INT32_C(45)) {
-                                                                                                                                                                                    l1 = 2036u;
+                                                                                                                                                                                    l1 = 2093u;
                                                                                                                                                                                 } else {
                                                                                                                                                                                     if (l0 == INT32_C(46)) {
-                                                                                                                                                                                        l1 = 2040u;
+                                                                                                                                                                                        l1 = 2097u;
                                                                                                                                                                                     } else {
                                                                                                                                                                                         if (l0 == INT32_C(47)) {
-                                                                                                                                                                                            l1 = 1507u;
+                                                                                                                                                                                            l1 = 1554u;
                                                                                                                                                                                         } else {
                                                                                                                                                                                             if (l0 == INT32_C(48)) {
-                                                                                                                                                                                                l1 = 1922u;
+                                                                                                                                                                                                l1 = 1974u;
                                                                                                                                                                                             } else {
                                                                                                                                                                                                 if (l0 == INT32_C(49)) {
-                                                                                                                                                                                                    l1 = 1861u;
+                                                                                                                                                                                                    l1 = 1912u;
                                                                                                                                                                                                 } else {
                                                                                                                                                                                                     if (l0 == INT32_C(50)) {
-                                                                                                                                                                                                        l1 = 1862u;
+                                                                                                                                                                                                        l1 = 1913u;
                                                                                                                                                                                                     } else {
                                                                                                                                                                                                         if (l0 == INT32_C(51)) {
-                                                                                                                                                                                                            l1 = 1660u;
+                                                                                                                                                                                                            l1 = 1709u;
                                                                                                                                                                                                         } else {
                                                                                                                                                                                                             if (l0 == INT32_C(52)) {
-                                                                                                                                                                                                                l1 = 1661u;
+                                                                                                                                                                                                                l1 = 1710u;
                                                                                                                                                                                                             } else {
                                                                                                                                                                                                                 if (l0 == INT32_C(53)) {
-                                                                                                                                                                                                                    l1 = 1212u;
+                                                                                                                                                                                                                    l1 = 1251u;
                                                                                                                                                                                                                 } else {
                                                                                                                                                                                                                     if (l0 == INT32_C(54)) {
-                                                                                                                                                                                                                        l1 = 1957u;
+                                                                                                                                                                                                                        l1 = 2012u;
                                                                                                                                                                                                                     } else {
                                                                                                                                                                                                                         if (l0 == INT32_C(56)) {
-                                                                                                                                                                                                                            l1 = 1983u;
+                                                                                                                                                                                                                            l1 = 2038u;
                                                                                                                                                                                                                         } else {
                                                                                                                                                                                                                             if (l0 == INT32_C(55)) {
-                                                                                                                                                                                                                                l1 = 1279u;
+                                                                                                                                                                                                                                l1 = 1319u;
                                                                                                                                                                                                                             } else {
                                                                                                                                                                                                                                 if (l0 == INT32_C(57)) {
-                                                                                                                                                                                                                                    l1 = 1267u;
+                                                                                                                                                                                                                                    l1 = 1307u;
                                                                                                                                                                                                                                 } else {
                                                                                                                                                                                                                                     if (l0 == INT32_C(58)) {
-                                                                                                                                                                                                                                        l1 = 1975u;
+                                                                                                                                                                                                                                        l1 = 2030u;
                                                                                                                                                                                                                                     } else {
                                                                                                                                                                                                                                         if (l0 == INT32_C(59)) {
-                                                                                                                                                                                                                                            l1 = 1897u;
+                                                                                                                                                                                                                                            l1 = 1949u;
                                                                                                                                                                                                                                         } else {
                                                                                                                                                                                                                                             if (l0 == INT32_C(60)) {
-                                                                                                                                                                                                                                                l1 = 2059u;
+                                                                                                                                                                                                                                                l1 = 2116u;
                                                                                                                                                                                                                                             } else {
                                                                                                                                                                                                                                                 if (l0 == INT32_C(61)) {
-                                                                                                                                                                                                                                                    l1 = 2050u;
+                                                                                                                                                                                                                                                    l1 = 2107u;
                                                                                                                                                                                                                                                 } else {
                                                                                                                                                                                                                                                     if (l0 == INT32_C(62)) {
-                                                                                                                                                                                                                                                        l1 = 1971u;
+                                                                                                                                                                                                                                                        l1 = 2026u;
                                                                                                                                                                                                                                                     } else {
                                                                                                                                                                                                                                                         if (l0 == INT32_C(63)) {
-                                                                                                                                                                                                                                                            l1 = 1455u;
+                                                                                                                                                                                                                                                            l1 = 1500u;
                                                                                                                                                                                                                                                         } else {
                                                                                                                                                                                                                                                             if (l0 == INT32_C(64)) {
-                                                                                                                                                                                                                                                                l1 = 1456u;
+                                                                                                                                                                                                                                                                l1 = 1501u;
                                                                                                                                                                                                                                                             } else {
                                                                                                                                                                                                                                                                 if (l0 == INT32_C(65)) {
-                                                                                                                                                                                                                                                                    l1 = 1985u;
+                                                                                                                                                                                                                                                                    l1 = 2040u;
                                                                                                                                                                                                                                                                 } else {
                                                                                                                                                                                                                                                                     if (l0 == INT32_C(66)) {
-                                                                                                                                                                                                                                                                        l1 = 1986u;
+                                                                                                                                                                                                                                                                        l1 = 2041u;
                                                                                                                                                                                                                                                                     } else {
                                                                                                                                                                                                                                                                         if (l0 == INT32_C(67)) {
-                                                                                                                                                                                                                                                                            l1 = 1477u;
+                                                                                                                                                                                                                                                                            l1 = 1524u;
                                                                                                                                                                                                                                                                         } else {
                                                                                                                                                                                                                                                                             if (l0 == INT32_C(68)) {
-                                                                                                                                                                                                                                                                                l1 = 1264u;
+                                                                                                                                                                                                                                                                                l1 = 1304u;
                                                                                                                                                                                                                                                                             } else {
                                                                                                                                                                                                                                                                                 if (l0 == INT32_C(69)) {
-                                                                                                                                                                                                                                                                                    l1 = 1584u;
+                                                                                                                                                                                                                                                                                    l1 = 1632u;
                                                                                                                                                                                                                                                                                 } else {
                                                                                                                                                                                                                                                                                     if (l0 == INT32_C(70)) {
-                                                                                                                                                                                                                                                                                        l1 = 1273u;
+                                                                                                                                                                                                                                                                                        l1 = 1313u;
                                                                                                                                                                                                                                                                                     } else {
                                                                                                                                                                                                                                                                                         if (l0 == INT32_C(71)) {
-                                                                                                                                                                                                                                                                                            l1 = 1475u;
+                                                                                                                                                                                                                                                                                            l1 = 1522u;
                                                                                                                                                                                                                                                                                         } else {
                                                                                                                                                                                                                                                                                             if (l0 == INT32_C(72)) {
-                                                                                                                                                                                                                                                                                                l1 = 1860u;
+                                                                                                                                                                                                                                                                                                l1 = 1911u;
                                                                                                                                                                                                                                                                                             } else {
                                                                                                                                                                                                                                                                                                 if (l0 == INT32_C(73)) {
-                                                                                                                                                                                                                                                                                                    l1 = 2022u;
+                                                                                                                                                                                                                                                                                                    l1 = 2079u;
                                                                                                                                                                                                                                                                                                 } else {
                                                                                                                                                                                                                                                                                                     if (l0 == INT32_C(74)) {
-                                                                                                                                                                                                                                                                                                        l1 = 1829u;
+                                                                                                                                                                                                                                                                                                        l1 = 1879u;
                                                                                                                                                                                                                                                                                                     } else {
                                                                                                                                                                                                                                                                                                         if (l0 == INT32_C(75)) {
-                                                                                                                                                                                                                                                                                                            l1 = 1989u;
+                                                                                                                                                                                                                                                                                                            l1 = 2044u;
                                                                                                                                                                                                                                                                                                         } else {
                                                                                                                                                                                                                                                                                                             if (l0 == INT32_C(76)) {
-                                                                                                                                                                                                                                                                                                                l1 = 1828u;
+                                                                                                                                                                                                                                                                                                                l1 = 1878u;
                                                                                                                                                                                                                                                                                                             } else {
                                                                                                                                                                                                                                                                                                                 if (l0 == INT32_C(77)) {
-                                                                                                                                                                                                                                                                                                                    l1 = 1988u;
+                                                                                                                                                                                                                                                                                                                    l1 = 2043u;
                                                                                                                                                                                                                                                                                                                 } else {
                                                                                                                                                                                                                                                                                                                     if (l0 == INT32_C(78)) {
-                                                                                                                                                                                                                                                                                                                        l1 = 1402u;
+                                                                                                                                                                                                                                                                                                                        l1 = 1446u;
                                                                                                                                                                                                                                                                                                                     } else {
                                                                                                                                                                                                                                                                                                                         if (l0 == INT32_C(79)) {
-                                                                                                                                                                                                                                                                                                                            l1 = 1476u;
+                                                                                                                                                                                                                                                                                                                            l1 = 1523u;
                                                                                                                                                                                                                                                                                                                         } else {
                                                                                                                                                                                                                                                                                                                             if (l0 == INT32_C(80)) {
-                                                                                                                                                                                                                                                                                                                                l1 = 1401u;
+                                                                                                                                                                                                                                                                                                                                l1 = 1445u;
                                                                                                                                                                                                                                                                                                                             } else {
                                                                                                                                                                                                                                                                                                                                 if (l0 == INT32_C(1)) {
-                                                                                                                                                                                                                                                                                                                                    l1 = 1926u;
+                                                                                                                                                                                                                                                                                                                                    l1 = 1978u;
                                                                                                                                                                                                                                                                                                                                 } else {
                                                                                                                                                                                                                                                                                                                                     if (l0 == INT32_C(0)) {
-                                                                                                                                                                                                                                                                                                                                        l1 = 1506u;
+                                                                                                                                                                                                                                                                                                                                        l1 = 1553u;
                                                                                                                                                                                                                                                                                                                                     } else {
                                                                                                                                                                                                                                                                                                                                         vader_unreachable("unreachable return in vader_lexer$kind_name");
                                                                                                                                                                                                                                                                                                                                     }
@@ -758,7 +751,7 @@ static void vader_lexer_lex_char(void* l0) {
     if (t0 == 39u) {
         vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(1));
         l2 = vader_lexer_error_span(l0, l1);
-        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(4), l2, 1389u);
+        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(4), l2, 1433u);
         l2 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_bytes;
         l3 = ((vader_struct_toolchain_span_Position_t*) l1)->f_offset;
         l4 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_pos;
@@ -767,7 +760,7 @@ static void vader_lexer_lex_char(void* l0) {
         l5 = vader_host_std_core_bytes_to_string(t1);
         l2 = vader_lexer_error_span(l0, l1);
         l2 = vader_lexer_make_token((uint8_t) (int32_t) INT32_C(5), l5, l2);
-        ((vader_struct_vader_lexer_Token_t*) l2)->f_value = vader_box_i32(174u, INT32_C(0));
+        ((vader_struct_vader_lexer_Token_t*) l2)->f_value = vader_box_i32(179u, INT32_C(0));
         VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l2);
         vader_lexer_emit(l0, l2);
         { vader_gc_top = gc_frame.prev; return; }
@@ -785,7 +778,7 @@ static void vader_lexer_lex_char(void* l0) {
         }
         if (l7) {
             l2 = vader_lexer_error_span(l0, l1);
-            vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(4), l2, 2319u);
+            vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(4), l2, 2383u);
             l2 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_bytes;
             l3 = ((vader_struct_toolchain_span_Position_t*) l1)->f_offset;
             l4 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_pos;
@@ -794,7 +787,7 @@ static void vader_lexer_lex_char(void* l0) {
             l5 = vader_host_std_core_bytes_to_string(t1);
             l2 = vader_lexer_error_span(l0, l1);
             l2 = vader_lexer_make_token((uint8_t) (int32_t) INT32_C(5), l5, l2);
-            ((vader_struct_vader_lexer_Token_t*) l2)->f_value = vader_box_i32(174u, INT32_C(0));
+            ((vader_struct_vader_lexer_Token_t*) l2)->f_value = vader_box_i32(179u, INT32_C(0));
             VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l2);
             vader_lexer_emit(l0, l2);
             { vader_gc_top = gc_frame.prev; return; }
@@ -808,7 +801,7 @@ static void vader_lexer_lex_char(void* l0) {
     t0 = vader_lexer_peek(l0);
     if (t0 != 39u) {
         l2 = vader_lexer_error_span(l0, l1);
-        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(4), l2, 1390u);
+        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(4), l2, 1434u);
         {
             loop_145: {
                 t3 = vader_lexer_at_end(l0);
@@ -845,7 +838,7 @@ static void vader_lexer_lex_char(void* l0) {
     l5 = vader_host_std_core_bytes_to_string(t1);
     l1 = vader_lexer_error_span(l0, l1);
     l1 = vader_lexer_make_token((uint8_t) (int32_t) INT32_C(5), l5, l1);
-    ((vader_struct_vader_lexer_Token_t*) l1)->f_value = vader_box_i32(179u, (int32_t)(uint32_t) l6);
+    ((vader_struct_vader_lexer_Token_t*) l1)->f_value = vader_box_i32(184u, (int32_t)(uint32_t) l6);
     VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l1);
     vader_lexer_emit(l0, l1);
     { vader_gc_top = gc_frame.prev; return; }
@@ -869,7 +862,7 @@ static uint32_t vader_lexer_lex_escape(void* l0, bool l1) {
     t0 = vader_lexer_at_end(l0);
     if (t0) {
         l3 = vader_lexer_error_span(l0, l2);
-        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(3), l3, 1744u);
+        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(3), l3, 1793u);
         { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
     }
     l4 = vader_lexer_peek(l0);
@@ -905,7 +898,7 @@ static uint32_t vader_lexer_lex_escape(void* l0, bool l1) {
         if (l5) {
             l3 = vader_lexer_error_span(l0, l2);
             l6 = std_core_char_Display_to_string(l4);
-            l6 = concat_3(1511u, l6, 135u);
+            l6 = concat_3(1558u, l6, 150u);
             vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(3), l3, l6);
             { uint32_t __vret = (uint32_t) (int32_t) ((int32_t) (uint32_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -918,13 +911,13 @@ static uint32_t vader_lexer_lex_escape(void* l0, bool l1) {
         }
         if (l4 == 39u) {
             l3 = vader_lexer_error_span(l0, l2);
-            vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(3), l3, 1512u);
+            vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(3), l3, 1559u);
             { uint32_t __vret = (uint32_t) (int32_t) ((int32_t) (uint32_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
         }
     }
     l2 = vader_lexer_error_span(l0, l2);
     l6 = std_core_char_Display_to_string(l4);
-    l6 = concat_2(2305u, l6);
+    l6 = concat_2(2369u, l6);
     vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(3), l2, l6);
     { uint32_t __vret = (uint32_t) (int32_t) ((int32_t) (uint32_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -1034,7 +1027,7 @@ static void vader_lexer_lex_number(void* l0) {
         t1 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_pos;
         if (t1 == l6) {
             l7 = vader_lexer_error_span(l0, l1);
-            vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l7, 1535u);
+            vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l7, 1583u);
         }
     } else {
         vader_lexer_consume_digits(l0, INT32_C(10), l1);
@@ -1074,7 +1067,7 @@ static void vader_lexer_lex_number(void* l0) {
             t2 = std_char_is_digit(t0);
             if (!(t2)) {
                 l7 = vader_lexer_error_span(l0, l1);
-                vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l7, 1540u);
+                vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l7, 1588u);
             }
             vader_lexer_consume_digits(l0, INT32_C(10), l1);
         }
@@ -1125,12 +1118,12 @@ static void vader_lexer_lex_number(void* l0) {
         t3 = (void*) _a1_arr;
         l10 = vader_host_std_core_bytes_to_string(t3);
         l7 = vader_lexer_error_span(l0, l1);
-        l10 = concat_3(2230u, l10, 1010u);
+        l10 = concat_3(2294u, l10, 1042u);
         vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(5), l7, l10);
     }
     l7 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a2_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a2_obj, 481u);
+    vader_obj_header_init(_a2_obj, 450u);
     _a2_obj->f_start = l1;
     _a2_obj->f_end = l7;
     l7 = (void*) _a2_obj;
@@ -1142,17 +1135,17 @@ static void vader_lexer_lex_number(void* l0) {
     l10 = std_numbers_strip_numeric_text(l9, l3);
     t2 = std_string_is_empty(l10);
     if (t2) {
-        ((vader_struct_vader_lexer_Token_t*) l7)->f_value = vader_box_i64(175u, INT64_C(0));
+        ((vader_struct_vader_lexer_Token_t*) l7)->f_value = vader_box_i64(180u, INT64_C(0));
         VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l7);
     } else {
         if (l2) {
             l12 = std_string_parse_float(l10);
-            if ((l12.tag == 167u || l12.tag == 168u)) {
+            if ((l12.tag == 172u || l12.tag == 173u)) {
                 t4 = ((double) l12.payload.f);
-                l13 = vader_box_f64(168u, t4);
+                l13 = vader_box_f64(173u, t4);
             } else {
-                if (l12.tag == 388u) {
-                    l13 = vader_box_f64(168u, 0.0);
+                if (l12.tag == 357u) {
+                    l13 = vader_box_f64(173u, 0.0);
                 } else {
                     { vader_gc_top = gc_frame.prev; return; }
                 }
@@ -1161,16 +1154,16 @@ static void vader_lexer_lex_number(void* l0) {
             VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l7);
         } else {
             l12 = std_numbers_parse_uint_in_base(l10, l3);
-            if (l12.tag == 180u) {
+            if (l12.tag == 185u) {
                 l14 = ((uint64_t) l12.payload.i);
-                ((vader_struct_vader_lexer_Token_t*) l7)->f_value = vader_box_i64(180u, (int64_t)(uint64_t) l14);
+                ((vader_struct_vader_lexer_Token_t*) l7)->f_value = vader_box_i64(185u, (int64_t)(uint64_t) l14);
                 VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l7);
             } else {
-                if (l12.tag == 388u) {
+                if (l12.tag == 357u) {
                     l1 = vader_lexer_error_span(l0, l1);
-                    l9 = concat_3(949u, l9, 973u);
+                    l9 = concat_3(977u, l9, 1002u);
                     vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(10), l1, l9);
-                    ((vader_struct_vader_lexer_Token_t*) l7)->f_value = vader_box_i64(175u, INT64_C(0));
+                    ((vader_struct_vader_lexer_Token_t*) l7)->f_value = vader_box_i64(180u, INT64_C(0));
                     VADER_WRITE_BARRIER((vader_struct_vader_lexer_Token_t*) l7);
                 } else {
                     { vader_gc_top = gc_frame.prev; return; }
@@ -1206,7 +1199,7 @@ static void vader_lexer_lex_one(void* l0) {
         { vader_gc_top = gc_frame.prev; return; }
     }
     l1 = vader_lexer_top_interp(l0);
-    if (l1.tag == 701u) {
+    if (l1.tag == 670u) {
         t1 = vader_lexer_peek(l0);
         if (t1 == 125u) {
             t2 = l1.payload.obj;
@@ -1218,7 +1211,7 @@ static void vader_lexer_lex_one(void* l0) {
         if (l2) {
             l3 = vader_lexer_position_here(l0);
             vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(1));
-            vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(10), 2462u, l3);
+            vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(10), 2530u, l3);
             t2 = l1.payload.obj;
             l2 = ((vader_struct_vader_lexer_InterpFrame_t*) t2)->f_triple;
             vader_lexer_pop_interp(l0);
@@ -1357,7 +1350,7 @@ static void vader_lexer_lex_one(void* l0) {
     vader_array_t* _a0_slotarr = ((vader_array_t*) l6);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     if ((size_t) l7 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
-    t4 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l7, 177u);
+    t4 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l7, 182u);
     t5 = ((uint8_t) t4.payload.i);
     l7 = std_string_utf8_lead_len(t5);
     vader_lexer_advance(l0, l7);
@@ -1419,7 +1412,7 @@ static void vader_lexer_lex_string(void* l0, bool l1) {
     l8 = vader_host_std_core_bytes_to_string(t1);
     l5 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a1_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a1_obj, 481u);
+    vader_obj_header_init(_a1_obj, 450u);
     _a1_obj->f_start = l2;
     _a1_obj->f_end = l5;
     l2 = (void*) _a1_obj;
@@ -1468,10 +1461,10 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 26u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l3 = vader_lexer_position_here(l0);
-    vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 171u);
+    vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 176u);
     t0 = (void*) _a0_arr;
     vader_struct_std_string_builder_StringBuilder_t* _a1_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
-    vader_obj_header_init(_a1_obj, 390u);
+    vader_obj_header_init(_a1_obj, 359u);
     _a1_obj->f_parts = t0;
     l4 = (void*) _a1_obj;
     l5 = false;
@@ -1505,16 +1498,16 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                 if (l7) {
                     vader_lexer_flush_string_part(l0, l4, l3, l5);
                     l10 = vader_lexer_position_here(l0);
-                    l11 = 227u;
+                    l11 = 244u;
                     if (l1) {
                         vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(3));
-                        l11 = 229u;
+                        l11 = 246u;
                     } else {
                         vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(1));
                     }
                     l12 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a2_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a2_obj, 481u);
+                    vader_obj_header_init(_a2_obj, 450u);
                     _a2_obj->f_start = l10;
                     _a2_obj->f_end = l12;
                     l13 = (void*) _a2_obj;
@@ -1530,7 +1523,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                 if (l15) {
                     l16 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a3_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a3_obj, 481u);
+                    vader_obj_header_init(_a3_obj, 450u);
                     _a3_obj->f_start = l3;
                     _a3_obj->f_end = l16;
                     l17 = (void*) _a3_obj;
@@ -1538,7 +1531,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                     vader_lexer_flush_string_part(l0, l4, l3, l5);
                     l18 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a4_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a4_obj, 481u);
+                    vader_obj_header_init(_a4_obj, 450u);
                     _a4_obj->f_start = l18;
                     _a4_obj->f_end = l18;
                     l19 = (void*) _a4_obj;
@@ -1563,15 +1556,15 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                     vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(2));
                     l24 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a5_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a5_obj, 481u);
+                    vader_obj_header_init(_a5_obj, 450u);
                     _a5_obj->f_start = l23;
                     _a5_obj->f_end = l24;
                     l25 = (void*) _a5_obj;
-                    l26 = vader_lexer_make_token((uint8_t) (int32_t) INT32_C(9), 260u, l25);
+                    l26 = vader_lexer_make_token((uint8_t) (int32_t) INT32_C(9), 277u, l25);
                     vader_lexer_emit(l0, l26);
                     l27 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_interp_stack;
                     vader_struct_vader_lexer_InterpFrame_t* _a6_obj = (vader_struct_vader_lexer_InterpFrame_t*) vader_gc_alloc(sizeof(vader_struct_vader_lexer_InterpFrame_t));
-                    vader_obj_header_init(_a6_obj, 701u);
+                    vader_obj_header_init(_a6_obj, 670u);
                     _a6_obj->f_brace_depth = INT32_C(0);
                     _a6_obj->f_triple = l1;
                     l28 = (void*) _a6_obj;
@@ -1595,26 +1588,26 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
                     vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(1));
                     l32 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a7_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a7_obj, 481u);
+                    vader_obj_header_init(_a7_obj, 450u);
                     _a7_obj->f_start = l31;
                     _a7_obj->f_end = l32;
                     l33 = (void*) _a7_obj;
-                    l34 = vader_lexer_make_token((uint8_t) (int32_t) INT32_C(9), 245u, l33);
+                    l34 = vader_lexer_make_token((uint8_t) (int32_t) INT32_C(9), 262u, l33);
                     vader_lexer_emit(l0, l34);
                     vader_lexer_lex_ident(l0);
                     l35 = vader_lexer_position_here(l0);
                     vader_struct_toolchain_span_Span_t* _a8_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-                    vader_obj_header_init(_a8_obj, 481u);
+                    vader_obj_header_init(_a8_obj, 450u);
                     _a8_obj->f_start = l35;
                     _a8_obj->f_end = l35;
                     l36 = (void*) _a8_obj;
                     l37 = vader_lexer_make_token((uint8_t) (int32_t) INT32_C(10), 0u, l36);
                     vader_lexer_emit(l0, l37);
                     l3 = vader_lexer_position_here(l0);
-                    vader_array_t* _a9_arr = vader_array_new(8u, 0u, 0u, 171u);
+                    vader_array_t* _a9_arr = vader_array_new(8u, 0u, 0u, 176u);
                     t0 = (void*) _a9_arr;
                     vader_struct_std_string_builder_StringBuilder_t* _a10_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
-                    vader_obj_header_init(_a10_obj, 390u);
+                    vader_obj_header_init(_a10_obj, 359u);
                     _a10_obj->f_parts = t0;
                     l4 = (void*) _a10_obj;
                     l5 = false;
@@ -1642,7 +1635,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
     }
     l10 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a11_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a11_obj, 481u);
+    vader_obj_header_init(_a11_obj, 450u);
     _a11_obj->f_start = l3;
     _a11_obj->f_end = l10;
     l10 = (void*) _a11_obj;
@@ -1650,7 +1643,7 @@ static void vader_lexer_lex_string_body(void* l0, bool l1, bool l2) {
     vader_lexer_flush_string_part(l0, l4, l3, l5);
     l3 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a12_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a12_obj, 481u);
+    vader_obj_header_init(_a12_obj, 450u);
     _a12_obj->f_start = l3;
     _a12_obj->f_end = l3;
     l3 = (void*) _a12_obj;
@@ -1686,7 +1679,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
     t0 = vader_lexer_peek(l0);
     if (t0 != 123u) {
         l2 = vader_lexer_error_span(l0, l1);
-        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(8), l2, 1517u);
+        vader_lexer_push_error(l0, (uint8_t) (int32_t) INT32_C(8), l2, 1565u);
         { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
     }
     vader_lexer_advance(l0, (size_t) (int64_t) INT64_C(1));
@@ -1706,7 +1699,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
                 if ((t2 < INT32_C(0))) {
                     l5 = (uint8_t) (int32_t) INT32_C(8);
                     l2 = vader_lexer_error_span(l0, l1);
-                    l6 = 1785u;
+                    l6 = 1834u;
                     vader_lexer_push_error(l0, l5, l2, l6);
                     {
                         loop_59: {
@@ -1756,7 +1749,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
             if (l19) {
                 l21 = (uint8_t) (int32_t) INT32_C(8);
                 l22 = vader_lexer_error_span(l0, l1);
-                l23 = 1398u;
+                l23 = 1442u;
                 vader_lexer_push_error(l0, l21, l22, l23);
                 { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
             }
@@ -1789,7 +1782,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
             if ((l24 > l33)) {
                 l34 = (uint8_t) (int32_t) INT32_C(8);
                 l35 = vader_lexer_error_span(l0, l1);
-                l36 = 1399u;
+                l36 = 1443u;
                 vader_lexer_push_error(l0, l34, l35, l36);
                 { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
             }
@@ -1798,7 +1791,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
     }
     l5 = (uint8_t) (int32_t) INT32_C(8);
     l2 = vader_lexer_error_span(l0, l1);
-    l6 = 1785u;
+    l6 = 1834u;
     vader_lexer_push_error(l0, l5, l2, l6);
     {
         loop_248: {
@@ -1843,7 +1836,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
     if (l19) {
         l21 = (uint8_t) (int32_t) INT32_C(8);
         l22 = vader_lexer_error_span(l0, l1);
-        l23 = 1398u;
+        l23 = 1442u;
         vader_lexer_push_error(l0, l21, l22, l23);
         { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
     }
@@ -1876,7 +1869,7 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
     if ((l24 > l33)) {
         l34 = (uint8_t) (int32_t) INT32_C(8);
         l35 = vader_lexer_error_span(l0, l1);
-        l36 = 1399u;
+        l36 = 1443u;
         vader_lexer_push_error(l0, l34, l35, l36);
         { vader_gc_top = gc_frame.prev; return (uint32_t) (int32_t) INT32_C(0); }
     }
@@ -1885,79 +1878,79 @@ static uint32_t vader_lexer_lex_unicode_escape(void* l0, void* l1) {
 }
 
 static uint8_t vader_lexer_lookup_keyword(vader_string_t l0) {
-    if (l0 == 1619u) {
+    if (l0 == 1667u) {
         return (uint8_t) (int32_t) INT32_C(11);
     }
-    if (l0 == 2140u) {
+    if (l0 == 2198u) {
         return (uint8_t) (int32_t) INT32_C(12);
     }
-    if (l0 == 2194u) {
+    if (l0 == 2256u) {
         return (uint8_t) (int32_t) INT32_C(13);
     }
-    if (l0 == 1730u) {
+    if (l0 == 1779u) {
         return (uint8_t) (int32_t) INT32_C(14);
     }
-    if (l0 == 1502u) {
+    if (l0 == 1549u) {
         return (uint8_t) (int32_t) INT32_C(15);
     }
-    if (l0 == 1718u) {
+    if (l0 == 1767u) {
         return (uint8_t) (int32_t) INT32_C(16);
     }
-    if (l0 == 1491u) {
+    if (l0 == 1538u) {
         return (uint8_t) (int32_t) INT32_C(17);
     }
-    if (l0 == 1870u) {
+    if (l0 == 1921u) {
         return (uint8_t) (int32_t) INT32_C(18);
     }
-    if (l0 == 1788u) {
+    if (l0 == 1837u) {
         return (uint8_t) (int32_t) INT32_C(19);
     }
-    if (l0 == 1626u) {
+    if (l0 == 1674u) {
         return (uint8_t) (int32_t) INT32_C(20);
     }
-    if (l0 == 1741u) {
+    if (l0 == 1790u) {
         return (uint8_t) (int32_t) INT32_C(21);
     }
-    if (l0 == 2011u) {
+    if (l0 == 2066u) {
         return (uint8_t) (int32_t) INT32_C(22);
     }
-    if (l0 == 2450u) {
+    if (l0 == 2518u) {
         return (uint8_t) (int32_t) INT32_C(23);
     }
-    if (l0 == 1275u) {
+    if (l0 == 1315u) {
         return (uint8_t) (int32_t) INT32_C(24);
     }
-    if (l0 == 1464u) {
+    if (l0 == 1509u) {
         return (uint8_t) (int32_t) INT32_C(25);
     }
-    if (l0 == 1306u) {
+    if (l0 == 1346u) {
         return (uint8_t) (int32_t) INT32_C(26);
     }
-    if (l0 == 1443u) {
+    if (l0 == 1488u) {
         return (uint8_t) (int32_t) INT32_C(27);
     }
-    if (l0 == 1731u) {
+    if (l0 == 1780u) {
         return (uint8_t) (int32_t) INT32_C(28);
     }
-    if (l0 == 1265u) {
+    if (l0 == 1305u) {
         return (uint8_t) (int32_t) INT32_C(29);
     }
-    if (l0 == 1541u) {
+    if (l0 == 1589u) {
         return (uint8_t) (int32_t) INT32_C(30);
     }
-    if (l0 == 2200u) {
+    if (l0 == 2262u) {
         return (uint8_t) (int32_t) INT32_C(31);
     }
-    if (l0 == 1583u) {
+    if (l0 == 1631u) {
         return (uint8_t) (int32_t) INT32_C(32);
     }
-    if (l0 == 1942u) {
+    if (l0 == 1996u) {
         return (uint8_t) (int32_t) INT32_C(33);
     }
-    if (l0 == 2031u) {
+    if (l0 == 2088u) {
         return (uint8_t) (int32_t) INT32_C(34);
     }
-    if (l0 == 1424u) {
+    if (l0 == 1469u) {
         return (uint8_t) (int32_t) INT32_C(35);
     }
     return (uint8_t) (int32_t) INT32_C(2);
@@ -1970,7 +1963,7 @@ void* vader_lexer_make_token(uint8_t l0, vader_string_t l1, void* l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     vader_struct_vader_lexer_Token_t* _a0_obj = (vader_struct_vader_lexer_Token_t*) vader_gc_alloc(sizeof(vader_struct_vader_lexer_Token_t));
-    vader_obj_header_init(_a0_obj, 703u);
+    vader_obj_header_init(_a0_obj, 672u);
     _a0_obj->f_kind = l0;
     _a0_obj->f_text = l1;
     _a0_obj->f_span = l2;
@@ -1991,14 +1984,14 @@ static void* vader_lexer_new_lexer(vader_string_t l0, vader_string_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l2 = vader_host_std_core_bytes(l0);
-    vader_array_t* _a0_arr = vader_array_new(54u, 0u, 13u, 703u);
+    vader_array_t* _a0_arr = vader_array_new(54u, 0u, 13u, 672u);
     l3 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(52u, 0u, 13u, 700u);
+    vader_array_t* _a1_arr = vader_array_new(52u, 0u, 13u, 669u);
     l4 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(53u, 0u, 13u, 701u);
+    vader_array_t* _a2_arr = vader_array_new(53u, 0u, 13u, 670u);
     l5 = (void*) _a2_arr;
     vader_struct_vader_lexer_Lexer_t* _a3_obj = (vader_struct_vader_lexer_Lexer_t*) vader_gc_alloc(sizeof(vader_struct_vader_lexer_Lexer_t));
-    vader_obj_header_init(_a3_obj, 702u);
+    vader_obj_header_init(_a3_obj, 671u);
     _a3_obj->f_src = l0;
     _a3_obj->f_bytes = l2;
     _a3_obj->f_file = l1;
@@ -2128,7 +2121,7 @@ static void* vader_lexer_position_here(void* l0) {
     l3 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_line;
     l4 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_col;
     vader_struct_toolchain_span_Position_t* _a0_obj = (vader_struct_toolchain_span_Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Position_t));
-    vader_obj_header_init(_a0_obj, 480u);
+    vader_obj_header_init(_a0_obj, 449u);
     _a0_obj->f_file = l1;
     _a0_obj->f_offset = l2;
     _a0_obj->f_line = l3;
@@ -2160,7 +2153,7 @@ static void vader_lexer_push_simple(void* l0, uint8_t l1, vader_string_t l2, voi
     vader_gc_top = &gc_frame;
     l4 = vader_lexer_position_here(l0);
     vader_struct_toolchain_span_Span_t* _a0_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a0_obj, 481u);
+    vader_obj_header_init(_a0_obj, 450u);
     _a0_obj->f_start = l3;
     _a0_obj->f_end = l4;
     l4 = (void*) _a0_obj;
@@ -2409,7 +2402,7 @@ void* vader_lexer_tokenize(vader_string_t l0, vader_string_t l1) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_vader_lexer_Lexer_t*) l2)->f_bytes);
         if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
         if ((size_t) INT32_C(0) >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
-        t1 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) INT32_C(0), 177u);
+        t1 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) INT32_C(0), 182u);
         t2 = ((uint8_t) t1.payload.i);
         l3 = t2 == INT32_C(239);
     } else {
@@ -2419,7 +2412,7 @@ void* vader_lexer_tokenize(vader_string_t l0, vader_string_t l1) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) ((vader_struct_vader_lexer_Lexer_t*) l2)->f_bytes);
         if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
         if ((size_t) INT32_C(1) >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
-        t1 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) INT32_C(1), 177u);
+        t1 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) INT32_C(1), 182u);
         t2 = ((uint8_t) t1.payload.i);
         l3 = t2 == INT32_C(187);
     } else {
@@ -2429,7 +2422,7 @@ void* vader_lexer_tokenize(vader_string_t l0, vader_string_t l1) {
         vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_vader_lexer_Lexer_t*) l2)->f_bytes);
         if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
         if ((size_t) INT32_C(2) >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-        t1 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) INT32_C(2), 177u);
+        t1 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) INT32_C(2), 182u);
         t2 = ((uint8_t) t1.payload.i);
         l3 = t2 == INT32_C(191);
     } else {
@@ -2479,7 +2472,7 @@ void* vader_lexer_tokenize(vader_string_t l0, vader_string_t l1) {
     }
     l4 = vader_lexer_position_here(l2);
     vader_struct_toolchain_span_Span_t* _a3_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a3_obj, 481u);
+    vader_obj_header_init(_a3_obj, 450u);
     _a3_obj->f_start = l4;
     _a3_obj->f_end = l4;
     l4 = (void*) _a3_obj;
@@ -2533,15 +2526,15 @@ static bool vader_lexer_try_lex_operator(void* l0) {
     if (l3) {
         l4 = vader_lexer_peek_at(l0, (size_t) (int64_t) INT64_C(2));
         if (l4 == 60u) {
-            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(65), 423u);
+            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(65), 440u);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         if (l4 == 61u) {
-            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(66), 424u);
+            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(66), 441u);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         if (l4 == 46u) {
-            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(67), 421u);
+            t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(67), 438u);
             { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
     }
@@ -2551,7 +2544,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(47), 518u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(47), 536u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 33u) {
@@ -2560,7 +2553,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(48), 224u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(48), 241u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 60u) {
@@ -2569,7 +2562,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(50), 503u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(50), 521u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 62u) {
@@ -2578,7 +2571,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(52), 521u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(52), 539u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 38u) {
@@ -2587,7 +2580,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(53), 264u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(53), 281u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 124u) {
@@ -2596,7 +2589,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(54), 2461u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(54), 2529u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 63u) {
@@ -2605,7 +2598,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(56), 525u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(56), 543u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 60u) {
@@ -2614,7 +2607,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(45), 502u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(45), 520u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 62u) {
@@ -2623,7 +2616,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(46), 522u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(46), 540u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 45u) {
@@ -2632,7 +2625,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(68), 398u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(68), 415u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 61u) {
@@ -2641,7 +2634,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(69), 519u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(69), 537u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 58u) {
@@ -2650,7 +2643,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(63), 494u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(63), 511u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 58u) {
@@ -2659,7 +2652,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(64), 496u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(64), 513u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 43u) {
@@ -2668,7 +2661,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(58), 374u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(58), 391u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 45u) {
@@ -2677,7 +2670,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(59), 397u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(59), 414u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 42u) {
@@ -2686,7 +2679,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(60), 372u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(60), 389u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 47u) {
@@ -2695,7 +2688,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(61), 455u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(61), 472u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 37u) {
@@ -2704,79 +2697,79 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         l3 = false;
     }
     if (l3) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(62), 262u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(62), 279u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 43u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(36), 373u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(36), 390u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 45u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(37), 394u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(37), 411u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 42u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(38), 363u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(38), 380u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 47u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(39), 442u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(39), 459u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 37u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(40), 261u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(40), 278u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 38u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(41), 263u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(41), 280u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 124u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(42), 2460u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(42), 2528u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 94u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(43), 864u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(43), 891u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 126u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(44), 2467u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(44), 2535u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 60u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(49), 501u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(49), 519u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 62u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(51), 520u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(51), 538u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 33u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(55), 223u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(55), 240u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 61u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(57), 517u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(57), 535u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 64u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(70), 526u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(70), 544u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 36u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(71), 245u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(71), 262u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 58u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(80), 465u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(80), 482u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 44u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(78), 376u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(78), 393u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 46u) {
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(79), 419u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(79), 436u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 40u) {
@@ -2785,8 +2778,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         t1 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth;
         l6 = (t1 + INT32_C(1));
         ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l6;
-        VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
-        vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(72), 286u, l5);
+        vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(72), 303u, l5);
         { vader_gc_top = gc_frame.prev; return true; }
     }
     if (l1 == 91u) {
@@ -2795,8 +2787,7 @@ static bool vader_lexer_try_lex_operator(void* l0) {
         t1 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth;
         l6 = (t1 + INT32_C(1));
         ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l6;
-        VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
-        vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(74), 846u, l5);
+        vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(74), 873u, l5);
         { vader_gc_top = gc_frame.prev; return true; }
     }
     if (l1 == 41u) {
@@ -2807,9 +2798,8 @@ static bool vader_lexer_try_lex_operator(void* l0) {
             t1 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth;
             l6 = (t1 - INT32_C(1));
             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l6;
-            VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
         }
-        vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(73), 327u, l5);
+        vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(73), 344u, l5);
         { vader_gc_top = gc_frame.prev; return true; }
     }
     if (l1 == 93u) {
@@ -2820,27 +2810,25 @@ static bool vader_lexer_try_lex_operator(void* l0) {
             t1 = ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth;
             l6 = (t1 - INT32_C(1));
             ((vader_struct_vader_lexer_Lexer_t*) l0)->f_paren_depth = l6;
-            VADER_WRITE_BARRIER((vader_struct_vader_lexer_Lexer_t*) l0);
         }
-        vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(75), 850u, l5);
+        vader_lexer_push_simple(l0, (uint8_t) (int32_t) INT32_C(75), 877u, l5);
         { vader_gc_top = gc_frame.prev; return true; }
     }
     if (l1 == 123u) {
         l7 = vader_lexer_top_interp(l0);
-        if (l7.tag == 701u) {
+        if (l7.tag == 670u) {
             l5 = l7.payload.obj;
             t2 = l7.payload.obj;
             t1 = ((vader_struct_vader_lexer_InterpFrame_t*) t2)->f_brace_depth;
             l6 = (t1 + INT32_C(1));
             ((vader_struct_vader_lexer_InterpFrame_t*) l5)->f_brace_depth = l6;
-            VADER_WRITE_BARRIER((vader_struct_vader_lexer_InterpFrame_t*) l5);
         }
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(76), 2453u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(76), 2521u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1 == 125u) {
         l7 = vader_lexer_top_interp(l0);
-        if (l7.tag == 701u) {
+        if (l7.tag == 670u) {
             t2 = l7.payload.obj;
             t1 = ((vader_struct_vader_lexer_InterpFrame_t*) t2)->f_brace_depth;
             if ((t1 > INT32_C(0))) {
@@ -2849,10 +2837,9 @@ static bool vader_lexer_try_lex_operator(void* l0) {
                 t1 = ((vader_struct_vader_lexer_InterpFrame_t*) t2)->f_brace_depth;
                 l6 = (t1 - INT32_C(1));
                 ((vader_struct_vader_lexer_InterpFrame_t*) l5)->f_brace_depth = l6;
-                VADER_WRITE_BARRIER((vader_struct_vader_lexer_InterpFrame_t*) l5);
             }
         }
-        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(77), 2462u);
+        t0 = vader_lexer_emit_and_advance(l0, (uint8_t) (int32_t) INT32_C(77), 2530u);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return false; }

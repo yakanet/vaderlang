@@ -160,7 +160,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // O(1)-reinterprets a borrowed slice.
         arr :: read_array(stack[arg_base], at_pc, "bytes_to_string receiver")
         if arr is Trap { return arr }
-        raw: u8[]! = []
+        raw: u8[]!: []
         for i in 0..<arr.length {
             b :: read_i32(arr.elements[arr.offset + i], at_pc, "bytes_to_string byte")
             if b is Trap { return b }
@@ -323,13 +323,13 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // A VM array holds boxed `Value`s, not contiguous bytes, so both are
         // materialised into real `u8[]`. The host takes their address right
         // before the call, and nothing runs in between.
-        desc: u8[]! = []
+        desc: u8[]!: []
         for i in 0..<desc_arr.length {
             b :: read_i64(desc_arr.elements[desc_arr.offset + i], at_pc, "ffi_call desc byte")
             if b is Trap { return b }
             desc.push(u8(b.value))
         }
-        frame: u8[]! = []
+        frame: u8[]!: []
         for i in 0..<frame_arr.length {
             b :: read_i64(frame_arr.elements[frame_arr.offset + i], at_pc, "ffi_call frame byte")
             if b is Trap { return b }
@@ -415,7 +415,7 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
     if count.value < 0 || usize(count.value) > arr.length {
         return Trap { .message = "sys_write at pc=${at_pc}: count ${count.value} exceeds the buffer" }
     }
-    bs: u8[]! = []
+    bs: u8[]!: []
     for i in 0..<usize(count.value) {
         b :: read_i64(arr.elements[arr.offset + i], at_pc, "sys_write byte")
         if b is Trap { return b }
@@ -423,7 +423,7 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
     }
     debug.output_sink(i32(fd.value) - 1, bytes_to_string(bs))
     // `WriteFile` answers a bool, `write` a byte count.
-    if info.signature.result == bc.ValType.Bool {
+    if bc_single_result(info.signature) == .Bool {
         return HostOk { .value = BoolVal { .value = true } }
     }
     return HostOk { .value = I64Val { .value = count.value } }
@@ -487,12 +487,12 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     // The call is described by DATA, not by its shape: one class per slot, then
     // a flat frame of eight-byte slots followed by whatever an ADDR slot points
     // into. `vader_ffi.h` owns the classes and the dispatch.
-    desc: u8[]! = [u8(FFI_VOID)]
-    slot_words: i64[]! = []
-    addr_slots: i64[]! = []
-    data: u8[]! = []
-    borrowed: LentArray[]! = []
-    lent_structs: LentStruct[]! = []
+    desc: u8[]!: [u8(FFI_VOID)]
+    slot_words: i64[]!: []
+    addr_slots: i64[]!: []
+    data: u8[]!: []
+    borrowed: LentArray[]!: []
+    lent_structs: LentStruct[]!: []
     for i in 0..<params.len() {
         v :: stack[arg_base + i]
         // Unreachable in practice — `exec` traps on `fn.addr` before the value
@@ -601,16 +601,19 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         }
     }
 
+    // Bound once: an `@extern` returns one value or none, and re-asking costs a
+    // call with two length tests where reading a field used to be free.
+    result :: bc_single_result(info.signature)
     // `vader_ffi.h` has a `double` trampoline and no `float` one: a callee
     // returning `float` leaves only the low half of the result register
     // meaningful, so reading 64 bits of it would give an arbitrary value.
-    if info.signature.result == bc.ValType.F32 {
+    if result == .F32 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a `f32` result is not covered" }
     }
-    desc[0] = if ffi_result_is_opt(types, info.signature.result_type, bc.ValType.String) {
+    desc[0] = if ffi_result_is_opt(types, bc_single_result_type(info.signature), .String) {
         u8(FFI_STR_OPT)
     } else {
-        u8(ffi_result_class(info.signature.result))
+        u8(ffi_result_class(result))
     }
 
     // An ADDR slot carries an offset into the WHOLE frame, so it only becomes
@@ -619,7 +622,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     for si in addr_slots {
         slot_words[usize(si)] = slot_words[usize(si)] + i64(base)
     }
-    frame: u8[]! = []
+    frame: u8[]!: []
     for w in slot_words {
         push_little_endian(frame, w, 8)
     }
@@ -629,7 +632,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     // frame is empty, `vader_array_bytes` reports a NULL pointer, and the
     // runtime's `fview.len < nargs * 8` guard reads `0 < 0` — so `getpid()`
     // wrote its result to address 0 and the interpreter took SIGSEGV.
-    if frame.len() == 0 && info.signature.result != bc.ValType.Void {
+    if frame.len() == 0 && bc_single_result(info.signature) != .Void {
         push_little_endian(frame, 0, 8)
     }
 
@@ -656,10 +659,10 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     for ls in lent_structs {
         read_back_mirror(frame, base + ls.at, ls.target, ls.fields, types, 0)
     }
-    if info.signature.result == bc.ValType.Void {
+    if result == .Void {
         return HostOk { .value = zero_value() }
     }
-    if info.signature.result == bc.ValType.F64 {
+    if result == .F64 {
         return HostOk { .value = F64Val { .value = u64(read_little_endian(frame, 0, 8, false)).from_bits() } }
     }
     // A `string` result comes back as the call's RETURN value, not through the
@@ -670,16 +673,16 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         }
         return HostOk { .value = StringVal { .value = returned } }
     }
-    if info.signature.result == bc.ValType.String {
+    if result == .String {
         return HostOk { .value = StringVal { .value = returned } }
     }
     // `<pointer> | null`: NULL is C's "absent", and nothing downstream can tell
     // a null pointer from a pointer whose value is 0.
-    if ffi_result_is_opt(types, info.signature.result_type, bc.ValType.Pointer)
+    if ffi_result_is_opt(types, bc_single_result_type(info.signature), .Pointer)
         && read_little_endian(frame, 0, 8, false) == 0 {
         return HostOk { .value = NullVal {} }
     }
-    return extern_result(info.signature.result, read_little_endian(frame, 0, 8, true))
+    return extern_result(result, read_little_endian(frame, 0, 8, true))
 }
 
 /// Argument / result classes for `ffi_call` — mirrors `VADER_FFI_*` in
@@ -696,13 +699,13 @@ FFI_STR_OPT :: 5
 /// @param result  the import's declared result.
 /// @return        `FFI_VOID`, `FFI_F64`, or `FFI_WORD`.
 ffi_result_class :: fn(result: bc.ValType) -> i32 {
-    if result == bc.ValType.Void {
+    if result == .Void {
         return FFI_VOID
     }
-    if result == bc.ValType.F64 {
+    if result == .F64 {
         return FFI_F64
     }
-    if result == bc.ValType.String {
+    if result == .String {
         return FFI_STR
     }
     return FFI_WORD
@@ -744,7 +747,7 @@ ffi_result_is_opt :: fn(types: bc.BcType[], result_type: i32, want: bc.ValType) 
         }
         v :: types[usize(vi)]
         if v is bc.BcPrimitive {
-            if v.val == bc.ValType.Null { has_null = true }
+            if v.val == .Null { has_null = true }
             if v.val == want            { has_want = true }
         }
     }
@@ -789,7 +792,7 @@ mirrored_struct_fields :: fn(types: bc.BcType[], param_types: i32[], i: usize) -
 field_val_type :: fn(types: bc.BcType[], f: bc.BcField) -> bc.ValType {
     v :: bc.c_field_val_type(f, types)
     if v == null {
-        return bc.ValType.I64
+        return .I64
     }
     return v
 }
@@ -1040,13 +1043,13 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
     // Vader string means measuring and interning it, which nothing here does.
     // Reporting the raw address as an integer would hand the caller a bogus
     // atom id, so refuse instead.
-    if result == bc.ValType.String {
+    if result == .String {
         return Trap { .message = "extern: a `string` result is not covered on the VM" }
     }
-    if result == bc.ValType.Void {
+    if result == .Void {
         return HostOk { .value = zero_value() }
     }
-    if result == bc.ValType.Bool {
+    if result == .Bool {
         // The LOW 32 bits only. A Win32 `BOOL` is an `int`, and the x64 ABI
         // defines EAX alone on return — whatever the callee left in the upper
         // half of RAX is not part of the value. Testing all 64 turns a `FALSE`
@@ -1056,10 +1059,10 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
     }
     // A narrow integer keeps the carrier the VM uses for its width : `i32` and
     // below ride `I32Val`, everything wider rides `I64Val`.
-    if result == bc.ValType.I32 || result == bc.ValType.U32
-        || result == bc.ValType.I16 || result == bc.ValType.U16
-        || result == bc.ValType.I8 || result == bc.ValType.U8
-        || result == bc.ValType.Char {
+    if result == .I32 || result == .U32
+        || result == .I16 || result == .U16
+        || result == .I8 || result == .U8
+        || result == .Char {
         return HostOk { .value = I32Val { .value = i32(raw) } }
     }
     return HostOk { .value = I64Val { .value = raw } }

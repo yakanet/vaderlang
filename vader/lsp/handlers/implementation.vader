@@ -54,7 +54,7 @@ export handle_implementation :: fn(state: ServerState!, params: JsonValue) -> Js
     if name == "" {
         return JsonNull {}
     }
-    out: JsonValue[]! = []
+    out: JsonValue[]!: []
     for [_, lm] in project.modules {
         for f in lm.module.files {
             for d in f.program.decls {

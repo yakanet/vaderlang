@@ -3,6 +3,7 @@
 ## tests/snippets/coerce_into_union_target_no
 
 ## generic instances
+  __genstate_array_iter<T>
   ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
@@ -15,18 +16,13 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
 
 # Diagnostics
 [16:5] error[T3001] type mismatch: expected i32 | string, got Foo!

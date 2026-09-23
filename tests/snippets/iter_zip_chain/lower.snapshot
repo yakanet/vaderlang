@@ -521,21 +521,24 @@
     block :void
       let __iter_26: Iterator<i32> = bursts :__genstate_flat_map<i32>!
       loop
-        let __step_27: Yield<i32>! | null =
-          vcall Iterator.next :Yield<i32>! | null
+        let __step_27: [i32, Continuation]! =
+          vcall Iterator.next :[i32, Continuation]!
             recv:
               __iter_26 :Iterator<i32>
         if :void
           cond:
-            is null :bool
-              __step_27 :Yield<i32>! | null
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_27 :[i32, Continuation]!
+              r:
+                int(1) :u8
           then:
             break
           else:
             let n: i32 =
-              .value :i32
-                cast → Yield<i32>!
-                  __step_27 :Yield<i32>! | null
+              ._0 :i32
+                __step_27 :[i32, Continuation]!
             call :void
               callee:
                 std_io$println__string :void

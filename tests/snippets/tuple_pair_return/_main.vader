@@ -8,7 +8,7 @@ make_pair :: fn() -> [i32, string] {
 }
 
 main :: fn() -> i32 {
-    p := make_pair()
+    p :: make_pair()
     println("first  = ${p.0}")
     println("second = ${p.1}")
     return 0

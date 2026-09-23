@@ -45,7 +45,7 @@ export BAKED_FOLDER :: "<baked>/std/target/baked"
 /// @param t  the compilation target this build is for.
 /// @return   the module source, ending in a newline.
 export baked_module_source :: fn(t: Target) -> string {
-    lines: string[] = [
+    lines: string[]: [
         "// Generated per build by `vader/target/baked` — never on disk, never edited.",
         "// The compilation target, baked. See `std/target::current_os` for the OTHER",
         "// question: the platform this program is RUNNING on.",
@@ -61,10 +61,10 @@ export baked_module_source :: fn(t: Target) -> string {
         // it lowers silently to `unreachable`. Seeding a symbol puts its NAME in
         // scope; nothing carries its TYPE unless both halves are there.
         "/// The operating system this build is FOR. Selects code through `@target`.",
-        "export VADER_OS: Os: Os.${os_variant(t.os)}",
+        "export VADER_OS: Os: .${os_variant(t.os)}",
         "",
         "/// The architecture this build is FOR. Parameterises values; selects nothing.",
-        "export VADER_ARCH: Arch: Arch.${arch_variant(t.arch)}",
+        "export VADER_ARCH: Arch: .${arch_variant(t.arch)}",
         "",
     ]
     return lines.join("\n")
@@ -97,8 +97,8 @@ import "std/testing"
     src :: baked_module_source(Target { .os = .Darwin, .arch = .Arm64 })
     // The ASCRIPTION is asserted, not just the name: dropping it is what makes
     // `VADER_OS` untyped, and untyped it assigns to a `string` in silence.
-    assert("export VADER_OS: Os: Os.Darwin" in src, "VADER_OS is baked, and typed")
-    assert("export VADER_ARCH: Arch: Arch.Arm64" in src, "VADER_ARCH is baked, and typed")
+    assert("export VADER_OS: Os: .Darwin" in src, "VADER_OS is baked, and typed")
+    assert("export VADER_ARCH: Arch: .Arm64" in src, "VADER_ARCH is baked, and typed")
 }
 
 @test test_baked_source_declares_its_module :: fn() -> void {
@@ -111,6 +111,6 @@ import "std/testing"
     // `Os.Windows`, not `Os.windows` — the parser needs the variant, a reader
     // gets the Display form. A rename of one must not silently follow the other.
     src :: baked_module_source(Target { .os = .Windows, .arch = .X86_64 })
-    assert("Os.Windows" in src, "variant case is preserved")
+    assert(".Windows" in src, "variant case is preserved")
     assert_eq(Os.Windows.to_string(), "windows")
 }

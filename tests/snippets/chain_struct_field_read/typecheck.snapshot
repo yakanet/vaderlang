@@ -3,14 +3,14 @@
 ## tests/snippets/chain_struct_field_read
   FnDecl         main                 :: fn() -> i32
   StructDecl     Rec                  :: Rec!
-  expr 20:16    SeqLitExpr     :: Rec[]
-  expr 20:17    StructLitExpr  :: Rec!
-  expr 20:31    StringLitExpr  :: string
-  expr 20:50    StructLitExpr  :: Rec!
-  expr 20:64    StringLitExpr  :: string
-  expr 21:16    SeqLitExpr     :: Rec[]
-  expr 21:17    StructLitExpr  :: Rec!
-  expr 21:31    StringLitExpr  :: string
+  expr 20:15    SeqLitExpr     :: Rec[]
+  expr 20:16    StructLitExpr  :: Rec!
+  expr 20:30    StringLitExpr  :: string
+  expr 20:49    StructLitExpr  :: Rec!
+  expr 20:63    StringLitExpr  :: string
+  expr 21:15    SeqLitExpr     :: Rec[]
+  expr 21:16    StructLitExpr  :: Rec!
+  expr 21:30    StringLitExpr  :: string
   expr 24:15    CallExpr       :: Rec![]!
   expr 24:15    CallExpr       :: __genstate_chain<Rec!>!
   expr 24:15    FieldExpr      :: fn() -> T[]!

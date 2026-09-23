@@ -12,11 +12,11 @@ type 9 struct __lambda_env_snippet_9 { cap_0:12,cap_1:12 }
 type 10 struct __defer_env_snippet_15 { cap_0:12 }
 type 11 struct __lambda_env_snippet_13 { cap_0:12,cap_1:12 }
 type 12 ref _
-type 13 primitive usize
-type 14 struct std_core$Buffer {  }
-type 15 primitive i64
-type 16 primitive u8
-type 17 array 16
+type 13 primitive u8
+type 14 primitive usize
+type 15 struct std_core$Buffer {  }
+type 16 primitive i64
+type 17 array 13
 type 18 primitive isize
 type 19 struct $Cell_string { value:1 }
 type 20 struct $Cell_i32 { value:3 }
@@ -30,10 +30,10 @@ string 5 "deferred sees "
 string 6 "body ran"
 string 7 "deferred sees n="
 string 8 "\n"
-import 0 byte_len std_core$byte_len result_type=13 param_types=1 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=14 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=17 param_types=1 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=3,17,13 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 14 ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=3,17,14 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 15 ByteAccess
 export main 4
 
 fn 0 snippet$nested_lambda (string) -> void

@@ -14,9 +14,11 @@ count :: fn<T>(it: Iterator<T>) -> i32 {
     n := 0
     cont := true
     for cont {
-        match it.next() {
-            is null -> { cont = false }
-            is Yield<T> -> { n = n + 1 }
+        [_, c] :: it.next()
+        if c == .Stop {
+            cont = false
+        } else {
+            n = n + 1
         }
     }
     return n
@@ -46,9 +48,9 @@ twice :: fn<T>(x: Doubler<T>) -> T {
 }
 
 main :: fn() -> i32 {
-    a := count(0..<5)
-    b := count([10, 20, 30])
-    c := invoke(Hello {})
-    d := twice(7)
+    a :: count(0..<5)
+    b :: count([10, 20, 30])
+    c :: invoke(Hello {})
+    d :: twice(7)
     return a + b + c + d
 }

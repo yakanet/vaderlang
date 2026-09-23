@@ -4,26 +4,26 @@ import "std/io"
 import "std/iter"
 
 main :: fn() -> i32 {
-    nums := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    nums :: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     // map: square 1..=5 → [1, 4, 9, 16, 25] → sum 55
-    squares := map([1, 2, 3, 4, 5], (x: i32) -> x * x).collect()
-    s1 := sum(squares)
+    squares :: map([1, 2, 3, 4, 5], (x: i32) -> x * x).collect()
+    s1 :: sum(squares)
 
     // filter: keep evens of 1..=10 → [2, 4, 6, 8, 10] → sum 30
-    evens := filter(nums, (x: i32) -> x % 2 == 0).collect()
-    s2 := sum(evens)
+    evens :: filter(nums, (x: i32) -> x % 2 == 0).collect()
+    s2 :: sum(evens)
 
     // fold: product of 1..=5 → 120
-    p := fold([1, 2, 3, 4, 5], 1, (acc: i32, x: i32) -> acc * x)
+    p :: fold([1, 2, 3, 4, 5], 1, (acc: i32, x: i32) -> acc * x)
 
     // first 3 of 1..=10 via slice → [1, 2, 3] → sum 6
-    first := nums[0..<3]
-    s3 := sum(first)
+    first :: nums[0..<3]
+    s3 :: sum(first)
 
     // last 3 of 1..=10 via tail slice → [8, 9, 10] → sum 27
-    rest := nums[7..<nums.len()]
-    s4 := sum(rest)
+    rest :: nums[7..<nums.len()]
+    s4 :: sum(rest)
 
     // slice: clamped, bounded — sanity check shapes without inflating exit code
     // beyond u8 range. nums[3..<7]=[4,5,6,7]; nums[100..200]=[]; nums[8..999]=[9,10].

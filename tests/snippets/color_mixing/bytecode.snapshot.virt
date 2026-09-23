@@ -3,23 +3,21 @@ type 0 primitive null
 type 1 struct snippet$Rgb { r:2,g:2,b:2 }
 type 2 primitive i32
 type 3 primitive string
-type 4 primitive usize
-type 5 struct std_core$Buffer {  }
-type 6 primitive i64
-type 7 primitive u8
-type 8 array 7
+type 4 primitive u8
+type 5 primitive usize
+type 6 struct std_core$Buffer {  }
+type 7 primitive i64
+type 8 array 4
 type 9 primitive void
 type 10 primitive isize
-type 11 struct __Tuple_i32_i32_3103e027 { _0:2,_1:2 }
-type 12 struct __Tuple_Struct_snippet_Rgb_i32_140dff6c { _0:1,_1:2 }
 string 0 " "
 string 1 " x"
 string 2 "\n"
-import 0 byte_len std_core$byte_len result_type=4 param_types=3 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=5 param_types=3 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=8 param_types=3 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=2,8,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=2,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 1 Add
-impl 5 ByteAccess
+impl 6 ByteAccess
 export main 1
 
 fn 0 snippet$Color$Add$add (ref,ref) -> ref
@@ -76,8 +74,8 @@ fn 1 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $cast_18 i64
-  local x i32
-  local y i32
+  local $k_31 i32
+  local $k_32 i32
   i32.const 200
   i32.const 0
   i32.const 0
@@ -139,54 +137,46 @@ fn 1 snippet$main () -> i32
   call 4   ; std_core$finish_buffer
   call 9   ; std_io$println__string
   i32.const 3
+  local.set 5   ; $k_31
   i32.const 4
-  struct.new_stack 11   ; __Tuple_i32_i32_3103e027
-  local.set 1   ; blue
+  local.set 6   ; $k_32
   i64.const 41
   call 3   ; std_core$new_byte_buffer
-  local.set 2   ; __buf_0
+  local.set 1   ; blue
   i64.const 0
   local.set 3   ; __off_1
-  local.field 1 11 0   ; blue._0
-  ref.cast 2   ; -> i32
+  local.get 5   ; $k_31
   i32.to_i64
   local.set 4   ; $cast_18
-  local.get 2   ; __buf_0
+  local.get 1   ; blue
   local.get 3   ; __off_1
   local.get 4   ; $cast_18
   call 6   ; std_core$write_int
   local.set 3   ; __off_1
-  local.get 2   ; __buf_0
+  local.get 1   ; blue
   local.get 3   ; __off_1
   string.const 0   ; " "
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 1 11 1   ; blue._1
-  ref.cast 2   ; -> i32
+  local.get 6   ; $k_32
   i32.to_i64
   local.set 4   ; $cast_18
-  local.get 2   ; __buf_0
+  local.get 1   ; blue
   local.get 3   ; __off_1
   local.get 4   ; $cast_18
   call 6   ; std_core$write_int
   local.set 3   ; __off_1
-  local.get 2   ; __buf_0
+  local.get 1   ; blue
   local.get 3   ; __off_1
   call 4   ; std_core$finish_buffer
   call 9   ; std_io$println__string
-  local.field 1 11 0   ; blue._0
-  ref.cast 2   ; -> i32
-  local.set 5   ; x
-  local.field 1 11 1   ; blue._1
-  ref.cast 2   ; -> i32
-  local.set 6   ; y
   i64.const 20
   call 3   ; std_core$new_byte_buffer
   local.set 1   ; blue
   i64.const 0
   local.set 3   ; __off_1
-  local.get 5   ; x
-  local.get 6   ; y
+  local.get 5   ; $k_31
+  local.get 6   ; $k_32
   i32.add
   i32.to_i64
   local.set 4   ; $cast_18
@@ -199,16 +189,12 @@ fn 1 snippet$main () -> i32
   local.get 3   ; __off_1
   call 4   ; std_core$finish_buffer
   call 9   ; std_io$println__string
-  local.get 0   ; red
-  i32.const 5
-  struct.new_stack 12   ; __Tuple_Struct_snippet_Rgb_i32_140dff6c
-  local.set 0   ; red
   i64.const 42
   call 3   ; std_core$new_byte_buffer
   local.set 1   ; blue
   i64.const 0
   local.set 3   ; __off_1
-  local.field 0 12 0   ; red._0
+  local.get 0   ; red
   struct.get 1 0   ; snippet$Rgb.r
   ref.cast 2   ; -> i32
   i32.to_i64
@@ -223,8 +209,7 @@ fn 1 snippet$main () -> i32
   string.const 1   ; " x"
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 0 12 1   ; red._1
-  ref.cast 2   ; -> i32
+  i32.const 5
   i32.to_i64
   local.set 4   ; $cast_18
   local.get 1   ; blue

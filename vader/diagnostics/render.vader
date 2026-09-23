@@ -50,7 +50,7 @@ render_diagnostics :: fn(diags: Diagnostic[], show_file: bool, cap: bool) -> str
     sorted :: if show_file { sort(diags, diag_less_with_file) } else { sort(diags, diag_less) }
     unique :: dedup_diagnostics(sorted)
     limit :: if cap { min(unique.len(), MAX_SHOWN_DIAGNOSTICS) } else { unique.len() }
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     sb.append("\n# Diagnostics")
     // Read ONCE per render, not per diagnostic, and at RUNTIME. A module-level
     // `CWD :: current_working_directory()` would be comptime-folded and bake the
@@ -77,7 +77,7 @@ render_diagnostics :: fn(diags: Diagnostic[], show_file: bool, cap: bool) -> str
 // once per importer) ; the user should see it a single time.
 dedup_diagnostics :: fn(diags: Diagnostic[]) -> Diagnostic[] {
     seen :: MutableSet<string> {}
-    out: Diagnostic[]! = []
+    out: Diagnostic[]!: []
     for d in diags {
         if seen.add(diag_key(d)) { out.push(d) }
     }
@@ -176,20 +176,20 @@ mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
     d1 :: lexer_error(.UnexpectedCharacter, sp, "x")
     d2 :: lexer_error(.UnexpectedCharacter, sp, "x")   // identical content
     d3 :: lexer_error(.StrayBackslash,      sp, "y")   // distinct code + detail
-    diags: Diagnostic[] = [d1, d2, d3]
+    diags: Diagnostic[]: [d1, d2, d3]
     assert_eq(dedup_diagnostics(diags).len(), 2)
 }
 
 @test test_dedup_keeps_distinct_spans :: fn() -> void {
     a :: lexer_error(.UnexpectedCharacter, mk_diag_span(0, 1), "x")
     b :: lexer_error(.UnexpectedCharacter, mk_diag_span(5, 6), "x")   // same code/detail, different span
-    diags: Diagnostic[] = [a, b]
+    diags: Diagnostic[]: [a, b]
     assert_eq(dedup_diagnostics(diags).len(), 2)
 }
 
 @test test_cap_collapses_tail :: fn() -> void {
     // The user-facing channel (with_file) caps at MAX_SHOWN_DIAGNOSTICS.
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     for i in 0..<150 {
         diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
     }
@@ -198,7 +198,7 @@ mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
 }
 
 @test test_no_cap_tail_under_limit :: fn() -> void {
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     for i in 0..<10 {
         diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
     }
@@ -207,7 +207,7 @@ mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
 
 @test test_machine_channel_uncapped :: fn() -> void {
     // The snapshot/machine channel must stay complete — no cap, no collapse line.
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     for i in 0..<150 {
         diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
     }

@@ -3,6 +3,7 @@
 ## tests/snippets/generic_impl_via_generic_fn
 
 ## generic instances
+  __genstate_array_iter<T>
   Box<T>
   Box<T>
   Box<T>
@@ -18,9 +19,7 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<i32>
   Async<T>
   Async<T>
@@ -29,6 +28,3 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

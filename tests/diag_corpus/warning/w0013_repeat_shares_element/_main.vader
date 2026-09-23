@@ -11,7 +11,7 @@ Marker :: struct {}
 
 main :: fn() -> i32 {
     // W0013 — the freshly built element is shared by every slot.
-    rows: i32[][] = [[]] * 3
+    rows: i32[][]: [[]] * 3
     cells :: [Cell { .value = 0 }] * 2
     maps :: [MutableMap<string, i32> {}] * 2
 
@@ -19,8 +19,8 @@ main :: fn() -> i32 {
     // and an existing binding the author knowingly shares.
     marks :: [Marker {}] * 2
     zeros :: [0] * 3
-    nulls: (Cell | null)[] = [null] * 3
-    prealloc: i32[] = [] * 4
+    nulls: (Cell | null)[]: [null] * 3
+    prealloc: i32[]: [] * 4
     shared :: [rows] * 2
 
     return i32(rows.len() + cells.len() + maps.len() + marks.len()

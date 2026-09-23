@@ -68,13 +68,15 @@ export StringChars :: struct {
 }
 
 StringChars implements Iterator<char> {
-    next :: fn(self!) -> Yield<char> | null {
+    next :: fn(self!) -> [char, Continuation] {
         if (self.cursor >= self.length) {
-            return null
+            // The element beside `Stop` is never read; `char` is concrete here,
+            // so any one does.
+            return [' ', .Stop]
         }
         [c, width] :: self.bytes.utf8_decode_len(self.cursor)
         self.cursor = self.cursor + width
-        return Yield<char> { .value = c }
+        return [c, .Continue]
     }
 }
 
@@ -265,7 +267,7 @@ export index_of :: fn(s: string, c: char, from: usize) -> isize {
 ///             single-byte segment per byte of `s`.
 /// @return     array of segments ; never empty (at minimum, `[""]`).
 export split :: fn(s: string, sep: string) -> string[]! {
-    out: string[]! = []
+    out: string[]!: []
     sb :: s.bytes()
     n :: sb.len()
     m :: sep.bytes().len()
@@ -312,7 +314,7 @@ export join :: fn(parts: string[], sep: string) -> string {
 export replace :: fn(s: string, old: string, new: string) -> string {
     parts :: s.split(old)
     if parts.len() <= 1 { return s }
-    rest: string[]! = []
+    rest: string[]!: []
     for i in 1..<parts.len() { rest.push(parts[i]) }
     return parts[0] + new + rest.join(old)
 }
@@ -516,7 +518,7 @@ export pad_start :: fn(s: string, width: usize, fill: char) -> string {
     if n >= width {
         return s
     }
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     for i in n..<width {
         sb.append_char(fill)
     }
@@ -531,7 +533,7 @@ export pad_end :: fn(s: string, width: usize, fill: char) -> string {
     if n >= width {
         return s
     }
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     sb.append(s)
     for i in n..<width {
         sb.append_char(fill)
@@ -626,7 +628,7 @@ export decode_escapes :: fn(body: string) -> string {
 /// @param replacement  string to substitute for each match.
 /// @return             a fresh string.
 export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     for c in s.chars() {
         if pred(c) {
             sb.append(replacement)
@@ -650,7 +652,7 @@ export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement:
 ///    `"  hello\tworld  ".split_where(is_white_char) → ["hello", "world"]`
 ///    `"a,b,,c".split_where(c => c == ',') → ["a", "b", "c"]`
 export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
-    out: string[]! = []
+    out: string[]!: []
     sb := StringBuilder {}
     has_pending := false
     for c in s.chars() {
@@ -826,7 +828,7 @@ import "std/testing"
     // Separator goes between elements only.
     assert_eq(["a", "b", "c"].join(", "), "a, b, c")
     // Empty array → empty string.
-    empty: string[] = []
+    empty: string[]: []
     assert_eq(empty.join(", "), "")
     // Single element → no separator.
     assert_eq(["solo"].join(", "), "solo")

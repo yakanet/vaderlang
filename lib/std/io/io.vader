@@ -186,7 +186,7 @@ write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
     // A synchronous `WriteFile` writes everything or fails, so the count it
     // reports adds nothing — but it READS BACK now, so a future caller that
     // cares has it. Short writes belong to the overlapped path, unused here.
-    written: u32[]! = [0]
+    written: u32[]!: [0]
     if write_file(get_std_handle(which), buf, u32(count), written, null) {
         return i32(count)
     }
@@ -245,7 +245,7 @@ export eprintln :: fn<T: Display>(msg: T) -> void = write(.Stderr, "${msg}\n")
 /// @return      the line text.
 /// @error       `IOError` on EOF or stdin read failure.
 export read_line :: fn() -> string | IOError {
-    out: u8[]! = []
+    out: u8[]!: []
     // One byte at a time: stdin is a stream, and reading ahead of the newline
     // would consume input the next caller expects to still be there.
     for _ in 0..<MAX_LINE {
@@ -297,7 +297,7 @@ read_stdin :: fn(n: usize) -> string | IOError {
     if n == 0 {
         return ""
     }
-    buf: u8[]! = [0] * n
+    buf: u8[]!: [0] * n
     got: usize = 0
     // `read` hands over what has ARRIVED, not what was asked: a pipe delivers
     // in bursts, so a short return is normal and only `0` means end of file.
@@ -305,7 +305,7 @@ read_stdin :: fn(n: usize) -> string | IOError {
         if got >= n {
             break
         }
-        slice: u8[]! = [0] * (n - got)
+        slice: u8[]!: [0] * (n - got)
         r :: sys_read(0, slice, n - got)
         if r < 0 {
             return IOError { .msg = "stdin read failed" }
@@ -327,14 +327,14 @@ read_stdin :: fn(n: usize) -> string | IOError {
         return ""
     }
     h :: get_std_handle(STD_INPUT_HANDLE)
-    buf: u8[]! = [0] * n
+    buf: u8[]!: [0] * n
     got: usize = 0
     for _ in 0..<n {
         if got >= n {
             break
         }
-        slice: u8[]! = [0] * (n - got)
-        read: u32[]! = [0]
+        slice: u8[]!: [0] * (n - got)
+        read: u32[]!: [0]
         if !read_file(h, slice, u32(n - got), read, null) {
             return IOError { .msg = "stdin read failed" }
         }
@@ -388,7 +388,7 @@ poll_stdin :: fn(timeout_ms: i32) -> bool {
     }
     waited: i32 = 0
     for {
-        avail: u32[]! = [0]
+        avail: u32[]!: [0]
         // False means not a pipe (console, redirected file) or the peer closed
         // it. Ready, so the next read proceeds or observes EOF — never a false
         // "idle" that could spin.
@@ -441,8 +441,8 @@ read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
     // Read to end of file in chunks rather than sizing it first: `fseek` +
     // `ftell` would need `SEEK_END`, and a size taken up front is a lie on
     // anything that is not a regular file.
-    out: u8[]! = []
-    chunk: u8[]! = [0] * READ_CHUNK
+    out: u8[]!: []
+    chunk: u8[]!: [0] * READ_CHUNK
     for {
         n :: sys_fread(chunk, 1, chunk.len(), f)
         if n > 0 {
@@ -483,9 +483,9 @@ read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
     if isize(h) == INVALID_HANDLE {
         return last_io_error("file not found")
     }
-    out: u8[]! = []
-    chunk: u8[]! = [0] * READ_CHUNK
-    got: u32[]! = [0]
+    out: u8[]!: []
+    chunk: u8[]!: [0] * READ_CHUNK
+    got: u32[]!: [0]
     for {
         if !read_file(h, chunk, u32(chunk.len()), got, null) {
             // Before `CloseHandle`, which overwrites the last-error slot.
@@ -588,7 +588,7 @@ write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
     }
     if content.len() > 0 {
         // See `write_bytes` on why the count is taken and ignored.
-        written: u32[]! = [0]
+        written: u32[]!: [0]
         if !write_file(h, content, u32(content.len()), written, null) {
             // Before `CloseHandle`, which overwrites the last-error slot.
             err :: last_io_error("short write")
@@ -647,7 +647,7 @@ export create_dir :: fn(path: string) -> null | IOError {
         // the process works from another drive. A CI runner on `D:\a\...` with
         // a `C:` temp directory is exactly that shape. Not guarded off POSIX,
         // where a directory may legitimately be named `a:`.
-        if VADER_OS == Os.Windows && i == 2 && b[1] == ':' {
+        if VADER_OS == .Windows && i == 2 && b[1] == ':' {
             continue
         }
         if !mkdir_one(b[0..<i].bytes_to_string()) {
@@ -770,7 +770,7 @@ read_dir :: fn(path: string) -> string[]! | IOError {
         .msg = "read_dir: cannot open `${path}`",
     }
     defer sys_closedir(d)
-    out: string[]! = []
+    out: string[]!: []
     for {
         p :: sys_readdir(d) ?? break
         name :: dirent_name(p)
@@ -796,13 +796,13 @@ read_dir :: fn(path: string) -> string[]! | IOError {
     pb :: path.bytes()
     tail :: if pb.len() == 0 { u8(0) } else { pb[pb.len() - 1] }
     sep :: if pb.len() == 0 || tail == '\\' || tail == '/' || tail == ':' { "" } else { "\\" }
-    data: u8[]! = [0] * FIND_DATA_BYTES
+    data: u8[]!: [0] * FIND_DATA_BYTES
     h :: find_first_file(to_wide("${path}${sep}*"), data)
     if isize(h) == INVALID_HANDLE {
         return IOError { .msg = "read_dir: cannot open `${path}`" }
     }
     defer find_close(h)
-    out: string[]! = []
+    out: string[]!: []
     for {
         name :: find_data_name(data)
         if name != "." && name != ".." {
@@ -824,7 +824,7 @@ export current_executable_location :: fn() -> string
 
 @target(.Linux)
 current_executable_location :: fn() -> string {
-    buf: u8[]! = [0] * 4096
+    buf: u8[]!: [0] * 4096
     n :: sys_readlink("/proc/self/exe", buf, buf.len() - 1)
     if n <= 0 {
         return "."
@@ -834,14 +834,14 @@ current_executable_location :: fn() -> string {
 
 @target(.Darwin)
 current_executable_location :: fn() -> string {
-    raw: u8[]! = [0] * 4096
-    cap: u32 = 4096
+    raw: u8[]!: [0] * 4096
+    cap: u32: 4096
     if ns_get_executable_path(raw, cap) != 0 {
         return "."
     }
     // What Darwin hands back may be relative or carry symlinks — `argv[0]` as
     // the kernel saw it. `realpath` is what makes it usable as a sidecar anchor.
-    resolved: u8[]! = [0] * 4096
+    resolved: u8[]!: [0] * 4096
     if sys_realpath(up_to_nul(raw), resolved) == null {
         return "."
     }
@@ -851,7 +851,7 @@ current_executable_location :: fn() -> string {
 @target(.Windows)
 current_executable_location :: fn() -> string {
     // 4096 UTF-16 units, so 8192 bytes.
-    buf: u16[]! = [0] * 4096
+    buf: u16[]!: [0] * 4096
     n :: get_module_file_name(null, buf, u32(buf.len()))
     if n == 0 || usize(n) >= buf.len() {
         return "."
@@ -870,7 +870,7 @@ export current_working_directory :: fn() -> string
 
 @target(.Linux, .Darwin)
 current_working_directory :: fn() -> string {
-    buf: u8[]! = [0] * 4096
+    buf: u8[]!: [0] * 4096
     if sys_getcwd(buf, buf.len()) == null {
         return "."
     }
@@ -880,7 +880,7 @@ current_working_directory :: fn() -> string {
 @target(.Windows)
 current_working_directory :: fn() -> string {
     // 4096 UTF-16 units, so 8192 bytes.
-    buf: u16[]! = [0] * 4096
+    buf: u16[]!: [0] * 4096
     n :: get_current_directory(u32(buf.len()), buf)
     if n == 0 || usize(n) >= buf.len() {
         return "."
@@ -934,7 +934,7 @@ temp_dir :: fn() -> string {
     // The fallback is the WORKING directory, which always exists — a POSIX
     // `"/tmp"` would only defer the failure to whoever opens a file under it.
     // 4096 UTF-16 units, so 8192 bytes.
-    buf: u16[]! = [0] * 4096
+    buf: u16[]!: [0] * 4096
     n :: get_temp_path(u32(buf.len()), buf)
     if n == 0 || usize(n) >= buf.len() {
         return "."
@@ -950,7 +950,7 @@ temp_dir :: fn() -> string {
 
 /// UTF-8 to a NUL-terminated UTF-16 buffer, held as BYTES; empty on failure.
 to_wide :: fn(s: string) -> u16[] {
-    empty: u16[]! = []
+    empty: u16[]!: []
     // `-1` measures the NUL-terminated input AND counts the terminator, so the
     // result is directly usable as an `LPCWSTR`. The count is in UNITS; the
     // buffer that holds them is twice that in bytes.
@@ -958,7 +958,7 @@ to_wide :: fn(s: string) -> u16[] {
     if units <= 0 {
         return []
     }
-    out: u16[]! = [0] * usize(units)
+    out: u16[]!: [0] * usize(units)
     if multi_byte_to_wide_char(CP_UTF8, 0, s, -1, out, units) <= 0 {
         return []
     }
@@ -970,12 +970,12 @@ to_wide :: fn(s: string) -> u16[] {
 /// @param units  how many units to read, EXCLUDING any NUL — which is what
 ///               every Win32 length already reports.
 from_wide :: fn(w: u16[], units: i32) -> string {
-    empty: u8[]! = []
+    empty: u8[]!: []
     n :: wide_char_to_multi_byte(CP_UTF8, 0, w, units, empty, 0, null, null)
     if n <= 0 {
         return ""
     }
-    out: u8[]! = [0] * usize(n)
+    out: u8[]!: [0] * usize(n)
     if wide_char_to_multi_byte(CP_UTF8, 0, w, units, out, n, null, null) <= 0 {
         return ""
     }
@@ -987,7 +987,7 @@ from_wide :: fn(w: u16[], units: i32) -> string {
 // program that touches `std/io`, and the whole borrowing was one character.
 to_slash :: fn(p: string) -> string {
     b :: p.bytes()
-    out: u8[]! = [0] * b.len()
+    out: u8[]!: [0] * b.len()
     for i in 0..<b.len() {
         out[i] = if b[i] == '\\' { '/' } else { b[i] }
     }
@@ -1045,7 +1045,7 @@ import "std/testing"
     // on — POSIX `ENOENT`, Win32 `ERROR_FILE_NOT_FOUND`.
     missing :: read_file_bytes("${temp_dir()}/vader_no_such_probe", READ_LIMIT_DEFAULT)
     if missing is IOError {
-        assert_eq(missing.kind, IOErrorKind.NotFound)
+        assert_eq(missing.kind, .NotFound)
         assert(missing.code != 0, "the raw platform code came through too")
     } else {
         assert(false, "reading a missing path must fail")
@@ -1060,7 +1060,7 @@ import "std/testing"
 
     too_big :: read_file_bytes(file, 4)
     if too_big is IOError {
-        assert_eq(too_big.kind, IOErrorKind.Other)
+        assert_eq(too_big.kind, .Other)
         assert_eq(too_big.code, 0)
     } else {
         assert(false, "a read past the ceiling must fail")

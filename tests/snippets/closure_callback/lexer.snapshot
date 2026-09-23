@@ -44,7 +44,7 @@
 [7:21-7:22  ] lbrace         "{"
 [8:1-8:1    ] newline        "\n"
 [8:5-8:9    ] ident          "bias"
-[8:10-8:12  ] decl_var       ":="
+[8:10-8:12  ] decl_const     "::"
 [8:13-8:16  ] int_literal    "100" =100n
 [9:1-9:1    ] newline        "\n"
 [9:5-9:11   ] ident          "biased"

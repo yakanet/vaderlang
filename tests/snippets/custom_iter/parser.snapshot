@@ -62,25 +62,17 @@
             }
           ],
           "returnType": {
-            "kind": "BinaryExpr",
-            "op": "bitor",
-            "left": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "SeqLitExpr",
+            "elements": [
+              {
                 "kind": "IdentExpr",
-                "name": "Yield"
+                "name": "i32"
               },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
-            },
-            "right": {
-              "kind": "IdentExpr",
-              "name": "null"
-            }
+              {
+                "kind": "IdentExpr",
+                "name": "Continuation"
+              }
+            ]
           },
           "body": {
             "kind": "BlockExpr",
@@ -111,7 +103,17 @@
                       {
                         "kind": "ReturnStmt",
                         "value": {
-                          "kind": "NullLitExpr"
+                          "kind": "SeqLitExpr",
+                          "elements": [
+                            {
+                              "kind": "IntLitExpr",
+                              "value": "0n"
+                            },
+                            {
+                              "kind": "DotVariantExpr",
+                              "variant": "Stop"
+                            }
+                          ]
                         }
                       }
                     ],
@@ -167,28 +169,15 @@
               {
                 "kind": "ReturnStmt",
                 "value": {
-                  "kind": "StructLitExpr",
-                  "typeName": {
-                    "kind": "GenericInstExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "Yield"
-                    },
-                    "typeArgs": [
-                      {
-                        "kind": "IdentExpr",
-                        "name": "i32"
-                      }
-                    ]
-                  },
-                  "items": [
+                  "kind": "SeqLitExpr",
+                  "elements": [
                     {
-                      "kind": "field",
-                      "name": "value",
-                      "value": {
-                        "kind": "IdentExpr",
-                        "name": "v"
-                      }
+                      "kind": "IdentExpr",
+                      "name": "v"
+                    },
+                    {
+                      "kind": "DotVariantExpr",
+                      "variant": "Continue"
                     }
                   ]
                 }
@@ -216,7 +205,7 @@
         "stmts": [
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "it"

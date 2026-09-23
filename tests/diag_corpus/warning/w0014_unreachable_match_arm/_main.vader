@@ -1,0 +1,51 @@
+// W0014 — a match arm an earlier arm already covers.
+//
+// Four shapes, because they are found by three different mechanisms: the
+// scrutinee left with nothing (`remaining` empty), an arm after a wildcard,
+// an enum variant named twice, and an `is` whose type an earlier arm already
+// took. T3013 asks the opposite question — is a variant MISSING — and T3040
+// compares against the scrutinee's static type, so neither sees a double.
+
+module "snippet"
+
+import "std/io"
+
+A :: struct { v: i32 }
+B :: struct { v: i32 }
+U :: A | B
+E :: enum(u8) { X, Y }
+
+// The first two arms consume `A | B`; nothing is left for the third.
+exhausted :: fn(u: U) -> string = match u {
+    is A -> "a"
+    is B -> "b"
+    is A -> "unreachable"
+}
+
+// Anything after a wildcard.
+after_wildcard :: fn(u: U) -> string = match u {
+    _    -> "catch-all"
+    is A -> "unreachable"
+}
+
+// The same enum variant twice.
+dup_variant :: fn(e: E) -> string = match e {
+    .X -> "x"
+    .Y -> "y"
+    .X -> "unreachable"
+}
+
+// An `is` restating an earlier one, with a variant still left over.
+dup_is :: fn(u: U) -> string = match u {
+    is A -> "a"
+    is A -> "unreachable"
+    is B -> "b"
+}
+
+main :: fn() -> i32 {
+    println(exhausted(A { .v = 1 }))
+    println(after_wildcard(A { .v = 1 }))
+    println(dup_variant(.X))
+    println(dup_is(A { .v = 1 }))
+    return 0
+}

@@ -3,6 +3,7 @@
 ## tests/snippets/nested_field_narrow
 
 ## generic instances
+  __genstate_array_iter<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -14,9 +15,7 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
@@ -24,9 +23,6 @@
   Range<T>
   Range<T>
   ArrayOps<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
 
 # Diagnostics
 [15:5] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `i32 | null` — enumerate its variants or mark the match `@partial`

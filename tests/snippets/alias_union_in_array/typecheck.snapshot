@@ -16,7 +16,7 @@
   expr 24:24    StringLitExpr  :: string
   expr 24:31    FieldExpr      :: string
   expr 24:31    IdentExpr      :: Dog
-  expr 29:20    SeqLitExpr     :: (Cat | Dog)[]!
+  expr 29:19    SeqLitExpr     :: (Cat | Dog)[]!
   expr 30:14    IdentExpr      :: (Cat | Dog)[]!
   expr 30:20    StructLitExpr  :: Cat!
   expr 30:34    StringLitExpr  :: string

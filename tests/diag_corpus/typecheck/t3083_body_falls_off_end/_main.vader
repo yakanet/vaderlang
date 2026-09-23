@@ -1,0 +1,74 @@
+// T3083 — control reaches the closing brace with no value to hand back.
+//
+// The sibling case, a body whose trailing expression has the WRONG type, is
+// T3020: `if c { return 7 }` as a whole body was already an error. This closes
+// the half that was silent — a body with no `return` at all.
+//
+// The quiet cases are here on purpose: each is a way a body legitimately ends
+// without a trailing expression, so a regression shows up as a new line.
+
+module "snippet"
+
+import "std/abort"
+
+// Not called: calling it would hang, abort, or return nothing.
+@allow_unused
+falls_off :: fn() -> i32 {
+    n :: 1
+    _ :: n + 1
+}
+
+// Quiet — `void` promises nothing.
+returns_void :: fn(n: i32) -> void {
+    _ :: n + 1
+}
+
+// Quiet — diverges through a `@no_return` call.
+// Not called: calling it would hang, abort, or return nothing.
+@allow_unused
+diverges :: fn() -> i32 {
+    todo("not yet")
+}
+
+// Quiet — diverges through a loop nothing can leave.
+// Not called: calling it would hang, abort, or return nothing.
+@allow_unused
+spins :: fn() -> i32 {
+    n := 0
+    for {
+        n = n + 1
+    }
+}
+
+// Quiet — every path returns.
+both :: fn(c: bool) -> i32 {
+    if c {
+        return 1
+    } else {
+        return 2
+    }
+}
+
+// A LAMBDA carries the same obligation — and left unchecked it was worse than
+// the named case: it compiled, then trapped at run time on `unreachable return`.
+apply :: fn(f: fn(i32) -> i32, v: i32) -> i32 = f(v)
+
+lambda_falls_off :: fn() -> i32 {
+    return apply((x) -> {
+        _ :: x + 1
+    }, 5)
+}
+
+// Quiet — the slot promises nothing, so the body producing nothing is right.
+run :: fn(f: fn(i32)) -> void = f(1)
+lambda_void :: fn() -> void {
+    run((x) -> {
+        _ :: x + 1
+    })
+}
+
+main :: fn() -> i32 {
+    returns_void(1)
+    lambda_void()
+    return both(true) + lambda_falls_off()
+}

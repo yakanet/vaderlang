@@ -54,7 +54,7 @@ export evaluate_string_lit :: fn(
     literal: AST.StringLitExpr, context: ComptimeContext!,
     recurse: fn(AST.Expr, ComptimeContext!) -> EvalResult,
 ) -> EvalResult {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     for part in literal.parts {
         match part {
             is AST.StringLitText -> { sb.append(part.value) }

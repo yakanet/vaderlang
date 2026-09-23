@@ -18,6 +18,6 @@ classify :: fn(x: Mixed) -> i32 {
 }
 
 main :: fn() -> i32 {
-    n: i32 = 42
+    n: i32: 42
     return classify(n)
 }

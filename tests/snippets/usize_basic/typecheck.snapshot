@@ -3,9 +3,9 @@
 ## tests/snippets/usize_basic
   FnDecl         add                  :: fn(usize, usize) -> usize
   FnDecl         main                 :: fn() -> i32
-  expr 11:16    CallExpr       :: usize
-  expr 11:16    IdentExpr      :: fn(usize, usize) -> usize
-  expr 11:20    IdentExpr      :: usize
+  expr 11:15    CallExpr       :: usize
+  expr 11:15    IdentExpr      :: fn(usize, usize) -> usize
+  expr 11:19    IdentExpr      :: usize
   expr 12:13    StringLitExpr  :: string
   expr 12:16    IdentExpr      :: usize
   expr 12:5     CallExpr       :: void

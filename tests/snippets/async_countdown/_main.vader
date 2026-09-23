@@ -18,7 +18,7 @@ CountDown implements Async<i32> {
 }
 
 waiter :: fn() -> Async<i32> {
-    cd: Async<i32> = CountDown { .n = 2 }
+    cd: Async<i32>: CountDown { .n = 2 }
     x :: await cd
     return x + 1
 }

@@ -137,7 +137,7 @@ export step_should_stop :: fn(mode: StepMode, base_depth: i32, depth: i32) -> bo
 import "std/testing"
 
 no_sink :: fn(_s: i32, _t: string) -> void {}
-no_pause :: fn(_c: PauseCtx) -> StepMode = StepMode.Continue
+no_pause :: fn(_c: PauseCtx) -> StepMode = .Continue
 
 mk_controller :: fn(bps: MutableMap<string, MutableSet<i32>>) -> DebugController =
     DebugController { .output_sink = no_sink, .breakpoints = bps, .on_pause = no_pause }
@@ -158,15 +158,15 @@ mk_controller :: fn(bps: MutableMap<string, MutableSet<i32>>) -> DebugController
 
 @test test_step_should_stop_modes :: fn() -> void {
     // Continue never step-stops (only breakpoints, handled elsewhere).
-    assert_eq(step_should_stop(StepMode.Continue, 2, 2), false)
+    assert_eq(step_should_stop(.Continue, 2, 2), false)
     // Into stops at any depth.
-    assert_eq(step_should_stop(StepMode.StepInto, 2, 3), true)
-    assert_eq(step_should_stop(StepMode.StepInto, 2, 1), true)
+    assert_eq(step_should_stop(.StepInto, 2, 3), true)
+    assert_eq(step_should_stop(.StepInto, 2, 1), true)
     // Over stops at same-or-shallower depth (skips deeper = called-into frames).
-    assert_eq(step_should_stop(StepMode.StepOver, 2, 2), true)
-    assert_eq(step_should_stop(StepMode.StepOver, 2, 3), false)
-    assert_eq(step_should_stop(StepMode.StepOver, 2, 1), true)
+    assert_eq(step_should_stop(.StepOver, 2, 2), true)
+    assert_eq(step_should_stop(.StepOver, 2, 3), false)
+    assert_eq(step_should_stop(.StepOver, 2, 1), true)
     // Out stops only once shallower than the frame the step began in.
-    assert_eq(step_should_stop(StepMode.StepOut, 2, 2), false)
-    assert_eq(step_should_stop(StepMode.StepOut, 2, 1), true)
+    assert_eq(step_should_stop(.StepOut, 2, 2), false)
+    assert_eq(step_should_stop(.StepOut, 2, 1), true)
 }

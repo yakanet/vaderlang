@@ -253,3 +253,4 @@
 
 # Diagnostics
 [21:1] error[T3033] invalid `main` signature: main must return i32
+[24:22] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.North`

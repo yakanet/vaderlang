@@ -3,6 +3,7 @@
 ## tests/snippets/border_checkpoint
 
 ## generic instances
+  __genstate_array_iter<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -14,9 +15,7 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
@@ -24,6 +23,8 @@
   Range<T>
   Range<T>
   ArrayOps<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
+
+# Diagnostics
+[40:26] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Trucks`
+[40:58] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Trucks`
+[40:91] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Cars`

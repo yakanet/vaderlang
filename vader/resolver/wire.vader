@@ -83,7 +83,7 @@ wire_module :: fn(
                             info.binding_span, "`${imported}` from `${info.path}`"))
                     }
                     is Symbol -> {
-                        if exported.visibility == Visibility.Private {
+                        if exported.visibility == .Private {
                             out.missing[sym_id] = true
                             project.diags.push(resolver_error(.SymbolNotExported,
                                 info.binding_span, "`${imported}`"))
@@ -102,7 +102,7 @@ wire_module :: fn(
 /// bindings / missing targets) returns `sym` unchanged — callers
 /// can detect the "still an import-binding" case via `sym.kind`.
 export resolve_import_redirect :: fn(sym: Symbol, table: ImportTargetTable) -> Symbol {
-    if sym.kind != SymbolKind.ImportBinding { return sym }
+    if sym.kind != .ImportBinding { return sym }
     st :: table.symbol_targets[sym.id] ?? return sym
     return st.symbol
 }

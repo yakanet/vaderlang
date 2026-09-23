@@ -8,9 +8,9 @@ type 5 struct snippet$Wrap__Any { value:7 }
 type 6 struct snippet$Wrap__Cat { value:7 }
 type 7 ref _
 type 8 struct snippet$Wrap__Dog { value:7 }
-type 9 primitive usize
-type 10 primitive u8
-type 11 array 10
+type 9 primitive u8
+type 10 primitive usize
+type 11 array 9
 type 12 struct std_core$Buffer {  }
 type 13 primitive void
 type 14 primitive isize
@@ -18,9 +18,9 @@ string 0 "Mira"
 string 1 "Rex"
 string 2 "wrapped"
 string 3 "\n"
-import 0 byte_len std_core$byte_len result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=10 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=11 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=4,11,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=4,11,10 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 1 Tag
 impl 3 Tag
 impl 5 Display

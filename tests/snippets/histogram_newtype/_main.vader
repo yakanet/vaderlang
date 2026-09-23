@@ -19,7 +19,7 @@ Histogram :: u32[]
 
 Histogram implements Mul<u32, Histogram> {
     mul :: fn(self, k: u32) -> Histogram {
-        out: Histogram = []
+        out: Histogram: []
         for i in 0..<self.len() { out.push(self[i] * k) }
         return out
     }
@@ -27,7 +27,7 @@ Histogram implements Mul<u32, Histogram> {
 
 Histogram implements Div<u32, [Histogram, u32]> {
     div :: fn(self, k: u32) -> [Histogram, u32] {
-        out: Histogram = []
+        out: Histogram: []
         for i in 0..<self.len() { out.push(self[i] / k) }
         return [out, self[0] % k]
     }
@@ -37,7 +37,7 @@ Histogram implements Div<u32, [Histogram, u32]> {
 Celsius :: i64
 
 main :: fn() -> i32 {
-    h: Histogram = [4, 8, 15]              // array-literal coercion
+    h: Histogram: [4, 8, 15]              // array-literal coercion
     h.push(u32(16))                        // .push forwards to the backing array
     scaled :: h * u32(2)                   // Mul<u32> overload
     println("${scaled[0]},${scaled[1]},${scaled[2]},${scaled[3]}")

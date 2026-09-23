@@ -69,7 +69,7 @@ body_survives :: fn(fd: AST.FnDecl, kept: SourceFile[]) -> bool {
 /// @param files   the module's parsed files, before selection.
 /// @param target  the compilation target, or null when nothing selects.
 export discarded_bodies :: fn(files: SourceFile[], target: Target | null) -> AST.FnDecl[] {
-    out: AST.FnDecl[]! = []
+    out: AST.FnDecl[]!: []
     if target == null {
         return out
     }
@@ -156,9 +156,9 @@ export select_target_bodies :: fn(
         }
     }
     report_uncovered(files, target, winners, covered, diags)
-    out: SourceFile[]! = []
+    out: SourceFile[]!: []
     for f in files {
-        kept: AST.Decl![]! = []
+        kept: AST.Decl![]!: []
         for d in f.program.decls {
             kept_decl :: resolve_decl(d, target, winners, bare)
             if kept_decl != null {
@@ -456,7 +456,7 @@ graft_body :: fn(decl: AST.FnDecl, body: AST.FnDecl) -> AST.FnDecl {
     // the file still sees that this function has other bodies elsewhere. Nothing
     // downstream acts on it: selection has already happened by the time anything
     // else looks.
-    decorators: AST.Decorator[]! = []
+    decorators: AST.Decorator[]!: []
     for dec in decl.decorators {
         decorators.push(dec)
     }
@@ -502,7 +502,7 @@ target_selectors :: fn(decorators: AST.Decorator[]) -> TargetSelectors | null {
         if d.name != "target" {
             continue
         }
-        out: Os[]! = []
+        out: Os[]!: []
         for a in d.args {
             if a is AST.DotVariantExpr {
                 os :: parse_os(a.variant.to_lower())

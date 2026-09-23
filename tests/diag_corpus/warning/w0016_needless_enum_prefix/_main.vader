@@ -1,0 +1,35 @@
+// W0016 — the slot already pins the enum, so naming it before the dot adds
+// nothing. The quiet cases are here on purpose: each is a slot that CANNOT
+// resolve the bare form, so a regression shows up as a new snapshot line.
+
+module "snippet"
+
+Color :: enum(u8) { Red, Green }
+Fruit :: enum(u8) { Red, Banana }
+
+paint :: fn(c: Color) -> i32 = if c == .Red { 1 } else { 2 }
+
+// The warning: the comparison's left operand already pins `Color`.
+compared :: fn(c: Color) -> bool = c == Color.Red
+
+// Quiet — an unannotated local has no slot to infer from.
+unpinned :: fn() -> Color {
+    c :: Color.Green
+    return c
+}
+
+// Quiet — the slot is a union carrying two enums that share `Red`. The bare
+// form would resolve to `Color`, so the prefix is what picks `Fruit`.
+ambiguous :: fn() -> Color | Fruit = Fruit.Red
+
+// Quiet — at an argument of an OVERLOADED call the prefix is what picks the
+// candidate: `pick(.Red)` would reach the `Color` one whatever was written.
+pick :: fn(c: Color) -> i32 = 1
+pick :: fn(f: Fruit) -> i32 = 2
+overloaded :: fn() -> i32 = pick(Color.Red) + pick(Fruit.Red)
+
+main :: fn() -> i32 {
+    picked :: ambiguous()
+    n :: if picked is Fruit { 10 } else { 20 }
+    return paint(unpinned()) + n + overloaded() + if compared(.Red) { 1 } else { 0 }
+}

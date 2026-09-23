@@ -11,11 +11,11 @@ type 8 struct __lambda_env_snippet_7 {  }
 type 9 struct __lambda_env_snippet_9 {  }
 type 10 struct __lambda_env_snippet_11 {  }
 type 11 primitive string
-type 12 primitive usize
-type 13 struct std_core$Buffer {  }
-type 14 primitive i64
-type 15 primitive u8
-type 16 array 15
+type 12 primitive u8
+type 13 primitive usize
+type 14 struct std_core$Buffer {  }
+type 15 primitive i64
+type 16 array 12
 type 17 primitive void
 type 18 primitive isize
 string 0 "inc(5) = "
@@ -25,10 +25,10 @@ string 3 "add(3, 4) = "
 string 4 "forty_two() = "
 string 5 "block(3) = "
 string 6 "\n"
-import 0 byte_len std_core$byte_len result_type=12 param_types=11 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=13 param_types=11 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=16 param_types=11 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=2,16,12 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 13 ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=2,16,13 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 14 ByteAccess
 export main 3
 
 fn 0 snippet$call_it (ref,i32) -> i32

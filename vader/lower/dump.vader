@@ -35,7 +35,7 @@ import "vader/text"
 /// @param scope    in-scope module ids / prefixes (see `module_in_scope`).
 /// @return         the formatted dump (no trailing newline).
 export dump_lowered :: fn(project: LoweredProject, scope: string[]) -> string {
-    lines: string[]! = []
+    lines: string[]!: []
     lines.push("# Lower")
     module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
     for module_id in module_ids {
@@ -73,7 +73,7 @@ emit_decl :: fn(lines: string[]!, decl: LoweredDecl, indent: string) -> void {
 
 
 render_params :: fn(params: LoweredParam[]) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     for i in 0..<params.len() {
         if i > 0 { sb.append(", ") }
         sb.append("${params[i].name}: ${display_type(params[i].type)}")
@@ -82,7 +82,7 @@ render_params :: fn(params: LoweredParam[]) -> string {
 }
 
 render_fields :: fn(fields: LoweredStructField[]) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     for i in 0..<fields.len() {
         if i > 0 { sb.append(", ") }
         sb.append("${fields[i].name}: ${display_type(fields[i].type)}")

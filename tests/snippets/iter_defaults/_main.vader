@@ -1,6 +1,7 @@
 // `Iterator` defaults injected via Layer 8d — `count`, `last`, `is_empty`
-// derive from the user's `step`. Every Iterator impl (Range, ArrayIterator,
-// StringChars, …) inherits the three methods without writing a body.
+// derive from the user's `next`. Every Iterator impl (Range, StringChars, a
+// user struct, a generator's state machine, …) inherits the three methods
+// without writing a body.
 
 module "snippet"
 
@@ -9,11 +10,13 @@ import "std/io"
 Countdown :: struct { remaining: i32 }
 
 Countdown implements Iterator<i32> {
-    next :: fn(self!) -> Yield<i32> | null {
-        if self.remaining <= 0 { return null }
+    next :: fn(self!) -> [i32, Continuation] {
+        if self.remaining <= 0 {
+            return [0, .Stop]
+        }
         v :: self.remaining
         self.remaining = self.remaining - 1
-        return Yield<i32> { .value = v }
+        return [v, .Continue]
     }
 }
 

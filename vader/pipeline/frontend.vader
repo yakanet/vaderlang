@@ -56,13 +56,13 @@ export prepare_evaluated_project_with :: fn(
     Prof.prof_begin(Prof.PHASE_LOAD)
     loaded :: load_project(file.as_string(), include_path_flags, target)
     Prof.prof_end(Prof.PHASE_LOAD)
-    typecheck_diags: Diagnostic[]! = []
+    typecheck_diags: Diagnostic[]!: []
     Prof.prof_begin(Prof.PHASE_TYPECHECK)
     result :: check_project_with_bodies(loaded, typecheck_diags, false)
     resolver_diags :: collect_body_diags(result)
     typed :: assemble_typed_project(result)
     Prof.prof_end(Prof.PHASE_TYPECHECK)
-    comptime_diags: Diagnostic[]! = []
+    comptime_diags: Diagnostic[]!: []
     Prof.prof_begin(Prof.PHASE_COMPTIME)
     // The tree-walk `evaluate_project` always runs : it does the `@comptime`
     // dependency ordering (source of the C4009 cycle diagnostic), folds
@@ -105,7 +105,7 @@ export prepare_evaluated_project_with :: fn(
 /// (orchestrate.vader:163), so we'd double-fire if we pushed them
 /// here too.
 export collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
-    out: Diagnostic[]! = []
+    out: Diagnostic[]!: []
     if result.all_modules.is_empty() { return out }
     for [module_id, module_typed] in result.all_modules {
         if module_id == result.typed.resolved.path { continue }

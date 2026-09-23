@@ -37,7 +37,7 @@ export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == 0
 /// (`it.filter(p).map(f).collect()`) when a snapshot is required ;
 /// `for x in it` consumes directly without the intermediate array.
 export collect :: fn<T>(it: Iterator<T>) -> T[]! {
-    out: T[]! = []
+    out: T[]!: []
     for x in it {
         out.push(x)
     }
@@ -47,7 +47,7 @@ export collect :: fn<T>(it: Iterator<T>) -> T[]! {
 // Eager `map` / `filter` array overloads removed — `map` / `filter` are ONLY the
 // lazy `generator` combinators now (bottom of this file). `arr.map(f)` resolves
 // unambiguously to the lazy `Iterator<U>` and fuses over the raw array (the
-// implicit `.iter()` head) ; drain to an array with `.collect()` when needed.
+// implicit array head) ; drain to an array with `.collect()` when needed.
 
 /// Left-fold the iterator with seed `init`. `f(acc, x)` is called for every
 /// element in order ; the final accumulator is returned. A raw array coerces to
@@ -90,7 +90,7 @@ export sum :: fn(self: Iterator<i32>) -> i32 {
 /// without implementors). When `T[] implements Clone` lands, this free
 /// fn becomes the impl — `arr.clone()` resolves identically either way.
 export clone :: fn<T>(arr: T[]) -> T[]! {
-    out: T[]! = [] * arr.len()
+    out: T[]!: [] * arr.len()
     out.push_all(arr)
     return out
 }
@@ -248,11 +248,11 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
 // like an Iterator pipeline and dispatches via UFCS through the first param's
 // type — overload-resolved against the eager `T[]`-first-param siblings above.
 // The lowerer's iter-chain fusion folds a `for`/terminal-consumed chain into a
-// single counter loop when it bottoms at an inline range or `arr.iter()`.
+// single counter loop when it bottoms at an inline range or an array.
 
 /// Fluent lazy `filter`. Distinct from the eager `T[]`-overload above —
 /// the resolver picks this one when the receiver implements `Iterator<T>`
-/// (Range, ArrayIterator, MutableMap, …).
+/// (Range, an array iterator, MutableMap, …).
 export filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {
     for x in self { if pred(x) { yield x } }
 }
@@ -303,7 +303,7 @@ import "std/testing"
 
 @test test_sum :: fn() -> void {
     assert_eq(sum([1, 2, 3, 4]), 10)
-    empty: i32[] = []
+    empty: i32[]: []
     assert_eq(sum(empty), 0)
 }
 
@@ -337,7 +337,7 @@ import "std/testing"
 }
 
 @test test_window :: fn() -> void {
-    windows: i32[][]! = []
+    windows: i32[][]!: []
     for w in [1, 2, 3, 4, 5].window(3) {
         windows.push(w)
     }
@@ -348,14 +348,14 @@ import "std/testing"
     assert_eq(windows[2][2], 5)
 
     // no partial windows : size > len yields nothing
-    over: i32[][]! = []
+    over: i32[][]!: []
     for w in [1, 2, 3].window(5) {
         over.push(w)
     }
     assert_eq(over.len(), 0)
 
     // size 0 yields nothing
-    zero: i32[][]! = []
+    zero: i32[][]!: []
     for w in [1, 2, 3].window(0) {
         zero.push(w)
     }
@@ -363,7 +363,7 @@ import "std/testing"
 }
 
 @test test_chain :: fn() -> void {
-    out: i32[]! = []
+    out: i32[]!: []
     for x in chain([1, 2], [3, 4, 5]) {
         out.push(x)
     }
@@ -373,8 +373,8 @@ import "std/testing"
 }
 
 @test test_enumerate :: fn() -> void {
-    idxs: usize[]! = []
-    vals: string[]! = []
+    idxs: usize[]!: []
+    vals: string[]!: []
     for [i, s] in ["a", "b", "c"].enumerate() {
         idxs.push(i)
         vals.push(s)
@@ -389,14 +389,14 @@ import "std/testing"
 @test test_any :: fn() -> void {
     assert([1, 2, 3].any((x: i32) -> x == 2), "should find 2")
     assert(![1, 2, 3].any((x: i32) -> x == 9), "should not find 9")
-    empty: i32[] = []
+    empty: i32[]: []
     assert(!empty.any((x: i32) -> true), "empty array is never any")
 }
 
 @test test_all :: fn() -> void {
     assert([2, 4, 6].all((x: i32) -> x % 2 == 0), "all even")
     assert(![2, 3, 6].all((x: i32) -> x % 2 == 0), "3 is odd")
-    empty: i32[] = []
+    empty: i32[]: []
     assert(empty.all((x: i32) -> false), "empty array satisfies all (vacuous)")
 }
 

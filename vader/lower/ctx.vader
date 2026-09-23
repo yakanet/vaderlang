@@ -92,9 +92,20 @@ export LowerProjectCtx :: struct {
     typed:               TypedProject
     impls:               ImplRegistry
 
+    /// `$VADER_OPT_REPORT` is on — read once at construction so each fall site
+    /// costs a bool test rather than an environment lookup. See `opt_report.vader`.
+    opt_report:          bool = false
+    /// Where an optimisation pass handed over to its general path. Only filled
+    /// when `opt_report` is on ; never a diagnostic, never gates a build.
+    opt_misses:          OptMiss[]! = []
+
     /// `name -> Symbol` from `std/core` (cached once at construction
     /// so trait / struct lookups don't re-walk the module map).
     core_symbols:        MutableMap<string, Symbol>
+    /// Resolved `EnumType`s for `core_symbols` entries of enum kind. Separate
+    /// because resolving one means finding the module that TYPED it, and the
+    /// answer is project-global — see `find_core_enum`.
+    core_enum_types:     MutableMap<string, Type>
 
     /// Per-(display-path) `name -> Symbol` cache backing `module_export` — a
     /// generic replacement for the old hardcoded per-module tables (std/iter,
@@ -326,11 +337,13 @@ export GenericFnInstance :: struct {
 /// @return           a fresh project context with empty side-tables.
 export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx! {
     return LowerProjectCtx {
+        .opt_report          = opt_report_enabled(),
         .evaluated           = evaluated,
         .loaded              = loaded,
         .typed               = typed,
         .impls               = ImplRegistry {},
         .core_symbols        = MutableMap<string, Symbol> {},
+        .core_enum_types     = MutableMap<string, Type> {},
         .module_symbol_cache = MutableMap<string, MutableMap<string, Symbol>> {},
         .comptime_value_by_symbol_id = MutableMap<i32, ComptimeValue> {},
         .local_symbol_indices = MutableMap<string, MutableMap<u64, Symbol>> {},

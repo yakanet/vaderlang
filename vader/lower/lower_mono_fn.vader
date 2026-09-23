@@ -117,7 +117,7 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx!, project: Lowered
     // `origin.symbol` (set in `build_fn_instance_decl`), so the body-emit
     // pass indexes them by mangle — exactly like materialised impl members.
     sorted_pending :: sort(project_ctx.generic_collected, pending_fn_instance_less)
-    emitted_fns: MutableMap<i32, bool> = MutableMap<i32, bool> {}
+    emitted_fns: MutableMap<i32, bool>: MutableMap<i32, bool> {}
     for p in sorted_pending {
         // Erasure-dedup gate : dispatching (GATE A) instances always emit ;
         // non-dispatching ones collapse to the first per symbol id.
@@ -157,7 +157,7 @@ PendingFnInstance :: struct {
 pending_fn_instance_less :: fn(a: PendingFnInstance, b: PendingFnInstance) = compare_ascending(a.key, b.key)
 
 fn_instance_key :: fn(inst: GenericFnInstance) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     sb.append("${inst.fn_symbol.id}::")
     for a in inst.type_args {
         sb.append(":")
@@ -239,9 +239,9 @@ build_fn_instance_decl :: fn(
         .Mixed  -> build_fn_mixed_subst(fn_decl, owner_typed, inst.type_args)
         .Erased -> build_fn_any_subst(fn_decl, owner_typed)
     }
-    force_concrete :: flavor == InstanceFlavor.Mono || flavor == InstanceFlavor.Mixed
+    force_concrete :: flavor == .Mono || flavor == .Mixed
     types :: make_entry_types(owner_typed, subst)
-    params: LoweredParam[]! = []
+    params: LoweredParam[]!: []
     for ast_param in fn_decl.params {
         symbol_or_null :: lookup_local_symbol(project_ctx, owner_typed.resolved, ast_param.span)
         sym :: synth_param_or(symbol_or_null, ast_param.name, owner_typed)
@@ -251,7 +251,7 @@ build_fn_instance_decl :: fn(
         })
     }
     return_type :: substitute(return_type_of(fn_decl, types), subst)
-    entry_decl: Decl = fn_decl
+    entry_decl: Decl: fn_decl
     // A trait-dispatching (GATE A, per-instance-concrete) free generic fn
     // carries a NULL origin symbol so the bytecode body-emit indexes it by
     // MANGLE, not by the shared source-fn symbol id. Every per-key instance
@@ -262,7 +262,7 @@ build_fn_instance_decl :: fn(
     // which sets `.symbol = null` on impl members for the same reason.
     // Erased (non-dispatching) instances keep the symbol — they collapse to
     // one decl per symbol id via the erasure-dedupe below.
-    entry_symbol: Symbol | null = if force_concrete { null } else { inst.fn_symbol }
+    entry_symbol: Symbol | null: if force_concrete { null } else { inst.fn_symbol }
     entry :: MonoEntry {
         .id             = 0,
         .is_main        = false,
@@ -365,7 +365,7 @@ call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) ->
             if fd is FnDecl { return fn_instance_flavor(fd, owner_typed, type_args) }
         }
     }
-    return InstanceFlavor.Erased
+    return .Erased
 }
 
 // The instance-mangle suffix a generic free-fn CALL SITE must use, matching the
@@ -375,7 +375,7 @@ call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) ->
 // call-site mangle builders (`emit_generic_fn_call`, `register_and_emit_generic_call`,
 // `try_lower_ufcs_call`) so the registered mangle + inst_key reconcile with the body.
 call_site_instance_suffix :: fn(ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: Type[]) -> string {
-    if call_site_fn_flavor(ctx, fn_sym, concrete_args) == InstanceFlavor.Mixed {
+    if call_site_fn_flavor(ctx, fn_sym, concrete_args) == .Mixed {
         return mixed_any_suffix(concrete_args)
     }
     return mono_suffix(concrete_args)

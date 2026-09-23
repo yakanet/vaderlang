@@ -137,13 +137,13 @@ export EmitterCtx :: struct {
 ///
 /// @return  a fresh emitter context ready for `emit_bytecode_from_cfg` to fill.
 export new_emitter_ctx :: fn() -> EmitterCtx! {
-    types: BcType[]! = []
-    types.push(BcPrimitive { .val = ValType.Null })
+    types: BcType[]!: []
+    types.push(BcPrimitive { .val = .Null })
     type_key :: MutableMap<string, i32> {}
     type_key["null"] = 0
     type_hash :: MutableMap<u64, i32> {}
     type_hash[type_intern_hash(TY_NULL)] = 0
-    type_by_slot: Type[]! = [TY_NULL]
+    type_by_slot: Type[]!: [TY_NULL]
     return EmitterCtx {
         .types                       = types,
         .type_key                    = type_key,
@@ -203,7 +203,7 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx!) -> i32 {
     // visible to any nested `intern_type` call that re-enters with the
     // same key.
     new_index :: i32(ctx.types.len())
-    placeholder: BcType = BcRef { .trait_name = "" }
+    placeholder: BcType: BcRef { .trait_name = "" }
     ctx.types.push(placeholder)
     ctx.type_key[key] = new_index
     if ctx.type_hash[h] is null {
@@ -249,7 +249,7 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx!) -> i32 {
     if existing is i32 { return existing }
     new_index :: i32(ctx.types.len())
     field :: BcField { .name = "value", .type_index = slot_index }
-    fields: BcField[]! = []
+    fields: BcField[]!: []
     fields.push(field)
     // Name keys on the inner type's intern key, not the (volatile) post-
     // DCE slot — so a closure capturing the same T always materialises

@@ -52,7 +52,7 @@ materialize_representative :: fn(
 ) -> void {
     if !all_concrete_args(inst.args) { return }
     sym :: inst.symbol
-    if sym.kind != SymbolKind.Struct { return }
+    if sym.kind != .Struct { return }
     owner_module_id :: sym.module
     owner_module :: loaded.modules[owner_module_id] ?? return
     owner_typed :: typed.modules[owner_module_id] ?? return
@@ -74,7 +74,7 @@ materialize_representative :: fn(
                 if decl.type_params.len() == 0 { return }
                 seen_reps.add(rep_mangled)
                 erase :: build_any_subst(decl, owner_typed)
-                fields: LoweredStructField[]! = []
+                fields: LoweredStructField[]!: []
                 for f in decl.fields {
                     raw_ty :: resolve_field_type(f.ty, owner_typed, decl, inst.args)
                     fields.push(LoweredStructField {
@@ -82,7 +82,7 @@ materialize_representative :: fn(
                         .type = substitute(raw_ty, erase),
                     })
                 }
-                entry_decl: Decl = decl
+                entry_decl: Decl: decl
                 entry :: MonoEntry {
                     .id             = 0,
                     .is_main        = false,
@@ -124,7 +124,7 @@ materialize_one_instance :: fn(
             // empty stdlib lowered module created above so the bytecode
             // type table carries the concrete shape instead of an orphan
             // `ref`. (Filtered from the lower dump, so byte-match is safe.)
-            if sym.kind == SymbolKind.Struct {
+            if sym.kind == .Struct {
                 materialize_struct_instance(inst, owner_decls, owner_typed, project_ctx, project)
                 // (2) For every generic impl whose for_type targets the
                 // same struct symbol, materialize each member — including
@@ -228,7 +228,7 @@ materialize_struct_instance :: fn(
         // ref arg pre-erased), so only field types change.
         subst :: build_struct_subst(decl, inst.args, owner_typed)
         erase :: build_struct_mixed_subst(decl, owner_typed, inst.args)
-        fields: LoweredStructField[]! = []
+        fields: LoweredStructField[]!: []
         for f in decl.fields {
             raw_ty :: resolve_field_type(f.ty, owner_typed, decl, inst.args)
             field_ty :: substitute(raw_ty, erase)
@@ -237,7 +237,7 @@ materialize_struct_instance :: fn(
                 .type = field_ty,
             })
         }
-        entry_decl: Decl = decl
+        entry_decl: Decl: decl
         entry :: MonoEntry {
             .id             = 0,
             .is_main        = false,
@@ -278,8 +278,8 @@ close_over_field_shapes :: fn(
     project: LoweredProject,
 ) -> void {
     materialized :: new_string_set()
-    seen_pushed :: new_string_set()
-    worklist: StructType[]! = []
+    seen_pushed :: MutableMap<i32, StructType[]!> {}
+    worklist: StructType[]!: []
     collect :: (sub: Type) -> push_struct_shape(sub, worklist, seen_pushed)
     for [_, mod] in project.modules {
         for decl in mod.decls {
@@ -312,19 +312,33 @@ MAX_FIELD_SHAPES :: 4096
 /// `for_each_type` visitor : push a struct shape onto `out` the first
 /// time it's seen — both concrete generic instances (`MutableMap(Any,
 /// bool)`) and plain non-generic structs (`StringBuilder`), since either
-/// can be referenced without a materialised decl. Dedup by `(symbol.id,
-/// display)` keeps the worklist to one entry per distinct shape — the
-/// same shape recurs across hundreds of field / signature slots
-/// otherwise. TypeParam-bearing shapes (a generic decl's own
-/// self-reference) are skipped.
-push_struct_shape :: fn(t: Type, out: StructType[]!, seen: MutableSet<string>!) -> void {
-    if t is StructType {
-        if has_type_param(t) { return }
-        key :: "${t.symbol.id}|${display_type_key(t)}"
-        if seen.contains(key) { return }
-        seen.add(key)
-        out.push(t)
+/// can be referenced without a materialised decl. TypeParam-bearing shapes
+/// (a generic decl's own self-reference) are skipped.
+///
+/// Runs for EVERY type of every lowered decl in the project, so the repeat test
+/// must not allocate : keep the scan a plain loop — a predicate combinator would
+/// mint a closure capturing `t` on every visit.
+///
+/// A PRE-FILTER, not the authority : `close_over_field_shapes` dedups again on
+/// `shape_mangle`. It may be FINER than the mangle (which erases `!`, where
+/// `type_list_equals` reads `ArrayType.immutable`) — the surplus is dropped
+/// there. It must never be COARSER : that would drop a shape nothing
+/// materialises.
+push_struct_shape :: fn(t: Type, out: StructType[]!, seen: MutableMap<i32, StructType[]!>!) -> void {
+    if t !is StructType  { return }
+    if has_type_param(t) { return }
+    shapes :: seen[t.symbol.id]
+    if shapes == null {
+        seen[t.symbol.id] = [t]
+    } else {
+        for s in shapes {
+            if type_list_equals(s.args, t.args) {
+                return
+            }
+        }
+        shapes.push(t)
     }
+    out.push(t)
 }
 
 new_string_set :: fn() = MutableSet<string> {}
@@ -381,7 +395,7 @@ ensure_receiver_struct :: fn(
     inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
     project_ctx: LowerProjectCtx!, project: LoweredProject,
 ) -> void {
-    if inst.symbol.kind != SymbolKind.Struct { return }
+    if inst.symbol.kind != .Struct { return }
     if !all_concrete_args(inst.args) { return }
     owner_module :: loaded.modules[inst.symbol.module] ?? return
     owner_typed :: typed.modules[inst.symbol.module] ?? return
@@ -460,7 +474,7 @@ materialize_impl_for_instance :: fn(
     // generic-struct box interns to this exact receiver key (else `vtable miss`).
     erased_args :: if is_empty_substitution(subst) { inst.args } else { build_mixed_args_list(inst.args) }
     self_struct :: StructType { .symbol = inst.symbol, .args = erased_args, .immutable = false }
-    self_type: Type = self_struct
+    self_type: Type: self_struct
     // Suffix from the ERASED args : a generic impl mangles `count__Any`
     // (not `count__i32`) so the shared erased body's sibling self-calls
     // (`self.next()` in the `count` default) and every concrete-arg call
@@ -495,7 +509,7 @@ materialize_impl_for_instance :: fn(
         // dropping the call to the panic fallback. Co-locating with the impl keeps
         // the two in lock-step. No-op when owner == impl (the colocated case).
         mangled :: "${mangle_module_id(impl_typed.resolved.display_path)}$${inst.symbol.name}$${impl_decl.trait_name}$${member.name}${suffix}"
-        entry_decl: Decl = member
+        entry_decl: Decl: member
         entry :: MonoEntry {
             .id             = 0,
             .is_main        = false,
@@ -548,7 +562,7 @@ materialize_bound_trait_impls :: fn(
         bound :: impl_decl.type_params[i].bound ?? continue
         type_name :: type_surface_name(inst.args[i])
         if type_name == "" { continue }
-        trait_names: string[]! = []
+        trait_names: string[]!: []
         flatten_trait_bound(bound, trait_names)
         for trait_name in trait_names {
             materialize_bound_impl(type_name, trait_name, project_ctx, project, loaded, typed, diags)
@@ -564,7 +578,7 @@ flatten_trait_bound :: fn(bound: TypeExpr, out: string[]!) -> void {
     match bound {
         is IdentExpr  -> { out.push(bound.name) }
         is BinaryExpr -> {
-            if bound.op == BinaryOp.BitAnd {
+            if bound.op == .BitAnd {
                 flatten_trait_bound(bound.left, out)
                 flatten_trait_bound(bound.right, out)
             }

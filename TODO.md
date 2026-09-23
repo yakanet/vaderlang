@@ -30,6 +30,67 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 - [ ] **`T[]` should satisfy a `[C: Index]` / `[C: IndexSet]` bound — DEFERRED, a dynamic-dispatch feature, not a perf one** (revisited 2026-07-20). Direct `arr[i]` / `arr[i] = v` lower to the built-in fast op (concrete `ArrayGet`/`ArraySet`, 0 alloc) and STAY that way regardless of this item — nothing here touches the array fast path. The only thing an array-`Index` impl adds is letting an array satisfy a **generic** `[C: Index]` bound; since generics are erased (.NET model), that path is *inherently* a runtime vtable dispatch (slow, rare) — not something the fast array machinery can be "moved into". Prereq **(1) — SHIPPED** (`272af6472`, snippet `generic_index_dispatch`): the index OPERATOR `c[0]` / `c[0] = v` now dispatches through a `TypeParam` `Index`/`IndexSet` bound for user **struct** implementors (`infer_index` / `check_assign` record `bounded_dispatch_trait`; `lower_index` / `lower_assign` emit a vcall). Remaining blockers, both on the **erased array receiver** (found 2026-07-20, `@intrinsic T[] implements Index/IndexSet` attempted + fully reverted): **(a) vtable key** — a concrete `i32[]` carries its element-specific type id (header `type_index`, e.g. 2) but the single materialised row is keyed on the erased `Any[]` (e.g. 8), so both the VM (`receiver_type_id_of` → `a.type_id`) and native (`switch(recv.tag)`) miss; **(b) erased primitive read/write** — the erased body emits `array.get <ref>`, whose native path (`vader_array_ref_load_box`) only handles `element_kind ∈ {REF, BOXED}`, NOT a primitive-packed buffer (`i32[]` = 4-byte slots) → would read a 24-byte box from a 4-byte slot (the VM escapes via uniform boxing). Two design options if ever needed: **A. full erasure** — extend the runtime ref-load/store helpers to box/unbox primitive elements via `element_kind` + `element_tag`, and expand the one erased row over every array type in the table (generalises to any `T[] implements Trait` virtual dispatch); **B. per-element monomorphisation** — materialise concrete `at__<elem>` / `set_at__<elem>` keyed on the concrete array type (fast reads, no runtime change, more plumbing to track which element types reach the bound). Defer until there's a real caller passing an array to a `[C: Index]` generic.
 
+- [ ] **A tuple crossing a call boundary is a heap object — measured 2026-09-21, and the answer is `for c in s`, not `dtoa`.** A `fn(...) -> [A, B]` allocates in the callee and returns `void*`; a `fn(p: [A, B])` makes the CALLER allocate. Either way the object is destructured on the receiving line and never retained.
+
+  **What it costs: 3-5 ns per crossing**, measured three independent ways (a returned pair, a parameter pair, and the `utf8_decode_len` path) and stable. GC pressure adds nothing on top — the collector is a copying Cheney, so an ephemeral tuple is never a survivor and is never traced.
+
+  **Where it does NOT matter, both checked rather than assumed:**
+  - `for [k, v] in m` — already stack-promoted. `escape.vader` sees the tuple built and destructured in one fn and emits a single `_storage` slot reused every iteration, zero `vader_gc_alloc`. The big producer is already free.
+  - `dtoa` / `fmt_float` — inlining `umul128` by hand takes `f2s` from 3 allocations per float to 1, for **2.4 % against ±5 % of noise**. Not detectable. Same checksum (`425079331`), verified.
+  - The compiler itself — only 12 fns in the whole tree return a tuple, none on a hot pass. The lexer already walks `bytes()` + `utf8_decode` by hand rather than `for c in s`, so it never pays.
+
+  **Where it does matter — `for c in s`, the plain way to walk a string.** 26.8 M codepoints, three shapes of the same loop:
+
+  | | time | per codepoint |
+  |---|---|---|
+  | `for c in s` | 316 ms | |
+  | manual loop calling `utf8_decode_len` (tuple, no iterator) | 177 ms | tuple = **3.1 ns, 26 % of the run** |
+  | manual loop, no tuple and no iterator | 95 ms | iterator = 5.1 ns, 44 % |
+
+  So the idiom costs **3.3×** its hand-written equivalent, and the tuple is a quarter of that. **The iterator machinery is the bigger half** — whoever picks this up should take that first; the tuple is the second lever, not the first.
+
+  **The shape to emit, if it is taken.** Out-params (`f(inA, inB, &outA, &outB)`) beat returning a flat struct by value on 8-byte tuples (16.4 ms vs 18.8 ms, because two `i32` packed in one register have to be unpacked) and tie past 16 bytes, where the C compiler inserts the same hidden pointer itself. Out-params are also uniform — no ABI threshold to track, no flat struct type to declare beside the GC one.
+
+  **Where it belongs: midir, not `c_emit`.** The pattern is already visible there on both sides — the callee's `struct_new` has `return` as its only use, and every use of the caller's `call` is a `field_get`. That is the analysis `escape.vader` already performs, and doing it there means the VM benefits too instead of diverging from native.
+
+  **The risk that decides whether it is worth it.** With `&outA`, the caller takes the address of a local; if the tuple carries a ref field (`[i32, string]`), that local must be a shadow-stack root BEFORE the call, initialised, or the collector scans an indeterminate slot. Today one root (the tuple pointer) covers it. A first cut restricted to all-primitive tuples sidesteps this entirely and still covers `utf8_decode_len`.
+
+- [ ] **A destructuring ASSIGNMENT parses, type-checks, and does nothing** (found 2026-09-21 by the W0015 review). SPEC destructures a `[...]` pattern in a `let` and in match arms only — `[a, b] = pair` is not a form of the language. The parser reads it anyway, as an `AssignStmt` whose target is a `SeqLitExpr`; nothing downstream rejects that shape, and the write is dropped on the way to codegen. Both backends agree on the wrong output, which places it before the split.
+
+  ```vader
+  a := 1
+  b := 2
+  [a, b] = [10, 20]
+  println("${a} ${b}")   // prints "1 2", with no diagnostic
+  ```
+
+  Pinned by `tests/snippets/_diag_destructuring_assignment/`. Either half closes it: reject the target shape at the typechecker (the cheap one — `check_assign` already branches on the target form for T3041 / T3070 / T3042), or lower it element-wise and add it to SPEC. Note that the two are not equivalent for the user: a swap has no other one-line spelling today.
+
+  W0015 counts this form as a rebinding regardless, so the warning stays right whichever way it is settled — see `vader/resolver/body.vader::note_rebind`.
+
+- [ ] **A literal constraint in a struct pattern is silently dropped** (found 2026-09-21 while validating W0014). `is P { x: 10, name }` compiles to a bare `is P`: the lowered AST holds no trace of the `10`, so the arm matches every `P`. VM and native agree, which places it in the lowerer rather than a backend. Pinned by `tests/snippets/_diag_struct_pattern_literal`, whose `vm.snapshot` currently records the wrong output on purpose.
+
+  ```vader
+  match p {
+      is P { x: 10, name } -> println("matched ten")
+      _                    -> println("fell through")
+  }
+  // p.x == 99 prints "matched ten"
+  ```
+
+  **On a non-union scrutinee the consequence is hidden**, which is why it survived: T3013 demands a wildcard on any non-union match, so the `_` is there regardless and the wrong arm is merely taken before it. The visible damage needs a UNION scrutinee, where the same over-subtraction makes the match type-check as exhaustive with no wildcard AND take the wrong arm:
+
+  ```vader
+  U :: A | B
+  pick :: fn(u: U) -> string = match u {   // accepted, no diagnostic
+      is A { v: 10 } -> "ten"
+      is B           -> "b"
+  }
+  pick(A { .v = 99 })   // "ten"
+  ```
+
+  Two halves to fix, and the second is what makes it dangerous: the lowerer must emit the field test, and `check_match`'s coverage must stop subtracting the whole of `A` for a constrained pattern — today it does, which is what lets the union case pass exhaustiveness.
+
 - [ ] **Three style rules the compiler could enforce and does not** (found 2026-09-21 while sweeping the `_ -> {}` wildcards). Each is a rule the tree already states in prose, each is checkable where the typechecker already holds the information, and each currently decays silently.
 
   **(a) A duplicate / unreachable `match` arm draws no diagnostic.** T3013 checks that no variant is MISSING; nothing checks that one is covered TWICE. Verified on the current compiler — all three forms compile and run, the second arm dead:
@@ -42,9 +103,11 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
   `is A | A` inside one or-pattern passes too. Zero occurrences in the tree today, so it does not bite yet — but it gets likelier as the `_ ->` arms go away, since an arm added to a 28-variant match is exactly where a variant gets duplicated unseen. `match_expr.vader` already collects the covered set to compute exhaustiveness; noticing an insert that is already present is the same table.
 
-  **(b) `:=` on a local that is never reassigned.** §3 of `CLAUDE.md` calls needless `:=` a style defect in as many words, and nothing checks it — heuristic sweep says ~188 of 550 sites, 35 in `vader/lexer/lexer.vader` alone. Design notes, including the trap that `x.f = 1` mutates what `x` designates rather than reassigning `x`: `.claude/plans/2026-09-21-warn-on-unreassigned-mutable.md`.
+  **(b) `:=` on a local that is never reassigned — SHIPPED as W0015** (2026-09-21). The resolver records one candidate per `:=` declaration and one entry per bare-name assignment target, then reports what is left once the file is walked. The heuristic estimate of ~188 was low by 7×: **1 763 sites** across the tree, all swept in the same landing (the fix is mechanical, and the compiler proves it — a `::` put on something that IS reassigned is T3041). Design notes: `.claude/plans/2026-09-21-warn-on-unreassigned-mutable.md`.
 
-  **(c) W0005 exempts statement-position matches.** `match_expr.vader:264` gates the warning on `!is_void(result_ty)`, so a void `match` ending in `_ -> {}` is never flagged. That is the exact class all six gaps closed on 2026-09-21 sat in (`??` and `defer` dropping comptime dependencies, four `Expr` forms the LSP's enclosing-expression walk never descended). **128** `_ -> {}` remain under `vader/` and nothing names them. The scrutinee guard is already union-or-enum, so open domains stay out, and `@partial` is already the documented opt-out — dropping the condition is one line plus fixture churn. If 128 at once is too much, scope it to unions declared under `vader/` or `toolchain/`.
+  **(c) W0005 exempts statement-position matches.** `match_expr.vader` gates the warning on `!is_void(result_ty)`, so a void `match` ending in `_ -> {}` is never flagged. That is the exact class all six gaps closed on 2026-09-21 sat in (`??` and `defer` dropping comptime dependencies, four `Expr` forms the LSP's enclosing-expression walk never descended). The scrutinee guard is already union-or-enum, so open domains stay out, and `@partial` is already the documented opt-out — dropping the condition is one line.
+
+  **Measured 2026-09-21 by dropping it and building: 197 sites**, not the 128 a `_ -> {}` grep suggested. Unlike (b) the sweep is NOT mechanical — each site is a decision between enumerating the variants and writing `@partial` with a `// @partial:` reason. The shape of the 197: **93** are a bare `_ -> {}`, the documented "do nothing for the rest" a visitor is entitled to; **85** put something in the arm, and ~40 of those are colocated tests whose `_` is an `assert_eq("expected X", "")` failure line; **15** carry a multi-line body; 4 sit in `vader/lsp/analysis/indexer.vader` where the arm is not on the following line. A narrower first cut would scope the warning to unions declared under `vader/` or `toolchain/`, or exempt an arm that only diverges.
 
   Related but NOT in this family, because exhaustiveness is structurally blind to it: a walker that handles a variant but forgets one of its **fields**. `CastExpr` carries `target` and `value`; `reference_index.vader` and `dead_code.vader` read both, `ast_walk.vader` and `indexer.vader` read only `value` — all four compile clean, and the cursor on `Foo` in `y as Foo` reaches nothing in the LSP. Same shape for `LambdaExpr.return_type`, `FnTypeExpr.params`, `ArrayTypeExpr.element`, `MutableTypeExpr.inner`. Closing that needs a shared `for_each_child` in `toolchain/ast`, modelled on `types.vader::for_each_type` — an architecture decision, not a diagnostic.
 

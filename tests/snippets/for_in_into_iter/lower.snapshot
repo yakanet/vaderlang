@@ -353,23 +353,26 @@
           arg0:
             "héllo 世界" :string
       loop
-        let __step_22: Yield<char>! | null =
-          call :Yield<char>! | null
+        let __step_22: [char, Continuation]! =
+          call :[char, Continuation]!
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
               __iter_21 :StringChars
         if :void
           cond:
-            is null :bool
-              __step_22 :Yield<char>! | null
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_22 :[char, Continuation]!
+              r:
+                int(1) :u8
           then:
             break
           else:
             let _c: char =
-              .value :char
-                cast → Yield<char>!
-                  __step_22 :Yield<char>! | null
+              ._0 :char
+                __step_22 :[char, Continuation]!
             assign
               target:
                 chars :i32

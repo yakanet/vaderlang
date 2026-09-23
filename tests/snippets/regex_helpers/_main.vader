@@ -20,9 +20,9 @@ main :: fn() -> i32 {
 
     println(replace_chars_where("std::io.print!", is_non_id, "_"))
 
-    parts := split_where("  hello  world\tfoo\n bar  ", is_white_char)
+    parts :: split_where("  hello  world\tfoo\n bar  ", is_white_char)
     println("count=${parts.len()}")
-    n := parts.len()
+    n :: parts.len()
     i: usize = 0
     for i < n {
         println(parts[i])

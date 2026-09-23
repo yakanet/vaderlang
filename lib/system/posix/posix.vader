@@ -23,7 +23,7 @@ export sys_write :: fn(fd: i32, buf: u8[], count: usize) -> isize
 export CLOCK_REALTIME :: 0
 
 /// `CLOCK_MONOTONIC`. The value is not portable: 6 on Darwin, 1 elsewhere.
-export CLOCK_MONOTONIC: i32: if VADER_OS == Os.Darwin { 6 } else { 1 }
+export CLOCK_MONOTONIC: i32: if VADER_OS == .Darwin { 6 } else { 1 }
 
 /// `opendir(3)`. NULL when `path` is not a directory, does not exist, or
 /// cannot be searched.
@@ -62,9 +62,9 @@ export EINVAL: i32: 22
 export ENOSPC: i32: 28
 export EPIPE: i32: 32
 /// Diverges: 35 on Darwin, 11 on Linux — where `EDEADLK` sits on the other.
-export EAGAIN: i32: if VADER_OS == Os.Darwin { 35 } else { 11 }
+export EAGAIN: i32: if VADER_OS == .Darwin { 35 } else { 11 }
 /// Diverges: 66 on Darwin, 39 on Linux.
-export ENOTEMPTY: i32: if VADER_OS == Os.Darwin { 66 } else { 39 }
+export ENOTEMPTY: i32: if VADER_OS == .Darwin { 66 } else { 39 }
 
 /// The calling thread's `errno`, as the LAST foreign call left it.
 ///
@@ -389,7 +389,7 @@ export Winsize :: struct {
 
 /// `TIOCGWINSZ`. A macro, and its value is not portable — it encodes the
 /// direction and the payload size, which differ between the two ioctl schemes.
-export TIOCGWINSZ: u64: if VADER_OS == Os.Darwin { 0x4008_7468 } else { 0x5413 }
+export TIOCGWINSZ: u64: if VADER_OS == .Darwin { 0x4008_7468 } else { 0x5413 }
 
 /// `ioctl(2)` for `TIOCGWINSZ`. 0 on success, -1 otherwise.
 ///

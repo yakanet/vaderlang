@@ -33,6 +33,17 @@ import "vader/resolver/symbol"
 // bucket has 2+ entries, pre-walk arg[0] and pick the overload whose
 // first param accepts it. Falls back to the initial type when no
 // overload bucket exists or none match.
+// True when the callee names a free fn with 2+ overloads — the only shape where
+// an argument's enum prefix is load-bearing. Mirrors `pick_overload`'s own gate,
+// which is where the candidates come from.
+callee_has_overloads :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
+    if c.callee !is AST.IdentExpr {
+        return false
+    }
+    name :: c.callee.name
+    return collect_overload_candidates(name, c.callee.span.start.file, typed).len() >= 2
+}
+
 pick_overload :: fn(
     c: AST.CallExpr!,
     initial: Type,
@@ -121,7 +132,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         // a fresh literal, and an inferred `::` join is not a plain array — the
         // for-in below then falls to the iterator path and the lowerer panics on an
         // unresolved `next`. Pinning the slot read-only keeps it one array type.
-        arg_vars: Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
+        arg_vars: Type[]: if arg0 is UnionType as au { au.variants } else { [arg0] }
         score: i32 = 0
         for av in arg_vars {
             for pv in param0.variants {
@@ -193,7 +204,7 @@ primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null 
 }
 
 collect_overload_candidates :: fn(name: string, file: string, typed: TypedProgram) -> FnType[] {
-    out: FnType[]! = []
+    out: FnType[]!: []
     bucket :: typed.resolved.fn_overloads[name]
     if bucket !is null {
         for sym in bucket {
@@ -227,7 +238,7 @@ seed_ufcs_bindings :: fn(
     target_ty :: typed.expr_types[callee.target.id] ?? return
     unify_type_param(receiver_ty, target_ty, bindings)
     // A struct receiver impl'ing the trait the first param expects (a concrete
-    // `FilterIterator<i32>` / `ArrayIterator<i32>` curried into `self: Iterator<T>`)
+    // `FilterIterator<i32>` / a generator state struct curried into `self: Iterator<T>`)
     // binds `T` from the impl args — `unify_type_param` can't (different nominal
     // heads). Without this a lazy combinator/terminal's SOURCE `T` stays unbound, so
     // `filter`/`take`/`skip` (element = `T`) and `collect` (`-> T[]`) erase.
@@ -283,7 +294,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
     if only_positional && c.args.len() == params.len() {
         return c.args
     }
-    slots: (AST.CallArg | null)[]! = [null] * params.len()
+    slots: (AST.CallArg | null)[]!: [null] * params.len()
     seen_named := false
     next_pos: usize = 0
     ok := true
@@ -334,7 +345,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
             }
         }
     }
-    out: AST.CallArg[]! = []
+    out: AST.CallArg[]!: []
     for i in 0..<params.len() {
         slot :: slots[i]
         if slot is AST.CallArg {
@@ -504,7 +515,7 @@ ufcs_tail_params :: fn(fd: AST.FnDecl) -> AST.FnParam[] | null {
     if fd.params.len() == 0 {
         return null
     }
-    tail: AST.FnParam![]! = []
+    tail: AST.FnParam![]!: []
     for i in 1..<fd.params.len() {
         tail.push(fd.params[i])
     }
@@ -573,7 +584,7 @@ report_unbound_type_args :: fn(
             return
         }
     }
-    unbound: Symbol[]! = []
+    unbound: Symbol[]!: []
     for p in callee_ty.params {
         collect_unbound_type_params(p, bindings, unbound)
     }
@@ -746,7 +757,7 @@ export infer_call :: fn(
         // (`fn<T>(x: T) -> T` called as `42.identity()`) still
         // substitute through the return type.
         seed_ufcs_bindings(c.callee, typed, bindings)
-        arg_types: Type[]! = []
+        arg_types: Type[]!: []
         // Lambda arguments are checked LAST. Their param type may mention a
         // type-param that nothing has bound yet — one a later argument, or the
         // call's `expected`, resolves. Checking `() -> []` against an
@@ -785,7 +796,7 @@ export infer_call :: fn(
             // the authoritative pass below re-runs them against `diags`.
             // Bounded by the argument count : every round that continues has
             // bound at least one more type-param.
-            scratch: Diagnostic[]! = []
+            scratch: Diagnostic[]!: []
             for 0..<n {
                 before :: bindings.len()
                 for i in 0..<n {
@@ -868,6 +879,12 @@ export infer_call :: fn(
         }
         return concrete_ret
     }
+    // See `TypedProgram.overloaded_arg_depth`. Raised around the ARGUMENTS only:
+    // the callee was typed above, and the loop below has no early return.
+    overloaded :: callee_has_overloads(c, typed)
+    if overloaded {
+        typed.overloaded_arg_depth = typed.overloaded_arg_depth + 1
+    }
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
@@ -882,6 +899,9 @@ export infer_call :: fn(
         diags.push(mismatch_diagnostic_hinted(
                 arg_ty, param_ty, c.args[i].span, .TypeMismatch,
                 mutability_level_hint(c.args[i].value, arg_ty, param_ty, typed)))
+    }
+    if overloaded {
+        typed.overloaded_arg_depth = typed.overloaded_arg_depth - 1
     }
     widen_empty_array_on_push(c, typed)
     if diverges {
@@ -926,7 +946,7 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram!) -> void {
     }
     target_ident :: field_callee.target
     symbol :: typed.resolved.idents[target_ident.span.hash()] ?? return
-    if symbol.kind != SymbolKind.Local {
+    if symbol.kind != .Local {
         return
     }
     binding_span :: symbol.defined_at ?? return
@@ -1217,7 +1237,7 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl {
@@ -1260,7 +1280,7 @@ main :: fn() -> i32 { return add(1, 2) }
     match fx.call {
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[]! = []
+            diags: Diagnostic[]!: []
             assert_eq(display_type(infer_call(c, null, fx.typed, diags, call_check_stub)), "i32")
             assert_eq(diags.len(), 0)
         }
@@ -1277,7 +1297,7 @@ main :: fn() -> i32 { return add(1) }
     match fx.call {
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[]! = []
+            diags: Diagnostic[]!: []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3005")
@@ -1295,7 +1315,7 @@ main :: fn() -> i32 { return add(1, 2, 3) }
     match fx.call {
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[]! = []
+            diags: Diagnostic[]!: []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3003")
@@ -1312,7 +1332,7 @@ f :: fn() -> i32 { return i32("hello") }
     match fx.call {
         is null              -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[]! = []
+            diags: Diagnostic[]!: []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             found := false
             for d in diags {
@@ -1334,7 +1354,7 @@ f :: fn(a: i32) -> i64 { return i64(a) }
     match fx.call {
         is null              -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[]! = []
+            diags: Diagnostic[]!: []
             assert_eq(display_type(infer_call(c, null, fx.typed, diags, call_check_stub)), "i64")
             found := false
             for d in diags {
@@ -1357,7 +1377,7 @@ main :: fn() -> i32 { return greet(1) }
     match fx.call {
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[]! = []
+            diags: Diagnostic[]!: []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             // The omitted trailing param is filled from its default.
             assert_eq(c.args.len(), 2)
@@ -1375,7 +1395,7 @@ main :: fn() -> void { greet(42) }
     match fx.call {
         is null              -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
-            diags: Diagnostic[]! = []
+            diags: Diagnostic[]!: []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             // FreeInt is not assignable to string ; T3001 fires.
             found := false
@@ -1435,7 +1455,7 @@ element_bits_cleared :: fn(t: Type) -> Type = match t {
 }
 
 arg_mutability_cleared_each :: fn(ts: Type[]) -> Type[] {
-    out: Type[]! = []
+    out: Type[]!: []
     for t in ts { out.push(arg_mutability_cleared(t)) }
     return out
 }

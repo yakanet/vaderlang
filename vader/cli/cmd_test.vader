@@ -67,7 +67,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         all_tests :: find_tests(pruned)
         // Stdlib modules surface under nearly every rep (imported transitively) ;
         // run each unique @test once across the whole invocation.
-        fresh: DiscoveredTest[]! = []
+        fresh: DiscoveredTest[]!: []
         for t in all_tests {
             if !(t.mangled in ran) { fresh.push(t) }
         }
@@ -76,7 +76,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         }
         files_with_tests += 1
         println(rep)
-        mangles: string[]! = []
+        mangles: string[]!: []
         for t in fresh { mangles.push(t.mangled) }
         module :: cfg_to_bytecode(
             pruned, module_name_from_file(rep),
@@ -129,7 +129,7 @@ DiscoveredTest :: struct {
 /// whose origin AST `FnDecl` carries a `@test` decorator. Display name is the
 /// fn's source name (the rare `@test("custom")` string arg is not surfaced).
 find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
-    out: DiscoveredTest[]! = []
+    out: DiscoveredTest[]!: []
     for [_, m] in lp.modules {
         for d in m.decls {
             if d is LoweredFnDecl {
@@ -162,7 +162,7 @@ has_test_decorator :: fn(ast: FnDecl) -> bool {
 /// Recursively collect every `.vader` file under `target` (or `target` itself
 /// when it's a single `.vader` file). Skips `SKIP_TEST_DIRS` + dot-entries.
 discover_vader_files :: fn(target: Path) -> Path[] {
-    out: Path[]! = []
+    out: Path[]!: []
     if !exists(target.as_string()) { return out }
     if is_dir(target.as_string()) {
         walk_test_dir(target, out)
@@ -212,11 +212,11 @@ pick_module_representatives :: fn(files: Path[]) -> Path[] {
         if existing is Path[] {
             existing.push(f)
         } else {
-            bucket: Path[]! = [f]
+            bucket: Path[]!: [f]
             by_dir[d] = bucket
         }
     }
-    out: Path[]! = []
+    out: Path[]!: []
     for [d, group] in by_dir {
         if group.len() <= 1 {
             out.push(group[0])
@@ -249,7 +249,7 @@ FileFacts :: struct {
 
 // The declared module + imported module paths of every file in `group`, in order.
 group_facts :: fn(group: Path[]) -> FileFacts[] {
-    out: FileFacts[]! = []
+    out: FileFacts[]!: []
     for f in group {
         out.push(file_facts(f))
     }
@@ -266,7 +266,7 @@ file_facts :: fn(f: Path) -> FileFacts {
     }
     header :: parse_module_header(src, f.as_string())
     declared :: if header is ModuleHeader as h { h.name } else { "" }
-    imports: string[]! = []
+    imports: string[]!: []
     for line in src.split("\n") {
         path :: import_path(line)
         if path != "" && !(path in imports) {
@@ -309,13 +309,13 @@ is_folder_module :: fn(facts: FileFacts[]) -> bool {
 /// result means these files are separate modules and the importers are the entry
 /// points, so the imported ones need no representative of their own.
 sibling_imported_modules :: fn(facts: FileFacts[]) -> string[] {
-    declared: string[]! = []
+    declared: string[]!: []
     for f in facts {
         if f.declared != "" {
             declared.push(f.declared)
         }
     }
-    out: string[]! = []
+    out: string[]!: []
     for f in facts {
         for path in f.imports {
             // A file importing its OWN module is not a sibling import.

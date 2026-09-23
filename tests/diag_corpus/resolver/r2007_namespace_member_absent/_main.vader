@@ -14,7 +14,7 @@ module "snippet"
 L :: import "snippet/lib"
 
 main :: fn() -> i32 {
-    v: L.Either = L.Real { .n = 1 }
+    v: L.Either: L.Real { .n = 1 }
     return match v {
         is L.Absent -> 2
         is L.Real   -> 1

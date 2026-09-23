@@ -38,7 +38,7 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
     // The index keeps the source but not the AST ; re-parse (lexer + parser
     // only, no resolve) to walk the import decls. documentLink isn't hot.
     parsed :: parse_source(idx.source, uri)
-    links: JsonValue[]! = []
+    links: JsonValue[]!: []
     // Once, not per import: the roots come from one `vader.json` walk-up, and the
     // library root costs a manifest read + JSON parse to find. Resolving them
     // inside the loop cost that per import declaration — 8 manifest parses for a

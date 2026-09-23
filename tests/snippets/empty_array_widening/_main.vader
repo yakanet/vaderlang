@@ -22,21 +22,21 @@ sum_of :: fn(xs: i32[]) -> i32 {
 
 main :: fn() -> i32 {
     // Inferred from the first push, then grown well past the initial capacity.
-    numbers := []
+    numbers :: []
     for i in 0..<9 {
         numbers.push(i)
     }
     println("i32    len=${numbers.len()} first=${numbers[0]} last=${numbers[8]} sum=${sum_of(numbers)}")
 
     // A reference element type takes the same path.
-    names := []
+    names :: []
     for i in 0..<9 {
         names.push("n${i}")
     }
     println("string len=${names.len()} first=${names[0]} last=${names[8]}")
 
     // The annotated form, as the control — it never lost its element type.
-    annotated: i32[]! = []
+    annotated: i32[]!: []
     for i in 0..<9 {
         annotated.push(i * 2)
     }

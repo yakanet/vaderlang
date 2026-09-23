@@ -1,0 +1,5 @@
+# stdout
+direct a=10 b=11
+value  c=20 d=21
+# exit
+62

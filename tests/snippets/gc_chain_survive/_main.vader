@@ -16,11 +16,11 @@ main :: fn() -> i32 {
         i = i + 1
     }
 
-    before := collections()
+    before :: collections()
     collect()
-    after := collections()
+    after :: collections()
 
-    diff := after - before
+    diff :: after - before
     if diff != 1 {
         println("expected 1 collection, got ${diff}")
         return 1

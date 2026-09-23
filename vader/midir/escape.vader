@@ -18,12 +18,30 @@
 module "vader/midir"
 
 import "std/collections"
+import "std/io"
+import "std/string_builder"
 import "vader/bytecode"
+import "vader/lower"
 import "vader/types"
 
 export EscapeStats :: struct {
     total_allocs: i32
     stack_promoted: i32
+    /// Allocation sites left on the heap, for `$VADER_OPT_REPORT`. The STATE, not
+    /// an attempt: whatever route left `stack` false, this allocation costs a
+    /// `vader_gc_alloc` and a shadow-stack root. Only filled when the report is
+    /// on — see `vader/lower/opt_report.vader`.
+    heap_sites: EscapeSite[]! = []
+}
+
+/// One allocation the escape pass could not put on the stack.
+export EscapeSite :: struct {
+    span: Span
+    /// `struct` or `array` — what was allocated.
+    kind: string
+    /// The allocated type, rendered. Says whether a site is a candidate for a
+    /// scalarised ABI (a small all-primitive tuple) or structurally cannot be.
+    type_name: string
 }
 
 export AnnotatedProject :: struct {
@@ -37,9 +55,13 @@ export AnnotatedProject :: struct {
 export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
     total_allocs := 0
     stack_promoted := 0
+    // Recording every heap site costs one push per allocation, so it is gated on
+    // the same env the lowering report uses.
+    want_sites :: opt_report_enabled()
+    heap_sites: EscapeSite[]!: []
     modules :: MutableMap<string, CFGModule> {}
     for [_, m] in p.modules {
-        functions: CFGFunction[]! = []
+        functions: CFGFunction[]!: []
         for fn_ in m.functions {
             annotated :: annotate_function(fn_)
             for b in annotated.blocks {
@@ -47,11 +69,25 @@ export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
                     match ins {
                         is InstrStructNew -> {
                             total_allocs = total_allocs + 1
-                            if ins.stack { stack_promoted = stack_promoted + 1 }
+                            if ins.stack {
+                                stack_promoted = stack_promoted + 1
+                            } else if want_sites {
+                                heap_sites.push(EscapeSite {
+                                    .span = ins.span, .kind = "struct",
+                                    .type_name = display_type(ins.type),
+                                })
+                            }
                         }
                         is InstrArrayNew -> {
                             total_allocs = total_allocs + 1
-                            if ins.stack { stack_promoted = stack_promoted + 1 }
+                            if ins.stack {
+                                stack_promoted = stack_promoted + 1
+                            } else if want_sites {
+                                heap_sites.push(EscapeSite {
+                                    .span = ins.span, .kind = "array",
+                                    .type_name = display_type(ins.type),
+                                })
+                            }
                         }
                         _ -> {}
                     }
@@ -61,13 +97,13 @@ export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
         }
         modules[m.module_id] = CFGModule { .module_id = m.module_id, .display_path = m.display_path, .functions = functions, .externs = m.externs, .struct_decls = m.struct_decls }
     }
-    return AnnotatedProject { .project = CFGProject { ...p, .modules = modules }, .stats = EscapeStats { .total_allocs = total_allocs, .stack_promoted = stack_promoted } }
+    return AnnotatedProject { .project = CFGProject { ...p, .modules = modules }, .stats = EscapeStats { .total_allocs = total_allocs, .stack_promoted = stack_promoted, .heap_sites = heap_sites } }
 }
 
 annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     // Collect alloc-producing locals.
     alloc_locals :: MutableSet<LocalId> {}
-    struct_news: LocalId[]! = []
+    struct_news: LocalId[]!: []
     for b in fn_.blocks {
         for ins in b.instructions {
             @partial match ins {
@@ -122,10 +158,10 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     }
     // Rewrite blocks if any flag changed.
     mutated := false
-    new_blocks: BasicBlock[]! = []
+    new_blocks: BasicBlock[]!: []
     for b in fn_.blocks {
         block_mutated := false
-        new_instrs: Instruction[]! = []
+        new_instrs: Instruction[]!: []
         for ins in b.instructions {
             match ins {
                 is InstrStructNew -> {
@@ -174,7 +210,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
         new_blocks.push(BasicBlock { .id = b.id, .instructions = new_instrs, .terminator = b.terminator, .span = b.span })
     }
     if !mutated { return fn_ }
-    return CFGFunction { .mangled = fn_.mangled, .params = fn_.params, .return_type = fn_.return_type, .locals = fn_.locals, .blocks = new_blocks, .entry = fn_.entry, .origin = fn_.origin, .extern_name = fn_.extern_name, .is_extern = fn_.is_extern, .is_exported = fn_.is_exported }
+    return CFGFunction { ...fn_, .blocks = new_blocks }
 }
 
 // ---- loop-carried detection ----------------------------------------------
@@ -193,8 +229,13 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap
         for b_id in body {
             block :: fn_.blocks[i32(b_id)]
             for ins in block.instructions {
-                d :: dst_of(ins)
-                if d != null { defs_in_body.add(d) }
+                multi :: multi_dsts(ins)
+                if multi != null {
+                    for l in multi { defs_in_body.add(l) }
+                } else {
+                    d :: dst_of(ins)
+                    if d != null { defs_in_body.add(d) }
+                }
             }
         }
         for l in live.live_in[i32(header)] {
@@ -289,7 +330,9 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
             }
         }
         if b.terminator is TermReturn as r {
-            if r.value != null { escaping.add(r.value) }
+            for v in r.values {
+                escaping.add(v)
+            }
         }
     }
     // Backward propagation : if dst escapes and aliases src, src escapes too.
@@ -323,7 +366,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
 // scalar reads (ints, floats, bool, char, string atoms, enums) are by value.
 read_may_carry_ref :: fn(t: Type) -> bool {
     v :: val_type_of_type(t)
-    return v == ValType.Ref || v == ValType.Any
+    return v == .Ref || v == .Any
 }
 
 append_alias :: fn(map: MutableMap<LocalId, LocalId[]!>!, dst: LocalId, src: LocalId) -> void {
@@ -337,4 +380,23 @@ append_alias :: fn(map: MutableMap<LocalId, LocalId[]!>!, dst: LocalId, src: Loc
 record_alias :: fn(alias_of: MutableMap<LocalId, LocalId[]!>!, alias_from: MutableMap<LocalId, LocalId[]!>!, dst: LocalId, src: LocalId) -> void {
     append_alias(alias_of, dst, src)
     append_alias(alias_from, src, dst)
+}
+
+/// Print the allocations escape analysis left on the heap, grouped by fn-less
+/// site. A no-op when the report is off or nothing stayed heap-bound.
+///
+/// Separate from the lowering report because this pass runs after the lowering
+/// context is released; both read the same `$VADER_OPT_REPORT`.
+export report_heap_allocations :: fn(stats: EscapeStats) -> void {
+    if stats.heap_sites.len() == 0 {
+        return
+    }
+    out :: StringBuilder {}
+    out.append("\n[VADER_OPT_REPORT] allocations escape analysis could not put on the stack\n")
+    out.append("  heap: ${stats.heap_sites.len()} of ${stats.total_allocs} (stack-promoted: ${stats.stack_promoted})\n\n  sites:\n")
+    for site in stats.heap_sites {
+        at :: "${site.span.start.file}:${site.span.start.line}:${site.span.start.column}"
+        out.append("    [${at}] ${site.kind} ${site.type_name} escapes its fn — heap, plus a shadow-stack root\n")
+    }
+    eprintln(out.to_string())
 }

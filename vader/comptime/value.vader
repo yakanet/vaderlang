@@ -160,7 +160,7 @@ ARRAY_DISPLAY_CAP  :: 16   // truncate arrays longer than this ...
 ARRAY_DISPLAY_HEAD :: 8    // ... showing this many leading elements + the count
 
 render_array :: fn(array: ArrayValue) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     sb.append_char('[')
     n :: array.elements.len()
     truncated :: n > usize(ARRAY_DISPLAY_CAP)
@@ -181,7 +181,7 @@ render_array :: fn(array: ArrayValue) -> string {
 // state ; relying on it would silently drift snapshots once Phase 4
 // starts populating maps from different code paths.
 render_struct :: fn(struct_value: StructValue) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     sb.append(struct_value.type_name)
     sb.append(" { ")
     names :: sort(struct_value.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
@@ -221,14 +221,14 @@ import "std/testing"
 }
 
 @test test_display_array :: fn() -> void {
-    elements: ComptimeValue[] = [int_val(1), int_val(2), int_val(3)]
+    elements: ComptimeValue[]: [int_val(1), int_val(2), int_val(3)]
     array_value :: ArrayValue { .elements = elements, .element_type_name = "i32" }
     assert_eq(display_value(array_value), "[1_i32, 2_i32, 3_i32]")
 }
 
 @test test_display_array_truncated :: fn() -> void {
     // Arrays longer than ARRAY_DISPLAY_CAP show the first 8 + the total length.
-    elements: ComptimeValue[]! = []
+    elements: ComptimeValue[]!: []
     for i in 0..<20 { elements.push(int_val(i64(i))) }
     array_value :: ArrayValue { .elements = elements, .element_type_name = "i32" }
     assert_eq(

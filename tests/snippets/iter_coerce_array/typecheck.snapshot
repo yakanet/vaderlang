@@ -5,38 +5,40 @@
   FnDecl         make_iter            :: fn() -> Iterator<i32>
   FnDecl         walk                 :: fn(Iterator<i32>) -> i32
   expr 17:9     IdentExpr      :: bool
-  expr 18:15    CallExpr       :: null | Yield<i32>!
-  expr 18:15    FieldExpr      :: fn() -> null | Yield<i32>!
-  expr 18:15    IdentExpr      :: Iterator<i32>
-  expr 18:9     MatchExpr      :: void
-  expr 19:26    IdentExpr      :: bool
-  expr 20:37    IdentExpr      :: i32
-  expr 20:43    BinaryExpr     :: i32
-  expr 20:43    IdentExpr      :: i32
-  expr 20:49    FieldExpr      :: i32
-  expr 20:49    IdentExpr      :: Yield<i32>!
-  expr 23:12    IdentExpr      :: i32
-  expr 27:12    SeqLitExpr     :: i32[]!
-  expr 28:12    IdentExpr      :: i32[]!
-  expr 33:10    CallExpr       :: i32
-  expr 33:10    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 33:15    SeqLitExpr     :: i32[]!
-  expr 36:37    SeqLitExpr     :: i32[]!
-  expr 37:39    SeqLitExpr     :: i32[]!
-  expr 38:10    BinaryExpr     :: i32
-  expr 38:10    CallExpr       :: i32
-  expr 38:10    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 38:15    IdentExpr      :: Iterator<i32>
-  expr 38:33    CallExpr       :: i32
-  expr 38:33    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 38:38    IdentExpr      :: Iterator<i32>
-  expr 41:10    CallExpr       :: i32
-  expr 41:10    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 41:15    CallExpr       :: Iterator<i32>
-  expr 41:15    IdentExpr      :: fn() -> Iterator<i32>
-  expr 43:13    StringLitExpr  :: string
-  expr 43:18    IdentExpr      :: i32
-  expr 43:25    IdentExpr      :: i32
-  expr 43:32    IdentExpr      :: i32
-  expr 43:5     CallExpr       :: void
-  expr 43:5     IdentExpr      :: fn(T) -> void
+  expr 18:19    CallExpr       :: [i32, Continuation]!
+  expr 18:19    FieldExpr      :: fn() -> [i32, Continuation]!
+  expr 18:19    IdentExpr      :: Iterator<i32>
+  expr 19:12    BinaryExpr     :: bool
+  expr 19:12    IdentExpr      :: Continuation
+  expr 19:17    DotVariantExpr :: Continuation
+  expr 19:9     IfExpr         :: void
+  expr 20:13    IdentExpr      :: bool
+  expr 22:13    IdentExpr      :: i32
+  expr 22:19    BinaryExpr     :: i32
+  expr 22:19    IdentExpr      :: i32
+  expr 22:25    IdentExpr      :: i32
+  expr 25:12    IdentExpr      :: i32
+  expr 29:12    SeqLitExpr     :: i32[]!
+  expr 30:12    IdentExpr      :: i32[]!
+  expr 35:10    CallExpr       :: i32
+  expr 35:10    IdentExpr      :: fn(Iterator<i32>) -> i32
+  expr 35:15    SeqLitExpr     :: i32[]!
+  expr 38:36    SeqLitExpr     :: i32[]!
+  expr 39:39    SeqLitExpr     :: i32[]!
+  expr 40:10    BinaryExpr     :: i32
+  expr 40:10    CallExpr       :: i32
+  expr 40:10    IdentExpr      :: fn(Iterator<i32>) -> i32
+  expr 40:15    IdentExpr      :: Iterator<i32>
+  expr 40:33    CallExpr       :: i32
+  expr 40:33    IdentExpr      :: fn(Iterator<i32>) -> i32
+  expr 40:38    IdentExpr      :: Iterator<i32>
+  expr 43:10    CallExpr       :: i32
+  expr 43:10    IdentExpr      :: fn(Iterator<i32>) -> i32
+  expr 43:15    CallExpr       :: Iterator<i32>
+  expr 43:15    IdentExpr      :: fn() -> Iterator<i32>
+  expr 45:13    StringLitExpr  :: string
+  expr 45:18    IdentExpr      :: i32
+  expr 45:25    IdentExpr      :: i32
+  expr 45:32    IdentExpr      :: i32
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(T) -> void

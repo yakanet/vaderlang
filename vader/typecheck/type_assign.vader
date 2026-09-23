@@ -457,8 +457,8 @@ test_assignable_never_to_anything :: fn() -> void {
 
 @test
 test_assignable_into_union :: fn() -> void {
-    i32_t: Type = mk_primitive("i32")
-    str_t: Type = mk_primitive("string")
+    i32_t: Type: mk_primitive("i32")
+    str_t: Type: mk_primitive("string")
     u :: mk_union([i32_t, str_t])
     assert(is_assignable(mk_primitive("i32"), u), "i32 → i32 | string")
     assert(!is_assignable(mk_primitive("bool"), u), "bool → i32 | string forbidden")
@@ -466,8 +466,8 @@ test_assignable_into_union :: fn() -> void {
 
 @test
 test_assignable_array_mut_into_const :: fn() -> void {
-    mut_arr: Type = mk_array(mk_primitive("i32"), false)
-    const_arr: Type = mk_array(mk_primitive("i32"), true)
+    mut_arr: Type: mk_array(mk_primitive("i32"), false)
+    const_arr: Type: mk_array(mk_primitive("i32"), true)
     assert(is_assignable(mut_arr, const_arr), "T[]! → T[]")
     assert(!is_assignable(const_arr, mut_arr), "T[] ↛ T[]!")
 }
@@ -476,9 +476,9 @@ test_assignable_array_mut_into_const :: fn() -> void {
 test_array_mutable_element_invariant :: fn() -> void {
     // Covariance into a MUTABLE array is unsound (reference aliasing) — reject
     // both directions ; only an exact element type flows.
-    i32_arr:        Type = mk_array(mk_primitive("i32"), false)
-    union_arr_mut:  Type = mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), false)
-    union_arr_mut2: Type = mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), false)
+    i32_arr:        Type: mk_array(mk_primitive("i32"), false)
+    union_arr_mut:  Type: mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), false)
+    union_arr_mut2: Type: mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), false)
     assert(!is_assignable(i32_arr, union_arr_mut),
         "i32[] ↛ (i32 | string)[] (mutable — invariant)")
     assert(!is_assignable(union_arr_mut, i32_arr), "(i32 | string)[] ↛ i32[] (mutable)")
@@ -491,8 +491,8 @@ test_struct_args_invariant :: fn() -> void {
     // Generic container type-args are invariant : the covariant widen of a
     // mutable container (`MutableMap<i32, i32>` → `MutableMap<i32, i32 | string>`)
     // is the reference-aliasing hole rejected here — same as the mutable array.
-    i32_t: Type = mk_primitive("i32")
-    wide:  Type = mk_union([mk_primitive("i32"), mk_primitive("string")])
+    i32_t: Type: mk_primitive("i32")
+    wide:  Type: mk_union([mk_primitive("i32"), mk_primitive("string")])
     assert(struct_args_compatible([i32_t], [i32_t]), "[i32] → [i32] (equal args)")
     assert(!struct_args_compatible([i32_t], [wide]), "[i32] ↛ [i32 | string] (invariant)")
     assert(!struct_args_compatible([wide], [i32_t]), "[i32 | string] ↛ [i32] (invariant)")
@@ -501,8 +501,8 @@ test_struct_args_invariant :: fn() -> void {
 @test
 test_array_const_element_covariant :: fn() -> void {
     // Covariance into a CONST (read-only) array is sound — accept.
-    i32_arr:         Type = mk_array(mk_primitive("i32"), false)
-    union_arr_const: Type = mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), true)
+    i32_arr:         Type: mk_array(mk_primitive("i32"), false)
+    union_arr_const: Type: mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), true)
     assert(is_assignable(i32_arr, union_arr_const),
         "i32[] → const (i32 | string)[] (covariant read-only)")
 }
@@ -511,8 +511,8 @@ test_array_const_element_covariant :: fn() -> void {
 test_array_unresolved_element_wildcard :: fn() -> void {
     // An Unresolved element (what an empty `[]` literal carries) stays a
     // wildcard both ways, so invariance never rejects it.
-    unresolved_arr: Type = mk_array(TY_UNRESOLVED, false)
-    i32_arr:        Type = mk_array(mk_primitive("i32"), false)
+    unresolved_arr: Type: mk_array(TY_UNRESOLVED, false)
+    i32_arr:        Type: mk_array(mk_primitive("i32"), false)
     assert(is_assignable(unresolved_arr, i32_arr), "?[] → i32[] (mutable — wildcard)")
     assert(is_assignable(i32_arr, unresolved_arr), "i32[] → ?[] (mutable — wildcard)")
 }

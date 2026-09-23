@@ -3,6 +3,7 @@
 ## tests/snippets/std_regex
 
 ## generic instances
+  __genstate_array_iter<T>
   Into<Target>
   Add<Rhs, Out>
   ArrayOps<T>
@@ -16,10 +17,7 @@
   Iterator<char>
   Iterator<T>
   Iterator<T>
-  Yield<char>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<char>
   Range<i32>
@@ -27,6 +25,3 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

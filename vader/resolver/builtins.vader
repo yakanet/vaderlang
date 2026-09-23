@@ -30,7 +30,7 @@ BUILTIN_EXTRA_NAMES :: ["Self", "type"]
 /// and are embedded in snapshots, so the three sources are concatenated in a
 /// fixed order rather than re-listed here.
 builtin_type_names :: fn() -> string[] {
-    out: string[]! = []
+    out: string[]!: []
     for m in PRIMITIVE_META { out.push(m.name) }
     for a in PRIMITIVE_ALIASES { out.push(a[0]) }
     for e in BUILTIN_EXTRA_NAMES { out.push(e) }
@@ -69,7 +69,7 @@ test_builtin_scope_includes_i32 :: fn() -> void {
     match sym {
         is Symbol -> {
             assert_eq(sym.name, "i32")
-            assert(sym.kind == SymbolKind.BuiltinType, "i32 must be BuiltinType")
+            assert(sym.kind == .BuiltinType, "i32 must be BuiltinType")
             assert_eq(sym.module, BUILTIN_MODULE_ID)
         }
         is null -> { assert(false, "i32 should be in builtin scope") }

@@ -80,7 +80,7 @@ export include_paths :: fn(
     // because the caller named that file, so the entry is the project's own code
     // whatever directory it sits under (see `ModuleOrigin.Build`), and a generated
     // tree is written by this build.
-    paths: IncludePath[]! = [
+    paths: IncludePath[]!: [
         IncludePath { .dir = entry_folder, .prefix = entry_module, .origin = .Build },
     ]
     paths.push_all(plain)
@@ -128,7 +128,7 @@ export resolve_lazy :: fn(
     // the one line that knows it. A later contribution from a merge root does not
     // change it: identity belongs to the first root to declare the module.
     origin := ModuleOrigin.Build
-    files: string[]! = []
+    files: string[]!: []
     for pi in 0..<paths.len() {
         // Once the module is found, only a MERGE root is still worth probing:
         // every other root is shadowed, first match wins. Skipping BEFORE the
@@ -175,7 +175,7 @@ export resolve_lazy :: fn(
 /// @param paths  the include-paths that were searched.
 /// @return       the wrong `module` name declared at `name`'s location, or null.
 export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string | null {
-    discard: Diagnostic[]! = []
+    discard: Diagnostic[]!: []
     for pi in 0..<paths.len() {
         cand_opt :: rooted_candidate(paths[pi], name) ?? continue
         cand :: cand_opt
@@ -245,13 +245,13 @@ export preresolve_imports :: fn(
 // `discover.vader::walk_dir` (which recurses) — lazy never descends.
 scan_folder :: fn(dir: string, diags: Diagnostic[]!) -> FolderBucket | null {
     entries_opt :: read_dir(dir)
-    raw: string[] = match entries_opt {
+    raw: string[]: match entries_opt {
         is string[]! as ss -> ss
         is IOError -> []
     }
     if raw.len() == 0 { return null }
     sorted :: sort(raw, (a: string, b: string) -> compare_ascending(a, b))
-    files_here: string[]! = []
+    files_here: string[]!: []
     for name in sorted {
         full :: join_path(dir, name)
         if name.ends_with(".vader") && !is_dir(full) { files_here.push(full) }

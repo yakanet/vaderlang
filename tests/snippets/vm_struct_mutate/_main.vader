@@ -6,7 +6,7 @@ module "snippet"
 Counter :: struct { value: i32 }
 
 main :: fn() -> i32 {
-    c := Counter { .value = 0 }
+    c :: Counter { .value = 0 }
     c.value = 100
     return c.value
 }

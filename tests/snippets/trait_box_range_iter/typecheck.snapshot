@@ -9,39 +9,42 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         twice                :: fn(Doubler<T>) -> T
   expr 16:9     IdentExpr      :: bool
-  expr 17:15    CallExpr       :: null | Yield<T>!
-  expr 17:15    FieldExpr      :: fn() -> null | Yield<T>!
-  expr 17:15    IdentExpr      :: Iterator<T>
-  expr 17:9     MatchExpr      :: void
-  expr 18:26    IdentExpr      :: bool
-  expr 19:30    IdentExpr      :: i32
-  expr 19:34    BinaryExpr     :: i32
-  expr 19:34    IdentExpr      :: i32
-  expr 22:12    IdentExpr      :: i32
-  expr 37:41    BinaryExpr     :: i32
-  expr 37:41    IdentExpr      :: i32
-  expr 37:48    IdentExpr      :: i32
-  expr 41:12    CallExpr       :: T
-  expr 41:12    FieldExpr      :: fn() -> T
-  expr 41:12    IdentExpr      :: Greeter<T>
-  expr 45:12    CallExpr       :: T
-  expr 45:12    FieldExpr      :: fn() -> T
-  expr 45:12    IdentExpr      :: Doubler<T>
-  expr 49:10    CallExpr       :: i32
-  expr 49:10    IdentExpr      :: fn(Iterator<T>) -> i32
-  expr 49:16    RangeExpr      :: Range<i32>!
-  expr 50:10    CallExpr       :: i32
-  expr 50:10    IdentExpr      :: fn(Iterator<T>) -> i32
-  expr 50:16    SeqLitExpr     :: i32[]!
+  expr 17:19    CallExpr       :: [T, Continuation]!
+  expr 17:19    FieldExpr      :: fn() -> [T, Continuation]!
+  expr 17:19    IdentExpr      :: Iterator<T>
+  expr 18:12    BinaryExpr     :: bool
+  expr 18:12    IdentExpr      :: Continuation
+  expr 18:17    DotVariantExpr :: Continuation
+  expr 18:9     IfExpr         :: void
+  expr 19:13    IdentExpr      :: bool
+  expr 21:13    IdentExpr      :: i32
+  expr 21:17    BinaryExpr     :: i32
+  expr 21:17    IdentExpr      :: i32
+  expr 24:12    IdentExpr      :: i32
+  expr 39:41    BinaryExpr     :: i32
+  expr 39:41    IdentExpr      :: i32
+  expr 39:48    IdentExpr      :: i32
+  expr 43:12    CallExpr       :: T
+  expr 43:12    FieldExpr      :: fn() -> T
+  expr 43:12    IdentExpr      :: Greeter<T>
+  expr 47:12    CallExpr       :: T
+  expr 47:12    FieldExpr      :: fn() -> T
+  expr 47:12    IdentExpr      :: Doubler<T>
   expr 51:10    CallExpr       :: i32
-  expr 51:10    IdentExpr      :: fn(Greeter<T>) -> T
-  expr 51:17    StructLitExpr  :: Hello!
+  expr 51:10    IdentExpr      :: fn(Iterator<T>) -> i32
+  expr 51:16    RangeExpr      :: Range<i32>!
   expr 52:10    CallExpr       :: i32
-  expr 52:10    IdentExpr      :: fn(Doubler<T>) -> T
-  expr 53:12    BinaryExpr     :: i32
-  expr 53:12    BinaryExpr     :: i32
-  expr 53:12    BinaryExpr     :: i32
-  expr 53:12    IdentExpr      :: i32
-  expr 53:16    IdentExpr      :: i32
-  expr 53:20    IdentExpr      :: i32
-  expr 53:24    IdentExpr      :: i32
+  expr 52:10    IdentExpr      :: fn(Iterator<T>) -> i32
+  expr 52:16    SeqLitExpr     :: i32[]!
+  expr 53:10    CallExpr       :: i32
+  expr 53:10    IdentExpr      :: fn(Greeter<T>) -> T
+  expr 53:17    StructLitExpr  :: Hello!
+  expr 54:10    CallExpr       :: i32
+  expr 54:10    IdentExpr      :: fn(Doubler<T>) -> T
+  expr 55:12    BinaryExpr     :: i32
+  expr 55:12    BinaryExpr     :: i32
+  expr 55:12    BinaryExpr     :: i32
+  expr 55:12    IdentExpr      :: i32
+  expr 55:16    IdentExpr      :: i32
+  expr 55:20    IdentExpr      :: i32
+  expr 55:24    IdentExpr      :: i32

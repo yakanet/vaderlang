@@ -152,7 +152,7 @@ export with_immutable :: fn(t: Type, immutable: bool) -> Type = match t {
 }
 
 with_immutable_each :: fn(variants: Type[], immutable: bool) -> Type[] {
-    out: Type[]! = []
+    out: Type[]!: []
     for v in variants { out.push(with_immutable(v, immutable)) }
     return out
 }
@@ -198,7 +198,7 @@ export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Ty
     // variant nobody marked.
     if t is UnionType {
         wv :: written_union_variants(written)
-        out: Type[]! = []
+        out: Type[]!: []
         for v in t.variants {
             // The variant's CHILDREN take the default too, exactly as they do
             // outside a union. Setting only the variant's own bit made `Box[] | null`
@@ -271,7 +271,7 @@ readonly_children :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
         return mk_array(apply_readonly_default(t.element, elem_written), t.immutable)
     }
     if t is TupleType {
-        elems: Type[]! = []
+        elems: Type[]!: []
         for i in 0..<t.elements.len() {
             el_written: AST.TypeExpr | null = null
             if written is AST.SeqLitExpr {
@@ -312,14 +312,49 @@ export narrowing_immutability :: fn(scrutinee: Type, narrowed: Type) -> bool {
 /// `display_type` output for stability. Empty / all-Never input
 /// collapses to `Never`.
 export union_of :: fn(variants: Type[]) -> Type {
-    dedup: Type[]! = []
+    dedup: Type[]!: []
     for v in variants {
         v.collect_variant(dedup)
     }
     if dedup.len() == 0 { return TY_NEVER }
     if dedup.len() == 1 { return dedup[0] }
-    sorted :: sort(dedup, (a: Type, b: Type) -> compare_ascending_ci(display_type_key(a), display_type_key(b)))
-    return mk_union(sorted)
+    return mk_union(sort_by_display_key(dedup))
+}
+
+// Order `types` by their `display_type_key`, rendering each key ONCE — the
+// comparator reads a key already in hand rather than rendering its operands.
+//
+// Sorting the INDICES preserves `sort`'s stability, which is load bearing : two
+// types can share a key (it erases `!`, `equals_type` does not) and must keep
+// the order they arrived in. Do not swap this for an unstable sort.
+sort_by_display_key :: fn(types: Type[]) -> Type[] {
+    // `T | null` and its kind are most of the unions built here ; at two
+    // variants the index detour buys nothing. Same key and the same STRICT
+    // comparator as the general path below — the two must move together, and
+    // swapping on a tie would break the stability above.
+    //
+    // The no-swap branch may ALIAS `types`, which `mk_union` keeps. Sound
+    // because `union_of` builds `dedup` fresh and never writes to it again ; a
+    // second caller would have to honour that. Both paths hand `mk_union` an
+    // array grown by `push`, so it carries up to twice its used slots — a few
+    // bytes here, more as arity grows.
+    if types.len() == 2 {
+        if compare_ascending_ci(display_type_key(types[1]), display_type_key(types[0])) {
+            return [types[1], types[0]]
+        }
+        return types
+    }
+    keys: string[]!: []
+    order: usize[]!: []
+    for i in 0..<types.len() {
+        keys.push(display_type_key(types[i]))
+        order.push(i)
+    }
+    out: Type[]!: []
+    for i in sort(order, (a: usize, b: usize) -> compare_ascending_ci(keys[a], keys[b])) {
+        out.push(types[i])
+    }
+    return out
 }
 
 // Two arrays that differ ONLY by their own mutability bit. Nested bits still
@@ -445,7 +480,7 @@ export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: Typed
     raw :: lookup_struct_trait_args(t, trait_name, typed) ?? return null
     if t is StructType {
         struct_decl :: typed.struct_decls[t.symbol.id] ?? return raw
-        out: Type[]! = []
+        out: Type[]!: []
         for a in raw { out.push(substitute_by_name(a, struct_decl.type_params, t.args)) }
         return out
     }
@@ -497,7 +532,7 @@ export strip_mutability :: fn(t: Type) -> Type = match t {
 }
 
 strip_mutability_each :: fn(ts: Type[]) -> Type[] {
-    out: Type[]! = []
+    out: Type[]!: []
     for t in ts { out.push(strip_mutability(t)) }
     return out
 }
@@ -537,7 +572,7 @@ union_variants :: fn(t: Type) -> Type[] | null {
 /// the false side / in code after a divergent guard.
 export subtract_type :: fn(from: Type, removed: Type) -> Type {
     if from is UnionType {
-        kept: Type[]! = []
+        kept: Type[]!: []
         for v in from.variants {
             if !removed_covers(removed, v) { kept.push(v) }
         }
@@ -559,7 +594,7 @@ export subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedPro
     if !(removed is TraitType) { return subtract_type(from, removed) }
     trait_name :: removed.symbol.name
     if from is UnionType {
-        kept: Type[]! = []
+        kept: Type[]!: []
         for v in from.variants {
             if removed_covers(removed, v) { continue }
             if struct_implements_trait(v, trait_name, typed) { continue }
@@ -601,9 +636,9 @@ test_equals_primitive :: fn() -> void {
 
 @test
 test_equals_array :: fn() -> void {
-    a1: Type = mk_array(mk_primitive("i32"), false)
-    a2: Type = mk_array(mk_primitive("i32"), false)
-    a3: Type = mk_array(mk_primitive("i32"), true)
+    a1: Type: mk_array(mk_primitive("i32"), false)
+    a2: Type: mk_array(mk_primitive("i32"), false)
+    a3: Type: mk_array(mk_primitive("i32"), true)
     assert(equals_type(a1, a2), "i32[] == i32[]")
     assert(!equals_type(a1, a3), "i32[]! != i32[]")
 }
@@ -612,8 +647,8 @@ test_equals_array :: fn() -> void {
 
 @test
 test_union_of_dedup :: fn() -> void {
-    i32_t: Type = mk_primitive("i32")
-    str_t: Type = mk_primitive("string")
+    i32_t: Type: mk_primitive("i32")
+    str_t: Type: mk_primitive("string")
     // A | B | A should collapse to A | B
     u :: union_of([i32_t, str_t, i32_t])
     match u {
@@ -624,8 +659,8 @@ test_union_of_dedup :: fn() -> void {
 
 @test
 test_union_of_drops_never :: fn() -> void {
-    i32_t: Type = mk_primitive("i32")
-    never_t: Type = TY_NEVER
+    i32_t: Type: mk_primitive("i32")
+    never_t: Type: TY_NEVER
     // i32 | Never should collapse to i32
     u :: union_of([i32_t, never_t])
     match u {
@@ -636,9 +671,9 @@ test_union_of_drops_never :: fn() -> void {
 
 @test
 test_union_of_flattens :: fn() -> void {
-    i32_t: Type = mk_primitive("i32")
-    str_t: Type = mk_primitive("string")
-    bool_t: Type = mk_primitive("bool")
+    i32_t: Type: mk_primitive("i32")
+    str_t: Type: mk_primitive("string")
+    bool_t: Type: mk_primitive("bool")
     inner :: mk_union([i32_t, str_t])
     u :: union_of([inner, bool_t])
     match u {

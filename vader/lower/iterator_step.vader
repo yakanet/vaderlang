@@ -1,0 +1,110 @@
+// vader/lower/iterator_step — what one `Iterator.next` hands back, and how to
+// read it.
+//
+// `for x in it`, the fusion path and the generator state machine all need the
+// same three things: the type `next` returns, the test for "the iteration is
+// over", and the element it carries. This file owns them.
+//
+// `next` hands back `[T, Continuation]`: the element, then whether the iteration
+// goes on. The element beside `Stop` is meaningless and nothing here reads it.
+
+module "vader/lower"
+
+import "vader/types"
+
+/// How this project's `Iterator<T>.next` hands a step back.
+export StepShape :: struct {
+    /// The type `next` returns — `[T, Continuation]`.
+    type: Type
+    /// `T` — the element half of the pair.
+    element: Type
+    /// The `Continuation` enum, for the `Continue` / `Stop` literals.
+    cont: Type
+}
+
+/// Resolve the step shape for an iterator over `element`.
+///
+/// @param ctx      the fn-body context.
+/// @param element  the iterator's element type.
+/// @return         the shape, or null when `Continuation` is not reachable
+///                 (std/core not loaded).
+export resolve_step_shape :: fn(ctx: FnLowerCtx!, element: Type) -> StepShape | null {
+    cont :: find_core_enum(ctx, ENUM_CONTINUATION) ?? return null
+    return StepShape {
+        .type = iterator_step_type(element, cont),
+        .element = element,
+        .cont = cont,
+    }
+}
+
+/// The test that says the iteration is over.
+///
+/// `step` is evaluated once by the caller (it binds a local first), so naming it
+/// twice across this and `step_value` is free.
+///
+/// @param shape  the resolved step shape.
+/// @param step   an expression naming the step — normally a `LoweredIdent`.
+/// @param span   the source span to attribute the test to.
+/// @param ctx    the fn-body context, for the variant lookup.
+/// @return       a `bool`-typed expression.
+export step_is_done :: fn(
+    shape: StepShape, step: LoweredExpr, span: Span, ctx: FnLowerCtx,
+) -> LoweredExpr = LoweredBinary {
+    .span = span, .type = TY_BOOL, .op = .Eq,
+    .left = LoweredFieldAccess {
+        .span = span, .type = shape.cont, .target = step, .field = "_1",
+    },
+    .right = enum_variant_literal(shape.cont, CONTINUATION_STOP, span, ctx),
+}
+
+/// The element `step` carries.
+///
+/// @param shape  the resolved step shape.
+/// @param step   an expression naming the step.
+/// @param span   the source span to attribute the read to.
+/// @return       an `element`-typed expression.
+export step_value :: fn(shape: StepShape, step: LoweredExpr, span: Span) -> LoweredExpr =
+    LoweredFieldAccess {
+        .span = span, .type = shape.element, .target = step, .field = "_0",
+    }
+
+/// The step a generator returns when it yields `value`.
+///
+/// @param shape  the resolved step shape.
+/// @param value  the yielded element.
+/// @param span   the source span.
+/// @param ctx    the fn-body context.
+/// @return       a `shape.type`-typed expression.
+export step_of_value :: fn(
+    shape: StepShape, value: LoweredExpr, span: Span, ctx: FnLowerCtx,
+) -> LoweredExpr = step_pair(shape, value, CONTINUATION_CONTINUE, span, ctx)
+
+/// The step a generator returns when it is done.
+///
+/// On the pair shape the element beside `Stop` is never read, and a generator
+/// has no `T` of its own to hand over — so it pairs the type's zero. That is
+/// expressible HERE and not in source: a ref slot takes NULL whatever `T`
+/// promises.
+///
+/// @param shape  the resolved step shape.
+/// @param span   the source span.
+/// @param ctx    the fn-body context.
+/// @return       a `shape.type`-typed expression.
+export step_of_done :: fn(shape: StepShape, span: Span, ctx: FnLowerCtx) -> LoweredExpr =
+    step_pair(shape, zero_value_lit(span, shape.element), CONTINUATION_STOP, span, ctx)
+
+// `[value, Continuation.<variant>]`. A tuple lowers to the `_0` / `_1` struct
+// layout (mirrors `lower_seq_lit`).
+step_pair :: fn(
+    shape: StepShape, value: LoweredExpr, variant: string, span: Span, ctx: FnLowerCtx,
+) -> LoweredExpr = LoweredStructLit {
+    .span = span,
+    .type = shape.type,
+    .fields = [
+        LoweredStructLitField { .name = "_0", .value = value },
+        LoweredStructLitField {
+            .name = "_1",
+            .value = enum_variant_literal(shape.cont, variant, span, ctx),
+        },
+    ],
+}

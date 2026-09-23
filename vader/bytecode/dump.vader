@@ -324,7 +324,8 @@ write_imports :: fn(sb: StringBuilder!, imports: BcImport[]) -> void {
         // `.virt` looked like a plain word — and the FFI then returned the atom
         // as an integer instead of a string. Only non-zero indices are written;
         // 0 is the "no type" slot every other import carries.
-        rt :: if imp.signature.result_type == 0 { "" } else { "result_type=${imp.signature.result_type} " }
+        rti :: bc_single_result_type(imp.signature)
+        rt :: if rti == 0 { "" } else { "result_type=${rti} " }
         // The PARAMETERS' type indices, for the same reason as the result's: a
         // `@c_struct` argument renders as a bare `ref` in the signature, so a
         // `.virt` re-read left the VM unable to describe the block it must lay
@@ -447,7 +448,19 @@ write_signature :: fn(sb: StringBuilder!, signature: BcSignature) -> void {
         sb.append(val_type_name(signature.params[i]))
     }
     sb.append(") -> ")
-    sb.append(val_type_name(signature.result))
+    // One result keeps the bare `-> i32` the format has always written, so a
+    // single-value signature dumps and re-reads exactly as before; several are
+    // parenthesised, which is also how WASM spells a multi-value result.
+    if signature.results.len() == 1 {
+        sb.append(val_type_name(signature.results[0]))
+        return
+    }
+    sb.append_char('(')
+    for i in 0..<signature.results.len() {
+        if i > 0 { sb.append(",") }
+        sb.append(val_type_name(signature.results[i]))
+    }
+    sb.append_char(')')
 }
 
 write_function :: fn(sb: StringBuilder!, module: BytecodeModule, function_decl: BcFunction, function_index: i32, annotate: bool) -> void {
@@ -475,23 +488,23 @@ write_body_with_scopes :: fn(sb: StringBuilder!, module: BytecodeModule, functio
     param_count :: i32(function_decl.signature.params.len())
     // Per-active-scope stacks. Grow-only with `sp` cursor for the
     // logical top so closing a scope is a cheap decrement.
-    stack_labels:    string[]! = []
-    stack_opener_pc: i32[]!    = []
-    stack_is_loop:   bool[]!   = []
+    stack_labels:    string[]!: []
+    stack_opener_pc: i32[]!   : []
+    stack_is_loop:   bool[]!  : []
     // Where each open scope's matching `End` sits. A non-loop `br` targets
     // `end_pc + 1`, so this is what turns a jump-table entry back into the
     // label that OWNS it — see the `Branch` case.
-    stack_end_pc:    i32[]!    = []
+    stack_end_pc:    i32[]!   : []
     sp: usize = 0
     // Pending Branch/BranchIf whose target scope hasn't closed yet
     // (block / if / else falls through to its End). Drained when the
     // matching End is seen ; `branch_target_label[pc]` carries the
     // resolved label string.
-    pending_pc:    i32[]!    = []
-    pending_label: string[]! = []
+    pending_pc:    i32[]!   : []
+    pending_label: string[]!: []
     psp: usize = 0
     // pc → resolved label string (filled lazily for Branch/BranchIf).
-    branch_target_label: string[]! = []
+    branch_target_label: string[]!: []
     n :: body.len()
     for init_label in 0..<n { branch_target_label.push("") }
 
@@ -982,14 +995,14 @@ type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string 
 import "std/testing"
 
 @test test_dump_empty_module :: fn() -> void {
-    types: BcType[] = []
-    strings: string[] = []
-    data_pool: BcDataEntry[] = []
-    functions: BcFunction[] = []
-    imports: BcImport[] = []
-    exports: BcExport[] = []
-    impl_table: ImplEntry[] = []
-    vtables: VtableRow[] = []
+    types: BcType[]: []
+    strings: string[]: []
+    data_pool: BcDataEntry[]: []
+    functions: BcFunction[]: []
+    imports: BcImport[]: []
+    exports: BcExport[]: []
+    impl_table: ImplEntry[]: []
+    vtables: VtableRow[]: []
     module :: BytecodeModule {
         .name        = "test",
         .types       = types,
@@ -1010,14 +1023,14 @@ import "std/testing"
 // arm64, sign-set on x86-64), yet both must dump identically. Finite values keep
 // their exact bit column for lossless round-trip.
 @test test_f64_const_operands_abstracts_non_finite :: fn() -> void {
-    pos_inf: u64 = 0x7FF0000000000000
-    neg_inf: u64 = 0xFFF0000000000000
-    neg_nan: u64 = 0xFFF8000000000000   // what x86-64 folds `0.0 / 0.0` to
+    pos_inf: u64: 0x7FF0000000000000
+    neg_inf: u64: 0xFFF0000000000000
+    neg_nan: u64: 0xFFF8000000000000   // what x86-64 folds `0.0 / 0.0` to
     assert_eq(f64_const_operands(pos_inf.from_bits()), "inf")
     assert_eq(f64_const_operands(neg_inf.from_bits()), "-inf")
     assert_eq(f64_const_operands(neg_nan.from_bits()), "nan")
 
-    finite: f64 = 1.5
+    finite: f64: 1.5
     assert_eq(f64_const_operands(finite), "${finite} ${finite.to_bits()}")
 }
 

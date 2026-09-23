@@ -9,6 +9,6 @@ export mul :: fn(a: i32, b: i32) -> i32 {
 }
 
 main :: fn() -> i32 {
-    o := Op { .op = mul }
+    o :: Op { .op = mul }
     return o.op(4, 5)
 }

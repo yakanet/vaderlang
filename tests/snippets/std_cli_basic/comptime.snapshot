@@ -3,6 +3,7 @@
 ## tests/snippets/std_cli_basic
 
 ## generic instances
+  __genstate_array_iter<T>
   ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
@@ -43,11 +44,6 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  Iterator<char>
-  Iterator<[K, V]>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -57,16 +53,15 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Yield<char>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<char>
+  Iterator<[K, V]>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

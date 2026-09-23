@@ -122,6 +122,9 @@ export TypecheckCode :: enum(u8) {
     // T3080 was `CSizeMissesTarget` until `@c_size` left the language; reused
     // here rather than carrying a hole, per §12.
     CallbackNotDirectFn,                // T3080
+    CannotDestructure,                  // T3081
+    InvalidAssignTarget,                // T3082
+    BodyFallsOffEnd,                    // T3083
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -159,6 +162,7 @@ export ParserCode :: enum(u8) {
     DecoratorArgumentForm,                  // P1033
     // P1034 (DecoratorArgumentValue) retired : its only site bounded
     // `@c_size`'s width, and `@c_size` is gone from the language.
+    CompoundAssignToPattern,                // P1035
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
@@ -276,10 +280,12 @@ export WarningCode :: enum(u8) {
     EmptyImportModifierList,                // W0011
     UnusedExport,                           // W0012
     SharedRepeatElement,                    // W0013
-    // W0014 (ImplicitImmutableParam) retired : it staged the immutable-by-default
-    // rollout, degrading a write through an unmarked parameter to a warning while
-    // the tree was annotated. Every module is annotated, so those writes are now
-    // T3070 / T3071 / T3072 outright. Free to reuse.
+    // W0014 reuses the id `ImplicitImmutableParam` held while the
+    // immutable-by-default rollout was staged; those writes are T3070 / T3071 /
+    // T3072 outright now.
+    UnreachableMatchArm,                    // W0014
+    MutableNeverReassigned,                 // W0015
+    NeedlessEnumTypePrefix,                 // W0016
 }
 
 // `(id, message)` for a code, in one shot. The wire ID is the stable
@@ -324,6 +330,7 @@ export InternalCode :: enum(u8) {
     // RESERVED, not dead: the data-pool check behind `midir/build.vader:255`
     // needs `is_bakeable`, whose second copy would be the drift it reports.
     NonPrimitiveDataPoolLeaf,               // I7009
+    ReturnArityMismatch,                    // I7010
 }
 
 export CodeInfo :: struct {
@@ -340,6 +347,7 @@ export internal_info :: fn(c: InternalCode) = match c {
     .LocalReadNeverWritten    -> CodeInfo { .id = "I7006", .message = "local is read but never written" }
     .EntryBlockNotZero        -> CodeInfo { .id = "I7008", .message = "entry block is not block 0" }
     .NonPrimitiveDataPoolLeaf -> CodeInfo { .id = "I7009", .message = "pooled constant holds a non-primitive leaf" }
+    .ReturnArityMismatch      -> CodeInfo { .id = "I7010", .message = "a return hands back a different number of values than the function declares" }
 }
 
 export hook_info :: fn(c: HookCode) = match c {
@@ -384,6 +392,7 @@ export parser_info :: fn(c: ParserCode) = match c {
     .UnknownDecoratorPlacement          -> CodeInfo { .id = "P1014", .message = "unknown decorator placement" }
     .DecoratorArgumentCount             -> CodeInfo { .id = "P1032", .message = "wrong number of decorator arguments" }
     .DecoratorArgumentForm              -> CodeInfo { .id = "P1033", .message = "decorator argument has the wrong form" }
+    .CompoundAssignToPattern            -> CodeInfo { .id = "P1035", .message = "compound assignment needs a single target" }
     .DuplicateStructLitField            -> CodeInfo { .id = "P1015", .message = "duplicate field name in struct literal" }
     .ExpectedGenericArgList             -> CodeInfo { .id = "P1016", .message = "expected a generic argument list" }
     .MissingNewlineBetweenDecls         -> CodeInfo { .id = "P1017", .message = "missing newline between top-level declarations" }
@@ -455,6 +464,9 @@ export warning_info :: fn(c: WarningCode) = match c {
     .EmptyImportModifierList            -> CodeInfo { .id = "W0011", .message = "empty modifier list on an import — `import \"p\" {}` is just a wildcard, write `import \"p\"`" }
     .UnusedExport                       -> CodeInfo { .id = "W0012", .message = "exported function is never reached from the project's roots" }
     .SharedRepeatElement                -> CodeInfo { .id = "W0013", .message = "`[v] * n` repeats one reference — every slot shares this freshly allocated element" }
+    .UnreachableMatchArm                -> CodeInfo { .id = "W0014", .message = "match arm can never be taken — an earlier arm already covers it" }
+    .MutableNeverReassigned             -> CodeInfo { .id = "W0015", .message = "local is declared mutable but never reassigned — declare it with `::`" }
+    .NeedlessEnumTypePrefix             -> CodeInfo { .id = "W0016", .message = "the enum name adds nothing here — the slot already pins it, so the bare variant reads the same" }
 }
 
 export comptime_info :: fn(c: ComptimeCode) = match c {
@@ -559,6 +571,9 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .MethodOnlyBehindNamespaceAlias     -> CodeInfo { .id = "T3078", .message = "this free function is only in scope through its namespace alias" }
     .InvalidParameterDecorator          -> CodeInfo { .id = "T3079", .message = "decorator not allowed on this parameter" }
     .CallbackNotDirectFn                -> CodeInfo { .id = "T3080", .message = "callback argument must name a function directly" }
+    .CannotDestructure                  -> CodeInfo { .id = "T3081", .message = "value cannot be destructured into this many elements" }
+    .InvalidAssignTarget                -> CodeInfo { .id = "T3082", .message = "not an assignment target" }
+    .BodyFallsOffEnd                    -> CodeInfo { .id = "T3083", .message = "not every path through the body returns a value" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

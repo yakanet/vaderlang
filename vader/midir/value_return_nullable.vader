@@ -1,0 +1,275 @@
+// vader/midir/value_return_nullable — the `S | null` half of the value-return
+// pass.
+//
+// A `fn(…) -> S | null` whose every `return` builds `S` on the spot or hands
+// back `null` crosses as `(tag, field…)`, and each call site rebuilds the object
+// through a branch on the tag. `value_return.vader` owns the selection and the
+// call-site rewrite; this file owns what makes a function eligible and what its
+// returns and rebuild arms become.
+//
+// Why the rebuild is unconditional, and what erases it:
+// `.claude/plans/2026-09-22-tuple-value-abi.md` §21.
+
+module "vader/midir"
+
+import "std/collections"
+import "vader/types"
+
+// ---- the nullable struct case ---------------------------------------------
+//
+// `fn(…) -> S | null` crosses as `(tag, field…)`: tag 0 for the absent case, 1
+// otherwise. The caller rebuilds through a branch on the tag.
+//
+// A STRUCT needs a condition a tuple does not. A tuple has no observable
+// identity (`t[0] = x` is T3008), so handing back its elements is the same value
+// by another route. A struct has reference semantics: returning one the callee
+// got from elsewhere, and rebuilding it at the caller, would break an alias
+// someone else holds. `returns_fresh_struct` is the proof nobody does — every
+// `return` builds its value here or hands back `null`.
+//
+// Why the rebuild is unconditional, and what erases it:
+// `.claude/plans/2026-09-22-tuple-value-abi.md` §21.
+
+/// What a nullable-struct return hands back, or null when the function does not
+/// qualify.
+NullableReturn :: struct {
+    /// Field types of the struct, in the order they cross.
+    fields: Type[]
+    /// The struct type itself, for the rebuild at each call site.
+    struct_type: Type
+}
+
+// The shape of `f`'s returns, or null.
+//
+// The TYPE answers first and alone — a return type with no `null` in it never
+// reaches a block. It cannot answer the rest: `bc.Op | null` peels to an open
+// union of opcodes, and whether one call site can rebuild what came back is a
+// question about the `struct.new`s the body actually runs, not about that union.
+nullable_return_of :: fn(f: CFGFunction) -> NullableReturn | null {
+    if !has_null_variant(f.return_type) {
+        return null
+    }
+    built :: returns_fresh_composite(f) ?? return null
+    // The tag crosses alongside the fields, so it spends from the same budget.
+    if value_abi_sum_leaves(nullable_results(built.fields)) < 0 {
+        return null
+    }
+    return built
+}
+
+// Whether `t` spells an absent case. O(1) on the variant list, and the reason no
+// other function here is asked about a `-> i32`.
+has_null_variant :: fn(t: Type) -> bool {
+    if t !is UnionType {
+        return false
+    }
+    for v in t.variants {
+        if v is PrimitiveType && v.name == "null" {
+            return true
+        }
+    }
+    return false
+}
+
+// What every `return` builds — one composite type and its field types — or null
+// when a `return` hands back a value it did not build, or builds a DIFFERENT
+// composite than another does.
+//
+// That last clause is the whole reason the carrier is read here rather than off
+// the return type: `bc.Op | null` admits fifty carriers, and `LocalGet { slot }`
+// and `LocalSet { slot }` are indistinguishable by their fields alone. Rebuilding
+// either one for the other is a miscompile, not a lost optimisation.
+returns_fresh_composite :: fn(f: CFGFunction) -> NullableReturn | null {
+    found: NullableReturn | null = null
+    for b in f.blocks {
+        t :: b.terminator
+        if t !is TermReturn {
+            continue
+        }
+        returned :: term_return_single(t) ?? return null
+        built :: return_source(b.instructions, returned) ?? return null
+        if built is ReturnsNull {
+            continue
+        }
+        if found != null {
+            if !same_carrier(found.struct_type, built.type) {
+                return null
+            }
+            continue
+        }
+        types: Type[]!: []
+        for l in built.fields {
+            if usize(l) >= f.locals.len() {
+                return null
+            }
+            types.push(f.locals[usize(l)].type)
+        }
+        found = NullableReturn { .fields = types, .struct_type = built.type }
+    }
+    return found
+}
+
+// Whether two `struct.new`s build the same thing. A struct is its symbol; a
+// tuple, which has none, falls back to the canonical key — the tuple carriers
+// are few enough that the string it allocates never reaches a hot path.
+same_carrier :: fn(a: Type, b: Type) -> bool {
+    if a is StructType && b is StructType {
+        return a.symbol.id == b.symbol.id && a.args.len() == b.args.len()
+    }
+    return display_type_key(a) == display_type_key(b)
+}
+
+// What a returned local was defined by, within its own block.
+ReturnSource :: ReturnsNull | ReturnsStruct
+ReturnsNull :: struct {}
+ReturnsStruct :: struct { fields: LocalId[], type: Type }
+
+// Walked backwards: the answer is the LAST definition, so the first hit ends it.
+return_source :: fn(instrs: Instruction[], returned: LocalId) -> ReturnSource | null {
+    n :: instrs.len()
+    for i in 0..<n {
+        ins :: instrs[n - 1 - i]
+        d :: dst_of(ins)
+        if d == null {
+            continue
+        }
+        if d != returned {
+            continue
+        }
+        if ins is InstrStructNew {
+            return ReturnsStruct { .fields = ins.fields, .type = ins.type }
+        }
+        if ins is InstrConst && ins.value is ConstNull {
+            return ReturnsNull {}
+        }
+        return null
+    }
+    return null
+}
+
+// The declared results of a nullable return: the tag, then the fields.
+nullable_results :: fn(elements: Type[]) -> Type[] {
+    out: Type[]!: [TY_TAG]
+    out.push_all(elements)
+    return out
+}
+
+/// The tag a nullable return carries — 0 absent, 1 present.
+TY_TAG :: mk_primitive("i32")
+
+rewrite_nullable_return :: fn(
+    b: BasicBlock, elements: Type[], locals: CFGLocal[]!,
+) -> BasicBlock {
+    t :: b.terminator
+    if t !is TermReturn {
+        return b
+    }
+    if t.values.len() != 1 {
+        return b
+    }
+    built :: return_source(b.instructions, t.values[0]) ?? return b
+    instrs: Instruction[]!: []
+    instrs.push_all(b.instructions)
+    values: LocalId[]!: []
+    if built is ReturnsStruct {
+        values.push(const_i32(instrs, locals, 1, t.span))
+        values.push_all(built.fields)
+    } else {
+        values.push(const_i32(instrs, locals, 0, t.span))
+        // One zero per field: the arity is the signature's, not the path's.
+        for e in elements {
+            values.push(zero_of(instrs, locals, e, t.span))
+        }
+    }
+    return BasicBlock {
+        ...b,
+        .instructions = instrs,
+        .terminator = TermReturn { .span = t.span, .values = values },
+    }
+}
+
+// A fresh local holding `v`, appended to `instrs`.
+const_i32 :: fn(instrs: Instruction[]!, locals: CFGLocal[]!, v: i64, span: Span) -> LocalId {
+    dst :: add_local(locals, "tag", TY_TAG)
+    instrs.push(InstrConst {
+        .span = span,
+        .dst = dst,
+        .value = ConstInt { .value = v },
+        .type = TY_TAG,
+    })
+    return dst
+}
+
+// A fresh local holding the zero of `t` — the filler the absent path pushes.
+zero_of :: fn(instrs: Instruction[]!, locals: CFGLocal[]!, t: Type, span: Span) -> LocalId {
+    dst :: add_local(locals, "absent", t)
+    instrs.push(InstrConst {
+        .span = span,
+        .dst = dst,
+        .value = zero_const_for(t),
+        .type = t,
+    })
+    return dst
+}
+
+// The zero of a leaf. `value_abi_leaf_size` already refused everything but a
+// primitive and an enum, and an enum rides its integer `repr`, so the integer
+// zero is the answer for every shape that is not spelled out here. Keep aligned
+// with `lower_generator::zero_value_lit`, which answers the same question for
+// the generator state machine.
+zero_const_for :: fn(t: Type) -> ConstValue {
+    if t !is PrimitiveType {
+        return ConstInt { .value = 0 }
+    }
+    if t.name == "bool" {
+        return ConstBool { .value = false }
+    }
+    if t.name == "char" {
+        return ConstChar { .value = ' ' }
+    }
+    if is_float_name(t.name) {
+        return ConstFloat { .value = 0.0 }
+    }
+    return ConstInt { .value = 0 }
+}
+
+// `obj = null`, then on to the join.
+absent_arm :: fn(
+    ins: InstrCall, dst: LocalId, id: BlockId, join: BlockId, span: Span,
+) -> BasicBlock = BasicBlock {
+    .id = id,
+    .instructions = [
+        InstrConst {
+            .span = ins.span,
+            .dst = dst,
+            .value = ConstNull {},
+            .type = ins.type,
+        },
+    ],
+    .terminator = TermBranch { .span = ins.span, .target = join },
+    .span = span,
+}
+
+// `obj = S { field… }`, then on to the join. The fields skip index 0, the tag.
+present_arm :: fn(
+    ins: InstrCall, dst: LocalId, fields: LocalId[], struct_type: Type,
+    id: BlockId, join: BlockId, span: Span,
+) -> BasicBlock {
+    payload :: fields[1..<fields.len()]
+    return BasicBlock {
+        .id = id,
+        .instructions = [
+            InstrStructNew {
+                // The STRUCT's type, not the call's — that one is the `S | null`
+                // union, which `struct.new` cannot build.
+                .span = ins.span,
+                .dst = dst,
+                .type = struct_type,
+                .fields = payload,
+                .stack = false,
+            },
+        ],
+        .terminator = TermBranch { .span = ins.span, .target = join },
+        .span = span,
+    }
+}

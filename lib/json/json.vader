@@ -146,9 +146,9 @@ parse_value :: fn(p: Parser!, depth: i32) -> JsonValue | JsonError {
     if at_end(p) {
         return fail(p, "unexpected end of input")
     }
-    c := peek_byte(p)
+    c :: peek_byte(p)
     if c == '"' {
-        s := parse_string(p)
+        s :: parse_string(p)
         if s is JsonError { return s }
         return JsonString { .value = s }
     }
@@ -202,7 +202,7 @@ parse_bool :: fn(p: Parser!) -> JsonBool | JsonError {
 // ---- number parser --------------------------------------------------------
 
 parse_number :: fn(p: Parser!) -> JsonNumber | JsonError {
-    start := p.pos
+    start :: p.pos
     if peek_byte(p) == '-' {
         advance(p)
     }
@@ -241,13 +241,13 @@ parse_number :: fn(p: Parser!) -> JsonNumber | JsonError {
             advance(p)
         }
     }
-    raw := p.bytes[start..<p.pos].bytes_to_string()
-    parsed := raw.parse_float()
+    raw :: p.bytes[start..<p.pos].bytes_to_string()
+    parsed :: raw.parse_float()
     match parsed {
         is f64 -> {
             // Bind to a typed local so the C emit unboxes the union value
             // (the trailing-match form keeps the box on the stack).
-            n: f64 = parsed
+            n: f64: parsed
             return JsonNumber { .value = n }
         }
         is ParseError -> { return fail(p, "invalid number") }
@@ -297,7 +297,7 @@ parse_string :: fn(p: Parser!) -> string | JsonError {
 /// @error     `JsonError` on unterminated input or a bad escape.
 parse_string_with_escapes :: fn(p: Parser!, sb: StringBuilder!) -> string | JsonError {
     for !at_end(p) {
-        c := peek_byte(p)
+        c :: peek_byte(p)
         if c == '"' {
             advance(p)
             return sb.to_string()
@@ -307,7 +307,7 @@ parse_string_with_escapes :: fn(p: Parser!, sb: StringBuilder!) -> string | Json
             if at_end(p) {
                 return fail(p, "unterminated escape")
             }
-            esc := peek_byte(p)
+            esc :: peek_byte(p)
             advance(p)
             if esc == '"' {
                 sb.append_char('"')
@@ -354,7 +354,7 @@ read_hex4 :: fn(p: Parser!) -> i32 {
     }
     v := 0
     for k in usize(0)..<4 {
-        d := hex_digit_value(p.bytes.utf8_decode(p.pos + k))
+        d :: hex_digit_value(p.bytes.utf8_decode(p.pos + k))
         if d < 0 {
             return -1
         }
@@ -404,21 +404,21 @@ decode_unicode_escape :: fn(p: Parser!, sb: StringBuilder!) -> bool {
 
 parse_array :: fn(p: Parser!, depth: i32) -> JsonArray | JsonError {
     if expect_byte(p, '[') is JsonError as e { return e }
-    items: JsonValue[]! = []
+    items: JsonValue[]!: []
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == ']' {
         advance(p)
         return JsonArray { .items = items }
     }
     for !at_end(p) {
-        v := parse_value(p, depth + 1)
+        v :: parse_value(p, depth + 1)
         if v is JsonError { return v }
         items.push(v)
         skip_ws(p)
         if at_end(p) {
             return fail(p, "unterminated array")
         }
-        c := peek_byte(p)
+        c :: peek_byte(p)
         if c == ',' {
             advance(p)
             skip_ws(p)
@@ -437,7 +437,7 @@ parse_array :: fn(p: Parser!, depth: i32) -> JsonArray | JsonError {
 
 parse_object :: fn(p: Parser!, depth: i32) -> JsonObject | JsonError {
     if expect_byte(p, '{') is JsonError as e { return e }
-    entries := MutableMap<string, JsonValue> {}
+    entries :: MutableMap<string, JsonValue> {}
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == '}' {
         advance(p)
@@ -445,18 +445,18 @@ parse_object :: fn(p: Parser!, depth: i32) -> JsonObject | JsonError {
     }
     for !at_end(p) {
         skip_ws(p)
-        key := parse_string(p)
+        key :: parse_string(p)
         if key is JsonError { return key }
         skip_ws(p)
         if expect_byte(p, ':') is JsonError as e { return e }
-        value := parse_value(p, depth + 1)
+        value :: parse_value(p, depth + 1)
         if value is JsonError { return value }
         entries[key] = value
         skip_ws(p)
         if at_end(p) {
             return fail(p, "unterminated object")
         }
-        c := peek_byte(p)
+        c :: peek_byte(p)
         if c == ',' {
             advance(p)
             continue
@@ -486,8 +486,8 @@ parse_object :: fn(p: Parser!, depth: i32) -> JsonObject | JsonError {
 /// @error        `JsonError` carrying a short message and the byte offset
 ///               of the offending character.
 export parse :: fn(input: string) -> JsonValue | JsonError {
-    p := new_parser(input)
-    v := parse_value(p, 0)
+    p :: new_parser(input)
+    v :: parse_value(p, 0)
     if v is JsonError { return v }
     skip_ws(p)
     if !at_end(p) {
@@ -501,7 +501,7 @@ export parse :: fn(input: string) -> JsonValue | JsonError {
 write_string :: fn(sb: StringBuilder!, s: string) -> void {
     sb.append_char('"')
     for c in s.chars() {
-        cp := i32(c)
+        cp :: i32(c)
         if c == '"' { sb.append("\\\"") } else
         if c == '\\' { sb.append("\\\\") } else
         if c == '\n' { sb.append("\\n") } else
@@ -576,8 +576,8 @@ write_object :: fn(sb: StringBuilder!, o: JsonObject, indent: i32, depth: i32) -
     sb.append_char('{')
     // Snapshot keys + values in parallel so we walk the buckets once and
     // skip the per-entry hash lookup.
-    ks := o.entries.keys()
-    vs := o.entries.values()
+    ks :: o.entries.keys()
+    vs :: o.entries.values()
     first := true
     for [k, v] in zip(ks, vs) {
         if !first {
@@ -602,7 +602,7 @@ write_object :: fn(sb: StringBuilder!, o: JsonObject, indent: i32, depth: i32) -
 /// @param v   the value to serialise.
 /// @return    a JSON document string.
 export stringify :: fn(v: JsonValue) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     write_value(sb, v, 0, 0)
     return sb.to_string()
 }
@@ -614,7 +614,7 @@ export stringify :: fn(v: JsonValue) -> string {
 /// @param indent  spaces per nesting level (0 → no spaces / no newlines).
 /// @return        a JSON document string.
 export stringify_pretty :: fn(v: JsonValue, indent: i32) -> string {
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     write_value(sb, v, indent, 0)
     return sb.to_string()
 }

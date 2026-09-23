@@ -6,7 +6,7 @@ Box :: struct {
 }
 
 main :: fn() -> i32 {
-    b := Box { .value = 1 }
+    b :: Box { .value = 1 }
     b.value = "nope"
     return 0
 }

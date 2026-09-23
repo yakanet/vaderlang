@@ -37,7 +37,7 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram!, node_id: 
     if try_trait_widen(got, expected, typed) {
         return true
     }
-    // `T[] → Iterator<T>` : lowerer materialises `ArrayIterator<T>`
+    // `T[] → Iterator<T>` : lowerer materialises the `array_iter` generator
     // at the call site. Lives in `try_into` (not `is_assignable`) to
     // keep the recursive assignability check small enough that
     // c-emit doesn't monomorphise a 3× larger main.c.
@@ -114,11 +114,11 @@ import "toolchain/ast"
 iter_trait_for_test :: fn(elem: Type) -> Type {
     sym :: Symbol {
         .id = 0,
-        .kind = SymbolKind.Trait,
+        .kind = .Trait,
         .name = "Iterator",
         .module = "std/core",
         .module_name = "std/core",
-        .visibility = Visibility.Public,
+        .visibility = .Public,
         .defined_at = null,
     }
     return mk_trait(sym, [elem])

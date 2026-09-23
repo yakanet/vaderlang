@@ -7,11 +7,11 @@ type 4 struct snippet$Box__Box_i32_ { value:6 }
 type 5 struct snippet$Box__i32 { value:3 }
 type 6 ref _
 type 7 struct snippet$Box__Box_Any { value:6 }
-type 8 primitive usize
-type 9 struct std_core$Buffer {  }
-type 10 primitive i64
-type 11 primitive u8
-type 12 array 11
+type 8 primitive u8
+type 9 primitive usize
+type 10 struct std_core$Buffer {  }
+type 11 primitive i64
+type 12 array 8
 type 13 primitive void
 type 14 primitive isize
 string 0 "ok"
@@ -23,10 +23,10 @@ string 5 "c = "
 string 6 "true"
 string 7 "false"
 string 8 "\n"
-import 0 byte_len std_core$byte_len result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=12 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=3,12,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 9 ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=3,12,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 10 ByteAccess
 export main 2
 
 fn 0 snippet$demo_comparison_in_args () -> bool

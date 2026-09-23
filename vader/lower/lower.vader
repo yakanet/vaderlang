@@ -16,6 +16,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/io"
 import "std/sort"
 import "std/string_builder"
 
@@ -110,7 +111,7 @@ lower_project_impl :: fn(
         if !should_eager {
             imported_loaded :: loaded.modules[module_id]
             imported_typed_opt :: typed.modules[module_id]
-            imported_decls: LoweredDecl![]! = []
+            imported_decls: LoweredDecl![]!: []
             if imported_loaded is LoadedModule {
                 if imported_typed_opt is TypedProgram {
                     for d in module_decls(imported_loaded) {
@@ -265,12 +266,36 @@ lower_project_impl :: fn(
     // callbacks and inlinable helpers in the loop body are their inlined bodies.
     // See `bce_hoist.vader`.
     bce_hoist_tag(project)
+    // Report AFTER the tagging pass: what matters is which accesses still carry
+    // a check, whatever the route that left them there. See `bce_hoist.vader`.
+    bce_unproven_accesses(project, project_ctx)
     // Mark the pushes whose loop can keep the array's state in locals. Shares
     // `bce_hoist_tag`'s purity question and runs beside it, but tags a different
     // node — and answers for the WRITE path where BCE answers for the read one.
     // See `push_cache.vader`.
     push_cache_tag(project)
+    // `$VADER_OPT_REPORT` — what handed over to the general path
+    // (`opt_report.vader`), then what a value ABI would reach
+    // (`value_abi.vader`). Both read the FINISHED project, so they run after
+    // every pass that can still add a decl, and both return "" when the report
+    // is off — the cost of a disabled report is one length test each.
+    //
+    // Not on the staging run: `lower_project_staged` lowers a throwaway partial
+    // project for the comptime VM, and reporting on it prints a second set of
+    // numbers that describe nothing a user built.
+    if !is_staging {
+        emit_opt_report(render_opt_report(project_ctx))
+        emit_opt_report(render_value_abi_report(project_ctx, project, typed))
+    }
     return project
+}
+
+// Print a report to stderr, unless it is the empty string every renderer returns
+// when the report is off.
+emit_opt_report :: fn(report: string) -> void {
+    if report != "" {
+        eprintln(report)
+    }
 }
 
 // Per-module driver. Walks the decl list, dispatches by kind, and
@@ -282,7 +307,7 @@ lower_module :: fn(
     module_id: string, display_path: string, typed: TypedProgram, decls: Decl[],
     project_ctx: LowerProjectCtx!, diags: Diagnostic[],
 ) -> LoweredModule {
-    out_decls: LoweredDecl![]! = []
+    out_decls: LoweredDecl![]!: []
     // First pass : every regular decl in source order. Impl members
     // surface as a multi-decl list right after their ImplDecl so the
     // dump's per-struct grouping follows source order.
@@ -316,7 +341,7 @@ lower_decl_list :: fn(
     if decl is ImplDecl {
         return lower_impl_member_list(decl, typed, project_ctx, diags, module_decls)
     }
-    out: LoweredDecl[]! = []
+    out: LoweredDecl[]!: []
     result :: lower_decl(decl, typed, project_ctx, diags, module_decls)
     if !(result is null) { out.push(result) }
     return out
@@ -382,7 +407,7 @@ import "std/testing"
     }
     typed :: new_typed_project()
     evaluated :: new_evaluated_project(typed)
-    diags: Diagnostic[]! = []
+    diags: Diagnostic[]!: []
     project :: lower_project(loaded, typed, evaluated, diags)
     assert_eq(project.modules.len(), 0)
 }

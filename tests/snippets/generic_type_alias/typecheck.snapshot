@@ -22,7 +22,7 @@
   expr 25:20    IdentExpr      :: fn(T) -> void
   expr 25:28    StringLitExpr  :: string
   expr 25:35    IdentExpr      :: i32
-  expr 28:28    StringLitExpr  :: string
+  expr 28:27    StringLitExpr  :: string
   expr 29:11    IdentExpr      :: i32 | string
   expr 29:5     MatchExpr      :: void
   expr 30:22    CallExpr       :: void

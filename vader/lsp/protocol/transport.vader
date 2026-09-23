@@ -129,7 +129,7 @@ export poll_pending :: fn(timeout_ms: i32) -> bool = poll_stdin(timeout_ms)
 /// @param body  the JSON-encoded message to send.
 export write_frame :: fn(body: string) -> void {
     n :: body.bytes().len()
-    sb := StringBuilder {}
+    sb :: StringBuilder {}
     sb.append("Content-Length: ")
     sb.append("${n}")
     sb.append("\r\n\r\n")

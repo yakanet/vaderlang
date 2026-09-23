@@ -22,7 +22,7 @@ import "std/collections"
 export eliminate_dead_cfg :: fn(p: CFGProject!) -> CFGProject {
     new_modules :: MutableMap<string, CFGModule> {}
     for [module_id, m] in p.modules {
-        new_fns: CFGFunction[]! = []
+        new_fns: CFGFunction[]!: []
         for f in m.functions { new_fns.push(optimise_function(f)) }
         new_modules[module_id] = CFGModule {
             .module_id    = m.module_id,
@@ -43,10 +43,10 @@ optimise_function :: fn(f: CFGFunction) -> CFGFunction = compact_locals(fold_mov
 
 fold_moves :: fn(f: CFGFunction) -> CFGFunction {
     use_count :: count_uses(f)
-    param_locals: MutableSet<LocalId> = MutableSet<LocalId> {}
+    param_locals: MutableSet<LocalId>: MutableSet<LocalId> {}
     for p in f.params { param_locals.add(p.local) }
 
-    new_blocks: BasicBlock[]! = []
+    new_blocks: BasicBlock[]!: []
     for b in f.blocks {
         new_blocks.push(BasicBlock {
             .id           = b.id,
@@ -55,24 +55,13 @@ fold_moves :: fn(f: CFGFunction) -> CFGFunction {
             .span         = b.span,
         })
     }
-    return CFGFunction {
-        .mangled      = f.mangled,
-        .params       = f.params,
-        .return_type  = f.return_type,
-        .locals       = f.locals,
-        .blocks       = new_blocks,
-        .entry        = f.entry,
-        .origin       = f.origin,
-        .is_extern    = f.is_extern,
-        .is_exported  = f.is_exported,
-        .extern_name  = f.extern_name,
-    }
+    return CFGFunction { ...f, .blocks = new_blocks }
 }
 
 fold_moves_in_block :: fn(
     b: BasicBlock, use_count: MutableMap<LocalId, i32>, param_locals: MutableSet<LocalId>,
 ) -> Instruction[] {
-    folded: Instruction[]! = []
+    folded: Instruction[]!: []
     for i in 0..<b.instructions.len() {
         ins :: b.instructions[i]
         if !(ins is InstrMove) { folded.push(ins)  continue }
@@ -96,7 +85,7 @@ fold_moves_in_block :: fn(
             // Reused mutable cell for the closure below — declared once, reset
             // per iteration (a fresh `[false]` per step would heap-allocate on
             // every backward step).
-            reads_cell: bool[]! = [false]
+            reads_cell: bool[]!: [false]
             j: i64 = i64(folded.len()) - 1
             for j >= 0 {
                 cand :: folded[usize(j)]
@@ -136,7 +125,7 @@ fold_moves_in_block :: fn(
 
 compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     n :: f.locals.len()
-    referenced: bool[]! = [false] * n
+    referenced: bool[]!: [false] * n
     // Params keep their slots regardless.
     for p in f.params { if usize(p.local) < n { referenced[usize(p.local)] = true } }
 
@@ -147,9 +136,14 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
             })
             // Side-effecting dst must keep its slot.
             if instruction_has_side_effect(ins) {
-                d :: dst_of(ins)
-                if d is LocalId {
-                    if usize(d) < n { referenced[usize(d)] = true }
+                multi :: multi_dsts(ins)
+                if multi != null {
+                    for l in multi {
+                        if usize(l) < n { referenced[usize(l)] = true }
+                    }
+                } else {
+                    d :: dst_of(ins)
+                    if d != null && usize(d) < n { referenced[usize(d)] = true }
                 }
             }
         }
@@ -164,8 +158,8 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     if !dropped_any { return f }
 
     // Build remap + new locals.
-    remap: i32[]! = [] * n
-    new_locals: CFGLocal[]! = [] * n
+    remap: i32[]!: [] * n
+    new_locals: CFGLocal[]!: [] * n
     for i in 0..<n {
         if !referenced[i] { remap.push(-1)  continue }
         remap.push(i32(new_locals.len()))
@@ -173,7 +167,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     }
 
     // Remap params via the same map.
-    new_params: CFGParam[]! = [] * f.params.len()
+    new_params: CFGParam[]!: [] * f.params.len()
     for p in f.params {
         new_params.push(CFGParam {
             .name = p.name, .symbol = p.symbol, .type = p.type,
@@ -182,9 +176,9 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     }
 
     // Drop pure instructions whose dst → -1 ; remap survivors.
-    new_blocks: BasicBlock[]! = [] * f.blocks.len()
+    new_blocks: BasicBlock[]!: [] * f.blocks.len()
     for b in f.blocks {
-        out: Instruction[]! = [] * b.instructions.len()
+        out: Instruction[]!: [] * b.instructions.len()
         for ins in b.instructions {
             d :: dst_of(ins)
             if d is LocalId {
@@ -201,18 +195,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
             .span         = b.span,
         })
     }
-    return CFGFunction {
-        .mangled     = f.mangled,
-        .params      = new_params,
-        .return_type = f.return_type,
-        .locals      = new_locals,
-        .blocks      = new_blocks,
-        .entry       = f.entry,
-        .origin      = f.origin,
-        .is_extern   = f.is_extern,
-        .is_exported = f.is_exported,
-        .extern_name = f.extern_name,
-    }
+    return CFGFunction { ...f, .params = new_params, .locals = new_locals, .blocks = new_blocks }
 }
 
 remap_local :: fn(m: i32[], l: LocalId) -> LocalId {
@@ -227,7 +210,7 @@ remap_local_opt :: fn(m: i32[], l: LocalId | null) -> LocalId | null {
 }
 
 remap_locals :: fn(m: i32[], ls: LocalId[]) -> LocalId[] {
-    out: LocalId[]! = []
+    out: LocalId[]!: []
     for l in ls { out.push(remap_local(m, l)) }
     return out
 }
@@ -253,8 +236,11 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
     }
     if ins is InstrCall {
         return InstrCall {
-            .span = ins.span, .dst = remap_local_opt(m, ins.dst), .callee = ins.callee,
-            .args = remap_locals(m, ins.args), .type = ins.type,
+            .span = ins.span,
+            .dsts = remap_locals(m, ins.dsts),
+            .callee = ins.callee,
+            .args = remap_locals(m, ins.args),
+            .type = ins.type,
         }
     }
     if ins is InstrCallIndirect {
@@ -410,10 +396,7 @@ remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
         }
     }
     if t is TermReturn     {
-        return TermReturn {
-            .value = remap_local_opt(m, t.value),
-            .span = t.span,
-        }
+        return TermReturn { .values = remap_locals(m, t.values), .span = t.span }
     }
     return t
 }
@@ -508,12 +491,12 @@ import "toolchain/span"
 fm_i32 :: fn() -> Type = PrimitiveType { .name = "i32" }
 
 fm_sym :: fn() -> Symbol = Symbol {
-    .id = 1, .kind = SymbolKind.Fn, .name = "f", .module = "test",
-    .module_name = "test", .visibility = Visibility.Private, .defined_at = null,
+    .id = 1, .kind = .Fn, .name = "f", .module = "test",
+    .module_name = "test", .visibility = .Private, .defined_at = null,
 }
 
 fm_binop :: fn(dst: LocalId, lhs: LocalId, rhs: LocalId) -> Instruction = InstrBinOp {
-    .span = empty_span(), .dst = dst, .op = LoweredBinaryOp.Add,
+    .span = empty_span(), .dst = dst, .op = .Add,
     .lhs = lhs, .rhs = rhs, .type = fm_i32(),
 }
 
@@ -522,7 +505,11 @@ fm_move :: fn(dst: LocalId, src: LocalId) -> Instruction = InstrMove {
 }
 
 fm_call :: fn(dst: LocalId, arg: LocalId) -> Instruction = InstrCall {
-    .span = empty_span(), .dst = dst, .callee = fm_sym(), .args = [arg], .type = fm_i32(),
+    .span = empty_span(),
+    .dsts = [dst],
+    .callee = fm_sym(),
+    .args = [arg],
+    .type = fm_i32(),
 }
 
 fm_block :: fn(instrs: Instruction[]) -> BasicBlock = BasicBlock {

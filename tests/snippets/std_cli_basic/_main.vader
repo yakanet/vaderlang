@@ -4,7 +4,7 @@ import "std/io"
 import "cli"
 
 main :: fn() -> i32 {
-    specs: FlagSpec[] = [
+    specs: FlagSpec[]: [
         FlagSpec { .name = "verbose", .kind = .Bool, .help = "Say more", .alias = "V" },
         FlagSpec {
             .name = "out", .kind = .Str, .help = "Where to write",

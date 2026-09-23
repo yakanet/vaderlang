@@ -114,8 +114,8 @@ const size_t vader_type_size[19] = {
     [12] = 16u,
     [13] = 8u,
     [14] = 16u,
-    [15] = 8u,
-    [16] = 1u,
+    [15] = 1u,
+    [16] = 8u,
     [17] = 16u,
     [18] = 8u,
 };
@@ -124,7 +124,7 @@ const size_t vader_type_size[19] = {
 #include <unistd.h>
 
 static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
-static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 17u, 16u); }
+static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 17u, 15u); }
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
 
 
@@ -251,14 +251,12 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
             t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
             if (t0 == INT32_C(0)) {
                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(-1);
-                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                 goto loop_1;
             }
             t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
             if (t0 == INT32_C(1)) {
                 l1 = INT32_C(-1);
                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = l1;
-                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                 l2 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s3;
 #line 19 "tests/snippets/async_sequential/_main.vader"
                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s4 = l2;
@@ -273,7 +271,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                 l6 = (size_t) (int64_t) INT64_C(0);
                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6 = l6;
-                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 16 "tests/snippets/async_sequential/_main.vader"
                 l7 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s5;
                 l8 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6;
@@ -281,7 +278,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
 #line 19 "tests/snippets/async_sequential/_main.vader"
                 l10 = std_core_write_string_at(l7, l8, l9);
                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6 = l10;
-                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 16 "tests/snippets/async_sequential/_main.vader"
                 l11 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s5;
                 l12 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6;
@@ -289,7 +285,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                 l13 = 6u;
                 l14 = std_core_write_string_at(l11, l12, l13);
                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6 = l14;
-                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 16 "tests/snippets/async_sequential/_main.vader"
                 l15 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s5;
                 l16 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6;
@@ -298,7 +293,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                 l17 = ((int64_t) (int32_t) t0);
                 l18 = std_core_write_int(l15, l16, l17);
                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6 = l18;
-                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 16 "tests/snippets/async_sequential/_main.vader"
                 l19 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s5;
                 l20 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6;
@@ -316,7 +310,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 16 "tests/snippets/async_sequential/_main.vader"
                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(1);
-                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
             } else {
                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
@@ -331,7 +324,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2 = l23;
                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(2);
-                    VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                 } else {
                     t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                     if (t0 == INT32_C(4)) {
@@ -342,17 +334,14 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                         ((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited = l24;
                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                         ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(3);
-                        VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                     } else {
                         t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                         if (t0 == INT32_C(5)) {
                             l25 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s0;
 #line 17 "tests/snippets/async_sequential/_main.vader"
                             ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1 = l25;
-                            VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 16 "tests/snippets/async_sequential/_main.vader"
                             ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(4);
-                            VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                         } else {
                             t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                             if (t0 == INT32_C(6)) {
@@ -365,9 +354,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                 }
                                 l27 = ((int32_t) l26.payload.i);
                                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s0 = l27;
-                                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(5);
-                                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                             } else {
                                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                                 if (t0 == INT32_C(7)) {
@@ -378,7 +365,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited = l28;
                                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(6);
-                                    VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                                 } else {
                                     vader_struct_std_core_Suspended_t* _a2_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
                                     vader_obj_header_init(_a2_obj, 7u);
@@ -395,7 +381,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
     }
     l1 = INT32_C(-1);
     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = l1;
-    VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
     l2 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s3;
 #line 19 "tests/snippets/async_sequential/_main.vader"
     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s4 = l2;
@@ -410,7 +395,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
     l6 = (size_t) (int64_t) INT64_C(0);
     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6 = l6;
-    VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 16 "tests/snippets/async_sequential/_main.vader"
     l7 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s5;
     l8 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6;
@@ -418,7 +402,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
 #line 19 "tests/snippets/async_sequential/_main.vader"
     l10 = std_core_write_string_at(l7, l8, l9);
     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6 = l10;
-    VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 16 "tests/snippets/async_sequential/_main.vader"
     l11 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s5;
     l12 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6;
@@ -426,7 +409,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
     l13 = 6u;
     l14 = std_core_write_string_at(l11, l12, l13);
     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6 = l14;
-    VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 16 "tests/snippets/async_sequential/_main.vader"
     l15 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s5;
     l16 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6;
@@ -435,7 +417,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
     l17 = ((int64_t) (int32_t) t0);
     l18 = std_core_write_int(l15, l16, l17);
     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6 = l18;
-    VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 16 "tests/snippets/async_sequential/_main.vader"
     l19 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s5;
     l20 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s6;

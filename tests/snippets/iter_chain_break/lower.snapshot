@@ -31,21 +31,24 @@
               arg0:
                 b :i32[]!
       loop
-        let __step_1: Yield<i32>! | null =
-          vcall Iterator.next :Yield<i32>! | null
+        let __step_1: [i32, Continuation]! =
+          vcall Iterator.next :[i32, Continuation]!
             recv:
               __iter_0 :Iterator<i32>
         if :void
           cond:
-            is null :bool
-              __step_1 :Yield<i32>! | null
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_1 :[i32, Continuation]!
+              r:
+                int(1) :u8
           then:
             break
           else:
             let x: i32 =
-              .value :i32
-                cast → Yield<i32>!
-                  __step_1 :Yield<i32>! | null
+              ._0 :i32
+                __step_1 :[i32, Continuation]!
             if :void
               cond:
                 eq :bool
@@ -143,21 +146,24 @@
               arg0:
                 b :i32[]!
       loop
-        let __step_5: Yield<i32>! | null =
-          vcall Iterator.next :Yield<i32>! | null
+        let __step_5: [i32, Continuation]! =
+          vcall Iterator.next :[i32, Continuation]!
             recv:
               __iter_4 :Iterator<i32>
         if :void
           cond:
-            is null :bool
-              __step_5 :Yield<i32>! | null
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_5 :[i32, Continuation]!
+              r:
+                int(1) :u8
           then:
             break
           else:
             let x: i32 =
-              .value :i32
-                cast → Yield<i32>!
-                  __step_5 :Yield<i32>! | null
+              ._0 :i32
+                __step_5 :[i32, Continuation]!
             if :void
               cond:
                 eq :bool
@@ -255,21 +261,24 @@
               arg0:
                 b :i32[]!
       loop :y
-        let __step_9: Yield<i32>! | null =
-          vcall Iterator.next :Yield<i32>! | null
+        let __step_9: [i32, Continuation]! =
+          vcall Iterator.next :[i32, Continuation]!
             recv:
               __iter_8 :Iterator<i32>
         if :void
           cond:
-            is null :bool
-              __step_9 :Yield<i32>! | null
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_9 :[i32, Continuation]!
+              r:
+                int(1) :u8
           then:
             break
           else:
             let y: i32 =
-              .value :i32
-                cast → Yield<i32>!
-                  __step_9 :Yield<i32>! | null
+              ._0 :i32
+                __step_9 :[i32, Continuation]!
             if :void
               cond:
                 eq :bool

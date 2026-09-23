@@ -2,8 +2,8 @@
 (none)
 
 # Baked
-VADER_OS = Os.Windows
-VADER_ARCH = Arch.X86_64
+VADER_OS = .Windows
+VADER_ARCH = .X86_64
 
 # Selected body
 main$normalize <- main-windows.vader:4

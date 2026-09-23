@@ -1,0 +1,52 @@
+# Typecheck
+
+## tests/snippets/for_in_null_elements
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         maybe                :: fn() -> Iterator<i32 | null>
+  expr 25:25    SeqLitExpr     :: (i32 | null)[]
+  expr 29:14    IdentExpr      :: (i32 | null)[]
+  expr 30:16    BinaryExpr     :: i32
+  expr 30:16    IdentExpr      :: i32
+  expr 30:9     IdentExpr      :: i32
+  expr 31:12    BinaryExpr     :: bool
+  expr 31:12    IdentExpr      :: i32 | null
+  expr 31:9     IfExpr         :: void
+  expr 32:13    IdentExpr      :: i32
+  expr 32:21    BinaryExpr     :: i32
+  expr 32:21    IdentExpr      :: i32
+  expr 35:15    BinaryExpr     :: i32
+  expr 35:15    IdentExpr      :: i32
+  expr 35:21    IdentExpr      :: i32
+  expr 35:9     IdentExpr      :: i32
+  expr 37:13    StringLitExpr  :: string
+  expr 37:28    IdentExpr      :: i32
+  expr 37:42    IdentExpr      :: i32
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 37:55    IdentExpr      :: i32
+  expr 39:11    CallExpr       :: __genstate_maybe<i32 | null>!
+  expr 39:11    IdentExpr      :: fn() -> Iterator<i32 | null>
+  expr 43:14    IdentExpr      :: __genstate_maybe<i32 | null>!
+  expr 44:17    BinaryExpr     :: i32
+  expr 44:17    IdentExpr      :: i32
+  expr 44:9     IdentExpr      :: i32
+  expr 45:12    BinaryExpr     :: bool
+  expr 45:12    IdentExpr      :: i32 | null
+  expr 45:9     IfExpr         :: void
+  expr 46:13    IdentExpr      :: i32
+  expr 46:22    BinaryExpr     :: i32
+  expr 46:22    IdentExpr      :: i32
+  expr 49:16    BinaryExpr     :: i32
+  expr 49:16    IdentExpr      :: i32
+  expr 49:23    IdentExpr      :: i32
+  expr 49:9     IdentExpr      :: i32
+  expr 51:13    StringLitExpr  :: string
+  expr 51:28    IdentExpr      :: i32
+  expr 51:43    IdentExpr      :: i32
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 51:57    IdentExpr      :: i32
+  expr 52:12    BinaryExpr     :: i32
+  expr 52:12    BinaryExpr     :: i32
+  expr 52:12    IdentExpr      :: i32
+  expr 52:24    IdentExpr      :: i32

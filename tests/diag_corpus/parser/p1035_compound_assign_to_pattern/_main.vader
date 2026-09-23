@@ -1,0 +1,11 @@
+module "snippet"
+
+main :: fn() -> i32 {
+    a := 1
+    b := 2
+    // `+=` desugars to `lhs = lhs <op> rhs`, and `[a, b] + [10, 20]` is array
+    // CONCATENATION — four elements, of which the write would keep two. Refused
+    // in the parser, the only place that still knows a compound was written.
+    [a, b] += [10, 20]
+    return 0
+}

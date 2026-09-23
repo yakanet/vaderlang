@@ -18,6 +18,6 @@ B implements Into<C> {
 
 main :: fn() -> i32 {
     a :: A { .value = 1 }
-    c: C = a   // should fail — no `A implements Into(C)` ; chain not auto-composed
+    c: C: a   // should fail — no `A implements Into(C)` ; chain not auto-composed
     return c.value
 }

@@ -7,7 +7,7 @@ triple :: fn() -> [i32, string, bool] {
 }
 
 main :: fn() -> i32 {
-    [a, _, c] := triple()
+    [a, _, c] :: triple()
     println("a = ${a}")
     println("c = ${c}")
     return 0

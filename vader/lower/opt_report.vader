@@ -1,0 +1,106 @@
+// vader/lower/opt_report — where an optimisation gave up, and on what.
+//
+// The optimisation passes under `lower/` are SHAPE RECOGNISERS: each tries to
+// match a form, and returns `null` when it doesn't, falling through to a
+// general path that is correct but slower. There are 304 such bail-outs, and
+// not one of them says so — so a program can miss every fast path in the
+// compiler and look, from the outside, exactly like one that hits them all.
+//
+// This records the FALL, not the refusal. A pass declines many times on its way
+// to a decision (`lower_iter_fusion` alone has 40 refusal points); what a reader
+// needs is the single place where it has exhausted its attempts and the general
+// path takes over. That is ~10 sites instead of 304, and it answers the question
+// the refusals cannot: how often does a real program miss this, and where.
+//
+// Inert unless `$VADER_OPT_REPORT` is set — the env is read once per lowering
+// run and cached on `LowerProjectCtx`, so a disabled report costs one bool test
+// at each fall site.
+//
+// NOT a diagnostic. It never reaches `Diagnostic[]`, never gates a build, and
+// never changes emitted code. Missing an optimisation is not a user error; this
+// is an instrument, and treating it as a warning would push people to rewrite
+// working code to silence it.
+//
+// ⚠️ COUNT THE STATE, NOT THE ATTEMPT. A pass can miss in two ways: it tried and
+// refused, or it was never reached at all. Instrumenting only the first leaves a
+// blind spot — `bench/arr_rw` walks `for i in 0..<n` with `n` a separate local,
+// so no `arr.len()` bound exists to pair with the loop, `bh_try_hoist` never
+// runs, and the report stays silent on a loop that is documented as costing
+// 1.6x against Go. A site added here should ask "does this construct END UP on
+// the slow path", not "did a recogniser decline". The `for-in` fall site does
+// this correctly (it sits after every attempt); the BCE one does not yet, and
+// says so in its own note.
+
+module "vader/lower"
+
+import "std/collections"
+import "std/env"
+import "std/string"
+import "std/string_builder"
+import "toolchain/span"
+
+/// One point where an optimisation pass handed over to the general path.
+export OptMiss :: struct {
+    /// The pass that gave up, in the words a reader would use — "for-in fusion",
+    /// not `try_lower_chain_fusion`.
+    pass: string
+    /// The source construct that missed it.
+    span: Span
+    /// What happens instead, and the property that would have been needed.
+    /// Written for someone deciding whether to care, not for whoever wrote
+    /// the pass.
+    note: string
+}
+
+/// Environment variable that turns the report on.
+export OPT_REPORT_VAR :: "VADER_OPT_REPORT"
+
+/// Whether `$VADER_OPT_REPORT` is set to something other than `0`.
+///
+/// Read once per lowering run — `record_miss` consults the cached flag, so the
+/// per-site cost when off is a bool test rather than an environment lookup.
+export opt_report_enabled :: fn() -> bool {
+    raw :: get_env(OPT_REPORT_VAR) ?? return false
+    return raw != "" && raw != "0"
+}
+
+/// Note that `pass` fell back to its general path at `span`.
+///
+/// A no-op unless the report is on. Callers sit at the single fall site of a
+/// pass, never at its individual refusals.
+///
+/// @param ctx   the lowering project context, which accumulates the misses.
+/// @param pass  the pass, named for a reader.
+/// @param note  what runs instead, and what would have been needed.
+export record_miss :: fn(ctx: LowerProjectCtx!, pass: string, span: Span, note: string) -> void {
+    if !ctx.opt_report {
+        return
+    }
+    ctx.opt_misses.push(OptMiss { .pass = pass, .span = span, .note = note })
+}
+
+/// Render the collected misses, grouped by pass and ordered by how often each
+/// fired — the frequent ones are the ones worth acting on.
+///
+/// Returns "" when the report is off or nothing missed, so the caller can print
+/// unconditionally.
+export render_opt_report :: fn(ctx: LowerProjectCtx) -> string {
+    if ctx.opt_misses.len() == 0 {
+        return ""
+    }
+    counts :: MutableMap<string, i32> {}
+    for m in ctx.opt_misses {
+        counts[m.pass] = (counts[m.pass] ?? 0) + 1
+    }
+    out :: StringBuilder {}
+    out.append("\n[VADER_OPT_REPORT] optimisations that handed over to the general path\n")
+    for [pass, n] in counts {
+        out.append("  ${pass}: ${n}\n")
+    }
+    out.append("\n  sites:\n")
+    for m in ctx.opt_misses {
+        at :: "${m.span.start.file}:${m.span.start.line}:${m.span.start.column}"
+        out.append("    [${at}] ${m.pass} — ${m.note}\n")
+    }
+    return out.to_string()
+}

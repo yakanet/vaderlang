@@ -1,7 +1,7 @@
 // `for x in iter` where `iter` has trait type `Iterator<T>` dispatches
 // `next()` through `LoweredVirtualCall` instead of looking up a static
 // impl on a concrete struct. Same surface, but the receiver may be a
-// `Range`, `ArrayIterator`, or any user struct implementing `Iterator<T>`
+// `Range`, an array iterator, or any user struct implementing `Iterator<T>`
 // — the runtime dispatches by tag.
 //
 // Before this fix, `for x in it` on a trait-typed `it` errored with
@@ -27,7 +27,7 @@ sum_iter :: fn(it: Iterator<i32>) -> i32 {
 }
 
 // Count items via a chained `Iterator<T>`-receiver call. UFCS picks the
-// lazy `filter :: fn<T>(self: Iterator<T>, …) -> FilterIterator<T>`
+// lazy `filter :: fn<T>(self: Iterator<T>, …) -> Iterator<T>`
 // overload, then `.count()` (default method on the `Iterator` trait)
 // consumes the chain without allocating an intermediate array.
 is_l :: fn(c: char) -> bool { return c == 'l' }

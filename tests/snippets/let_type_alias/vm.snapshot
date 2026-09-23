@@ -2,6 +2,6 @@
 size i32      = 4
 size i64      = 8
 size union    = 16
-size array    = 16
+size array    = 8
 # exit
 0

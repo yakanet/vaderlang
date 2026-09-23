@@ -76,9 +76,9 @@ append_word :: fn(out: u8[]!, index: i32) -> void {
 // distinct word — more than half the Bun-TS column, spent on setup rather than
 // on the map the row is named for.
 build_vocabulary :: fn() -> u8[][] {
-    out: u8[][]! = []
+    out: u8[][]!: []
     for index in 0..<VOCABULARY_SIZE {
-        word: u8[]! = []
+        word: u8[]!: []
         word.append_word(index)
         out.push(word)
     }
@@ -86,7 +86,7 @@ build_vocabulary :: fn() -> u8[][] {
 }
 
 build_corpus :: fn(vocabulary: u8[][]) -> u8[] {
-    out: u8[]! = []
+    out: u8[]!: []
     for token_index in 0..<TOKEN_COUNT {
         word_index :: i32(i64(token_index) * VOCABULARY_STRIDE % i64(VOCABULARY_SIZE))
         out.push_all(vocabulary[usize(word_index)])

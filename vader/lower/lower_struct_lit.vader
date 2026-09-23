@@ -17,12 +17,12 @@ lower_struct_lit :: fn(ctx: FnLowerCtx!, lit: StructLitExpr, type: Type) -> Lowe
     // struct decl in declaration order ; this yields a canonical field
     // ordering even when the source literal reorders
     // fields or omits ones with defaults.
-    provided: MutableMap<string, Expr> = MutableMap<string, Expr> {}
+    provided: MutableMap<string, Expr>: MutableMap<string, Expr> {}
     // Bind each `...spread` source to a synthetic temp so it's
     // evaluated exactly once even when several fields inherit from it.
     // Later spreads win, so `spread_sym` tracks the LAST source —
     // omitted fields read from it.
-    spread_stmts: LoweredStmt[]! = []
+    spread_stmts: LoweredStmt[]!: []
     spread_sym: Symbol | null = null
     for item in lit.items {
         match item {
@@ -178,7 +178,7 @@ target_is_enum_name :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
 as_namespace_binding :: fn(ctx: FnLowerCtx, expr: Expr) -> Symbol | null {
     ident :: as_ident(expr) ?? return null
     sym :: ctx.typed.resolved.idents[ident.span.hash()] ?? return null
-    if sym.kind == SymbolKind.ImportBinding { return sym }
+    if sym.kind == .ImportBinding { return sym }
     return null
 }
 
@@ -190,7 +190,7 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
     @partial match type {
         is EnumType -> { return type }
         is StructType -> {
-            if type.symbol.kind != SymbolKind.Enum { return type }
+            if type.symbol.kind != .Enum { return type }
             real :: ctx.typed.decl_types[type.symbol.id]
             if real is EnumType { return real }
             return type
@@ -228,7 +228,7 @@ build_struct_lit_fields :: fn(
     provided: MutableMap<string, Expr>, lit: StructLitExpr,
     spread_sym: Symbol | null,
 ) -> LoweredStructLitField![] {
-    out: LoweredStructLitField![]! = []
+    out: LoweredStructLitField![]!: []
     // `struct_backing` unwraps a struct-backed distinct newtype so declared-order
     // field building walks the backing struct decl. A non-struct type (or a
     // struct whose decl isn't indexed) degrades to source order (defensive
@@ -296,7 +296,7 @@ lower_field_value :: fn(
 }
 
 // Build a `LoweredStructLit` for a compiler-SYNTHESISED construction of a
-// stdlib/core struct (Range, ArrayIterator, Field, Yield, …), ordering the
+// stdlib/core struct (Range, Field, …), ordering the
 // provided already-lowered fields by the struct's DECLARATION order instead of
 // trusting the call site to hand-match it. midir consumes struct-lit fields
 // positionally (`build_struct_lit` / `InstrStructNew` ignore the `.name`
@@ -316,7 +316,7 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
     if decl == null {
         panic("build_core_struct_lit: struct decl not indexed for ${st.symbol.name}")
     }
-    ordered: LoweredStructLitField![]! = []
+    ordered: LoweredStructLitField![]!: []
     for field_decl in decl.fields {
         provided :: find_lowered_field(fields, field_decl.name)
         if provided == null {
@@ -341,7 +341,7 @@ find_lowered_field :: fn(fields: LoweredStructLitField[], name: string) -> Lower
 // Defensive fallback : when the struct decl can't be reached, emit
 // fields in source order (the previous behaviour).
 fallback_provided_order :: fn(ctx: FnLowerCtx!, lit: StructLitExpr) -> LoweredStructLitField![] {
-    out: LoweredStructLitField![]! = []
+    out: LoweredStructLitField![]!: []
     for item in lit.items {
         match item {
             is StructLitField -> {
@@ -362,7 +362,7 @@ lower_seq_lit :: fn(ctx: FnLowerCtx!, lit: SeqLitExpr, type: Type) -> LoweredExp
     // `_0` / `_1` / ... fields ; the bytecode emit reads them off the same
     // struct layout the typer pins (distinct wrappers strip at the emit boundary).
     if tuple_backing(type) != null {
-        fields: LoweredStructLitField![]! = []
+        fields: LoweredStructLitField![]!: []
         for i in 0..<lit.elements.len() {
             fields.push(LoweredStructLitField {
                 .name = "_${i}",
@@ -371,7 +371,7 @@ lower_seq_lit :: fn(ctx: FnLowerCtx!, lit: SeqLitExpr, type: Type) -> LoweredExp
         }
         return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
     } else {
-        elements: LoweredExpr[]! = []
+        elements: LoweredExpr[]!: []
         for element in lit.elements { elements.push(lower_expr(ctx, element)) }
         return LoweredArrayLit { .span = lit.span, .type = type, .elements = elements }
     }

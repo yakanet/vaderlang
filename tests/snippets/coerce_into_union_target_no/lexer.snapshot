@@ -62,8 +62,8 @@
 [16:8-16:11 ] ident          "i32"
 [16:12-16:13] pipe           "|"
 [16:14-16:20] ident          "string"
-[16:21-16:22] assign         "="
-[16:23-16:24] ident          "f"
+[16:20-16:21] colon          ":"
+[16:22-16:23] ident          "f"
 [17:1-17:1  ] newline        "\n"
 [17:5-17:11 ] kw_return      "return"
 [17:12-17:13] int_literal    "0" =0n

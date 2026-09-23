@@ -61,6 +61,14 @@ export CFGFunction :: struct {
     is_extern:   bool
     /// True when @export-decorated. Drives the bytecode export table.
     is_exported: bool
+    /// When non-empty, the values this fn hands back INSTEAD of the single
+    /// object `return_type` names — set by `scalarise_value_returns`.
+    ///
+    /// `return_type` is deliberately left alone: it is what the callee's
+    /// composite still IS, and a caller that needs the object rebuilds it from
+    /// these. The bytecode signature is what carries the arity to the backends,
+    /// and it is built from this list when it is set.
+    scalarised_results: Type[] = []
 }
 
 /// Declaration of a bodyless fn (typically @extern). Bytecode emit
@@ -158,8 +166,24 @@ export TermCondBranch :: struct {
 
 export TermReturn :: struct {
     span:  Span
-    /// null for void returns.
-    value: LocalId | null
+    /// The values the callee hands back, in the order a caller receives them.
+    /// EMPTY for a void return. More than one is what lets a small composite
+    /// cross in registers instead of as a heap object — the plan is
+    /// `.claude/plans/2026-09-22-tuple-value-abi.md`, and the arity has to reach
+    /// the backends intact (see `hazard_ir_hint_plumbing`: a field that dies
+    /// quietly between lower and emit is this IR's classic failure).
+    values: LocalId[]
+}
+
+/// The single value a `TermReturn` carries, or null when it carries none or
+/// several. Callers that predate multi-value ask this rather than `values[0]`,
+/// so a site that has NOT been taught about arity answers "I don't know" instead
+/// of silently reading the first of several.
+export term_return_single :: fn(t: TermReturn) -> LocalId | null {
+    if t.values.len() != 1 {
+        return null
+    }
+    return t.values[0]
 }
 
 /// Trap at runtime ; `reason` is shown in the diagnostic. Used for
@@ -256,11 +280,24 @@ export InstrUnOp :: struct {
 /// lives in.
 export InstrCall :: struct {
     span:   Span
-    /// null when the call returns void.
-    dst:    LocalId | null
+    /// Where the callee's results land, in the order it hands them back. EMPTY
+    /// for a void call. More than one only for a callee the value-ABI pass
+    /// scalarised — see `value_return.vader`; every other call has at most one.
+    dsts:   LocalId[]
     callee: Symbol
     args:   LocalId[]
     type:   Type
+}
+
+/// The single local a call writes to, or null when it writes none or several.
+///
+/// Same rule as `term_return_single`: a site that has not been taught about
+/// multi-value gets "I don't know" rather than the first of several.
+export call_single_dst :: fn(ins: InstrCall) -> LocalId | null {
+    if ins.dsts.len() != 1 {
+        return null
+    }
+    return ins.dsts[0]
 }
 
 /// Indirect call — the callee is a fn-typed local (closure or fn-ref

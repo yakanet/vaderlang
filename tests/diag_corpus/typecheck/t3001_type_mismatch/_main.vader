@@ -2,6 +2,6 @@
 module "snippet"
 
 main :: fn() -> i32 {
-    x: i32 = "hello"
+    x: i32: "hello"
     return 0
 }

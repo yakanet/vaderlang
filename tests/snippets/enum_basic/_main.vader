@@ -19,7 +19,7 @@ export describe :: fn(d: Direction) -> string {
 }
 
 main :: fn() {
-    d: Direction = .East
+    d: Direction: .East
     println(describe(d))
     println(describe(Direction.North))
     if d == .East { println("d is East") }

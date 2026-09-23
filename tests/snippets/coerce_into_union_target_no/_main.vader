@@ -13,6 +13,6 @@ Foo implements Into<i32> {
 
 main :: fn() -> i32 {
     f :: Foo { .value = 42 }
-    x: i32 | string = f   // Union target — no Into probe, plain T3001
+    x: i32 | string: f   // Union target — no Into probe, plain T3001
     return 0
 }

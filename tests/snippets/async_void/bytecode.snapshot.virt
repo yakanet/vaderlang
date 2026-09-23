@@ -12,24 +12,24 @@ type 9 union 3,6
 type 10 primitive void
 type 11 primitive string
 type 12 ref Async
-type 13 primitive usize
-type 14 struct std_core$Buffer {  }
-type 15 primitive i64
-type 16 primitive u8
-type 17 array 16
+type 13 primitive u8
+type 14 primitive usize
+type 15 struct std_core$Buffer {  }
+type 16 primitive i64
+type 17 array 13
 type 18 primitive isize
 string 0 "parked?!"
 string 1 "complete"
 string 2 "logged "
 string 3 "wrapped"
 string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=13 param_types=11 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=14 param_types=11 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=17 param_types=11 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=3,17,13 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=3,17,14 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 4 Async
 impl 7 Async
 impl 8 Async
-impl 14 ByteAccess
+impl 15 ByteAccess
 vtable Async.resume 4 4
 vtable Async.resume 7 5
 vtable Async.resume 8 6

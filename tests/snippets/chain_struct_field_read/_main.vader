@@ -17,8 +17,8 @@ import "std/iter"
 Rec :: struct { name: string, value: i32 }
 
 main :: fn() -> i32 {
-    a: Rec[] = [Rec { .name = "a", .value = 1 }, Rec { .name = "b", .value = 2 }]
-    b: Rec[] = [Rec { .name = "c", .value = 3 }]
+    a: Rec[]: [Rec { .name = "a", .value = 1 }, Rec { .name = "b", .value = 2 }]
+    b: Rec[]: [Rec { .name = "c", .value = 3 }]
 
     // chain : element type flows from the array args, no lambda involved.
     merged :: chain(a, b).collect()

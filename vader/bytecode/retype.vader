@@ -27,7 +27,7 @@ import "std/string"
 /// @param m  the module whose table to key.
 /// @return   one key per type index.
 export type_keys_of :: fn(m: BytecodeModule) -> string[] {
-    keys: string[]! = []
+    keys: string[]!: []
     for i in 0..<m.types.len() {
         keys.push(bc_type_key(m.types, i32(i)))
     }
@@ -48,9 +48,9 @@ export type_keys_of :: fn(m: BytecodeModule) -> string[] {
 ///                    sorted.
 export union_of_type_tables :: fn(per_module: string[][]) -> string[] {
     reserved :: per_module[0][0]
-    seen: MutableSet<string>! = MutableSet<string> {}
+    seen: MutableSet<string>!: MutableSet<string> {}
     seen.add(reserved)
-    keys: string[]! = []
+    keys: string[]!: []
     for module_keys in per_module {
         for k in module_keys {
             if seen.add(k) {
@@ -58,7 +58,7 @@ export union_of_type_tables :: fn(per_module: string[][]) -> string[] {
             }
         }
     }
-    out: string[]! = [reserved]
+    out: string[]!: [reserved]
     for k in sort(keys, (a: string, b: string) -> compare_ascending(a, b)) {
         out.push(k)
     }
@@ -88,7 +88,7 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
     }
     // old index -> new index. -1 stays -1: it is the "no type" marker, not a
     // slot, and remapping it would point at the universe's first entry.
-    remap: i32[]! = []
+    remap: i32[]!: []
     for i in 0..<m.types.len() {
         remap.push(slot_of[keys[i]] ?? -1)
     }
@@ -104,14 +104,14 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
             by_slot[s] = remap_type(m.types[i], remap)
         }
     }
-    types: BcType[]! = []
+    types: BcType[]!: []
     for i in 0..<universe.len() {
         types.push(by_slot[i32(i)] ?? placeholder_for(universe[i]))
     }
 
-    fns: BcFunction[]! = []
+    fns: BcFunction[]!: []
     for f in m.functions {
-        body: Op[]! = []
+        body: Op[]!: []
         for op in f.body {
             body.push(remap_type_in_op(op, remap))
         }
@@ -124,7 +124,7 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
             },
         )
     }
-    imports: BcImport[]! = []
+    imports: BcImport[]!: []
     for imp in m.imports {
         imports.push(
             BcImport {
@@ -137,7 +137,7 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
             },
         )
     }
-    impls: ImplEntry[]! = []
+    impls: ImplEntry[]!: []
     for e in m.impl_table {
         impls.push(
             ImplEntry {
@@ -146,9 +146,9 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
             },
         )
     }
-    vts: VtableRow[]! = []
+    vts: VtableRow[]!: []
     for row in m.vtables {
-        entries: VtableEntry[]! = []
+        entries: VtableEntry[]!: []
         for e in row.entries {
             entries.push(
                 VtableEntry {
@@ -166,20 +166,10 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
     }
 }
 
-remap_signature :: fn(sig: BcSignature, remap: i32[]) -> BcSignature {
-    pts: i32[]! = []
-    for pt in sig.param_types {
-        pts.push(remap_idx(remap, pt))
-    }
-    return BcSignature {
-        .params = sig.params, .result = sig.result, .param_types = pts,
-        .result_type = remap_idx(remap, sig.result_type), .param_names = sig.param_names,
-        // Carried over explicitly : the field defaults to `[]`, so a partial
-        // rebuild drops it in silence — the failure mode `types.vader` records
-        // for `FnParam.mutable`.
-        .param_mutable = sig.param_mutable,
-        .param_by_address = sig.param_by_address,
-    }
+remap_signature :: fn(sig: BcSignature, remap: i32[]) -> BcSignature = BcSignature {
+    ...sig,
+    .param_types = remap_type_indices(remap, sig.param_types),
+    .result_types = remap_type_indices(remap, sig.result_types),
 }
 
 // Exhaustive on purpose, with no `_` arm: `BcType` is a closed union, so a new
@@ -190,7 +180,7 @@ remap_type :: fn(t: BcType, remap: i32[]) -> BcType = match t {
     // carries only a trait name.
     is BcPrimitive | BcRef -> t
     is BcStruct -> {
-        fields: BcField[]! = []
+        fields: BcField[]!: []
         for f in t.fields {
             fields.push(BcField {
                 .name = f.name, .type_index = remap_idx(remap, f.type_index),
@@ -200,14 +190,14 @@ remap_type :: fn(t: BcType, remap: i32[]) -> BcType = match t {
     }
     is BcArray -> BcArray { .element = remap_idx(remap, t.element) }
     is BcUnion -> {
-        vs: i32[]! = []
+        vs: i32[]!: []
         for v in t.variants {
             vs.push(remap_idx(remap, v))
         }
         BcUnion { .variants = vs }
     }
     is BcFn -> {
-        ps: i32[]! = []
+        ps: i32[]!: []
         for p in t.params {
             ps.push(remap_idx(remap, p))
         }

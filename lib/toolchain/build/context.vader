@@ -162,7 +162,7 @@ export BuildTarget :: enum(u8) {
 // because `load_from_vader_config` REPLACES that list — a driver calling it would
 // silently drop the stdlib and get `R2001 module not found: std/io`.
 search_roots :: fn(ctx: BuildContext) -> string[] {
-    roots: string[]! = []
+    roots: string[]!: []
     for p in ctx.include_paths {
         roots.push(p)
     }
@@ -258,7 +258,7 @@ export load_from_vader_config :: fn(ctx: BuildContext!) -> void {
         return
     }
     manifest :: read_manifest(ctx.project_root)
-    fresh: string[]! = []
+    fresh: string[]!: []
     for p in manifest.include_paths {
         fresh.push(p)
     }

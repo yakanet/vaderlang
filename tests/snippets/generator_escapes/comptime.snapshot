@@ -5,6 +5,7 @@
 ## generic instances
   __genstate_count_up<i32>
   __genstate_pairs<i32>
+  __genstate_array_iter<T>
   Into<Target>
   Add<Rhs, Out>
   ArrayOps<T>
@@ -18,15 +19,10 @@
   Iterator<i32>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

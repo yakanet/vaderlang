@@ -32,10 +32,10 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     if ctx.split {
         emit_mirrored_struct_typedefs(ctx, out)
     }
-    extern_decls: string[]! = []
-    seen_extern: string[]! = []
-    headers: string[]! = []
-    shims: string[]! = []
+    extern_decls: string[]!: []
+    seen_extern: string[]!: []
+    headers: string[]!: []
+    shims: string[]!: []
     for i in 0..<ctx.module.imports.len() {
         imp :: ctx.module.imports[i]
         if imp.is_extern && !(imp.extern_name in seen_extern) {
@@ -285,7 +285,7 @@ push_leaf_asserts :: fn(
 /// @param types  the module type table.
 /// @return       one line per field, empty when no struct mirrors a C type.
 c_struct_layout_asserts :: fn(types: BcType[], crossing: MutableSet<i32>) -> string[] {
-    out: string[]! = []
+    out: string[]!: []
     nested :: nested_member_mirrors(types)
     for type_index in 0..<types.len() {
         t :: types[type_index]
@@ -344,7 +344,7 @@ c_struct_layout_asserts :: fn(types: BcType[], crossing: MutableSet<i32>) -> str
 /// `extern <ret> <name>(<params>);` for an `@extern` import — foreign ABI
 /// types (`string` → `const char*`), declared once per distinct symbol.
 extern_decl :: fn(imp: BcImport, types: BcType[]) -> string {
-    parts: string[]! = []
+    parts: string[]!: []
     for j in 0..<imp.signature.params.len() {
         if is_abi_array(types, imp.signature.param_types[j]) {
             // One Vader array = ONE C argument, a bare pointer. A length, when
@@ -374,10 +374,10 @@ extern_decl :: fn(imp: BcImport, types: BcType[]) -> string {
         }
     }
     params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
-    ret :: if is_abi_nullable_pointer(types, imp.signature.result_type) {
+    ret :: if is_abi_nullable_pointer(types, bc_single_result_type(imp.signature)) {
         "void*"
     } else {
-        extern_c_type(imp.signature.result)
+        extern_c_type(bc_single_result(imp.signature))
     }
     return "extern ${ret} ${imp.extern_name}(${params});"
 }
@@ -410,10 +410,10 @@ is_abi_nullable_pointer :: fn(types: BcType[], type_index: i32) -> bool {
             }
             v :: types[vi]
             if v is BcPrimitive {
-                if v.val == ValType.Null {
+                if v.val == .Null {
                     has_null = true
                 }
-                if v.val == ValType.Pointer {
+                if v.val == .Pointer {
                     has_ptr = true
                 }
             }
@@ -448,8 +448,8 @@ is_abi_nullable_string :: fn(types: BcType[], type_index: i32) -> bool {
         }
         v :: types[vi]
         if v is BcPrimitive {
-            if v.val == ValType.Null   { has_null = true }
-            if v.val == ValType.String { has_str = true }
+            if v.val == .Null   { has_null = true }
+            if v.val == .String { has_str = true }
         }
     }
     return has_null && has_str
@@ -544,10 +544,10 @@ shim_linkage_prefix :: fn(split: bool) -> string = if split { "static inline " }
 
 import_shim_signature :: fn(imp: BcImport, idx: i32) -> string {
     sig :: imp.signature
-    parts: string[]! = []
+    parts: string[]!: []
     for j in 0..<sig.params.len() { parts.push("${c_type_for_val_bare(sig.params[j])} a${j}") }
     params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
-    return "${c_type_for_val_bare(sig.result)} ${host_shim_name(imp)}(${params})"
+    return "${c_type_for_val_bare(bc_single_result(sig))} ${host_shim_name(imp)}(${params})"
 }
 
 import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
@@ -637,12 +637,12 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
 /// across the free was exactly the use-after-free this claimed to prevent.
 user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
     sig :: imp.signature
-    call_args: string[]! = []
-    lines: string[]! = []
-    free_lines: string[]! = []
-    after_lines: string[]! = []
-    write_back_roots: string[]! = []
-    write_backs: string[]! = []
+    call_args: string[]!: []
+    lines: string[]!: []
+    free_lines: string[]!: []
+    after_lines: string[]!: []
+    write_back_roots: string[]!: []
+    write_backs: string[]!: []
     for j in 0..<sig.params.len() {
         if is_abi_array(types, sig.param_types[j]) {
             // Lent for the duration of the call. A callback makes that call a
@@ -704,7 +704,7 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
             // The union rides as a box inside Vader; C wants a bare `void*`.
             lines.push("void* p${j} = (a${j}.tag == VADER_BOX_TAG_NULL) ? NULL : (void*) (intptr_t) a${j}.payload.i;")
             call_args.push("p${j}")
-        } else if sig.params[j] == ValType.String {
+        } else if sig.params[j] == .String {
             lines.push("const char* c${j} = vader_string_to_cstr(a${j});")
             free_lines.push("vader_cstr_free_for(a${j}, c${j});")
             call_args.push("c${j}")
@@ -728,23 +728,23 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         after_lines.push_all(write_backs)
     }
     call_expr :: "${imp.extern_name}(${call_args.join(", ")})"
-    if sig.result == ValType.Void {
+    if bc_single_result(sig) == .Void {
         lines.push("${call_expr};")
         for al in after_lines { lines.push(al) }
         for fl in free_lines { lines.push(fl) }
         lines.push("return;")
-    } else if is_abi_nullable_pointer(types, sig.result_type) {
+    } else if is_abi_nullable_pointer(types, bc_single_result_type(sig)) {
         // Symmetric with the parameter side : a bare `void*` comes back, and
         // `NULL` becomes the union's null variant rather than a tagged pointer.
-        ptr_tag :: tag_u(prim_tag(types, ValType.Pointer), "CPointer")
+        ptr_tag :: tag_u(prim_tag(types, .Pointer), "CPointer")
         lines.push("void* r = ${call_expr};")
         for al in after_lines { lines.push(al) }
         for fl in free_lines { lines.push(fl) }
         lines.push("return r == NULL ? vader_box_null() : vader_box_i64(${ptr_tag}, (int64_t) (intptr_t) r);")
-    } else if is_abi_nullable_string(types, sig.result_type) {
+    } else if is_abi_nullable_string(types, bc_single_result_type(sig)) {
         // `char*` says "absent" with NULL; folding that onto `""` would lose the
         // distinction `getenv` rests on. Borrowed, like every returned string.
-        str_tag :: tag_u(prim_tag(types, ValType.String), "string")
+        str_tag :: tag_u(prim_tag(types, .String), "string")
         lines.push("const char* r = ${call_expr};")
         for al in after_lines { lines.push(al) }
         // INTERNED BEFORE THE FREES. A returned `char*` may point INTO an
@@ -756,7 +756,7 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
         lines.push("vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(${str_tag}, (int64_t) vader_atom_intern(r, strlen(r)));")
         for fl in free_lines { lines.push(fl) }
         lines.push("return out;")
-    } else if sig.result == ValType.String {
+    } else if bc_single_result(sig) == .String {
         // A C string comes back BORROWED: interned into the atom table, never
         // freed. Not a stopgap — it is the CORRECT semantics for a pointer the
         // library owns (`getenv`, `strerror`, a struct member), which is what
@@ -783,7 +783,7 @@ user_extern_shim :: fn(imp: BcImport, head: string, types: BcType[]) -> string {
     } else if free_lines.len() == 0 && after_lines.len() == 0 {
         lines.push("return ${call_expr};")
     } else {
-        lines.push("${c_type_for_val_bare(sig.result)} r = ${call_expr};")
+        lines.push("${c_type_for_val_bare(bc_single_result(sig))} r = ${call_expr};")
         for al in after_lines { lines.push(al) }
         for fl in free_lines { lines.push(fl) }
         lines.push("return r;")
@@ -852,7 +852,7 @@ c_field_name :: fn(f: BcField) -> string = f.name
 /// `c_type_for_val_bare` except `string`, which the foreign side consumes
 /// as `const char*` (the shim marshals between the two).
 extern_c_type :: fn(v: ValType) -> string {
-    if v == ValType.String { return "const char*" }
+    if v == .String { return "const char*" }
     return c_type_for_val_bare(v)
 }
 

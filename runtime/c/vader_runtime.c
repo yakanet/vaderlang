@@ -1374,6 +1374,8 @@ static size_t vader_physical_ram_bytes(void) {
     return 0;
 #endif
 }
+static void vader_alloc_by_type_dump(void);
+
 
 static size_t vader_clamp_size(size_t x, size_t lo, size_t hi) {
     return x < lo ? lo : (x > hi ? hi : x);
@@ -1411,6 +1413,16 @@ void vader_gc_init(void) {
     if (gc_prof_env != NULL && gc_prof_env[0] != '\0' && gc_prof_env[0] != '0') {
         g_gc_profile = 1;
         atexit(vader_gc_profile_dump);
+    }
+
+    /* VADER_ALLOC_BY_TYPE : count every allocation by type_index and dump the
+     * table at exit. The static report says which SITES stayed on the heap;
+     * this says how often each one fires, which is what decides whether a site
+     * is worth a change. */
+    const char* abt_env = getenv("VADER_ALLOC_BY_TYPE");
+    if (abt_env != NULL && abt_env[0] != '\0' && abt_env[0] != '0') {
+        vader_alloc_by_type_on = 1;
+        atexit(vader_alloc_by_type_dump);
     }
 
     /* RAM-proportional defaults (the zero-tuning primary interface; the absolute
@@ -1645,6 +1657,43 @@ static void vader_old_maybe_major(void) {
     if (threshold < (size_t) VADER_GC_OLD_MAJOR_FLOOR) threshold = (size_t) VADER_GC_OLD_MAJOR_FLOOR;
     if (g_old_live_bytes > threshold) {
         vader_major_collect();
+    }
+}
+
+/* ---- per-type allocation counter (VADER_ALLOC_BY_TYPE) --------------------
+ * Storage + dump for the counter declared in vader.h. Sorted by count, since
+ * the question it answers is "what does this run allocate MOST of". */
+uint64_t vader_alloc_by_type[VADER_ALLOC_TYPES_MAX];
+int      vader_alloc_by_type_on = 0;
+
+static void vader_alloc_by_type_dump(void) {
+    size_t limit = vader_type_info_count < VADER_ALLOC_TYPES_MAX
+                 ? vader_type_info_count : VADER_ALLOC_TYPES_MAX;
+    uint64_t total = 0;
+    for (size_t i = 0; i < VADER_ALLOC_TYPES_MAX; i++) total += vader_alloc_by_type[i];
+    if (total == 0) return;
+    fprintf(stderr, "\n[VADER_ALLOC_BY_TYPE] %llu allocations\n",
+            (unsigned long long) total);
+    /* Selection sort over the top 25 — the table is small and this runs once. */
+    for (int rank = 0; rank < 25; rank++) {
+        size_t best = 0;
+        uint64_t best_n = 0;
+        for (size_t i = 0; i < VADER_ALLOC_TYPES_MAX; i++) {
+            if (vader_alloc_by_type[i] > best_n) { best_n = vader_alloc_by_type[i]; best = i; }
+        }
+        if (best_n == 0) break;
+        const char* kind = "?";
+        if (best < limit) {
+            switch (vader_type_info_table[best].kind) {
+                case VADER_TYPE_KIND_STRUCT: kind = "struct"; break;
+                case VADER_TYPE_KIND_ARRAY:  kind = "array";  break;
+                default: break;
+            }
+        }
+        fprintf(stderr, "  type %3zu  %-7s %12llu  (%4.1f%%)\n",
+                best, kind, (unsigned long long) best_n,
+                100.0 * (double) best_n / (double) total);
+        vader_alloc_by_type[best] = 0;   /* consumed */
     }
 }
 
@@ -1991,7 +2040,7 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
      * pointer to a wrapper struct allocated under `boxp->tag`). Trace it
      * by reading the obj's own type tag from its header — scan_raw does
      * exactly that. The outer tag stays unchanged (`boxp->tag` is still
-     * the wrapper's logical type, e.g. `Yield(Entry)`). */
+     * the wrapper's logical type, not the referent's). */
     if (info->kind == VADER_TYPE_KIND_INLINE_REF) {
         vader_gc_scan_raw(&boxp->payload.obj);
         if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
@@ -2492,7 +2541,8 @@ static const char* g_prof_names[VADER_PROF_MAX_PHASES] = {
     "escape",     /* 7  */
     "bytecode",   /* 8  */
     "c-emit",     /* 9  */
-    NULL, NULL, NULL, NULL, NULL, NULL,
+    "value-ret",  /* 10 */
+    NULL, NULL, NULL, NULL, NULL,
 };
 
 static int       g_prof_enabled = -1;   /* -1 unknown, 0 off, 1 on */

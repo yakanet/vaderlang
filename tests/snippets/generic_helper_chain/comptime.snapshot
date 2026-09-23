@@ -3,6 +3,7 @@
 ## tests/snippets/generic_helper_chain
 
 ## generic instances
+  __genstate_array_iter<T>
   Box<i32>
   Box<string>
   Box<Box<i32>>
@@ -22,9 +23,7 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
@@ -32,6 +31,3 @@
   Range<T>
   Range<T>
   ArrayOps<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

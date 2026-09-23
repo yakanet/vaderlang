@@ -107,7 +107,7 @@ collect_checks :: fn(cc: string) -> Check[] {
     // answered is worse than no report.
     home :: get_env(TOOLCHAIN_HOME_VAR) ?? ""
     home_lib :: home_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
-    out: Check[]! = [
+    out: Check[]!: [
         check_compiler(),
         check_cc(cc),
         check_toolchain_home(home, home_lib),
@@ -323,7 +323,7 @@ check_manifest :: fn(root: string | null) -> Check {
     if manifest.include_paths.len() == 0 {
         return check_ok("manifest", "found, declaring no extra search root", path)
     }
-    parts: string[]! = []
+    parts: string[]!: []
     missing := 0
     for p in manifest.include_paths {
         dir :: join_path(root, p)
@@ -457,7 +457,7 @@ render_text :: fn(checks: Check[]) -> string {
             width = c.name.len()
         }
     }
-    lines: string[]! = []
+    lines: string[]!: []
     for c in checks {
         name :: c.name.pad_end(width, ' ')
         lines.push("${status_label(c.status)}  ${name}  ${c.summary}")
@@ -502,7 +502,7 @@ count :: fn(n: i32, noun: string) -> string {
 }
 
 render_json :: fn(checks: Check[]) -> string {
-    items: Json.JsonValue[]! = []
+    items: Json.JsonValue[]!: []
     for c in checks {
         entry :: MutableMap<string, Json.JsonValue> {}
         entry["name"]    = Json.JsonString { .value = c.name }

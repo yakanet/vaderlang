@@ -43,7 +43,7 @@
 [10:21-10:22] lbrace         "{"
 [11:1-11:1  ] newline        "\n"
 [11:5-11:6  ] ident          "p"
-[11:7-11:9  ] decl_var       ":="
+[11:7-11:9  ] decl_const     "::"
 [11:10-11:19] ident          "make_pair"
 [11:19-11:20] lparen         "("
 [11:20-11:21] rparen         ")"

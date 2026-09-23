@@ -14,7 +14,7 @@
 module "snippet"
 
 main :: fn() -> i32 {
-    xs := [10, 20, 30]
+    xs :: [10, 20, 30]
     xs[1] = 99
     xs.push(40)
     return xs[0] + xs[1] + xs[3] + i32(xs.len())

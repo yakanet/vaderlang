@@ -43,7 +43,7 @@ emit_functions :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// `call.indirect` / `virtual.call`) ; transitive via any direct `call` to
 /// a fn already in the set.
 compute_may_alloc :: fn(fns: BcFunction[]) -> i32[] {
-    may_alloc: i32[]! = []
+    may_alloc: i32[]!: []
     for fi in 0..<fns.len() {
         if fn_has_direct_alloc(fns[fi]) {
             may_alloc.push(i32(fi))
@@ -353,9 +353,16 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         }
         // Look ahead : a value-returning direct call consumed by the next op's
         // `drop` needs no result temp — flag `emit_call_result` to emit it bare.
+        //
+        // NOT for a call handing back several values: the `drop` then consumes
+        // ONE of them and the rest are live, so skipping it would leave them on
+        // the stack. That is what `assert_stack_empty` catches at the next scope
+        // boundary, and the pairing has to see the arity to stay right.
         if op is vm.Call || op is vm.CallImport {
             if i + 1 < function.body.len() && function.body[i + 1] is vm.Drop {
-                s.drop_call_result = true
+                if callee_result_arity(ctx, op) <= 1 {
+                    s.drop_call_result = true
+                }
             }
         }
         emit_op(s, i32(i), op)
@@ -372,16 +379,16 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     // skip the whole shadow-stack apparatus.
     // Two root lists (T12): box roots (`vader_box_t*`, for `.Any` slots) and raw
     // roots (`void**`, for `.Ref` concrete-ref slots — scanned via scan_raw).
-    root_addrs: string[]! = []
-    raw_root_addrs: string[]! = []
-    atom_root_addrs: string[]! = []
+    root_addrs: string[]!: []
+    raw_root_addrs: string[]!: []
+    atom_root_addrs: string[]!: []
     if !no_frame {
         params :: function.signature.params
         for i in 0..<params.len() {
-            if params[i] == ValType.Ref {
+            if params[i] == .Ref {
                 raw_root_addrs.push("&l${i}")
             }
-            else if params[i] == ValType.String {
+            else if params[i] == .String {
                 atom_root_addrs.push("&l${i}")
             }
             else if is_ref_val(params[i]) {
@@ -412,7 +419,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         // no-op) until its `StructNew` writes the real header + fields.
         nstack :: s.stack_storages.len()
         stack_expr :: if nstack > 0 { "gc_stack_objs" } else { "NULL" }
-        stack_addrs: string[]! = []
+        stack_addrs: string[]!: []
         for ss in s.stack_storages {
             out.append("    ${ss.cname} ${ss.storage} = {0};\n")
             stack_addrs.push("(void*) &${ss.storage}")
@@ -465,10 +472,10 @@ emit_local_decls :: fn(
 ) -> void {
     locals :: function.locals
     param_count :: function.signature.params.len()
-    vals: ValType[]! = []
-    names: string[]! = []
+    vals: ValType[]!: []
+    names: string[]!: []
     for i in 0..<locals.len() {
-        if locals[i].val == ValType.Void {
+        if locals[i].val == .Void {
             continue
         }
         vals.push(locals[i].val)
@@ -487,7 +494,7 @@ emit_tmp_decls :: fn(
     atom_root_addrs: string[]!,
     no_frame: bool,
 ) -> void {
-    names: string[]! = []
+    names: string[]!: []
     for i in 0..<s.tmp_types.len() {
         names.push("t${i}")
     }
@@ -508,7 +515,7 @@ emit_slot_decls :: fn(
     atom_root_addrs: string[]!,
     no_frame: bool,
 ) -> void {
-    emitted: ValType[]! = []
+    emitted: ValType[]!: []
     for i in 0..<vals.len() {
         val :: vals[i]
         if val in emitted {
@@ -520,14 +527,14 @@ emit_slot_decls :: fn(
         // a `vader_box_t` — init `vader_box_null()`, `&name` chains into the box
         // root list. Both give the GC a valid root before the first write.
         // No-frame fns (and primitives) get a bare decl (write-before-read).
-        is_raw_ref :: val == ValType.Ref || val == ValType.Pointer
+        is_raw_ref :: val == .Ref || val == .Pointer
         rooted :: is_ref_val(val) && !no_frame
         // A `string` slot holds an ATOM ID, not a pointer, so it belongs to
         // neither root list above — `ptrs` and `raw` are pointer arrays. It gets
         // its own list; without it an atom's only root is the conservative stack
         // scan, which finds the id only when `cc` spills it instead of keeping
         // it in a register.
-        if val == ValType.String && !no_frame {
+        if val == .String && !no_frame {
             for j in 0..<vals.len() {
                 if vals[j] == val {
                     out.append("    vader_string_t ${names[j]} = 0;\n")
@@ -550,7 +557,7 @@ emit_slot_decls :: fn(
                 }
             }
         } else {
-            group: string[]! = []
+            group: string[]!: []
             for j in 0..<vals.len() {
                 if vals[j] == val {
                     if rooted {
@@ -813,7 +820,7 @@ const_val :: fn(c: vm.ConstOp) -> ValType = match c {
 /// `void` slot carries nothing on the stack, so it is a no-op.
 emit_local_get :: fn(s: FnState!, l: vm.LocalGet) -> void {
     val :: slot_val_type(s.function, l.slot)
-    if val == ValType.Void {
+    if val == .Void {
         return
     }
     push_local_ref(s, l.slot, val)
@@ -1028,8 +1035,12 @@ convert_target_val :: fn(t: vm.ConvertTarget) -> ValType = match t {
 /// An empty stack at a non-void return marks a dead trailing return (an
 /// already-terminated path) and emits a `vader_unreachable` trap instead.
 emit_return :: fn(s: FnState!) -> void {
-    result :: s.function.signature.result
-    if result == ValType.Void {
+    if bc_result_arity(s.function.signature) > 1 {
+        emit_multi_return(s)
+        return
+    }
+    result :: bc_single_result(s.function.signature)
+    if result == .Void {
         emit_return_stmt(s, "return;")
         return
     }
@@ -1057,6 +1068,36 @@ emit_return :: fn(s: FnState!) -> void {
     }
 }
 
+// A multi-value return writes each value through its out-param and returns void.
+//
+// The stack holds them in the order the caller receives them, deepest first, so
+// they pop in reverse — the assignments are emitted back to front and the
+// snapshot rule of the single-value path applies to all of them at once: every
+// value is read into a temp BEFORE the GC frame is popped, since any of them may
+// read a frame-pinned local.
+emit_multi_return :: fn(s: FnState!) -> void {
+    results :: s.function.signature.results
+    arity :: results.len()
+    if s.stack.len() < arity {
+        line(s, "vader_unreachable(\"unreachable return in ${s.function.name}\");")
+        return
+    }
+    body :: StringBuilder {}
+    for i in 0..<arity {
+        // Popped from the top, so this is result `arity - 1 - i` — which is also
+        // the order the assignments go out in.
+        idx :: arity - 1 - i
+        v :: pop(s)
+        rv :: coerce_expr(s.ctx.module.types, name_of(v), val_of(v), results[idx])
+        body.append("*${out_param_name(idx)} = ${rv}; ")
+    }
+    if s.no_frame {
+        line(s, "${body}return;")
+        return
+    }
+    line(s, "{ ${body}vader_gc_top = gc_frame.prev; return; }")
+}
+
 /// `return.lit` — the fused `<T>.const X ; return`. A const can't read a
 /// frame-pinned local, so the framed form pops the frame inline (no
 /// `__vret` snapshot needed).
@@ -1067,7 +1108,7 @@ emit_return_lit :: fn(s: FnState!, value: vm.ConstOp) -> void {
         s.ctx.module.types,
         const_lit_c(s.ctx, value),
         const_val(value),
-        s.function.signature.result,
+        bc_single_result(s.function.signature),
     )
     emit_return_stmt(s, "return ${rv};")
 }
@@ -1091,7 +1132,7 @@ emit_return_stmt :: fn(s: FnState!, ret: string) -> void {
 /// unbox / cast) before the store.
 emit_local_set :: fn(s: FnState!, slot: i32, tee: bool) -> void {
     slot_val :: slot_val_type(s.function, slot)
-    if slot_val == ValType.Void {
+    if slot_val == .Void {
         return
     }
     materialize_stack_for_slot(s, slot)
@@ -1132,7 +1173,7 @@ ScopeInfo :: struct {
 /// live in `function.jump_table`, resolved against this table by
 /// `branch_target`.
 precompute_scopes :: fn(function: BcFunction) -> ScopeInfo[] {
-    scopes: ScopeInfo[]! = []
+    scopes: ScopeInfo[]!: []
     open_pc: i32[]! = []
     open_kind: ScopeKind[]! = []
     body :: function.body
@@ -1178,8 +1219,8 @@ BranchTargets :: struct {
 /// `br` / `br_if` targets (`function.jump_table` via `branch_target`), so a
 /// C label is emitted only where referenced (an unused label warns).
 precompute_branch_targets :: fn(function: BcFunction, scopes: ScopeInfo[]) -> BranchTargets {
-    continue_t: i32[]! = []
-    break_t: i32[]! = []
+    continue_t: i32[]!: []
+    break_t: i32[]!: []
     body :: function.body
     jump_table :: function.jump_table
     for pc in 0..<body.len() {
@@ -1249,6 +1290,27 @@ scope_ending_at :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
     return null
 }
 
+// How many values the callee of a `call` / `call.import` leaves on the stack.
+//
+// One for anything this does not recognise: the caller only uses it to decide
+// whether a lookahead optimisation is safe, and "one" is the shape every call
+// had before multi-value.
+callee_result_arity :: fn(ctx: EmitCtx, op: vm.Op) -> usize {
+    if op is vm.Call {
+        if usize(op.function_index) >= ctx.module.functions.len() {
+            return 1
+        }
+        return bc_result_arity(ctx.module.functions[usize(op.function_index)].signature)
+    }
+    if op is vm.CallImport {
+        if usize(op.index) >= ctx.module.imports.len() {
+            return 1
+        }
+        return bc_result_arity(ctx.module.imports[usize(op.index)].signature)
+    }
+    return 1
+}
+
 // The operand stack MUST be empty at every scope boundary : the lowerer
 // materialises all control-flow results into locals (`vader/midir/build.vader`
 // — `if_res` / `and_res` / `or_res`, loops are void), so no operand ever
@@ -1260,7 +1322,7 @@ scope_ending_at :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
 assert_stack_empty :: fn(s: FnState, where: string) -> void {
     if s.stack.len() != 0 {
         panic(
-            "c_emit: operand stack not empty at ${where} (depth ${s.stack.len()}) — a value escaped a scope boundary ; coalesce.vader's live-range invariant is violated",
+            "c_emit: operand stack not empty at ${where} in `${s.function.name}` (depth ${s.stack.len()}) — a value escaped a scope boundary ; coalesce.vader's live-range invariant is violated",
         )
     }
 }
@@ -1378,7 +1440,7 @@ emit_call_to :: fn(s: FnState!, callee_name: string, sig: BcSignature) -> void {
     n :: i32(sig.params.len())
     // Top-of-stack is the last argument, so pop into `args` back-to-front :
     // pop #k lands in slot `n-1-k`, restoring source order for the join.
-    args: string[]! = []
+    args: string[]!: []
     for _ in 0..<n {
         args.push("")
     }
@@ -1392,7 +1454,38 @@ emit_call_to :: fn(s: FnState!, callee_name: string, sig: BcSignature) -> void {
             sig.params[usize(slot)],
         )
     }
-    emit_call_result(s, "${callee_name}(${args.join(", ")})", sig.result)
+    if bc_result_arity(sig) > 1 {
+        emit_multi_call(s, callee_name, args, sig)
+        return
+    }
+    emit_call_result(s, "${callee_name}(${args.join(", ")})", bc_single_result(sig))
+}
+
+// A call to a scalarised callee: one fresh temp per result, their addresses
+// appended to the argument list, and the temps pushed in the order the callee
+// declared them.
+//
+// The temps are ordinary operand-stack slots, so the ops that follow read them
+// exactly as they would read a single returned value. Nothing here can hold a
+// heap reference — the value ABI admits only composites whose every leaf is a
+// non-reference primitive, which is what keeps the caller from having to root
+// the address it takes (`.claude/plans/2026-09-22-tuple-value-abi.md` §7.1).
+emit_multi_call :: fn(
+    s: FnState!, callee_name: string, args: string[]!, sig: BcSignature,
+) -> void {
+    results :: sig.results
+    names: string[]!: []
+    call_args: string[]!: []
+    call_args.push_all(args)
+    for i in 0..<results.len() {
+        name :: fresh_tmp(s, results[i])
+        names.push(name)
+        call_args.push("&${name}")
+    }
+    line(s, "${callee_name}(${call_args.join(", ")});")
+    for i in 0..<results.len() {
+        push_tmp(s, names[i], results[i])
+    }
 }
 
 /// Capture a call's result : a `void` call is a bare statement ; otherwise
@@ -1403,7 +1496,7 @@ emit_call_result :: fn(s: FnState!, call_expr: string, result: ValType) -> void 
     // A `void` call — or a call whose result the next op drops (`drop_call_result`,
     // set by the walk driver) — is a bare statement : the side effect runs, no
     // unread `tN` is minted. The driver skips the paired `drop`.
-    if result == ValType.Void || s.drop_call_result {
+    if result == .Void || s.drop_call_result {
         line(s, "${call_expr};")
         return
     }
@@ -1427,7 +1520,7 @@ emit_call_result :: fn(s: FnState!, call_expr: string, result: ValType) -> void 
 /// `virtual.call` tail).
 pop_args_boxed :: fn(s: FnState!, count: i32) -> string[] {
     types :: s.ctx.module.types
-    args: string[]! = []
+    args: string[]!: []
     for _ in 0..<count {
         args.push("")
     }
@@ -1522,7 +1615,7 @@ emit_call_indirect :: fn(s: FnState!, op: vm.CallIndirect) -> void {
         call_args :: if n == 0 { "${fn_obj}->env" } else { "${fn_obj}->env, ${args.join(", ")}" }
         call_expr :: "((vader_fn_erased_sig_${n}_t) ${fn_obj}->code)(${call_args})"
         ret_val :: val_type_of_bc_type(types[usize(t.return_type)])
-        if ret_val == ValType.Void {
+        if ret_val == .Void {
             line(s, "${call_expr};")
             return
         }
@@ -1530,7 +1623,7 @@ emit_call_indirect :: fn(s: FnState!, op: vm.CallIndirect) -> void {
         line(s, "${any_tmp} = ${call_expr};")
         // The erased ABI returns a `vader_box_t`. `.Any` keeps it boxed ; a `.Ref`
         // (concrete) return unboxes to a raw `void*`, a primitive to its scalar.
-        if ret_val == ValType.Any {
+        if ret_val == .Any {
             push_tmp(s, any_tmp, .Any)
             return
         }
@@ -1562,16 +1655,16 @@ emit_virtual_call :: fn(s: FnState!, op: vm.VirtualCall) -> void {
     recv_boxed :: coerce_expr(types, name_of(recv), val_of(recv), .Any)
     boxed :: pop_args_boxed(s, op.parameter_count - 1)
     sig :: vtable_sig_for_row(s.ctx, row)
-    all_args: string[]! = [recv_boxed]
+    all_args: string[]!: [recv_boxed]
     for a in boxed {
         all_args.push(a)
     }
     call_expr :: "${vtable_helper_name(op.vtable_key)}(${all_args.join(", ")})"
-    if sig.result == ValType.Void {
+    if bc_single_result(sig) == .Void {
         line(s, "${call_expr};")
         return
     }
-    push_into_tmp(s, call_expr, sig.result)
+    push_into_tmp(s, call_expr, bc_single_result(sig))
 }
 
 // ---- fn-value wrappers (whole-module scan) --------------------------------
@@ -1619,8 +1712,8 @@ FnValueUsage :: struct {
 /// `make_closure` (need a lift wrapper). Indices are parallel to `fns`.
 scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
     n :: fns.len()
-    fn_ref_type: i32[]! = []
-    is_closure: bool[]! = []
+    fn_ref_type: i32[]!: []
+    is_closure: bool[]!: []
     for _ in 0..<n {
         fn_ref_type.push(-1)
         is_closure.push(false)
@@ -1689,7 +1782,7 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32, type_i
     out.append("${link}vader_box_t vader_fn_tramp_${cname}(${head}) {\n")
     out.append("    (void) env;\n")
     unboxed :: tramp_unbox_args(sig.params)
-    if sig.result == ValType.Void {
+    if bc_single_result(sig) == .Void {
         out.append("    ${cname}(${unboxed});\n")
         out.append("    return vader_box_null();\n")
     } else {
@@ -1717,10 +1810,10 @@ emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32) -> voi
     // The lifted fn's env param (param 0) is a concrete captured-env struct → a
     // raw `void*` (`.Ref`) under T12 ; pass `env` directly. When it's `.Any`
     // (erased), coerce widens it to a box via `vader_ref_box`.
-    env_arg :: coerce_expr(ctx.module.types, "env", ValType.Ref, sig.params[0])
+    env_arg :: coerce_expr(ctx.module.types, "env", .Ref, sig.params[0])
     unboxed_tail :: lift_unbox_tail(sig.params)
     call_args :: if unboxed_tail == "" { env_arg } else { "${env_arg}, ${unboxed_tail}" }
-    if sig.result == ValType.Void {
+    if bc_single_result(sig) == .Void {
         out.append("    ${cname}(${call_args});\n")
         out.append("    return vader_box_null();\n")
     } else {
@@ -1750,7 +1843,7 @@ tramp_box_params :: fn(count: usize) -> string {
 /// Unbox `a0..a<n-1>` to the concrete `params` classes, comma-joined — the
 /// `fn.ref` trampoline's argument list (params map 1:1 to `a<j>`).
 tramp_unbox_args :: fn(params: ValType[]) -> string {
-    parts: string[]! = []
+    parts: string[]!: []
     for j in 0..<params.len() {
         parts.push(unbox_expr("a${j}", params[j]))
     }
@@ -1760,7 +1853,7 @@ tramp_unbox_args :: fn(params: ValType[]) -> string {
 /// Unbox the lift wrapper's tail `a0..` to `params[1..]` (param 0 is the env
 /// slot, supplied as `env_box`), comma-joined.
 lift_unbox_tail :: fn(params: ValType[]) -> string {
-    parts: string[]! = []
+    parts: string[]!: []
     for j in 1..<params.len() {
         parts.push(unbox_expr("a${j - 1}", params[j]))
     }
@@ -1771,10 +1864,10 @@ lift_unbox_tail :: fn(params: ValType[]) -> string {
 /// result is already a box (`ref` / `any`).
 tramp_box_result :: fn(cname: string, args: string, sig: BcSignature) -> string {
     call_expr :: "${cname}(${args})"
-    if sig.result == ValType.Any { return call_expr }
+    if bc_single_result(sig) == .Any { return call_expr }
     // A `.Ref` result is a raw `void*` — widen to the box the erased ABI returns.
-    if sig.result == ValType.Ref { return "vader_ref_box(${call_expr})" }
-    return box_expr(call_expr, sig.result, sig.result_type)
+    if bc_single_result(sig) == .Ref { return "vader_ref_box(${call_expr})" }
+    return box_expr(call_expr, bc_single_result(sig), bc_single_result_type(sig))
 }
 
 // ---- type ops + defer -----------------------------------------------------
@@ -1811,7 +1904,7 @@ emit_type_check :: fn(s: FnState!, op: vm.TypeCheck) -> void {
             // `x is (A | B)` — a boxed value never carries a union's own tag, so
             // OR the per-variant checks (mirrors the VM's `union_matches`). This
             // makes `is <union>` correct on native, matching the VM.
-            parts: string[]! = []
+            parts: string[]!: []
             for vid in target.variants {
                 parts.push(one_variant_check(s, tag_of(v), vid))
             }
@@ -1855,7 +1948,7 @@ one_variant_check :: fn(s: FnState, tag_expr: string, type_id: i32) -> string {
 // table (f32/f64 are representationally identical — see `one_variant_check`).
 // `0` (never matches) when the table has no float primitive.
 float_tag_check_expr :: fn(types: BcType[], tag_expr: string) -> string {
-    parts: string[]! = []
+    parts: string[]!: []
     for i in 0..<types.len() {
         if types[i] is BcPrimitive as p {
             if is_float_val(p.val) {
@@ -1883,7 +1976,7 @@ struct_check_expr :: fn(types: BcType[], tag_expr: string, target_id: i32, targe
     if prefix == "" {
         return base
     }
-    parts: string[]! = [base]
+    parts: string[]!: [base]
     for i in 0..<types.len() {
         if i32(i) == target_id {
             continue
@@ -1905,7 +1998,7 @@ struct_check_expr :: fn(types: BcType[], tag_expr: string, target_id: i32, targe
 /// like `Error` carry their own tag) plus every struct implementing the trait
 /// (the module's `impl_table`).
 trait_check_expr :: fn(ctx: EmitCtx, tag_expr: string, trait_name: string, ref_type_index: i32) -> string {
-    parts: string[]! = ["(${tag_expr} == ${ref_type_index}u)"]
+    parts: string[]!: ["(${tag_expr} == ${ref_type_index}u)"]
     for entry in ctx.module.impl_table {
         if entry.trait_name == trait_name {
             parts.push("(${tag_expr} == ${entry.struct_type_index}u)")
@@ -1920,7 +2013,7 @@ emit_defer_push :: fn(s: FnState!) -> void {
     closure :: pop(s)
     // `vader_defer_push` takes a `vader_box_t` ; a concrete-ref closure rides as a
     // raw `void*` (T12), so box it at this runtime boundary.
-    c :: coerce_expr(s.ctx.module.types, name_of(closure), val_of(closure), ValType.Any)
+    c :: coerce_expr(s.ctx.module.types, name_of(closure), val_of(closure), .Any)
     line(s, "vader_defer_push(${c});")
 }
 
@@ -1952,7 +2045,7 @@ emit_struct_new :: fn(s: FnState!, op: vm.StructNew) -> void {
         cname :: s.ctx.struct_c_names[usize(op.type_id)]
         n :: i32(t.fields.len())
         // Pop top-to-bottom : pop #k is the value for field `n-1-k`.
-        field_vals: string[]! = []
+        field_vals: string[]!: []
         for _ in 0..<n {
             field_vals.push("")
         }
@@ -2122,7 +2215,7 @@ struct_all_ref :: fn(types: BcType[], st: BcStruct) -> bool {
 /// index, erases only the element → `[usize, Any]`). Returns [] when
 /// `struct_idx` is itself the erased form.
 find_erased_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
-    out: i32[]! = []
+    out: i32[]!: []
     et :: types[usize(struct_idx)]
     if et is BcStruct {
         if struct_all_ref(types, et) {
@@ -2203,6 +2296,23 @@ erased_sibling_field_read :: fn(
 /// goes stale when the next minor moves it. `struct.set_stack` opts out — the
 /// lowerer's escape analysis proved the receiver is stack-allocated, so the
 /// macro's `in old?` test would always be false anyway.
+/// Whether storing into this field can create an old→young edge.
+///
+/// The card marks an object whose SLOTS a later minor must rescan, so a store
+/// that writes no reference has nothing to record — `cursor: usize` cannot make
+/// an old object point at a young one. `Pointer` is excluded by its own
+/// definition (the GC must not scan it); `String` is an interned atom and is
+/// kept conservatively, since its liveness is tracked through the object's
+/// fields rather than a raw slot.
+///
+/// @param types       the module's type table.
+/// @param type_index  the field's `BcType` index.
+/// @return            true when the field can hold a reference.
+field_may_hold_reference :: fn(types: BcType[], type_index: i32) -> bool {
+    v :: val_type_of_field(types, type_index)
+    return v == .Ref || v == .Any || v == .String
+}
+
 emit_struct_set :: fn(s: FnState!, op: vm.StructSet) -> void {
     t :: s.ctx.module.types[usize(op.type_id)]
     if t is BcStruct {
@@ -2219,7 +2329,7 @@ emit_struct_set :: fn(s: FnState!, op: vm.StructSet) -> void {
         // T12: `.Ref` receiver is a raw `void*` ; `.Any` is a box → `.payload.obj`.
         obj_ptr :: obj_ptr_of(obj)
         line(s, "((${cname}*) ${obj_ptr})->f_${sanitise(f.name)} = ${rv};")
-        if !op.stack {
+        if !op.stack && field_may_hold_reference(s.ctx.module.types, f.type_index) {
             line(s, "VADER_WRITE_BARRIER((${cname}*) ${obj_ptr});")
         }
     } else {
@@ -2252,16 +2362,16 @@ emit_ref_cast :: fn(s: FnState!, op: vm.RefCast) -> void {
 emit_box_op :: fn(s: FnState!, op: vm.Box) -> void {
     v :: pop(s)
     // `Box` produces an erased/dynamic value → always `.Any` (a `vader_box_t`).
-    if val_of(v) == ValType.Any {
-        push_into_tmp(s, name_of(v), ValType.Any)
+    if val_of(v) == .Any {
+        push_into_tmp(s, name_of(v), .Any)
         return
     }
-    if val_of(v) == ValType.Ref {
+    if val_of(v) == .Ref {
         // Widen a raw concrete ref into a box (tag recovered from the header).
-        push_into_tmp(s, "vader_ref_box(${name_of(v)})", ValType.Any)
+        push_into_tmp(s, "vader_ref_box(${name_of(v)})", .Any)
         return
     }
-    push_into_tmp(s, box_expr(name_of(v), val_of(v), op.type_id), ValType.Any)
+    push_into_tmp(s, box_expr(name_of(v), val_of(v), op.type_id), .Any)
 }
 
 // ---- arrays ---------------------------------------------------------------
@@ -2383,8 +2493,8 @@ tag_of :: fn(v: StackVal) = tag_of_expr(name_of(v), val_of(v))
 /// the primitives behind `obj_ptr_of` / `tag_of`. A concrete `.Ref` is already
 /// the raw pointer ; an erased `.Any` unwraps it from the box. Used directly by
 /// sites that hold a C name + class rather than a `StackVal` (`push_struct_field`).
-obj_ptr_expr :: fn(name: string, val: ValType) = if val == ValType.Ref { name } else { "${name}.payload.obj" }
-tag_of_expr :: fn(name: string, val: ValType) = if val == ValType.Ref { "((vader_obj_header_t*) ${name})->type_index" } else { "${name}.tag" }
+obj_ptr_expr :: fn(name: string, val: ValType) = if val == .Ref { name } else { "${name}.payload.obj" }
+tag_of_expr :: fn(name: string, val: ValType) = if val == .Ref { "((vader_obj_header_t*) ${name})->type_index" } else { "${name}.tag" }
 
 array_hdr_ptr :: fn(v: StackVal) = "((vader_array_t*) ${obj_ptr_of(v)})"
 
@@ -2583,10 +2693,10 @@ emit_array_new :: fn(s: FnState!, op: vm.ArrayNew) -> void {
                 s,
                 "((${fill.cty}*) ${arr_buf}->buf->slots)[${arr_buf}->offset + ${slot}u] = (${fill.cty}) ${vc};",
             )
-        } else if kind == ArrayKind.Ref {
+        } else if kind == .Ref {
             // Fresh buf is statically `.Ref` here (we chose the kind), so store the
             // raw object pointer — no runtime dispatch, no box.
-            vc :: coerce_expr(types, name_of(v), val_of(v), ValType.Ref)
+            vc :: coerce_expr(types, name_of(v), val_of(v), .Ref)
             line(s, "((void**) ${arr_buf}->buf->slots)[${arr_buf}->offset + ${slot}u] = ${vc};")
         } else {
             line(
@@ -2633,7 +2743,7 @@ emit_array_get :: fn(s: FnState!, op: vm.ArrayGet) -> void {
         // `_load_obj`), an erased `BcRef` / a union → `.Any` (tagged box,
         // `_load_box`, which recovers the concrete tag from the referent header).
         result_val :: val_type_of_bc_type(elem)
-        getter :: if result_val == ValType.Ref { "vader_array_ref_load_obj" } else { "vader_array_ref_load_box" }
+        getter :: if result_val == .Ref { "vader_array_ref_load_obj" } else { "vader_array_ref_load_box" }
         name :: fresh_tmp(s, result_val)
         line(s, "${name} = ${getter}(${a}->buf, ${slot_index(a, idx)});")
         push_tmp(s, name, result_val)
@@ -2682,7 +2792,7 @@ emit_array_set :: fn(s: FnState!, op: vm.ArraySet) -> void {
             // mis-dispatch). Then store box-or-raw by buf kind. (`obj_ptr_of` /
             // `box_expr(elem_tag)` were both wrong here — the former splices
             // `.payload.obj` onto a primitive, the latter loses the concrete tag.)
-            box_c :: coerce_expr(s.ctx.module.types, name_of(value), val_of(value), ValType.Any)
+            box_c :: coerce_expr(s.ctx.module.types, name_of(value), val_of(value), .Any)
             line(s, "vader_array_ref_store_box(${a}->buf, ${slot_index(a, idx)}, ${box_c});")
         } else {
             // Concrete-ref / union-of-refs element : the value is a genuine ref (or

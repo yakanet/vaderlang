@@ -34,7 +34,7 @@ export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
     // The inner lists must be mutable to be filled, the outer only read — and the
     // element is covariant into the read-only array the signature promises, so
     // `out` returns as-is.
-    out: BlockId[]![] = filled(fn_.blocks.len(), () -> [])
+    out: BlockId[]![]: filled(fn_.blocks.len(), () -> [])
     for b in fn_.blocks {
         for succ in successors_of(b) { out[i32(succ)].push(b.id) }
     }
@@ -137,8 +137,8 @@ export for_each_read_in_terminator :: fn(t: Terminator, visit: fn(LocalId) -> vo
             visit(t.cond)
         }
         is TermReturn -> {
-            if t.value !is null {
-                visit(t.value)
+            for v in t.values {
+                visit(v)
             }
         }
         is TermBranch          -> {}
@@ -159,7 +159,7 @@ export natural_loop_bodies :: fn(
     out :: MutableMap<BlockId, MutableSet<BlockId>> {}
     for h in 0..<fn_.blocks.len() {
         h_id :: BlockId(h)
-        back_edge_sources: BlockId[]! = []
+        back_edge_sources: BlockId[]!: []
         for p in preds[h] {
             if dominates(idom, h_id, p) {
                 back_edge_sources.push(p)
@@ -215,11 +215,11 @@ export count_uses :: fn(fn_: CFGFunction) -> MutableMap<LocalId, i32> {
 /// predecessors before successors (forward flow) or successors
 /// before predecessors (backward).
 export reverse_postorder :: fn(fn_: CFGFunction) -> BlockId[] {
-    order: BlockId[]! = []
-    visited: bool[]! = [false] * fn_.blocks.len()
+    order: BlockId[]!: []
+    visited: bool[]!: [false] * fn_.blocks.len()
     walk_rpo(fn_, fn_.entry, visited, order)
     // Reverse in place.
-    out: BlockId[]! = [] * order.len()
+    out: BlockId[]!: [] * order.len()
     i := order.len()
     for i > 0 {
         i = i - 1
@@ -240,7 +240,7 @@ walk_rpo :: fn(fn_: CFGFunction, b: BlockId, visited: bool[]!, order: BlockId[]!
 /// unreachable blocks return -1 — interpreted as "no known idom").
 export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
     n :: fn_.blocks.len()
-    idom: i32[]! = [-1] * n
+    idom: i32[]!: [-1] * n
     idom[i32(fn_.entry)] = i32(fn_.entry)
     rpo :: reverse_postorder(fn_)
     changed := true
@@ -327,22 +327,22 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     // Build successors + fake successors / predecessors graphs.
     // Inner lists stay mutable: the fake-exit edges below are pushed into the
     // very arrays `successors_of` handed out, and `fake_succs` aliases them.
-    succs: BlockId[]![]! = [] * n
+    succs: BlockId[]![]!: [] * n
     for b in fn_.blocks {
         succs.push(successors_of(b))
     }
-    exits: BlockId[]! = []
+    exits: BlockId[]!: []
     for i in 0..<n {
         if succs[i].len() == 0 {
             exits.push(BlockId(i))
         }
     }
     se :: i32(n)            // synthetic exit node index
-    fake_succs: BlockId[]![]! = [] * (n + 1)
+    fake_succs: BlockId[]![]!: [] * (n + 1)
     fake_succs.push_all(succs)
-    empty_se: BlockId[]! = []
+    empty_se: BlockId[]!: []
     fake_succs.push(empty_se)
-    fake_preds: BlockId[]![] = filled(n + 1, () -> [])
+    fake_preds: BlockId[]![]: filled(n + 1, () -> [])
     for k in 0..<n {
         for s in fake_succs[k] {
             fake_preds[usize(s)].push(BlockId(k))
@@ -353,11 +353,11 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
         fake_preds[usize(se)].push(e)
     }
     // RPO on reverse graph from SE.
-    order: BlockId[]! = []
-    visited: bool[]! = [false] * (n + 1)
+    order: BlockId[]!: []
+    visited: bool[]!: [false] * (n + 1)
     walk_rpo_reverse(fake_preds, BlockId(se), visited, order)
     // Iterative post-dominator solve.
-    ipdom: i32[]! = [-1] * (n + 1)
+    ipdom: i32[]!: [-1] * (n + 1)
     ipdom[usize(se)] = se
     changed := true
     for changed {
@@ -385,7 +385,7 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
         }
     }
     // Strip the synthetic SE — translate "ipdom = SE" → -1 for caller.
-    out: i32[]! = [] * n
+    out: i32[]!: [] * n
     for q in 0..<n {
         v :: ipdom[q]
         if v == se { out.push(-1) } else { out.push(v) }
@@ -446,8 +446,8 @@ export Liveness :: struct {
 
 export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     n :: fn_.blocks.len()
-    use_: MutableSet<LocalId>[]! = [] * n
-    def_: MutableSet<LocalId>[]! = [] * n
+    use_: MutableSet<LocalId>[]!: [] * n
+    def_: MutableSet<LocalId>[]!: [] * n
     for i in 0..<n {
         b :: fn_.blocks[i]
         u :: MutableSet<LocalId> {}
@@ -456,8 +456,13 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
             for_each_read_local(ins, (l: LocalId) -> {
                 if !d.contains(l) { u.add(l) }
             })
-            ds :: dst_of(ins)
-            if ds != null { d.add(ds) }
+            multi :: multi_dsts(ins)
+            if multi != null {
+                for l in multi { d.add(l) }
+            } else {
+                ds :: dst_of(ins)
+                if ds != null { d.add(ds) }
+            }
         }
         for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
             if !d.contains(l) { u.add(l) }
@@ -466,11 +471,11 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
         def_.push(d)
     }
 
-    succs: BlockId[][]! = [] * n
+    succs: BlockId[][]!: [] * n
     for b in fn_.blocks { succs.push(successors_of(b)) }
 
-    live_in:  MutableSet<LocalId>![]! = filled(n, () -> MutableSet<LocalId> {})
-    live_out: MutableSet<LocalId>![]! = filled(n, () -> MutableSet<LocalId> {})
+    live_in:  MutableSet<LocalId>![]!: filled(n, () -> MutableSet<LocalId> {})
+    live_out: MutableSet<LocalId>![]!: filled(n, () -> MutableSet<LocalId> {})
 
     // Double-buffered fixpoint : recompute each block's live_out / live_in into
     // two reusable SCRATCH sets (cleared each round), then SWAP a scratch with
@@ -524,8 +529,24 @@ sets_equal :: fn(a: MutableSet<LocalId>, b: MutableSet<LocalId>) -> bool {
 
 // ---- dst extraction -------------------------------------------------------
 
+/// The locals an instruction writes when there are SEVERAL — a call handing back
+/// a scalarised composite — or null when `dst_of` answers for it.
+///
+/// Deliberately not a `visit` callback: the definition walks that need this run
+/// over every instruction of every function, and a closure there costs two heap
+/// objects per instruction. `compute_liveness` alone visits 312k of them.
+/// The pair `multi_dsts` + `dst_of` is the whole rule, and it allocates nothing.
+export multi_dsts :: fn(ins: Instruction) -> LocalId[] | null {
+    if ins is InstrCall {
+        return ins.dsts
+    }
+    return null
+}
+
 /// The local an instruction writes to, or `null` for pure side-
-/// effecting ops (FieldSet, ArraySet, …) and zero-result calls.
+/// effecting ops (FieldSet, ArraySet, …), zero-result calls — and a call
+/// handing back SEVERAL values, where there is no single answer. Walk
+/// `for_each_written_local` when every written local matters.
 export dst_of :: fn(ins: Instruction) -> LocalId | null {
     match ins {
         is InstrConst             -> { return ins.dst }
@@ -548,7 +569,7 @@ export dst_of :: fn(ins: Instruction) -> LocalId | null {
         is InstrFnRef             -> { return ins.dst }
         is InstrFnAddr            -> { return ins.dst }
         is InstrDataConst         -> { return ins.dst }
-        is InstrCall              -> { return ins.dst }
+        is InstrCall              -> { return call_single_dst(ins) }
         is InstrCallIndirect      -> { return ins.dst }
         is InstrVirtualCall       -> { return ins.dst }
         is InstrIntrinsic         -> { return ins.dst }

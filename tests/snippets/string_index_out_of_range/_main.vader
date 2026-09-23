@@ -11,7 +11,7 @@ import "std/io"
 
 main :: fn() -> i32 {
     word :: "abc"
-    idx := 10
+    idx :: 10
     ch :: word[idx]
     println("${i32(ch)}")
     return 0

@@ -70,7 +70,7 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
                 // Prepare the receiver AND every argument against the free fn's
                 // declared params, so `a.any(p)` lowers exactly like the free call
                 // `any(a, p)` — a raw array reaching an `Iterator<T>` slot wraps
-                // through `into` (→ `ArrayIterator<T>`) on either form.
+                // through `into` (→ the `array_iter` generator) on either form.
                 free_params :: ufcs_param_types(ctx, free.symbol)
                 args :: build_ufcs_args(ctx, receiver, call, free_params, 1)
                 // UFCS-on-generic-fn instance harvest : when the target
@@ -83,11 +83,11 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
                 callee_sym :: if mangled == null { free.symbol } else {
                     Symbol {
                         .id         = free.symbol.id,
-                        .kind       = SymbolKind.Fn,
+                        .kind       = .Fn,
                         .name       = mangled,
                         .module     = free.symbol.module,
                         .module_name = free.symbol.module,
-                        .visibility = Visibility.Private,
+                        .visibility = .Private,
                         .defined_at = null,
                     }
                 }
@@ -138,9 +138,9 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
     // the import target to the source symbol and probe its signature.
     for candidate in ctx.typed.resolved.symbols {
         if candidate.name != name { continue }
-        if candidate.kind != SymbolKind.ImportBinding { continue }
+        if candidate.kind != .ImportBinding { continue }
         target :: follow_import_binding(ctx, candidate)
-        if target.kind == SymbolKind.Fn {
+        if target.kind == .Fn {
             if !first_param_matches(ctx, target, recv_type) { continue }
             spec :: ufcs_specificity(ctx, recv_type, target)
             if spec > best_spec {
@@ -194,7 +194,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         // a fresh literal, and an inferred `::` join is not a plain array — the
         // for-in below then falls to the iterator path and the lowerer panics on an
         // unresolved `next`. Pinning the slot read-only keeps it one array type.
-        arg_vars: Type[] = if arg0 is UnionType as au { au.variants } else { [arg0] }
+        arg_vars: Type[]: if arg0 is UnionType as au { au.variants } else { [arg0] }
         score: i32 = 0
         for av in arg_vars {
             for pv in param0.variants {
@@ -232,14 +232,14 @@ ufcs_param_types :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type[] {
 build_ufcs_args :: fn(
     ctx: FnLowerCtx!, receiver: LoweredExpr, call: CallExpr, params: Type[], first_slot: usize,
 ) -> LoweredExpr[]! {
-    args: LoweredExpr[]! = []
+    args: LoweredExpr[]!: []
     if first_slot == 1 && params.len() > 0 {
         args.push(prepare_value_for_slot(ctx, receiver, params[0], call.span))
     } else {
         args.push(receiver)
     }
-    raw_args: LoweredExpr[]! = []
-    arg_spans: Span[]! = []
+    raw_args: LoweredExpr[]!: []
+    arg_spans: Span[]!: []
     for call_arg in call.args {
         raw_args.push(lower_expr(ctx, call_arg.value))
         arg_spans.push(call_arg.value.span)
@@ -309,7 +309,7 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
 /// are already lowered eagerly and must not be harvested a second time. Dedup
 /// by `fn_symbol.id`.
 register_nongeneric_imported_fn :: fn(ctx: FnLowerCtx!, fn_sym: Symbol) -> void {
-    if fn_sym.kind != SymbolKind.Fn { return }
+    if fn_sym.kind != .Fn { return }
     if ctx.project.nongeneric_imported_fns[fn_sym.id] != null { return }
     // Generic fns route through the GenericFnInstance harvest instead.
     fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
@@ -330,7 +330,7 @@ register_nongeneric_imported_fn :: fn(ctx: FnLowerCtx!, fn_sym: Symbol) -> void 
 /// decl so `inline_consts` can route the read site (`build_ident` would
 /// otherwise emit `unreachable`).
 register_nongeneric_imported_const :: fn(ctx: FnLowerCtx!, const_sym: Symbol) -> void {
-    if const_sym.kind != SymbolKind.Const { return }
+    if const_sym.kind != .Const { return }
     if ctx.project.nongeneric_imported_consts[const_sym.id] != null { return }
     ctx.project.nongeneric_imported_consts[const_sym.id] = true
     ctx.project.nongeneric_imported_const_order.push(const_sym)
@@ -365,7 +365,7 @@ harvest_ufcs_fn_instance :: fn(
         }
         if fn_ty.params.len() == 0 { return null }
         bindings :: MutableMap<i32, Type> {}
-        order: i32[]! = []
+        order: i32[]!: []
         unify_params(fn_ty.params[0], default_if_free(recv_type), bindings, order, ctx)
         n :: fn_ty.params.len()
         for i in 1..<n {
@@ -374,7 +374,7 @@ harvest_ufcs_fn_instance :: fn(
             concrete :: default_if_free(ctx.types.expr_type(ast_args[ai].value))
             unify_params(fn_ty.params[i], concrete, bindings, order, ctx)
         }
-        concrete_args: Type[]! = []
+        concrete_args: Type[]!: []
         for id in order {
             v :: bindings[id]
             match v {

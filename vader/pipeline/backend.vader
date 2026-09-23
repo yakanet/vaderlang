@@ -95,7 +95,7 @@ export module_name_from_file :: fn(file: Path) -> string = canonicalise(file).na
 /// @param loaded  the loaded project.
 /// @param scope   module display paths, from `dump_scope`.
 export in_scope_diag_files :: fn(loaded: LoadedProject, scope: string[]) -> string[] {
-    out: string[]! = []
+    out: string[]!: []
     for [id, lm] in loaded.modules {
         if module_in_scope(lm.module.display_path, scope) {
             for f in lm.module.files { out.push(f.path) }
@@ -110,7 +110,7 @@ export in_scope_diag_files :: fn(loaded: LoadedProject, scope: string[]) -> stri
 /// renderer prints them in, so the flattening lives once rather than at each
 /// call site.
 export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] {
-    out: Diagnostic[]! = []
+    out: Diagnostic[]!: []
     for d in pipeline.loaded.diags    { out.push(d) }
     for d in pipeline.resolver_diags  { out.push(d) }
     for d in pipeline.typecheck_diags { out.push(d) }
@@ -138,17 +138,34 @@ export cfg_to_bytecode :: fn(
     pruned: LoweredProject, name: string, opts: EmitOptions, diags: Diagnostic[]! = [],
 ) -> BytecodeModule {
     Prof.prof_begin(Prof.PHASE_CFG_BUILD)
-    cfg :: build_cfg_project(pruned)
+    cfg :: build_cfg_project(pruned, diags)
     Prof.prof_end(Prof.PHASE_CFG_BUILD)
     // One check per pass, each naming the pass it follows.
     if opts.verify { verify_cfg(cfg, "build_cfg_project", diags) }
+    // Return a small tuple in registers instead of a heap object. BEFORE DCE:
+    // the `struct.new` that built the tuple becomes unread once the terminator
+    // names its fields, and DCE is what removes it — running after would leave
+    // the allocation and the pass would buy nothing. See `value_return.vader`.
+    Prof.prof_begin(Prof.PHASE_VALUE_RET)
+    scalarised :: scalarise_value_returns(cfg)
+    Prof.prof_end(Prof.PHASE_VALUE_RET)
+    if opts.verify { verify_cfg(scalarised, "scalarise_value_returns", diags) }
+    // Undoes the rebuilds the pass above planted, wherever the fields are still
+    // in hand. Before DCE, which is what collects the objects left readerless.
+    unrebuilt :: struct_field_forward_project(scalarised)
+    if opts.verify { verify_cfg(unrebuilt, "struct_field_forward_project", diags) }
     Prof.prof_begin(Prof.PHASE_CFG_DCE)
-    dced :: eliminate_dead_cfg(cfg)
+    dced :: eliminate_dead_cfg(unrebuilt)
     Prof.prof_end(Prof.PHASE_CFG_DCE)
     if opts.verify { verify_cfg(dced, "eliminate_dead_cfg", diags) }
     Prof.prof_begin(Prof.PHASE_ESCAPE)
-    escaped :: annotate_escape(dced).project
+    annotated :: annotate_escape(dced)
+    escaped :: annotated.project
     Prof.prof_end(Prof.PHASE_ESCAPE)
+    // `$VADER_OPT_REPORT` — the allocations that stayed on the heap. Reported
+    // here rather than with the lowering ones because escape analysis runs after
+    // the lowering context is gone. Empty unless the env is set.
+    report_heap_allocations(annotated.stats)
     if opts.verify { verify_cfg(escaped, "annotate_escape", diags) }
     forwarded :: array_load_forward_project(escaped)
     if opts.verify { verify_cfg(forwarded, "array_load_forward_project", diags) }
@@ -212,7 +229,7 @@ export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = fal
     // emitter an ill-typed shape (e.g. a UFCS method on an unimported
     // primitive) trips its `emit_bytecode_from_cfg` backstop panic before the
     // caller's `flush_build_diags` gate runs — a plain user error would ICE.
-    lower_diags: Diagnostic[]! = []
+    lower_diags: Diagnostic[]!: []
     // profiling bracket — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(Prof.PHASE_LOWER)
     lowered :: if any_error_diag(pre_diags) {
@@ -287,7 +304,7 @@ export prepare_cfg_bytecode_from :: fn(
     Prof.prof_end(Prof.PHASE_PRUNE)
     // The prune rewrites the decl set, so it gets its own check: a dropped
     // decl something still references is what `I7002` / `I7010` look for.
-    verify_diags: Diagnostic[]! = []
+    verify_diags: Diagnostic[]!: []
     if verify { verify_lowered(pruned, "prune_unreachable_fns", verify_diags) }
     // `want_debug` populates the per-op `debug` table only when the emitted C
     // will keep `#line` (non-release c-emit / `dump --stage=c`) ; the VM /

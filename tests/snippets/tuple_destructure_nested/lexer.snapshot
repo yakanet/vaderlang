@@ -59,7 +59,7 @@
 [12:17-12:18] comma          ","
 [12:19-12:25] ident          "active"
 [12:25-12:26] rbracket       "]"
-[12:27-12:29] decl_var       ":="
+[12:27-12:29] decl_const     "::"
 [12:30-12:41] ident          "make_record"
 [12:41-12:42] lparen         "("
 [12:42-12:43] rparen         ")"

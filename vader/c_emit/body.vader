@@ -34,7 +34,7 @@ export sanitise :: fn(raw: string) -> string {
     // 1-char string per byte — the hottest `append_char` caller in c-emit.
     rawb :: raw.bytes()
     n :: rawb.len()
-    buf: u8[]! = []
+    buf: u8[]!: []
     for i in 0..<n {
         b :: rawb[i]
         buf.push(if is_ident_byte(b) { b } else { u8('_') })
@@ -84,7 +84,7 @@ export c_string_lit :: fn(s: string) -> string {
     // 1-char string per char — the 2nd-hottest `append_char` caller in c-emit.
     sbytes :: s.bytes()
     n :: sbytes.len()
-    buf: u8[]! = []
+    buf: u8[]!: []
     buf.push('"')
     for i in 0..<n {
         b :: sbytes[i]
@@ -344,16 +344,16 @@ export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
     is BcPrimitive -> t.val
     // Concrete heap → `.Ref` (void*) ; erased trait/union → `.Any` (box).
     // Mirrors `type_classify.vader::val_type_of_type` (T12).
-    is BcStruct -> ValType.Ref
-    is BcArray -> ValType.Ref
-    is BcFn -> ValType.Ref
-    is BcUnion -> ValType.Any
-    is BcRef -> ValType.Any
+    is BcStruct -> .Ref
+    is BcArray -> .Ref
+    is BcFn -> .Ref
+    is BcUnion -> .Any
+    is BcRef -> .Any
 }
 
 /// True for the boxed value classes (`ref` / `any`) — both collapse to
 /// `vader_box_t` storage and are GC roots.
-export is_ref_val :: fn(v: ValType) -> bool = v == ValType.Ref || v == ValType.Any
+export is_ref_val :: fn(v: ValType) -> bool = v == .Ref || v == .Any
 
 /// Stack value class of the field / slot whose `BcType` lives at
 /// `type_index` in `types`. The field-store / field-read / arg paths use it

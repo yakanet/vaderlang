@@ -9,11 +9,11 @@ import "std/io"
 
 main :: fn() -> i32 {
     // No annotation, all i32 → inferred as i32[]
-    scores := [10, 20, 30]
+    scores :: [10, 20, 30]
     for s in scores { println("score=${s}") }
 
     // Heterogeneous, no annotation → inferred as tuple [i32, string]
-    entry := [42, "answer"]
+    entry :: [42, "answer"]
     println("id=${entry.0}")
     println("label=${entry.1}")
 

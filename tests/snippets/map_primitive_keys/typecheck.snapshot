@@ -121,7 +121,7 @@
   expr 52:82    IdentExpr      :: MutableMap<char, i32>!
   expr 52:91    UnaryExpr      :: i32
   expr 56:13    StructLitExpr  :: MutableMap<i64, i32>!
-  expr 58:20    UnaryExpr      :: i64
+  expr 58:19    UnaryExpr      :: i64
   expr 59:10    IdentExpr      :: i64
   expr 59:5     IdentExpr      :: MutableMap<i64, i32>!
   expr 60:10    IdentExpr      :: i64

@@ -42,8 +42,8 @@ total :: fn(x: i32[] | string[]) -> usize {
 }
 
 main :: fn() -> i32 {
-    nums:  i32[]!    = [10, 20]
-    words: string[]! = ["a", "b"]
+    nums:  i32[]!   : [10, 20]
+    words: string[]!: ["a", "b"]
     println("nums=${fill(nums)} words=${fill(words)}")
     println("elems=${nums[2]},${nums[3]} last=${words[2]}")
     println("total=${total(nums)} count=${total(words)}")

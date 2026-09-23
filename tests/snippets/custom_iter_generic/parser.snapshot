@@ -86,25 +86,17 @@
             }
           ],
           "returnType": {
-            "kind": "BinaryExpr",
-            "op": "bitor",
-            "left": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "SeqLitExpr",
+            "elements": [
+              {
                 "kind": "IdentExpr",
-                "name": "Yield"
+                "name": "T"
               },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "T"
-                }
-              ]
-            },
-            "right": {
-              "kind": "IdentExpr",
-              "name": "null"
-            }
+              {
+                "kind": "IdentExpr",
+                "name": "Continuation"
+              }
+            ]
           },
           "body": {
             "kind": "BlockExpr",
@@ -135,7 +127,21 @@
                       {
                         "kind": "ReturnStmt",
                         "value": {
-                          "kind": "NullLitExpr"
+                          "kind": "SeqLitExpr",
+                          "elements": [
+                            {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "self"
+                              },
+                              "field": "value"
+                            },
+                            {
+                              "kind": "DotVariantExpr",
+                              "variant": "Stop"
+                            }
+                          ]
                         }
                       }
                     ],
@@ -191,28 +197,15 @@
               {
                 "kind": "ReturnStmt",
                 "value": {
-                  "kind": "StructLitExpr",
-                  "typeName": {
-                    "kind": "GenericInstExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "Yield"
-                    },
-                    "typeArgs": [
-                      {
-                        "kind": "IdentExpr",
-                        "name": "T"
-                      }
-                    ]
-                  },
-                  "items": [
+                  "kind": "SeqLitExpr",
+                  "elements": [
                     {
-                      "kind": "field",
-                      "name": "value",
-                      "value": {
-                        "kind": "IdentExpr",
-                        "name": "v"
-                      }
+                      "kind": "IdentExpr",
+                      "name": "v"
+                    },
+                    {
+                      "kind": "DotVariantExpr",
+                      "variant": "Continue"
                     }
                   ]
                 }
@@ -240,7 +233,7 @@
         "stmts": [
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "it"

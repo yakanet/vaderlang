@@ -13,8 +13,8 @@ check :: fn(name: string, ok: bool) -> void {
 }
 
 main :: fn() -> i32 {
-    a: u32 = 0xFFFFFFFF
-    b: u32 = 0x80000000
+    a: u32: 0xFFFFFFFF
+    b: u32: 0x80000000
 
     // shr — must zero-fill, not sign-extend.
     check("shr_high",    a >> 1 == 0x7FFFFFFF)

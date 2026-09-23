@@ -3,6 +3,7 @@
 ## tests/snippets/std_sort
 
 ## generic instances
+  __genstate_array_iter<T>
   __genstate_window<i32[]>
   __genstate_chain<i32>
   __genstate_enumerate<[usize, string]>
@@ -41,17 +42,11 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  Yield<char>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
   ArrayOps<T>

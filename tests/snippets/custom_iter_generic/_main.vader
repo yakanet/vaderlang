@@ -9,19 +9,21 @@ export Repeat :: struct<T> {
 }
 
 Repeat<T> implements Iterator<T> {
-    next :: fn(self!) -> Yield<T> | null {
+    next :: fn(self!) -> [T, Continuation] {
+        // `self.value` doubles as the stop filler: a `T` already at hand, where
+        // an unconstrained `T` offers no way to build one.
         if (self.remaining <= 0) {
-            return null
+            return [self.value, .Stop]
         }
         v :: self.value
         self.remaining = self.remaining - 1
-        return Yield<T> { .value = v }
+        return [v, .Continue]
     }
 }
 
 main :: fn() -> i32 {
     // Repeat i32 value 3 times
-    it := Repeat<i32> { .value = 42, .remaining = 3 }
+    it :: Repeat<i32> { .value = 42, .remaining = 3 }
     sum := 0
     for x in it {
         sum = sum + x

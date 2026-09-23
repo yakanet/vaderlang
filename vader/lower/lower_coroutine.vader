@@ -19,8 +19,10 @@ import "std/abort"
 
 // ---- sentinel -------------------------------------------------------------
 
-/// Reserved resume value: once `self.state == DONE_STATE`, `next()` returns
-/// `null` forever (the if-chain's trailing `else` catches it).
+/// Reserved resume value: once `self.state == DONE_STATE` the state machine is
+/// finished — a generator's `next()` hands back `Continuation.Stop` forever, an
+/// `async fn`'s `resume` the `null` done-marker. The if-chain's trailing `else`
+/// catches both.
 DONE_STATE :: -1
 
 // ---- builder --------------------------------------------------------------
@@ -30,7 +32,10 @@ GenBuild :: struct {
     self_sym: Symbol
     state_ty: Type            // the `g$State` StructType (self's type)
     i32_ty:   Type
-    yield_ty: Type            // `Yield<T>` StructType
+    /// How this generator's `next` hands a step back. Null exactly when
+    /// `is_async`: the async driver shares this builder but completes with
+    /// `T | Suspended` rather than an iterator step.
+    step: StepShape | null = null
     span:     Span
     /// Finalized states — `states[k]` is the if-arm body for `self.state == k`.
     states:   LoweredStmt[]![]!
@@ -52,7 +57,7 @@ GenBuild :: struct {
     has_defers: bool = false
     /// True when driving an `async fn` (vs a `generator`). Selects the async
     /// seams in the shared block-split : `await` suspension, value-carrying
-    /// completion, and the `Suspended` (vs `null`) done sentinel.
+    /// completion, and the `Suspended` (vs the `Stop` step) done marker.
     is_async:  bool = false
     /// Async only — the fn's declared result type `T` : the value a `return`
     /// completes with, and the `T` in the `T | Suspended` resume return.
@@ -124,23 +129,34 @@ gb_set_state :: fn(gb: GenBuild, n: i64) -> LoweredStmt =
 // `self.state == n` (bool).
 gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr =
     LoweredBinary {
-        .span = gb.span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+        .span = gb.span, .type = TY_BOOL, .op = .Eq,
         .left = gb_field(gb, "state", gb.i32_ty),
         .right = LoweredIntLit { .span = gb.span, .type = gb.i32_ty, .value = n },
     }
 
-// `return Yield<T> { .value = e }`.
-gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt =
-    LoweredReturn {
-        .span = gb.span,
-        .value = build_core_struct_lit(gb.fn_ctx, gb.yield_ty, [
-            LoweredStructLitField { .name = "value", .value = e },
-        ], gb.span),
+// `return <step carrying e>`.
+gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt {
+    shape :: gb.step
+    if shape == null {
+        return LoweredReturn { .span = gb.span, .value = e }
     }
+    return LoweredReturn {
+        .span = gb.span, .value = step_of_value(shape, e, gb.span, gb.fn_ctx),
+    }
+}
 
-// `return null`.
-gb_null_return :: fn(gb: GenBuild) -> LoweredStmt =
-    LoweredReturn { .span = gb.span, .value = LoweredNullLit { .span = gb.span, .type = TY_NULL } }
+// `return <done step>`.
+gb_done_return :: fn(gb: GenBuild) -> LoweredStmt {
+    shape :: gb.step
+    if shape == null {
+        return LoweredReturn {
+            .span = gb.span, .value = LoweredNullLit { .span = gb.span, .type = TY_NULL },
+        }
+    }
+    return LoweredReturn {
+        .span = gb.span, .value = step_of_done(shape, gb.span, gb.fn_ctx),
+    }
+}
 
 // A bare `null` value expression — the done-marker a void `async fn` completes
 // with (its result normalizes to `null`, so `resume` returns `null | Suspended`).
@@ -251,7 +267,7 @@ gb_is_leaf :: fn(s: LoweredStmt) -> bool {
 // Returns the ENTRY state index. Leading leaves batch into one state.
 gb_compile_seq :: fn(gb: GenBuild!, stmts: LoweredStmt[], cont: i64) -> i64 {
     // Split off the leading run of leaves.
-    leaves: LoweredStmt[]! = []
+    leaves: LoweredStmt[]!: []
     i: usize = 0
     for i < stmts.len() && gb_is_leaf(stmts[i]) {
         leaves.push(stmts[i])
@@ -263,7 +279,7 @@ gb_compile_seq :: fn(gb: GenBuild!, stmts: LoweredStmt[], cont: i64) -> i64 {
         return gb_new_state(gb, leaves)
     }
     // Compile the rest after the control stmt, then the control stmt itself.
-    rest: LoweredStmt[]! = []
+    rest: LoweredStmt[]!: []
     for j in (i + 1)..<stmts.len() { rest.push(stmts[j]) }
     rest_entry :: gb_compile_seq(gb, rest, cont)
     ctrl_entry :: gb_compile_ctrl(gb, stmts[i], rest_entry)
@@ -275,7 +291,7 @@ gb_compile_seq :: fn(gb: GenBuild!, stmts: LoweredStmt[], cont: i64) -> i64 {
 
 // Compile a block (stmts + trailing) with continuation `cont`.
 gb_compile_block :: fn(gb: GenBuild!, block: LoweredBlock, cont: i64) -> i64 {
-    stmts: LoweredStmt[]! = []
+    stmts: LoweredStmt[]!: []
     for s in block.stmts { stmts.push(s) }
     if block.trailing != null {
         stmts.push(LoweredExprStmt { .span = gb.span, .expr = block.trailing })
@@ -312,7 +328,7 @@ gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
             ])
         }
         // A generator's bare `return` = stop the stream (exhausted forever).
-        return gb_new_state(gb, [gb_set_state(gb, i64(DONE_STATE)), gb_null_return(gb)])
+        return gb_new_state(gb, [gb_set_state(gb, i64(DONE_STATE)), gb_done_return(gb)])
     }
     if s is LoweredExprStmt {
         if s.expr is LoweredIf as ie {
@@ -398,14 +414,14 @@ gb_block :: fn(gb: GenBuild, stmts: LoweredStmt[]) -> LoweredBlock =
 // Build `if state==i { states[i] } else if state==i+1 { … } else { return null }`.
 gb_dispatch :: fn(gb: GenBuild, i: i64) -> LoweredExpr {
     then_block :: gb_block(gb, gb.states[usize(i)])
-    else_block: LoweredBlock = if i + 1 < i64(gb.states.len()) {
+    else_block: LoweredBlock: if i + 1 < i64(gb.states.len()) {
         gb_wrap(gb, gb_dispatch(gb, i + 1))
     } else if gb.is_async {
         // Done / resume-after-done : the coroutine already returned its value ;
         // report `Suspended` (a correct scheduler retires it and never re-drives).
         gb_block(gb, [gb_suspend_return(gb)])
     } else {
-        gb_block(gb, [gb_null_return(gb)])
+        gb_block(gb, [gb_done_return(gb)])
     }
     return LoweredIf {
         .span = gb.span, .type = TY_VOID,
@@ -478,7 +494,7 @@ gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[]!
         // idx = self.__defers.len() - 1 - k  (len is loop-invariant : we defer the
         // single truncate until after all calls, so no call shrinks the array).
         idx :: LoweredBinary {
-            .span = dpe.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+            .span = dpe.span, .type = usize_ty, .op = .Sub,
             .left = gb_defers_len(gb, dpe.span),
             .right = LoweredIntLit { .span = dpe.span, .type = usize_ty, .value = 1 + k },
         }
@@ -488,7 +504,7 @@ gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[]!
     }
     // self.__defers = self.__defers[0 ..< len - count]
     new_len :: LoweredBinary {
-        .span = dpe.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+        .span = dpe.span, .type = usize_ty, .op = .Sub,
         .left = gb_defers_len(gb, dpe.span),
         .right = LoweredIntLit { .span = dpe.span, .type = usize_ty, .value = count },
     }
@@ -509,7 +525,7 @@ gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]!) -> void {
     // idx = self.__defers.len() - 1 (recomputed each iteration — the truncate
     // below shrinks the array, so the last live thunk moves down every step).
     idx :: LoweredBinary {
-        .span = gb.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+        .span = gb.span, .type = usize_ty, .op = .Sub,
         .left = gb_defers_len(gb, gb.span),
         .right = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 1 },
     }
@@ -520,7 +536,7 @@ gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]!) -> void {
         .span = gb.span, .type = gb_defers_ty(), .target = gb_defers_field(gb),
         .lo = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 0 },
         .hi = LoweredBinary {
-            .span = gb.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+            .span = gb.span, .type = usize_ty, .op = .Sub,
             .left = gb_defers_len(gb, gb.span),
             .right = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 1 },
         },
@@ -528,7 +544,7 @@ gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]!) -> void {
     body :: gb_block(gb, [LoweredExprStmt { .span = gb.span, .expr = call }, LoweredAssign { .span = gb.span, .target = gb_defers_field(gb), .value = truncated }])
     // while self.__defers.len() != 0 { ... }
     cond :: LoweredBinary {
-        .span = gb.span, .type = TY_BOOL, .op = LoweredBinaryOp.Neq,
+        .span = gb.span, .type = TY_BOOL, .op = .Neq,
         .left = gb_defers_len(gb, gb.span),
         .right = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 0 },
     }
@@ -546,7 +562,7 @@ gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]!) -> void {
 // Retire the frame (`state = DONE_STATE`) so a stray later resume falls to
 // dispatch's trailing `Suspended` and a repeat cancel finds nothing to do.
 gb_cancel_body :: fn(gb: GenBuild) -> LoweredBlock {
-    stmts: LoweredStmt[]! = []
+    stmts: LoweredStmt[]!: []
     // if self.awaited is null { } else { self.awaited.cancel() }
     // The field is declared `Async<Any>` (non-null) but seeded null, so this
     // runtime null-check leans on the erased trait's fat-pointer representation
@@ -640,7 +656,7 @@ gb_add_field :: fn(gb: GenBuild!, sym: Symbol, ty: Type) -> void {
 // ---- routing (spilled local/param refs → self.<field>) --------------------
 
 gb_route_block :: fn(gb: GenBuild, block: LoweredBlock) -> LoweredBlock {
-    out: LoweredStmt[]! = []
+    out: LoweredStmt[]!: []
     for s in block.stmts { gb_route_stmt(gb, s, out) }
     new_trailing :: if block.trailing == null { null } else { gb_route_expr(gb, block.trailing) }
     return LoweredBlock { .span = block.span, .type = block.type, .stmts = out, .trailing = new_trailing }
@@ -701,12 +717,12 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
             return gb_field(gb, name, field_ty)
         }
         is LoweredCall -> {
-            new_args: LoweredExpr[]! = []
+            new_args: LoweredExpr[]!: []
             for a in e.args { new_args.push(gb_route_expr(gb, a)) }
             return LoweredCall { .span = e.span, .type = e.type, .callee = gb_route_expr(gb, e.callee), .args = new_args }
         }
         is LoweredVirtualCall -> {
-            new_args: LoweredExpr[]! = []
+            new_args: LoweredExpr[]!: []
             for a in e.args { new_args.push(gb_route_expr(gb, a)) }
             return LoweredVirtualCall { .span = e.span, .type = e.type, .trait_name = e.trait_name, .method = e.method, .receiver = gb_route_expr(gb, e.receiver), .args = new_args }
         }
@@ -720,12 +736,12 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
         }
         is LoweredBlock -> gb_route_block(gb, e)
         is LoweredStructLit -> {
-            new_fields: LoweredStructLitField![]! = []
+            new_fields: LoweredStructLitField![]!: []
             for f in e.fields { new_fields.push(LoweredStructLitField { .name = f.name, .value = gb_route_expr(gb, f.value) }) }
             return LoweredStructLit { .span = e.span, .type = e.type, .fields = new_fields }
         }
         is LoweredArrayLit -> {
-            new_elements: LoweredExpr[]! = []
+            new_elements: LoweredExpr[]!: []
             for el in e.elements { new_elements.push(gb_route_expr(gb, el)) }
             return LoweredArrayLit { .span = e.span, .type = e.type, .elements = new_elements }
         }
@@ -736,7 +752,7 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
         is LoweredCast -> LoweredCast { .span = e.span, .type = e.type, .value = gb_route_expr(gb, e.value) }
         is LoweredTypeCheck -> LoweredTypeCheck { .span = e.span, .type = e.type, .value = gb_route_expr(gb, e.value), .check_type = e.check_type }
         is LoweredIntrinsicCall -> {
-            new_args: LoweredExpr[]! = []
+            new_args: LoweredExpr[]!: []
             for a in e.args { new_args.push(gb_route_expr(gb, a)) }
             return LoweredIntrinsicCall { .span = e.span, .type = e.type, .name = e.name, .args = new_args }
         }

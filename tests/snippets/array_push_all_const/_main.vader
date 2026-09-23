@@ -33,7 +33,7 @@ ITEMS: Item[]: [
 ]
 
 main :: fn() -> i32 {
-    dst: Item[]! = []
+    dst: Item[]!: []
     dst.push_all(ITEMS)
     println("len=${dst.len()}")
     for it in dst {

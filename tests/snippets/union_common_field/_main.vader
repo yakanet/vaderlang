@@ -13,11 +13,11 @@ Cat :: struct { name: string, age: i32 }
 Dog :: struct { name: string, age: i32 }
 
 main :: fn() -> i32 {
-    a: Cat | Dog = Cat { .name = "Whiskers", .age = 3 }
+    a: Cat | Dog: Cat { .name = "Whiskers", .age = 3 }
     println("name = ${a.name}")
     println("age  = ${a.age}")
 
-    b: Cat | Dog = Dog { .name = "Rex", .age = 7 }
+    b: Cat | Dog: Dog { .name = "Rex", .age = 7 }
     println("name = ${b.name}")
     println("age  = ${b.age}")
     return 0

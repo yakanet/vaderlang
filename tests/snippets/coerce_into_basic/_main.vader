@@ -31,7 +31,7 @@ main :: fn() -> i32 {
     println("call ${take_i32(u)}")          // 43
 
     // Site 2 : typed let.
-    n: i32 = u
+    n: i32: u
     println("let ${n}")                     // 42
 
     // Site 3 : return.

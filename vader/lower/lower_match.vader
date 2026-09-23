@@ -44,7 +44,7 @@ export lower_match :: fn(
     scrut_type :: ctx.types.expr_type(expr.scrutinee)
     scrut_value :: recurse(ctx, expr.scrutinee)
 
-    stmts: LoweredStmt[]! = []
+    stmts: LoweredStmt[]!: []
     // Scrutinee-temp elision : when the scrutinee already lowers to a direct
     // local/param read AND no arm carries a guard, reuse that slot instead of
     // spilling to a synthetic `__scrut` temp. Pattern predicates are pure, so
@@ -103,7 +103,7 @@ export lower_match :: fn(
     // fallback at runtime, so only they emit the trapping `unreachable` op.
     // A plain match is exhaustive (T3013), so its fallback is provably dead
     // and stays a no-op — no bytecode bloat, no snapshot drift.
-    fallback: LoweredBlock = wrap_block(expr.span, LoweredUnreachable {
+    fallback: LoweredBlock: wrap_block(expr.span, LoweredUnreachable {
         .span = expr.span, .type = result_type,
         .reason = fallback_reason, .trap = expr.partial || expr.unreachable,
     })
@@ -163,7 +163,7 @@ lower_arm :: fn(
     ctx: FnLowerCtx!, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
     recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
 ) -> LoweredBlock {
-    stmts: LoweredStmt[]! = []
+    stmts: LoweredStmt[]!: []
     introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, stmts, arm.span)
     body :: recurse(ctx, arm.body)
     return LoweredBlock {
@@ -188,7 +188,7 @@ arm_predicate :: fn(
     // once the pattern predicate has confirmed the type. (`lower_arm`
     // re-introduces the same bindings in the arm body ; the second write
     // to the same slots is idempotent.)
-    binding_stmts: LoweredStmt[]! = []
+    binding_stmts: LoweredStmt[]!: []
     introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, binding_stmts, arm.span)
     guard := recurse(ctx, arm.guard)
     if binding_stmts.len() > 0 {
@@ -199,7 +199,7 @@ arm_predicate :: fn(
     }
     if core == null { return guard }
     return LoweredBinary {
-        .span = arm.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+        .span = arm.span, .type = TY_BOOL, .op = .And,
         .left = core, .right = guard,
     }
 }
@@ -225,14 +225,14 @@ pattern_predicate :: fn(
         is EnumVariantPattern -> {
             variant_lit :: enum_variant_literal(target_type, pattern.variant, span, ctx)
             return LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+                .span = span, .type = TY_BOOL, .op = .Eq,
                 .left = target, .right = variant_lit,
             }
         }
         is LiteralPattern -> {
             literal :: recurse(ctx, pattern.value)
             return LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+                .span = span, .type = TY_BOOL, .op = .Eq,
                 .left = target, .right = literal,
             }
         }
@@ -243,7 +243,7 @@ pattern_predicate :: fn(
             lo :: recurse(ctx, pattern.lower)
             hi :: recurse(ctx, pattern.upper)
             lo_ok :: LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Gte,
+                .span = span, .type = TY_BOOL, .op = .Gte,
                 .left = target, .right = lo,
             }
             hi_op :: if pattern.inclusive { LoweredBinaryOp.Lte } else { LoweredBinaryOp.Lt }
@@ -252,7 +252,7 @@ pattern_predicate :: fn(
                 .left = target, .right = hi,
             }
             return LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                .span = span, .type = TY_BOOL, .op = .And,
                 .left = lo_ok, .right = hi_ok,
             }
         }
@@ -263,7 +263,7 @@ pattern_predicate :: fn(
             // Disjunction of the alternatives' predicates : `p1 || p2 || …`.
             // A null sub-predicate (an always-true alternative) collapses the
             // whole or-pattern to always-true.
-            parts: LoweredExpr[]! = []
+            parts: LoweredExpr[]!: []
             for sub in pattern.patterns {
                 sub_pred :: pattern_predicate(ctx, sub, target, target_type, span, recurse)
                 if sub_pred == null { return null }
@@ -284,7 +284,7 @@ struct_pattern_predicate :: fn(
             is PatternLiteral as literal -> {
                 literal_value :: recurse(ctx, literal.value)
                 eq :: LoweredBinary {
-                    .span = field.span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+                    .span = field.span, .type = TY_BOOL, .op = .Eq,
                     .left = LoweredFieldAccess {
                         .span = field.span, .type = type_of(literal_value),
                         .target = target, .field = field.name,
@@ -292,7 +292,7 @@ struct_pattern_predicate :: fn(
                     .right = literal_value,
                 }
                 accumulator = LoweredBinary {
-                    .span = field.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                    .span = field.span, .type = TY_BOOL, .op = .And,
                     .left = accumulator, .right = eq,
                 }
             }
@@ -335,7 +335,7 @@ tuple_pattern_predicate :: fn(
                 is null -> { accumulator = sub }
                 _ -> {
                     accumulator = LoweredBinary {
-                        .span = element_pattern.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                        .span = element_pattern.span, .type = TY_BOOL, .op = .And,
                         .left = accumulator, .right = sub,
                     }
                 }
@@ -374,7 +374,7 @@ tuple_variant_of :: fn(t: Type, arity: usize) -> TupleType | null {
 }
 
 fill_unresolved :: fn(arity: usize) -> Type[] {
-    out: Type[]! = []
+    out: Type[]!: []
     for i in 0..<arity { out.push(TY_UNRESOLVED) }
     return out
 }
@@ -421,7 +421,7 @@ unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
     @partial match target_type {
         is EnumType -> { return target_type }
         is StructType -> {
-            if target_type.symbol.kind != SymbolKind.Enum { return target_type }
+            if target_type.symbol.kind != .Enum { return target_type }
             real :: ctx.typed.decl_types[target_type.symbol.id]
             if real is EnumType { return real }
             return target_type
@@ -575,9 +575,9 @@ export resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type 
         // The type-expr table missed (common for materialised default-
         // method clones, whose pattern type-exprs aren't span-recorded).
         // Resolve fresh from the AST, then apply the entry's substitution
-        // so an erased generic-impl instance turns `is Yield<T>` into
-        // `is Yield<Any>` instead of leaking the impl's TypeParam.
-        scratch: Diagnostic[]! = []
+        // so an erased generic-impl instance turns `is Wrap<T>` into
+        // `is Wrap<Any>` instead of leaking the impl's TypeParam.
+        scratch: Diagnostic[]!: []
         return ctx.types.apply(type_from_expr(type_expr, ctx.typed.resolved, scratch))
     }
     return from_table

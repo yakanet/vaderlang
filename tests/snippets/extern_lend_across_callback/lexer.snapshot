@@ -153,24 +153,24 @@
 [35:12-35:13] lbracket       "["
 [35:13-35:14] rbracket       "]"
 [35:14-35:15] bang           "!"
-[35:16-35:17] assign         "="
-[35:18-35:19] lbracket       "["
-[35:19-35:20] int_literal    "5" =5n
-[35:20-35:21] comma          ","
-[35:22-35:23] int_literal    "3" =3n
-[35:23-35:24] comma          ","
-[35:25-35:26] int_literal    "9" =9n
-[35:26-35:27] comma          ","
-[35:28-35:29] int_literal    "1" =1n
-[35:29-35:30] comma          ","
-[35:31-35:32] int_literal    "7" =7n
-[35:32-35:33] comma          ","
-[35:34-35:35] int_literal    "2" =2n
-[35:35-35:36] comma          ","
-[35:37-35:38] int_literal    "8" =8n
-[35:38-35:39] comma          ","
-[35:40-35:41] int_literal    "4" =4n
-[35:41-35:42] rbracket       "]"
+[35:15-35:16] colon          ":"
+[35:17-35:18] lbracket       "["
+[35:18-35:19] int_literal    "5" =5n
+[35:19-35:20] comma          ","
+[35:21-35:22] int_literal    "3" =3n
+[35:22-35:23] comma          ","
+[35:24-35:25] int_literal    "9" =9n
+[35:25-35:26] comma          ","
+[35:27-35:28] int_literal    "1" =1n
+[35:28-35:29] comma          ","
+[35:30-35:31] int_literal    "7" =7n
+[35:31-35:32] comma          ","
+[35:33-35:34] int_literal    "2" =2n
+[35:34-35:35] comma          ","
+[35:36-35:37] int_literal    "8" =8n
+[35:37-35:38] comma          ","
+[35:39-35:40] int_literal    "4" =4n
+[35:40-35:41] rbracket       "]"
 [36:1-36:1  ] newline        "\n"
 [36:5-36:20 ] ident          "lend_fill_array"
 [36:20-36:21] lparen         "("

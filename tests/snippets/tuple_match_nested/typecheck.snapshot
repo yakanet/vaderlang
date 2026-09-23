@@ -2,9 +2,9 @@
 
 ## tests/snippets/tuple_match_nested
   FnDecl         main                 :: fn() -> i32
-  expr 6:37     SeqLitExpr     :: [[i32, string]!, bool]!
-  expr 6:38     SeqLitExpr     :: [i32, string]!
-  expr 6:43     StringLitExpr  :: string
+  expr 6:36     SeqLitExpr     :: [[i32, string]!, bool]!
+  expr 6:37     SeqLitExpr     :: [i32, string]!
+  expr 6:42     StringLitExpr  :: string
   expr 7:11     IdentExpr      :: [[i32, string], bool]
   expr 7:5      MatchExpr      :: void
   expr 8:34     CallExpr       :: void

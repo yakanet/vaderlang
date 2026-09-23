@@ -43,9 +43,15 @@ ProjectCtx :: struct {
     /// A symbol names one declaration, which is also what makes an overload pick
     /// unambiguous.
     extern_callbacks: MutableMap<i32, MutableSet<usize>>
+    /// Where `build_ident` reports an ident with no local. LOUD on purpose: the
+    /// symbol resolved, so a miss here is the COMPILER losing a binding, and the
+    /// recovery value is a `TermUnreachable` that replaces the whole entry block
+    /// — the surrounding code vanishes with nothing to read. `lower_ident` was
+    /// made loud for that exact reason after two bisections ; this is its twin.
+    diags: Diagnostic[]!
 }
 
-new_project_ctx :: fn(lp: LoweredProject) -> ProjectCtx {
+new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]!) -> ProjectCtx {
     externs :: MutableMap<i32, MutableSet<usize>> {}
     for [_, m] in lp.modules {
         for d in m.decls {
@@ -72,6 +78,7 @@ new_project_ctx :: fn(lp: LoweredProject) -> ProjectCtx {
         .const_fn_wrap = lp.const_fn_wrap,
         .const_inline  = lp.const_inline,
         .extern_callbacks = externs,
+        .diags            = diags,
     }
 }
 
@@ -128,13 +135,13 @@ import "vader/comptime"
 ///
 /// @param lp  the lowered project from the lowerer pass.
 /// @return    a fresh `CFGProject` with one entry per non-stdlib module.
-export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
-    ctx :: new_project_ctx(lp)
+export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]! = []) -> CFGProject {
+    ctx :: new_project_ctx(lp, diags)
     modules :: MutableMap<string, CFGModule> {}
     for [module_id, m] in lp.modules {
-        functions: CFGFunction[]! = []
-        externs: CFGExternDecl[]! = []
-        struct_decls: CFGStructDecl[]! = []
+        functions: CFGFunction[]!: []
+        externs: CFGExternDecl[]!: []
+        struct_decls: CFGStructDecl[]!: []
         for d in m.decls {
             match d {
                 is LoweredFnDecl -> {
@@ -178,12 +185,12 @@ import "vader/bytecode"
 // carry their values through to `midir::emit`, which interns them ; aggregate
 // arrays recurse over the carried literal into a `BcAggregateData`.
 convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
-    out: BcDataEntry[]! = []
+    out: BcDataEntry[]!: []
     for e in entries {
         match e {
             is StrDataPoolEntry -> { out.push(BcStrData { .values = e.values, .mutable = e.mutable }) }
             is PrimDataPoolEntry -> {
-                items: u64[]! = []
+                items: u64[]!: []
                 for v in e.items { items.push(u64(v)) }
                 out.push(BcPrimData {
                     .kind    = array_kind_from_name(e.element_type_name),
@@ -192,7 +199,7 @@ convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
                 })
             }
             is AggregateDataPoolEntry -> {
-                elements: BcDataValue[]! = []
+                elements: BcDataValue[]!: []
                 for el in e.literal.elements { elements.push(lowered_to_bc_value(el)) }
                 out.push(BcAggregateData {
                     .element_type_name = e.element_type_name,
@@ -213,12 +220,12 @@ convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
 lowered_to_bc_value :: fn(el: LoweredExpr) -> BcDataValue {
     if el is LoweredStringLit { return BcValStr { .value = el.value } }
     if el is LoweredStructLit {
-        fields: BcDataValue[]! = []
+        fields: BcDataValue[]!: []
         for f in el.fields { fields.push(lowered_to_bc_value(f.value)) }
         return BcValStruct { .symbol_id = struct_symbol_id(el.type), .fields = fields }
     }
     if el is LoweredArrayLit {
-        elements: BcDataValue[]! = []
+        elements: BcDataValue[]!: []
         for e in el.elements { elements.push(lowered_to_bc_value(e)) }
         return BcValArray { .element_type_name = array_element_name(el.type), .elements = elements }
     }
@@ -385,7 +392,7 @@ extern_symbol_name :: fn(fn_decl: FnDecl) -> string {
 }
 
 make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
-    fields: CFGStructField[]! = []
+    fields: CFGStructField[]!: []
     for f in d.fields {
         fields.push(CFGStructField { .name = f.name, .type = f.type })
     }
@@ -398,7 +405,7 @@ make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
 
 make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
     meta :: fn_metadata(d)
-    params: CFGParam[]! = []
+    params: CFGParam[]!: []
     for i in 0..<d.params.len() {
         p :: d.params[i]
         params.push(CFGParam {
@@ -426,8 +433,8 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
     if d.body is null { return null }
     body :: d.body
 
-    params: CFGParam[]! = []
-    locals: CFGLocal[]! = []
+    params: CFGParam[]!: []
+    locals: CFGLocal[]!: []
     local_by_sym_id :: MutableMap<i32, LocalId> {}
 
     // Params occupy local slots 0..N-1.
@@ -463,12 +470,15 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
     if fn_ctx.current !is null {
         cur :: fn_ctx.blocks[usize(fn_ctx.current)]
         if cur.terminator is null {
-            cur.terminator = TermReturn { .value = trailing, .span = body.span }
+            cur.terminator = TermReturn {
+                .values = if trailing == null { [] } else { [trailing] },
+                .span = body.span,
+            }
         }
     }
 
     meta :: fn_metadata(d)
-    frozen: BasicBlock[]! = []
+    frozen: BasicBlock[]!: []
     for b in fn_ctx.blocks { frozen.push(freeze_block(b)) }
     return CFGFunction {
         .mangled     = d.mangled,
@@ -573,9 +583,16 @@ build_stmt :: fn(fn_ctx: FnCtx!, s: LoweredStmt) -> void {
             _ :: build_expr(fn_ctx, s.expr)
         }
         is LoweredReturn -> {
-            value: LocalId | null = null
-            if s.value !is null { value = build_expr(fn_ctx, s.value) }
-            terminate(fn_ctx, TermReturn { .value = value, .span = s.span })
+            values: LocalId[]!: []
+            if s.value !is null {
+                // `build_expr` answers null for an expression that produced no
+                // value; that return carries nothing, exactly as before.
+                built :: build_expr(fn_ctx, s.value)
+                if built != null {
+                    values.push(built)
+                }
+            }
+            terminate(fn_ctx, TermReturn { .values = values, .span = s.span })
         }
         is LoweredLoop -> { build_loop(fn_ctx, s) }
         is LoweredBreak -> {
@@ -668,7 +685,7 @@ build_loop :: fn(fn_ctx: FnCtx!, s: LoweredLoop) -> void {
         terminate(fn_ctx, TermBranch { .target = header_id, .span = s.span })
     }
     // pop loop frame
-    new_stack: LoopFrame[]! = []
+    new_stack: LoopFrame[]!: []
     for i in 0..<fn_ctx.loop_stack.len() - 1 {
         new_stack.push(fn_ctx.loop_stack[i])
     }
@@ -762,7 +779,7 @@ build_ident :: fn(fn_ctx: FnCtx!, e: LoweredIdent) -> LocalId | null {
         }
         return slot_opt
     }
-    if e.symbol.kind == SymbolKind.Fn {
+    if e.symbol.kind == .Fn {
         dst :: fresh_tmp(fn_ctx, "fn_ref", e.type)
         emit(fn_ctx, InstrFnRef {
             .dst = dst, .fn_symbol = e.symbol, .type = e.type, .span = e.span,
@@ -777,21 +794,27 @@ build_ident :: fn(fn_ctx: FnCtx!, e: LoweredIdent) -> LocalId | null {
     wrap :: fn_ctx.project.const_fn_wrap[e.symbol.id]
     if wrap is ConstFnWrap {
         dst :: fresh_tmp(fn_ctx, "const_init", wrap.call_type)
-        no_args: LocalId[] = []
+        no_args: LocalId[]: []
         emit(fn_ctx, InstrCall {
-            .dst = dst, .callee = wrap.fn_symbol, .args = no_args,
-            .type = wrap.call_type, .span = e.span,
+            .dsts = [dst],
+            .callee = wrap.fn_symbol,
+            .args = no_args,
+            .type = wrap.call_type,
+            .span = e.span,
         })
         return dst
     }
     inline_value :: fn_ctx.project.const_inline[e.symbol.id]
     if inline_value !is null { return build_expr(fn_ctx, inline_value) }
+    fn_ctx.project.diags.push(lower_error(
+        .UnresolvedIdent, e.span,
+        "`${e.symbol.name}` resolved to a symbol with no local in this function — a binding was lost between the resolver and here"))
     return build_unreachable_type(fn_ctx, e.type, e.span, "unresolved ident ${e.symbol.name}", false)
 }
 
 build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
     if e.callee is LoweredIdent as callee_id {
-        if callee_id.symbol.kind == SymbolKind.Fn {
+        if callee_id.symbol.kind == .Fn {
             slots :: fn_ctx.project.extern_callbacks[callee_id.symbol.id]
             args :: if slots is MutableSet<usize> as cb {
                 build_extern_args(fn_ctx, e.args, cb, callee_id.symbol.name) ?? return null
@@ -800,7 +823,11 @@ build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
             }
             dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "call", e.type) }
             emit(fn_ctx, InstrCall {
-                .dst = dst, .callee = callee_id.symbol, .args = args, .type = e.type, .span = e.span,
+                .dsts = if dst == null { [] } else { [dst] },
+                .callee = callee_id.symbol,
+                .args = args,
+                .type = e.type,
+                .span = e.span,
             })
             return dst
         }
@@ -833,7 +860,7 @@ build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
 build_extern_args :: fn(
     fn_ctx: FnCtx!, args: LoweredExpr[], slots: MutableSet<usize>, callee: string,
 ) -> LocalId[] | null {
-    out: LocalId[]! = []
+    out: LocalId[]!: []
     for i in 0..<args.len() {
         a :: args[i]
         if !slots.contains(i) {
@@ -844,7 +871,7 @@ build_extern_args :: fn(
         if a !is LoweredIdent {
             panic("midir/build: argument ${i + 1} of `${callee}` is a callback that names no function — typecheck should have refused it (T3080)")
         }
-        if a.symbol.kind != SymbolKind.Fn {
+        if a.symbol.kind != .Fn {
             panic("midir/build: argument ${i + 1} of `${callee}` names `${a.symbol.name}`, which is not a function — typecheck should have refused it (T3080)")
         }
         // `TY_CPOINTER`, not the fn type. The slot holds a `.text` address, and
@@ -862,7 +889,7 @@ build_extern_args :: fn(
 }
 
 build_args :: fn(fn_ctx: FnCtx!, args: LoweredExpr[]) -> LocalId[] | null {
-    out: LocalId[]! = []
+    out: LocalId[]!: []
     for a in args {
         local :: build_expr(fn_ctx, a) ?? return null
         out.push(local)
@@ -926,7 +953,7 @@ build_binary :: fn(fn_ctx: FnCtx!, e: LoweredBinary) -> LocalId | null {
 build_short_circuit :: fn(fn_ctx: FnCtx!, e: LoweredBinary, dest: LocalId | null) -> LocalId | null {
     lhs :: build_expr(fn_ctx, e.left) ?? return null
 
-    is_and :: e.op == LoweredBinaryOp.And
+    is_and :: e.op == .And
     // Destination-passing : `&&` / `||` is a phi-slot builder like `build_if`
     // (its result is written from both branches, read after the join), so when a
     // `dest` is supplied write straight into it — no `and_res` / `or_res` temp,
@@ -1009,7 +1036,7 @@ is_dest_passing_shape :: fn(e: LoweredExpr) -> bool {
     return false
 }
 
-is_short_circuit_op :: fn(op: LoweredBinaryOp) -> bool = op == LoweredBinaryOp.And || op == LoweredBinaryOp.Or
+is_short_circuit_op :: fn(op: LoweredBinaryOp) -> bool = op == .And || op == .Or
 
 // Destination-passing : build `e` so its value lands in `dest` (a pre-existing
 // slot), eliding the intermediate temp + copy where the shape allows. A value
@@ -1113,7 +1140,7 @@ build_if :: fn(fn_ctx: FnCtx!, e: LoweredIf, dest: LocalId | null) -> LocalId | 
 }
 
 build_struct_lit :: fn(fn_ctx: FnCtx!, e: LoweredStructLit) -> LocalId | null {
-    field_locals: LocalId[]! = []
+    field_locals: LocalId[]!: []
     for f in e.fields {
         local :: build_expr(fn_ctx, f.value) ?? return null
         field_locals.push(local)
@@ -1127,7 +1154,7 @@ build_struct_lit :: fn(fn_ctx: FnCtx!, e: LoweredStructLit) -> LocalId | null {
 }
 
 build_array_lit :: fn(fn_ctx: FnCtx!, e: LoweredArrayLit) -> LocalId | null {
-    elems: LocalId[]! = []
+    elems: LocalId[]!: []
     for el in e.elements {
         local :: build_expr(fn_ctx, el) ?? return null
         elems.push(local)

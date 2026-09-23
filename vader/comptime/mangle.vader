@@ -149,22 +149,22 @@ import "vader/diagnostics"
 import "toolchain/span"
 
 @test test_mangle_non_generic_same_name :: fn() -> void {
-    args: Type[] = []
+    args: Type[]: []
     assert_eq(mangle("main", "main", args), "main")
 }
 
 @test test_mangle_non_generic_distinct_module :: fn() -> void {
-    args: Type[] = []
+    args: Type[]: []
     assert_eq(mangle("hello", "tests/hello", args), "tests_hello\$hello")
 }
 
 @test test_mangle_generic_one_arg :: fn() -> void {
-    args: Type[] = [mk_primitive("i32")]
+    args: Type[]: [mk_primitive("i32")]
     assert_eq(mangle("Vec", "stdlib/std/vec", args), "stdlib_std_vec\$Vec__i32")
 }
 
 @test test_mangle_generic_two_args :: fn() -> void {
-    args: Type[] = [mk_primitive("string"), mk_primitive("i32")]
+    args: Type[]: [mk_primitive("string"), mk_primitive("i32")]
     assert_eq(
         mangle("Map", "stdlib/std/map", args),
         "stdlib_std_map\$Map__string__i32",

@@ -5,6 +5,7 @@
 ## generic instances
   __genstate_my_map<i32>
   __genstate_my_filter<i32>
+  __genstate_array_iter<T>
   Into<Target>
   Add<Rhs, Out>
   ArrayOps<T>
@@ -21,15 +22,10 @@
   Iterator<U>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
+  Iterator<T>
   Async<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>

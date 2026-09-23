@@ -104,7 +104,7 @@ export run_fmt :: fn(paths: string[], check: bool, stdout: bool) -> i32 {
     }
 
     // `--stdout` is single-file only.
-    if mode == Mode.Stdout {
+    if mode == .Stdout {
         if paths.len() != 1 {
             eprintln("vader fmt: --stdout requires exactly one file path")
             return i32(FileResult.Drift)
@@ -112,7 +112,7 @@ export run_fmt :: fn(paths: string[], check: bool, stdout: bool) -> i32 {
         return i32(run_one_stdout(paths[0]))
     }
 
-    files: string[]! = []
+    files: string[]!: []
     for p in paths { collect_files(p, files) }
 
     drift   := 0
@@ -128,7 +128,7 @@ export run_fmt :: fn(paths: string[], check: bool, stdout: bool) -> i32 {
     }
 
     if errors > 0 { return i32(FileResult.IoError) }
-    if mode == Mode.Check && drift > 0 { return i32(FileResult.Drift) }
+    if mode == .Check && drift > 0 { return i32(FileResult.Drift) }
     if skipped > 0 { return i32(FileResult.ParseSkip) }
     return i32(FileResult.Ok)
 }
@@ -140,7 +140,7 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
     match r {
         is IOError -> {
             eprintln("vader fmt: cannot read ${path}")
-            return FileResult.IoError
+            return .IoError
         }
         is string -> { src = r }
     }
@@ -153,24 +153,24 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
             // (dedup, sort, cap, colour, `[file:line:col]` prefix) so a fmt
             // parse error reads identically to a build one.
             eprintln(out.diagnostics.dump_diagnostics_with_file())
-            return FileResult.ParseSkip
+            return .ParseSkip
         }
         is Formatted -> {
             if out.output == src {
-                return FileResult.Ok
+                return .Ok
             }
-            if mode == Mode.Check {
+            if mode == .Check {
                 eprintln("would format ${path}")
-                return FileResult.Drift
+                return .Drift
             }
             // In-place. (Stdout case routes to run_one_stdout above.)
             w :: write_file_string(path, out.output)
             match w {
                 is IOError -> {
                     eprintln("vader fmt: cannot write ${path}")
-                    return FileResult.IoError
+                    return .IoError
                 }
-                is null -> { return FileResult.Ok }
+                is null -> { return .Ok }
             }
         }
     }
@@ -182,7 +182,7 @@ run_one_stdout :: fn(path: string) -> FileResult {
     match r {
         is IOError -> {
             eprintln("vader fmt: cannot read ${path}")
-            return FileResult.IoError
+            return .IoError
         }
         is string -> { src = r }
     }
@@ -194,14 +194,14 @@ run_one_stdout :: fn(path: string) -> FileResult {
             // (dedup, sort, cap, colour, `[file:line:col]` prefix) so a fmt
             // parse error reads identically to a build one.
             eprintln(out.diagnostics.dump_diagnostics_with_file())
-            return FileResult.ParseSkip
+            return .ParseSkip
         }
         is Formatted -> {
             // The formatter already ends `f.output` with one trailing `\n`,
             // so use `print` (no extra newline) to keep stdout byte-identical
             // to the in-place output.
             print(out.output)
-            return FileResult.Ok
+            return .Ok
         }
     }
 }

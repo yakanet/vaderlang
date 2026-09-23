@@ -11,7 +11,7 @@ Point :: struct {
 }
 
 main :: fn() -> i32 {
-    points: Point[] = [Point { .x = 1, .y = 2 }]
+    points: Point[]: [Point { .x = 1, .y = 2 }]
     for [a, b] in points {
     }
     return 0

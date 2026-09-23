@@ -51,7 +51,7 @@ TTY_CACHE: i32[]!: [-1, -1]
 
 /// Index of `stream` in `TTY_CACHE`. Anything but `.Stderr` reads as stdout,
 /// mirroring what the C original did with its tag.
-tty_slot :: fn(stream: Stream) -> usize = if stream == Stream.Stderr { 1 } else { 0 }
+tty_slot :: fn(stream: Stream) -> usize = if stream == .Stderr { 1 } else { 0 }
 
 @target(.Linux, .Darwin)
 is_tty :: fn(stream: Stream = .Stdout) -> bool {
@@ -79,7 +79,7 @@ is_tty :: fn(stream: Stream = .Stdout) -> bool {
     if h == INVALID_HANDLE {
         return false
     }
-    mode: u32[]! = [0]
+    mode: u32[]!: [0]
     if !get_console_mode(h, mode) {
         return false
     }

@@ -75,7 +75,7 @@ FusedBody :: struct {
 /// @param mod  the module whose functions to rewrite ; not mutated.
 /// @return     one `FusedBody` per function, index-aligned with `mod.functions`.
 fuse_module :: fn(mod: BytecodeModule) -> FusedBody[] {
-    out: FusedBody[]! = [] * mod.functions.len()
+    out: FusedBody[]!: [] * mod.functions.len()
     for f in mod.functions {
         out.push(fuse_body(f))
     }
@@ -92,10 +92,10 @@ fuse_body :: fn(f: BcFunction) -> FusedBody {
     // An op a branch lands on keeps its own index, so it is never absorbed into
     // the pair before it — otherwise the branch would arrive mid-superop.
     is_target :: mark_jump_targets(f.jump_table, n)
-    ops: VmOp[]! = [] * n
+    ops: VmOp[]!: [] * n
     // Old pc → new pc. An absorbed op answers with its pair's index ; a dropped
     // one answers `-1`, which `remap_jump_table` resolves forward.
-    remap: i32[]! = [0] * n
+    remap: i32[]!: [0] * n
     i: usize = 0
     for i < n {
         op :: f.body[i]
@@ -157,10 +157,10 @@ get_pair :: fn(slot: i32, b: Op) -> VmOp | null {
         return Get2 { .slot_a = slot, .slot_b = b.slot }
     }
     if b is I64Const {
-        return GetConst { .slot = slot, .value = b.value, .tag = StackTag.I64 }
+        return GetConst { .slot = slot, .value = b.value, .tag = .I64 }
     }
     if b is I32Const {
-        return GetConst { .slot = slot, .value = i64(b.value), .tag = StackTag.I32 }
+        return GetConst { .slot = slot, .value = i64(b.value), .tag = .I32 }
     }
     return null
 }

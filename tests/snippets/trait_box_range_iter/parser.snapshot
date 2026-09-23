@@ -82,98 +82,93 @@
             },
             "body": {
               "kind": "BlockExpr",
-              "stmts": [],
-              "trailing": {
-                "kind": "MatchExpr",
-                "scrutinee": {
-                  "kind": "CallExpr",
-                  "callee": {
-                    "kind": "FieldExpr",
-                    "target": {
-                      "kind": "IdentExpr",
-                      "name": "it"
-                    },
-                    "field": "next"
+              "stmts": [
+                {
+                  "kind": "LetStmt",
+                  "mutable": false,
+                  "binding": {
+                    "kind": "TupleBinding",
+                    "elements": [
+                      {
+                        "kind": "WildcardBinding"
+                      },
+                      {
+                        "kind": "SimpleBinding",
+                        "name": "c"
+                      }
+                    ]
                   },
-                  "args": []
-                },
-                "arms": [
-                  {
-                    "pattern": {
-                      "kind": "IsPattern",
-                      "type": {
+                  "type": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "FieldExpr",
+                      "target": {
                         "kind": "IdentExpr",
-                        "name": "null"
+                        "name": "it"
                       },
-                      "inner": null,
-                      "bindAs": null
+                      "field": "next"
                     },
-                    "guard": null,
-                    "body": {
-                      "kind": "BlockExpr",
-                      "stmts": [
-                        {
-                          "kind": "AssignStmt",
-                          "target": {
-                            "kind": "IdentExpr",
-                            "name": "cont"
-                          },
-                          "value": {
-                            "kind": "BoolLitExpr",
-                            "value": false
-                          }
-                        }
-                      ],
-                      "trailing": null
-                    }
-                  },
-                  {
-                    "pattern": {
-                      "kind": "IsPattern",
-                      "type": {
-                        "kind": "GenericInstExpr",
-                        "callee": {
-                          "kind": "IdentExpr",
-                          "name": "Yield"
-                        },
-                        "typeArgs": [
-                          {
-                            "kind": "IdentExpr",
-                            "name": "T"
-                          }
-                        ]
-                      },
-                      "inner": null,
-                      "bindAs": null
-                    },
-                    "guard": null,
-                    "body": {
-                      "kind": "BlockExpr",
-                      "stmts": [
-                        {
-                          "kind": "AssignStmt",
-                          "target": {
-                            "kind": "IdentExpr",
-                            "name": "n"
-                          },
-                          "value": {
-                            "kind": "BinaryExpr",
-                            "op": "add",
-                            "left": {
-                              "kind": "IdentExpr",
-                              "name": "n"
-                            },
-                            "right": {
-                              "kind": "IntLitExpr",
-                              "value": "1n"
-                            }
-                          }
-                        }
-                      ],
-                      "trailing": null
-                    }
+                    "args": []
                   }
-                ]
+                }
+              ],
+              "trailing": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "BinaryExpr",
+                  "op": "eq",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "c"
+                  },
+                  "right": {
+                    "kind": "DotVariantExpr",
+                    "variant": "Stop"
+                  }
+                },
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [
+                    {
+                      "kind": "AssignStmt",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "cont"
+                      },
+                      "value": {
+                        "kind": "BoolLitExpr",
+                        "value": false
+                      }
+                    }
+                  ],
+                  "trailing": null
+                },
+                "else": {
+                  "kind": "BlockExpr",
+                  "stmts": [
+                    {
+                      "kind": "AssignStmt",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "n"
+                      },
+                      "value": {
+                        "kind": "BinaryExpr",
+                        "op": "add",
+                        "left": {
+                          "kind": "IdentExpr",
+                          "name": "n"
+                        },
+                        "right": {
+                          "kind": "IntLitExpr",
+                          "value": "1n"
+                        }
+                      }
+                    }
+                  ],
+                  "trailing": null
+                }
               }
             },
             "isComptime": false
@@ -509,7 +504,7 @@
         "stmts": [
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "a"
@@ -543,7 +538,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "b"
@@ -582,7 +577,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "c"
@@ -612,7 +607,7 @@
           },
           {
             "kind": "LetStmt",
-            "mutable": true,
+            "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
               "name": "d"

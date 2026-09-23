@@ -111,14 +111,14 @@
 [31:5-31:8  ] ident          "pal"
 [31:8-31:9  ] colon          ":"
 [31:10-31:17] ident          "Palette"
-[31:18-31:19] assign         "="
-[31:20-31:21] lbracket       "["
-[31:21-31:23] int_literal    "10" =10n
-[31:23-31:24] comma          ","
-[31:25-31:27] int_literal    "20" =20n
-[31:27-31:28] comma          ","
-[31:29-31:31] int_literal    "30" =30n
-[31:31-31:32] rbracket       "]"
+[31:17-31:18] colon          ":"
+[31:19-31:20] lbracket       "["
+[31:20-31:22] int_literal    "10" =10n
+[31:22-31:23] comma          ","
+[31:24-31:26] int_literal    "20" =20n
+[31:26-31:27] comma          ","
+[31:28-31:30] int_literal    "30" =30n
+[31:30-31:31] rbracket       "]"
 [32:1-32:1  ] newline        "\n"
 [32:5-32:12 ] ident          "println"
 [32:12-32:13] lparen         "("

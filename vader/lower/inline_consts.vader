@@ -60,7 +60,7 @@ FN_WRAP_MIN_ELEMENTS :: usize(4)
 export inline_consts :: fn(project: LoweredProject!, project_ctx: LowerProjectCtx!) -> void {
     for module_id in project.modules.keys() {
         m :: project.modules[module_id] ?? continue
-        new_decls: LoweredDecl![]! = []
+        new_decls: LoweredDecl![]!: []
         changed := false
         for d in m.decls {
             if d is LoweredConstDecl {
@@ -154,7 +154,7 @@ pool_literal_of :: fn(value: LoweredExpr) -> LoweredExpr | null {
         if value.args[0] is LoweredArrayLit as base {
             if value.args[1] is LoweredIntLit as count {
                 if count.value <= 0 { return null }
-                elements: LoweredExpr[]! = []
+                elements: LoweredExpr[]!: []
                 for _ in 0..<count.value {
                     for el in base.elements { elements.push(el) }
                 }
@@ -233,7 +233,7 @@ is_bakeable_struct :: fn(s: LoweredStructLit) -> bool {
 // Collect every element's string value, or null when any element isn't a plain
 // string literal (interpolation lowers to a builder, never reaching here).
 render_string_items :: fn(lit: LoweredArrayLit) -> string[] | null {
-    out: string[]! = []
+    out: string[]!: []
     for el in lit.elements {
         if el is LoweredStringLit { out.push(el.value) } else { return null }
     }
@@ -245,7 +245,7 @@ render_string_items :: fn(lit: LoweredArrayLit) -> string[] | null {
 // is the array's element type name — needed to pick the f32 vs f64 width when
 // reinterpreting a float literal's IEEE-754 bits.
 render_data_items :: fn(lit: LoweredArrayLit, element_name: string) -> i64[] | null {
-    out: i64[]! = []
+    out: i64[]!: []
     for el in lit.elements {
         bits :: data_item_bits(el, element_name) ?? return null
         out.push(bits)
@@ -277,11 +277,11 @@ data_item_bits :: fn(el: LoweredExpr, element_name: string) -> i64 | null {
 // to this symbol, looked up through `project.const_fn_wrap[const symbol id]`.
 const_accessor_symbol :: fn(orig_sym: Symbol, synth_id: i32) -> Symbol = Symbol {
     .id         = synth_id,
-    .kind       = SymbolKind.Fn,
+    .kind       = .Fn,
     .name       = "__const_${orig_sym.name}",
     .module     = orig_sym.module,
     .module_name = orig_sym.module,
-    .visibility = AST.Visibility.Private,
+    .visibility = .Private,
     .defined_at = orig_sym.defined_at,
 }
 
@@ -300,8 +300,8 @@ synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol) -> LoweredFnD
         .type_arguments = cd.origin.type_arguments,
         .module         = cd.origin.module,
     }
-    no_stmts: LoweredStmt[] = []
-    no_params: LoweredParam[] = []
+    no_stmts: LoweredStmt[]: []
+    no_params: LoweredParam[]: []
     return LoweredFnDecl {
         .mangled     = "__const_${cd.mangled}",
         .params      = no_params,

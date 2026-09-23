@@ -9,7 +9,7 @@ apply :: fn(f: fn(i32) -> i32, n: i32) -> i32 {
 }
 
 main :: fn() -> i32 {
-    bias := 5
+    bias :: 5
     add_bias :: fn(n: i32) -> i32 {
         return n + bias
     }

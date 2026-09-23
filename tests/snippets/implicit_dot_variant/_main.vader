@@ -25,20 +25,20 @@ show_day :: fn(d: Day) -> string {
 
 main :: fn() -> i32 {
     // Direct assignment to enum-typed variable.
-    a: Day = .Monday
+    a: Day: .Monday
     println(show_day(a))
 
     // Array literal of `Day` — every element uses the leading-dot form.
-    days: Day[] = [.Monday, .Wednesday]
+    days: Day[]: [.Monday, .Wednesday]
     for d in days { println(show_day(d)) }
 
     // Tagged union : `is .Some` / `is .None` resolves against `Maybe`.
-    m: Maybe = Some { .value = 42 }
+    m: Maybe: Some { .value = 42 }
     match m {
         is .Some -> println("got=${m.value}")
         is .None -> println("nothing")
     }
-    n: Maybe = None {}
+    n: Maybe: None {}
     match n {
         is .Some -> println("got=${n.value}")
         is .None -> println("nothing")

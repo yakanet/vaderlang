@@ -1,0 +1,27 @@
+// A function whose return the value-ABI pass scalarises, reached BOTH ways:
+// called directly, and taken as a value.
+//
+// The pass keeps such a function under its own name and signature — so the
+// `fn.ref` still sees the shape it was compiled against — and gives the
+// scalarised form a copy under a derived mangle. A function has two identities
+// in this pipeline, its mangle AND its `origin.symbol.id`, and `midir/emit`
+// resolves a callee by the id when the mangle probe misses. Renaming only the
+// mangle left both under one slot: the wrapper resolved its own call back onto
+// itself and recursed until the stack went ("call stack overflow at
+// 'snippet$pair$v'"). Nothing in the corpus covered a FREE function reached both
+// ways — the compiler's own cases are impl members, which carry no symbol.
+
+module "snippet"
+
+import "std/io"
+
+pair :: fn(x: i32) -> [i32, i32] = [x, x + 1]
+
+main :: fn() -> i32 {
+    [a, b] :: pair(10)
+    f :: pair
+    [c, d] :: f(20)
+    println("direct a=${a} b=${b}")
+    println("value  c=${c} d=${d}")
+    return a + b + c + d
+}

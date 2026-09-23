@@ -13,7 +13,7 @@ main :: fn() -> i32 {
     if bs[2] >= '0' && bs[2] <= '9' { println("digit") }
 
     // both-free bitwise: the outer expected pins the width (u32 wrap, not i32)
-    top: u32 = 1 << 31
+    top: u32: 1 << 31
     if top == 0x80000000 { println("u32 top bit") }
 
     // free char in a typed arithmetic context

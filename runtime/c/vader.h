@@ -383,7 +383,24 @@ typedef struct {
  * alignment against it, hence its home here rather than in the runtime .c. */
 #define VADER_GC_ALIGN 8u
 
+/* ---- per-type allocation counter (VADER_ALLOC_BY_TYPE=1) -------------------
+ * How many objects of each type a run actually allocates. The static report
+ * (`VADER_OPT_REPORT`) names the SITES an optimisation left on the heap; this
+ * says how often they fire, which is the half that decides whether a site is
+ * worth anything. Keyed by `type_index`, so it reads straight off
+ * `vader_type_info_table` with no symbolisation step.
+ *
+ * Always compiled in: the counter is one increment behind a branch that is
+ * false unless the env is set, which does not measurably move a build, and an
+ * `#ifdef` would mean rebuilding the compiler to answer a question about it. */
+#define VADER_ALLOC_TYPES_MAX 4096u
+extern uint64_t vader_alloc_by_type[VADER_ALLOC_TYPES_MAX];
+extern int      vader_alloc_by_type_on;
+
 static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
+    if (vader_alloc_by_type_on && type_index < VADER_ALLOC_TYPES_MAX) {
+        vader_alloc_by_type[type_index]++;
+    }
     vader_obj_header_t* h = (vader_obj_header_t*) obj;
     h->type_index = type_index;
     h->age        = 0;

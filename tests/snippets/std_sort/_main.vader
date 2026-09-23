@@ -58,7 +58,7 @@ main :: fn() -> i32 {
     print_strings(strs)
 
     // Input array is not mutated.
-    input := [3, 1, 2]
+    input :: [3, 1, 2]
     out :: sort(input, i32_lt)
     print_ints(input)
     print_ints(out)

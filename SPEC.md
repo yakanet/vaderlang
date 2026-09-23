@@ -81,9 +81,9 @@ The pipeline is therefore **incremental**: to evaluate a `@comptime`, its depend
 
 ### Monomorphization
 
-Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `ArrayIterator<i32>`, `MutableMap<string, User>`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct<args>` reference points to an emitted decl, and every generic-fn call is rewritten to call the instance that serves it — a per-type clone, or a shared erased body for reference type arguments (see *Instance flavor* below).
+Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `Range<i32>`, `MutableMap<string, User>`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct<args>` reference points to an emitted decl, and every generic-fn call is rewritten to call the instance that serves it — a per-type clone, or a shared erased body for reference type arguments (see *Instance flavor* below).
 
-Registry collection is **transitive**: when `outer<i32>` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn<i32>`), every `for x in arr` over `T[]` (registers `ArrayIterator<i32>`), and every substituted struct/trait reference inside the body (so e.g. `Yield<string>` materialises when `next` is monomorphised over a `string[]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
+Registry collection is **transitive**: when `outer<i32>` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn<i32>`), every `for x in arr` over `T[]`, and every substituted struct/trait reference inside the body (so e.g. `[string, Continuation]` materialises when `next` is monomorphised over a `string[]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
 
 Lowering and every downstream phase therefore never see an *unbound* type parameter: each instance's type arguments are either substituted to concrete types or erased to the uniform-pointer representation, per its **instance flavor** (below).
 
@@ -124,7 +124,7 @@ The bytecode emitter consumes the CFG (not the Lowered AST), recovers WASM-style
 
 ### Dead-code elimination
 
-Between the lowerer and the bytecode emitter, a DCE pass prunes lowered declarations that are not transitively reachable from a small set of roots. This keeps unused stdlib machinery out of the final artifact: `std/core` is auto-imported in every program, but a `hello world` doesn't need `Range`, `ArrayIterator`, `Yield`, `IOError`, or their impls — DCE drops them before emission.
+Between the lowerer and the bytecode emitter, a DCE pass prunes lowered declarations that are not transitively reachable from a small set of roots. This keeps unused stdlib machinery out of the final artifact: `std/core` is auto-imported in every program, but a `hello world` doesn't need `Range`, `array_iter`, `Continuation`, `IOError`, or their impls — DCE drops them before emission.
 
 Roots — preserved unconditionally:
 
@@ -625,7 +625,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - **Overload resolution is decided first.** When a call has overloaded candidates, the typer ranks them *without* `Into`; the second-pass with `Into` only fires if no exact-match overload was found.
 
 **Built-in coercions**
-- `T[] → Iterator<T>` — raw arrays auto-wrap into `ArrayIterator<T>` on entry to an `Iterator<T>` slot, materialised by the blanket impl `T[] implements<T> Into<Iterator<T>>` in `std/core`. Driven through the `Into` probe, not a special-cased typer rule.
+- `T[] → Iterator<T>` — raw arrays auto-wrap on entry to an `Iterator<T>` slot, materialised by the blanket impl `T[] implements<T> Into<Iterator<T>>` in `std/core`, which hands back the `array_iter` generator. Driven through the `Into` probe, not a special-cased typer rule.
 - `T → string` when `T: Display` — anything implementing `Display` flowing into a `string`-typed slot is rewritten as a call to the impl's `to_string` member, via the blanket `T implements<T: Display> Into<string>` in `std/core`. The string-interpolation path (`"${value}"`) bypasses `Into` and routes through the builder intrinsics directly.
 - `FreeInt → i32` / `FreeFloat → f64` and friends — free literals defaulting to their canonical width at the typer level. Unrelated to `Into`; happens before any coercion lookup.
 - Concrete `S → Trait` when `S` impl `Trait` — virtual dispatch boxing. Distinct from `Into`; the value flows in unchanged and runtime dispatch resolves the method by tag.
@@ -645,7 +645,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 ### Strings
 
-- Internals: **fat value** `(ptr: rawptr, len: u32)` — 16 bytes copied on assignment, no shared reference.
+- Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare and hashing is the identity; the bytes live once in a global atom table (`docs/ATOM_INTERNING.md`). The `(ptr, len)` fat value this used to be went out with atom interning.
 - Immutable. Concatenation allocates.
 - `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, take a view and ask its length: `s.bytes().len()` — written inline like that, the lowerer folds it to an O(1) byte-length primitive (no view materialised). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `s.bytes().len()` for byte arithmetic.
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`); pair with `for c in s.chars()` for a true Unicode loop.
@@ -788,6 +788,8 @@ println(pair.1)      // "answer"
   - `[1, "x"]` → tuple (heterogeneous, no annotation).
   - With an annotation, the annotation wins: `xs: int[] = [1, 2, 3]` is array; `p: [int, string] = [1, "x"]` is tuple.
 - **Tuples are not arrays**: `[i32, i32]` is not assignable to `i32[]` even though every element type unifies.
+- **`==` compares the elements, not the references.** A tuple carries no identity to observe — it cannot be mutated (`t[0] = x` is `T3008`) and a fresh one is built at each construction — so `a == b` is rewritten field by field. Two tuples with equal contents are equal whether or not they are the same object, and `a != b` negates the whole comparison. Each element is compared by its own rule: a nested tuple recurses, a struct goes through its `Equals` impl, everything else uses the built-in `==`. A **distinct newtype over a tuple** (`Pair :: [i32, i32]`) compares through its backing, so naming the type does not change the answer.
+- **A tuple is only as comparable as its elements.** An element with no working `==` — an array, a struct without an `Equals` impl, a function value, or a type parameter — is `T3043`, reported against the **element's** type, which is what needs the impl. The two operands must have the *same* type, not merely the same arity: `[i32, string] == [string, i32]` and a nested arity mismatch are both `T3001`.
 
 ### Destructuring
 
@@ -850,6 +852,32 @@ A `[...]` pattern applied to a value that is **neither a tuple nor an array** st
 Any type that ships an `Into<[...]>` impl of matching arity destructures through a `[...]` pattern: the parser desugars `[n, s] := p` to bind each leaf from the `into` body's field reads, giving `n: i32`, `s: string`. (`MutableMap` no longer uses this path — it yields plain `[K, V]` tuples directly, like `zip` / `enumerate`, so `for [k, v] in m` is an ordinary tuple destructure.)
 
 When the impl's `into` body is a tuple literal of plain field reads (`[self.a, self.b]`), the lowerer binds each leaf directly to the source field — no `into()` call and no transient tuple allocation. T3001 still fires when the source is a non-tuple, non-array type with no matching `Into<[...]>` impl.
+
+#### Destructuring assignment
+
+The same `[...]` shape also works on the left of an `=`, writing to targets that
+already exist rather than introducing names. Each element must be an assignment
+target in its own right — a name, a field, or an index — and is held to every
+rule a bare assignment faces. An element that is not an assignment target is
+`T3082`; a tuple source whose arity differs from the pattern is `T3081`.
+
+```vader
+a := 1
+b := 2
+[a, b] = [10, 20]                      // a = 10, b = 20
+[a, b] = [b, a]                        // swap — a = 20, b = 10
+[cfg.width, sizes[0]] = dimensions()   // fields and indices are targets too
+```
+
+**Every element is read before any is written.** That is what makes the swap
+above mean what it reads as: the source is evaluated once, each element lands in
+a temporary, and only then are the targets written. A left-to-right
+read-then-write would assign `a = b` and read the *new* `a` back into `b`.
+
+The target is a flat list of assignment targets, not a pattern: **nesting
+(`[[a, b], c] = …`), `_` and `...rest` are not accepted here**, and a source that
+destructures only through `Into<[...]>` is refused. Those belong to `let` and to
+match arms, where a pattern introduces names.
 
 ### Structs
 
@@ -1189,6 +1217,8 @@ match value {
 - **Flow narrowing through wildcard / binding arms**: after one or more `is X` arms (without inner struct refinement), the subsequent `_` or `name` arm sees the scrutinee narrowed to `union − matched`. Lets `match p: Pet | null { is null -> "no"; _ -> p.name }` read the common field without a wrapping cast.
 - **`is T` reachability** (`T3040`): an `is T` arm whose `T` can never be a value of the scrutinee's static type is rejected at compile time. `match p: Pet { is Bird -> … }` errors when `Bird` is not part of `Pet`'s union; same rule fires for `if x is T` expressions outside `match`. The check uses the symmetric `intersects(T, scrutinee)` predicate; unknowns (`Unresolved`, `TypeParam`) suppress cascading. **`==` / `!=` get the same check** — `if n: i32 == null` triggers T3040 with the same wording, replacing the misleading "no Eq impl" T3017. Use `is null` when you want the flow-narrowing; both forms work but `is` is the canonical idiom.
 - **Exhaustiveness checked** by the compiler. For union scrutinees, every variant must be covered (or matched by a wildcard `_` / binding arm). For non-union scrutinees a wildcard or binding arm is required, since the compiler cannot enumerate all values of, say, `i32`.
+- **Unreachable match arm (`W0014`)**: an arm no value can reach, because the arms before it already cover it — a wildcard came first, the earlier arms consumed the whole scrutinee, an enum variant is named twice, or an `is T` restates a test an earlier arm made. Distinct from both neighbours: `T3013` asks whether a variant is *missing*, and `T3040` compares an `is` against the scrutinee's *static* type, so neither sees a variant covered twice. Fires on `@partial` matches too — an arm that cannot be taken is a mistake whatever the match opted out of.
+
 - **Wildcard on a closed union, value position (`W0005`)**: a `match` that *produces a value* over a union / enum scrutinee whose catch-all is a bare `_` / binding arm earns a warning — the wildcard silences the exhaustiveness check, so a variant added later degrades silently into the catch-all instead of erroring. Enumerate every variant, or opt out explicitly with `@partial` (§ decorators) when "everything else does X" is intended. Statement matches (`_ -> {}`, no value) and non-union scrutinees (`i32` / `string` / …) are exempt. The warning does not fire on `@partial` matches.
 
 ### Variable bindings
@@ -1214,6 +1244,10 @@ k = 1           // ERROR — cannot reassign immutable binding
 ```
 
 Top-level constants follow the same pattern but are restricted to compile-time expressions (`PI :: 3.14`, `MAX: u64: 1_000_000`).
+
+- **Mutable local never reassigned (`W0015`)**: a `:=` / `name: T =` local that no assignment ever rebinds earns a warning — the mutable form advertises a rebinding that does not happen. The fix is the immutable form on the same row of the table above (`n := 0` → `n :: 0`, `n: i32 = 0` → `n: i32: 0`). What counts as a rebinding is a **bare name as the whole assignment target**, compound assignments included: `x.f = 1` and `x[0] = 1` mutate what the name designates, which the immutable form already permits, so they do not justify a `:=`. A destructuring declaration carries one `:=` for every name it binds, so rebinding any one of them justifies it.
+
+- **Needless enum type prefix (`W0016`)**: writing `Enum.Variant` where the slot already pins that enum earns a warning — the name before the dot repeats what the context says, and the bare `.Variant` reads the same. The slots that pin are the ones the shorthand already resolves against: a typed return, a parameter, an annotated local or field, a match arm's BODY, an element of an array literal in a typed slot, and the other operand of an `==` / `!=`. A nullable slot (`Color | null`) pins just as well. A match PATTERN never triggers it — the qualified form does not parse there, the bare `.Variant` being the only spelling a pattern accepts. It stays silent wherever the prefix is load-bearing: an unannotated local (`c :: Color.Red` has nothing to infer from); a slot whose union carries two enums sharing the variant name, where the bare form resolves to the first that carries it; and **any argument of an overloaded call**, where the prefix is what selects the candidate — given `pick(c: Color)` and `pick(f: Fruit)`, `pick(Fruit.Red)` and `pick(.Red)` reach different functions, so advising the bare form there would change the call in silence. The qualified form remains legal everywhere; the warning only says it earns nothing here.
 
 ### Type inference
 
@@ -1372,14 +1406,14 @@ When the impl introduces its own type parameters (with optional bounds), the `<T
 
 ```vader
 // Borrowing T from the struct head — no impl-level typeParams.
-ArrayIterator<T> implements Iterator<T> {
-    next :: fn(self) -> Yield<T> | null { /* … */ }
+Countdown<T> implements Iterator<T> {
+    next :: fn(self!) -> [T, Continuation] { /* … */ }
 }
 
 // Bounded blanket impl — Range<T> coerces into an Iterator when T
 // satisfies both Comparable and Step.
 Range<T> implements<T: Comparable & Step> Iterator<T> {
-    next :: fn(self) -> Yield<T> | null { /* … */ }
+    next :: fn(self!) -> [T, Continuation] { /* … */ }
 }
 
 // Blanket on a structural source (any array, any Display-bound type).
@@ -1417,7 +1451,7 @@ report :: fn(e: Error) -> string {
 }
 ```
 
-The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that monomorphization has materialised. Non-generic impls contribute one arm each; generic impls (`Foo<T> implements Trait { ... }`) contribute one arm per observed concrete `(struct, args)` pair, since each instance has a distinct runtime tag (`is Foo<i32>`, `is Foo<string>`, …). Trait args on the receiver itself are substituted into the method's signature, so e.g. `it: Iterator<i32>; it.next()` returns `Yield<i32> | null` — not the unsubstituted `Yield<T> | null`. Primitive impls remain skipped (the dispatch chain assumes struct-tagged boxes).
+The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that monomorphization has materialised. Non-generic impls contribute one arm each; generic impls (`Foo<T> implements Trait { ... }`) contribute one arm per observed concrete `(struct, args)` pair, since each instance has a distinct runtime tag (`is Foo<i32>`, `is Foo<string>`, …). Trait args on the receiver itself are substituted into the method's signature, so e.g. `it: Iterator<i32>; it.next()` returns `[i32, Continuation]` — not the unsubstituted `[T, Continuation]`. Primitive impls remain skipped (the dispatch chain assumes struct-tagged boxes).
 
 Inside a generic body, `key.method()` where `key: T` and `T: Trait` resolves at typecheck and is monomorphised statically — each call site gets a direct call to the concrete impl member after substitution. No runtime dispatch.
 
@@ -1446,8 +1480,8 @@ string implements Hash {
 }
 
 // Classic form — required for traits with two or more methods.
-ArrayIterator<T> implements Iterator<T> {
-    next :: fn(self) -> Yield<T> | null { ... }
+Countdown<T> implements Iterator<T> {
+    next :: fn(self!) -> [T, Continuation] { ... }
 }
 ```
 
@@ -1775,6 +1809,19 @@ add_one :: fn(x: i32) -> i32 = x + 1
 
 `return` is valid anywhere. If the last expression of a block is an expression and its type matches the return type, `return` is optional. When the whole body is a single expression, prefer the expression-body form `fn(...) -> T = expr` (no braces, no `return`) — it is the idiomatic shape across the stdlib and compiler tree.
 
+**Every path must produce the declared value (`T3083`).** A body that reaches its
+closing brace with no trailing expression, and without diverging, is an error when
+the fn declares a return type — `f :: fn() -> i32 { n :: 1 }` does not compile.
+This is the other half of `T3020`, which already covered a body whose trailing
+expression has the wrong type (so `fn(c: bool) -> i32 { if c { return 7 } }` was
+an error before). A body **diverges**, and is accepted, when its last statement is
+a `return` / `break` / `continue`, a call to a `@no_return` fn (`panic`, `todo`),
+or a loop no `break` can leave — `fn() -> i32 { for { … } }` is fine, since control
+never reaches the brace. Functions with no return type promise nothing and are
+unaffected. A **lambda** carries the same obligation whenever a type is promised
+— by an annotation, or by the slot it is handed to — and is exempt when nothing
+promises one, since its return type is then inferred from the body.
+
 **No-return functions** drop the `-> void` annotation. Internally the compiler still has a unit/void type, but it is not user-facing — `void` is **not** a name available in source code. Function-pointer types that produce no value drop the arrow likewise: `callback: fn()` instead of `callback: fn() -> void`.
 
 ### `main` entry point
@@ -2043,13 +2090,13 @@ The single-expression form `for <expr> { body }` is dispatched by the type of `<
 `T3019` fires when the expression is neither — the diagnostic catches a misplaced struct cond as well as a non-`Iterator` user type.
 
 The iteration form `for x in expr` accepts three shapes for `expr`:
-1. A built-in array `T[]` — auto-wrapped in `ArrayIterator<T>`.
+1. A built-in array `T[]` — auto-wrapped through `array_iter`.
 2. A value of type `Iterator<T>` — used directly. Two dispatch flavours:
-   - **Concrete iter** (`Range<T>`, `ArrayIterator<T>`, a user struct implementing `Iterator<T>`) — the `next()` call resolves statically against the impl-method.
+   - **Concrete iter** (`Range<T>`, a user struct implementing `Iterator<T>`) — the `next()` call resolves statically against the impl-method.
    - **Trait-typed iter** (`Iterator<T>` itself, e.g. a fn param `fn count<T>(it: Iterator<T>)`) — the `next()` call dispatches through the lowerer-synthesised `is StructA -> StructA_next(...)` chain over every materialised impl (see *Method dispatch on trait values* in §4). Lets generic fns drive `for x in it { … }` against any concrete iterator the caller supplies.
 3. A value implementing `Into<Iterator<T>>` — the for-in lowerer inserts `.into()` to obtain the iterator, then drives the loop over it.
 
-Raw `T[]` arrays are auto-wrapped in `ArrayIterator<T>` (via the shipped `T[] implements Into<Iterator<T>>` impl in `std/core`), and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Into<Iterator<T>>` so `for x in coll { ... }` works without an explicit `.into()`. There is no separate `Iterable` trait today (see the planned note below).
+Raw `T[]` arrays are auto-wrapped through `array_iter` (via the shipped `T[] implements Into<Iterator<T>>` impl in `std/core`), and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Into<Iterator<T>>` so `for x in coll { ... }` works without an explicit `.into()`. There is no separate `Iterable` trait today (see the planned note below).
 
 The same auto-wrap fires at any *concrete* `Iterator<T>` slot — function arguments, `return` expressions, and typed `let` bindings — so `T[]` flows transparently:
 
@@ -2060,7 +2107,7 @@ fold :: fn() -> Iterator<i32> { return [1, 2, 3] }   // return coercion
 buf: Iterator<i32> : [4, 5, 6]                // typed-let coercion
 ```
 
-The coercion is gated on **canonical symbol identity** of `std/core::Iterator`; a user-defined trait that happens to be named `Iterator` is left alone. The lazy `std/iter` combinators (`map` / `filter` / …, all generators — they `yield` — over `self: Iterator<T>`) resolve **directly on a bare array** through the generator receiver-dispatch path — `arr.map(f)` needs no explicit `ArrayIterator<T> { ... }` wrap and there is no array-driven overload (§ `std/iter`). Concrete trait-instance receivers (`Iterator<i32>`, `Iterator<string>`, …) are unaffected.
+The coercion is gated on **canonical symbol identity** of `std/core::Iterator`; a user-defined trait that happens to be named `Iterator` is left alone. The lazy `std/iter` combinators (`map` / `filter` / …, all generators — they `yield` — over `self: Iterator<T>`) resolve **directly on a bare array** through the generator receiver-dispatch path — `arr.map(f)` needs no explicit wrap and there is no array-driven overload (§ `std/iter`). Concrete trait-instance receivers (`Iterator<i32>`, `Iterator<string>`, …) are unaffected.
 
 ```vader
 // Planned — not yet exported from std/core. Today user types iterate
@@ -2151,7 +2198,7 @@ All non-primitive values (struct, array, string buffer contents, future stdlib t
 ### Storage semantics
 
 - Primitives (`i32`, `f64`, `bool`, etc.): value, copied on assignment.
-- `string`: fat value `(ptr, len)`, copied on assignment, immutable shared content.
+- `string`: an interned atom id (`u32`), copied on assignment, immutable shared content.
 - Structs, arrays: heap-allocated, manipulated via implicit references (the user does not see pointers).
   Passing one to a function therefore lets the callee reach the caller's value — which is why a parameter is a
   read-only borrow unless its type carries `!` (see "Read-only by default").
@@ -2987,8 +3034,8 @@ The "Signature" column below uses `T: type` for arguments that name a type. A ba
 
 | Intrinsic | Signature | Result | Notes |
 |-----------|-----------|--------|-------|
-| `@size_of(T)` | `(T: type) -> usize` | Byte size of `T` as a runtime value. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string` → 16, `null` → 0); aggregate or reference types are stored as `vader_box_t` (16 bytes); comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
-| `@align_of(T)` | `(T: type) -> usize` | Alignment in bytes. | Mirrors `size_of` for primitives; aggregates align to the pointer boundary (8). |
+| `@size_of(T)` | `(T: type) -> usize` | Width in bytes of the SLOT that carries a `T` — a field, a local, a parameter — not the size of the object a reference points at. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string` → 4 — an interned atom id, `null` → 0). An enum rides its `repr`, so `enum(u8)` → 1 and the `i32` default → 4. A concrete reference — struct, array, tuple, fn value — is a bare pointer, 8. Only an ERASED slot (trait object, union, `any`) carries a `vader_box_t`, 16, because no single object header answers for every variant it may hold. Comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
+| `@align_of(T)` | `(T: type) -> usize` | Alignment in bytes of that slot. | Each scalar aligns to its own width; a `vader_box_t` is 16 wide but its widest member is a word, so it aligns to 8. |
 | `@type_name(T)` | `(T: type) -> string` | Printable name of `T`. | Same shape as the typechecker's `displayType` (`"i32"`, `"MutableMap<i32, string>"`, `"i32 \| string"`). |
 | `@type_kind(T)` | `(T: type) -> string` | Discriminator of `T`'s shape. | Stable strings: `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`, `"tuple"`, `"fn"`, `"trait"`, `"type"`, `"any"`, `"unknown"`. User code is expected to compare on exact match (`if @type_kind(T) == "struct" { ... }`). |
 | `@field_count(T)` | `(T: type) -> usize` | Number of fields on a Struct, or elements on a Tuple. | Returns 0 for any other shape. |
@@ -3024,7 +3071,7 @@ The condition expression is evaluated by the comptime VM; each intrinsic appears
 
 Traits: `Display`, `Equals`, `Comparable`, `Step`, `Into<Target>`, `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Hash`, `Clone`, `Iterator<T>`, `Contains<T>`, `Index<I, T>`, `IndexSet<I, T>`, `Error`. (There is no `Iterable` trait — iteration sources implement `Into<Iterator<T>>`, see §7.)
 
-Types: `Yield<T>`, `Range`, `ArrayIterator<T>`, `Field` (reflection — see §14).
+Types: `Continuation`, `Range`, `Field` (reflection — see §14).
 
 Primitive trait impls: `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index<usize, char>` (powers `s[i]`), and `Equals`/`Hash`/`Comparable`/`Step` on the integer primitives + `char`. `T[] implements<T> Add<T[]>` concatenates — `a + b` is a fresh array holding `a`'s elements then `b`'s, neither operand touched — mirroring `string + string`; it is written in Vader over `push_all`, not an intrinsic, so it allocates once per application (a chain `a + b + c` allocates twice) and its result is immutable `T[]`. `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. (`%` is a built-in op; the `Rem` trait is declared for user overloading but is **not** impl'd on the primitives.) `Comparable` and `Step` impls are written in Vader (arrow form); the rest are `@intrinsic` and bodies are host-provided.
 
@@ -3259,18 +3306,20 @@ e  :: 2.718281828459045
 
 ### `std/iter`
 
-The iterator trait lives in `std/core` (auto-imported). `next()` returns `Yield<T> | null` (`null` = exhausted). The `Yield` wrapper keeps iterators over nullable elements unambiguous — a yielded `null` is distinct from end-of-stream:
+The iterator trait lives in `std/core` (auto-imported). `next()` hands back a PAIR: the element, and whether the iteration goes on. The pair crosses the call in registers, and it keeps iterators over nullable elements unambiguous — `Continuation` says whether there is an element, so a yielded `null` is just an element:
 
 ```vader
-Yield :: struct<T> { value: T }
+Continuation :: enum(u8) { Continue, Stop }
 
 Iterator :: trait<T> {
-    next     :: fn(self) -> Yield<T> | null
-    is_empty :: fn(self) -> bool                  // default — derives from next
-    count    :: fn(self) -> usize                 // default — drains, returns total
-    last     :: fn(self) -> T | null              // default — drains, last yielded
+    next     :: fn(self!) -> [T, Continuation]
+    is_empty :: fn(self!) -> bool                 // default — derives from next
+    count    :: fn(self!) -> usize                // default — drains, returns total
+    last     :: fn(self!) -> T | null             // default — drains, last yielded
 }
 ```
+
+The element beside `Stop` is **meaningless** and no consumer may read it (`for x in it` never does). An implementation returns whatever `T` it has at hand — its cursor, a spare literal — rather than manufacturing one. An implementation with no `T` to offer at all (an empty `T[]`, an unconstrained `T`) is written as a generator instead, where the lowerer supplies the type's zero: that is what `std/core::array_iter` is.
 
 `is_empty` / `count` / `last` are default methods (Layer 8d) — every Iterator impl inherits the bodies derived from `next`, the user only has to provide `next`.
 
@@ -3303,7 +3352,7 @@ arr.map(f).filter(p).take(10).collect()     // arr : T[] ; `arr.map(f)` is lazy,
 for x in arr.filter(p) { ... }              // a lazy chain also drives for-in directly
 ```
 
-`arr.map(f)` returns a lazy `Iterator<U>`, never an array; call `.collect()` when you want the `T[]`. (`ArrayIterator<T>` is the concrete struct the `into` coercion materialises at a *non-fused* `Iterator<T>` boundary — e.g. passing `arr` to a `fn(it: Iterator<T>)` parameter; you rarely name it directly.)
+`arr.map(f)` returns a lazy `Iterator<U>`, never an array; call `.collect()` when you want the `T[]`. (`array_iter` is the generator the `into` coercion materialises at a *non-fused* `Iterator<T>` boundary — e.g. passing `arr` to a `fn(it: Iterator<T>)` parameter; you rarely name it directly.)
 
 ### Generators (`yield`)
 
@@ -3340,14 +3389,15 @@ Rules:
   `T` — `T` is the yielded element type (`T3056` otherwise).
 - A function with **no** `yield` is not a generator, even if it returns
   `Iterator<T>` — it is an ordinary factory returning an iterator value
-  (`arr.iter()`, a wrapping combinator). The empty-iterator case is an empty
+  (a bare array, `arr.into()`, a wrapping combinator). The empty-iterator case is an empty
   array `[]`, which coerces to `Iterator<T>`.
 - `yield e` is a **statement**, legal only directly inside a generator's own body
   — never in a nested lambda (`T3059`). `e` must coerce to `T` (same path as
   `return`, `T3061` on mismatch).
 - `return <value>` inside a generator is an **error** (`T3058`) — a generator
   produces via `yield`. A bare `return`, or falling off the end, means
-  **exhausted**: every subsequent `next()` returns `null`.
+  **exhausted**: every subsequent `next()` hands back `Continuation.Stop`,
+  paired with an element that is INDETERMINATE and must not be read.
 - `break` / `continue` keep their normal loop meaning across `yield` suspension
   points.
 - The generator's result is a **first-class `Iterator<T>` value**: it can be

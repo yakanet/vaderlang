@@ -14,8 +14,8 @@ import "std/iter"
 Point :: struct { x: i32, y: i32 }
 
 main :: fn() -> i32 {
-    labels: string[] = ["a", "b", "c"]
-    pts: Point[] = [
+    labels: string[]: ["a", "b", "c"]
+    pts: Point[]: [
         Point { .x = 10, .y = 1 },
         Point { .x = 20, .y = 2 },
         Point { .x = 30, .y = 3 },

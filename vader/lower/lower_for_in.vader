@@ -6,12 +6,12 @@
 //   let __iter_n :: <iter, optionally array-wrapped>
 //   loop {
 //     let __step_m :: <iter>.Iterator.next()
-//     if __step_m is null { break }
-//     let x :: (__step_m as Yield<T>).value
+//     if __step_m._1 == Continuation.Stop { break }
+//     let x :: __step_m._0
 //     <body>
 //   }
 //
-// and auto-wraps `T[]` iterators into `ArrayIterator<T>` so the loop
+// and auto-wraps `T[]` iterators through `Into<Iterator<T>>` so the loop
 // dispatches through the standard Iterator impl. Before falling back to
 // it, `lower_for_in` tries a series of fast paths that bypass the
 // Iterator dispatch entirely : `try_lower_chain_fusion` (std/iter
@@ -45,8 +45,8 @@ export lower_for_in :: fn(
 ) -> LoweredStmt {
     span :: for_stmt.span
     // Fast path : `for x in <chain>` where `<chain>` is one or more
-    // `std/iter` lazy combinators (`MappedIterator` / `FilterIterator`,
-    // struct-literal form) wrapping a literal integer range — fuse
+    // `std/iter` lazy combinators (`map` / `filter` / …, all generators)
+    // wrapping a literal integer range — fuse
     // the whole pipeline into a single counter loop. Skipped when the
     // bottom isn't an int range, when any layer references its source
     // via a variable, or when a `f` / `pred` field isn't a bare fn
@@ -69,23 +69,38 @@ export lower_for_in :: fn(
     iter_type_raw :: type_of(iter_lowered_raw)
 
     // Fast path : `for x in arr` over a raw `T[]` lowers to a counter
-    // loop with index lookup. No ArrayIterator allocation, no per-iter
-    // virtual call. Falls through to the slow path when the iter type
-    // isn't a plain array.
+    // loop with index lookup. No iterator object, no per-iter virtual call.
+    // Falls through to the slow path when the iter type isn't a plain array.
     raw_array :: try_lower_for_in_raw_array(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, recurse, block_lowerer)
     if raw_array != null { return raw_array }
 
     // Fast path : `for entry in m` over `MutableMap<K, V>` (or
     // `for v in s` over `MutableSet<T>`) inlines the bucket-walk +
-    // chain-traversal, skipping the MappedIterator allocation and the
-    // per-iter `next()` + `Yield` allocations.
+    // chain-traversal, skipping the iterator allocation and the per-iter
+    // `next()` call.
     map_set :: try_lower_for_in_map_set(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, span, block_lowerer)
     if map_set != null { return map_set }
 
-    // Auto-wrap `T[]` → ArrayIterator<T> so the step-loop can dispatch
-    // through the standard Iterator impl. Falls through to the raw
-    // value when the array iterator type isn't reachable.
-    wrap_result :: try_wrap_array_iter(ctx, iter_lowered_raw, iter_type_raw, span)
+    // THE FALL. Every fast path above declined, so this `for` steps the `Iterator`
+    // impl: one `next()` call per iteration instead of an inlined loop. That is
+    // correct and it is what the language promises — but it is also the single
+    // point where the recognisers stop, so it is the one worth counting.
+    //
+    // Say what is actually left, and no more. The call is usually a DIRECT one
+    // (the receiver's concrete type is known by the time the backend emits it),
+    // and the step pair usually crosses in registers (`midir/value_return`) —
+    // a reader told "vtable" or "allocation" goes looking for something that is
+    // not in the C.
+    record_miss(ctx.project, "for-in fusion", span,
+        "stepping `${display_type(iter_type_raw)}` through its `Iterator` impl — "
+        + "one `next()` per iteration instead of an inlined loop (the call itself "
+        + "is usually devirtualised, and the step pair usually crosses in "
+        + "registers); the fast paths cover an int range, a raw `T[]`, a map / "
+        + "set, a fusible combinator chain and a direct generator")
+
+    // A bare `string` has no `next()` to dispatch on: give the step-loop the
+    // concrete `StringChars` instead.
+    wrap_result :: wrap_string_iter(ctx, iter_lowered_raw, iter_type_raw, span)
     iter_lowered :: wrap_result.iter
     iter_type_wrapped :: wrap_result.iter_type
     element_type :: resolve_element_type(ctx, iter_type_raw, iter_type_wrapped, loop_var_type_key(in_form.loop_var, for_stmt.span))
@@ -117,22 +132,21 @@ export lower_for_in :: fn(
             },
         }
     }
-    yield_type_opt :: find_core_type(ctx, STRUCT_YIELD, build_one(element_type))
-    if yield_type_opt is null {
+    shape :: resolve_step_shape(ctx, element_type)
+    if shape is null {
         return LoweredExprStmt {
             .span = span,
             .expr = LoweredUnreachable {
                 .span = span, .type = TY_VOID,
-                .reason = "for-in needs std/core::Yield",
+                .reason = "for-in needs an `Iterator` step type from std/core",
             },
         }
     }
-    yield_type :: yield_type_opt
     lb :: resolve_loop_binding(ctx, in_form.loop_var, span)
 
     iter_symbol :: fresh_synthetic_symbol(ctx, "iter")
     step_symbol :: fresh_synthetic_symbol(ctx, "step")
-    step_union :: union_of_yield_null(yield_type)
+    step_type :: shape.type
 
     iter_let :: LoweredLet {
         .span = span, .name = iter_symbol.name, .symbol = iter_symbol,
@@ -140,21 +154,15 @@ export lower_for_in :: fn(
     }
 
     iter_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = iter_symbol }
-    step_call :: build_step_call(ctx, iter_ref, iter_type, step_union, span)
+    step_call :: build_step_call(ctx, iter_ref, iter_type, step_type, span)
     step_let :: LoweredLet {
         .span = span, .name = step_symbol.name, .symbol = step_symbol,
-        .type = step_union, .value = step_call,
+        .type = step_type, .value = step_call,
     }
 
-    step_ref :: LoweredIdent { .span = span, .type = step_union, .symbol = step_symbol }
-    is_done :: LoweredTypeCheck {
-        .span = span, .type = TY_BOOL, .value = step_ref, .check_type = TY_NULL,
-    }
-
-    yield_cast :: LoweredCast { .span = span, .type = yield_type, .value = step_ref }
-    value_access :: LoweredFieldAccess {
-        .span = span, .type = element_type, .target = yield_cast, .field = "value",
-    }
+    step_ref :: LoweredIdent { .span = span, .type = step_type, .symbol = step_symbol }
+    is_done :: step_is_done(shape, step_ref, span, ctx)
+    value_access :: step_value(shape, step_ref, span)
     bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, value_access, element_type, span)
 
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
@@ -175,7 +183,7 @@ export lower_for_in :: fn(
         },
     }
 
-    loop_stmts: LoweredStmt[]! = []
+    loop_stmts: LoweredStmt[]!: []
     loop_stmts.push(step_let)
     loop_stmts.push(branch_if)
 
@@ -186,7 +194,7 @@ export lower_for_in :: fn(
         },
     }
 
-    block_stmts: LoweredStmt[]! = []
+    block_stmts: LoweredStmt[]!: []
     block_stmts.push(iter_let)
     block_stmts.push(loop_stmt)
     return LoweredExprStmt {
@@ -198,13 +206,6 @@ export lower_for_in :: fn(
     }
 }
 
-// ---- helpers --------------------------------------------------------------
-
-build_one :: fn(t: Type) -> Type[] {
-    out: Type[]! = []
-    out.push(t)
-    return out
-}
 
 // The label to stamp on a for-in `LoweredLoop`. A `break <var>` resolved to this
 // loop by its iteration variable recorded that variable in `loop_target_labels`
@@ -218,7 +219,7 @@ resolve_loop_label :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt) -> string | nul
 }
 
 build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
-    out: LoweredStmt[]! = []
+    out: LoweredStmt[]!: []
     out.push(LoweredBreak { .span = span, .label = null })
     return out
 }
@@ -235,7 +236,7 @@ bind_loop_var :: fn(
     ctx: FnLowerCtx!, binding_symbol: Symbol, name: string, pattern: AST.LetBinding | null,
     value: LoweredExpr, value_type: Type, span: Span,
 ) -> LoweredStmt[] {
-    out: LoweredStmt[]! = []
+    out: LoweredStmt[]!: []
     if pattern is AST.TupleBinding {
         elem_sym :: fresh_synthetic_symbol(ctx, "for_elem")
         out.push(LoweredLet {
@@ -262,14 +263,14 @@ bind_loop_var :: fn(
 export emit_for_pattern_destructure :: fn(
     ctx: FnLowerCtx!, tup: AST.TupleBinding, elem_sym: Symbol, elem_type: Type, span: Span,
 ) -> LoweredStmt[] {
-    out: LoweredStmt[]! = []
+    out: LoweredStmt[]!: []
     elem_ref :: LoweredIdent { .span = span, .type = elem_type, .symbol = elem_sym }
     emit_let_binding_leaves(ctx, tup, elem_ref, elem_type, span, out)
     return out
 }
 
 build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> LoweredStmt[] {
-    out: LoweredStmt[]! = []
+    out: LoweredStmt[]!: []
     out.push_all(bind_stmts)
     for stmt in user_body.stmts { out.push(stmt) }
     if user_body.trailing is null { return out }
@@ -282,70 +283,45 @@ WrapResult :: struct {
     iter_type: Type
 }
 
-// Wrap a non-iterator receiver into a concrete struct iterator so the
-// step-loop has something to dispatch `next()` on :
-//   - `T[]`     → `ArrayIterator<T>` (struct-wrapped in place ; avoids the
-//                 erased-`Iterator<T>` virtual-call hazard).
-//   - `string`  → `StringChars` via a synthesised `chars(s)` call. `string`
-//                 implements `Into<Iterator<char>>`, but routing through
-//                 `into()` yields the erased `Iterator<char>` trait (the same
-//                 hazard) ; calling `chars` keeps the CONCRETE `StringChars`,
-//                 which `build_step_call`'s StructType path already resolves
-//                 (so `for c in s` matches `for c in s.chars()`). `chars` is
-//                 materialised by the normal reachability walk over the emitted
-//                 call.
-// Returns the input verbatim when no wrap applies.
-try_wrap_array_iter :: fn(
+// `string` → `StringChars`, via a synthesised `chars(s)` call.
+//
+// `string` implements `Into<Iterator<char>>`, but routing through `into()` hands
+// back the ERASED `Iterator<char>` trait; calling `chars` keeps the concrete
+// `StringChars`, which `build_step_call`'s StructType path resolves — so
+// `for c in s` lowers like `for c in s.chars()`.
+//
+// Returns the input verbatim when it is not a string, or when `chars` is out of
+// reach.
+wrap_string_iter :: fn(
     ctx: FnLowerCtx!, iter: LoweredExpr, iter_type: Type, span: Span,
 ) -> WrapResult {
-    // @partial: only arrays and `string` need wrapping; every other Type is
-    // returned verbatim (already an iterator or handled upstream).
-    @partial match iter_type {
-        is ArrayType -> {
-            wrapped_type :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [iter_type.element])
-            if wrapped_type is null { return WrapResult { .iter = iter, .iter_type = iter_type } }
-            fields :: [
-                LoweredStructLitField { .name = "arr", .value = iter },
-                LoweredStructLitField {
-                    .name = "cursor",
-                    .value = LoweredIntLit {
-                        .span = span, .type = mk_primitive("usize"), .value = 0,
-                    },
-                },
-            ]
-            wrapped :: build_core_struct_lit(ctx, wrapped_type, fields, span)
-            return WrapResult { .iter = wrapped, .iter_type = wrapped_type }
-        }
-        is PrimitiveType -> {
-            if iter_type.name != "string" {
-                return WrapResult { .iter = iter, .iter_type = iter_type }
-            }
-            chars_member :: find_free_fn_ufcs(ctx, iter_type, "chars")
-            if chars_member is null { return WrapResult { .iter = iter, .iter_type = iter_type } }
-            chars_fn_ty :: lookup_fn_type_anywhere(ctx, chars_member.symbol)
-            if chars_fn_ty is FnType {
-                // The synthesised call bypasses `lower_call`, so harvest `chars`
-                // ourselves — its owning module (`std/string`) is lowered lazily,
-                // and nothing else references this non-generic free fn unless the
-                // surrounding code happens to call `.chars()` explicitly. Without
-                // this the call resolves to no fn-table entry → GATE B1 at emit.
-                register_nongeneric_imported_fn(ctx, chars_member.symbol)
-                args: LoweredExpr[]! = []
-                args.push(iter)
-                chars_call :: LoweredCall {
-                    .span = span, .type = chars_fn_ty.return_type,
-                    .callee = LoweredIdent {
-                        .span = span, .type = chars_fn_ty.return_type,
-                        .symbol = chars_member.symbol,
-                    },
-                    .args = args,
-                }
-                return WrapResult { .iter = chars_call, .iter_type = chars_fn_ty.return_type }
-            }
-            return WrapResult { .iter = iter, .iter_type = iter_type }
-        }
-        _ -> { return WrapResult { .iter = iter, .iter_type = iter_type } }
+    unwrapped :: WrapResult { .iter = iter, .iter_type = iter_type }
+    if iter_type !is PrimitiveType {
+        return unwrapped
     }
+    if iter_type.name != "string" {
+        return unwrapped
+    }
+    chars_member :: find_free_fn_ufcs(ctx, iter_type, "chars") ?? return unwrapped
+    chars_fn_ty :: lookup_fn_type_anywhere(ctx, chars_member.symbol)
+    if chars_fn_ty !is FnType {
+        return unwrapped
+    }
+    // The synthesised call bypasses `lower_call`, so harvest `chars` ourselves —
+    // its owning module (`std/string`) is lowered lazily, and nothing else
+    // references this non-generic free fn unless the surrounding code happens to
+    // call `.chars()` explicitly. Without this the call resolves to no fn-table
+    // entry → GATE B1 at emit.
+    register_nongeneric_imported_fn(ctx, chars_member.symbol)
+    chars_call :: LoweredCall {
+        .span = span, .type = chars_fn_ty.return_type,
+        .callee = LoweredIdent {
+            .span = span, .type = chars_fn_ty.return_type,
+            .symbol = chars_member.symbol,
+        },
+        .args = [iter],
+    }
+    return WrapResult { .iter = chars_call, .iter_type = chars_fn_ty.return_type }
 }
 
 // Determine the element type yielded by the iterator. Tries :
@@ -353,11 +329,11 @@ try_wrap_array_iter :: fn(
 //    its span in `local_types`. This is authoritative : the typer resolves
 //    the `Iterator<T>` impl and substitutes the iterator's concrete type
 //    args, so it correctly handles combinators whose element type is NOT
-//    the first type arg — `MappedIterator<i32, i64>` yields `i64` (the impl's
+//    the first type arg — a `map` generator over `i32` yields `U` (the impl's
 //    `Iterator<U>`), not the source `i32` ; a `MutableMap` iterator yields
 //    `Entry<K, V>`. The structural heuristics below cannot, so they must
 //    only run when the typer left no usable entry.
-// 1. The raw iter type's first type-arg (Range<T>, ArrayIterator<T>).
+// 1. The raw iter type's first type-arg (`Range<T>`, a user iterator).
 // 2. `typed.iter_element_types[display_type(raw_iter_type)]` — written
 //    by the typecheck when checking the Iterator impl.
 // 3. Falls back to TY_UNRESOLVED so the lowered loop still emits a
@@ -419,7 +395,7 @@ build_step_call :: fn(
     match iter_type {
         is TraitType -> {
             if iter_type.symbol.name == TRAIT_ITERATOR {
-                args: LoweredExpr[]! = []
+                args: LoweredExpr[]!: []
                 return LoweredVirtualCall {
                     .span = span, .type = step_union,
                     .trait_name = TRAIT_ITERATOR, .method = METHOD_NEXT,
@@ -468,7 +444,7 @@ build_step_call :: fn(
         ctx.project.referenced_impl_mangles.add(next_name)
     }
     next_symbol :: synth_next_symbol(ctx, next_name)
-    args: LoweredExpr[]! = []
+    args: LoweredExpr[]!: []
     args.push(iter_ref)
     return LoweredCall {
         .span = span, .type = step_union,
@@ -482,11 +458,11 @@ build_step_call :: fn(
 synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
     return Symbol {
         .id         = 0,
-        .kind       = SymbolKind.Fn,
+        .kind       = .Fn,
         .name       = name,
         .module     = ctx.typed.resolved.path,
         .module_name = ctx.typed.resolved.path,
-        .visibility = AST.Visibility.Private,
+        .visibility = .Private,
         .defined_at = null,
     }
 }
@@ -516,11 +492,11 @@ resolve_or_synth_symbol :: fn(ctx: FnLowerCtx!, name: string, span: Span) -> Sym
             fresh :: fresh_synthetic_symbol(ctx, name)
             return Symbol {
                 .id         = fresh.id,
-                .kind       = SymbolKind.Local,
+                .kind       = .Local,
                 .name       = name,
                 .module     = ctx.typed.resolved.path,
                 .module_name = ctx.typed.resolved.path,
-                .visibility = AST.Visibility.Private,
+                .visibility = .Private,
                 .defined_at = null,
             }
         }
@@ -565,10 +541,10 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 // ---- raw-array fast path --------------------------------------------------
 
 // `for x in arr` over a raw `T[]` lowers to a counter loop with index
-// lookup — no ArrayIterator allocation, no per-iter virtual call.
+// lookup — no iterator object, no per-iter virtual call.
 //
 // Returns null when the iter type isn't a plain array ; caller falls
-// back to the wrap-into-ArrayIterator slow path.
+// back to the generic step-loop.
 // ---- BCE : sound loop-body safepoint probe --------------------------------
 
 // Is this loop body UNSAFE for bounds-check elimination AND for the buf-resolve
@@ -601,7 +577,7 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 // and impure/unknown fns still bail. `pctx` carries the project-wide purity memo.
 bce_call_unsafe :: fn(x: LoweredCall, guard_sym: i32, pctx: BcePurityCtx!) -> bool {
     if x.callee is LoweredIdent as cid {
-        if cid.symbol.kind == SymbolKind.Fn {
+        if cid.symbol.kind == .Fn {
             fd :: bce_resolve_fn(pctx, cid.symbol.name, cid.symbol.id)
             if fd != null {
                 if bce_fn_pure(pctx, fd) {
@@ -740,7 +716,7 @@ try_lower_for_in_raw_array :: fn(
     len_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = len_sym }
 
     cond :: LoweredBinary {
-        .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Lt,
+        .span = span, .type = TY_BOOL, .op = .Lt,
         .left = idx_ref, .right = len_ref,
     }
     elem_access :: LoweredIndex {
@@ -751,7 +727,7 @@ try_lower_for_in_raw_array :: fn(
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
-            .span = span, .type = usize_type, .op = LoweredBinaryOp.Add,
+            .span = span, .type = usize_type, .op = .Add,
             .left = idx_ref,
             .right = LoweredIntLit { .span = span, .type = usize_type, .value = 1 },
         },
@@ -762,7 +738,7 @@ try_lower_for_in_raw_array :: fn(
     // agree or a var-targeted `continue` stops advancing the index.
     loop_label :: resolve_loop_label(ctx, for_stmt)
     advanced :: prepend_inc_before_matching_continue(user_body, inc_stmt, loop_label)
-    body_stmts: LoweredStmt[]! = []
+    body_stmts: LoweredStmt[]!: []
     body_stmts.push_all(bind_stmts)
     for stmt in advanced.stmts { body_stmts.push(stmt) }
     if !(advanced.trailing is null) {
@@ -777,7 +753,7 @@ try_lower_for_in_raw_array :: fn(
         },
     }
 
-    block_stmts: LoweredStmt[]! = []
+    block_stmts: LoweredStmt[]!: []
     block_stmts.push(arr_let)
     block_stmts.push(len_let)
     block_stmts.push(idx_init)
@@ -868,7 +844,7 @@ try_lower_for_in_int_range :: fn(
     // Hoist non-trivial upper bounds (calls, casts, …) into a `__for_hi_N`
     // synthetic let so the loop condition reads a single slot per iteration.
     // Cheap shapes (Ident / FieldAccess / IntLit / CharLit) skip the hoist.
-    hoist_stmts: LoweredStmt[]! = []
+    hoist_stmts: LoweredStmt[]!: []
     hi: LoweredExpr = hi_raw
     if hoisted {
         // BCE : when the bound is `arr.len()`, mark it a candidate — the post-inline
@@ -894,7 +870,7 @@ try_lower_for_in_int_range :: fn(
     inc_stmt :: LoweredAssign {
         .span = span, .target = counter_ref,
         .value = LoweredBinary {
-            .span = span, .type = bound_type, .op = LoweredBinaryOp.Add,
+            .span = span, .type = bound_type, .op = .Add,
             .left = counter_ref,
             .right = LoweredIntLit {
                 .span = span, .type = bound_type, .value = 1,
@@ -912,7 +888,7 @@ try_lower_for_in_int_range :: fn(
         },
     }
 
-    block_stmts: LoweredStmt[]! = []
+    block_stmts: LoweredStmt[]!: []
     for hs in hoist_stmts { block_stmts.push(hs) }
     block_stmts.push(counter_init)
     block_stmts.push(loop_stmt)
@@ -965,13 +941,13 @@ is_integer_type :: fn(t: Type) -> bool {
 
 
 cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {
-    if inclusive { return LoweredBinaryOp.Lte }
-    return LoweredBinaryOp.Lt
+    if inclusive { return .Lte }
+    return .Lt
 }
 
 build_int_range_body :: fn(user_body: LoweredBlock, inc_stmt: LoweredStmt, loop_label: string | null) -> LoweredStmt[] {
     advanced :: prepend_inc_before_matching_continue(user_body, inc_stmt, loop_label)
-    out: LoweredStmt[]! = []
+    out: LoweredStmt[]!: []
     for stmt in advanced.stmts { out.push(stmt) }
     trailing :: advanced.trailing
     if !(trailing is null) {
@@ -1010,7 +986,7 @@ continue_targets_loop :: fn(c_label: string | null, inside_nested_loop: bool, lo
 }
 
 rewrite_continue_block :: fn(b: LoweredBlock, inside_nested_loop: bool, inc: LoweredStmt, loop_label: string | null) -> LoweredBlock {
-    new_stmts: LoweredStmt[]! = []
+    new_stmts: LoweredStmt[]!: []
     for s in b.stmts { new_stmts.push(rewrite_continue_stmt(s, inside_nested_loop, inc, loop_label)) }
     t :: b.trailing
     new_trailing :: if t == null { null } else { rewrite_continue_expr(t, inside_nested_loop, inc, loop_label) }
@@ -1104,9 +1080,9 @@ rewrite_continue_expr :: fn(e: LoweredExpr, inside_nested_loop: bool, inc: Lower
 
 // `for entry in m` over `MutableMap<K, V>` / `for v in s` over
 // `MutableSet<T>` — inline the bucket-walk + chain-traversal so the loop
-// skips the MappedIterator struct, the per-iter `next()` call, and the
-// per-iter `Yield` allocation. Returns null when the iter type isn't a
-// recognised map/set or std/collections isn't loaded.
+// skips the iterator struct, the per-iter `next()` call and the step pair it
+// would rebuild. Returns null when the iter type isn't a recognised map/set or
+// std/collections isn't loaded.
 try_lower_for_in_map_set :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     src_value: LoweredExpr, src_type: Type, span: Span,
@@ -1119,7 +1095,7 @@ try_lower_for_in_map_set :: fn(
         is_set :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableSet"), src_type.symbol.id)
         if !is_map && !is_set { return null }
         // Element component types : Map<K, V> → [K, V] ; Set<T> → [T, bool].
-        entry_args: Type[]! = []
+        entry_args: Type[]!: []
         if is_map {
             for a in src_type.args { entry_args.push(a) }
         } else {
@@ -1199,7 +1175,7 @@ lower_map_set_compact :: fn(
         .expr = LoweredIf {
             .span = span, .type = TY_VOID,
             .cond = LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Gte,
+                .span = span, .type = TY_BOOL, .op = .Gte,
                 .left = pos_ref, .right = size_ref,
             },
             .then_block = single_stmt_block(span, LoweredBreak { .span = span, .label = null }),
@@ -1228,12 +1204,12 @@ lower_map_set_compact :: fn(
     pos_inc :: LoweredAssign {
         .span = span, .target = pos_ref,
         .value = LoweredBinary {
-            .span = span, .type = usize_ty, .op = LoweredBinaryOp.Add,
+            .span = span, .type = usize_ty, .op = .Add,
             .left = pos_ref, .right = LoweredIntLit { .span = span, .type = usize_ty, .value = 1 },
         },
     }
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
-    loop_body_stmts: LoweredStmt[]! = []
+    loop_body_stmts: LoweredStmt[]!: []
     loop_body_stmts.push(oob_if)
     loop_body_stmts.push_all(binding_stmts)
     loop_body_stmts.push(pos_inc)
@@ -1242,7 +1218,7 @@ lower_map_set_compact :: fn(
         .span = span, .label = resolve_loop_label(ctx, for_stmt), .cond = null,
         .body = LoweredBlock { .span = span, .type = TY_VOID, .stmts = loop_body_stmts, .trailing = null },
     }
-    all_stmts: LoweredStmt[]! = []
+    all_stmts: LoweredStmt[]!: []
     all_stmts.push(src_let)
     all_stmts.push(ekeys_let)
     if is_map { all_stmts.push(evals_let) }
@@ -1263,7 +1239,7 @@ map_struct_type :: fn(map_sym: Symbol | null, entry_args: Type[]) -> Type {
 }
 
 single_stmt_block :: fn(span: Span, stmt: LoweredStmt) -> LoweredBlock {
-    stmts: LoweredStmt[]! = []
+    stmts: LoweredStmt[]!: []
     stmts.push(stmt)
     return LoweredBlock { .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null }
 }

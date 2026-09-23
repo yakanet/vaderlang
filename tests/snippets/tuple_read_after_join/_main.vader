@@ -1,0 +1,29 @@
+// A pair built BEFORE a two-armed `if` and read AFTER the join. The join block
+// has two predecessors, so the forwarding only reaches it by intersecting what
+// both arms agree on — the shape that pins `struct_field_forward`'s join.
+//
+// What it pins in the emitted code: no rebuild, no field reads, and no GC frame
+// at all for `read_after_join`.
+
+module "snippet"
+
+mk :: fn(n: i32) -> [i32, i32] = [n, n * 2]
+
+read_after_join :: fn(n: i32, flag: bool) -> i32 {
+    p :: mk(n)
+    bump := 0
+    if flag {
+        bump = 1
+    } else {
+        bump = 2
+    }
+    return bump + p.0 + p.1
+}
+
+main :: fn() -> i32 {
+    total := 0
+    for i in 0..<3 {
+        total += read_after_join(i, i == 1)
+    }
+    return total
+}

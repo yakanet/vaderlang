@@ -117,7 +117,7 @@
               },
               "right": {
                 "kind": "IntLitExpr",
-                "value": "16n"
+                "value": "4n"
               }
             }
           ]

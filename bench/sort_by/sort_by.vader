@@ -39,7 +39,7 @@ main :: fn() -> i32 {
 before :: fn(a: i64, b: i64) -> bool = a % 1000 < b % 1000
 
 build_items :: fn() -> i64[] {
-    out: i64[]! = []
+    out: i64[]!: []
     for index in 0..<ITEM_COUNT {
         out.push(i64(index) * STRIDE % 1000003)
     }

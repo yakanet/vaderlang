@@ -307,7 +307,7 @@ lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr
 try_lower_namespace_fn_value :: fn(ctx: FnLowerCtx!, e: FieldExpr, type: Type) -> LoweredExpr | null {
     ns :: as_namespace_binding(ctx, e.target) ?? return null
     member :: resolve_namespace_member(ctx, ns, e.field)
-    if member.kind != SymbolKind.Fn { return null }
+    if member.kind != .Fn { return null }
     // Harvest the non-generic imported fn so its body is emitted (self-guards to
     // a no-op unless it's a non-generic stdlib Fn) — same as the ident path.
     register_nongeneric_imported_fn(ctx, member)
@@ -416,7 +416,7 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
         is VoidValue   -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime void value" } }
         is ArrayValue  -> {
             element_type :: array_element_type(type_hint)
-            elements: LoweredExpr[]! = []
+            elements: LoweredExpr[]!: []
             for e in v.elements { elements.push(comptime_value_to_lowered(e, element_type, span)) }
             return LoweredArrayLit { .span = span, .type = type_hint, .elements = elements }
         }
@@ -428,7 +428,7 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
             // that matches the positional order ; for named structs
             // the same ordering keeps the dump stable.
             sorted_names :: sort(v.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
-            fields: LoweredStructLitField![]! = []
+            fields: LoweredStructLitField![]!: []
             for name in sorted_names {
                 val :: v.fields[name]
                 if val !is null {
@@ -481,7 +481,7 @@ is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
 resolve_type_meta_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
     aliased :: ctx.typed.resolved.alias_types[symbol.id]
     if !(aliased is null) { return aliased }
-    if symbol.kind == SymbolKind.BuiltinType {
+    if symbol.kind == .BuiltinType {
         return primitive_from_name(symbol.name)
     }
     return null
@@ -503,7 +503,7 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
     // type — otherwise an unerased `T | null` declared type spuriously
     // differs from the read type and injects a redundant cast in
     // generic-impl default-method bodies.
-    raw :: if symbol.kind == SymbolKind.Param {
+    raw :: if symbol.kind == .Param {
         ctx.typed.param_types[key]
     } else {
         ctx.typed.local_types[key]
@@ -619,7 +619,7 @@ lower_coalesce_fallback :: fn(ctx: FnLowerCtx!, f: CoalesceFallback, result: Typ
 }
 
 coalesce_diverge_block :: fn(ctx: FnLowerCtx!, s: Stmt, result: Type) -> LoweredBlock {
-    stmts: LoweredStmt[]! = []
+    stmts: LoweredStmt[]!: []
     lower_stmt_into(ctx, s, stmts)
     return LoweredBlock {
         .span = s.span, .type = result, .stmts = stmts,
@@ -667,7 +667,7 @@ lift_value_if :: fn(ctx: FnLowerCtx!, lowered: LoweredExpr, type: Type, span: Sp
             .span = span, .name = tmp.name, .symbol = tmp, .type = type,
             .value = zero_value_lit(span, type),
         })
-        else_block: LoweredBlock | null = if lowered.else_block == null {
+        else_block: LoweredBlock | null: if lowered.else_block == null {
             null
         } else {
             arm_block(assign_trailing_to(lowered.else_block, tmp, type, span), span)
@@ -689,7 +689,7 @@ arm_block :: fn(stmts: LoweredStmt[], span: Span) -> LoweredBlock =
 // `block.stmts` + a trailing `tmp = <block.trailing>` (skipped when the arm
 // diverges — a null trailing, e.g. an early `return`).
 assign_trailing_to :: fn(block: LoweredBlock, tmp: Symbol, type: Type, span: Span) -> LoweredStmt[] {
-    out: LoweredStmt[]! = []
+    out: LoweredStmt[]!: []
     for s in block.stmts { out.push(s) }
     if block.trailing != null {
         out.push(LoweredAssign {
@@ -740,12 +740,12 @@ lower_then_with_binding :: fn(ctx: FnLowerCtx!, if_expr: IfExpr) -> LoweredBlock
     cond :: if_expr.cond
     if !(cond is BinaryExpr) { return block }
     if cond is BinaryExpr {
-        if cond.op != BinaryOp.Is { return block }
+        if cond.op != .Is { return block }
         if cond.bind_as == "" { return block }
         scrut_type :: ctx.types.expr_type(cond.left)
         inner_type :: resolve_pattern_type(ctx, cond.right)
         scrut_value :: lower_expr(ctx, cond.left)
-        cast_value: LoweredExpr = if scrut_type is UnionType {
+        cast_value: LoweredExpr: if scrut_type is UnionType {
             LoweredCast { .span = cond.span, .type = inner_type, .value = scrut_value }
         } else {
             scrut_value
@@ -758,11 +758,11 @@ lower_then_with_binding :: fn(ctx: FnLowerCtx!, if_expr: IfExpr) -> LoweredBlock
         // every `a` reference unresolved (build_ident → unreachable). Mirror
         // of `lower_match`'s `resolve_pattern_symbol` on its `is T as a` arm.
         symbol :: resolve_pattern_symbol(ctx, cond.right.span, cond.bind_as)
-        let_stmt: LoweredStmt = LoweredLet {
+        let_stmt: LoweredStmt: LoweredLet {
             .span = cond.span, .name = cond.bind_as, .symbol = symbol,
             .type = inner_type, .value = cast_value,
         }
-        new_stmts: LoweredStmt[]! = []
+        new_stmts: LoweredStmt[]!: []
         new_stmts.push(let_stmt)
         for s in block.stmts { new_stmts.push(s) }
         return LoweredBlock {
@@ -788,9 +788,9 @@ lower_if_else :: fn(ctx: FnLowerCtx!, branch: IfElse | null) -> LoweredBlock | n
 }
 
 lower_unary_op :: fn(op: UnaryOp) -> LoweredUnaryOp = match op {
-    .Neg    -> LoweredUnaryOp.Neg
-    .Not    -> LoweredUnaryOp.Not
-    .BitNot -> LoweredUnaryOp.BitNot
+    .Neg    -> .Neg
+    .Not    -> .Not
+    .BitNot -> .BitNot
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -798,41 +798,41 @@ lower_unary_op :: fn(op: UnaryOp) -> LoweredUnaryOp = match op {
 import "std/testing"
 
 @test test_lower_unary_op_table :: fn() -> void {
-    assert_eq(i32(lower_unary_op(UnaryOp.Neg)),    i32(LoweredUnaryOp.Neg))
-    assert_eq(i32(lower_unary_op(UnaryOp.Not)),    i32(LoweredUnaryOp.Not))
-    assert_eq(i32(lower_unary_op(UnaryOp.BitNot)), i32(LoweredUnaryOp.BitNot))
+    assert_eq(i32(lower_unary_op(.Neg)),    i32(LoweredUnaryOp.Neg))
+    assert_eq(i32(lower_unary_op(.Not)),    i32(LoweredUnaryOp.Not))
+    assert_eq(i32(lower_unary_op(.BitNot)), i32(LoweredUnaryOp.BitNot))
 }
 
 @test test_lower_binary_op_basic_arithmetic :: fn() -> void {
-    assert_eq(i32(lower_binary_op(BinaryOp.Add)), i32(LoweredBinaryOp.Add))
-    assert_eq(i32(lower_binary_op(BinaryOp.Eq)),  i32(LoweredBinaryOp.Eq))
+    assert_eq(i32(lower_binary_op(.Add)), i32(LoweredBinaryOp.Add))
+    assert_eq(i32(lower_binary_op(.Eq)),  i32(LoweredBinaryOp.Eq))
     // `Is` is routed through the dedicated lowerer ; the table maps it
     // to `Eq` to keep the match exhaustive without firing.
-    assert_eq(i32(lower_binary_op(BinaryOp.Is)),  i32(LoweredBinaryOp.Eq))
+    assert_eq(i32(lower_binary_op(.Is)),  i32(LoweredBinaryOp.Eq))
 }
 
 lower_binary_op :: fn(op: BinaryOp) -> LoweredBinaryOp = match op {
-    .Add    -> LoweredBinaryOp.Add
-    .Sub    -> LoweredBinaryOp.Sub
-    .Mul    -> LoweredBinaryOp.Mul
-    .Div    -> LoweredBinaryOp.Div
-    .Mod    -> LoweredBinaryOp.Mod
-    .Shl    -> LoweredBinaryOp.Shl
-    .Shr    -> LoweredBinaryOp.Shr
-    .BitAnd -> LoweredBinaryOp.BitAnd
-    .BitOr  -> LoweredBinaryOp.BitOr
-    .BitXor -> LoweredBinaryOp.BitXor
-    .And    -> LoweredBinaryOp.And
-    .Or     -> LoweredBinaryOp.Or
-    .Eq     -> LoweredBinaryOp.Eq
-    .Neq    -> LoweredBinaryOp.Neq
-    .Lt     -> LoweredBinaryOp.Lt
-    .Lte    -> LoweredBinaryOp.Lte
-    .Gt     -> LoweredBinaryOp.Gt
-    .Gte    -> LoweredBinaryOp.Gte
+    .Add    -> .Add
+    .Sub    -> .Sub
+    .Mul    -> .Mul
+    .Div    -> .Div
+    .Mod    -> .Mod
+    .Shl    -> .Shl
+    .Shr    -> .Shr
+    .BitAnd -> .BitAnd
+    .BitOr  -> .BitOr
+    .BitXor -> .BitXor
+    .And    -> .And
+    .Or     -> .Or
+    .Eq     -> .Eq
+    .Neq    -> .Neq
+    .Lt     -> .Lt
+    .Lte    -> .Lte
+    .Gt     -> .Gt
+    .Gte    -> .Gte
     // Is / In / NotIn are routed through dedicated lowerers above ;
     // mapping them to `Eq` keeps `match` exhaustive without firing.
-    .Is     -> LoweredBinaryOp.Eq
-    .In     -> LoweredBinaryOp.Eq
-    .NotIn  -> LoweredBinaryOp.Eq
+    .Is     -> .Eq
+    .In     -> .Eq
+    .NotIn  -> .Eq
 }
