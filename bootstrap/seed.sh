@@ -234,7 +234,7 @@ cmd_regenerate() {
     # memory, so an expression comes out as NUL bytes of exactly its own width
     # (`__vret = vader_ref_box(t3)` → `__vret = ` + 18 NULs). Seen on 2026-08-30
     # under ubuntu-24.04 / gcc 13.3.0, on ONE of the eight per-target emissions of
-    # a single run — see .claude/plans/2026-08-30-gc-observable-conservative-scan.md.
+    # a single run.
     #
     # Emitted C is text and never legitimately contains a NUL, so this costs one
     # grep and turns the worst outcome — committing a seed that cannot build, which
@@ -255,7 +255,6 @@ cmd_regenerate() {
         echo "$corrupt" | sed 's/^/  /' >&2
         echo "  Emitted C is text; a NUL means a string was collected while still live." >&2
         echo "  Do NOT retry until it passes. Re-run under VADER_GC_CHECK_BOX=1 — it traps upstream." >&2
-        echo "  See .claude/plans/2026-08-30-gc-observable-conservative-scan.md" >&2
         exit 1
     fi
 

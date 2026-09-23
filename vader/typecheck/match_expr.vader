@@ -314,7 +314,7 @@ export infer_match :: fn(
     }
     // W0005 — a wildcard arm on a closed union silences the T3013 check above,
     // so a newly added variant degrades silently into `_` instead of erroring
-    // (the bug class CLAUDE.md §6 forbids). Any match that CONTRIBUTES A VALUE
+    // (a silent mis-compile). Any match that CONTRIBUTES A VALUE
     // must enumerate every variant or opt out with `@partial`. This includes the
     // `return`-per-arm form (every arm diverges → result_ty is `never`), which is
     // the dominant compiler style and the one that hid the `type_base_name` /

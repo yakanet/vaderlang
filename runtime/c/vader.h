@@ -1182,7 +1182,7 @@ typedef struct vader_gc_frame {
      * That made atom lifetime depend on register allocation: `concat_N` reads
      * its parameters' LENGTHS, allocates the output buffer (a collection point),
      * then reads their BYTES — and a swept parameter yielded a zeroed prefix of
-     * exactly the right length. See `.claude/plans/2026-08-31-atom-rooting.md`.
+     * exactly the right length.
      *
      * Appended last so existing positional initializers read natoms=0 /
      * atoms=NULL. */

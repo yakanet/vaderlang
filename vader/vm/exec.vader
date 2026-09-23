@@ -147,7 +147,7 @@ is_f64_tag :: fn(t: StackTag) = t == .F64
 /// The fast arms read `payload` directly, which for a `Ref` / `Null` slot holds
 /// STALE bits — so without this the VM would compute a plausible wrong number
 /// instead of naming the bad bytecode. It is the differential oracle for the
-/// native backend (CLAUDE.md §9) : silently-wrong is the one outcome it must
+/// native backend : silently-wrong is the one outcome it must
 /// never produce.
 arith_tag_trap :: fn(frame: Frame, back: usize, op_label: string) -> Trap {
     v :: peek_val(frame, frame.sp - back)

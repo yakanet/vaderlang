@@ -17,8 +17,7 @@ This started as a design note / roadmap ; most of it has since shipped
 families are off the per-target runtime ; the Array family is open-coded in
 c-emit over the kept storage layout. See **"Achieved end state (2026-06-14)"**
 under the Phased plan for the realized surface and what is kept by design.
-Architectural decisions here are reviewed with the user before implementation
-(`.claude/CLAUDE.md` §8).
+Architectural decisions here are reviewed with the user before implementation.
 
 ## Two kinds of "intrinsic"
 
@@ -108,7 +107,7 @@ store_slot  (obj, i, v: box)               // boxed-slot write — fires the wri
 memory_copy (dst, dst_off, src, src_off, n)           // bulk byte copy (obj→obj)
 ```
 
-Names spell out per the Vader no-abbreviation rule (`.claude/CLAUDE.md` §5):
+Names spell out per the Vader no-abbreviation rule:
 `object_new` (not `obj_alloc` — `ObjectNew` mirrors `ArrayNew`/`StructNew`),
 `memory_copy` (not `mem_copy`). PascalCode opcode variants: `ObjectNew`,
 `LoadU8`/`LoadI32`/`LoadI64`/`LoadF64`, `StoreU8`/`StoreI32`/`StoreI64`/`StoreF64`,
@@ -219,8 +218,7 @@ first move.
 
 Low risk first ; each phase is independently shippable. (Implementation shipped
 as finer stages S0–S7 on `feat/target-abi` ; the per-phase status below maps
-them back to these four phases. The detailed stage log lives in the local plan
-`.claude/plans/2026-06-16-target-abi-migration.md`.)
+them back to these four phases.)
 
 - **Phase 0 — Document the ABI (this doc).** Freeze the primitive list. No code.
   **✅ DONE.**

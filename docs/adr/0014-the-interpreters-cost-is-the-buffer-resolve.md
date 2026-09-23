@@ -27,8 +27,7 @@ alloc figures halve the same way (469 / 244 / ~96). Neither copy is dead: copy 1
 comptime path, copy 2 the normal one. De-duplicating measures **+22 %**, i.e. worse — the
 merged copy becomes a join reached from two predecessors with different live states, and
 spill traffic per dispatch copy rises 29 % (4 650 against 6 003) while the stack frame
-GROWS. The duplication is a specialisation that pays. Full audit:
-[`.claude/plans/2026-09-06-vm-runtime-audit.md`].
+GROWS. The duplication is a specialisation that pays.
 
 ## Context
 

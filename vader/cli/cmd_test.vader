@@ -1,8 +1,8 @@
 // vader/cli/test — the `vader test` command.
 //
 // Discovers `@test` fns under a path, compiles ONE representative per module
-// (so a test sees only that module's own import closure — the gotcha CLAUDE §11
-// documents), runs them, and reports. The largest single command, split out so
+// (so a test sees only that module's own import closure), runs them, and
+// reports. The largest single command, split out so
 // the dispatch in `main.vader` stays readable.
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.

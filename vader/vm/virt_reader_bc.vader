@@ -301,7 +301,7 @@ parse_module_name :: fn(cleaned: string) -> string {
 /// stated grounds of "keeping ordinals aligned". Aligned ordinals over a wrong
 /// type buy nothing: an opaque ref where the emitter expects a struct makes every
 /// downstream field access a miss, which is precisely blocker #1 of the self-host
-/// bytecode audit (`.claude/CLAUDE.md` §9). A dump this reader cannot type is a
+/// bytecode audit. A dump this reader cannot type is a
 /// dump it must refuse.
 ///
 /// @param cleaned  the `type …` line, comment already stripped.

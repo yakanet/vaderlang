@@ -27,8 +27,7 @@ comptime path, copy 2 the normal one — phase-separated hot code, not dead code
 builds of the same shape); only the counts are.
 
 The measured 13 % ceiling stands — it was obtained by deleting code and rebuilding, not by
-counting. Full audit, with the levers this record's own lever now ranks behind:
-[`.claude/plans/2026-09-06-vm-runtime-audit.md`].
+counting.
 
 ## Context
 

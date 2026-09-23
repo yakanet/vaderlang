@@ -12,7 +12,7 @@
 //
 // Lossy policy : an action whose rewrite would lose information (match arms with
 // guards / destructuring, etc.) must DECLINE in `is_applicable` rather than emit
-// a partial rewrite — see `LSP_COMPLETENESS.md`.
+// a partial rewrite.
 
 module "vader/lsp/actions"
 

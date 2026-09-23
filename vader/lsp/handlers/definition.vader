@@ -109,7 +109,7 @@ member_by_type :: fn(
     // A namespace alias FIRST, and cheaply: `AST.MatchExpr` has no receiver
     // whose type could be read — the alias names a module, not a value — so the
     // typed path below can never answer it. Resolving the member as an EXPORT of
-    // that module is the only route, and it is the spelling CLAUDE §7 makes
+    // that module is the only route, and it is the spelling T3078 makes
     // mandatory once an alias is taken.
     alias_path :: alias_before(index, nm_span.start.offset)
     if alias_path != null {

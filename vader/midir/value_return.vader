@@ -1,8 +1,7 @@
 // vader/midir/value_return — return a small composite in registers, not on the heap.
 //
 // A function returning `[char, usize]` allocates a heap object the caller reads
-// twice and drops. What that costs, and what it cost to remove, is measured in
-// `.claude/plans/2026-09-22-tuple-value-abi.md`.
+// twice and drops.
 //
 // This pass hands the elements back as separate values instead. The IR carries
 // the arity from here to both backends: `TermReturn.values`, `InstrCall.dsts`,
@@ -14,8 +13,7 @@
 // T3008 — so handing back its elements is not a change of meaning, it is the
 // same value by another route. A STRUCT is a different question: it has
 // reference semantics, and a size-triggered switch to value semantics is the
-// correctness cliff `.claude/plans/2026-06-24-value-types-struct-representation.md`
-// §2 rejects. That one needs `@value`, and it is not this pass's to decide.
+// correctness cliff the value-types design rejects. That one needs `@value`, and it is not this pass's to decide.
 //
 // Runs BEFORE `eliminate_dead_cfg`: the `struct.new` that built the returned
 // tuple becomes unread once the terminator names its fields instead, and DCE is

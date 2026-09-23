@@ -1468,8 +1468,8 @@ test("lsp: references stay in the file the cursor is in", async () => {
 
 // Ctrl+click on a method of a BUILT-IN receiver. Measured dead before this:
 // `xs.push(1)`, `xs.len()`, `out.push_all(hb)` all returned no definition — the
-// form most of this tree is written in (CLAUDE §6 counts ~3000 container calls
-// in method form against zero bare).
+// form most of this tree is written in (~3000 container calls in method form
+// against zero bare).
 //
 // Two things had to be true and neither was. The cross-file resolver only ever
 // looked for TOP-LEVEL decls, and its wildcard pass restricted to EXPORTED ones
@@ -1522,9 +1522,9 @@ test("lsp: rename stays in the file the cursor is in", async () => {
 // A member reached through a NAMESPACE ALIAS. `S.trim` has no receiver whose
 // type could be read — the alias names a module, not a value — so the typed path
 // can never answer it, and the name-based one never looked at aliases:
-// `collect_import` discarded the binding outright. That is the spelling CLAUDE
-// §7 makes MANDATORY once an alias is taken, so it was dead on the form the tree
-// is required to use.
+// `collect_import` discarded the binding outright. That spelling is MANDATORY
+// once an alias is taken (T3078), so it was dead on the form the tree is required
+// to use.
 //
 // The local `trim` is a decoy: without the alias lookup, the answer is IT, in
 // this file. A real stdlib module is used rather than an invented sibling

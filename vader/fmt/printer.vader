@@ -1702,8 +1702,7 @@ emit_match :: fn(self: Printer!, x: p.MatchExpr) -> void {
     self.write(" {")
     self.depth = self.depth + 1
     // Align every arm's `->` : pad each arm head (`pattern [if guard]`) to the
-    // widest head across the arms, so the arrows line up (the `match` idiom in
-    // CLAUDE.md §6). `0` disables — fewer than 2 arms, or a head too wide to
+    // widest head across the arms, so the arrows line up. `0` disables — fewer than 2 arms, or a head too wide to
     // align without pushing the bodies off the line.
     align :: match_arm_align(self.source, x.arms)
     for arm in x.arms {
@@ -1863,7 +1862,7 @@ emit_block_expr :: fn(self: Printer!, b: p.BlockExpr) -> void {
     // so `fmt(fmt(x)) != fmt(x)`.
     //
     // `.Inline` keeps its UNCONDITIONAL answer, and that is measured rather than
-    // assumed: a lookup-table `if`-chain stays inline by contract (CLAUDE §4), and
+    // assumed: a lookup-table `if`-chain stays inline by contract, and
     // giving it the fit test too takes tree-wide idempotency from 272/285 to
     // 267/285 — a member that expands stops the run from reading as a chain on the
     // next pass, so the alignment moves instead. The chain members that do not fit

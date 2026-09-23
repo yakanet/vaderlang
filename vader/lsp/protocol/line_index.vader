@@ -13,8 +13,7 @@
 // skips the scan entirely. Line breaks match the lexer (`vader/lexer/lexer.vader`
 // `advance`): LF, a lone CR, and CRLF each start exactly one new line.
 //
-// See `position.vader` for the JSON encoders that consume the results, and
-// `docs/LSP_COMPLETENESS.md` §3.18 for the negotiation this implements.
+// See `position.vader` for the JSON encoders that consume the results.
 
 module "vader/lsp/protocol"
 

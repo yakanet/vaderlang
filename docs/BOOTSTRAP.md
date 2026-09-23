@@ -707,8 +707,7 @@ right order of magnitude again.
 
 The remaining lever is *frequency* — 294 reseeds in 30 days is habit, not
 necessity, since a reseed is reflexively done at the end of each chantier because
-`verify.sh` fails otherwise. At 60 KB a reseed it is no longer urgent. See
-`.claude/plans/2026-07-28-seed-size.md` (Phases 2 and 3).
+`verify.sh` fails otherwise. At 60 KB a reseed it is no longer urgent.
 
 > Original text — With Phase 0 fixes applied (and mirrored in the Vader port),
 > expect each bump to delta to **10-50 KB** in packfile size after `git gc`. At
@@ -720,7 +719,7 @@ necessity, since a reseed is reflexively done at the end of each chantier becaus
 
 ## Why the seed is stored uncompressed
 
-Adopted 2026-07-28 (Phase 1 of `.claude/plans/2026-07-28-seed-size.md`). The seed
+Adopted 2026-07-28. The seed
 was committed as `bootstrap.c.gz` from the first seed until then.
 
 **The finding.** Two consecutive seeds are **99.86 % identical as C** (296 lines
@@ -852,9 +851,7 @@ Growth *did* become a problem — 430 MB of it — and the fix was neither of th
 two escape hatches below but the storage format itself (§ *Why the seed is stored
 uncompressed*), which keeps the seed in-tree and every commit self-sufficient.
 The ~400 MB already spent on gzipped blobs was recoverable only by rewriting
-history, and **that was done on 2026-07-28** (Phase 3 of
-`.claude/plans/2026-07-28-seed-size.md` — do not confuse it with this document's
-own Phase 3, which is CI integration). Every historical `bootstrap.c.gz` blob
+history, and **that was done on 2026-07-28**. Every historical `bootstrap.c.gz` blob
 became its decompressed `bootstrap.c`, keeping all 400 seeds and all 2328 commits;
 verified lossless by comparing the SHA-256 sets of the decompressed originals
 against the rewritten blobs. `.git` went from **535 MB to 61 MB** locally, and a

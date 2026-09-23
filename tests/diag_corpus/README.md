@@ -36,8 +36,7 @@ divergence visible instead of hidden.
 
 ## Adding a fixture
 
-Every newly allocated diagnostic code gets one — see `.claude/CLAUDE.md`
-§12. Write the smallest `_main.vader` that trips the code, run
+Every newly allocated diagnostic code gets one. Write the smallest `_main.vader` that trips the code, run
 `UPDATE_SNAPSHOTS=1 bun run test`, and **read the generated snapshot**:
 if it contains a code you didn't intend, an earlier phase fired first and
 the fixture is testing something else.

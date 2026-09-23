@@ -66,7 +66,6 @@ export BcSignature :: struct {
     /// than as a heap object. It is also the shape WASM takes natively
     /// (`(func (result i32 i32))`), which is why the C backend is the one that
     /// degrades — to out-params — and not the IR.
-    /// Plan: `.claude/plans/2026-09-22-tuple-value-abi.md`.
     results: ValType[]
     param_types: i32[]               // parallel to params, length identical
     /// `BcType` indices, parallel to `results`.

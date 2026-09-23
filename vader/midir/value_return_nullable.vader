@@ -6,9 +6,6 @@
 // through a branch on the tag. `value_return.vader` owns the selection and the
 // call-site rewrite; this file owns what makes a function eligible and what its
 // returns and rebuild arms become.
-//
-// Why the rebuild is unconditional, and what erases it:
-// `.claude/plans/2026-09-22-tuple-value-abi.md` §21.
 
 module "vader/midir"
 
@@ -26,9 +23,6 @@ import "vader/types"
 // got from elsewhere, and rebuilding it at the caller, would break an alias
 // someone else holds. `returns_fresh_struct` is the proof nobody does — every
 // `return` builds its value here or hands back `null`.
-//
-// Why the rebuild is unconditional, and what erases it:
-// `.claude/plans/2026-09-22-tuple-value-abi.md` §21.
 
 /// What a nullable-struct return hands back, or null when the function does not
 /// qualify.

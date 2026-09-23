@@ -8,13 +8,12 @@
 // PASSED while asserting nothing, TODO §"tests/ is a catch-all"), and a skip
 // nobody removes is the same failure wearing a different hat.
 //
-// WHY A CORPUS OF ITS OWN, and not one of the five in CLAUDE §11:
+// WHY A CORPUS OF ITS OWN, and not one of the five test corpora:
 //
 //   - not `diag_corpus/` — that harness provokes a diagnostic by dumping ONE
 //     file (`vader dump --stage=lowered-ast <file>`). `@target` is multi-file by
 //     nature: a declaration in one file, a body in another. This is the exact
-//     argument CLAUDE §12 already makes for the `H6xxx` family living in
-//     `hook_fixtures/`.
+//     argument that puts the `H6xxx` family in `hook_fixtures/`.
 //   - not `snippets/` — a snippet carries a `c.snapshot` and a `vm.snapshot` per
 //     pipeline stage, and those would become target-dependent. The plan pins the
 //     invariant "no snippet in the corpus reaches a module that selects"; putting

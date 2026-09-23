@@ -64,7 +64,7 @@ export function containsTestFn(dir: string): boolean {
  *  silently loses modules — first `lib/std` by name when the build contract moved
  *  out of `vader/` (33 tests, no warning), then `lib/<ns>` when the libraries left
  *  `std/` and each became a leaf (25 more). An undiscovered module is simply
- *  skipped (CLAUDE §11.1), so nothing reports the loss.
+ *  skipped, so nothing reports the loss.
  *
  *  Verified to reproduce, exactly, the two hand-tuned walkers it replaces: 15
  *  modules under `vader/` (where holding a test directly and holding one deeply

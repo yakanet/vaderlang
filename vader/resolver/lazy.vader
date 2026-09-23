@@ -5,7 +5,7 @@
 // the whole disk — the `discover_modules` 100 % CPU hang the LSP hit on a
 // virtual `/`-rooted URI), resolve each module ON DEMAND by deterministic
 // path-mapping. A module named `a/b/c` lives at `<base>/a/b/c` for exactly one
-// base in `bases` (CLAUDE.md §7 : the module path mirrors the physical path),
+// base in `bases` (the module path mirrors the physical path),
 // so `import "a/b/c"` is a direct stat, never a walk.
 //
 // Load ORDER — and thus symbol-id assignment — is UNCHANGED : it is driven by

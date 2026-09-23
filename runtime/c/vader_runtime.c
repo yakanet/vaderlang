@@ -261,8 +261,7 @@ static int g_gc_check_box = 0;
  * That scan covers refs the precise shadow stack does not root: a live old ref
  * can sit only in a C local or a register. Skipping it therefore DROPS LIVE
  * OBJECTS. It is a diagnostic — with it on, a failure names a ref the precise
- * rooting misses — and never a tuning knob.
- * See .claude/plans/2026-08-30-gc-observable-conservative-scan.md */
+ * rooting misses — and never a tuning knob. */
 static int g_gc_no_cstack_scan = 0;
 
 /* Root-candidate alignment check — same `VADER_GC_CHECK_BOX=1` switch, because

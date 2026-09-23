@@ -2,8 +2,7 @@
 //
 // `I7xxx` reports a malformed IR, which is a compiler bug and not something a
 // program can provoke — so the family takes the same no-fixture exception
-// `H6xxx` takes (`.claude/CLAUDE.md` §12) and is pinned here rather than under
-// `tests/diag_corpus/`.
+// `H6xxx` takes and is pinned here rather than under `tests/diag_corpus/`.
 //
 // `build` is the only action carrying `--verify`, and that is deliberate:
 // `dump` renders diagnostics through `filter_diags_in_scope`

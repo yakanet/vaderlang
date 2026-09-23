@@ -1469,7 +1469,7 @@ emit_call_to :: fn(s: FnState!, callee_name: string, sig: BcSignature) -> void {
 // exactly as they would read a single returned value. Nothing here can hold a
 // heap reference — the value ABI admits only composites whose every leaf is a
 // non-reference primitive, which is what keeps the caller from having to root
-// the address it takes (`.claude/plans/2026-09-22-tuple-value-abi.md` §7.1).
+// the address it takes.
 emit_multi_call :: fn(
     s: FnState!, callee_name: string, args: string[]!, sig: BcSignature,
 ) -> void {

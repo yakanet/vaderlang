@@ -266,7 +266,7 @@ bin/vwin test tests/lsp             # …scoped to a path
 
 Measured: a full bootstrap in the guest runs in **~80 s** on an M-series Mac (6 vCPU), against ~4 min for the bootstrap step alone on a GitHub runner. It builds `aarch64` with clang, so it covers OS behaviour rather than the `x86_64-w64-mingw32` codegen CI uses — see the directory's README for that distinction and the rest of the setup.
 
-Snapshot tests live under `tests/snapshots/<phase>/<scenario>/` (an `input.vader` + a `*.snap`); set `UPDATE_SNAPSHOTS=1` to regenerate, then `git diff` to review. Contributor conventions: the AST is never mutated (each phase produces side-tables keyed by node identity), every phase emits `Diagnostic`s rather than throwing (codes namespaced `L0`/`P1`/`R2`/`T3`/`C4`/`W0`), and a single midir backbone feeds the VM, the C emitter, and the future WASM emitter. The architecture is documented in [`SPEC.md` §2](./SPEC.md); house rules are in [`CLAUDE.md`](./CLAUDE.md).
+Snapshot tests live under `tests/snapshots/<phase>/<scenario>/` (an `input.vader` + a `*.snap`); set `UPDATE_SNAPSHOTS=1` to regenerate, then `git diff` to review. Contributor conventions: the AST is never mutated (each phase produces side-tables keyed by node identity), every phase emits `Diagnostic`s rather than throwing (codes namespaced `L0`/`P1`/`R2`/`T3`/`C4`/`W0`), and a single midir backbone feeds the VM, the C emitter, and the future WASM emitter. The architecture is documented in [`SPEC.md` §2](./SPEC.md).
 
 ---
 

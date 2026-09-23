@@ -1,7 +1,7 @@
 // tools/codemod/as_alias — the symbol table the `is T as x` migration needs.
 //
-// Step 3 of `.claude/plans/2026-09-06-as-expression-alias.md`. One-shot ; goes
-// away with step 4.
+// Step 3 of the `as`-expression-alias migration. One-shot ; goes away with
+// step 4.
 //
 // Dropping `as s` means rewriting every `s` in the body to the scrutinee's name,
 // and only the resolver knows which `s` those are — a body may declare its own.

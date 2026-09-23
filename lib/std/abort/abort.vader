@@ -22,8 +22,7 @@ module "std/abort"
 /// Placeholder for a code path that isn't implemented yet. Panics with
 /// `not yet implemented: ${msg}`. Use in place of a silent degraded default
 /// while a branch is still a stub — the gap then fails loudly at runtime
-/// instead of mis-compiling silently (see the match-exhaustiveness convention
-/// in `.claude/CLAUDE.md` §6).
+/// instead of mis-compiling silently.
 ///
 /// @param msg  what is missing — names the unwritten path in the trap message.
 @no_return export todo :: fn(msg: string) = panic("not yet implemented: ${msg}")

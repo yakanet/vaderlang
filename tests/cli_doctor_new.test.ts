@@ -245,8 +245,8 @@ test("each --build shape writes what it says, and only that", async () => {
 // fire and NEITHER is pinned anywhere else: the `diag_corpus` harness provokes a
 // diagnostic with `vader dump`, and `dump` does not surface the loader's, so a
 // fixture there snapshots an empty report. Same shape as the `H6xxx` exception
-// in `.claude/CLAUDE.md` §12 — asserted explicitly rather than taught to a
-// uniform harness.
+// (`hook_driver.test.ts`) — asserted explicitly rather than taught to a uniform
+// harness.
 //
 // R2020 names the cause. R2001 is its consequence, and it carries the sentence
 // that says what to write: a code that only reports "the folder declares no

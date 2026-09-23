@@ -1,7 +1,7 @@
 // vader/lsp/actions/match_to_if — the `match` → `if` rewrite action.
 //
 // Converts a two-arm `match` whose first arm reduces to an `if` condition into
-// an `if / else`. The cursor-driven form of the CLAUDE.md §6 "if for ≤ 2 cases"
+// an `if / else`. The cursor-driven form of the "`if` for ≤ 2 cases"
 // convention.
 //
 //   match cell {            if cell is null {

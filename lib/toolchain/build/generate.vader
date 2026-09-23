@@ -25,8 +25,6 @@
 // `sweep_generated` runs once before the first round and deletes only files
 // carrying the banner, which is what makes it safe against a `generated_root`
 // pointed at real sources.
-//
-// See `.claude/plans/2026-08-26-metacompilation-hook.md` §18.
 
 module "toolchain/build"
 
@@ -246,7 +244,7 @@ export sweep_generated :: fn(dir: string) -> usize {
         return 0
     }
     // `match` arms are expressions here, so an early exit takes the narrowing
-    // `if` form rather than an arm — see CLAUDE.md §6 "Null checks".
+    // `if` form rather than an arm.
     listing :: read_dir(dir)
     if listing is IOError {
         return 0

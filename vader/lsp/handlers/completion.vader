@@ -8,7 +8,7 @@
 // typed prefix ourselves.
 //
 // Member completion after `.` (struct fields + UFCS methods, resolved through
-// the typed cache) is Tier 2 — see `LSP_COMPLETENESS.md`. Until it lands the
+// the typed cache) is not wired yet. Until it lands the
 // provider declares no `.` trigger, so it fires on identifier typing only.
 
 module "vader/lsp/handlers"

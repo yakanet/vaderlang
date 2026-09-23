@@ -1,7 +1,6 @@
 // vader/lsp/actions/organize_imports — the `source.organizeImports` action.
 //
-// Rewrites the file's leading import block into the canonical form CLAUDE.md §7
-// prescribes : grouped by origin (`std/` first, then `vader/`, then everything
+// Rewrites the file's leading import block into the canonical form : grouped by origin (`std/` first, then `vader/`, then everything
 // else), alphabetical by path within each group, a blank line between groups,
 // and same-path destructure imports merged into one brace block with their
 // names de-duplicated and sorted.

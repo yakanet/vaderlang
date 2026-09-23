@@ -882,8 +882,7 @@ signature_for :: fn(function: BcFunction) -> string {
     // after the declared ones and the function itself returns void. Measured as
     // the fastest of the three shapes a composite can cross in — out-params,
     // a flat struct by value, or the heap object this replaces — and the only
-    // one that needs no ABI threshold to be known. Record:
-    // `.claude/plans/2026-09-22-tuple-value-abi.md` §2.
+    // one that needs no ABI threshold to be known.
     results :: function.signature.results
     if bc_result_arity(function.signature) > 1 {
         for i in 0..<results.len() {

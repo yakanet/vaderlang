@@ -244,7 +244,7 @@ export LowerProjectCtx :: struct {
     /// without a decl for the struct its `self` is typed with: that pairing is
     /// the whole `ref`-orphan bug class (a fn whose receiver has no struct decl
     /// interns as a bare `ref`, and its first field access panics in
-    /// `midir/emit`). See `.claude/plans/2026-08-30-orphan-ref-materialisation.md`.
+    /// `midir/emit`).
     materialized_struct_mangles: MutableSet<string>
 
     /// Mangles of impl-member calls actually resolved during lowering

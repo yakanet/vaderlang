@@ -1,9 +1,8 @@
 /// Decimal → float, correctly rounded. The mirror of `fmt_float`, and the other
 /// half of a subsystem that was deliberately moved off the host: `parse_float`
 /// used to be `strtod` natively and a naive accumulator on the VM, and the two
-/// disagreed on real inputs. One pure-Vader implementation now serves both
-/// (`.claude/plans/2026-07-04-pure-vader-parse-float.md`), which means nothing
-/// but a benchmark will notice if it is slow.
+/// disagreed on real inputs. One pure-Vader implementation now serves both, which
+/// means nothing but a benchmark will notice if it is slow.
 ///
 /// The inputs are built ONCE and parsed PASS_COUNT times over, so the row
 /// measures parsing rather than the integer formatting that assembles them.

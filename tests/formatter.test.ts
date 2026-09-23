@@ -318,7 +318,7 @@ for (const { name, source } of COMMENT_STABILITY) {
 
 // ---------------------------------------------------------------------------
 // Match-arm `->` alignment. Canonically-aligned sources so fmt is a NO-OP.
-// `aligned` : arm heads pad to the widest so the arrows line up (CLAUDE.md §6).
+// `aligned` : arm heads pad to the widest so the arrows line up.
 // `too_wide` : the widest head exceeds the alignment cap, so arrows stay glued
 // to their heads (no padding).
 // ---------------------------------------------------------------------------

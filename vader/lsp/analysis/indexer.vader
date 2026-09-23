@@ -98,8 +98,8 @@ export DocIndex :: struct {
     imports: ImportEntry[]
     /// Namespace alias → module path, from `Name :: import "p"`.
     ///
-    /// Kept because `Name.member` is the ONLY spelling CLAUDE §7 allows once an
-    /// alias is taken, and it resolved to nothing: the alias names a module, not
+    /// Kept because `Name.member` is the ONLY spelling allowed once an alias is
+    /// taken (T3078), and it resolved to nothing: the alias names a module, not
     /// a value, so no receiver type can be read off it. Discarding the binding
     /// (which `collect_import` used to do) left goto-def with no way back to the
     /// module at all.
