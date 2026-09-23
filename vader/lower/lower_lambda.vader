@@ -188,7 +188,7 @@ export fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx!, is_env: bool, fn_
     kind := SymbolKind.Fn
     if is_env {
         prefix = env_prefix
-        kind = SymbolKind.Struct
+        kind = .Struct
     }
     // The NAME is keyed per module, the ID stays project-global: the id must be
     // unique program-wide, the name only has to be stable. `next_synthetic_id`
@@ -204,7 +204,7 @@ export fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx!, is_env: bool, fn_
     key :: module_key(ctx.typed.resolved.display_path)
     seq :: ctx.project.lambda_seq[key] ?? 0
     ctx.project.lambda_seq[key] = seq + 1
-    return Symbol { .id = id, .kind = kind, .name = "${prefix}${key}_${seq}", .module = ctx.typed.resolved.path, .module_name = ctx.typed.resolved.display_path, .visibility = AST.Visibility.Private, .defined_at = null }
+    return Symbol { .id = id, .kind = kind, .name = "${prefix}${key}_${seq}", .module = ctx.typed.resolved.path, .module_name = ctx.typed.resolved.display_path, .visibility = .Private, .defined_at = null }
 }
 
 /// Synthetic IDs walk negative ; render as an unsigned magnitude for
@@ -234,9 +234,9 @@ export synth_mono_entry :: fn(ctx: FnLowerCtx!, symbol: Symbol) -> MonoEntry {
 export stub_decl_for :: fn(symbol: Symbol) -> AST.Decl {
     kind_value :: i32(symbol.kind)
     if kind_value == i32(SymbolKind.Struct) {
-        struct_decl: AST.Decl: AST.StructDecl { .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID, .name = symbol.name, .name_span = empty_span(), .visibility = AST.Visibility.Private, .type_params = [], .fields = [], .decorators = [] }
+        struct_decl: AST.Decl: AST.StructDecl { .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID, .name = symbol.name, .name_span = empty_span(), .visibility = .Private, .type_params = [], .fields = [], .decorators = [] }
         return struct_decl
     }
-    fn_decl: AST.Decl: AST.FnDecl { .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID, .name = symbol.name, .name_span = empty_span(), .visibility = AST.Visibility.Private, .type_params = [], .params = [], .return_type = null, .body = null, .decorators = [], .sam_synthetic = false, .is_expression_bodied = false, .materialized = false }
+    fn_decl: AST.Decl: AST.FnDecl { .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID, .name = symbol.name, .name_span = empty_span(), .visibility = .Private, .type_params = [], .params = [], .return_type = null, .body = null, .decorators = [], .sam_synthetic = false, .is_expression_bodied = false, .materialized = false }
     return fn_decl
 }

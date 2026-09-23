@@ -157,10 +157,10 @@ get_pair :: fn(slot: i32, b: Op) -> VmOp | null {
         return Get2 { .slot_a = slot, .slot_b = b.slot }
     }
     if b is I64Const {
-        return GetConst { .slot = slot, .value = b.value, .tag = StackTag.I64 }
+        return GetConst { .slot = slot, .value = b.value, .tag = .I64 }
     }
     if b is I32Const {
-        return GetConst { .slot = slot, .value = i64(b.value), .tag = StackTag.I32 }
+        return GetConst { .slot = slot, .value = i64(b.value), .tag = .I32 }
     }
     return null
 }

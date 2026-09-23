@@ -2,8 +2,8 @@
 [lib/std/io/io.vader:827:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `buf`
 
 # Baked
-VADER_OS = Os.Linux
-VADER_ARCH = Arch.X86_64
+VADER_OS = .Linux
+VADER_ARCH = .X86_64
 
 # Selected body
 main$platform_tag <- main-posix.vader:7

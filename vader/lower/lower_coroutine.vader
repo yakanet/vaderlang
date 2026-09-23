@@ -129,7 +129,7 @@ gb_set_state :: fn(gb: GenBuild, n: i64) -> LoweredStmt =
 // `self.state == n` (bool).
 gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr =
     LoweredBinary {
-        .span = gb.span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+        .span = gb.span, .type = TY_BOOL, .op = .Eq,
         .left = gb_field(gb, "state", gb.i32_ty),
         .right = LoweredIntLit { .span = gb.span, .type = gb.i32_ty, .value = n },
     }
@@ -494,7 +494,7 @@ gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[]!
         // idx = self.__defers.len() - 1 - k  (len is loop-invariant : we defer the
         // single truncate until after all calls, so no call shrinks the array).
         idx :: LoweredBinary {
-            .span = dpe.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+            .span = dpe.span, .type = usize_ty, .op = .Sub,
             .left = gb_defers_len(gb, dpe.span),
             .right = LoweredIntLit { .span = dpe.span, .type = usize_ty, .value = 1 + k },
         }
@@ -504,7 +504,7 @@ gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[]!
     }
     // self.__defers = self.__defers[0 ..< len - count]
     new_len :: LoweredBinary {
-        .span = dpe.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+        .span = dpe.span, .type = usize_ty, .op = .Sub,
         .left = gb_defers_len(gb, dpe.span),
         .right = LoweredIntLit { .span = dpe.span, .type = usize_ty, .value = count },
     }
@@ -525,7 +525,7 @@ gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]!) -> void {
     // idx = self.__defers.len() - 1 (recomputed each iteration — the truncate
     // below shrinks the array, so the last live thunk moves down every step).
     idx :: LoweredBinary {
-        .span = gb.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+        .span = gb.span, .type = usize_ty, .op = .Sub,
         .left = gb_defers_len(gb, gb.span),
         .right = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 1 },
     }
@@ -536,7 +536,7 @@ gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]!) -> void {
         .span = gb.span, .type = gb_defers_ty(), .target = gb_defers_field(gb),
         .lo = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 0 },
         .hi = LoweredBinary {
-            .span = gb.span, .type = usize_ty, .op = LoweredBinaryOp.Sub,
+            .span = gb.span, .type = usize_ty, .op = .Sub,
             .left = gb_defers_len(gb, gb.span),
             .right = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 1 },
         },
@@ -544,7 +544,7 @@ gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]!) -> void {
     body :: gb_block(gb, [LoweredExprStmt { .span = gb.span, .expr = call }, LoweredAssign { .span = gb.span, .target = gb_defers_field(gb), .value = truncated }])
     // while self.__defers.len() != 0 { ... }
     cond :: LoweredBinary {
-        .span = gb.span, .type = TY_BOOL, .op = LoweredBinaryOp.Neq,
+        .span = gb.span, .type = TY_BOOL, .op = .Neq,
         .left = gb_defers_len(gb, gb.span),
         .right = LoweredIntLit { .span = gb.span, .type = usize_ty, .value = 0 },
     }

@@ -326,7 +326,7 @@ import "std/testing"
     // t0 (lines 0-1) and t1 (lines 3-4) are strictly disjoint Refs -> one slot,
     // and every `t1` is rewritten to the shared `t0`.
     body :: "t0 = a;\nuse(t0);\nsep();\nt1 = b;\nuse(t1);\n"
-    r :: coalesce_temps(body, [ValType.Ref, ValType.Ref])
+    r :: coalesce_temps(body, [.Ref, .Ref])
     assert_eq(r.types.len(), 1)
     assert_eq(r.body, "t0 = a;\nuse(t0);\nsep();\nt0 = b;\nuse(t0);\n")
 }
@@ -334,14 +334,14 @@ import "std/testing"
 @test test_coalesce_adjacent_no_merge :: fn() -> void {
     // t0's last read is the line t1 is defined on -> ranges touch -> two slots.
     body :: "t0 = a;\nt1 = f(t0);\nuse(t1);\n"
-    r :: coalesce_temps(body, [ValType.Ref, ValType.Ref])
+    r :: coalesce_temps(body, [.Ref, .Ref])
     assert_eq(r.types.len(), 2)
 }
 
 @test test_coalesce_per_type_bucketing :: fn() -> void {
     // Disjoint ranges but different ValTypes never share a slot.
     body :: "t0 = a;\nuse(t0);\nt1 = b;\nuse(t1);\n"
-    r :: coalesce_temps(body, [ValType.Ref, ValType.I32])
+    r :: coalesce_temps(body, [.Ref, .I32])
     assert_eq(r.types.len(), 2)
 }
 
@@ -350,7 +350,7 @@ import "std/testing"
     // rewritten. Without the skip, the path's `t1` would extend t1's range
     // (blocking the merge) AND get corrupted to `t0` on rewrite.
     body :: "#line 3 \"t1.vader\"\nt0 = a;\nuse(t0);\nt1 = b;\nuse(t1);\n"
-    r :: coalesce_temps(body, [ValType.Ref, ValType.Ref])
+    r :: coalesce_temps(body, [.Ref, .Ref])
     assert_eq(r.types.len(), 1)
     assert_eq(r.body, "#line 3 \"t1.vader\"\nt0 = a;\nuse(t0);\nt0 = b;\nuse(t0);\n")
 }

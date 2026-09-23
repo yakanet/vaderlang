@@ -199,7 +199,7 @@ arm_predicate :: fn(
     }
     if core == null { return guard }
     return LoweredBinary {
-        .span = arm.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+        .span = arm.span, .type = TY_BOOL, .op = .And,
         .left = core, .right = guard,
     }
 }
@@ -225,14 +225,14 @@ pattern_predicate :: fn(
         is EnumVariantPattern -> {
             variant_lit :: enum_variant_literal(target_type, pattern.variant, span, ctx)
             return LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+                .span = span, .type = TY_BOOL, .op = .Eq,
                 .left = target, .right = variant_lit,
             }
         }
         is LiteralPattern -> {
             literal :: recurse(ctx, pattern.value)
             return LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+                .span = span, .type = TY_BOOL, .op = .Eq,
                 .left = target, .right = literal,
             }
         }
@@ -243,7 +243,7 @@ pattern_predicate :: fn(
             lo :: recurse(ctx, pattern.lower)
             hi :: recurse(ctx, pattern.upper)
             lo_ok :: LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Gte,
+                .span = span, .type = TY_BOOL, .op = .Gte,
                 .left = target, .right = lo,
             }
             hi_op :: if pattern.inclusive { LoweredBinaryOp.Lte } else { LoweredBinaryOp.Lt }
@@ -252,7 +252,7 @@ pattern_predicate :: fn(
                 .left = target, .right = hi,
             }
             return LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                .span = span, .type = TY_BOOL, .op = .And,
                 .left = lo_ok, .right = hi_ok,
             }
         }
@@ -284,7 +284,7 @@ struct_pattern_predicate :: fn(
             is PatternLiteral as literal -> {
                 literal_value :: recurse(ctx, literal.value)
                 eq :: LoweredBinary {
-                    .span = field.span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+                    .span = field.span, .type = TY_BOOL, .op = .Eq,
                     .left = LoweredFieldAccess {
                         .span = field.span, .type = type_of(literal_value),
                         .target = target, .field = field.name,
@@ -292,7 +292,7 @@ struct_pattern_predicate :: fn(
                     .right = literal_value,
                 }
                 accumulator = LoweredBinary {
-                    .span = field.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                    .span = field.span, .type = TY_BOOL, .op = .And,
                     .left = accumulator, .right = eq,
                 }
             }
@@ -335,7 +335,7 @@ tuple_pattern_predicate :: fn(
                 is null -> { accumulator = sub }
                 _ -> {
                     accumulator = LoweredBinary {
-                        .span = element_pattern.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                        .span = element_pattern.span, .type = TY_BOOL, .op = .And,
                         .left = accumulator, .right = sub,
                     }
                 }
@@ -421,7 +421,7 @@ unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
     @partial match target_type {
         is EnumType -> { return target_type }
         is StructType -> {
-            if target_type.symbol.kind != SymbolKind.Enum { return target_type }
+            if target_type.symbol.kind != .Enum { return target_type }
             real :: ctx.typed.decl_types[target_type.symbol.id]
             if real is EnumType { return real }
             return target_type

@@ -16,7 +16,7 @@ module "main"
 
 import "std/target"
 
-SEP :: if VADER_OS == Os.Windows { "\\" } else { "/" }
+SEP :: if VADER_OS == .Windows { "\\" } else { "/" }
 
 main :: fn() -> i32 {
     if SEP == "" {

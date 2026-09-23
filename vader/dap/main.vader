@@ -191,7 +191,7 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[]!, bps: MutableMap<string, Mu
     next_ref :: [i32(ctx.frames.len()) + 1]
     for {
         frame :: read_frame()
-        if frame is TransportError { return StepMode.Continue }
+        if frame is TransportError { return .Continue }
         msg :: parse(frame)
         if !(msg is JsonObject) { continue }
         command :: get_string(msg, "command")
@@ -224,19 +224,19 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[]!, bps: MutableMap<string, Mu
             respond(seq_cell, request_seq, command, true, breakpoints_body(args))
         } else if command == "continue" {
             respond(seq_cell, request_seq, command, true, empty_body())
-            return StepMode.Continue
+            return .Continue
         } else if command == "next" {
             respond(seq_cell, request_seq, command, true, empty_body())
-            return StepMode.StepOver
+            return .StepOver
         } else if command == "stepIn" {
             respond(seq_cell, request_seq, command, true, empty_body())
-            return StepMode.StepInto
+            return .StepInto
         } else if command == "stepOut" {
             respond(seq_cell, request_seq, command, true, empty_body())
-            return StepMode.StepOut
+            return .StepOut
         } else if command == "disconnect" {
             respond(seq_cell, request_seq, command, true, empty_body())
-            return StepMode.Continue
+            return .Continue
         } else {
             respond(seq_cell, request_seq, command, true, empty_body())
         }

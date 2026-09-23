@@ -779,7 +779,7 @@ build_ident :: fn(fn_ctx: FnCtx!, e: LoweredIdent) -> LocalId | null {
         }
         return slot_opt
     }
-    if e.symbol.kind == SymbolKind.Fn {
+    if e.symbol.kind == .Fn {
         dst :: fresh_tmp(fn_ctx, "fn_ref", e.type)
         emit(fn_ctx, InstrFnRef {
             .dst = dst, .fn_symbol = e.symbol, .type = e.type, .span = e.span,
@@ -814,7 +814,7 @@ build_ident :: fn(fn_ctx: FnCtx!, e: LoweredIdent) -> LocalId | null {
 
 build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
     if e.callee is LoweredIdent as callee_id {
-        if callee_id.symbol.kind == SymbolKind.Fn {
+        if callee_id.symbol.kind == .Fn {
             slots :: fn_ctx.project.extern_callbacks[callee_id.symbol.id]
             args :: if slots is MutableSet<usize> as cb {
                 build_extern_args(fn_ctx, e.args, cb, callee_id.symbol.name) ?? return null
@@ -871,7 +871,7 @@ build_extern_args :: fn(
         if a !is LoweredIdent {
             panic("midir/build: argument ${i + 1} of `${callee}` is a callback that names no function — typecheck should have refused it (T3080)")
         }
-        if a.symbol.kind != SymbolKind.Fn {
+        if a.symbol.kind != .Fn {
             panic("midir/build: argument ${i + 1} of `${callee}` names `${a.symbol.name}`, which is not a function — typecheck should have refused it (T3080)")
         }
         // `TY_CPOINTER`, not the fn type. The slot holds a `.text` address, and
@@ -953,7 +953,7 @@ build_binary :: fn(fn_ctx: FnCtx!, e: LoweredBinary) -> LocalId | null {
 build_short_circuit :: fn(fn_ctx: FnCtx!, e: LoweredBinary, dest: LocalId | null) -> LocalId | null {
     lhs :: build_expr(fn_ctx, e.left) ?? return null
 
-    is_and :: e.op == LoweredBinaryOp.And
+    is_and :: e.op == .And
     // Destination-passing : `&&` / `||` is a phi-slot builder like `build_if`
     // (its result is written from both branches, read after the join), so when a
     // `dest` is supplied write straight into it — no `and_res` / `or_res` temp,
@@ -1036,7 +1036,7 @@ is_dest_passing_shape :: fn(e: LoweredExpr) -> bool {
     return false
 }
 
-is_short_circuit_op :: fn(op: LoweredBinaryOp) -> bool = op == LoweredBinaryOp.And || op == LoweredBinaryOp.Or
+is_short_circuit_op :: fn(op: LoweredBinaryOp) -> bool = op == .And || op == .Or
 
 // Destination-passing : build `e` so its value lands in `dest` (a pre-existing
 // slot), eliding the intermediate temp + copy where the shape allows. A value

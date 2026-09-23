@@ -27,7 +27,7 @@ import "toolchain/span"
 /// isn't an ImportBinding, or when the target lookup fails (let the
 /// caller's kind-check filter the wrong shape).
 follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
-    if sym.kind != SymbolKind.ImportBinding { return sym }
+    if sym.kind != .ImportBinding { return sym }
     targets :: ctx.typed.import_targets ?? return sym
     if targets is ImportTargetTable {
         st :: targets.symbol_targets[sym.id] ?? return sym
@@ -63,7 +63,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) ->
             sym_or_null :: ctx.typed.resolved.idents[inner_id.span.hash()]
             if sym_or_null is Symbol {
                 fn_sym :: follow_import_binding(ctx, sym_or_null)
-                if fn_sym.kind == SymbolKind.Fn {
+                if fn_sym.kind == .Fn {
                     type_args: Type[]!: []
                     for ta in gi.type_args {
                         resolved :: ctx.types.type_expr_type(ta)
@@ -85,7 +85,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) ->
         raw_sym :: ctx.typed.resolved.idents[callee_ident.span.hash()] ?? return null
         if raw_sym is Symbol {
             fn_sym :: follow_import_binding(ctx, raw_sym)
-            if fn_sym.kind != SymbolKind.Fn { return null }
+            if fn_sym.kind != .Fn { return null }
             // Probe the callee's recorded signature (substituted — unchanged
             // for every call site).
             callee_ty :: ctx.types.expr_type(callee_ident)
@@ -163,11 +163,11 @@ emit_generic_fn_call :: fn(
     // call keyed on a placeholder id (`0`) misses and is silently dropped.
     mono_sym :: Symbol {
         .id         = fn_sym.id,
-        .kind       = SymbolKind.Fn,
+        .kind       = .Fn,
         .name       = mangled,
         .module     = fn_sym.module,
         .module_name = fn_sym.module,
-        .visibility = Visibility.Private,
+        .visibility = .Private,
         .defined_at = null,
     }
     return LoweredCall {
@@ -253,11 +253,11 @@ register_and_emit_generic_call :: fn(
     for ca in call.args { lowered_args.push(lower_expr(ctx, ca.value)) }
     mono_sym :: Symbol {
         .id         = fn_sym.id,
-        .kind       = SymbolKind.Fn,
+        .kind       = .Fn,
         .name       = mangled,
         .module     = fn_sym.module,
         .module_name = fn_sym.module,
-        .visibility = Visibility.Private,
+        .visibility = .Private,
         .defined_at = null,
     }
     return LoweredCall {

@@ -1384,3 +1384,6 @@
           buf :Buffer
         arg1:
           c1 :usize
+
+# Diagnostics
+[93:43] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Fast`

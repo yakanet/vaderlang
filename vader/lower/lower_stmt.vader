@@ -324,11 +324,11 @@ synth_unused_local :: fn(ctx: FnLowerCtx!, name: string) -> Symbol {
     next_id :: next_project_synthetic_id(ctx.project)
     return Symbol {
         .id         = next_id,
-        .kind       = SymbolKind.Local,
+        .kind       = .Local,
         .name       = name,
         .module     = ctx.typed.resolved.path,
         .module_name = ctx.typed.resolved.path,
-        .visibility = Visibility.Private,
+        .visibility = .Private,
         .defined_at = null,
     }
 }

@@ -873,8 +873,8 @@ emit_return_boxing :: fn(ctx: FnEmitCfg!, value: LocalId, index: usize, span: Sp
         ctx.fn_.return_type
     }
     ret_val :: val_type_of_type(declared)
-    erased_return :: ret_val == ValType.Ref || ret_val == ValType.Any
-    concrete_prim :: !(rv_val == ValType.Ref || rv_val == ValType.Any || rv_val == ValType.Void)
+    erased_return :: ret_val == .Ref || ret_val == .Any
+    concrete_prim :: !(rv_val == .Ref || rv_val == .Any || rv_val == .Void)
     if erased_return && concrete_prim {
         push_emit(ctx, Box { .type_id = intern_type(rv_type, ctx.project) }, span)
     }
@@ -1650,7 +1650,7 @@ needs_ref_cast :: fn(t: Type) -> bool {
 // array's element type, set at construction.
 array_element_val_type :: fn(t: Type) -> ValType {
     if t is ArrayType { return val_type_of_type(t.element) }
-    return ValType.Any
+    return .Any
 }
 
 // Pop the trailing `local.get N` from the body and replace with a fused

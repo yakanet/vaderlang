@@ -46,7 +46,7 @@ export handle_document_highlight :: fn(state: ServerState, params: JsonValue) ->
 ident_occurrences :: fn(idx: DocIndex, name: string) -> Span[] {
     out: Span[]!: []
     for t in idx.tokens {
-        if t.kind == TokenKind.Ident {
+        if t.kind == .Ident {
             if t.text == name { out.push(t.span) }
         }
     }

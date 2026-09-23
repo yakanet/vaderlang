@@ -226,7 +226,7 @@ collect_or_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) =
 // an operand that narrows nothing (`x is A || flag`) blocks the then side.
 count_or_operands :: fn(cond: AST.Expr) -> usize {
     if cond is AST.BinaryExpr {
-        if cond.op == AST.BinaryOp.Or {
+        if cond.op == .Or {
             return count_or_operands(cond.left) + count_or_operands(cond.right)
         }
     }
@@ -375,7 +375,7 @@ detect_is_narrow :: fn(
     // (field_key "") and `b.opt.<sub>` in the then-block keeps the union type
     // and degrades (the compiler's own `build_if` `e.else_block.span`).
     if cond is AST.UnaryExpr {
-        if cond.op == AST.UnaryOp.Not {
+        if cond.op == .Not {
             inner :: detect_is_narrow(cond.operand, typed, diags) ?? return null
             return IsNarrow {
                 .sym_id    = inner.sym_id,
@@ -389,7 +389,7 @@ detect_is_narrow :: fn(
     if !(cond is AST.BinaryExpr) { return null }
     // `x == null` / `x != null` / `null == x` / `null != x` — both
     // orderings flip the same way.
-    if cond.op == AST.BinaryOp.Eq || cond.op == AST.BinaryOp.Neq {
+    if cond.op == .Eq || cond.op == .Neq {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
         if !(ident_side is null) {
             sym :: typed.resolved.idents[ident_side.span.hash()] ?? return null
@@ -407,7 +407,7 @@ detect_is_narrow :: fn(
             if base is UnresolvedType { return null }
             null_ty :: TY_NULL
             non_null :: subtract_type(base, null_ty)
-            if cond.op == AST.BinaryOp.Eq {
+            if cond.op == .Eq {
                 return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = null_ty, .else_ty = non_null }
             }
             return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = non_null, .else_ty = null_ty }
@@ -423,7 +423,7 @@ detect_is_narrow :: fn(
                 // guards refine instead of resetting to the declared union.
                 base :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
                 non_null :: subtract_type(base, null_ty)
-                if cond.op == AST.BinaryOp.Eq {
+                if cond.op == .Eq {
                     return IsNarrow {
                         .sym_id = 0, .static_ty = base,
                         .then_ty = null_ty, .else_ty = non_null,
@@ -439,7 +439,7 @@ detect_is_narrow :: fn(
         }
         return null
     }
-    if cond.op != AST.BinaryOp.Is { return null }
+    if cond.op != .Is { return null }
     // `x is Cfg` writes only a type NAME, and a name carries no mutability of its
     // own — taken verbatim it would hand back a MUTABLE `Cfg` even when `x` is a
     // read-only borrow, laundering the borrow in one line. Inherit the bit from

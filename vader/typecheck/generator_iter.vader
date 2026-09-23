@@ -39,11 +39,11 @@ GEN_STATE_ID_BASE :: -1000000
 /// (the registry) needn't fabricate a throwaway `Symbol` just to be re-read.
 export gen_state_symbol_of :: fn(fn_id: i32, fn_name: string, module: string) -> Symbol = Symbol {
     .id         = GEN_STATE_ID_BASE - fn_id,
-    .kind       = SymbolKind.Struct,
+    .kind       = .Struct,
     .name       = gen_state_name(fn_name),
     .module     = module,
     .module_name = module,
-    .visibility = Visibility.Private,
+    .visibility = .Private,
     .defined_at = null,
 }
 
@@ -97,8 +97,8 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
             record_struct_trait_args(tp, state_ty, TRAIT_ITERATOR, [e.element])
             tp.iter_element_types[gen_state_name(e.name)] = e.element
             tp.generator_symbols[e.name] = Symbol {
-                .id = e.id, .kind = SymbolKind.Fn, .name = e.name,
-                .module = e.module, .module_name = e.module, .visibility = Visibility.Private, .defined_at = null,
+                .id = e.id, .kind = .Fn, .name = e.name,
+                .module = e.module, .module_name = e.module, .visibility = .Private, .defined_at = null,
             }
         }
     }

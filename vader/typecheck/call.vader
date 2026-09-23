@@ -33,6 +33,17 @@ import "vader/resolver/symbol"
 // bucket has 2+ entries, pre-walk arg[0] and pick the overload whose
 // first param accepts it. Falls back to the initial type when no
 // overload bucket exists or none match.
+// True when the callee names a free fn with 2+ overloads — the only shape where
+// an argument's enum prefix is load-bearing. Mirrors `pick_overload`'s own gate,
+// which is where the candidates come from.
+callee_has_overloads :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
+    if c.callee !is AST.IdentExpr {
+        return false
+    }
+    name :: c.callee.name
+    return collect_overload_candidates(name, c.callee.span.start.file, typed).len() >= 2
+}
+
 pick_overload :: fn(
     c: AST.CallExpr!,
     initial: Type,
@@ -868,6 +879,12 @@ export infer_call :: fn(
         }
         return concrete_ret
     }
+    // See `TypedProgram.overloaded_arg_depth`. Raised around the ARGUMENTS only:
+    // the callee was typed above, and the loop below has no early return.
+    overloaded :: callee_has_overloads(c, typed)
+    if overloaded {
+        typed.overloaded_arg_depth = typed.overloaded_arg_depth + 1
+    }
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
@@ -882,6 +899,9 @@ export infer_call :: fn(
         diags.push(mismatch_diagnostic_hinted(
                 arg_ty, param_ty, c.args[i].span, .TypeMismatch,
                 mutability_level_hint(c.args[i].value, arg_ty, param_ty, typed)))
+    }
+    if overloaded {
+        typed.overloaded_arg_depth = typed.overloaded_arg_depth - 1
     }
     widen_empty_array_on_push(c, typed)
     if diverges {
@@ -926,7 +946,7 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram!) -> void {
     }
     target_ident :: field_callee.target
     symbol :: typed.resolved.idents[target_ident.span.hash()] ?? return
-    if symbol.kind != SymbolKind.Local {
+    if symbol.kind != .Local {
         return
     }
     binding_span :: symbol.defined_at ?? return

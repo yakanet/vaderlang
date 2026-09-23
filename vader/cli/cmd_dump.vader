@@ -460,11 +460,15 @@ run_targets_stage :: fn(file: Path, target: Target | null) -> i32 {
     return 0
 }
 
-// The baked constants are `Os.Darwin` / `Arch.Arm64` by construction — a
-// qualified variant and nothing else. Anything other shape means the generator
-// changed, and printing `(unexpected)` says so rather than rendering something
-// plausible.
+// The baked constants are `.Darwin` / `.Arm64` by construction — a bare variant
+// against the ascribed slot, and nothing else. The qualified `FieldExpr` shape is
+// still read: a generator emitting it is not wrong, only redundant. Any OTHER
+// shape means the generator changed, and printing `(unexpected)` says so rather
+// than rendering something plausible.
 render_baked_value :: fn(e: Expr) -> string {
+    if e is DotVariantExpr {
+        return ".${e.variant}"
+    }
     if e is FieldExpr {
         base :: e.target
         if base is IdentExpr {

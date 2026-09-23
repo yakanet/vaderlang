@@ -447,10 +447,10 @@ test_read_manifest_reads_repo_include_paths :: fn() -> void {
 test_origin_of_root_asks_the_marker_not_the_name :: fn() -> void {
     // A directory is the toolchain's because it holds `std/io/io.vader`, never
     // because it is spelled `lib`. This repo's own tree is the fixture.
-    assert_eq(origin_of_root(LIBRARY_ROOT_DIR), ModuleOrigin.Toolchain)
-    assert_eq(origin_of_root("vader"), ModuleOrigin.Build)
-    assert_eq(origin_of_root("runtime"), ModuleOrigin.Build)
-    assert_eq(origin_of_root("/no/such/dir"), ModuleOrigin.Build)
+    assert_eq(origin_of_root(LIBRARY_ROOT_DIR), .Toolchain)
+    assert_eq(origin_of_root("vader"), .Build)
+    assert_eq(origin_of_root("runtime"), .Build)
+    assert_eq(origin_of_root("/no/such/dir"), .Build)
 }
 
 @test

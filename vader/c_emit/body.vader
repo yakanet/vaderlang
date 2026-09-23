@@ -344,16 +344,16 @@ export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
     is BcPrimitive -> t.val
     // Concrete heap → `.Ref` (void*) ; erased trait/union → `.Any` (box).
     // Mirrors `type_classify.vader::val_type_of_type` (T12).
-    is BcStruct -> ValType.Ref
-    is BcArray -> ValType.Ref
-    is BcFn -> ValType.Ref
-    is BcUnion -> ValType.Any
-    is BcRef -> ValType.Any
+    is BcStruct -> .Ref
+    is BcArray -> .Ref
+    is BcFn -> .Ref
+    is BcUnion -> .Any
+    is BcRef -> .Any
 }
 
 /// True for the boxed value classes (`ref` / `any`) — both collapse to
 /// `vader_box_t` storage and are GC roots.
-export is_ref_val :: fn(v: ValType) -> bool = v == ValType.Ref || v == ValType.Any
+export is_ref_val :: fn(v: ValType) -> bool = v == .Ref || v == .Any
 
 /// Stack value class of the field / slot whose `BcType` lives at
 /// `type_index` in `types`. The field-store / field-read / arg paths use it

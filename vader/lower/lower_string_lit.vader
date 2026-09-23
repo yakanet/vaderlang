@@ -228,7 +228,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
             is StringLitInterp -> {
                 inner :: lower_expr(ctx, part.expr)
                 k :: classify_kind(type_of(inner))
-                if k == WriterKind.Signed || k == WriterKind.Unsigned || k == WriterKind.Bool { has_direct = true }
+                if k == .Signed || k == .Unsigned || k == .Bool { has_direct = true }
                 values.push(inner)
                 kinds.push(k)
             }
@@ -274,25 +274,25 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
     for i in 0..<values.len() {
         v :: values[i]
         k :: kinds[i]
-        if k == WriterKind.Signed {
+        if k == .Signed {
             const_bytes = const_bytes + 20
             write_values.push(cast_to_width(v, "i64", span))
             write_kinds.push(.Signed)
-        } else if k == WriterKind.Unsigned {
+        } else if k == .Unsigned {
             const_bytes = const_bytes + 20
             write_values.push(cast_to_width(v, "u64", span))
             write_kinds.push(.Unsigned)
-        } else if k == WriterKind.Bool {
+        } else if k == .Bool {
             const_bytes = const_bytes + 5
             write_values.push(v)
             write_kinds.push(.Bool)
-        } else if k == WriterKind.Text {
+        } else if k == .Text {
             if v is LoweredStringLit { const_bytes = const_bytes + i64(v.value.bytes().len()) }
             write_values.push(v)
             write_kinds.push(.Str)
         } else {
             // Str / Display — bind to a tmp, add a runtime `byte_len` size term.
-            str_val :: if k == WriterKind.Display { build_display_to_string_call(ctx, v, span) } else { v }
+            str_val :: if k == .Display { build_display_to_string_call(ctx, v, span) } else { v }
             tmp_sym :: fresh_synthetic_symbol(ctx, "p")
             stmts.push(LoweredLet { .span = span, .name = tmp_sym.name, .symbol = tmp_sym, .type = string_type, .value = str_val })
             tmp_ref :: synth_ident(tmp_sym, string_type, span)
@@ -344,7 +344,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
 concat_from_collected :: fn(ctx: FnLowerCtx!, values: LoweredExpr[], kinds: WriterKind[], span: Span) -> LoweredExpr {
     operands: LoweredExpr[]!: []
     for i in 0..<values.len() {
-        if kinds[i] == WriterKind.Str || kinds[i] == WriterKind.Text {
+        if kinds[i] == .Str || kinds[i] == .Text {
             operands.push(values[i])
         } else {
             operands.push(build_display_to_string_call(ctx, values[i], span))
@@ -447,9 +447,9 @@ fold_test_opaque :: fn(name: string) -> LoweredExpr = fold_test_opaque_at(name, 
 fold_test_opaque_at :: fn(name: string, id: i32) -> LoweredExpr = LoweredIdent {
     .span = empty_span(), .type = TY_STRING,
     .symbol = Symbol {
-        .id = id, .kind = SymbolKind.Local, .name = name, .module = "test",
+        .id = id, .kind = .Local, .name = name, .module = "test",
         .module_name = "test",
-        .visibility = Visibility.Private, .defined_at = null,
+        .visibility = .Private, .defined_at = null,
     },
 }
 

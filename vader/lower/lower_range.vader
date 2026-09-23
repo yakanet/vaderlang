@@ -36,7 +36,7 @@ export lower_range_expr :: fn(
             }
         }
         is Symbol -> {
-            if range_symbol.kind != SymbolKind.Struct {
+            if range_symbol.kind != .Struct {
                 return LoweredUnreachable {
                     .span = expr.span, .type = result_type,
                     .reason = "`std/core::Range` resolved to a non-struct symbol",

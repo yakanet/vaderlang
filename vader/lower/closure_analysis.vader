@@ -334,7 +334,7 @@ walk_expr :: fn(
             // enclosing fn has no local for : `tests/snippets/_diag_as_alias_scope`.
             added: i32[]!: []
             if expr.cond is AST.BinaryExpr as cond {
-                if cond.op == AST.BinaryOp.Is {
+                if cond.op == .Is {
                     add_bind_as(cond.bind_as, cond.right.span, scope, ctx.symbol_index, added)
                 }
             }

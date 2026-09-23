@@ -69,7 +69,7 @@ vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
         // The receiver's own result type, so the two arrays stay the same
         // length — a vtable target is never scalarised (`value_return.vader`
         // drops every function a row names), so this is always one entry.
-        .results = [ValType.Any],
+        .results = [.Any],
         .param_types = first_sig.param_types,
         .result_types = [first_result_type],
         .param_names = first_sig.param_names,
@@ -152,7 +152,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
                 args.push(coerce_expr(types, "a${i}", .Any, csig.params[usize(i + 1)]))
             }
             call_expr :: "${sanitise(callee.name)}(${args.join(", ")})"
-            if bc_single_result(sig) == ValType.Void {
+            if bc_single_result(sig) == .Void {
                 out.append("        case ${e.receiver_type_index}u: ${call_expr}; return;\n")
             } else {
                 out.append("        case ${e.receiver_type_index}u: return ${dispatcher_result(types, call_expr, bc_single_result(csig), bc_single_result(sig))};\n")
@@ -160,7 +160,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         }
         out.append("        default: vader_unreachable(\"vtable miss in ${row.key}\");\n")
         out.append("    }\n")
-        if bc_single_result(sig) != ValType.Void {
+        if bc_single_result(sig) != .Void {
             out.append("    vader_unreachable(\"vtable miss in ${row.key}\");\n")
         }
         out.append("}\n")
@@ -174,7 +174,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// `vader_box_t` function does not compile. `Void` has nothing to wrap and `Any`
 /// is already the target shape; everything else does.
 dispatcher_result :: fn(types: BcType[], call_expr: string, impl_result: ValType, sig_result: ValType) -> string =
-    if sig_result == ValType.Any && impl_result != ValType.Any && impl_result != ValType.Void {
+    if sig_result == .Any && impl_result != .Any && impl_result != .Void {
         coerce_expr(types, call_expr, impl_result, .Any)
     } else {
         call_expr

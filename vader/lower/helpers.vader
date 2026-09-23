@@ -102,11 +102,11 @@ export fresh_synthetic_symbol :: fn(ctx: FnLowerCtx!, hint: string) -> Symbol {
     next_id :: next_project_synthetic_id(ctx.project)
     return Symbol {
         .id         = next_id,
-        .kind       = SymbolKind.Synthetic,
+        .kind       = .Synthetic,
         .name       = "__${hint}_${n}",
         .module     = ctx.typed.resolved.path,
         .module_name = ctx.typed.resolved.path,
-        .visibility = Visibility.Private,
+        .visibility = .Private,
         .defined_at = null,
     }
 }
@@ -162,7 +162,7 @@ export or_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr {
     accumulator: LoweredExpr = parts[0]
     for i in 1..<parts.len() {
         accumulator = LoweredBinary {
-            .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Or,
+            .span = span, .type = TY_BOOL, .op = .Or,
             .left = accumulator, .right = parts[i],
         }
     }

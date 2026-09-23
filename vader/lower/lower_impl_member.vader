@@ -216,11 +216,11 @@ build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string
     return UfcsMember {
         .symbol = Symbol {
             .id         = 0,
-            .kind       = SymbolKind.Fn,
+            .kind       = .Fn,
             .name       = mangled,
             .module     = ctx.typed.resolved.path,
             .module_name = ctx.typed.resolved.path,
-            .visibility = Visibility.Private,
+            .visibility = .Private,
             .defined_at = null,
         },
         .is_identity = is_identity,
@@ -396,10 +396,10 @@ mk_into_call :: fn(
         .callee = LoweredIdent {
             .span = span, .type = result_type,
             .symbol = Symbol {
-                .id = 0, .kind = SymbolKind.Fn, .name = callee_name,
+                .id = 0, .kind = .Fn, .name = callee_name,
                 .module = callee_module,
                 .module_name = callee_module,
-                .visibility = Visibility.Private, .defined_at = null,
+                .visibility = .Private, .defined_at = null,
             },
         },
         .args = [arg],

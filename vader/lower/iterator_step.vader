@@ -50,7 +50,7 @@ export resolve_step_shape :: fn(ctx: FnLowerCtx!, element: Type) -> StepShape | 
 export step_is_done :: fn(
     shape: StepShape, step: LoweredExpr, span: Span, ctx: FnLowerCtx,
 ) -> LoweredExpr = LoweredBinary {
-    .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+    .span = span, .type = TY_BOOL, .op = .Eq,
     .left = LoweredFieldAccess {
         .span = span, .type = shape.cont, .target = step, .field = "_1",
     },

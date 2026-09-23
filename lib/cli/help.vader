@@ -90,7 +90,7 @@ export render_command_help :: fn(program: string, cmd: CommandSpec, common: Flag
 // column, which is what makes a long list scannable.
 flag_label :: fn(spec: FlagSpec) -> string {
     lead :: if spec.alias == "" { "    " } else { "-${spec.alias}, " }
-    if spec.kind == FlagKind.Bool {
+    if spec.kind == .Bool {
         return "${lead}--${spec.name}"
     }
     return "${lead}--${spec.name}=${value_placeholder(spec)}"

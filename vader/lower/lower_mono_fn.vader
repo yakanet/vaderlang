@@ -239,7 +239,7 @@ build_fn_instance_decl :: fn(
         .Mixed  -> build_fn_mixed_subst(fn_decl, owner_typed, inst.type_args)
         .Erased -> build_fn_any_subst(fn_decl, owner_typed)
     }
-    force_concrete :: flavor == InstanceFlavor.Mono || flavor == InstanceFlavor.Mixed
+    force_concrete :: flavor == .Mono || flavor == .Mixed
     types :: make_entry_types(owner_typed, subst)
     params: LoweredParam[]!: []
     for ast_param in fn_decl.params {
@@ -365,7 +365,7 @@ call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) ->
             if fd is FnDecl { return fn_instance_flavor(fd, owner_typed, type_args) }
         }
     }
-    return InstanceFlavor.Erased
+    return .Erased
 }
 
 // The instance-mangle suffix a generic free-fn CALL SITE must use, matching the
@@ -375,7 +375,7 @@ call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) ->
 // call-site mangle builders (`emit_generic_fn_call`, `register_and_emit_generic_call`,
 // `try_lower_ufcs_call`) so the registered mangle + inst_key reconcile with the body.
 call_site_instance_suffix :: fn(ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: Type[]) -> string {
-    if call_site_fn_flavor(ctx, fn_sym, concrete_args) == InstanceFlavor.Mixed {
+    if call_site_fn_flavor(ctx, fn_sym, concrete_args) == .Mixed {
         return mixed_any_suffix(concrete_args)
     }
     return mono_suffix(concrete_args)

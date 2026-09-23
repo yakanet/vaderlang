@@ -105,7 +105,7 @@ export BcSignature :: struct {
 /// emitted, never on user input.
 export bc_single_result :: fn(sig: BcSignature) -> ValType {
     if sig.results.len() == 0 {
-        return ValType.Void
+        return .Void
     }
     if sig.results.len() > 1 {
         panic("bytecode: `bc_single_result` reached a signature with ${sig.results.len()} results — this consumer was not taught about arity")
@@ -131,7 +131,7 @@ export bc_single_result_type :: fn(sig: BcSignature) -> i32 {
 /// `ValType.Void` entry rather than the empty arrays, so
 /// asking `results.len()` directly would count one value where none is pushed.
 export bc_result_arity :: fn(sig: BcSignature) -> usize =
-    if sig.results.len() == 1 && sig.results[0] == ValType.Void { 0 } else { sig.results.len() }
+    if sig.results.len() == 1 && sig.results[0] == .Void { 0 } else { sig.results.len() }
 
 /// One declared local — name + stack-erased `ValType`. The C-emit
 /// re-derives the underlying `BcType` from the fn's signature when it

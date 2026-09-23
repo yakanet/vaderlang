@@ -39,7 +39,7 @@ export infer_binary :: fn(
     // `x is T` — right side is a type expression. Record its
     // resolved type directly so dump entries show e.g. `i32`
     // instead of the `type` metatype.
-    if e.op == AST.BinaryOp.Is {
+    if e.op == .Is {
         rhs_ty :: type_from_expr(e.right, typed.resolved, diags)
         typed.expr_types[e.right.id] = rhs_ty
         // `node_spans` / `expr_kinds` here are dump-only (the right side of
@@ -64,7 +64,7 @@ export infer_binary :: fn(
     // Conjunction only. A disjunction's right operand runs exactly when the left
     // was false, so it could see the left's NEGATIVE narrowings ; not wired.
     cond_narrows: IsNarrow[] = []
-    if e.op == AST.BinaryOp.And {
+    if e.op == .And {
         cond_narrows = collect_and_narrows(e.left, typed)
     }
     pushed :: push_then_narrows(cond_narrows, typed)
@@ -263,11 +263,11 @@ carries_mutable_state :: fn(t: Type, typed: TypedProgram) -> bool {
 }
 
 arith_trait_method :: fn(op: AST.BinaryOp) -> string {
-    if op == AST.BinaryOp.Add { return METHOD_ADD }
-    if op == AST.BinaryOp.Sub { return METHOD_SUB }
-    if op == AST.BinaryOp.Mul { return METHOD_MUL }
-    if op == AST.BinaryOp.Div { return METHOD_DIV }
-    if op == AST.BinaryOp.Mod { return METHOD_REM }
+    if op == .Add { return METHOD_ADD }
+    if op == .Sub { return METHOD_SUB }
+    if op == .Mul { return METHOD_MUL }
+    if op == .Div { return METHOD_DIV }
+    if op == .Mod { return METHOD_REM }
     return ""
 }
 
@@ -724,7 +724,7 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
 
 is_enum_like :: fn(t: Type) -> bool {
     if t is EnumType         { return true }
-    if t is StructType { return t.symbol.kind == SymbolKind.Enum }
+    if t is StructType { return t.symbol.kind == .Enum }
     return false
 }
 

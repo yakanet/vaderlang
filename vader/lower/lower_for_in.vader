@@ -458,11 +458,11 @@ build_step_call :: fn(
 synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
     return Symbol {
         .id         = 0,
-        .kind       = SymbolKind.Fn,
+        .kind       = .Fn,
         .name       = name,
         .module     = ctx.typed.resolved.path,
         .module_name = ctx.typed.resolved.path,
-        .visibility = AST.Visibility.Private,
+        .visibility = .Private,
         .defined_at = null,
     }
 }
@@ -492,11 +492,11 @@ resolve_or_synth_symbol :: fn(ctx: FnLowerCtx!, name: string, span: Span) -> Sym
             fresh :: fresh_synthetic_symbol(ctx, name)
             return Symbol {
                 .id         = fresh.id,
-                .kind       = SymbolKind.Local,
+                .kind       = .Local,
                 .name       = name,
                 .module     = ctx.typed.resolved.path,
                 .module_name = ctx.typed.resolved.path,
-                .visibility = AST.Visibility.Private,
+                .visibility = .Private,
                 .defined_at = null,
             }
         }
@@ -577,7 +577,7 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 // and impure/unknown fns still bail. `pctx` carries the project-wide purity memo.
 bce_call_unsafe :: fn(x: LoweredCall, guard_sym: i32, pctx: BcePurityCtx!) -> bool {
     if x.callee is LoweredIdent as cid {
-        if cid.symbol.kind == SymbolKind.Fn {
+        if cid.symbol.kind == .Fn {
             fd :: bce_resolve_fn(pctx, cid.symbol.name, cid.symbol.id)
             if fd != null {
                 if bce_fn_pure(pctx, fd) {
@@ -716,7 +716,7 @@ try_lower_for_in_raw_array :: fn(
     len_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = len_sym }
 
     cond :: LoweredBinary {
-        .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Lt,
+        .span = span, .type = TY_BOOL, .op = .Lt,
         .left = idx_ref, .right = len_ref,
     }
     elem_access :: LoweredIndex {
@@ -727,7 +727,7 @@ try_lower_for_in_raw_array :: fn(
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
-            .span = span, .type = usize_type, .op = LoweredBinaryOp.Add,
+            .span = span, .type = usize_type, .op = .Add,
             .left = idx_ref,
             .right = LoweredIntLit { .span = span, .type = usize_type, .value = 1 },
         },
@@ -870,7 +870,7 @@ try_lower_for_in_int_range :: fn(
     inc_stmt :: LoweredAssign {
         .span = span, .target = counter_ref,
         .value = LoweredBinary {
-            .span = span, .type = bound_type, .op = LoweredBinaryOp.Add,
+            .span = span, .type = bound_type, .op = .Add,
             .left = counter_ref,
             .right = LoweredIntLit {
                 .span = span, .type = bound_type, .value = 1,
@@ -941,8 +941,8 @@ is_integer_type :: fn(t: Type) -> bool {
 
 
 cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {
-    if inclusive { return LoweredBinaryOp.Lte }
-    return LoweredBinaryOp.Lt
+    if inclusive { return .Lte }
+    return .Lt
 }
 
 build_int_range_body :: fn(user_body: LoweredBlock, inc_stmt: LoweredStmt, loop_label: string | null) -> LoweredStmt[] {
@@ -1175,7 +1175,7 @@ lower_map_set_compact :: fn(
         .expr = LoweredIf {
             .span = span, .type = TY_VOID,
             .cond = LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Gte,
+                .span = span, .type = TY_BOOL, .op = .Gte,
                 .left = pos_ref, .right = size_ref,
             },
             .then_block = single_stmt_block(span, LoweredBreak { .span = span, .label = null }),
@@ -1204,7 +1204,7 @@ lower_map_set_compact :: fn(
     pos_inc :: LoweredAssign {
         .span = span, .target = pos_ref,
         .value = LoweredBinary {
-            .span = span, .type = usize_ty, .op = LoweredBinaryOp.Add,
+            .span = span, .type = usize_ty, .op = .Add,
             .left = pos_ref, .right = LoweredIntLit { .span = span, .type = usize_ty, .value = 1 },
         },
     }

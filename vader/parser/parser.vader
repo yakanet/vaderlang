@@ -1574,7 +1574,7 @@ desugar_comptime_const :: fn(p: Parser!, decorators: Decorator[], visibility: Vi
         .span                 = p.span_of(at_tok, end_tok),
         .name                 = synth_name,
         .name_span            = name_tok.span,
-        .visibility           = Visibility.Private,
+        .visibility           = .Private,
         .type_params          = [],
         .params               = [],
         .return_type          = ty,
@@ -3018,7 +3018,7 @@ parse_prefix :: fn(p: Parser!) -> Expr {
                         // value-shape args go through the regular expr
                         // parser.
                         is_type := false
-                        if idx < spec.args.len() && spec.args[idx] == IntrinsicArgKind.Type {
+                        if idx < spec.args.len() && spec.args[idx] == .Type {
                             is_type = true
                         }
                         if is_type {

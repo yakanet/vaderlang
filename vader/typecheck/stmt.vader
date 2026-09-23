@@ -1855,7 +1855,7 @@ push_divergent_narrow_if :: fn(
 // `else` side in `expr_if.vader` where the pushes would overwrite.
 push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram!, stack: DivergentNarrow[]!) -> void {
     if cond is AST.BinaryExpr {
-        if cond.op == AST.BinaryOp.Or {
+        if cond.op == .Or {
             push_guard_narrows(cond.left, typed, stack)
             push_guard_narrows(cond.right, typed, stack)
             return
@@ -2058,7 +2058,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     // Mirrors `expr_if.vader::detect_is_narrow` at a narrower result shape —
     // the divergent-guard case only needs the else-type.
     if cond is AST.UnaryExpr {
-        if cond.op == AST.UnaryOp.Not {
+        if cond.op == .Not {
             inner :: detect_is_narrow_for_block(cond.operand, typed) ?? return null
             // Compose `!(x is T)`'s fall-through from the CURRENT narrowing
             // (after prior guards), not `inner.static_ty` (declared) — which
@@ -2085,7 +2085,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     // `x == null` / `x != null` / `null == x` / `null != x` — both
     // orderings flip the same way ; divergent guard pushes the
     // complement narrowing for the rest of the block.
-    if cond.op == AST.BinaryOp.Eq || cond.op == AST.BinaryOp.Neq {
+    if cond.op == .Eq || cond.op == .Neq {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
         if ident_side !is null {
             sym :: typed.resolved.idents[ident_side.span.hash()] ?? return null
@@ -2101,7 +2101,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             }
             current :: narrow_for_binding(typed, sym.id, base)
             null_ty :: TY_NULL
-            if cond.op == AST.BinaryOp.Eq {
+            if cond.op == .Eq {
                 return BlockNarrow {
                     .sym_id = sym.id,
                     .static_ty = base,
@@ -2116,7 +2116,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             if target !is null {
                 null_ty :: TY_NULL
                 current :: narrow_for_field(typed, target.field_key, target.static_ty)
-                if cond.op == AST.BinaryOp.Eq {
+                if cond.op == .Eq {
                     return BlockNarrow {
                         .sym_id = 0,
                         .static_ty = target.static_ty,
@@ -2134,7 +2134,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         }
         return null
     }
-    if cond.op != AST.BinaryOp.Is {
+    if cond.op != .Is {
         return null
     }
     // Bare-ident scrutinee : narrow the symbol slot for the complement.

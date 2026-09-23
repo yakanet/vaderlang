@@ -172,7 +172,7 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
             continue
         }
 
-        if spec.kind == FlagKind.Bool {
+        if spec.kind == .Bool {
             if eq < 0 {
                 flags[spec.name] = "true"
             } else if inline_value == "true" || inline_value == "false" {
@@ -202,7 +202,7 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
         // `-` means stdin/stdout, and on an `Int` flag a negative number is not
         // ambiguous with anything, since no flag is named `3`.
         looks_like_flag :: next.starts_with("-") && next != "-"
-        negative_number :: spec.kind == FlagKind.Int && !(parse_int(next) is ParseError)
+        negative_number :: spec.kind == .Int && !(parse_int(next) is ParseError)
         if looks_like_flag && !negative_number {
             errors.push("${a}: missing value — \"${next}\" reads as a flag; use ${a}=${next} if it is the value")
             i += 1
@@ -232,7 +232,7 @@ record_str_flag :: fn(spec: FlagSpec, spelling: string, value: string, flags: Mu
     // An `Int` is checked here rather than by the caller, so a bad number is a
     // boundary error like any other. `--parallel=abc` used to be clamped to 1 by
     // the reader and never mentioned.
-    if spec.kind == FlagKind.Int && parse_int(value) is ParseError {
+    if spec.kind == .Int && parse_int(value) is ParseError {
         errors.push("${spelling}: expected an integer, got \"${value}\"")
         return
     }

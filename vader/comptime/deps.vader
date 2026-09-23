@@ -204,7 +204,7 @@ collect_expr_deps :: fn(
     match e {
         is AST.IdentExpr -> {
             symbol :: typed.resolved.idents[e.span.hash()] ?? return
-            if symbol.kind != SymbolKind.Const { return }
+            if symbol.kind != .Const { return }
             dependency_id :: nodes.by_symbol[symbol.id] ?? return
             if seen[dependency_id] is bool { return }
             seen[dependency_id] = true

@@ -283,7 +283,7 @@ ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual:
         // const ident would match it. The DCE seeds those accessors as roots
         // outright instead.
         is LoweredIdent -> {
-            if e.symbol.kind == SymbolKind.Fn {
+            if e.symbol.kind == .Fn {
                 visit_fn(e.symbol.id, e.symbol.name)
             }
         }

@@ -1153,7 +1153,7 @@ export type_expr_marks_mutable :: fn(ty: TypeExpr | null) -> bool {
     if ty == null { return false }
     if ty is MutableTypeExpr { return true }
     if ty is BinaryExpr {
-        if ty.op == BinaryOp.BitOr {
+        if ty.op == .BitOr {
             return type_expr_marks_mutable(ty.left) || type_expr_marks_mutable(ty.right)
         }
     }

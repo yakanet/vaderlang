@@ -477,11 +477,11 @@ test_value_abi_keeps_a_three_way_union_whole :: fn() -> void {
 
 value_abi_test_sym :: fn() -> Symbol = Symbol {
     .id = 9001,
-    .kind = SymbolKind.TypeAlias,
+    .kind = .TypeAlias,
     .name = "Coord",
     .module = "test",
     .module_name = "test",
-    .visibility = Visibility.Private,
+    .visibility = .Private,
     .defined_at = null,
 }
 

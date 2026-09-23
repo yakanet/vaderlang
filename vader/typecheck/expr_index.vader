@@ -102,7 +102,7 @@ export infer_index :: fn(
 /// the `c[i] = v` write (IndexSet, in `stmt.vader::check_assign`).
 export bounded_trait_args :: fn(bound: AST.Expr, trait_name: string, typed: TypedProgram) -> Type[] | null {
     if bound is AST.BinaryExpr {
-        if bound.op == AST.BinaryOp.BitAnd {
+        if bound.op == .BitAnd {
             l :: bounded_trait_args(bound.left, trait_name, typed)
             if l != null {
                 return l

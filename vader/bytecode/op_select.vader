@@ -145,8 +145,8 @@ shr_op :: fn(lhs: ValType) -> Op {
 // ---- comparisons ---------------------------------------------------------
 
 cmp_eq :: fn(lhs: ValType) -> Op {
-    if lhs == ValType.Bool   { return BoolEq {} }
-    if lhs == ValType.String { return StringEq {} }
+    if lhs == .Bool   { return BoolEq {} }
+    if lhs == .String { return StringEq {} }
     if is_float_val(lhs)     { return F64Eq {} }
     if is_64_bit_int_val(lhs) { return I64Eq {} }
     if is_ref_class(lhs)     { return RefEq {} }
@@ -154,8 +154,8 @@ cmp_eq :: fn(lhs: ValType) -> Op {
 }
 
 cmp_ne :: fn(lhs: ValType) -> Op {
-    if lhs == ValType.Bool   { return BoolNe {} }
-    if lhs == ValType.String { return StringNe {} }
+    if lhs == .Bool   { return BoolNe {} }
+    if lhs == .String { return StringNe {} }
     if is_float_val(lhs)     { return F64Ne {} }
     if is_64_bit_int_val(lhs) { return I64Ne {} }
     if is_ref_class(lhs)     { return RefNe {} }
@@ -165,7 +165,7 @@ cmp_ne :: fn(lhs: ValType) -> Op {
 // A reference-shaped operand class — compared by object identity via `RefEq` /
 // `RefNe`, never the numeric i32 path. `.Ref` is a raw pointer post-T12 ; `.Any`
 // / `.Null` are boxes whose pointer lives in `.payload.obj`.
-is_ref_class :: fn(v: ValType) = v == ValType.Ref || v == ValType.Any || v == ValType.Null
+is_ref_class :: fn(v: ValType) = v == .Ref || v == .Any || v == .Null
 
 cmp_lt :: fn(lhs: ValType) -> Op {
     if is_float_val(lhs) { return F64Lt {} }
@@ -313,87 +313,87 @@ export slot_load_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
 import "std/testing"
 
 @test test_add_i32 :: fn() -> void {
-    op :: binary_op_for(LoweredBinaryOp.Add, ValType.I32)
+    op :: binary_op_for(.Add, .I32)
     if op is I32Add { return }
     assert_eq("expected I32Add", "")
 }
 
 @test test_add_i64 :: fn() -> void {
-    op :: binary_op_for(LoweredBinaryOp.Add, ValType.I64)
+    op :: binary_op_for(.Add, .I64)
     if op is I64Add { return }
     assert_eq("expected I64Add", "")
 }
 
 @test test_div_unsigned_uses_u32div :: fn() -> void {
-    op :: binary_op_for(LoweredBinaryOp.Div, ValType.U32)
+    op :: binary_op_for(.Div, .U32)
     if op is U32Div { return }
     assert_eq("expected U32Div", "")
 }
 
 @test test_lt_float_uses_f64lt :: fn() -> void {
-    op :: binary_op_for(LoweredBinaryOp.Lt, ValType.F64)
+    op :: binary_op_for(.Lt, .F64)
     if op is F64Lt { return }
     assert_eq("expected F64Lt", "")
 }
 
 @test test_eq_bool_uses_booleq :: fn() -> void {
-    op :: binary_op_for(LoweredBinaryOp.Eq, ValType.Bool)
+    op :: binary_op_for(.Eq, .Bool)
     if op is BoolEq { return }
     assert_eq("expected BoolEq", "")
 }
 
 @test test_neg_f64 :: fn() -> void {
-    op :: unary_op_for(LoweredUnaryOp.Neg, ValType.F64)
+    op :: unary_op_for(.Neg, .F64)
     if op is F64Neg { return }
     assert_eq("expected F64Neg", "")
 }
 
 @test test_not_bool :: fn() -> void {
-    op :: unary_op_for(LoweredUnaryOp.Not, ValType.Bool)
+    op :: unary_op_for(.Not, .Bool)
     if op is BoolNot { return }
     assert_eq("expected BoolNot", "")
 }
 
 @test test_bitnot_i64 :: fn() -> void {
-    op :: unary_op_for(LoweredUnaryOp.BitNot, ValType.I64)
+    op :: unary_op_for(.BitNot, .I64)
     if op is I64BitNot { return }
     assert_eq("expected I64BitNot", "")
 }
 
 @test test_shr_unsigned_uses_logical_shift :: fn() -> void {
-    op :: binary_op_for(LoweredBinaryOp.Shr, ValType.U32)
+    op :: binary_op_for(.Shr, .U32)
     if op is I32ShrU { return }
     assert_eq("expected I32ShrU", "")
 }
 
 @test test_shr_signed_uses_arithmetic_shift :: fn() -> void {
-    op :: binary_op_for(LoweredBinaryOp.Shr, ValType.I32)
+    op :: binary_op_for(.Shr, .I32)
     if op is I32Shr { return }
     assert_eq("expected I32Shr", "")
 }
 
 @test test_mod_u64_uses_unsigned :: fn() -> void {
-    op :: binary_op_for(LoweredBinaryOp.Mod, ValType.U64)
+    op :: binary_op_for(.Mod, .U64)
     if op is U64Mod { return }
     assert_eq("expected U64Mod", "")
 }
 
 @test test_slot_store_i32_native_width :: fn() -> void {
-    op :: slot_store_op_for(ValType.I32, false)
+    op :: slot_store_op_for(.I32, false)
     if op is StoreSlotI32 { return }
     assert_eq("expected StoreSlotI32 for i32", "")
 }
 
 @test test_slot_store_i64_and_usize :: fn() -> void {
-    op_i64 :: slot_store_op_for(ValType.I64, false)
+    op_i64 :: slot_store_op_for(.I64, false)
     if !(op_i64 is StoreSlotI64) { assert_eq("expected StoreSlotI64 for i64", "") }
-    op_usize :: slot_store_op_for(ValType.Usize, false)
+    op_usize :: slot_store_op_for(.Usize, false)
     if op_usize is StoreSlotI64 { return }
     assert_eq("expected StoreSlotI64 for usize", "")
 }
 
 @test test_slot_store_f64_uses_store_f64 :: fn() -> void {
-    op :: slot_store_op_for(ValType.F64, false)
+    op :: slot_store_op_for(.F64, false)
     if op is StoreSlotF64 { return }
     assert_eq("expected StoreSlotF64 for f64", "")
 }
@@ -401,13 +401,13 @@ import "std/testing"
 // `i16` / `u16` / `f32` slots have no dedicated opcode yet — the selector
 // returns null so the lowerer keeps those element kinds off the Vader path.
 @test test_slot_store_deferred_widths_are_null :: fn() -> void {
-    if slot_store_op_for(ValType.I16, false) != null { assert_eq("expected null for i16", "") }
-    if slot_store_op_for(ValType.U16, false) != null { assert_eq("expected null for u16", "") }
-    if slot_store_op_for(ValType.F32, false) != null { assert_eq("expected null for f32", "") }
+    if slot_store_op_for(.I16, false) != null { assert_eq("expected null for i16", "") }
+    if slot_store_op_for(.U16, false) != null { assert_eq("expected null for u16", "") }
+    if slot_store_op_for(.F32, false) != null { assert_eq("expected null for f32", "") }
 }
 
 @test test_slot_load_mirrors_store :: fn() -> void {
-    if !(slot_load_op_for(ValType.I32, false) is LoadSlotI32) { assert_eq("expected LoadSlotI32 for i32", "") }
-    if !(slot_load_op_for(ValType.F64, false) is LoadSlotF64) { assert_eq("expected LoadSlotF64 for f64", "") }
-    if slot_load_op_for(ValType.F32, false) != null { assert_eq("expected null for f32", "") }
+    if !(slot_load_op_for(.I32, false) is LoadSlotI32) { assert_eq("expected LoadSlotI32 for i32", "") }
+    if !(slot_load_op_for(.F64, false) is LoadSlotF64) { assert_eq("expected LoadSlotF64 for f64", "") }
+    if slot_load_op_for(.F32, false) != null { assert_eq("expected null for f32", "") }
 }

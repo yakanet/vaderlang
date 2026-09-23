@@ -491,12 +491,12 @@ import "toolchain/span"
 fm_i32 :: fn() -> Type = PrimitiveType { .name = "i32" }
 
 fm_sym :: fn() -> Symbol = Symbol {
-    .id = 1, .kind = SymbolKind.Fn, .name = "f", .module = "test",
-    .module_name = "test", .visibility = Visibility.Private, .defined_at = null,
+    .id = 1, .kind = .Fn, .name = "f", .module = "test",
+    .module_name = "test", .visibility = .Private, .defined_at = null,
 }
 
 fm_binop :: fn(dst: LocalId, lhs: LocalId, rhs: LocalId) -> Instruction = InstrBinOp {
-    .span = empty_span(), .dst = dst, .op = LoweredBinaryOp.Add,
+    .span = empty_span(), .dst = dst, .op = .Add,
     .lhs = lhs, .rhs = rhs, .type = fm_i32(),
 }
 

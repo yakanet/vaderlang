@@ -49,10 +49,10 @@ try_lower_tuple_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr | 
     all_equal :: tuple_field_conjunction(
         ctx, synth_ident(left_sym, left_ty, span), synth_ident(right_sym, right_ty, span),
         shape, span) ?? return null
-    result :: if binary.op == BinaryOp.Eq {
+    result :: if binary.op == .Eq {
         all_equal
     } else {
-        LoweredUnary { .span = span, .type = TY_BOOL, .op = LoweredUnaryOp.Not, .operand = all_equal }
+        LoweredUnary { .span = span, .type = TY_BOOL, .op = .Not, .operand = all_equal }
     }
     return LoweredBlock { .span = span, .type = TY_BOOL, .stmts = stmts, .trailing = result }
 }
@@ -71,7 +71,7 @@ tuple_field_conjunction :: fn(
             cmp
         } else {
             LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                .span = span, .type = TY_BOOL, .op = .And,
                 .left = conjunction, .right = cmp,
             }
         }
@@ -94,6 +94,6 @@ tuple_element_eq :: fn(
         return build_member_call_or_inline(member, [l, r], TY_BOOL, span)
     }
     return LoweredBinary {
-        .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq, .left = l, .right = r,
+        .span = span, .type = TY_BOOL, .op = .Eq, .left = l, .right = r,
     }
 }

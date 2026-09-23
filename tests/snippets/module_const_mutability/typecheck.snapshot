@@ -232,3 +232,6 @@
   expr 99:10    IdentExpr      :: type
   expr 99:5     CallExpr       :: void
   expr 99:5     IdentExpr      :: fn(usize) -> void
+
+# Diagnostics
+[93:43] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Fast`

@@ -33,7 +33,7 @@ export find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type
     match symbol {
         is null -> { return null }
         is Symbol -> {
-            if symbol.kind != SymbolKind.Struct { return null }
+            if symbol.kind != .Struct { return null }
             return mk_struct(symbol, args, immutable = false)
         }
     }
@@ -52,7 +52,7 @@ export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | nul
     match raw {
         is null -> { return null }
         is Symbol -> {
-            if raw.kind != SymbolKind.Trait { return null }
+            if raw.kind != .Trait { return null }
             return raw
         }
     }
@@ -79,7 +79,7 @@ export find_core_enum :: fn(ctx: FnLowerCtx!, name: string) -> Type | null {
         return cached
     }
     symbol :: lookup_core_symbol(ctx, name) ?? return null
-    if symbol.kind != SymbolKind.Enum {
+    if symbol.kind != .Enum {
         return null
     }
     // `unwrap_enum_type` reads `ctx.typed.decl_types`, the CURRENT module's, and

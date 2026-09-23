@@ -183,7 +183,7 @@ emit_rest_loop :: fn(
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
-            .span = span, .type = mk_primitive("usize"), .op = LoweredBinaryOp.Add,
+            .span = span, .type = mk_primitive("usize"), .op = .Add,
             .left = idx_ref,
             .right = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = 1 },
         },
@@ -197,7 +197,7 @@ emit_rest_loop :: fn(
     out.push(LoweredLoop {
         .span = span, .label = null,
         .cond = LoweredBinary {
-            .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Lt,
+            .span = span, .type = TY_BOOL, .op = .Lt,
             .left = idx_ref,
             .right = LoweredArrayLen { .span = span, .type = mk_primitive("usize"), .target = target },
         },

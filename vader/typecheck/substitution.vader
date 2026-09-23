@@ -101,11 +101,11 @@ import "toolchain/ast"
 fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
     return Symbol {
         .id         = symbol_id,
-        .kind       = SymbolKind.TypeParam,
+        .kind       = .TypeParam,
         .name       = name,
         .module     = "test",
         .module_name = "test",
-        .visibility = Visibility.Private,
+        .visibility = .Private,
         .defined_at = null,
     }
 }

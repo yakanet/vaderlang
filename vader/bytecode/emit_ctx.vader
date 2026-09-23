@@ -138,7 +138,7 @@ export EmitterCtx :: struct {
 /// @return  a fresh emitter context ready for `emit_bytecode_from_cfg` to fill.
 export new_emitter_ctx :: fn() -> EmitterCtx! {
     types: BcType[]!: []
-    types.push(BcPrimitive { .val = ValType.Null })
+    types.push(BcPrimitive { .val = .Null })
     type_key :: MutableMap<string, i32> {}
     type_key["null"] = 0
     type_hash :: MutableMap<u64, i32> {}

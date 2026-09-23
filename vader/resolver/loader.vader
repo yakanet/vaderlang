@@ -596,8 +596,8 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
                 // Every other non-fn kind duplicated across files breaks the
                 // one-module-owns-one-declaration invariant: R2026 (module
                 // redesign, decision #28).
-                fn_pair     :: existing.kind == SymbolKind.Fn && sym.kind == SymbolKind.Fn
-                import_pair :: existing.kind == SymbolKind.ImportBinding && sym.kind == SymbolKind.ImportBinding
+                fn_pair     :: existing.kind == .Fn && sym.kind == .Fn
+                import_pair :: existing.kind == .ImportBinding && sym.kind == .ImportBinding
                 if !fn_pair && !import_pair {
                     span :: match sym.defined_at {
                         is Span as s -> s
@@ -647,7 +647,7 @@ test_project_include_paths_labels_a_manifest_library_root :: fn() -> void {
     paths :: project_include_paths("", Manifest { .include_paths = ["lib"] }, [])
     for p in paths {
         if p.dir == LIBRARY_ROOT_DIR {
-            assert_eq(p.origin, ModuleOrigin.Toolchain)
+            assert_eq(p.origin, .Toolchain)
             return
         }
     }
@@ -662,5 +662,5 @@ test_project_include_paths_calls_a_flag_the_builds_own :: fn() -> void {
     paths :: project_include_paths(null, Manifest { .include_paths = [] }, ["some/where"])
     assert(paths.len() >= 1, "the flag is a root")
     assert_eq(paths[0].dir, "some/where")
-    assert_eq(paths[0].origin, ModuleOrigin.Build)
+    assert_eq(paths[0].origin, .Build)
 }

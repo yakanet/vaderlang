@@ -186,7 +186,7 @@ type_key_join :: fn(args: Type[], sep: string) -> string {
 /// @return   the `ValType` the operand stack carries for this slot.
 export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is PrimitiveType -> val_type_of_primitive_name(t.name)
-    is StructType    -> ValType.Ref
+    is StructType    -> .Ref
     // Enums ride the operand stack as their backing integer repr, not a boxed
     // ref.
     is EnumType -> val_type_of_primitive_name(t.repr)
@@ -194,23 +194,23 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     // exactly like an enum rides its `repr`. This is what makes `x :: i64`
     // a register scalar, not a boxed `Ref`.
     is DistinctType -> val_type_of_type(t.backing)
-    is ArrayType    -> ValType.Ref
-    is FnType       -> ValType.Ref
-    is TupleType    -> ValType.Ref
+    is ArrayType    -> .Ref
+    is FnType       -> .Ref
+    is TupleType    -> .Ref
     // Erased / dynamic → `.Any` (tagged box). A trait object may box a
     // distinct-primitive impl; a union carries a variable variant; generic
     // type-params / meta / self / `any` are erased.
-    is TraitType          -> ValType.Any
-    is UnionType          -> ValType.Any
-    is TypeParamType      -> ValType.Any
-    is TypeMetaType       -> ValType.Any
-    is SelfType           -> ValType.Any
-    is AnyType            -> ValType.Any
-    is UnresolvedType     -> ValType.Any
-    is FreeIntType        -> ValType.I32
-    is FreeCharType       -> ValType.Char
-    is FreeFloatType      -> ValType.F64
-    is NeverType          -> ValType.Void
+    is TraitType          -> .Any
+    is UnionType          -> .Any
+    is TypeParamType      -> .Any
+    is TypeMetaType       -> .Any
+    is SelfType           -> .Any
+    is AnyType            -> .Any
+    is UnresolvedType     -> .Any
+    is FreeIntType        -> .I32
+    is FreeCharType       -> .Char
+    is FreeFloatType      -> .F64
+    is NeverType          -> .Void
 }
 
 /// Context-aware translation : recursively interns element / param /
@@ -311,9 +311,9 @@ export val_type_of_primitive_name :: fn(name: string) -> ValType {
     // spelling is `pointer` — two namespaces, mapped here rather than by
     // teaching `parse_val_type` a name the text format never writes.
     if name == "CPointer" {
-        return ValType.Pointer
+        return .Pointer
     }
-    parsed :: parse_val_type(name) ?? return ValType.Any
+    parsed :: parse_val_type(name) ?? return .Any
     return parsed
 }
 

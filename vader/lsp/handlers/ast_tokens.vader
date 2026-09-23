@@ -124,19 +124,19 @@ refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken![]!, 
 /// Map a `SymbolKind` to the LSP token type the wire format expects.
 /// Falls back to `Variable` for kinds without a meaningful LSP analogue.
 token_type_of_symbol :: fn(k: SymbolKind) -> TokenType {
-    if k == SymbolKind.Fn            { return .Function }
-    if k == SymbolKind.Struct        { return .Type }
-    if k == SymbolKind.Enum          { return .Type }
-    if k == SymbolKind.Trait         { return .Type }
-    if k == SymbolKind.TypeAlias     { return .Type }
-    if k == SymbolKind.BuiltinType   { return .Type }
-    if k == SymbolKind.TypeParam     { return .Type }
-    if k == SymbolKind.BuiltinFn     { return .Function }
-    if k == SymbolKind.Param         { return .Parameter }
-    if k == SymbolKind.Local         { return .Variable }
-    if k == SymbolKind.Binding       { return .Variable }
-    if k == SymbolKind.Const         { return .Variable }
-    if k == SymbolKind.ImportBinding { return .Variable }
+    if k == .Fn            { return .Function }
+    if k == .Struct        { return .Type }
+    if k == .Enum          { return .Type }
+    if k == .Trait         { return .Type }
+    if k == .TypeAlias     { return .Type }
+    if k == .BuiltinType   { return .Type }
+    if k == .TypeParam     { return .Type }
+    if k == .BuiltinFn     { return .Function }
+    if k == .Param         { return .Parameter }
+    if k == .Local         { return .Variable }
+    if k == .Binding       { return .Variable }
+    if k == .Const         { return .Variable }
+    if k == .ImportBinding { return .Variable }
     return .Variable
 }
 
@@ -146,7 +146,7 @@ token_type_of_symbol :: fn(k: SymbolKind) -> TokenType {
 /// "constant" colour (LSP4IJ → `CONSTANT`); without it a `SCREAMING_SNAKE` const
 /// read as a plain — and worse, reassignable — local.
 modifiers_of_symbol :: fn(k: SymbolKind) -> i32 {
-    if k == SymbolKind.Const {
+    if k == .Const {
         return modifier_bit(.Static) | modifier_bit(.Readonly)
     }
     return 0

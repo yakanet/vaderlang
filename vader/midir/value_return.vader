@@ -272,7 +272,7 @@ emit_rewritten_block :: fn(
         instrs.push(InstrBinOp {
             .span = ins.span,
             .dst = is_absent,
-            .op = LoweredBinaryOp.Eq,
+            .op = .Eq,
             .lhs = fields[0],
             .rhs = zero,
             .type = TY_BOOL,

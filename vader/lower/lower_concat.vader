@@ -96,14 +96,14 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
     // `find_impl_member_for` (it records the mangle in `referenced_impl_mangles`).
     register_nongeneric_imported_fn(ctx, blen_sym)
 
-    fn_symbol :: synth_concat_symbol(ctx, SymbolKind.Fn, "concat_${n}")
+    fn_symbol :: synth_concat_symbol(ctx, .Fn, "concat_${n}")
 
     // Params p0..p<n-1>, all `string`. Keep the symbols so the body can
     // reference each param by the same id midir keys its slot on.
     params: LoweredParam[]!: []
     param_refs: LoweredExpr[]!: []
     for i in 0..<n {
-        psym :: synth_concat_symbol(ctx, SymbolKind.Synthetic, "p${i}")
+        psym :: synth_concat_symbol(ctx, .Synthetic, "p${i}")
         params.push(LoweredParam { .name = psym.name, .symbol = psym, .type = string_type })
         param_refs.push(synth_ident(psym, string_type, span))
     }
@@ -122,7 +122,7 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
                 .left = synth_ident(cum_syms[i - 1], usize_type, span), .right = bl,
             }
         }
-        c_sym :: synth_concat_symbol(ctx, SymbolKind.Synthetic, "c${i}")
+        c_sym :: synth_concat_symbol(ctx, .Synthetic, "c${i}")
         stmts.push(LoweredLet {
             .span = span, .name = c_sym.name, .symbol = c_sym, .type = usize_type, .value = value,
         })
@@ -130,7 +130,7 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
     }
     total_sym :: cum_syms[n - 1]
 
-    buf_sym :: synth_concat_symbol(ctx, SymbolKind.Synthetic, "buf")
+    buf_sym :: synth_concat_symbol(ctx, .Synthetic, "buf")
     stmts.push(LoweredLet {
         .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
         .value = build_member_call_or_inline(
@@ -197,6 +197,6 @@ synth_concat_symbol :: fn(ctx: FnLowerCtx!, kind: SymbolKind, name: string) -> S
     .name       = name,
     .module     = ctx.project.loaded.entry,
     .module_name = ctx.project.loaded.entry,
-    .visibility = Visibility.Private,
+    .visibility = .Private,
     .defined_at = null,
 }

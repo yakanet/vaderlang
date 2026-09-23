@@ -100,7 +100,7 @@ export find_string_array_type_id :: fn(types: bc.BcType[]) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
         if t is bc.BcPrimitive {
-            if t.val == bc.ValType.String { string_idx = i32(i) }
+            if t.val == .String { string_idx = i32(i) }
         }
     }
     if string_idx < 0 { return 0 }
@@ -130,7 +130,7 @@ export find_u8_array_type_id :: fn(types: bc.BcType[]) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
         if t is bc.BcPrimitive {
-            if t.val == bc.ValType.U8 { u8_idx = i32(i) }
+            if t.val == .U8 { u8_idx = i32(i) }
         }
     }
     if u8_idx < 0 { return 0 }

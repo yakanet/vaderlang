@@ -366,7 +366,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
 // scalar reads (ints, floats, bool, char, string atoms, enums) are by value.
 read_may_carry_ref :: fn(t: Type) -> bool {
     v :: val_type_of_type(t)
-    return v == ValType.Ref || v == ValType.Any
+    return v == .Ref || v == .Any
 }
 
 append_alias :: fn(map: MutableMap<LocalId, LocalId[]!>!, dst: LocalId, src: LocalId) -> void {

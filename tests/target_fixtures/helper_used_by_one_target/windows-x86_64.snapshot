@@ -15,8 +15,8 @@
 [lib/std/io/io.vader:937:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `buf`
 
 # Baked
-VADER_OS = Os.Windows
-VADER_ARCH = Arch.X86_64
+VADER_OS = .Windows
+VADER_ARCH = .X86_64
 
 # Selected body
 main$normalize <- main-windows.vader:4

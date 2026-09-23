@@ -693,12 +693,12 @@ walk_if :: fn(self: ResolveState!, e: AST.IfExpr) -> void {
 // but still minted so the use doesn't cascade into a spurious R2006.
 bind_cond_is_as :: fn(self: ResolveState!, cond: AST.Expr, in_conjunction: bool) -> void {
     if cond is AST.BinaryExpr {
-        if cond.op == AST.BinaryOp.And {
+        if cond.op == .And {
             self.bind_cond_is_as(cond.left, true)
             self.bind_cond_is_as(cond.right, true)
             return
         }
-        if cond.op == AST.BinaryOp.Is {
+        if cond.op == .Is {
             self.walk_expr(cond.left)
             self.walk_expr(cond.right)
             if cond.bind_as != "" {
@@ -834,7 +834,7 @@ main :: fn() -> i32 {
     match hit {
         is Symbol -> {
             assert_eq(hit.name, "x")
-            assert(hit.kind == SymbolKind.Local, "should resolve to a Local")
+            assert(hit.kind == .Local, "should resolve to a Local")
         }
         is null -> {
             assert(false, "expected to find resolution for x at 3:12")
@@ -857,7 +857,7 @@ f :: fn(x: i32) -> i32 {
     hit :: resolved.idents[span_at("test.vader", 2, 12).hash()]
     match hit {
         is Symbol -> {
-            assert(hit.kind == SymbolKind.Param, "should resolve to a Param")
+            assert(hit.kind == .Param, "should resolve to a Param")
         }
         is null -> {
             assert(false, "expected to find resolution for x at 2:12")

@@ -117,9 +117,9 @@ export build_wildcard_seed :: fn(
 /// and `BAR` const land in scope unqualified, not just its functions. The other
 /// kinds (import bindings, params, locals, impls, builtins) are never a module's
 /// re-exportable surface.
-export wildcard_exposable :: fn(k: SymbolKind) = k == SymbolKind.Fn || k == SymbolKind.Struct
-    || k == SymbolKind.Enum || k == SymbolKind.Trait || k == SymbolKind.TypeAlias
-    || k == SymbolKind.Const
+export wildcard_exposable :: fn(k: SymbolKind) = k == .Fn || k == .Struct
+    || k == .Enum || k == .Trait || k == .TypeAlias
+    || k == .Const
 
 /// Names that two or more of `wildcard_paths`'s modules both export — the
 /// genuine collisions a bare `import "p1"` + `import "p2"` would create. Returns

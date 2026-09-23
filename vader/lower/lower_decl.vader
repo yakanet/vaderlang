@@ -119,11 +119,11 @@ synth_param_or :: fn(symbol_or_null: Symbol | null, name: string, typed: TypedPr
         is null -> {
             return Symbol {
                 .id         = 0,
-                .kind       = SymbolKind.Param,
+                .kind       = .Param,
                 .name       = name,
                 .module     = typed.resolved.path,
                 .module_name = typed.resolved.path,
-                .visibility = Visibility.Private,
+                .visibility = .Private,
                 .defined_at = null,
             }
         }

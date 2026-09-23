@@ -647,7 +647,7 @@ export create_dir :: fn(path: string) -> null | IOError {
         // the process works from another drive. A CI runner on `D:\a\...` with
         // a `C:` temp directory is exactly that shape. Not guarded off POSIX,
         // where a directory may legitimately be named `a:`.
-        if VADER_OS == Os.Windows && i == 2 && b[1] == ':' {
+        if VADER_OS == .Windows && i == 2 && b[1] == ':' {
             continue
         }
         if !mkdir_one(b[0..<i].bytes_to_string()) {
@@ -1045,7 +1045,7 @@ import "std/testing"
     // on — POSIX `ENOENT`, Win32 `ERROR_FILE_NOT_FOUND`.
     missing :: read_file_bytes("${temp_dir()}/vader_no_such_probe", READ_LIMIT_DEFAULT)
     if missing is IOError {
-        assert_eq(missing.kind, IOErrorKind.NotFound)
+        assert_eq(missing.kind, .NotFound)
         assert(missing.code != 0, "the raw platform code came through too")
     } else {
         assert(false, "reading a missing path must fail")
@@ -1060,7 +1060,7 @@ import "std/testing"
 
     too_big :: read_file_bytes(file, 4)
     if too_big is IOError {
-        assert_eq(too_big.kind, IOErrorKind.Other)
+        assert_eq(too_big.kind, .Other)
         assert_eq(too_big.code, 0)
     } else {
         assert(false, "a read past the ceiling must fail")

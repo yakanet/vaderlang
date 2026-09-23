@@ -31,8 +31,8 @@ collect_vtable_entries :: fn(
                 sym :: d.origin.symbol
                 fn_sym :: if sym is Symbol { sym } else {
                     Symbol {
-                        .id = 0, .kind = SymbolKind.Fn, .name = d.mangled,
-                        .module = "", .module_name = "", .visibility = Visibility.Private, .defined_at = null,
+                        .id = 0, .kind = .Fn, .name = d.mangled,
+                        .module = "", .module_name = "", .visibility = .Private, .defined_at = null,
                     }
                 }
                 out.push(LoweredVtableEntry {

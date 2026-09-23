@@ -185,8 +185,8 @@ gen_instance_subst :: fn(
 // (`gen_instance_subst`) and the chained-combinator subst.
 subst_from_flavor :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, concrete_args: Type[]) -> Substitution {
     flavor :: fn_instance_flavor(fn_decl, owner_typed, concrete_args)
-    if flavor == InstanceFlavor.Mono { return build_fn_concrete_subst(fn_decl, owner_typed, concrete_args) }
-    if flavor == InstanceFlavor.Mixed { return build_fn_mixed_subst(fn_decl, owner_typed, concrete_args) }
+    if flavor == .Mono { return build_fn_concrete_subst(fn_decl, owner_typed, concrete_args) }
+    if flavor == .Mixed { return build_fn_mixed_subst(fn_decl, owner_typed, concrete_args) }
     return build_fn_any_subst(fn_decl, owner_typed)
 }
 

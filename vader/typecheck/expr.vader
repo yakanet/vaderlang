@@ -158,7 +158,7 @@ infer_expr :: fn(
         is AST.CallExpr -> { return infer_call(expr, expected, typed, diags, check_expr) }
         is AST.BinaryExpr -> { return infer_binary(expr, expected, typed, diags, check_expr) }
         is AST.NullCoalesceExpr -> { return infer_null_coalesce(expr, expected, typed, diags, check_expr) }
-        is AST.FieldExpr -> { return infer_field(expr, typed, diags, check_expr) }
+        is AST.FieldExpr -> { return infer_field(expr, expected, typed, diags, check_expr) }
         is AST.StructLitExpr -> { return infer_struct_lit(expr, typed, diags, check_expr) }
         is AST.SeqLitExpr -> { return infer_seq_lit(expr, expected, typed, diags, check_expr) }
         is AST.UnaryExpr -> { return infer_unary(expr, expected, typed, diags, check_expr) }

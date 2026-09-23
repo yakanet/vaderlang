@@ -290,7 +290,7 @@ fn_refs :: fn(d: AST.FnDecl, out: string[]!) -> void {
 
 // ---- root classification --------------------------------------------------
 
-is_public :: fn(v: AST.Visibility) = v == AST.Visibility.Public
+is_public :: fn(v: AST.Visibility) = v == .Public
 
 /// A declaration pins liveness regardless of visibility when it is an entry point
 /// (`main`), host- or test-wired (`@test` / `@extern` / `@intrinsic` / `@export`),

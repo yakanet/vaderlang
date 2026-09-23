@@ -616,7 +616,7 @@ emit_struct_decl :: fn(self: Printer!, d: p.StructDecl) -> void {
         // name ; use THAT line for the blank-line check so a doc directly above
         // it isn't split off by a spurious blank line.
         self.newline()
-        node_line :: if f.visibility == p.Visibility.Private {
+        node_line :: if f.visibility == .Private {
             f.span.start.line - 1
         } else {
             f.span.start.line
@@ -640,14 +640,14 @@ emit_struct_decl :: fn(self: Printer!, d: p.StructDecl) -> void {
 // True when any field opts out of the public default via `@internal`
 // (`.Private`) — such a struct can't use the inline single-line form.
 has_internal_field :: fn(fields: p.StructField[]) -> bool {
-    for f in fields { if f.visibility == p.Visibility.Private { return true } }
+    for f in fields { if f.visibility == .Private { return true } }
     return false
 }
 
 emit_struct_field :: fn(self: Printer!, f: p.StructField) -> void {
     // Fields are public by default ; a `.Private` field carries the
     // `@internal` decorator, emitted on its own line above the field.
-    if f.visibility == p.Visibility.Private {
+    if f.visibility == .Private {
         self.write("@internal")
         self.nl_indent()
     }

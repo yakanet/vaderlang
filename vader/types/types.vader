@@ -999,11 +999,11 @@ slot_size_test_enum :: fn(repr: string) -> Type = EnumType {
 
 slot_size_test_sym :: fn() -> Symbol = Symbol {
     .id = 9002,
-    .kind = SymbolKind.TypeAlias,
+    .kind = .TypeAlias,
     .name = "Color",
     .module = "test",
     .module_name = "test",
-    .visibility = Visibility.Private,
+    .visibility = .Private,
     .defined_at = null,
 }
 

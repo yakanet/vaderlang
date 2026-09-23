@@ -531,13 +531,13 @@ export propagate_const_single_use :: fn(function: BcFunction!) -> BcFunction! {
 /// non-integer const kinds, where the const op and the slot share an exact
 /// ValType.
 const_val_type :: fn(c: ConstOp) -> ValType = match c {
-    is I32Const    -> ValType.I32
-    is I64Const    -> ValType.I64
-    is F64Const    -> ValType.F64
-    is BoolConst   -> ValType.Bool
-    is CharConst   -> ValType.Char
-    is StringConst -> ValType.String
-    is NullConst   -> ValType.Null
+    is I32Const    -> .I32
+    is I64Const    -> .I64
+    is F64Const    -> .F64
+    is BoolConst   -> .Bool
+    is CharConst   -> .Char
+    is StringConst -> .String
+    is NullConst   -> .Null
 }
 
 /// True when constant `cv` can be inlined into a slot of ValType `slot`
@@ -732,7 +732,7 @@ import "std/testing"
 }
 
 @test test_convert_target_of_i32_maps_to_i32 :: fn() -> void {
-    target :: convert_target_of(ValType.I32)
+    target :: convert_target_of(.I32)
     if target is null {
         assert_eq("expected non-null target", "")
         return
@@ -744,7 +744,7 @@ import "std/testing"
 }
 
 @test test_convert_target_of_i64_widths_collapse_to_i64 :: fn() -> void {
-    target :: convert_target_of(ValType.Usize)
+    target :: convert_target_of(.Usize)
     if target is null {
         assert_eq("expected non-null target", "")
         return
@@ -756,7 +756,7 @@ import "std/testing"
 }
 
 @test test_convert_target_of_bool_returns_null :: fn() -> void {
-    target :: convert_target_of(ValType.Bool)
+    target :: convert_target_of(.Bool)
     assert_eq(target is null, true)
 }
 

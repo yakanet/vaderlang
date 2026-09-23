@@ -217,7 +217,7 @@ add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, module_name
     // Colliding with a TYPE or CONST is a genuine duplicate → R2004. Return
     // before bucketing so the conflicting fn isn't orphaned in fn_overloads.
     if existing is Symbol {
-        if existing.kind != SymbolKind.Fn && existing.kind != SymbolKind.ImportBinding {
+        if existing.kind != .Fn && existing.kind != .ImportBinding {
             diags.push(resolver_error(.DuplicateTopLevelSymbol, d.name_span,
                 "`${d.name}` already declared in this module"))
             return
@@ -239,7 +239,7 @@ add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, module_name
         is Symbol -> {
             // Local fn coexisting with a same-named import : local takes
             // the primary slot so unqualified refs resolve to it.
-            if existing.kind == SymbolKind.ImportBinding {
+            if existing.kind == .ImportBinding {
                 self.symbols[d.name] = sym
             }
             // For two fn decls with the same name, the FIRST wins as primary.
@@ -341,7 +341,7 @@ bind_import :: fn(
     existing :: self.symbols[local]
     match existing {
         is Symbol -> {
-            if existing.kind == SymbolKind.ImportBinding {
+            if existing.kind == .ImportBinding {
                 // Import↔import : silent only for a TRUE re-import — identical
                 // source (same path AND same imported name), e.g. the same name
                 // imported twice or a duplicated wildcard path. A DIFFERENT source
@@ -352,7 +352,7 @@ bind_import :: fn(
                 if prev != null && !(prev.path == import_path && names_equal(prev.imported_name, imported_name)) {
                     diags.push(resolver_error(.DuplicateImportBinding, span, "`${local}`"))
                 }
-            } else if existing.kind == SymbolKind.Fn {
+            } else if existing.kind == .Fn {
                 // fn↔import : coexist (order-independent with `add_fn`). The
                 // import may be a free-fn overload of the local fn — a different
                 // signature dispatched by receiver type via UFCS ; a genuine
@@ -492,14 +492,14 @@ main :: fn() -> i32 { return 0 }
     match greet {
         is Symbol -> {
             assert_eq(greet.name, "greet")
-            assert(greet.visibility == Visibility.Public, "exported fn should be public")
+            assert(greet.visibility == .Public, "exported fn should be public")
         }
         is null -> { assert(false, "greet should be collected") }
     }
     main_sym :: collected.symbols["main"]
     match main_sym {
         is Symbol -> {
-            assert(main_sym.visibility == Visibility.Public, "main is implicitly public")
+            assert(main_sym.visibility == .Public, "main is implicitly public")
         }
         is null   -> { assert(false, "main should be collected") }
     }
@@ -524,7 +524,7 @@ import "x" { keep as kept, drop as _ }
     // The rename `keep as kept` binds `kept` as an import-binding.
     kept :: collected.symbols["kept"]
     match kept {
-        is Symbol -> { assert(kept.kind == SymbolKind.ImportBinding, "rename binds an import-binding") }
+        is Symbol -> { assert(kept.kind == .ImportBinding, "rename binds an import-binding") }
         is null   -> { assert(false, "kept should be a rename binding") }
     }
     // The pure exclusion `drop as _` binds nothing.

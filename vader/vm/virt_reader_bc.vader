@@ -117,7 +117,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
     current_name := ""
     current_sig := bc.BcSignature {
         .params = [],
-        .results = [bc.ValType.Void],
+        .results = [.Void],
         .param_types = [],
         .result_types = [0],
         .param_names = [],
@@ -505,7 +505,7 @@ parse_import_decl_bc :: fn(
     sig: bc.BcSignature: if open < 0 {
         bc.BcSignature {
             .params = [],
-            .results = [bc.ValType.Void],
+            .results = [.Void],
             .param_types = [],
             .result_types = [0],
             .param_names = [],
@@ -972,7 +972,7 @@ parse_local_decl_bc :: fn(cleaned: string) -> bc.BcLocal {
     cb :: cleaned.bytes()
     after :: cb["local ".bytes().len()..<cb.len()].bytes_to_string().trim()
     sp :: after.index_of(' ', 0)
-    if sp < 0 { return bc.BcLocal { .name = after, .val = bc.ValType.Void } }
+    if sp < 0 { return bc.BcLocal { .name = after, .val = .Void } }
     ab :: after.bytes()
     nm :: ab[0..<usize(sp)].bytes_to_string()
     vtn :: ab[usize(sp) + 1..<ab.len()].bytes_to_string().trim()
@@ -1010,7 +1010,7 @@ unquote_struct_name :: fn(s: string) -> string {
 
 /// `parse_val_type` with a `Void` fallback for unrecognised spellings.
 vt_or_void :: fn(name: string) -> bc.ValType {
-    v :: bc.parse_val_type(name) ?? return bc.ValType.Void
+    v :: bc.parse_val_type(name) ?? return .Void
     return v
 }
 
@@ -1093,24 +1093,24 @@ type_id_for_symbol :: fn(types: bc.BcType[], symbol_id: i32) -> i32 {
 // a hex byte slice. f32/f64 bit-cast the low bits (f32 held in an `F64Val`, as
 // elsewhere in the VM) ; `Boxed` never appears in a primitive data pool.
 value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
-    if kind == bc.ArrayKind.U8   { return I32Val { .value = i32(bits & 0xff) } }
-    if kind == bc.ArrayKind.I8   {
+    if kind == .U8   { return I32Val { .value = i32(bits & 0xff) } }
+    if kind == .I8   {
         b :: bits & 0xff
         return I32Val { .value = if b >= 0x80 { i32(b) - 256 } else { i32(b) } }
     }
-    if kind == bc.ArrayKind.Bool { return BoolVal { .value = bits != 0 } }
-    if kind == bc.ArrayKind.U16  { return I32Val { .value = i32(bits & 0xffff) } }
-    if kind == bc.ArrayKind.I16  {
+    if kind == .Bool { return BoolVal { .value = bits != 0 } }
+    if kind == .U16  { return I32Val { .value = i32(bits & 0xffff) } }
+    if kind == .I16  {
         v :: bits & 0xffff
         return I32Val { .value = if v >= 0x8000 { i32(v) - 65536 } else { i32(v) } }
     }
-    if kind == bc.ArrayKind.U32  { return I32Val { .value = i32(u32(bits)) } }
-    if kind == bc.ArrayKind.I32  { return I32Val { .value = i32(u32(bits)) } }
-    if kind == bc.ArrayKind.Char { return CharVal { .value = char(u32(bits)) } }
-    if kind == bc.ArrayKind.U64  { return I64Val { .value = i64(bits) } }
-    if kind == bc.ArrayKind.I64  { return I64Val { .value = i64(bits) } }
-    if kind == bc.ArrayKind.F32  { return F64Val { .value = f64((u32(bits)).from_bits()) } }
-    if kind == bc.ArrayKind.F64  { return F64Val { .value = (bits).from_bits() } }
+    if kind == .U32  { return I32Val { .value = i32(u32(bits)) } }
+    if kind == .I32  { return I32Val { .value = i32(u32(bits)) } }
+    if kind == .Char { return CharVal { .value = char(u32(bits)) } }
+    if kind == .U64  { return I64Val { .value = i64(bits) } }
+    if kind == .I64  { return I64Val { .value = i64(bits) } }
+    if kind == .F32  { return F64Val { .value = f64((u32(bits)).from_bits()) } }
+    if kind == .F64  { return F64Val { .value = (bits).from_bits() } }
     return I32Val { .value = 0 }
 }
 
@@ -1147,14 +1147,14 @@ import "std/testing"
     // `assert(==)` not `assert_eq` : ValType has the built-in `==` but no
     // `Equals` trait impl (which `assert_eq`'s generic bound requires).
     assert_eq(f.signature.params.len(), 2)
-    assert(f.signature.params[0] == bc.ValType.I32, "param 0 should be i32")
+    assert(f.signature.params[0] == .I32, "param 0 should be i32")
     assert_eq(f.signature.param_types[0], 0)
-    assert(bc.bc_single_result(f.signature) == bc.ValType.I32, "result should be i32")
+    assert(bc.bc_single_result(f.signature) == .I32, "result should be i32")
     assert_eq(bc.bc_single_result_type(f.signature), 0)
     // local ValType recovered
     assert_eq(f.locals.len(), 1)
     assert_eq(f.locals[0].name, "acc")
-    assert(f.locals[0].val == bc.ValType.I32, "local acc should be i32")
+    assert(f.locals[0].val == .I32, "local acc should be i32")
     // body wired (4 ops) + parallel debug nulls
     assert_eq(f.body.len(), 4)
     assert_eq(f.debug.len(), 4)

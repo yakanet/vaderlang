@@ -41,7 +41,7 @@ import "std/testing"
 @test
 test_virt_roundtrip :: fn() -> void {
     builder :: new_module_builder()
-    builder.add_type(bc.BcPrimitive { .val = bc.ValType.I32 })
+    builder.add_type(bc.BcPrimitive { .val = .I32 })
 
     // compute(a, b) -> i32 = (a + b) * 2
     compute :: new_function_builder("compute", 2, 0)

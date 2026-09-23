@@ -65,7 +65,7 @@ IterChain :: struct {
 // Build an `OpaqueIter` chain bottom over an `Iterator`-typed receiver, iterated
 // through the virtual `next()` vtable path (see `emit_fused_opaque_iter`).
 mk_opaque_iter_chain :: fn(iter_expr: AST.Expr, elem: Type, span: Span) -> IterChain = IterChain {
-    .kind = IterChainKind.OpaqueIter,
+    .kind = .OpaqueIter,
     .range_lower = null, .range_upper = null, .inclusive = false,
     .element_type = elem, .iter_expr = iter_expr,
     .source = null, .span = span,
@@ -74,7 +74,7 @@ mk_opaque_iter_chain :: fn(iter_expr: AST.Expr, elem: Type, span: Span) -> IterC
 // Build a `Generator` chain layer over `source` — the inlined `generator`
 // combinator body carried in `gen_layer` (see `lower_generator_fusion.vader`).
 mk_generator_chain :: fn(source: IterChain, gen_layer: GenComboLayer, span: Span) -> IterChain = IterChain {
-    .kind = IterChainKind.Generator,
+    .kind = .Generator,
     .range_lower = null, .range_upper = null, .inclusive = false,
     .element_type = TY_UNRESOLVED,
     .source = source, .gen_layer = gen_layer, .span = span,
@@ -91,7 +91,7 @@ try_lower_chain_fusion :: fn(
     chain :: top_level_chain(ctx, in_form.iter) ?? return null
     // Bare ranges already hit the int-range fast path ; bypassing
     // would lose `default_if_free` + counter-name fidelity.
-    if chain.kind == IterChainKind.Range { return null }
+    if chain.kind == .Range { return null }
     // Decline when the consumer body can `break` out of a MULTI-SOURCE combinator
     // (`chain`), because fusion would give the wrong answer, silently.
     //
@@ -241,7 +241,7 @@ terminal_pred_arg :: fn(call: AST.CallExpr, name: string) -> TerminalPredCall | 
 
 // `!cond` when `negate`, else `cond`.
 maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
-    if negate { return LoweredUnary { .span = span, .type = TY_BOOL, .op = LoweredUnaryOp.Not, .operand = cond } }
+    if negate { return LoweredUnary { .span = span, .type = TY_BOOL, .op = .Not, .operand = cond } }
     return cond
 }
 
@@ -349,7 +349,7 @@ emit_count_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, span: Span) -> Lower
         .span = span,
         .target = LoweredIdent { .span = span, .type = usize_ty, .symbol = result_sym },
         .value = LoweredBinary {
-            .span = span, .type = usize_ty, .op = LoweredBinaryOp.Add,
+            .span = span, .type = usize_ty, .op = .Add,
             .left = LoweredIdent { .span = span, .type = usize_ty, .symbol = result_sym },
             .right = LoweredIntLit { .span = span, .type = usize_ty, .value = 1 },
         },
@@ -425,7 +425,7 @@ emit_collect_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, result_type: Type,
 // accept it). So a top-level bare `Array` bottom declines here.
 top_level_chain :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | null {
     chain :: descend_chain(ctx, expr, false) ?? return null
-    if chain.kind == IterChainKind.Array && chain.implicit_head { return null }
+    if chain.kind == .Array && chain.implicit_head { return null }
     return chain
 }
 
@@ -479,7 +479,7 @@ descend_chain_concrete :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | nu
             if !is_integer_type(bound) { return null }
             element :: default_if_free(bound)
             return IterChain {
-                .kind = IterChainKind.Range,
+                .kind = .Range,
                 .range_lower = expr.lower,
                 .range_upper = expr.upper,
                 .inclusive = expr.inclusive,
@@ -561,7 +561,7 @@ unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCom
 // head (`arr.map(f)`) vs an explicit `.into()` cursor — see the field
 // on `IterChain`.
 mk_array_chain :: fn(arr_expr: AST.Expr, elem: Type, span: Span, implicit: bool) -> IterChain = IterChain {
-    .kind = IterChainKind.Array,
+    .kind = .Array,
     .range_lower = null, .range_upper = null, .inclusive = false,
     .element_type = elem, .array_expr = arr_expr, .implicit_head = implicit,
     .source = null, .span = span,
@@ -615,7 +615,7 @@ chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {
 // and copies the consumer body into each, which is what makes a `break` in that
 // body unsound (see the guard in `try_lower_chain_fusion`).
 chain_has_multi_source_layer :: fn(chain: IterChain) -> bool {
-    if chain.kind == IterChainKind.Generator {
+    if chain.kind == .Generator {
         if chain.gen_layer is GenComboLayer as gl {
             loops :: extract_gen_source_loops(gl.decl)
             if loops is GenSourceLoop[] as ls {
@@ -815,7 +815,7 @@ emit_fused_range :: fn(
     inc_stmt :: LoweredAssign {
         .span = span, .target = counter_ref,
         .value = LoweredBinary {
-            .span = span, .type = int_type, .op = LoweredBinaryOp.Add,
+            .span = span, .type = int_type, .op = .Add,
             .left = counter_ref,
             .right = LoweredIntLit { .span = span, .type = int_type, .value = 1 },
         },
@@ -883,7 +883,7 @@ emit_fused_array :: fn(
     len_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = len_sym }
 
     cond :: LoweredBinary {
-        .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Lt, .left = idx_ref, .right = len_ref,
+        .span = span, .type = TY_BOOL, .op = .Lt, .left = idx_ref, .right = len_ref,
     }
     elem_access :: LoweredIndex {
         .span = span, .type = elem_type, .target = arr_ref, .index = idx_ref, .bce_recheck = true,
@@ -892,7 +892,7 @@ emit_fused_array :: fn(
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
-            .span = span, .type = usize_type, .op = LoweredBinaryOp.Add,
+            .span = span, .type = usize_type, .op = .Add,
             .left = idx_ref, .right = LoweredIntLit { .span = span, .type = usize_type, .value = 1 },
         },
     }

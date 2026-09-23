@@ -505,7 +505,7 @@ import "std/testing"
     // wouldn't have a `value_name`, so it trips here.
     for c in COMMANDS {
         for f in command_specs(c) {
-            if f.kind == FlagKind.Bool {
+            if f.kind == .Bool {
                 assert(f.value_name == "",
                     "--${f.name} of `${c.name}` is a Bool but names a value")
                 continue
@@ -587,7 +587,7 @@ import "std/testing"
     // program. If a second action ever forwards, the help and the "options must
     // come before the file" error both need to know.
     for c in COMMANDS {
-        if c.tail == TailKind.Forward {
+        if c.tail == .Forward {
             assert_eq(c.name, "run")
         }
     }

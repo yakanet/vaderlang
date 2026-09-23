@@ -198,11 +198,11 @@ LOOP_VAR_KEY: u64: 42
 
 type_param_t :: fn() = Symbol {
     .id         = 7,
-    .kind       = SymbolKind.TypeParam,
+    .kind       = .TypeParam,
     .name       = "T",
     .module     = "test",
     .module_name = "test",
-    .visibility = Visibility.Private,
+    .visibility = .Private,
     .defined_at = null,
 }
 
@@ -243,11 +243,11 @@ type_param_t :: fn() = Symbol {
     subst :: new_substitution()
     symbol :: Symbol {
         .id         = 11,
-        .kind       = SymbolKind.TypeParam,
+        .kind       = .TypeParam,
         .name       = "T",
         .module     = "test",
         .module_name = "test",
-        .visibility = Visibility.Private,
+        .visibility = .Private,
         .defined_at = null,
     }
     subst.type_params[11] = mk_primitive("string")

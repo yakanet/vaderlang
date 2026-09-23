@@ -773,16 +773,16 @@ MAX :: 10
 
 @test
 test_ci_kind_mapping :: fn() -> void {
-    assert(ci_kind(.Fn) == CompletionItemKind.Function, "Fn -> Function")
-    assert(ci_kind(.Struct) == CompletionItemKind.Struct, "Struct -> Struct")
-    assert(ci_kind(.Const) == CompletionItemKind.Constant, "Const -> Constant")
-    assert(ci_kind(.Local) == CompletionItemKind.Variable, "Local -> Variable")
+    assert(ci_kind(.Fn) == .Function, "Fn -> Function")
+    assert(ci_kind(.Struct) == .Struct, "Struct -> Struct")
+    assert(ci_kind(.Const) == .Constant, "Const -> Constant")
+    assert(ci_kind(.Local) == .Variable, "Local -> Variable")
 }
 
 @test
 test_import_ci_kind_casing :: fn() -> void {
-    assert(import_ci_kind("MutableMap") == CompletionItemKind.Class, "type -> Class")
-    assert(import_ci_kind("println") == CompletionItemKind.Function, "value -> Function")
+    assert(import_ci_kind("MutableMap") == .Class, "type -> Class")
+    assert(import_ci_kind("println") == .Function, "value -> Function")
 }
 
 @test
