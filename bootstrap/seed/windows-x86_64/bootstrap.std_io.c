@@ -122,7 +122,7 @@ static vader_string_t std_io_describe_io_error_kind(uint8_t l0) {
                             l1 = 1838u;
                         } else {
                             if (l0 == INT32_C(7)) {
-                                l1 = 2504u;
+                                l1 = 2505u;
                             } else {
                                 if (l0 == INT32_C(8)) {
                                     l1 = 1348u;

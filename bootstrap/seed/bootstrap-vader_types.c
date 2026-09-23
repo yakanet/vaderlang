@@ -399,19 +399,19 @@ vader_string_t vader_types_display_type(vader_box_t l0) {
         { vader_gc_top = gc_frame.prev; return 1975u; }
     }
     if (l0.tag == 896u) {
-        { vader_gc_top = gc_frame.prev; return 2526u; }
+        { vader_gc_top = gc_frame.prev; return 2527u; }
     }
     if (l0.tag == 895u) {
-        { vader_gc_top = gc_frame.prev; return 2525u; }
+        { vader_gc_top = gc_frame.prev; return 2526u; }
     }
     if (l0.tag == 894u) {
-        { vader_gc_top = gc_frame.prev; return 2524u; }
+        { vader_gc_top = gc_frame.prev; return 2525u; }
     }
     if (l0.tag == 900u) {
         { vader_gc_top = gc_frame.prev; return 755u; }
     }
     if (l0.tag == 904u) {
-        { vader_gc_top = gc_frame.prev; return 2269u; }
+        { vader_gc_top = gc_frame.prev; return 2270u; }
     }
     if (l0.tag == 889u) {
         { vader_gc_top = gc_frame.prev; return 556u; }
@@ -1471,7 +1471,7 @@ static void vader_types_write_type_mut(void* l0, vader_box_t l1, bool l2) {
                             std_string_builder_append(l0, l3);
                         } else {
                             if (l1.tag == 904u) {
-                                std_string_builder_append(l0, 2269u);
+                                std_string_builder_append(l0, 2270u);
                             } else {
                                 if (l1.tag == 900u) {
                                     std_string_builder_append(l0, 755u);
@@ -1483,13 +1483,13 @@ static void vader_types_write_type_mut(void* l0, vader_box_t l1, bool l2) {
                                             std_string_builder_append(l0, 1975u);
                                         } else {
                                             if (l1.tag == 896u) {
-                                                std_string_builder_append(l0, 2526u);
+                                                std_string_builder_append(l0, 2527u);
                                             } else {
                                                 if (l1.tag == 895u) {
-                                                    std_string_builder_append(l0, 2525u);
+                                                    std_string_builder_append(l0, 2526u);
                                                 } else {
                                                     if (l1.tag == 894u) {
-                                                        std_string_builder_append(l0, 2524u);
+                                                        std_string_builder_append(l0, 2525u);
                                                     } else {
                                                         if (l1.tag == 890u) {
                                                             t0 = l1.payload.obj;
