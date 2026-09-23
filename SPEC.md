@@ -3456,6 +3456,8 @@ ProcessResult :: struct {
 
 spawn :: fn(argv: string[]) -> ProcessResult | ProcessError
 
+processor_count :: fn() -> i32                      // logical processors online, at least 1
+
 // Lower-level primitives `spawn` is built on (capture lives in thread-local state).
 spawn_run         :: fn(argv: string[]) -> i32       // run, return exit code
 spawn_last_stdout :: fn() -> string                  // captured stdout of the last spawn_run

@@ -403,7 +403,9 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     }
 
     // Link the objects into the final binary (link is inherently serial).
-    lres :: spawn(cc_link_argv(cc, obj_files, out, ldflags, release, flavour))
+    // The link runs alone, so it may use what the compiles were bounded to.
+    link_jobs :: if cc_jobs > 0 { cc_jobs } else { processor_count() }
+    lres :: spawn(cc_link_argv(cc, obj_files, out, ldflags, release, flavour, link_jobs))
     if lres is ProcessError {
         eprintln("vader build: ${lres.message()}")
         return 1
@@ -810,7 +812,7 @@ cc_compile_argv :: fn(
 ) -> string[] {
     argv: string[]!: [cc]
     argv.push_all(cc_opt_flags(release))
-    argv.push_all(lto_flags(flavour, release, false))
+    argv.push_all(lto_flags(flavour, release, false, 0))
     argv.push("-I")
     argv.push(rt)
     argv.push("-c")
@@ -850,9 +852,10 @@ cc_flavour :: fn(cc: string) -> CcFlavour {
 // (a no-op on macOS / MinGW).
 cc_link_argv :: fn(
     cc: string, objs: string[], out: Path, ldflags: string, release: bool, flavour: CcFlavour,
+    jobs: i32,
 ) -> string[] {
     argv: string[]!: [cc]
-    argv.push_all(lto_flags(flavour, release, true))
+    argv.push_all(lto_flags(flavour, release, true, jobs))
     argv.push_all(objs)
     push_ldflags(argv, ldflags)
     argv.push("-o")

@@ -79,8 +79,9 @@ THIN_LTO_IMPORT_LIMIT :: "300"
 /// @param flavour  the toolchain family.
 /// @param release  false disables LTO entirely.
 /// @param linking  true for the link step, which carries the extra knobs.
+/// @param jobs     GCC's LTRANS job count on the link step; ignored otherwise.
 /// @return         flags to append, empty when LTO does not apply.
-export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool) -> string[] {
+export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool, jobs: i32) -> string[] {
     if !release {
         return []
     }
@@ -94,11 +95,14 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool) -> stri
         }
         return ["-flto=thin"]
     }
+    // GCC runs its LTRANS jobs through `make -jN`. The count is explicit because
+    // `auto` is resolved by the toolchain, and MinGW's resolves it to `-j1`: the
+    // whole-program -O3 pass then runs on one core.
     if flavour == .Gcc {
         if linking {
-            return ["-flto=auto", "-O3"]
+            return ["-flto=${jobs}", "-O3"]
         }
-        return ["-flto=auto"]
+        return ["-flto"]
     }
     return []
 }
@@ -308,3 +312,12 @@ export strip_input_suffix :: fn(file: Path) -> Path =
 export c_source_of :: fn(cfg: CfgBytecode, release: bool) -> string =
     emit_c(cfg.module, CEmitOptions { .release = release, .entry_mangled = cfg.entry })
 
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_lto_flags_gcc_link_names_its_job_count :: fn() -> void {
+    link :: lto_flags(.Gcc, true, true, 6)
+    assert("-flto=6" in link, "gcc's link line carries the job count it was given")
+}

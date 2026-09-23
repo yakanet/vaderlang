@@ -62,7 +62,7 @@ case "$CC_JOBS" in ''|*[!0-9]*|0) CC_JOBS=$(cc_jobs) ;; esac
 # calls itself its single source of truth, and is right to. stage1 is linked by
 # a `cc` this script drives, so the script has to know the policy; there is no
 # compiler in the loop yet to ask. Keep the two in step: the flags, the toolchain
-# probe and the import limit all live there.
+# probe, the import limit and GCC's explicit LTRANS job count all live there.
 release_cflags() {
     echo "-std=c11 -O3 -DNDEBUG -falign-functions=64"
 }
@@ -79,7 +79,7 @@ cc_flavour() {
 lto_compile_flags() {
     case "$(cc_flavour)" in
       clang) echo "-flto=thin" ;;
-      gcc)   echo "-flto=auto" ;;
+      gcc)   echo "-flto" ;;
       *)     echo "" ;;
     esac
 }
@@ -87,7 +87,7 @@ lto_compile_flags() {
 lto_link_flags() {
     case "$(cc_flavour)" in
       clang) echo "-flto=thin -O3 -Wl,-mllvm,-import-instr-limit=300" ;;
-      gcc)   echo "-flto=auto -O3" ;;
+      gcc)   echo "-flto=$CC_JOBS -O3" ;;
       *)     echo "" ;;
     esac
 }

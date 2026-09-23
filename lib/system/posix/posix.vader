@@ -409,6 +409,18 @@ export TIOCGWINSZ: u64: if VADER_OS == .Darwin { 0x4008_7468 } else { 0x5413 }
 @extern("ioctl")
 export sys_ioctl_winsize :: fn(fd: i32, request: u64, @c_pointer ws: Winsize!) -> i32
 
+/// `_SC_NPROCESSORS_ONLN` — the processors currently online. The value is not
+/// portable: 58 on Darwin, 84 on Linux.
+export SC_NPROCESSORS_ONLN: i32: if VADER_OS == .Darwin { 58 } else { 84 }
+
+/// `sysconf(3)`. The value of the configuration variable `name`, or -1 with
+/// `errno` set — an unknown `name` is `EINVAL`.
+///
+/// @param name  one of the `SC_*` selectors.
+@c_header("<unistd.h>")
+@extern("sysconf")
+export sys_sysconf :: fn(name: i32) -> i64
+
 /// `isatty(3)`. Whether `fd` refers to a terminal.
 ///
 /// @param fd  the descriptor — 1 for stdout, 2 for stderr.

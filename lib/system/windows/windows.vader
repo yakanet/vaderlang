@@ -27,6 +27,18 @@ export STD_INPUT_HANDLE: u32 : 0xFFFF_FFF6
 @extern("kernel32", "GetStdHandle")
 export get_std_handle :: fn(which: u32) -> Handle
 
+/// `ALL_PROCESSOR_GROUPS` — asks `GetActiveProcessorCount` for every group, not
+/// just the caller's (a group holds at most 64 processors).
+export ALL_PROCESSOR_GROUPS: u16 : 0xFFFF
+
+/// `GetActiveProcessorCount`. Logical processors active in `group`; 0 on
+/// failure.
+///
+/// @param group  a processor group, or `ALL_PROCESSOR_GROUPS`.
+@c_header("<windows.h>")
+@extern("kernel32", "GetActiveProcessorCount")
+export get_active_processor_count :: fn(group: u16) -> u32
+
 /// `GetModuleFileNameW`. Writes the running module's path into `buf` and
 /// returns its length; 0 on failure, or `size` exactly when it was truncated.
 ///

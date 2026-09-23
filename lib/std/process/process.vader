@@ -126,6 +126,24 @@ child_alloc :: fn() -> i64 {
 child_valid :: fn(handle: i64) -> bool =
     handle >= 0 && usize(handle) < CHILDREN.len() && CHILDREN[usize(handle)].in_use
 
+/// Number of logical processors online — what a caller sizes a parallel fan-out
+/// on. At least 1: a platform that cannot tell answers 1.
+export processor_count :: fn() -> i32 {
+    n :: platform_processor_count()
+    return if n < 1 { 1 } else { i32(n) }
+}
+
+// The platform call's own answer, failure included (-1 from `sysconf`, 0 from
+// Win32), so a test can tell a wrong selector from a one-processor machine.
+@target
+platform_processor_count :: fn() -> i64 = 1
+
+@target(.Linux, .Darwin)
+platform_processor_count :: fn() -> i64 = sys_sysconf(SC_NPROCESSORS_ONLN)
+
+@target(.Windows)
+platform_processor_count :: fn() -> i64 = i64(get_active_processor_count(ALL_PROCESSOR_GROUPS))
+
 /// Launch `argv` without waiting ; returns a handle into the child table, or a
 /// negative value on launch failure. Pipes for stdout/stderr are captured and
 /// drained by `spawn_poll`.
@@ -706,3 +724,12 @@ export spawn_async :: fn(argv: string[]) -> Async<ProcessResult | ProcessError> 
 /// @error        `ProcessError` on launch failure, a killing signal, or empty
 ///               `argv`.
 export spawn :: fn(argv: string[]) -> ProcessResult | ProcessError = block_on(spawn_async(argv))
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_processor_count_platform_call_succeeds :: fn() -> void {
+    assert(platform_processor_count() >= 1, "the platform reports its processors — a wrong selector reads -1")
+}

@@ -87,13 +87,13 @@ function CcFlavour {
 }
 
 function LtoCompileFlags {
-    switch (CcFlavour) { 'clang' { @('-flto=thin') } 'gcc' { @('-flto=auto') } default { @() } }
+    switch (CcFlavour) { 'clang' { @('-flto=thin') } 'gcc' { @('-flto') } default { @() } }
 }
 
 function LtoLinkFlags {
     switch (CcFlavour) {
         'clang' { @('-flto=thin', '-O3', '-Wl,-mllvm,-import-instr-limit=300') }
-        'gcc'   { @('-flto=auto', '-O3') }
+        'gcc'   { @("-flto=$ccJobs", '-O3') }
         default { @() }
     }
 }

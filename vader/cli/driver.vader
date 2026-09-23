@@ -454,8 +454,7 @@ rebuild_driver :: fn(
     //
     // Eight restores the bound the driver had before the partition became one TU
     // per module, and is a floor on the runners this project targets (GitHub's
-    // are 4-core). A real `min(units, cores)` wants a CPU-count host fn the tree
-    // does not have yet.
+    // are 4-core).
     DRIVER_CC_JOBS :: 8
     // The driver is a normal native build; `toolchain/build` resolves through the
     // compiler's own sources, and the driver's module through the entry's folder.
