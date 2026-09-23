@@ -454,9 +454,9 @@ static uint64_t std_core_bits64(void* l0, int32_t l1) {
 vader_string_t std_core_bool_Display_to_string(bool l0) {
     vader_string_t l1;
     if (l0) {
-        l1 = 2258u;
+        l1 = 2261u;
     } else {
-        l1 = 1629u;
+        l1 = 1631u;
     }
     return l1;
 }
@@ -1297,12 +1297,12 @@ static vader_string_t std_core_format_f32(float l0) {
     l1 = (uint32_t) (int32_t) t0;
     if (l1 == INT32_C(255)) {
         if (l3 != INT32_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 1969u; }
+            { vader_gc_top = gc_frame.prev; return 1971u; }
         }
         if (l2) {
             l4 = 435u;
         } else {
-            l4 = 1793u;
+            l4 = 1795u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -1349,12 +1349,12 @@ static vader_string_t std_core_format_f64(double l0) {
     l1 = (uint64_t) (int64_t) t0;
     if (l1 == INT64_C(2047)) {
         if (l3 != INT64_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 1969u; }
+            { vader_gc_top = gc_frame.prev; return 1971u; }
         }
         if (l2) {
             l4 = 435u;
         } else {
-            l4 = 1793u;
+            l4 = 1795u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -3016,10 +3016,10 @@ size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l2) {
-        t0 = std_core_write_string_at(l0, l1, 2258u);
+        t0 = std_core_write_string_at(l0, l1, 2261u);
         { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = std_core_write_string_at(l0, l1, 1629u);
+    t0 = std_core_write_string_at(l0, l1, 1631u);
     { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
