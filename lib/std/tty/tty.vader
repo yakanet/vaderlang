@@ -76,7 +76,7 @@ is_tty :: fn(stream: Stream = .Stdout) -> bool {
     TTY_CACHE[i] = 0
     which :: if i == 1 { STD_ERROR_HANDLE } else { STD_OUTPUT_HANDLE }
     h :: get_std_handle(which)
-    if h == INVALID_HANDLE {
+    if isize(h) == INVALID_HANDLE {
         return false
     }
     mode: u32[]!: [0]

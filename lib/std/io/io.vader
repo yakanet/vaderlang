@@ -383,7 +383,7 @@ POLL_SLICE_MS: u32 : 5
 @target(.Windows)
 poll_stdin :: fn(timeout_ms: i32) -> bool {
     h :: get_std_handle(STD_INPUT_HANDLE)
-    if h == INVALID_HANDLE {
+    if isize(h) == INVALID_HANDLE {
         return true
     }
     waited: i32 = 0
