@@ -79,7 +79,7 @@ is_tty :: fn(stream: Stream = .Stdout) -> bool {
     if h == INVALID_HANDLE {
         return false
     }
-    mode: u32[]! = [0]
+    mode: u32[]!: [0]
     if !get_console_mode(h, mode) {
         return false
     }

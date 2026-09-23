@@ -1,5 +1,5 @@
 # Diagnostics
-[lib/std/io/io.vader:827:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `buf`
+(none)
 
 # Baked
 VADER_OS = .Linux

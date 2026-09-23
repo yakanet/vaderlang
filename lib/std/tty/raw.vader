@@ -103,7 +103,7 @@ raw_mode_begin :: fn() -> bool {
     if h == INVALID_HANDLE {
         return false
     }
-    mode: u32[]! = [0]
+    mode: u32[]!: [0]
     // Fails on a pipe or a redirected file — exactly when there is no console to
     // put in raw mode. Reported rather than pretended.
     if !get_console_mode(h, mode) {
@@ -235,8 +235,8 @@ read_keys :: fn(max: i32) -> string | null {
     if h == INVALID_HANDLE {
         return null
     }
-    buf: u8[]! = [0] * usize(n)
-    got: u32[]! = [0]
+    buf: u8[]!: [0] * usize(n)
+    got: u32[]!: [0]
     if !read_file(h, buf, u32(n), got, null) {
         return null
     }

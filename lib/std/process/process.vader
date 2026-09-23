@@ -360,10 +360,10 @@ spawn_start :: fn(argv: string[]) -> i64 {
     }
     // Inheritable ends, so the child receives the write halves.
     sa :: SecurityAttributes { .nLength = 24, .lpSecurityDescriptor = 0, .bInheritHandle = 1 }
-    out_r: usize[]! = [0]
-    out_w: usize[]! = [0]
-    err_r: usize[]! = [0]
-    err_w: usize[]! = [0]
+    out_r: usize[]!: [0]
+    out_w: usize[]!: [0]
+    err_r: usize[]!: [0]
+    err_w: usize[]!: [0]
     if !create_pipe(out_r, out_w, sa, 0) {
         return -1
     }
@@ -511,9 +511,9 @@ needs_quoting :: fn(word: u8[]) -> bool {
 @target(.Windows)
 drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool {
     h :: win_handle(child, which)
-    chunk: u8[]! = [0] * DRAIN_CHUNK
-    avail: u32[]! = [0]
-    got: u32[]! = [0]
+    chunk: u8[]!: [0] * DRAIN_CHUNK
+    avail: u32[]!: [0]
+    got: u32[]!: [0]
     for {
         if !peek_named_pipe(h, null, 0, null, avail, null) {
             // The peek fails once the write end is gone — that is the EOF.
@@ -533,7 +533,6 @@ drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool {
             into.push(chunk[i])
         }
     }
-    return false
 }
 
 @target(.Windows)
@@ -545,8 +544,8 @@ spawn_poll :: fn(handle: i64) -> i32 {
     if c.done {
         return c.exit_code
     }
-    out_eof := if c.out_eof { true } else { drain_pipe(handle, 1, c.out) }
-    err_eof := if c.err_eof { true } else { drain_pipe(handle, 2, c.err) }
+    out_eof :: if c.out_eof { true } else { drain_pipe(handle, 1, c.out) }
+    err_eof :: if c.err_eof { true } else { drain_pipe(handle, 2, c.err) }
     proc :: win_handle(handle, 0)
     if wait_for_single_object(proc, 0) != WAIT_OBJECT_0 {
         CHILDREN[usize(handle)] = with_eof(c, out_eof, err_eof)
@@ -560,7 +559,7 @@ spawn_poll :: fn(handle: i64) -> i32 {
     if !err_eof {
         drain_pipe(handle, 2, c.err)
     }
-    code: u32[]! = [0]
+    code: u32[]!: [0]
     got :: get_exit_code_process(proc, code)
     close_handle(win_handle(handle, 1))
     close_handle(win_handle(handle, 2))
