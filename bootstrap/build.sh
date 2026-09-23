@@ -1,42 +1,37 @@
 #!/usr/bin/env bash
-# Build the full Vader compiler from the committed C seed — TWO stages:
+# Build the full Vader compiler from the committed C seed — THREE stages:
 #   seed   ─cc→                 build/stage0  (bootstrap compiler; emits C only)
-#   stage0 ─emit C→ cc release→ build/vader   (= stage1, the shipped compiler)
+#   stage0 ─emit C→ cc release→ build/stage1  (the tree's semantics, the seed's codegen)
+#   stage1 ─build native→       build/vader   (= stage2, the shipped compiler)
 #
-# stage1 behaves exactly as a stage2 would — that is what `verify.sh` proves — and
-# only its machine code comes from the seed's codegen instead of the tree's. The
-# distance between the two is the seed's AGE, which `.githooks/pre-push` keeps at
-# zero for anything published. `--three-stage` adds the extra round:
-#   stage1 ─build native→  build/vader  (= stage2), with stage1 kept for comparison
-# which is what `verify.sh` needs, since the fixed point compares the two.
+# stage1's machine code comes from the SEED's codegen, which may be older than the
+# tree's; stage2 is the tree compiled by the tree, so the shipped binary does not
+# depend on the seed's age. `verify.sh` proves stage1 and stage2 emit the same C.
 #
 # Needs only a C compiler — no Bun, no TS, no pre-existing vader binary.
 # The C compiler defaults to `cc`; override with `CC=clang bootstrap/build.sh`. It
 # is resolved to an absolute path and passed to stage1 via --cc, so the compiler
 # stage1 spawns is exactly the one used here. stage0 is a throwaway built -O1
-# (STAGE0_CFLAGS): -O0 compiles faster but it runs the heavy work, and -O1 wins the
-# total by ~11 s. stage1 is built -O3+LTO in BOTH modes — under `--three-stage` it
-# is a throwaway too, but `verify.sh` compares its emission against stage2's, and
-# two binaries built differently do not answer the question that check asks.
+# (STAGE0_CFLAGS); stage1 is built like stage2 (ADR 0004).
 # Pass --dist to also assemble a self-contained dist/vader-<os>-<arch>/ bundle
 # (binary + lib/ + runtime/c). See docs/BOOTSTRAP.md.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 dist=0
-three_stage=0
 for arg in "$@"; do
   case "$arg" in
     --dist) dist=1 ;;
-    --three-stage) three_stage=1 ;;
-    *) echo "build.sh: unknown argument: $arg (--dist, --three-stage)" >&2; exit 2 ;;
+    *) echo "build.sh: unknown argument: $arg (--dist)" >&2; exit 2 ;;
   esac
 done
 
 CC_ABS="$(command -v "${CC:-cc}" || true)"
 if [ -z "$CC_ABS" ]; then
   echo "build.sh: C compiler '${CC:-cc}' not found on PATH (set CC=...)" >&2
-  exit 1
+  # 2, not 1: `seed.sh check` reads this through `verify.sh`, and a missing
+  # compiler says nothing about the seed.
+  exit 2
 fi
 STAGE0_CFLAGS="${STAGE0_CFLAGS:--O1}"
 runtime="runtime/c/vader_runtime.c"
@@ -64,10 +59,10 @@ CC_JOBS="${CC_JOBS:-$(cc_jobs)}"
 case "$CC_JOBS" in ''|*[!0-9]*|0) CC_JOBS=$(cc_jobs) ;; esac
 
 # Release codegen policy, DUPLICATED from `vader/pipeline/emit.vader` — which
-# calls itself its single source of truth, and is right to. The two-stage build
-# hands `build/vader` to a `cc` this script drives, so the script has to know the
-# policy; there is no compiler in the loop yet to ask. Keep the two in step: the
-# flags, the toolchain probe and the import limit all live there.
+# calls itself its single source of truth, and is right to. stage1 is linked by
+# a `cc` this script drives, so the script has to know the policy; there is no
+# compiler in the loop yet to ask. Keep the two in step: the flags, the toolchain
+# probe and the import limit all live there.
 release_cflags() {
     echo "-std=c11 -O3 -DNDEBUG -falign-functions=64"
 }
@@ -186,61 +181,38 @@ if [ -z "$seed_shared" ]; then
     exit 1
 fi
 
-# Two stages by default: stage1 is built `--release` and IS the shipped compiler.
-# It behaves exactly as stage2 would — `verify.sh` is what proves that — and only
-# its machine code comes from the seed's codegen rather than from the tree's. The
-# gap between the two is the seed's AGE, which the pre-push hook keeps at zero.
-# `--three-stage` adds the round `verify.sh` needs to compare the two ; only the
-# OUTPUT PATH differs between the modes.
-#
-# stage1 carries the release flags in BOTH modes, and that is load-bearing rather
-# than tidy. It was `-O1` under `--three-stage` (stage1 is a throwaway there, and
-# skipping -O3 saved ~11 s), which made `verify.sh` compare an -O1 binary's
-# emission against an -O3+LTO binary's — folding "does the compiler behave the
-# same at either -O level" into a check that only claims to test the fixed point.
-# On 2026-08-30 that reported a fixed-point failure on linux-x86_64 which was
-# nothing of the sort: with matched flags the fixed point holds there, byte for
-# byte. The mismatch was still telling the truth about something — the SAME C at
-# two -O levels really does emit differently on x86_64, which is UB in the
-# compiler and is tracked separately. A gate must test one thing.
-if [ "$three_stage" = 1 ]; then
-    stages=3
-    stage1_out=build/stage1
-else
-    stages=2
-    stage1_out=build/vader
-fi
+# stage1 carries stage2's flags, not stage0's: `verify.sh` compares their
+# emission — docs/adr/0004-bootstrap-stages-share-the-release-flags.md.
 stage1_cflags="$(release_cflags) $(lto_compile_flags)"
 stage1_ldflags="$(lto_link_flags)"
 
-step "[1/$stages] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS, $HOST_TARGET, -j$CC_JOBS]"
+step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$CC_ABS $STAGE0_CFLAGS, $HOST_TARGET, -j$CC_JOBS]"
 rm -rf build/work/stage0
 mkdir -p build/work/stage0
 UNIT_INCLUDES="$seed_includes"
 cc_link_parallel "$STAGE0_CFLAGS" build/work/stage0 build/stage0 "$STAGE0_CFLAGS" $seed_shared $seed_host "$runtime"
 UNIT_INCLUDES=""
 
-step "[2/$stages] Building stage1 (full compiler, via stage0)  — self-compiles"
+step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles"
 rm -rf build/work/stage1
 mkdir -p build/work/stage1
+# A frozen contract with an older stage0 — see `vader/bootstrap/bootstrap.vader::main`.
 ./build/stage0 vader/cli/main.vader build/work/stage1/stage1
-cc_link_parallel "$stage1_cflags" build/work/stage1 "$stage1_out" "$stage1_ldflags" build/work/stage1/*.c "$runtime"
+cc_link_parallel "$stage1_cflags" build/work/stage1 build/stage1 "$stage1_ldflags" build/work/stage1/*.c "$runtime"
 
-if [ "$three_stage" = 1 ]; then
-    step "[3/3] Building vader = stage2 (via stage1, --release)"
-    rm -rf build/work/stage2
-    mkdir -p build/work/stage2
-    ./build/stage1 build --release --emit=executable --out=build/work/stage2/vader --cc="$CC_ABS" vader/cli/main.vader
-    # `cc -o vader` writes `vader` on Unix and `vader.exe` on Windows — the same
-    # reason `vader/pipeline::linked_binary` probes instead of guessing.
-    if [ -f build/work/stage2/vader ]; then
-        mv build/work/stage2/vader build/vader
-    elif [ -f build/work/stage2/vader.exe ]; then
-        mv build/work/stage2/vader.exe build/vader.exe
-    else
-        echo "build.sh: stage1 produced no binary under build/work/stage2" >&2
-        exit 1
-    fi
+step "[3/3] Building vader = stage2 (via stage1, --release)"
+rm -rf build/work/stage2
+mkdir -p build/work/stage2
+./build/stage1 build --release --emit=executable --out=build/work/stage2/vader --cc="$CC_ABS" vader/cli/main.vader
+# `cc -o vader` writes `vader` on Unix and `vader.exe` on Windows — the same
+# reason `vader/pipeline::linked_binary` probes instead of guessing.
+if [ -f build/work/stage2/vader ]; then
+    mv build/work/stage2/vader build/vader
+elif [ -f build/work/stage2/vader.exe ]; then
+    mv build/work/stage2/vader.exe build/vader.exe
+else
+    echo "build.sh: stage1 produced no binary under build/work/stage2" >&2
+    exit 1
 fi
 
 printf '%b==> done%b  vader built at build/vader\n' "$g" "$r"

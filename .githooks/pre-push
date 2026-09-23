@@ -1,24 +1,16 @@
 #!/usr/bin/env bash
-# Refuse to publish a commit whose committed C seed is stale.
+# Refuse to publish a commit whose committed C seed no longer bootstraps it.
 #
-# WHY. The seed used to be regenerated after every chantier — ~10 reseeds a day
-# against ~1.5 pushes. Measured on 8 real consecutive seeds over the same
-# development interval, batching to one reseed per push takes the accumulated
-# history from 460 KB to 60 KB (−87 %). Moving the reseed to the push boundary is
-# what produces that batching ; this hook is what keeps the resulting invariant
-# honest:
+# The seed does not have to be fresh — `build.sh` ships stage2, so its age never
+# reaches the shipped binary — it has to WORK. The invariant this hook keeps:
 #
-#     every PUSHED commit carries a byte-fresh seed.
+#     every PUSHED commit can be built from its own seed, and passes verify.sh.
 #
-# Intermediate *local* commits may carry a slightly stale one. That is fine and is
-# the whole point: a stale seed still builds the tree, which the CI `seed-rebuild`
-# job proves on every push.
+# The question belongs to `bootstrap/seed.sh check`, which runs `verify.sh` on an
+# export of HEAD (~1 min) and skips it when nothing the verdict depends on changed
+# since the last viable run — so a docs-only push costs no compile at all.
 #
-# The freshness question itself belongs to `bootstrap/seed.sh check` — including its
-# cheap git-only path, so a docs-only push costs no compile at all.
-#
-# The happy path in one command:  bootstrap/seed.sh push
-# To publish anyway:              git push --no-verify
+# To publish anyway:  git push --no-verify
 #
 # Installed via `git config core.hooksPath .githooks` — see bootstrap/README.md.
 set -euo pipefail
@@ -48,33 +40,27 @@ fi
 
 # ---- ask the one script that owns the question ----------------------------
 
-# stdout carries the resolved compiler path, which is of no interest here — only
-# the verdict (exit code) and the diagnosis (stderr) are.
 set +e
-./bootstrap/seed.sh check >/dev/null
+./bootstrap/seed.sh check
 verdict=$?
 set -e
 
 case "$verdict" in
   0) exit 0 ;;
   2)
-    # Could not conclude. Warn, but let the push through: demanding a full
-    # `bun run build` (~1 min 40) before every push would cost far more than the
-    # ~60 KB a missed reseed adds, and CI still checks that the seed can build the
-    # tree on every push.
-    log "$yellow" "letting the push through — 'unknown' is not 'stale'."
+    # Could not conclude. Warn, but let the push through: the CI `fixed-point`
+    # job runs the same gate on every push.
+    log "$yellow" "letting the push through — 'unknown' is not 'broken'."
     exit 0
     ;;
 esac
 
-log "$bold" "STALE SEED — bootstrap/seed/ no longer matches bootstrap.vader."
+log "$bold" "HEAD does not pass verify.sh from its own seed — the log above says which step broke."
 log "$bold" ""
-log "$bold" "  Every pushed commit is meant to carry a byte-fresh seed. Reseed, then push:"
+log "$bold" "  When it is the seed (stage0 cannot build the tree, or its older codegen breaks"
+log "$bold" "  the fixed point), reseed, commit the bump, then push:"
 log "$bold" ""
 log "$bold" "    bootstrap/seed.sh regenerate"
-log "$bold" "    git commit -m 'chore(bootstrap): bump seed' bootstrap/seed bootstrap/VERSION"
-log "$bold" "    git push"
 log "$bold" ""
-log "$bold" "  Or in one command:  bootstrap/seed.sh push"
 log "$bold" "  To publish anyway:  git push --no-verify"
 exit 1

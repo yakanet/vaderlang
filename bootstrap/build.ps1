@@ -1,10 +1,10 @@
 #!/usr/bin/env pwsh
-# Build the full Vader compiler from the committed C seed -- TWO stages:
+# Build the full Vader compiler from the committed C seed -- THREE stages:
 #   seed   -cc->                 build\stage0.exe  (bootstrap compiler; emits C only)
-#   stage0 -emit C-> cc release-> build\vader.exe  (= stage1, the shipped compiler)
+#   stage0 -emit C-> cc release-> build\stage1.exe  (the tree's semantics, the seed's codegen)
+#   stage1 -build native->       build\vader.exe   (= stage2, the shipped compiler)
 #
-# `-ThreeStage` adds the round `verify.sh` needs, which compares stage1 against
-# the stage2 it produces. See bootstrap/build.sh's header for the reasoning.
+# See bootstrap/build.sh's header for why the shipped binary is stage2.
 #
 # Runs on Windows PowerShell 5.1 as well as PowerShell 7+ -- keep it that way:
 # nothing here may use a 7-only form (`ForEach-Object -Parallel`, `??`, `?:`,
@@ -14,11 +14,10 @@
 # it is tracked -- nothing to decompress. The compiler defaults to gcc; override
 # with `-CC clang` or $env:CC. It is resolved to an absolute path and passed to
 # stage1 via --cc. stage0 is a throwaway built -O1 ($env:STAGE0_CFLAGS); stage1 is
-# built -O3+LTO in both modes, because `verify.sh` compares its emission against
-# stage2's and two differently-built binaries do not answer that. Pass -Dist to also
+# built like stage2 (ADR 0004). Pass -Dist to also
 # assemble a self-contained dist\vader-windows-<arch>\ bundle. See docs/BOOTSTRAP.md.
 [CmdletBinding()]
-param([string]$CC = $(if ($env:CC) { $env:CC } else { 'gcc' }), [switch]$Dist, [switch]$ThreeStage)
+param([string]$CC = $(if ($env:CC) { $env:CC } else { 'gcc' }), [switch]$Dist)
 
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -77,9 +76,9 @@ if ($seedShared.Count -eq 0) {
 }
 
 # Release codegen policy, DUPLICATED from `vader/pipeline/emit.vader` -- which
-# calls itself its single source of truth, and is right to. The two-stage build
-# hands `build\vader.exe` to a `cc` this script drives, so the script has to know
-# the policy; there is no compiler in the loop yet to ask.
+# calls itself its single source of truth, and is right to. stage1 is linked by a
+# `cc` this script drives, so the script has to know the policy; there is no
+# compiler in the loop yet to ask.
 function CcFlavour {
     $banner = (& $ccAbs --version 2>&1 | Out-String).ToLower()
     if ($banner -match 'clang') { return 'clang' }
@@ -170,54 +169,42 @@ function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what, $ldflags, $
     }
 }
 
-# Two stages by default: stage1 is built `--release` and IS the shipped compiler.
-# `-ThreeStage` adds the round `verify.sh` needs to compare stage1 against stage2 ;
-# only the OUTPUT PATH differs between the modes. stage1 carries the release flags
-# in both, which is load-bearing rather than tidy -- see bootstrap/build.sh, which
-# had the same -O1 mismatch and made the fixed-point gate report an -O sensitivity
-# as a fixed-point failure.
-if ($ThreeStage) {
-    $stages = 3
-    $stage1Out = 'build\stage1.exe'
-} else {
-    $stages = 2
-    $stage1Out = 'build\vader.exe'
-}
+# stage1 carries the release flags, not stage0's cheap ones -- see
+# docs/adr/0004-bootstrap-stages-share-the-release-flags.md.
 $stage1Cflags = @('-std=c11', '-O3', '-DNDEBUG', '-falign-functions=64') + (LtoCompileFlags)
 $stage1Ldflags = LtoLinkFlags
 
-Step "[1/$stages] Building stage0 (bootstrap compiler, from the seed)  [$ccAbs $stage0cflags, $hostTarget, -j$ccJobs]"
+Step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$ccAbs $stage0cflags, $hostTarget, -j$ccJobs]"
 $work0 = Join-Path $PWD 'build\work\stage0'
 Remove-Item -Recurse -Force $work0 -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $work0 | Out-Null
 $seedUnits = @($seedShared) + @($seedHost) + @((Join-Path $PWD $runtime))
 CcLinkParallel $stage0cflags 'build\work\stage0' 'build\stage0.exe' $seedUnits 'stage0' $null $seedInc
 
-Step "[2/$stages] Building stage1 (full compiler, via stage0)  -- self-compiles"
+Step "[2/3] Building stage1 (full compiler, via stage0)  -- self-compiles"
 $work1 = Join-Path $PWD 'build\work\stage1'
 Remove-Item -Recurse -Force $work1 -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $work1 | Out-Null
+# A frozen contract with an older stage0 -- see `vader/bootstrap/bootstrap.vader::main`.
 & .\build\stage0.exe vader\cli\main.vader (Join-Path $work1 'stage1')
 if ($LASTEXITCODE -ne 0) { throw "stage0 failed to emit stage1 units (exit $LASTEXITCODE)" }
 $stage1Units = @(Get-ChildItem -Path $work1 -Filter '*.c' | ForEach-Object { $_.FullName })
 $stage1Units += (Join-Path $PWD $runtime)
-CcLinkParallel $stage1Cflags 'build\work\stage1' $stage1Out $stage1Units 'stage1' $stage1Ldflags
+CcLinkParallel $stage1Cflags 'build\work\stage1' 'build\stage1.exe' $stage1Units 'stage1' $stage1Ldflags
 
-if ($ThreeStage) {
-    Step "[3/3] Building vader = stage2 (via stage1, --release)"
-    $stage2Dir = Join-Path $PWD 'build\work\stage2'
-    Remove-Item -Recurse -Force $stage2Dir -ErrorAction SilentlyContinue
-    New-Item -ItemType Directory -Force $stage2Dir | Out-Null
-    $stage2Out = Join-Path $stage2Dir 'vader'
-    & .\build\stage1.exe build --release --emit=executable "--out=$stage2Out" --cc=$ccAbs vader\cli\main.vader
-    if ($LASTEXITCODE -ne 0) { throw "stage1 failed to build vader (exit $LASTEXITCODE)" }
-    # `cc -o vader` writes `vader.exe` here and `vader` on Unix -- the same reason
-    # `vader/pipeline::linked_binary` probes instead of guessing.
-    $produced = @(Get-ChildItem -Path $stage2Dir -Filter 'vader*' -File |
-        Where-Object { $_.Extension -in @('.exe', '') })
-    if ($produced.Count -eq 0) { throw "stage1 produced no binary under $stage2Dir" }
-    Move-Item -Force $produced[0].FullName (Join-Path 'build' $produced[0].Name)
-}
+Step "[3/3] Building vader = stage2 (via stage1, --release)"
+$stage2Dir = Join-Path $PWD 'build\work\stage2'
+Remove-Item -Recurse -Force $stage2Dir -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force $stage2Dir | Out-Null
+$stage2Out = Join-Path $stage2Dir 'vader'
+& .\build\stage1.exe build --release --emit=executable "--out=$stage2Out" --cc=$ccAbs vader\cli\main.vader
+if ($LASTEXITCODE -ne 0) { throw "stage1 failed to build vader (exit $LASTEXITCODE)" }
+# `cc -o vader` writes `vader.exe` here and `vader` on Unix -- the same reason
+# `vader/pipeline::linked_binary` probes instead of guessing.
+$produced = @(Get-ChildItem -Path $stage2Dir -Filter 'vader*' -File |
+    Where-Object { $_.Extension -in @('.exe', '') })
+if ($produced.Count -eq 0) { throw "stage1 produced no binary under $stage2Dir" }
+Move-Item -Force $produced[0].FullName (Join-Path 'build' $produced[0].Name)
 
 Write-Host "==> done  vader built at build\vader.exe" -ForegroundColor Green
 & .\build\vader.exe --version

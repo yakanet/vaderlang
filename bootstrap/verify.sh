@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 # Fixed-point check : build the 3-stage toolchain, then confirm stage1 and
-# stage2 (vader) emit identical C for main.vader, and the committed seed is
-# fresh. Formalises TODO §2.7 / docs/BOOTSTRAP.md Phase 4. Run on demand /
-# on every push and PR (it finishes inside the Windows job's shadow). Honours $CC.
+# stage2 (vader) emit identical C for main.vader and that the build reproduces.
+# Formalises TODO §2.7 / docs/BOOTSTRAP.md Phase 4. It is also the seed's
+# viability gate: `bootstrap/seed.sh check` (the pre-push hook) and the CI
+# `fixed-point` job both run it. Honours $CC.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# `--three-stage`: the default build stops at stage1 and ships it. The fixed
-# point is a comparison BETWEEN stage1 and stage2, so this is the one caller that
-# needs the extra round.
-./bootstrap/build.sh --three-stage
+./bootstrap/build.sh
 
 # (a) fixed point : stage1 and stage2 must emit identical C for main.vader.
 #
@@ -19,10 +17,7 @@ cd "$(dirname "$0")/.."
 # `--emit=c` and `--emit=executable` produce identical C, verified.
 #
 # Same flags is not enough: the two EMITTING BINARIES must also be built the same
-# way, which `build.sh` now guarantees (stage1 is -O3+LTO in both modes). While it
-# was not, this gate reported a fixed-point failure on linux-x86_64 that was really
-# an -O sensitivity in the compiler — a true bug, but not this one, and the report
-# sent the reader hunting the wrong thing.
+# way, which `build.sh` guarantees (ADR 0004).
 #
 # `diff -r` and not `cmp`: the emission is a TREE of one unit per module, and a
 # unit present on one side only is exactly what a comparison of concatenated
@@ -58,6 +53,7 @@ if [ "$fp_rc" = 2 ]; then
 fi
 if [ "$fp_rc" != 0 ]; then
   echo "FIXED-POINT FAILED — stage1 and stage2 disagree on main.vader's C" >&2
+  echo "  stage1's codegen is the seed's; if the seed carries a bug the tree has fixed, reseed: bootstrap/seed.sh regenerate" >&2
   diff -r --exclude='*.o' build/work/stage2 build/work/verify | head -80 >&2
   exit 1
 fi
@@ -109,44 +105,4 @@ if ! cmp -s build/work/repro/vader build/vader; then
   exit 1
 fi
 
-# (c) seed freshness, for EVERY target. `seed.sh check` re-emits the whole set
-# against one shared atom table and diffs the tree, so a unit that exists for one
-# target and not another is caught too. That subsumes the old target-independence
-# check this used to carry: the seed no longer has to be target-independent — it
-# carries each target's units, and the emitter stores a unit once only when every
-# target produced the same bytes for it.
-#
-# Delegated to `seed.sh check`, which owns the emission flags
-# (`--release` keeps `#line` out of the seed) — duplicating them here is how a
-# release gate silently stops certifying what it claims to. `--full` forces the
-# real re-emission rather than its git-only shortcut: this is the pre-release
-# check, so it earns the 4 s. VADER pins the compiler to the one build.sh just
-# produced above, so the freshness verdict is about *this* toolchain.
-#
-# `seed.sh check` has THREE outcomes and they must not be folded: 0 fresh,
-# 1 stale, 2 "could not tell" (no usable compiler, a seed source tree missing, a
-# binary older than the sources). Reporting 2 as STALE sends the reader off to
-# regenerate a seed that may be perfectly fine — the very mistake this file
-# already guards against for `diff` a few lines up, made again here, and paid for
-# on 2026-08-30 with three rounds of guessing at a CI red whose message was not
-# what the gate actually meant.
-#
-# `--quiet` is dropped and the output is SHOWN rather than discarded: `seed.sh`
-# explains each verdict in its own words, and swallowing that is what left the
-# reader reverse-engineering a one-line summary from a remote log.
-set +e
-seed_out=$(VADER=./build/vader ./bootstrap/seed.sh check --full 2>&1)
-seed_verdict=$?
-set -e
-if [ "$seed_verdict" = 2 ]; then
-  echo "SEED CHECK INCONCLUSIVE — the seed may be fine ; the check could not tell:" >&2
-  printf '%s\n' "$seed_out" >&2
-  exit 2
-fi
-if [ "$seed_verdict" != 0 ]; then
-  echo "STALE SEED — bootstrap/seed/ no longer matches bootstrap.vader; run bootstrap/seed.sh regenerate" >&2
-  printf '%s\n' "$seed_out" >&2
-  exit 1
-fi
-
-echo "fixed-point OK : stage1 == stage2, seed up to date for every target"
+echo "fixed-point OK : stage1 == stage2"

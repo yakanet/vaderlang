@@ -29,54 +29,53 @@ auto-grow, so self-compiling needs no env tuning.
 
 - `build.sh` — the 3-stage bootstrap in one shot (logs each stage). Honours `$CC`
   (default `cc`, resolved to an absolute path and passed to stage1 via `--cc`).
-  stage0 & stage1 are throwaways built `-O0` (`$STAGE0_CFLAGS`); only stage2/`vader`
-  is `-O3`. `--dist` bundles `dist/vader-<os>-<arch>/` (binary + lib/ + runtime/c) —
-  a self-contained toolchain that runs from any directory (the binary resolves
+  stage0 is a throwaway built `-O1` (`$STAGE0_CFLAGS`); stage1 and stage2 are built
+  `-O3`+LTO, identically, because `verify.sh` compares their emission. `build/vader`
+  is stage2. `--dist` bundles `dist/vader-<os>-<arch>/` (binary + lib/ + runtime/c)
+  — a self-contained toolchain that runs from any directory (the binary resolves
   `lib/` + `runtime/c/` next to its own executable).
 - `build.ps1` — Windows counterpart (mingw-w64 gcc/clang). Run with
   `powershell -ExecutionPolicy Bypass -File bootstrap\build.ps1` ; `-CC clang`
   picks a different compiler, `-Dist` bundles `dist\vader-windows-<arch>\`.
-- `seed.sh` — the seed's whole lifecycle, in three subcommands. It is one script
-  because it is one artefact: the list of source trees the seed depends on, and
-  the probe for one of them having moved, are shared by all three, and four
-  separate files are what let that list drift out of step with itself.
-  - `seed.sh check [--quiet] [--full]` — **owns** the question "is the committed
-    seed what the current sources would emit?". `regenerate`, `push`, `verify.sh`
-    and the pre-push hook all defer to it rather than re-emitting the seed
-    themselves, so the emission flags and the compiler lookup exist in exactly one
-    place. Exit `0` fresh, `1` stale, `2` could-not-tell (no usable compiler, one
-    older than the sources, or a source tree missing — never reported as "stale").
-    Answers from git alone when nothing affecting the seed has changed (~0.3 s),
-    otherwise re-emits (~4 s); `--full` forces the re-emission. On `1` it leaves
-    the fresh C at `build/bootstrap.check.c`, which is what `regenerate` moves
-    into place — one compile per reseed, not two.
+- `verify.sh` — fixed-point check: builds the toolchain via `build.sh`, then
+  confirms stage1 and stage2 emit identical C for `main.vader` (release and debug)
+  and that two builds of the same input are byte-identical.
+- `seed.sh` — the seed's lifecycle, in two subcommands.
+  - `seed.sh check [--quiet]` — **owns** the question "does the committed seed
+    still bootstrap HEAD?". It exports HEAD under `build/seed.viability/` and runs
+    `verify.sh` there (~1 min), so neither an uncommitted edit nor the checkout's
+    `build/vader` is involved. Exit `0` viable, `1` broken, `2` could-not-tell (no
+    C compiler, a tree missing — never reported as "broken"). A viable verdict
+    is stamped in `build/seed.viable` with the git objects it depends on (the
+    seed's sources, the seed, `build.sh`, `verify.sh`); while they do not move,
+    `check` answers at once.
   - `seed.sh regenerate` — re-emit the seed from `bootstrap.vader` (needs a
     `vader` binary + a clean tree across every source dir the seed depends on, not
-    just `vader/`: the seed embeds the stdlib it compiled). Commit the bump as a
-    separate `chore(bootstrap): bump seed` commit. A no-op when the seed comes out
-    byte-identical — it leaves `VERSION` untouched rather than manufacturing a
-    diff.
-  - `seed.sh push [git push args…]` — push, reseeding and committing first if the
-    seed is stale. The one-command path for the per-push reseed cadence.
-- `verify.sh` — fixed-point check: builds the toolchain via `build.sh`, then
-  confirms stage1 and stage2 emit identical C for `main.vader` and the committed
-  seed is fresh.
+    just `vader/`: the seed embeds the stdlib it compiled). A binary older than
+    the sources first builds the tree, and the seed is emitted from the result —
+    which is also the way out when the committed seed no longer bootstraps. Commit the bump as a separate `chore(bootstrap): bump seed` commit.
+    A no-op when the seed comes out byte-identical — it leaves `VERSION` untouched
+    rather than manufacturing a diff. `VERSION`'s `vader_source_sha` is the commit
+    the seed was emitted at, i.e. its age.
 
-## Reseed cadence — once per push
+## Reseed only when the seed stops working
 
-Reseed at the **push** boundary, not after every chantier: batching that way takes
-the accumulated history from 460 KB to 60 KB over the same development interval
-(−87 %, measured on 8 real consecutive seeds). Use `seed.sh push`, and enable the
-safety net once per clone:
+The seed is a bootstrap tool: it has to build the current tree, not to be what
+the current tree would emit. `build.sh` ships stage2 — the tree compiled by the
+tree — so the seed's age never reaches the shipped binary. A seed two weeks old
+produces a byte-identical compiler; see
+`.claude/plans/2026-09-23-seed-viability.md` for the measurements.
+
+A reseed is due when `seed.sh check` says `1` — typically after a breaking change
+the old stage0 cannot compile. Enable the safety net once per clone:
 
 ```sh
 git config core.hooksPath .githooks     # activates .githooks/pre-push
 ```
 
-The hook blocks a plain `git push` when the seed is stale (`--no-verify` bypasses
-it). Full rationale in docs/BOOTSTRAP.md § "Who bumps, and when".
+The hook runs `seed.sh check` and blocks the push on `1` (`--no-verify` bypasses
+it); `bootstrap/seed.sh regenerate` then reseeds from the last `build/vader`,
+even when `build.sh` can no longer produce one from the old seed.
 
-Regenerate the seed only when the compilation pipeline reachable from
-`bootstrap.vader` changes — see docs/BOOTSTRAP.md § "Seed lifecycle management".
-The lsp / formatter / interpreter are excluded by design, so growing them never
-bumps the seed.
+The lsp / formatter / interpreter are outside `bootstrap.vader`'s closure by
+design, so growing them never breaks the seed.

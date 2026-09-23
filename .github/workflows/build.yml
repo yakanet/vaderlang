@@ -86,24 +86,18 @@ jobs:
           VADER_TEST_GATE: ${{ inputs.gate }}
         run: bun run test --only-failures
 
-  # Fixed-point check: build the toolchain three-stage, confirm stage1 and stage2
-  # emit identical C for main.vader (release AND debug), that two split builds are
-  # byte-identical, and that the committed seed is fresh. Bun-free.
+  # Fixed-point check: build the toolchain from the committed seed, confirm stage1
+  # and stage2 emit identical C for main.vader (release AND debug), and that two
+  # split builds are byte-identical. Bun-free. Runs on every push and PR (ADR 0006).
   #
-  # Runs on every push and PR. It used to be gated to dispatch / tags as "too slow
-  # for every PR", which the numbers contradict: it measured 257 s and 286 s the
-  # two times it actually ran, against 10 m 59 s for the Windows job that sets the
-  # run's total. A 4-minute Linux job finishes inside that shadow, so the wall
-  # clock is unchanged and the cost is runner minutes only.
-  #
-  # It is also the ONLY job that would notice any of the three. `test-posix` and
-  # `test-windows` build stage0 from the seed and then self-compile stage1 from
-  # current sources, so they pass with a STALE seed — nothing else on push does.
-  # docs/BOOTSTRAP.md Phase 4.
+  # It is also the seed's viability gate — the same `verify.sh` the pre-push hook
+  # runs through `bootstrap/seed.sh check`. A seed that cannot build the tree fails
+  # the test jobs too; what only this job sees is a fixed-point or
+  # reproducibility break. docs/BOOTSTRAP.md Phase 4.
   fixed-point:
     name: Fixed-point verification
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: verify.sh (stage1 == stage2 + seed freshness)
+      - name: verify.sh (stage1 == stage2, reproducible)
         run: bash bootstrap/verify.sh

@@ -1,56 +1,46 @@
 #!/usr/bin/env bash
 # The committed C seed's lifecycle — one script, because it is one artefact.
 #
-#   bootstrap/seed.sh check [--quiet] [--full]   is bootstrap/seed/ what the sources emit?
-#   bootstrap/seed.sh regenerate                 write a new one
-#   bootstrap/seed.sh push [git push args…]      reseed, commit the bump, push
+#   bootstrap/seed.sh check [--quiet]   does the committed seed still bootstrap HEAD?
+#   bootstrap/seed.sh regenerate        write a new one
 #
-# These three were four separate files, and the split is what let them drift: the
-# list of directories the seed depends on declared itself "the single definition"
-# and was re-typed twice anyway — once in a sibling, once inside its own file with
-# a directory missing. A shared constant plus a shared function between four
-# scripts wants to be one script, not a fifth file for them to source.
+# The seed is a bootstrap tool: it only has to be able to build the current tree,
+# not to be what the current tree would emit. `build.sh` ships stage2 — the tree
+# compiled by the tree — so the seed's age never reaches the shipped binary, and a
+# reseed is due only when the seed stops working. See
+# .claude/plans/2026-09-23-seed-viability.md.
 #
-# `check` OWNS the freshness question. `regenerate`, `push`, bootstrap/verify.sh
-# and .githooks/pre-push all defer to it rather than re-emitting the seed
-# themselves — otherwise the emission flags, the compiler lookup and the
-# definition of "stale" live in four places again.
+# `check` OWNS the viability question; .githooks/pre-push defers to it. `verify.sh`
+# is what answers it — the same gate the CI `fixed-point` job runs — so a seed that
+# builds the tree but breaks the fixed point is not viable either.
 #
-# NONE of them answers whether the seed is CORRECT. `verify.sh` compares stage1
-# to stage2, and a compiler that mis-compiles itself stably passes that: both
-# stages are wrong the same way, which is what a fixed point preserves. The
-# suite is the check, and a reseed changes the stage0 that builds the binary
-# under test — so it has to run AFTER.
+# NEITHER answers whether the compiler is CORRECT. `verify.sh` compares stage1 to
+# stage2, and a compiler that mis-compiles itself stably passes that: both stages
+# are wrong the same way, which is what a fixed point preserves. The suite is the
+# check, and a reseed changes the stage0 that builds the binary under test — so it
+# has to run AFTER.
 #
 # CHECK CONTRACT:
-#   exit 0  FRESH    the committed seed matches what the sources would emit
-#   exit 1  STALE    it does not ; a reseed is due
-#   exit 2  UNKNOWN  could not tell (no usable compiler, a source tree missing,
-#           or emission failed). Deliberately distinct from STALE: "I don't know"
-#           must never be reported as "it's broken", nor silently as "it's fine".
-#   stdout  the resolved compiler path — but only when a compiler was actually
-#           used, i.e. NOT on the git-only fast path. Callers that go on to write
-#           the seed need the exact binary that produced the verdict (resolving it
-#           a second time is how the two disagree), so they pass --full and are
-#           guaranteed a path.
-#   stderr  the human-readable diagnosis (silenced by --quiet).
-#
-# On exit 1 the fresh emission is LEFT at build/seed.check/: that tree IS
-# the new seed, and `regenerate` moves it into place rather than paying for a
-# second ~4 s compile of the identical input.
+#   exit 0  VIABLE   the committed seed, with HEAD's runtime/c, bootstraps HEAD and
+#                    `verify.sh` passes on it
+#   exit 1  BROKEN   it does not. Usually a reseed is due; the log says which step
+#                    failed, and a fixed-point break can also be the tree's own
+#   exit 2  UNKNOWN  could not tell (no C compiler, a source tree missing, not a git
+#           checkout). Deliberately distinct from BROKEN: "I don't know" must never
+#           be reported as "it's broken", nor silently as "it's fine".
+#   stderr  the human-readable diagnosis (silenced by --quiet), and on BROKEN the
+#           tail of the `verify.sh` log.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-
-if [ -t 1 ]; then b='\033[1m'; g='\033[1;32m'; r='\033[0m'; else b=''; g=''; r=''; fi
-step() { printf '%b==>%b %s\n' "$b" "$r" "$*"; }
 
 # ---- what the seed depends on ---------------------------------------------
 
 # Every source tree the emitted seed can depend on. Deliberately BROADER than
 # bootstrap.vader's real import closure — a hand-maintained closure list would rot
-# the day an import changes, and a false FRESH is the one answer this must never
-# give.
+# the day an import changes, and a seed written from a stale compiler, or a
+# viability verdict reused for a tree that moved, is the failure this must never
+# allow.
 SEED_SOURCE_DIRS="vader/ lib/ runtime/c/"
 
 # Every target that has a backend. `wasi-wasm32` and `browser-wasm32` are out:
@@ -69,11 +59,11 @@ SEED_TARGETS="darwin-arm64,linux-x86_64,windows-x86_64"
 # The subset of SEED_SOURCE_DIRS that no longer exists, space-separated; empty
 # when the layout is intact.
 #
-# Load-bearing rather than defensive noise. Every freshness test below is a no-op
-# on a path that is absent: `git diff --quiet HEAD -- gone/` exits 0, and `find
-# gone/ -name '*.vader'` prints nothing while writing to stderr. So moving or
-# renaming a source tree makes each test answer "nothing changed" with no source
-# left to check — the self-consistent lie, in its worst form.
+# Load-bearing rather than defensive noise. The tests below are no-ops on a path
+# that is absent: `git diff-index --quiet HEAD -- gone/` exits 0, and `find gone/
+# -name '*.vader'` prints nothing while writing to stderr. So moving or renaming a
+# source tree makes each test answer "nothing changed" with no source left to
+# check — the self-consistent lie, in its worst form.
 seed_missing_dirs() {
     local missing="" d
     for d in $SEED_SOURCE_DIRS; do
@@ -84,50 +74,99 @@ seed_missing_dirs() {
 
 # ---- check ----------------------------------------------------------------
 
+# What the verdict reads at HEAD, beyond the seed's sources: the seed itself, the
+# two scripts that run, and the snippet `verify.sh` emits in debug mode. Anything
+# else under `bootstrap/` (README, build.ps1, VERSION) cannot change the verdict.
+VIABILITY_EXTRA_PATHS="bootstrap/seed bootstrap/build.sh bootstrap/verify.sh tests/snippets/return_42"
+
+# The git object ids of every path the verdict depends on, at HEAD. Two commits
+# with the same key get the same verdict. Empty when any path is missing: one
+# `rev-parse` fails as a whole, so no partial key can match a stamp.
+viability_key() {
+    local d specs=""
+    for d in $SEED_SOURCE_DIRS $VIABILITY_EXTRA_PATHS; do
+        specs="$specs HEAD:${d%/}"
+    done
+    git rev-parse $specs 2>/dev/null | tr '\n' ' ' || true
+}
+
 cmd_check() {
-    local quiet=0 full=0 arg
+    local quiet=0 arg
     for arg in "$@"; do
         case "$arg" in
             -q|--quiet) quiet=1 ;;
-            --full)     full=1 ;;
-            *) echo "seed.sh check: unknown argument: $arg (--quiet, --full)" >&2; exit 2 ;;
+            *) echo "seed.sh check: unknown argument: $arg (--quiet)" >&2; exit 2 ;;
         esac
     done
     note() { [ "$quiet" = 1 ] || printf '%s\n' "$*" >&2; }
 
-    # The source trees must still be where the list says. Checked before anything
-    # else, because every test after this one silently passes on an absent path.
-    # UNKNOWN, not STALE: the seed may well be fine — what is broken is this
-    # script's ability to tell.
-    local missing
-    missing="$(seed_missing_dirs)"
-    if [ -n "$missing" ]; then
-        note "seed source tree(s) missing: $missing"
-        note "  SEED_SOURCE_DIRS in bootstrap/seed.sh lists them — update it if the layout moved."
-        note "  cannot conclude on seed freshness."
+    local key
+    key="$(viability_key)"
+    if [ -z "$key" ]; then
+        note "cannot read HEAD's trees ($SEED_SOURCE_DIRS $VIABILITY_EXTRA_PATHS)."
+        note "  not a git checkout, or the layout moved — update the lists in bootstrap/seed.sh."
+        note "  cannot conclude on seed viability."
         exit 2
     fi
 
-    # Cheap path: prove freshness from git alone, no compiler. Sound only while
-    # BOTH hold: nothing affecting the seed has been committed since the last
-    # reseed, AND the working tree matches HEAD for those same paths plus the seed
-    # itself. The second half matters because the real check below emits from the
-    # WORKING TREE, not from HEAD — without it, an uncommitted source edit (or a
-    # hand-edited seed) would be short-circuited away as "fresh".
-    #
-    # `status --porcelain` and not `diff --quiet HEAD`: only the former reports an
-    # UNTRACKED file, and a new `.vader` is exactly the edit that changes the seed
-    # while leaving every diff clean. It subsumes the diff, so one process covers
-    # both.
-    if [ "$full" = 0 ]; then
-        local last_reseed
-        last_reseed="$(git rev-list -1 HEAD -- bootstrap/seed 2>/dev/null || true)"
-        if [ -n "$last_reseed" ] &&
-           [ -z "$(git status --porcelain -- $SEED_SOURCE_DIRS bootstrap/seed)" ] &&
-           [ -z "$(git diff --name-only "$last_reseed" HEAD -- $SEED_SOURCE_DIRS)" ]; then
-            note "seed is fresh (nothing affecting it changed since the last reseed)."
-            exit 0
-        fi
+    # Fast path: a previous run found these exact trees viable. One key per line,
+    # so switching between branches does not re-run a verdict already given. The
+    # stamp lives under build/, so a fresh clone pays for one full run.
+    if [ -f build/seed.viable ] && grep -qxF "$key" build/seed.viable; then
+        note "seed is viable (these trees already passed)."
+        exit 0
+    fi
+
+    # HEAD, not the working tree: the hook vets what is being pushed, and an
+    # uncommitted edit must neither fail nor pass it. The export also keeps the
+    # run away from the checkout's build/vader.
+    local root=build/seed.viability
+    rm -rf "$root"
+    mkdir -p "$root"
+    if ! git archive HEAD | tar -x -C "$root"; then
+        note "exporting HEAD failed — cannot check seed viability."
+        exit 2
+    fi
+
+    note "checking that the seed bootstraps HEAD (bootstrap/verify.sh, ~1 min)…"
+    local log="$PWD/build/seed.viability.log" verdict
+    set +e
+    ( cd "$root" && bash bootstrap/verify.sh ) >"$log" 2>&1
+    verdict=$?
+    set -e
+
+    case "$verdict" in
+      0)
+        rm -rf "$root"
+        printf '%s\n' "$key" >> build/seed.viable
+        note "seed is viable."
+        exit 0
+        ;;
+      2)
+        note "verify.sh could not conclude — the seed may be fine. Log: $log"
+        [ "$quiet" = 1 ] || tail -20 "$log" >&2
+        exit 2
+        ;;
+    esac
+    note "HEAD does not pass verify.sh from its own seed (exit $verdict). Log: $log"
+    [ "$quiet" = 1 ] || tail -30 "$log" >&2
+    exit 1
+}
+
+# ---- regenerate -----------------------------------------------------------
+
+# Regenerate bootstrap/seed/ from vader/bootstrap/bootstrap.vader, using an
+# existing `vader` binary (./build/vader, else on PATH). The seed is the plain C
+# of the build-only entrypoint — stored uncompressed so git can delta successive
+# reseeds; see docs/BOOTSTRAP.md § "Seed lifecycle management".
+cmd_regenerate() {
+    [ "$#" -eq 0 ] || { echo "seed.sh regenerate: takes no arguments" >&2; exit 2; }
+
+    local missing
+    missing="$(seed_missing_dirs)"
+    if [ -n "$missing" ]; then
+        echo "error: seed source tree(s) missing: $missing — refusing to write a seed." >&2
+        exit 1
     fi
 
     local VADER="${VADER:-}"
@@ -138,92 +177,10 @@ cmd_check() {
             VADER="$(command -v vader)"
         fi
     fi
-    if [ -z "$VADER" ]; then
-        note "no vader binary (./build/vader or on PATH) — cannot check seed freshness."
-        exit 2
-    fi
-    if [ ! -x "$VADER" ]; then
-        note "$VADER is not an executable — cannot check seed freshness."
-        exit 2
-    fi
-
-    # A compiler older than the sources would compare its own stale output against
-    # itself and report FRESH — a self-consistent lie, and the one answer that must
-    # never be given. `bun run build` (bootstrap/build.sh) rebuilds ./build/vader
-    # from the current tree, which is what makes the check mean anything.
-    if [ -n "$(find $SEED_SOURCE_DIRS -name '*.vader' -newer "$VADER" -print -quit)" ]; then
-        note "$VADER is older than the .vader sources — cannot conclude on seed freshness."
-        note "  rebuild it first:  bun run build"
-        exit 2
-    fi
-
-    # `--release` keeps `#line` out of the seed, and `--seed-targets` emits every
-    # target against ONE atom table so the units that do not depend on the target
-    # come out byte-identical and are stored once. This is the ONLY place the
-    # emission is spelled out, so it cannot drift against the writer.
-    rm -rf build/seed.check
-    mkdir -p build/seed.check
-    if ! "$VADER" build --release --emit=c --seed-targets="$SEED_TARGETS" \
-           --out=build/seed.check/bootstrap \
-           vader/bootstrap/bootstrap.vader >/dev/null 2>&1; then
-        note "re-emitting the seed failed — cannot check freshness."
-        exit 2
-    fi
-
-    # `diff -r` and not a per-file loop: it also catches a file that EXISTS on one
-    # side only, which is what a new per-target unit looks like the first time
-    # `@target` reaches the closure.
-    if diff -r -q build/seed.check bootstrap/seed >/dev/null 2>&1; then
-        rm -rf build/seed.check
-        note "seed is fresh."
-        printf '%s\n' "$VADER"
-        exit 0
-    fi
-
-    note "seed is STALE — bootstrap/seed/ no longer matches bootstrap.vader."
-    note "  the fresh emission is at build/seed.check/."
-    printf '%s\n' "$VADER"
-    exit 1
-}
-
-# ---- regenerate -----------------------------------------------------------
-
-# Regenerate bootstrap/seed/ from vader/bootstrap/bootstrap.vader, using an
-# existing `vader` binary (on PATH or ./build/vader). The seed is the plain C of
-# the build-only entrypoint — stored uncompressed so git can delta successive
-# reseeds; see docs/BOOTSTRAP.md § "Seed lifecycle management".
-cmd_regenerate() {
-    [ "$#" -eq 0 ] || { echo "seed.sh regenerate: takes no arguments" >&2; exit 2; }
-
-    # Ask `check` rather than re-emitting: it prints the compiler it used on stdout
-    # and the diagnosis on stderr, and --full skips its git short-circuit since a
-    # reseed must compare real output. One compile for both the verdict and the
-    # emission, and the flags cannot drift between checker and writer.
-    #
-    # FIRST, before the clean-tree test below: `check` already refuses when a seed
-    # source tree is missing, and that case has to be caught before a test that
-    # would pass vacuously on an absent path.
-    #
-    # A function in `$( )` runs in a subshell, so its `exit` reports as the
-    # substitution's status instead of ending this script.
-    local VADER verdict
-    set +e
-    VADER="$(cmd_check --full)"
-    verdict=$?
-    set -e
-
-    case "$verdict" in
-      0)
-        echo "seed already fresh — byte-identical, nothing to commit (VERSION left alone)."
-        echo "(rewriting VERSION would manufacture a diff for a seed that did not move.)"
-        exit 0
-        ;;
-      2)
-        echo "error: cannot determine seed freshness, so refusing to write one." >&2
-        echo "  Reseeding with an out-of-date or missing compiler would commit its old codegen." >&2
+    if [ -z "$VADER" ] || [ ! -x "$VADER" ]; then
+        echo "error: no vader binary (./build/vader or on PATH) — refusing to write a seed." >&2
         exit 1
-        ;;
-    esac
+    fi
 
     # Require a clean working tree across ALL of them so the recorded SHA is
     # meaningful: the emission reads the working tree, and VERSION records HEAD, so
@@ -232,6 +189,44 @@ cmd_regenerate() {
     if ! git diff-index --quiet HEAD -- $SEED_SOURCE_DIRS; then
         echo "error: $SEED_SOURCE_DIRS has uncommitted changes — commit first" >&2
         exit 1
+    fi
+
+    # A compiler older than the sources would write ITS codegen into the seed, and
+    # nothing downstream would notice: the seed only has to bootstrap. So build
+    # the tree with it first, and emit from the result. This is also the way out
+    # when the committed seed no longer bootstraps: `build.sh` cannot produce a
+    # compiler then, but the last one that built is far newer than the seed and
+    # usually still compiles the tree.
+    if [ -n "$(find $SEED_SOURCE_DIRS -name '*.vader' -newer "$VADER" -print -quit)" ]; then
+        echo "$VADER is older than the .vader sources — building the tree with it first."
+        if ! "$VADER" build --release --emit=executable --out=build/vader.next vader/cli/main.vader; then
+            echo "error: $VADER cannot build the tree — refusing to write a seed." >&2
+            exit 1
+        fi
+        mv build/vader.next build/vader
+        VADER=./build/vader
+    fi
+
+    # `--release` keeps `#line` out of the seed, and `--seed-targets` emits every
+    # target against ONE atom table so the units that do not depend on the target
+    # come out byte-identical and are stored once. This is the ONLY place the
+    # emission is spelled out.
+    rm -rf build/seed.new
+    mkdir -p build/seed.new
+    if ! "$VADER" build --release --emit=c --seed-targets="$SEED_TARGETS" \
+           --out=build/seed.new/bootstrap \
+           vader/bootstrap/bootstrap.vader >/dev/null; then
+        echo "error: emitting the seed failed." >&2
+        exit 1
+    fi
+
+    # `diff -r` and not a per-file loop: it also catches a file that EXISTS on one
+    # side only, which is what a new per-target unit looks like the first time
+    # `@target` reaches the closure.
+    if diff -r -q build/seed.new bootstrap/seed >/dev/null 2>&1; then
+        rm -rf build/seed.new
+        echo "seed already byte-identical — nothing to commit (VERSION left alone)."
+        exit 0
     fi
 
     # Corruption gate. The compiler can emit C that does not even parse: a live
@@ -251,7 +246,7 @@ cmd_regenerate() {
     # and `grep -P '\x00'` is GNU-only — this pair is POSIX and behaves the same on
     # the BSD tools macOS ships.
     local corrupt
-    corrupt="$(find build/seed.check -type f \( -name '*.c' -o -name '*.h' \) -exec sh -c '
+    corrupt="$(find build/seed.new -type f \( -name '*.c' -o -name '*.h' \) -exec sh -c '
         for f do
             tr -d "\000" < "$f" | cmp -s - "$f" || printf "%s\n" "$f"
         done' sh {} +)"
@@ -264,11 +259,10 @@ cmd_regenerate() {
         exit 1
     fi
 
-    # STALE: build/seed.check/ is the fresh emission `check` just made. Replace
-    # the directory wholesale — a per-file copy would leave behind a unit that
+    # Replace the directory wholesale — a per-file copy would leave behind a unit that
     # the new emission no longer produces, and a stale unit still compiles.
     rm -rf bootstrap/seed
-    mv build/seed.check bootstrap/seed
+    mv build/seed.new bootstrap/seed
 
     cat > bootstrap/VERSION <<META
 vader_source_sha: $(git rev-parse HEAD)
@@ -277,7 +271,7 @@ regenerated_at:   $(date -u +%Y-%m-%dT%H:%M:%SZ)
 generator:        $VADER
 META
 
-    shared=$(ls bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c 2>/dev/null | wc -l | tr -d ' ')
+    shared=$(find bootstrap/seed -maxdepth 1 -name '*.c' | wc -l | tr -d ' ')
     per_target=$(find bootstrap/seed -mindepth 2 -name '*.c' 2>/dev/null | wc -l | tr -d ' ')
     echo "seed regenerated ($(du -sh bootstrap/seed | cut -f1), ${shared} shared unit(s), ${per_target} per-target)."
     echo "review the diff vs the committed seed:"
@@ -290,51 +284,15 @@ META
     echo "  git commit -m 'chore(bootstrap): bump seed'"
 }
 
-# ---- push -----------------------------------------------------------------
-
-# Push, reseeding first if the committed C seed is stale.
-#
-# The one-command happy path for the "one reseed per push" cadence
-# (docs/BOOTSTRAP.md § "Who bumps"). .githooks/pre-push is the safety net for a
-# plain `git push`; this is what keeps that net from ever firing.
-#
-# Every argument is forwarded to `git push`, so `seed.sh push -u origin main`
-# works as expected.
-cmd_push() {
-    # `regenerate` is a no-op when the seed is already fresh, and refuses outright
-    # when it cannot tell — the asymmetry that matters here: unlike the pre-push
-    # hook, which only *checks* and tolerates not knowing, this path is about to
-    # WRITE the committed artefact, so an unusable compiler is a hard stop. Its own
-    # guards carry the messages, so there is nothing to pre-check here.
-    step "Reseeding if the committed seed is stale"
-    # Parenthesised: `regenerate` exits 0 on "already fresh", and a subshell keeps
-    # that from ending the push.
-    ( cmd_regenerate )
-
-    if git diff --quiet -- bootstrap/seed bootstrap/VERSION; then
-        step "Nothing to commit"
-    else
-        step "Committing the bump"
-        git commit -q -m 'chore(bootstrap): bump seed' \
-          bootstrap/seed bootstrap/VERSION
-        git --no-pager log --oneline -1
-    fi
-
-    step "Pushing"
-    git push "$@"
-    printf '%b==> done%b\n' "$g" "$r"
-}
-
 # ---- dispatch -------------------------------------------------------------
 
 usage() {
     cat >&2 <<'USAGE'
 usage: bootstrap/seed.sh <command> [args]
 
-  check [--quiet] [--full]   is bootstrap.c what the sources would emit?
-                             exit 0 fresh / 1 stale / 2 cannot tell
-  regenerate                 write a new seed (requires a clean tree)
-  push [git push args…]      reseed, commit the bump, then push
+  check [--quiet]   does the committed seed still bootstrap HEAD?
+                    exit 0 viable / 1 broken / 2 cannot tell
+  regenerate        write a new seed (requires a clean tree)
 USAGE
     exit 2
 }
@@ -344,7 +302,6 @@ cmd="$1"; shift
 case "$cmd" in
     check)      cmd_check "$@" ;;
     regenerate) cmd_regenerate "$@" ;;
-    push)       cmd_push "$@" ;;
     -h|--help)  usage ;;
     *) echo "seed.sh: unknown command: $cmd" >&2; usage ;;
 esac

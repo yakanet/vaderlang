@@ -1,5 +1,9 @@
 # Bootstrap — `bootstrap.c` seed
 
+> **Reseed model changed (2026-09-23): the seed only has to WORK, not to be fresh.**
+> § *Seed lifecycle management* and § *Phase 4* are current; anything elsewhere
+> about a "byte-fresh" seed or a reseed per push predates this.
+>
 > **Storage format changed (2026-07-28).** The seed is committed **uncompressed**
 > as `bootstrap/bootstrap.c`; it was `bootstrap.c.gz` until then. Nothing about the
 > bootstrap *chain* changed — only how the artefact is stored, and `gzip` is no
@@ -362,8 +366,8 @@ directory at the repo root holds the generated seed and the tooling :
 bootstrap/
 ├── bootstrap.c        — the seed (generated, uncompressed, committed)
 ├── VERSION            — metadata about the seed
-├── seed.sh            — the seed's lifecycle: check | regenerate | push
-├── build.sh           — cc (external runtime) → ./build/stage1
+├── seed.sh            — the seed's lifecycle: check | regenerate
+├── build.sh           — seed → stage0 → stage1 → ./build/vader (stage2)
 ├── build.ps1          — Windows counterpart (mingw-w64)
 ├── verify.sh          — fixed-point check (Phase 4, every push + PR)
 └── README.md          — terse usage, points to docs/BOOTSTRAP.md
@@ -551,11 +555,10 @@ is the `Test` job's own bootstrap, which runs after Bun is installed, plus the
 2026-08-30. It used to be gated to `workflow_dispatch` and release tags as too
 slow; it measured 257 s and 286 s the two times it actually ran, against the
 10 m 59 s Windows job that sets a run's total, so it finishes inside that shadow
-for no wall-clock cost. That matters because it is the only job that would
-notice a stale seed: `test-posix` and `test-windows` build stage0 from the seed
-and then self-compile stage1 from current sources, so both pass with a seed that
-no longer matches. Neither installs Bun, Node, or a pre-installed `vader` — only
-a C compiler. (The Bun
+for no wall-clock cost. It is also the seed's viability gate, the same
+`verify.sh` the pre-push hook runs; a seed that cannot build the tree fails the
+test jobs as well, since they bootstrap from it. It installs neither Bun, Node,
+nor a pre-installed `vader` — only a C compiler. (The Bun
 `test` / `dist` jobs in the same file are separate, isolated jobs.)
 
 The `rebuild` job, running on each push :
@@ -581,53 +584,23 @@ Only a C compiler. That is the whole point.
 
 ## Phase 4 — Fixed-point verification
 
-This formalises TODO §2.7 as a script.
+This formalises TODO §2.7 as a script. `bootstrap/verify.sh` runs on every push
+and PR (CI `fixed-point` job, ADR 0006) and is what `bootstrap/seed.sh check`
+runs before a push. It builds the three stages with `build.sh`, then checks:
 
-`bootstrap/verify.sh` — not run on every push, available on demand
-and on releases :
+- **(a) fixed point** — stage2 re-emits `main.vader` in release mode, and the
+  result must equal what stage1 emitted for stage2, unit for unit (`diff -r`).
+  stage1's codegen is the seed's, so equality also shows the seed's age did not
+  leak into the compiler's behaviour.
+- **(a2) debug emission** — the same comparison on a snippet without `--release`,
+  which covers `#line` and the per-op debug table.
+- **(b) reproducibility** — stage1 builds stage2 a second time, to another path;
+  the two binaries must be byte-identical.
 
-```sh
-#!/usr/bin/env bash
-set -euo pipefail
-cd "$(dirname "$0")/.."
-
-./bootstrap/build.sh                                       # build/stage1 (from seed)
-
-# stage1 (build-only) emits the FULL compiler's C, then we cc it.
-./build/stage1 vader/cli/main.vader build/main1.c
-cc -O2 -o build/vader build/main1.c runtime/c/vader_runtime.c -Iruntime/c -lm
-
-# (a) full-compiler self-reproduction : vader re-emits main.vader, must match.
-./build/vader build --emit=c --out=build/main2.c vader/cli/main.vader
-if ! cmp -s build/main1.c build/main2.c; then
-  echo "FIXED-POINT FAILED — full compiler is not self-reproducing"
-  diff -u build/main1.c build/main2.c | head -200
-  exit 1
-fi
-
-# (b) seed freshness : vader re-emits bootstrap.vader, must match the committed seed.
-./build/vader build --emit=c --out=build/bootstrap.new.c vader/bootstrap/bootstrap.vader
-if ! cmp -s build/bootstrap.new.c bootstrap/bootstrap.c; then
-  echo "STALE SEED — bootstrap.c no longer matches bootstrap.vader; run regenerate.sh"
-  exit 1
-fi
-
-echo "fixed-point OK : main.c reproduced byte-identical, seed up to date"
-```
-
-Invariants verified :
-- The compiler is **self-reproducing** : a compiler built from the seed, used to
-  rebuild `main.vader`, produces the same C as a fresh re-emit (`main1.c == main2.c`).
-- The committed seed is **fresh** : re-emitting `bootstrap.vader` matches
-  `bootstrap.c` — no silent drift.
-- The seed is not "lucky" — it represents a real fixed point of the pipeline.
-
-Trigger :
-- **Mandatory before committing the very first seed** (Phase 2 step 4).
-- Manually before tagged releases.
-- On `release/*` branch pushes via a separate `verify-bootstrap` workflow.
-
-Too slow for every PR run.
+Exit `0` pass, `1` a real failure, `2` could not conclude (a structural `diff`
+error, a missing C compiler). A fixed point says nothing about correctness: a
+compiler that mis-compiles itself stably passes it, which is why the suite has
+to run after a reseed.
 
 ### Validation log
 
@@ -646,111 +619,79 @@ Too slow for every PR run.
 
 ## Seed lifecycle management
 
-### When to bump
+### When to bump — when the seed stops working
 
-Regenerate `bootstrap.c` when a change affects **the C that
-`vader/bootstrap/bootstrap.vader` emits** — i.e. the compilation pipeline
-reachable from it :
+The seed is a bootstrap tool: it has to build the current tree, not to be what the
+current tree would emit. The build runs three stages —
 
-- `vader/{lexer,parser,resolver,typecheck,comptime,lower,midir,bytecode,c_emit}`
-  gains or modifies behaviour exercised when compiling a `.vader` file
-- `vader/c_emit/` changes the shape of generated C (output format, ABI,
-  runtime call conventions)
-- Bytecode / IR format changes
-- the pipeline helpers duplicated inside `bootstrap.vader` itself change
+```
+seed + runtime/c   ─cc→   stage0   (old compiler)
+stage0 (tree)      ─cc→   stage1   (the tree's semantics, the seed's codegen)
+stage1 (tree)      ─cc→   stage2   = build/vader   (the tree's semantics and codegen)
+```
 
-The runtime is linked externally, so a `runtime/c/` change only forces a seed
-bump when it changes the **emitted call shape** (a pure `.c` body change does not).
+— and ships stage2, so the seed's age never reaches the shipped binary.
+`verify.sh` proves stage1 and stage2 emit the same C; with an older seed that
+check is stronger, not weaker, since the two stages no longer share a codegen.
+Measured on 2026-09-23, a seed two weeks old, across the Box 24 → 16 B runtime
+change, produced a byte-identical compiler: the seed's C reaches layout through
+`vader.h` and `sizeof`, so it adapts to the runtime it is recompiled against.
 
-### When **not** to bump
+So a reseed is due only when **`bootstrap/seed.sh check` says `1`**: the committed
+seed, with HEAD's `runtime/c/`, no longer builds HEAD or no longer passes
+`verify.sh`. In practice that is a breaking change the old stage0 cannot compile
+(a core type it looks up by name, an intrinsic it does not know), or a runtime
+function the seed calls being removed or re-signed.
 
-- Tests-only changes (`tests/`, `vader/typecheck/*tests*.vader`, …)
-- Documentation, comments, formatting
-- **`vader/lsp/`, `vader/fmt/`, `vader/vm/`, and the parts of `vader/cli/` that
-  `bootstrap.vader` does not import** — excluded from the seed by design, so
-  growing them (e.g. the lsp) **never** bumps it. This is the whole point of a
-  dedicated build-only entrypoint.
-- Bug fixes that don't change emitted C — verify with a dry-run :
-  if `seed.sh regenerate` produces a byte-identical seed, no bump needed.
+The stage0 contract is frozen between reseeds: `build.sh` evolves with the tree
+but calls an OLD stage0, as `stage0 <input.vader> <output-prefix>`
+(`vader/bootstrap/bootstrap.vader::main`), and reads the split file layout it
+writes. Changing either forces a reseed in the same commit.
 
-### Who bumps, and when — **once per push** (revised 2026-07-28)
+### The check, and the hook
 
-**The cadence is one reseed per push, not one per chantier.** Measured on 8 real
-consecutive seeds over the same development interval, batching this way takes the
-accumulated history from 460 KB to 60 KB (**−87 %**) ; at the observed rates
-(~10 reseeds/day against ~1.5 pushes/day) that is ~19.8 MB/month down to ~3 MB.
-The saving is not churn cancelling out — that accounts for only 11 % — but delta
-encoding being far more efficient on one batched change than on seven scattered
-ones.
+`bootstrap/seed.sh check` owns the question and answers in exit codes: `0`
+viable, `1` broken, `2` could-not-tell (no C compiler, a seed source tree
+missing). It exports HEAD under `build/seed.viability/` and runs `verify.sh`
+there (~1 min on an M3 Max), so it vets exactly what is pushed: an uncommitted
+edit can neither fail nor pass it, and the checkout's `build/vader` is left
+alone. A viable verdict is stamped in `build/seed.viable` with the git object ids
+of what it read — the seed's sources, the seed, `build.sh` and `verify.sh`; while
+those do not move, the check answers in no time, so a push touching only docs,
+tests or tooling compiles nothing.
 
-The invariant this trades into: **every *pushed* commit carries a byte-fresh
-seed**, rather than every commit. Intermediate local commits may carry a slightly
-stale one, which still builds the tree — which the `Test` job's bootstrap still
-exercises on every push, though no longer in a Bun-free environment.
+`.githooks/pre-push` runs it when the push publishes HEAD. Enable it once per
+clone with `git config core.hooksPath .githooks`; `git push --no-verify`
+bypasses it. `1` blocks the push; `2` warns and lets it through, since the CI
+`fixed-point` job runs the same gate on every push.
 
-Two things enforce it:
+### Reseeding
 
-- **`bootstrap/seed.sh push`** — the happy path. Checks freshness, reseeds and
-  commits if needed, then pushes. Arguments are forwarded to `git push`.
-- **`.githooks/pre-push`** — the safety net for a plain `git push`. Blocks the
-  push when the seed is stale. Enable it once per clone with
-  `git config core.hooksPath .githooks`. `git push --no-verify` bypasses it ; the
-  next push then blocks until you reseed.
+```sh
+bootstrap/seed.sh regenerate
+bun run test                      # the new seed builds the stage0 under test
+git commit -m 'chore(bootstrap): bump seed' bootstrap/seed bootstrap/VERSION
+```
 
-Both defer to **`bootstrap/seed.sh check`**, which owns the question and answers
-in exit codes: `0` fresh, `1` stale, `2` could-not-tell. That third code is the
-load-bearing one — a compiler older than the sources would compare its own stale
-output against itself and report *fresh*, a self-consistent lie. Hence the
-asymmetry:
+When the check fails because of the seed, `build.sh` cannot produce a compiler
+from it — but the last `build/vader` that did build is much newer than the seed
+and usually still compiles the tree. `regenerate` relies on that: given a
+compiler older than the `.vader` sources, it builds the tree with it first and
+emits the seed from the result. It requires a clean tree across every source dir
+the seed depends on — not just `vader/`, since the seed embeds the stdlib it was
+compiled with. It is a no-op
+when the seed comes out byte-identical, leaving `VERSION` alone.
+`VERSION`'s `vader_source_sha` is the commit the seed was emitted at — its age.
 
-- the **hook** treats `2` as a warning and lets the push through. Requiring a
-  ~1 min 40 `bun run build` before every push would cost far more than the ~60 KB
-  a missed reseed adds, and CI still checks that the seed can build the tree.
-- **`seed.sh push` refuses outright** on `2`, because it is about to *write* the seed,
-  and reseeding with an out-of-date compiler bakes that compiler's old codegen
-  into the committed artefact — where it would then look fresh to anything using
-  the same binary.
-
-The hook's cheap short-circuit costs 0 s: if nothing under `vader/`, `lib/` or
-`runtime/c/` changed since the last reseed commit, the seed is fresh with nothing
-to compile. That path set is deliberately broader than `bootstrap.vader`'s actual
-import closure — a hand-maintained closure list would silently rot the day an
-import changes, and a false *fresh* is the one answer these tools must never give.
-It is also checked for *existence* before anything else: `git diff --quiet HEAD --
-gone/` exits 0 and `find gone/ …` prints nothing, so a moved source tree would
-otherwise make every test answer "nothing changed" with no source left to check.
-A missing tree is reported as `2`, never as fresh.
-
-`seed.sh regenerate` is a no-op when the seed comes out byte-identical: it leaves
-`VERSION` alone rather than manufacturing a diff from `regenerated_at`. That
-matters under the per-push cadence, which runs it after pushes that only touched
-docs, tests, the lsp or the formatter.
-
-Otherwise: the contributor whose PR triggers the need. CI failure on step 2 (see
-Phase 3) is the signal. If a PR changes the compiler such that the
-seed becomes stale :
-
-1. Run `bootstrap/seed.sh regenerate` locally (uses your installed `vader`
-   or the one in `./build/`). It requires a clean tree across every source dir the
-   seed depends on — not just `vader/`, since the seed embeds the stdlib it was
-   compiled with.
-2. Inspect the diff. The seed carries `-diff`, so `git diff` reports it as
-   binary ; ask for the two versions explicitly :
-   `diff <(git show HEAD:bootstrap/bootstrap.c) bootstrap/bootstrap.c`.
-   Confirm the change looks **localised and proportional** to your source change.
-   `git diff --stat` gives a coarser but instant read (`Bin <old> -> <new> bytes`)
-   — and on this file a byte delta is arguably the *better* proportionality
-   signal, since a single emitted line can run to 55 000 characters, which makes
-   any line count a poor proxy for the size of a change.
-3. Commit the seed bump as a **separate commit** from the source
-   change, with subject `chore(bootstrap): bump seed`. Easier to
-   review and easier to revert if regen was premature.
+Inspect the diff before committing. The seed carries `-diff`, so `git diff`
+reports it as binary; `git diff --stat` gives the byte delta. Commit the bump as
+a **separate commit** from the source change: easier to review, easier to
+revert.
 
 ### Bump frequency expectations
 
-Early post-bootstrap, expect **several seed bumps per week** while the
-compiler is still maturing. As the compiler stabilises, expect bumps
-on the order of **once per release**.
+Only breaking changes reseed — rare next to the compiler's commit rate (the
+measurements are in `.claude/plans/2026-09-23-seed-viability.md`).
 
 ### Repo growth budget
 
