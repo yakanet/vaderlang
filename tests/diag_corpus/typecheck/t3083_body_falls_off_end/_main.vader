@@ -49,7 +49,26 @@ both :: fn(c: bool) -> i32 {
     }
 }
 
+// A LAMBDA carries the same obligation — and left unchecked it was worse than
+// the named case: it compiled, then trapped at run time on `unreachable return`.
+apply :: fn(f: fn(i32) -> i32, v: i32) -> i32 = f(v)
+
+lambda_falls_off :: fn() -> i32 {
+    return apply((x) -> {
+        _ :: x + 1
+    }, 5)
+}
+
+// Quiet — the slot promises nothing, so the body producing nothing is right.
+run :: fn(f: fn(i32)) -> void = f(1)
+lambda_void :: fn() -> void {
+    run((x) -> {
+        _ :: x + 1
+    })
+}
+
 main :: fn() -> i32 {
     returns_void(1)
-    return both(true)
+    lambda_void()
+    return both(true) + lambda_falls_off()
 }

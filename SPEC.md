@@ -1818,7 +1818,9 @@ an error before). A body **diverges**, and is accepted, when its last statement 
 a `return` / `break` / `continue`, a call to a `@no_return` fn (`panic`, `todo`),
 or a loop no `break` can leave — `fn() -> i32 { for { … } }` is fine, since control
 never reaches the brace. Functions with no return type promise nothing and are
-unaffected.
+unaffected. A **lambda** carries the same obligation whenever a type is promised
+— by an annotation, or by the slot it is handed to — and is exempt when nothing
+promises one, since its return type is then inferred from the body.
 
 **No-return functions** drop the `-> void` annotation. Internally the compiler still has a unit/void type, but it is not user-facing — `void` is **not** a name available in source code. Function-pointer types that produce no value drop the arrow likewise: `callback: fn()` instead of `callback: fn() -> void`.
 
