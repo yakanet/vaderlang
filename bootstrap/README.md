@@ -63,8 +63,7 @@ auto-grow, so self-compiling needs no env tuning.
 The seed is a bootstrap tool: it has to build the current tree, not to be what
 the current tree would emit. `build.sh` ships stage2 — the tree compiled by the
 tree — so the seed's age never reaches the shipped binary. A seed two weeks old
-produces a byte-identical compiler; see
-`.claude/plans/2026-09-23-seed-viability.md` for the measurements.
+produced a byte-identical compiler when measured.
 
 A reseed is due when `seed.sh check` says `1` — typically after a breaking change
 the old stage0 cannot compile. Enable the safety net once per clone:

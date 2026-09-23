@@ -7,8 +7,8 @@
 # The seed is a bootstrap tool: it only has to be able to build the current tree,
 # not to be what the current tree would emit. `build.sh` ships stage2 — the tree
 # compiled by the tree — so the seed's age never reaches the shipped binary, and a
-# reseed is due only when the seed stops working. See
-# .claude/plans/2026-09-23-seed-viability.md.
+# reseed is due only when the seed stops working. See docs/BOOTSTRAP.md § "Seed
+# lifecycle management".
 #
 # `check` OWNS the viability question; .githooks/pre-push defers to it. `verify.sh`
 # is what answers it — the same gate the CI `fixed-point` job runs — so a seed that

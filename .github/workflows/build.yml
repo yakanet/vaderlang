@@ -55,12 +55,6 @@ jobs:
           bun-version: 1.3.13
       - name: Build Vader CLI from the C seed
         run: bash bootstrap/build.sh
-      # Temporary: explains the Windows/Linux ratio brick by brick. Result on the
-      # run's summary page. tools/ci-probe/probe.ps1.
-      - name: CI probe
-        shell: pwsh
-        continue-on-error: true
-        run: pwsh -NoProfile -File tools/ci-probe/probe.ps1
       - name: Test
         env:
           VADER_TEST_GATE: ${{ inputs.gate }}
@@ -87,12 +81,6 @@ jobs:
       - name: Build Vader CLI from the C seed (Windows)
         shell: pwsh
         run: pwsh bootstrap/build.ps1
-      # Temporary: explains the Windows/Linux ratio brick by brick. Result on the
-      # run's summary page. tools/ci-probe/probe.ps1.
-      - name: CI probe
-        shell: pwsh
-        continue-on-error: true
-        run: pwsh -NoProfile -File tools/ci-probe/probe.ps1
       - name: Test
         env:
           VADER_TEST_GATE: ${{ inputs.gate }}

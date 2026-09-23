@@ -690,8 +690,7 @@ revert.
 
 ### Bump frequency expectations
 
-Only breaking changes reseed — rare next to the compiler's commit rate (the
-measurements are in `.claude/plans/2026-09-23-seed-viability.md`).
+Only breaking changes reseed, which is rare next to the compiler's commit rate.
 
 ### Repo growth budget
 
