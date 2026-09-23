@@ -403,16 +403,8 @@ try_enum_variant_dispatch :: fn(
     // slot whose union carries two enums sharing this variant name resolves the
     // bare form to the first, and there the prefix is what disambiguates.
     inferred :: enum_for_bare_variant(expected, e.field, typed)
-    if inferred is EnumType {
-        if inferred.symbol.id == target_ty.symbol.id && typed.overloaded_arg_depth == 0 {
-            diags.push(
-                warning(
-                    .NeedlessEnumTypePrefix,
-                    e.span,
-                    "write `.${e.field}`",
-                ),
-            )
-        }
+    if inferred !is null && typed.overloaded_arg_depth == 0 && equals_type(inferred, target_ty) {
+        diags.push(warning(.NeedlessEnumTypePrefix, e.span, "write `.${e.field}`"))
     }
     return target_ty
 }
