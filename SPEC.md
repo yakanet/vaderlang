@@ -1809,6 +1809,17 @@ add_one :: fn(x: i32) -> i32 = x + 1
 
 `return` is valid anywhere. If the last expression of a block is an expression and its type matches the return type, `return` is optional. When the whole body is a single expression, prefer the expression-body form `fn(...) -> T = expr` (no braces, no `return`) — it is the idiomatic shape across the stdlib and compiler tree.
 
+**Every path must produce the declared value (`T3083`).** A body that reaches its
+closing brace with no trailing expression, and without diverging, is an error when
+the fn declares a return type — `f :: fn() -> i32 { n :: 1 }` does not compile.
+This is the other half of `T3020`, which already covered a body whose trailing
+expression has the wrong type (so `fn(c: bool) -> i32 { if c { return 7 } }` was
+an error before). A body **diverges**, and is accepted, when its last statement is
+a `return` / `break` / `continue`, a call to a `@no_return` fn (`panic`, `todo`),
+or a loop no `break` can leave — `fn() -> i32 { for { … } }` is fine, since control
+never reaches the brace. Functions with no return type promise nothing and are
+unaffected.
+
 **No-return functions** drop the `-> void` annotation. Internally the compiler still has a unit/void type, but it is not user-facing — `void` is **not** a name available in source code. Function-pointer types that produce no value drop the arrow likewise: `callback: fn()` instead of `callback: fn() -> void`.
 
 ### `main` entry point

@@ -426,6 +426,24 @@ export check_fn_body :: fn(
                 typed,
                 diags,
             )
+        } else if got !is NeverType {
+            // T3083 — no trailing expression, and the body does not diverge, so
+            // control reaches the closing brace with nothing to hand back. The
+            // sibling case (a value of the WRONG type) is T3020 just above;
+            // without this arm the two halves disagreed, since `if c { return 7 }`
+            // was already an error while a body with no `return` at all was not.
+            //
+            // `got` is `never` exactly when `check_block` saw the last statement
+            // diverge — a `return` / `break` / `continue`, a `@no_return` call, or
+            // a loop nothing can leave.
+            if !is_void(effective_return) && effective_return !is UnresolvedType {
+                diags.push(
+                    typecheck_error(
+                        .BodyFallsOffEnd, fn_decl.name_span,
+                        "`${fn_decl.name}` promises ${display_type(effective_return)}",
+                    ),
+                )
+            }
         }
     }
     typed.current_fn_ctx = prev
