@@ -15,7 +15,7 @@ count :: fn<T>(it: Iterator<T>) -> i32 {
     cont := true
     for cont {
         [_, c] :: it.next()
-        if c == Continuation.Stop {
+        if c == .Stop {
             cont = false
         } else {
             n = n + 1

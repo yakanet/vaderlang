@@ -5,16 +5,14 @@
   FnDecl         main                 :: fn() -> i32
   expr 12310:10 BinaryExpr     :: bool
   expr 12310:11 IdentExpr      :: Continuation
-  expr 12310:12 FieldExpr      :: Continuation
-  expr 12310:13 IdentExpr      :: Continuation
+  expr 12310:12 DotVariantExpr :: Continuation
   expr 12310:28 CallExpr       :: [i32, Continuation]!
   expr 12310:29 FieldExpr      :: fn() -> [i32, Continuation]!
   expr 12310:30 IdentExpr      :: Countdown!
   expr 12310:32 IfExpr         :: void
   expr 12310:33 BinaryExpr     :: bool
   expr 12310:34 IdentExpr      :: Continuation
-  expr 12310:35 FieldExpr      :: Continuation
-  expr 12310:36 IdentExpr      :: Continuation
+  expr 12310:35 DotVariantExpr :: Continuation
   expr 12310:39 IdentExpr      :: usize
   expr 12310:40 BinaryExpr     :: usize
   expr 12310:41 IdentExpr      :: usize
@@ -26,9 +24,8 @@
   expr 12310:66 IfExpr         :: void
   expr 12310:67 BinaryExpr     :: bool
   expr 12310:68 IdentExpr      :: Continuation
-  expr 12310:69 FieldExpr      :: Continuation
+  expr 12310:69 DotVariantExpr :: Continuation
   expr 12310:7  FieldExpr      :: fn() -> [i32, Continuation]!
-  expr 12310:70 IdentExpr      :: Continuation
   expr 12310:73 IdentExpr      :: i32 | null
   expr 12310:74 IdentExpr      :: i32
   expr 12310:76 IdentExpr      :: i32 | null
@@ -38,8 +35,7 @@
   expr 14:12    IdentExpr      :: Countdown!
   expr 14:9     IfExpr         :: void
   expr 15:20    SeqLitExpr     :: [i32, Continuation]!
-  expr 15:24    FieldExpr      :: Continuation
-  expr 15:24    IdentExpr      :: Continuation
+  expr 15:24    DotVariantExpr :: Continuation
   expr 17:14    FieldExpr      :: i32
   expr 17:14    IdentExpr      :: Countdown!
   expr 18:26    BinaryExpr     :: i32
@@ -49,8 +45,7 @@
   expr 18:9     IdentExpr      :: Countdown!
   expr 19:16    SeqLitExpr     :: [i32, Continuation]!
   expr 19:17    IdentExpr      :: i32
-  expr 19:20    FieldExpr      :: Continuation
-  expr 19:20    IdentExpr      :: Continuation
+  expr 19:20    DotVariantExpr :: Continuation
   expr 25:14    CallExpr       :: usize
   expr 25:14    FieldExpr      :: fn() -> usize
   expr 25:14    RangeExpr      :: Range<i32>!

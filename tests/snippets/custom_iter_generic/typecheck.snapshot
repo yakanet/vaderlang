@@ -5,16 +5,14 @@
   StructDecl     Repeat               :: Repeat<T>!
   expr 11286:10 BinaryExpr     :: bool
   expr 11286:11 IdentExpr      :: Continuation
-  expr 11286:12 FieldExpr      :: Continuation
-  expr 11286:13 IdentExpr      :: Continuation
+  expr 11286:12 DotVariantExpr :: Continuation
   expr 11286:28 CallExpr       :: [T, Continuation]!
   expr 11286:29 FieldExpr      :: fn() -> [T, Continuation]!
   expr 11286:30 IdentExpr      :: Repeat<T>!
   expr 11286:32 IfExpr         :: void
   expr 11286:33 BinaryExpr     :: bool
   expr 11286:34 IdentExpr      :: Continuation
-  expr 11286:35 FieldExpr      :: Continuation
-  expr 11286:36 IdentExpr      :: Continuation
+  expr 11286:35 DotVariantExpr :: Continuation
   expr 11286:39 IdentExpr      :: usize
   expr 11286:40 BinaryExpr     :: usize
   expr 11286:41 IdentExpr      :: usize
@@ -26,9 +24,8 @@
   expr 11286:66 IfExpr         :: void
   expr 11286:67 BinaryExpr     :: bool
   expr 11286:68 IdentExpr      :: Continuation
-  expr 11286:69 FieldExpr      :: Continuation
+  expr 11286:69 DotVariantExpr :: Continuation
   expr 11286:7  FieldExpr      :: fn() -> [T, Continuation]!
-  expr 11286:70 IdentExpr      :: Continuation
   expr 11286:73 IdentExpr      :: null | T
   expr 11286:74 IdentExpr      :: T
   expr 11286:76 IdentExpr      :: null | T
@@ -40,8 +37,7 @@
   expr 16:20    SeqLitExpr     :: [T, Continuation]!
   expr 16:21    FieldExpr      :: T
   expr 16:21    IdentExpr      :: Repeat<T>!
-  expr 16:33    FieldExpr      :: Continuation
-  expr 16:33    IdentExpr      :: Continuation
+  expr 16:33    DotVariantExpr :: Continuation
   expr 18:14    FieldExpr      :: T
   expr 18:14    IdentExpr      :: Repeat<T>!
   expr 19:26    BinaryExpr     :: i32
@@ -51,8 +47,7 @@
   expr 19:9     IdentExpr      :: Repeat<T>!
   expr 20:16    SeqLitExpr     :: [T, Continuation]!
   expr 20:17    IdentExpr      :: T
-  expr 20:20    FieldExpr      :: Continuation
-  expr 20:20    IdentExpr      :: Continuation
+  expr 20:20    DotVariantExpr :: Continuation
   expr 26:11    StructLitExpr  :: Repeat<i32>!
   expr 28:14    IdentExpr      :: Repeat<i32>!
   expr 29:15    BinaryExpr     :: i32

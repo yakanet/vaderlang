@@ -126,12 +126,8 @@
                     "name": "c"
                   },
                   "right": {
-                    "kind": "FieldExpr",
-                    "target": {
-                      "kind": "IdentExpr",
-                      "name": "Continuation"
-                    },
-                    "field": "Stop"
+                    "kind": "DotVariantExpr",
+                    "variant": "Stop"
                   }
                 },
                 "then": {

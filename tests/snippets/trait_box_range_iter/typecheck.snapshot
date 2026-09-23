@@ -14,8 +14,7 @@
   expr 17:19    IdentExpr      :: Iterator<T>
   expr 18:12    BinaryExpr     :: bool
   expr 18:12    IdentExpr      :: Continuation
-  expr 18:17    FieldExpr      :: Continuation
-  expr 18:17    IdentExpr      :: Continuation
+  expr 18:17    DotVariantExpr :: Continuation
   expr 18:9     IfExpr         :: void
   expr 19:13    IdentExpr      :: bool
   expr 21:13    IdentExpr      :: i32

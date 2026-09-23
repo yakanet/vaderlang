@@ -10,8 +10,7 @@
   expr 18:19    IdentExpr      :: Iterator<i32>
   expr 19:12    BinaryExpr     :: bool
   expr 19:12    IdentExpr      :: Continuation
-  expr 19:17    FieldExpr      :: Continuation
-  expr 19:17    IdentExpr      :: Continuation
+  expr 19:17    DotVariantExpr :: Continuation
   expr 19:9     IfExpr         :: void
   expr 20:13    IdentExpr      :: bool
   expr 22:13    IdentExpr      :: i32

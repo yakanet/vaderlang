@@ -72,11 +72,11 @@ StringChars implements Iterator<char> {
         if (self.cursor >= self.length) {
             // The element beside `Stop` is never read; `char` is concrete here,
             // so any one does.
-            return [' ', Continuation.Stop]
+            return [' ', .Stop]
         }
         [c, width] :: self.bytes.utf8_decode_len(self.cursor)
         self.cursor = self.cursor + width
-        return [c, Continuation.Continue]
+        return [c, .Continue]
     }
 }
 

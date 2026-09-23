@@ -13,11 +13,11 @@ Repeat<T> implements Iterator<T> {
         // `self.value` doubles as the stop filler: a `T` already at hand, where
         // an unconstrained `T` offers no way to build one.
         if (self.remaining <= 0) {
-            return [self.value, Continuation.Stop]
+            return [self.value, .Stop]
         }
         v :: self.value
         self.remaining = self.remaining - 1
-        return [v, Continuation.Continue]
+        return [v, .Continue]
     }
 }
 

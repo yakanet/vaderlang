@@ -16,7 +16,7 @@ walk :: fn(it: Iterator<i32>) -> i32 {
     cont := true
     for cont {
         [v, c] :: it.next()
-        if c == Continuation.Stop {
+        if c == .Stop {
             cont = false
         } else {
             sum = sum + v

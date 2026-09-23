@@ -190,7 +190,7 @@ export Iterator :: trait<T> {
     // pull-based shape — there's no peek without an internal buffer.
     is_empty :: fn(self!) -> bool {
         [_, c] :: self.next()
-        return c == Continuation.Stop
+        return c == .Stop
     }
 
     // Drain the iterator, returning the count of yielded items. Consumes
@@ -199,7 +199,7 @@ export Iterator :: trait<T> {
         total: usize = 0
         for {
             [_, c] :: self.next()
-            if c == Continuation.Stop {
+            if c == .Stop {
                 break
             }
             total += 1
@@ -213,7 +213,7 @@ export Iterator :: trait<T> {
         result: T | null = null
         for {
             [v, c] :: self.next()
-            if c == Continuation.Stop {
+            if c == .Stop {
                 break
             }
             result = v
@@ -310,10 +310,10 @@ Range<T> implements<T: Comparable & Step> Iterator<T> {
                 else                 { self.cursor.gte(self.end) }
         // The cursor doubles as the stop filler: it is a `T` already at hand, so
         // nothing has to be manufactured for a type that only promises ordering.
-        if (done) { return [self.cursor, Continuation.Stop] }
+        if (done) { return [self.cursor, .Stop] }
         v :: self.cursor
         self.cursor = self.cursor.step()
-        return [v, Continuation.Continue]
+        return [v, .Continue]
     }
 }
 

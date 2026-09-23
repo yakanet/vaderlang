@@ -138,12 +138,8 @@
                               "field": "value"
                             },
                             {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "Continuation"
-                              },
-                              "field": "Stop"
+                              "kind": "DotVariantExpr",
+                              "variant": "Stop"
                             }
                           ]
                         }
@@ -208,12 +204,8 @@
                       "name": "v"
                     },
                     {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "IdentExpr",
-                        "name": "Continuation"
-                      },
-                      "field": "Continue"
+                      "kind": "DotVariantExpr",
+                      "variant": "Continue"
                     }
                   ]
                 }
@@ -342,12 +334,8 @@
                               "field": "value"
                             },
                             {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "Continuation"
-                              },
-                              "field": "Stop"
+                              "kind": "DotVariantExpr",
+                              "variant": "Stop"
                             }
                           ]
                         }
@@ -387,12 +375,8 @@
                       "field": "value"
                     },
                     {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "IdentExpr",
-                        "name": "Continuation"
-                      },
-                      "field": "Continue"
+                      "kind": "DotVariantExpr",
+                      "variant": "Continue"
                     }
                   ]
                 }
@@ -517,12 +501,8 @@
                     "name": "c"
                   },
                   "right": {
-                    "kind": "FieldExpr",
-                    "target": {
-                      "kind": "IdentExpr",
-                      "name": "Continuation"
-                    },
-                    "field": "Stop"
+                    "kind": "DotVariantExpr",
+                    "variant": "Stop"
                   }
                 },
                 "then": {

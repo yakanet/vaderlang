@@ -7,16 +7,14 @@
   FnDecl         walk                 :: fn(Iterator<i32>) -> i32
   expr 22550:10 BinaryExpr     :: bool
   expr 22550:11 IdentExpr      :: Continuation
-  expr 22550:12 FieldExpr      :: Continuation
-  expr 22550:13 IdentExpr      :: Continuation
+  expr 22550:12 DotVariantExpr :: Continuation
   expr 22550:28 CallExpr       :: [T, Continuation]!
   expr 22550:29 FieldExpr      :: fn() -> [T, Continuation]!
   expr 22550:30 IdentExpr      :: Repeat<T>!
   expr 22550:32 IfExpr         :: void
   expr 22550:33 BinaryExpr     :: bool
   expr 22550:34 IdentExpr      :: Continuation
-  expr 22550:35 FieldExpr      :: Continuation
-  expr 22550:36 IdentExpr      :: Continuation
+  expr 22550:35 DotVariantExpr :: Continuation
   expr 22550:39 IdentExpr      :: usize
   expr 22550:40 BinaryExpr     :: usize
   expr 22550:41 IdentExpr      :: usize
@@ -28,9 +26,8 @@
   expr 22550:66 IfExpr         :: void
   expr 22550:67 BinaryExpr     :: bool
   expr 22550:68 IdentExpr      :: Continuation
-  expr 22550:69 FieldExpr      :: Continuation
+  expr 22550:69 DotVariantExpr :: Continuation
   expr 22550:7  FieldExpr      :: fn() -> [T, Continuation]!
-  expr 22550:70 IdentExpr      :: Continuation
   expr 22550:73 IdentExpr      :: null | T
   expr 22550:74 IdentExpr      :: T
   expr 22550:76 IdentExpr      :: null | T
@@ -42,8 +39,7 @@
   expr 25:20    SeqLitExpr     :: [T, Continuation]!
   expr 25:21    FieldExpr      :: T
   expr 25:21    IdentExpr      :: Repeat<T>!
-  expr 25:33    FieldExpr      :: Continuation
-  expr 25:33    IdentExpr      :: Continuation
+  expr 25:33    DotVariantExpr :: Continuation
   expr 27:14    FieldExpr      :: T
   expr 27:14    IdentExpr      :: Repeat<T>!
   expr 28:26    BinaryExpr     :: i32
@@ -53,20 +49,17 @@
   expr 28:9     IdentExpr      :: Repeat<T>!
   expr 29:16    SeqLitExpr     :: [T, Continuation]!
   expr 29:17    IdentExpr      :: T
-  expr 29:20    FieldExpr      :: Continuation
-  expr 29:20    IdentExpr      :: Continuation
+  expr 29:20    DotVariantExpr :: Continuation
   expr 38932:10 BinaryExpr     :: bool
   expr 38932:11 IdentExpr      :: Continuation
-  expr 38932:12 FieldExpr      :: Continuation
-  expr 38932:13 IdentExpr      :: Continuation
+  expr 38932:12 DotVariantExpr :: Continuation
   expr 38932:28 CallExpr       :: [T, Continuation]!
   expr 38932:29 FieldExpr      :: fn() -> [T, Continuation]!
   expr 38932:30 IdentExpr      :: Once<T>!
   expr 38932:32 IfExpr         :: void
   expr 38932:33 BinaryExpr     :: bool
   expr 38932:34 IdentExpr      :: Continuation
-  expr 38932:35 FieldExpr      :: Continuation
-  expr 38932:36 IdentExpr      :: Continuation
+  expr 38932:35 DotVariantExpr :: Continuation
   expr 38932:39 IdentExpr      :: usize
   expr 38932:40 BinaryExpr     :: usize
   expr 38932:41 IdentExpr      :: usize
@@ -78,9 +71,8 @@
   expr 38932:66 IfExpr         :: void
   expr 38932:67 BinaryExpr     :: bool
   expr 38932:68 IdentExpr      :: Continuation
-  expr 38932:69 FieldExpr      :: Continuation
+  expr 38932:69 DotVariantExpr :: Continuation
   expr 38932:7  FieldExpr      :: fn() -> [T, Continuation]!
-  expr 38932:70 IdentExpr      :: Continuation
   expr 38932:73 IdentExpr      :: null | T
   expr 38932:74 IdentExpr      :: T
   expr 38932:76 IdentExpr      :: null | T
@@ -91,23 +83,20 @@
   expr 41:20    SeqLitExpr     :: [T, Continuation]!
   expr 41:21    FieldExpr      :: T
   expr 41:21    IdentExpr      :: Once<T>!
-  expr 41:33    FieldExpr      :: Continuation
-  expr 41:33    IdentExpr      :: Continuation
+  expr 41:33    DotVariantExpr :: Continuation
   expr 43:9     FieldExpr      :: bool
   expr 43:9     IdentExpr      :: Once<T>!
   expr 44:16    SeqLitExpr     :: [T, Continuation]!
   expr 44:17    FieldExpr      :: T
   expr 44:17    IdentExpr      :: Once<T>!
-  expr 44:29    FieldExpr      :: Continuation
-  expr 44:29    IdentExpr      :: Continuation
+  expr 44:29    DotVariantExpr :: Continuation
   expr 51:9     IdentExpr      :: bool
   expr 52:19    CallExpr       :: [i32, Continuation]!
   expr 52:19    FieldExpr      :: fn() -> [i32, Continuation]!
   expr 52:19    IdentExpr      :: Iterator<i32>
   expr 53:12    BinaryExpr     :: bool
   expr 53:12    IdentExpr      :: Continuation
-  expr 53:17    FieldExpr      :: Continuation
-  expr 53:17    IdentExpr      :: Continuation
+  expr 53:17    DotVariantExpr :: Continuation
   expr 53:9     IfExpr         :: void
   expr 54:13    IdentExpr      :: bool
   expr 56:13    IdentExpr      :: i32

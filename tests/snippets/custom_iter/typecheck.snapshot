@@ -5,16 +5,14 @@
   FnDecl         main                 :: fn() -> i32
   expr 10262:10 BinaryExpr     :: bool
   expr 10262:11 IdentExpr      :: Continuation
-  expr 10262:12 FieldExpr      :: Continuation
-  expr 10262:13 IdentExpr      :: Continuation
+  expr 10262:12 DotVariantExpr :: Continuation
   expr 10262:28 CallExpr       :: [i32, Continuation]!
   expr 10262:29 FieldExpr      :: fn() -> [i32, Continuation]!
   expr 10262:30 IdentExpr      :: Countdown!
   expr 10262:32 IfExpr         :: void
   expr 10262:33 BinaryExpr     :: bool
   expr 10262:34 IdentExpr      :: Continuation
-  expr 10262:35 FieldExpr      :: Continuation
-  expr 10262:36 IdentExpr      :: Continuation
+  expr 10262:35 DotVariantExpr :: Continuation
   expr 10262:39 IdentExpr      :: usize
   expr 10262:40 BinaryExpr     :: usize
   expr 10262:41 IdentExpr      :: usize
@@ -26,9 +24,8 @@
   expr 10262:66 IfExpr         :: void
   expr 10262:67 BinaryExpr     :: bool
   expr 10262:68 IdentExpr      :: Continuation
-  expr 10262:69 FieldExpr      :: Continuation
+  expr 10262:69 DotVariantExpr :: Continuation
   expr 10262:7  FieldExpr      :: fn() -> [i32, Continuation]!
-  expr 10262:70 IdentExpr      :: Continuation
   expr 10262:73 IdentExpr      :: i32 | null
   expr 10262:74 IdentExpr      :: i32
   expr 10262:76 IdentExpr      :: i32 | null
@@ -38,8 +35,7 @@
   expr 12:13    IdentExpr      :: Countdown!
   expr 12:9     IfExpr         :: void
   expr 13:20    SeqLitExpr     :: [i32, Continuation]!
-  expr 13:24    FieldExpr      :: Continuation
-  expr 13:24    IdentExpr      :: Continuation
+  expr 13:24    DotVariantExpr :: Continuation
   expr 15:14    FieldExpr      :: i32
   expr 15:14    IdentExpr      :: Countdown!
   expr 16:24    BinaryExpr     :: i32
@@ -49,8 +45,7 @@
   expr 16:9     IdentExpr      :: Countdown!
   expr 17:16    SeqLitExpr     :: [i32, Continuation]!
   expr 17:17    IdentExpr      :: i32
-  expr 17:20    FieldExpr      :: Continuation
-  expr 17:20    IdentExpr      :: Continuation
+  expr 17:20    DotVariantExpr :: Continuation
   expr 22:11    StructLitExpr  :: Countdown!
   expr 23:14    IdentExpr      :: Countdown!
   expr 24:17    StringLitExpr  :: string
