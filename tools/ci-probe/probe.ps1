@@ -53,6 +53,15 @@ $cpu = if ($IsWindows) {
 }
 Row 'os' ([Runtime.InteropServices.RuntimeInformation]::OSDescription)
 Row 'cpu' "$cpu, $([Environment]::ProcessorCount) logical"
+# Logical is what `-j` sees; physical is what compiles. SMT or a CPU quota makes
+# the two diverge, and only the scaling brick below shows the effect.
+$topology = if ($IsWindows) {
+    $p = Get-CimInstance Win32_Processor
+    "{0} physical cores, {1} logical" -f ($p | Measure-Object NumberOfCores -Sum).Sum, ($p | Measure-Object NumberOfLogicalProcessors -Sum).Sum
+} elseif ($IsLinux) {
+    (& lscpu | Select-String '^(Thread\(s\) per core|Core\(s\) per socket|Socket\(s\))' | ForEach-Object { "$_".Trim() -replace '\s+', ' ' }) -join '; '
+} else { 'n/a' }
+Row 'topology' $topology
 Row 'cc' ((& $cc --version | Select-Object -First 1) -join '')
 if ($IsWindows) {
     try { Row 'defender real-time' ((Get-MpComputerStatus).RealTimeProtectionEnabled) }
@@ -66,11 +75,6 @@ if ($IsWindows) {
 $n = 50
 Row "spawn: ``$cc --version`` (per call)" ("{0:N1} ms" -f ((Seconds { 1..$n | ForEach-Object { Run $cc @('--version') } }) * 1000 / $n))
 Row 'spawn: `vader --version` (per call)' ("{0:N1} ms" -f ((Seconds { 1..$n | ForEach-Object { Run $vader @('--version') } }) * 1000 / $n))
-$empty = Join-Path $tmp 'empty.c'
-Set-Content -Path $empty -Value ''
-# `-###` prints each command the driver would run, one per line, quoted.
-$sub = @(& $cc '-###' -c $empty -o (Join-Path $tmp 'empty.o') 2>&1 | Where-Object { "$_" -match '^ "' }).Count
-Row "processes behind one ``$cc -c``" "$sub"
 
 # ---- file system ----------------------------------------------------------
 
@@ -94,6 +98,21 @@ if ($units.Count -gt 0) {
     Brick 'cc -O1, largest unit'               { Run $cc (@('-O1') + $base) }
     Brick 'cc -O3, largest unit'               { Run $cc (@('-O3') + $base) }
     Brick 'cc -O3 -flto=auto, largest unit'    { Run $cc (@('-O3', '-flto=auto') + $base) }
+
+    # The same -O1 compile, k copies at once. With k real cores free, the wall
+    # time stays flat; it grows by k/cores once they run out. Each copy writes its
+    # own object, so they share nothing but the machine.
+    foreach ($k in 1, 2, 4) {
+        Brick "cc -O1, largest unit, $k at once" {
+            $procs = foreach ($j in 1..$k) {
+                $argv = @('-O1', '-std=c11', '-DNDEBUG', '-Iruntime/c', '-c', $unit.FullName, '-o', (Join-Path $tmp "par$j.o"))
+                Start-Process -FilePath $cc -ArgumentList (($argv | ForEach-Object { '"' + $_ + '"' }) -join ' ') -NoNewWindow -PassThru
+            }
+            foreach ($p in $procs) { $null = $p.Handle }
+            $procs | Wait-Process
+            foreach ($p in $procs) { if ($p.ExitCode -ne 0) { throw "$cc exited $($p.ExitCode)" } }
+        }
+    }
 } else {
     Row 'largest stage1 unit' 'none under build/work/stage1'
 }
