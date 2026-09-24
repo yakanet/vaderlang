@@ -57,28 +57,28 @@ export new_diagnostic :: fn(severity: Severity, code: CodeInfo, primary: Span, d
 // when the first call site needs them — no point shipping dead helpers).
 
 export lexer_error :: fn(code: LexerCode, primary: Span, detail: string) =
-    new_diagnostic(.Error, lexer_info(code), primary, detail)
+    new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
 export parser_error :: fn(code: ParserCode, primary: Span, detail: string) =
-    new_diagnostic(.Error, parser_info(code), primary, detail)
+    new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
 export typecheck_error :: fn(code: TypecheckCode, primary: Span, detail: string) =
-    new_diagnostic(.Error, typecheck_info(code), primary, detail)
+    new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
 export resolver_error :: fn(code: ResolverCode, primary: Span, detail: string) =
-    new_diagnostic(.Error, resolver_info(code), primary, detail)
+    new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
 export comptime_error :: fn(code: ComptimeCode, primary: Span, detail: string) =
-    new_diagnostic(.Error, comptime_info(code), primary, detail)
+    new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
 export lower_error :: fn(code: LowerCode, primary: Span, detail: string) =
-    new_diagnostic(.Error, lower_info(code), primary, detail)
+    new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
 export hook_error :: fn(code: HookCode, primary: Span, detail: string) =
-    new_diagnostic(.Error, hook_info(code), primary, detail)
+    new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
 export internal_error :: fn(code: InternalCode, primary: Span, detail: string) =
-    new_diagnostic(.Error, internal_info(code), primary, detail)
+    new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
 export warning :: fn(code: WarningCode, primary: Span, detail: string) =
-    new_diagnostic(.Warning, warning_info(code), primary, detail)
+    new_diagnostic(.Warning, CodeInfo(code), primary, detail)

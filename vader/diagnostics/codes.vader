@@ -1,16 +1,11 @@
 // vader/diagnostics/codes — typed diagnostic codes shared by every compiler
 // phase (lexer, parser, resolver, typecheck, comptime, lower).
 //
-// Each phase owns its own enum so the
-// type checker enforces "the lexer can only emit LexerCode values". The
-// canonical `LXXXX`/`PXXXX`/... wire ID and the human message are recovered
-// together via `<phase>_info(code) -> CodeInfo` — call sites use the variant
-// name (e.g. `.UnexpectedCharacter`) for clarity, the wire format gets the
-// string at the JSON boundary.
-//
-// `DiagCode` is the union of every phase's enum so the central `Diagnostic`
-// shape can carry a code from any phase without losing the per-phase
-// exhaustiveness.
+// Each phase owns its own enum so the type checker enforces "the lexer can only
+// emit LexerCode values". Every variant carries its `CodeInfo` — the canonical
+// `LXXXX`/`PXXXX`/... wire ID and the human message — as variant data, so a
+// call site names the variant (`.UnexpectedCharacter`) and `CodeInfo(code)`
+// recovers both strings when the diagnostic is built.
 //
 // Not every variant has a live emission site yet : some are reserved for
 // checks not implemented in the self-host compiler (e.g. import-cycle and
@@ -19,234 +14,243 @@
 // — it keeps its wire ID for when the check ships.
 //
 // IDs are NOT frozen. Nothing outside this repo consumes them, so a code may be
-// renumbered, reused, or given a new meaning. The constraint is per-commit, not forever : one meaning per ID at a time,
-// and the `<phase>_info` message, the `tests/diag_corpus/` fixture and the
-// committed snapshots move together. The retirement comments below are kept as
-// history, not as reservations : reuse those gaps rather than grow the space.
-// This flips to append-only once there are users.
+// renumbered, reused, or given a new meaning. The constraint is per-commit, not
+// forever : one meaning per ID at a time, and the variant's message, the
+// `tests/diag_corpus/` fixture and the committed snapshots move together. The
+// retirement comments below are kept as history, not as reservations : reuse
+// those gaps rather than grow the space. This flips to append-only once there
+// are users.
 
 module "vader/diagnostics"
 
-export LexerCode :: enum(u8) {
-    UnexpectedCharacter,                    // L0001
-    UnterminatedStringLiteral,              // L0002
-    UnterminatedBlockComment,               // L0003
-    InvalidEscapeSequence,                  // L0004
-    InvalidCharacterLiteral,                // L0005
-    MalformedNumericLiteral,                // L0006
-    StrayBackslash,                         // L0007
-    ShebangNotOnFirstLine,                  // L0008
-    InvalidUnicodeCodepointEscape,          // L0009
-    InterpolationExpressionExpected,        // L0010
-    IntegerLiteralOverflow,                 // L0011
+/// The wire identity of a diagnostic code — the data every code enum carries.
+export CodeInfo :: struct {
+    /// Stable wire ID, `T3001` style ; what a test or a tool matches on.
+    id: string
+    /// Canonical wording of the error class — no per-site values (see `detail`).
+    message: string
+}
+
+export LexerCode :: enum(CodeInfo) {
+    UnexpectedCharacter             { .id = "L0001", .message = "unexpected character" },
+    UnterminatedStringLiteral       { .id = "L0002", .message = "unterminated string literal" },
+    UnterminatedBlockComment        { .id = "L0003", .message = "unterminated block comment" },
+    InvalidEscapeSequence           { .id = "L0004", .message = "invalid escape sequence" },
+    InvalidCharacterLiteral         { .id = "L0005", .message = "invalid character literal" },
+    MalformedNumericLiteral         { .id = "L0006", .message = "malformed numeric literal" },
+    StrayBackslash                  { .id = "L0007", .message = "stray backslash (Vader has no line continuation)" },
+    ShebangNotOnFirstLine           { .id = "L0008", .message = "shebang only allowed on first line" },
+    InvalidUnicodeCodepointEscape   { .id = "L0009", .message = "invalid Unicode codepoint escape" },
+    InterpolationExpressionExpected { .id = "L0010", .message = "interpolation expression must follow `\${`" },
+    IntegerLiteralOverflow          { .id = "L0011", .message = "integer literal exceeds the u64 range" },
 }
 
 // Typecheck-pass codes. New codes are appended ; retired IDs may be reused —
 // see the file header for the condition.
-export TypecheckCode :: enum(u8) {
-    TypeMismatch,                       // T3001
-    ExpectedKnownType,                  // T3002
-    WrongArgCount,                      // T3003
-    UnknownNamedArg,                    // T3004
-    MissingRequiredArg,                 // T3005
-    TraitNotSatisfied,                  // T3006
-    NotCallable,                        // T3007
-    NotIndexable,                       // T3008
-    FieldDoesNotExist,                  // T3009
-    InvalidCast,                        // T3010
+export TypecheckCode :: enum(CodeInfo) {
+    TypeMismatch       { .id = "T3001", .message = "type mismatch" },
+    ExpectedKnownType  { .id = "T3002", .message = "expected an expression of a known type" },
+    WrongArgCount      { .id = "T3003", .message = "wrong number of arguments" },
+    UnknownNamedArg    { .id = "T3004", .message = "unknown named argument" },
+    MissingRequiredArg { .id = "T3005", .message = "missing required argument" },
+    TraitNotSatisfied  { .id = "T3006", .message = "trait not satisfied" },
+    NotCallable        { .id = "T3007", .message = "expression is not callable" },
+    NotIndexable       { .id = "T3008", .message = "expression is not indexable" },
+    FieldDoesNotExist  { .id = "T3009", .message = "field does not exist on this type" },
+    InvalidCast        { .id = "T3010", .message = "invalid cast" },
     // T3011 / T3012 (try-operator diagnostics) retired with the `?` operator.
-    NonExhaustiveMatch,                 // T3013
-    UnreachableMatchArm,                // T3014
-    BreakContinueOutsideLoop,           // T3015
-    SelfOutsideMethod,                  // T3016
-    OperatorNotDefined,                 // T3017
-    InterpolationRequiresDisplay,       // T3018
-    ConditionMustBeBool,                // T3019
-    BodyReturnIncompatible,             // T3020
-    GenericArgCountMismatch,            // T3021
-    CyclicTypeAlias,                    // T3022
-    SelfOutsideTraitOrImpl,             // T3023
-    FnSignatureMustBeAnnotated,         // T3024
-    NamedArgDuplicatesPositional,       // T3025
-    TypeHasNoGenericParams,             // T3026
-    UnknownEnumVariant,                 // T3027
-    CannotInferEnumType,                // T3028
-    EnumReprMustBePrimitiveInt,         // T3029
-    EnumVariantValueOutOfRange,         // T3030
-    DuplicateEnumVariantValue,          // T3031
-    AmbiguousOverload,                  // T3032
-    InvalidMainSignature,               // T3033
-    RecursiveExprBodiedFn,              // T3034
-    TypeValuedSlotNotYetSupported,      // T3035
-    ImplMissingRequiredMethod,          // T3036
-    MissingRequiredFieldInStructLit,    // T3037
-    FieldAlreadyProvided,               // T3038
-    IntoIdentityForbidden,              // T3039
-    UnreachableIsTest,                  // T3040
-    CannotReassignConst,                // T3041
-    CannotMutateImmutableArray,         // T3042
-    InvalidExternDecl,                  // T3050
-    ExternMustNotHaveBody,              // T3051
-    PrivateTypeInPublicInterface,       // T3052
-    DuplicateFnDefinition,              // T3053
-    InternalFieldAccess,                // T3054
-    CharLiteralOutOfRange,              // T3055
-    OperatorTraitNotImplemented,        // T3043
-    GeneratorReturnMustBeIterator,      // T3056
+    NonExhaustiveMatch              { .id = "T3013", .message = "non-exhaustive match" },
+    UnreachableMatchArm             { .id = "T3014", .message = "unreachable match arm" },
+    BreakContinueOutsideLoop        { .id = "T3015", .message = "`break` / `continue` only allowed inside a loop" },
+    SelfOutsideMethod               { .id = "T3016", .message = "`self` only valid inside a method body" },
+    OperatorNotDefined              { .id = "T3017", .message = "operator not defined for these operand types" },
+    InterpolationRequiresDisplay    { .id = "T3018", .message = "string interpolation expression must implement `Display`" },
+    ConditionMustBeBool             { .id = "T3019", .message = "condition must be `bool`" },
+    BodyReturnIncompatible          { .id = "T3020", .message = "function body returns a value incompatible with its declared return type" },
+    GenericArgCountMismatch         { .id = "T3021", .message = "generic argument count mismatch" },
+    CyclicTypeAlias                 { .id = "T3022", .message = "cyclic type alias" },
+    SelfOutsideTraitOrImpl          { .id = "T3023", .message = "use of `Self` outside a trait or impl context" },
+    FnSignatureMustBeAnnotated      { .id = "T3024", .message = "function signature must be fully annotated" },
+    NamedArgDuplicatesPositional    { .id = "T3025", .message = "named argument duplicates a positional one" },
+    TypeHasNoGenericParams          { .id = "T3026", .message = "type does not have generic parameters" },
+    UnknownEnumVariant              { .id = "T3027", .message = "unknown enum variant" },
+    CannotInferEnumType             { .id = "T3028", .message = "cannot infer enum type from context" },
+    EnumReprMustBePrimitiveInt      { .id = "T3029", .message = "enum backing type must be a primitive integer" },
+    EnumVariantValueOutOfRange      { .id = "T3030", .message = "enum variant value out of range for backing type" },
+    DuplicateEnumVariantValue       { .id = "T3031", .message = "duplicate enum variant value" },
+    AmbiguousOverload               { .id = "T3032", .message = "ambiguous overload resolution" },
+    InvalidMainSignature            { .id = "T3033", .message = "invalid `main` signature" },
+    RecursiveExprBodiedFn           { .id = "T3034", .message = "recursive expression-bodied function requires an explicit `-> Type` annotation" },
+    TypeValuedSlotNotYetSupported   { .id = "T3035", .message = "type-valued slot is not yet supported in this position" },
+    ImplMissingRequiredMethod       { .id = "T3036", .message = "impl block missing required trait method" },
+    MissingRequiredFieldInStructLit { .id = "T3037", .message = "missing required field in struct literal" },
+    FieldAlreadyProvided            { .id = "T3038", .message = "field already provided in struct literal" },
+    IntoIdentityForbidden           { .id = "T3039", .message = "`Into<T>` cannot use `T` as its target (identity coercion is forbidden)" },
+    UnreachableIsTest               { .id = "T3040", .message = "test can never match — operands have no overlapping values" },
+    CannotReassignConst             { .id = "T3041", .message = "cannot reassign a constant binding" },
+    CannotMutateImmutableArray      { .id = "T3042", .message = "cannot mutate an immutable array" },
+    InvalidExternDecl               { .id = "T3050", .message = "invalid `@extern` declaration" },
+    ExternMustNotHaveBody           { .id = "T3051", .message = "`@extern` declaration must not have a body" },
+    PrivateTypeInPublicInterface    { .id = "T3052", .message = "exported declaration exposes a non-exported type" },
+    DuplicateFnDefinition           { .id = "T3053", .message = "function defined more than once with the same signature in a module" },
+    InternalFieldAccess             { .id = "T3054", .message = "access to a struct field marked `@internal` from outside its declaring module" },
+    CharLiteralOutOfRange           { .id = "T3055", .message = "character literal's codepoint does not fit the target integer type" },
+    OperatorTraitNotImplemented     { .id = "T3043", .message = "operand type does not implement the trait this operator requires" },
+    GeneratorReturnMustBeIterator   { .id = "T3056", .message = "a function that `yield`s must return `Iterator<T>`" },
     // T3057 (GeneratorMissingYield) retired : generator-ness is inferred from a
     // body `yield`, so a yield-less fn is simply not a generator (free to reuse).
-    IntegerLiteralOutOfRange,           // T3066
-    ReturnValueInGenerator,             // T3058
-    YieldOutsideGenerator,              // T3059
-    DeferInGenerator,                   // T3060
-    GeneratorYieldIncompatible,         // T3061
-    BodylessFnMustBeIntrinsic,          // T3062
-    AssignTypeMismatch,                 // T3063
-    AwaitOutsideAsync,                  // T3064
+    IntegerLiteralOutOfRange   { .id = "T3066", .message = "integer literal does not fit the target integer type" },
+    ReturnValueInGenerator     { .id = "T3058", .message = "a generator produces values via `yield`; `return` with a value is not allowed (use a bare `return` to stop)" },
+    YieldOutsideGenerator      { .id = "T3059", .message = "`yield` is only allowed directly inside a generator's own body, not in a nested lambda" },
+    DeferInGenerator           { .id = "T3060", .message = "`defer` is not yet supported inside a generator" },
+    GeneratorYieldIncompatible { .id = "T3061", .message = "yielded value type does not match the generator's element type" },
+    BodylessFnMustBeIntrinsic  { .id = "T3062", .message = "a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol)" },
+    AssignTypeMismatch         { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" },
+    AwaitOutsideAsync          { .id = "T3064", .message = "`await` is not allowed inside a nested lambda (a lambda cannot be an async coroutine)" },
     // T3065 (defer in async coroutine) retired : defer now runs at coroutine
     // completion via the per-frame `__defers` stack (see `lower_coroutine`).
-    LoopTargetNotLoopVariable,          // T3067
-    NullCoalesceOnNonOptional,          // T3068
-    TypeArgumentNotInferable,           // T3069
-    CannotMutateImmutableBinding,       // T3070
-    MutatingMethodOnImmutable,          // T3071
-    ImmutableBorrowIntoMutableParam,    // T3072
-    FnValueMutabilityMismatch,          // T3073
-    UnionMixesMutabilities,             // T3074
-    MutabilityMarkerOnValueType,        // T3075
-    ModuleConstMutableElement,          // T3076
-    ImmutableValueIntoMutableSlot,      // T3077
-    MethodOnlyBehindNamespaceAlias,     // T3078
-    InvalidParameterDecorator,          // T3079
+    LoopTargetNotLoopVariable       { .id = "T3067", .message = "`break` / `continue` target must be an enclosing loop's iteration variable or label" },
+    NullCoalesceOnNonOptional       { .id = "T3068", .message = "`??` left operand is never null — the fallback is unreachable" },
+    TypeArgumentNotInferable        { .id = "T3069", .message = "cannot infer type argument — nothing at this call site binds the type parameter" },
+    CannotMutateImmutableBinding    { .id = "T3070", .message = "cannot mutate through an immutable access path" },
+    MutatingMethodOnImmutable       { .id = "T3071", .message = "this method mutates its receiver (`self!`), but the receiver is immutable" },
+    ImmutableBorrowIntoMutableParam { .id = "T3072", .message = "this argument is immutable, but the parameter is declared `!` (the callee may mutate it)" },
+    FnValueMutabilityMismatch       { .id = "T3073", .message = "this function mutates a parameter the target slot lends out read-only" },
+    UnionMixesMutabilities          { .id = "T3074", .message = "a union mixes the same type at two mutabilities" },
+    MutabilityMarkerOnValueType     { .id = "T3075", .message = "a `!` that grants nothing" },
+    ModuleConstMutableElement       { .id = "T3076", .message = "a mutable module const needs a flat element type" },
+    ImmutableValueIntoMutableSlot   { .id = "T3077", .message = "a read-only value cannot fill a slot that promises mutation" },
+    MethodOnlyBehindNamespaceAlias  { .id = "T3078", .message = "this free function is only in scope through its namespace alias" },
+    InvalidParameterDecorator       { .id = "T3079", .message = "decorator not allowed on this parameter" },
     // T3080 was `CSizeMissesTarget` until `@c_size` left the language; reused
     // here rather than carrying a hole, per §12.
-    CallbackNotDirectFn,                // T3080
-    CannotDestructure,                  // T3081
-    InvalidAssignTarget,                // T3082
-    BodyFallsOffEnd,                    // T3083
-    EnumDataNotStruct,                  // T3084
-    VariantDataWithoutEnumData,         // T3085
-    EnumDataValuesNotConsecutive,       // T3086
+    CallbackNotDirectFn          { .id = "T3080", .message = "callback argument must name a function directly" },
+    CannotDestructure            { .id = "T3081", .message = "value cannot be destructured into this many elements" },
+    InvalidAssignTarget          { .id = "T3082", .message = "not an assignment target" },
+    BodyFallsOffEnd              { .id = "T3083", .message = "not every path through the body returns a value" },
+    EnumDataNotStruct            { .id = "T3084", .message = "enum variant data must be a struct" },
+    VariantDataWithoutEnumData   { .id = "T3085", .message = "variant data on an enum whose header declares none" },
+    EnumDataValuesNotConsecutive { .id = "T3086", .message = "enum variant data needs consecutive values" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
 // changes meaning.
-export ParserCode :: enum(u8) {
-    UnexpectedToken,                        // P1001
-    ExpectedToken,                          // P1002
-    ExpectedExpression,                     // P1003
-    ExpectedStatement,                      // P1004
-    ExpectedType,                           // P1005
-    ExpectedDeclaration,                    // P1006
-    ExpectedPattern,                        // P1007
-    ExpectedIdentifier,                     // P1008
-    TrailingCommaListEnded,                 // P1009
-    NonAssocChained,                        // P1010
-    StructLitInControlCondition,            // P1011
-    MissingFunctionBody,                    // P1012
-    ExecutableStatementAtTopLevel,          // P1013
-    UnknownDecoratorPlacement,              // P1014
-    DuplicateStructLitField,                // P1015
-    ExpectedGenericArgList,                 // P1016
-    MissingNewlineBetweenDecls,             // P1017
-    TypeParamMustBePrefixedWithDollar,      // P1018
-    TypeBoundRedundant,                     // P1019
-    ExprBodiedFnExplicitReturnType,         // P1020
-    OneTupleNotAllowed,                     // P1021
-    TuplePatternRemoved,                    // P1022
-    LetDestructureRequiresTwoElements,      // P1023
-    RemovedConstQualifier,                  // P1027
-    InvalidModuleName,                      // P1028
-    ExpressionNestingTooDeep,               // P1029
-    RepeatedMutabilityMarker,               // P1030
-    MutabilityMarkerOnName,                 // P1031
-    DecoratorArgumentCount,                 // P1032
-    DecoratorArgumentForm,                  // P1033
+export ParserCode :: enum(CodeInfo) {
+    UnexpectedToken                   { .id = "P1001", .message = "unexpected token" },
+    ExpectedToken                     { .id = "P1002", .message = "expected token" },
+    ExpectedExpression                { .id = "P1003", .message = "expected an expression" },
+    ExpectedStatement                 { .id = "P1004", .message = "expected a statement" },
+    ExpectedType                      { .id = "P1005", .message = "expected a type" },
+    ExpectedDeclaration               { .id = "P1006", .message = "expected a declaration" },
+    ExpectedPattern                   { .id = "P1007", .message = "expected a pattern" },
+    ExpectedIdentifier                { .id = "P1008", .message = "expected an identifier" },
+    TrailingCommaListEnded            { .id = "P1009", .message = "trailing comma allowed but list ended unexpectedly" },
+    NonAssocChained                   { .id = "P1010", .message = "non-associative operator chained" },
+    StructLitInControlCondition       { .id = "P1011", .message = "struct literal not allowed at the top level of a control-flow condition" },
+    MissingFunctionBody               { .id = "P1012", .message = "missing function body" },
+    ExecutableStatementAtTopLevel     { .id = "P1013", .message = "executable statement at top level (only declarations allowed)" },
+    UnknownDecoratorPlacement         { .id = "P1014", .message = "unknown decorator placement" },
+    DuplicateStructLitField           { .id = "P1015", .message = "duplicate field name in struct literal" },
+    ExpectedGenericArgList            { .id = "P1016", .message = "expected a generic argument list" },
+    MissingNewlineBetweenDecls        { .id = "P1017", .message = "missing newline between top-level declarations" },
+    TypeParamMustBePrefixedWithDollar { .id = "P1018", .message = "type parameter must be prefixed with `$`" },
+    TypeBoundRedundant                { .id = "P1019", .message = "`: type` bound is redundant; write `\$T` instead" },
+    ExprBodiedFnExplicitReturnType    { .id = "P1020", .message = "expression-bodied function cannot also declare an explicit return type" },
+    OneTupleNotAllowed                { .id = "P1021", .message = "1-tuple types are not allowed" },
+    TuplePatternRemoved               { .id = "P1022", .message = "a match arm cannot destructure a tuple" },
+    LetDestructureRequiresTwoElements { .id = "P1023", .message = "let destructure requires at least 2 elements" },
+    RemovedConstQualifier             { .id = "P1027", .message = "`const` was removed from the language" },
+    InvalidModuleName                 { .id = "P1028", .message = "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)" },
+    ExpressionNestingTooDeep          { .id = "P1029", .message = "expression nesting too deep" },
+    RepeatedMutabilityMarker          { .id = "P1030", .message = "repeated `!` on the same type level" },
+    MutabilityMarkerOnName            { .id = "P1031", .message = "`!` belongs on the type, not the parameter name" },
+    DecoratorArgumentCount            { .id = "P1032", .message = "wrong number of decorator arguments" },
+    DecoratorArgumentForm             { .id = "P1033", .message = "decorator argument has the wrong form" },
     // P1034 (DecoratorArgumentValue) retired : its only site bounded
     // `@c_size`'s width, and `@c_size` is gone from the language.
-    CompoundAssignToPattern,                // P1035
-    ArmBindingNotInHeader,                  // P1036
-    PatternBindsName,                       // P1037
+    CompoundAssignToPattern { .id = "P1035", .message = "compound assignment needs a single target" },
+    ArmBindingNotInHeader   { .id = "P1036", .message = "a match arm cannot bind with `as`" },
+    PatternBindsName        { .id = "P1037", .message = "a match pattern cannot bind a name" },
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
 // never re-used.
-export ResolverCode :: enum(u8) {
-    ModuleNotFound,                         // R2001
-    EmptyImportPath,                        // R2002
-    ImportedNameNotExported,                // R2003
-    DuplicateTopLevelSymbol,                // R2004
-    ImportCycle,                            // R2005
-    UnresolvedIdent,                        // R2006
-    UnresolvedTypeName,                     // R2007
-    SymbolNotExported,                      // R2008
-    TraitNameNotATrait,                     // R2009
-    UnknownDecorator,                       // R2010
-    DuplicateImportBinding,                 // R2011
-    ImportShadowsBuiltin,                   // R2012
-    SelfOutsideFirstParam,                  // R2013
-    ManifestMalformed,                      // R2014
-    ModuleFolderEmpty,                      // R2015
-    ShortImplFormSingleMethod,              // R2016
-    FeatureNotYetImplemented,               // R2017
-    OrphanImplForbidden,                    // R2018
-    ReservedName,                           // R2019
+export ResolverCode :: enum(CodeInfo) {
+    ModuleNotFound            { .id = "R2001", .message = "module not found" },
+    EmptyImportPath           { .id = "R2002", .message = "import path is empty" },
+    ImportedNameNotExported   { .id = "R2003", .message = "imported name not exported by module" },
+    DuplicateTopLevelSymbol   { .id = "R2004", .message = "duplicate top-level symbol in module" },
+    ImportCycle               { .id = "R2005", .message = "import cycle detected" },
+    UnresolvedIdent           { .id = "R2006", .message = "unresolved identifier" },
+    UnresolvedTypeName        { .id = "R2007", .message = "unresolved type name" },
+    SymbolNotExported         { .id = "R2008", .message = "symbol is not exported from its module" },
+    TraitNameNotATrait        { .id = "R2009", .message = "trait name does not refer to a trait" },
+    UnknownDecorator          { .id = "R2010", .message = "decorator unknown to the compiler" },
+    DuplicateImportBinding    { .id = "R2011", .message = "duplicate import binding" },
+    ImportShadowsBuiltin      { .id = "R2012", .message = "imported symbol shadows a builtin" },
+    SelfOutsideFirstParam     { .id = "R2013", .message = "self only valid as the first parameter of a method" },
+    ManifestMalformed         { .id = "R2014", .message = "vader.json malformed or unreadable" },
+    ModuleFolderEmpty         { .id = "R2015", .message = "module folder is empty (no .vader files)" },
+    ShortImplFormSingleMethod { .id = "R2016", .message = "short impl form requires a trait with exactly one method" },
+    FeatureNotYetImplemented  { .id = "R2017", .message = "feature not yet implemented" },
+    OrphanImplForbidden       { .id = "R2018", .message = "orphan impl forbidden" },
+    ReservedName              { .id = "R2019", .message = "`void` is reserved and cannot be used as an identifier" },
     // Module-system strict-mode codes.
-    ModuleDeclMissing,                      // R2020
-    DuplicateModuleDecl,                    // R2021
-    MixedModuleNamesInFolder,               // R2022
-    DuplicateModuleNameGlobally,            // R2023
-    SelfImport,                             // R2024
-    RelativeImportRemoved,                  // R2025
-    DuplicateNonFnDeclInModule,             // R2026
-    VisibilityLeak,                         // R2027
-    ExplicitCorePreludeImport,              // R2028
-    AsBindingInConjunction,                 // R2029
-    ConflictingImpl,                        // R2030
-    AmbiguousWildcardImport,                // R2031
-    ConflictingImportForms,                 // R2032
-    PlainNameInImportModifiers,             // R2033
-    CompilerImportFromLibrary,              // R2034
-    UnknownTargetSelector,                  // R2035
-    TargetBodyWithoutDeclaration,           // R2036
-    TargetBodyCarriesExport,                // R2037
-    TargetBodiesOverlap,                    // R2038
-    DuplicateTargetDeclaration,             // R2039
-    TargetBodySignatureDiffers,             // R2040
-    NoTargetBodyCoversTarget,               // R2041
+    ModuleDeclMissing            { .id = "R2020", .message = "module declaration missing on first non-trivial line" },
+    DuplicateModuleDecl          { .id = "R2021", .message = "more than one module declaration in the same file" },
+    MixedModuleNamesInFolder     { .id = "R2022", .message = "files in the same folder declare different module names" },
+    DuplicateModuleNameGlobally  { .id = "R2023", .message = "two folders declare the same module name globally" },
+    SelfImport                   { .id = "R2024", .message = "self-import: file imports its own module" },
+    RelativeImportRemoved        { .id = "R2025", .message = "relative import (`./` / `../`) is not part of the language" },
+    DuplicateNonFnDeclInModule   { .id = "R2026", .message = "duplicate non-fn declaration across files of the same module" },
+    VisibilityLeak               { .id = "R2027", .message = "exported decl references a module-private decl in its signature" },
+    ExplicitCorePreludeImport    { .id = "R2028", .message = "explicit `import \"std/core\"` is redundant (prelude already in scope)" },
+    AsBindingInConjunction       { .id = "R2029", .message = "`as` binding not allowed in a `&&` condition" },
+    ConflictingImpl              { .id = "R2030", .message = "conflicting trait impl for the same type" },
+    AmbiguousWildcardImport      { .id = "R2031", .message = "name is exported by several wildcard-imported modules" },
+    ConflictingImportForms       { .id = "R2032", .message = "the same path is imported both bare (wildcard) and with `{ … }` (destructure)" },
+    PlainNameInImportModifiers   { .id = "R2033", .message = "a plain name in an `import \"p\" { … }` modifier list — use `x as _` (exclude) or `x as y` (rename)" },
+    CompilerImportFromLibrary    { .id = "R2034", .message = "a shipped library must not import the compiler" },
+    UnknownTargetSelector        { .id = "R2035", .message = "unknown target selector" },
+    TargetBodyWithoutDeclaration { .id = "R2036", .message = "`@target` body matches no declaration" },
+    TargetBodyCarriesExport      { .id = "R2037", .message = "`@target` body carries `export`" },
+    TargetBodiesOverlap          { .id = "R2038", .message = "two `@target` bodies cover the same platform" },
+    DuplicateTargetDeclaration   { .id = "R2039", .message = "duplicate bare `@target` declaration" },
+    TargetBodySignatureDiffers   { .id = "R2040", .message = "`@target` body does not have the declaration's signature" },
+    NoTargetBodyCoversTarget     { .id = "R2041", .message = "no `@target` body covers the target being built" },
 }
 
 // C-codes belong to the comptime evaluator + monomorphizer ; once
 // shipped, never re-used.
-export ComptimeCode :: enum(u8) {
-    CannotEvaluate,                         // C4001
-    EvaluationPanic,                        // C4002
-    NotCallable,                            // C4003
-    StackOverflow,                          // C4004
-    DivisionByZero,                         // C4005
-    FileNotReadable,                        // C4006
-    TypeMismatch,                           // C4007
-    EnvRequiresFlag,                        // C4008
-    DependencyCycle,                        // C4009
-    IndexOutOfBounds,                       // C4010
-    FeatureNotSupported,                    // C4011
-    FileSingleArg,                          // C4012
-    DecoratorArgsStringLit,                 // C4013
-    InstanceDiscoveryDidNotConverge,        // C4014
-    AssertFailed,                           // C4015
-    ImpureHostAtComptime,                   // C4016
+export ComptimeCode :: enum(CodeInfo) {
+    CannotEvaluate                  { .id = "C4001", .message = "expression cannot be evaluated at compile time" },
+    EvaluationPanic                 { .id = "C4002", .message = "comptime evaluation panicked" },
+    NotCallable                     { .id = "C4003", .message = "function is not callable in comptime context" },
+    StackOverflow                   { .id = "C4004", .message = "comptime call stack overflow" },
+    DivisionByZero                  { .id = "C4005", .message = "comptime division by zero" },
+    FileNotReadable                 { .id = "C4006", .message = "@file path could not be read" },
+    TypeMismatch                    { .id = "C4007", .message = "comptime value has incompatible type" },
+    EnvRequiresFlag                 { .id = "C4008", .message = "ENV access requires `--allow-env`" },
+    DependencyCycle                 { .id = "C4009", .message = "comptime evaluation depends on itself" },
+    IndexOutOfBounds                { .id = "C4010", .message = "comptime index out of bounds" },
+    FeatureNotSupported             { .id = "C4011", .message = "comptime feature not yet supported" },
+    FileSingleArg                   { .id = "C4012", .message = "@file expects a single string-literal argument" },
+    DecoratorArgsStringLit          { .id = "C4013", .message = "decorator arguments must be string literals at comptime" },
+    InstanceDiscoveryDidNotConverge { .id = "C4014", .message = "generic instance discovery did not converge" },
+    AssertFailed                    { .id = "C4015", .message = "compile-time assertion failed" },
+    ImpureHostAtComptime            { .id = "C4016", .message = "impure host call at comptime" },
 }
 
 // M-codes belong to the MIR-lowering pass (AST -> Lowered IR) ; once
 // shipped, never re-used. The `M` prefix avoids ambiguity with `L0xxx`
 // (Lexer) and `B5001` (Backend), matching the `midir` module name.
-export LowerCode :: enum(u8) {
-    IteratorImplMissing,                    // M5001
-    LambdaCaptureUnsupported,               // M5002
-    UnreachableMatchPath,                   // M5003
-    IntoCoercionFailed,                     // M5004
-    IntrinsicUnsupported,                   // M5005
-    SelfReceiverMissing,                    // M5006
+export LowerCode :: enum(CodeInfo) {
+    IteratorImplMissing      { .id = "M5001", .message = "for-in receiver has no `Iterator` impl" },
+    LambdaCaptureUnsupported { .id = "M5002", .message = "lambda capture not yet supported for this binding kind" },
+    UnreachableMatchPath     { .id = "M5003", .message = "match arm is unreachable after lowering" },
+    IntoCoercionFailed       { .id = "M5004", .message = "`Into` coercion cannot be lowered" },
+    IntrinsicUnsupported     { .id = "M5005", .message = "intrinsic not implemented by the lowerer" },
+    SelfReceiverMissing      { .id = "M5006", .message = "method call lacks a resolvable `self` receiver" },
     // M5007 was the generator half of a closure-capture pair, retired when
     // captured locals started surviving suspension as heap cells. Reused here.
     //
@@ -257,61 +261,56 @@ export LowerCode :: enum(u8) {
     // because the alternative was silence: the miss lowers to
     // `LoweredUnreachable`, which makes `midir` replace the entry block, so the
     // surrounding code vanished with nothing to read.
-    UnresolvedIdent,                        // M5007
+    UnresolvedIdent { .id = "M5007", .message = "identifier did not resolve at lowering" },
     // M5008 (async closure-capture) retired for the same reason as M5007's
     // former meaning ; not reused.
-    AwaitInShortCircuit,                    // M5009
-    ComptimeForNotUnrollable,               // M5010
+    AwaitInShortCircuit      { .id = "M5009", .message = "`await` in a short-circuit operand or loop condition is not yet supported" },
+    ComptimeForNotUnrollable { .id = "M5010", .message = "`@comptime for` cannot be unrolled" },
     // M5011 (EnumVariantDataNotLowered) retired : variant data now lowers. Free to reuse.
 }
 
 // `WARNING` — non-fatal diagnostics. New entries appended ; retired IDs are free
 // to reuse — see the file header for the condition.
-export WarningCode :: enum(u8) {
-    UseOfDeprecated,                        // W0001
-    UnreachableCode,                        // W0002
+export WarningCode :: enum(CodeInfo) {
+    UseOfDeprecated { .id = "W0001", .message = "use of deprecated declaration" },
+    UnreachableCode { .id = "W0002", .message = "unreachable code" },
     // W0003 (IsAgainstUnion) retired : `is <union>` became a valid membership
     // test once or-patterns made `emit_type_check` union-aware ; the genuine
     // disjoint-type case is still caught by T3040 (`check_is_overlap`).
     // W0004 (AmbiguousLoopJump) retired : a bare `break`/`continue` targets the
     // innermost loop (blessed) ; reader clarity is served by the LSP go-to-loop, not
     // a lint. Non-innermost jumps name their target (`break <var>` / `<label>`).
-    WildcardOnClosedUnion,                  // W0005
+    WildcardOnClosedUnion { .id = "W0005", .message = "wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`" },
     // W0006 (unused-import) never shipped — see typecheck/dead_code.vader.
-    DeadCode,                               // W0007
-    LocalShadowsOuter,                      // W0008
-    LocalRedeclaration,                     // W0009
-    PreferLoopVariableOverLabel,            // W0010
-    EmptyImportModifierList,                // W0011
-    UnusedExport,                           // W0012
-    SharedRepeatElement,                    // W0013
+    DeadCode                    { .id = "W0007", .message = "declaration is never used in its module" },
+    LocalShadowsOuter           { .id = "W0008", .message = "local binding shadows an outer local or parameter of the same name" },
+    LocalRedeclaration          { .id = "W0009", .message = "redeclaration of a name already bound in this block" },
+    PreferLoopVariableOverLabel { .id = "W0010", .message = "prefer targeting this loop by its iteration variable over a label ; a label is only needed for a `while` / infinite loop that has no variable" },
+    EmptyImportModifierList     { .id = "W0011", .message = "empty modifier list on an import — `import \"p\" {}` is just a wildcard, write `import \"p\"`" },
+    UnusedExport                { .id = "W0012", .message = "exported function is never reached from the project's roots" },
+    SharedRepeatElement         { .id = "W0013", .message = "`[v] * n` repeats one reference — every slot shares this freshly allocated element" },
     // W0014 reuses the id `ImplicitImmutableParam` held while the
     // immutable-by-default rollout was staged; those writes are T3070 / T3071 /
     // T3072 outright now.
-    UnreachableMatchArm,                    // W0014
-    MutableNeverReassigned,                 // W0015
-    NeedlessEnumTypePrefix,                 // W0016
+    UnreachableMatchArm    { .id = "W0014", .message = "match arm can never be taken — an earlier arm already covers it" },
+    MutableNeverReassigned { .id = "W0015", .message = "local is declared mutable but never reassigned — declare it with `::`" },
+    NeedlessEnumTypePrefix { .id = "W0016", .message = "the enum name adds nothing here — the slot already pins it, so the bare variant reads the same" },
 }
 
-// `(id, message)` for a code, in one shot. The wire ID is the stable
-// string ; the message is the canonical human wording.
-// (`private` would be ideal here, but Vader's "module = single file"
-// resolution makes `codes.vader` and `diagnostic.vader` separate modules ;
-// move both to a folder-module if we want to hide these.)
 /// `H6xxx` — the build driver (`build.vader`) and the hooks it registers.
 ///
 /// A driver reports through `HookReport`: it describes its own problem and the
 /// registry owns the id, so a project's lint rules never allocate diagnostic
 /// codes. The rest name failures of the driver contract itself.
-export HookCode :: enum(u8) {
-    MissingBuildEntry,                      // H6001
-    InvalidBuildEntrySignature,             // H6002
-    NoBuildFiles,                           // H6003
-    HookReport,                             // H6004
-    AmbiguousOutput,                        // H6005
-    GenerationDidNotSettle,                 // H6006
-    InvalidGeneratedModuleName,             // H6007
-    GeneratedModuleNotWritten,              // H6008
+export HookCode :: enum(CodeInfo) {
+    MissingBuildEntry          { .id = "H6001", .message = "`build.vader` declares no `build` function" },
+    InvalidBuildEntrySignature { .id = "H6002", .message = "invalid `build` signature" },
+    NoBuildFiles               { .id = "H6003", .message = "the build driver queued no entry file" },
+    HookReport                 { .id = "H6004", .message = "build driver reported a problem" },
+    AmbiguousOutput            { .id = "H6005", .message = "one output name for several entries" },
+    GenerationDidNotSettle     { .id = "H6006", .message = "code generation did not reach a fixed point" },
+    InvalidGeneratedModuleName { .id = "H6007", .message = "invalid generated module name" },
+    GeneratedModuleNotWritten  { .id = "H6008", .message = "cannot write a generated module" },
 }
 
 /// IR self-check codes, emitted by the cross-pass verifiers
@@ -322,273 +321,18 @@ export HookCode :: enum(u8) {
 /// The family takes the same no-fixture exception `H6xxx` takes: the
 /// `diag_corpus` harness provokes a diagnostic by compiling a source file,
 /// and no source file reaches these. `tests/verify.test.ts` pins them.
-export InternalCode :: enum(u8) {
-    StrayCoroutineMarker,                   // I7001
-    UnresolvedFnReference,                  // I7002
+export InternalCode :: enum(CodeInfo) {
+    StrayCoroutineMarker  { .id = "I7001", .message = "a transient coroutine marker survived lowering" },
+    UnresolvedFnReference { .id = "I7002", .message = "function reference resolves to no emitted function" },
     // RESERVED, not dead: the field check behind `midir/emit.vader:1190`
     // needs `intern_type`, which exists only at emit time.
-    FieldNotAMember,                        // I7003
-    BlockIdOutOfRange,                      // I7004
-    LocalIdOutOfRange,                      // I7005
-    LocalReadNeverWritten,                  // I7006
-    EntryBlockNotZero,                      // I7008
+    FieldNotAMember       { .id = "I7003", .message = "field access names no member of its receiver" },
+    BlockIdOutOfRange     { .id = "I7004", .message = "terminator names a block outside the function" },
+    LocalIdOutOfRange     { .id = "I7005", .message = "instruction names a local outside the function" },
+    LocalReadNeverWritten { .id = "I7006", .message = "local is read but never written" },
+    EntryBlockNotZero     { .id = "I7008", .message = "entry block is not block 0" },
     // RESERVED, not dead: the data-pool check behind `midir/build.vader:255`
     // needs `is_bakeable`, whose second copy would be the drift it reports.
-    NonPrimitiveDataPoolLeaf,               // I7009
-    ReturnArityMismatch,                    // I7010
+    NonPrimitiveDataPoolLeaf { .id = "I7009", .message = "pooled constant holds a non-primitive leaf" },
+    ReturnArityMismatch      { .id = "I7010", .message = "a return hands back a different number of values than the function declares" },
 }
-
-export CodeInfo :: struct {
-    id: string
-    message: string
-}
-
-export internal_info :: fn(c: InternalCode) = match c {
-    .StrayCoroutineMarker     -> CodeInfo { .id = "I7001", .message = "a transient coroutine marker survived lowering" }
-    .UnresolvedFnReference    -> CodeInfo { .id = "I7002", .message = "function reference resolves to no emitted function" }
-    .FieldNotAMember          -> CodeInfo { .id = "I7003", .message = "field access names no member of its receiver" }
-    .BlockIdOutOfRange        -> CodeInfo { .id = "I7004", .message = "terminator names a block outside the function" }
-    .LocalIdOutOfRange        -> CodeInfo { .id = "I7005", .message = "instruction names a local outside the function" }
-    .LocalReadNeverWritten    -> CodeInfo { .id = "I7006", .message = "local is read but never written" }
-    .EntryBlockNotZero        -> CodeInfo { .id = "I7008", .message = "entry block is not block 0" }
-    .NonPrimitiveDataPoolLeaf -> CodeInfo { .id = "I7009", .message = "pooled constant holds a non-primitive leaf" }
-    .ReturnArityMismatch      -> CodeInfo { .id = "I7010", .message = "a return hands back a different number of values than the function declares" }
-}
-
-export hook_info :: fn(c: HookCode) = match c {
-    .MissingBuildEntry          -> CodeInfo { .id = "H6001", .message = "`build.vader` declares no `build` function" }
-    .InvalidBuildEntrySignature -> CodeInfo { .id = "H6002", .message = "invalid `build` signature" }
-    .NoBuildFiles               -> CodeInfo { .id = "H6003", .message = "the build driver queued no entry file" }
-    .HookReport                 -> CodeInfo { .id = "H6004", .message = "build driver reported a problem" }
-    .AmbiguousOutput            -> CodeInfo { .id = "H6005", .message = "one output name for several entries" }
-    .GenerationDidNotSettle     -> CodeInfo { .id = "H6006", .message = "code generation did not reach a fixed point" }
-    .InvalidGeneratedModuleName -> CodeInfo { .id = "H6007", .message = "invalid generated module name" }
-    .GeneratedModuleNotWritten  -> CodeInfo { .id = "H6008", .message = "cannot write a generated module" }
-}
-
-export lexer_info :: fn(c: LexerCode) = match c {
-    .UnexpectedCharacter             -> CodeInfo { .id = "L0001", .message = "unexpected character" }
-    .UnterminatedStringLiteral       -> CodeInfo { .id = "L0002", .message = "unterminated string literal" }
-    .UnterminatedBlockComment        -> CodeInfo { .id = "L0003", .message = "unterminated block comment" }
-    .InvalidEscapeSequence           -> CodeInfo { .id = "L0004", .message = "invalid escape sequence" }
-    .InvalidCharacterLiteral         -> CodeInfo { .id = "L0005", .message = "invalid character literal" }
-    .MalformedNumericLiteral         -> CodeInfo { .id = "L0006", .message = "malformed numeric literal" }
-    .StrayBackslash                  -> CodeInfo { .id = "L0007", .message = "stray backslash (Vader has no line continuation)" }
-    .ShebangNotOnFirstLine           -> CodeInfo { .id = "L0008", .message = "shebang only allowed on first line" }
-    .InvalidUnicodeCodepointEscape   -> CodeInfo { .id = "L0009", .message = "invalid Unicode codepoint escape" }
-    .InterpolationExpressionExpected -> CodeInfo { .id = "L0010", .message = "interpolation expression must follow `\${`" }
-    .IntegerLiteralOverflow          -> CodeInfo { .id = "L0011", .message = "integer literal exceeds the u64 range" }
-}
-
-export parser_info :: fn(c: ParserCode) = match c {
-    .UnexpectedToken                    -> CodeInfo { .id = "P1001", .message = "unexpected token" }
-    .ExpectedToken                      -> CodeInfo { .id = "P1002", .message = "expected token" }
-    .ExpectedExpression                 -> CodeInfo { .id = "P1003", .message = "expected an expression" }
-    .ExpectedStatement                  -> CodeInfo { .id = "P1004", .message = "expected a statement" }
-    .ExpectedType                       -> CodeInfo { .id = "P1005", .message = "expected a type" }
-    .ExpectedDeclaration                -> CodeInfo { .id = "P1006", .message = "expected a declaration" }
-    .ExpectedPattern                    -> CodeInfo { .id = "P1007", .message = "expected a pattern" }
-    .ExpectedIdentifier                 -> CodeInfo { .id = "P1008", .message = "expected an identifier" }
-    .TrailingCommaListEnded             -> CodeInfo { .id = "P1009", .message = "trailing comma allowed but list ended unexpectedly" }
-    .NonAssocChained                    -> CodeInfo { .id = "P1010", .message = "non-associative operator chained" }
-    .StructLitInControlCondition        -> CodeInfo { .id = "P1011", .message = "struct literal not allowed at the top level of a control-flow condition" }
-    .MissingFunctionBody                -> CodeInfo { .id = "P1012", .message = "missing function body" }
-    .ExecutableStatementAtTopLevel      -> CodeInfo { .id = "P1013", .message = "executable statement at top level (only declarations allowed)" }
-    .UnknownDecoratorPlacement          -> CodeInfo { .id = "P1014", .message = "unknown decorator placement" }
-    .DecoratorArgumentCount             -> CodeInfo { .id = "P1032", .message = "wrong number of decorator arguments" }
-    .DecoratorArgumentForm              -> CodeInfo { .id = "P1033", .message = "decorator argument has the wrong form" }
-    .CompoundAssignToPattern            -> CodeInfo { .id = "P1035", .message = "compound assignment needs a single target" }
-    .ArmBindingNotInHeader              -> CodeInfo { .id = "P1036", .message = "a match arm cannot bind with `as`" }
-    .PatternBindsName                   -> CodeInfo { .id = "P1037", .message = "a match pattern cannot bind a name" }
-    .DuplicateStructLitField            -> CodeInfo { .id = "P1015", .message = "duplicate field name in struct literal" }
-    .ExpectedGenericArgList             -> CodeInfo { .id = "P1016", .message = "expected a generic argument list" }
-    .MissingNewlineBetweenDecls         -> CodeInfo { .id = "P1017", .message = "missing newline between top-level declarations" }
-    .TypeParamMustBePrefixedWithDollar  -> CodeInfo { .id = "P1018", .message = "type parameter must be prefixed with `$`" }
-    .TypeBoundRedundant                 -> CodeInfo { .id = "P1019", .message = "`: type` bound is redundant; write `\$T` instead" }
-    .ExprBodiedFnExplicitReturnType     -> CodeInfo { .id = "P1020", .message = "expression-bodied function cannot also declare an explicit return type" }
-    .OneTupleNotAllowed                 -> CodeInfo { .id = "P1021", .message = "1-tuple types are not allowed" }
-    .TuplePatternRemoved                -> CodeInfo { .id = "P1022", .message = "a match arm cannot destructure a tuple" }
-    .LetDestructureRequiresTwoElements  -> CodeInfo { .id = "P1023", .message = "let destructure requires at least 2 elements" }
-    .RemovedConstQualifier              -> CodeInfo { .id = "P1027", .message = "`const` was removed from the language" }
-    .InvalidModuleName                  -> CodeInfo { .id = "P1028", .message = "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)" }
-    .ExpressionNestingTooDeep           -> CodeInfo { .id = "P1029", .message = "expression nesting too deep" }
-    .RepeatedMutabilityMarker           -> CodeInfo { .id = "P1030", .message = "repeated `!` on the same type level" }
-    .MutabilityMarkerOnName             -> CodeInfo { .id = "P1031", .message = "`!` belongs on the type, not the parameter name" }
-}
-
-export resolver_info :: fn(c: ResolverCode) = match c {
-    .ModuleNotFound                     -> CodeInfo { .id = "R2001", .message = "module not found" }
-    .EmptyImportPath                    -> CodeInfo { .id = "R2002", .message = "import path is empty" }
-    .ImportedNameNotExported            -> CodeInfo { .id = "R2003", .message = "imported name not exported by module" }
-    .DuplicateTopLevelSymbol            -> CodeInfo { .id = "R2004", .message = "duplicate top-level symbol in module" }
-    .ImportCycle                        -> CodeInfo { .id = "R2005", .message = "import cycle detected" }
-    .UnresolvedIdent                    -> CodeInfo { .id = "R2006", .message = "unresolved identifier" }
-    .UnresolvedTypeName                 -> CodeInfo { .id = "R2007", .message = "unresolved type name" }
-    .SymbolNotExported                  -> CodeInfo { .id = "R2008", .message = "symbol is not exported from its module" }
-    .TraitNameNotATrait                 -> CodeInfo { .id = "R2009", .message = "trait name does not refer to a trait" }
-    .UnknownDecorator                   -> CodeInfo { .id = "R2010", .message = "decorator unknown to the compiler" }
-    .DuplicateImportBinding             -> CodeInfo { .id = "R2011", .message = "duplicate import binding" }
-    .ImportShadowsBuiltin               -> CodeInfo { .id = "R2012", .message = "imported symbol shadows a builtin" }
-    .SelfOutsideFirstParam              -> CodeInfo { .id = "R2013", .message = "self only valid as the first parameter of a method" }
-    .ManifestMalformed                  -> CodeInfo { .id = "R2014", .message = "vader.json malformed or unreadable" }
-    .ModuleFolderEmpty                  -> CodeInfo { .id = "R2015", .message = "module folder is empty (no .vader files)" }
-    .ShortImplFormSingleMethod          -> CodeInfo { .id = "R2016", .message = "short impl form requires a trait with exactly one method" }
-    .FeatureNotYetImplemented           -> CodeInfo { .id = "R2017", .message = "feature not yet implemented" }
-    .OrphanImplForbidden                -> CodeInfo { .id = "R2018", .message = "orphan impl forbidden" }
-    .ReservedName                       -> CodeInfo { .id = "R2019", .message = "`void` is reserved and cannot be used as an identifier" }
-    .ModuleDeclMissing                  -> CodeInfo { .id = "R2020", .message = "module declaration missing on first non-trivial line" }
-    .DuplicateModuleDecl                -> CodeInfo { .id = "R2021", .message = "more than one module declaration in the same file" }
-    .MixedModuleNamesInFolder           -> CodeInfo { .id = "R2022", .message = "files in the same folder declare different module names" }
-    .DuplicateModuleNameGlobally        -> CodeInfo { .id = "R2023", .message = "two folders declare the same module name globally" }
-    .SelfImport                         -> CodeInfo { .id = "R2024", .message = "self-import: file imports its own module" }
-    .RelativeImportRemoved              -> CodeInfo { .id = "R2025", .message = "relative import (`./` / `../`) is not part of the language" }
-    .DuplicateNonFnDeclInModule         -> CodeInfo { .id = "R2026", .message = "duplicate non-fn declaration across files of the same module" }
-    .VisibilityLeak                     -> CodeInfo { .id = "R2027", .message = "exported decl references a module-private decl in its signature" }
-    .ExplicitCorePreludeImport          -> CodeInfo { .id = "R2028", .message = "explicit `import \"std/core\"` is redundant (prelude already in scope)" }
-    .AsBindingInConjunction             -> CodeInfo { .id = "R2029", .message = "`as` binding not allowed in a `&&` condition" }
-    .ConflictingImpl                    -> CodeInfo { .id = "R2030", .message = "conflicting trait impl for the same type" }
-    .AmbiguousWildcardImport            -> CodeInfo { .id = "R2031", .message = "name is exported by several wildcard-imported modules" }
-    .ConflictingImportForms             -> CodeInfo { .id = "R2032", .message = "the same path is imported both bare (wildcard) and with `{ … }` (destructure)" }
-    .PlainNameInImportModifiers         -> CodeInfo { .id = "R2033", .message = "a plain name in an `import \"p\" { … }` modifier list — use `x as _` (exclude) or `x as y` (rename)" }
-    .CompilerImportFromLibrary          -> CodeInfo { .id = "R2034", .message = "a shipped library must not import the compiler" }
-    .UnknownTargetSelector              -> CodeInfo { .id = "R2035", .message = "unknown target selector" }
-    .TargetBodyWithoutDeclaration       -> CodeInfo { .id = "R2036", .message = "`@target` body matches no declaration" }
-    .TargetBodyCarriesExport            -> CodeInfo { .id = "R2037", .message = "`@target` body carries `export`" }
-    .TargetBodiesOverlap                -> CodeInfo { .id = "R2038", .message = "two `@target` bodies cover the same platform" }
-    .DuplicateTargetDeclaration         -> CodeInfo { .id = "R2039", .message = "duplicate bare `@target` declaration" }
-    .TargetBodySignatureDiffers         -> CodeInfo { .id = "R2040", .message = "`@target` body does not have the declaration's signature" }
-    .NoTargetBodyCoversTarget           -> CodeInfo { .id = "R2041", .message = "no `@target` body covers the target being built" }
-}
-
-export warning_info :: fn(c: WarningCode) = match c {
-    .UseOfDeprecated                    -> CodeInfo { .id = "W0001", .message = "use of deprecated declaration" }
-    .UnreachableCode                    -> CodeInfo { .id = "W0002", .message = "unreachable code" }
-    .WildcardOnClosedUnion              -> CodeInfo { .id = "W0005", .message = "wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`" }
-    .DeadCode                           -> CodeInfo { .id = "W0007", .message = "declaration is never used in its module" }
-    .LocalShadowsOuter                  -> CodeInfo { .id = "W0008", .message = "local binding shadows an outer local or parameter of the same name" }
-    .LocalRedeclaration                 -> CodeInfo { .id = "W0009", .message = "redeclaration of a name already bound in this block" }
-    .PreferLoopVariableOverLabel        -> CodeInfo { .id = "W0010", .message = "prefer targeting this loop by its iteration variable over a label ; a label is only needed for a `while` / infinite loop that has no variable" }
-    .EmptyImportModifierList            -> CodeInfo { .id = "W0011", .message = "empty modifier list on an import — `import \"p\" {}` is just a wildcard, write `import \"p\"`" }
-    .UnusedExport                       -> CodeInfo { .id = "W0012", .message = "exported function is never reached from the project's roots" }
-    .SharedRepeatElement                -> CodeInfo { .id = "W0013", .message = "`[v] * n` repeats one reference — every slot shares this freshly allocated element" }
-    .UnreachableMatchArm                -> CodeInfo { .id = "W0014", .message = "match arm can never be taken — an earlier arm already covers it" }
-    .MutableNeverReassigned             -> CodeInfo { .id = "W0015", .message = "local is declared mutable but never reassigned — declare it with `::`" }
-    .NeedlessEnumTypePrefix             -> CodeInfo { .id = "W0016", .message = "the enum name adds nothing here — the slot already pins it, so the bare variant reads the same" }
-}
-
-export comptime_info :: fn(c: ComptimeCode) = match c {
-    .CannotEvaluate                     -> CodeInfo { .id = "C4001", .message = "expression cannot be evaluated at compile time" }
-    .EvaluationPanic                    -> CodeInfo { .id = "C4002", .message = "comptime evaluation panicked" }
-    .NotCallable                        -> CodeInfo { .id = "C4003", .message = "function is not callable in comptime context" }
-    .StackOverflow                      -> CodeInfo { .id = "C4004", .message = "comptime call stack overflow" }
-    .DivisionByZero                     -> CodeInfo { .id = "C4005", .message = "comptime division by zero" }
-    .FileNotReadable                    -> CodeInfo { .id = "C4006", .message = "@file path could not be read" }
-    .TypeMismatch                       -> CodeInfo { .id = "C4007", .message = "comptime value has incompatible type" }
-    .EnvRequiresFlag                    -> CodeInfo { .id = "C4008", .message = "ENV access requires `--allow-env`" }
-    .DependencyCycle                    -> CodeInfo { .id = "C4009", .message = "comptime evaluation depends on itself" }
-    .IndexOutOfBounds                   -> CodeInfo { .id = "C4010", .message = "comptime index out of bounds" }
-    .FeatureNotSupported                -> CodeInfo { .id = "C4011", .message = "comptime feature not yet supported" }
-    .FileSingleArg                      -> CodeInfo { .id = "C4012", .message = "@file expects a single string-literal argument" }
-    .DecoratorArgsStringLit             -> CodeInfo { .id = "C4013", .message = "decorator arguments must be string literals at comptime" }
-    .InstanceDiscoveryDidNotConverge    -> CodeInfo { .id = "C4014", .message = "generic instance discovery did not converge" }
-    .AssertFailed                       -> CodeInfo { .id = "C4015", .message = "compile-time assertion failed" }
-    .ImpureHostAtComptime               -> CodeInfo { .id = "C4016", .message = "impure host call at comptime" }
-}
-
-export lower_info :: fn(c: LowerCode) = match c {
-    .IteratorImplMissing                -> CodeInfo { .id = "M5001", .message = "for-in receiver has no `Iterator` impl" }
-    .LambdaCaptureUnsupported           -> CodeInfo { .id = "M5002", .message = "lambda capture not yet supported for this binding kind" }
-    .UnreachableMatchPath               -> CodeInfo { .id = "M5003", .message = "match arm is unreachable after lowering" }
-    .IntoCoercionFailed                 -> CodeInfo { .id = "M5004", .message = "`Into` coercion cannot be lowered" }
-    .IntrinsicUnsupported               -> CodeInfo { .id = "M5005", .message = "intrinsic not implemented by the lowerer" }
-    .SelfReceiverMissing                -> CodeInfo { .id = "M5006", .message = "method call lacks a resolvable `self` receiver" }
-    .UnresolvedIdent                    -> CodeInfo { .id = "M5007", .message = "identifier did not resolve at lowering" }
-    .AwaitInShortCircuit                -> CodeInfo { .id = "M5009", .message = "`await` in a short-circuit operand or loop condition is not yet supported" }
-    .ComptimeForNotUnrollable           -> CodeInfo { .id = "M5010", .message = "`@comptime for` cannot be unrolled" }
-}
-
-export typecheck_info :: fn(c: TypecheckCode) = match c {
-    .TypeMismatch                       -> CodeInfo { .id = "T3001", .message = "type mismatch" }
-    .ExpectedKnownType                  -> CodeInfo { .id = "T3002", .message = "expected an expression of a known type" }
-    .WrongArgCount                      -> CodeInfo { .id = "T3003", .message = "wrong number of arguments" }
-    .UnknownNamedArg                    -> CodeInfo { .id = "T3004", .message = "unknown named argument" }
-    .MissingRequiredArg                 -> CodeInfo { .id = "T3005", .message = "missing required argument" }
-    .TraitNotSatisfied                  -> CodeInfo { .id = "T3006", .message = "trait not satisfied" }
-    .NotCallable                        -> CodeInfo { .id = "T3007", .message = "expression is not callable" }
-    .NotIndexable                       -> CodeInfo { .id = "T3008", .message = "expression is not indexable" }
-    .FieldDoesNotExist                  -> CodeInfo { .id = "T3009", .message = "field does not exist on this type" }
-    .InvalidCast                        -> CodeInfo { .id = "T3010", .message = "invalid cast" }
-    .NonExhaustiveMatch                 -> CodeInfo { .id = "T3013", .message = "non-exhaustive match" }
-    .UnreachableMatchArm                -> CodeInfo { .id = "T3014", .message = "unreachable match arm" }
-    .BreakContinueOutsideLoop           -> CodeInfo { .id = "T3015", .message = "`break` / `continue` only allowed inside a loop" }
-    .SelfOutsideMethod                  -> CodeInfo { .id = "T3016", .message = "`self` only valid inside a method body" }
-    .OperatorNotDefined                 -> CodeInfo { .id = "T3017", .message = "operator not defined for these operand types" }
-    .InterpolationRequiresDisplay       -> CodeInfo { .id = "T3018", .message = "string interpolation expression must implement `Display`" }
-    .ConditionMustBeBool                -> CodeInfo { .id = "T3019", .message = "condition must be `bool`" }
-    .BodyReturnIncompatible             -> CodeInfo { .id = "T3020", .message = "function body returns a value incompatible with its declared return type" }
-    .GenericArgCountMismatch            -> CodeInfo { .id = "T3021", .message = "generic argument count mismatch" }
-    .CyclicTypeAlias                    -> CodeInfo { .id = "T3022", .message = "cyclic type alias" }
-    .SelfOutsideTraitOrImpl             -> CodeInfo { .id = "T3023", .message = "use of `Self` outside a trait or impl context" }
-    .FnSignatureMustBeAnnotated         -> CodeInfo { .id = "T3024", .message = "function signature must be fully annotated" }
-    .NamedArgDuplicatesPositional       -> CodeInfo { .id = "T3025", .message = "named argument duplicates a positional one" }
-    .TypeHasNoGenericParams             -> CodeInfo { .id = "T3026", .message = "type does not have generic parameters" }
-    .UnknownEnumVariant                 -> CodeInfo { .id = "T3027", .message = "unknown enum variant" }
-    .CannotInferEnumType                -> CodeInfo { .id = "T3028", .message = "cannot infer enum type from context" }
-    .EnumReprMustBePrimitiveInt         -> CodeInfo { .id = "T3029", .message = "enum backing type must be a primitive integer" }
-    .EnumVariantValueOutOfRange         -> CodeInfo { .id = "T3030", .message = "enum variant value out of range for backing type" }
-    .DuplicateEnumVariantValue          -> CodeInfo { .id = "T3031", .message = "duplicate enum variant value" }
-    .AmbiguousOverload                  -> CodeInfo { .id = "T3032", .message = "ambiguous overload resolution" }
-    .InvalidMainSignature               -> CodeInfo { .id = "T3033", .message = "invalid `main` signature" }
-    .RecursiveExprBodiedFn              -> CodeInfo { .id = "T3034", .message = "recursive expression-bodied function requires an explicit `-> Type` annotation" }
-    .TypeValuedSlotNotYetSupported      -> CodeInfo { .id = "T3035", .message = "type-valued slot is not yet supported in this position" }
-    .ImplMissingRequiredMethod          -> CodeInfo { .id = "T3036", .message = "impl block missing required trait method" }
-    .MissingRequiredFieldInStructLit    -> CodeInfo { .id = "T3037", .message = "missing required field in struct literal" }
-    .FieldAlreadyProvided               -> CodeInfo { .id = "T3038", .message = "field already provided in struct literal" }
-    .IntoIdentityForbidden              -> CodeInfo { .id = "T3039", .message = "`Into<T>` cannot use `T` as its target (identity coercion is forbidden)" }
-    .UnreachableIsTest                  -> CodeInfo { .id = "T3040", .message = "test can never match — operands have no overlapping values" }
-    .CannotReassignConst                -> CodeInfo { .id = "T3041", .message = "cannot reassign a constant binding" }
-    .CannotMutateImmutableArray         -> CodeInfo { .id = "T3042", .message = "cannot mutate an immutable array" }
-    .InvalidExternDecl                  -> CodeInfo { .id = "T3050", .message = "invalid `@extern` declaration" }
-    .ExternMustNotHaveBody              -> CodeInfo { .id = "T3051", .message = "`@extern` declaration must not have a body" }
-    .PrivateTypeInPublicInterface       -> CodeInfo { .id = "T3052", .message = "exported declaration exposes a non-exported type" }
-    .DuplicateFnDefinition              -> CodeInfo { .id = "T3053", .message = "function defined more than once with the same signature in a module" }
-    .InternalFieldAccess                -> CodeInfo { .id = "T3054", .message = "access to a struct field marked `@internal` from outside its declaring module" }
-    .CharLiteralOutOfRange              -> CodeInfo { .id = "T3055", .message = "character literal's codepoint does not fit the target integer type" }
-    .OperatorTraitNotImplemented        -> CodeInfo { .id = "T3043", .message = "operand type does not implement the trait this operator requires" }
-    .GeneratorReturnMustBeIterator      -> CodeInfo { .id = "T3056", .message = "a function that `yield`s must return `Iterator<T>`" }
-    .IntegerLiteralOutOfRange           -> CodeInfo { .id = "T3066", .message = "integer literal does not fit the target integer type" }
-    .ReturnValueInGenerator             -> CodeInfo { .id = "T3058", .message = "a generator produces values via `yield`; `return` with a value is not allowed (use a bare `return` to stop)" }
-    .YieldOutsideGenerator              -> CodeInfo { .id = "T3059", .message = "`yield` is only allowed directly inside a generator's own body, not in a nested lambda" }
-    .DeferInGenerator                   -> CodeInfo { .id = "T3060", .message = "`defer` is not yet supported inside a generator" }
-    .GeneratorYieldIncompatible         -> CodeInfo { .id = "T3061", .message = "yielded value type does not match the generator's element type" }
-    .BodylessFnMustBeIntrinsic          -> CodeInfo { .id = "T3062", .message = "a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol)" }
-    .AssignTypeMismatch                 -> CodeInfo { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" }
-    .AwaitOutsideAsync                  -> CodeInfo { .id = "T3064", .message = "`await` is not allowed inside a nested lambda (a lambda cannot be an async coroutine)" }
-    .LoopTargetNotLoopVariable          -> CodeInfo { .id = "T3067", .message = "`break` / `continue` target must be an enclosing loop's iteration variable or label" }
-    .NullCoalesceOnNonOptional          -> CodeInfo { .id = "T3068", .message = "`??` left operand is never null — the fallback is unreachable" }
-    .TypeArgumentNotInferable           -> CodeInfo { .id = "T3069", .message = "cannot infer type argument — nothing at this call site binds the type parameter" }
-    .CannotMutateImmutableBinding       -> CodeInfo { .id = "T3070", .message = "cannot mutate through an immutable access path" }
-    .MutatingMethodOnImmutable          -> CodeInfo { .id = "T3071", .message = "this method mutates its receiver (`self!`), but the receiver is immutable" }
-    .ImmutableBorrowIntoMutableParam    -> CodeInfo { .id = "T3072", .message = "this argument is immutable, but the parameter is declared `!` (the callee may mutate it)" }
-    .FnValueMutabilityMismatch          -> CodeInfo { .id = "T3073", .message = "this function mutates a parameter the target slot lends out read-only" }
-    .UnionMixesMutabilities             -> CodeInfo { .id = "T3074", .message = "a union mixes the same type at two mutabilities" }
-    .MutabilityMarkerOnValueType        -> CodeInfo { .id = "T3075", .message = "a `!` that grants nothing" }
-    .ModuleConstMutableElement          -> CodeInfo { .id = "T3076", .message = "a mutable module const needs a flat element type" }
-    .ImmutableValueIntoMutableSlot      -> CodeInfo { .id = "T3077", .message = "a read-only value cannot fill a slot that promises mutation" }
-    .MethodOnlyBehindNamespaceAlias     -> CodeInfo { .id = "T3078", .message = "this free function is only in scope through its namespace alias" }
-    .InvalidParameterDecorator          -> CodeInfo { .id = "T3079", .message = "decorator not allowed on this parameter" }
-    .CallbackNotDirectFn                -> CodeInfo { .id = "T3080", .message = "callback argument must name a function directly" }
-    .CannotDestructure                  -> CodeInfo { .id = "T3081", .message = "value cannot be destructured into this many elements" }
-    .InvalidAssignTarget                -> CodeInfo { .id = "T3082", .message = "not an assignment target" }
-    .BodyFallsOffEnd                    -> CodeInfo { .id = "T3083", .message = "not every path through the body returns a value" }
-    .EnumDataNotStruct                  -> CodeInfo { .id = "T3084", .message = "enum variant data must be a struct" }
-    .VariantDataWithoutEnumData         -> CodeInfo { .id = "T3085", .message = "variant data on an enum whose header declares none" }
-    .EnumDataValuesNotConsecutive       -> CodeInfo { .id = "T3086", .message = "enum variant data needs consecutive values" }
-}
-
-// Note : `DiagCode` was previously a union of every phase's code enum, but
-// the runtime's `match { is EnumType -> }` dispatch on a union-of-enums
-// doesn't pick the right variant. Instead, `Diagnostic.code` now carries a
-// resolved `CodeInfo` ; each phase exposes a typed `error(MyCode, ...)`
-// helper that calls `info(...)` / `parser_info(...)` to stamp the wire
-// `(id, message)` at construction time.
