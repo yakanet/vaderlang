@@ -465,6 +465,12 @@ export TypedProgram :: struct {
     /// (or non-overloaded names) keep the fn-type display.
     overload_result_callees: MutableMap<usize, bool>
 
+    /// `FieldExpr.id` → true when `v.x` reads a field of an enum value's
+    /// variant data rather than naming a variant (`Enum.Variant`). The lowerer
+    /// reads the variant-data table for these and folds every other enum-typed
+    /// field access to the variant's integer.
+    enum_data_reads: MutableMap<usize, bool>
+
     /// Walk-global stack of enclosing loops, pushed around each loop body by
     /// `check_for`. Unlike `FnContext.loop_depth` (not threaded through the
     /// expression checker, so lost inside `if`/`match` branch blocks), this
@@ -561,6 +567,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .bounded_dispatch_trait = MutableMap<usize, string> {},
     .fn_trait_dispatches = MutableMap<usize, bool> {},
     .overload_result_callees = MutableMap<usize, bool> {},
+    .enum_data_reads = MutableMap<usize, bool> {},
 }
 
 

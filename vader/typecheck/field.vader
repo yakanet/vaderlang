@@ -383,7 +383,7 @@ try_enum_variant_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
     expected: Type | null,
-    typed: TypedProgram,
+    typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> Type | null {
     if target_ty !is EnumType {
@@ -394,6 +394,7 @@ try_enum_variant_dispatch :: fn(
     if !names_enum_type(e.target, typed) {
         data_field :: enum_data_field(target_ty, e, typed, diags)
         if data_field != null {
+            typed.enum_data_reads[e.id] = true
             return data_field
         }
         hint :: if target_ty.indices[e.field] != null {
@@ -449,7 +450,7 @@ enum_data_field :: fn(target_ty: EnumType, e: AST.FieldExpr, typed: TypedProgram
 ///
 /// @param target  the receiver of a field access whose type is an enum.
 /// @param typed   the module's typed program, for the name's symbol.
-export names_enum_type :: fn(target: AST.Expr, typed: TypedProgram) -> bool {
+names_enum_type :: fn(target: AST.Expr, typed: TypedProgram) -> bool {
     if target is AST.FieldExpr {
         return namespace_base_mod_id(target.target, typed) != null
     }
