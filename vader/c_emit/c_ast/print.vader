@@ -6,6 +6,7 @@
 
 module "vader/c_emit/c_ast"
 
+import "std/abort"
 import "std/string_builder"
 
 /// Write `block`'s statements, one per line, `depth` levels deep.
@@ -42,11 +43,12 @@ print_statements :: fn(
             is CExpressionStatement -> {
                 indent(out, depth)
                 print_expression(out, statement.expression)
-                out.append(if statement.terminated {
-                    ";\n"
-                } else {
-                    "\n"
-                })
+                out.append(";\n")
+            }
+            is CMacroStatement      -> {
+                indent(out, depth)
+                print_expression(out, statement.call)
+                out.append("\n")
             }
             is CDeclaration         -> {
                 indent(out, depth)
@@ -129,8 +131,11 @@ export text_of :: fn(expression: CExpression) -> string {
 print_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
     match expression {
         is CTemporary      -> {
+            if expression.slot < 0 {
+                panic("c_ast: temp ${expression.id} printed before `coalesce_temporaries` gave it a slot")
+            }
             out.append("t")
-            out.append("${if expression.slot >= 0 { expression.slot } else { expression.id }}")
+            out.append("${expression.slot}")
         }
         is CLocal          -> {
             out.append("l")
@@ -156,14 +161,15 @@ print_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
                 out.append(")")
             }
             out.append(" ")
-            print_expression(out, expression.value)
+            print_operand(out, expression.value, CAST_PRECEDENCE)
         }
         is CBinary         -> {
-            print_expression(out, expression.left)
+            operator :: COperatorInfo(expression.operator)
+            print_operand(out, expression.left, operator.precedence)
             out.append(" ")
-            out.append(expression.operator)
+            out.append(operator.spelling)
             out.append(" ")
-            print_expression(out, expression.right)
+            print_operand(out, expression.right, operator.precedence + 1)
         }
         is CUnary          -> {
             out.append(expression.operator)
@@ -200,6 +206,22 @@ print_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
             }
         }
     }
+}
+
+// C binds a cast tighter than any binary operator : one above `*`.
+CAST_PRECEDENCE :: 11
+
+// `child`, an operand needing at least `minimum` precedence : a `CBinary` that
+// binds looser is parenthesised. A right operand needs one more than its
+// operator — every binary operator here is left-associative.
+print_operand :: fn(out: StringBuilder!, child: CExpression, minimum: i32) -> void {
+    if child is CBinary && COperatorInfo(child.operator).precedence < minimum {
+        out.append("(")
+        print_expression(out, child)
+        out.append(")")
+        return
+    }
+    print_expression(out, child)
 }
 
 print_integer_literal :: fn(out: StringBuilder!, literal: CIntegerLiteral) -> void {
@@ -481,7 +503,7 @@ test_print_block_spells_every_return :: fn() -> void {
 
 @test
 test_text_of_spells_every_expression :: fn() -> void {
-    value :: CMember { .base = CTemporary { .id = 3, .val = .Any }, .member = "payload.i" }
+    value :: CMember { .base = CTemporary { .id = 3, .val = .Any, .slot = 3 }, .member = "payload.i" }
     call :: CCall {
         .callee = "vader_box_i32",
         .arguments = [
@@ -489,7 +511,7 @@ test_text_of_spells_every_expression :: fn() -> void {
             CCast { .types = ["int32_t", "uint32_t"], .value = CLocal { .slot = 2 } },
         ],
     }
-    sum :: CParenthesized { .inner = CBinary { .operator = "+", .left = value, .right = call } }
+    sum :: CParenthesized { .inner = CBinary { .operator = .Add, .left = value, .right = call } }
     assert_eq(text_of(sum), "(t3.payload.i + vader_box_i32(7u, (int32_t)(uint32_t) l2))")
     assert_eq(
         text_of(
@@ -510,4 +532,12 @@ test_text_of_spells_integer_extremes_as_macros :: fn() -> void {
         "INT64_MIN",
     )
     assert_eq(text_of(CIntegerLiteral { .class = .I64, .value = -5 }), "INT64_C(-5)")
+}
+
+@test
+test_text_of_parenthesises_a_looser_operand :: fn() -> void {
+    equality :: CBinary { .operator = .Equal, .left = CLocal { .slot = 0 }, .right = verbatim("1") }
+    assert_eq(text_of(CCast { .types = ["uint8_t"], .value = equality }), "(uint8_t) (l0 == 1)")
+    assert_eq(text_of(CBinary { .operator = .Equal, .left = verbatim("a"), .right = equality }), "a == (l0 == 1)")
+    assert_eq(text_of(CBinary { .operator = .LogicalOr, .left = equality, .right = equality }), "l0 == 1 || l0 == 1")
 }

@@ -85,6 +85,9 @@ ResolvedArray :: struct {
     /// Sound because pins are minted ONLY for BCE-safe loops (no call / alloc
     /// in the body).
     pinned:  bool = false
+    /// `open_nodes.len()` when its C local was declared : the local is in C
+    /// scope only while the walk stays that deep.
+    depth:   usize = 0
 }
 
 /// One escape-stack-allocated GC struct to hoist to the function top. Both the
@@ -206,9 +209,10 @@ assign :: fn(s: FnState!, target: CExpression, value: CExpression) -> void =
 evaluate :: fn(s: FnState!, expression: CExpression) -> void =
     append_statement(s, CExpressionStatement { .expression = expression })
 
-/// Append a statement macro call `name(arguments…)`, which brings its own `;`.
+/// Append a statement macro call `name(arguments…)` — its expansion is a whole
+/// statement, so it takes no `;`.
 statement_macro :: fn(s: FnState!, name: string, arguments: CExpression[]) -> void =
-    append_statement(s, CExpressionStatement { .expression = CCall { .callee = name, .arguments = arguments }, .terminated = false })
+    append_statement(s, CMacroStatement { .call = CCall { .callee = name, .arguments = arguments } })
 
 /// Append `VADER_WRITE_BARRIER(object);`.
 write_barrier :: fn(s: FnState!, object: CExpression) -> void =

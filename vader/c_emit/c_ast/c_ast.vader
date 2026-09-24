@@ -19,6 +19,7 @@ export CStatement :: CLine
             | CDirective
             | CAssign
             | CExpressionStatement
+            | CMacroStatement
             | CDeclaration
             | CIf
             | CScope
@@ -36,11 +37,15 @@ export CAssign :: struct {
     value: CExpression
 }
 
-/// `expression;` — or `expression` alone for a statement macro
-/// (`VADER_ARRAY_CHECK_INDEX(a, i)`), which brings its own.
+/// `expression;`.
 export CExpressionStatement :: struct {
     expression: CExpression
-    terminated: bool = true
+}
+
+/// A statement macro invocation (`VADER_ARRAY_CHECK_INDEX(a, i)`) : its
+/// expansion is a whole statement, so it takes no `;` of its own.
+export CMacroStatement :: struct {
+    call: CCall
 }
 
 /// `type name = value;`.
@@ -117,8 +122,8 @@ export CExpression :: CTemporary
              | CConditional
              | CSequence
 
-/// An operand temporary of stack class `val` : `t<slot>` once
-/// `coalesce_temporaries` gave it a slot, `t<id>` before.
+/// An operand temporary of stack class `val`, printed `t<slot>` ; printing one
+/// before `coalesce_temporaries` gave it a slot is an internal error.
 export CTemporary :: struct {
     id: i32
     val: ValType
@@ -155,10 +160,40 @@ export CCast :: struct {
     value: CExpression
 }
 
-/// `left operator right`, unparenthesised — wrap it in `CParenthesized` where
-/// precedence needs it.
+/// A C binary operator's spelling and how tightly C binds it — higher binds
+/// tighter.
+export COperatorInfo :: struct {
+    spelling: string
+    precedence: i32
+}
+
+/// A C binary operator ; `COperatorInfo(operator)` gives its spelling and
+/// precedence.
+export CBinaryOperator :: enum(COperatorInfo) {
+    Multiply       { .spelling = "*", .precedence = 10 },
+    Divide         { .spelling = "/", .precedence = 10 },
+    Remainder      { .spelling = "%", .precedence = 10 },
+    Add            { .spelling = "+", .precedence = 9 },
+    Subtract       { .spelling = "-", .precedence = 9 },
+    ShiftLeft      { .spelling = "<<", .precedence = 8 },
+    ShiftRight     { .spelling = ">>", .precedence = 8 },
+    Less           { .spelling = "<", .precedence = 7 },
+    LessOrEqual    { .spelling = "<=", .precedence = 7 },
+    Greater        { .spelling = ">", .precedence = 7 },
+    GreaterOrEqual { .spelling = ">=", .precedence = 7 },
+    Equal          { .spelling = "==", .precedence = 6 },
+    NotEqual       { .spelling = "!=", .precedence = 6 },
+    BitAnd         { .spelling = "&", .precedence = 5 },
+    BitXor         { .spelling = "^", .precedence = 4 },
+    BitOr          { .spelling = "|", .precedence = 3 },
+    LogicalAnd     { .spelling = "&&", .precedence = 2 },
+    LogicalOr      { .spelling = "||", .precedence = 1 },
+}
+
+/// `left operator right` ; the printer parenthesises an operand C would
+/// otherwise group differently.
 export CBinary :: struct {
-    operator: string
+    operator: CBinaryOperator
     left: CExpression
     right: CExpression
 }
@@ -220,7 +255,7 @@ export around :: fn(prefix: string, inner: CExpression, suffix: string) -> CExpr
 export any_of :: fn(parts: CExpression[]) -> CExpression {
     disjunction := parts[0]
     for k in 1..<parts.len() {
-        disjunction = CBinary { .operator = "||", .left = disjunction, .right = parts[k] }
+        disjunction = CBinary { .operator = .LogicalOr, .left = disjunction, .right = parts[k] }
     }
     return disjunction
 }

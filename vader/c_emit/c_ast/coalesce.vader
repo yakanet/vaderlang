@@ -126,6 +126,7 @@ scan_block :: fn(block: CBlock, usage: TemporaryUsage!) -> void {
                 scan_expression(statement.value, usage)
             }
             is CExpressionStatement -> scan_expression(statement.expression, usage)
+            is CMacroStatement      -> scan_expression(statement.call, usage)
             is CDeclaration         -> scan_expression(statement.value, usage)
             is CGoto                -> {
                 condition :: statement.condition
