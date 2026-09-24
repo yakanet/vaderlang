@@ -13,10 +13,11 @@
 
 module "vader/c_emit"
 
-import "std/string_builder"
 import "std/abort"
-import "vader/bytecode"
 import "std/collections"
+import "std/string_builder"
+import "vader/bytecode"
+import "vader/c_emit/c_ast"
 
 // ---- StackVal -------------------------------------------------------------
 
@@ -244,6 +245,9 @@ return_statement :: fn(s: FnState!, node: CReturn) -> void {
         },
     )
 }
+
+// A node the walk has opened and not closed yet (`open_if`, `open_scope`).
+COpenNode :: CIf | CScope
 
 // The block statements go to : the innermost open node's, else the root. The
 // tree and `open_nodes` hold the SAME objects — statements pushed while a node

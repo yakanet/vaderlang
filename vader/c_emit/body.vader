@@ -13,9 +13,10 @@
 
 module "vader/c_emit"
 
-import "std/string_builder"
 import "std/numbers"
+import "std/string_builder"
 import "vader/bytecode"
+import "vader/c_emit/c_ast"
 import "vader/text"
 
 // =========================================================================
@@ -202,9 +203,6 @@ payload :: fn(box: CExpression, field: string) -> CExpression = CMember { .base 
 /// `((type) box.payload.<field>)`.
 payload_cast :: fn(type: string, box: CExpression, field: string) -> CExpression =
     CParenthesized { .inner = cast(type, payload(box, field)) }
-
-/// `(type) value`.
-cast :: fn(type: string, value: CExpression) -> CExpression = CCast { .types = [type], .value = value }
 
 /// C expression boxing `value` (a `val`-typed value) into a `vader_box_t`
 /// tagged `type_index` — the inverse of `unbox_expr`. Each width routes to

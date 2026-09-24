@@ -21,11 +21,12 @@
 
 module "vader/c_emit"
 
-import "std/string"
-import "std/string_builder"
 import "std/collections"
 import "std/sort"
+import "std/string"
+import "std/string_builder"
 import "vader/bytecode"
+import "vader/c_emit/c_ast"
 
 // ---- per-key dispatcher metadata ------------------------------------------
 

@@ -20,6 +20,8 @@
 
 module "vader/c_emit"
 
+import "vader/c_emit/c_ast"
+
 /// One loop's lifted array state. `opener_pc` names the locals, so nested
 /// regions cannot collide.
 PushCache :: struct {

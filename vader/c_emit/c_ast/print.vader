@@ -1,10 +1,10 @@
-// vader/c_emit/c_print — writes a statement tree (`c_ast.vader`) as C text.
+// vader/c_emit/c_ast/print — writes a statement tree (`c_ast.vader`) as C text.
 //
 // Every layout decision lives here : indentation (4 spaces per level), braces,
 // `else if` chains, `end_N: ;` labels, `#line` directives at column 0, and the
 // spelling of a return around the GC frame restore.
 
-module "vader/c_emit"
+module "vader/c_emit/c_ast"
 
 import "std/string_builder"
 
@@ -13,11 +13,22 @@ import "std/string_builder"
 /// @param out    receives the text.
 /// @param block  the statements to write.
 /// @param depth  the indentation level of `block`'s own lines.
-print_block :: fn(out: StringBuilder!, block: CBlock, depth: i32) -> void =
-    print_statements(out, block.body, 0, block.body.len(), depth)
+export print_block :: fn(out: StringBuilder!, block: CBlock, depth: i32) -> void = print_statements(
+    out,
+    block.body,
+    0,
+    block.body.len(),
+    depth,
+)
 
 // `statements[from..<to]`, `depth` levels deep.
-print_statements :: fn(out: StringBuilder!, statements: CStatement[], from: usize, to: usize, depth: i32) -> void {
+print_statements :: fn(
+    out: StringBuilder!,
+    statements: CStatement[],
+    from: usize,
+    to: usize,
+    depth: i32,
+) -> void {
     for k in from..<to {
         statement :: statements[k]
         match statement {
@@ -31,7 +42,11 @@ print_statements :: fn(out: StringBuilder!, statements: CStatement[], from: usiz
             is CExpressionStatement -> {
                 indent(out, depth)
                 print_expression(out, statement.expression)
-                out.append(if statement.terminated { ";\n" } else { "\n" })
+                out.append(if statement.terminated {
+                    ";\n"
+                } else {
+                    "\n"
+                })
             }
             is CDeclaration         -> {
                 indent(out, depth)
@@ -105,7 +120,7 @@ print_else_chain :: fn(out: StringBuilder!, node: CIf, label: string, depth: i32
 /// `expression` as C text.
 ///
 /// @param expression  the expression to spell.
-text_of :: fn(expression: CExpression) -> string {
+export text_of :: fn(expression: CExpression) -> string {
     out :: StringBuilder {}
     print_expression(out, expression)
     return out.to_string()
@@ -201,7 +216,7 @@ print_integer_literal :: fn(out: StringBuilder!, literal: CIntegerLiteral) -> vo
 // ---- statements -----------------------------------------------------------
 
 /// The statement that restores the caller's GC frame.
-FRAME_RESTORE :: "vader_gc_top = gc_frame.prev;"
+export FRAME_RESTORE :: "vader_gc_top = gc_frame.prev;"
 
 // A return on one line : bare, or braced around the frame restore — every value
 // is read before `vader_gc_top` moves, through the `__vret` snapshot when the
@@ -270,8 +285,11 @@ print_directive :: fn(out: StringBuilder!, text: string) -> void {
     out.append("\n")
 }
 
-print_closer :: fn(out: StringBuilder!, label: string, depth: i32) -> void =
-    print_line(out, if label == "" { "}" } else { "} ${label}" }, depth)
+print_closer :: fn(out: StringBuilder!, label: string, depth: i32) -> void = print_line(
+    out,
+    if label == "" { "}" } else { "} ${label}" },
+    depth,
+)
 
 // ---- tests ----------------------------------------------------------------
 
@@ -282,7 +300,10 @@ import "std/testing"
 test_print_block_indents_an_if :: fn() -> void {
     root :: CBlock {
         .body = [
-            CIf { .condition = verbatim("a"), .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] } },
+            CIf {
+                .condition = verbatim("a"),
+                .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] },
+            },
         ],
     }
     out :: StringBuilder {}
@@ -292,34 +313,44 @@ test_print_block_indents_an_if :: fn() -> void {
 
 @test
 test_print_block_folds_an_else_if_chain :: fn() -> void {
-    innermost :: CIf { .condition = verbatim("c"), .then_block = CBlock { .body = [CLine { .text = "x = 3;" }] } }
+    innermost :: CIf {
+        .condition = verbatim("c"),
+        .then_block = CBlock { .body = [CLine { .text = "x = 3;" }] },
+    }
     inner :: CIf {
-        .condition  = verbatim("b"),
+        .condition = verbatim("b"),
         .then_block = CBlock { .body = [CLine { .text = "x = 2;" }] },
         .else_block = CBlock { .body = [innermost] },
     }
     root :: CBlock {
         .body = [
             CIf {
-                .condition  = verbatim("a"),
+                .condition = verbatim("a"),
                 .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] },
-                .else_block = CBlock { .body = [CDirective { .text = "#line 4 \"f.vader\"" }, inner] },
+                .else_block = CBlock {
+                    .body = [CDirective { .text = "#line 4 \"f.vader\"" }, inner],
+                },
             },
         ],
     }
     out :: StringBuilder {}
     print_block(out, root, 1)
-    assert_eq(out.to_string(), [
-        "    if (a) {",
-        "        x = 1;",
-        "#line 4 \"f.vader\"",
-        "    } else if (b) {",
-        "        x = 2;",
-        "    } else if (c) {",
-        "        x = 3;",
-        "    }",
-        "",
-    ].join("\n"))
+    assert_eq(
+        out.to_string(),
+        [
+            "    if (a) {",
+            "        x = 1;",
+            "#line 4 \"f.vader\"",
+            "    } else if (b) {",
+            "        x = 2;",
+            "    } else if (c) {",
+            "        x = 3;",
+            "    }",
+            "",
+        ].join(
+            "\n",
+        ),
+    )
 }
 
 @test
@@ -327,7 +358,7 @@ test_print_block_keeps_an_arm_with_two_statements :: fn() -> void {
     root :: CBlock {
         .body = [
             CIf {
-                .condition  = verbatim("a"),
+                .condition = verbatim("a"),
                 .then_block = CBlock { .body = [] },
                 .else_block = CBlock {
                     .body = [
@@ -340,38 +371,50 @@ test_print_block_keeps_an_arm_with_two_statements :: fn() -> void {
     }
     out :: StringBuilder {}
     print_block(out, root, 1)
-    assert_eq(out.to_string(), "    if (a) {\n    } else {\n        t0 = f();\n        if (t0) {\n        }\n    }\n")
+    assert_eq(
+        out.to_string(),
+        "    if (a) {\n    } else {\n        t0 = f();\n        if (t0) {\n        }\n    }\n",
+    )
 }
 
 @test
 test_print_block_keeps_both_labels_apart :: fn() -> void {
-    inner :: CIf { .condition = verbatim("b"), .then_block = CBlock { .body = [] }, .end_label = "end_7: ;" }
+    inner :: CIf {
+        .condition = verbatim("b"),
+        .then_block = CBlock { .body = [] },
+        .end_label = "end_7: ;",
+    }
     root :: CBlock {
         .body = [
             CIf {
-                .condition  = verbatim("a"),
+                .condition = verbatim("a"),
                 .then_block = CBlock { .body = [] },
                 .else_block = CBlock { .body = [inner] },
-                .end_label  = "end_3: ;",
+                .end_label = "end_3: ;",
             },
         ],
     }
     out :: StringBuilder {}
     print_block(out, root, 1)
-    assert_eq(out.to_string(), "    if (a) {\n    } else {\n        if (b) {\n        } end_7: ;\n    } end_3: ;\n")
+    assert_eq(
+        out.to_string(),
+        "    if (a) {\n    } else {\n        if (b) {\n        } end_7: ;\n    } end_3: ;\n",
+    )
 }
 
 @test
 test_print_block_writes_trailing_directives_below_the_closer :: fn() -> void {
     inner :: CIf {
-        .condition  = verbatim("b"),
+        .condition = verbatim("b"),
         .then_block = CBlock { .body = [] },
-        .else_block = CBlock { .body = [CLine { .text = "x = 2;" }, CDirective { .text = "#line 9" }] },
+        .else_block = CBlock {
+            .body = [CLine { .text = "x = 2;" }, CDirective { .text = "#line 9" }],
+        },
     }
     root :: CBlock {
         .body = [
             CIf {
-                .condition  = verbatim("a"),
+                .condition = verbatim("a"),
                 .then_block = CBlock { .body = [] },
                 .else_block = CBlock { .body = [inner, CDirective { .text = "#line 8" }] },
             },
@@ -379,20 +422,28 @@ test_print_block_writes_trailing_directives_below_the_closer :: fn() -> void {
     }
     out :: StringBuilder {}
     print_block(out, root, 1)
-    assert_eq(out.to_string(), [
-        "    if (a) {",
-        "    } else if (b) {",
-        "    } else {",
-        "        x = 2;",
-        "#line 9",
-        "    }",
-        "#line 8",
-        "",
-    ].join("\n"))
+    assert_eq(
+        out.to_string(),
+        [
+            "    if (a) {",
+            "    } else if (b) {",
+            "    } else {",
+            "        x = 2;",
+            "#line 9",
+            "    }",
+            "#line 8",
+            "",
+        ].join(
+            "\n",
+        ),
+    )
 }
 
 // `*out<index> = l<slot>`.
-store :: fn(index: i32, slot: i32) = CAssign { .target = verbatim("*out${index}"), .value = CLocal { .slot = slot } }
+store :: fn(index: i32, slot: i32) = CAssign {
+    .target = verbatim("*out${index}"),
+    .value = CLocal { .slot = slot },
+}
 
 @test
 test_print_block_spells_every_return :: fn() -> void {
@@ -402,38 +453,61 @@ test_print_block_spells_every_return :: fn() -> void {
             CReturn { .value = CLocal { .slot = 0 } },
             CReturn { .stores = [store(0, 1)] },
             CReturn { .pops_frame = true },
-            CReturn { .value = CLocal { .slot = 0 }, .snapshot_type = "int32_t", .pops_frame = true },
+            CReturn {
+                .value = CLocal { .slot = 0 },
+                .snapshot_type = "int32_t",
+                .pops_frame = true,
+            },
             CReturn { .stores = [store(0, 1), store(1, 2)], .pops_frame = true },
         ],
     }
     out :: StringBuilder {}
     print_block(out, root, 0)
-    assert_eq(out.to_string(), [
-        "return;",
-        "return l0;",
-        "*out0 = l1; return;",
-        "{ vader_gc_top = gc_frame.prev; return; }",
-        "{ int32_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }",
-        "{ *out0 = l1; *out1 = l2; vader_gc_top = gc_frame.prev; return; }",
-        "",
-    ].join("\n"))
+    assert_eq(
+        out.to_string(),
+        [
+            "return;",
+            "return l0;",
+            "*out0 = l1; return;",
+            "{ vader_gc_top = gc_frame.prev; return; }",
+            "{ int32_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }",
+            "{ *out0 = l1; *out1 = l2; vader_gc_top = gc_frame.prev; return; }",
+            "",
+        ].join(
+            "\n",
+        ),
+    )
 }
 
 @test
 test_text_of_spells_every_expression :: fn() -> void {
     value :: CMember { .base = CTemporary { .id = 3, .val = .Any }, .member = "payload.i" }
     call :: CCall {
-        .callee    = "vader_box_i32",
-        .arguments = [verbatim("7u"), CCast { .types = ["int32_t", "uint32_t"], .value = CLocal { .slot = 2 } }],
+        .callee = "vader_box_i32",
+        .arguments = [
+            verbatim("7u"),
+            CCast { .types = ["int32_t", "uint32_t"], .value = CLocal { .slot = 2 } },
+        ],
     }
     sum :: CParenthesized { .inner = CBinary { .operator = "+", .left = value, .right = call } }
     assert_eq(text_of(sum), "(t3.payload.i + vader_box_i32(7u, (int32_t)(uint32_t) l2))")
-    assert_eq(text_of(CUnary { .operator = "-", .operand = CSequence { .parts = [verbatim("a"), verbatim("b")] } }), "-(ab)")
+    assert_eq(
+        text_of(
+            CUnary {
+                .operator = "-",
+                .operand = CSequence { .parts = [verbatim("a"), verbatim("b")] },
+            },
+        ),
+        "-(ab)",
+    )
 }
 
 @test
 test_text_of_spells_integer_extremes_as_macros :: fn() -> void {
     assert_eq(text_of(CIntegerLiteral { .class = .I32, .value = -2147483648 }), "INT32_MIN")
-    assert_eq(text_of(CIntegerLiteral { .class = .I64, .value = i64(-9223372036854775807) - 1 }), "INT64_MIN")
+    assert_eq(
+        text_of(CIntegerLiteral { .class = .I64, .value = i64(-9223372036854775807) - 1 }),
+        "INT64_MIN",
+    )
     assert_eq(text_of(CIntegerLiteral { .class = .I64, .value = -5 }), "INT64_C(-5)")
 }

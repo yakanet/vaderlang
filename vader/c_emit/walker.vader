@@ -11,11 +11,12 @@
 
 module "vader/c_emit"
 
-import "std/string"
-import "std/string_builder"
 import "std/abort"
 import "std/collections"
+import "std/string"
+import "std/string_builder"
 import "vader/bytecode"
+import "vader/c_emit/c_ast"
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
 vm :: import "vader/bytecode"
@@ -322,7 +323,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     // Coalesce operand temps with disjoint live ranges into shared slots — the
     // walk mints one `tN` per materialisation and never recycles, inflating the
     // frame and GC-root set. The declarations below are one per slot. See
-    // `coalesce.vader`.
+    // `c_ast/coalesce.vader`.
     slot_types :: coalesce_temporaries(s.root, s.temporaries)
     body :: StringBuilder {}
     print_block(body, s.root, 1)
@@ -1202,7 +1203,7 @@ callee_result_arity :: fn(ctx: EmitCtx, op: vm.Op) -> usize {
 // The operand stack MUST be empty at every scope boundary : the lowerer
 // materialises all control-flow results into locals (`vader/midir/build.vader`
 // — `if_res` / `and_res` / `or_res`, loops are void), so no operand ever
-// survives a block / loop / if / br. `c_emit/coalesce.vader`'s GC-safety rests
+// survives a block / loop / if / br. `c_emit/c_ast/coalesce.vader`'s GC-safety rests
 // on exactly this — a temp live across a scope would break its textual
 // live-range assumption and could free a still-live GC slot. Guard it here so a
 // future change that leaks an operand trips a loud ICE instead of a silent

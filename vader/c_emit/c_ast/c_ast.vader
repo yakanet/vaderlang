@@ -1,18 +1,21 @@
-// vader/c_emit/c_ast — the statement tree a C function body is built as.
+// vader/c_emit/c_ast/c_ast — the statement tree a C function body is built as.
 //
-// The walker (`walker.vader`, through `stack.vader`) appends statements to the
-// block it is in, and `c_print.vader` writes the whole tree once the walk is
-// done. A nested block is a node of its own, so its depth is structural.
+// The walker (`vader/c_emit/walker.vader`, through `stack.vader`) appends
+// statements to the block it is in, and `print.vader` writes the whole tree
+// once the walk is done. A nested block is a node of its own, so its depth is
+// structural.
 //
 // Expressions are nodes too (`CExpression`) : an operand temporary or a local
 // is a node of its own, so a pass over the tree finds every use of one without
 // reading C text. Shapes the tree does not model yet are spelled as
 // `CVerbatim` text inside a `CSequence`.
 
-module "vader/c_emit"
+module "vader/c_emit/c_ast"
+
+import "vader/bytecode"
 
 /// One statement of a C function body.
-CStatement :: CLine
+export CStatement :: CLine
             | CDirective
             | CAssign
             | CExpressionStatement
@@ -22,41 +25,38 @@ CStatement :: CLine
             | CReturn
             | CGoto
 
-/// A node the walk has opened and not closed yet (`stack.vader::open_if`).
-COpenNode :: CIf | CScope
-
 /// A statement written on one line at its block's depth.
-CLine :: struct {
+export CLine :: struct {
     text: string
 }
 
 /// `target = value;`.
-CAssign :: struct {
+export CAssign :: struct {
     target: CExpression
     value: CExpression
 }
 
 /// `expression;` — or `expression` alone for a statement macro
 /// (`VADER_ARRAY_CHECK_INDEX(a, i)`), which brings its own.
-CExpressionStatement :: struct {
+export CExpressionStatement :: struct {
     expression: CExpression
     terminated: bool = true
 }
 
 /// `type name = value;`.
-CDeclaration :: struct {
+export CDeclaration :: struct {
     type: string
     name: string
     value: CExpression
 }
 
 /// A preprocessor line (`#line`), written at column 0.
-CDirective :: struct {
+export CDirective :: struct {
     text: string
 }
 
 /// A statement that leaves the function : out-param stores, then `return`.
-CReturn :: struct {
+export CReturn :: struct {
     /// Assignments run before leaving — a multi-value return's `*outN = v`.
     stores: CAssign[] = []
     /// The returned expression ; null for a void return.
@@ -71,13 +71,13 @@ CReturn :: struct {
 
 /// A sequence of statements, written one level deeper than the construct that
 /// holds it.
-CBlock :: struct {
+export CBlock :: struct {
     body: CStatement[]!
 }
 
 /// `if (condition) { … } else { … }`. An `else` whose only statement is an
 /// `if` prints as `else if` (`print_if`).
-CIf :: struct {
+export CIf :: struct {
     condition: CExpression
     then_block: CBlock!
     else_block: CBlock! | null = null
@@ -86,13 +86,13 @@ CIf :: struct {
 }
 
 /// `goto label;`, or `if (condition) goto label;`.
-CGoto :: struct {
+export CGoto :: struct {
     label: string
     condition: CExpression | null = null
 }
 
 /// A braced block — `{` or a loop's `loop_N: {` — closed by `}`.
-CScope :: struct {
+export CScope :: struct {
     /// The opening line, brace included.
     head: string
     body: CBlock!
@@ -103,7 +103,7 @@ CScope :: struct {
 // ---- expressions ----------------------------------------------------------
 
 /// One C expression.
-CExpression :: CTemporary
+export CExpression :: CTemporary
              | CLocal
              | CVerbatim
              | CIntegerLiteral
@@ -119,97 +119,105 @@ CExpression :: CTemporary
 
 /// An operand temporary of stack class `val` : `t<slot>` once
 /// `coalesce_temporaries` gave it a slot, `t<id>` before.
-CTemporary :: struct {
+export CTemporary :: struct {
     id: i32
     val: ValType
     slot: i32 = -1
 }
 
 /// A local slot, `l<slot>`.
-CLocal :: struct {
+export CLocal :: struct {
     slot: i32
 }
 
 /// C text with no operand in it : a name, a literal, a macro.
-CVerbatim :: struct {
+export CVerbatim :: struct {
     text: string
 }
 
 /// An integer constant of stack class `.I32` or `.I64` : `INT32_C(n)`, or the
 /// `INT32_MIN` / `INT64_MIN` macro for the most negative value.
-CIntegerLiteral :: struct {
+export CIntegerLiteral :: struct {
     class: ValType
     value: i64
 }
 
 /// `callee(arguments…)`.
-CCall :: struct {
+export CCall :: struct {
     callee: string
     arguments: CExpression[]
 }
 
 /// `(T1)(T2) value` : the casts in `types` apply right to left, written with
 /// no space between them.
-CCast :: struct {
+export CCast :: struct {
     types: string[]
     value: CExpression
 }
 
 /// `left operator right`, unparenthesised — wrap it in `CParenthesized` where
 /// precedence needs it.
-CBinary :: struct {
+export CBinary :: struct {
     operator: string
     left: CExpression
     right: CExpression
 }
 
 /// `operator(operand)`.
-CUnary :: struct {
+export CUnary :: struct {
     operator: string
     operand: CExpression
 }
 
 /// `(inner)`.
-CParenthesized :: struct {
+export CParenthesized :: struct {
     inner: CExpression
 }
 
 /// `base.member`, or `base->member` through a pointer — `member` may be a path
 /// (`payload.i`).
-CMember :: struct {
+export CMember :: struct {
     base: CExpression
     member: string
     arrow: bool = false
 }
 
 /// `base[index]`.
-CIndex :: struct {
+export CIndex :: struct {
     base: CExpression
     index: CExpression
 }
 
 /// `condition ? then_value : else_value`, unparenthesised.
-CConditional :: struct {
+export CConditional :: struct {
     condition: CExpression
     then_value: CExpression
     else_value: CExpression
 }
 
 /// The concatenation of `parts`, for a shape with no node of its own.
-CSequence :: struct {
+export CSequence :: struct {
     parts: CExpression[]
 }
 
 /// `CVerbatim` over `text`.
-verbatim :: fn(text: string) -> CExpression = CVerbatim { .text = text }
+///
+/// @param text  C text with no operand in it.
+export verbatim :: fn(text: string) -> CExpression = CVerbatim { .text = text }
 
 /// `prefix`, `inner`, `suffix` as one `CSequence`.
-around :: fn(prefix: string, inner: CExpression, suffix: string) -> CExpression = CSequence {
+///
+/// @param prefix  the text written before `inner`.
+/// @param inner   the expression in the middle.
+/// @param suffix  the text written after it.
+export around :: fn(prefix: string, inner: CExpression, suffix: string) -> CExpression = CSequence {
     .parts = [verbatim(prefix), inner, verbatim(suffix)],
 }
 
-/// `parts[0] || parts[1] || …` — `parts` must not be empty.
-any_of :: fn(parts: CExpression[]) -> CExpression {
+/// `parts[0] || parts[1] || …`, unparenthesised.
+///
+/// @param parts  the disjuncts, left to right ; must not be empty.
+export any_of :: fn(parts: CExpression[]) -> CExpression {
     disjunction := parts[0]
     for k in 1..<parts.len() {
         disjunction = CBinary { .operator = "||", .left = disjunction, .right = parts[k] }
@@ -217,16 +225,31 @@ any_of :: fn(parts: CExpression[]) -> CExpression {
     return disjunction
 }
 
+/// `(type) value`.
+///
+/// @param type   the C type to cast to.
+/// @param value  the expression cast.
+export cast :: fn(type: string, value: CExpression) -> CExpression = CCast {
+    .types = [type],
+    .value = value,
+}
+
 /// `((type) value)->member`.
-pointer_member :: fn(type: string, value: CExpression, member: string) -> CExpression = CMember {
-    .base = CParenthesized { .inner = CCast { .types = [type], .value = value } },
+///
+/// @param type    the pointer type `value` is cast to.
+/// @param value   the pointer.
+/// @param member  the member read through it.
+export pointer_member :: fn(type: string, value: CExpression, member: string) -> CExpression = CMember {
+    .base = CParenthesized { .inner = cast(type, value) },
     .member = member,
     .arrow = true,
 }
 
 /// Whether `literal` is the most negative value of its class, spelled as the
 /// `INT32_MIN` / `INT64_MIN` macro.
-is_most_negative :: fn(literal: CIntegerLiteral) -> bool = if literal.class == .I64 {
+///
+/// @param literal  the integer constant.
+export is_most_negative :: fn(literal: CIntegerLiteral) -> bool = if literal.class == .I64 {
     literal.value == i64(-9223372036854775807) - 1
 } else { literal.value == -2147483648 }
 
@@ -236,7 +259,7 @@ is_most_negative :: fn(literal: CIntegerLiteral) -> bool = if literal.class == .
 /// then unreachable.
 ///
 /// @param block  the statements to inspect.
-ends_with_return :: fn(block: CBlock) -> bool {
+export ends_with_return :: fn(block: CBlock) -> bool {
     body :: block.body
     last :: body.len() - trailing_directives(body, 0)
     return last > 0 && body[last - 1] is CReturn
@@ -246,47 +269,72 @@ ends_with_return :: fn(block: CBlock) -> bool {
 ///
 /// @param expression  the expression to search.
 /// @param slot        the local's slot.
-mentions_local :: fn(expression: CExpression, slot: i32) -> bool = match expression {
-    is CLocal                      -> expression.slot == slot
+export mentions_local :: fn(expression: CExpression, slot: i32) -> bool = match expression {
+    is CLocal                                   -> expression.slot == slot
     is CTemporary | CVerbatim | CIntegerLiteral -> false
-    is CCall                       -> any_mentions_local(expression.arguments, slot)
-    is CCast                       -> mentions_local(expression.value, slot)
-    is CBinary                     -> mentions_local(expression.left, slot) || mentions_local(expression.right, slot)
-    is CUnary                      -> mentions_local(expression.operand, slot)
-    is CParenthesized              -> mentions_local(expression.inner, slot)
-    is CMember                     -> mentions_local(expression.base, slot)
-    is CIndex                      -> mentions_local(expression.base, slot) || mentions_local(expression.index, slot)
-    is CConditional                -> {
-        mentions_local(expression.condition, slot)
-            || mentions_local(expression.then_value, slot)
-            || mentions_local(expression.else_value, slot)
+    is CCall                                    -> any_mentions_local(expression.arguments, slot)
+    is CCast                                    -> mentions_local(expression.value, slot)
+    is CBinary                                  -> mentions_local(expression.left, slot) || mentions_local(
+        expression.right,
+        slot,
+    )
+    is CUnary                                   -> mentions_local(expression.operand, slot)
+    is CParenthesized                           -> mentions_local(expression.inner, slot)
+    is CMember                                  -> mentions_local(expression.base, slot)
+    is CIndex                                   -> mentions_local(expression.base, slot) || mentions_local(
+        expression.index,
+        slot,
+    )
+    is CConditional                             -> {
+        mentions_local(expression.condition, slot) || mentions_local(expression.then_value, slot) || mentions_local(
+            expression.else_value,
+            slot,
+        )
     }
-    is CSequence                   -> any_mentions_local(expression.parts, slot)
+    is CSequence                                -> any_mentions_local(expression.parts, slot)
 }
 
 /// Whether `a` and `b` are the same expression, node for node.
 ///
 /// @param a  one expression.
 /// @param b  the other.
-same_expression :: fn(a: CExpression, b: CExpression) -> bool = match a {
+export same_expression :: fn(a: CExpression, b: CExpression) -> bool = match a {
     is CTemporary      -> b is CTemporary && b.id == a.id
     is CLocal          -> b is CLocal && b.slot == a.slot
     is CVerbatim       -> b is CVerbatim && b.text == a.text
     is CIntegerLiteral -> b is CIntegerLiteral && b.class == a.class && b.value == a.value
-    is CCall           -> b is CCall && b.callee == a.callee && same_expressions(a.arguments, b.arguments)
-    is CCast           -> b is CCast && same_strings(a.types, b.types) && same_expression(a.value, b.value)
+    is CCall           -> b is CCall && b.callee == a.callee && same_expressions(
+        a.arguments,
+        b.arguments,
+    )
+    is CCast           -> b is CCast && same_strings(a.types, b.types) && same_expression(
+        a.value,
+        b.value,
+    )
     is CBinary         -> {
-        b is CBinary && b.operator == a.operator && same_expression(a.left, b.left) && same_expression(a.right, b.right)
+        b is CBinary && b.operator == a.operator && same_expression(a.left, b.left) && same_expression(
+            a.right,
+            b.right,
+        )
     }
-    is CUnary          -> b is CUnary && b.operator == a.operator && same_expression(a.operand, b.operand)
+    is CUnary          -> b is CUnary && b.operator == a.operator && same_expression(
+        a.operand,
+        b.operand,
+    )
     is CParenthesized  -> b is CParenthesized && same_expression(a.inner, b.inner)
-    is CMember         -> b is CMember && b.member == a.member && b.arrow == a.arrow && same_expression(a.base, b.base)
-    is CIndex          -> b is CIndex && same_expression(a.base, b.base) && same_expression(a.index, b.index)
+    is CMember         -> b is CMember && b.member == a.member && b.arrow == a.arrow && same_expression(
+        a.base,
+        b.base,
+    )
+    is CIndex          -> b is CIndex && same_expression(a.base, b.base) && same_expression(
+        a.index,
+        b.index,
+    )
     is CConditional    -> {
-        b is CConditional
-            && same_expression(a.condition, b.condition)
-            && same_expression(a.then_value, b.then_value)
-            && same_expression(a.else_value, b.else_value)
+        b is CConditional && same_expression(a.condition, b.condition) && same_expression(
+            a.then_value,
+            b.then_value,
+        ) && same_expression(a.else_value, b.else_value)
     }
     is CSequence       -> b is CSequence && same_expressions(a.parts, b.parts)
 }

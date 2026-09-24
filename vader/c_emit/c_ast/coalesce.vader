@@ -1,7 +1,7 @@
-// vader/c_emit/coalesce — post-walk operand-temp cleanup: copy elision + slot
+// vader/c_emit/c_ast/coalesce — post-walk operand-temp cleanup: copy elision + slot
 // coalescing, on the statement tree (`c_ast.vader`).
 //
-// The body walker (`walker.vader` / `stack.vader`) mints a fresh `tN` for every
+// The body walker (`vader/c_emit/walker.vader`) mints a fresh `tN` for every
 // materialised operand and never recycles it, so a function's frame — and its
 // GC-root set — grows with the TOTAL number of materialisations, not the number
 // live at once. The bytecode is a stack machine, so a temp is dead the moment
@@ -44,7 +44,7 @@
 // PC-ranges — which this pass cannot reach : operand temps exist only in the
 // c_emit walk, not in the bytecode.
 
-module "vader/c_emit"
+module "vader/c_emit/c_ast"
 
 import "std/sort"
 import "vader/bytecode"
@@ -55,7 +55,7 @@ import "vader/bytecode"
 /// @param temporaries  every temp of the body, indexed by id ; each receives
 ///                     its `slot`.
 /// @return             the ValType of each slot, indexed by slot.
-coalesce_temporaries :: fn(root: CBlock!, temporaries: CTemporary![]) -> ValType[]! {
+export coalesce_temporaries :: fn(root: CBlock!, temporaries: CTemporary![]) -> ValType[]! {
     n :: temporaries.len()
     if n == 0 {
         return []
@@ -66,7 +66,6 @@ coalesce_temporaries :: fn(root: CBlock!, temporaries: CTemporary![]) -> ValType
     usage :: TemporaryUsage { .uses = [0] * n, .first = [-1] * n, .last = [-1] * n }
     scan_block(root, usage)
     fuse_temp_local_copies(root, usage)
-
     // Greedy interval packing, per ValType. Process temps in first-use order ;
     // reuse a slot whose current occupant ended strictly before this temp begins
     // (equal endpoints share a statement, so they overlap).
@@ -159,7 +158,7 @@ scan_block :: fn(block: CBlock, usage: TemporaryUsage!) -> void {
 
 scan_expression :: fn(expression: CExpression, usage: TemporaryUsage!) -> void {
     match expression {
-        is CTemporary                          -> {
+        is CTemporary                           -> {
             id :: usize(expression.id)
             usage.uses[id] += 1
             if usage.first[id] < 0 {
@@ -168,29 +167,29 @@ scan_expression :: fn(expression: CExpression, usage: TemporaryUsage!) -> void {
             usage.last[id] = usage.position
         }
         is CLocal | CVerbatim | CIntegerLiteral -> {}
-        is CCall                               -> {
+        is CCall                                -> {
             for argument in expression.arguments {
                 scan_expression(argument, usage)
             }
         }
-        is CCast                               -> scan_expression(expression.value, usage)
-        is CBinary                             -> {
+        is CCast                                -> scan_expression(expression.value, usage)
+        is CBinary                              -> {
             scan_expression(expression.left, usage)
             scan_expression(expression.right, usage)
         }
-        is CUnary                              -> scan_expression(expression.operand, usage)
-        is CParenthesized                      -> scan_expression(expression.inner, usage)
-        is CMember                             -> scan_expression(expression.base, usage)
-        is CIndex                              -> {
+        is CUnary                               -> scan_expression(expression.operand, usage)
+        is CParenthesized                       -> scan_expression(expression.inner, usage)
+        is CMember                              -> scan_expression(expression.base, usage)
+        is CIndex                               -> {
             scan_expression(expression.base, usage)
             scan_expression(expression.index, usage)
         }
-        is CConditional                        -> {
+        is CConditional                         -> {
             scan_expression(expression.condition, usage)
             scan_expression(expression.then_value, usage)
             scan_expression(expression.else_value, usage)
         }
-        is CSequence                           -> {
+        is CSequence                            -> {
             for part in expression.parts {
                 scan_expression(part, usage)
             }
@@ -260,20 +259,29 @@ import "std/testing"
 // A body built over temps `0..<count`, coalesced, then printed.
 TestBody :: struct {
     temporaries: CTemporary![]!
-    root:        CBlock!
+    root: CBlock!
 }
 
 // `count` temps of class `.Ref`, temp 1 of class `second`.
 test_body :: fn(count: i32, second: ValType) -> TestBody {
     temporaries: CTemporary![]!: []
     for id in 0..<count {
-        temporaries.push(CTemporary { .id = id, .val = if id == 1 { second } else { .Ref } })
+        temporaries.push(CTemporary { .id = id, .val = if id == 1 {
+            second
+        } else {
+            .Ref
+        } })
     }
     return TestBody { .temporaries = temporaries, .root = CBlock { .body = [] } }
 }
 
-set :: fn(target: CExpression, value: CExpression) -> CStatement = CAssign { .target = target, .value = value }
-use :: fn(value: CExpression) -> CStatement = CExpressionStatement { .expression = CCall { .callee = "use", .arguments = [value] } }
+set :: fn(target: CExpression, value: CExpression) -> CStatement = CAssign {
+    .target = target,
+    .value = value,
+}
+use :: fn(value: CExpression) -> CStatement = CExpressionStatement {
+    .expression = CCall { .callee = "use", .arguments = [value] },
+}
 
 printed :: fn(block: CBlock) -> string {
     out :: StringBuilder {}
@@ -286,7 +294,9 @@ test_coalesce_merges_disjoint_temps :: fn() -> void {
     b :: test_body(2, .Ref)
     t0 :: b.temporaries[0]
     t1 :: b.temporaries[1]
-    b.root.body.push_all([set(t0, verbatim("a")), use(t0), use(verbatim("sep")), set(t1, verbatim("b")), use(t1)])
+    b.root.body.push_all(
+        [set(t0, verbatim("a")), use(t0), use(verbatim("sep")), set(t1, verbatim("b")), use(t1)],
+    )
     types :: coalesce_temporaries(b.root, b.temporaries)
     assert_eq(types.len(), 1)
     assert_eq(printed(b.root), "t0 = a;\nuse(t0);\nuse(sep);\nt0 = b;\nuse(t0);\n")
@@ -298,7 +308,9 @@ test_coalesce_keeps_touching_temps_apart :: fn() -> void {
     b :: test_body(2, .Ref)
     t0 :: b.temporaries[0]
     t1 :: b.temporaries[1]
-    b.root.body.push_all([set(t0, verbatim("a")), set(t1, CCall { .callee = "f", .arguments = [t0] }), use(t1)])
+    b.root.body.push_all(
+        [set(t0, verbatim("a")), set(t1, CCall { .callee = "f", .arguments = [t0] }), use(t1)],
+    )
     assert_eq(coalesce_temporaries(b.root, b.temporaries).len(), 2)
 }
 
@@ -315,7 +327,9 @@ test_coalesce_keeps_types_apart :: fn() -> void {
 test_coalesce_fuses_a_temp_copied_to_a_local :: fn() -> void {
     b :: test_body(1, .Ref)
     t0 :: b.temporaries[0]
-    b.root.body.push_all([set(t0, CCall { .callee = "f", .arguments = [] }), set(CLocal { .slot = 3 }, t0)])
+    b.root.body.push_all(
+        [set(t0, CCall { .callee = "f", .arguments = [] }), set(CLocal { .slot = 3 }, t0)],
+    )
     assert_eq(coalesce_temporaries(b.root, b.temporaries).len(), 0)
     assert_eq(printed(b.root), "l3 = f();\n")
 }
@@ -333,7 +347,9 @@ test_coalesce_keeps_a_copy_whose_temp_is_reused :: fn() -> void {
 test_coalesce_keeps_a_copy_that_is_not_adjacent :: fn() -> void {
     b :: test_body(1, .Ref)
     t0 :: b.temporaries[0]
-    b.root.body.push_all([set(t0, verbatim("x")), use(verbatim("sep")), set(CLocal { .slot = 3 }, t0)])
+    b.root.body.push_all(
+        [set(t0, verbatim("x")), use(verbatim("sep")), set(CLocal { .slot = 3 }, t0)],
+    )
     coalesce_temporaries(b.root, b.temporaries)
     assert_eq(printed(b.root), "t0 = x;\nuse(sep);\nl3 = t0;\n")
 }
