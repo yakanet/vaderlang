@@ -32,6 +32,15 @@ export print_block :: fn(printer: CPrinter!, block: CBlock, depth: i32) -> void 
     depth,
 )
 
+/// `function` as C text — a function standing alone, outside a larger tree.
+///
+/// @param function  the definition to print.
+export function_text :: fn(function: CFunction) -> string {
+    printer :: CPrinter {}
+    printer.print_function(function)
+    return printer.printed_text()
+}
+
 /// Print `function` : its signature, then its prologue and body one level deep.
 ///
 /// @param printer   receives the text.
@@ -89,16 +98,10 @@ write_statements :: fn(
             is CReturn              -> write_return(out, statement, depth)
             is CGoto                -> {
                 indent(out, depth)
-                condition :: statement.condition
-                if condition != null {
-                    out.append("if (")
-                    write_expression(out, condition)
-                    out.append(") ")
-                }
-                out.append("goto ")
-                out.append(statement.label)
-                out.append(";\n")
+                write_goto(out, statement)
+                out.append("\n")
             }
+            is CSwitch              -> write_switch(out, statement, depth)
             is CScope               -> {
                 write_line(
                     out,
@@ -148,16 +151,6 @@ write_else_chain :: fn(out: StringBuilder!, node: CIf, label: string, depth: i32
 }
 
 // ---- expressions ----------------------------------------------------------
-
-/// `expression` as C text — the escape hatch for emitters not yet built as a
-/// tree (trampolines, dispatch), to be made private once they are.
-///
-/// @param expression  the expression to spell.
-export text_of :: fn(expression: CExpression) -> string {
-    out :: StringBuilder {}
-    write_expression(out, expression)
-    return out.to_string()
-}
 
 write_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
     match expression {
@@ -279,6 +272,12 @@ write_integer_literal :: fn(out: StringBuilder!, literal: CIntegerLiteral) -> vo
 // value may read a frame-pinned local.
 write_return :: fn(out: StringBuilder!, node: CReturn, depth: i32) -> void {
     indent(out, depth)
+    write_return_text(out, node)
+    out.append("\n")
+}
+
+// A return, without indentation or newline.
+write_return_text :: fn(out: StringBuilder!, node: CReturn) -> void {
     if node.pops_frame {
         out.append("{ ")
     }
@@ -309,7 +308,66 @@ write_return :: fn(out: StringBuilder!, node: CReturn, depth: i32) -> void {
         }
         out.append(";")
     }
-    out.append(if node.pops_frame { " }\n" } else { "\n" })
+    if node.pops_frame {
+        out.append(" }")
+    }
+}
+
+// `goto label;`, or `if (condition) goto label;`, without indentation or newline.
+write_goto :: fn(out: StringBuilder!, node: CGoto) -> void {
+    condition :: node.condition
+    if condition != null {
+        out.append("if (")
+        write_expression(out, condition)
+        out.append(") ")
+    }
+    out.append("goto ")
+    out.append(node.label)
+    out.append(";")
+}
+
+// `switch (subject) {`, one line per clause, then `}`.
+write_switch :: fn(out: StringBuilder!, node: CSwitch, depth: i32) -> void {
+    indent(out, depth)
+    out.append("switch (")
+    write_expression(out, node.subject)
+    out.append(") {\n")
+    default_body :: node.default_body
+    for k in 0..<node.cases.len() {
+        case_node :: node.cases[k]
+        indent(out, depth + 1)
+        out.append("case ")
+        write_expression(out, case_node.value)
+        out.append(":")
+        write_case_body(out, case_node.body, default_body == null && k + 1 == node.cases.len())
+    }
+    if default_body != null {
+        indent(out, depth + 1)
+        out.append("default:")
+        write_case_body(out, default_body, true)
+    }
+    write_line(out, "}", depth)
+}
+
+// A clause's statements on its `case` line, then `break;` unless the last one
+// already leaves the switch or the clause is the switch's last.
+write_case_body :: fn(out: StringBuilder!, body: CCaseStatement[], last_clause: bool) -> void {
+    for statement in body {
+        out.append(" ")
+        match statement {
+            is CExpressionStatement -> {
+                write_expression(out, statement.expression)
+                out.append(";")
+            }
+            is CReturn              -> write_return_text(out, statement)
+            is CGoto                -> write_goto(out, statement)
+        }
+    }
+    leaves :: body.len() > 0 && body[body.len() - 1] is CReturn | CGoto
+    if !last_clause && !leaves {
+        out.append(" break;")
+    }
+    out.append("\n")
 }
 
 // `opening condition) {` on its own line.
@@ -392,6 +450,13 @@ write_closer :: fn(out: StringBuilder!, label: string, depth: i32) -> void = wri
 
 import "std/string"
 import "std/testing"
+
+// `expression` as C text.
+text_of :: fn(expression: CExpression) -> string {
+    out :: StringBuilder {}
+    write_expression(out, expression)
+    return out.to_string()
+}
 
 @test
 test_print_block_indents_an_if :: fn() -> void {
@@ -675,4 +740,27 @@ test_print_function_writes_prologue_then_body :: fn() -> void {
     printer :: CPrinter {}
     printer.print_function(function)
     assert_eq(printer.printed_text(), "static void f(void) {\n    int32_t l0;\n    l0 = 1;\n}\n")
+}
+
+@test
+test_print_block_spells_a_switch :: fn() -> void {
+    effect :: CExpressionStatement { .expression = call("f", []) }
+    switch_node :: CSwitch {
+        .subject = CMember { .base = verbatim("recv"), .member = "tag" },
+        .cases = [
+            CCase { .value = verbatim("4u"), .body = [CReturn { .value = verbatim("1") }] },
+            CCase { .value = verbatim("7u"), .body = [effect] },
+        ],
+        .default_body = [effect],
+    }
+    printer :: CPrinter {}
+    printer.print_block(CBlock { .body = [switch_node] }, 0)
+    assert_eq(printer.printed_text(), [
+        "switch (recv.tag) {",
+        "    case 4u: return 1;",
+        "    case 7u: f(); break;",
+        "    default: f();",
+        "}",
+        "",
+    ].join("\n"))
 }

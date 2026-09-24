@@ -116,8 +116,10 @@ TemporaryUsage :: struct {
     position: i32 = -1
 }
 
-scan_block :: fn(block: CBlock, usage: TemporaryUsage!) -> void {
-    for statement in block.body {
+scan_block :: fn(block: CBlock, usage: TemporaryUsage!) -> void = scan_statements(block.body, usage)
+
+scan_statements :: fn(statements: CStatement[], usage: TemporaryUsage!) -> void {
+    for statement in statements {
         usage.position += 1
         match statement {
             is CDirective           -> {}
@@ -133,6 +135,16 @@ scan_block :: fn(block: CBlock, usage: TemporaryUsage!) -> void {
                     if value != null {
                         scan_expression(value, usage)
                     }
+                }
+            }
+            is CSwitch              -> {
+                scan_expression(statement.subject, usage)
+                for case_node in statement.cases {
+                    scan_clause(case_node.body, usage)
+                }
+                default_body :: statement.default_body
+                if default_body != null {
+                    scan_clause(default_body, usage)
                 }
             }
             is CGoto                -> {
@@ -158,6 +170,31 @@ scan_block :: fn(block: CBlock, usage: TemporaryUsage!) -> void {
                 value :: statement.value
                 if value != null {
                     scan_expression(value, usage)
+                }
+            }
+        }
+    }
+}
+
+// A switch clause's statements.
+scan_clause :: fn(body: CCaseStatement[], usage: TemporaryUsage!) -> void {
+    for statement in body {
+        match statement {
+            is CExpressionStatement -> scan_expression(statement.expression, usage)
+            is CReturn              -> {
+                for store in statement.stores {
+                    scan_expression(store.target, usage)
+                    scan_expression(store.value, usage)
+                }
+                value :: statement.value
+                if value != null {
+                    scan_expression(value, usage)
+                }
+            }
+            is CGoto                -> {
+                condition :: statement.condition
+                if condition != null {
+                    scan_expression(condition, usage)
                 }
             }
         }

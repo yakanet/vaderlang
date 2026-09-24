@@ -24,6 +24,7 @@ export CStatement :: CDirective
             | CScope
             | CReturn
             | CGoto
+            | CSwitch
 
 /// `target = value;`.
 export CAssign :: struct {
@@ -63,7 +64,7 @@ export CDeclarator :: struct {
 export CFunction :: struct {
     /// Linkage, return type, name and parameters — no brace.
     signature: string
-    prologue: CStatement[]
+    prologue: CStatement[] = []
     body: CBlock
 }
 
@@ -107,6 +108,24 @@ export CGoto :: struct {
     label: string
     condition: CExpression | null = null
 }
+
+/// `switch (subject) { case value: … default: … }`. A clause is printed on its
+/// `case` line ; one neither last nor leaving the switch gets a `break;` —
+/// clauses never fall through.
+export CSwitch :: struct {
+    subject: CExpression
+    cases: CCase[]
+    default_body: CCaseStatement[] | null = null
+}
+
+/// `case value: body`.
+export CCase :: struct {
+    value: CExpression
+    body: CCaseStatement[]
+}
+
+/// A statement a switch clause may hold : one that fits on the `case` line.
+export CCaseStatement :: CExpressionStatement | CReturn | CGoto
 
 /// A braced block — `{`, or `label: {` for a loop's continue target — closed
 /// by `}`.

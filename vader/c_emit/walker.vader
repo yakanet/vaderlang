@@ -409,15 +409,10 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
             },
         )
     }
-    printer :: CPrinter {}
-    printer.print_function(
-        CFunction {
-            .signature = "${fn_linkage_prefix(ctx, fn_index)}${signature_for(function)}",
-            .prologue = prologue,
-            .body = s.root,
-        },
+    signature :: "${fn_linkage_prefix(ctx, fn_index)}${signature_for(function)}"
+    out.append(
+        function_text(CFunction { .signature = signature, .prologue = prologue, .body = s.root }),
     )
-    out.append(printer.printed_text())
 }
 
 /// Declare every non-param local slot, bucketed by ValType in
@@ -1678,16 +1673,18 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32, type_i
     sig :: fn_decl.signature
     link :: linkage_prefix(ctx.split)
     head :: tramp_head(sig.params.len())
-    out.append("${link}vader_box_t vader_fn_tramp_${cname}(${head}) {\n")
-    out.append("    (void) env;\n")
-    unboxed :: tramp_unbox_args(sig.params)
-    if bc_single_result(sig) == .Void {
-        out.append("    ${cname}(${unboxed});\n")
-        out.append("    return vader_box_null();\n")
-    } else {
-        out.append("    return ${tramp_box_result(cname, unboxed, sig)};\n")
+    body :: CBlock {
+        .body = [CExpressionStatement { .expression = cast("void", verbatim("env")) }],
     }
-    out.append("}\n")
+    body.body.push_all(forward_boxed(cname, tramp_unbox_args(sig.params), sig))
+    out.append(
+        function_text(
+            CFunction {
+                .signature = "${link}vader_box_t vader_fn_tramp_${cname}(${head})",
+                .body = body,
+            },
+        ),
+    )
     out.append(
         "${link}vader_fn_t vader_fn_static_${cname} = { { ${type_id}u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_${cname}, NULL };\n",
     )
@@ -1705,20 +1702,23 @@ emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32) -> voi
     }
     tail :: i32(sig.params.len()) - 1
     head :: tramp_head(usize(tail))
-    out.append("${linkage_prefix(ctx.split)}vader_box_t vader_fn_lift_${cname}(${head}) {\n")
     // The lifted fn's env param (param 0) is a concrete captured-env struct → a
     // raw `void*` (`.Ref`) under T12 ; pass `env` directly. When it's `.Any`
     // (erased), coerce widens it to a box via `vader_ref_box`.
-    env_arg :: text_of(coerce_expr(ctx.module.types, verbatim("env"), .Ref, sig.params[0]))
-    unboxed_tail :: lift_unbox_tail(sig.params)
-    call_args :: if unboxed_tail == "" { env_arg } else { "${env_arg}, ${unboxed_tail}" }
-    if bc_single_result(sig) == .Void {
-        out.append("    ${cname}(${call_args});\n")
-        out.append("    return vader_box_null();\n")
-    } else {
-        out.append("    return ${tramp_box_result(cname, call_args, sig)};\n")
-    }
-    out.append("}\n")
+    arguments: CExpression[]!: [coerce_expr(ctx.module.types, verbatim("env"), .Ref, sig.params[0])]
+    arguments.push_all(lift_unbox_tail(sig.params))
+    body :: CBlock { .body = [] }
+    body.body.push_all(forward_boxed(cname, arguments, sig))
+    out.append(
+        function_text(
+            CFunction {
+                .signature = "${linkage_prefix(
+                    ctx.split,
+                )}vader_box_t vader_fn_lift_${cname}(${head})",
+                .body = body,
+            },
+        ),
+    )
 }
 
 /// The erased-ABI head `void* env[, vader_box_t a0…]` for a wrapper with `count`
@@ -1739,34 +1739,46 @@ tramp_box_params :: fn(count: usize) -> string {
     return "${sb}"
 }
 
-/// Unbox `a0..a<n-1>` to the concrete `params` classes, comma-joined — the
-/// `fn.ref` trampoline's argument list (params map 1:1 to `a<j>`).
-tramp_unbox_args :: fn(params: ValType[]) -> string {
-    parts: string[]!: []
+/// Unbox `a0..a<n-1>` to the concrete `params` classes — the `fn.ref`
+/// trampoline's argument list (params map 1:1 to `a<j>`).
+tramp_unbox_args :: fn(params: ValType[]) -> CExpression[] {
+    arguments: CExpression[]!: []
     for j in 0..<params.len() {
-        parts.push(text_of(unbox_expr(verbatim("a${j}"), params[j])))
+        arguments.push(unbox_expr(verbatim("a${j}"), params[j]))
     }
-    return parts.join(", ")
+    return arguments
 }
 
 /// Unbox the lift wrapper's tail `a0..` to `params[1..]` (param 0 is the env
-/// slot, supplied as `env_box`), comma-joined.
-lift_unbox_tail :: fn(params: ValType[]) -> string {
-    parts: string[]!: []
+/// slot).
+lift_unbox_tail :: fn(params: ValType[]) -> CExpression[] {
+    arguments: CExpression[]!: []
     for j in 1..<params.len() {
-        parts.push(text_of(unbox_expr(verbatim("a${j - 1}"), params[j])))
+        arguments.push(unbox_expr(verbatim("a${j - 1}"), params[j]))
     }
-    return parts.join(", ")
+    return arguments
 }
 
-/// The wrapper's boxed return expression : `<fn>(<args>)`, boxed unless the
-/// result is already a box (`ref` / `any`).
-tramp_box_result :: fn(cname: string, args: string, sig: BcSignature) -> string {
-    call_expr :: "${cname}(${args})"
-    if bc_single_result(sig) == .Any { return call_expr }
-    // A `.Ref` result is a raw `void*` — widen to the box the erased ABI returns.
-    if bc_single_result(sig) == .Ref { return "vader_ref_box(${call_expr})" }
-    return text_of(box_expr(verbatim(call_expr), bc_single_result(sig), bc_single_result_type(sig)))
+/// Call `cname(arguments…)` and return its result boxed for the erased ABI :
+/// `vader_box_null()` for a void call, the result as is when already a box
+/// (`any`), widened from a raw `ref`, boxed otherwise.
+forward_boxed :: fn(cname: string, arguments: CExpression[], sig: BcSignature) -> CStatement[] {
+    forward :: call(cname, arguments)
+    result :: bc_single_result(sig)
+    if result == .Void {
+        return [
+            CExpressionStatement { .expression = forward },
+            CReturn { .value = call("vader_box_null", []) },
+        ]
+    }
+    boxed :: if result == .Any {
+        forward
+    } else if result == .Ref {
+        ref_box(forward)
+    } else {
+        box_expr(forward, result, bc_single_result_type(sig))
+    }
+    return [CReturn { .value = boxed }]
 }
 
 // ---- type ops + defer -----------------------------------------------------

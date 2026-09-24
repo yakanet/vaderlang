@@ -126,8 +126,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         if row.entries.len() == 0 { continue }
         sig :: vtable_sig_for_row(ctx, row)
         helper :: vtable_helper_name(row.key)
-        out.append("${linkage_prefix(ctx.split)}${c_type_for_val_bare(bc_single_result(sig))} ${helper}(${dispatcher_formal(sig)}) {\n")
-        out.append("    switch (recv.tag) {\n")
+        cases: CCase[]!: []
         // A distinct (newtype) over a primitive shares its backing's runtime
         // tag, so several entries can map to one tag (e.g. i32 + a distinct
         // BlockId/LocalId → tag 4). Emit one `case` per tag : the first (the
@@ -135,13 +134,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         // the C carries a `duplicate case value`.
         seen_tags: i32[]!: []
         for e in row.entries {
-            dup := false
-            for st in seen_tags {
-                if st == e.receiver_type_index {
-                    dup = true
-                }
-            }
-            if dup {
+            if e.receiver_type_index in seen_tags {
                 continue
             }
             seen_tags.push(e.receiver_type_index)
@@ -152,20 +145,49 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
             for i in 0..<tail {
                 args.push(coerce_expr(types, verbatim("a${i}"), .Any, csig.params[usize(i + 1)]))
             }
-            call_expr :: call(sanitise(callee.name), args)
-            if bc_single_result(sig) == .Void {
-                out.append("        case ${e.receiver_type_index}u: ${text_of(call_expr)}; return;\n")
+            forward :: call(sanitise(callee.name), args)
+            body: CCaseStatement[]: if bc_single_result(sig) == .Void {
+                [CExpressionStatement { .expression = forward }, CReturn {}]
             } else {
-                result :: dispatcher_result(types, call_expr, bc_single_result(csig), bc_single_result(sig))
-                out.append("        case ${e.receiver_type_index}u: return ${text_of(result)};\n")
+                [
+                    CReturn {
+                        .value = dispatcher_result(
+                            types,
+                            forward,
+                            bc_single_result(csig),
+                            bc_single_result(sig),
+                        ),
+                    },
+                ]
             }
+            cases.push(CCase { .value = verbatim("${e.receiver_type_index}u"), .body = body })
         }
-        out.append("        default: vader_unreachable(\"vtable miss in ${row.key}\");\n")
-        out.append("    }\n")
+        miss :: CExpressionStatement {
+            .expression = call(
+                "vader_unreachable",
+                [verbatim(c_string_lit("vtable miss in ${row.key}"))],
+            ),
+        }
+        statements: CStatement[]!: [
+            CSwitch {
+                .subject = CMember { .base = verbatim("recv"), .member = "tag" },
+                .cases = cases,
+                .default_body = [miss],
+            },
+        ]
+        // A value-returning C function must return on every path the compiler
+        // can see, and it cannot see that `vader_unreachable` never returns.
         if bc_single_result(sig) != .Void {
-            out.append("    vader_unreachable(\"vtable miss in ${row.key}\");\n")
+            statements.push(miss)
         }
-        out.append("}\n")
+        signature :: "${linkage_prefix(
+            ctx.split,
+        )}${c_type_for_val_bare(bc_single_result(sig))} ${helper}(${dispatcher_formal(sig)})"
+        out.append(
+            function_text(
+                CFunction { .signature = signature, .body = CBlock { .body = statements } },
+            ),
+        )
     }
 }
 
