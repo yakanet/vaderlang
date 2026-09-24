@@ -470,6 +470,19 @@ test_call_sites_are_tagged_function :: fn() -> void {
     assert(token_at(toks, 2, 4, 12, i32(TokenType.Function)), "`mk_primitive` tagged Function")
 }
 
+// An `as` alias is a local like any other : its name is tagged where it is
+// declared (`as x`) as well as where it is read, in both forms.
+@test
+test_as_alias_names_are_tagged :: fn() -> void {
+    src :: "f :: fn(v: i32 | string) -> i32 = match v as n {\n    is i32    -> n\n    is string -> 0\n}\n\ng :: fn(v: i32 | string) -> i32 {\n    if v is i32 as k {\n        return k\n    }\n    return 0\n}\n"
+    toks :: build_sorted_for_test(src, "file:///a.vader")
+    var :: i32(TokenType.Variable)
+    assert(token_at(toks, 0, 45, 1, var), "`n` of `match v as n` tagged Variable")
+    assert(token_at(toks, 1, 17, 1, var), "`n` read in an arm tagged Variable")
+    assert(token_at(toks, 6, 19, 1, var), "`k` of `is i32 as k` tagged Variable")
+    assert(token_at(toks, 7, 15, 1, var), "`k` read in the body tagged Variable")
+}
+
 // Modifier bitmask of the token at (`line`, `col`), or -1 if there is none.
 token_mods_at :: fn(toks: RawToken[], line: i32, col: i32) -> i32 {
     for t in toks {

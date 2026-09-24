@@ -1548,7 +1548,7 @@ function textAt(source: string, range: RangeT): string {
   return line.slice(range.start.character, range.end.character);
 }
 
-test("lsp: an `as` alias is declared, and renamed, at its name", async () => {
+test("lsp: an `as` alias is declared, renamed and hovered at its name", async () => {
   const results = await driveLsp(AS_ALIAS_SOURCE, [
     // 0: goto-def on `x` in `x.n` (line 8) → the `x` of `match make() as x`.
     { method: "textDocument/definition", position: { line: 8, character: 12 } },
@@ -1558,7 +1558,11 @@ test("lsp: an `as` alias is declared, and renamed, at its name", async () => {
     { method: "textDocument/definition", position: { line: 14, character: 15 } },
     // 3: rename from the same use.
     { method: "textDocument/rename", position: { line: 14, character: 15 } },
+    // 4, 5: hover on each use.
+    { method: "textDocument/hover", position: { line: 8, character: 12 } },
+    { method: "textDocument/hover", position: { line: 14, character: 15 } },
   ]);
+
   expect((results[0]!.result as { range: RangeT }).range.start).toEqual({ line: 7, character: 43 });
   expect((results[2]!.result as { range: RangeT }).range.start).toEqual({ line: 13, character: 17 });
   for (const [i, name] of [[1, "x"], [3, "y"]] as const) {
@@ -1566,6 +1570,10 @@ test("lsp: an `as` alias is declared, and renamed, at its name", async () => {
     // Declaration + one use, and every range covers the name itself.
     expect(edits).toHaveLength(2);
     for (const e of edits) expect(textAt(AS_ALIAS_SOURCE, e.range)).toBe(name);
+  }
+  // A use reads the alias at the type its arm / condition narrowed it to.
+  for (const i of [4, 5]) {
+    expect((results[i]!.result as { contents: { value: string } }).contents.value).toBe("```vader\nA\n```");
   }
 }, { timeout: MEDIUM_BUILD });
 
