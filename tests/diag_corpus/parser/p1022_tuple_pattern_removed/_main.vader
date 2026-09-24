@@ -1,0 +1,12 @@
+module "snippet"
+
+// A match arm does not destructure: `is [T, U]` tests the type, and a `let`
+// in the arm destructures what it narrowed.
+first :: fn(p: [i32, string] | null) -> i32 {
+    return match p {
+        is null -> 0
+        [_, _]  -> 1
+    }
+}
+
+main :: fn() -> i32 = first(null)

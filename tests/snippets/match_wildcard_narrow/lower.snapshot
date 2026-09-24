@@ -29,6 +29,7 @@
   fn snippet$greet_binding(p: Cat | Dog | null) -> string
     return
       block :string
+        let pet: Cat | Dog | null = p :Cat | Dog | null
         ~>
           if :string
             cond:
@@ -38,7 +39,6 @@
               ~>
                 "no pet" :string
             else:
-              let pet: Cat | Dog | null = p :Cat | Dog | null
               ~>
                 call :string
                   callee:
@@ -48,7 +48,8 @@
                   arg1:
                     .name :string
                       cast → Cat
-                        pet :Cat | Dog
+                        cast → Cat | Dog
+                          pet :Cat | Dog | null
   fn snippet$main() -> i32
     call :void
       callee:
@@ -165,4 +166,4 @@
 
 # Diagnostics
 [28:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`
-[42:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`
+[41:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`

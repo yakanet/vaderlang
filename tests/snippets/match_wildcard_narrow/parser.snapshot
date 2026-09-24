@@ -225,8 +225,7 @@
                 },
                 {
                   "pattern": {
-                    "kind": "BindingPattern",
-                    "name": "pet"
+                    "kind": "WildcardPattern"
                   },
                   "guard": null,
                   "body": {
@@ -250,7 +249,8 @@
                     ]
                   }
                 }
-              ]
+              ],
+              "bindAs": "pet"
             }
           }
         ],

@@ -525,17 +525,6 @@ walk_pattern_for_bindings :: fn(
     pattern: AST.Pattern, scope: MutableSet<i32>!, symbol_index: MutableMap<u64, Symbol>, added: i32[]!,
 ) -> void {
     match pattern {
-        is AST.BindingPattern -> {
-            symbol :: lookup_symbol_by_span(symbol_index, pattern.span)
-            match symbol {
-                is null -> {}
-                is Symbol -> {
-                    if scope.add(symbol.id) {
-                        added.push(symbol.id)
-                    }
-                }
-            }
-        }
         is AST.IsPattern -> {
             if pattern.inner !is null {
                 walk_pattern_for_bindings(pattern.inner, scope, symbol_index, added)
@@ -557,11 +546,6 @@ walk_pattern_for_bindings :: fn(
                     }
                     _                     -> {}
                 }
-            }
-        }
-        is AST.TuplePattern -> {
-            for sub in pattern.elements {
-                walk_pattern_for_bindings(sub, scope, symbol_index, added)
             }
         }
         is AST.WildcardPattern -> {}

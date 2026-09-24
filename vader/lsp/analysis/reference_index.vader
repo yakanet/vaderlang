@@ -380,9 +380,7 @@ collect_pattern :: fn(p: AST.Pattern, out: Span[]!) -> void {
                 }
             }
         }
-        is AST.TuplePattern       -> { for el in p.elements { collect_pattern(el, out) } }
         is AST.WildcardPattern    -> {}
-        is AST.BindingPattern     -> { out.push(p.span) }
         is AST.EnumVariantPattern -> {}
         is AST.LiteralPattern     -> { collect_expr(p.value, out) }
         is AST.RangePattern       -> {

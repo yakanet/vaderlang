@@ -204,58 +204,89 @@
                 },
                 {
                   "pattern": {
-                    "kind": "TuplePattern",
-                    "elements": [
-                      {
-                        "kind": "BindingPattern",
-                        "name": "n"
-                      },
-                      {
-                        "kind": "BindingPattern",
-                        "name": "s"
-                      }
-                    ]
+                    "kind": "IsPattern",
+                    "type": {
+                      "kind": "SeqLitExpr",
+                      "elements": [
+                        {
+                          "kind": "IdentExpr",
+                          "name": "i32"
+                        },
+                        {
+                          "kind": "IdentExpr",
+                          "name": "string"
+                        }
+                      ]
+                    },
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "println"
-                    },
-                    "args": [
+                    "kind": "BlockExpr",
+                    "stmts": [
                       {
-                        "name": null,
-                        "value": {
-                          "kind": "StringLitExpr",
-                          "parts": [
+                        "kind": "LetStmt",
+                        "mutable": false,
+                        "binding": {
+                          "kind": "TupleBinding",
+                          "elements": [
                             {
-                              "kind": "text",
-                              "value": "n="
+                              "kind": "SimpleBinding",
+                              "name": "n"
                             },
                             {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "n"
-                              }
-                            },
-                            {
-                              "kind": "text",
-                              "value": " s="
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "s"
-                              }
+                              "kind": "SimpleBinding",
+                              "name": "s"
                             }
                           ]
                         },
-                        "spread": false
+                        "type": null,
+                        "value": {
+                          "kind": "IdentExpr",
+                          "name": "a"
+                        }
                       }
-                    ]
+                    ],
+                    "trailing": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "println"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "n="
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "n"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": " s="
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "s"
+                                }
+                              }
+                            ]
+                          },
+                          "spread": false
+                        }
+                      ]
+                    }
                   }
                 }
               ]
@@ -336,58 +367,89 @@
                 },
                 {
                   "pattern": {
-                    "kind": "TuplePattern",
-                    "elements": [
-                      {
-                        "kind": "BindingPattern",
-                        "name": "n"
-                      },
-                      {
-                        "kind": "BindingPattern",
-                        "name": "s"
-                      }
-                    ]
+                    "kind": "IsPattern",
+                    "type": {
+                      "kind": "SeqLitExpr",
+                      "elements": [
+                        {
+                          "kind": "IdentExpr",
+                          "name": "i32"
+                        },
+                        {
+                          "kind": "IdentExpr",
+                          "name": "string"
+                        }
+                      ]
+                    },
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "println"
-                    },
-                    "args": [
+                    "kind": "BlockExpr",
+                    "stmts": [
                       {
-                        "name": null,
-                        "value": {
-                          "kind": "StringLitExpr",
-                          "parts": [
+                        "kind": "LetStmt",
+                        "mutable": false,
+                        "binding": {
+                          "kind": "TupleBinding",
+                          "elements": [
                             {
-                              "kind": "text",
-                              "value": "n="
+                              "kind": "SimpleBinding",
+                              "name": "n"
                             },
                             {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "n"
-                              }
-                            },
-                            {
-                              "kind": "text",
-                              "value": " s="
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "s"
-                              }
+                              "kind": "SimpleBinding",
+                              "name": "s"
                             }
                           ]
                         },
-                        "spread": false
+                        "type": null,
+                        "value": {
+                          "kind": "IdentExpr",
+                          "name": "b"
+                        }
                       }
-                    ]
+                    ],
+                    "trailing": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "println"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "n="
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "n"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": " s="
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "s"
+                                }
+                              }
+                            ]
+                          },
+                          "spread": false
+                        }
+                      ]
+                    }
                   }
                 }
               ]

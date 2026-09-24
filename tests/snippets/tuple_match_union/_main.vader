@@ -2,10 +2,10 @@ module "snippet"
 
 import "std/io"
 
-// `[i32, string] | null` carries a tuple variant alongside null. Matching
-// the tuple shape `[n, s]` narrows the union to the tuple variant before
-// reading the slot fields — without the narrowing the lowerer would emit a
-// bare field access on the union value and trap.
+// `[i32, string] | null` carries a tuple variant alongside null. The arm
+// `is [i32, string]` narrows the scrutinee to the tuple variant, and the
+// destructure in its body reads the slots off the narrowed value — without
+// the narrowing it would be a bare field access on the union value and trap.
 lookup :: fn(key: string) -> [i32, string] | null {
     if key == "found" {
         return [42, "match"]
@@ -16,13 +16,19 @@ lookup :: fn(key: string) -> [i32, string] | null {
 main :: fn() -> i32 {
     a :: lookup("found")
     match a {
-        is null -> println("no result")
-        [n, s] -> println("n=${n} s=${s}")
+        is null          -> println("no result")
+        is [i32, string] -> {
+            [n, s] :: a
+            println("n=${n} s=${s}")
+        }
     }
     b :: lookup("missing")
     match b {
-        is null -> println("no result")
-        [n, s] -> println("n=${n} s=${s}")
+        is null          -> println("no result")
+        is [i32, string] -> {
+            [n, s] :: b
+            println("n=${n} s=${s}")
+        }
     }
     return 0
 }

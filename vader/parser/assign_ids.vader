@@ -409,12 +409,7 @@ walk_pattern :: fn(p: Pattern!, f: NodeIdFactory!) -> void {
                 }
             }
         }
-        is TuplePattern -> {
-            p.id = f.mint()
-            for el in p.elements { walk_pattern(el, f) }
-        }
         is WildcardPattern    -> { p.id = f.mint() }
-        is BindingPattern     -> { p.id = f.mint() }
         is EnumVariantPattern -> { p.id = f.mint() }
         is LiteralPattern     -> {
             p.id = f.mint()

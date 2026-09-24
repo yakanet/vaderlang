@@ -2,13 +2,9 @@
 //
 // Flattens `match scrutinee { arm... }`
 // to a let-bind on the scrutinee + a chain of `if (predicate) <arm-body>`
-// blocks. Pattern bindings (`BindingPattern("name")`, struct destructure,
-// tuple destructure) are introduced inside the arm block so they're scoped
-// per-arm; the header alias (`match e as x`) is bound once, ahead of the arms.
-//
-// Tuple-with-union narrowing (`[a, b] | null` scrutinee) is handled :
-// `tuple_pattern_predicate` seeds an `is [tuple]` check to narrow the
-// union, then reads the element slots off the narrowed value.
+// blocks. Struct-destructure bindings are introduced inside the arm block so
+// they're scoped per-arm; the header alias (`match e as x`) is bound once,
+// ahead of the arms.
 //
 // Callback parameters break the `lower_expr ↔ lower_match` import
 // cycle ; top-level fn-type aliases hit a parser limitation in Vader
@@ -210,7 +206,6 @@ pattern_predicate :: fn(
 ) -> LoweredExpr | null {
     match pattern {
         is WildcardPattern -> { return null }
-        is BindingPattern  -> { return null }
         is IsPattern       -> {
             check_type :: resolve_pattern_type(ctx, pattern.ty)
             return LoweredTypeCheck {
@@ -256,9 +251,6 @@ pattern_predicate :: fn(
                 .left = lo_ok, .right = hi_ok,
             }
         }
-        is TuplePattern -> {
-            return tuple_pattern_predicate(ctx, pattern, target, target_type, span, recurse)
-        }
         is OrPattern -> {
             // Disjunction of the alternatives' predicates : `p1 || p2 || …`.
             // A null sub-predicate (an always-true alternative) collapses the
@@ -300,83 +292,6 @@ struct_pattern_predicate :: fn(
         }
     }
     return accumulator
-}
-
-tuple_pattern_predicate :: fn(
-    ctx: FnLowerCtx!, pattern: TuplePattern, target: LoweredExpr, target_type: Type, span: Span,
-    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
-) -> LoweredExpr | null {
-    accumulator: LoweredExpr | null = null
-    element_types :: tuple_element_types(target_type, pattern.elements.len())
-    // A tuple pattern over a union (`[i32, string] | null`) first checks
-    // `is [tuple]` to narrow the union, then reads slots off the narrowed
-    // value. Without the seed check the (irrefutable) element bindings
-    // produce no predicate and the arm would always match.
-    tuple_ty :: tuple_variant_of(target_type, pattern.elements.len())
-    eff_target: LoweredExpr = target
-    if target_type is UnionType {
-        if tuple_ty is TupleType {
-            accumulator = LoweredTypeCheck {
-                .span = span, .type = TY_BOOL, .value = target, .check_type = tuple_ty,
-            }
-            eff_target = narrow_target(target, target_type, tuple_ty, span)
-        }
-    }
-    for i in 0..<pattern.elements.len() {
-        element_pattern :: pattern.elements[i]
-        element_type :: element_types[i]
-        field_access :: LoweredFieldAccess {
-            .span = element_pattern.span, .type = element_type,
-            .target = eff_target, .field = "_${i}",
-        }
-        sub :: pattern_predicate(ctx, element_pattern, field_access, element_type, element_pattern.span, recurse)
-        if sub !is null {
-            match accumulator {
-                is null -> { accumulator = sub }
-                _ -> {
-                    accumulator = LoweredBinary {
-                        .span = element_pattern.span, .type = TY_BOOL, .op = .And,
-                        .left = accumulator, .right = sub,
-                    }
-                }
-            }
-        }
-    }
-    return accumulator
-}
-
-tuple_element_types :: fn(target_type: Type, arity: usize) -> Type[] {
-    tup :: tuple_variant_of(target_type, arity)
-    if tup is TupleType {
-        if tup.elements.len() == arity { return tup.elements }
-    }
-    return fill_unresolved(arity)
-}
-
-// Pick the `arity`-element tuple shape from `t` — directly when `t` is a
-// tuple, or from a union variant (`[i32, string] | null`). Returns null
-// when no matching tuple exists. Mirror of `pick_tuple_variant` on the
-// typecheck side ; used so a tuple pattern over a union narrows to the
-// tuple before reading slots.
-tuple_variant_of :: fn(t: Type, arity: usize) -> TupleType | null {
-    if t is TupleType {
-        if t.elements.len() == arity { return t }
-        return null
-    }
-    if t is UnionType {
-        for v in t.variants {
-            if v is TupleType {
-                if v.elements.len() == arity { return v }
-            }
-        }
-    }
-    return null
-}
-
-fill_unresolved :: fn(arity: usize) -> Type[] {
-    out: Type[]!: []
-    for i in 0..<arity { out.push(TY_UNRESOLVED) }
-    return out
 }
 
 enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnLowerCtx) -> LoweredExpr {
@@ -447,14 +362,6 @@ walk_pattern_bindings :: fn(
     out: LoweredStmt[]!, span: Span,
 ) -> void {
     match pattern {
-        is BindingPattern -> {
-            symbol :: resolve_pattern_symbol(ctx, pattern.span, pattern.name)
-            init :: lower_cell_init(ctx, symbol, target, target_type, span)
-            out.push(LoweredLet {
-                .span = span, .name = pattern.name, .symbol = symbol,
-                .type = init.slot_type, .value = init.value,
-            })
-        }
         is IsPattern -> {
             inner_type :: resolve_pattern_type(ctx, pattern.ty)
             narrowed_target :: narrow_target(target, target_type, inner_type, span)
@@ -480,25 +387,6 @@ walk_pattern_bindings :: fn(
                     }
                     _                 -> {}
                 }
-            }
-        }
-        is TuplePattern -> {
-            element_types :: tuple_element_types(target_type, pattern.elements.len())
-            // Narrow a union scrutinee (`[i32, string] | null`) to the
-            // tuple shape before reading slots, so `._0` lands on the
-            // tuple variant rather than the bare union value.
-            tuple_ty :: tuple_variant_of(target_type, pattern.elements.len())
-            narrowed :: if tuple_ty is TupleType as tt {
-                narrow_target(target, target_type, tt, pattern.span)
-            } else { target }
-            for i in 0..<pattern.elements.len() {
-                element_pattern :: pattern.elements[i]
-                element_type :: element_types[i]
-                field_access :: LoweredFieldAccess {
-                    .span = element_pattern.span, .type = element_type,
-                    .target = narrowed, .field = "_${i}",
-                }
-                walk_pattern_bindings(ctx, element_pattern, field_access, element_type, out, element_pattern.span)
             }
         }
         is WildcardPattern -> {}
@@ -565,25 +453,4 @@ export resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type 
         return ctx.types.apply(type_from_expr(type_expr, ctx.typed.resolved, scratch))
     }
     return from_table
-}
-
-// ---- tests ----------------------------------------------------------------
-
-import "std/testing"
-
-@test test_fill_unresolved_emits_unresolved_array :: fn() -> void {
-    types :: fill_unresolved(3)
-    assert_eq(types.len(), 3)
-}
-
-// `test_enum_variant_literal_unknown` removed : `enum_variant_literal`
-// now takes a `FnLowerCtx` so the synthetic ctx scaffolding outweighs
-// the test value. Coverage moves to the snippet harness via
-// `enum_basic/_main.vader` once the snapshot flip lands.
-
-@test test_tuple_element_types_falls_back_to_unresolved :: fn() -> void {
-    // Non-tuple target widens to an all-unresolved slot list ; matches
-    // the typecheck's recovery semantics for arity mismatches.
-    types :: tuple_element_types(TY_UNRESOLVED, 2)
-    assert_eq(types.len(), 2)
 }

@@ -220,13 +220,7 @@ collect_pattern_names :: fn(p: AST.Pattern, out: string[]!) -> void {
                 }
             }
         }
-        is AST.TuplePattern       -> {
-            for el in p.elements {
-                collect_pattern_names(el, out)
-            }
-        }
         is AST.WildcardPattern    -> {}
-        is AST.BindingPattern     -> {}
         is AST.EnumVariantPattern -> {}
         is AST.LiteralPattern     -> {
             collect_expr_names(p.value, out)

@@ -793,21 +793,26 @@ println(pair.1)      // "answer"
 
 ### Destructuring
 
-Tuples can be destructured in `let` and in `match` arms. Nested patterns and `_` wildcards are supported.
+Tuples are destructured by a `let`. Nested patterns and `_` wildcards are supported.
 
 ```vader
 [k, v] := key_value()                  // mutable bindings
 [k, v] :: key_value()                  // immutable bindings
 [a, _, c] := triple()                  // ignore middle slot
 [[x, y], z] := nested_pair()           // nested destructure
-
-match pair {
-    [0, name] -> println("zero, ${name}")
-    [n, _]    -> println("n = ${n}")
-}
 ```
 
-A tuple pattern whose every leaf is a binding or `_` is *irrefutable* — the compiler treats it as covering the scrutinee, no wildcard arm needed.
+A `match` arm does not destructure (`[a, b] ->` is `P1022`). It tests the tuple TYPE, like any other type, and the arm destructures what it narrowed:
+
+```vader
+match lookup(key) as found {
+    is null          -> println("no result")
+    is [i32, string] -> {
+        [n, s] :: found
+        println("n=${n} s=${s}")
+    }
+}
+```
 
 #### Array sources
 
@@ -1190,7 +1195,6 @@ match value {
     1 | 2 | 3            -> "small"
     'A'                  -> "letter A"
     "ok"                 -> "literal ok"
-    rest                 -> "anything else, bound as `rest`"
     _                    -> "wildcard catch-all"
 }
 ```
@@ -1211,15 +1215,14 @@ match value {
 - **Range patterns**: `'a'..='z' -> …` / `0..<10 -> …` match a scalar scrutinee (char / integer) that falls in the range. `..=` includes the upper bound, `..<` excludes it (matching the range-expression operators). The bounds are scalar literals of the scrutinee's type; the lowerer emits `scrutinee >= lower && scrutinee <(=) upper`. Range patterns bind nothing and — like literals over an open scalar domain — exhaust nothing, so an unguarded catch-all is still required.
 - **Or-patterns**: pipe-separated alternatives in one arm — `.North | .South -> …` (enum variants), `1 | 2 | 3 -> …` (literals). The arm matches when *any* alternative does (lowered to `p1 || p2 || …`); each alternative is checked against the scrutinee, and every enum variant listed counts toward exhaustiveness. Alternatives are value-level and bind nothing. **Type tests don't need an or-pattern**: `is A | B -> …` is already a single `is` over the union type `A | B` (no parentheses required) — it narrows to `A | B` and covers both for exhaustiveness.
 - Struct patterns with bindings and constraints.
-- **Binding patterns**: a bare identifier `name -> …` matches every remaining value and binds it to `name`. Combined with `is`-narrowing of prior arms, the binding sees the *narrowed* type, not the full scrutinee — `match v { is null -> {}; pet -> use(pet) }` narrows `pet` to "scrutinee − null".
+- **A pattern binds no name.** A bare identifier arm (`name -> …`) is `P1037` and a tuple destructure (`[a, b] -> …`) is `P1022`: the catch-all is `_`, the name comes from the header (`match v as pet { is null -> {}; _ -> use(pet) }` narrows `pet` to "scrutinee − null"), and a tuple is tested with `is [T, U]` and destructured by a `let` in the arm. Struct patterns still bind their fields (`is Point { x, y }`).
 - Guards via `if cond`. The guard may read the pattern's bindings and the header's (`match v as n { is i32 if n > 0 -> … }`). **A guarded arm contributes nothing to exhaustiveness** — it only matches when its guard holds, so the variant it tests stays uncovered until an unguarded arm (or wildcard) handles it; `match x: i32 | string { is i32 if x > 0 -> …, is string -> … }` is rejected with `T3013`. Bare lambda sugar (`x -> …`, `(x) -> …`) is not parsed inside a guard — the arrow belongs to the arm; parenthesise the lambda (`(x -> …)`) on the rare occasion one is intended.
-- Wildcard `_` — same flow-narrowing as binding arms.
-- **Flow narrowing through wildcard / binding arms**: after one or more `is X` arms (without inner struct refinement), the subsequent `_` or `name` arm sees the scrutinee narrowed to `union − matched`. Lets `match p: Pet | null { is null -> "no"; _ -> p.name }` read the common field without a wrapping cast.
+- **Flow narrowing through the wildcard arm**: after one or more `is X` arms (without inner struct refinement), the subsequent `_` arm sees the scrutinee — and the header name — narrowed to `union − matched`. Lets `match p: Pet | null { is null -> "no"; _ -> p.name }` read the common field without a wrapping cast.
 - **`is T` reachability** (`T3040`): an `is T` arm whose `T` can never be a value of the scrutinee's static type is rejected at compile time. `match p: Pet { is Bird -> … }` errors when `Bird` is not part of `Pet`'s union; same rule fires for `if x is T` expressions outside `match`. The check uses the symmetric `intersects(T, scrutinee)` predicate; unknowns (`Unresolved`, `TypeParam`) suppress cascading. **`==` / `!=` get the same check** — `if n: i32 == null` triggers T3040 with the same wording, replacing the misleading "no Eq impl" T3017. Use `is null` when you want the flow-narrowing; both forms work but `is` is the canonical idiom.
-- **Exhaustiveness checked** by the compiler. For union scrutinees, every variant must be covered (or matched by a wildcard `_` / binding arm). For non-union scrutinees a wildcard or binding arm is required, since the compiler cannot enumerate all values of, say, `i32`.
+- **Exhaustiveness checked** by the compiler. For union scrutinees, every variant must be covered (or matched by a wildcard `_`). For non-union scrutinees a wildcard is required, since the compiler cannot enumerate all values of, say, `i32`.
 - **Unreachable match arm (`W0014`)**: an arm no value can reach, because the arms before it already cover it — a wildcard came first, the earlier arms consumed the whole scrutinee, an enum variant is named twice, or an `is T` restates a test an earlier arm made. Distinct from both neighbours: `T3013` asks whether a variant is *missing*, and `T3040` compares an `is` against the scrutinee's *static* type, so neither sees a variant covered twice. Fires on `@partial` matches too — an arm that cannot be taken is a mistake whatever the match opted out of.
 
-- **Wildcard on a closed union, value position (`W0005`)**: a `match` that *produces a value* over a union / enum scrutinee whose catch-all is a bare `_` / binding arm earns a warning — the wildcard silences the exhaustiveness check, so a variant added later degrades silently into the catch-all instead of erroring. Enumerate every variant, or opt out explicitly with `@partial` (§ decorators) when "everything else does X" is intended. Statement matches (`_ -> {}`, no value) and non-union scrutinees (`i32` / `string` / …) are exempt. The warning does not fire on `@partial` matches.
+- **Wildcard on a closed union, value position (`W0005`)**: a `match` that *produces a value* over a union / enum scrutinee whose catch-all is a bare `_` earns a warning — the wildcard silences the exhaustiveness check, so a variant added later degrades silently into the catch-all instead of erroring. Enumerate every variant, or opt out explicitly with `@partial` (§ decorators) when "everything else does X" is intended. Statement matches (`_ -> {}`, no value) and non-union scrutinees (`i32` / `string` / …) are exempt. The warning does not fire on `@partial` matches.
 
 ### Variable bindings
 
@@ -2044,7 +2047,7 @@ result :: match value {
 }
 ```
 
-Exhaustive match on unions, checked at compile time. See §4 *Pattern matching* for the full grammar — `is`-narrowing, literal patterns, binding patterns with flow narrowing, struct refinement, guards, and the `T3040` reachability rule.
+Exhaustive match on unions, checked at compile time. See §4 *Pattern matching* for the full grammar — `is`-narrowing, literal patterns, the header binder with flow narrowing, struct refinement, guards, and the `T3040` reachability rule.
 
 ### `for` (universal loop)
 

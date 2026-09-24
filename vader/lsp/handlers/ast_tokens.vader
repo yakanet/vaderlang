@@ -555,9 +555,7 @@ walk_pattern :: fn(p: AST.Pattern, out: RawToken![]!) -> void {
                 }
             }
         }
-        is AST.TuplePattern       -> { for el in p.elements { walk_pattern(el, out) } }
         is AST.WildcardPattern    -> {}
-        is AST.BindingPattern     -> { push_span(out, p.span, .Variable) }
         is AST.EnumVariantPattern -> { push_span(out, p.span, .EnumMember) }
         is AST.LiteralPattern     -> { walk_expr(p.value, out) }
         is AST.RangePattern       -> {

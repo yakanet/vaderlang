@@ -1,0 +1,12 @@
+module "snippet"
+
+// A pattern binds no name: the catch-all is `_`, and the name comes from the
+// header.
+describe :: fn(v: i32 | null) -> i32 {
+    return match v {
+        is null -> 0
+        n       -> 1
+    }
+}
+
+main :: fn() -> i32 = describe(1)

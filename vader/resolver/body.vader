@@ -759,12 +759,7 @@ bind_pattern :: fn(self: ResolveState!, p: AST.Pattern) -> void {
                 }
             }
         }
-        is AST.TuplePattern -> { for el in p.elements { self.bind_pattern(el) } }
         is AST.WildcardPattern -> {}
-        is AST.BindingPattern -> {
-            sym :: self.mint_local(.Binding, p.name, p.span)
-            self.scope.bind(p.name, sym)
-        }
         is AST.EnumVariantPattern -> {}
         is AST.LiteralPattern -> { self.walk_expr(p.value) }
         is AST.RangePattern -> {

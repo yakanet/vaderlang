@@ -411,9 +411,9 @@ clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding {
 }
 
 /// Clone a Pattern, substituting TypeExprs inside `is T` patterns.
-// @partial: sketch coverage — the TODO'd patterns (StructPattern, TuplePattern,
-// LiteralPattern, EnumVariantPattern) and the childless WildcardPattern /
-// BindingPattern pass through unchanged.
+// @partial: sketch coverage — the TODO'd patterns (StructPattern,
+// LiteralPattern, EnumVariantPattern) and the childless WildcardPattern pass
+// through unchanged.
 export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
     @partial match p {
         is AST.IsPattern -> {
@@ -427,8 +427,8 @@ export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
                 .inner = new_inner,
             }
         }
-        // TODO : StructPattern, TuplePattern, LiteralPattern, EnumVariantPattern.
-        // WildcardPattern + BindingPattern have no children — pass through.
+        // TODO : StructPattern, LiteralPattern, EnumVariantPattern.
+        // WildcardPattern has no children — pass through.
         _ -> { return p }
     }
 }

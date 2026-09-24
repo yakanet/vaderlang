@@ -49,25 +49,28 @@ fn 0 snippet$greet_wildcard (any) -> string
 end
 
 fn 1 snippet$greet_binding (any) -> string
+  local pet any
   local if_res string
   local $field_8 string
+  local.get 0   ; arg 0
+  local.set 1   ; pet
   local.get 0   ; arg 0
   type_check 0   ; null
   if $L0 void
     string.const 0   ; "no pet"
-    local.set 1   ; if_res
+    local.set 2   ; if_res
   else
-    local.get 0   ; arg 0
+    local.get 1   ; pet
     ref.cast 2   ; -> snippet$Cat
     struct.get 2 0   ; snippet$Cat.name
     ref.cast 4   ; -> string
-    local.set 2   ; $field_8
+    local.set 3   ; $field_8
     string.const 2   ; "howdy "
-    local.get 2   ; $field_8
+    local.get 3   ; $field_8
     call 3   ; concat_2
-    local.set 1   ; if_res
+    local.set 2   ; if_res
   end $L0
-  local.get 1   ; if_res
+  local.get 2   ; if_res
   return
 end
 
@@ -239,4 +242,4 @@ end
 
 # Diagnostics
 [28:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`
-[42:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`
+[41:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`

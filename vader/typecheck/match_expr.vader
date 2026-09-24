@@ -2,7 +2,7 @@
 //
 // `match scrutinee { p1 -> b1, p2 -> b2 }` types as `union_of(arm bodies)`.
 // Out of scope: exhaustiveness check (T3013), per-arm scrutinee
-// narrowing (binding patterns like `is X as x` typing `x` to X) — both
+// narrowing (the header alias `match e as x` typing `x` per arm) — both
 // land with `narrow.vader`. Guards must be `bool` (T3019).
 
 module "vader/typecheck"
@@ -44,9 +44,7 @@ check_pattern_bound_exprs :: fn(
 pattern_span :: fn(p: AST.Pattern) -> Span = match p {
     is AST.IsPattern          -> p.span
     is AST.StructPattern      -> p.span
-    is AST.TuplePattern       -> p.span
     is AST.WildcardPattern    -> p.span
-    is AST.BindingPattern     -> p.span
     is AST.EnumVariantPattern -> p.span
     is AST.LiteralPattern     -> p.span
     is AST.RangePattern       -> p.span
@@ -110,11 +108,11 @@ export infer_match :: fn(
             }
         }
         // Re-bind the pattern types against the narrowed `remaining`
-        // so wildcard/binding arms see only the still-possible
+        // so the wildcard arm sees only the still-possible
         // variants ("union − matched").
         bind_pattern_types(arm.pattern, remaining, typed, diags)
-        // Per-arm narrowing — `is T` arms see just T, wildcard /
-        // binding arms see `remaining` (subset of `scrut_ty` after
+        // Per-arm narrowing — `is T` arms see just T, the wildcard
+        // arm sees `remaining` (subset of `scrut_ty` after
         // earlier arms removed their matched variants).
         arm_narrow :: arm_narrow_for(arm.pattern, remaining, typed)
         prev_arm: NarrowSlot | null = null
@@ -228,27 +226,7 @@ export infer_match :: fn(
                     covered_enum_variants.push(pattern.variant)
                 }
             }
-            is AST.TuplePattern       -> {
-                if !guarded {
-                    // Subtract any TupleType variant whose arity matches.
-                    tup_ty :: pick_tuple_variant(remaining, pattern.elements.len())
-                    if tup_ty !is null {
-                        remaining = subtract_type(remaining, tup_ty)
-                    }
-                    // Irrefutable tuple (all bindings / wildcards) matches every
-                    // tuple of that arity ; counts as a wildcard for exhaustiveness.
-                    if is_irrefutable_tuple_pattern(pattern) {
-                        has_wildcard = true
-                    }
-                }
-            }
             is AST.WildcardPattern    -> {
-                if !guarded {
-                    has_wildcard = true
-                    remaining = TY_NEVER
-                }
-            }
-            is AST.BindingPattern     -> {
                 if !guarded {
                     has_wildcard = true
                     remaining = TY_NEVER
@@ -326,7 +304,7 @@ export infer_match :: fn(
     if expected == null {
         report_mixed_mutability(result_ty, e.span, diags)
     }
-    // `has_wildcard` is only set by a wildcard / binding arm, so it already
+    // `has_wildcard` is only set by a wildcard arm, so it already
     // implies ≥ 1 arm — no explicit arm-count guard needed.
     if has_wildcard && !e.partial && !e.unreachable && !is_void(result_ty) {
         if scrut_ty is UnionType || scrut_ty is EnumType {
@@ -345,23 +323,6 @@ export infer_match :: fn(
 // First enum variant name absent from `covered`. Uses the EnumType's
 // `indices` map (populated at declare-time) so we don't need to walk
 // the program AST a second time.
-// True iff every leaf of `tp` is a binding / wildcard — i.e. matches
-// every tuple of that arity by construction.
-is_irrefutable_tuple_pattern :: fn(tp: AST.TuplePattern) -> bool {
-    for el in tp.elements {
-        if el is AST.WildcardPattern { continue }
-        if el is AST.BindingPattern  { continue }
-        if el is AST.TuplePattern {
-            if !is_irrefutable_tuple_pattern(el) {
-                return false
-            }
-            continue
-        }
-        return false
-    }
-    return true
-}
-
 missing_enum_variant_name :: fn(
     en: EnumType,
     typed: TypedProgram,
@@ -412,13 +373,12 @@ pattern_type_of :: fn(ty: AST.Expr, scrut: Type, typed: TypedProgram, diags: Dia
 }
 
 arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Type | null {
-    // Only `is T` / wildcard / binding arms narrow the scrutinee; literal /
-    // range / enum-variant / struct / tuple / or patterns carry no slot narrowing.
+    // Only `is T` / wildcard arms narrow the scrutinee; literal / range /
+    // enum-variant / struct / or patterns carry no slot narrowing.
     match p {
         is AST.IsPattern -> { return pattern_type_of(p.ty, remaining, typed, scratch_diags()) }
         is AST.WildcardPattern -> { return remaining }
-        is AST.BindingPattern -> { return remaining }
-        is AST.StructPattern | AST.TuplePattern | AST.EnumVariantPattern | AST.LiteralPattern | AST.RangePattern | AST.OrPattern -> { return null }
+        is AST.StructPattern | AST.EnumVariantPattern | AST.LiteralPattern | AST.RangePattern | AST.OrPattern -> { return null }
     }
 }
 
@@ -453,24 +413,11 @@ scrutinee_field_key :: fn(scrut: AST.Expr, typed: TypedProgram) -> string {
 }
 
 /// Walk a match-arm pattern and record each binding's type in
-/// `typed.local_types`. Tuple patterns destructure element-wise
-/// against the scrutinee's `TupleType`; struct patterns go through
-/// `bind_struct_pattern`.
+/// `typed.local_types`. Struct patterns bind through `bind_struct_pattern`.
 bind_pattern_types :: fn(
     p: AST.Pattern, scrut: Type, typed: TypedProgram!, diags: Diagnostic[]!,
 ) -> void {
     match p {
-        is AST.TuplePattern   -> {
-            tu :: pick_tuple_variant(scrut, p.elements.len())
-            if tu !is null {
-                for i in 0..<p.elements.len() {
-                    bind_pattern_types(p.elements[i], tu.elements[i], typed, diags)
-                }
-            }
-        }
-        is AST.BindingPattern -> {
-            typed.local_types[p.span.hash()] = scrut
-        }
         is AST.IsPattern      -> {
             narrowed :: pattern_type_of(p.ty, scrut, typed, diags)
             // Nested pattern (e.g. `is T { x, y }`) — recurse
@@ -525,36 +472,6 @@ bind_struct_pattern :: fn(
 }
 
 scratch_diags :: fn() -> Diagnostic[]! { return [] }
-
-/// Find a matching `TupleType` variant inside `t` for a pattern of
-/// `arity` elements. Falls back to the bare `TupleType` when `t` is
-/// one ; returns null when neither path matches.
-pick_tuple_variant :: fn(t: Type, arity: usize) -> TupleType | null {
-    // @partial: a tuple variant of the given arity can only live in a bare
-    // TupleType or a union of them; no other type kind carries one.
-    @partial match t {
-        is TupleType -> {
-            if t.elements.len() == arity {
-                return t
-            }
-            return null
-        }
-        is UnionType  -> {
-            for v in t.variants {
-                match v {
-                    is TupleType -> {
-                        if v.elements.len() == arity {
-                            return v
-                        }
-                    }
-                    _                  -> {}
-                }
-            }
-            return null
-        }
-        _                  -> { return null }
-    }
-}
 
 // ---- tests ----------------------------------------------------------------
 

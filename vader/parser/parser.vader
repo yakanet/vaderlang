@@ -3679,11 +3679,17 @@ parse_pattern :: fn(p: Parser!) -> Pattern {
         return WildcardPattern { .span = t.span }
     }
     if t.kind == .Ident {
+        // A lone name matched everything and bound it. `_` matches everything;
+        // the header binds (`match e as x { … _ -> x }`).
         p.advance()
-        return BindingPattern { .span = t.span, .name = t.text }
+        p.error(
+            .PatternBindsName, t.span,
+            "write `_`, and name the scrutinee in the header: `match … as ${t.text}`",
+        )
+        return WildcardPattern { .span = t.span }
     }
     if t.kind == .LBracket {
-        return p.parse_tuple_pattern()
+        return p.reject_tuple_pattern()
     }
     if is_literal_start(t) {
         // `'a' -> …` / `42 -> …` / `true -> …` / `null -> …` / `-1 -> …`.
@@ -3716,28 +3722,24 @@ parse_pattern :: fn(p: Parser!) -> Pattern {
     return WildcardPattern { .span = t.span }
 }
 
-parse_tuple_pattern :: fn(p: Parser!) -> TuplePattern {
+// `[a, b] ->` destructured a tuple in the pattern. The type test is
+// `is [T, U]` and the destructure is a `let` in the arm, so the form is
+// diagnosed and skipped to its `]` — its elements would each report again.
+reject_tuple_pattern :: fn(p: Parser!) -> WildcardPattern {
     start :: p.advance()  // `[`
-    p.skip_newlines()
-    elements: Pattern[]!: []
-    if !p.check(.RBracket) {
-        for {
-            p.skip_newlines()
-            if p.check(.RBracket) { break }
-            elements.push(p.parse_pattern())
-            p.skip_newlines()
-            if p.match_kind(.Comma) == null { break }
-            p.skip_newlines()
-        }
+    depth := 1
+    last := start
+    for depth > 0 && !p.check(.Eof) {
+        last = p.advance()
+        if last.kind == .LBracket { depth += 1 }
+        if last.kind == .RBracket { depth -= 1 }
     }
-    end :: p.expect(.RBracket, "`]` to close tuple pattern")
-    if elements.len() < 2 {
-        p.error(.TuplePatternRequiresTwoElements, p.span_of(start, end), "")
-    }
-    return TuplePattern {
-        .span     = p.span_of(start, end),
-        .elements = elements,
-    }
+    span :: p.span_of(start, last)
+    p.error(
+        .TuplePatternRemoved, span,
+        "test the type with `is [T, U]` and destructure in the arm: `[a, b] :: …`",
+    )
+    return WildcardPattern { .span = span }
 }
 
 parse_struct_pattern :: fn(p: Parser!) -> StructPattern {

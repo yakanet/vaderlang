@@ -1239,9 +1239,7 @@ write_pattern :: fn(sb: StringBuilder!, p: Pattern, level: i32) -> void {
                 is null                  -> { sb.write_null() }
                 is IsPattern -> { sb.write_pattern(inner, level + 1) }
                 is StructPattern -> { sb.write_pattern(inner, level + 1) }
-                is TuplePattern -> { sb.write_pattern(inner, level + 1) }
                 is WildcardPattern -> { sb.write_pattern(inner, level + 1) }
-                is BindingPattern -> { sb.write_pattern(inner, level + 1) }
                 is EnumVariantPattern -> { sb.write_pattern(inner, level + 1) }
                 is LiteralPattern -> { sb.write_pattern(inner, level + 1) }
                 is RangePattern -> { sb.write_pattern(inner, level + 1) }
@@ -1256,23 +1254,9 @@ write_pattern :: fn(sb: StringBuilder!, p: Pattern, level: i32) -> void {
             sb.write_struct_pattern_fields(p.fields, level + 1)
             sb.close_obj(level)
         }
-        is TuplePattern -> {
-            sb.open_obj()
-            sb.kind_entry(level + 1, "TuplePattern")
-            sb.entry(false, level + 1, "elements")
-            sb.write_patterns(p.elements, level + 1)
-            sb.close_obj(level)
-        }
         is WildcardPattern -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "WildcardPattern")
-            sb.close_obj(level)
-        }
-        is BindingPattern -> {
-            sb.open_obj()
-            sb.kind_entry(level + 1, "BindingPattern")
-            sb.entry(false, level + 1, "name")
-            sb.write_string(p.name)
             sb.close_obj(level)
         }
         is EnumVariantPattern -> {

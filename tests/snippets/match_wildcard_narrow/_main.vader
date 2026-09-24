@@ -33,15 +33,14 @@ greet_wildcard :: fn(p: Pet | null) -> string {
 
 // Binding-pattern arm also picks up the narrowed type.
 //
-// `pet` is bound here with the narrowed type `Pet`, not the full
+// The header name `pet` is narrowed by the `_` arm to `Pet`, not the full
 // scrutinee `Pet | null`. Calling `.name` reads the common field
-// directly — same narrowing as the `_` arm above, but the binding form
-// is what lets you re-use the scrutinee value when the scrutinee
-// expression isn't a stable identifier (e.g. a field access).
+// directly — same narrowing as the `_` arm above, through a name of its
+// own, which is what an expression scrutinee needs.
 greet_binding :: fn(p: Pet | null) -> string {
-    return match p {
+    return match p as pet {
         is null -> "no pet"
-        pet     -> "howdy ${pet.name}"
+        _       -> "howdy ${pet.name}"
     }
 }
 

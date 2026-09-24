@@ -59,7 +59,7 @@ export StringLitPart :: StringLitText | StringLitInterp
 export IfElse :: IfElseIf | IfElseBlock
 
 /// Anything that can appear on the left of a `match` arm's `->`.
-export Pattern :: IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern | LiteralPattern | RangePattern | OrPattern
+export Pattern :: IsPattern | StructPattern | WildcardPattern | EnumVariantPattern | LiteralPattern | RangePattern | OrPattern
 
 /// What a `::` / `:=` binds: one name, a tuple destructure, `_`, or a rest binding.
 export LetBinding :: SimpleBinding | TupleBinding | WildcardBinding | RestBinding
@@ -1017,13 +1017,6 @@ export StructPattern :: struct {
     fields: StructPatternField![]
 }
 
-/// A tuple destructuring pattern, `[p1, p2, ...]` — element-wise sub-patterns.
-export TuplePattern :: struct {
-    span:     Span
-    id:       usize = UNASSIGNED_NODE_ID
-    elements: Pattern[]
-}
-
 /// One field of a struct pattern.
 export StructPatternField :: struct {
     span:      Span
@@ -1043,13 +1036,6 @@ export PatternLiteral :: struct { value: Expr }
 /// On a closed union this silences the exhaustiveness check, which is why the style
 /// guide forbids it in value position there.
 export WildcardPattern :: struct { span: Span, id: usize = UNASSIGNED_NODE_ID }
-
-/// A pattern that binds the whole scrutinee to a name.
-export BindingPattern :: struct {
-    span: Span
-    id:   usize = UNASSIGNED_NODE_ID
-    name: string
-}
 
 /// A pattern matching one enum variant, `.Variant`.
 export EnumVariantPattern :: struct {

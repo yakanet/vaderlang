@@ -13,45 +13,45 @@
   expr 30:20    StringLitExpr  :: string
   expr 30:29    FieldExpr      :: string
   expr 30:29    IdentExpr      :: Cat | Dog
-  expr 42:12    MatchExpr      :: string
-  expr 42:18    IdentExpr      :: Cat | Dog | null
+  expr 41:12    MatchExpr      :: string
+  expr 41:18    IdentExpr      :: Cat | Dog | null
+  expr 42:20    StringLitExpr  :: string
   expr 43:20    StringLitExpr  :: string
-  expr 44:20    StringLitExpr  :: string
-  expr 44:29    FieldExpr      :: string
-  expr 44:29    IdentExpr      :: Cat | Dog
+  expr 43:29    FieldExpr      :: string
+  expr 43:29    IdentExpr      :: Cat | Dog
+  expr 48:13    CallExpr       :: string
+  expr 48:13    IdentExpr      :: fn(Cat | Dog | null) -> string
+  expr 48:28    StructLitExpr  :: Cat!
+  expr 48:42    StringLitExpr  :: string
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
   expr 49:13    CallExpr       :: string
   expr 49:13    IdentExpr      :: fn(Cat | Dog | null) -> string
-  expr 49:28    StructLitExpr  :: Cat!
+  expr 49:28    StructLitExpr  :: Dog!
   expr 49:42    StringLitExpr  :: string
   expr 49:5     CallExpr       :: void
   expr 49:5     IdentExpr      :: fn(T) -> void
   expr 50:13    CallExpr       :: string
   expr 50:13    IdentExpr      :: fn(Cat | Dog | null) -> string
-  expr 50:28    StructLitExpr  :: Dog!
-  expr 50:42    StringLitExpr  :: string
   expr 50:5     CallExpr       :: void
   expr 50:5     IdentExpr      :: fn(T) -> void
-  expr 51:13    CallExpr       :: string
-  expr 51:13    IdentExpr      :: fn(Cat | Dog | null) -> string
-  expr 51:5     CallExpr       :: void
-  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 52:13    CallExpr       :: string
+  expr 52:13    IdentExpr      :: fn(Cat | Dog | null) -> string
+  expr 52:27    StructLitExpr  :: Cat!
+  expr 52:41    StringLitExpr  :: string
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
   expr 53:13    CallExpr       :: string
   expr 53:13    IdentExpr      :: fn(Cat | Dog | null) -> string
-  expr 53:27    StructLitExpr  :: Cat!
+  expr 53:27    StructLitExpr  :: Dog!
   expr 53:41    StringLitExpr  :: string
   expr 53:5     CallExpr       :: void
   expr 53:5     IdentExpr      :: fn(T) -> void
   expr 54:13    CallExpr       :: string
   expr 54:13    IdentExpr      :: fn(Cat | Dog | null) -> string
-  expr 54:27    StructLitExpr  :: Dog!
-  expr 54:41    StringLitExpr  :: string
   expr 54:5     CallExpr       :: void
   expr 54:5     IdentExpr      :: fn(T) -> void
-  expr 55:13    CallExpr       :: string
-  expr 55:13    IdentExpr      :: fn(Cat | Dog | null) -> string
-  expr 55:5     CallExpr       :: void
-  expr 55:5     IdentExpr      :: fn(T) -> void
 
 # Diagnostics
 [28:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`
-[42:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`
+[41:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`

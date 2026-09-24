@@ -611,9 +611,8 @@ ix_walk_block :: fn(b: BlockExpr, source: string, entries: DeclEntry[]!) -> void
     for s in b.stmts {
         ix_walk_stmt(s, b.span, source, entries)
     }
-    match b.trailing {
-        is null -> {}
-        e       -> { ix_walk_expr(e, source, entries) }
+    if b.trailing != null {
+        ix_walk_expr(b.trailing, source, entries)
     }
 }
 
@@ -634,9 +633,8 @@ ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry
         }
         is ExprStmt -> { ix_walk_expr(s.expr, source, entries) }
         is ReturnStmt -> {
-            match s.value {
-                is null -> {}
-                e       -> { ix_walk_expr(e, source, entries) }
+            if s.value != null {
+                ix_walk_expr(s.value, source, entries)
             }
         }
         is YieldStmt -> { ix_walk_expr(s.value, source, entries) }
@@ -696,15 +694,7 @@ local_sig :: fn(
 // Best-effort type hint for a `LetStmt` without consulting the typechecker :
 // an explicit annotation `let a: T = …` slices `T` from the AST ; otherwise
 // `""` and the caller falls back to a source slice that includes the expression.
-local_type_hint :: fn(l: LetStmt, source: string) -> string {
-    match l.ty {
-        is null -> {}
-        ty      -> {
-            return type_expr_slice(ty, source)
-        }
-    }
-    return ""
-}
+local_type_hint :: fn(l: LetStmt, source: string) = if l.ty != null { type_expr_slice(l.ty, source) } else { "" }
 
 // Slice the source for a `TypeExpr` reference. The parser tags every
 // node with `span`, so a verbatim re-slice keeps annotations like
@@ -804,9 +794,8 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
                 entries.push(binding_entry(alias.name, .Local, alias.span, e.span, sig))
             }
             for arm in e.arms {
-                match arm.guard {
-                    is null -> {}
-                    g       -> { ix_walk_expr(g, source, entries) }
+                if arm.guard != null {
+                    ix_walk_expr(arm.guard, source, entries)
                 }
                 ix_walk_expr(arm.body, source, entries)
             }

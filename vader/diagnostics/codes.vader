@@ -150,7 +150,7 @@ export ParserCode :: enum(u8) {
     TypeBoundRedundant,                     // P1019
     ExprBodiedFnExplicitReturnType,         // P1020
     OneTupleNotAllowed,                     // P1021
-    TuplePatternRequiresTwoElements,        // P1022
+    TuplePatternRemoved,                    // P1022
     LetDestructureRequiresTwoElements,      // P1023
     RemovedConstQualifier,                  // P1027
     InvalidModuleName,                      // P1028
@@ -163,6 +163,7 @@ export ParserCode :: enum(u8) {
     // `@c_size`'s width, and `@c_size` is gone from the language.
     CompoundAssignToPattern,                // P1035
     ArmBindingNotInHeader,                  // P1036
+    PatternBindsName,                       // P1037
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
@@ -394,6 +395,7 @@ export parser_info :: fn(c: ParserCode) = match c {
     .DecoratorArgumentForm              -> CodeInfo { .id = "P1033", .message = "decorator argument has the wrong form" }
     .CompoundAssignToPattern            -> CodeInfo { .id = "P1035", .message = "compound assignment needs a single target" }
     .ArmBindingNotInHeader              -> CodeInfo { .id = "P1036", .message = "a match arm cannot bind with `as`" }
+    .PatternBindsName                   -> CodeInfo { .id = "P1037", .message = "a match pattern cannot bind a name" }
     .DuplicateStructLitField            -> CodeInfo { .id = "P1015", .message = "duplicate field name in struct literal" }
     .ExpectedGenericArgList             -> CodeInfo { .id = "P1016", .message = "expected a generic argument list" }
     .MissingNewlineBetweenDecls         -> CodeInfo { .id = "P1017", .message = "missing newline between top-level declarations" }
@@ -401,7 +403,7 @@ export parser_info :: fn(c: ParserCode) = match c {
     .TypeBoundRedundant                 -> CodeInfo { .id = "P1019", .message = "`: type` bound is redundant; write `\$T` instead" }
     .ExprBodiedFnExplicitReturnType     -> CodeInfo { .id = "P1020", .message = "expression-bodied function cannot also declare an explicit return type" }
     .OneTupleNotAllowed                 -> CodeInfo { .id = "P1021", .message = "1-tuple types are not allowed" }
-    .TuplePatternRequiresTwoElements    -> CodeInfo { .id = "P1022", .message = "tuple pattern requires at least 2 elements" }
+    .TuplePatternRemoved                -> CodeInfo { .id = "P1022", .message = "a match arm cannot destructure a tuple" }
     .LetDestructureRequiresTwoElements  -> CodeInfo { .id = "P1023", .message = "let destructure requires at least 2 elements" }
     .RemovedConstQualifier              -> CodeInfo { .id = "P1027", .message = "`const` was removed from the language" }
     .InvalidModuleName                  -> CodeInfo { .id = "P1028", .message = "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)" }
