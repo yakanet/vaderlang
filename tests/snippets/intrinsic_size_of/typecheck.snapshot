@@ -2,55 +2,60 @@
 
 ## tests/snippets/intrinsic_size_of
   EnumDecl       Color                :: Color
+  EnumDecl       Inferred             :: Inferred
   FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point!
   EnumDecl       Wide                 :: Wide
-  expr 17:13    IntrinsicCallExpr :: usize
-  expr 17:22    IdentExpr      :: type
-  expr 18:13    IntrinsicCallExpr :: usize
-  expr 18:22    IdentExpr      :: type
   expr 19:13    IntrinsicCallExpr :: usize
   expr 19:22    IdentExpr      :: type
   expr 20:13    IntrinsicCallExpr :: usize
   expr 20:22    IdentExpr      :: type
-  expr 22:15    IntrinsicCallExpr :: usize
-  expr 22:24    IdentExpr      :: Color
-  expr 23:15    IntrinsicCallExpr :: usize
-  expr 23:24    IdentExpr      :: Wide
-  expr 24:15    IntrinsicCallExpr :: usize
-  expr 24:24    IdentExpr      :: Point!
-  expr 25:15    IntrinsicCallExpr :: usize
-  expr 25:24    ArrayTypeExpr  :: type
-  expr 26:15    IntrinsicCallExpr :: usize
-  expr 26:24    BinaryExpr     :: type
-  expr 26:24    IdentExpr      :: type
-  expr 26:30    IdentExpr      :: type
-  expr 28:12    IntrinsicCallExpr :: usize
-  expr 29:12    IntrinsicCallExpr :: usize
-  expr 30:13    IntrinsicCallExpr :: usize
-  expr 32:13    IntrinsicCallExpr :: string
-  expr 34:12    CallExpr       :: i32
-  expr 34:12    IdentExpr      :: type
-  expr 34:16    BinaryExpr     :: usize
-  expr 34:16    BinaryExpr     :: usize
-  expr 34:16    BinaryExpr     :: usize
-  expr 34:16    BinaryExpr     :: usize
-  expr 34:16    BinaryExpr     :: usize
-  expr 34:16    BinaryExpr     :: usize
-  expr 34:16    BinaryExpr     :: usize
-  expr 34:16    BinaryExpr     :: usize
-  expr 34:16    BinaryExpr     :: usize
-  expr 34:16    BinaryExpr     :: usize
-  expr 34:16    BinaryExpr     :: usize
-  expr 34:16    IdentExpr      :: usize
-  expr 34:21    IdentExpr      :: usize
-  expr 34:27    IdentExpr      :: usize
-  expr 34:33    IdentExpr      :: usize
-  expr 34:40    IdentExpr      :: usize
-  expr 34:49    IdentExpr      :: usize
-  expr 34:56    IdentExpr      :: usize
-  expr 34:62    IdentExpr      :: usize
-  expr 34:68    IdentExpr      :: usize
-  expr 34:77    IdentExpr      :: usize
-  expr 34:83    IdentExpr      :: usize
-  expr 34:89    IdentExpr      :: usize
+  expr 21:13    IntrinsicCallExpr :: usize
+  expr 21:22    IdentExpr      :: type
+  expr 22:13    IntrinsicCallExpr :: usize
+  expr 22:22    IdentExpr      :: type
+  expr 24:17    IntrinsicCallExpr :: usize
+  expr 24:26    IdentExpr      :: Color
+  expr 25:17    IntrinsicCallExpr :: usize
+  expr 25:26    IdentExpr      :: Wide
+  expr 26:17    IntrinsicCallExpr :: usize
+  expr 26:26    IdentExpr      :: Inferred
+  expr 27:17    IntrinsicCallExpr :: usize
+  expr 27:26    IdentExpr      :: Point!
+  expr 28:17    IntrinsicCallExpr :: usize
+  expr 28:26    ArrayTypeExpr  :: type
+  expr 29:17    IntrinsicCallExpr :: usize
+  expr 29:26    BinaryExpr     :: type
+  expr 29:26    IdentExpr      :: type
+  expr 29:32    IdentExpr      :: type
+  expr 31:12    IntrinsicCallExpr :: usize
+  expr 32:12    IntrinsicCallExpr :: usize
+  expr 33:13    IntrinsicCallExpr :: usize
+  expr 35:13    IntrinsicCallExpr :: string
+  expr 37:100   IdentExpr      :: usize
+  expr 37:12    CallExpr       :: i32
+  expr 37:12    IdentExpr      :: type
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    BinaryExpr     :: usize
+  expr 37:16    IdentExpr      :: usize
+  expr 37:21    IdentExpr      :: usize
+  expr 37:27    IdentExpr      :: usize
+  expr 37:33    IdentExpr      :: usize
+  expr 37:40    IdentExpr      :: usize
+  expr 37:49    IdentExpr      :: usize
+  expr 37:56    IdentExpr      :: usize
+  expr 37:67    IdentExpr      :: usize
+  expr 37:73    IdentExpr      :: usize
+  expr 37:79    IdentExpr      :: usize
+  expr 37:88    IdentExpr      :: usize
+  expr 37:94    IdentExpr      :: usize

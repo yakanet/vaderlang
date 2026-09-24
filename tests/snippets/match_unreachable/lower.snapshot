@@ -11,7 +11,7 @@
                 l:
                   c :Color
                 r:
-                  int(0) :i32
+                  int(0) :u8
             then:
               ~>
                 "red" :string
@@ -23,7 +23,7 @@
                       l:
                         c :Color
                       r:
-                        int(1) :i32
+                        int(1) :u8
                   then:
                     ~>
                       "green" :string
@@ -39,7 +39,7 @@
           callee:
             label :fn(Color) -> string
           arg0:
-            int(0) :i32
+            int(0) :u8
     call :void
       callee:
         std_io$println__string :void
@@ -48,7 +48,7 @@
           callee:
             label :fn(Color) -> string
           arg0:
-            int(1) :i32
+            int(1) :u8
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

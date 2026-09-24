@@ -9,6 +9,7 @@
     let sstr: usize = int(4) :usize
     let narrow: usize = int(1) :usize
     let wide: usize = int(4) :usize
+    let inferred: usize = int(1) :usize
     let ref: usize = int(8) :usize
     let arr: usize = int(8) :usize
     let erased: usize = int(16) :usize
@@ -40,17 +41,21 @@
                                               l:
                                                 add :usize
                                                   l:
-                                                    s8 :usize
+                                                    add :usize
+                                                      l:
+                                                        s8 :usize
+                                                      r:
+                                                        s32 :usize
                                                   r:
-                                                    s32 :usize
+                                                    s64 :usize
                                               r:
-                                                s64 :usize
+                                                sstr :usize
                                           r:
-                                            sstr :usize
+                                            narrow :usize
                                       r:
-                                        narrow :usize
+                                        wide :usize
                                   r:
-                                    wide :usize
+                                    inferred :usize
                               r:
                                 ref :usize
                           r:

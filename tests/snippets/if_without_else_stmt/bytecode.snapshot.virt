@@ -72,7 +72,7 @@ fn 2 concat_2 (string,string) -> string
   return
 end
 
-fn 3 std_io$write (i32,string) -> void
+fn 3 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -130,7 +130,7 @@ fn 3 std_io$write (i32,string) -> void
   return
 end
 
-fn 4 std_io$write_bytes (i32,ref,usize) -> i32
+fn 4 std_io$write_bytes (u8,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0

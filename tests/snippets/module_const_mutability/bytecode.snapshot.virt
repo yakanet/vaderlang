@@ -4064,7 +4064,7 @@ fn 54 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 55 std_io$write (i32,string) -> void
+fn 55 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -4122,7 +4122,7 @@ fn 55 std_io$write (i32,string) -> void
   return
 end
 
-fn 56 std_io$write_bytes (i32,ref,usize) -> i32
+fn 56 std_io$write_bytes (u8,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0

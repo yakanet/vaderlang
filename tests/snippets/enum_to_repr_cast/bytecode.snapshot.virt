@@ -20,6 +20,7 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local c i32
+  local d i32
   local e u64
   local f i32
   local __buf_0 ref
@@ -29,89 +30,92 @@ fn 0 snippet$main () -> i32
   i32.const 1
   u8.to_i32
   local.set 0   ; c
+  i32.const 1
+  u8.to_i32
+  local.set 1   ; d
   i32.const -294967296
   u32.to_i64
-  local.set 1   ; e
+  local.set 2   ; e
   i32.const 0
   u32.to_i32
-  local.set 2   ; f
+  local.set 3   ; f
   i64.const 125
   call 2   ; std_core$new_byte_buffer
-  local.set 3   ; __buf_0
+  local.set 4   ; __buf_0
   i64.const 0
-  local.set 4   ; __off_1
+  local.set 5   ; __off_1
   i32.const 2
   u8.to_i64
-  local.set 5   ; $cast_23
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
-  local.get 5   ; $cast_23
+  local.set 6   ; $cast_23
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
+  local.get 6   ; $cast_23
   call 6   ; std_core$write_unsigned
-  local.set 4   ; __off_1
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
+  local.set 5   ; __off_1
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
-  local.set 4   ; __off_1
+  local.set 5   ; __off_1
   i32.const -294967296
   u32.to_i64
-  local.set 5   ; $cast_23
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
-  local.get 5   ; $cast_23
+  local.set 6   ; $cast_23
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
+  local.get 6   ; $cast_23
   call 6   ; std_core$write_unsigned
-  local.set 4   ; __off_1
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
+  local.set 5   ; __off_1
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
-  local.set 4   ; __off_1
+  local.set 5   ; __off_1
   local.get 0   ; c
   i32.to_i64
-  local.set 6   ; $cast_31
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
-  local.get 6   ; $cast_31
+  local.set 7   ; $cast_31
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
+  local.get 7   ; $cast_31
   call 5   ; std_core$write_int
-  local.set 4   ; __off_1
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
+  local.set 5   ; __off_1
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
-  local.set 4   ; __off_1
-  i32.const 1
+  local.set 5   ; __off_1
+  local.get 1   ; d
   i32.to_i64
-  local.set 6   ; $cast_31
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
-  local.get 6   ; $cast_31
+  local.set 7   ; $cast_31
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
+  local.get 7   ; $cast_31
   call 5   ; std_core$write_int
-  local.set 4   ; __off_1
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
+  local.set 5   ; __off_1
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
-  local.set 4   ; __off_1
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
-  local.get 1   ; e
+  local.set 5   ; __off_1
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
+  local.get 2   ; e
   call 6   ; std_core$write_unsigned
-  local.set 4   ; __off_1
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
+  local.set 5   ; __off_1
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
-  local.set 4   ; __off_1
-  local.get 2   ; f
+  local.set 5   ; __off_1
+  local.get 3   ; f
   i32.to_i64
-  local.set 6   ; $cast_31
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
-  local.get 6   ; $cast_31
+  local.set 7   ; $cast_31
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
+  local.get 7   ; $cast_31
   call 5   ; std_core$write_int
-  local.set 4   ; __off_1
-  local.get 3   ; __buf_0
-  local.get 4   ; __off_1
+  local.set 5   ; __off_1
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
   call 3   ; std_core$finish_buffer
   call 9   ; std_io$println__string
   return.lit i32.const 0
@@ -369,7 +373,7 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
   return
 end
 
-fn 7 std_io$write (i32,string) -> void
+fn 7 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -427,7 +431,7 @@ fn 7 std_io$write (i32,string) -> void
   return
 end
 
-fn 8 std_io$write_bytes (i32,ref,usize) -> i32
+fn 8 std_io$write_bytes (u8,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0

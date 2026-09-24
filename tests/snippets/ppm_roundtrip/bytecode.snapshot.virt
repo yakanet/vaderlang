@@ -724,7 +724,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
   return
 end
 
-fn 10 std_io$write (i32,string) -> void
+fn 10 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -947,7 +947,7 @@ fn 12 std_io$last_io_error (string) -> ref
   return
 end
 
-fn 13 std_io$write_bytes (i32,ref,usize) -> i32
+fn 13 std_io$write_bytes (u8,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0

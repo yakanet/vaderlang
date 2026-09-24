@@ -11,7 +11,6 @@
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>
-  ArrayOps<T>
   IndexSet<I, T>
   Contains<T>
   Iterator<T>
@@ -23,3 +22,4 @@
   Range<T>
   Range<T>
   Range<T>
+  ArrayOps<T>

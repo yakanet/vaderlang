@@ -34,6 +34,30 @@
       "kind": "EnumDecl",
       "name": "Wide",
       "visibility": "private",
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "i32"
+        }
+      ],
+      "variants": [
+        {
+          "name": "A",
+          "value": null,
+          "data": null
+        },
+        {
+          "name": "B",
+          "value": null,
+          "data": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "EnumDecl",
+      "name": "Inferred",
+      "visibility": "private",
       "header": [],
       "variants": [
         {
@@ -190,6 +214,25 @@
                 {
                   "kind": "IdentExpr",
                   "name": "Wide"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "inferred"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntrinsicCallExpr",
+              "name": "size_of",
+              "args": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "Inferred"
                 }
               ]
             }
@@ -391,32 +434,40 @@
                                         "kind": "BinaryExpr",
                                         "op": "add",
                                         "left": {
-                                          "kind": "IdentExpr",
-                                          "name": "s8"
+                                          "kind": "BinaryExpr",
+                                          "op": "add",
+                                          "left": {
+                                            "kind": "IdentExpr",
+                                            "name": "s8"
+                                          },
+                                          "right": {
+                                            "kind": "IdentExpr",
+                                            "name": "s32"
+                                          }
                                         },
                                         "right": {
                                           "kind": "IdentExpr",
-                                          "name": "s32"
+                                          "name": "s64"
                                         }
                                       },
                                       "right": {
                                         "kind": "IdentExpr",
-                                        "name": "s64"
+                                        "name": "sstr"
                                       }
                                     },
                                     "right": {
                                       "kind": "IdentExpr",
-                                      "name": "sstr"
+                                      "name": "narrow"
                                     }
                                   },
                                   "right": {
                                     "kind": "IdentExpr",
-                                    "name": "narrow"
+                                    "name": "wide"
                                   }
                                 },
                                 "right": {
                                   "kind": "IdentExpr",
-                                  "name": "wide"
+                                  "name": "inferred"
                                 }
                               },
                               "right": {

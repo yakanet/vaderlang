@@ -33,8 +33,8 @@ static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
-static void std_io_write(int32_t l0, vader_string_t l1);
-static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2);
+static void std_io_write(uint8_t l0, vader_string_t l1);
+static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2);
@@ -360,7 +360,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     return (size_t) (int64_t) (l1 + l6);
 }
 
-static void std_io_write(int32_t l0, vader_string_t l1) {
+static void std_io_write(uint8_t l0, vader_string_t l1) {
     void* l2 = NULL;
     void* l6 = NULL;
     size_t l3, l4, l5, l7, l9;
@@ -411,7 +411,7 @@ static void std_io_write(int32_t l0, vader_string_t l1) {
     vader_gc_top = gc_frame.prev;
 }
 
-static int32_t std_io_write_bytes(int32_t l0, void* l1, size_t l2) {
+static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
     int32_t l3;
     ptrdiff_t t0;
     void** gc_raw_roots[1] = { &l1 };
@@ -436,7 +436,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_top = &gc_frame;
 #line 235 "lib/std/io/io.vader"
     l1 = concat_2(l0, 4u);
-    std_io_write(INT32_C(0), l1);
+    std_io_write((uint8_t) (int32_t) INT32_C(0), l1);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }

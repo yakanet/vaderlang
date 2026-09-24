@@ -21,7 +21,7 @@ type 18 union 13,19
 type 19 struct semver$RangeClause { terms:21 }
 type 20 union 13,21
 type 21 array 22
-type 22 struct semver$RangeTerm { op:1,version:3 }
+type 22 struct semver$RangeTerm { op:6,version:3 }
 type 23 union 13,24
 type 24 struct semver$PartialVersion { major:1,minor:1,patch:1,prerelease:2,build:2 }
 type 25 union 0,3
@@ -2786,7 +2786,7 @@ fn 24 semver$expand_xrange (ref) -> ref
   return
 end
 
-fn 25 semver$parse_comparator_token (i32,string) -> any
+fn 25 semver$parse_comparator_token (u8,string) -> any
   local __scrut_0 any
   local v any
   local $cast_10 ref
@@ -3607,7 +3607,7 @@ end
 fn 41 semver$term_satisfies (ref,ref) -> bool
   local $field_2 ref
   local cmp i32
-  local __scrut_0 i32
+  local __scrut_0 u8
   local.field 0 22 1   ; arg 0.version
   local.set 2   ; $field_2
   local.get 1   ; arg 1
@@ -4684,7 +4684,7 @@ fn 57 std_string$is_utf8_continuation (u8) -> bool
   return
 end
 
-fn 58 std_io$write (i32,string) -> void
+fn 58 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -4742,7 +4742,7 @@ fn 58 std_io$write (i32,string) -> void
   return
 end
 
-fn 59 std_io$write_bytes (i32,ref,usize) -> i32
+fn 59 std_io$write_bytes (u8,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0

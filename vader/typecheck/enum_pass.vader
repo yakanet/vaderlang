@@ -21,7 +21,8 @@ import "toolchain/span"
 
 /// Compute the canonical `name → value` map for `decl`. `repr` is the
 /// already-resolved backing type name (e.g. `"i32"`, `"u8"`) ; pass
-/// `"i32"` when the source omitted an explicit repr.
+/// `"i64"` when the source wrote none — the width is then inferred from
+/// the indices.
 ///
 /// Side effects : pushes T3030 (out-of-range) and T3031 (duplicate value)
 /// onto `diags`. The map still includes every variant even on error so

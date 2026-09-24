@@ -1271,21 +1271,18 @@ export build_enum_type :: fn(
     sym: Symbol, decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[]!,
 ) -> Type {
     header :: classify_enum_header(decl, resolved, diags)
-    data :: header.data
-    if data == null {
-        repr :: header.repr ?? "i32"
-        return EnumType { .symbol = sym, .repr = repr, .indices = resolve_enum_indices(decl, repr, diags) }
-    }
-    // Without a written width, an enum with data takes the narrowest one its
-    // values fit ; `i64` admits every value while they are collected.
+    // Without a written width, the enum takes the narrowest one its values
+    // fit ; `i64` admits every value while they are collected.
     indices :: resolve_enum_indices(decl, header.repr ?? "i64", diags)
     [lo, hi] :: index_bounds(indices)
-    check_data_range(decl, lo, hi, diags)
+    if header.data != null {
+        check_data_range(decl, lo, hi, diags)
+    }
     return EnumType {
         .symbol  = sym,
         .repr    = header.repr ?? narrowest_repr(lo, hi),
         .indices = indices,
-        .data    = data,
+        .data    = header.data,
     }
 }
 

@@ -11,7 +11,7 @@
                 l:
                   self :Direction
                 r:
-                  int(0) :i32
+                  int(0) :u8
             then:
               ~>
                 "N" :string
@@ -23,7 +23,7 @@
                       l:
                         self :Direction
                       r:
-                        int(1) :i32
+                        int(1) :u8
                   then:
                     ~>
                       "E" :string
@@ -35,7 +35,7 @@
                             l:
                               self :Direction
                             r:
-                              int(2) :i32
+                              int(2) :u8
                         then:
                           ~>
                             "S" :string
@@ -47,7 +47,7 @@
                                   l:
                                     self :Direction
                                   r:
-                                    int(3) :i32
+                                    int(3) :u8
                               then:
                                 ~>
                                   "W" :string
@@ -55,7 +55,7 @@
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn snippet$main() -> i32
-    let d: Direction = int(0) :i32
+    let d: Direction = int(0) :u8
     call :void
       callee:
         std_io$println__string :void
@@ -73,8 +73,8 @@
           callee:
             snippet$Direction$Display$to_string :string
           arg0:
-            int(1) :i32
-    let s: Direction = int(2) :i32
+            int(1) :u8
+    let s: Direction = int(2) :u8
     call :void
       callee:
         std_io$println__string :void

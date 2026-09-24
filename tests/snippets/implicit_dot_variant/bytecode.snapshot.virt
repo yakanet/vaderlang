@@ -1,17 +1,16 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
+type 1 primitive u8
 type 2 primitive string
-type 3 struct snippet$Some { value:1 }
-type 4 struct snippet$None {  }
-type 5 primitive u8
+type 3 primitive i32
+type 4 struct snippet$Some { value:3 }
+type 5 struct snippet$None {  }
 type 6 primitive usize
 type 7 struct std_core$Buffer {  }
 type 8 primitive i64
-type 9 array 5
+type 9 array 1
 type 10 primitive void
 type 11 primitive isize
-type 12 array 1
 string 0 "Mon"
 string 1 "Tue"
 string 2 "Wed"
@@ -20,11 +19,11 @@ string 4 "nothing"
 string 5 "\n"
 import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=1,9,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=3,9,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 7 ByteAccess
 export main 1
 
-fn 0 snippet$show_day (i32) -> string
+fn 0 snippet$show_day (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
@@ -66,7 +65,7 @@ fn 1 snippet$main () -> i32
   call 9   ; std_io$println__string
   i32.const 0
   i32.const 2
-  array.new 12 2   ; i32[][]
+  array.new 9 2   ; u8[][]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -80,7 +79,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 0   ; __for_arr_0
         local.get 2   ; __for_i_2
-        load_slot_i32
+        array.get 9   ; u8[][]
         call 0   ; snippet$show_day
         call 9   ; std_io$println__string
         local.get 2   ; __for_i_2
@@ -92,9 +91,9 @@ fn 1 snippet$main () -> i32
     end $L1
   end $L0
   i32.const 42
-  struct.new_stack 3   ; snippet$Some
+  struct.new_stack 4   ; snippet$Some
   local.tee 3   ; m
-  type_check 3   ; snippet$Some
+  type_check 4   ; snippet$Some
   if $L3 void
     i64.const 24
     call 3   ; std_core$new_byte_buffer
@@ -107,9 +106,9 @@ fn 1 snippet$main () -> i32
     call 5   ; std_core$write_string_at
     local.set 1   ; __for_len_1
     local.get 3   ; m
-    ref.cast 3   ; -> snippet$Some
-    struct.get 3 0   ; snippet$Some.value
-    ref.cast 1   ; -> i32
+    ref.cast 4   ; -> snippet$Some
+    struct.get 4 0   ; snippet$Some.value
+    ref.cast 3   ; -> i32
     i32.to_i64
     local.set 4   ; $cast_31
     local.get 0   ; __for_arr_0
@@ -123,7 +122,7 @@ fn 1 snippet$main () -> i32
     call 9   ; std_io$println__string
   else
     local.get 3   ; m
-    type_check 4   ; snippet$None
+    type_check 5   ; snippet$None
     if $L4 void
       string.const 4   ; "nothing"
       call 9   ; std_io$println__string
@@ -131,9 +130,9 @@ fn 1 snippet$main () -> i32
       return
     end $L4
   end $L3
-  struct.new_stack 4   ; snippet$None
+  struct.new_stack 5   ; snippet$None
   local.tee 3   ; m
-  type_check 3   ; snippet$Some
+  type_check 4   ; snippet$Some
   if $L5 void
     i64.const 24
     call 3   ; std_core$new_byte_buffer
@@ -146,9 +145,9 @@ fn 1 snippet$main () -> i32
     call 5   ; std_core$write_string_at
     local.set 1   ; __for_len_1
     local.get 3   ; m
-    ref.cast 3   ; -> snippet$Some
-    struct.get 3 0   ; snippet$Some.value
-    ref.cast 1   ; -> i32
+    ref.cast 4   ; -> snippet$Some
+    struct.get 4 0   ; snippet$Some.value
+    ref.cast 3   ; -> i32
     i32.to_i64
     local.set 4   ; $cast_31
     local.get 0   ; __for_arr_0
@@ -162,7 +161,7 @@ fn 1 snippet$main () -> i32
     call 9   ; std_io$println__string
   else
     local.get 3   ; m
-    type_check 4   ; snippet$None
+    type_check 5   ; snippet$None
     if $L6 void
       string.const 4   ; "nothing"
       call 9   ; std_io$println__string
@@ -343,7 +342,7 @@ fn 6 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 7 std_io$write (i32,string) -> void
+fn 7 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -401,7 +400,7 @@ fn 7 std_io$write (i32,string) -> void
   return
 end
 
-fn 8 std_io$write_bytes (i32,ref,usize) -> i32
+fn 8 std_io$write_bytes (u8,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0

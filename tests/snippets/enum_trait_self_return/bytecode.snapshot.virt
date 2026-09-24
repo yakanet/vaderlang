@@ -1,10 +1,10 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
+type 1 primitive u8
 type 2 primitive string
-type 3 primitive u8
+type 3 primitive i32
 type 4 primitive usize
-type 5 array 3
+type 5 array 1
 type 6 struct std_core$Buffer {  }
 type 7 primitive void
 type 8 primitive isize
@@ -15,12 +15,12 @@ string 3 "W"
 string 4 "\n"
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,5,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=3,5,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 6 ByteAccess
 export main 3
 
-fn 0 snippet$Direction$Turnable$turn_left (i32) -> i32
-  local if_res i32
+fn 0 snippet$Direction$Turnable$turn_left (u8) -> u8
+  local if_res u8
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -58,8 +58,8 @@ fn 0 snippet$Direction$Turnable$turn_left (i32) -> i32
   return
 end
 
-fn 1 snippet$Direction$Turnable$turn_right (i32) -> i32
-  local if_res i32
+fn 1 snippet$Direction$Turnable$turn_right (u8) -> u8
+  local if_res u8
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -97,7 +97,7 @@ fn 1 snippet$Direction$Turnable$turn_right (i32) -> i32
   return
 end
 
-fn 2 snippet$Direction$Display$to_string (i32) -> string
+fn 2 snippet$Direction$Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
@@ -137,7 +137,7 @@ fn 2 snippet$Direction$Display$to_string (i32) -> string
 end
 
 fn 3 snippet$main () -> i32
-  local d i32
+  local d u8
   i32.const 0
   local.tee 0   ; d
   call 2   ; snippet$Direction$Display$to_string
@@ -182,7 +182,7 @@ fn 4 concat_2 (string,string) -> string
   return
 end
 
-fn 5 std_io$write (i32,string) -> void
+fn 5 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -240,7 +240,7 @@ fn 5 std_io$write (i32,string) -> void
   return
 end
 
-fn 6 std_io$write_bytes (i32,ref,usize) -> i32
+fn 6 std_io$write_bytes (u8,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0

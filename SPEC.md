@@ -1131,10 +1131,10 @@ Match on an enum scrutinee is **exhaustive**: every variant must appear as an ar
 
 ##### Backing type
 
-By default, variants are stored as `i32`. An optional `(type)` suffix selects any integer backing type:
+Without a written width, an enum takes the **narrowest integer its variant values fit**: unsigned when none is negative (`u8`, then `u16`, `u32`, `u64`), signed otherwise (`i8` … `i64`). `Direction :: enum { North, South, East, West }` is therefore a `u8`. An optional `(type)` suffix pins the width instead:
 
 ```vader
-Direction :: enum(u8) {
+Direction :: enum(i32) {
     North,
     South,
     East,
@@ -1142,7 +1142,7 @@ Direction :: enum(u8) {
 }
 ```
 
-Allowed backing types: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, plus the word-width `isize` / `usize` (range-checked as `i64` / `u64`). Omitting the suffix is equivalent to `enum(i32)`.
+Allowed backing types: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, plus the word-width `isize` / `usize` (range-checked as `i64` / `u64`). An inferred width is not an ABI promise — adding a 257th variant widens a `u8` enum to `u16` — so an enum whose layout matters outside the program (a wire protocol, a file format) pins its width.
 
 ##### Variant indices
 

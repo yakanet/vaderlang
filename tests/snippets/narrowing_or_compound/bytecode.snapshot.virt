@@ -451,7 +451,7 @@ fn 10 std_core$write_bool (ref,usize,bool) -> usize
   return
 end
 
-fn 11 std_io$write (i32,string) -> void
+fn 11 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -509,7 +509,7 @@ fn 11 std_io$write (i32,string) -> void
   return
 end
 
-fn 12 std_io$write_bytes (i32,ref,usize) -> i32
+fn 12 std_io$write_bytes (u8,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
