@@ -124,6 +124,9 @@ export TypecheckCode :: enum(u8) {
     CannotDestructure,                  // T3081
     InvalidAssignTarget,                // T3082
     BodyFallsOffEnd,                    // T3083
+    EnumDataNotStruct,                  // T3084
+    VariantDataWithoutEnumData,         // T3085
+    EnumDataRangeTooWide,               // T3086
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -259,6 +262,9 @@ export LowerCode :: enum(u8) {
     // former meaning ; not reused.
     AwaitInShortCircuit,                    // M5009
     ComptimeForNotUnrollable,               // M5010
+    // Stands until the lowerer reads variant data ; the typechecker already
+    // accepts `v.field` and `Data(v)`.
+    EnumVariantDataNotLowered,              // M5011
 }
 
 // `WARNING` — non-fatal diagnostics. New entries appended ; retired IDs are free
@@ -501,6 +507,7 @@ export lower_info :: fn(c: LowerCode) = match c {
     .UnresolvedIdent                    -> CodeInfo { .id = "M5007", .message = "identifier did not resolve at lowering" }
     .AwaitInShortCircuit                -> CodeInfo { .id = "M5009", .message = "`await` in a short-circuit operand or loop condition is not yet supported" }
     .ComptimeForNotUnrollable           -> CodeInfo { .id = "M5010", .message = "`@comptime for` cannot be unrolled" }
+    .EnumVariantDataNotLowered          -> CodeInfo { .id = "M5011", .message = "enum variant data is not lowered yet" }
 }
 
 export typecheck_info :: fn(c: TypecheckCode) = match c {
@@ -577,6 +584,9 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .CannotDestructure                  -> CodeInfo { .id = "T3081", .message = "value cannot be destructured into this many elements" }
     .InvalidAssignTarget                -> CodeInfo { .id = "T3082", .message = "not an assignment target" }
     .BodyFallsOffEnd                    -> CodeInfo { .id = "T3083", .message = "not every path through the body returns a value" }
+    .EnumDataNotStruct                  -> CodeInfo { .id = "T3084", .message = "enum variant data must be a struct" }
+    .VariantDataWithoutEnumData         -> CodeInfo { .id = "T3085", .message = "variant data on an enum whose header declares none" }
+    .EnumDataRangeTooWide               -> CodeInfo { .id = "T3086", .message = "enum with variant data spans too many values" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

@@ -30,10 +30,13 @@ export StructType :: struct {
 
 export EnumType :: struct {
     symbol:  Symbol
-    /// Backing integer type. Default `"i32"` ; set from `EnumDecl.repr`.
+    /// Backing integer type : written in the header, else inferred.
     repr:    string
     /// Variant indices keyed by name. Resolved by `declare_enum`.
     indices: MutableMap<string, i64>
+    /// The struct each variant carries a constant value of, from the header ;
+    /// null for an enum without variant data.
+    data:    StructType | null = null
 }
 
 /// Distinct (newtype) over a primitive — nominal at typecheck, but its
@@ -376,8 +379,6 @@ export mk_struct :: fn(symbol: Symbol, args: Type[], immutable: bool) -> Type =
     StructType { .symbol = symbol, .args = args, .immutable = immutable }
 
 export mk_trait :: fn(symbol: Symbol, args: Type[]) -> Type = TraitType { .symbol = symbol, .args = args }
-
-export mk_enum :: fn(symbol: Symbol, repr: string, indices: MutableMap<string, i64>) -> Type = EnumType { .symbol = symbol, .repr = repr, .indices = indices }
 
 /// Distinct (newtype) over `backing` — see `DistinctType`. `backing` must be
 /// a `PrimitiveType` ; callers (the resolver) guarantee this in v1.

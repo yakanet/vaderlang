@@ -163,7 +163,7 @@ walk_decl :: fn(self: ResolveState!, d: AST.Decl) -> void {
         is AST.ImportDecl    -> {}
         is AST.FnDecl        -> { self.walk_fn_decl(d) }
         is AST.StructDecl    -> { self.walk_struct_decl(d) }
-        is AST.EnumDecl      -> { self.reject_variant_data(d) }
+        is AST.EnumDecl      -> { self.walk_enum_decl(d) }
         is AST.TraitDecl     -> { self.walk_trait_decl(d) }
         is AST.ImplDecl      -> { self.walk_impl_decl(d) }
         is AST.TypeAliasDecl -> {
@@ -184,19 +184,13 @@ walk_decl :: fn(self: ResolveState!, d: AST.Decl) -> void {
     }
 }
 
-// Variant data parses but is not checked or lowered yet : stop at the resolver
-// rather than let a later pass meet a shape it does not handle. A lone header
-// argument cannot be told apart from a width before types resolve ; the
-// typechecker's width check reports it.
-reject_variant_data :: fn(self: ResolveState!, d: AST.EnumDecl) -> void {
-    span: Span | null = if d.header.len() == 2 { d.header[0].span } else { null }
+walk_enum_decl :: fn(self: ResolveState!, d: AST.EnumDecl) -> void {
+    self.walk_decorators(d.decorators)
+    for h in d.header { self.walk_expr(h) }
     for v in d.variants {
-        if span == null && v.data !is null {
-            span = v.span
+        if v.data !is null {
+            self.walk_struct_lit_items(v.data)
         }
-    }
-    if span != null {
-        self.diags.push(resolver_error(.FeatureNotYetImplemented, span, "enum variant data"))
     }
 }
 
@@ -806,10 +800,15 @@ walk_lambda :: fn(self: ResolveState!, l: AST.LambdaExpr) -> void {
 
 walk_struct_lit :: fn(self: ResolveState!, s: AST.StructLitExpr) -> void {
     self.walk_expr(s.type_name)
-    for it in s.items {
-        match it {
-            is AST.StructLitField -> { self.walk_expr(it.value) }
-            is AST.StructLitSpread -> { self.walk_expr(it.expr) }
+    self.walk_struct_lit_items(s.items)
+}
+
+walk_struct_lit_items :: fn(self: ResolveState!, items: AST.StructLitItem[]) -> void {
+    for it in items {
+        if it is AST.StructLitField {
+            self.walk_expr(it.value)
+        } else {
+            self.walk_expr(it.expr)
         }
     }
 }

@@ -39,6 +39,7 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     // Undecidable operands (an earlier error, an unbound type param, a metatype)
     // opt out — never pile a T3010 on top of a cascade.
     if not_decidable(src) || not_decidable(target) { return true }
+    if enum_data_of(src, target) != null { return true }
     // The `Convert` op domain — numeric / char / enum conversions (`usize(i32)`,
     // `f64(u64)`, `u8(char)`, `i32(enum)`) and distinct newtype construct / unwrap
     // (`BlockId(-1)`, `i32(blockId)`). These are cheap tag-test gates and cover
@@ -63,6 +64,17 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     into_impl :: typed.impl_methods["${display_type_key(src)}::into::${display_type_key(target)}"]
     if into_impl !is null && into_impl.ty is FnType { return true }
     return false
+}
+
+/// The data `src` carries when it is an enum whose header declares `target` as
+/// its variant data (`Info(variant)`) ; null otherwise. Compared by shape : the
+/// data is read-only, whatever the written target says.
+export enum_data_of :: fn(src: Type, target: Type) -> StructType | null {
+    if src is EnumType {
+        data :: src.data ?? return null
+        if is_assignable(data, strip_mutability(target)) { return data }
+    }
+    return null
 }
 
 /// Whether `t` is the opaque foreign pointer `CPointer`.

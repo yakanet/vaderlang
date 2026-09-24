@@ -139,7 +139,7 @@ lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> Lo
 // FieldExpr's target is an IdentExpr resolving to an enum symbol +
 // the field name matches a variant. Returns null when either check
 // fails ; caller falls back to a regular field-access lowering.
-try_lower_enum_field :: fn(ctx: FnLowerCtx, expr: FieldExpr, type: Type) -> LoweredExpr | null {
+try_lower_enum_field :: fn(ctx: FnLowerCtx!, expr: FieldExpr, type: Type) -> LoweredExpr | null {
     // Fold only when the target's type is an enum AND the target syntactically
     // NAMES that enum (not a runtime enum-valued expression) : a bare ident
     // (`Enum.Variant`) or a namespace member (`alias.Enum.Variant`, the receiver
@@ -149,8 +149,11 @@ try_lower_enum_field :: fn(ctx: FnLowerCtx, expr: FieldExpr, type: Type) -> Lowe
     target_type :: ctx.types.expr_type(expr.target)
     enum_type :: enum_type_or_unwrap(ctx, target_type)
     if enum_type is EnumType {
-        if !target_is_enum_name(ctx, expr.target) { return null }
         index :: enum_type.indices[expr.field]
+        if index == null && enum_type.data != null {
+            return refuse_enum_data(ctx, expr.span, type)
+        }
+        if !target_is_enum_name(ctx, expr.target) { return null }
         if index is i64 {
             return LoweredIntLit {
                 .span = expr.span, .type = mk_primitive(enum_type.repr), .value = index,
@@ -158,6 +161,17 @@ try_lower_enum_field :: fn(ctx: FnLowerCtx, expr: FieldExpr, type: Type) -> Lowe
         }
     }
     return null
+}
+
+/// Report M5011 for a read of enum variant data — `v.field` or `Data(v)` —
+/// which type-checks but does not lower yet.
+///
+/// @param span  the read.
+/// @param type  the read's checked type, carried by the stub.
+/// @return      a stub standing for the value.
+export refuse_enum_data :: fn(ctx: FnLowerCtx!, span: Span, type: Type) -> LoweredExpr {
+    ctx.project.diags.push(lower_error(.EnumVariantDataNotLowered, span, ""))
+    return stub(span, type, "enum variant data")
 }
 
 // True when `target` syntactically names an enum TYPE (not a runtime value) :

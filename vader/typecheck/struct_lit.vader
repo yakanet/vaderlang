@@ -23,7 +23,7 @@ export infer_struct_lit :: fn(
     // against the backing, return the distinct `Color` (not the raw `Rgb`).
     st_backing :: struct_backing(ty)
     if st_backing != null {
-        check_struct_body(e, st_backing, typed, diags, check_expr_fn)
+        check_struct_items(e.items, e.span, st_backing, typed, diags, check_expr_fn)
         return ty
     }
     diags.push(typecheck_error(.TypeMismatch, e.type_name.span,
@@ -33,14 +33,24 @@ export infer_struct_lit :: fn(
     return ty
 }
 
-check_struct_body :: fn(
-    e: AST.StructLitExpr!, st: StructType, typed: TypedProgram!, diags: Diagnostic[]!,
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+/// Type-check the items of a struct literal against `st` : each field
+/// against its declared type, each spread against `st`, then T3037 for a
+/// required field nothing provides.
+///
+/// @param items          the literal's entries, as written.
+/// @param span           where T3037 points — the literal, or the enum
+///                       variant that carries these items.
+/// @param st             the struct the items build.
+/// @param check_expr_fn  the expression checker the caller runs under.
+/// @return               `st`.
+export check_struct_items :: fn(
+    items: AST.StructLitItem![], span: Span, st: StructType, typed: TypedProgram!,
+    diags: Diagnostic[]!, check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     decl :: typed.struct_decls[st.symbol.id]
     provided: string[]!: []
     has_spread := false
-    for item in e.items {
+    for item in items {
         match item {
             is AST.StructLitSpread -> {
                 has_spread = true
@@ -62,7 +72,7 @@ check_struct_body :: fn(
     // T3037 — required fields without defaults must be provided when no
     // `...spread` covers them.
     if decl is AST.StructDecl {
-        if !has_spread { check_missing_fields(e, st, decl, provided, diags) }
+        if !has_spread { check_missing_fields(span, st, decl, provided, diags) }
     }
     return st
 }
@@ -108,7 +118,7 @@ check_field :: fn(
 
 
 check_missing_fields :: fn(
-    e: AST.StructLitExpr, st: StructType, decl: AST.StructDecl,
+    span: Span, st: StructType, decl: AST.StructDecl,
     provided: string[], diags: Diagnostic[]!,
 ) -> void {
     missing: string[]!: []
@@ -120,7 +130,7 @@ check_missing_fields :: fn(
     if missing.len() == 0 { return }
     label := "fields"
     if missing.len() == 1 { label = "field" }
-    diags.push(typecheck_error(.MissingRequiredFieldInStructLit, e.span,
+    diags.push(typecheck_error(.MissingRequiredFieldInStructLit, span,
         "missing required ${label} on ${display_type(st)}: ${missing.join(", ")}"))
 }
 

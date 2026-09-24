@@ -1,0 +1,22 @@
+// M5011 — reading enum variant data type-checks, but the lowerer does not
+// compile it yet : every read below passes the typechecker and stops here —
+// `direct` too, whose variant literal lowers to a bare index.
+
+module "snippet"
+
+Info :: struct {
+    code: i32
+}
+
+Status :: enum(Info) {
+    Ok { .code = 200 },
+    NotFound { .code = 404 },
+}
+
+code_of :: fn(s: Status) -> i32 = s.code
+
+info_of :: fn(s: Status) -> Info = Info(s)
+
+direct :: fn() -> i32 = Info(Status.Ok).code
+
+main :: fn() -> i32 = code_of(.Ok) + info_of(.NotFound).code + direct()

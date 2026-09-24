@@ -1207,9 +1207,7 @@ broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram!>, projec
             for decl in file.program.decls {
                 if decl is AST.EnumDecl {
                     sym :: by_name[decl.name] ?? continue
-                    repr :: resolve_repr(decl, typed.resolved, diag_sink())
-                    indices :: resolve_enum_indices(decl, repr, diag_sink())
-                    collected[sym.id] = mk_enum(sym, repr, indices)
+                    collected[sym.id] = build_enum_type(sym, decl, typed.resolved, diag_sink())
                 }
             }
         }
@@ -2085,7 +2083,7 @@ export walk_bodies :: fn(
                     walk_fn_body(m, typed, diags, mode)
                 }
             }
-            is AST.EnumDecl      -> {}
+            is AST.EnumDecl      -> { check_variant_data(decl, typed, diags, check_expr) }
             is AST.TraitDecl     -> {}
             is AST.TypeAliasDecl -> {}
             is AST.ImportDecl    -> {}

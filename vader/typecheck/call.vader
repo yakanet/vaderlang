@@ -689,6 +689,11 @@ export infer_call :: fn(
     if callee_ty is TypeMetaType {
         return cast_call_target(c, typed, diags, check_expr_fn)
     }
+    // `Info(v)` : a struct's name called on one value converts it, the same
+    // cast as above for a name that types as a struct rather than a metatype.
+    if callee_ty is StructType && c.args.len() == 1 && names_symbol_of_kind(c.callee, .Struct, typed) {
+        return cast_call_target(c, typed, diags, check_expr_fn)
+    }
     // Unresolved callee : upstream error already reported, fall through
     // to keep checking args (drives narrowing in their inner literals).
     if callee_ty is UnresolvedType {
@@ -978,8 +983,9 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram!) -> void {
 
 /// `T(x)` where `T` is a type-name — the call-syntax cast (the parser emits a
 /// `CallExpr` here, not a `CastExpr`). Type-checks the value and returns the
-/// target type, emitting T3010 for an illegal conversion via the shared
-/// `cast_allowed` gate (same as `expr_cast.vader::infer_cast`).
+/// target type — the read-only data itself for `Data(variant)` — emitting
+/// T3010 for an illegal conversion via the shared `cast_allowed` gate (same as
+/// `expr_cast.vader::infer_cast`).
 ///
 /// @error T3010 when a `(value → target)` pair is not a legal conversion
 ///        (`i32("hello")`, `bool(someStruct)`).
@@ -990,12 +996,17 @@ cast_call_target :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     target :: type_from_expr(c.callee, typed.resolved, diags)
+    result: Type = target
     // Pass the cast target as expected for each arg so a Free* literal
     // (or `-Free*` unary) narrows into the target's primitive shape —
     // `i64(-250)` types the `-250` as `i64`, not `{integer}`.
     for arg in c.args {
         src :: check_expr_fn(arg.value, target, typed, diags)
-        if !cast_allowed(src, target, typed) {
+        // Variant data is constant : reading it hands back a read-only value.
+        data :: enum_data_of(src, target)
+        if data != null {
+            result = data
+        } else if !cast_allowed(src, target, typed) {
             diags.push(
                 typecheck_error(
                     .InvalidCast,
@@ -1005,7 +1016,7 @@ cast_call_target :: fn(
             )
         }
     }
-    return target
+    return result
 }
 
 /// T3006 enforcement : for every `T: Trait` bound on the callee's

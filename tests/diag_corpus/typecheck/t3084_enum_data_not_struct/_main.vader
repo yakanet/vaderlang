@@ -1,0 +1,25 @@
+// T3084 — the data an enum's variants carry must be a struct.
+//
+// A lone header argument is the width when it resolves to an integer (a
+// distinct over one included) and the data when it is a struct ; the quiet
+// declarations below cover each accepted shape, so a regression shows up as a
+// new line.
+
+module "snippet"
+
+Info :: struct {
+    code: i32
+}
+
+Byte :: u8
+
+// Data first, width second : the first argument is not a struct.
+Listed :: enum(i32[], u8) { A }
+
+// Quiet — a width, a distinct width, data, and data with a width.
+Plain :: enum(u16) { A }
+Narrow :: enum(Byte) { A }
+Carried :: enum(Info) { A { .code = 1 } }
+Pinned :: enum(Info, u8) { A { .code = 1 } }
+
+main :: fn() -> i32 = i32(Listed.A) + i32(Plain.A) + i32(Narrow.A) + i32(Carried.A) + i32(Pinned.A)

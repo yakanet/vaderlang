@@ -1,0 +1,11 @@
+// T3085 — a variant carries a `{ .f = v }` block, but the enum's header names
+// no data struct for it to build.
+
+module "snippet"
+
+Shape :: enum(u8) {
+    Circle { .radius = 1 },
+    Square,
+}
+
+main :: fn() -> i32 = i32(Shape.Square)

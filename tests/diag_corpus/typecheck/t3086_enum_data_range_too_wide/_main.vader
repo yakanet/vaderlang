@@ -1,0 +1,22 @@
+// T3086 — an enum with variant data keeps one table slot per value between its
+// smallest and largest ordinal, so that span is capped at 4096.
+//
+// `Fits` spans exactly 4096 values and stays quiet ; `Sparse` spans 5001.
+
+module "snippet"
+
+Info :: struct {
+    label: string
+}
+
+Fits :: enum(Info) {
+    First { .label = "first" } = 0,
+    Last { .label = "last" } = 4095,
+}
+
+Sparse :: enum(Info) {
+    Low { .label = "low" } = 0,
+    High { .label = "high" } = 5000,
+}
+
+main :: fn() -> i32 = i32(Fits.Last) + i32(Sparse.High)

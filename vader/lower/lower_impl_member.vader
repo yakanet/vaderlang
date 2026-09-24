@@ -322,8 +322,13 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
     if call.args.len() != 1 { return null }
     callee_ident :: as_ident(call.callee) ?? return null
     callee_symbol :: ctx.typed.resolved.idents[callee_ident.span.hash()] ?? return null
+    // Follow an import binding first : a renamed import (`{ Info as I }`) and a
+    // cross-module distinct both carry their kind and their `alias_types` entry
+    // on the DEFINING symbol, not on the binding.
+    type_redir :: ctx.typed.resolved.imports_to[callee_symbol.id]
+    type_sym :: if type_redir is null { callee_symbol } else { type_redir }
     // @partial: only type-introducing symbol kinds are type-shaped callees; the rest are not.
-    is_type_shaped :: @partial match callee_symbol.kind {
+    is_type_shaped :: @partial match type_sym.kind {
         .BuiltinType -> true
         .Struct      -> true
         .TypeAlias   -> true
@@ -333,10 +338,6 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
     // ConstDecl, so its symbol kind is `.Const` — but it resolves into
     // `alias_types`. Recognise such a type-valued const as a cast/wrap callee
     // too (without this, `Foo(x)` / `Instant(x)` lowers to a bogus call).
-    // Follow an import binding first : a cross-module distinct lives in
-    // `alias_types` under its DEFINING symbol's id, not the import binding's.
-    type_redir :: ctx.typed.resolved.imports_to[callee_symbol.id]
-    type_sym :: if type_redir is null { callee_symbol } else { type_redir }
     is_type_const :: !(ctx.typed.resolved.alias_types[type_sym.id] is null)
     if !is_type_shaped && !is_type_const { return null }
     return emit_value_cast(ctx, call, type)
@@ -347,6 +348,11 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
 /// (`nsM.T(value)` in `try_lower_namespace_call`). The caller has already
 /// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
 emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
+    // The checked type, not the lowered one : a variant literal lowers to its
+    // bare index and no longer says it is an enum.
+    if enum_data_of(ctx.types.expr_type(call.args[0].value), type) != null {
+        return refuse_enum_data(ctx, call.span, type)
+    }
     arg :: lower_expr(ctx, call.args[0].value)
     arg_type :: type_of(arg)
     // `Target(value)` probes for `value : Source` where

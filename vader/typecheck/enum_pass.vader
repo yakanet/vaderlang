@@ -5,10 +5,10 @@
 // (starting at 0). Range checking against the repr's `[min, max]` bounds
 // and duplicate-value detection emit T3030 / T3031.
 //
-// Repr resolution (`null` → `i32`, or evaluating an explicit TypeExpr)
-// is handled by `decl.vader`'s `resolve_repr` (via `type_from_expr`).
-// This file handles only what needs no type-expression machinery — the
-// resolved repr is passed in as a string.
+// The header's resolution is `decl.vader`'s `build_enum_type` (via
+// `type_from_expr`). This file handles only what needs no type-expression
+// machinery : the indices, the narrowest width they fit, and the span an
+// enum with variant data may cover.
 
 module "vader/typecheck"
 
@@ -65,6 +65,99 @@ find_owner :: fn(out: MutableMap<string, i64>, target: i64) -> string {
         if v == target { return k }
     }
     return "?"
+}
+
+// ---- inferred width and data range ----------------------------------------
+
+/// Most values an enum with variant data may span : its data is a table with
+/// one slot per value between the smallest and the largest.
+export ENUM_DATA_MAX_SLOTS: i64: 4096
+
+/// The narrowest integer holding every index in `[lo, hi]` : unsigned when
+/// none is negative.
+export narrowest_repr :: fn(lo: i64, hi: i64) -> string {
+    candidates :: if lo >= 0 { ["u8", "u16", "u32"] } else { ["i8", "i16", "i32"] }
+    for name in candidates {
+        range :: repr_range(name)
+        if range.contains(lo) && range.contains(hi) {
+            return name
+        }
+    }
+    // The 64-bit width holds every index the parser can carry.
+    return if lo >= 0 { "u64" } else { "i64" }
+}
+
+/// Report T3086 when the indices `[lo, hi]` of an enum with variant data span
+/// more than `ENUM_DATA_MAX_SLOTS` values.
+export check_data_range :: fn(decl: EnumDecl, lo: i64, hi: i64, diags: Diagnostic[]!) -> void {
+    if span_fits(lo, hi) {
+        return
+    }
+    diags.push(typecheck_error(.EnumDataRangeTooWide, decl.name_span,
+        "values ${lo} to ${hi}, at most ${ENUM_DATA_MAX_SLOTS} ; carry the value in a field instead"))
+}
+
+// `hi - lo < ENUM_DATA_MAX_SLOTS`, without overflowing : bounds of the same
+// sign subtract safely, and bounds of opposite signs are only compared once
+// each is known to lie within the cap of zero.
+span_fits :: fn(lo: i64, hi: i64) -> bool {
+    if lo < 0 && hi >= 0 && (lo <= -ENUM_DATA_MAX_SLOTS || hi >= ENUM_DATA_MAX_SLOTS) {
+        return false
+    }
+    return hi - lo < ENUM_DATA_MAX_SLOTS
+}
+
+/// `[smallest, largest]` index ; `[0, 0]` for an enum without variants.
+export index_bounds :: fn(indices: MutableMap<string, i64>) -> [i64, i64] {
+    lo: i64 = 0
+    hi: i64 = 0
+    first := true
+    for [_, v] in indices {
+        if first || v < lo {
+            lo = v
+        }
+        if first || v > hi {
+            hi = v
+        }
+        first = false
+    }
+    return [lo, hi]
+}
+
+// ---- variant data -----------------------------------------------------------
+
+/// Type-check each variant's `{ .f = v }` block against the data struct the
+/// enum's header declares, exactly as a struct literal of that struct.
+///
+/// @param decl           the enum declaration.
+/// @param check_expr_fn  the expression checker the body walk runs under.
+/// @error                T3085 for a block on an enum whose header declares no
+///                       data ; T3037 for a variant, with or without a block,
+///                       that leaves a required field unset.
+export check_variant_data :: fn(
+    decl: EnumDecl, typed: TypedProgram!, diags: Diagnostic[]!,
+    check_expr_fn: fn(Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> void {
+    data :: declared_enum_data(decl, typed)
+    if data == null {
+        for v in decl.variants {
+            if v.data !is null {
+                diags.push(typecheck_error(.VariantDataWithoutEnumData, v.span, "`${v.name}`"))
+            }
+        }
+        return
+    }
+    for v in decl.variants {
+        items: StructLitItem![]: v.data ?? []
+        check_struct_items(items, v.span, data, typed, diags, check_expr_fn)
+    }
+}
+
+// The data struct `build_enum_type` recorded for `decl` ; null when it has none.
+declared_enum_data :: fn(decl: EnumDecl, typed: TypedProgram) -> StructType | null {
+    sym :: lookup_sym_by_name(typed.resolved, decl.name) ?? return null
+    t :: typed.decl_types[sym.id] ?? return null
+    return if t is EnumType { t.data } else { null }
 }
 
 // ---- repr ranges ----------------------------------------------------------

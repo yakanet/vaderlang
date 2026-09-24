@@ -1071,10 +1071,8 @@ declare_enum :: fn(
     diags: Diagnostic[]!,
 ) -> void {
     sym :: by_name[decl.name]
-    repr :: resolve_repr(decl, resolved, diags)
-    indices :: resolve_enum_indices(decl, repr, diags)
     if sym is Symbol {
-        enum_type :: mk_enum(sym, repr, indices)
+        enum_type :: build_enum_type(sym, decl, resolved, diags)
         typed.decl_types[sym.id] = enum_type
         resolved.alias_types[sym.id] = enum_type
     }
@@ -1260,28 +1258,72 @@ lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | nul
 
 // ---- helpers --------------------------------------------------------------
 
-resolve_repr :: fn(
-    decl: AST.EnumDecl,
-    resolved: ResolvedModule,
-    diags: Diagnostic[]!,
-) -> string {
-    // The width is the header's last argument. Variant data is not checked
-    // yet, so a lone data type is reported here as a non-integer width.
+/// Build the `EnumType` of `decl` : classify its header once the types
+/// resolve, settle the variant indices, then the backing width.
+///
+/// @param sym       the enum's symbol.
+/// @param decl      the declaration as parsed.
+/// @param resolved  the module's resolution, for the header's type names.
+/// @param diags     receives T3029, T3030, T3031, T3084 and T3086.
+/// @return          the enum type ; a malformed header still yields one,
+///                  backed by `i32`, so the rest of the module keeps checking.
+export build_enum_type :: fn(
+    sym: Symbol, decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[]!,
+) -> Type {
+    header :: classify_enum_header(decl, resolved, diags)
+    data :: header.data
+    if data == null {
+        repr :: header.repr ?? "i32"
+        return EnumType { .symbol = sym, .repr = repr, .indices = resolve_enum_indices(decl, repr, diags) }
+    }
+    // Without a written width, an enum with data takes the narrowest one its
+    // values fit ; `i64` admits every value while they are collected.
+    indices :: resolve_enum_indices(decl, header.repr ?? "i64", diags)
+    [lo, hi] :: index_bounds(indices)
+    check_data_range(decl, lo, hi, diags)
+    return EnumType {
+        .symbol  = sym,
+        .repr    = header.repr ?? narrowest_repr(lo, hi),
+        .indices = indices,
+        .data    = data,
+    }
+}
+
+// The header's two roles once resolved ; null when the header leaves it out.
+EnumHeader :: struct {
+    repr: string | null = null
+    data: StructType | null = null
+}
+
+// A lone argument is the data when it is a struct and the width otherwise ;
+// two arguments are `(data, width)`.
+classify_enum_header :: fn(decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[]!) -> EnumHeader {
     if decl.header.len() == 0 {
-        return "i32"
+        return EnumHeader {}
     }
-    repr :: decl.header[decl.header.len() - 1]
-    repr_ty :: type_from_expr(repr, resolved, diags)
-    if repr_ty is PrimitiveType {
-        if is_int_name(repr_ty.name) {
-            return repr_ty.name
+    // The data is constant : read-only, like any written type.
+    first :: apply_readonly_default(type_from_expr(decl.header[0], resolved, diags), decl.header[0])
+    if decl.header.len() == 1 {
+        if first is StructType {
+            return EnumHeader { .data = first }
         }
-        diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span, "got ${repr_ty.name}"))
-        return "i32"
+        return EnumHeader { .repr = enum_width(first, decl.header[0], diags) }
     }
-    diags.push(
-        typecheck_error(.EnumReprMustBePrimitiveInt, repr.span, "got ${display_type(repr_ty)}"),
-    )
+    data :: if first is StructType { first } else { null }
+    if data == null {
+        diags.push(typecheck_error(.EnumDataNotStruct, decl.header[0].span, "got ${display_type(first)}"))
+    }
+    width :: type_from_expr(decl.header[1], resolved, diags)
+    return EnumHeader { .repr = enum_width(width, decl.header[1], diags), .data = data }
+}
+
+// The integer a width names — directly, or through a distinct over one.
+enum_width :: fn(ty: Type, written: AST.TypeExpr, diags: Diagnostic[]!) -> string {
+    backing :: strip_distinct(ty)
+    if backing is PrimitiveType && is_int_name(backing.name) {
+        return backing.name
+    }
+    diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, written.span, "got ${display_type(ty)}"))
     return "i32"
 }
 
