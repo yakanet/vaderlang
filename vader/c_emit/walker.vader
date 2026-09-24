@@ -322,8 +322,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     // during the walk (materialisation), and their declarations belong in
     // the prelude *above* the body. After the walk, assemble
     // signature → local decls → temp decls → frame → body.
-    body :: StringBuilder {}
-    s :: new_fn_state(ctx, function, body)
+    s :: new_fn_state(ctx, function)
     s.no_frame = no_frame
     s.scopes = precompute_scopes(function)
     bt :: precompute_branch_targets(function, s.scopes)
@@ -345,7 +344,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
             dbg :: function.debug[i]
             if dbg != null {
                 if dbg.line != last_line || dbg.file != last_file {
-                    body.append("#line ${dbg.line} ${c_string_lit(dbg.file)}\n")
+                    directive(s, "#line ${dbg.line} ${c_string_lit(dbg.file)}")
                     last_line = dbg.line
                     last_file = dbg.file
                 }
@@ -372,7 +371,9 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     // frame and GC-root set. This compacts `s.tmp_types` and rewrites the body
     // text so `tN` names its assigned slot ; the decl emitters below then see
     // the reduced set. See `coalesce.vader`.
-    coalesced :: coalesce_temps("${body}", s.tmp_types)
+    body :: StringBuilder {}
+    print_block(body, s.blocks[0], 1)
+    coalesced :: coalesce_temps(body.to_string(), s.tmp_types)
     s.tmp_types = coalesced.types
     // GC roots : ref-typed params, then locals + temps (collected by the
     // decl emitters). Order is irrelevant to the GC scan. `no_frame` fns

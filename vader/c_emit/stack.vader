@@ -88,7 +88,10 @@ StackStorage :: struct {
 FnState :: struct {
     ctx:      EmitCtx
     function: BcFunction
-    out:      StringBuilder
+    /// The blocks the walk is inside, outermost first : the function body,
+    /// then one per open brace. Statements go to the last ; `print_block`
+    /// writes the first once the walk is done.
+    blocks:   CBlock![]!
     /// Virtual operand stack — the top of stack is the last element.
     stack:    StackVal[]!
     /// ValType of each materialised temp `tN` (index = N). Drives the
@@ -100,11 +103,6 @@ FnState :: struct {
     /// Monotone `_aN` scratch allocator for struct storage / call args.
     /// Never recycled, so it can't collide with a reused name.
     aux_counter: i32
-    /// Current C indent depth in 4-space units. Level 1 is the function
-    /// body top (matching the historical hard-coded 4-space prefix), so
-    /// straight-line bodies stay byte-identical ; control flow pushes /
-    /// pops levels.
-    indent: i32
     /// Precomputed structured-control scopes (block / loop / if), keyed by
     /// opener pc. Drives the `if` / `else` / `end` close labels and the
     /// `br` / `br_if` goto-target resolution. See `precompute_scopes`.
@@ -183,15 +181,14 @@ FnState :: struct {
     end_label_owner: MutableMap<i32, i32>
 }
 
-/// Fresh state for `function`, emitting into `out`.
-new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> FnState! = FnState {
+/// Fresh state for walking `function` into a statement tree.
+new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState! = FnState {
     .ctx = ctx,
     .function = function,
-    .out = out,
+    .blocks = [CBlock { .body = [] }],
     .stack = [],
     .tmp_types = [],
     .aux_counter = 0,
-    .indent = 1,
     .scopes = [],
     .continue_targets = [],
     .break_targets = [],
@@ -207,24 +204,26 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
 
 // ---- indented output ------------------------------------------------------
 
-/// Append one C statement line (with trailing newline) at the state's
-/// current indent — `s.indent` 4-space units, then `code`. Replaces the
-/// old hard-coded `"    "` prefixes so nested control flow lands at the
-/// right column ; level 1 (the function-body top) reproduces that prefix
-/// byte-for-byte.
+/// Append one C statement to the block the walk is in ; `print_block` gives it
+/// the block's indentation.
 line :: fn(s: FnState!, code: string) -> void {
     flush_pending_else(s)
-    s.out.append_repeated(' ', s.indent * 4)
-    s.out.append(code)
-    s.out.append("\n")
+    append_statement(s, CLine { .text = code })
     s.ends_with_return = false
+}
+
+/// Append a `#line` directive : column 0, not a statement.
+directive :: fn(s: FnState!, text: string) -> void = append_statement(s, CDirective { .text = text })
+
+append_statement :: fn(s: FnState!, statement: CStmt) -> void {
+    s.blocks[s.blocks.len() - 1].body.push(statement)
 }
 
 /// `line` for a statement that leaves the function : it records whether the
 /// body now ends on it (see `FnState.ends_with_return`).
 return_line :: fn(s: FnState!, code: string) -> void {
     line(s, code)
-    s.ends_with_return = s.indent == 1
+    s.ends_with_return = s.blocks.len() == 1
 }
 
 /// Write the `} else {` a pending `else` held back, and open its arm.
@@ -233,16 +232,24 @@ flush_pending_else :: fn(s: FnState!) -> void {
         return
     }
     s.pending_else = false
-    s.out.append_repeated(' ', s.indent * 4)
-    s.out.append("} else {\n")
+    append_statement(s, CLine { .text = "} else {" })
     indent_push(s)
 }
 
 /// Open one nesting level — call right after emitting the opening brace.
-indent_push :: fn(s: FnState!) -> void { s.indent = s.indent + 1 }
+indent_push :: fn(s: FnState!) -> void {
+    block :: CBlock { .body = [] }
+    // The parent and `s.blocks` hold the SAME block : statements pushed while
+    // it is open land in the tree. `CBlock` must stay a reference type.
+    append_statement(s, block)
+    s.blocks.push(block)
+}
 
 /// Close one nesting level — call right before emitting the closing brace.
-indent_pop :: fn(s: FnState!) -> void { s.indent = s.indent - 1 }
+indent_pop :: fn(s: FnState!) -> void {
+    s.blocks.remove_last()
+    return
+}
 
 /// Push a pure literal — inlined at the consumer, no temp line emitted.
 push_lit :: fn(s: FnState!, val: ValType, text: string) -> void {

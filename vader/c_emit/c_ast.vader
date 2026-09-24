@@ -1,0 +1,75 @@
+// vader/c_emit/c_ast — the statement tree a C function body is built as.
+//
+// The walker (`walker.vader`, through `stack.vader::line`) no longer writes a
+// body's text as it goes : it appends statements to the block it is in, and
+// `print_block` writes the whole tree once the walk is done. A nested block is
+// a node of its own, so its depth is structural — the printer derives the
+// indentation, 4 spaces per level, instead of every emission site carrying it.
+//
+// A statement's text is still C : this is the first level of the tree, and
+// expressions stay strings until they get nodes of their own.
+
+module "vader/c_emit"
+
+import "std/string_builder"
+
+/// One statement of a C function body.
+CStmt :: CLine | CDirective | CBlock
+
+/// A statement written on one line at its block's depth.
+CLine :: struct {
+    text: string
+}
+
+/// A preprocessor line (`#line`), written at column 0.
+CDirective :: struct {
+    text: string
+}
+
+/// A nested block. Its statements are written one level deeper than the lines
+/// around it, which carry its braces.
+CBlock :: struct {
+    body: CStmt[]!
+}
+
+/// Write `block`'s statements, one per line, `depth` levels deep.
+///
+/// @param out    receives the text.
+/// @param block  the statements to write.
+/// @param depth  the indentation level of `block`'s own lines.
+print_block :: fn(out: StringBuilder!, block: CBlock, depth: i32) -> void {
+    for statement in block.body {
+        match statement {
+            is CLine -> {
+                out.append_repeated(' ', depth * 4)
+                out.append(statement.text)
+                out.append("\n")
+            }
+            is CDirective -> {
+                out.append(statement.text)
+                out.append("\n")
+            }
+            is CBlock -> print_block(out, statement, depth + 1)
+        }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_print_block_indents_nested_blocks :: fn() -> void {
+    inner :: CBlock { .body = [CLine { .text = "x = 1;" }] }
+    root :: CBlock {
+        .body = [
+            CLine { .text = "if (a) {" },
+            inner,
+            CDirective { .text = "#line 3 \"f.vader\"" },
+            CLine { .text = "}" },
+        ],
+    }
+    out :: StringBuilder {}
+    print_block(out, root, 1)
+    assert_eq(out.to_string(), "    if (a) {\n        x = 1;\n#line 3 \"f.vader\"\n    }\n")
+}
