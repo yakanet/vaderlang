@@ -85,7 +85,13 @@ write_top_level :: fn(out: StringBuilder!, item: CTopLevel) -> void {
             "typedef ${item.result} (*${item.name})(${item.parameters});\n",
         )
         is CFunction               -> write_function(out, item)
-        is CRawText                -> out.append(item.text)
+        is CStaticAssert           -> {
+            out.append("_Static_assert(")
+            write_expression(out, item.condition)
+            out.append(", ")
+            write_expression(out, item.message)
+            out.append(");\n")
+        }
     }
 }
 
@@ -239,6 +245,12 @@ write_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
             out.append("(")
             write_list(out, expression.arguments)
             out.append(")")
+        }
+        is CCastToTypeOf    -> {
+            out.append("(__typeof__(")
+            write_expression(out, expression.model)
+            out.append(")) ")
+            write_operand(out, expression.value, CAST_PRECEDENCE)
         }
         is CCast            -> {
             for type in expression.types {

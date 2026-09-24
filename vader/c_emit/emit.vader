@@ -1398,14 +1398,11 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[]! {
     takes_argv :: function.signature.params.len() == 1
     // Atom table init must precede any string interning. `atexit`
     // handlers fire LIFO, so atom shutdown runs after gc shutdown.
-    body: CStatement[]!: [
-        CExpressionStatement {
-            .expression = call(
-                "vader_atom_init_with_comptime",
-                [verbatim("vader_atom_comptime_table"), verbatim("VADER_COMPTIME_ATOM_COUNT")],
-            ),
-        },
+    atom_table: CExpression[]: [
+        verbatim("vader_atom_comptime_table"),
+        verbatim("VADER_COMPTIME_ATOM_COUNT"),
     ]
+    body: CStatement[]!: [perform("vader_atom_init_with_comptime", atom_table)]
     // Before any Vader code runs, so the very first collection already sees them.
     // The frame becomes the BASE of the chain: every later frame links onto it and
     // nothing ever pops below it.
@@ -1417,19 +1414,11 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[]! {
                 .value = address_of(verbatim("vader_global_const_frame")),
             },
         )
-        body.push(CExpressionStatement {
-            .expression = call(
-                "vader_atom_roots_register",
-                [verbatim("vader_global_const_arrays"), unsigned(i64(root_count))],
-            ),
-        })
+        roots: CExpression[]: [verbatim("vader_global_const_arrays"), unsigned(i64(root_count))]
+        body.push(perform("vader_atom_roots_register", roots))
     }
-    body.push(
-        CExpressionStatement { .expression = call("atexit", [verbatim("vader_atom_shutdown")]) },
-    )
-    body.push(
-        CExpressionStatement { .expression = call("atexit", [verbatim("vader_gc_shutdown")]) },
-    )
+    body.push(perform("atexit", [verbatim("vader_atom_shutdown")]))
+    body.push(perform("atexit", [verbatim("vader_gc_shutdown")]))
 
     arguments: CExpression[]!: []
     if takes_argv {
@@ -1437,12 +1426,7 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[]! {
         array_tag :: ctx.string_array_tag
         if string_tag < 0 || array_tag < 0 {
             body.push_all(unused_arguments)
-            body.push(CExpressionStatement {
-                .expression = call(
-                    "vader_trap",
-                    [verbatim(c_string_lit("main(argv): missing [string] type"))],
-                ),
-            })
+            body.push(trap("main(argv): missing [string] type"))
             body.push(CReturn { .value = number(1) })
             return body
         }

@@ -154,6 +154,7 @@ export CExpression :: CTemporary
              | CNumber
              | CCall
              | CCast
+             | CCastToTypeOf
              | CBinary
              | CUnary
              | CAddressOf
@@ -262,6 +263,14 @@ export CBinaryOperator :: enum(COperatorInfo) {
     BitOr          { .spelling = "|", .precedence = 3 },
     LogicalAnd     { .spelling = "&&", .precedence = 2 },
     LogicalOr      { .spelling = "||", .precedence = 1 },
+}
+
+/// `(__typeof__(model)) value` — `value` converted to the type of another
+/// expression, for a member whose C type only the header knows. `model` is
+/// never evaluated, so it reads no local and no temporary.
+export CCastToTypeOf :: struct {
+    model: CExpression
+    value: CExpression
 }
 
 /// `left operator right` ; the printer parenthesises an operand C would
@@ -393,6 +402,21 @@ export ZERO :: CNumber { .value = 0, .unsigned = true }
 /// The null pointer, `NULL`.
 export NULL_POINTER :: CVerbatim { .text = "NULL" }
 
+/// `callee(arguments…);`.
+///
+/// @param callee     the function called for its effect.
+/// @param arguments  its arguments, left to right.
+export perform :: fn(callee: string, arguments: CExpression[]) -> CStatement =
+    CExpressionStatement { .expression = call(callee, arguments) }
+
+/// `return callee(arguments…);`.
+///
+/// @param callee     the function whose result is returned.
+/// @param arguments  its arguments, left to right.
+export returning :: fn(callee: string, arguments: CExpression[]) -> CStatement = CReturn {
+    .value = call(callee, arguments),
+}
+
 /// The statement that restores the caller's GC frame.
 export FRAME_RESTORE :: CAssign {
     .target = CVerbatim { .text = "vader_gc_top" },
@@ -474,7 +498,7 @@ export CTopLevel :: CComment
            | CPrototype
            | CFunctionPointerTypedef
            | CFunction
-           | CRawText
+           | CStaticAssert
 
 /// `/* … */` — one line per entry.
 export CComment :: struct {
@@ -548,10 +572,11 @@ export CFunctionPointerTypedef :: struct {
     parameters: string
 }
 
-/// C source kept as text while its emitter is not built as a tree yet ; it
-/// holds no operand.
-export CRawText :: struct {
-    text: string
+/// `_Static_assert(condition, message);` — a check `cc` spends at build time.
+export CStaticAssert :: struct {
+    condition: CExpression
+    /// The message, a string literal.
+    message: CStringLiterals
 }
 
 // ---- queries ------------------------------------------------------------
@@ -575,6 +600,7 @@ export mentions_local :: fn(expression: CExpression, slot: i32) -> bool = match 
     is CTemporary | CVerbatim | CIntegerLiteral -> false
     is CCall                                    -> any_mentions_local(expression.arguments, slot)
     is CCast                                    -> mentions_local(expression.value, slot)
+    is CCastToTypeOf                            -> mentions_local(expression.value, slot)
     is CBinary                                  -> mentions_local(expression.left, slot) || mentions_local(
         expression.right,
         slot,
@@ -614,6 +640,9 @@ export same_expression :: fn(a: CExpression, b: CExpression) -> bool = match a {
         a.arguments,
         b.arguments,
     )
+    is CCastToTypeOf    -> {
+        b is CCastToTypeOf && same_expression(a.model, b.model) && same_expression(a.value, b.value)
+    }
     is CCast            -> b is CCast && same_strings(a.types, b.types) && same_expression(
         a.value,
         b.value,

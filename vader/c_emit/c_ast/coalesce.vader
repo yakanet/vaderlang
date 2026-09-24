@@ -218,6 +218,7 @@ scan_expression :: fn(expression: CExpression, usage: TemporaryUsage!) -> void {
             }
         }
         is CCast                                -> scan_expression(expression.value, usage)
+        is CCastToTypeOf                        -> scan_expression(expression.value, usage)
         is CBinary                              -> {
             scan_expression(expression.left, usage)
             scan_expression(expression.right, usage)
@@ -323,11 +324,13 @@ TestBody :: struct {
 test_body :: fn(count: i32, second: ValType) -> TestBody {
     temporaries: CTemporary![]!: []
     for id in 0..<count {
-        temporaries.push(CTemporary { .id = id, .val = if id == 1 {
-            second
-        } else {
-            .Ref
-        } })
+        temporaries.push(
+            CTemporary { .id = id, .val = if id == 1 {
+                second
+            } else {
+                .Ref
+            } },
+        )
     }
     return TestBody { .temporaries = temporaries, .root = CBlock { .body = [] } }
 }

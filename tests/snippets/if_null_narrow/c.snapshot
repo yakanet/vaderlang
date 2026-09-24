@@ -106,9 +106,16 @@ const size_t vader_type_info_count = 12;
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
 
-static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
-static void* vader_host_std_core_bytes(vader_string_t a0) { return (void*) vader_string_bytes_view(a0, 8u, 6u); }
-static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) { vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1); return write(a0, s1.ptr, a2); }
+static size_t vader_host_std_core_byte_len(vader_string_t a0) {
+    return vader_string_byte_len(a0);
+}
+static void* vader_host_std_core_bytes(vader_string_t a0) {
+    return (void*) vader_string_bytes_view(a0, 8u, 6u);
+}
+static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) {
+    vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
+    return write(a0, s1.ptr, a2);
+}
 
 static vader_string_t snippet_greet(vader_box_t l0) {
     vader_string_t l1 = 0;

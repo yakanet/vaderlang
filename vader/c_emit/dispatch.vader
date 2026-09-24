@@ -159,7 +159,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
                     },
                 ]
             }
-            cases.push(CCase { .value = verbatim("${e.receiver_type_index}u"), .body = body })
+            cases.push(CCase { .value = unsigned(i64(e.receiver_type_index)), .body = body })
         }
         miss :: CExpressionStatement {
             .expression = call(
