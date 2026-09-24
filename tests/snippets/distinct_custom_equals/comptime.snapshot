@@ -1,0 +1,27 @@
+# Comptime
+
+## tests/snippets/distinct_custom_equals
+  @comptime  Path                 = string
+
+## generic instances
+  __genstate_array_iter<T>
+  ArrayOps<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<char>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Async<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>

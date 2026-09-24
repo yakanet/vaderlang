@@ -159,8 +159,8 @@ format_param_payload :: fn(payload: string) -> string {
     pb :: payload.bytes()
     n :: pb.len()
     if n == 0 { return payload }
-    space :: ' '
-    tab   :: '\t'
+    space: u8: ' '
+    tab:   u8: '\t'
     i: usize = 0
     for i < n {
         b :: pb[i]

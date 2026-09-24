@@ -1,0 +1,38 @@
+# Typecheck
+
+## tests/snippets/distinct_custom_equals
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Path                 :: type
+  expr 11281:2  UnaryExpr      :: bool
+  expr 11281:3  CallExpr       :: bool
+  expr 11281:4  FieldExpr      :: fn(Path) -> bool
+  expr 11281:5  IdentExpr      :: Path
+  expr 11281:7  IdentExpr      :: Path
+  expr 12:47    BinaryExpr     :: bool
+  expr 12:47    CallExpr       :: string
+  expr 12:47    CallExpr       :: string
+  expr 12:47    FieldExpr      :: fn() -> string
+  expr 12:47    IdentExpr      :: type
+  expr 12:54    IdentExpr      :: Path
+  expr 12:74    CallExpr       :: string
+  expr 12:74    CallExpr       :: string
+  expr 12:74    FieldExpr      :: fn() -> string
+  expr 12:74    IdentExpr      :: type
+  expr 12:81    IdentExpr      :: Path
+  expr 16:10    CallExpr       :: Path
+  expr 16:10    IdentExpr      :: type
+  expr 16:15    StringLitExpr  :: string
+  expr 17:13    StringLitExpr  :: string
+  expr 17:33    BinaryExpr     :: bool
+  expr 17:33    IdentExpr      :: Path
+  expr 17:38    CallExpr       :: Path
+  expr 17:38    IdentExpr      :: type
+  expr 17:43    StringLitExpr  :: string
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 18:13    StringLitExpr  :: string
+  expr 18:33    BinaryExpr     :: bool
+  expr 18:33    IdentExpr      :: Path
+  expr 18:38    StringLitExpr  :: string
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void

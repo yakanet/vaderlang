@@ -823,6 +823,16 @@ export tuple_backing :: fn(t: Type) -> TupleType | null {
     return null
 }
 
+/// The primitive `t` is represented as — `t` itself when it's a primitive, or
+/// the primitive a distinct newtype wraps, through any number of distinct
+/// layers (`Handle :: CPointer` → `CPointer`). `null` for anything else. What
+/// `==` compares two scalars by.
+export scalar_backing :: fn(t: Type) -> PrimitiveType | null {
+    if t is PrimitiveType { return t }
+    if t is DistinctType { return scalar_backing(t.backing) }
+    return null
+}
+
 /// Map `strip_distinct` over a type-arg list. Always returns a fresh array
 /// with each element passed through `strip_distinct`.
 /// @param args  the concrete type arguments.

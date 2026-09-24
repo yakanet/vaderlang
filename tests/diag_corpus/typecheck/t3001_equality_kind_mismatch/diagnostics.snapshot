@@ -1,0 +1,4 @@
+[5:1] warning[W0007]
+[7:1] warning[W0007]
+[9:1] warning[W0007]
+[9:39] error[T3001]

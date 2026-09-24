@@ -92,7 +92,7 @@ path_string_range :: fn(imp: ImportDecl, source: string, li: LineIndex) -> SpanR
     sb :: source.bytes()
     n :: sb.len()
     start_off :: imp.span.start.offset
-    quote :: '"'
+    quote: u8: '"'
     q := start_off
     found := false
     for i in start_off..<n {

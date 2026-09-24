@@ -480,6 +480,19 @@ check_equality :: fn(
         numeric_result(e, left, right, diags)
         return TY_BOOL
     }
+    // Two scalars compare by REPRESENTATION : a distinct type stands for its
+    // backing, so `path == ""` (a `Path` over `string`) holds, and
+    // `h == INVALID_HANDLE` (a `Handle` over `CPointer`, against an `isize`)
+    // does not. The detail names the written types, not the backings.
+    left_scalar  :: scalar_backing(left)
+    right_scalar :: scalar_backing(right)
+    if left_scalar != null && right_scalar != null {
+        if left_scalar.name != right_scalar.name {
+            diags.push(typecheck_error(.TypeMismatch, e.span,
+                "expected ${display_type(left)}, got ${display_type(right)}"))
+        }
+        return TY_BOOL
+    }
     // A tuple's `==` compares its ELEMENTS (`lower/lower_tuple_eq.vader`), so it is
     // exactly as comparable as they are, and the rewrite is unconditional:
     // anything this gate lets through must have a working `==` at every position.
@@ -1082,6 +1095,44 @@ test_equality_width_mismatch_emits_T3017 :: fn() -> void {
         }
     }
     assert(found, "expected T3017 for `u32 == i32` (mixed width equality)")
+}
+
+// `==` compares scalars by representation : a distinct type stands for its
+// backing, and two different representations are T3001.
+equality_diags :: fn(src: string) -> Diagnostic[] {
+    eb :: expect_binary(src)
+    diags: Diagnostic[]!: []
+    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
+    return diags
+}
+
+@test
+test_equality_pointer_against_int_is_T3001 :: fn() -> void {
+    src :: "f :: fn(p: CPointer, v: isize) -> bool { return p == v }"
+    assert(has_code(equality_diags(src), "T3001"), "CPointer == isize")
+}
+
+@test
+test_equality_distinct_over_other_kind_is_T3001 :: fn() -> void {
+    src :: "Handle :: CPointer\nf :: fn(h: Handle, v: isize) -> bool { return h == v }"
+    assert(has_code(equality_diags(src), "T3001"), "Handle == isize compares CPointer with isize")
+}
+
+@test
+test_equality_byte_against_char_is_T3001 :: fn() -> void {
+    src :: "f :: fn(b: u8, c: char) -> bool { return b == c }"
+    assert(has_code(equality_diags(src), "T3001"), "u8 == char")
+}
+
+@test
+test_equality_distinct_against_own_backing_ok :: fn() -> void {
+    src :: "Path :: string\nf :: fn(p: Path, s: string) -> bool { return p == s }"
+    assert_eq(equality_diags(src).len(), 0)
+}
+
+@test
+test_equality_byte_against_char_literal_ok :: fn() -> void {
+    assert_eq(equality_diags("f :: fn(b: u8) -> bool { return b == '/' }").len(), 0)
 }
 
 @test

@@ -1,0 +1,20 @@
+module "snippet"
+
+import "std/io"
+import "std/string"
+
+// A distinct type's own `Equals` impl is what `==` runs — against the same type
+// and against its backing alike. Case-insensitive here, so the built-in string
+// equality would answer `false` on both lines.
+Path :: string
+
+Path implements Equals {
+    equals :: fn(self, other: Self) -> bool = string(self).to_lower() == string(other).to_lower()
+}
+
+main :: fn() -> i32 {
+    a :: Path("README")
+    println("path == path   : ${a == Path("readme")}")
+    println("path == string : ${a == "readme"}")
+    return 0
+}
