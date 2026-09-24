@@ -17,15 +17,46 @@ print_block :: fn(out: StringBuilder!, block: CBlock, depth: i32) -> void =
     print_statements(out, block.body, 0, block.body.len(), depth)
 
 // `statements[from..<to]`, `depth` levels deep.
-print_statements :: fn(out: StringBuilder!, statements: CStmt[], from: usize, to: usize, depth: i32) -> void {
+print_statements :: fn(out: StringBuilder!, statements: CStatement[], from: usize, to: usize, depth: i32) -> void {
     for k in from..<to {
         statement :: statements[k]
         match statement {
-            is CLine      -> print_line(out, statement.text, depth)
-            is CDirective -> print_directive(out, statement.text)
-            is CIf        -> print_if(out, statement, depth)
-            is CReturn    -> print_return(out, statement, depth)
-            is CScope     -> {
+            is CLine                -> print_line(out, statement.text, depth)
+            is CDirective           -> print_directive(out, statement.text)
+            is CAssign              -> {
+                indent(out, depth)
+                print_assign(out, statement)
+                out.append("\n")
+            }
+            is CExpressionStatement -> {
+                indent(out, depth)
+                print_expression(out, statement.expression)
+                out.append(if statement.terminated { ";\n" } else { "\n" })
+            }
+            is CDeclaration         -> {
+                indent(out, depth)
+                out.append(statement.type)
+                out.append(" ")
+                out.append(statement.name)
+                out.append(" = ")
+                print_expression(out, statement.value)
+                out.append(";\n")
+            }
+            is CIf                  -> print_if(out, statement, depth)
+            is CReturn              -> print_return(out, statement, depth)
+            is CGoto                -> {
+                indent(out, depth)
+                condition :: statement.condition
+                if condition != null {
+                    out.append("if (")
+                    print_expression(out, condition)
+                    out.append(") ")
+                }
+                out.append("goto ")
+                out.append(statement.label)
+                out.append(";\n")
+            }
+            is CScope               -> {
                 print_line(out, statement.head, depth)
                 print_block(out, statement.body, depth + 1)
                 print_closer(out, statement.end_label, depth)
@@ -35,7 +66,7 @@ print_statements :: fn(out: StringBuilder!, statements: CStmt[], from: usize, to
 }
 
 print_if :: fn(out: StringBuilder!, node: CIf, depth: i32) -> void {
-    print_line(out, "if (${node.condition}) {", depth)
+    print_if_head(out, "if (", node.condition, depth)
     print_block(out, node.then_block, depth + 1)
     print_else_chain(out, node, node.end_label, depth)
 }
@@ -58,7 +89,7 @@ print_else_chain :: fn(out: StringBuilder!, node: CIf, label: string, depth: i32
     print_statements(out, body, 0, start, depth)
     inner :: if end == start + 1 { body[start] } else { null }
     if inner is CIf && (label == "" || inner.end_label == "") {
-        print_line(out, "} else if (${inner.condition}) {", depth)
+        print_if_head(out, "} else if (", inner.condition, depth)
         print_block(out, inner.then_block, depth + 1)
         print_else_chain(out, inner, if label != "" { label } else { inner.end_label }, depth)
         print_statements(out, body, end, body.len(), depth)
@@ -69,6 +100,106 @@ print_else_chain :: fn(out: StringBuilder!, node: CIf, label: string, depth: i32
     print_closer(out, label, depth)
 }
 
+// ---- expressions ----------------------------------------------------------
+
+/// `expression` as C text.
+///
+/// @param expression  the expression to spell.
+text_of :: fn(expression: CExpression) -> string {
+    out :: StringBuilder {}
+    print_expression(out, expression)
+    return out.to_string()
+}
+
+print_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
+    match expression {
+        is CTemporary      -> {
+            out.append("t")
+            out.append("${if expression.slot >= 0 { expression.slot } else { expression.id }}")
+        }
+        is CLocal          -> {
+            out.append("l")
+            out.append("${expression.slot}")
+        }
+        is CVerbatim       -> out.append(expression.text)
+        is CIntegerLiteral -> print_integer_literal(out, expression)
+        is CCall           -> {
+            out.append(expression.callee)
+            out.append("(")
+            for k in 0..<expression.arguments.len() {
+                if k > 0 {
+                    out.append(", ")
+                }
+                print_expression(out, expression.arguments[k])
+            }
+            out.append(")")
+        }
+        is CCast           -> {
+            for type in expression.types {
+                out.append("(")
+                out.append(type)
+                out.append(")")
+            }
+            out.append(" ")
+            print_expression(out, expression.value)
+        }
+        is CBinary         -> {
+            print_expression(out, expression.left)
+            out.append(" ")
+            out.append(expression.operator)
+            out.append(" ")
+            print_expression(out, expression.right)
+        }
+        is CUnary          -> {
+            out.append(expression.operator)
+            out.append("(")
+            print_expression(out, expression.operand)
+            out.append(")")
+        }
+        is CParenthesized  -> {
+            out.append("(")
+            print_expression(out, expression.inner)
+            out.append(")")
+        }
+        is CMember         -> {
+            print_expression(out, expression.base)
+            out.append(if expression.arrow { "->" } else { "." })
+            out.append(expression.member)
+        }
+        is CIndex          -> {
+            print_expression(out, expression.base)
+            out.append("[")
+            print_expression(out, expression.index)
+            out.append("]")
+        }
+        is CConditional    -> {
+            print_expression(out, expression.condition)
+            out.append(" ? ")
+            print_expression(out, expression.then_value)
+            out.append(" : ")
+            print_expression(out, expression.else_value)
+        }
+        is CSequence       -> {
+            for part in expression.parts {
+                print_expression(out, part)
+            }
+        }
+    }
+}
+
+print_integer_literal :: fn(out: StringBuilder!, literal: CIntegerLiteral) -> void {
+    wide :: literal.class == .I64
+    if is_most_negative(literal) {
+        out.append(if wide { "INT64_MIN" } else { "INT32_MIN" })
+    } else {
+        out.append(if wide { "INT64_C(" } else { "INT32_C(" })
+        out.append("${literal.value}")
+        out.append(")")
+    }
+}
+
+// ---- statements -----------------------------------------------------------
+
 /// The statement that restores the caller's GC frame.
 FRAME_RESTORE :: "vader_gc_top = gc_frame.prev;"
 
@@ -76,38 +207,60 @@ FRAME_RESTORE :: "vader_gc_top = gc_frame.prev;"
 // is read before `vader_gc_top` moves, through the `__vret` snapshot when the
 // value may read a frame-pinned local.
 print_return :: fn(out: StringBuilder!, node: CReturn, depth: i32) -> void {
-    out.append_repeated(' ', depth * 4)
+    indent(out, depth)
     if node.pops_frame {
         out.append("{ ")
     }
     for store in node.stores {
-        out.append(store)
+        print_assign(out, store)
+        out.append(" ")
+    }
+    snapshot :: node.pops_frame && node.snapshot_type != ""
+    value :: node.value
+    if snapshot && value != null {
+        out.append(node.snapshot_type)
+        out.append(" __vret = ")
+        print_expression(out, value)
         out.append("; ")
     }
-    result := node.value
     if node.pops_frame {
-        if node.snapshot_type != "" {
-            out.append(node.snapshot_type)
-            out.append(" __vret = ")
-            out.append(node.value)
-            out.append("; ")
-            result = "__vret"
-        }
         out.append(FRAME_RESTORE)
         out.append(" ")
     }
-    if result == "" {
+    if value == null {
         out.append("return;")
     } else {
         out.append("return ")
-        out.append(result)
+        if snapshot {
+            out.append("__vret")
+        } else {
+            print_expression(out, value)
+        }
         out.append(";")
     }
     out.append(if node.pops_frame { " }\n" } else { "\n" })
 }
 
+// `opening condition) {` on its own line.
+print_if_head :: fn(out: StringBuilder!, opening: string, condition: CExpression, depth: i32) -> void {
+    indent(out, depth)
+    out.append(opening)
+    print_expression(out, condition)
+    out.append(") {\n")
+}
+
+// `target = value;`, without indentation or newline.
+print_assign :: fn(out: StringBuilder!, node: CAssign) -> void {
+    print_expression(out, node.target)
+    out.append(" = ")
+    print_expression(out, node.value)
+    out.append(";")
+}
+
+indent :: fn(out: StringBuilder!, depth: i32) -> void = out.append_repeated(' ', depth * 4)
+
 print_line :: fn(out: StringBuilder!, text: string, depth: i32) -> void {
-    out.append_repeated(' ', depth * 4)
+    indent(out, depth)
     out.append(text)
     out.append("\n")
 }
@@ -129,7 +282,7 @@ import "std/testing"
 test_print_block_indents_an_if :: fn() -> void {
     root :: CBlock {
         .body = [
-            CIf { .condition = "a", .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] } },
+            CIf { .condition = verbatim("a"), .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] } },
         ],
     }
     out :: StringBuilder {}
@@ -139,16 +292,16 @@ test_print_block_indents_an_if :: fn() -> void {
 
 @test
 test_print_block_folds_an_else_if_chain :: fn() -> void {
-    innermost :: CIf { .condition = "c", .then_block = CBlock { .body = [CLine { .text = "x = 3;" }] } }
+    innermost :: CIf { .condition = verbatim("c"), .then_block = CBlock { .body = [CLine { .text = "x = 3;" }] } }
     inner :: CIf {
-        .condition  = "b",
+        .condition  = verbatim("b"),
         .then_block = CBlock { .body = [CLine { .text = "x = 2;" }] },
         .else_block = CBlock { .body = [innermost] },
     }
     root :: CBlock {
         .body = [
             CIf {
-                .condition  = "a",
+                .condition  = verbatim("a"),
                 .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] },
                 .else_block = CBlock { .body = [CDirective { .text = "#line 4 \"f.vader\"" }, inner] },
             },
@@ -174,12 +327,12 @@ test_print_block_keeps_an_arm_with_two_statements :: fn() -> void {
     root :: CBlock {
         .body = [
             CIf {
-                .condition  = "a",
+                .condition  = verbatim("a"),
                 .then_block = CBlock { .body = [] },
                 .else_block = CBlock {
                     .body = [
                         CLine { .text = "t0 = f();" },
-                        CIf { .condition = "t0", .then_block = CBlock { .body = [] } },
+                        CIf { .condition = verbatim("t0"), .then_block = CBlock { .body = [] } },
                     ],
                 },
             },
@@ -192,11 +345,11 @@ test_print_block_keeps_an_arm_with_two_statements :: fn() -> void {
 
 @test
 test_print_block_keeps_both_labels_apart :: fn() -> void {
-    inner :: CIf { .condition = "b", .then_block = CBlock { .body = [] }, .end_label = "end_7: ;" }
+    inner :: CIf { .condition = verbatim("b"), .then_block = CBlock { .body = [] }, .end_label = "end_7: ;" }
     root :: CBlock {
         .body = [
             CIf {
-                .condition  = "a",
+                .condition  = verbatim("a"),
                 .then_block = CBlock { .body = [] },
                 .else_block = CBlock { .body = [inner] },
                 .end_label  = "end_3: ;",
@@ -211,14 +364,14 @@ test_print_block_keeps_both_labels_apart :: fn() -> void {
 @test
 test_print_block_writes_trailing_directives_below_the_closer :: fn() -> void {
     inner :: CIf {
-        .condition  = "b",
+        .condition  = verbatim("b"),
         .then_block = CBlock { .body = [] },
         .else_block = CBlock { .body = [CLine { .text = "x = 2;" }, CDirective { .text = "#line 9" }] },
     }
     root :: CBlock {
         .body = [
             CIf {
-                .condition  = "a",
+                .condition  = verbatim("a"),
                 .then_block = CBlock { .body = [] },
                 .else_block = CBlock { .body = [inner, CDirective { .text = "#line 8" }] },
             },
@@ -238,16 +391,19 @@ test_print_block_writes_trailing_directives_below_the_closer :: fn() -> void {
     ].join("\n"))
 }
 
+// `*out<index> = l<slot>`.
+store :: fn(index: i32, slot: i32) = CAssign { .target = verbatim("*out${index}"), .value = CLocal { .slot = slot } }
+
 @test
 test_print_block_spells_every_return :: fn() -> void {
     root :: CBlock {
         .body = [
-            CReturn { .pops_frame = false },
-            CReturn { .value = "l0", .pops_frame = false },
-            CReturn { .stores = ["*out0 = l1"], .pops_frame = false },
+            CReturn {},
+            CReturn { .value = CLocal { .slot = 0 } },
+            CReturn { .stores = [store(0, 1)] },
             CReturn { .pops_frame = true },
-            CReturn { .value = "l0", .snapshot_type = "int32_t", .pops_frame = true },
-            CReturn { .stores = ["*out0 = l1", "*out1 = l2"], .pops_frame = true },
+            CReturn { .value = CLocal { .slot = 0 }, .snapshot_type = "int32_t", .pops_frame = true },
+            CReturn { .stores = [store(0, 1), store(1, 2)], .pops_frame = true },
         ],
     }
     out :: StringBuilder {}
@@ -261,4 +417,23 @@ test_print_block_spells_every_return :: fn() -> void {
         "{ *out0 = l1; *out1 = l2; vader_gc_top = gc_frame.prev; return; }",
         "",
     ].join("\n"))
+}
+
+@test
+test_text_of_spells_every_expression :: fn() -> void {
+    value :: CMember { .base = CTemporary { .id = 3, .val = .Any }, .member = "payload.i" }
+    call :: CCall {
+        .callee    = "vader_box_i32",
+        .arguments = [verbatim("7u"), CCast { .types = ["int32_t", "uint32_t"], .value = CLocal { .slot = 2 } }],
+    }
+    sum :: CParenthesized { .inner = CBinary { .operator = "+", .left = value, .right = call } }
+    assert_eq(text_of(sum), "(t3.payload.i + vader_box_i32(7u, (int32_t)(uint32_t) l2))")
+    assert_eq(text_of(CUnary { .operator = "-", .operand = CSequence { .parts = [verbatim("a"), verbatim("b")] } }), "-(ab)")
+}
+
+@test
+test_text_of_spells_integer_extremes_as_macros :: fn() -> void {
+    assert_eq(text_of(CIntegerLiteral { .class = .I32, .value = -2147483648 }), "INT32_MIN")
+    assert_eq(text_of(CIntegerLiteral { .class = .I64, .value = i64(-9223372036854775807) - 1 }), "INT64_MIN")
+    assert_eq(text_of(CIntegerLiteral { .class = .I64, .value = -5 }), "INT64_C(-5)")
 }

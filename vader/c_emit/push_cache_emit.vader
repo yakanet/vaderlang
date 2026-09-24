@@ -173,21 +173,21 @@ pc_cap_expr :: fn(n: i32) -> string {
 ///
 /// @param s      the fn emit state.
 /// @param p      the active plan.
-/// @param obj    the array's C expression, for the slow arm.
-/// @param value  the already-coerced value expression.
-pc_emit_push :: fn(s: FnState!, p: PushCache, obj: string, value: string) -> void {
+/// @param obj    the array's expression, for the slow arm.
+/// @param value  the already-coerced value.
+pc_emit_push :: fn(s: FnState!, p: PushCache, obj: CExpression, value: CExpression) -> void {
     n :: p.opener_pc
-    open_if(s, "VADER_LIKELY(_pc${n}_len < _pc${n}_cap)")
+    open_if(s, verbatim("VADER_LIKELY(_pc${n}_len < _pc${n}_cap)"))
     cty :: pc_fill_of(p.kind).cty
-    line(s, "((${cty}*) _pc${n}_slots)[_pc${n}_len] = (${cty}) (${value});")
+    assign(s, verbatim("((${cty}*) _pc${n}_slots)[_pc${n}_len]"), cast(cty, CParenthesized { .inner = value }))
     line(s, "_pc${n}_len += 1;")
     open_else(s)
     // Hand the real state back before a call that may grow — and therefore may
     // collect, which is the one safepoint this region has.
     pc_emit_writeback(s, n)
-    line(s, "${pc_helper_of(p.kind)}((vader_array_t*) ${obj}, ${value});")
+    evaluate(s, CCall { .callee = pc_helper_of(p.kind), .arguments = [array_pointer(obj), value] })
     // The grow may have moved both the header and the buffer.
-    line(s, "_pc${n}_hdr = (vader_array_t*) ${obj};")
+    assign(s, verbatim("_pc${n}_hdr"), array_pointer(obj))
     line(s, "_pc${n}_len = _pc${n}_hdr->length;")
     line(s, "_pc${n}_cap = ${pc_cap_expr(n)};")
     line(s, "_pc${n}_slots = _pc${n}_hdr->buf->slots;")

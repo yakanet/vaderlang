@@ -13,7 +13,6 @@
 
 module "vader/c_emit"
 
-import "std/string"
 import "std/string_builder"
 import "std/numbers"
 import "vader/bytecode"
@@ -163,73 +162,85 @@ export c_type_for_val_bare :: fn(v: ValType) -> string = match v {
     .Any -> "vader_box_t"
 }
 
-/// C expression unboxing `name` (a `vader_box_t`) to `target`'s storage —
+/// C expression unboxing `value` (a `vader_box_t`) to `target`'s storage —
 /// the per-class payload accessor (`.payload.i` for every integer / char,
 /// `.payload.f` for floats, `.payload.b` / `.payload.s` for bool / string).
 /// `null` / `ref` / `any` pass through (already a box).
 ///
-/// @param name    the C name of the `vader_box_t` to unbox.
+/// @param value   the `vader_box_t` to unbox.
 /// @param target  the destination stack value class.
-/// @return        a C expression of `target`'s storage type.
-export unbox_expr :: fn(name: string, target: ValType) -> string = match target {
-    .I8    -> "((int8_t) ${name}.payload.i)"
-    .I16   -> "((int16_t) ${name}.payload.i)"
-    .I32   -> "((int32_t) ${name}.payload.i)"
-    .I64   -> "((int64_t) ${name}.payload.i)"
-    .U8    -> "((uint8_t) ${name}.payload.i)"
-    .U16   -> "((uint16_t) ${name}.payload.i)"
-    .U32   -> "((uint32_t) ${name}.payload.i)"
-    .U64   -> "((uint64_t) ${name}.payload.i)"
-    .Usize -> "((size_t) ${name}.payload.i)"
-    .Isize -> "((ptrdiff_t) ${name}.payload.i)"
-    .Char  -> "((uint32_t) ${name}.payload.i)"
-    .F32   -> "((float) ${name}.payload.f)"
-    .F64   -> "((double) ${name}.payload.f)"
-    .Bool  -> "${name}.payload.b"
-    .String -> "${name}.payload.s"
-    .Null  -> name
-    .Void  -> "((void) 0)"
+/// @return        an expression of `target`'s storage type.
+unbox_expr :: fn(value: CExpression, target: ValType) -> CExpression = match target {
+    .I8    -> payload_cast("int8_t", value, "i")
+    .I16   -> payload_cast("int16_t", value, "i")
+    .I32   -> payload_cast("int32_t", value, "i")
+    .I64   -> payload_cast("int64_t", value, "i")
+    .U8    -> payload_cast("uint8_t", value, "i")
+    .U16   -> payload_cast("uint16_t", value, "i")
+    .U32   -> payload_cast("uint32_t", value, "i")
+    .U64   -> payload_cast("uint64_t", value, "i")
+    .Usize -> payload_cast("size_t", value, "i")
+    .Isize -> payload_cast("ptrdiff_t", value, "i")
+    .Char  -> payload_cast("uint32_t", value, "i")
+    .F32   -> payload_cast("float", value, "f")
+    .F64   -> payload_cast("double", value, "f")
+    .Bool  -> payload(value, "b")
+    .String -> payload(value, "s")
+    .Null  -> value
+    .Void  -> verbatim("((void) 0)")
     // Rides in the INTEGER payload, never `obj` : the GC must not follow a
     // foreign address, and going through `payload.i` makes that structural.
-    .Pointer -> "((void*) (intptr_t) ${name}.payload.i)"
+    .Pointer -> CParenthesized { .inner = cast("void*", cast("intptr_t", payload(value, "i"))) }
     // T12: narrowing a box to a concrete ref extracts its object pointer.
-    .Ref   -> "${name}.payload.obj"
-    .Any   -> name
+    .Ref   -> payload(value, "obj")
+    .Any   -> value
 }
 
-/// C expression boxing `name` (a `val`-typed value) into a `vader_box_t`
+/// `box.payload.<field>`.
+payload :: fn(box: CExpression, field: string) -> CExpression = CMember { .base = box, .member = "payload.${field}" }
+
+/// `((type) box.payload.<field>)`.
+payload_cast :: fn(type: string, box: CExpression, field: string) -> CExpression =
+    CParenthesized { .inner = cast(type, payload(box, field)) }
+
+/// `(type) value`.
+cast :: fn(type: string, value: CExpression) -> CExpression = CCast { .types = [type], .value = value }
+
+/// C expression boxing `value` (a `val`-typed value) into a `vader_box_t`
 /// tagged `type_index` — the inverse of `unbox_expr`. Each width routes to
 /// the matching `vader_box_<class>` runtime constructor (unsigned widths
 /// re-cast through the signed payload slot). `null` / `ref` / `any` pass
 /// through (already boxed) ; `void` boxes to the empty box.
 ///
-/// @param name        the C name / expression of the value to box.
+/// @param value       the value to box.
 /// @param val         its stack value class.
 /// @param type_index  the BcType tag to stamp on the box (the value's own
 ///                    type, NOT the enclosing container's).
-/// @return            a C expression of type `vader_box_t`.
-export box_expr :: fn(name: string, val: ValType, type_index: i32) -> string = match val {
-    .I8    -> "vader_box_i32(${type_index}u, ${name})"
-    .I16   -> "vader_box_i32(${type_index}u, ${name})"
-    .I32   -> "vader_box_i32(${type_index}u, ${name})"
-    .U8    -> "vader_box_i32(${type_index}u, (int32_t)(uint32_t) ${name})"
-    .U16   -> "vader_box_i32(${type_index}u, (int32_t)(uint32_t) ${name})"
-    .U32   -> "vader_box_i32(${type_index}u, (int32_t)(uint32_t) ${name})"
-    .I64   -> "vader_box_i64(${type_index}u, ${name})"
-    .Isize -> "vader_box_i64(${type_index}u, (int64_t) ${name})"
-    .U64   -> "vader_box_i64(${type_index}u, (int64_t)(uint64_t) ${name})"
-    .Usize -> "vader_box_i64(${type_index}u, (int64_t)(uint64_t) ${name})"
-    .F32   -> "vader_box_f64(${type_index}u, (double) ${name})"
-    .F64   -> "vader_box_f64(${type_index}u, ${name})"
-    .Bool  -> "vader_box_bool(${type_index}u, ${name})"
-    .Char  -> "vader_box_i32(${type_index}u, (int32_t) ${name})"
-    .String -> "vader_box_string(${type_index}u, ${name})"
-    .Null  -> name
-    .Void  -> "vader_box_null()"
-    .Pointer -> "vader_box_i64(${type_index}u, (int64_t) (intptr_t) ${name})"
-    .Ref   -> "vader_ref_box(${name})"
-    .Any   -> name
+/// @return            an expression of type `vader_box_t`.
+box_expr :: fn(value: CExpression, val: ValType, type_index: i32) -> CExpression = match val {
+    .I8 | .I16 | .I32     -> box_call("i32", type_index, value)
+    .U8 | .U16 | .U32     -> box_call("i32", type_index, CCast { .types = ["int32_t", "uint32_t"], .value = value })
+    .I64                  -> box_call("i64", type_index, value)
+    .Isize                -> box_call("i64", type_index, cast("int64_t", value))
+    .U64 | .Usize         -> box_call("i64", type_index, CCast { .types = ["int64_t", "uint64_t"], .value = value })
+    .F32                  -> box_call("f64", type_index, cast("double", value))
+    .F64                  -> box_call("f64", type_index, value)
+    .Bool                 -> box_call("bool", type_index, value)
+    .Char                 -> box_call("i32", type_index, cast("int32_t", value))
+    .String               -> box_call("string", type_index, value)
+    .Null | .Any          -> value
+    .Void                 -> CCall { .callee = "vader_box_null", .arguments = [] }
+    .Pointer              -> box_call("i64", type_index, cast("int64_t", cast("intptr_t", value)))
+    .Ref                  -> ref_box(value)
 }
+
+/// `vader_ref_box(value)` — a raw concrete ref widened into a box, its tag
+/// recovered from the object header.
+ref_box :: fn(value: CExpression) -> CExpression = CCall { .callee = "vader_ref_box", .arguments = [value] }
+
+/// `vader_box_<class>(<type_index>u, value)`.
+box_call :: fn(class: string, type_index: i32, value: CExpression) -> CExpression =
+    CCall { .callee = "vader_box_${class}", .arguments = [verbatim("${type_index}u"), value] }
 
 /// BcType index of the primitive whose stack class is `val`, or `0` when no
 /// such primitive is materialised in the type table. Used to tag a box when
@@ -267,8 +278,8 @@ export primitive_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
 /// tag is the primitive's own BcType index (`primitive_tag_of`). Used by
 /// `coerce_expr` when widening a primitive into a `ref` / `any` slot (fn-arg
 /// boxing, dispatcher result wrapping).
-export box_expr_unknown :: fn(types: BcType[], name: string, val: ValType) -> string =
-    box_expr(name, val, primitive_tag_of(types, val))
+box_expr_unknown :: fn(types: BcType[], value: CExpression, val: ValType) -> CExpression =
+    box_expr(value, val, primitive_tag_of(types, val))
 
 
 /// True when the type at `type_index` is exactly the primitive of class
@@ -280,72 +291,50 @@ export primitive_matches_type :: fn(types: BcType[], slot_val: ValType, type_ind
     return false
 }
 
-/// C expression coercing `name` from stack class `from` to `to`. Identity
+/// C expression coercing `value` from stack class `from` to `to`. Identity
 /// when equal or both boxed ; boxes a primitive into a `ref` / `any` slot ;
 /// unboxes a box into a primitive ; otherwise a double-cast (through `from`
-/// first, matching `emit_convert`). B1 nullable-ref slots are deferred to T12.
+/// first, matching `emit_convert`).
 ///
 /// @param types  the module type table (for the box tag).
-/// @param name   the C name / expression to coerce.
+/// @param value  the expression to coerce.
 /// @param from   its current stack class.
 /// @param to     the destination stack class.
-/// @return       a C expression of `to`'s storage type.
-export coerce_expr :: fn(types: BcType[], name: string, from: ValType, to: ValType) -> string {
-    if from == to { return name }
+/// @return       an expression of `to`'s storage type.
+coerce_expr :: fn(types: BcType[], value: CExpression, from: ValType, to: ValType) -> CExpression {
+    if from == to { return value }
     // T12 erasure boundary — `.Ref` is a raw `void*`, `.Any`/`.Null` are boxes.
     // Narrow a boxed dynamic value (or `null`) into a raw concrete ref.
     if to == .Ref {
-        if from == .Any || from == .Null { return "${name}.payload.obj" }
-        return name
+        if from == .Any || from == .Null { return payload(value, "obj") }
+        return value
     }
     // Widen a raw concrete ref into a boxed slot — tag from the object header.
     if from == .Ref {
-        if is_ref_val(to) { return "vader_ref_box(${name})" }
-        return name
+        if is_ref_val(to) { return ref_box(value) }
+        return value
     }
     // Neither side is a raw ref : the classic box/primitive reconciliation.
-    if is_ref_val(to) && is_ref_val(from) { return name }
-    if is_ref_val(to) { return box_expr_unknown(types, name, from) }
-    if is_ref_val(from) { return unbox_expr(name, to) }
-    return scalar_cast(name, from, to)
+    if is_ref_val(to) && is_ref_val(from) { return value }
+    if is_ref_val(to) { return box_expr_unknown(types, value, from) }
+    if is_ref_val(from) { return unbox_expr(value, to) }
+    return scalar_cast(value, from, to)
 }
 
-/// `(to) (from) name` — convert through `from` first, as `emit_convert` does.
+/// `(to) (from) value` — convert through `from` first, as `emit_convert` does.
 /// A literal of `from`'s own class takes one cast : `(size_t) 0`, not
 /// `(size_t) (int64_t) INT64_C(0)` ; C converts the constant the same way,
 /// negative values included. A literal re-read as another class (an `i32`
 /// constant taken as `u32`) keeps both casts : the inner one truncates.
 ///
-/// @param name  the C expression to convert.
-/// @param from  its current stack class.
-/// @param to    the destination class.
-export scalar_cast :: fn(name: string, from: ValType, to: ValType) -> string {
-    digits :: literal_digits_of_class(name, from)
-    if digits != null {
-        return "(${c_type_for_val_bare(to)}) ${digits}"
+/// @param value  the expression to convert.
+/// @param from   its current stack class.
+/// @param to     the destination class.
+scalar_cast :: fn(value: CExpression, from: ValType, to: ValType) -> CExpression {
+    if value is CIntegerLiteral && value.class == from && !is_most_negative(value) {
+        return cast(c_type_for_val_bare(to), verbatim("${value.value}"))
     }
-    return "(${c_type_for_val_bare(to)}) (${c_type_for_val_bare(from)}) ${name}"
-}
-
-// The decimal digits of a literal of class `class` — `INT32_C(n)` for `i32`,
-// `INT64_C(n)` for `i64`, as `i32_lit_c` / `i64_lit_c` (walker.vader) spell
-// them — sign included ; null for any other expression or class.
-literal_digits_of_class :: fn(expression: string, class: ValType) -> string | null {
-    prefix :: if class == .I32 { "INT32_C(" } else if class == .I64 { "INT64_C(" } else { "" }
-    if prefix == "" || !expression.starts_with(prefix) {
-        return null
-    }
-    bytes :: expression.bytes()
-    if bytes.len() <= 9 || bytes[bytes.len() - 1] != ')' {
-        return null
-    }
-    for k in 8..<bytes.len() - 1 {
-        b :: bytes[k]
-        if !(b >= '0' && b <= '9') && !(k == 8 && b == '-') {
-            return null
-        }
-    }
-    return bytes[8..<bytes.len() - 1].bytes_to_string()
+    return cast(c_type_for_val_bare(to), cast(c_type_for_val_bare(from), value))
 }
 
 /// Coerce a binary / unary OPERAND to the op's class `to`. Only a boxed
@@ -354,9 +343,9 @@ literal_digits_of_class :: fn(expression: string, class: ValType) -> string | nu
 /// verbatim : the op's typed C operator drives any width / signedness
 /// conversion implicitly (and re-casting it would add noise without changing
 /// behaviour). Used by `push_binop` / `push_cmp` / `push_unop` / `push_eager`.
-export coerce_operand :: fn(types: BcType[], name: string, from: ValType, to: ValType) -> string {
-    if is_ref_val(from) { return coerce_expr(types, name, from, to) }
-    return name
+coerce_operand :: fn(types: BcType[], value: CExpression, from: ValType, to: ValType) -> CExpression {
+    if is_ref_val(from) { return coerce_expr(types, value, from, to) }
+    return value
 }
 
 /// `BcType` → C type. Heap shapes (struct, array, union, ref, fn)

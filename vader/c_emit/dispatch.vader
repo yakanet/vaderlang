@@ -146,16 +146,17 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
             seen_tags.push(e.receiver_type_index)
             callee :: ctx.module.functions[usize(e.fn_index)]
             csig :: callee.signature
-            args: string[]!: [coerce_expr(types, "recv", .Any, csig.params[0])]
+            args: CExpression[]!: [coerce_expr(types, verbatim("recv"), .Any, csig.params[0])]
             tail :: i32(csig.params.len()) - 1
             for i in 0..<tail {
-                args.push(coerce_expr(types, "a${i}", .Any, csig.params[usize(i + 1)]))
+                args.push(coerce_expr(types, verbatim("a${i}"), .Any, csig.params[usize(i + 1)]))
             }
-            call_expr :: "${sanitise(callee.name)}(${args.join(", ")})"
+            call_expr :: CCall { .callee = sanitise(callee.name), .arguments = args }
             if bc_single_result(sig) == .Void {
-                out.append("        case ${e.receiver_type_index}u: ${call_expr}; return;\n")
+                out.append("        case ${e.receiver_type_index}u: ${text_of(call_expr)}; return;\n")
             } else {
-                out.append("        case ${e.receiver_type_index}u: return ${dispatcher_result(types, call_expr, bc_single_result(csig), bc_single_result(sig))};\n")
+                result :: dispatcher_result(types, call_expr, bc_single_result(csig), bc_single_result(sig))
+                out.append("        case ${e.receiver_type_index}u: return ${text_of(result)};\n")
             }
         }
         out.append("        default: vader_unreachable(\"vtable miss in ${row.key}\");\n")
@@ -173,7 +174,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 /// A `Ref` is NOT already a box — it is a bare `void*`, and returning one from a
 /// `vader_box_t` function does not compile. `Void` has nothing to wrap and `Any`
 /// is already the target shape; everything else does.
-dispatcher_result :: fn(types: BcType[], call_expr: string, impl_result: ValType, sig_result: ValType) -> string =
+dispatcher_result :: fn(types: BcType[], call_expr: CExpression, impl_result: ValType, sig_result: ValType) -> CExpression =
     if sig_result == .Any && impl_result != .Any && impl_result != .Void {
         coerce_expr(types, call_expr, impl_result, .Any)
     } else {

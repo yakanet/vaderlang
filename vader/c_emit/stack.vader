@@ -2,12 +2,11 @@
 //
 // The bytecode is a stack machine ; the C body walker maps it to C
 // statements + expressions by maintaining a virtual operand stack of
-// `StackVal`. Each push records HOW to spell the value at its eventual
-// consumer — a literal, an inlined side-effect-free expression, a local
-// slot `lN`, or a materialised temp `tN` — and the consumer pops and
-// inlines that text.
+// `StackVal`. Each push records the value's expression — a literal, an
+// inlined side-effect-free expression, a local slot `lN`, or a materialised
+// temp `tN` — and the consumer pops it and builds it into its own node.
 //
-// `StackTmp` is the materialised case : `local.set`, call results, and
+// `StackTemporary` is the materialised case : `local.set`, call results, and
 // allocations force their value into a fresh `tN` temp (see the
 // materialisation helpers below). `EmitCtx` is same-module
 // (`vader/c_emit`), so it needs no import here.
@@ -22,21 +21,21 @@ import "std/collections"
 // ---- StackVal -------------------------------------------------------------
 
 /// One value on the virtual operand stack. Every variant carries its
-/// C-storage `ValType` ; the consumer pops it and inlines `name_of`.
-StackVal :: StackTmp | StackLit | StackLocalRef | StackExpr
+/// C-storage `ValType` ; the consumer pops it and inlines `expression_of`.
+StackVal :: StackTemporary | StackLit | StackLocalRef | StackExpr
 
-/// A value already materialised into a fresh `tN` C local — the eager
+/// A value already materialised into a fresh `tN` temp — the eager
 /// case (calls, allocations, anything with a side effect).
-StackTmp :: struct {
-    name: string
-    val:  ValType
+StackTemporary :: struct {
+    temporary: CTemporary
+    val:       ValType
 }
 
 /// A pure literal (`INT32_C(42)`, `true`). Always safe to inline ; no
 /// `T tN = lit;` line is emitted.
 StackLit :: struct {
-    text: string
-    val:  ValType
+    expression: CExpression
+    val:        ValType
 }
 
 /// A snapshot of local slot `slot`, spelled `lN` at the consumer.
@@ -51,27 +50,41 @@ StackLocalRef :: struct {
 /// verbatim ; materialised on `dup` or any `local.set` / `local.tee`,
 /// since operand dependencies are not tracked.
 StackExpr :: struct {
-    text: string
-    val:  ValType
+    expression: CExpression
+    val:        ValType
 }
 
-/// How to spell `sv` at its consumer.
-name_of :: fn(sv: StackVal) -> string = match sv {
-    is StackTmp      -> sv.name
-    is StackLit      -> sv.text
-    is StackLocalRef -> "l${sv.slot}"
-    is StackExpr     -> sv.text
+/// The expression `sv` stands for at its consumer.
+expression_of :: fn(sv: StackVal) -> CExpression = match sv {
+    is StackTemporary      -> sv.temporary
+    is StackLit      -> sv.expression
+    is StackLocalRef -> CLocal { .slot = sv.slot }
+    is StackExpr     -> sv.expression
 }
 
 /// Static C-storage type of `sv`.
 val_of :: fn(sv: StackVal) -> ValType = match sv {
-    is StackTmp      -> sv.val
+    is StackTemporary      -> sv.val
     is StackLit      -> sv.val
     is StackLocalRef -> sv.val
     is StackExpr     -> sv.val
 }
 
 // ---- FnState --------------------------------------------------------------
+
+/// A `_slotarrK` local holding an array whose buffer-forward chain is resolved.
+ResolvedArray :: struct {
+    name:    string
+    /// The array expression it was resolved from.
+    pointer: CExpression
+    /// A BCE resolve-hoist : emitted in a loop preheader by `emit_array_len`
+    /// with `resolve_buf`, it survives the loop's pure control-flow ops so the
+    /// body reuses it. Dropped only by an op that could move a buffer (call /
+    /// alloc — a real GC safepoint) or by reassignment of the array's local.
+    /// Sound because pins are minted ONLY for BCE-safe loops (no call / alloc
+    /// in the body).
+    pinned:  bool = false
+}
 
 /// One escape-stack-allocated GC struct to hoist to the function top. Both the
 /// zeroed decl (`<cname> <storage> = {0};`) and the root address
@@ -92,12 +105,10 @@ FnState :: struct {
     root:     CBlock!
     /// Virtual operand stack — the top of stack is the last element.
     stack:    StackVal[]!
-    /// ValType of each materialised temp `tN` (index = N). Drives the
-    /// prelude temp declarations. Allocation is monotone — no free-list
-    /// recycling ; the run-oracle is the gate, not byte-parity, and
-    /// monotone allocation is fine since a fn allocates each temp at most
-    /// once).
-    tmp_types: ValType[]!
+    /// Every temp minted by `new_temporary`, indexed by id — the one object
+    /// each use of it shares, so `coalesce_temporaries` renames them all at
+    /// once. Allocation is monotone : a temp is never recycled during the walk.
+    temporaries: CTemporary![]!
     /// Monotone `_aN` scratch allocator for struct storage / call args.
     /// Never recycled, so it can't collide with a reused name.
     aux_counter: i32
@@ -132,20 +143,13 @@ FnState :: struct {
     /// last. Pushed by the `Loop` opener that planned one, popped by its `end`.
     /// See `push_cache_emit.vader`.
     push_caches: PushCache[]!
-    /// Resolve-CSE cache : array C-expr (`((vader_array_t*) lN.payload.obj)`) →
-    /// the `_slotarrK` local that already chased its buf-forward chain in this
-    /// straight-line region. A second slot access on the same array reuses it,
-    /// skipping the walk (the arr_rw native win). Cleared at every GC safepoint /
-    /// control-flow op and on reassignment of the array's local (see
-    /// `invalidate_resolve_cache`) — a stale entry would read a moved buffer.
-    resolved_arrays: MutableMap<string, string>
-    /// BCE resolve-hoist : keys in `resolved_arrays` that are PINNED — their
-    /// hoisted buf-resolve (emitted in a loop preheader by `emit_array_len` with
-    /// `resolve_buf`) survives the loop's pure control-flow ops so the body reuses
-    /// it. A pin is dropped only by an op that could move a buffer (call / alloc —
-    /// a real GC safepoint) or by reassignment of the array's local. Sound because
-    /// pins are minted ONLY for BCE-safe loops (no call / alloc in the body).
-    pinned_resolves: MutableSet<string>
+    /// Resolve-CSE cache : the `_slotarrK` locals that already chased their
+    /// array's buf-forward chain in this straight-line region. A second slot
+    /// access on the same array expression reuses one, skipping the walk.
+    /// Cleared at every GC safepoint / control-flow op and on reassignment of
+    /// the array's local (see `invalidate_resolve_cache`) — a stale entry would
+    /// read a moved buffer.
+    resolved_arrays: ResolvedArray![]!
     /// Set by the walk driver when the current `call` / `call.import` op is
     /// immediately followed by a `drop` — its non-void result is emitted as a
     /// bare statement (like a void call) instead of `tN = call(...);` + an
@@ -172,15 +176,14 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState! = FnState {
     .function = function,
     .root = CBlock { .body = [] },
     .stack = [],
-    .tmp_types = [],
+    .temporaries = [],
     .aux_counter = 0,
     .scopes = [],
     .continue_targets = [],
     .break_targets = [],
     .no_frame = true,
     .push_caches = [],
-    .resolved_arrays = MutableMap<string, string> {},
-    .pinned_resolves = MutableSet<string> {},
+    .resolved_arrays = [],
     .drop_call_result = false,
     .stack_storages = [],
     .open_nodes = [],
@@ -188,16 +191,41 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState! = FnState {
 
 // ---- indented output ------------------------------------------------------
 
-/// Append one C statement to the block the walk is in ; `print_block` gives it
-/// the block's indentation.
+/// Append one C statement with no operand in it to the block the walk is in ;
+/// `print_block` gives it the block's indentation.
 line :: fn(s: FnState!, code: string) -> void {
     append_statement(s, CLine { .text = code })
 }
 
+/// Append `target = value;`.
+assign :: fn(s: FnState!, target: CExpression, value: CExpression) -> void =
+    append_statement(s, CAssign { .target = target, .value = value })
+
+/// Append `expression;`.
+evaluate :: fn(s: FnState!, expression: CExpression) -> void =
+    append_statement(s, CExpressionStatement { .expression = expression })
+
+/// Append a statement macro call `name(arguments…)`, which brings its own `;`.
+statement_macro :: fn(s: FnState!, name: string, arguments: CExpression[]) -> void =
+    append_statement(s, CExpressionStatement { .expression = CCall { .callee = name, .arguments = arguments }, .terminated = false })
+
+/// Append `VADER_WRITE_BARRIER(object);`.
+write_barrier :: fn(s: FnState!, object: CExpression) -> void =
+    evaluate(s, CCall { .callee = "VADER_WRITE_BARRIER", .arguments = [object] })
+
+/// Materialise a raw object address `address` (`&vader_data_3`, `_a0_obj`) into
+/// a fresh `.Ref` temp : `tN = (void*) address;`.
+push_object :: fn(s: FnState!, address: string) -> void =
+    push_into_temporary(s, cast("void*", verbatim(address)), .Ref)
+
+/// Append `type name = value;`.
+declare :: fn(s: FnState!, type: string, name: string, value: CExpression) -> void =
+    append_statement(s, CDeclaration { .type = type, .name = name, .value = value })
+
 /// Append a `#line` directive : column 0, not a statement.
 directive :: fn(s: FnState!, text: string) -> void = append_statement(s, CDirective { .text = text })
 
-append_statement :: fn(s: FnState!, statement: CStmt) -> void {
+append_statement :: fn(s: FnState!, statement: CStatement) -> void {
     current_block(s).body.push(statement)
 }
 
@@ -233,7 +261,7 @@ current_block :: fn(s: FnState!) -> CBlock! {
 }
 
 /// Open `if (condition) {` : its then-arm becomes the block the walk is in.
-open_if :: fn(s: FnState!, condition: string) -> void =
+open_if :: fn(s: FnState!, condition: CExpression) -> void =
     open_node(s, CIf { .condition = condition, .then_block = CBlock { .body = [] } })
 
 /// Open the `else` arm of the innermost open `if`.
@@ -271,15 +299,15 @@ open_node :: fn(s: FnState!, node: COpenNode!) -> void {
 }
 
 /// Push a pure literal — inlined at the consumer, no temp line emitted.
-push_lit :: fn(s: FnState!, val: ValType, text: string) -> void {
-    s.stack.push(StackLit { .text = text, .val = val })
+push_lit :: fn(s: FnState!, val: ValType, expression: CExpression) -> void {
+    s.stack.push(StackLit { .expression = expression, .val = val })
 }
 
-/// Push a side-effect-free C expression, inlined verbatim at the
-/// consumer. `text` must already carry whatever parentheses precedence
-/// safety requires.
-push_expr :: fn(s: FnState!, val: ValType, text: string) -> void {
-    s.stack.push(StackExpr { .text = text, .val = val })
+/// Push a side-effect-free C expression, inlined at the consumer.
+/// `expression` must already carry whatever parentheses precedence safety
+/// requires.
+push_expr :: fn(s: FnState!, val: ValType, expression: CExpression) -> void {
+    s.stack.push(StackExpr { .expression = expression, .val = val })
 }
 
 /// Push a snapshot of local slot `slot`, spelled `lN` when popped.
@@ -294,7 +322,7 @@ push_local_ref :: fn(s: FnState!, slot: i32, val: ValType) -> void {
 /// emits harmless (never-executed) C rather than trapping.
 pop :: fn(s: FnState!) -> StackVal {
     n :: s.stack.len()
-    if n == 0 { return StackLit { .text = "0", .val = .I32 } }
+    if n == 0 { return StackLit { .expression = verbatim("0"), .val = .I32 } }
     top :: s.stack[n - 1]
     s.stack = s.stack[0..<n - 1]
     return top
@@ -321,27 +349,26 @@ slot_val_type :: fn(function: BcFunction, slot: i32) -> ValType {
 
 // ---- materialisation ------------------------------------------------------
 
-/// Allocate a fresh `tN` temp of type `val` : record its ValType for the
-/// prelude declaration and return the name. Monotone (index = count).
-fresh_tmp :: fn(s: FnState!, val: ValType) -> string {
-    idx :: s.tmp_types.len()
-    s.tmp_types.push(val)
-    return "t${idx}"
+/// Allocate a fresh `tN` temp of type `val`, recorded for the prelude
+/// declaration. Monotone (id = count).
+new_temporary :: fn(s: FnState!, val: ValType) -> CTemporary {
+    temporary :: CTemporary { .id = i32(s.temporaries.len()), .val = val }
+    s.temporaries.push(temporary)
+    return temporary
 }
 
-/// Push an already-named temp onto the operand stack.
-push_tmp :: fn(s: FnState!, name: string, val: ValType) -> void {
-    s.stack.push(StackTmp { .name = name, .val = val })
+/// Push an already-assigned temp onto the operand stack.
+push_temporary :: fn(s: FnState!, temporary: CTemporary, val: ValType) -> void {
+    s.stack.push(StackTemporary { .temporary = temporary, .val = val })
 }
 
-/// Materialise a ready C expression into a fresh `tN` : emit
-/// `tN = <expr>;` and push the temp. The eager-result idiom shared by
-/// every op that forces its value into a slot (`push_eager`'s div/rem,
-/// call results, struct/array results).
-push_into_tmp :: fn(s: FnState!, expr: string, val: ValType) -> void {
-    name :: fresh_tmp(s, val)
-    line(s, "${name} = ${expr};")
-    push_tmp(s, name, val)
+/// Materialise `value` into a fresh `tN` : emit `tN = <value>;` and push the
+/// temp. The eager-result idiom shared by every op that forces its value into
+/// a slot (`push_eager`'s div/rem, call results, struct/array results).
+push_into_temporary :: fn(s: FnState!, value: CExpression, val: ValType) -> void {
+    temporary :: new_temporary(s, val)
+    assign(s, temporary, value)
+    push_temporary(s, temporary, val)
 }
 
 /// Allocate a fresh monotone scratch C identifier `_aN_<suffix>` — block-
@@ -355,12 +382,12 @@ aux :: fn(s: FnState!, suffix: string) -> string {
 }
 
 /// Force `e` into a fresh `tN` temp : allocate the index, emit
-/// `tN = <e>;`, and return the `StackTmp`.
+/// `tN = <e>;`, and return the `StackTemporary`.
 materialise_entry :: fn(s: FnState!, e: StackVal) -> StackVal {
     val :: val_of(e)
-    name :: fresh_tmp(s, val)
-    line(s, "${name} = ${name_of(e)};")
-    return StackTmp { .name = name, .val = val }
+    temporary :: new_temporary(s, val)
+    assign(s, temporary, expression_of(e))
+    return StackTemporary { .temporary = temporary, .val = val }
 }
 
 /// True for stack entries that a write to slot `slot` would invalidate :
@@ -370,7 +397,7 @@ materialise_entry :: fn(s: FnState!, e: StackVal) -> StackVal {
 entry_needs_materialise :: fn(e: StackVal, slot: i32) -> bool = match e {
     is StackExpr     -> true
     is StackLocalRef -> e.slot == slot
-    is StackTmp      -> false
+    is StackTemporary      -> false
     is StackLit      -> false
 }
 

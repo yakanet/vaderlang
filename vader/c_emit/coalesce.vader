@@ -1,43 +1,39 @@
 // vader/c_emit/coalesce — post-walk operand-temp cleanup: copy elision + slot
-// coalescing.
+// coalescing, on the statement tree (`c_ast.vader`).
 //
 // The body walker (`walker.vader` / `stack.vader`) mints a fresh `tN` for every
 // materialised operand and never recycles it, so a function's frame — and its
 // GC-root set — grows with the TOTAL number of materialisations, not the number
 // live at once. The bytecode is a stack machine, so a temp is dead the moment
-// its value is consumed ; most `tN` have short, disjoint live ranges (measured:
-// `parse_expr` materialises 78 rooted temps but only ~7 are ever live at once).
+// its value is consumed ; most `tN` have short, disjoint live ranges.
 //
-// `coalesce_temps` runs two peepholes on the emitted body text:
-//   0. COPY ELISION (`fuse_temp_local_copies`) — an adjacent `tN = EXPR;` /
-//      `lM = tN;` pair whose `tN` is used nowhere else collapses to `lM = EXPR;`.
-//      The temp disappears entirely (no slot, no GC root, no box copy). ~56% of
-//      such copies are between two GC-rooted boxes, which the C compiler cannot
-//      elide (both addresses escape into `gc_roots[]`), so this is a real win.
-//   1. SLOT COALESCING — the surviving temps are packed by live range (below).
+// `coalesce_temporaries` does two things :
+//   0. COPY ELISION — an adjacent `tN = EXPR;` / `lM = tN;` pair whose `tN` is
+//      used nowhere else collapses to `lM = EXPR;`. The temp disappears
+//      entirely (no slot, no GC root, no box copy) ; a copy between two
+//      GC-rooted boxes is one the C compiler cannot elide, since both addresses
+//      escape into `gc_roots[]`.
+//   1. SLOT COALESCING — the surviving temps are packed by live range.
 //
-// This pass runs after the walk, on the emitted body text. It computes each
-// temp's live range as `[first, last]` line of textual occurrence — a temp is
-// written exactly once and can't be read before it is written, so the first
-// occurrence is its definition and the last is its final read (this also
-// captures reads deferred inside a `StackExpr`'s text). It then greedily packs
-// temps whose ranges are disjoint, and share a `ValType`, into the same slot,
-// rewrites the body `tN -> t<slot>`, and returns the compacted `tmp_types` for
-// the decl emitter.
+// A temp's live range is `[first, last]` over statement positions, numbered in
+// print order (an `if` holds one position, its condition's). A temp is written
+// once and can't be read before it is written, so its first use is its
+// definition and its last is its final read. Temps whose ranges are disjoint,
+// and share a `ValType`, share a slot.
 //
 // GC-safety : two temps share a slot only when their ranges are STRICTLY
 // disjoint (`A.last < B.first`), so the slot only ever holds the currently-live
 // value and its single `gc_roots[]` entry always points at a live object (or an
 // already-dead one still reachable from the frame — harmless, never a dangling
-// pointer). Textual `[first, last]` is an EXACT live range only because no
-// operand temp ever crosses a scope boundary : midir materialises every
-// control-flow result into a named LOCAL (`if_res` / `and_res` / `or_res`, and
-// loops are void — `vader/midir/build.vader`), so the operand stack is empty at
-// every block / loop / if / br boundary and each `tN` is confined to one
-// straight-line region where textual order IS execution order. This is why —
-// unlike the sibling local-slot pass — no loop-range extension is needed. If a
-// future change ever left an operand live across a scope, that invariant would
-// break ; the walker's scope handlers are the place to guard it.
+// pointer). Position order is an EXACT live range only because no operand temp
+// ever crosses a scope boundary : midir materialises every control-flow result
+// into a named LOCAL (`if_res` / `and_res` / `or_res`, and loops are void —
+// `vader/midir/build.vader`), so the operand stack is empty at every block /
+// loop / if / br boundary and each `tN` is confined to one straight-line region
+// where statement order IS execution order. This is why — unlike the sibling
+// local-slot pass — no loop-range extension is needed. If a future change ever
+// left an operand live across a scope, that invariant would break ; the
+// walker's scope handlers are the place to guard it.
 //
 // Locals (`lN`) are left untouched : they are named, potentially reassigned, and
 // can stay live across arbitrary control flow — they are coalesced upstream,
@@ -50,331 +46,294 @@
 
 module "vader/c_emit"
 
-import "std/string"
-import "std/string_builder"
 import "std/sort"
-import "vader/text"
 import "vader/bytecode"
 
-/// Compacted temp type list (index = new slot) plus the rewritten body text.
-export CoalesceResult :: struct {
-    types: ValType[]!
-    body:  string
-}
-
-/// Coalesce operand temps `tN` with disjoint live ranges into shared slots.
+/// Elide temp-to-local copies, then pack the surviving temps into shared slots.
 ///
-/// @param body   the emitted C function body (temps named `t0`, `t1`, …).
-/// @param types  `types[i]` is the ValType of `ti` ; length = temp count.
-/// @return       the compacted type list (index = surviving slot) and the body
-///               rewritten so every `tN` reference names its assigned slot. A
-///               no-op (inputs returned verbatim) when there are no temps.
-export coalesce_temps :: fn(body: string, types: ValType[]) -> CoalesceResult {
-    n :: types.len()
-    if n == 0 { return CoalesceResult { .types = [], .body = body } }
-
-    // 0. Elide temp->local copies (`tN = EXPR; lM = tN;` -> `lM = EXPR;`) so a
-    //    temp whose sole consumer is an immediate `local.set` disappears
-    //    entirely — no slot, no GC root, no box copy. Runs first : the fused
-    //    temps then have zero occurrences and drop out of the scan below.
-    fused :: fuse_temp_local_copies(body, n)
-
-    // 1. Live ranges : first / last line index each `tN` occurs on (-1 = unseen).
-    //    A single byte walk tracks the line counter — no `split` (which would
-    //    intern one throwaway atom per line). A `t<digits>` token never spans a
-    //    newline, so line granularity is exact.
-    first: i32[]!: []
-    last:  i32[]!: []
-    for i in 0..<n { first.push(-1)  last.push(-1) }
-    b :: fused.bytes()
-    blen :: b.len()
-    line: i32 = 0
-    i: usize = 0
-    for i < blen {
-        // Skip whole `#line`/preprocessor directives : a `t<digits>` inside a
-        // source path there is not a temp (non-release builds interleave them).
-        if (i == 0 || b[i - 1] == '\n') && b[i] == '#' {
-            for i < blen && b[i] != '\n' { i += 1 }
-            continue
-        }
-        if b[i] == '\n' { line += 1  i += 1  continue }
-        // Guard on `t` before the token probe : the vast majority of bytes are
-        // not temp starts, and `temp_token_at` allocates its result struct.
-        if b[i] != 't' { i += 1  continue }
-        tok :: temp_token_at(b, i, blen)
-        if tok.ok && tok.id < n {
-            if first[tok.id] < 0 { first[tok.id] = line }
-            last[tok.id] = line
-        }
-        i = tok.end
+/// @param root         the function body ; copies are elided in place.
+/// @param temporaries  every temp of the body, indexed by id ; each receives
+///                     its `slot`.
+/// @return             the ValType of each slot, indexed by slot.
+coalesce_temporaries :: fn(root: CBlock!, temporaries: CTemporary![]) -> ValType[]! {
+    n :: temporaries.len()
+    if n == 0 {
+        return []
     }
+    // Uses and live ranges in one walk. Positions stay valid through the copy
+    // elision below : a fused copy statement holds nothing but its own temp,
+    // so dropping it keeps every other range in the same order.
+    usage :: TemporaryUsage { .uses = [0] * n, .first = [-1] * n, .last = [-1] * n }
+    scan_block(root, usage)
+    fuse_temp_local_copies(root, usage)
 
-    // 2. Greedy interval packing, per ValType. Process temps in
-    //    first-occurrence order ; reuse a slot whose current occupant ended
-    //    strictly before this temp begins (equal endpoints share a line, so
-    //    they overlap and must not merge).
-    order :: order_by_first(first, n)
-    remap: i32[]!: [-1] * n
-    new_types: ValType[]!: []
-    slot_end:  i32[]!: []
-    for k in 0..<order.len() {
-        oi :: order[k]
-        d :: first[oi]
-        e :: last[oi]
+    // Greedy interval packing, per ValType. Process temps in first-use order ;
+    // reuse a slot whose current occupant ended strictly before this temp begins
+    // (equal endpoints share a statement, so they overlap).
+    slot_types: ValType[]!: []
+    slot_end: i32[]!: []
+    for id in order_by_first(usage.first) {
+        temporary :: temporaries[id]
         chosen: i32 = -1
-        for s in 0..<new_types.len() {
-            if new_types[s] == types[oi] && slot_end[s] < d {
-                chosen = i32(s)
+        for slot in 0..<slot_types.len() {
+            if slot_types[slot] == temporary.val && slot_end[slot] < usage.first[id] {
+                chosen = i32(slot)
                 break
             }
         }
         if chosen < 0 {
-            chosen = i32(new_types.len())
-            new_types.push(types[oi])
-            slot_end.push(e)
+            chosen = i32(slot_types.len())
+            slot_types.push(temporary.val)
+            slot_end.push(usage.last[id])
         } else {
-            slot_end[usize(chosen)] = e
+            slot_end[usize(chosen)] = usage.last[id]
         }
-        remap[oi] = chosen
+        temporary.slot = chosen
     }
-
-    // 3. Rewrite the body : `tN` -> `t<remap[N]>`.
-    return CoalesceResult { .types = new_types, .body = rewrite_temps(fused, remap) }
+    return slot_types
 }
 
-is_digit_byte :: fn(b: u8) = b >= '0' && b <= '9'
-
-// A `<kind><digits>` slot token (`kind` is `t` for a temp, `l` for a local) :
-// its numeric id and the byte index just past it. `ok = false` at a non-token.
-SlotToken :: struct { ok: bool  id: usize  end: usize }
-
-// Not a token, ending at `end`.
-no_slot :: fn(end: usize) = SlotToken { .ok = false, .id = 0, .end = end }
-
-// Recognise a `<kind><digits>` token starting at `i`, respecting identifier word
-// boundaries on both sides (so `gc_top`, `int32_t`, `t50`, `l1x` are not
-// mis-split). Callers guard on the kind byte first ; the check is defensive.
-slot_token_at :: fn(b: u8[], i: usize, len: usize, kind: u8) -> SlotToken {
-    if b[i] != kind { return no_slot(i + 1) }
-    if i > 0 && is_ident_byte(b[i - 1]) { return no_slot(i + 1) }
-    if i + 1 >= len || !is_digit_byte(b[i + 1]) { return no_slot(i + 1) }
-    id: usize = 0
-    k := i + 1
-    for k < len && is_digit_byte(b[k]) {
-        id = id * 10 + usize(b[k] - '0')
-        k += 1
+// Temp ids `0..<first.len()` that are used, ordered by first use (ties by id,
+// via the stable sort).
+order_by_first :: fn(first: i32[]) -> usize[] {
+    used: usize[]!: []
+    for id in 0..<first.len() {
+        if first[id] >= 0 {
+            used.push(id)
+        }
     }
-    // The digit run must end the token — not run into a longer identifier.
-    if k < len && is_ident_byte(b[k]) { return no_slot(k) }
-    return SlotToken { .ok = true, .id = id, .end = k }
+    return sort(used, (a: usize, b: usize) -> first[a] < first[b])
 }
 
-// The coalescer's operand-temp recogniser (`t<digits>`).
-temp_token_at :: fn(b: u8[], i: usize, len: usize) = slot_token_at(b, i, len, 't')
+// ---- uses and live ranges -------------------------------------------------
 
-// Temp indices `0..<n` with a real occurrence, ordered by first-occurrence line
-// (ties by index, via the stable sort). Temps that never appear (first < 0) are
-// dropped — they hold no slot and are never referenced.
-order_by_first :: fn(first: i32[], n: usize) -> usize[] {
-    idx: usize[]!: []
-    for i in 0..<n {
-        if first[i] >= 0 { idx.push(i) }
-    }
-    return sort(idx, (a: usize, b: usize) -> first[a] < first[b])
+/// Per temp id : how many times it is used, and the first / last statement
+/// position it is used at (-1 = unused).
+TemporaryUsage :: struct {
+    uses: i32[]!
+    first: i32[]!
+    last: i32[]!
+    /// The position of the statement being scanned.
+    position: i32 = -1
 }
 
-// Rewrite every `tN` token in `body` to `t<remap[N]>`, appending verbatim runs
-// in chunks (a per-byte append would be O(n) allocations on huge functions). A
-// temp with `remap[N] < 0` (never occurred) is copied unchanged.
-rewrite_temps :: fn(body: string, remap: i32[]) -> string {
-    b :: body.bytes()
-    len :: b.len()
-    n :: remap.len()
-    out :: StringBuilder {}
-    run_start: usize = 0
-    i: usize = 0
-    for i < len {
-        // `#line`/preprocessor directives stay verbatim — never rewrite a
-        // `t<digits>` inside a source path (mirrors the scan-side skip).
-        if (i == 0 || b[i - 1] == '\n') && b[i] == '#' {
-            for i < len && b[i] != '\n' { i += 1 }
-            continue
+scan_block :: fn(block: CBlock, usage: TemporaryUsage!) -> void {
+    for statement in block.body {
+        usage.position += 1
+        match statement {
+            is CLine | CDirective   -> {}
+            is CAssign              -> {
+                scan_expression(statement.target, usage)
+                scan_expression(statement.value, usage)
+            }
+            is CExpressionStatement -> scan_expression(statement.expression, usage)
+            is CDeclaration         -> scan_expression(statement.value, usage)
+            is CGoto                -> {
+                condition :: statement.condition
+                if condition != null {
+                    scan_expression(condition, usage)
+                }
+            }
+            is CIf                  -> {
+                scan_expression(statement.condition, usage)
+                scan_block(statement.then_block, usage)
+                else_block :: statement.else_block
+                if else_block != null {
+                    scan_block(else_block, usage)
+                }
+            }
+            is CScope               -> scan_block(statement.body, usage)
+            is CReturn              -> {
+                for store in statement.stores {
+                    scan_expression(store.target, usage)
+                    scan_expression(store.value, usage)
+                }
+                value :: statement.value
+                if value != null {
+                    scan_expression(value, usage)
+                }
+            }
         }
-        // Non-`t` bytes stay in the current verbatim run (no token probe).
-        if b[i] != 't' { i += 1  continue }
-        tok :: temp_token_at(b, i, len)
-        if tok.ok && tok.id < n && remap[tok.id] >= 0 {
-            if i > run_start { out.append(b[run_start..<i].bytes_to_string()) }
-            out.append("t${remap[tok.id]}")
-            run_start = tok.end
-        }
-        i = tok.end
     }
-    if len > run_start { out.append(b[run_start..<len].bytes_to_string()) }
-    return "${out}"
+}
+
+scan_expression :: fn(expression: CExpression, usage: TemporaryUsage!) -> void {
+    match expression {
+        is CTemporary                          -> {
+            id :: usize(expression.id)
+            usage.uses[id] += 1
+            if usage.first[id] < 0 {
+                usage.first[id] = usage.position
+            }
+            usage.last[id] = usage.position
+        }
+        is CLocal | CVerbatim | CIntegerLiteral -> {}
+        is CCall                               -> {
+            for argument in expression.arguments {
+                scan_expression(argument, usage)
+            }
+        }
+        is CCast                               -> scan_expression(expression.value, usage)
+        is CBinary                             -> {
+            scan_expression(expression.left, usage)
+            scan_expression(expression.right, usage)
+        }
+        is CUnary                              -> scan_expression(expression.operand, usage)
+        is CParenthesized                      -> scan_expression(expression.inner, usage)
+        is CMember                             -> scan_expression(expression.base, usage)
+        is CIndex                              -> {
+            scan_expression(expression.base, usage)
+            scan_expression(expression.index, usage)
+        }
+        is CConditional                        -> {
+            scan_expression(expression.condition, usage)
+            scan_expression(expression.then_value, usage)
+            scan_expression(expression.else_value, usage)
+        }
+        is CSequence                           -> {
+            for part in expression.parts {
+                scan_expression(part, usage)
+            }
+        }
+    }
 }
 
 // ---- temp -> local copy elision -------------------------------------------
 
-// Occurrence count of each temp id `0..<n` across the whole body.
-count_temp_occurrences :: fn(body: string, n: usize) -> i32[] {
-    count: i32[]!: []
-    for i in 0..<n { count.push(0) }
-    b :: body.bytes()
-    blen :: b.len()
-    i: usize = 0
-    for i < blen {
-        if b[i] != 't' { i += 1  continue }
-        tok :: temp_token_at(b, i, blen)
-        if tok.ok && tok.id < n { count[tok.id] += 1 }
-        i = tok.end
-    }
-    return count
-}
-
-// A parsed `<indent>tN = EXPR;` single-statement temp definition.
-DefLine :: struct { ok: bool  id: usize  indent: string  expr: string }
-// A parsed `<indent>lM = tN;` local-from-temp copy.
-CopyLine :: struct { ok: bool  id: usize  local: string }
-
-leading_spaces :: fn(b: u8[], len: usize) -> usize {
-    i: usize = 0
-    for i < len && b[i] == ' ' { i += 1 }
-    return i
-}
-
-count_byte :: fn(b: u8[], len: usize, c: u8) -> i32 {
-    n: i32 = 0
-    for i in 0..<len { if b[i] == c { n += 1 } }
-    return n
-}
-
-// Match `<indent>tN = EXPR;`. Requires exactly one `;` (the terminator) so a
-// multi-statement line is never mis-parsed — a bare expression has no `;`
-// (strings emit as atom ids, not inline C literals).
-parse_def_line :: fn(line: string) -> DefLine {
-    b :: line.bytes()
-    len :: b.len()
-    if len == 0 || b[len - 1] != ';' || count_byte(b, len, ';') != 1 {
-        return DefLine { .ok = false, .id = 0, .indent = "", .expr = "" }
-    }
-    ws :: leading_spaces(b, len)
-    tok :: slot_token_at(b, ws, len, 't')
-    e :: tok.end
-    if !tok.ok || e + 3 > len || b[e] != ' ' || b[e + 1] != '=' || b[e + 2] != ' ' {
-        return DefLine { .ok = false, .id = 0, .indent = "", .expr = "" }
-    }
-    return DefLine {
-        .ok     = true,
-        .id     = tok.id,
-        .indent = b[0..<ws].bytes_to_string(),
-        .expr   = b[e + 3..<len - 1].bytes_to_string(),
-    }
-}
-
-// Match `<indent>lM = tN;` — a local assigned the bare value of temp `tN`.
-parse_copy_line :: fn(line: string) -> CopyLine {
-    b :: line.bytes()
-    len :: b.len()
-    if len == 0 || b[len - 1] != ';' { return CopyLine { .ok = false, .id = 0, .local = "" } }
-    ws :: leading_spaces(b, len)
-    loc :: slot_token_at(b, ws, len, 'l')
-    e :: loc.end
-    if !loc.ok || e + 3 > len || b[e] != ' ' || b[e + 1] != '=' || b[e + 2] != ' ' {
-        return CopyLine { .ok = false, .id = 0, .local = "" }
-    }
-    rhs :: slot_token_at(b, e + 3, len, 't')
-    // The temp must be the whole RHS : immediately followed by the closing `;`.
-    if !rhs.ok || rhs.end != len - 1 { return CopyLine { .ok = false, .id = 0, .local = "" } }
-    return CopyLine { .ok = true, .id = rhs.id, .local = b[ws..<loc.end].bytes_to_string() }
-}
-
 // Fuse an adjacent `tN = EXPR;` / `lM = tN;` pair into `lM = EXPR;` when `tN`
-// occurs nowhere else (exactly the def + the copy). The temp then vanishes —
-// the downstream coalescer sees zero occurrences and drops its slot + GC root,
-// and the redundant box copy is gone. Only strictly-adjacent lines fuse, so no
-// side-effecting expression is reordered.
-fuse_temp_local_copies :: fn(body: string, n: usize) -> string {
-    count :: count_temp_occurrences(body, n)
-    lines :: body.split("\n")
-    nlines :: lines.len()
-    out: string[]!: []
-    li: usize = 0
-    for li < nlines {
-        if li + 1 < nlines {
-            d :: parse_def_line(lines[li])
-            if d.ok && d.id < n && count[d.id] == 2 {
-                c :: parse_copy_line(lines[li + 1])
-                if c.ok && c.id == d.id {
-                    out.push("${d.indent}${c.local} = ${d.expr};")
-                    li += 2
-                    continue
-                }
+// has no other use ; `tN` is then unused. Only statements next to each other
+// in one block fuse, so no side-effecting expression is reordered. Compacts
+// `block.body` in place.
+fuse_temp_local_copies :: fn(block: CBlock!, usage: TemporaryUsage!) -> void {
+    body :: block.body
+    kept: usize = 0
+    k: usize = 0
+    for k < body.len() {
+        statement :: body[k]
+        if statement is CIf {
+            fuse_temp_local_copies(statement.then_block, usage)
+            else_block :: statement.else_block
+            if else_block != null {
+                fuse_temp_local_copies(else_block, usage)
             }
+        } else if statement is CScope {
+            fuse_temp_local_copies(statement.body, usage)
         }
-        out.push(lines[li])
-        li += 1
+        fused :: if k + 1 < body.len() { fused_copy(statement, body[k + 1], usage) } else { null }
+        if fused != null {
+            body[kept] = fused
+            k += 2
+        } else {
+            body[kept] = statement
+            k += 1
+        }
+        kept += 1
     }
-    return out.join("\n")
+    for body.len() > kept {
+        body.remove_last()
+    }
+}
+
+// `lM = EXPR;` when `definition` is `tN = EXPR;`, `copy` is `lM = tN;` and the
+// two are `tN`'s only uses — `tN` is then marked unused ; null otherwise.
+fused_copy :: fn(definition: CStatement, copy: CStatement, usage: TemporaryUsage!) -> CAssign | null {
+    if definition !is CAssign || copy !is CAssign {
+        return null
+    }
+    temporary :: definition.target
+    if temporary !is CTemporary || usage.uses[usize(temporary.id)] != 2 {
+        return null
+    }
+    source :: copy.value
+    if copy.target !is CLocal || source !is CTemporary || source.id != temporary.id {
+        return null
+    }
+    usage.first[usize(temporary.id)] = -1
+    return CAssign { .target = copy.target, .value = definition.value }
 }
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/string_builder"
 import "std/testing"
 
-@test test_coalesce_disjoint_merge :: fn() -> void {
-    // t0 (lines 0-1) and t1 (lines 3-4) are strictly disjoint Refs -> one slot,
-    // and every `t1` is rewritten to the shared `t0`.
-    body :: "t0 = a;\nuse(t0);\nsep();\nt1 = b;\nuse(t1);\n"
-    r :: coalesce_temps(body, [.Ref, .Ref])
-    assert_eq(r.types.len(), 1)
-    assert_eq(r.body, "t0 = a;\nuse(t0);\nsep();\nt0 = b;\nuse(t0);\n")
+// A body built over temps `0..<count`, coalesced, then printed.
+TestBody :: struct {
+    temporaries: CTemporary![]!
+    root:        CBlock!
 }
 
-@test test_coalesce_adjacent_no_merge :: fn() -> void {
-    // t0's last read is the line t1 is defined on -> ranges touch -> two slots.
-    body :: "t0 = a;\nt1 = f(t0);\nuse(t1);\n"
-    r :: coalesce_temps(body, [.Ref, .Ref])
-    assert_eq(r.types.len(), 2)
+// `count` temps of class `.Ref`, temp 1 of class `second`.
+test_body :: fn(count: i32, second: ValType) -> TestBody {
+    temporaries: CTemporary![]!: []
+    for id in 0..<count {
+        temporaries.push(CTemporary { .id = id, .val = if id == 1 { second } else { .Ref } })
+    }
+    return TestBody { .temporaries = temporaries, .root = CBlock { .body = [] } }
 }
 
-@test test_coalesce_per_type_bucketing :: fn() -> void {
-    // Disjoint ranges but different ValTypes never share a slot.
-    body :: "t0 = a;\nuse(t0);\nt1 = b;\nuse(t1);\n"
-    r :: coalesce_temps(body, [.Ref, .I32])
-    assert_eq(r.types.len(), 2)
+set :: fn(target: CExpression, value: CExpression) -> CStatement = CAssign { .target = target, .value = value }
+use :: fn(value: CExpression) -> CStatement = CExpressionStatement { .expression = CCall { .callee = "use", .arguments = [value] } }
+
+printed :: fn(block: CBlock) -> string {
+    out :: StringBuilder {}
+    print_block(out, block, 0)
+    return out.to_string()
 }
 
-@test test_coalesce_skips_line_directive :: fn() -> void {
-    // A `t<digits>` inside a `#line` path must NOT feed the range scan nor be
-    // rewritten. Without the skip, the path's `t1` would extend t1's range
-    // (blocking the merge) AND get corrupted to `t0` on rewrite.
-    body :: "#line 3 \"t1.vader\"\nt0 = a;\nuse(t0);\nt1 = b;\nuse(t1);\n"
-    r :: coalesce_temps(body, [.Ref, .Ref])
-    assert_eq(r.types.len(), 1)
-    assert_eq(r.body, "#line 3 \"t1.vader\"\nt0 = a;\nuse(t0);\nt0 = b;\nuse(t0);\n")
+@test
+test_coalesce_merges_disjoint_temps :: fn() -> void {
+    b :: test_body(2, .Ref)
+    t0 :: b.temporaries[0]
+    t1 :: b.temporaries[1]
+    b.root.body.push_all([set(t0, verbatim("a")), use(t0), use(verbatim("sep")), set(t1, verbatim("b")), use(t1)])
+    types :: coalesce_temporaries(b.root, b.temporaries)
+    assert_eq(types.len(), 1)
+    assert_eq(printed(b.root), "t0 = a;\nuse(t0);\nuse(sep);\nt0 = b;\nuse(t0);\n")
 }
 
-@test test_fuse_temp_local_copy :: fn() -> void {
-    // tN defined then immediately copied to a local, used nowhere else -> the
-    // temp is elided and the expression lands directly in the local.
-    assert_eq(fuse_temp_local_copies("t0 = f(x);\nl3 = t0;\n", 1), "l3 = f(x);\n")
+@test
+test_coalesce_keeps_touching_temps_apart :: fn() -> void {
+    // t0's last read is the statement t1 is defined on : the ranges touch.
+    b :: test_body(2, .Ref)
+    t0 :: b.temporaries[0]
+    t1 :: b.temporaries[1]
+    b.root.body.push_all([set(t0, verbatim("a")), set(t1, CCall { .callee = "f", .arguments = [t0] }), use(t1)])
+    assert_eq(coalesce_temporaries(b.root, b.temporaries).len(), 2)
 }
 
-@test test_fuse_skips_when_temp_reused :: fn() -> void {
-    // t0 has a third use -> the copy is load-bearing, keep both lines.
-    body :: "t0 = f(x);\nl3 = t0;\ng(t0);\n"
-    assert_eq(fuse_temp_local_copies(body, 1), body)
+@test
+test_coalesce_keeps_types_apart :: fn() -> void {
+    b :: test_body(2, .I32)
+    t0 :: b.temporaries[0]
+    t1 :: b.temporaries[1]
+    b.root.body.push_all([set(t0, verbatim("a")), use(t0), set(t1, verbatim("b")), use(t1)])
+    assert_eq(coalesce_temporaries(b.root, b.temporaries).len(), 2)
 }
 
-@test test_fuse_skips_non_adjacent :: fn() -> void {
-    // A statement sits between def and copy -> not fused (no reordering).
-    body :: "t0 = f(x);\nsep();\nl3 = t0;\n"
-    assert_eq(fuse_temp_local_copies(body, 1), body)
+@test
+test_coalesce_fuses_a_temp_copied_to_a_local :: fn() -> void {
+    b :: test_body(1, .Ref)
+    t0 :: b.temporaries[0]
+    b.root.body.push_all([set(t0, CCall { .callee = "f", .arguments = [] }), set(CLocal { .slot = 3 }, t0)])
+    assert_eq(coalesce_temporaries(b.root, b.temporaries).len(), 0)
+    assert_eq(printed(b.root), "l3 = f();\n")
 }
 
-@test test_fuse_skips_multi_statement_line :: fn() -> void {
-    // A line carrying two statements must not be parsed as a single temp def.
-    body :: "t0 = f(); g();\nl3 = t0;\n"
-    assert_eq(fuse_temp_local_copies(body, 1), body)
+@test
+test_coalesce_keeps_a_copy_whose_temp_is_reused :: fn() -> void {
+    b :: test_body(1, .Ref)
+    t0 :: b.temporaries[0]
+    b.root.body.push_all([set(t0, verbatim("x")), set(CLocal { .slot = 3 }, t0), use(t0)])
+    coalesce_temporaries(b.root, b.temporaries)
+    assert_eq(printed(b.root), "t0 = x;\nl3 = t0;\nuse(t0);\n")
+}
+
+@test
+test_coalesce_keeps_a_copy_that_is_not_adjacent :: fn() -> void {
+    b :: test_body(1, .Ref)
+    t0 :: b.temporaries[0]
+    b.root.body.push_all([set(t0, verbatim("x")), use(verbatim("sep")), set(CLocal { .slot = 3 }, t0)])
+    coalesce_temporaries(b.root, b.temporaries)
+    assert_eq(printed(b.root), "t0 = x;\nuse(sep);\nl3 = t0;\n")
 }

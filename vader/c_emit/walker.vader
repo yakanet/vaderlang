@@ -154,11 +154,10 @@ invalidate_resolve_cache :: fn(s: FnState!, op: vm.Op) -> void {
     // preheader hoist, which declares its C local OUTSIDE the loop — that is what
     // makes keeping them across a scope EXIT sound, where (1) would not be.
     // Anything else (a call / alloc — a real GC safepoint) drops everything.
-    if is_pure_control_flow(op) && s.pinned_resolves.len() > 0 {
+    if is_pure_control_flow(op) {
         keep_pinned_resolves(s)
     } else {
         s.resolved_arrays.clear()
-        s.pinned_resolves = MutableSet<string> {}
     }
 }
 
@@ -175,18 +174,12 @@ is_pure_control_flow :: fn(op: vm.Op) -> bool {
 is_scope_opening :: fn(op: vm.Op) -> bool = op is vm.Block | vm.Loop | vm.If
 
 // Drop every non-pinned resolve, keep the pinned ones (their buffer can't have
-// moved across a pure control-flow op). `pinned_resolves` keys all remain present.
-// Driven from `pinned_resolves`, not `resolved_arrays` : pins come from the one
-// BCE preheader site so the set is tiny, while the cache holds every CSE'd array
-// of the region. `pinned_resolves ⊆ keys(resolved_arrays)` — both are written
-// together in `resolve_array_local` and dropped together in
-// `drop_resolved_for_local` — so nothing is lost by iterating the smaller side.
+// moved across a pure control-flow op).
 keep_pinned_resolves :: fn(s: FnState!) -> void {
-    kept :: MutableMap<string, string> {}
-    for k in s.pinned_resolves {
-        hit :: s.resolved_arrays[k]
-        if hit is string {
-            kept[k] = hit
+    kept: ResolvedArray![]!: []
+    for resolved in s.resolved_arrays {
+        if resolved.pinned {
+            kept.push(resolved)
         }
     }
     s.resolved_arrays = kept
@@ -227,61 +220,16 @@ is_cache_safe :: fn(op: vm.Op) -> bool {
     return false
 }
 
-// Drop cache entries whose array C-expr names local `l<slot>` — it was just
-// reassigned, so any `_slotarr` resolved from its old value is stale.
+// Drop cache entries whose array expression reads local `l<slot>` — it was
+// just reassigned, so any `_slotarr` resolved from its old value is stale.
 drop_resolved_for_local :: fn(s: FnState!, slot: i32) -> void {
-    kept :: MutableMap<string, string> {}
-    kept_pins :: MutableSet<string> {}
-    for [k, v] in s.resolved_arrays {
-        if !key_mentions_local(k, slot) {
-            kept[k] = v
-            if k in s.pinned_resolves {
-                kept_pins.add(k)
-            }
+    kept: ResolvedArray![]!: []
+    for resolved in s.resolved_arrays {
+        if !mentions_local(resolved.pointer, slot) {
+            kept.push(resolved)
         }
     }
     s.resolved_arrays = kept
-    s.pinned_resolves = kept_pins
-}
-
-// True when C expr `k` references local `l<slot>` as a whole token. A local
-// prints as `l<digits>` ; the token is the maximal digit run after the `l`.
-// This must match BOTH the boxed array expr (`… l5.payload.obj`) and the raw
-// `void*` one (`… l5)`) — an earlier version keyed on a trailing `.`, which
-// silently missed the unboxed-ref form once T12 flipped concrete refs to raw
-// `void*`. The stale `_slotarr` then survived the reassignment and the next
-// access aliased the wrong buffer (the `write_entry` ekeys/evals corruption).
-// Parsing the digit run instead of substring-matching also keeps `l5` from
-// matching `l50` without relying on the delimiter that follows.
-key_mentions_local :: fn(k: string, slot: i32) -> bool {
-    kb :: k.bytes()
-    n :: kb.len()
-    for i in 0..<n {
-        if kb[i] != 'l' {
-            continue
-        }
-        // Left boundary : `l` must start a token, not sit inside an identifier
-        // (`evals`, `slots`, …). Generated C never prefixes a local, but this
-        // keeps the match well-defined.
-        if i > 0 {
-            p :: kb[i - 1]
-            if p >= 'a' && p <= 'z' || p >= 'A' && p <= 'Z' || p >= '0' && p <= '9' || p == '_' {
-                continue
-            }
-        }
-        j := i + 1
-        val := 0
-        digits := 0
-        for j < n && kb[j] >= '0' && kb[j] <= '9' {
-            val = val * 10 + i32(kb[j] - '0')
-            digits += 1
-            j += 1
-        }
-        if digits > 0 && val == slot {
-            return true
-        }
-    }
-    return false
 }
 
 // Whether an op can allocate on the GC heap (may trigger a collection). Drives
@@ -366,20 +314,18 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         }
         emit_op(s, i32(i), op)
     }
-    // Coalesce operand temps with disjoint live ranges into shared slots — the
-    // walk mints one `tN` per materialisation and never recycles, inflating the
-    // frame and GC-root set. This compacts `s.tmp_types` and rewrites the body
-    // text so `tN` names its assigned slot ; the decl emitters below then see
-    // the reduced set. See `coalesce.vader`.
     // Fall-through restore (void / implicit-end fns) ; explicit returns pop
     // the frame themselves, so a body ending on one needs none.
     if !s.no_frame && !ends_with_return(s.root) {
         s.root.body.push(CLine { .text = FRAME_RESTORE })
     }
+    // Coalesce operand temps with disjoint live ranges into shared slots — the
+    // walk mints one `tN` per materialisation and never recycles, inflating the
+    // frame and GC-root set. The declarations below are one per slot. See
+    // `coalesce.vader`.
+    slot_types :: coalesce_temporaries(s.root, s.temporaries)
     body :: StringBuilder {}
     print_block(body, s.root, 1)
-    coalesced :: coalesce_temps(body.to_string(), s.tmp_types)
-    s.tmp_types = coalesced.types
     // GC roots : ref-typed params, then locals + temps (collected by the
     // decl emitters). Order is irrelevant to the GC scan. `no_frame` fns
     // skip the whole shadow-stack apparatus.
@@ -403,7 +349,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         }
     }
     emit_local_decls(function, out, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
-    emit_tmp_decls(s, out, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
+    emit_temporary_declarations(slot_types, out, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
     if !no_frame {
         if root_addrs.len() > 0 {
             out.append(
@@ -453,7 +399,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         )
         out.append("    vader_gc_top = &gc_frame;\n")
     }
-    out.append(coalesced.body)
+    out.append(body.to_string())
     out.append("}\n")
 }
 
@@ -485,10 +431,10 @@ emit_local_decls :: fn(
     emit_slot_decls(out, vals, names, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
 }
 
-/// Declare the materialised temps `tN`, bucketed like the locals. Reads
-/// `s.tmp_types` (index N → ValType of `tN`), populated during the walk.
-emit_tmp_decls :: fn(
-    s: FnState,
+/// Declare the temp slots `tN`, bucketed like the locals ; `slot_types[N]` is
+/// the ValType of `tN`.
+emit_temporary_declarations :: fn(
+    slot_types: ValType[],
     out: StringBuilder!,
     root_addrs: string[]!,
     raw_root_addrs: string[]!,
@@ -496,10 +442,10 @@ emit_tmp_decls :: fn(
     no_frame: bool,
 ) -> void {
     names: string[]!: []
-    for i in 0..<s.tmp_types.len() {
+    for i in 0..<slot_types.len() {
         names.push("t${i}")
     }
-    emit_slot_decls(out, s.tmp_types, names, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
+    emit_slot_decls(out, slot_types, names, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
 }
 
 /// Declare a group of same-kind C slots (`vals[i]` is the ValType of
@@ -712,10 +658,10 @@ emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {
         is vm.LoadI32               -> emit_buffer_load(s, "vader_buffer_load_i32", .I32)
         is vm.LoadI64               -> emit_buffer_load(s, "vader_buffer_load_i64", .I64)
         is vm.LoadF64               -> emit_buffer_load(s, "vader_buffer_load_f64", .F64)
-        is vm.StoreU8               -> emit_buffer_store(s, "vader_buffer_store_u8", "(uint8_t)")
-        is vm.StoreI32              -> emit_buffer_store(s, "vader_buffer_store_i32", "(int32_t)")
-        is vm.StoreI64              -> emit_buffer_store(s, "vader_buffer_store_i64", "(int64_t)")
-        is vm.StoreF64              -> emit_buffer_store(s, "vader_buffer_store_f64", "(double)")
+        is vm.StoreU8               -> emit_buffer_store(s, "vader_buffer_store_u8", "uint8_t")
+        is vm.StoreI32              -> emit_buffer_store(s, "vader_buffer_store_i32", "int32_t")
+        is vm.StoreI64              -> emit_buffer_store(s, "vader_buffer_store_i64", "int64_t")
+        is vm.StoreF64              -> emit_buffer_store(s, "vader_buffer_store_f64", "double")
         is vm.LoadSlotI32           -> emit_slot_load_prim(s, "int32_t", .I32, op.bounds_safe)
         is vm.LoadSlotI64           -> emit_slot_load_prim(s, "int64_t", .I64, op.bounds_safe)
         is vm.LoadSlotF64           -> emit_slot_load_prim(s, "double", .F64, op.bounds_safe)
@@ -747,35 +693,14 @@ emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {
 ///             string-literal atom ids.
 /// @param c    the constant op to render.
 /// @return     a C expression (no trailing `;`).
-const_lit_c :: fn(ctx: EmitCtx, c: vm.ConstOp) -> string = match c {
-    is vm.I32Const    -> i32_lit_c(c.value)
-    is vm.I64Const    -> i64_lit_c(c.value)
-    is vm.F64Const    -> float_lit(c.value)
-    is vm.BoolConst   -> if c.value { "true" } else { "false" }
-    is vm.CharConst   -> "${u32(c.value)}u"
-    is vm.NullConst   -> "vader_box_obj(${ctx.null_tag}u, NULL)"
-    is vm.StringConst -> "${ctx.atom_ids[usize(c.index)]}u"
-}
-
-/// C literal for an i32 value. `INT32_MIN` can't be spelled
-/// `INT32_C(-2147483648)` — that parses as unary minus on an
-/// out-of-range magnitude (UB on strict toolchains) — so emit the
-/// stdint macro. No out-of-range branch is needed : `value` is already
-/// typed `i32`.
-i32_lit_c :: fn(value: i32) -> string {
-    if value == i32(-2147483647) - 1 {
-        return "INT32_MIN"
-    }
-    return "INT32_C(${value})"
-}
-
-/// C literal for an i64 value. Same `INT64_MIN` caveat as `i32_lit_c`. The
-/// `INT64_C(n)` spelling is parsed back by `literal_digits_of_class` (body.vader).
-i64_lit_c :: fn(value: i64) -> string {
-    if value == i64(-9223372036854775807) - 1 {
-        return "INT64_MIN"
-    }
-    return "INT64_C(${value})"
+const_lit_c :: fn(ctx: EmitCtx, c: vm.ConstOp) -> CExpression = match c {
+    is vm.I32Const    -> CIntegerLiteral { .class = .I32, .value = i64(c.value) }
+    is vm.I64Const    -> CIntegerLiteral { .class = .I64, .value = c.value }
+    is vm.F64Const    -> verbatim(float_lit(c.value))
+    is vm.BoolConst   -> verbatim(if c.value { "true" } else { "false" })
+    is vm.CharConst   -> verbatim("${u32(c.value)}u")
+    is vm.NullConst   -> verbatim("vader_box_obj(${ctx.null_tag}u, NULL)")
+    is vm.StringConst -> verbatim("${ctx.atom_ids[usize(c.index)]}u")
 }
 
 /// C literal for an f64 value. A `.0` suffix is appended when the rendered
@@ -797,7 +722,7 @@ float_lit :: fn(value: f64) -> string {
 }
 
 /// Push a constant op as a `StackLit` — `const_val` gives the stack
-/// ValType, `const_lit_c` the C literal text.
+/// ValType, `const_lit_c` the C literal.
 push_const :: fn(s: FnState!, c: vm.ConstOp) -> void = push_lit(
     s,
     const_val(c),
@@ -834,7 +759,7 @@ emit_local_get :: fn(s: FnState!, l: vm.LocalGet) -> void {
 push_binop :: fn(s: FnState!, op: string, val: ValType) -> void = push_expr(
     s,
     val,
-    binop_text(s, op, val),
+    binary_expression(s, op, val),
 )
 
 /// Push a comparison as a `StackExpr` of class `.Bool`. The operands carry
@@ -844,32 +769,38 @@ push_binop :: fn(s: FnState!, op: string, val: ValType) -> void = push_expr(
 push_cmp :: fn(s: FnState!, op: string, operand_val: ValType) -> void = push_expr(
     s,
     .Bool,
-    binop_text(s, op, operand_val),
+    binary_expression(s, op, operand_val),
 )
 
 /// Pop the two operands, coerce each to `operand_val` (the op's operand class
 /// — identity when already that class, an unbox when an erased `any` reaches
-/// the op), and build the infix C text. Equality stays paren-free so
-/// `if (${expr})` doesn't trip `-Wparentheses-equality` ; every other operator
-/// is parenthesised for precedence safety.
-binop_text :: fn(s: FnState!, op: string, operand_val: ValType) -> string {
-    r :: pop(s)
-    l :: pop(s)
-    lc :: coerce_operand(s.ctx.module.types, name_of(l), val_of(l), operand_val)
-    rc :: coerce_operand(s.ctx.module.types, name_of(r), val_of(r), operand_val)
+/// the op), and build the infix expression. Equality stays paren-free so an
+/// `if` on it doesn't trip `-Wparentheses-equality` ; every other operator is
+/// parenthesised for precedence safety.
+binary_expression :: fn(s: FnState!, op: string, operand_val: ValType) -> CExpression {
+    right :: pop(s)
+    left :: pop(s)
+    infix :: CBinary { .operator = op, .left = operand_as(s, left, operand_val), .right = operand_as(s, right, operand_val) }
     if op == "==" || op == "!=" {
-        return "${lc} ${op} ${rc}"
+        return infix
     }
-    return "(${lc} ${op} ${rc})"
+    return CParenthesized { .inner = infix }
 }
+
+// `value` coerced as an operand of class `class` (`coerce_operand`).
+operand_as :: fn(s: FnState, value: StackVal, class: ValType) -> CExpression =
+    coerce_operand(s.ctx.module.types, expression_of(value), val_of(value), class)
+
+// `value` coerced to class `class` (`coerce_expr`).
+coerced_as :: fn(s: FnState, value: StackVal, class: ValType) -> CExpression =
+    coerce_expr(s.ctx.module.types, expression_of(value), val_of(value), class)
 
 /// Push a unary op result as a `StackExpr`. The operand is coerced to `val`
 /// (unbox an erased `any`) and wrapped in parens — unary binds tighter than
 /// the comparisons, so e.g. `~l0 == 0` would otherwise mis-parse.
 push_unop :: fn(s: FnState!, op: string, val: ValType) -> void {
     v :: pop(s)
-    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), val)
-    push_expr(s, val, "${op}(${vc})")
+    push_expr(s, val, CUnary { .operator = op, .operand = operand_as(s, v, val) })
 }
 
 /// `i64.neg`. Special-cases `-(INT64_MIN)` : the source most-negative
@@ -882,11 +813,11 @@ push_unop :: fn(s: FnState!, op: string, val: ValType) -> void {
 /// operand negates normally.
 push_i64_neg :: fn(s: FnState!) -> void {
     v :: pop(s)
-    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .I64)
-    if vc == "INT64_MIN" {
-        push_lit(s, .I64, "INT64_MIN")
+    operand :: operand_as(s, v, .I64)
+    if operand is CIntegerLiteral && operand.class == .I64 && is_most_negative(operand) {
+        push_lit(s, .I64, operand)
     } else {
-        push_expr(s, .I64, "-(${vc})")
+        push_expr(s, .I64, CUnary { .operator = "-", .operand = operand })
     }
 }
 
@@ -896,40 +827,28 @@ push_i64_neg :: fn(s: FnState!) -> void {
 /// `.I64` stack slot (same 64 bits).
 emit_f64_to_bits :: fn(s: FnState!) -> void {
     v :: pop(s)
-    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .F64)
-    push_expr(s, .I64, "(int64_t)(((union { double __vd; uint64_t __vu; }){ .__vd = ${vc} }).__vu)")
+    push_expr(s, .I64, around("(int64_t)(((union { double __vd; uint64_t __vu; }){ .__vd = ", operand_as(s, v, .F64), " }).__vu)"))
 }
 
 /// `u64.from_bits` — the inverse : reinterpret a u64 bit pattern (in the `.I64`
 /// slot) as an f64. Same compound-literal-union technique, no runtime symbol.
 emit_bits_to_f64 :: fn(s: FnState!) -> void {
     v :: pop(s)
-    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .I64)
-    push_expr(
-        s,
-        .F64,
-        "(((union { uint64_t __vu; double __vd; }){ .__vu = (uint64_t)(${vc}) }).__vd)",
-    )
+    push_expr(s, .F64, around("(((union { uint64_t __vu; double __vd; }){ .__vu = (uint64_t)(", operand_as(s, v, .I64), ") }).__vd)"))
 }
 
 /// `f32.to_bits` — the 32-bit analogue. The u32 result rides in the `.I32`
 /// stack slot.
 emit_f32_to_bits :: fn(s: FnState!) -> void {
     v :: pop(s)
-    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .F32)
-    push_expr(s, .I32, "(int32_t)(((union { float __vf; uint32_t __vb; }){ .__vf = ${vc} }).__vb)")
+    push_expr(s, .I32, around("(int32_t)(((union { float __vf; uint32_t __vb; }){ .__vf = ", operand_as(s, v, .F32), " }).__vb)"))
 }
 
 /// `u32.from_bits` — the inverse : reinterpret a u32 bit pattern (in the `.I32`
 /// slot) as an f32. Same compound-literal-union technique, no runtime symbol.
 emit_bits_to_f32 :: fn(s: FnState!) -> void {
     v :: pop(s)
-    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .I32)
-    push_expr(
-        s,
-        .F32,
-        "(((union { uint32_t __vb; float __vf; }){ .__vb = (uint32_t)(${vc}) }).__vf)",
-    )
+    push_expr(s, .F32, around("(((union { uint32_t __vb; float __vf; }){ .__vb = (uint32_t)(", operand_as(s, v, .I32), ") }).__vf)"))
 }
 
 /// Emit an eager binary op into a fresh temp : `tN = l <op> r;`. Used for
@@ -942,15 +861,15 @@ emit_bits_to_f32 :: fn(s: FnState!) -> void {
 /// `inf` / `nan` and stays a bare `l / r`. Operands are coerced to `val`
 /// (unbox an erased `any`).
 push_eager :: fn(s: FnState!, op: string, val: ValType) -> void {
-    r :: pop(s)
-    l :: pop(s)
-    lc :: coerce_operand(s.ctx.module.types, name_of(l), val_of(l), val)
-    rc :: coerce_operand(s.ctx.module.types, name_of(r), val_of(r), val)
+    right :: pop(s)
+    left :: pop(s)
+    dividend :: operand_as(s, left, val)
+    divisor :: operand_as(s, right, val)
     helper :: div_mod_helper(op, val)
     if helper == null {
-        push_into_tmp(s, "${lc} ${op} ${rc}", val)
+        push_into_temporary(s, CBinary { .operator = op, .left = dividend, .right = divisor }, val)
     } else {
-        push_into_tmp(s, "${helper}(${lc}, ${rc})", val)
+        push_into_temporary(s, CCall { .callee = helper, .arguments = [dividend, divisor] }, val)
     }
 }
 
@@ -1010,11 +929,11 @@ emit_convert :: fn(s: FnState!, target_val: ValType, from_name: string) -> void 
         // `Distinct | null` field narrowed to its raw member) flowing into a
         // numeric convert. Unbox it to the target primitive, like `coerce_expr`
         // — a plain `(int64_t)(vader_box_t)x` cast of a box is invalid C.
-        push_expr(s, target_val, unbox_expr(name_of(v), target_val))
+        push_expr(s, target_val, unbox_expr(expression_of(v), target_val))
     } else if from_val == target_val {
-        push_expr(s, target_val, name_of(v))
+        push_expr(s, target_val, expression_of(v))
     } else {
-        push_expr(s, target_val, "(${scalar_cast(name_of(v), from_val, target_val)})")
+        push_expr(s, target_val, CParenthesized { .inner = scalar_cast(expression_of(v), from_val, target_val) })
     }
 }
 
@@ -1053,8 +972,7 @@ emit_return :: fn(s: FnState!) -> void {
         return
     }
     v :: pop(s)
-    rv :: coerce_expr(s.ctx.module.types, name_of(v), val_of(v), result)
-    return_statement(s, CReturn { .value = rv, .snapshot_type = c_type_for_val_bare(result) })
+    return_statement(s, CReturn { .value = coerced_as(s, v, result), .snapshot_type = c_type_for_val_bare(result) })
 }
 
 // A multi-value return writes each value through its out-param and returns void.
@@ -1071,14 +989,13 @@ emit_multi_return :: fn(s: FnState!) -> void {
         line(s, "vader_unreachable(\"unreachable return in ${s.function.name}\");")
         return
     }
-    stores :: []
+    stores: CAssign[]!: []
     for i in 0..<arity {
         // Popped from the top, so this is result `arity - 1 - i` — which is also
         // the order the assignments go out in.
         idx :: arity - 1 - i
         v :: pop(s)
-        rv :: coerce_expr(s.ctx.module.types, name_of(v), val_of(v), results[idx])
-        stores.push("*${out_param_name(idx)} = ${rv}")
+        stores.push(CAssign { .target = verbatim("*${out_param_name(idx)}"), .value = coerced_as(s, v, results[idx]) })
     }
     return_statement(s, CReturn { .stores = stores })
 }
@@ -1110,8 +1027,7 @@ emit_local_set :: fn(s: FnState!, slot: i32, tee: bool) -> void {
     }
     materialize_stack_for_slot(s, slot)
     v :: pop(s)
-    rv :: coerce_expr(s.ctx.module.types, name_of(v), val_of(v), slot_val)
-    line(s, "l${slot} = ${rv};")
+    assign(s, CLocal { .slot = slot }, coerced_as(s, v, slot_val))
     if tee {
         push_local_ref(s, slot, slot_val)
     }
@@ -1321,7 +1237,7 @@ emit_open_scope :: fn(s: FnState!, pc: i32, kind: ScopeKind) -> void {
 emit_if_open :: fn(s: FnState!) -> void {
     cond :: pop(s)
     assert_stack_empty(s, "if open")
-    open_if(s, name_of(cond))
+    open_if(s, expression_of(cond))
 }
 
 /// `else` — close the then-arm and open the else-arm ; an arm holding a single
@@ -1358,10 +1274,10 @@ emit_branch :: fn(s: FnState!, pc: i32, conditional: bool) -> void {
         if conditional {
             cond :: pop(s)
             assert_stack_empty(s, "br_if (pc ${pc})")
-            line(s, "if (${name_of(cond)}) goto ${dest};")
+            append_statement(s, CGoto { .label = dest, .condition = expression_of(cond) })
         } else {
             assert_stack_empty(s, "br (pc ${pc})")
-            line(s, "goto ${dest};")
+            append_statement(s, CGoto { .label = dest })
         }
     } else {
         todo("emit_branch: unresolved target at pc ${pc} (jump_table=${target})")
@@ -1395,26 +1311,18 @@ emit_call_import :: fn(s: FnState!, op: vm.CallImport) -> void {
 emit_call_to :: fn(s: FnState!, callee_name: string, sig: BcSignature) -> void {
     n :: i32(sig.params.len())
     // Top-of-stack is the last argument, so pop into `args` back-to-front :
-    // pop #k lands in slot `n-1-k`, restoring source order for the join.
-    args: string[]!: []
-    for _ in 0..<n {
-        args.push("")
-    }
+    // pop #k lands in slot `n-1-k`, restoring source order.
+    args: CExpression[]!: [verbatim("")] * usize(n)
     for k in 0..<n {
         v :: pop(s)
         slot :: n - 1 - k
-        args[usize(slot)] = coerce_expr(
-            s.ctx.module.types,
-            name_of(v),
-            val_of(v),
-            sig.params[usize(slot)],
-        )
+        args[usize(slot)] = coerced_as(s, v, sig.params[usize(slot)])
     }
     if bc_result_arity(sig) > 1 {
         emit_multi_call(s, callee_name, args, sig)
         return
     }
-    emit_call_result(s, "${callee_name}(${args.join(", ")})", bc_single_result(sig))
+    emit_call_result(s, CCall { .callee = callee_name, .arguments = args }, bc_single_result(sig))
 }
 
 // A call to a scalarised callee: one fresh temp per result, their addresses
@@ -1427,20 +1335,18 @@ emit_call_to :: fn(s: FnState!, callee_name: string, sig: BcSignature) -> void {
 // non-reference primitive, which is what keeps the caller from having to root
 // the address it takes.
 emit_multi_call :: fn(
-    s: FnState!, callee_name: string, args: string[]!, sig: BcSignature,
+    s: FnState!, callee_name: string, args: CExpression[]!, sig: BcSignature,
 ) -> void {
     results :: sig.results
-    names: string[]!: []
-    call_args: string[]!: []
-    call_args.push_all(args)
+    temporaries: CTemporary[]!: []
     for i in 0..<results.len() {
-        name :: fresh_tmp(s, results[i])
-        names.push(name)
-        call_args.push("&${name}")
+        temporary :: new_temporary(s, results[i])
+        temporaries.push(temporary)
+        args.push(CSequence { .parts = [verbatim("&"), temporary] })
     }
-    line(s, "${callee_name}(${call_args.join(", ")});")
+    evaluate(s, CCall { .callee = callee_name, .arguments = args })
     for i in 0..<results.len() {
-        push_tmp(s, names[i], results[i])
+        push_temporary(s, temporaries[i], results[i])
     }
 }
 
@@ -1448,15 +1354,15 @@ emit_multi_call :: fn(
 /// materialise into a fresh `tN` (calls are eager — they may have side
 /// effects, so the result is forced even when unused) and push it. B1 /
 /// erasure return reshaping is T12.
-emit_call_result :: fn(s: FnState!, call_expr: string, result: ValType) -> void {
+emit_call_result :: fn(s: FnState!, call: CExpression, result: ValType) -> void {
     // A `void` call — or a call whose result the next op drops (`drop_call_result`,
     // set by the walk driver) — is a bare statement : the side effect runs, no
     // unread `tN` is minted. The driver skips the paired `drop`.
     if result == .Void || s.drop_call_result {
-        line(s, "${call_expr};")
+        evaluate(s, call)
         return
     }
-    push_into_tmp(s, call_expr, result)
+    push_into_temporary(s, call, result)
 }
 
 // ---- closures + dispatch --------------------------------------------------
@@ -1474,16 +1380,12 @@ emit_call_result :: fn(s: FnState!, call_expr: string, result: ValType) -> void 
 /// the erased `any` ABI, and return them in source order — pop #k lands in
 /// slot `count-1-k`. Shared by the erased-call sites (`call.indirect` args,
 /// `virtual.call` tail).
-pop_args_boxed :: fn(s: FnState!, count: i32) -> string[] {
-    types :: s.ctx.module.types
-    args: string[]!: []
-    for _ in 0..<count {
-        args.push("")
-    }
+pop_args_boxed :: fn(s: FnState!, count: i32) -> CExpression[] {
+    args: CExpression[]!: [verbatim("")] * usize(count)
     for k in 0..<count {
         v :: pop(s)
         slot :: count - 1 - k
-        args[usize(slot)] = coerce_expr(types, name_of(v), val_of(v), .Any)
+        args[usize(slot)] = coerced_as(s, v, .Any)
     }
     return args
 }
@@ -1509,9 +1411,7 @@ fn_symbol_name :: fn(fns: BcFunction[], index: i32) -> string {
 /// `fn.ref` — box a pointer to the fn's static trampoline value. The
 /// trampoline (`vader_fn_static_N`) is emitted by `emit_fn_trampolines`.
 emit_fn_ref :: fn(s: FnState!, op: vm.FnRef) -> void {
-    name :: fresh_tmp(s, .Ref)
-    line(s, "${name} = (void*) &vader_fn_static_${fn_symbol_name(s.ctx.module.functions, op.function_index)};")
-    push_tmp(s, name, .Ref)
+    push_object(s, "&vader_fn_static_${fn_symbol_name(s.ctx.module.functions, op.function_index)}")
 }
 
 /// `fn.addr` — the function's own symbol, not `&vader_fn_static_N`. See
@@ -1523,15 +1423,15 @@ emit_fn_addr :: fn(s: FnState!, op: vm.FnAddr) -> void {
     // `.text`, so `hdr->forward` would be machine code — never NULL — and the
     // collector would overwrite the slot. `fn.ref` gets away with `.Ref` because
     // `vader_fn_static_N` carries a real object header whose `forward` IS NULL.
-    name :: fresh_tmp(s, .Pointer)
-    line(s, "${name} = (void*) &${fn_symbol_name(s.ctx.module.functions, op.function_index)};")
+    temporary :: new_temporary(s, .Pointer)
+    assign(s, temporary, cast("void*", verbatim("&${fn_symbol_name(s.ctx.module.functions, op.function_index)}")))
     // From here on C can call back into Vader, so a foreign call is a safepoint
     // and anything lent to one can move under it. This is the ONLY way a Vader
     // address reaches C, which is what makes the flag exact rather than a guess:
     // a program that never reaches this line pays nothing for the lend guard in
     // `vader_array_bytes`.
     line(s, "vader_ffi_callback_escaped = 1;")
-    push_tmp(s, name, .Pointer)
+    push_temporary(s, temporary, .Pointer)
 }
 
 /// `make_closure` — pop the captured env (a boxed struct), heap-allocate a
@@ -1545,11 +1445,8 @@ emit_make_closure :: fn(s: FnState!, op: vm.MakeClosure) -> void {
     line(s, "vader_fn_t* ${fn_obj} = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));")
     line(s, "vader_obj_header_init(${fn_obj}, ${op.env_type_id}u);")
     line(s, "${fn_obj}->code = (void*) &vader_fn_lift_${fn_symbol_name(s.ctx.module.functions, op.function_index)};")
-    env_ptr :: obj_ptr_of(env)
-    line(s, "${fn_obj}->env = ${env_ptr};")
-    name :: fresh_tmp(s, .Ref)
-    line(s, "${name} = (void*) ${fn_obj};")
-    push_tmp(s, name, .Ref)
+    assign(s, verbatim("${fn_obj}->env"), object_pointer_of(env))
+    push_object(s, fn_obj)
 }
 
 /// `call.indirect` — invoke a `vader_fn_t` value through the canonical erased
@@ -1567,25 +1464,24 @@ emit_call_indirect :: fn(s: FnState!, op: vm.CallIndirect) -> void {
         n :: i32(t.params.len())
         args :: pop_args_boxed(s, n)
         fn_obj :: aux(s, "fnobj")
-        line(s, "vader_fn_t* ${fn_obj} = (vader_fn_t*) ${obj_ptr_of(fn_val)};")
-        call_args :: if n == 0 { "${fn_obj}->env" } else { "${fn_obj}->env, ${args.join(", ")}" }
-        call_expr :: "((vader_fn_erased_sig_${n}_t) ${fn_obj}->code)(${call_args})"
+        declare(s, "vader_fn_t*", fn_obj, cast("vader_fn_t*", object_pointer_of(fn_val)))
+        call_args: CExpression[]!: [verbatim("${fn_obj}->env")]
+        call_args.push_all(args)
+        call :: CCall { .callee = "((vader_fn_erased_sig_${n}_t) ${fn_obj}->code)", .arguments = call_args }
         ret_val :: val_type_of_bc_type(types[usize(t.return_type)])
         if ret_val == .Void {
-            line(s, "${call_expr};")
+            evaluate(s, call)
             return
         }
-        any_tmp :: fresh_tmp(s, .Any)
-        line(s, "${any_tmp} = ${call_expr};")
+        boxed :: new_temporary(s, .Any)
+        assign(s, boxed, call)
         // The erased ABI returns a `vader_box_t`. `.Any` keeps it boxed ; a `.Ref`
         // (concrete) return unboxes to a raw `void*`, a primitive to its scalar.
         if ret_val == .Any {
-            push_tmp(s, any_tmp, .Any)
+            push_temporary(s, boxed, .Any)
             return
         }
-        result :: fresh_tmp(s, ret_val)
-        line(s, "${result} = ${coerce_expr(types, any_tmp, .Any, ret_val)};")
-        push_tmp(s, result, ret_val)
+        push_into_temporary(s, coerce_expr(types, boxed, .Any, ret_val), ret_val)
     } else {
         todo("call.indirect on non-fn type ${op.type_id}")
     }
@@ -1604,23 +1500,18 @@ emit_virtual_call :: fn(s: FnState!, op: vm.VirtualCall) -> void {
         line(s, "vader_unreachable(\"no vtable for ${op.vtable_key}\");")
         return
     }
-    types :: s.ctx.module.types
     // Receiver is on top, popped first ; the tail args sit below in source
     // order (`pop_args_boxed` restores it).
     recv :: pop(s)
-    recv_boxed :: coerce_expr(types, name_of(recv), val_of(recv), .Any)
-    boxed :: pop_args_boxed(s, op.parameter_count - 1)
+    all_args: CExpression[]!: [coerced_as(s, recv, .Any)]
+    all_args.push_all(pop_args_boxed(s, op.parameter_count - 1))
     sig :: vtable_sig_for_row(s.ctx, row)
-    all_args: string[]!: [recv_boxed]
-    for a in boxed {
-        all_args.push(a)
-    }
-    call_expr :: "${vtable_helper_name(op.vtable_key)}(${all_args.join(", ")})"
+    call :: CCall { .callee = vtable_helper_name(op.vtable_key), .arguments = all_args }
     if bc_single_result(sig) == .Void {
-        line(s, "${call_expr};")
+        evaluate(s, call)
         return
     }
-    push_into_tmp(s, call_expr, bc_single_result(sig))
+    push_into_temporary(s, call, bc_single_result(sig))
 }
 
 // ---- fn-value wrappers (whole-module scan) --------------------------------
@@ -1766,7 +1657,7 @@ emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32) -> voi
     // The lifted fn's env param (param 0) is a concrete captured-env struct → a
     // raw `void*` (`.Ref`) under T12 ; pass `env` directly. When it's `.Any`
     // (erased), coerce widens it to a box via `vader_ref_box`.
-    env_arg :: coerce_expr(ctx.module.types, "env", .Ref, sig.params[0])
+    env_arg :: text_of(coerce_expr(ctx.module.types, verbatim("env"), .Ref, sig.params[0]))
     unboxed_tail :: lift_unbox_tail(sig.params)
     call_args :: if unboxed_tail == "" { env_arg } else { "${env_arg}, ${unboxed_tail}" }
     if bc_single_result(sig) == .Void {
@@ -1801,7 +1692,7 @@ tramp_box_params :: fn(count: usize) -> string {
 tramp_unbox_args :: fn(params: ValType[]) -> string {
     parts: string[]!: []
     for j in 0..<params.len() {
-        parts.push(unbox_expr("a${j}", params[j]))
+        parts.push(text_of(unbox_expr(verbatim("a${j}"), params[j])))
     }
     return parts.join(", ")
 }
@@ -1811,7 +1702,7 @@ tramp_unbox_args :: fn(params: ValType[]) -> string {
 lift_unbox_tail :: fn(params: ValType[]) -> string {
     parts: string[]!: []
     for j in 1..<params.len() {
-        parts.push(unbox_expr("a${j - 1}", params[j]))
+        parts.push(text_of(unbox_expr(verbatim("a${j - 1}"), params[j])))
     }
     return parts.join(", ")
 }
@@ -1823,7 +1714,7 @@ tramp_box_result :: fn(cname: string, args: string, sig: BcSignature) -> string 
     if bc_single_result(sig) == .Any { return call_expr }
     // A `.Ref` result is a raw `void*` — widen to the box the erased ABI returns.
     if bc_single_result(sig) == .Ref { return "vader_ref_box(${call_expr})" }
-    return box_expr(call_expr, bc_single_result(sig), bc_single_result_type(sig))
+    return text_of(box_expr(verbatim(call_expr), bc_single_result(sig), bc_single_result_type(sig)))
 }
 
 // ---- type ops + defer -----------------------------------------------------
@@ -1836,14 +1727,18 @@ tramp_box_result :: fn(cname: string, args: string, sig: BcSignature) -> string 
 emit_type_const :: fn(s: FnState!, op: vm.TypeConst) -> void = push_lit(
     s,
     .Any,
-    "vader_box_obj(${s.ctx.null_tag}u, (void*)(uintptr_t)${op.type_id}u)",
+    verbatim("vader_box_obj(${s.ctx.null_tag}u, (void*)(uintptr_t)${op.type_id}u)"),
 )
 
 /// `size_of.type` — decode the `type.const` payload back to a BcType slot and
 /// read its `slot_size` in `vader_type_info_table` (`emit_type_info_table`).
 emit_size_of_type :: fn(s: FnState!) -> void {
     tv :: pop(s)
-    push_into_tmp(s, "(size_t)vader_type_info_table[(int32_t)(uintptr_t)${name_of(tv)}.payload.obj].slot_size", .Usize)
+    push_into_temporary(
+        s,
+        around("(size_t)vader_type_info_table[(int32_t)(uintptr_t)", payload(expression_of(tv), "obj"), "].slot_size"),
+        .Usize,
+    )
 }
 
 /// `type_check` — runtime `x is T`. A boxed value compares its tag (a trait
@@ -1860,24 +1755,24 @@ emit_type_check :: fn(s: FnState!, op: vm.TypeCheck) -> void {
             // `x is (A | B)` — a boxed value never carries a union's own tag, so
             // OR the per-variant checks (mirrors the VM's `union_matches`). This
             // makes `is <union>` correct on native, matching the VM.
-            parts: string[]!: []
+            parts: CExpression[]!: []
             for vid in target.variants {
                 parts.push(one_variant_check(s, tag_of(v), vid))
             }
-            push_expr(s, .Bool, "(${parts.join(" || ")})")
+            push_expr(s, .Bool, CParenthesized { .inner = any_of(parts) })
             return
         }
         push_expr(s, .Bool, one_variant_check(s, tag_of(v), op.type_id))
     } else {
         matches :: primitive_matches_type(s.ctx.module.types, val, op.type_id)
-        push_lit(s, .Bool, if matches { "true" } else { "false" })
+        push_lit(s, .Bool, verbatim(if matches { "true" } else { "false" }))
     }
 }
 
-// The C bool expr for `v_name is <single type_id>` : a trait ref expands to a
+// The C bool expr for `<value> is <single type_id>`, over the value's tag : a trait ref expands to a
 // disjunction over its implementers, a struct compares its sibling-aware tag,
 // anything else is a plain tag compare.
-one_variant_check :: fn(s: FnState, tag_expr: string, type_id: i32) -> string {
+one_variant_check :: fn(s: FnState, tag_expr: CExpression, type_id: i32) -> CExpression {
     target :: s.ctx.module.types[usize(type_id)]
     if target is BcRef {
         if target.trait_name != "" {
@@ -1897,28 +1792,32 @@ one_variant_check :: fn(s: FnState, tag_expr: string, type_id: i32) -> string {
             return float_tag_check_expr(s.ctx.module.types, tag_expr)
         }
     }
-    return "${tag_expr} == ${type_id}u"
+    return tag_equals(tag_expr, type_id)
 }
+
+// `tag == <type_id>u`.
+tag_equals :: fn(tag: CExpression, type_id: i32) -> CExpression =
+    CBinary { .operator = "==", .left = tag, .right = verbatim("${type_id}u") }
 
 // C boolean expr matching `tag_expr` against EVERY float-primitive tag in the
 // table (f32/f64 are representationally identical — see `one_variant_check`).
 // `0` (never matches) when the table has no float primitive.
-float_tag_check_expr :: fn(types: BcType[], tag_expr: string) -> string {
-    parts: string[]!: []
+float_tag_check_expr :: fn(types: BcType[], tag_expr: CExpression) -> CExpression {
+    parts: CExpression[]!: []
     for i in 0..<types.len() {
         if types[i] is BcPrimitive as p {
             if is_float_val(p.val) {
-                parts.push("${tag_expr} == ${i}u")
+                parts.push(tag_equals(tag_expr, i32(i)))
             }
         }
     }
     if parts.len() == 0 {
-        return "0"
+        return verbatim("0")
     }
-    return "(${parts.join(" || ")})"
+    return CParenthesized { .inner = any_of(parts) }
 }
 
-/// The C boolean expression testing whether `v_name`'s tag matches struct type
+/// The C boolean expression testing whether `tag_expr` matches struct type
 /// `target_id` — its own tag OR any **sibling** struct's tag (same generic
 /// source, by `prefix_before_double_underscore`). Mirrors the VM's
 /// `struct_siblings_match` : an erased generic flows a runtime sibling shape
@@ -1926,41 +1825,41 @@ float_tag_check_expr :: fn(types: BcType[], tag_expr: string) -> string {
 /// erased one (`Entry<Any,Any>`) — exact-tag equality would miss it (and trip
 /// the dead-return guard on the match fall-through). A non-generic struct
 /// (empty prefix) has no siblings → a bare tag compare.
-struct_check_expr :: fn(types: BcType[], tag_expr: string, target_id: i32, target_name: string) -> string {
-    base :: "${tag_expr} == ${target_id}u"
+struct_check_expr :: fn(types: BcType[], tag_expr: CExpression, target_id: i32, target_name: string) -> CExpression {
+    base :: tag_equals(tag_expr, target_id)
     prefix :: prefix_before_double_underscore(target_name)
     if prefix == "" {
         return base
     }
-    parts: string[]!: [base]
+    parts: CExpression[]!: [base]
     for i in 0..<types.len() {
         if i32(i) == target_id {
             continue
         }
         if types[i] is BcStruct as st {
             if prefix_before_double_underscore(st.name) == prefix {
-                parts.push("${tag_expr} == ${i}u")
+                parts.push(tag_equals(tag_expr, i32(i)))
             }
         }
     }
     if parts.len() == 1 {
         return base
     }
-    return "(${parts.join(" || ")})"
+    return CParenthesized { .inner = any_of(parts) }
 }
 
-/// The C boolean expression testing whether `v_name`'s tag matches the trait
+/// The C boolean expression testing whether `tag_expr` matches the trait
 /// `trait_name` — an OR over the ref type index itself (built-in trait refs
 /// like `Error` carry their own tag) plus every struct implementing the trait
 /// (the module's `impl_table`).
-trait_check_expr :: fn(ctx: EmitCtx, tag_expr: string, trait_name: string, ref_type_index: i32) -> string {
-    parts: string[]!: ["(${tag_expr} == ${ref_type_index}u)"]
+trait_check_expr :: fn(ctx: EmitCtx, tag_expr: CExpression, trait_name: string, ref_type_index: i32) -> CExpression {
+    parts: CExpression[]!: [CParenthesized { .inner = tag_equals(tag_expr, ref_type_index) }]
     for entry in ctx.module.impl_table {
         if entry.trait_name == trait_name {
-            parts.push("(${tag_expr} == ${entry.struct_type_index}u)")
+            parts.push(CParenthesized { .inner = tag_equals(tag_expr, entry.struct_type_index) })
         }
     }
-    return parts.join(" || ")
+    return any_of(parts)
 }
 
 /// `defer.push` — register the deferred closure (on top of the stack, built by
@@ -1969,8 +1868,7 @@ emit_defer_push :: fn(s: FnState!) -> void {
     closure :: pop(s)
     // `vader_defer_push` takes a `vader_box_t` ; a concrete-ref closure rides as a
     // raw `void*` (T12), so box it at this runtime boundary.
-    c :: coerce_expr(s.ctx.module.types, name_of(closure), val_of(closure), .Any)
-    line(s, "vader_defer_push(${c});")
+    evaluate(s, CCall { .callee = "vader_defer_push", .arguments = [coerced_as(s, closure, .Any)] })
 }
 
 /// `defer.pop_exec` — run + pop the top `count` deferred closures at a scope
@@ -2001,20 +1899,12 @@ emit_struct_new :: fn(s: FnState!, op: vm.StructNew) -> void {
         cname :: s.ctx.struct_c_names[usize(op.type_id)]
         n :: i32(t.fields.len())
         // Pop top-to-bottom : pop #k is the value for field `n-1-k`.
-        field_vals: string[]!: []
-        for _ in 0..<n {
-            field_vals.push("")
-        }
+        field_vals: CExpression[]!: [verbatim("")] * usize(n)
         for k in 0..<n {
             v :: pop(s)
             fi :: n - 1 - k
             f :: t.fields[usize(fi)]
-            field_vals[usize(fi)] = coerce_expr(
-                s.ctx.module.types,
-                name_of(v),
-                val_of(v),
-                val_type_of_field(s.ctx.module.types, f.type_index),
-            )
+            field_vals[usize(fi)] = coerced_as(s, v, val_type_of_field(s.ctx.module.types, f.type_index))
         }
         // Storage : a C local for the escape-proven stack variant, a GC heap
         // block otherwise. The popped field values live in ref temps that
@@ -2051,11 +1941,9 @@ emit_struct_new :: fn(s: FnState!, op: vm.StructNew) -> void {
         line(s, "vader_obj_header_init(${obj}, ${op.type_id}u);")
         for i in 0..<n {
             f :: t.fields[usize(i)]
-            line(s, "${obj}->f_${sanitise(f.name)} = ${field_vals[usize(i)]};")
+            assign(s, verbatim("${obj}->f_${sanitise(f.name)}"), field_vals[usize(i)])
         }
-        name :: fresh_tmp(s, .Ref)
-        line(s, "${name} = (void*) ${obj};")
-        push_tmp(s, name, .Ref)
+        push_object(s, obj)
     } else {
         // Say what the slot ACTUALLY holds, not just that it is wrong. A
         // `struct.new` whose type index is not a struct means the module's type
@@ -2076,7 +1964,7 @@ emit_struct_new :: fn(s: FnState!, op: vm.StructNew) -> void {
 /// inlined dereference expression.
 emit_struct_get :: fn(s: FnState!, op: vm.StructGet) -> void {
     obj :: pop(s)
-    push_struct_field(s, op.type_id, op.field_index, name_of(obj), val_of(obj))
+    push_struct_field(s, op.type_id, op.field_index, expression_of(obj), val_of(obj))
 }
 
 /// `local.field` — the fused `local.get N ; struct.get`. Push field
@@ -2086,7 +1974,7 @@ emit_local_field :: fn(s: FnState!, op: vm.LocalField) -> void {
         s,
         op.type_id,
         op.field_index,
-        "l${op.slot}",
+        CLocal { .slot = op.slot },
         slot_val_type(s.function, op.slot),
     )
 }
@@ -2099,7 +1987,7 @@ push_struct_field :: fn(
     s: FnState!,
     type_index: i32,
     field_index: i32,
-    recv: string,
+    recv: CExpression,
     recv_val: ValType,
 ) -> void {
     types :: s.ctx.module.types
@@ -2110,8 +1998,8 @@ push_struct_field :: fn(
         fval :: val_type_of_field(types, f.type_index)
         // T12: a `.Ref` receiver is a raw `void*` ; an `.Any` receiver is a box
         // (erased element / downcast) whose object is in `.payload.obj`.
-        recv_ptr :: obj_ptr_expr(recv, recv_val)
-        concrete :: "((${cname}*) ${recv_ptr})->f_${sanitise(f.name)}"
+        recv_ptr :: object_pointer(recv, recv_val)
+        concrete :: field_of(cname, recv_ptr, f.name)
         // Erasure boundary (T12). An erased-generic producer (e.g. a generic
         // `zip` / `enumerate`) returns an erased sibling layout (some or all
         // fields boxed) ; Vader erases the carrying array / result to a bare
@@ -2131,12 +2019,14 @@ push_struct_field :: fn(
             // read (a value tagged as the concrete type — or anything
             // unexpected — matches no sibling tag, so it lands on `concrete`).
             // `recv_tag` is only needed on this rare erased-sibling path.
-            recv_tag :: tag_of_expr(recv, recv_val)
+            recv_tag :: tag_expression(recv, recv_val)
             acc := concrete
             for k in 0..<sibs.len() {
                 sib :: sibs[sibs.len() - 1 - k]
                 read :: erased_sibling_field_read(s, sib, field_index, fval, recv_ptr)
-                acc = "(${recv_tag} == ${sib}u ? ${read} : ${acc})"
+                acc = CParenthesized {
+                    .inner = CConditional { .condition = tag_equals(recv_tag, sib), .then_value = read, .else_value = acc },
+                }
             }
             push_expr(s, fval, acc)
         }
@@ -2221,15 +2111,15 @@ erased_sibling_field_read :: fn(
     sib_idx: i32,
     field_index: i32,
     target_val: ValType,
-    recv: string,
-) -> string {
+    recv: CExpression,
+) -> CExpression {
     types :: s.ctx.module.types
     st :: types[usize(sib_idx)]
     if st is BcStruct {
         sib_cname :: s.ctx.struct_c_names[usize(sib_idx)]
         sf :: st.fields[usize(field_index)]
         sf_val :: val_type_of_field(types, sf.type_index)
-        raw :: "((${sib_cname}*) ${recv})->f_${sanitise(sf.name)}"
+        raw :: field_of(sib_cname, recv, sf.name)
         // Reconcile the sibling field's storage class to the concrete field's via
         // the canonical `coerce_expr` — it handles every direction incl. the
         // T12 `.Any → .Ref` unbox (`.payload.obj`) that the old hand-rolled
@@ -2238,8 +2128,12 @@ erased_sibling_field_read :: fn(
         // the `push_struct_field` splice).
         return coerce_expr(types, raw, sf_val, target_val)
     }
-    return "0"
+    return verbatim("0")
 }
+
+// `((<c_name>*) pointer)->f_<field>`.
+field_of :: fn(c_name: string, pointer: CExpression, field: string) -> CExpression =
+    pointer_member("${c_name}*", pointer, "f_${sanitise(field)}")
 
 /// `struct.set` / `struct.set_stack` — pop the field value then the
 /// receiver, write the body slot in place, then fire the generational write
@@ -2276,17 +2170,12 @@ emit_struct_set :: fn(s: FnState!, op: vm.StructSet) -> void {
         value :: pop(s)
         obj :: pop(s)
         f :: t.fields[usize(op.field_index)]
-        rv :: coerce_expr(
-            s.ctx.module.types,
-            name_of(value),
-            val_of(value),
-            val_type_of_field(s.ctx.module.types, f.type_index),
-        )
+        rv :: coerced_as(s, value, val_type_of_field(s.ctx.module.types, f.type_index))
         // T12: `.Ref` receiver is a raw `void*` ; `.Any` is a box → `.payload.obj`.
-        obj_ptr :: obj_ptr_of(obj)
-        line(s, "((${cname}*) ${obj_ptr})->f_${sanitise(f.name)} = ${rv};")
+        obj_ptr :: object_pointer_of(obj)
+        assign(s, field_of(cname, obj_ptr, f.name), rv)
         if !op.stack && field_may_hold_reference(s.ctx.module.types, f.type_index) {
-            line(s, "VADER_WRITE_BARRIER((${cname}*) ${obj_ptr});")
+            write_barrier(s, cast("${cname}*", obj_ptr))
         }
     } else {
         todo("struct.set on non-struct type ${op.type_id}")
@@ -2306,8 +2195,7 @@ emit_ref_cast :: fn(s: FnState!, op: vm.RefCast) -> void {
     // is identity. `coerce_expr` covers all of these — the old `unbox_expr` arm
     // wrongly treated a `.Ref` source as already-boxed (copying a `void*` into a
     // box slot, or `.payload.obj`-ing a raw pointer).
-    expr :: coerce_expr(s.ctx.module.types, name_of(v), val_of(v), target_val)
-    push_into_tmp(s, expr, target_val)
+    push_into_temporary(s, coerced_as(s, v, target_val), target_val)
 }
 
 /// Box a concrete primitive on the stack into a `vader_box_t` tagged with the
@@ -2319,15 +2207,15 @@ emit_box_op :: fn(s: FnState!, op: vm.Box) -> void {
     v :: pop(s)
     // `Box` produces an erased/dynamic value → always `.Any` (a `vader_box_t`).
     if val_of(v) == .Any {
-        push_into_tmp(s, name_of(v), .Any)
+        push_into_temporary(s, expression_of(v), .Any)
         return
     }
     if val_of(v) == .Ref {
         // Widen a raw concrete ref into a box (tag recovered from the header).
-        push_into_tmp(s, "vader_ref_box(${name_of(v)})", .Any)
+        push_into_temporary(s, ref_box(expression_of(v)), .Any)
         return
     }
-    push_into_tmp(s, box_expr(name_of(v), val_of(v), op.type_id), .Any)
+    push_into_temporary(s, box_expr(expression_of(v), val_of(v), op.type_id), .Any)
 }
 
 // ---- arrays ---------------------------------------------------------------
@@ -2350,15 +2238,13 @@ emit_box_op :: fn(s: FnState!, op: vm.Box) -> void {
 /// in-flight reference to root across the allocation.
 emit_buffer_new :: fn(s: FnState!) -> void {
     size :: pop(s)
-    name :: fresh_tmp(s, .Ref)
     // Tag the box with the BUFFER sentinel — NOT `op.type_id`. The box tag must
     // equal the heap object's header type_index, because the GC forwards a
     // boxed reference via `boxp->tag` (vader_runtime.c, vader_gc_forward) to
     // size the copy. A mismatch sizes the move off the wrong type and corrupts
     // the bytes across a collection (G1). `vader_buffer_new` inits the header to
     // the same sentinel.
-    line(s, "${name} = (void*) vader_buffer_new((size_t) ${name_of(size)});")
-    push_tmp(s, name, .Ref)
+    push_into_temporary(s, cast("void*", CCall { .callee = "vader_buffer_new", .arguments = [as_size(size)] }), .Ref)
 }
 
 /// Shared body of the typed byte loads (`load_u8` / `load_i32` / `load_i64` /
@@ -2367,24 +2253,28 @@ emit_buffer_new :: fn(s: FnState!) -> void {
 /// pushes the result with stack class `result`.
 /// `(vader_buffer_t*) <box>.payload.obj` — the buffer pointer behind a popped
 /// reference, shared by the load / store / copy emitters.
-buf_ptr :: fn(v: StackVal) = "(vader_buffer_t*) ${obj_ptr_of(v)}"
+buffer_pointer :: fn(v: StackVal) -> CExpression = cast("vader_buffer_t*", object_pointer_of(v))
+
+// `(size_t) v`.
+as_size :: fn(value: StackVal) -> CExpression = cast("size_t", expression_of(value))
 
 emit_buffer_load :: fn(s: FnState!, helper: string, result: ValType) -> void {
     off :: pop(s)
     obj :: pop(s)
-    name :: fresh_tmp(s, result)
-    line(s, "${name} = ${helper}(${buf_ptr(obj)}, (size_t) ${name_of(off)});")
-    push_tmp(s, name, result)
+    push_into_temporary(s, CCall { .callee = helper, .arguments = [buffer_pointer(obj), as_size(off)] }, result)
 }
 
 /// Shared body of the typed byte stores. Pops `obj` + `off` + `value` and
-/// writes `value` (cast to the byte width by `cast`) via `helper`. No write
+/// writes `value` (cast to the C type `width`) via `helper`. No write
 /// barrier — the byte region holds no references.
-emit_buffer_store :: fn(s: FnState!, helper: string, cast: string) -> void {
+emit_buffer_store :: fn(s: FnState!, helper: string, width: string) -> void {
     value :: pop(s)
     off :: pop(s)
     obj :: pop(s)
-    line(s, "${helper}(${buf_ptr(obj)}, (size_t) ${name_of(off)}, ${cast} ${name_of(value)});")
+    evaluate(
+        s,
+        CCall { .callee = helper, .arguments = [buffer_pointer(obj), as_size(off), cast(width, expression_of(value))] },
+    )
 }
 
 /// `memory_copy` — pop `dst, dst_off, src, src_off, n` and copy `n` bytes
@@ -2395,9 +2285,12 @@ emit_memory_copy :: fn(s: FnState!) -> void {
     src :: pop(s)
     dst_off :: pop(s)
     dst :: pop(s)
-    line(
+    evaluate(
         s,
-        "vader_buffer_memory_copy(${buf_ptr(dst)}, (size_t) ${name_of(dst_off)}, ${buf_ptr(src)}, (size_t) ${name_of(src_off)}, (size_t) ${name_of(n)});",
+        CCall {
+            .callee    = "vader_buffer_memory_copy",
+            .arguments = [buffer_pointer(dst), as_size(dst_off), buffer_pointer(src), as_size(src_off), as_size(n)],
+        },
     )
 }
 
@@ -2409,11 +2302,7 @@ emit_memory_copy :: fn(s: FnState!) -> void {
 emit_buffer_to_string :: fn(s: FnState!) -> void {
     len :: pop(s)
     obj :: pop(s)
-    push_into_tmp(
-        s,
-        "vader_buffer_intern_string(${buf_ptr(obj)}, (size_t) ${name_of(len)})",
-        .String,
-    )
+    push_into_temporary(s, CCall { .callee = "vader_buffer_intern_string", .arguments = [buffer_pointer(obj), as_size(len)] }, .String)
 }
 
 /// `buffer_write_string` — pop buffer + `off` + string, memcpy the string's
@@ -2423,8 +2312,10 @@ emit_buffer_write_string :: fn(s: FnState!) -> void {
     str :: pop(s)
     off :: pop(s)
     obj :: pop(s)
-    src :: coerce_operand(s.ctx.module.types, name_of(str), val_of(str), .String)
-    line(s, "vader_buffer_write_string(${buf_ptr(obj)}, (size_t) ${name_of(off)}, ${src});")
+    evaluate(
+        s,
+        CCall { .callee = "vader_buffer_write_string", .arguments = [buffer_pointer(obj), as_size(off), operand_as(s, str, .String)] },
+    )
 }
 
 // ---- array slot access (Target ABI S5) -----------------------------------
@@ -2439,63 +2330,83 @@ emit_buffer_write_string :: fn(s: FnState!) -> void {
 /// raw `void*` ; an `.Any` (erased) carries it in `.payload.obj`. Every site that
 /// casts a popped ref to a concrete C pointer (array / buffer / fn / …) routes
 /// through this so it handles both classes.
-obj_ptr_of :: fn(v: StackVal) = obj_ptr_expr(name_of(v), val_of(v))
+object_pointer_of :: fn(v: StackVal) = object_pointer(expression_of(v), val_of(v))
 
 /// Runtime tag of a heap-ref stack value : `.Ref` recovers it from the object
 /// header ; `.Any` reads the box's `.tag`.
-tag_of :: fn(v: StackVal) = tag_of_expr(name_of(v), val_of(v))
+tag_of :: fn(v: StackVal) = tag_expression(expression_of(v), val_of(v))
 
-/// Object-pointer / header-tag expressions from a bare `(name, class)` pair —
-/// the primitives behind `obj_ptr_of` / `tag_of`. A concrete `.Ref` is already
-/// the raw pointer ; an erased `.Any` unwraps it from the box. Used directly by
-/// sites that hold a C name + class rather than a `StackVal` (`push_struct_field`).
-obj_ptr_expr :: fn(name: string, val: ValType) = if val == .Ref { name } else { "${name}.payload.obj" }
-tag_of_expr :: fn(name: string, val: ValType) = if val == .Ref { "((vader_obj_header_t*) ${name})->type_index" } else { "${name}.tag" }
+/// Object-pointer / header-tag expressions from an `(expression, class)` pair —
+/// the primitives behind `object_pointer_of` / `tag_of`. A concrete `.Ref` is
+/// already the raw pointer ; an erased `.Any` unwraps it from the box. Used
+/// directly by sites that hold an expression rather than a `StackVal`
+/// (`push_struct_field`).
+object_pointer :: fn(value: CExpression, val: ValType) -> CExpression = if val == .Ref { value } else { payload(value, "obj") }
+tag_expression :: fn(value: CExpression, val: ValType) -> CExpression =
+    if val == .Ref { pointer_member("vader_obj_header_t*", value, "type_index") } else { CMember { .base = value, .member = "tag" } }
 
-array_hdr_ptr :: fn(v: StackVal) = "((vader_array_t*) ${obj_ptr_of(v)})"
+array_header_pointer :: fn(v: StackVal) -> CExpression = CParenthesized { .inner = array_pointer(object_pointer_of(v)) }
 
-// The absolute slot index into the array's buf : `arr->offset + i`.
-slot_index :: fn(arr: string, idx: StackVal) = "${arr}->offset + (size_t) ${name_of(idx)}"
+// `(vader_array_t*) pointer`.
+array_pointer :: fn(pointer: CExpression) -> CExpression = cast("vader_array_t*", pointer)
+
+// The absolute slot index into the array's buf : `array->offset + (size_t) i`.
+slot_index :: fn(array: string, index: StackVal) -> CExpression =
+    CBinary { .operator = "+", .left = verbatim("${array}->offset"), .right = cast("size_t", expression_of(index)) }
+
+// `((c_type*) array->buf->slots)[index]`.
+typed_slot :: fn(c_type: string, array: string, index: CExpression) -> CExpression = CIndex {
+    .base = CParenthesized { .inner = cast("${c_type}*", verbatim("${array}->buf->slots")) },
+    .index = index,
+}
+
+// `array->offset + <slot>u` — a constant slot of an array being built.
+fresh_slot :: fn(array: string, slot: i32) -> CExpression =
+    CBinary { .operator = "+", .left = verbatim("${array}->offset"), .right = verbatim("${slot}u") }
+
+// `vader_array_box_slots(array->buf)[index]`.
+box_slot :: fn(array: string, index: CExpression) -> CExpression = CIndex {
+    .base = CCall { .callee = "vader_array_box_slots", .arguments = [verbatim("${array}->buf")] },
+    .index = index,
+}
 
 /// Bind a `vader_array_t*` C local to `obj` and emit the access guards shared by
 /// the primitive slot load/store : the G1 buf-forwarding resolve (the array box
 /// is a gc_root so the array itself is current, but a minor may have relocated
 /// its buf — chase the forward chain via `vader_array_buf_forward`) and the D7
 /// always-on bounds check (trap on out-of-range). Returns the local's name.
-// Resolve `key`'s array buffer-forward chain into a cached `_slotarrK` C local
+// Resolve `pointer`'s array buffer-forward chain into a cached `_slotarrK` C local
 // and return its name. Reuses an earlier resolve on the same array in this
 // straight-line region (the arr_rw CSE win). `pin` marks the entry so it survives
 // the loop's pure control-flow ops (the BCE resolve-hoist) — passed `true` ONLY by
 // `emit_array_len`'s hoisted preheader resolve, and only for a BCE-safe loop.
-resolve_array_local :: fn(s: FnState!, key: string, pin: bool) -> string {
-    cached :: s.resolved_arrays[key]
-    if cached is string {
-        if pin {
-            s.pinned_resolves.add(key)
+resolve_array_local :: fn(s: FnState!, pointer: CExpression, pin: bool) -> string {
+    for resolved in s.resolved_arrays {
+        if same_expression(resolved.pointer, pointer) {
+            if pin {
+                resolved.pinned = true
+            }
+            return resolved.name
         }
-        return cached
     }
     arr :: aux(s, "slotarr")
-    line(s, "vader_array_t* ${arr} = ${key};")
+    declare(s, "vader_array_t*", arr, pointer)
     // `VADER_ARRAY_RESOLVE_BUF` expands the forward GUARD here ; the chain walk
     // stays out of line in `vader_array_buf_forward`, whose declaration in
     // `runtime/c/vader.h` owns the rationale. Do NOT fold the loop back in.
-    line(s, "VADER_ARRAY_RESOLVE_BUF(${arr})")
-    s.resolved_arrays[key] = arr
-    if pin {
-        s.pinned_resolves.add(key)
-    }
+    statement_macro(s, "VADER_ARRAY_RESOLVE_BUF", [verbatim(arr)])
+    s.resolved_arrays.push(ResolvedArray { .name = arr, .pointer = pointer, .pinned = pin })
     return arr
 }
 
 emit_slot_array_local :: fn(s: FnState!, obj: StackVal, idx: StackVal, bounds_safe: bool) -> string {
-    arr :: resolve_array_local(s, array_hdr_ptr(obj), false)
+    arr :: resolve_array_local(s, array_header_pointer(obj), false)
     // Bounds is per-access (the reused resolve only shares the buffer walk),
     // EXCEPT when the producer proved the index in range (BCE — e.g. a foreach
     // over the array, body proven not to change its length). The G1 buf-resolve
     // above is NEVER skipped ; only this D7 trap is.
     if !bounds_safe {
-        line(s, "VADER_ARRAY_CHECK_INDEX(${arr}, ${name_of(idx)})")
+        statement_macro(s, "VADER_ARRAY_CHECK_INDEX", [verbatim(arr), expression_of(idx)])
     }
     return arr
 }
@@ -2507,9 +2418,7 @@ emit_slot_load_prim :: fn(s: FnState!, cty: string, result: ValType, bounds_safe
     idx :: pop(s)
     obj :: pop(s)
     a :: emit_slot_array_local(s, obj, idx, bounds_safe)
-    name :: fresh_tmp(s, result)
-    line(s, "${name} = ((${cty}*) ${a}->buf->slots)[${slot_index(a, idx)}];")
-    push_tmp(s, name, result)
+    push_into_temporary(s, typed_slot(cty, a, slot_index(a, idx)), result)
 }
 
 /// Emit one typed (non-boxed) slot store : `((cty*) a->buf->slots)[a->offset + i]
@@ -2526,8 +2435,7 @@ emit_typed_slot_write :: fn(
     cty: string,
     val: ValType,
 ) -> void {
-    vc :: coerce_expr(s.ctx.module.types, name_of(value), val_of(value), val)
-    line(s, "((${cty}*) ${a}->buf->slots)[${slot_index(a, idx)}] = (${cty}) ${vc};")
+    assign(s, typed_slot(cty, a, slot_index(a, idx)), cast(cty, coerced_as(s, value, val)))
 }
 
 /// Primitive slot store — pop array + slot index + value ; write the `cty`-typed
@@ -2609,9 +2517,7 @@ ref_carrying_element :: fn(element: BcType, types: BcType[]) -> bool {
 // `vader_data_N` (emitted by `emit_data_pool`). Re-stamps the call-site type_id
 // onto the box, mirroring the VM's `DataConst` arm + the static-fn-ref box.
 emit_data_const_op :: fn(s: FnState!, op: vm.DataConst) -> void {
-    name :: fresh_tmp(s, .Ref)
-    line(s, "${name} = (void*) &vader_data_${op.pool_index};")
-    push_tmp(s, name, .Ref)
+    push_object(s, "&vader_data_${op.pool_index}")
 }
 
 emit_array_new :: fn(s: FnState!, op: vm.ArrayNew) -> void {
@@ -2636,26 +2542,16 @@ emit_array_new :: fn(s: FnState!, op: vm.ArrayNew) -> void {
         v :: pop(s)
         slot :: n - 1 - k
         if fill != null {
-            vc :: coerce_expr(types, name_of(v), val_of(v), fill.val)
-            line(
-                s,
-                "((${fill.cty}*) ${arr_buf}->buf->slots)[${arr_buf}->offset + ${slot}u] = (${fill.cty}) ${vc};",
-            )
+            assign(s, typed_slot(fill.cty, arr_buf, fresh_slot(arr_buf, slot)), cast(fill.cty, coerced_as(s, v, fill.val)))
         } else if kind == .Ref {
             // Fresh buf is statically `.Ref` here (we chose the kind), so store the
             // raw object pointer — no runtime dispatch, no box.
-            vc :: coerce_expr(types, name_of(v), val_of(v), .Ref)
-            line(s, "((void**) ${arr_buf}->buf->slots)[${arr_buf}->offset + ${slot}u] = ${vc};")
+            assign(s, typed_slot("void*", arr_buf, fresh_slot(arr_buf, slot)), coerced_as(s, v, .Ref))
         } else {
-            line(
-                s,
-                "vader_array_box_slots(${arr_buf}->buf)[${arr_buf}->offset + ${slot}u] = ${box_expr(name_of(v), val_of(v), elem_tag)};",
-            )
+            assign(s, box_slot(arr_buf, fresh_slot(arr_buf, slot)), box_expr(expression_of(v), val_of(v), elem_tag))
         }
     }
-    name :: fresh_tmp(s, .Ref)
-    line(s, "${name} = (void*) ${arr_buf};")
-    push_tmp(s, name, .Ref)
+    push_object(s, arr_buf)
 }
 
 /// `array.get` — pop index + array, push the element as a boxed `.Any` (the
@@ -2692,23 +2588,17 @@ emit_array_get :: fn(s: FnState!, op: vm.ArrayGet) -> void {
         // `_load_box`, which recovers the concrete tag from the referent header).
         result_val :: val_type_of_bc_type(elem)
         getter :: if result_val == .Ref { "vader_array_ref_load_obj" } else { "vader_array_ref_load_box" }
-        name :: fresh_tmp(s, result_val)
-        line(s, "${name} = ${getter}(${a}->buf, ${slot_index(a, idx)});")
-        push_tmp(s, name, result_val)
+        push_into_temporary(s, CCall { .callee = getter, .arguments = [verbatim("${a}->buf"), slot_index(a, idx)] }, result_val)
         return
     }
-    name :: fresh_tmp(s, .Any)
-    if fill == null {
-        line(s, "${name} = vader_array_box_slots(${a}->buf)[${slot_index(a, idx)}];")
+    element :: if fill == null {
+        box_slot(a, slot_index(a, idx))
     } else if kind == .U8 {
-        line(s, "${name} = vader_array_read_u8(${a}, ${slot_index(a, idx)}, ${elem_tag}u);")
+        CCall { .callee = "vader_array_read_u8", .arguments = [verbatim(a), slot_index(a, idx), verbatim("${elem_tag}u")] }
     } else {
-        line(
-            s,
-            "${name} = ${box_expr("((${fill.cty}*) ${a}->buf->slots)[${slot_index(a, idx)}]", fill.val, elem_tag)};",
-        )
+        box_expr(typed_slot(fill.cty, a, slot_index(a, idx)), fill.val, elem_tag)
     }
-    push_tmp(s, name, .Any)
+    push_into_temporary(s, element, .Any)
 }
 
 /// `array.set` — pop value + index + array, store the value in place. A Boxed
@@ -2737,28 +2627,34 @@ emit_array_set :: fn(s: FnState!, op: vm.ArraySet) -> void {
             // `local.set` / plain assignment uses, so the box carries the value's
             // concrete tag (a ref → header tag; a primitive → its own type index),
             // NOT the array's erased `elem_tag` (which would stamp the trait tag and
-            // mis-dispatch). Then store box-or-raw by buf kind. (`obj_ptr_of` /
+            // mis-dispatch). Then store box-or-raw by buf kind. (`object_pointer_of` /
             // `box_expr(elem_tag)` were both wrong here — the former splices
             // `.payload.obj` onto a primitive, the latter loses the concrete tag.)
-            box_c :: coerce_expr(s.ctx.module.types, name_of(value), val_of(value), .Any)
-            line(s, "vader_array_ref_store_box(${a}->buf, ${slot_index(a, idx)}, ${box_c});")
+            evaluate(
+                s,
+                CCall {
+                    .callee    = "vader_array_ref_store_box",
+                    .arguments = [verbatim("${a}->buf"), slot_index(a, idx), coerced_as(s, value, .Any)],
+                },
+            )
         } else {
             // Concrete-ref / union-of-refs element : the value is a genuine ref (or
             // null), so its raw object pointer is valid — take the fast raw path.
-            line(
+            evaluate(
                 s,
-                "vader_array_ref_store(${a}->buf, ${slot_index(a, idx)}, ${obj_ptr_of(value)});",
+                CCall { .callee = "vader_array_ref_store", .arguments = [verbatim("${a}->buf"), slot_index(a, idx), object_pointer_of(value)] },
             )
         }
-        line(s, "VADER_WRITE_BARRIER(${a}->buf);")
+        write_barrier(s, verbatim("${a}->buf"))
         return
     }
     if fill == null {
-        line(
+        assign(
             s,
-            "vader_array_box_slots(${a}->buf)[${slot_index(a, idx)}] = ${box_expr(name_of(value), val_of(value), elem_tag)};",
+            box_slot(a, slot_index(a, idx)),
+            box_expr(expression_of(value), val_of(value), elem_tag),
         )
-        line(s, "VADER_WRITE_BARRIER(${a}->buf);")
+        write_barrier(s, verbatim("${a}->buf"))
     } else {
         emit_typed_slot_write(s, a, idx, value, fill.cty, fill.val)
     }
@@ -2775,7 +2671,7 @@ emit_array_push :: fn(s: FnState!, op: vm.ArrayPush) -> void {
     value :: pop(s)
     arr :: pop(s)
     types :: s.ctx.module.types
-    obj :: obj_ptr_of(arr)
+    obj :: object_pointer_of(arr)
     kind :: array_kind_of(types[usize(op.type_id)], types)
     // `push_cache_tag` proved this push's loop can keep the array's state in
     // locals, and the enclosing `Loop` opener declared them. See
@@ -2786,7 +2682,7 @@ emit_array_push :: fn(s: FnState!, op: vm.ArrayPush) -> void {
     plan :: pc_active_for(s, op.cache_slot)
     if plan != null && pc_operand_is_slot(arr, plan.slot) {
         want :: pc_fill_of(plan.kind).val
-        pc_emit_push(s, plan, obj, coerce_expr(types, name_of(value), val_of(value), want))
+        pc_emit_push(s, plan, obj, coerced_as(s, value, want))
         return
     }
     // Every primitive kind gets a typed `vader_array_push_*` helper (no box, no
@@ -2798,10 +2694,13 @@ emit_array_push :: fn(s: FnState!, op: vm.ArrayPush) -> void {
     helper :: push_helper_for(kind)
     fill :: typed_array_fill_for(kind)
     if helper == null || fill == null {
-        line(s, "vader_array_push((vader_array_t*) ${obj}, ${box_expr(name_of(value), val_of(value), op.type_id)});")
+        evaluate(
+            s,
+            CCall { .callee = "vader_array_push", .arguments = [array_pointer(obj), box_expr(expression_of(value), val_of(value), op.type_id)] },
+        )
         return
     }
-    line(s, "${helper}((vader_array_t*) ${obj}, ${coerce_expr(types, name_of(value), val_of(value), fill.val)});")
+    evaluate(s, CCall { .callee = helper, .arguments = [array_pointer(obj), coerced_as(s, value, fill.val)] })
 }
 
 /// `array.len` — pop array, push its `usize` length.
@@ -2819,11 +2718,9 @@ emit_array_len :: fn(s: FnState!, resolve_buf: bool) -> void {
         // accesses reuse the resolved `_slotarr` instead of re-resolving per
         // iteration. Sound only because the caller (the `for x in a` desugar)
         // sets this exclusively for a BCE-safe loop (no call / alloc in the body).
-        resolve_array_local(s, array_hdr_ptr(arr), true)
+        resolve_array_local(s, array_header_pointer(arr), true)
     }
-    name :: fresh_tmp(s, .Usize)
-    line(s, "${name} = ${array_hdr_ptr(arr)}->length;")
-    push_tmp(s, name, .Usize)
+    push_into_temporary(s, CMember { .base = array_header_pointer(arr), .member = "length", .arrow = true }, .Usize)
 }
 
 /// `array.slice` — pop array + lo + hi, push a fresh array header over the
@@ -2833,13 +2730,13 @@ emit_array_slice :: fn(s: FnState!, op: vm.ArraySlice) -> void {
     lo :: pop(s)
     arr :: pop(s)
     arr_buf :: aux(s, "arr")
-    line(
+    declare(
         s,
-        "vader_array_t* ${arr_buf} = vader_array_slice((vader_array_t*) ${obj_ptr_of(arr)}, (size_t) ${name_of(lo)}, (size_t) ${name_of(hi)});",
+        "vader_array_t*",
+        arr_buf,
+        CCall { .callee = "vader_array_slice", .arguments = [array_pointer(object_pointer_of(arr)), as_size(lo), as_size(hi)] },
     )
-    name :: fresh_tmp(s, .Ref)
-    line(s, "${name} = (void*) ${arr_buf};")
-    push_tmp(s, name, .Ref)
+    push_object(s, arr_buf)
 }
 
 /// `[lhs] * n` — pop `n` then the source array ; push a fresh array repeating
@@ -2851,13 +2748,13 @@ emit_array_repeat :: fn(s: FnState!) -> void {
     n :: pop(s)
     src :: pop(s)
     arr_buf :: aux(s, "arr")
-    line(
+    declare(
         s,
-        "vader_array_t* ${arr_buf} = vader_array_repeat((vader_array_t*) ${obj_ptr_of(src)}, (size_t) ${name_of(n)});",
+        "vader_array_t*",
+        arr_buf,
+        CCall { .callee = "vader_array_repeat", .arguments = [array_pointer(object_pointer_of(src)), as_size(n)] },
     )
-    name :: fresh_tmp(s, .Ref)
-    line(s, "${name} = (void*) ${arr_buf};")
-    push_tmp(s, name, .Ref)
+    push_object(s, arr_buf)
 }
 
 /// `dst.push_all(src)` — pop `src` then `dst` ; append every element of `src` to
@@ -2865,9 +2762,9 @@ emit_array_repeat :: fn(s: FnState!) -> void {
 emit_array_push_all :: fn(s: FnState!) -> void {
     src :: pop(s)
     dst :: pop(s)
-    line(
+    evaluate(
         s,
-        "vader_array_push_all((vader_array_t*) ${obj_ptr_of(dst)}, (vader_array_t*) ${obj_ptr_of(src)});",
+        CCall { .callee = "vader_array_push_all", .arguments = [array_pointer(object_pointer_of(dst)), array_pointer(object_pointer_of(src))] },
     )
 }
 
@@ -2880,9 +2777,12 @@ emit_array_copy :: fn(s: FnState!) -> void {
     dst :: pop(s)
     src_start :: pop(s)
     src :: pop(s)
-    line(
+    evaluate(
         s,
-        "vader_array_copy((vader_array_t*) ${obj_ptr_of(src)}, (size_t) ${name_of(src_start)}, (vader_array_t*) ${obj_ptr_of(dst)}, (size_t) ${name_of(dst_start)}, (size_t) ${name_of(len)});",
+        CCall {
+            .callee    = "vader_array_copy",
+            .arguments = [array_pointer(object_pointer_of(src)), as_size(src_start), array_pointer(object_pointer_of(dst)), as_size(dst_start), as_size(len)],
+        },
     )
 }
 
@@ -2891,15 +2791,13 @@ emit_array_copy :: fn(s: FnState!) -> void {
 /// pre-tagged with the element's static tag — so `.Any`, no follow-up cast).
 emit_array_remove_last :: fn(s: FnState!) -> void {
     arr :: pop(s)
-    name :: fresh_tmp(s, .Any)
-    line(s, "${name} = vader_array_remove_last((vader_array_t*) ${obj_ptr_of(arr)});")
-    push_tmp(s, name, .Any)
+    push_into_temporary(s, CCall { .callee = "vader_array_remove_last", .arguments = [array_pointer(object_pointer_of(arr))] }, .Any)
 }
 
 /// `arr.clear()` — pop an array ; set its length to 0. Statement-form.
 emit_array_clear :: fn(s: FnState!) -> void {
     arr :: pop(s)
-    line(s, "vader_array_clear((vader_array_t*) ${obj_ptr_of(arr)});")
+    evaluate(s, CCall { .callee = "vader_array_clear", .arguments = [array_pointer(object_pointer_of(arr))] })
 }
 
 /// Element BcType index of array type `type_index` (the `BcArray.element`),
@@ -2933,12 +2831,12 @@ push_binop_any :: fn(s: FnState!, op: string, result_val: ValType) -> void {
     // already a raw pointer ; an `.Any` box carries it in `.payload.obj` (NULL for
     // the null variant). Same object ⇒ same pointer ⇒ same tag, so the pointer
     // compare subsumes the old `vader_box_eq` tag+payload check for identity.
-    lp :: obj_ptr_of(l)
-    rp :: obj_ptr_of(r)
+    lp :: object_pointer_of(l)
+    rp :: object_pointer_of(r)
     // Paren-free : `ref.eq` / `ref.ne` are equality, so `if (${expr})` would
     // otherwise wrap a bare `==` in a second pair and trip `-Wparentheses-equality`
-    // (mirrors `binop_text`'s equality rule).
-    push_expr(s, result_val, "${lp} ${op} ${rp}")
+    // (mirrors `binary_expression`'s equality rule).
+    push_expr(s, result_val, CBinary { .operator = op, .left = lp, .right = rp })
 }
 
 /// `string.slice_codepoints` — pop string + lo + hi, push the codepoint
@@ -2947,9 +2845,9 @@ emit_string_slice :: fn(s: FnState!) -> void {
     hi :: pop(s)
     lo :: pop(s)
     str :: pop(s)
-    push_into_tmp(
+    push_into_temporary(
         s,
-        "vader_string_slice_codepoints(${name_of(str)}, ${name_of(lo)}, ${name_of(hi)})",
+        CCall { .callee = "vader_string_slice_codepoints", .arguments = [expression_of(str), expression_of(lo), expression_of(hi)] },
         .String,
     )
 }
