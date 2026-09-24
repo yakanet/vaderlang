@@ -88,10 +88,8 @@ StackStorage :: struct {
 FnState :: struct {
     ctx:      EmitCtx
     function: BcFunction
-    /// The blocks the walk is inside, outermost first : the function body,
-    /// then one per open brace. Statements go to the last ; `print_block`
-    /// writes the first once the walk is done.
-    blocks:   CBlock![]!
+    /// The function body ; `print_block` writes it once the walk is done.
+    root:     CBlock!
     /// Virtual operand stack — the top of stack is the last element.
     stack:    StackVal[]!
     /// ValType of each materialised temp `tN` (index = N). Drives the
@@ -167,25 +165,16 @@ FnState :: struct {
     /// forwarded across a safepoint (else they dangle — the walk_elements
     /// closure-env use-after-forward bug).
     stack_storages: StackStorage[]!
-    /// An `else` whose `} else {` is not written yet : its arm may turn out to
-    /// hold a single `if` chain, written `} else if` one level up. The first
-    /// line of any other kind writes it (`flush_pending_else`).
-    pending_else: bool = false
-    /// The `if` the pending `else` folds into, when the arm's structure allows
-    /// it (`foldable_else_if`) ; -1 when it cannot fold.
-    pending_else_if: i32 = -1
-    /// `end` pcs that write nothing : the `else` arms a folded `else if` closed.
-    merged_ends: MutableSet<i32>
-    /// `end` pc → the scope opener whose `end_N` label it carries instead of
-    /// its own — the label of the arm its chain was folded out of.
-    end_label_owner: MutableMap<i32, i32>
+    /// The `if` / scope nodes the walk is inside, innermost last. Statements
+    /// go to the innermost one's open block (`current_block`), or to `root`.
+    open_nodes: COpenNode![]!
 }
 
 /// Fresh state for walking `function` into a statement tree.
 new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState! = FnState {
     .ctx = ctx,
     .function = function,
-    .blocks = [CBlock { .body = [] }],
+    .root = CBlock { .body = [] },
     .stack = [],
     .tmp_types = [],
     .aux_counter = 0,
@@ -198,8 +187,7 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState! = FnState {
     .pinned_resolves = MutableSet<string> {},
     .drop_call_result = false,
     .stack_storages = [],
-    .merged_ends = MutableSet<i32> {},
-    .end_label_owner = MutableMap<i32, i32> {},
+    .open_nodes = [],
 }
 
 // ---- indented output ------------------------------------------------------
@@ -207,7 +195,6 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState! = FnState {
 /// Append one C statement to the block the walk is in ; `print_block` gives it
 /// the block's indentation.
 line :: fn(s: FnState!, code: string) -> void {
-    flush_pending_else(s)
     append_statement(s, CLine { .text = code })
     s.ends_with_return = false
 }
@@ -216,39 +203,67 @@ line :: fn(s: FnState!, code: string) -> void {
 directive :: fn(s: FnState!, text: string) -> void = append_statement(s, CDirective { .text = text })
 
 append_statement :: fn(s: FnState!, statement: CStmt) -> void {
-    s.blocks[s.blocks.len() - 1].body.push(statement)
+    current_block(s).body.push(statement)
 }
 
 /// `line` for a statement that leaves the function : it records whether the
 /// body now ends on it (see `FnState.ends_with_return`).
 return_line :: fn(s: FnState!, code: string) -> void {
     line(s, code)
-    s.ends_with_return = s.blocks.len() == 1
+    s.ends_with_return = s.open_nodes.len() == 0
 }
 
-/// Write the `} else {` a pending `else` held back, and open its arm.
-flush_pending_else :: fn(s: FnState!) -> void {
-    if !s.pending_else {
-        return
+// The block statements go to : the innermost open node's, else the root. The
+// tree and `open_nodes` hold the SAME objects — statements pushed while a node
+// is open land in the tree — so `CBlock`, `CIf` and `CScope` must stay
+// reference types.
+current_block :: fn(s: FnState!) -> CBlock! {
+    if s.open_nodes.len() == 0 {
+        return s.root
     }
-    s.pending_else = false
-    append_statement(s, CLine { .text = "} else {" })
-    indent_push(s)
+    node :: s.open_nodes[s.open_nodes.len() - 1]
+    if node is CIf {
+        return node.else_block ?? node.then_block
+    }
+    return node.body
 }
 
-/// Open one nesting level — call right after emitting the opening brace.
-indent_push :: fn(s: FnState!) -> void {
-    block :: CBlock { .body = [] }
-    // The parent and `s.blocks` hold the SAME block : statements pushed while
-    // it is open land in the tree. `CBlock` must stay a reference type.
-    append_statement(s, block)
-    s.blocks.push(block)
+/// Open `if (condition) {` : its then-arm becomes the block the walk is in.
+open_if :: fn(s: FnState!, condition: string) -> void =
+    open_node(s, CIf { .condition = condition, .then_block = CBlock { .body = [] } })
+
+/// Open the `else` arm of the innermost open `if`.
+open_else :: fn(s: FnState!) -> void {
+    node :: s.open_nodes[s.open_nodes.len() - 1]
+    if node !is CIf {
+        panic("c_emit: `else` outside an `if`")
+    }
+    node.else_block = CBlock { .body = [] }
 }
 
-/// Close one nesting level — call right before emitting the closing brace.
-indent_pop :: fn(s: FnState!) -> void {
-    s.blocks.remove_last()
+/// Open a braced scope whose first line is `head` (`{`, `loop_N: {`).
+open_scope :: fn(s: FnState!, head: string) -> void =
+    open_node(s, CScope { .head = head, .body = CBlock { .body = [] } })
+
+/// Close the innermost open node ; `end_label` (`end_N: ;`, or `""`) follows
+/// its closing brace.
+close_node :: fn(s: FnState!, end_label: string) -> void {
+    node :: s.open_nodes[s.open_nodes.len() - 1]
+    // Narrowed per variant : `end_label` sits at a different offset in each,
+    // and a field written through the bare union lands at one fixed offset.
+    if node is CIf {
+        node.end_label = end_label
+    } else {
+        node.end_label = end_label
+    }
+    s.open_nodes.remove_last()
+    // A trailing call would make `remove_last`'s value the body's.
     return
+}
+
+open_node :: fn(s: FnState!, node: COpenNode!) -> void {
+    append_statement(s, node)
+    s.open_nodes.push(node)
 }
 
 /// Push a pure literal — inlined at the consumer, no temp line emitted.
