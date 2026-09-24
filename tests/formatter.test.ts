@@ -362,6 +362,75 @@ for (const { name, source } of MATCH_ALIGN) {
 }
 
 // ---------------------------------------------------------------------------
+// Enum variant alignment. Canonical sources, so fmt is a NO-OP. Across a run of
+// variants on adjacent lines the `{ … }` blocks start in one column and the `=`
+// in another ; a blank line or a comment line starts a new run, and survives.
+// A written value keeps its spelling — `0x8892` used to come back as `34962`.
+// ---------------------------------------------------------------------------
+const ENUM_ALIGN: { name: string; source: string }[] = [
+  {
+    name: "variant_data",
+    source: `module "reg/enum_align_data"
+
+Info :: struct {
+    label: string
+    retry: bool = false
+}
+
+Level :: enum(Info) {
+    Error   { .label = "error" }                  = 1,
+    Warning { .label = "warning", .retry = true },
+    Notice  { .label = "notice" },
+}
+`,
+  },
+  {
+    name: "written_values",
+    source: `module "reg/enum_align_values"
+
+Target :: enum(i32) {
+    Array        = 0x8892,
+    ElementArray = 0x8893,
+    Invalid      = -1,
+}
+`,
+  },
+  {
+    name: "runs",
+    source: `module "reg/enum_align_runs"
+
+Priority :: enum {
+    Low    = 10,
+    Medium,
+    High   = 20,
+
+    // A new run after the blank line.
+    Critical     = 30,
+    VeryCritical,
+}
+
+Adjacent :: enum {
+    A = 1,
+    // A comment line ends the run without adding a blank line.
+    Bee = 2,
+}
+`,
+  },
+];
+
+for (const { name, source } of ENUM_ALIGN) {
+  test(`fmt enum variant alignment : ${name}`, async () => {
+    const src = join(process.cwd(), `.tmp-fmt-enum-${name}.vader`);
+    await Bun.write(src, source);
+    try {
+      expect(await fmtStdout(src)).toBe(source);
+    } finally {
+      rmSync(src, { force: true });
+    }
+  }, { timeout: MEDIUM_BUILD });
+}
+
+// ---------------------------------------------------------------------------
 // Trailing comments : a `//` after code stays at the end of its line, and a run
 // of consecutive such lines at one indentation shares one column — one space
 // past the longest code line of the run. Each source is already in that form,

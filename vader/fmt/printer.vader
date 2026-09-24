@@ -124,14 +124,25 @@ source_slice :: fn(self: Printer, span: Span) -> string {
 // matches / exceeds the target (uniform-length group).
 write_name_padded :: fn(self: Printer!, name: string) -> void {
     self.write(name)
-    target :: self.align_name_width
-    n :: name.bytes().len()
-    if target > n {
-        pad :: target - n
-        for k in 0..<pad {
-            self.write(" ")
-        }
+    self.write_padding(name.bytes().len(), self.align_name_width)
+}
+
+// Spaces from column `used` up to `target` ; none once `used` reaches it.
+write_padding :: fn(self: Printer!, used: usize, target: usize) -> void {
+    if used >= target {
+        return
     }
+    for _ in 0..<target - used {
+        self.write(" ")
+    }
+}
+
+// Whether a blank line separates a node from the one ending on `prev_end` : the
+// gap is measured up to the node's first leading comment, so a comment written
+// right under the previous node stays attached to it.
+opens_gap :: fn(self: Printer, prev_end: i32, offset: usize, line: i32) -> bool {
+    top :: self.comments.first_line_before(offset) ?? line
+    return top > prev_end + 1
 }
 
 // ----- comment interleaving -----
@@ -330,12 +341,9 @@ export emit_program :: fn(self: Printer!, prog: p.Program) -> string {
             self.newline()
             prev_end_line := module_end_line
             if i > 0 { prev_end_line = decl_span(decls[i - 1]).end.line }
-            first_line := decl_first_line(d)
-            if self.comments.has_before(before) {
-                cs :: self.comments.peek_before(before)
-                if cs.len() > 0 { first_line = cs[0].line }
+            if self.opens_gap(prev_end_line, before, decl_first_line(d)) {
+                self.newline()
             }
-            if first_line > prev_end_line + 1 { self.newline() }
         }
         self.flush_leading_comments(before, decl_first_line(d))
         self.indent()
@@ -769,36 +777,112 @@ emit_enum_decl :: fn(self: Printer!, d: p.EnumDecl) -> void {
         self.write(" { ")
         for i in 0..<d.variants.len() {
             if i > 0 { self.write(", ") }
-            self.emit_enum_variant(d.variants[i])
+            self.emit_enum_variant(d.variants[i], EnumVariantColumns {})
         }
         self.write(" }")
         return
     }
+    columns :: enum_variant_columns(self.source, d.variants)
     self.write(" {")
     self.depth = self.depth + 1
-    for v in d.variants {
+    for i in 0..<d.variants.len() {
+        v :: d.variants[i]
+        // A blank line in the source survives : it also ends an alignment
+        // group, so dropping it would realign the next run on a second pass.
+        self.newline()
+        if i > 0 && self.opens_gap(variant_last_line(d.variants[i - 1]), v.span.start.offset, v.span.start.line) {
+            self.newline()
+        }
         // Flush the variant's leading `///` / `//` comments — without this they
         // detach from the variant and are relocated after the enum's `}`.
-        self.newline()
         self.flush_leading_comments(v.span.start.offset, v.span.start.line)
         self.indent()
-        self.emit_enum_variant(v)
+        self.emit_enum_variant(v, columns[i])
         self.write(",")
     }
     self.close_brace_after_comments(d.span)
 }
 
-emit_enum_variant :: fn(self: Printer!, v: p.EnumVariant) -> void {
-    self.write(v.name)
-    if v.data !is null {
-        self.emit_comma_list(v.data, " {", "}", true, true, emit_struct_lit_item)
-    }
-    match v.value as n {
-        is null -> {}
-        is i64  -> {
-            self.write(" = ")
-            self.write("${n}")
+// The widths a variant pads to so that, across its group, the `{ … }` blocks
+// start in one column and the `=` in another. `0` pads nothing.
+EnumVariantColumns :: struct {
+    name:  usize = 0
+    block: usize = 0
+}
+
+// One `EnumVariantColumns` per variant. A group is a run of variants on
+// adjacent lines — a blank line or a comment line ends it — and a variant
+// alone in its group pads nothing.
+enum_variant_columns :: fn(source: string, variants: p.EnumVariant[]) -> EnumVariantColumns[] {
+    out: EnumVariantColumns![]!: []
+    i: usize = 0
+    for i < variants.len() {
+        end := i + 1
+        for end < variants.len() && variants[end].span.start.line == variant_last_line(variants[end - 1]) + 1 {
+            end = end + 1
         }
+        columns :: EnumVariantColumns {}
+        if end > i + 1 {
+            for k in i..<end {
+                name_width :: variants[k].name.bytes().len()
+                block_width :: variant_block_width(source, variants[k])
+                if name_width > columns.name {
+                    columns.name = name_width
+                }
+                if block_width > columns.block {
+                    columns.block = block_width
+                }
+            }
+        }
+        for _ in i..<end {
+            out.push(columns)
+        }
+        i = end
+    }
+    return out
+}
+
+// The last source line a variant occupies — its value, else its data block.
+variant_last_line :: fn(v: p.EnumVariant) -> i32 {
+    if v.value_span is Span {
+        return v.value_span.end.line
+    }
+    if v.data !is null && v.data.len() > 0 {
+        return v.data[v.data.len() - 1].span.end.line
+    }
+    return v.span.end.line
+}
+
+// Single-line width of a variant's `{ … }` block ; `0` without one.
+variant_block_width :: fn(source: string, v: p.EnumVariant) -> usize {
+    if v.data is null {
+        return 0
+    }
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.flat = true
+    sub.emit_comma_list(v.data, "{", "}", true, true, emit_struct_lit_item)
+    return sub.finish().bytes().len()
+}
+
+// `Name { … } = value`, padded to `columns`. The value is copied from the
+// source, so `0x8892` and `-1` keep their spelling. Padding stops at the last
+// written part : a line never ends in spaces.
+emit_enum_variant :: fn(self: Printer!, v: p.EnumVariant, columns: EnumVariantColumns) -> void {
+    start :: self.column
+    self.write(v.name)
+    if v.data == null && v.value_span == null {
+        return
+    }
+    self.write_padding(self.column, start + columns.name)
+    if v.data !is null {
+        self.write(" ")
+        self.emit_comma_list(v.data, "{", "}", true, true, emit_struct_lit_item)
+    }
+    if v.value_span is Span {
+        block :: if columns.block > 0 { columns.block + 1 } else { 0 }
+        self.write_padding(self.column, start + columns.name + block)
+        self.write(" = ")
+        self.write(self.source_slice(v.value_span))
     }
 }
 
@@ -834,7 +918,7 @@ emit_trait_decl :: fn(self: Printer!, d: p.TraitDecl) -> void {
         if i > 0 {
             prev_end :: d.members[i - 1].span.end.line
             self.newline()
-            if first.line > prev_end + 1 { self.newline() }
+            if self.opens_gap(prev_end, first.offset, first.line) { self.newline() }
         } else {
             self.newline()
         }
@@ -966,7 +1050,7 @@ emit_impl_decl :: fn(self: Printer!, d: p.ImplDecl) -> void {
         if i > 0 {
             prev_end :: d.members[i - 1].span.end.line
             self.newline()
-            if first.line > prev_end + 1 { self.newline() }
+            if self.opens_gap(prev_end, first.offset, first.line) { self.newline() }
         } else {
             self.newline()
         }
@@ -1740,10 +1824,7 @@ emit_if :: fn(self: Printer!, x: p.IfExpr) -> void {
     self.emit_condition(x.cond)
     // Lookup-table chain : pad the condition so the `{` column lines up.
     if self.align_if_width > 0 {
-        w :: format_expr(self.source, x.cond).bytes().len()
-        if self.align_if_width > w {
-            for k in 0..<(self.align_if_width - w) { self.write(" ") }
-        }
+        self.write_padding(format_expr(self.source, x.cond).bytes().len(), self.align_if_width)
     }
     self.write(" ")
     self.emit_block_expr(x.then_block)
@@ -1797,10 +1878,7 @@ emit_match :: fn(self: Printer!, x: p.MatchExpr) -> void {
         self.emit_pattern(arm.pattern)
         self.emit_expr_with_prefix(" if ", arm.guard)
         if align > 0 {
-            head :: match_arm_head_width(self.source, arm)
-            for k in 0..<(align - head) {
-                self.write(" ")
-            }
+            self.write_padding(match_arm_head_width(self.source, arm), align)
         }
         self.write(" -> ")
         self.emit_expr(arm.body)
