@@ -69,7 +69,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx!, lit: StructLitExpr, type: Type) -> Lowe
     // Reconcile the box's runtime type-index with the trait-impl vtable's receiver
     // key. `materialize_impl_for_instance` registers a generic impl's vtable row
     // under the REF-ERASED self (`Ready<Boom>` → `Ready<Any>`, via
-    // `keep_primitive_or_erase`) so every ref-arg instance shares one row ; a
+    // `keep_concrete_or_erase`) so every ref-arg instance shares one row ; a
     // NON-generic construction site would otherwise mint the CONCRETE tag
     // (`Ready<Boom>`) — identical layout, divergent tag → `vtable miss`. Inside a
     // generic fn body the carried subst already erases the lit's type to

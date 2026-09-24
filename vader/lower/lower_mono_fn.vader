@@ -161,7 +161,10 @@ fn_instance_key :: fn(inst: GenericFnInstance) -> string {
     sb.append("${inst.fn_symbol.id}::")
     for a in inst.type_args {
         sb.append(":")
-        sb.append(display_type_key(a))
+        // A kept enum names its module : two `Status` enums of different modules
+        // are two instances, as `mixed_any_suffix` mangles them.
+        kept :: kept_concrete(a)
+        sb.append(if kept is EnumType { kept_suffix(kept) } else { display_type_key(a) })
     }
     return sb.to_string()
 }
@@ -228,8 +231,9 @@ build_fn_instance_decl :: fn(
     //   Mono   — trait-dispatch (`fn_trait_dispatches`, the `virtual.call`-on-`ref _`
     //            gap) OR a bare type-param array return (the result's element kind
     //            must be concrete, S5 Solution A). Full-concrete subst.
-    //   Mixed  — ≥1 primitive arg: keep primitives concrete (devirt + primops/atom-eq
-    //            inline), erase refs to `Any` via `build_fn_mixed_subst`. Mangle-indexed.
+    //   Mixed  — ≥1 arg `kept_concrete` keeps (a primitive, an enum with variant
+    //            data): keep those concrete (devirt + primops/atom-eq inline), erase
+    //            the rest to `Any` via `build_fn_mixed_subst`. Mangle-indexed.
     //   Erased — all-reference: uniform pointer like Java, symbol-id indexed + deduped.
     // Mono+Mixed are both mangle-indexed (entry_symbol=null). Mixed SUBSUMES Inc 1's
     // narrow all-primitive case (an all-primitive mixed subst equals the concrete one).
@@ -333,9 +337,9 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
 //   Mono   — full-concrete subst + `mono_suffix`. Trait-dispatch (the dispatch
 //            vtable needs the concrete struct) or a bare type-param array return
 //            (the result array's element kind must be concrete, S5 Solution A).
-//   Mixed  — `build_fn_mixed_subst` + `mixed_any_suffix`. ≥1 primitive arg: keep
-//            primitives concrete (devirt + primops/atom-eq inline), erase refs to
-//            `Any`. Mangle-indexed (entry_symbol=null), invariant under ref-erasure.
+//   Mixed  — `build_fn_mixed_subst` + `mixed_any_suffix`. ≥1 arg `kept_concrete`
+//            keeps: keep those concrete (devirt + primops/atom-eq inline), erase the
+//            rest to `Any`. Mangle-indexed (entry_symbol=null), invariant under ref-erasure.
 //   Erased — `build_fn_any_subst`, symbol-id indexed (flush keeps one body per fn).
 //            All-reference args: nothing to monomorphize, uniform pointer like Java.
 InstanceFlavor :: enum { Mono, Mixed, Erased }
@@ -347,7 +351,7 @@ InstanceFlavor :: enum { Mono, Mixed, Erased }
 fn_instance_flavor :: fn(fn_decl: FnDecl, owner_typed: TypedProgram, type_args: Type[]) -> InstanceFlavor {
     if owner_typed.fn_trait_dispatches[fn_decl.id] is bool { return .Mono }
     if returns_typeparam_array(fn_decl) { return .Mono }
-    if has_any_primitive_arg(type_args) { return .Mixed }
+    if has_any_kept_arg(type_args) { return .Mixed }
     return .Erased
 }
 

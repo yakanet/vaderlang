@@ -1,0 +1,24 @@
+// Two enums with variant data share a name across modules. A generic instance
+// keeps such an enum concrete, and its mangle and dedupe key name the module :
+// otherwise `as_int(B.Status.Beta)` would run the `A.Status` body and read the
+// wrong value table, and the two maps would share one set of methods.
+
+module "snippet"
+
+import "std/collections"
+import "std/io"
+A :: import "snippet/alpha"
+B :: import "snippet/beta"
+
+as_int :: fn<T>(v: T) -> i64 = i64(v)
+
+main :: fn() -> i32 {
+    println("${as_int(A.Status.Alpha)} ${as_int(B.Status.Beta)}")
+    by_alpha :: MutableMap<A.Status, i64> {}
+    by_beta :: MutableMap<B.Status, i64> {}
+    by_alpha[.Omega] = i64(A.Status.Omega)
+    by_beta[.Gamma] = i64(B.Status.Gamma)
+    by_beta[.Beta] = as_int(B.Status.Beta)
+    println("${by_alpha[.Omega] ?? -1} ${by_beta[.Gamma] ?? -1} ${by_beta[.Beta] ?? -1}")
+    return 0
+}

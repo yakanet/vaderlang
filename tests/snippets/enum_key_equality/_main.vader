@@ -1,0 +1,39 @@
+// Enum equality and enum-keyed maps, run natively. An enum's `==` is an integer
+// comparison ; a map keyed by a plain enum shares the erased instance, one keyed
+// by an enum with variant data gets a concrete instance whose key hashing and
+// comparison go through the rank it stores. None of these may reach a host
+// import : the native build has no binding for `<int>$Equals$equals`, so a
+// comparison routed to one traps at run time while the VM runs it fine.
+
+module "snippet"
+
+import "std/collections"
+import "std/io"
+
+Color :: enum { Red, Green, Blue }
+
+StatusInfo :: struct {
+    reason: string
+}
+
+HttpStatus :: enum(StatusInfo) {
+    Ok       { .reason = "OK" }        = 1,
+    NotFound { .reason = "Not Found" },
+}
+
+main :: fn() -> i32 {
+    c :: Color.Green
+    println("${c == .Green} ${c == .Blue} ${c != .Red}")
+
+    by_color :: MutableMap<Color, i32> {}
+    by_color[.Red] = 1
+    by_color[.Blue] = 3
+    println("${by_color[.Red] ?? -1} ${by_color[.Green] ?? -1} ${by_color[.Blue] ?? -1}")
+
+    by_status :: MutableMap<HttpStatus, string> {}
+    by_status[.NotFound] = "gone"
+    by_status[.Ok] = "here"
+    by_status[.NotFound] = "missing"
+    println("${by_status[.NotFound] ?? "?"} ${by_status[.Ok] ?? "?"} ${by_status.len()}")
+    return 0
+}

@@ -1,0 +1,10 @@
+module "snippet/alpha"
+
+Info :: struct {
+    label: string
+}
+
+export Status :: enum(Info) {
+    Alpha { .label = "a" } = 404,
+    Omega { .label = "o" },
+}

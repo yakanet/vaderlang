@@ -1,0 +1,10 @@
+module "snippet/beta"
+
+Info :: struct {
+    label: string
+}
+
+export Status :: enum(Info) {
+    Beta  { .label = "b" } = 1000,
+    Gamma { .label = "g" },
+}

@@ -308,6 +308,13 @@ const C_PARITY = new Set<string>([
   // audit found it. Both are on the list now so one oracle covers the family.
   "array_push_all_const",
   "array_copy_to_const",
+  // A generic instance keeps an enum with variant data concrete : its key
+  // hashing and comparison in a map, and the module-qualified mangle that keeps
+  // two same-named enums apart, only show what they emit when the C runs.
+  // `enum_key_equality` also pins that an enum's `==` never becomes a call to
+  // a host `<int>$Equals$equals`, which the VM binds and the native build does not.
+  "enum_key_equality",
+  "generic_enum_same_name",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

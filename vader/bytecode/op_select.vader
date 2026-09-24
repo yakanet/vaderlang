@@ -237,7 +237,7 @@ SlotWidth :: enum(u8) { U8, I32, I64, F64, Boxed }
 ///
 /// @param elem  the array's concrete element value class (from the materialised
 ///              impl body's element type — primitives stay concrete per
-///              `keep_primitive_or_erase`, so this is never `Any`-erased for a
+///              `keep_concrete_or_erase`, so this is never `Any`-erased for a
 ///              primitive-element array).
 /// @return      the storage width, or `null` for a not-yet-supported element.
 slot_width_for :: fn(elem: ValType) -> SlotWidth | null = match elem {

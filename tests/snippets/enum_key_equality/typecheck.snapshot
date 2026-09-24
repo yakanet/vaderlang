@@ -1,0 +1,72 @@
+# Typecheck
+
+## tests/snippets/enum_key_equality
+  EnumDecl       Color                :: Color
+  EnumDecl       HttpStatus           :: HttpStatus
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     StatusInfo           :: StatusInfo!
+  expr 20:26    StringLitExpr  :: string
+  expr 21:26    StringLitExpr  :: string
+  expr 25:10    FieldExpr      :: Color
+  expr 25:10    IdentExpr      :: Color
+  expr 26:13    StringLitExpr  :: string
+  expr 26:16    BinaryExpr     :: bool
+  expr 26:16    IdentExpr      :: Color
+  expr 26:21    DotVariantExpr :: Color
+  expr 26:31    BinaryExpr     :: bool
+  expr 26:31    IdentExpr      :: Color
+  expr 26:36    DotVariantExpr :: Color
+  expr 26:45    BinaryExpr     :: bool
+  expr 26:45    IdentExpr      :: Color
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 26:50    DotVariantExpr :: Color
+  expr 28:17    StructLitExpr  :: MutableMap<Color, i32>!
+  expr 29:14    DotVariantExpr :: Color
+  expr 29:5     IdentExpr      :: MutableMap<Color, i32>!
+  expr 30:14    DotVariantExpr :: Color
+  expr 30:5     IdentExpr      :: MutableMap<Color, i32>!
+  expr 31:13    StringLitExpr  :: string
+  expr 31:16    IdentExpr      :: MutableMap<Color, i32>!
+  expr 31:16    IndexExpr      :: i32 | null
+  expr 31:16    NullCoalesceExpr :: i32
+  expr 31:25    DotVariantExpr :: Color
+  expr 31:34    UnaryExpr      :: i32
+  expr 31:40    IdentExpr      :: MutableMap<Color, i32>!
+  expr 31:40    IndexExpr      :: i32 | null
+  expr 31:40    NullCoalesceExpr :: i32
+  expr 31:49    DotVariantExpr :: Color
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+  expr 31:60    UnaryExpr      :: i32
+  expr 31:66    IdentExpr      :: MutableMap<Color, i32>!
+  expr 31:66    IndexExpr      :: i32 | null
+  expr 31:66    NullCoalesceExpr :: i32
+  expr 31:75    DotVariantExpr :: Color
+  expr 31:85    UnaryExpr      :: i32
+  expr 33:18    StructLitExpr  :: MutableMap<HttpStatus, string>!
+  expr 34:15    DotVariantExpr :: HttpStatus
+  expr 34:28    StringLitExpr  :: string
+  expr 34:5     IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 35:15    DotVariantExpr :: HttpStatus
+  expr 35:22    StringLitExpr  :: string
+  expr 35:5     IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 36:15    DotVariantExpr :: HttpStatus
+  expr 36:28    StringLitExpr  :: string
+  expr 36:5     IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 37:13    StringLitExpr  :: string
+  expr 37:16    IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 37:16    IndexExpr      :: null | string
+  expr 37:16    NullCoalesceExpr :: string
+  expr 37:26    DotVariantExpr :: HttpStatus
+  expr 37:40    StringLitExpr  :: string
+  expr 37:47    IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 37:47    IndexExpr      :: null | string
+  expr 37:47    NullCoalesceExpr :: string
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 37:57    DotVariantExpr :: HttpStatus
+  expr 37:65    StringLitExpr  :: string
+  expr 37:72    CallExpr       :: usize
+  expr 37:72    FieldExpr      :: fn() -> usize
+  expr 37:72    IdentExpr      :: MutableMap<HttpStatus, string>!

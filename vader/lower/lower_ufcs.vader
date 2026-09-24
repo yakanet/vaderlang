@@ -45,7 +45,7 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
         }
         // Impl-member path first (e.g. `x.to_string()` over
         // `i32 implements Display { to_string }`).
-        member :: find_impl_member_for(ctx, recv_type, callee_field.field)
+        member :: impl_member_or_enum(ctx, recv_type, callee_field.field)
         if !(member is null) {
             if member is UfcsMember {
                 // An impl member's recorded signature is receiver-dropped, so its
@@ -435,4 +435,17 @@ lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
     program :: ctx.project.evaluated.modules[sym.module] ?? return null
     if program is EvaluatedProgram { return program.typed.decl_types[sym.id] }
     return null
+}
+
+// `recv_type`'s impl member `method_name` — and for `hash` on an enum with
+// variant data, which has no impl of its own, its stored integer's. A generic
+// instance keeps such an enum concrete (`MutableMap<HttpStatus, V>`) and its
+// body hashes the key : the stored rank serves, being unique per variant. Any
+// other method would hand out the rank where the written value is meant.
+impl_member_or_enum :: fn(ctx: FnLowerCtx!, recv_type: Type, method_name: string) -> UfcsMember | null {
+    member :: find_impl_member_for(ctx, recv_type, method_name)
+    if member != null || recv_type !is EnumType || recv_type.data == null || method_name != METHOD_HASH {
+        return member
+    }
+    return find_impl_member_for(ctx, mk_primitive(recv_type.repr), method_name)
 }

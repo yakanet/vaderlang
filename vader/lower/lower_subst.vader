@@ -47,14 +47,14 @@ build_fn_concrete_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]
 }
 
 // Mixed per-instance subst (mixed flavor, P1) : map each type-param to its concrete
-// arg WHEN that arg is a PrimitiveType (the body sees `K = string` / `i32`, so
+// arg WHEN `kept_concrete` keeps it (the body sees `K = string` / `i32`, so
 // trait dispatch devirtualises and primops/atom-eq inline), else to `TY_ANY`
 // (references erase to one uniform-pointer body, like Java). The instance mangle
 // uses `mixed_any_suffix` (refs → `__Any`), making the instance INVARIANT under
 // ref-erasure so a top-level call (`[string, StructA]`) and a transitive call from
 // inside an erased body (`[string, Any]`) reconcile on the one materialised body.
 // Mirror of `build_fn_concrete_subst`'s symbol resolution + the impl-member
-// `map_type_params_mixed`'s primitive-or-Any choice ; only used by free fns.
+// `map_type_params_mixed`'s kept-or-Any choice ; only used by free fns.
 build_fn_mixed_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -> Substitution {
     subst :: new_substitution()
     i: usize = 0
@@ -62,11 +62,7 @@ build_fn_mixed_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -
         if i >= type_args.len() { break }
         tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
         if tp_sym is Symbol {
-            // Distinct→backing: a distinct (newtype) over a primitive keeps the
-            // backing's RAW slot, never `__Any` — mirrors the stripped method
-            // instances + `mixed_any_suffix` so layout and mangle stay in lockstep.
-            arg :: strip_distinct(type_args[i])
-            if arg is PrimitiveType { subst.type_params[tp_sym.id] = arg } else { subst.type_params[tp_sym.id] = TY_ANY }
+            subst.type_params[tp_sym.id] = kept_concrete(type_args[i]) ?? TY_ANY
         }
         i += 1
     }
@@ -159,15 +155,15 @@ build_any_args_list :: fn(args: Type[]) -> Type[] {
     return out
 }
 
-// MIXED counterpart of `build_any_args_list` : keep every primitive arg concrete,
-// collapse every ref arg to `Any` (via `keep_primitive_or_erase`). This is the
+// MIXED counterpart of `build_any_args_list` : keep every arg `kept_concrete`
+// keeps, collapse every other one to `Any` (via `keep_concrete_or_erase`). This is the
 // single per-arg erasure kernel shared by the vtable-receiver self
 // (`materialize_impl_for_instance`) and the box runtime tag (`erase_generic_struct_tag`)
 // — the two MUST agree arg-for-arg or a generic-struct box `vtable miss`es, so the
 // formula lives here once, not copied at each site.
 build_mixed_args_list :: fn(args: Type[]) -> Type[] {
     out: Type[]!: []
-    for a in args { out.push(keep_primitive_or_erase(a)) }
+    for a in args { out.push(keep_concrete_or_erase(a)) }
     return out
 }
 
@@ -199,8 +195,8 @@ build_any_subst :: fn(sd: StructDecl, owner_typed: TypedProgram) -> Substitution
 }
 
 /// Mixed struct-layout subst (mixed flavor, P2 — the box-vs-raw FIELD flip). Maps
-/// each of `sd`'s type-params POSITIONALLY to its concrete instance arg WHEN that
-/// arg is a `PrimitiveType` (so a primitive field lands RAW — `Entry.key : string`
+/// each of `sd`'s type-params POSITIONALLY to its concrete instance arg WHEN
+/// `kept_concrete` keeps it (so a primitive field lands RAW — `Entry.key : string`
 /// / `i32`, not a boxed `Any`), else to `TY_ANY` (reference fields stay uniform-
 /// pointer). The instance MANGLE is unchanged (`mangle_struct_instance` →
 /// `args_suffix(inst.args)` already renders a ref arg's pre-erased `Any`, e.g.
@@ -208,8 +204,8 @@ build_any_subst :: fn(sd: StructDecl, owner_typed: TypedProgram) -> Substitution
 /// accessors P1 materialises (`put__string__Any` / `grow__string__Any` read
 /// `e.key` as `string`). SOUNDNESS depends on EVERY accessor being mixed — an
 /// erased `__Any` reader of a now-raw field is the Inc-3 `Hash.hash` trap; P1
-/// closed that. Mirror of `build_any_subst` + `build_fn_mixed_subst`'s primitive-
-/// or-Any choice.
+/// closed that. Mirror of `build_any_subst` + `build_fn_mixed_subst`'s kept-or-Any
+/// choice.
 build_struct_mixed_subst :: fn(sd: StructDecl, owner_typed: TypedProgram, args: Type[]) -> Substitution {
     subst :: new_substitution()
     i: usize = 0
@@ -217,12 +213,10 @@ build_struct_mixed_subst :: fn(sd: StructDecl, owner_typed: TypedProgram, args: 
         if i >= args.len() { break }
         tp_symbol :: find_type_param_in_resolved(owner_typed.resolved, tp.name, tp.span)
         if !(tp_symbol is null) {
-            // Distinct→backing: collapse a newtype-over-primitive to its backing
-            // so the FIELD lands RAW (`evals: i32[]`), matching the stripped
-            // `put`/`get` instances. Without this the field stays `Any[]` (boxed)
-            // while the accessors read packed i32 → a representation mismatch.
-            arg :: strip_distinct(args[i])
-            if arg is PrimitiveType { subst.type_params[tp_symbol.id] = arg } else { subst.type_params[tp_symbol.id] = TY_ANY }
+            // The field lands as the accessor instances see it (`evals: i32[]`
+            // for a newtype over `i32`) : a boxed `Any[]` field read by packed
+            // accessors is a representation mismatch.
+            subst.type_params[tp_symbol.id] = kept_concrete(args[i]) ?? TY_ANY
         }
         i += 1
     }
@@ -365,8 +359,8 @@ collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
 }
 
 /// Mixed substitution : map each impl type param to its concrete instance arg
-/// WHEN primitive (so the materialised body sees `K = i32` and primitive trait
-/// dispatch devirtualises), else to `Any`. `names[i]` corresponds to `args[i]`.
+/// WHEN `kept_concrete` keeps it (so the materialised body sees `K = i32` and
+/// primitive trait dispatch devirtualises), else to `Any`. `names[i]` corresponds to `args[i]`.
 map_type_params_mixed :: fn(subst: Substitution!, scope: Symbol[], names: string[], args: Type[]) -> void {
     for s in scope {
         if s.kind != .TypeParam { continue }
@@ -378,19 +372,13 @@ map_type_params_mixed :: fn(subst: Substitution!, scope: Symbol[], names: string
             }
         }
         if idx < 0 { continue }
-        target: Type = TY_ANY
-        if usize(idx) < args.len() {
-            // Distinct→backing: keep a newtype-over-primitive concrete (its
-            // backing) so the materialised impl body devirtualises like the prim.
-            arg :: strip_distinct(args[usize(idx)])
-            if arg is PrimitiveType { target = arg }
-        }
-        subst.type_params[s.id] = target
+        kept :: if usize(idx) < args.len() { kept_concrete(args[usize(idx)]) } else { null }
+        subst.type_params[s.id] = kept ?? TY_ANY
     }
 }
 
-/// Variant of `build_impl_subst` keeping PRIMITIVE type args concrete and
-/// erasing every other one to `Any` (see `keep_primitive_or_erase`).
+/// Variant of `build_impl_subst` keeping the type args `kept_concrete` keeps and
+/// erasing every other one to `Any` (see `keep_concrete_or_erase`).
 build_impl_mixed_subst :: fn(
     impl_decl: ImplDecl, impl_typed: TypedProgram, args: Type[],
 ) -> Substitution {
@@ -401,17 +389,45 @@ build_impl_mixed_subst :: fn(
     return subst
 }
 
-/// Erase a type arg for the impl-member self-type, but KEEP primitives concrete.
-keep_primitive_or_erase :: fn(t: Type) -> Type {
-    // Distinct→backing: a newtype over a primitive keeps its backing concrete.
-    st :: strip_distinct(t)
-    if st is PrimitiveType { return st }
-    return any_leaves_of(t)
+/// Erase a type arg for the impl-member self-type, but KEEP what `kept_concrete`
+/// keeps.
+keep_concrete_or_erase :: fn(t: Type) -> Type = kept_concrete(t) ?? any_leaves_of(t)
+
+/// The type a mixed instance keeps for the type argument `t` ; null when `t`
+/// erases to `Any`. Every mixed-flavor site — the flavor gate, the fn, struct
+/// and impl substitutions, the instance suffix — asks this one question, so a
+/// call site and the body it names always agree on the instance.
+///
+/// A primitive is kept, and so is a newtype over one, as its backing. An enum
+/// with variant data is kept as itself : it stores its variant's rank, so
+/// boxing it would leave `i64(v)` in the shared body reading the rank where
+/// the written value is meant. Every other type erases.
+///
+/// @param t  a concrete type argument of the instance.
+kept_concrete :: fn(t: Type) -> Type | null {
+    backing :: strip_distinct(t)
+    if backing is PrimitiveType {
+        return backing
+    }
+    if backing is EnumType && backing.data != null {
+        return backing
+    }
+    return null
 }
 
-// True when AT LEAST ONE type arg is a primitive value-type (the mixed-flavor gate,
-// BROAD — incl `string`/`bool`/`char`, matching `mixed_any_suffix` /
-// `map_type_params_mixed`). Such an instance is monomorphized MIXED : primitives
+// The suffix segment of a kept type arg. A primitive's name is global ; an enum's
+// is only unique within its module, so two `Status` enums of different modules
+// would otherwise share one instance.
+kept_suffix :: fn(kept: Type | null) -> string {
+    if kept is EnumType {
+        return "${mangle_module_id(kept.symbol.module_name)}_${kept.symbol.name}"
+    }
+    return if kept == null { "Any" } else { mangle_type_arg(kept) }
+}
+
+// True when AT LEAST ONE type arg is one `kept_concrete` keeps (the mixed-flavor
+// gate, BROAD — incl `string`/`bool`/`char`, matching `mixed_any_suffix` /
+// `map_type_params_mixed`). Such an instance is monomorphized MIXED : those args
 // kept concrete (devirt + primops/atom-eq inline), references erased to `Any`
 // (uniform pointer). `Any` is `AnyType`, not `PrimitiveType`, so an all-erased
 // transitive arg list (`[Any, Any]`) is correctly EXCLUDED → stays fully erased
@@ -419,11 +435,9 @@ keep_primitive_or_erase :: fn(t: Type) -> Type {
 // primitives" gate : an all-primitive arg list satisfies this too, and a mixed
 // subst over all-primitive args equals the concrete subst, so Inc 1's instances
 // are byte-unchanged.
-has_any_primitive_arg :: fn(type_args: Type[]) -> bool {
+has_any_kept_arg :: fn(type_args: Type[]) -> bool {
     for a in type_args {
-        // Distinct→backing: a distinct-over-primitive arg counts as primitive,
-        // so an all-distinct instance still monomorphizes MIXED (raw fields).
-        if strip_distinct(a) is PrimitiveType { return true }
+        if kept_concrete(a) != null { return true }
     }
     return false
 }
@@ -473,31 +487,23 @@ args_suffix :: fn(args: Type[]) -> string {
     return sb.to_string()
 }
 
-/// Erasure suffix for a GENERIC impl member. KEEPS primitive type args concrete
-/// (so a primitive-keyed instance devirtualises its trait dispatch — `i32.eq`
-/// instead of a `virtual.call` thunk) and flattens every non-primitive arg to a
-/// bare `__Any`. The flatten avoids the inner-shape leak a structure-preserving
+/// Erasure suffix for a GENERIC impl member. KEEPS the type args
+/// `kept_concrete` keeps (so a primitive-keyed instance devirtualises its trait
+/// dispatch — `i32.eq` instead of a `virtual.call` thunk) and flattens every
+/// other arg to a bare `__Any`. The flatten avoids the inner-shape leak a structure-preserving
 /// `args_suffix(any_leaves_of(...))` would cause — e.g. `MutableMap<Any, Any[]>`
 /// → `at__Any__Any__` diverging from a sibling's `at__Any__Any`. All three
 /// suffix sites (`materialize_impl_for_instance`, `find_impl_member_for`,
 /// `lower_for_in`) MUST call this with the same `args` so each call name
 /// reconciles with the single materialised body (the dedupe keys on the suffix).
 /// @param args  the impl's concrete type arguments.
-/// @return      `"__<prim>"` per primitive arg, `"__Any"` per other arg.
+/// @return      `"__<type>"` per arg `kept_concrete` keeps, `"__Any"` per
+///              other arg.
 export mixed_any_suffix :: fn(args: Type[]) -> string {
     sb :: StringBuilder {}
     for a in args {
-        // Distinct→backing: a distinct (newtype) over a primitive keeps the
-        // backing's RAW slot (`__i32`), never `__Any`. This is the convergence
-        // point for the erased-receiver mangle — call site AND materialised body
-        // both route here, so collapsing the distinct keeps them in lockstep.
-        sa :: strip_distinct(a)
-        if sa is PrimitiveType {
-            sb.append("__")
-            sb.append(sa.name)
-        } else {
-            sb.append("__Any")
-        }
+        sb.append("__")
+        sb.append(kept_suffix(kept_concrete(a)))
     }
     return sb.to_string()
 }
