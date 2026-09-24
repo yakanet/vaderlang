@@ -1479,21 +1479,23 @@ parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibilit
     p.skip_newlines()
     variants: EnumVariant![]!: []
     for !p.check(.RBrace) && !p.check(.Eof) {
+        errors_before :: p.errors.len()
         v_tok :: p.expect(.Ident, "variant name")
         value: i64 | null = null
         value_span: Span | null = null
         if p.match_kind(.Assign) != null {
+            minus_tok :: p.match_kind(.Minus)
             lit_tok :: p.expect(.IntLit, "integer literal after `=`")
             val :: lit_tok.value
-            // u64 → i64 wraps the high bit for values ≥ 2^63. Out-of-range
+            // u64 → i64 wraps the high bit for magnitudes ≥ 2^63. Out-of-range
             // explicit variant values are surfaced downstream by T3030
             // ("enum variant value out of range for backing type"), so we
-            // don't validate here.
-            match val {
-                is u64 -> { value = i64(val) }
-                _      -> { value = 0 }
+            // don't validate here. A rejected literal leaves `value` null :
+            // the variant takes the next implicit index.
+            if val is u64 {
+                value = if minus_tok == null { i64(val) } else { -i64(val) }
             }
-            value_span = lit_tok.span
+            value_span = p.span_of(minus_tok ?? lit_tok, lit_tok)
         }
         variants.push(EnumVariant {
             .span       = v_tok.span,
@@ -1501,6 +1503,13 @@ parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibilit
             .value      = value,
             .value_span = value_span,
         })
+        // `expect` reports without consuming : resynchronise on the next
+        // separator, or the rejected token is re-read by every iteration.
+        if p.errors.len() > errors_before {
+            for !p.check(.Comma) && !p.check(.Newline) && !p.check(.RBrace) && !p.check(.Eof) {
+                p.advance()
+            }
+        }
         p.match_kind(.Comma)
         p.skip_newlines()
     }
@@ -3852,4 +3861,31 @@ parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader"
     errors :: parse_source(src, "test.vader").errors
     assert_eq(errors.len(), 1)
     assert_eq(errors[0].code.id, "P1027")
+}
+
+// First variant of the first declaration, which the fixtures below make an enum.
+first_variant_value :: fn(src: string) -> i64 | null {
+    decl :: parse_source(src, "test.vader").program.decls[0]
+    if decl is EnumDecl {
+        return decl.variants[0].value
+    }
+    return null
+}
+
+@test test_enum_negative_variant_value :: fn() -> void {
+    src :: "module \"t\"\nE :: enum(i8) { Low = -128, High }\n"
+    assert_eq(parse_error_count(src), 0)
+    value :: first_variant_value(src)
+    assert(value is i64 && value == -128, "`Low = -128` should carry -128")
+}
+
+@test test_enum_stray_token_is_reported_once :: fn() -> void {
+    // The variant loop must consume a token no variant can start with.
+    assert_eq(parse_error_count("module \"t\"\nE :: enum { A, - }\n"), 1)
+}
+
+@test test_enum_rejected_value_is_reported_once :: fn() -> void {
+    src :: "module \"t\"\nE :: enum { A = 1.5, B }\n"
+    assert_eq(parse_error_count(src), 1)
+    assert(first_variant_value(src) == null, "a rejected value should leave the index implicit")
 }

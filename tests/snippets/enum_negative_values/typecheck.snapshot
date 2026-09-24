@@ -1,0 +1,30 @@
+# Typecheck
+
+## tests/snippets/enum_negative_values
+  EnumDecl       Level                :: Level
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         name                 :: fn(Level) -> string
+  expr 16:34    MatchExpr      :: string
+  expr 16:40    IdentExpr      :: Level
+  expr 17:14    StringLitExpr  :: string
+  expr 18:14    StringLitExpr  :: string
+  expr 19:14    StringLitExpr  :: string
+  expr 20:14    StringLitExpr  :: string
+  expr 24:14    SeqLitExpr     :: Level[]!
+  expr 24:15    FieldExpr      :: Level
+  expr 24:15    IdentExpr      :: Level
+  expr 24:26    FieldExpr      :: Level
+  expr 24:26    IdentExpr      :: Level
+  expr 24:37    FieldExpr      :: Level
+  expr 24:37    IdentExpr      :: Level
+  expr 24:49    FieldExpr      :: Level
+  expr 24:49    IdentExpr      :: Level
+  expr 25:17    StringLitExpr  :: string
+  expr 25:20    CallExpr       :: string
+  expr 25:20    IdentExpr      :: fn(Level) -> string
+  expr 25:25    IdentExpr      :: Level
+  expr 25:31    CallExpr       :: i32
+  expr 25:31    IdentExpr      :: type
+  expr 25:35    IdentExpr      :: Level
+  expr 25:9     CallExpr       :: void
+  expr 25:9     IdentExpr      :: fn(T) -> void

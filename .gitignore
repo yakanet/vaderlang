@@ -10,10 +10,13 @@ tmp_vrun/
 
 # Self-host CLI build artefacts (binary + generated C from `vader build vader/cli/main.vader`).
 # Split is the default emission, so one `vader build` writes `main.split.h`,
-# `main.split.g.c` and one `main-<module>.c` per module beside the binary.
+# `main.split.g.c`, `main.imports.h` and one `main-<module>.c` (+ its `.o`) per
+# module beside the binary.
 vader/cli/main
 vader/cli/main.c
 vader/cli/main-*.c
+vader/cli/main-*.o
+vader/cli/main.imports.h
 vader/cli/main.split.*
 vader/cli/main.dSYM/
 .DS_Store

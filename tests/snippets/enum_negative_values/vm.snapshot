@@ -1,0 +1,7 @@
+# stdout
+low -128
+mid -1
+high 0
+top 127
+# exit
+0

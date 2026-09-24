@@ -1,0 +1,28 @@
+// A signed backing type carries negative explicit values, and the implicit
+// index after one keeps counting from it (`Mid = -1` → `High` = 0).
+// Expected: prints "low -128", "mid -1", "high 0", "top 127", exits 0.
+
+module "snippet"
+
+import "std/io"
+
+Level :: enum(i8) {
+    Low = -128,
+    Mid = -1,
+    High,
+    Top = 127,
+}
+
+name :: fn(l: Level) -> string = match l {
+    .Low  -> "low"
+    .Mid  -> "mid"
+    .High -> "high"
+    .Top  -> "top"
+}
+
+main :: fn() -> i32 {
+    for l in [Level.Low, Level.Mid, Level.High, Level.Top] {
+        println("${name(l)} ${i32(l)}")
+    }
+    return 0
+}
