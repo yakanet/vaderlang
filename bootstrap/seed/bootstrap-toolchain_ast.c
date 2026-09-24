@@ -10,7 +10,7 @@ static void toolchain_ast_append_bitor_variants(vader_box_t l0, void* l1) {
     void** gc_raw_roots[3] = { &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    if (l0.tag == 364u) {
+    if (l0.tag == 367u) {
         t0 = l0.payload.obj;
         if (((vader_struct_toolchain_ast_BinaryExpr_t*) t0)->f_op == INT32_C(8)) {
             t0 = l0.payload.obj;
@@ -32,14 +32,14 @@ static void toolchain_ast_append_bitor_variants(vader_box_t l0, void* l1) {
 vader_box_t toolchain_ast_coalesce_fallback_expr(vader_box_t l0) {
     vader_box_t l1;
     void* t0;
-    if (l0.tag == 425u) {
+    if (l0.tag == 427u) {
         t0 = l0.payload.obj;
         l1 = ((vader_struct_toolchain_ast_ReturnStmt_t*) t0)->f_value;
     } else {
-        if ((l0.tag == 368u || l0.tag == 374u)) {
+        if ((l0.tag == 370u || l0.tag == 376u)) {
             l1 = vader_box_obj(0u, NULL);
         } else {
-            if ((l0.tag == 360u || l0.tag == 363u || l0.tag == 364u || l0.tag == 366u || l0.tag == 367u || l0.tag == 370u || l0.tag == 371u || l0.tag == 372u || l0.tag == 382u || l0.tag == 387u || l0.tag == 388u || l0.tag == 391u || l0.tag == 393u || l0.tag == 394u || l0.tag == 397u || l0.tag == 402u || l0.tag == 404u || l0.tag == 405u || l0.tag == 407u || l0.tag == 411u || l0.tag == 413u || l0.tag == 416u || l0.tag == 417u || l0.tag == 422u || l0.tag == 426u || l0.tag == 428u || l0.tag == 433u || l0.tag == 443u)) {
+            if ((l0.tag == 362u || l0.tag == 366u || l0.tag == 367u || l0.tag == 368u || l0.tag == 369u || l0.tag == 372u || l0.tag == 373u || l0.tag == 374u || l0.tag == 384u || l0.tag == 389u || l0.tag == 390u || l0.tag == 393u || l0.tag == 395u || l0.tag == 396u || l0.tag == 399u || l0.tag == 404u || l0.tag == 406u || l0.tag == 407u || l0.tag == 409u || l0.tag == 413u || l0.tag == 415u || l0.tag == 418u || l0.tag == 419u || l0.tag == 424u || l0.tag == 428u || l0.tag == 430u || l0.tag == 435u || l0.tag == 444u)) {
                 l1 = l0;
             } else {
                 vader_unreachable("unreachable return in toolchain_ast$coalesce_fallback_expr");
@@ -55,7 +55,7 @@ void* toolchain_ast_collect_bitor_variants(vader_box_t l0) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(121u, 0u, 13u, 1027u);
+    vader_array_t* _a0_arr = vader_array_new(122u, 0u, 13u, 1032u);
     l1 = (void*) _a0_arr;
     toolchain_ast_append_bitor_variants(l0, l1);
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -105,7 +105,7 @@ bool toolchain_ast_param_is_mutable(void* l0) {
 
 vader_box_t toolchain_ast_strip_mut_marker(vader_box_t l0) {
     void* t0;
-    if (l0.tag == 413u) {
+    if (l0.tag == 415u) {
         t0 = l0.payload.obj;
         return ((vader_struct_toolchain_ast_MutableTypeExpr_t*) t0)->f_inner;
     }
@@ -119,10 +119,10 @@ bool toolchain_ast_type_expr_marks_mutable(vader_box_t l0) {
     if (l0.tag == 0u) {
         return false;
     }
-    if (l0.tag == 413u) {
+    if (l0.tag == 415u) {
         return true;
     }
-    if (l0.tag == 364u) {
+    if (l0.tag == 367u) {
         t0 = l0.payload.obj;
         if (((vader_struct_toolchain_ast_BinaryExpr_t*) t0)->f_op == INT32_C(8)) {
             t0 = l0.payload.obj;
