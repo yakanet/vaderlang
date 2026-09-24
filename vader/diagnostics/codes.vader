@@ -126,7 +126,7 @@ export TypecheckCode :: enum(u8) {
     BodyFallsOffEnd,                    // T3083
     EnumDataNotStruct,                  // T3084
     VariantDataWithoutEnumData,         // T3085
-    EnumDataRangeTooWide,               // T3086
+    EnumDataValuesNotConsecutive,       // T3086
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -583,7 +583,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .BodyFallsOffEnd                    -> CodeInfo { .id = "T3083", .message = "not every path through the body returns a value" }
     .EnumDataNotStruct                  -> CodeInfo { .id = "T3084", .message = "enum variant data must be a struct" }
     .VariantDataWithoutEnumData         -> CodeInfo { .id = "T3085", .message = "variant data on an enum whose header declares none" }
-    .EnumDataRangeTooWide               -> CodeInfo { .id = "T3086", .message = "enum with variant data spans too many values" }
+    .EnumDataValuesNotConsecutive       -> CodeInfo { .id = "T3086", .message = "enum variant data needs consecutive values" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

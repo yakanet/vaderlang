@@ -21,6 +21,18 @@
       "typeParams": [],
       "fields": [
         {
+          "name": "code",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "visibility": "public",
+          "default": {
+            "kind": "IntLitExpr",
+            "value": "0n"
+          }
+        },
+        {
           "name": "reason",
           "type": {
             "kind": "IdentExpr",
@@ -57,8 +69,16 @@
       "variants": [
         {
           "name": "Ok",
-          "value": "200n",
+          "value": null,
           "data": [
+            {
+              "kind": "field",
+              "name": "code",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "200n"
+              }
+            },
             {
               "kind": "field",
               "name": "reason",
@@ -76,8 +96,16 @@
         },
         {
           "name": "NotFound",
-          "value": "404n",
+          "value": null,
           "data": [
+            {
+              "kind": "field",
+              "name": "code",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "404n"
+              }
+            },
             {
               "kind": "field",
               "name": "reason",
@@ -95,8 +123,16 @@
         },
         {
           "name": "Unavailable",
-          "value": "503n",
+          "value": null,
           "data": [
+            {
+              "kind": "field",
+              "name": "code",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "503n"
+              }
+            },
             {
               "kind": "field",
               "name": "reason",
@@ -204,21 +240,12 @@
             {
               "kind": "interp",
               "expr": {
-                "kind": "CallExpr",
-                "callee": {
+                "kind": "FieldExpr",
+                "target": {
                   "kind": "IdentExpr",
-                  "name": "i32"
+                  "name": "s"
                 },
-                "args": [
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "IdentExpr",
-                      "name": "s"
-                    },
-                    "spread": false
-                  }
-                ]
+                "field": "code"
               }
             },
             {

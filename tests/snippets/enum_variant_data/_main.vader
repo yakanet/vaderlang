@@ -1,23 +1,24 @@
 // Enum variant data: each variant carries a constant `StatusInfo`, read back
 // as a field (`s.reason`) or whole (`StatusInfo(s)`).
 //
-// `HttpStatus` has gaps between its ordinals, `Level` starts at 1, and `retry`
-// falls back to the struct's default. Expected: prints the five lines below,
-// exits 0.
+// `HttpStatus` carries its protocol code in a field, `Level` starts at 1, and
+// `retry` falls back to the struct's default. Expected: prints the five lines
+// below, exits 0.
 
 module "snippet"
 
 import "std/io"
 
 StatusInfo :: struct {
+    code:   i32 = 0
     reason: string
     retry:  bool = false
 }
 
 HttpStatus :: enum(StatusInfo) {
-    Ok { .reason = "OK" } = 200,
-    NotFound { .reason = "Not Found" } = 404,
-    Unavailable { .reason = "Service Unavailable", .retry = true } = 503,
+    Ok { .code = 200, .reason = "OK" },
+    NotFound { .code = 404, .reason = "Not Found" },
+    Unavailable { .code = 503, .reason = "Service Unavailable", .retry = true },
 }
 
 Level :: enum(StatusInfo) {
@@ -25,7 +26,7 @@ Level :: enum(StatusInfo) {
     Warning { .reason = "warning" } = 2,
 }
 
-describe :: fn(s: HttpStatus) -> string = "${i32(s)} ${s.reason} retry=${s.retry}"
+describe :: fn(s: HttpStatus) -> string = "${s.code} ${s.reason} retry=${s.retry}"
 
 main :: fn() -> i32 {
     for s in [HttpStatus.Ok, HttpStatus.NotFound, HttpStatus.Unavailable] {

@@ -3,6 +3,6 @@
 404 Not Found retry=false
 503 Service Unavailable retry=true
 Not Found / warning 2
-2 1
+1 1
 # exit
 0

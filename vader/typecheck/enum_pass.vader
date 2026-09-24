@@ -68,11 +68,7 @@ find_owner :: fn(out: MutableMap<string, i64>, target: i64) -> string {
     return "?"
 }
 
-// ---- inferred width and data range ----------------------------------------
-
-/// Most values an enum with variant data may span : its data is a table with
-/// one slot per value between the smallest and the largest.
-export ENUM_DATA_MAX_SLOTS: i64: 4096
+// ---- inferred width and consecutive data ----------------------------------
 
 /// The narrowest integer holding every index in `[lo, hi]` : unsigned when
 /// none is negative.
@@ -88,24 +84,28 @@ export narrowest_repr :: fn(lo: i64, hi: i64) -> string {
     return if lo >= 0 { "u64" } else { "i64" }
 }
 
-/// Report T3086 when the indices `[lo, hi]` of an enum with variant data span
-/// more than `ENUM_DATA_MAX_SLOTS` values.
-export check_data_range :: fn(decl: EnumDecl, lo: i64, hi: i64, diags: Diagnostic[]!) -> void {
-    if span_fits(lo, hi) {
-        return
+/// Report T3086 for each variant of an enum with variant data whose value has
+/// no variant just below it : the data is a table with one slot per variant,
+/// read at `value - lo`, so the values must be consecutive.
+///
+/// @param decl     the enum declaration, for the variants' spans.
+/// @param indices  the resolved variant values.
+/// @param lo       the smallest of them.
+/// @param diags    receives T3086.
+export check_consecutive_values :: fn(
+    decl: EnumDecl, indices: MutableMap<string, i64>, lo: i64, diags: Diagnostic[]!,
+) -> void {
+    values :: MutableSet<i64> {}
+    for [_, v] in indices {
+        values.add(v)
     }
-    diags.push(typecheck_error(.EnumDataRangeTooWide, decl.name_span,
-        "values ${lo} to ${hi}, at most ${ENUM_DATA_MAX_SLOTS} ; carry the value in a field instead"))
-}
-
-// `hi - lo < ENUM_DATA_MAX_SLOTS`, without overflowing : bounds of the same
-// sign subtract safely, and bounds of opposite signs are only compared once
-// each is known to lie within the cap of zero.
-span_fits :: fn(lo: i64, hi: i64) -> bool {
-    if lo < 0 && hi >= 0 && (lo <= -ENUM_DATA_MAX_SLOTS || hi >= ENUM_DATA_MAX_SLOTS) {
-        return false
+    for variant in decl.variants {
+        v :: indices[variant.name] ?? continue
+        if v != lo && !(v - 1 in values) {
+            diags.push(typecheck_error(.EnumDataValuesNotConsecutive, span_of_value(variant),
+                "`${variant.name}` is ${v} but no variant is ${v - 1} ; carry the value in a field instead"))
+        }
     }
-    return hi - lo < ENUM_DATA_MAX_SLOTS
 }
 
 /// `[smallest, largest]` index ; `[0, 0]` for an enum without variants.

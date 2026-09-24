@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  struct snippet$StatusInfo { reason: string, retry: bool }
+  struct snippet$StatusInfo { code: i32, reason: string, retry: bool }
   fn snippet$describe(s: HttpStatus) -> string
     ~>
       block :string
@@ -16,7 +16,7 @@
                     cast → i64
                       s :HttpStatus
                   r:
-                    int(200) :i64
+                    int(0) :i64
         let __buf_1: Buffer =
           call :Buffer
             callee:
@@ -45,8 +45,17 @@
                 __off_2 :usize
               arg2:
                 cast → i64
-                  cast → i32
-                    s :HttpStatus
+                  .code :i32
+                    index :StatusInfo
+                      on:
+                        HttpStatus$data :StatusInfo[]
+                      ix:
+                        sub :i64
+                          l:
+                            cast → i64
+                              s :HttpStatus
+                          r:
+                            int(0) :i64
         assign
           target:
             __off_2 :usize
@@ -108,7 +117,7 @@
                           cast → i64
                             s :HttpStatus
                         r:
-                          int(200) :i64
+                          int(0) :i64
         ~>
           call :string
             callee:
@@ -121,9 +130,9 @@
     block :void
       let __for_arr_0: HttpStatus[]! =
         array :HttpStatus[]!
-          int(200) :u16
-          int(404) :u16
-          int(503) :u16
+          int(0) :u8
+          int(1) :u8
+          int(2) :u8
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -160,9 +169,9 @@
           sub :i64
             l:
               cast → i64
-                int(404) :u16
+                int(1) :u8
             r:
-              int(200) :i64
+              int(0) :i64
     call :void
       callee:
         std_io$println__string :void
@@ -306,7 +315,7 @@
                   __off_8 :usize
                 arg2:
                   cast → u64
-                    int(2) :usize
+                    int(1) :usize
           assign
             target:
               __off_8 :usize

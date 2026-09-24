@@ -1276,7 +1276,7 @@ export build_enum_type :: fn(
     indices :: resolve_enum_indices(decl, header.repr ?? "i64", diags)
     [lo, hi] :: index_bounds(indices)
     if header.data != null {
-        check_data_range(decl, lo, hi, diags)
+        check_consecutive_values(decl, indices, lo, diags)
     }
     return EnumType {
         .symbol  = sym,

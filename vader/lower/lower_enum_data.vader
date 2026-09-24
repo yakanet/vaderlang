@@ -2,12 +2,11 @@
 //
 // An enum whose header declares variant data (`enum(Info)`) keeps its values in
 // a synthetic read-only module const `<Enum>$data : Info[]`, one slot per
-// ordinal from the smallest to the largest. A read lowers to a slot of it —
-// `v.field` to `<Enum>$data[i64(v) - min].field`, `Info(v)` to the slot itself —
-// and `inline_consts` routes the const to the data pool like any read-only
-// table, so it is baked once and never rebuilt. A slot for an ordinal no variant
-// takes holds a copy of the smallest ordinal's data : it is never read, and it
-// keeps every slot an `Info` the pool can bake.
+// variant in ordinal order — the typechecker requires the ordinals of such an
+// enum to be consecutive (T3086). A read lowers to a slot of it — `v.field` to
+// `<Enum>$data[i64(v) - min].field`, `Info(v)` to the slot itself — and
+// `inline_consts` routes the const to the data pool like any read-only table,
+// so it is baked once and never rebuilt.
 //
 // The const is minted at the first read (`enum_data_const`) and lowered inside
 // the lowering fixpoint (`materialize_enum_data`), in the enum's own module so
@@ -103,8 +102,7 @@ export materialize_enum_data :: fn(
 }
 
 // The `<Enum>$data` const : each variant's data lowered as a literal of the
-// data struct, placed at `ordinal - min`, gaps filled with the smallest
-// ordinal's.
+// data struct, placed at `ordinal - min`.
 lower_enum_table :: fn(
     decl: EnumDecl, due: EnumDataTable, typed: TypedProgram, project_ctx: LowerProjectCtx!,
 ) -> LoweredConstDecl | null {
@@ -135,10 +133,9 @@ lower_enum_table :: fn(
         by_ordinal[ordinal] = value
     }
     [lo, hi] :: index_bounds(enum_type.indices)
-    filler :: by_ordinal[lo] ?? return null
     elements: LoweredExpr[]!: []
     for ordinal in lo..<hi + 1 {
-        elements.push(by_ordinal[ordinal] ?? filler)
+        elements.push(by_ordinal[ordinal] ?? return null)
     }
     return LoweredConstDecl {
         .mangled = entry.mangled,
