@@ -1,7 +1,7 @@
 // vader/c_emit/walker — bytecode function-body → C walker.
 //
 // The per-op emission core of the C emitter : `emit_functions` drives one
-// C definition per `BcFunction` ; `emit_function_body` walks the op stream
+// C definition per `BcFunction` ; `function_definition` walks the op stream
 // against a `FnState` (see `stack.vader`) assembling
 // signature → local decls → temp decls → body ; `emit_op` is the
 // exhaustive per-op dispatch. Split out of `emit.vader` (which keeps the
@@ -22,14 +22,14 @@ import "vader/c_emit/c_ast"
 vm :: import "vader/bytecode"
 
 /// Per-fn body emit — one C function definition per `BcFunction`,
-/// separated by a blank line. Delegates to `emit_function_body`, which
+/// separated by a blank line. Delegates to `function_definition`, which
 /// walks the op stream against a `FnState` ; `emit_op` is the exhaustive
 /// per-op dispatch with a real arm for every `Op` variant.
-emit_functions :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
+emit_functions :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
     fns :: ctx.module.functions
     for i in 0..<fns.len() {
-        emit_function_body(ctx, i32(i), fns[i], out)
-        out.append("\n")
+        printer.print_item(function_definition(ctx, i32(i), fns[i]))
+        printer.print_item(BLANK_LINE)
     }
 }
 
@@ -254,7 +254,7 @@ op_allocates :: fn(op: vm.Op) -> bool = match op {
 /// source position differs from the previous one, then assembles a `CFunction`
 /// : the prologue (local + temp declarations, then the GC frame, skipped for
 /// `no_frame` fns) above the body.
-emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out: StringBuilder!) -> void {
+function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> CFunction {
     // `may_alloc` alone is not enough: a fn that builds a GC struct on the C
     // stack needs the frame even when it cannot collect, because the storage is
     // hoisted into the prologue and rooted through `gc_stack_objs[]`. Decided
@@ -410,9 +410,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         )
     }
     signature :: "${fn_linkage_prefix(ctx, fn_index)}${signature_for(function)}"
-    out.append(
-        function_text(CFunction { .signature = signature, .prologue = prologue, .body = s.root }),
-    )
+    return CFunction { .signature = signature, .prologue = prologue, .body = s.root }
 }
 
 /// Declare every non-param local slot, bucketed by ValType in
@@ -1570,7 +1568,7 @@ emit_virtual_call :: fn(s: FnState!, op: vm.VirtualCall) -> void {
 /// (`vader_box_t` per arg + return) so one `code` pointer is castable at any
 /// `call.indirect` site. Gated on the ops actually appearing — a fn-typed
 /// field can exist with no fn-value op.
-emit_fn_trampolines :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
+emit_fn_trampolines :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
     usage :: scan_fn_value_usage(ctx.module.functions)
     if !usage.any {
         return
@@ -1578,15 +1576,15 @@ emit_fn_trampolines :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     n :: ctx.module.functions.len()
     for i in 0..<n {
         if usage.fn_ref_type[i] >= 0 {
-            emit_fn_ref_tramp(ctx, out, i32(i), usage.fn_ref_type[i])
+            emit_fn_ref_tramp(ctx, printer, i32(i), usage.fn_ref_type[i])
         }
     }
     for i in 0..<n {
         if usage.is_closure[i] {
-            emit_closure_lift(ctx, out, i32(i))
+            emit_closure_lift(ctx, printer, i32(i))
         }
     }
-    out.append("\n")
+    printer.print_item(BLANK_LINE)
 }
 
 /// Which fns are taken as fn-values — the shared scan behind both the
@@ -1636,7 +1634,7 @@ scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
 /// split build scatters callers and definitions across TUs → each needs a
 /// prototype (fns) / `extern` (the static value) in the shared header. The
 /// heads mirror `emit_fn_ref_tramp` / `emit_closure_lift` exactly.
-emit_closure_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
+emit_closure_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
     if !ctx.split {
         return
     }
@@ -1647,27 +1645,30 @@ emit_closure_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     fns :: ctx.module.functions
     for i in 0..<fns.len() {
         if usage.fn_ref_type[i] >= 0 {
-            sig :: fns[i].signature
-            head :: tramp_head(sig.params.len())
-            out.append("vader_box_t vader_fn_tramp_${fn_symbol_name(fns, i32(i))}(${head});\n")
-            out.append("extern vader_fn_t vader_fn_static_${fn_symbol_name(fns, i32(i))};\n")
+            name :: fn_symbol_name(fns, i32(i))
+            head :: tramp_head(fns[i].signature.params.len())
+            printer.print_items([
+                CPrototype { .signature = "vader_box_t vader_fn_tramp_${name}(${head})" },
+                external("vader_fn_t", "vader_fn_static_${name}", null, false),
+            ])
         }
     }
     for i in 0..<fns.len() {
         // Mirror `emit_closure_lift`'s guard : a 0-param fn emits no lift.
         if usage.is_closure[i] && fns[i].signature.params.len() > 0 {
-            sig :: fns[i].signature
-            tail :: i32(sig.params.len()) - 1
-            head :: tramp_head(usize(tail))
-            out.append("vader_box_t vader_fn_lift_${fn_symbol_name(fns, i32(i))}(${head});\n")
+            name :: fn_symbol_name(fns, i32(i))
+            head :: tramp_head(fns[i].signature.params.len() - 1)
+            printer.print_item(
+                CPrototype { .signature = "vader_box_t vader_fn_lift_${name}(${head})" },
+            )
         }
     }
-    out.append("\n")
+    printer.print_item(BLANK_LINE)
 }
 
 /// Emit the `fn.ref` trampoline (drops env, unboxes args to the fn's concrete
 /// sig, boxes the result) + the static `vader_fn_t` value pointing at it.
-emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32, type_id: i32) -> void {
+emit_fn_ref_tramp :: fn(ctx: EmitCtx, printer: CPrinter!, fn_index: i32, type_id: i32) -> void {
     fn_decl :: ctx.module.functions[usize(fn_index)]
     cname :: sanitise(fn_decl.name)
     sig :: fn_decl.signature
@@ -1677,23 +1678,26 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32, type_i
         .body = [CExpressionStatement { .expression = cast("void", verbatim("env")) }],
     }
     body.body.push_all(forward_boxed(cname, tramp_unbox_args(sig.params), sig))
-    out.append(
-        function_text(
-            CFunction {
-                .signature = "${link}vader_box_t vader_fn_tramp_${cname}(${head})",
-                .body = body,
-            },
-        ),
-    )
-    out.append(
-        "${link}vader_fn_t vader_fn_static_${cname} = { { ${type_id}u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_${cname}, NULL };\n",
-    )
+    printer.print_item(CFunction {
+        .signature = "${link}vader_box_t vader_fn_tramp_${cname}(${head})",
+        .body = body,
+    })
+    value :: initializer_list([
+        object_header(unsigned(i64(type_id))),
+        cast("void*", address_of(verbatim("vader_fn_tramp_${cname}"))),
+        NULL_POINTER,
+    ])
+    printer.print_item(CGlobal {
+        .storage = global_storage(ctx.split),
+        .type = "vader_fn_t",
+        .declarator = CDeclarator { .name = "vader_fn_static_${cname}", .value = value },
+    })
 }
 
 /// Emit the `make_closure` lift wrapper : takes `void* env` + the tail args
 /// boxed, re-boxes env into the `vader_box_t` the lifted fn's first param
 /// expects, unboxes the tail to the concrete sig, boxes the result.
-emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32) -> void {
+emit_closure_lift :: fn(ctx: EmitCtx, printer: CPrinter!, fn_index: i32) -> void {
     fn_decl :: ctx.module.functions[usize(fn_index)]
     cname :: sanitise(fn_decl.name)
     sig :: fn_decl.signature
@@ -1709,16 +1713,10 @@ emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder!, fn_index: i32) -> voi
     arguments.push_all(lift_unbox_tail(sig.params))
     body :: CBlock { .body = [] }
     body.body.push_all(forward_boxed(cname, arguments, sig))
-    out.append(
-        function_text(
-            CFunction {
-                .signature = "${linkage_prefix(
-                    ctx.split,
-                )}vader_box_t vader_fn_lift_${cname}(${head})",
-                .body = body,
-            },
-        ),
-    )
+    printer.print_item(CFunction {
+        .signature = "${linkage_prefix(ctx.split)}vader_box_t vader_fn_lift_${cname}(${head})",
+        .body = body,
+    })
 }
 
 /// The erased-ABI head `void* env[, vader_box_t a0…]` for a wrapper with `count`
@@ -1990,7 +1988,7 @@ emit_struct_new :: fn(s: FnState!, op: vm.StructNew) -> void {
             // an 18-character expression belonged — a string freed under a live
             // handle — and the eight per-target emissions of a single run
             // disagreed. Forcing a frame everywhere made all eight byte-identical
-            // and the corruption vanish. `emit_function_body` now raises a frame
+            // and the corruption vanish. `function_definition` now raises a frame
             // for any fn that has stack storage, so this list is never orphaned.
             s.stack_storages.push(StackStorage { .cname = cname, .storage = storage })
             declare(s, "${cname}*", o, address_of(verbatim(storage)))

@@ -235,6 +235,13 @@ scan_expression :: fn(expression: CExpression, usage: TemporaryUsage!) -> void {
             scan_expression(expression.then_value, usage)
             scan_expression(expression.else_value, usage)
         }
+        is CStringLiterals | CNumber            -> {}
+        is CDesignated                          -> scan_expression(expression.value, usage)
+        is CCompoundLiteral                     -> {
+            for element in expression.elements {
+                scan_expression(element, usage)
+            }
+        }
         is CInitializerList                     -> {
             for element in expression.elements {
                 scan_expression(element, usage)

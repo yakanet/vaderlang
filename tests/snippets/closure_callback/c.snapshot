@@ -34,11 +34,21 @@ static vader_box_t vader_fn_lift___lambda_snippet_0(void* env, vader_box_t a0) {
 static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
 
 const vader_type_info_t vader_type_info_table[6] = {
-    [1] = { .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8, .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1 },
+    [1] = {
+        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
+        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+    },
     [2] = { .slot_size = 4 },
-    [3] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_1_t), .slot_size = 8, .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_snippet_1_t, f_cap_0) }, .ptr_count = 1 },
+    [3] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_1_t),
+        .slot_size = 8,
+        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_snippet_1_t, f_cap_0) },
+        .ptr_count = 1,
+    },
     [4] = { .slot_size = 16 },
-    [5] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct__Cell_i32_t), .slot_size = 8 },
+    [5] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct__Cell_i32_t), .slot_size = 8,
+    },
 };
 const size_t vader_type_info_count = 6;
 
@@ -94,6 +104,7 @@ int main(int argc, char** argv) {
     vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
     atexit(vader_atom_shutdown);
     atexit(vader_gc_shutdown);
-    (void)argc; (void)argv;
+    (void) argc;
+    (void) argv;
     return (int) snippet_main();
 }

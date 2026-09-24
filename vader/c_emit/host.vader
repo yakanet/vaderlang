@@ -17,6 +17,7 @@ import "std/collections"
 import "std/string"
 import "std/string_builder"
 import "vader/bytecode"
+import "vader/c_emit/c_ast"
 
 // ---- driver ---------------------------------------------------------------
 
@@ -24,13 +25,13 @@ import "vader/bytecode"
 /// for `@extern` foreign symbols. Unused imports are pruned upstream, so
 /// `module.imports` already carries only the referenced host fns. A
 /// trailing blank line keeps the spacing before the fn bodies stable.
-emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
+emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
     // Ahead of the shims that dereference them, and of the assertions that check
     // them — both of which name these types. Only under `--split`, where this
     // lands in the per-target imports header; a single file already carries them
     // with the other typedefs.
     if ctx.split {
-        emit_mirrored_struct_typedefs(ctx, out)
+        emit_mirrored_struct_typedefs(ctx, printer)
     }
     extern_decls: string[]!: []
     seen_extern: string[]!: []
@@ -55,14 +56,20 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         shims.push(import_shim(ctx, imp, i32(i)))
     }
     if headers.len() > 0 {
-        out.append("// Headers named by `@c_header` — they own the prototypes below.\n")
-        for h in headers { out.append("#include ${h}\n") }
-        out.append("\n")
+        printer.print_item(
+            CComment { .lines = ["Headers named by `@c_header` — they own the prototypes below."] },
+        )
+        for h in headers {
+            printer.print_item(include_of(h))
+        }
+        printer.print_item(BLANK_LINE)
     }
     if extern_decls.len() > 0 {
-        out.append("// User @extern foreign symbols — resolved by the linker.\n")
-        for d in extern_decls { out.append("${d}\n") }
-        out.append("\n")
+        printer.print_item(
+            CComment { .lines = ["User @extern foreign symbols — resolved by the linker."] },
+        )
+        push_raw_lines(printer, extern_decls)
+        printer.print_item(BLANK_LINE)
     }
     // Layout assertions for every `@c_struct` a shim marshals. `cc` — which has
     // the real header — refuses to compile a mirror whose field width differs
@@ -72,12 +79,36 @@ emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // time, and nothing reads it at run time.
     asserts :: c_struct_layout_asserts(ctx.module.types, crossing_mirrors(ctx.module))
     if asserts.len() > 0 {
-        out.append("// `@c_struct` layout — checked against the real headers.\n")
-        for a in asserts { out.append("${a}\n") }
-        out.append("\n")
+        printer.print_item(
+            CComment { .lines = ["`@c_struct` layout — checked against the real headers."] },
+        )
+        push_raw_lines(printer, asserts)
+        printer.print_item(BLANK_LINE)
     }
-    for s in shims { out.append("${s}\n") }
-    out.append("\n")
+    push_raw_lines(printer, shims)
+    printer.print_item(BLANK_LINE)
+}
+
+// The `#include` an `@c_header` operand names : `<path>` is a system header,
+// `"path"` a local one. An operand written without delimiters is taken as a
+// local path, which C also searches on the system path.
+include_of :: fn(operand: string) -> CInclude {
+    delimited :: operand.len() >= 2
+    inner :: if delimited { operand[1..<operand.len() - 1] } else { operand }
+    if delimited && operand.starts_with("<") && operand.ends_with(">") {
+        return CInclude { .path = inner, .system = true }
+    }
+    if delimited && operand.starts_with("\"") && operand.ends_with("\"") {
+        return CInclude { .path = inner }
+    }
+    return CInclude { .path = operand }
+}
+
+// Each of `lines` as raw text on a line of its own.
+push_raw_lines :: fn(printer: CPrinter!, lines: string[]) -> void {
+    for line in lines {
+        printer.print_item(CRawText { .text = "${line}\n" })
+    }
 }
 
 /// Type indices of mirrors that appear as a nested MEMBER of another mirror.

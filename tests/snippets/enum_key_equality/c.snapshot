@@ -49,8 +49,7 @@ static const char vader_atom_blob[] =
     "?" "\0"
     "true" "\0"
     "false" "\0"
-    "\n" "\0"
-;
+    "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
@@ -135,7 +134,10 @@ const vader_type_info_t vader_type_info_table[28] = {
     [4] = { .slot_size = 1 },
     [5] = { .slot_size = 8 },
     [6] = { .slot_size = 16 },
-    [7] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t), .slot_size = 8 },
+    [7] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
+        .slot_size = 8,
+    },
     [8] = { .slot_size = 8 },
     [9] = { .slot_size = 8 },
     [10] = { .slot_size = 1 },
@@ -144,21 +146,49 @@ const vader_type_info_t vader_type_info_table[28] = {
     [13] = { .slot_size = 2 },
     [14] = { .slot_size = 4 },
     [15] = { .slot_size = 4 },
-    [16] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
+    [16] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
     [18] = { .slot_size = 4 },
     [19] = { .slot_size = 8 },
     [20] = { .slot_size = 16 },
-    [21] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__Any__i32_t), .slot_size = 8, .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__Any__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__Any__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__Any__i32_t, f_index) }, .ref_count = 3 },
-    [22] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__HttpStatus__string_t), .slot_size = 8, .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__HttpStatus__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__HttpStatus__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__HttpStatus__string_t, f_index) }, .ref_count = 3 },
+    [21] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct_std_collections_MutableMap__Any__i32_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__Any__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__Any__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__Any__i32_t, f_index) },
+        .ref_count = 3,
+    },
+    [22] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct_std_collections_MutableMap__HttpStatus__string_t),
+        .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__HttpStatus__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__HttpStatus__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__HttpStatus__string_t, f_index) },
+        .ref_count = 3,
+    },
     [23] = { .slot_size = 16 },
-    [24] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__Color__i32_t), .slot_size = 8, .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__Color__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__Color__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__Color__i32_t, f_index) }, .ref_count = 3 },
-    [25] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
-    [26] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
-    [27] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
+    [24] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct_std_collections_MutableMap__Color__i32_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__Color__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__Color__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__Color__i32_t, f_index) },
+        .ref_count = 3,
+    },
+    [25] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
+    [26] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
+    [27] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
 };
 const size_t vader_type_info_count = 28;
 
-// Headers named by `@c_header` — they own the prototypes below.
+/* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
 
 static size_t vader_host_std_core_byte_len(vader_string_t a0) { return vader_string_byte_len(a0); }
@@ -197,7 +227,9 @@ static int32_t snippet_main(void) {
     vader_box_t* gc_roots[1] = { &l6 };
     void** gc_raw_roots[3] = { &l1, &l4, &l5 };
     vader_string_t* gc_atom_roots[3] = { &l9, &l10, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
 #line 25 "tests/snippets/enum_key_equality/_main.vader"
     l0 = (uint8_t) 1;
@@ -333,7 +365,9 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     vader_string_t t1 = 0;
     void** gc_raw_roots[1] = { &l4 };
     vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
     l2 = vader_host_std_core_byte_len(l0);
     l3 = vader_host_std_core_byte_len(l1);
@@ -360,7 +394,9 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
 #line 104 "lib/std/core/primitives.vader"
     t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
@@ -371,7 +407,9 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
 #line 121 "lib/std/core/primitives.vader"
     std_core_Buffer_ByteAccess_write_string_vt(l0, l1, l2);
@@ -620,7 +658,9 @@ static vader_box_t std_collections_MutableMap_Index_at__snippet_HttpStatus__stri
 static void std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
 #line 260 "lib/std/collections/collections.vader"
     std_collections_put__HttpStatus__string(l0, l1, l2);
@@ -997,7 +1037,9 @@ static void std_collections_write_entry__snippet_HttpStatus__string(void* l0, ui
     void* l5 = NULL;
     void** gc_raw_roots[2] = { &l0, &l5 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
 #line 113 "lib/std/collections/collections.vader"
     l3 = ((vader_struct_std_collections_MutableMap__HttpStatus__string_t*) l0)->f_size;
@@ -1182,7 +1224,9 @@ static void std_collections_put__HttpStatus__string(void* l0, uint8_t l1, vader_
     vader_box_t* gc_roots[1] = { &t3 };
     void** gc_raw_roots[2] = { &l0, &l9 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
 #line 129 "lib/std/collections/collections.vader"
     std_collections_ensure_index__snippet_HttpStatus__string(l0);
@@ -1466,7 +1510,9 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     int64_t t0;
     void** gc_raw_roots[2] = { &l2, &l6 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
 #line 205 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
@@ -1554,7 +1600,9 @@ static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -1711,6 +1759,7 @@ int main(int argc, char** argv) {
     vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
     atexit(vader_atom_shutdown);
     atexit(vader_gc_shutdown);
-    (void)argc; (void)argv;
+    (void) argc;
+    (void) argv;
     return (int) snippet_main();
 }

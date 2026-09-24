@@ -92,19 +92,19 @@ ResolvedArray :: struct {
 /// One escape-stack-allocated GC struct to hoist to the function top. Both the
 /// zeroed decl (`<cname> <storage> = {0};`) and the root address
 /// (`(void*) &<storage>`) are rendered from these two names at emit time — see
-/// `emit_function_body` — so there is no pre-rendered-C-syntax to keep in sync.
+/// `function_definition` — so there is no pre-rendered-C-syntax to keep in sync.
 StackStorage :: struct {
     cname:   string
     storage: string
 }
 
 /// Mutable state for one fn-body emit. Owns the operand stack plus the
-/// temp / aux counters. Lives only for `emit_function_body` ; discarded
-/// once the body lands in `out`.
+/// temp / aux counters. Lives only for `function_definition`, which returns
+/// the `CFunction` built from it.
 FnState :: struct {
     ctx:      EmitCtx
     function: BcFunction
-    /// The function body ; `print_block` writes it once the walk is done.
+    /// The function body, the `CFunction`'s once the walk is done.
     root:     CBlock!
     /// Virtual operand stack — the top of stack is the last element.
     stack:    StackVal[]!
@@ -131,7 +131,7 @@ FnState :: struct {
     /// True when the fn is provably no-alloc (not in `EmitCtx.may_alloc`) —
     /// it gets no GC shadow-stack frame, so `return` skips the `gc_top`
     /// restore and ref slots skip the `= vader_box_null()` root-init. Set by
-    /// `emit_function_body` ; default `true` (the scalar / stack subset).
+    /// `function_definition` ; default `true` (the scalar / stack subset).
     ///
     /// SECOND CONSUMER — `invalidate_resolve_cache` reads this bit for a
     /// stronger property than frame emission : "this body reaches no GC
@@ -157,7 +157,7 @@ FnState :: struct {
     /// immediately followed by a `drop` — its non-void result is emitted as a
     /// bare statement (like a void call) instead of `tN = call(...);` + an
     /// unread temp. `emit_call_result` reads it ; the driver skips the paired
-    /// `drop`. See `emit_function_body`.
+    /// `drop`. See `function_definition`.
     drop_call_result: bool
     /// Escape-stack-allocated GC structs to hoist to the function top — one per
     /// stack `StructNew` in a framed fn (see `emit_struct_new`). Hoisting makes

@@ -54,10 +54,17 @@ export CDeclaration :: struct {
 /// One name of a `CDeclaration` : `name`, `name[length]`, `name = value`.
 export CDeclarator :: struct {
     name: string
-    /// The element count of an array ; -1 for a scalar.
-    length: i32 = -1
+    /// The element count of an array, `UNSIZED` for `name[]`, null for a scalar.
+    length: i32 | CUnsized | null = null
     value: CExpression | null = null
 }
+
+/// The length of an array declared `name[]` : taken from its initializer, or
+/// defined in another unit.
+export CUnsized :: struct {}
+
+/// `[]` in a declarator.
+export UNSIZED :: CUnsized {}
 
 /// A C function definition : its signature, the statements declaring its
 /// locals and setting up its GC frame, then its body.
@@ -144,6 +151,7 @@ export CExpression :: CTemporary
              | CLocal
              | CVerbatim
              | CIntegerLiteral
+             | CNumber
              | CCall
              | CCast
              | CBinary
@@ -154,6 +162,9 @@ export CExpression :: CTemporary
              | CIndex
              | CConditional
              | CInitializerList
+             | CDesignated
+             | CCompoundLiteral
+             | CStringLiterals
              | CSequence
 
 /// An operand temporary of stack class `val`, printed `t<slot>` ; printing one
@@ -181,10 +192,34 @@ export CIntegerLiteral :: struct {
     value: i64
 }
 
+/// A plain C integer constant, `12`, or `12u` when `unsigned`.
+export CNumber :: struct {
+    value: i64
+    unsigned: bool = false
+}
+
 /// `callee(arguments…)`.
 export CCall :: struct {
     callee: string
     arguments: CExpression[]
+}
+
+/// `designator = value` inside an initializer : `.field = v`, `[3] = v`.
+export CDesignated :: struct {
+    designator: string
+    value: CExpression
+}
+
+/// `(type){ elements… }`.
+export CCompoundLiteral :: struct {
+    type: string
+    elements: CExpression[]
+}
+
+/// Adjacent C string literals, concatenated by the compiler : `"ab" "\0" "cd"`.
+/// Each entry is already spelled as C source.
+export CStringLiterals :: struct {
+    literals: string[]
 }
 
 /// `{ elements… }` — an aggregate initializer.
@@ -326,6 +361,38 @@ export array_declaration :: fn(type: string, name: string, elements: CExpression
     return CDeclaration { .type = type, .declarators = [declarator] }
 }
 
+/// `{ elements… }`.
+///
+/// @param elements  the initializers, in order.
+export initializer_list :: fn(elements: CExpression[]) -> CExpression = CInitializerList {
+    .elements = elements,
+}
+
+/// `designator = value`, inside an initializer list.
+///
+/// @param designator  `.field` or `[index]`.
+/// @param value       the member's initializer.
+export designated :: fn(designator: string, value: CExpression) -> CExpression = CDesignated {
+    .designator = designator,
+    .value = value,
+}
+
+/// `value`, a plain `int` constant.
+///
+/// @param value  the constant.
+export number :: fn(value: i64) -> CExpression = CNumber { .value = value }
+
+/// `value` with the `u` suffix.
+///
+/// @param value  the constant.
+export unsigned :: fn(value: i64) -> CExpression = CNumber { .value = value, .unsigned = true }
+
+/// `0u`.
+export ZERO :: CNumber { .value = 0, .unsigned = true }
+
+/// The null pointer, `NULL`.
+export NULL_POINTER :: CVerbatim { .text = "NULL" }
+
 /// The statement that restores the caller's GC frame.
 export FRAME_RESTORE :: CAssign {
     .target = CVerbatim { .text = "vader_gc_top" },
@@ -336,15 +403,25 @@ export FRAME_RESTORE :: CAssign {
 ///
 /// @param callee     the function or macro called.
 /// @param arguments  its arguments, left to right.
-export call :: fn(callee: string, arguments: CExpression[]) -> CExpression = CCall { .callee = callee, .arguments = arguments }
+export call :: fn(callee: string, arguments: CExpression[]) -> CExpression = CCall {
+    .callee = callee,
+    .arguments = arguments,
+}
 
 /// `left operator right`.
 ///
 /// @param operator  the binary operator.
 /// @param left      its left operand.
 /// @param right     its right operand.
-export binary :: fn(operator: CBinaryOperator, left: CExpression, right: CExpression) -> CExpression =
-    CBinary { .operator = operator, .left = left, .right = right }
+export binary :: fn(
+    operator: CBinaryOperator,
+    left: CExpression,
+    right: CExpression,
+) -> CExpression = CBinary {
+    .operator = operator,
+    .left = left,
+    .right = right,
+}
 
 /// `&operand`.
 ///
@@ -376,8 +453,106 @@ export pointer_member :: fn(type: string, value: CExpression, member: string) ->
 ///
 /// @param literal  the integer constant.
 export is_most_negative :: fn(literal: CIntegerLiteral) -> bool = if literal.class == .I64 {
-    literal.value == i64(-9223372036854775807) - 1
-} else { literal.value == -2147483648 }
+    literal.value == I64_MIN
+} else { literal.value == I32_MIN }
+
+/// Most negative `int64_t`, the value `INT64_MIN` spells.
+I64_MIN: i64: -0x8000_0000_0000_0000
+/// Most negative `int32_t`, the value `INT32_MIN` spells.
+I32_MIN: i64: -0x8000_0000
+
+// ---- translation units ----------------------------------------------------
+
+/// One top-level item of a C translation unit.
+export CTopLevel :: CComment
+           | CInclude
+           | CDefine
+           | CBlankLine
+           | CStructForward
+           | CStructDefinition
+           | CGlobal
+           | CPrototype
+           | CFunctionPointerTypedef
+           | CFunction
+           | CRawText
+
+/// `/* … */` — one line per entry.
+export CComment :: struct {
+    lines: string[]
+}
+
+/// `#include "path"`, or `#include <path>` for a `system` header — searched on
+/// the system include path only.
+export CInclude :: struct {
+    path: string
+    system: bool = false
+}
+
+/// `#define name value`.
+export CDefine :: struct {
+    name: string
+    value: CExpression
+}
+
+/// An empty line between sections.
+export CBlankLine :: struct {}
+
+/// The blank line between sections.
+export BLANK_LINE :: CBlankLine {}
+
+/// `typedef struct name name;`.
+export CStructForward :: struct {
+    name: string
+}
+
+/// `struct name { fields… };`.
+export CStructDefinition :: struct {
+    name: string
+    fields: CField[]
+}
+
+/// One member of a `CStructDefinition`.
+export CField :: struct {
+    type: string
+    name: string
+}
+
+/// A global : `storage const type name[length] = initializer;`.
+export CGlobal :: struct {
+    storage: CStorage = .External
+    /// Read-only : `const`.
+    constant: bool = false
+    type: string
+    declarator: CDeclarator
+}
+
+/// Where a global is visible, and whether this is its definition.
+export CStorage :: enum {
+    /// Private to its unit : `static`.
+    Internal,
+    /// Defined here, visible to every unit.
+    External,
+    /// Defined in another unit : `extern`, never initialised.
+    Declaration,
+}
+
+/// A function declaration : `signature;`.
+export CPrototype :: struct {
+    signature: string
+}
+
+/// `typedef result (*name)(parameters);`.
+export CFunctionPointerTypedef :: struct {
+    result: string
+    name: string
+    parameters: string
+}
+
+/// C source kept as text while its emitter is not built as a tree yet ; it
+/// holds no operand.
+export CRawText :: struct {
+    text: string
+}
 
 // ---- queries ------------------------------------------------------------
 
@@ -419,6 +594,9 @@ export mentions_local :: fn(expression: CExpression, slot: i32) -> bool = match 
         )
     }
     is CInitializerList                         -> any_mentions_local(expression.elements, slot)
+    is CCompoundLiteral                         -> any_mentions_local(expression.elements, slot)
+    is CDesignated                              -> mentions_local(expression.value, slot)
+    is CStringLiterals | CNumber                -> false
     is CSequence                                -> any_mentions_local(expression.parts, slot)
 }
 
@@ -431,6 +609,7 @@ export same_expression :: fn(a: CExpression, b: CExpression) -> bool = match a {
     is CLocal           -> b is CLocal && b.slot == a.slot
     is CVerbatim        -> b is CVerbatim && b.text == a.text
     is CIntegerLiteral  -> b is CIntegerLiteral && b.class == a.class && b.value == a.value
+    is CNumber          -> b is CNumber && b.value == a.value && b.unsigned == a.unsigned
     is CCall            -> b is CCall && b.callee == a.callee && same_expressions(
         a.arguments,
         b.arguments,
@@ -466,6 +645,15 @@ export same_expression :: fn(a: CExpression, b: CExpression) -> bool = match a {
         ) && same_expression(a.else_value, b.else_value)
     }
     is CInitializerList -> b is CInitializerList && same_expressions(a.elements, b.elements)
+    is CCompoundLiteral -> b is CCompoundLiteral && b.type == a.type && same_expressions(
+        a.elements,
+        b.elements,
+    )
+    is CDesignated      -> b is CDesignated && b.designator == a.designator && same_expression(
+        a.value,
+        b.value,
+    )
+    is CStringLiterals  -> b is CStringLiterals && same_strings(a.literals, b.literals)
     is CSequence        -> b is CSequence && same_expressions(a.parts, b.parts)
 }
 

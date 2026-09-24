@@ -7,6 +7,7 @@
 module "vader/c_emit/c_ast"
 
 import "std/abort"
+import "std/string"
 import "std/string_builder"
 
 /// Accumulates C text printed from trees. Only this module can write the text,
@@ -32,25 +33,83 @@ export print_block :: fn(printer: CPrinter!, block: CBlock, depth: i32) -> void 
     depth,
 )
 
-/// `function` as C text — a function standing alone, outside a larger tree.
+/// Print one top-level item of a translation unit.
 ///
-/// @param function  the definition to print.
-export function_text :: fn(function: CFunction) -> string {
-    printer :: CPrinter {}
-    printer.print_function(function)
-    return printer.printed_text()
+/// @param printer  receives the text.
+/// @param item     the declaration, definition or directive to print.
+export print_item :: fn(printer: CPrinter!, item: CTopLevel) -> void {
+    // Joined before it joins the unit : a builder keeps every appended piece
+    // until it is joined, and a unit's pieces would all stay alive together.
+    text :: StringBuilder {}
+    write_top_level(text, item)
+    printer.out.append(text.to_string())
 }
 
-/// Print `function` : its signature, then its prologue and body one level deep.
+/// Print `items`, in order.
 ///
-/// @param printer   receives the text.
-/// @param function  the definition to print.
-export print_function :: fn(printer: CPrinter!, function: CFunction) -> void {
-    printer.out.append(function.signature)
-    printer.out.append(" {\n")
-    write_statements(printer.out, function.prologue, 0, function.prologue.len(), 1)
-    write_block(printer.out, function.body, 1)
-    write_line(printer.out, "}", 0)
+/// @param printer  receives the text.
+/// @param items    the top-level items to print.
+export print_items :: fn(printer: CPrinter!, items: CTopLevel[]) -> void {
+    for item in items {
+        printer.print_item(item)
+    }
+}
+
+write_top_level :: fn(out: StringBuilder!, item: CTopLevel) -> void {
+    match item {
+        is CComment                -> out.append("/* ${item.lines.join("\n * ")} */\n")
+        is CInclude                -> out.append("#include ${include_operand(item)}\n")
+        is CDefine                 -> {
+            out.append("#define ${item.name} ")
+            write_expression(out, item.value)
+            out.append("\n")
+        }
+        is CBlankLine              -> out.append("\n")
+        is CStructForward          -> out.append("typedef struct ${item.name} ${item.name};\n")
+        is CStructDefinition       -> {
+            out.append("struct ${item.name} {\n")
+            for field in item.fields {
+                write_line(out, "${field.type} ${field.name};", 1)
+            }
+            out.append("};\n")
+        }
+        is CGlobal                 -> {
+            qualifier :: if item.constant { "const " } else { "" }
+            head :: "${storage_keyword(item.storage)}${qualifier}${item.type} "
+            out.append(head)
+            write_declarator(out, item.declarator, head.bytes().len(), 0)
+            out.append(";\n")
+        }
+        is CPrototype              -> out.append("${item.signature};\n")
+        is CFunctionPointerTypedef -> out.append(
+            "typedef ${item.result} (*${item.name})(${item.parameters});\n",
+        )
+        is CFunction               -> write_function(out, item)
+        is CRawText                -> out.append(item.text)
+    }
+}
+
+// `<path>` for a system header, `"path"` otherwise.
+include_operand :: fn(include: CInclude) -> string {
+    if include.system {
+        return "<${include.path}>"
+    }
+    return "\"${include.path}\""
+}
+
+// The storage-class keyword of a global, with its trailing space.
+storage_keyword :: fn(storage: CStorage) -> string = match storage {
+    .Internal    -> "static "
+    .External    -> ""
+    .Declaration -> "extern "
+}
+
+write_function :: fn(out: StringBuilder!, function: CFunction) -> void {
+    out.append(function.signature)
+    out.append(" {\n")
+    write_statements(out, function.prologue, 0, function.prologue.len(), 1)
+    write_block(out, function.body, 1)
+    write_line(out, "}", 0)
 }
 
 // `block`'s statements, `depth` levels deep.
@@ -91,7 +150,7 @@ write_statements :: fn(
             }
             is CDeclaration         -> {
                 indent(out, depth)
-                write_declaration(out, statement)
+                write_declaration(out, statement, depth)
                 out.append("\n")
             }
             is CIf                  -> write_if(out, statement, depth)
@@ -169,6 +228,12 @@ write_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
         }
         is CVerbatim        -> out.append(expression.text)
         is CIntegerLiteral  -> write_integer_literal(out, expression)
+        is CNumber          -> {
+            out.append("${expression.value}")
+            if expression.unsigned {
+                out.append("u")
+            }
+        }
         is CCall            -> {
             out.append(expression.callee)
             out.append("(")
@@ -225,10 +290,27 @@ write_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
             out.append(" : ")
             write_expression(out, expression.else_value)
         }
-        is CInitializerList -> {
-            out.append("{ ")
+        is CDesignated      -> {
+            out.append(expression.designator)
+            out.append(" = ")
+            write_expression(out, expression.value)
+        }
+        is CCompoundLiteral -> {
+            out.append("(")
+            out.append(expression.type)
+            out.append("){ ")
             write_list(out, expression.elements)
             out.append(" }")
+        }
+        is CStringLiterals  -> out.append(expression.literals.join(" "))
+        is CInitializerList -> {
+            if expression.elements.len() == 0 {
+                out.append("{ }")
+            } else {
+                out.append("{ ")
+                write_list(out, expression.elements)
+                out.append(" }")
+            }
         }
         is CSequence        -> {
             for part in expression.parts {
@@ -394,28 +476,178 @@ write_assign :: fn(out: StringBuilder!, node: CAssign) -> void {
 }
 
 // `type d1, d2 = v, d3[n] = { … };`, without indentation or newline.
-write_declaration :: fn(out: StringBuilder!, node: CDeclaration) -> void {
+write_declaration :: fn(out: StringBuilder!, node: CDeclaration, depth: i32) -> void {
     out.append(node.type)
     out.append(" ")
+    column :: usize(depth) * INDENT_WIDTH + node.type.bytes().len() + 1
     for k in 0..<node.declarators.len() {
         if k > 0 {
             out.append(", ")
         }
-        declarator :: node.declarators[k]
-        out.append(declarator.name)
-        if declarator.length >= 0 {
-            out.append("[")
-            out.append("${declarator.length}")
-            out.append("]")
-        }
-        value :: declarator.value
-        if value != null {
-            out.append(" = ")
-            write_expression(out, value)
-        }
+        write_declarator(out, node.declarators[k], column, depth)
     }
     out.append(";")
 }
+
+// `name[length] = value`, `column` being where `name` starts.
+write_declarator :: fn(
+    out: StringBuilder!,
+    declarator: CDeclarator,
+    column: usize,
+    depth: i32,
+) -> void {
+    length :: declarator.length
+    suffix :: if length is i32 { "[${length}]" } else if length is CUnsized { "[]" } else { "" }
+    write_declared(out, "${declarator.name}${suffix}", declarator.value, column, depth)
+}
+
+// `head = value`, `value` laid out by `write_initializer` ; `head` alone when
+// `value` is null.
+write_declared :: fn(
+    out: StringBuilder!,
+    head: string,
+    value: CExpression | null,
+    column: usize,
+    depth: i32,
+) -> void {
+    out.append(head)
+    if value != null {
+        out.append(" =")
+        write_initializer(out, value, column + head.bytes().len() + 2, depth)
+    }
+}
+
+// ` value`, laid out by `write_initializer_line` from `column + 1` ; adjacent
+// string literals that do not fit take one literal per line instead.
+write_initializer :: fn(
+    out: StringBuilder!,
+    value: CExpression,
+    column: usize,
+    depth: i32,
+) -> void {
+    text :: text_of(value)
+    if value is CStringLiterals && !fits(text, column + 1) {
+        for literal in value.literals {
+            out.append("\n")
+            indent(out, depth + 1)
+            out.append(literal)
+        }
+        return
+    }
+    out.append(" ")
+    write_laid_out(out, value, text, column + 1, depth)
+}
+
+// `value` from `column`, on the current line when the line then fits in
+// `LINE_WIDTH` columns with its `;` or `,`. Otherwise an initializer list opens
+// a block one level deeper than `depth` : a table — every element a list —
+// takes one element per line, any other list fills its lines.
+write_initializer_line :: fn(
+    out: StringBuilder!,
+    value: CExpression,
+    column: usize,
+    depth: i32,
+) -> void = write_laid_out(
+    out,
+    value,
+    text_of(value),
+    column,
+    depth,
+)
+
+// `write_initializer_line` for a `value` already rendered on one line as `text`.
+write_laid_out :: fn(
+    out: StringBuilder!,
+    value: CExpression,
+    text: string,
+    column: usize,
+    depth: i32,
+) -> void {
+    if value !is CInitializerList || fits(text, column) {
+        out.append(text)
+        return
+    }
+    out.append("{\n")
+    if is_table(value.elements) {
+        for element in value.elements {
+            indent(out, depth + 1)
+            write_element(out, element, depth + 1)
+            out.append(",\n")
+        }
+    } else {
+        write_filled(out, value.elements, depth + 1)
+    }
+    indent(out, depth)
+    out.append("}")
+}
+
+// Whether every one of `elements` is a list, bare or designated.
+is_table :: fn(elements: CExpression[]) -> bool {
+    for element in elements {
+        listed :: if element is CDesignated { element.value } else { element }
+        if listed !is CInitializerList {
+            return false
+        }
+    }
+    return true
+}
+
+// `elements` at `depth`, each followed by `,`, as many on a line as fit in
+// `LINE_WIDTH` ; one too wide for a line of its own is laid out on its own lines.
+write_filled :: fn(out: StringBuilder!, elements: CExpression[], depth: i32) -> void {
+    start :: usize(depth) * INDENT_WIDTH
+    column := start
+    for element in elements {
+        text :: text_of(element)
+        width :: text.bytes().len() + 1
+        if column > start && column + 1 + width > LINE_WIDTH {
+            out.append("\n")
+            column = start
+        }
+        if column == start {
+            indent(out, depth)
+        } else {
+            out.append(" ")
+            column += 1
+        }
+        if column + width > LINE_WIDTH {
+            write_element(out, element, depth)
+            out.append(",\n")
+            column = start
+        } else {
+            out.append(text)
+            out.append(",")
+            column += width
+        }
+    }
+    if column > start {
+        out.append("\n")
+    }
+}
+
+// One element of an initializer list, already indented to `depth`.
+write_element :: fn(out: StringBuilder!, element: CExpression, depth: i32) -> void {
+    column :: usize(depth) * INDENT_WIDTH
+    if element is CDesignated {
+        write_declared(out, element.designator, element.value, column, depth)
+    } else {
+        write_initializer_line(out, element, column, depth)
+    }
+}
+
+// Whether `text`, written from `column`, leaves room for a closing `;` or `,`
+// within `LINE_WIDTH`.
+fits :: fn(text: string, column: usize) -> bool = column + text.bytes().len() + 1 <= LINE_WIDTH
+
+// `expression` as C text, on one line.
+text_of :: fn(expression: CExpression) -> string {
+    out :: StringBuilder {}
+    write_expression(out, expression)
+    return out.to_string()
+}
+
+// The column C text is wrapped at.
+LINE_WIDTH: usize: 100
 
 // `expressions` separated by `, `.
 write_list :: fn(out: StringBuilder!, expressions: CExpression[]) -> void {
@@ -427,7 +659,13 @@ write_list :: fn(out: StringBuilder!, expressions: CExpression[]) -> void {
     }
 }
 
-indent :: fn(out: StringBuilder!, depth: i32) -> void = out.append_repeated(' ', depth * 4)
+indent :: fn(out: StringBuilder!, depth: i32) -> void = out.append_repeated(
+    ' ',
+    depth * i32(INDENT_WIDTH),
+)
+
+// The columns one level of indentation takes.
+INDENT_WIDTH: usize: 4
 
 write_line :: fn(out: StringBuilder!, text: string, depth: i32) -> void {
     indent(out, depth)
@@ -448,15 +686,7 @@ write_closer :: fn(out: StringBuilder!, label: string, depth: i32) -> void = wri
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/string"
 import "std/testing"
-
-// `expression` as C text.
-text_of :: fn(expression: CExpression) -> string {
-    out :: StringBuilder {}
-    write_expression(out, expression)
-    return out.to_string()
-}
 
 @test
 test_print_block_indents_an_if :: fn() -> void {
@@ -675,11 +905,8 @@ test_text_of_spells_every_expression :: fn() -> void {
 
 @test
 test_text_of_spells_integer_extremes_as_macros :: fn() -> void {
-    assert_eq(text_of(CIntegerLiteral { .class = .I32, .value = -2147483648 }), "INT32_MIN")
-    assert_eq(
-        text_of(CIntegerLiteral { .class = .I64, .value = i64(-9223372036854775807) - 1 }),
-        "INT64_MIN",
-    )
+    assert_eq(text_of(CIntegerLiteral { .class = .I32, .value = I32_MIN }), "INT32_MIN")
+    assert_eq(text_of(CIntegerLiteral { .class = .I64, .value = I64_MIN }), "INT64_MIN")
     assert_eq(text_of(CIntegerLiteral { .class = .I64, .value = -5 }), "INT64_C(-5)")
 }
 
@@ -738,7 +965,7 @@ test_print_function_writes_prologue_then_body :: fn() -> void {
         .body = CBlock { .body = [assigned("l0", "1")] },
     }
     printer :: CPrinter {}
-    printer.print_function(function)
+    printer.print_item(function)
     assert_eq(printer.printed_text(), "static void f(void) {\n    int32_t l0;\n    l0 = 1;\n}\n")
 }
 
@@ -755,12 +982,77 @@ test_print_block_spells_a_switch :: fn() -> void {
     }
     printer :: CPrinter {}
     printer.print_block(CBlock { .body = [switch_node] }, 0)
-    assert_eq(printer.printed_text(), [
-        "switch (recv.tag) {",
-        "    case 4u: return 1;",
-        "    case 7u: f(); break;",
-        "    default: f();",
-        "}",
-        "",
-    ].join("\n"))
+    assert_eq(
+        printer.printed_text(),
+        [
+            "switch (recv.tag) {",
+            "    case 4u: return 1;",
+            "    case 7u: f(); break;",
+            "    default: f();",
+            "}",
+            "",
+        ].join(
+            "\n",
+        ),
+    )
+}
+
+// `count` names, `name_number_0` onwards.
+names :: fn(count: i32) -> CExpression[]! {
+    out: CExpression[]!: []
+    for k in 0..<count {
+        out.push(verbatim("name_number_${k}"))
+    }
+    return out
+}
+
+// An unsized `int x[]` initialised with `value`, as C text.
+global_text :: fn(value: CExpression) -> string {
+    printer :: CPrinter {}
+    declarator :: CDeclarator { .name = "x", .length = UNSIZED, .value = value }
+    printer.print_item(CGlobal { .type = "int", .declarator = declarator })
+    return printer.printed_text()
+}
+
+@test
+test_unit_text_keeps_a_short_initializer_on_one_line :: fn() -> void {
+    assert_eq(
+        global_text(initializer_list(names(2))),
+        "int x[] = { name_number_0, name_number_1 };\n",
+    )
+    assert_eq(global_text(initializer_list([])), "int x[] = { };\n")
+}
+
+@test
+test_unit_text_fills_the_lines_of_a_long_scalar_list :: fn() -> void {
+    expected :: """
+int x[] = {
+    name_number_0, name_number_1, name_number_2, name_number_3, name_number_4, name_number_5,
+    name_number_6,
+};
+"""
+    assert_eq(global_text(initializer_list(names(7))), expected)
+}
+
+@test
+test_unit_text_puts_one_table_row_per_line :: fn() -> void {
+    rows: CExpression[]!: []
+    for k in 0..<3 {
+        rows.push(designated("[${k}]", initializer_list(names(2))))
+    }
+    expected :: """
+int x[] = {
+    [0] = { name_number_0, name_number_1 },
+    [1] = { name_number_0, name_number_1 },
+    [2] = { name_number_0, name_number_1 },
+};
+"""
+    assert_eq(global_text(initializer_list(rows)), expected)
+}
+
+@test
+test_unit_text_breaks_long_string_literals_one_per_line :: fn() -> void {
+    literal :: "\"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghij\""
+    expected :: "int x[] =\n    ${literal}\n    ${literal};\n"
+    assert_eq(global_text(CStringLiterals { .literals = [literal, literal] }), expected)
 }
