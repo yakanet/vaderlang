@@ -67,7 +67,7 @@ chain_ok :: fn(ch: IfChain) -> bool {
     if name == "" { return false }
     for c in ch.conds {
         if scrutinee_name(c) != name { return false }
-        if c.bind_as != "" { return false }
+        if c.bind_as != null { return false }
     }
     return true
 }

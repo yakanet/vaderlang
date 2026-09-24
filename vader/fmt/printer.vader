@@ -1468,12 +1468,12 @@ postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
 
 emit_unary :: fn(self: Printer!, x: p.UnaryExpr) -> void {
     // `!is` sugar : parser produces `Not(Is(...))` ; restore the spelling
-    // for round-trip stability. `bind_as != ""` would mean an `is T as x`
+    // for round-trip stability. A non-null `bind_as` would mean an `is T as x`
     // wrapped in an outer `Not` — never produced by the sugar path.
     if x.op == .Not {
         match x.operand as inner {
             is p.BinaryExpr -> {
-                if inner.op == .Is && inner.bind_as == "" {
+                if inner.op == .Is && inner.bind_as == null {
                     self.emit_binary_operand(inner.left, inner.op, true)
                     self.write(" !is ")
                     self.emit_binary_operand(inner.right, inner.op, false)
@@ -1506,9 +1506,9 @@ emit_binary :: fn(self: Printer!, x: p.BinaryExpr) -> void {
     // `is T as <ident>` — only meaningful for `op == .Is` ; reproduce
     // the optional binding when present so the formatter is round-trip
     // stable.
-    if x.op == .Is && x.bind_as != "" {
+    if x.bind_as is p.AsBinding {
         self.write(" as ")
-        self.write(x.bind_as)
+        self.write(x.bind_as.name)
     }
 }
 
@@ -1695,9 +1695,9 @@ emit_match :: fn(self: Printer!, x: p.MatchExpr) -> void {
     if x.unreachable { self.write("@unreachable ") }
     self.write("match ")
     self.emit_condition(x.scrutinee)
-    if x.bind_as != "" {
+    if x.bind_as is p.AsBinding {
         self.write(" as ")
-        self.write(x.bind_as)
+        self.write(x.bind_as.name)
     }
     self.write(" {")
     self.depth = self.depth + 1

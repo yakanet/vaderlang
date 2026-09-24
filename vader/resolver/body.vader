@@ -701,13 +701,15 @@ bind_cond_is_as :: fn(self: ResolveState!, cond: AST.Expr, in_conjunction: bool)
         if cond.op == .Is {
             self.walk_expr(cond.left)
             self.walk_expr(cond.right)
-            if cond.bind_as != "" {
+            alias :: cond.bind_as
+            if alias != null {
                 if in_conjunction {
-                    self.diags.push(resolver_error(.AsBindingInConjunction, cond.right.span,
+                    self.diags.push(resolver_error(.AsBindingInConjunction, alias.span,
                         "an `as` binding cannot appear in a `&&` condition ; narrow the variable in place (`if x is T && …`) or nest the checks (`if x is T as a { if … }`)"))
                 }
-                sym :: self.mint_local(.Binding, cond.bind_as, cond.right.span)
-                self.scope.bind(cond.bind_as, sym)
+                sym :: self.mint_local(.Binding, alias.name, alias.span)
+                self.scope.bind(alias.name, sym)
+                self.idents[alias.span.hash()] = sym
             }
             return
         }
@@ -719,13 +721,14 @@ walk_match :: fn(self: ResolveState!, e: AST.MatchExpr) -> void {
     self.walk_expr(e.scrutinee)
     // `match e as x { … }` — one scope around every arm, minted AFTER the
     // scrutinee is walked so `x` cannot refer to itself. Registered in `idents`
-    // at the match's own span so the type-checker can find the symbol from the
+    // at the `x` token so the type-checker can find the symbol from the
     // MatchExpr alone (mirrors the param / type-param declarations above).
     self.scope.push()
-    if e.bind_as != "" {
-        sym :: self.mint_local(.Binding, e.bind_as, e.span)
-        self.scope.bind(e.bind_as, sym)
-        self.idents[e.span.hash()] = sym
+    alias :: e.bind_as
+    if alias != null {
+        sym :: self.mint_local(.Binding, alias.name, alias.span)
+        self.scope.bind(alias.name, sym)
+        self.idents[alias.span.hash()] = sym
     }
     for arm in e.arms {
         self.scope.push()

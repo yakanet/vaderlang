@@ -573,6 +573,10 @@ stamp_expr_spans :: fn(e: AST.Expr!, stamp: StampCtx!) -> void {
             e.span = next_clone_span(stamp)
             stamp_expr_spans(e.left, stamp)
             stamp_expr_spans(e.right, stamp)
+            alias :: e.bind_as
+            if alias != null {
+                e.bind_as = AST.AsBinding { .name = alias.name, .span = next_clone_span(stamp) }
+            }
         }
         is AST.IfExpr -> {
             e.span = next_clone_span(stamp)
@@ -587,6 +591,10 @@ stamp_expr_spans :: fn(e: AST.Expr!, stamp: StampCtx!) -> void {
         is AST.MatchExpr -> {
             e.span = next_clone_span(stamp)
             stamp_expr_spans(e.scrutinee, stamp)
+            alias :: e.bind_as
+            if alias != null {
+                e.bind_as = AST.AsBinding { .name = alias.name, .span = next_clone_span(stamp) }
+            }
             for a in e.arms {
                 a.span = next_clone_span(stamp)
                 stamp_pattern_spans(a.pattern, stamp)

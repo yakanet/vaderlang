@@ -772,6 +772,14 @@ export BinaryOp :: enum(u8) {
     Is, In, NotIn,
 }
 
+/// The `as <name>` of `if e is T as x` and `match e as x`.
+export AsBinding :: struct {
+    name: string
+    /// The name token: the binding's declaration, which the resolver mints the
+    /// symbol at and every side table keys it by.
+    span: Span
+}
+
 /// An infix operator applied to two operands.
 ///
 /// `bind_as` carries the name of an `is T as name` narrowing when the test appears
@@ -782,10 +790,10 @@ export BinaryExpr :: struct {
     op:    BinaryOp
     left:  Expr
     right: Expr
-    /// When `op == BinaryOp.Is`, an optional binding name parsed from
+    /// When `op == BinaryOp.Is`, the optional binding parsed from
     /// `… is T as <ident>`. The binding lives in the enclosing `if`'s
-    /// then-branch. Empty string when absent — `op != Is` always carries `""`.
-    bind_as: string = ""
+    /// then-branch. Always `null` when `op != Is`.
+    bind_as: AsBinding | null = null
 }
 
 /// Null-coalescing `left ?? fallback`. `left` must be typed `T | null` ;
@@ -842,9 +850,8 @@ export MatchExpr :: struct {
     // `MatchExpr { … }` literals and old snapshots are unaffected.
     unreachable: bool = false
     /// `match e as x { … }` — the name the scrutinee is aliased under, visible in
-    /// every arm and narrowed by each one. `""` when absent. The binding is minted
-    /// at the MatchExpr's own span.
-    bind_as: string = ""
+    /// every arm and narrowed by each one.
+    bind_as: AsBinding | null = null
 }
 
 /// One arm of a `match`, with its optional `if` guard.

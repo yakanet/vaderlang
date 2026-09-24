@@ -868,7 +868,9 @@ test("lsp: enum completion in a match-arm body", async () => {
   expect(labels.has("Green")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
-interface TextEditT { newText: string }
+interface PositionT { line: number; character: number }
+interface RangeT { start: PositionT; end: PositionT }
+interface TextEditT { newText: string; range: RangeT }
 interface WorkspaceEditT { changes: Record<string, TextEditT[]> }
 interface CodeActionT { title: string; kind: string; edit: WorkspaceEditT }
 
@@ -1518,6 +1520,54 @@ test("lsp: rename stays in the file the cursor is in", async () => {
   // Declaration + two uses, the same three sites find-usages reports.
   expect(edit.changes[files[0]!]).toHaveLength(3);
 });
+
+// An `as` alias is declared by its NAME token, in both forms.
+const AS_ALIAS_SOURCE = `module "lsptest"
+
+A :: struct { n: i32 }
+B :: struct { s: string }
+
+make :: fn() -> A | B = A { .n = 1 }
+
+via_match :: fn() -> i32 = match make() as x {
+    is A -> x.n
+    is B -> 0
+}
+
+via_if :: fn(v: A | B) -> i32 {
+    if v is A as y {
+        return y.n
+    }
+    return 0
+}
+`;
+
+// The text each range of a rename covers, read back from the source.
+function textAt(source: string, range: RangeT): string {
+  const line = source.split("\n")[range.start.line]!;
+  return line.slice(range.start.character, range.end.character);
+}
+
+test("lsp: an `as` alias is declared, and renamed, at its name", async () => {
+  const results = await driveLsp(AS_ALIAS_SOURCE, [
+    // 0: goto-def on `x` in `x.n` (line 8) → the `x` of `match make() as x`.
+    { method: "textDocument/definition", position: { line: 8, character: 12 } },
+    // 1: rename from the same use.
+    { method: "textDocument/rename", position: { line: 8, character: 12 } },
+    // 2: goto-def on `y` in `return y.n` (line 14) → the `y` of `is A as y`.
+    { method: "textDocument/definition", position: { line: 14, character: 15 } },
+    // 3: rename from the same use.
+    { method: "textDocument/rename", position: { line: 14, character: 15 } },
+  ]);
+  expect((results[0]!.result as { range: RangeT }).range.start).toEqual({ line: 7, character: 43 });
+  expect((results[2]!.result as { range: RangeT }).range.start).toEqual({ line: 13, character: 17 });
+  for (const [i, name] of [[1, "x"], [3, "y"]] as const) {
+    const edits = soleFileEdits(results[i]!.result as WorkspaceEditT);
+    // Declaration + one use, and every range covers the name itself.
+    expect(edits).toHaveLength(2);
+    for (const e of edits) expect(textAt(AS_ALIAS_SOURCE, e.range)).toBe(name);
+  }
+}, { timeout: MEDIUM_BUILD });
 
 // A member reached through a NAMESPACE ALIAS. `S.trim` has no receiver whose
 // type could be read — the alias names a module, not a value — so the typed path

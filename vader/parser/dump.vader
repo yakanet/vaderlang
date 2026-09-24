@@ -872,10 +872,10 @@ write_expr :: fn(sb: StringBuilder!, e: Expr | null, level: i32) -> void {
             sb.write_expr(e.left, level + 1)
             sb.entry(false, level + 1, "right")
             sb.write_expr(e.right, level + 1)
-            // `bindAs` only emitted when non-empty (optional on BinaryExpr).
-            if e.bind_as != "" {
+            // `bindAs` only emitted when present (optional on BinaryExpr).
+            if e.bind_as is AsBinding {
                 sb.entry(false, level + 1, "bindAs")
-                sb.write_string(e.bind_as)
+                sb.write_string(e.bind_as.name)
             }
             sb.close_obj(level)
         }
@@ -923,9 +923,9 @@ write_expr :: fn(sb: StringBuilder!, e: Expr | null, level: i32) -> void {
                 sb.entry(false, level + 1, "unreachable")
                 sb.append("true")
             }
-            if e.bind_as != "" {
+            if e.bind_as is AsBinding {
                 sb.entry(false, level + 1, "bindAs")
-                sb.write_string(e.bind_as)
+                sb.write_string(e.bind_as.name)
             }
             sb.close_obj(level)
         }

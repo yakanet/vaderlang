@@ -74,10 +74,10 @@ export lower_match :: fn(
     // its own, not the match's own slot, because a lambda in an arm may capture
     // it and a captured binding is heap-promoted to a `Cell` while the pattern
     // predicates need the bare value.
-    alias_symbol :: if expr.bind_as == "" {
-        null
+    alias_symbol :: if expr.bind_as is AsBinding {
+        ctx.typed.resolved.idents[expr.bind_as.span.hash()]
     } else {
-        ctx.typed.resolved.idents[expr.span.hash()]
+        null
     }
     if alias_symbol is Symbol {
         alias_span :: span_of(scrut_value)

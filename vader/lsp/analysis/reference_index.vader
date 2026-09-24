@@ -285,6 +285,9 @@ collect_expr :: fn(e: AST.Expr, out: Span[]!) -> void {
         is AST.BinaryExpr -> {
             collect_expr(e.left, out)
             collect_expr(e.right, out)
+            if e.bind_as is AST.AsBinding {
+                out.push(e.bind_as.span)
+            }
         }
         is AST.IfExpr -> {
             collect_expr(e.cond, out)
@@ -297,6 +300,9 @@ collect_expr :: fn(e: AST.Expr, out: Span[]!) -> void {
         }
         is AST.MatchExpr -> {
             collect_expr(e.scrutinee, out)
+            if e.bind_as is AST.AsBinding {
+                out.push(e.bind_as.span)
+            }
             for arm in e.arms {
                 collect_pattern(arm.pattern, out)
                 collect_opt_expr(arm.guard, out)

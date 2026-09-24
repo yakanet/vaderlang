@@ -2890,12 +2890,12 @@ parse_expr :: fn(p: Parser!, min_bp: i32) -> Expr {
                 // `is T as <ident>` — binds the narrowed RHS in the
                 // enclosing if's then-branch. A match arm has no such form:
                 // its binder is the header's (`parse_match_expr`).
-                bind_as := ""
+                bind_as: AsBinding | null = null
                 end_pos := right.span.end
                 if infix.op == .Is && p.peek().kind == .KwAs {
                     p.advance()
                     name_tok :: p.expect(.Ident, "binding name after `as`")
-                    bind_as = name_tok.text
+                    bind_as = AsBinding { .name = name_tok.text, .span = name_tok.span }
                     end_pos = name_tok.span.end
                 }
                 left = BinaryExpr {
@@ -3556,9 +3556,10 @@ parse_match_expr :: fn(p: Parser!, partial: bool, unreachable: bool) -> MatchExp
     p.allow_struct_lit = saved_allow
     // `match e as x { … }` — name the scrutinee once for every arm. `as` is not an
     // infix operator (it has no binding power), so it can only be consumed here.
-    bind_as := ""
+    bind_as: AsBinding | null = null
     if p.match_kind(.KwAs) != null {
-        bind_as = p.expect(.Ident, "binding name after `as`").text
+        name_tok :: p.expect(.Ident, "binding name after `as`")
+        bind_as = AsBinding { .name = name_tok.text, .span = name_tok.span }
     }
 
     p.expect(.LBrace, "`{` to open match arms")

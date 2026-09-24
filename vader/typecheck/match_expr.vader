@@ -65,17 +65,17 @@ export infer_match :: fn(
     scrut_ty :: lift_enum_placeholder(raw_scrut, typed)
     // `match e as x { … }` : the alias IS the narrowing slot, so an EXPRESSION
     // scrutinee narrows exactly like a named one — which is the whole point of the
-    // form. The resolver minted the binding at the match's own span and registered
-    // it in `idents`, so the symbol is reachable from the MatchExpr alone. The
+    // form. The resolver minted the binding at the `x` token and registered it in
+    // `idents`, so the symbol is reachable from the MatchExpr alone. The
     // field-narrow key is empty for an alias : a binding is a slot, not a chain.
-    key   :: e.span.hash()
     scrut :: e.scrutinee
-    alias_sym :: if e.bind_as == "" { null } else { typed.resolved.idents[key] }
-    if alias_sym is Symbol {
-        typed.local_types[key] = scrut_ty
+    alias :: e.bind_as
+    alias_sym :: if alias != null { typed.resolved.idents[alias.span.hash()] } else { null }
+    if alias != null && alias_sym is Symbol {
+        typed.local_types[alias.span.hash()] = scrut_ty
         // Same hop as `is T as x` : the binding inherits the scrutinee's
         // mutability, so a rejected write through it points at the scrutinee.
-        typed.narrow.binding_scrutinee[key] = scrut
+        typed.narrow.binding_scrutinee[alias.span.hash()] = scrut
     }
     scrut_sym_id    :: if alias_sym is Symbol as a { a.id } else { scrutinee_sym_id(scrut, typed) }
     scrut_field_key :: if alias_sym is Symbol { "" } else { scrutinee_field_key(scrut, typed) }

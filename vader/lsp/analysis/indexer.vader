@@ -16,10 +16,11 @@
 //   * Import bindings (`ImportDecl` destructure form) — recorded in
 //     `imports[]` for cross-file goto-def to consume.
 //
-// `as` bindings (`if x is T as y`, `match e as y`), lambda captures, and
-// pattern destructuring inside match arms aren't indexed yet — straightforward
-// follow-ups since the AST already exposes the shapes (`BinaryExpr.bind_as`,
-// `MatchExpr.bind_as`, `LambdaExpr.params`, etc.).
+//   * `as` bindings — `if x is T as y` (scoped to the then-block) and
+//     `match e as y` (scoped to the match), declared at their name token.
+//
+// Lambda captures and pattern destructuring inside match arms aren't indexed
+// yet.
 
 module "vader/lsp/analysis"
 
@@ -781,6 +782,13 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
         }
         is IfExpr -> {
             ix_walk_expr(e.cond, source, entries)
+            if e.cond is BinaryExpr as cond {
+                alias :: cond.bind_as
+                if alias != null {
+                    sig :: local_sig(alias.name, type_expr_slice(cond.right, source), 0, 0, source)
+                    entries.push(binding_entry(alias.name, .Local, alias.span, e.then_block.span, sig))
+                }
+            }
             ix_walk_block(e.then_block, source, entries)
             match e.else_branch as ei {
                 is null        -> {}
@@ -790,6 +798,11 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
         }
         is MatchExpr -> {
             ix_walk_expr(e.scrutinee, source, entries)
+            alias :: e.bind_as
+            if alias != null {
+                sig :: local_sig(alias.name, "", e.span.start.offset, e.span.end.offset, source)
+                entries.push(binding_entry(alias.name, .Local, alias.span, e.span, sig))
+            }
             for arm in e.arms {
                 match arm.guard {
                     is null -> {}

@@ -972,7 +972,6 @@ synthetic_binary :: fn() -> AST.BinaryExpr {
         .op = .Add,
         .left = int_lit,
         .right = int_lit,
-        .bind_as = "",
     }
 }
 
