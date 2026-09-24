@@ -56,7 +56,7 @@ export ArrayOps :: trait<T> {
 // fine, so the coverage lives in `tests/snippets/array_add_concat/`.
 T[] implements<T> Add<T[]> {
     add :: fn(self, other: T[]) -> T[] {
-        out: T[]!: []
+        out: T[]!: [] * (self.len() + other.len())
         out.push_all(self)
         out.push_all(other)
         return out

@@ -601,28 +601,60 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
 end
 
 fn 7 std_core$[]$Add$add__i32 (ref,ref) -> ref
-  local out ref
+  local $arr_2 ref
+  local $len_3 usize
+  local $len_4 usize
   array.new 10 0   ; i32[][]
-  local.tee 2   ; out
+  local.set 2   ; $arr_2
+  local.get 0   ; arg 0
+  array.len
+  local.set 3   ; $len_3
+  local.get 1   ; arg 1
+  array.len
+  local.set 4   ; $len_4
+  local.get 3   ; $len_3
+  local.get 4   ; $len_4
+  i64.add
+  local.set 3   ; $len_3
+  local.get 2   ; $arr_2
+  local.get 3   ; $len_3
+  array.repeat
+  local.tee 2   ; $arr_2
   local.get 0   ; arg 0
   array.push_all
-  local.get 2   ; out
+  local.get 2   ; $arr_2
   local.get 1   ; arg 1
   array.push_all
-  local.get 2   ; out
+  local.get 2   ; $arr_2
   return
 end
 
 fn 8 std_core$[]$Add$add__Item (ref,ref) -> ref
-  local out ref
+  local $arr_2 ref
+  local $len_3 usize
+  local $len_4 usize
   array.new 11 0   ; snippet$Item[][]
-  local.tee 2   ; out
+  local.set 2   ; $arr_2
+  local.get 0   ; arg 0
+  array.len
+  local.set 3   ; $len_3
+  local.get 1   ; arg 1
+  array.len
+  local.set 4   ; $len_4
+  local.get 3   ; $len_3
+  local.get 4   ; $len_4
+  i64.add
+  local.set 3   ; $len_3
+  local.get 2   ; $arr_2
+  local.get 3   ; $len_3
+  array.repeat
+  local.tee 2   ; $arr_2
   local.get 0   ; arg 0
   array.push_all
-  local.get 2   ; out
+  local.get 2   ; $arr_2
   local.get 1   ; arg 1
   array.push_all
-  local.get 2   ; out
+  local.get 2   ; $arr_2
   return
 end
 
