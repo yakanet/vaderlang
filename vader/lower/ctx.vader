@@ -157,13 +157,17 @@ export LowerProjectCtx :: struct {
     /// into the entry module after the lowering fixpoint (`drain_concat_decls`).
     concat_decls:        LoweredFnDecl[]!
     /// Enum symbol id → the synthetic read-only const holding that enum's
-    /// variant data, one slot per ordinal from the smallest. Minted at the
-    /// first read (`enum_data_const`) so every read shares one symbol.
+    /// variant data, one slot per rank. Minted at the first read
+    /// (`enum_table_const`) so every read shares one symbol.
     enum_data_consts:    MutableMap<i32, Symbol>
-    /// Tables due, in first-read order. `materialize_enum_data` lowers each
-    /// from `enum_data_cursor` on, inside the lowering fixpoint.
-    enum_data_order:     EnumDataTable[]!
-    enum_data_cursor:    usize
+    /// Enum symbol id → the const holding that enum's written values, one slot
+    /// per rank — for an enum with variant data whose values are not
+    /// consecutive. Minted like `enum_data_consts`.
+    enum_value_consts:   MutableMap<i32, Symbol>
+    /// Tables due, in first-read order. `materialize_enum_tables` lowers each
+    /// from `enum_table_cursor` on, inside the lowering fixpoint.
+    enum_table_order:    EnumTable[]!
+    enum_table_cursor:   usize
 
     /// Monotonically-decreasing counter for synthetic symbol IDs.
     /// Starts at `-1` so it cannot collide with resolver-minted IDs
@@ -383,8 +387,9 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .concat_fn_syms      = MutableMap<i32, Symbol> {},
         .concat_decls        = [],
         .enum_data_consts    = MutableMap<i32, Symbol> {},
-        .enum_data_order     = [],
-        .enum_data_cursor    = 0,
+        .enum_value_consts   = MutableMap<i32, Symbol> {},
+        .enum_table_order    = [],
+        .enum_table_cursor   = 0,
         .next_synthetic_id   = -1,
         .diags               = [],
     }
@@ -545,11 +550,15 @@ export new_fn_lower_ctx :: fn(
     }
 }
 
-/// An enum whose variant-data table is due, with the const that will hold it.
-export EnumDataTable :: struct {
+/// An enum table due for materialisation, with the const that will hold it.
+export EnumTable :: struct {
     enum_type: EnumType
     symbol:    Symbol
+    kind:      EnumTableKind
 }
+
+/// Which of an enum's tables : its variant data, or its written values.
+export EnumTableKind :: enum { Data, Values }
 
 // ---- tests ----------------------------------------------------------------
 

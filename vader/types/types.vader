@@ -32,11 +32,15 @@ export EnumType :: struct {
     symbol:  Symbol
     /// Backing integer type : written in the header, else inferred.
     repr:    string
-    /// Variant indices keyed by name. Resolved by `declare_enum`.
+    /// What a variant stores, keyed by name : its written value, or for an enum
+    /// with variant data its rank (0, 1, 2… in declaration order).
     indices: MutableMap<string, i64>
     /// The struct each variant carries a constant value of, from the header ;
     /// null for an enum without variant data.
     data:    StructType | null = null
+    /// Written value per rank, for an enum with variant data ; empty for any
+    /// other enum, whose stored integer IS the value.
+    values:  i64[] = []
 }
 
 /// Distinct (newtype) over a primitive — nominal at typecheck, but its

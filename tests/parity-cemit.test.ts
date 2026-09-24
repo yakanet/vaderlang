@@ -315,6 +315,10 @@ const C_PARITY = new Set<string>([
   // a host `<int>$Equals$equals`, which the VM binds and the native build does not.
   "enum_key_equality",
   "generic_enum_same_name",
+  // An enum with variant data stores its variant's rank : its value tables and
+  // the conversion back to the written value, inside a generic instance too.
+  "enum_variant_data_written_values",
+  "generic_enum_argument",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

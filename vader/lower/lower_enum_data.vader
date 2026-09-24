@@ -1,16 +1,19 @@
-// vader/lower/lower_enum_data — the table behind enum variant data.
+// vader/lower/lower_enum_data — the tables behind enum variant data.
 //
-// An enum whose header declares variant data (`enum(Info)`) keeps its values in
-// a synthetic read-only module const `<Enum>$data : Info[]`, one slot per
-// variant in ordinal order — the typechecker requires the ordinals of such an
-// enum to be consecutive (T3086). A read lowers to a slot of it — `v.field` to
-// `<Enum>$data[i64(v) - min].field`, `Info(v)` to the slot itself — and
-// `inline_consts` routes the const to the data pool like any read-only table,
-// so it is baked once and never rebuilt.
+// An enum whose header declares variant data (`enum(Info)`) stores the RANK of
+// its variant (0, 1, 2… in declaration order) and keeps its data in a synthetic
+// read-only module const `<Enum>$data : Info[]`, one slot per rank : `v.field`
+// lowers to `<Enum>$data[i64(v)].field`, `Info(v)` to the slot itself.
 //
-// The const is minted at the first read (`enum_data_const`) and lowered inside
-// the lowering fixpoint (`materialize_enum_data`), in the enum's own module so
-// the variant values read the types that module recorded.
+// Its written values (`= 404`) are only read by a conversion to an integer. The
+// conversion folds when the value is a constant, adds the first value when the
+// values are consecutive, and otherwise reads `<Enum>$value`, a second table
+// indexed by the rank.
+//
+// Both consts are minted at the first read (`enum_table_const`) and lowered
+// inside the lowering fixpoint (`materialize_enum_tables`), in the enum's own
+// module so the variant values read the types that module recorded ;
+// `inline_consts` routes them to the data pool like any read-only table.
 
 module "vader/lower"
 
@@ -23,7 +26,7 @@ import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
 
-/// The slot holding `value`'s variant data : `<Enum>$data[i64(value) - min]`.
+/// The slot holding `value`'s variant data : `<Enum>$data[i64(value)]`.
 ///
 /// @param value      the enum value, lowered.
 /// @param enum_type  its enum ; one without variant data yields a stub.
@@ -33,50 +36,113 @@ export lower_enum_data_slot :: fn(
     ctx: FnLowerCtx!, value: LoweredExpr, enum_type: EnumType, span: Span,
 ) -> LoweredExpr {
     data :: enum_type.data ?? return stub(span, TY_UNRESOLVED, "enum without variant data")
-    i64_type :: mk_primitive("i64")
-    [lo, _] :: index_bounds(enum_type.indices)
-    index :: LoweredBinary {
-        .span  = span,
-        .type  = i64_type,
-        .op    = .Sub,
-        .left  = LoweredCast { .span = span, .type = i64_type, .value = value },
-        .right = LoweredIntLit { .span = span, .type = i64_type, .value = lo },
-    }
     return LoweredIndex {
         .span   = span,
         .type   = data,
         .target = LoweredIdent {
-            .span = span, .type = mk_array(data, true), .symbol = enum_data_const(ctx, enum_type),
+            .span   = span,
+            .type   = mk_array(data, true),
+            .symbol = enum_table_const(ctx, enum_type, .Data),
         },
-        .index  = index,
+        .index  = rank_of(value, span),
     }
 }
 
-// The const holding `enum_type`'s table, minted at its first read and queued
-// for `materialize_enum_data`.
-enum_data_const :: fn(ctx: FnLowerCtx!, enum_type: EnumType) -> Symbol {
+/// `lowered` as a number : for a value of an enum with variant data, its
+/// written value, since the enum stores the rank ; `lowered` itself otherwise.
+///
+/// @param source   the expression, for its checked type.
+/// @param lowered  `source`, lowered.
+/// @return         an `i64` holding the written value, or `lowered`.
+export as_written_value :: fn(ctx: FnLowerCtx!, source: Expr, lowered: LoweredExpr) -> LoweredExpr {
+    enum_type :: enum_type_or_unwrap(ctx, ctx.types.expr_type(source))
+    if enum_type is EnumType && enum_type.data != null {
+        return lower_enum_value(ctx, lowered, enum_type, source.span)
+    }
+    return lowered
+}
+
+// The written value of `value`, a variant of an enum with variant data : a
+// constant for a constant rank, `rank + first` for consecutive values, else a
+// read of `<Enum>$value`.
+lower_enum_value :: fn(
+    ctx: FnLowerCtx!, value: LoweredExpr, enum_type: EnumType, span: Span,
+) -> LoweredExpr {
+    values :: enum_type.values
+    i64_type :: mk_primitive("i64")
+    if value is LoweredIntLit {
+        return LoweredIntLit { .span = span, .type = i64_type, .value = values[usize(value.value)] }
+    }
+    if is_consecutive(values) {
+        if values[0] == 0 {
+            return rank_of(value, span)
+        }
+        return LoweredBinary {
+            .span  = span,
+            .type  = i64_type,
+            .op    = .Add,
+            .left  = rank_of(value, span),
+            .right = LoweredIntLit { .span = span, .type = i64_type, .value = values[0] },
+        }
+    }
+    element :: mk_primitive(value_element_width(values))
+    return LoweredIndex {
+        .span   = span,
+        .type   = element,
+        .target = LoweredIdent {
+            .span   = span,
+            .type   = mk_array(element, true),
+            .symbol = enum_table_const(ctx, enum_type, .Values),
+        },
+        .index  = rank_of(value, span),
+    }
+}
+
+rank_of :: fn(value: LoweredExpr, span: Span) -> LoweredExpr =
+    LoweredCast { .span = span, .type = mk_primitive("i64"), .value = value }
+
+is_consecutive :: fn(values: i64[]) -> bool {
+    for rank in 0..<values.len() {
+        if values[rank] != values[0] + i64(rank) {
+            return false
+        }
+    }
+    return true
+}
+
+// The narrowest integer holding every written value.
+value_element_width :: fn(values: i64[]) -> string {
+    [smallest, largest] :: value_bounds(values)
+    return narrowest_width(smallest, largest)
+}
+
+// The const holding one of `enum_type`'s tables, minted at its first read and
+// queued for `materialize_enum_tables`.
+enum_table_const :: fn(ctx: FnLowerCtx!, enum_type: EnumType, kind: EnumTableKind) -> Symbol {
     owner :: enum_type.symbol
-    existing :: ctx.project.enum_data_consts[owner.id]
+    consts :: if kind == .Data { ctx.project.enum_data_consts } else { ctx.project.enum_value_consts }
+    existing :: consts[owner.id]
     if existing != null {
         return existing
     }
-    sym :: Symbol {
+    suffix :: if kind == .Data { "data" } else { "value" }
+    symbol :: Symbol {
         .id          = next_synthetic_id(ctx),
         .kind        = .Const,
-        .name        = "${owner.name}\$data",
+        .name        = "${owner.name}\$${suffix}",
         .module      = owner.module,
         .module_name = owner.module_name,
         .visibility  = .Private,
         .defined_at  = null,
     }
-    ctx.project.enum_data_consts[owner.id] = sym
-    ctx.project.enum_data_order.push(EnumDataTable { .enum_type = enum_type, .symbol = sym })
-    return sym
+    consts[owner.id] = symbol
+    ctx.project.enum_table_order.push(EnumTable { .enum_type = enum_type, .symbol = symbol, .kind = kind })
+    return symbol
 }
 
-/// Lower the table of every enum read since the last round, in that enum's
-/// own module, and push it there for `inline_consts` to route. Runs inside the
-/// lowering fixpoint : a read in a module lowered later queues its enum then.
+/// Lower the tables of every enum read since the last round, in that enum's
+/// own module, and push them there for `inline_consts` to route. Runs inside
+/// the lowering fixpoint : a read in a module lowered later queues its enum then.
 ///
 /// @param loaded       the source-level project, for the enum decls.
 /// @param typed        every module's typed program.
@@ -84,65 +150,79 @@ enum_data_const :: fn(ctx: FnLowerCtx!, enum_type: EnumType) -> Symbol {
 /// @param project      the lowered project ; the owning modules gain the tables.
 /// @error              C4001 when a variant's data is not a constant the data
 ///                     pool can bake.
-export materialize_enum_data :: fn(
+export materialize_enum_tables :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!, project: LoweredProject,
 ) -> void {
-    for project_ctx.enum_data_cursor < project_ctx.enum_data_order.len() {
-        due :: project_ctx.enum_data_order[project_ctx.enum_data_cursor]
-        project_ctx.enum_data_cursor += 1
+    for project_ctx.enum_table_cursor < project_ctx.enum_table_order.len() {
+        due :: project_ctx.enum_table_order[project_ctx.enum_table_cursor]
+        project_ctx.enum_table_cursor += 1
         owner :: due.enum_type.symbol
         module_typed :: typed.modules[owner.module] ?? continue
         module_loaded :: loaded.modules[owner.module] ?? continue
         if module_typed is TypedProgram && module_loaded is LoadedModule {
             decl :: find_enum_decl_by_name(module_decls(module_loaded), owner.name) ?? continue
-            table :: lower_enum_table(decl, due, module_typed, project_ctx) ?? continue
-            push_to_module(project, owner.module, table)
+            table :: if due.kind == .Data {
+                lower_data_table(decl, due, module_typed, project_ctx)
+            } else {
+                lower_value_table(decl, due, module_typed)
+            }
+            if table != null {
+                push_to_module(project, owner.module, table)
+            }
         }
     }
 }
 
 // The `<Enum>$data` const : each variant's data lowered as a literal of the
-// data struct, placed at `ordinal - min`.
-lower_enum_table :: fn(
-    decl: EnumDecl, due: EnumDataTable, typed: TypedProgram, project_ctx: LowerProjectCtx!,
+// data struct, at its rank.
+lower_data_table :: fn(
+    decl: EnumDecl, due: EnumTable, typed: TypedProgram, project_ctx: LowerProjectCtx!,
 ) -> LoweredConstDecl | null {
-    enum_type :: due.enum_type
-    data :: enum_type.data ?? return null
+    data :: due.enum_type.data ?? return null
     table_type :: mk_array(data, true)
-    entry :: MonoEntry {
-        ...stub_entry(decl, typed),
-        .mangled = "${mangle_module_id(typed.resolved.display_path)}$${due.symbol.name}",
-        .symbol  = due.symbol,
-    }
+    entry :: table_entry(decl, due, typed)
     fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, entry.subst, table_type)
-    by_ordinal :: MutableMap<i64, LoweredExpr> {}
+    elements: LoweredExpr[]!: []
     for v in decl.variants {
-        ordinal :: enum_type.indices[v.name] ?? continue
-        lit :: StructLitExpr {
+        literal :: StructLitExpr {
             .span      = v.span,
             .type_name = IdentExpr {
                 .span = v.span, .name = data.symbol.name, .implicit_dot = false, .is_type_param_intro = false,
             },
             .items     = v.data ?? [],
         }
-        value :: lower_struct_lit(fn_ctx, lit, data)
+        value :: lower_struct_lit(fn_ctx, literal, data)
         if !is_bakeable_value(value) {
             project_ctx.diags.push(comptime_error(.CannotEvaluate, v.span,
                 "the data of `${decl.name}.${v.name}` must be a constant"))
         }
-        by_ordinal[ordinal] = value
+        elements.push(value)
     }
-    [lo, hi] :: index_bounds(enum_type.indices)
+    return table_decl(decl, entry, table_type, elements)
+}
+
+// The `<Enum>$value` const : each variant's written value, at its rank.
+lower_value_table :: fn(decl: EnumDecl, due: EnumTable, typed: TypedProgram) -> LoweredConstDecl {
+    values :: due.enum_type.values
+    element :: mk_primitive(value_element_width(values))
     elements: LoweredExpr[]!: []
-    for ordinal in lo..<hi + 1 {
-        elements.push(by_ordinal[ordinal] ?? return null)
+    for value in values {
+        elements.push(LoweredIntLit { .span = decl.span, .type = element, .value = value })
     }
-    return LoweredConstDecl {
-        .mangled = entry.mangled,
-        .type    = table_type,
-        .value   = LoweredArrayLit { .span = decl.span, .type = table_type, .elements = elements },
-        .origin  = entry,
-    }
+    return table_decl(decl, table_entry(decl, due, typed), mk_array(element, true), elements)
+}
+
+table_entry :: fn(decl: EnumDecl, due: EnumTable, typed: TypedProgram) = MonoEntry {
+    ...stub_entry(decl, typed),
+    .mangled = "${mangle_module_id(typed.resolved.display_path)}$${due.symbol.name}",
+    .symbol  = due.symbol,
+}
+
+table_decl :: fn(decl: EnumDecl, entry: MonoEntry, type: Type, elements: LoweredExpr[]!) = LoweredConstDecl {
+    .mangled = entry.mangled,
+    .type    = type,
+    .value   = LoweredArrayLit { .span = decl.span, .type = type, .elements = elements },
+    .origin  = entry,
 }
 
 find_enum_decl_by_name :: fn(decls: Decl[], name: string) -> EnumDecl | null {

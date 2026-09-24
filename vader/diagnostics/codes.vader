@@ -123,7 +123,7 @@ export TypecheckCode :: enum(CodeInfo) {
     BodyFallsOffEnd                 { .id = "T3083", .message = "not every path through the body returns a value" },
     EnumDataNotStruct               { .id = "T3084", .message = "enum variant data must be a struct" },
     VariantDataWithoutEnumData      { .id = "T3085", .message = "variant data on an enum whose header declares none" },
-    EnumDataValuesNotConsecutive    { .id = "T3086", .message = "enum variant data needs consecutive values" },
+    UnionEnumDataNotInterpolable    { .id = "T3086", .message = "a union holding an enum with variant data cannot be interpolated" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

@@ -30,7 +30,7 @@
                     callee:
                       snippet$as_int__snippet_alpha_Status :i64
                     arg0:
-                      int(404) :u16
+                      int(0) :u8
           assign
             target:
               __off_1 :usize
@@ -60,7 +60,7 @@
                     callee:
                       snippet$as_int__snippet_beta_Status :i64
                     arg0:
-                      int(1000) :u16
+                      int(0) :u8
           ~>
             call :string
               callee:
@@ -99,33 +99,33 @@
       arg0:
         by_alpha :MutableMap<Status, i64>!
       arg1:
-        int(405) :u16
+        int(1) :u8
       arg2:
         cast → i64
-          int(405) :u16
+          int(405) :i64
     call :void
       callee:
         std_collections$MutableMap$IndexSet$set_at__snippet_beta_Status__i64 :void
       arg0:
         by_beta :MutableMap<Status, i64>!
       arg1:
-        int(1001) :u16
+        int(1) :u8
       arg2:
         cast → i64
-          int(1001) :u16
+          int(1001) :i64
     call :void
       callee:
         std_collections$MutableMap$IndexSet$set_at__snippet_beta_Status__i64 :void
       arg0:
         by_beta :MutableMap<Status, i64>!
       arg1:
-        int(1000) :u16
+        int(0) :u8
       arg2:
         call :i64
           callee:
             snippet$as_int__snippet_beta_Status :i64
           arg0:
-            int(1000) :u16
+            int(0) :u8
     call :void
       callee:
         std_io$println__string :void
@@ -158,7 +158,7 @@
                         arg0:
                           by_alpha :MutableMap<Status, i64>!
                         arg1:
-                          int(405) :u16
+                          int(1) :u8
                     ~>
                       if :i64
                         cond:
@@ -205,7 +205,7 @@
                         arg0:
                           by_beta :MutableMap<Status, i64>!
                         arg1:
-                          int(1001) :u16
+                          int(1) :u8
                     ~>
                       if :i64
                         cond:
@@ -252,7 +252,7 @@
                         arg0:
                           by_beta :MutableMap<Status, i64>!
                         arg1:
-                          int(1000) :u16
+                          int(0) :u8
                     ~>
                       if :i64
                         cond:
@@ -278,11 +278,21 @@
   fn snippet$as_int__snippet_alpha_Status(v: Status) -> i64
     ~>
       cast → i64
-        v :Status
+        add :i64
+          l:
+            cast → i64
+              v :Status
+          r:
+            int(404) :i64
   fn snippet$as_int__snippet_beta_Status(v: Status) -> i64
     ~>
       cast → i64
-        v :Status
+        add :i64
+          l:
+            cast → i64
+              v :Status
+          r:
+            int(1000) :i64
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

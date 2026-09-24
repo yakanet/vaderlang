@@ -1,208 +1,311 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 primitive u8
+type 2 ref _
 type 3 primitive i64
-type 4 primitive string
-type 5 primitive usize
-type 6 struct std_core$Buffer {  }
-type 7 primitive u64
-type 8 array 2
-type 9 primitive void
-type 10 struct std_collections$MutableMap__Status__i64 { ekeys:8,evals:12,index:13,mask:5,size:5,tombs:5 }
-type 11 union 3,0
-type 12 array 3
-type 13 array 1
-type 14 primitive isize
+type 4 primitive u8
+type 5 primitive string
+type 6 primitive bool
+type 7 primitive usize
+type 8 struct std_core$Buffer {  }
+type 9 primitive u64
+type 10 array 4
+type 11 primitive void
+type 12 struct std_collections$MutableMap__HttpStatus__string { ekeys:10,evals:14,index:15,mask:7,size:7,tombs:7 }
+type 13 union 0,5
+type 14 array 5
+type 15 array 1
+type 16 primitive isize
+type 17 primitive u16
+type 18 array 17
 string 0 " "
-string 1 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=4 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=8 param_types=4 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 ByteAccess
-impl 10 Index
-impl 10 IndexSet
-impl 10 Contains
-impl 10 Into
+string 1 "gone"
+string 2 "here"
+string 3 "?"
+string 4 "/"
+string 5 "true"
+string 6 "false"
+string 7 "\n"
+data 0 u16 hex"c8009401f701"
+import 0 byte_len std_core$byte_len result_type=7 param_types=5 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=10 param_types=5 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=1,10,7 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 8 ByteAccess
+impl 12 Index
+impl 12 IndexSet
+impl 12 Contains
+impl 12 Into
 export main 0
 
 fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $call_6 i64
-  local $arr_15 ref
-  local $arr_16 ref
-  local $arr_24 ref
-  local __coalesce_2 any
-  i64.const 41
-  call 4   ; std_core$new_byte_buffer
+  local s u8
+  local $eq_34 bool
+  local $arr_38 ref
+  local $arr_39 ref
+  local __p_6 string
+  local __coalesce_4 any
+  local __p_7 string
+  local $call_65 usize
+  local $cast_79 u64
+  i64.const 62
+  call 6   ; std_core$new_byte_buffer
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
-  i32.const 0
-  call 1   ; snippet$as_int__snippet_alpha_Status
+  i32.const 2
+  call 2   ; snippet$as_int__snippet_HttpStatus
   local.set 2   ; $call_6
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $call_6
-  call 7   ; std_core$write_int
+  call 9   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 0   ; " "
-  call 6   ; std_core$write_string_at
+  call 8   ; std_core$write_string_at
   local.set 1   ; __off_1
-  i32.const 0
-  call 2   ; snippet$as_int__snippet_beta_Status
+  i32.const 1
+  call 3   ; snippet$as_int__snippet_Level
   local.set 2   ; $call_6
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $call_6
-  call 7   ; std_core$write_int
+  call 9   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 5   ; std_core$finish_buffer
-  call 21   ; std_io$println__string
-  array.new 8 0   ; u8[][]
-  local.set 0   ; __buf_0
-  array.new 12 0   ; i64[][]
-  local.set 3   ; $arr_15
-  array.new 13 0   ; i32[][]
-  local.set 4   ; $arr_16
-  local.get 0   ; __buf_0
-  local.get 3   ; $arr_15
-  local.get 4   ; $arr_16
-  i64.const 0
-  i64.const 0
-  i64.const 0
-  struct.new 10   ; std_collections$MutableMap__Status__i64
-  local.set 0   ; __buf_0
-  array.new 8 0   ; u8[][]
-  local.set 3   ; $arr_15
-  array.new 12 0   ; i64[][]
-  local.set 4   ; $arr_16
-  array.new 13 0   ; i32[][]
-  local.set 5   ; $arr_24
-  local.get 3   ; $arr_15
-  local.get 4   ; $arr_16
-  local.get 5   ; $arr_24
-  i64.const 0
-  i64.const 0
-  i64.const 0
-  struct.new 10   ; std_collections$MutableMap__Status__i64
-  local.set 3   ; $arr_15
-  local.get 0   ; __buf_0
-  i32.const 1
-  i64.const 405
-  call 10   ; std_collections$MutableMap$IndexSet$set_at__snippet_alpha_Status__i64
-  local.get 3   ; $arr_15
-  i32.const 1
-  i64.const 1001
-  call 12   ; std_collections$MutableMap$IndexSet$set_at__snippet_beta_Status__i64
-  i32.const 0
-  call 2   ; snippet$as_int__snippet_beta_Status
+  string.const 0   ; " "
+  call 8   ; std_core$write_string_at
+  local.set 1   ; __off_1
+  i32.const 9
+  call 1   ; snippet$as_int__Color
   local.set 2   ; $call_6
-  local.get 3   ; $arr_15
-  i32.const 0
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
   local.get 2   ; $call_6
-  call 12   ; std_collections$MutableMap$IndexSet$set_at__snippet_beta_Status__i64
-  i64.const 62
-  call 4   ; std_core$new_byte_buffer
-  local.set 4   ; $arr_16
-  i64.const 0
+  call 9   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  call 7   ; std_core$finish_buffer
+  call 24   ; std_io$println__string
   i32.const 1
-  call 9   ; std_collections$MutableMap$Index$at__snippet_alpha_Status__i64
-  local.tee 6   ; __coalesce_2
+  i32.const 7
+  call 4   ; snippet$pair__snippet_HttpStatus__Any
+  call 24   ; std_io$println__string
+  i32.const 0
+  local.set 3   ; s
+  i64.const 26
+  call 6   ; std_core$new_byte_buffer
+  local.set 0   ; __buf_0
+  i64.const 0
+  local.set 1   ; __off_1
+  local.get 3   ; s
+  call 2   ; snippet$as_int__snippet_HttpStatus
+  local.set 2   ; $call_6
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  local.get 2   ; $call_6
+  call 9   ; std_core$write_int
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  string.const 0   ; " "
+  call 8   ; std_core$write_string_at
+  local.set 1   ; __off_1
+  local.get 3   ; s
+  i32.const 0
+  i32.eq
+  local.set 4   ; $eq_34
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  local.get 4   ; $eq_34
+  call 11   ; std_core$write_bool
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  call 7   ; std_core$finish_buffer
+  call 24   ; std_io$println__string
+  array.new 10 0   ; u8[][]
+  local.set 0   ; __buf_0
+  array.new 14 0   ; string[][]
+  local.set 5   ; $arr_38
+  array.new 15 0   ; i32[][]
+  local.set 6   ; $arr_39
+  local.get 0   ; __buf_0
+  local.get 5   ; $arr_38
+  local.get 6   ; $arr_39
+  i64.const 0
+  i64.const 0
+  i64.const 0
+  struct.new 12   ; std_collections$MutableMap__HttpStatus__string
+  local.tee 0   ; __buf_0
+  i32.const 1
+  string.const 1   ; "gone"
+  call 14   ; std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string
+  local.get 0   ; __buf_0
+  i32.const 0
+  string.const 2   ; "here"
+  call 14   ; std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string
+  local.get 0   ; __buf_0
+  i32.const 1
+  call 13   ; std_collections$MutableMap$Index$at__snippet_HttpStatus__string
+  local.tee 8   ; __coalesce_4
   type_check 0   ; null
   if $L0 void
-    i64.const 1
-    i64.neg
-    local.set 2   ; $call_6
+    string.const 3   ; "?"
+    local.set 7   ; __p_6
   else
-    local.get 6   ; __coalesce_2
-    ref.cast 3   ; -> i64
-    local.set 2   ; $call_6
+    local.get 8   ; __coalesce_4
+    ref.cast 5   ; -> string
+    local.set 7   ; __p_6
   end $L0
-  local.get 4   ; $arr_16
-  local.get 1   ; __off_1
-  local.get 2   ; $call_6
-  call 7   ; std_core$write_int
-  local.set 1   ; __off_1
-  local.get 4   ; $arr_16
-  local.get 1   ; __off_1
-  string.const 0   ; " "
-  call 6   ; std_core$write_string_at
-  local.set 1   ; __off_1
-  local.get 3   ; $arr_15
-  i32.const 1
-  call 11   ; std_collections$MutableMap$Index$at__snippet_beta_Status__i64
-  local.tee 6   ; __coalesce_2
+  local.get 0   ; __buf_0
+  i32.const 0
+  call 13   ; std_collections$MutableMap$Index$at__snippet_HttpStatus__string
+  local.tee 8   ; __coalesce_4
   type_check 0   ; null
   if $L1 void
-    i64.const 1
-    i64.neg
-    local.set 2   ; $call_6
+    string.const 3   ; "?"
+    local.set 9   ; __p_7
   else
-    local.get 6   ; __coalesce_2
-    ref.cast 3   ; -> i64
-    local.set 2   ; $call_6
+    local.get 8   ; __coalesce_4
+    ref.cast 5   ; -> string
+    local.set 9   ; __p_7
   end $L1
-  local.get 4   ; $arr_16
-  local.get 1   ; __off_1
-  local.get 2   ; $call_6
-  call 7   ; std_core$write_int
+  local.get 7   ; __p_6
+  call.import 0   ; std_core$byte_len
   local.set 1   ; __off_1
-  local.get 4   ; $arr_16
+  local.get 9   ; __p_7
+  call.import 0   ; std_core$byte_len
+  local.set 10   ; $call_65
+  local.get 1   ; __off_1
+  local.get 10   ; $call_65
+  i64.add
+  local.set 1   ; __off_1
+  i64.const 22
+  local.get 1   ; __off_1
+  i64.add
+  call 6   ; std_core$new_byte_buffer
+  local.set 5   ; $arr_38
+  i64.const 0
+  local.set 1   ; __off_1
+  local.get 5   ; $arr_38
+  local.get 1   ; __off_1
+  local.get 7   ; __p_6
+  call 8   ; std_core$write_string_at
+  local.set 1   ; __off_1
+  local.get 5   ; $arr_38
   local.get 1   ; __off_1
   string.const 0   ; " "
-  call 6   ; std_core$write_string_at
+  call 8   ; std_core$write_string_at
   local.set 1   ; __off_1
-  local.get 3   ; $arr_15
-  i32.const 0
-  call 11   ; std_collections$MutableMap$Index$at__snippet_beta_Status__i64
-  local.tee 6   ; __coalesce_2
-  type_check 0   ; null
-  if $L2 void
-    i64.const 1
-    i64.neg
-    local.set 2   ; $call_6
-  else
-    local.get 6   ; __coalesce_2
-    ref.cast 3   ; -> i64
-    local.set 2   ; $call_6
-  end $L2
-  local.get 4   ; $arr_16
+  local.get 5   ; $arr_38
   local.get 1   ; __off_1
-  local.get 2   ; $call_6
-  call 7   ; std_core$write_int
+  local.get 9   ; __p_7
+  call 8   ; std_core$write_string_at
   local.set 1   ; __off_1
-  local.get 4   ; $arr_16
+  local.get 5   ; $arr_38
   local.get 1   ; __off_1
-  call 5   ; std_core$finish_buffer
-  call 21   ; std_io$println__string
+  string.const 0   ; " "
+  call 8   ; std_core$write_string_at
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  call 21   ; std_collections$len__snippet_HttpStatus__string
+  usize.to_i64
+  local.set 11   ; $cast_79
+  local.get 5   ; $arr_38
+  local.get 1   ; __off_1
+  local.get 11   ; $cast_79
+  call 10   ; std_core$write_unsigned
+  local.set 1   ; __off_1
+  local.get 5   ; $arr_38
+  local.get 1   ; __off_1
+  call 7   ; std_core$finish_buffer
+  call 24   ; std_io$println__string
   return.lit i32.const 0
 end
 
-fn 1 snippet$as_int__snippet_alpha_Status (u8) -> i64
+fn 1 snippet$as_int__Color (any) -> i64
+  local.get 0   ; arg 0
+  ref.cast 3   ; -> i64
+  return
+end
+
+fn 2 snippet$as_int__snippet_HttpStatus (u8) -> i64
+  local $data_const_1 ref
+  local $cast_2 i64
+  data.const 0 18   ; pool[0] : u16[]
+  local.set 1   ; $data_const_1
   local.get 0   ; arg 0
   u8.to_i64
-  i64.const 404
+  local.set 2   ; $cast_2
+  local.get 1   ; $data_const_1
+  local.get 2   ; $cast_2
+  array.get 18   ; u16[][]
+  ref.cast 17   ; -> u16
+  u16.to_i64
+  return
+end
+
+fn 3 snippet$as_int__snippet_Level (u8) -> i64
+  local.get 0   ; arg 0
+  u8.to_i64
+  i64.const 1
   i64.add
   return
 end
 
-fn 2 snippet$as_int__snippet_beta_Status (u8) -> i64
+fn 4 snippet$pair__snippet_HttpStatus__Any (u8,any) -> string
+  local __buf_0 ref
+  local __off_1 usize
+  local $data_const_7 ref
+  local $cast_8 i64
+  i64.const 41
+  call 6   ; std_core$new_byte_buffer
+  local.set 2   ; __buf_0
+  i64.const 0
+  local.set 3   ; __off_1
+  data.const 0 18   ; pool[0] : u16[]
+  local.set 4   ; $data_const_7
   local.get 0   ; arg 0
   u8.to_i64
-  i64.const 1000
-  i64.add
+  local.set 5   ; $cast_8
+  local.get 4   ; $data_const_7
+  local.get 5   ; $cast_8
+  array.get 18   ; u16[][]
+  ref.cast 17   ; -> u16
+  u16.to_i64
+  local.set 5   ; $cast_8
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_8
+  call 9   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  string.const 4   ; "/"
+  call 8   ; std_core$write_string_at
+  local.set 3   ; __off_1
+  local.get 1   ; arg 1
+  ref.cast 3   ; -> i64
+  local.set 5   ; $cast_8
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  local.get 5   ; $cast_8
+  call 9   ; std_core$write_int
+  local.set 3   ; __off_1
+  local.get 2   ; __buf_0
+  local.get 3   ; __off_1
+  call 7   ; std_core$finish_buffer
   return
 end
 
-fn 3 concat_2 (string,string) -> string
+fn 5 concat_2 (string,string) -> string
   local c0 usize
   local $call_4 usize
   local buf ref
@@ -216,40 +319,40 @@ fn 3 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  call 22   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 25   ; std_core$usize$BufferAlloc$new_buffer_vt
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 25   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 28   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 25   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 28   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 4   ; buf
   local.get 3   ; $call_4
-  call 24   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 27   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 4 std_core$new_byte_buffer (usize) -> ref
+fn 6 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
-  call 22   ; std_core$usize$BufferAlloc$new_buffer_vt
+  call 25   ; std_core$usize$BufferAlloc$new_buffer_vt
   return
 end
 
-fn 5 std_core$finish_buffer (ref,usize) -> string
+fn 7 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 24   ; std_core$Buffer$ByteAccess$intern_string_vt
+  call 27   ; std_core$Buffer$ByteAccess$intern_string_vt
   return
 end
 
-fn 6 std_core$write_string_at (ref,usize,string) -> usize
+fn 8 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 25   ; std_core$Buffer$ByteAccess$write_string_vt
+  call 28   ; std_core$Buffer$ByteAccess$write_string_vt
   local.get 2   ; arg 2
   call.import 0   ; std_core$byte_len
   local.set 3   ; $call_3
@@ -259,7 +362,7 @@ fn 6 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 7 std_core$write_int (ref,usize,i64) -> usize
+fn 9 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -273,7 +376,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 48
-    call 23   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 26   ; std_core$Buffer$ByteAccess$store_u8_vt
     local.get 1   ; arg 1
     i64.const 1
     i64.add
@@ -350,7 +453,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
         local.get 0   ; arg 0
         local.get 4   ; ndigits
         local.get 8   ; $add_37
-        call 23   ; std_core$Buffer$ByteAccess$store_u8_vt
+        call 26   ; std_core$Buffer$ByteAccess$store_u8_vt
         local.get 2   ; arg 2
         i64.const 10
         i64.div
@@ -364,7 +467,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 45
-    call 23   ; std_core$Buffer$ByteAccess$store_u8_vt
+    call 26   ; std_core$Buffer$ByteAccess$store_u8_vt
   end $L9
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -372,43 +475,126 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 8 std_core$u8$Hash$hash (u8) -> u64
+fn 10 std_core$write_unsigned (ref,usize,u64) -> usize
+  local ndigits usize
+  local m u64
+  local i usize
+  local $cast_26 u8
+  local $add_27 u8
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.eq
+  if $L0 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 48
+    call 26   ; std_core$Buffer$ByteAccess$store_u8_vt
+    local.get 1   ; arg 1
+    i64.const 1
+    i64.add
+    return
+  end $L0
+  i64.const 0
+  local.set 3   ; ndigits
+  local.get 2   ; arg 2
+  local.set 4   ; m
+  block $L1 void
+    loop $L2 void
+      local.get 4   ; m
+      i64.const 0
+      i64.ne
+      if $L3 void
+        local.get 3   ; ndigits
+        i64.const 1
+        i64.add
+        local.set 3   ; ndigits
+        local.get 4   ; m
+        i64.const 10
+        u64.div
+        local.set 4   ; m
+        br $L2
+      end $L3
+    end $L2
+  end $L1
+  local.get 1   ; arg 1
+  local.get 3   ; ndigits
+  i64.add
+  local.set 5   ; i
+  block $L4 void
+    loop $L5 void
+      local.get 2   ; arg 2
+      i64.const 0
+      i64.ne
+      if $L6 void
+        local.get 5   ; i
+        i64.const 1
+        i64.sub
+        local.set 5   ; i
+        local.get 2   ; arg 2
+        i64.const 10
+        u64.rem
+        u64.to_i32
+        local.set 6   ; $cast_26
+        i32.const 48
+        local.get 6   ; $cast_26
+        i32.add
+        local.set 7   ; $add_27
+        local.get 0   ; arg 0
+        local.get 5   ; i
+        local.get 7   ; $add_27
+        call 26   ; std_core$Buffer$ByteAccess$store_u8_vt
+        local.get 2   ; arg 2
+        i64.const 10
+        u64.div
+        local.set 2   ; arg 2
+        br $L5
+      end $L6
+    end $L5
+  end $L4
+  local.get 1   ; arg 1
+  local.get 3   ; ndigits
+  i64.add
+  return
+end
+
+fn 11 std_core$write_bool (ref,usize,bool) -> usize
+  local.get 2   ; arg 2
+  if $L0 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    string.const 5   ; "true"
+    call 8   ; std_core$write_string_at
+    return
+  end $L0
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  string.const 6   ; "false"
+  call 8   ; std_core$write_string_at
+  return
+end
+
+fn 12 std_core$u8$Hash$hash (u8) -> u64
   local.get 0   ; arg 0
   u8.to_i64
   return
 end
 
-fn 9 std_collections$MutableMap$Index$at__snippet_alpha_Status__i64 (ref,u8) -> any
+fn 13 std_collections$MutableMap$Index$at__snippet_HttpStatus__string (ref,u8) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 18   ; std_collections$get__Status__i64
+  call 20   ; std_collections$get__HttpStatus__string
   return
 end
 
-fn 10 std_collections$MutableMap$IndexSet$set_at__snippet_alpha_Status__i64 (ref,u8,i64) -> void
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  local.get 2   ; arg 2
-  call 17   ; std_collections$put__Status__i64
-  return
-end
-
-fn 11 std_collections$MutableMap$Index$at__snippet_beta_Status__i64 (ref,u8) -> any
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 18   ; std_collections$get__Status__i64
-  return
-end
-
-fn 12 std_collections$MutableMap$IndexSet$set_at__snippet_beta_Status__i64 (ref,u8,i64) -> void
+fn 14 std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string (ref,u8,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 17   ; std_collections$put__Status__i64
+  call 19   ; std_collections$put__HttpStatus__string
   return
 end
 
-fn 13 std_collections$slot_for (u64,usize) -> usize
+fn 15 std_collections$slot_for (u64,usize) -> usize
   local.get 0   ; arg 0
   u64.to_i64
   local.get 1   ; arg 1
@@ -416,15 +602,15 @@ fn 13 std_collections$slot_for (u64,usize) -> usize
   return
 end
 
-fn 14 std_collections$ensure_index__snippet_alpha_Status__i64 (ref) -> void
+fn 16 std_collections$ensure_index__snippet_HttpStatus__string (ref) -> void
   local idx ref
   local __for_discard_0 usize
-  local.field 0 10 2   ; arg 0.index
+  local.field 0 12 2   ; arg 0.index
   array.len
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 13 0   ; i32[][]
+    array.new 15 0   ; i32[][]
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -447,24 +633,24 @@ fn 14 std_collections$ensure_index__snippet_alpha_Status__i64 (ref) -> void
     end $L1
     local.get 0   ; arg 0
     local.get 1   ; idx
-    struct.set 10 2   ; std_collections$MutableMap__Status__i64.index
+    struct.set 12 2   ; std_collections$MutableMap__HttpStatus__string.index
     i64.const 15
     local.set 2   ; __for_discard_0
     local.get 0   ; arg 0
     local.get 2   ; __for_discard_0
-    struct.set 10 3   ; std_collections$MutableMap__Status__i64.mask
+    struct.set 12 3   ; std_collections$MutableMap__HttpStatus__string.mask
   end $L0
   return
 end
 
-fn 15 std_collections$rehash__Status__i64 (ref,usize) -> void
+fn 17 std_collections$rehash__HttpStatus__string (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
   local e usize
   local $field_15 usize
   local s usize
   local $cast_30 i32
-  array.new 13 0   ; i32[][]
+  array.new 15 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -493,19 +679,19 @@ fn 15 std_collections$rehash__Status__i64 (ref,usize) -> void
   local.set 4   ; e
   block $L3 void
     loop $L4 void
-      local.field 0 10 4   ; arg 0.size
-      ref.cast 5   ; -> usize
+      local.field 0 12 4   ; arg 0.size
+      ref.cast 7   ; -> usize
       local.set 5   ; $field_15
       local.get 4   ; e
       local.get 5   ; $field_15
       u64.lt
       if $L5 void
-        local.field 0 10 0   ; arg 0.ekeys
+        local.field 0 12 0   ; arg 0.ekeys
         local.get 4   ; e
-        array.get 8   ; u8[][]
-        call 8   ; std_core$u8$Hash$hash
+        array.get 10   ; u8[][]
+        call 12   ; std_core$u8$Hash$hash
         local.get 3   ; __for_discard_0
-        call 13   ; std_collections$slot_for
+        call 15   ; std_collections$slot_for
         local.set 6   ; s
         block $L6 void
           loop $L7 void
@@ -544,60 +730,60 @@ fn 15 std_collections$rehash__Status__i64 (ref,usize) -> void
   end $L3
   local.get 0   ; arg 0
   local.get 2   ; fresh
-  struct.set 10 2   ; std_collections$MutableMap__Status__i64.index
+  struct.set 12 2   ; std_collections$MutableMap__HttpStatus__string.index
   local.get 0   ; arg 0
   local.get 3   ; __for_discard_0
-  struct.set 10 3   ; std_collections$MutableMap__Status__i64.mask
+  struct.set 12 3   ; std_collections$MutableMap__HttpStatus__string.mask
   local.get 0   ; arg 0
   i64.const 0
-  struct.set 10 5   ; std_collections$MutableMap__Status__i64.tombs
+  struct.set 12 5   ; std_collections$MutableMap__HttpStatus__string.tombs
   return
 end
 
-fn 16 std_collections$write_entry__snippet_alpha_Status__i64 (ref,u8,i64) -> void
+fn 18 std_collections$write_entry__snippet_HttpStatus__string (ref,u8,string) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 12 4   ; arg 0.size
+  ref.cast 7   ; -> usize
   local.set 3   ; $field_3
-  local.field 0 10 0   ; arg 0.ekeys
+  local.field 0 12 0   ; arg 0.ekeys
   array.len
   local.set 4   ; $len_5
   local.get 3   ; $field_3
   local.get 4   ; $len_5
   u64.lt
   if $L0 void
-    local.field 0 10 0   ; arg 0.ekeys
+    local.field 0 12 0   ; arg 0.ekeys
     local.set 5   ; $field_7
-    local.field 0 10 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 12 4   ; arg 0.size
+    ref.cast 7   ; -> usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 1   ; arg 1
-    array.set 8   ; u8[][]
-    local.field 0 10 1   ; arg 0.evals
+    array.set 10   ; u8[][]
+    local.field 0 12 1   ; arg 0.evals
     local.set 5   ; $field_7
-    local.field 0 10 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 12 4   ; arg 0.size
+    ref.cast 7   ; -> usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 2   ; arg 2
-    store_slot_i64
+    array.set 14   ; string[][]
   else
-    local.field 0 10 0   ; arg 0.ekeys
+    local.field 0 12 0   ; arg 0.ekeys
     local.get 1   ; arg 1
-    array.push 2   ; u8[]
-    local.field 0 10 1   ; arg 0.evals
+    array.push 4   ; u8[]
+    local.field 0 12 1   ; arg 0.evals
     local.get 2   ; arg 2
-    array.push 3   ; i64[]
+    array.push 5   ; string[]
   end $L0
   return
 end
 
-fn 17 std_collections$put__Status__i64 (ref,u8,i64) -> void
+fn 19 std_collections$put__HttpStatus__string (ref,u8,string) -> void
   local $field_3 usize
   local $field_4 usize
   local $mul_24 usize
@@ -607,12 +793,12 @@ fn 17 std_collections$put__Status__i64 (ref,u8,i64) -> void
   local $field_69 ref
   local $cast_73 i32
   local.get 0   ; arg 0
-  call 14   ; std_collections$ensure_index__snippet_alpha_Status__i64
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  call 16   ; std_collections$ensure_index__snippet_HttpStatus__string
+  local.field 0 12 4   ; arg 0.size
+  ref.cast 7   ; -> usize
   local.set 3   ; $field_3
-  local.field 0 10 5   ; arg 0.tombs
-  ref.cast 5   ; -> usize
+  local.field 0 12 5   ; arg 0.tombs
+  ref.cast 7   ; -> usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -622,8 +808,8 @@ fn 17 std_collections$put__Status__i64 (ref,u8,i64) -> void
   i64.const 4
   i64.mul
   local.set 3   ; $field_3
-  local.field 0 10 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 12 3   ; arg 0.mask
+  ref.cast 7   ; -> usize
   i64.const 1
   i64.add
   i64.const 3
@@ -637,8 +823,8 @@ fn 17 std_collections$put__Status__i64 (ref,u8,i64) -> void
     local.set 3   ; $field_3
     block $L1 void
       loop $L2 void
-        local.field 0 10 4   ; arg 0.size
-        ref.cast 5   ; -> usize
+        local.field 0 12 4   ; arg 0.size
+        ref.cast 7   ; -> usize
         i64.const 1
         i64.add
         i64.const 4
@@ -662,30 +848,30 @@ fn 17 std_collections$put__Status__i64 (ref,u8,i64) -> void
     end $L1
     local.get 0   ; arg 0
     local.get 3   ; $field_3
-    call 15   ; std_collections$rehash__Status__i64
+    call 17   ; std_collections$rehash__HttpStatus__string
   end $L0
   local.get 1   ; arg 1
-  call 8   ; std_core$u8$Hash$hash
+  call 12   ; std_core$u8$Hash$hash
   local.set 6   ; $call_28
-  local.field 0 10 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 12 3   ; arg 0.mask
+  ref.cast 7   ; -> usize
   local.set 3   ; $field_3
   local.get 6   ; $call_28
   local.get 3   ; $field_3
-  call 13   ; std_collections$slot_for
+  call 15   ; std_collections$slot_for
   local.set 3   ; $field_3
   i64.const 1
   i64.neg
   local.set 7   ; first_tomb
   block $L4 void
     loop $L5 void
-      local.field 0 10 2   ; arg 0.index
+      local.field 0 12 2   ; arg 0.index
       local.get 3   ; $field_3
       load_slot_i32
       i32.const 0
       i32.ne
       if $L6 void
-        local.field 0 10 2   ; arg 0.index
+        local.field 0 12 2   ; arg 0.index
         local.get 3   ; $field_3
         load_slot_i32
         i32.const -1
@@ -700,23 +886,23 @@ fn 17 std_collections$put__Status__i64 (ref,u8,i64) -> void
             local.set 7   ; first_tomb
           end $L8
         else
-          local.field 0 10 2   ; arg 0.index
+          local.field 0 12 2   ; arg 0.index
           local.get 3   ; $field_3
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; $field_4
-          local.field 0 10 0   ; arg 0.ekeys
+          local.field 0 12 0   ; arg 0.ekeys
           local.get 4   ; $field_4
-          array.get 8   ; u8[][]
+          array.get 10   ; u8[][]
           local.get 1   ; arg 1
           i32.eq
           if $L9 void
-            local.field 0 10 1   ; arg 0.evals
+            local.field 0 12 1   ; arg 0.evals
             local.get 4   ; $field_4
             local.get 2   ; arg 2
-            store_slot_i64
+            array.set 14   ; string[][]
             return
           end $L9
         end $L7
@@ -724,8 +910,8 @@ fn 17 std_collections$put__Status__i64 (ref,u8,i64) -> void
         i64.const 1
         i64.add
         local.set 5   ; $mul_24
-        local.field 0 10 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 12 3   ; arg 0.mask
+        ref.cast 7   ; -> usize
         local.set 8   ; $field_58
         local.get 5   ; $mul_24
         local.get 8   ; $field_58
@@ -750,23 +936,23 @@ fn 17 std_collections$put__Status__i64 (ref,u8,i64) -> void
   i64.const 0
   i64.ge
   if $L11 void
-    local.field 0 10 5   ; arg 0.tombs
-    ref.cast 5   ; -> usize
+    local.field 0 12 5   ; arg 0.tombs
+    ref.cast 7   ; -> usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
     local.get 0   ; arg 0
     local.get 3   ; $field_3
-    struct.set 10 5   ; std_collections$MutableMap__Status__i64.tombs
+    struct.set 12 5   ; std_collections$MutableMap__HttpStatus__string.tombs
   end $L11
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 16   ; std_collections$write_entry__snippet_alpha_Status__i64
-  local.field 0 10 2   ; arg 0.index
+  call 18   ; std_collections$write_entry__snippet_HttpStatus__string
+  local.field 0 12 2   ; arg 0.index
   local.set 9   ; $field_69
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 12 4   ; arg 0.size
+  ref.cast 7   ; -> usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -775,24 +961,24 @@ fn 17 std_collections$put__Status__i64 (ref,u8,i64) -> void
   local.get 4   ; $field_4
   local.get 10   ; $cast_73
   store_slot_i32
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 12 4   ; arg 0.size
+  ref.cast 7   ; -> usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
   local.get 0   ; arg 0
   local.get 3   ; $field_3
-  struct.set 10 4   ; std_collections$MutableMap__Status__i64.size
+  struct.set 12 4   ; std_collections$MutableMap__HttpStatus__string.size
   return
 end
 
-fn 18 std_collections$get__Status__i64 (ref,u8) -> any
+fn 20 std_collections$get__HttpStatus__string (ref,u8) -> any
   local $call_7 u64
   local $field_8 usize
   local ei usize
   local $add_31 usize
   local $field_32 usize
-  local.field 0 10 2   ; arg 0.index
+  local.field 0 12 2   ; arg 0.index
   array.len
   i64.const 0
   i64.eq
@@ -802,46 +988,47 @@ fn 18 std_collections$get__Status__i64 (ref,u8) -> any
     return
   end $L0
   local.get 1   ; arg 1
-  call 8   ; std_core$u8$Hash$hash
+  call 12   ; std_core$u8$Hash$hash
   local.set 2   ; $call_7
-  local.field 0 10 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 12 3   ; arg 0.mask
+  ref.cast 7   ; -> usize
   local.set 3   ; $field_8
   local.get 2   ; $call_7
   local.get 3   ; $field_8
-  call 13   ; std_collections$slot_for
+  call 15   ; std_collections$slot_for
   local.set 3   ; $field_8
   block $L1 void
     loop $L2 void
-      local.field 0 10 2   ; arg 0.index
+      local.field 0 12 2   ; arg 0.index
       local.get 3   ; $field_8
       load_slot_i32
       i32.const 0
       i32.ne
       if $L3 void
-        local.field 0 10 2   ; arg 0.index
+        local.field 0 12 2   ; arg 0.index
         local.get 3   ; $field_8
         load_slot_i32
         i32.const -1
         i32.ne
         if $L4 void
-          local.field 0 10 2   ; arg 0.index
+          local.field 0 12 2   ; arg 0.index
           local.get 3   ; $field_8
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; ei
-          local.field 0 10 0   ; arg 0.ekeys
+          local.field 0 12 0   ; arg 0.ekeys
           local.get 4   ; ei
-          array.get 8   ; u8[][]
+          array.get 10   ; u8[][]
           local.get 1   ; arg 1
           i32.eq
           if $L5 void
-            local.field 0 10 1   ; arg 0.evals
+            local.field 0 12 1   ; arg 0.evals
             local.get 4   ; ei
-            load_slot_i64
-            box 3   ; -> i64
+            array.get 14   ; string[][]
+            ref.cast 5   ; -> string
+            box 5   ; -> string
             return
           end $L5
         end $L4
@@ -849,8 +1036,8 @@ fn 18 std_collections$get__Status__i64 (ref,u8) -> any
         i64.const 1
         i64.add
         local.set 5   ; $add_31
-        local.field 0 10 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 12 3   ; arg 0.mask
+        ref.cast 7   ; -> usize
         local.set 6   ; $field_32
         local.get 5   ; $add_31
         local.get 6   ; $field_32
@@ -865,7 +1052,13 @@ fn 18 std_collections$get__Status__i64 (ref,u8) -> any
   return
 end
 
-fn 19 std_io$write (u8,string) -> void
+fn 21 std_collections$len__snippet_HttpStatus__string (ref) -> usize
+  local.field 0 12 4   ; arg 0.size
+  ref.cast 7   ; -> usize
+  return
+end
+
+fn 22 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -896,14 +1089,14 @@ fn 19 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 10   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 20   ; std_io$write_bytes
+      call 23   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -923,7 +1116,7 @@ fn 19 std_io$write (u8,string) -> void
   return
 end
 
-fn 20 std_io$write_bytes (u8,ref,usize) -> i32
+fn 23 std_io$write_bytes (u8,ref,usize) -> i32
   local fd i32
   local.get 0   ; arg 0
   i32.const 0
@@ -943,25 +1136,25 @@ fn 20 std_io$write_bytes (u8,ref,usize) -> i32
   return
 end
 
-fn 21 std_io$println__string (string) -> void
+fn 24 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 1   ; "\n"
-  call 3   ; concat_2
+  string.const 7   ; "\n"
+  call 5   ; concat_2
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 19   ; std_io$write
+  call 22   ; std_io$write
   return
 end
 
-fn 22 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 25 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 23 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 26 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -969,14 +1162,14 @@ fn 23 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 24 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 27 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 25 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 28 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

@@ -16,12 +16,8 @@
                 on:
                   Code$data :Info[]
                 ix:
-                  sub :i64
-                    l:
-                      cast → i64
-                        c :Code
-                    r:
-                      int(0) :i64
+                  cast → i64
+                    c :Code
           arg1:
             ": " :string
           arg2:
@@ -30,12 +26,8 @@
                 on:
                   Code$data :Info[]
                 ix:
-                  sub :i64
-                    l:
-                      cast → i64
-                        c :Code
-                    r:
-                      int(0) :i64
+                  cast → i64
+                    c :Code
     call :void
       callee:
         std_io$println__string :void
@@ -45,12 +37,8 @@
             on:
               Code$data :Info[]
             ix:
-              sub :i64
-                l:
-                  cast → i64
-                    c :Code
-                r:
-                  int(0) :i64
+              cast → i64
+                c :Code
     let x: Info! =
       Info! {
         id: "a" :string

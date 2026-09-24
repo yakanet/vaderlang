@@ -354,6 +354,10 @@ emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredEx
     if source is EnumType && enum_data_of(source, type) != null {
         return lower_enum_data_slot(ctx, lower_expr(ctx, call.args[0].value), source, call.span)
     }
+    if source is EnumType && source.data != null && type !is EnumType {
+        value :: as_written_value(ctx, call.args[0].value, lower_expr(ctx, call.args[0].value))
+        return LoweredCast { .span = call.span, .type = type, .value = value }
+    }
     arg :: lower_expr(ctx, call.args[0].value)
     arg_type :: type_of(arg)
     // `Target(value)` probes for `value : Source` where

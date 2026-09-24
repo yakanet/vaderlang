@@ -1,0 +1,44 @@
+// An enum passed to a generic function. An enum with variant data stores its
+// variant's rank, not its written value, so an instance over one is kept
+// concrete instead of erased to `Any` : inside the body `i64(v)` still knows it
+// converts that enum and reads the written value. A plain enum stores its value
+// and stays erased. A map keyed by such an enum hashes and compares the stored
+// rank inside its kept-concrete instance.
+
+module "snippet"
+
+import "std/collections"
+import "std/io"
+
+StatusInfo :: struct {
+    reason: string
+}
+
+HttpStatus :: enum(StatusInfo) {
+    Ok          { .reason = "OK" }                  = 200,
+    NotFound    { .reason = "Not Found" }           = 404,
+    Unavailable { .reason = "Service Unavailable" } = 503,
+}
+
+Level :: enum(StatusInfo) {
+    Error   { .reason = "error" } = 1,
+    Warning { .reason = "warning" },
+}
+
+Color :: enum { Red = 7, Green = 9 }
+
+as_int :: fn<T>(v: T) -> i64 = i64(v)
+
+pair :: fn<A, B>(a: A, b: B) -> string = "${i64(a)}/${i64(b)}"
+
+main :: fn() -> i32 {
+    println("${as_int(HttpStatus.Unavailable)} ${as_int(Level.Warning)} ${as_int(Color.Green)}")
+    println(pair(HttpStatus.NotFound, Color.Red))
+    s :: HttpStatus.Ok
+    println("${as_int(s)} ${s == .Ok}")
+    reasons :: MutableMap<HttpStatus, string> {}
+    reasons[.NotFound] = "gone"
+    reasons[.Ok] = "here"
+    println("${reasons[.NotFound] ?? "?"} ${reasons[.Ok] ?? "?"} ${reasons.len()}")
+    return 0
+}

@@ -1,0 +1,42 @@
+// Enum variant data with written values : the enum stores its variant's rank,
+// the data table is indexed by it, and a conversion to an integer reads the
+// written value back — folded for a constant, `rank + first` for consecutive
+// values, a read of the value table otherwise.
+
+module "snippet"
+
+import "std/io"
+
+StatusInfo :: struct {
+    reason: string
+}
+
+HttpStatus :: enum(StatusInfo) {
+    Ok          { .reason = "OK" }                  = 200,
+    NotFound    { .reason = "Not Found" }           = 404,
+    Unavailable { .reason = "Service Unavailable" } = 503,
+}
+
+Level :: enum(StatusInfo) {
+    Error   { .reason = "error" }   = 1,
+    Warning { .reason = "warning" },
+    Info    { .reason = "info" },
+}
+
+describe :: fn(s: HttpStatus) -> string = match s {
+    .Ok          -> "fine"
+    .NotFound    -> "missing"
+    .Unavailable -> "later"
+}
+
+main :: fn() -> i32 {
+    statuses :: [HttpStatus.Ok, HttpStatus.NotFound, HttpStatus.Unavailable]
+    for s in statuses {
+        println("${i32(s)} ${s} ${s.reason} ${describe(s)}")
+    }
+    for level in [Level.Error, Level.Warning, Level.Info] {
+        println("${i32(level)} ${level.reason}")
+    }
+    println("${i32(HttpStatus.NotFound)} ${statuses[1] == .NotFound} ${@size_of(HttpStatus)}")
+    return 0
+}

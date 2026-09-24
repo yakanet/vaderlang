@@ -271,19 +271,19 @@ fn 0 snippet$main () -> i32
   i64.const 0
   struct.new 22   ; std_collections$MutableMap__HttpStatus__string
   local.tee 1   ; __buf_0
-  i32.const 2
+  i32.const 1
   string.const 1   ; "gone"
   call 22   ; std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string
   local.get 1   ; __buf_0
-  i32.const 1
+  i32.const 0
   string.const 2   ; "here"
   call 22   ; std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string
   local.get 1   ; __buf_0
-  i32.const 2
+  i32.const 1
   string.const 3   ; "missing"
   call 22   ; std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string
   local.get 1   ; __buf_0
-  i32.const 2
+  i32.const 1
   call 21   ; std_collections$MutableMap$Index$at__snippet_HttpStatus__string
   local.tee 6   ; __coalesce_2
   type_check 0   ; null
@@ -296,7 +296,7 @@ fn 0 snippet$main () -> i32
     local.set 9   ; __p_9
   end $L3
   local.get 1   ; __buf_0
-  i32.const 1
+  i32.const 0
   call 21   ; std_collections$MutableMap$Index$at__snippet_HttpStatus__string
   local.tee 6   ; __coalesce_2
   type_check 0   ; null

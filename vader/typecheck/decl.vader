@@ -569,8 +569,16 @@ validate_mirror_fields :: fn(
             }
             continue
         }
-        // An enum crosses as its repr, which the shim assigns like any integer.
+        // An enum crosses as its repr, which the shim assigns like any integer —
+        // except one with variant data, whose stored integer is a rank C knows
+        // nothing about.
         if fty is EnumType {
+            if fty.data != null {
+                diags.push(typecheck_error(
+                    .InvalidExternDecl, span,
+                    "field `${f.name}` of `@c_struct` `${sd.name}` is an enum with variant data — it stores a rank, not the value C expects",
+                ))
+            }
             continue
         }
         if !is_unmarshalled_scalar(fty, false) {
@@ -1264,25 +1272,52 @@ lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | nul
 /// @param sym       the enum's symbol.
 /// @param decl      the declaration as parsed.
 /// @param resolved  the module's resolution, for the header's type names.
-/// @param diags     receives T3029, T3030, T3031, T3084 and T3086.
+/// @param diags     receives T3029, T3030, T3031 and T3084.
 /// @return          the enum type ; a malformed header still yields one,
 ///                  backed by `i32`, so the rest of the module keeps checking.
 export build_enum_type :: fn(
     sym: Symbol, decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[]!,
 ) -> Type {
     header :: classify_enum_header(decl, resolved, diags)
+    if header.data != null {
+        return build_data_enum_type(sym, decl, header, diags)
+    }
     // Without a written width, the enum takes the narrowest one its values
     // fit ; `i64` admits every value while they are collected.
     indices :: resolve_enum_indices(decl, header.repr ?? "i64", diags)
-    [lo, hi] :: index_bounds(indices)
-    if header.data != null {
-        check_consecutive_values(decl, indices, lo, diags)
+    [smallest, largest] :: value_bounds(indices.values())
+    return EnumType {
+        .symbol  = sym,
+        .repr    = header.repr ?? narrowest_width(smallest, largest),
+        .indices = indices,
+    }
+}
+
+// An enum with variant data stores its variant's RANK, which indexes the data
+// table directly ; the written values move to `values`, read by a conversion
+// to an integer. The width, written or inferred, holds the ranks.
+build_data_enum_type :: fn(
+    sym: Symbol, decl: AST.EnumDecl, header: EnumHeader, diags: Diagnostic[]!,
+) -> EnumType {
+    written :: resolve_enum_indices(decl, "i64", diags)
+    ranks :: MutableMap<string, i64> {}
+    values: i64[]!: []
+    for variant in decl.variants {
+        rank :: i64(values.len())
+        ranks[variant.name] = rank
+        values.push(written[variant.name] ?? rank)
+    }
+    last_rank :: if values.len() > 0 { i64(values.len()) - 1 } else { 0 }
+    if header.repr != null && !repr_range(header.repr).contains(last_rank) {
+        diags.push(typecheck_error(.EnumVariantValueOutOfRange, decl.span,
+            "${values.len()} variants do not fit `${header.repr}`"))
     }
     return EnumType {
         .symbol  = sym,
-        .repr    = header.repr ?? narrowest_repr(lo, hi),
-        .indices = indices,
+        .repr    = header.repr ?? narrowest_width(0, last_rank),
+        .indices = ranks,
         .data    = header.data,
+        .values  = values,
     }
 }
 

@@ -28,51 +28,45 @@ export main 0
 fn 0 snippet$main () -> i32
   local c u8
   local $data_const_2 ref
-  local $sub_5 i64
-  local $field_7 string
-  local $field_14 string
+  local $cast_3 i64
+  local $field_5 string
+  local $field_10 string
   i32.const 1
   local.set 0   ; c
   data.const 0 10   ; pool[0] : snippet_codes$Info[]
   local.set 1   ; $data_const_2
   local.get 0   ; c
   u8.to_i64
-  i64.const 0
-  i64.sub
-  local.set 2   ; $sub_5
+  local.set 2   ; $cast_3
   local.get 1   ; $data_const_2
-  local.get 2   ; $sub_5
+  local.get 2   ; $cast_3
   array.get 10   ; snippet_codes$Info[][]
   struct.get 8 0   ; snippet_codes$Info.id
   ref.cast 2   ; -> string
-  local.set 3   ; $field_7
+  local.set 3   ; $field_5
   data.const 0 10   ; pool[0] : snippet_codes$Info[]
   local.set 1   ; $data_const_2
   local.get 0   ; c
   u8.to_i64
-  i64.const 0
-  i64.sub
-  local.set 2   ; $sub_5
+  local.set 2   ; $cast_3
   local.get 1   ; $data_const_2
-  local.get 2   ; $sub_5
+  local.get 2   ; $cast_3
   array.get 10   ; snippet_codes$Info[][]
   struct.get 8 1   ; snippet_codes$Info.message
   ref.cast 2   ; -> string
-  local.set 4   ; $field_14
-  local.get 3   ; $field_7
+  local.set 4   ; $field_10
+  local.get 3   ; $field_5
   string.const 0   ; ": "
-  local.get 4   ; $field_14
+  local.get 4   ; $field_10
   call 1   ; concat_3
   call 5   ; std_io$println__string
   data.const 0 10   ; pool[0] : snippet_codes$Info[]
   local.set 1   ; $data_const_2
   local.get 0   ; c
   u8.to_i64
-  i64.const 0
-  i64.sub
-  local.set 2   ; $sub_5
+  local.set 2   ; $cast_3
   local.get 1   ; $data_const_2
-  local.get 2   ; $sub_5
+  local.get 2   ; $cast_3
   array.get 10   ; snippet_codes$Info[][]
   struct.get 8 0   ; snippet_codes$Info.id
   ref.cast 2   ; -> string

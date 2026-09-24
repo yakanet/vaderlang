@@ -226,7 +226,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
                 kinds.push(.Text)
             }
             is StringLitInterp -> {
-                inner :: lower_expr(ctx, part.expr)
+                inner :: as_written_value(ctx, part.expr, lower_expr(ctx, part.expr))
                 k :: classify_kind(type_of(inner))
                 if k == .Signed || k == .Unsigned || k == .Bool { has_direct = true }
                 values.push(inner)

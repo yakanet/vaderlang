@@ -1,0 +1,19 @@
+// A `@c_struct` field whose enum carries variant data — T3050.
+//
+// Such an enum stores its variant's rank, not the value written after `=`, so
+// C would read 1 where the source says 404.
+module "snippet"
+
+StatusInfo :: struct { reason: string }
+
+HttpStatus :: enum(StatusInfo) {
+    Ok       { .reason = "OK" }        = 200,
+    NotFound { .reason = "Not Found" } = 404,
+}
+
+@c_struct("struct reply")
+Reply :: struct { status: HttpStatus, n: i32 }
+
+@extern send :: fn(@c_pointer r: Reply) -> i32
+
+main :: fn() -> i32 { return 0 }

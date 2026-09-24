@@ -68,61 +68,38 @@ find_owner :: fn(out: MutableMap<string, i64>, target: i64) -> string {
     return "?"
 }
 
-// ---- inferred width and consecutive data ----------------------------------
+// ---- inferred width -------------------------------------------------------
 
-/// The narrowest integer holding every index in `[lo, hi]` : unsigned when
+/// The narrowest integer holding every index in `[smallest, largest]` : unsigned when
 /// none is negative.
-export narrowest_repr :: fn(lo: i64, hi: i64) -> string {
-    candidates :: if lo >= 0 { ["u8", "u16", "u32"] } else { ["i8", "i16", "i32"] }
+export narrowest_width :: fn(smallest: i64, largest: i64) -> string {
+    candidates :: if smallest >= 0 { ["u8", "u16", "u32"] } else { ["i8", "i16", "i32"] }
     for name in candidates {
         range :: repr_range(name)
-        if range.contains(lo) && range.contains(hi) {
+        if range.contains(smallest) && range.contains(largest) {
             return name
         }
     }
     // The 64-bit width holds every index the parser can carry.
-    return if lo >= 0 { "u64" } else { "i64" }
+    return if smallest >= 0 { "u64" } else { "i64" }
 }
 
-/// Report T3086 for each variant of an enum with variant data whose value has
-/// no variant just below it : the data is a table with one slot per variant,
-/// read at `value - lo`, so the values must be consecutive.
-///
-/// @param decl     the enum declaration, for the variants' spans.
-/// @param indices  the resolved variant values.
-/// @param lo       the smallest of them.
-/// @param diags    receives T3086.
-export check_consecutive_values :: fn(
-    decl: EnumDecl, indices: MutableMap<string, i64>, lo: i64, diags: Diagnostic[]!,
-) -> void {
-    values :: MutableSet<i64> {}
-    for [_, v] in indices {
-        values.add(v)
+/// `[smallest, largest]` of `values` ; `[0, 0]` when there are none.
+export value_bounds :: fn(values: i64[]) -> [i64, i64] {
+    if values.len() == 0 {
+        return [0, 0]
     }
-    for variant in decl.variants {
-        v :: indices[variant.name] ?? continue
-        if v != lo && !(v - 1 in values) {
-            diags.push(typecheck_error(.EnumDataValuesNotConsecutive, span_of_value(variant),
-                "`${variant.name}` is ${v} but no variant is ${v - 1} ; carry the value in a field instead"))
+    smallest := values[0]
+    largest := values[0]
+    for value in values {
+        if value < smallest {
+            smallest = value
+        }
+        if value > largest {
+            largest = value
         }
     }
-}
-
-/// `[smallest, largest]` index ; `[0, 0]` for an enum without variants.
-export index_bounds :: fn(indices: MutableMap<string, i64>) -> [i64, i64] {
-    lo: i64 = 0
-    hi: i64 = 0
-    first := true
-    for [_, v] in indices {
-        if first || v < lo {
-            lo = v
-        }
-        if first || v > hi {
-            hi = v
-        }
-        first = false
-    }
-    return [lo, hi]
+    return [smallest, largest]
 }
 
 // ---- variant data -----------------------------------------------------------

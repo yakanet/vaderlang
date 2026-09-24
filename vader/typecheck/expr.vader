@@ -135,7 +135,10 @@ infer_expr :: fn(
             // `expr_types`. T3018 Display
             // check is deferred — currently we just type the inner.
             for part in expr.parts {
-                if part is AST.StringLitInterp { check_expr(part.expr, null, typed, diags) }
+                if part is AST.StringLitInterp {
+                    part_type :: check_expr(part.expr, null, typed, diags)
+                    check_interpolated_union(part_type, part.expr, typed, diags)
+                }
             }
             return TY_STRING
         }
@@ -173,6 +176,27 @@ infer_expr :: fn(
         is AST.ArrayTypeExpr -> { return infer_array_type_value(expr, typed, diags) }
         is AST.MutableTypeExpr -> { return infer_mutable_type_value(expr, typed, diags) }
         is AST.FnTypeExpr -> { return infer_fn_type_value(expr, typed, diags) }
+    }
+}
+
+// T3086 : a boxed enum carries its integer's runtime type, not its own, so a
+// union holding an enum with variant data would print the stored rank instead
+// of the written value. Refused until a boxed enum keeps its identity.
+check_interpolated_union :: fn(type: Type, part: AST.Expr, typed: TypedProgram, diags: Diagnostic[]!) -> void {
+    if type !is UnionType {
+        return
+    }
+    for variant in type.variants {
+        real :: if variant is StructType && variant.symbol.kind == .Enum {
+            typed.decl_types[variant.symbol.id] ?? variant
+        } else {
+            variant
+        }
+        if real is EnumType && real.data != null {
+            diags.push(typecheck_error(.UnionEnumDataNotInterpolable, part.span,
+                "narrow it to `${real.symbol.name}` first"))
+            return
+        }
     }
 }
 

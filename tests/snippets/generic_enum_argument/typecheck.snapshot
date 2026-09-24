@@ -1,0 +1,82 @@
+# Typecheck
+
+## tests/snippets/generic_enum_argument
+  FnDecl         as_int               :: fn(T) -> i64
+  EnumDecl       Color                :: Color
+  EnumDecl       HttpStatus           :: HttpStatus
+  EnumDecl       Level                :: Level
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         pair                 :: fn(A, B) -> string
+  StructDecl     StatusInfo           :: StatusInfo!
+  expr 18:29    StringLitExpr  :: string
+  expr 19:29    StringLitExpr  :: string
+  expr 20:29    StringLitExpr  :: string
+  expr 24:25    StringLitExpr  :: string
+  expr 25:25    StringLitExpr  :: string
+  expr 30:32    CallExpr       :: i64
+  expr 30:32    IdentExpr      :: type
+  expr 30:36    IdentExpr      :: T
+  expr 32:42    StringLitExpr  :: string
+  expr 32:45    CallExpr       :: i64
+  expr 32:45    IdentExpr      :: type
+  expr 32:49    IdentExpr      :: A
+  expr 32:55    CallExpr       :: i64
+  expr 32:55    IdentExpr      :: type
+  expr 32:59    IdentExpr      :: B
+  expr 35:13    StringLitExpr  :: string
+  expr 35:16    CallExpr       :: i64
+  expr 35:16    IdentExpr      :: fn(T) -> i64
+  expr 35:23    FieldExpr      :: HttpStatus
+  expr 35:23    IdentExpr      :: HttpStatus
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 35:50    CallExpr       :: i64
+  expr 35:50    IdentExpr      :: fn(T) -> i64
+  expr 35:57    FieldExpr      :: Level
+  expr 35:57    IdentExpr      :: Level
+  expr 35:75    CallExpr       :: i64
+  expr 35:75    IdentExpr      :: fn(T) -> i64
+  expr 35:82    FieldExpr      :: Color
+  expr 35:82    IdentExpr      :: Color
+  expr 36:13    CallExpr       :: string
+  expr 36:13    IdentExpr      :: fn(A, B) -> string
+  expr 36:18    FieldExpr      :: HttpStatus
+  expr 36:18    IdentExpr      :: HttpStatus
+  expr 36:39    FieldExpr      :: Color
+  expr 36:39    IdentExpr      :: Color
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 37:10    FieldExpr      :: HttpStatus
+  expr 37:10    IdentExpr      :: HttpStatus
+  expr 38:13    StringLitExpr  :: string
+  expr 38:16    CallExpr       :: i64
+  expr 38:16    IdentExpr      :: fn(T) -> i64
+  expr 38:23    IdentExpr      :: HttpStatus
+  expr 38:29    BinaryExpr     :: bool
+  expr 38:29    IdentExpr      :: HttpStatus
+  expr 38:34    DotVariantExpr :: HttpStatus
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:16    StructLitExpr  :: MutableMap<HttpStatus, string>!
+  expr 40:13    DotVariantExpr :: HttpStatus
+  expr 40:26    StringLitExpr  :: string
+  expr 40:5     IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 41:13    DotVariantExpr :: HttpStatus
+  expr 41:20    StringLitExpr  :: string
+  expr 41:5     IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 42:13    StringLitExpr  :: string
+  expr 42:16    IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 42:16    IndexExpr      :: null | string
+  expr 42:16    NullCoalesceExpr :: string
+  expr 42:24    DotVariantExpr :: HttpStatus
+  expr 42:38    StringLitExpr  :: string
+  expr 42:45    IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 42:45    IndexExpr      :: null | string
+  expr 42:45    NullCoalesceExpr :: string
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void
+  expr 42:53    DotVariantExpr :: HttpStatus
+  expr 42:61    StringLitExpr  :: string
+  expr 42:68    CallExpr       :: usize
+  expr 42:68    FieldExpr      :: fn() -> usize
+  expr 42:68    IdentExpr      :: MutableMap<HttpStatus, string>!

@@ -1,0 +1,10 @@
+# stdout
+200 200 OK fine
+404 404 Not Found missing
+503 503 Service Unavailable later
+1 error
+2 warning
+3 info
+404 true 1
+# exit
+0

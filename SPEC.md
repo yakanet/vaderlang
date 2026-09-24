@@ -1131,7 +1131,7 @@ Match on an enum scrutinee is **exhaustive**: every variant must appear as an ar
 
 ##### Backing type
 
-Without a written width, an enum takes the **narrowest integer its variant values fit**: unsigned when none is negative (`u8`, then `u16`, `u32`, `u64`), signed otherwise (`i8` … `i64`). `Direction :: enum { North, South, East, West }` is therefore a `u8`. An optional `(type)` suffix pins the width instead:
+Without a written width, an enum takes the **narrowest integer its variant values fit**: unsigned when none is negative (`u8`, then `u16`, `u32`, `u64`), signed otherwise (`i8` … `i64`). `Direction :: enum { North, South, East, West }` is therefore a `u8`. An enum with variant data stores ranks instead, so its width follows the number of variants (§ Variant data). An optional `(type)` suffix pins the width instead:
 
 ```vader
 Direction :: enum(i32) {
@@ -1192,9 +1192,12 @@ The header takes three forms: `enum(u8)` (a width, no data), `enum(Info)` (data,
 
 - **Each block is checked as a literal of the data struct**: unknown field (`T3009`), wrong type (`T3001`), a required field left unset (`T3037`, on the variant). A variant without a block is valid when every field has a default. A block on an enum whose header names no data is `T3085`.
 - **Every value must be a constant** the compiler can bake (`C4001`): the data lives in one read-only table, built once.
-- **The values of an enum with data are consecutive** — any start, so `Error { … } = 1` then `Warning { … }` is fine — and a gap is `T3086`. A protocol value such as an HTTP code belongs in a field (`.code = 404`), not in the ordinal. An enum *without* data keeps any values it likes.
-- **Reading.** `v.field` is the field of `v`'s data; `Info(v)` is the whole value, **read-only** (`info.code = 5` is `T3070`). On the enum's name, `HttpStatus.code` is still a variant lookup (`T3027`). `i32(v)` is the ordinal, as for any enum.
-- **Representation.** The enum stays its integer; the data is a read-only table indexed by `ordinal − smallest`, so a read allocates nothing and `==`, `match`, the width and `@size_of` are those of a plain enum.
+- **Values are free**, as for any enum: `Ok { … } = 200`, `NotFound { … } = 404`. A variant without `=` takes the previous value plus one, and two variants sharing a value is `T3031`.
+- **Reading.** `v.field` is the field of `v`'s data; `Info(v)` is the whole value, **read-only** (`info.code = 5` is `T3070`). On the enum's name, `HttpStatus.code` is still a variant lookup (`T3027`).
+- **Representation.** An enum with data stores its variant's **rank** — 0, 1, 2… in declaration order — not the written value: the data is a read-only table indexed by the rank, so a read allocates nothing, and `==`, `match` and `.Variant` compare ranks. The width (written, or inferred as the narrowest holding the ranks) and `@size_of` follow the number of variants, not the values: `HttpStatus` above is 1 byte.
+- **Converting to an integer** (`i32(s)`) gives the written value — folded for a constant, `rank + first` when the values are consecutive, else a read of a second table of the values.
+- **Interpolating a union that holds one is refused** (`T3086`): `"${v}"` with `v : HttpStatus | null` — narrow first (`if v != null { "${v}" }`). A value boxed in a union carries its integer's runtime type, not the enum's, so it would print the rank.
+- **No C representation.** Such an enum cannot be a `@c_struct` field (`T3050`): C would read the rank where the source says 404.
 
 #### `Display`
 

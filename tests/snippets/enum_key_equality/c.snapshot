@@ -307,19 +307,19 @@ static int32_t snippet_main(void) {
     _a7_obj->f_tombs = (size_t) (int64_t) INT64_C(0);
     l1 = (void*) _a7_obj;
 #line 34 "tests/snippets/enum_key_equality/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) (int32_t) INT32_C(2), 2u);
+    std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) (int32_t) INT32_C(1), 2u);
 #line 35 "tests/snippets/enum_key_equality/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) (int32_t) INT32_C(1), 3u);
+    std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) (int32_t) INT32_C(0), 3u);
 #line 36 "tests/snippets/enum_key_equality/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) (int32_t) INT32_C(2), 4u);
+    std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) (int32_t) INT32_C(1), 4u);
 #line 37 "tests/snippets/enum_key_equality/_main.vader"
-    l6 = std_collections_MutableMap_Index_at__snippet_HttpStatus__string(l1, (uint8_t) (int32_t) INT32_C(2));
+    l6 = std_collections_MutableMap_Index_at__snippet_HttpStatus__string(l1, (uint8_t) (int32_t) INT32_C(1));
     if (l6.tag == 0u) {
         l9 = 5u;
     } else {
         l9 = l6.payload.s;
     }
-    l6 = std_collections_MutableMap_Index_at__snippet_HttpStatus__string(l1, (uint8_t) (int32_t) INT32_C(1));
+    l6 = std_collections_MutableMap_Index_at__snippet_HttpStatus__string(l1, (uint8_t) (int32_t) INT32_C(0));
     if (l6.tag == 0u) {
         l10 = 5u;
     } else {

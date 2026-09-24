@@ -3,7 +3,7 @@ type 0 primitive null
 type 1 primitive u8
 type 2 primitive string
 type 3 primitive i32
-type 4 struct snippet$StatusInfo { code:3,reason:2,retry:5 }
+type 4 struct snippet$StatusInfo { reason:2 }
 type 5 primitive bool
 type 6 primitive usize
 type 7 struct std_core$Buffer {  }
@@ -12,20 +12,25 @@ type 9 primitive u64
 type 10 array 1
 type 11 primitive void
 type 12 primitive isize
-type 13 array 4
-string 0 " "
-string 1 " retry="
-string 2 " / "
-string 3 "true"
-string 4 "false"
-string 5 "\n"
-string 6 "OK"
-string 7 "Not Found"
-string 8 "Service Unavailable"
-string 9 "error"
-string 10 "warning"
-data 0 structs 1 3 3 i32 c8000000 strref 6 bool 00 i32 94010000 strref 7 bool 00 i32 f7010000 strref 8 bool 01
-data 1 structs 1 3 2 i32 00000000 strref 9 bool 00 i32 00000000 strref 10 bool 00
+type 13 primitive u16
+type 14 array 13
+type 15 array 4
+string 0 "fine"
+string 1 "missing"
+string 2 "later"
+string 3 " "
+string 4 "true"
+string 5 "false"
+string 6 "\n"
+string 7 "OK"
+string 8 "Not Found"
+string 9 "Service Unavailable"
+string 10 "error"
+string 11 "warning"
+string 12 "info"
+data 0 u16 hex"c8009401f701"
+data 1 structs 1 1 3 strref 7 strref 8 strref 9
+data 2 structs 1 1 3 strref 10 strref 11 strref 12
 import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=10 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=3,10,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
@@ -33,222 +38,297 @@ impl 7 ByteAccess
 export main 1
 
 fn 0 snippet$describe (u8) -> string
-  local $data_const_1 ref
-  local $cast_2 i64
-  local __p_0 string
-  local $call_7 usize
-  local $data_const_13 ref
-  local $field_27 bool
-  data.const 0 13   ; pool[0] : snippet$StatusInfo[]
-  local.set 1   ; $data_const_1
+  local if_res string
   local.get 0   ; arg 0
-  u8.to_i64
-  local.set 2   ; $cast_2
-  local.get 1   ; $data_const_1
-  local.get 2   ; $cast_2
-  array.get 13   ; snippet$StatusInfo[][]
-  struct.get 4 1   ; snippet$StatusInfo.reason
-  ref.cast 2   ; -> string
-  local.tee 3   ; __p_0
-  call.import 0   ; std_core$byte_len
-  local.set 4   ; $call_7
-  i64.const 33
-  local.get 4   ; $call_7
-  i64.add
-  call 3   ; std_core$new_byte_buffer
-  local.set 1   ; $data_const_1
-  i64.const 0
-  local.set 4   ; $call_7
-  data.const 0 13   ; pool[0] : snippet$StatusInfo[]
-  local.set 5   ; $data_const_13
-  local.get 0   ; arg 0
-  u8.to_i64
-  local.set 2   ; $cast_2
-  local.get 5   ; $data_const_13
-  local.get 2   ; $cast_2
-  array.get 13   ; snippet$StatusInfo[][]
-  struct.get 4 0   ; snippet$StatusInfo.code
-  ref.cast 3   ; -> i32
-  i32.to_i64
-  local.set 2   ; $cast_2
-  local.get 1   ; $data_const_1
-  local.get 4   ; $call_7
-  local.get 2   ; $cast_2
-  call 6   ; std_core$write_int
-  local.set 4   ; $call_7
-  local.get 1   ; $data_const_1
-  local.get 4   ; $call_7
-  string.const 0   ; " "
-  call 5   ; std_core$write_string_at
-  local.set 4   ; $call_7
-  local.get 1   ; $data_const_1
-  local.get 4   ; $call_7
-  local.get 3   ; __p_0
-  call 5   ; std_core$write_string_at
-  local.set 4   ; $call_7
-  local.get 1   ; $data_const_1
-  local.get 4   ; $call_7
-  string.const 1   ; " retry="
-  call 5   ; std_core$write_string_at
-  local.set 4   ; $call_7
-  data.const 0 13   ; pool[0] : snippet$StatusInfo[]
-  local.set 5   ; $data_const_13
-  local.get 0   ; arg 0
-  u8.to_i64
-  local.set 2   ; $cast_2
-  local.get 5   ; $data_const_13
-  local.get 2   ; $cast_2
-  array.get 13   ; snippet$StatusInfo[][]
-  struct.get 4 2   ; snippet$StatusInfo.retry
-  ref.cast 5   ; -> bool
-  local.set 6   ; $field_27
-  local.get 1   ; $data_const_1
-  local.get 4   ; $call_7
-  local.get 6   ; $field_27
-  call 8   ; std_core$write_bool
-  local.set 4   ; $call_7
-  local.get 1   ; $data_const_1
-  local.get 4   ; $call_7
-  call 4   ; std_core$finish_buffer
+  i32.const 0
+  i32.eq
+  if $L0 void
+    string.const 0   ; "fine"
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    i32.const 1
+    i32.eq
+    if $L1 void
+      string.const 1   ; "missing"
+      local.set 1   ; if_res
+    else
+      local.get 0   ; arg 0
+      i32.const 2
+      i32.eq
+      if $L2 void
+        string.const 2   ; "later"
+        local.set 1   ; if_res
+      else
+        return
+      end $L2
+    end $L1
+  end $L0
+  local.get 1   ; if_res
   return
 end
 
 fn 1 snippet$main () -> i32
+  local statuses ref
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $cast_17 i64
+  local s u8
+  local $data_const_13 ref
+  local $cast_14 i64
   local __p_3 string
   local __p_4 string
-  local $cast_54 u64
+  local $call_21 usize
+  local $call_22 usize
+  local $add_23 usize
+  local __buf_5 ref
+  local __off_6 usize
+  local $data_const_29 ref
+  local $cast_30 i64
+  local $cast_33 i64
+  local $data_const_37 ref
+  local $cast_38 i64
+  local $cast_40 u64
+  local $eq_101 bool
   i32.const 0
   i32.const 1
   i32.const 2
   array.new 10 3   ; u8[][]
-  local.tee 0   ; __for_arr_0
+  local.tee 0   ; statuses
+  local.tee 1   ; __for_arr_0
   array.len
-  local.set 1   ; __for_len_1
+  local.set 2   ; __for_len_1
   i64.const 0
-  local.set 2   ; __for_i_2
+  local.set 3   ; __for_i_2
   block $L0 void
     loop $L1 void
-      local.get 2   ; __for_i_2
-      local.get 1   ; __for_len_1
+      local.get 3   ; __for_i_2
+      local.get 2   ; __for_len_1
       u64.lt
       if $L2 void
-        local.get 0   ; __for_arr_0
-        local.get 2   ; __for_i_2
+        local.get 1   ; __for_arr_0
+        local.get 3   ; __for_i_2
         array.get 10   ; u8[][]
+        local.set 4   ; s
+        data.const 1 15   ; pool[1] : snippet$StatusInfo[]
+        local.set 5   ; $data_const_13
+        local.get 4   ; s
+        u8.to_i64
+        local.set 6   ; $cast_14
+        local.get 5   ; $data_const_13
+        local.get 6   ; $cast_14
+        array.get 15   ; snippet$StatusInfo[][]
+        struct.get 4 0   ; snippet$StatusInfo.reason
+        ref.cast 2   ; -> string
+        local.set 7   ; __p_3
+        local.get 4   ; s
         call 0   ; snippet$describe
+        local.set 8   ; __p_4
+        local.get 7   ; __p_3
+        call.import 0   ; std_core$byte_len
+        local.set 9   ; $call_21
+        local.get 8   ; __p_4
+        call.import 0   ; std_core$byte_len
+        local.set 10   ; $call_22
+        local.get 9   ; $call_21
+        local.get 10   ; $call_22
+        i64.add
+        local.set 11   ; $add_23
+        i64.const 43
+        local.get 11   ; $add_23
+        i64.add
+        call 3   ; std_core$new_byte_buffer
+        local.set 12   ; __buf_5
+        i64.const 0
+        local.set 13   ; __off_6
+        data.const 0 14   ; pool[0] : u16[]
+        local.set 14   ; $data_const_29
+        local.get 4   ; s
+        u8.to_i64
+        local.set 15   ; $cast_30
+        local.get 14   ; $data_const_29
+        local.get 15   ; $cast_30
+        array.get 14   ; u16[][]
+        ref.cast 13   ; -> u16
+        u16.to_i32
+        i32.to_i64
+        local.set 16   ; $cast_33
+        local.get 12   ; __buf_5
+        local.get 13   ; __off_6
+        local.get 16   ; $cast_33
+        call 6   ; std_core$write_int
+        local.set 13   ; __off_6
+        local.get 12   ; __buf_5
+        local.get 13   ; __off_6
+        string.const 3   ; " "
+        call 5   ; std_core$write_string_at
+        local.set 13   ; __off_6
+        data.const 0 14   ; pool[0] : u16[]
+        local.set 17   ; $data_const_37
+        local.get 4   ; s
+        u8.to_i64
+        local.set 18   ; $cast_38
+        local.get 17   ; $data_const_37
+        local.get 18   ; $cast_38
+        array.get 14   ; u16[][]
+        ref.cast 13   ; -> u16
+        u16.to_i64
+        local.set 19   ; $cast_40
+        local.get 12   ; __buf_5
+        local.get 13   ; __off_6
+        local.get 19   ; $cast_40
+        call 7   ; std_core$write_unsigned
+        local.set 13   ; __off_6
+        local.get 12   ; __buf_5
+        local.get 13   ; __off_6
+        string.const 3   ; " "
+        call 5   ; std_core$write_string_at
+        local.set 13   ; __off_6
+        local.get 12   ; __buf_5
+        local.get 13   ; __off_6
+        local.get 7   ; __p_3
+        call 5   ; std_core$write_string_at
+        local.set 13   ; __off_6
+        local.get 12   ; __buf_5
+        local.get 13   ; __off_6
+        string.const 3   ; " "
+        call 5   ; std_core$write_string_at
+        local.set 13   ; __off_6
+        local.get 12   ; __buf_5
+        local.get 13   ; __off_6
+        local.get 8   ; __p_4
+        call 5   ; std_core$write_string_at
+        local.set 13   ; __off_6
+        local.get 12   ; __buf_5
+        local.get 13   ; __off_6
+        call 4   ; std_core$finish_buffer
         call 11   ; std_io$println__string
-        local.get 2   ; __for_i_2
+        local.get 3   ; __for_i_2
         i64.const 1
         i64.add
-        local.set 2   ; __for_i_2
+        local.set 3   ; __for_i_2
         br $L1
       end $L2
     end $L1
   end $L0
-  data.const 0 13   ; pool[0] : snippet$StatusInfo[]
-  local.set 0   ; __for_arr_0
+  i32.const 0
   i32.const 1
-  u8.to_i64
-  local.set 3   ; $cast_17
-  local.get 0   ; __for_arr_0
-  local.get 3   ; $cast_17
-  array.get 13   ; snippet$StatusInfo[][]
-  struct.get 4 1   ; snippet$StatusInfo.reason
-  ref.cast 2   ; -> string
-  local.set 4   ; __p_3
-  data.const 1 13   ; pool[1] : snippet$StatusInfo[]
-  local.set 0   ; __for_arr_0
-  i32.const 1
-  u8.to_i64
-  local.set 3   ; $cast_17
-  local.get 0   ; __for_arr_0
-  local.get 3   ; $cast_17
-  array.get 13   ; snippet$StatusInfo[][]
-  struct.get 4 1   ; snippet$StatusInfo.reason
-  ref.cast 2   ; -> string
-  local.set 5   ; __p_4
-  local.get 4   ; __p_3
-  call.import 0   ; std_core$byte_len
-  local.set 1   ; __for_len_1
-  local.get 5   ; __p_4
-  call.import 0   ; std_core$byte_len
-  local.set 2   ; __for_i_2
-  local.get 1   ; __for_len_1
-  local.get 2   ; __for_i_2
-  i64.add
-  local.set 1   ; __for_len_1
-  i64.const 24
-  local.get 1   ; __for_len_1
-  i64.add
-  call 3   ; std_core$new_byte_buffer
-  local.set 0   ; __for_arr_0
+  i32.const 2
+  array.new 10 3   ; u8[][]
+  local.tee 1   ; __for_arr_0
+  array.len
+  local.set 2   ; __for_len_1
   i64.const 0
-  local.set 1   ; __for_len_1
-  local.get 0   ; __for_arr_0
-  local.get 1   ; __for_len_1
-  local.get 4   ; __p_3
-  call 5   ; std_core$write_string_at
-  local.set 1   ; __for_len_1
-  local.get 0   ; __for_arr_0
-  local.get 1   ; __for_len_1
-  string.const 2   ; " / "
-  call 5   ; std_core$write_string_at
-  local.set 1   ; __for_len_1
-  local.get 0   ; __for_arr_0
-  local.get 1   ; __for_len_1
-  local.get 5   ; __p_4
-  call 5   ; std_core$write_string_at
-  local.set 1   ; __for_len_1
-  local.get 0   ; __for_arr_0
-  local.get 1   ; __for_len_1
-  string.const 0   ; " "
-  call 5   ; std_core$write_string_at
-  local.set 1   ; __for_len_1
-  i64.const 2
+  local.set 3   ; __for_i_2
+  block $L3 void
+    loop $L4 void
+      local.get 3   ; __for_i_2
+      local.get 2   ; __for_len_1
+      u64.lt
+      if $L5 void
+        local.get 1   ; __for_arr_0
+        local.get 3   ; __for_i_2
+        array.get 10   ; u8[][]
+        local.set 4   ; s
+        data.const 2 15   ; pool[2] : snippet$StatusInfo[]
+        local.set 5   ; $data_const_13
+        local.get 4   ; s
+        u8.to_i64
+        local.set 6   ; $cast_14
+        local.get 5   ; $data_const_13
+        local.get 6   ; $cast_14
+        array.get 15   ; snippet$StatusInfo[][]
+        struct.get 4 0   ; snippet$StatusInfo.reason
+        ref.cast 2   ; -> string
+        local.tee 7   ; __p_3
+        call.import 0   ; std_core$byte_len
+        local.set 9   ; $call_21
+        i64.const 21
+        local.get 9   ; $call_21
+        i64.add
+        call 3   ; std_core$new_byte_buffer
+        local.set 12   ; __buf_5
+        i64.const 0
+        local.set 10   ; $call_22
+        local.get 4   ; s
+        u8.to_i64
+        i64.const 1
+        i64.add
+        i64.to_i32
+        i32.to_i64
+        local.set 15   ; $cast_30
+        local.get 12   ; __buf_5
+        local.get 10   ; $call_22
+        local.get 15   ; $cast_30
+        call 6   ; std_core$write_int
+        local.set 10   ; $call_22
+        local.get 12   ; __buf_5
+        local.get 10   ; $call_22
+        string.const 3   ; " "
+        call 5   ; std_core$write_string_at
+        local.set 10   ; $call_22
+        local.get 12   ; __buf_5
+        local.get 10   ; $call_22
+        local.get 7   ; __p_3
+        call 5   ; std_core$write_string_at
+        local.set 10   ; $call_22
+        local.get 12   ; __buf_5
+        local.get 10   ; $call_22
+        call 4   ; std_core$finish_buffer
+        call 11   ; std_io$println__string
+        local.get 3   ; __for_i_2
+        i64.const 1
+        i64.add
+        local.set 3   ; __for_i_2
+        br $L4
+      end $L5
+    end $L4
+  end $L3
+  i64.const 47
+  call 3   ; std_core$new_byte_buffer
+  local.set 1   ; __for_arr_0
+  i64.const 0
+  local.set 2   ; __for_len_1
+  i64.const 404
   i64.to_i32
   i32.to_i64
-  local.set 3   ; $cast_17
-  local.get 0   ; __for_arr_0
-  local.get 1   ; __for_len_1
-  local.get 3   ; $cast_17
+  local.set 6   ; $cast_14
+  local.get 1   ; __for_arr_0
+  local.get 2   ; __for_len_1
+  local.get 6   ; $cast_14
   call 6   ; std_core$write_int
-  local.set 1   ; __for_len_1
-  local.get 0   ; __for_arr_0
-  local.get 1   ; __for_len_1
-  call 4   ; std_core$finish_buffer
-  call 11   ; std_io$println__string
-  i64.const 41
-  call 3   ; std_core$new_byte_buffer
-  local.set 0   ; __for_arr_0
-  i64.const 0
-  local.set 1   ; __for_len_1
-  i64.const 1
-  usize.to_i64
-  local.set 6   ; $cast_54
-  local.get 0   ; __for_arr_0
-  local.get 1   ; __for_len_1
-  local.get 6   ; $cast_54
-  call 7   ; std_core$write_unsigned
-  local.set 1   ; __for_len_1
-  local.get 0   ; __for_arr_0
-  local.get 1   ; __for_len_1
-  string.const 0   ; " "
+  local.set 2   ; __for_len_1
+  local.get 1   ; __for_arr_0
+  local.get 2   ; __for_len_1
+  string.const 3   ; " "
   call 5   ; std_core$write_string_at
-  local.set 1   ; __for_len_1
+  local.set 2   ; __for_len_1
+  local.get 0   ; statuses
+  i32.const 1
+  array.get 10   ; u8[][]
+  i32.const 1
+  i32.eq
+  local.set 20   ; $eq_101
+  local.get 1   ; __for_arr_0
+  local.get 2   ; __for_len_1
+  local.get 20   ; $eq_101
+  call 8   ; std_core$write_bool
+  local.set 2   ; __for_len_1
+  local.get 1   ; __for_arr_0
+  local.get 2   ; __for_len_1
+  string.const 3   ; " "
+  call 5   ; std_core$write_string_at
+  local.set 2   ; __for_len_1
   i64.const 1
   usize.to_i64
-  local.set 6   ; $cast_54
-  local.get 0   ; __for_arr_0
-  local.get 1   ; __for_len_1
-  local.get 6   ; $cast_54
+  local.set 19   ; $cast_40
+  local.get 1   ; __for_arr_0
+  local.get 2   ; __for_len_1
+  local.get 19   ; $cast_40
   call 7   ; std_core$write_unsigned
-  local.set 1   ; __for_len_1
-  local.get 0   ; __for_arr_0
-  local.get 1   ; __for_len_1
+  local.set 2   ; __for_len_1
+  local.get 1   ; __for_arr_0
+  local.get 2   ; __for_len_1
   call 4   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   return.lit i32.const 0
@@ -511,13 +591,13 @@ fn 8 std_core$write_bool (ref,usize,bool) -> usize
   if $L0 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 3   ; "true"
+    string.const 4   ; "true"
     call 5   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 4   ; "false"
+  string.const 5   ; "false"
   call 5   ; std_core$write_string_at
   return
 end
@@ -603,7 +683,7 @@ end
 fn 11 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 5   ; "\n"
+  string.const 6   ; "\n"
   call 2   ; concat_2
   local.set 1   ; $call_3
   i32.const 0

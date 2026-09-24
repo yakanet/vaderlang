@@ -1,0 +1,21 @@
+// Interpolating a union that holds an enum with variant data — T3086.
+//
+// A boxed enum carries its integer's runtime type, not its own, and an enum
+// with variant data stores its variant's rank : `"${v}"` would print 1 where
+// the source says 404. Narrowing first reads the written value.
+module "snippet"
+
+StatusInfo :: struct { reason: string }
+
+HttpStatus :: enum(StatusInfo) {
+    Ok       { .reason = "OK" }        = 200,
+    NotFound { .reason = "Not Found" } = 404,
+}
+
+pick :: fn(found: bool) -> HttpStatus | null = if found { .Ok } else { null }
+
+main :: fn() -> i32 {
+    v :: pick(true)
+    line :: "status ${v}"
+    return 0
+}
