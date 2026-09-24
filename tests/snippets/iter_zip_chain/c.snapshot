@@ -213,8 +213,8 @@ static int32_t snippet_main(void) {
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
     l0 = (void*) _a0_arr;
 #line 9 "tests/snippets/iter_zip_chain/_main.vader"
-    l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(26));
-    l2 = (size_t) (int64_t) INT64_C(0);
+    l1 = std_core_new_byte_buffer((size_t) 26);
+    l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 1u);
     t0 = ((vader_array_t*) l0)->length;
     t1 = ((int64_t) (size_t) t0);
@@ -225,12 +225,12 @@ static int32_t snippet_main(void) {
 #line 10 "tests/snippets/iter_zip_chain/_main.vader"
     l0 = std_iter_clone__i32(l0);
 #line 11 "tests/snippets/iter_zip_chain/_main.vader"
-    l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(29));
-    l2 = (size_t) (int64_t) INT64_C(0);
+    l1 = std_core_new_byte_buffer((size_t) 29);
+    l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 2u);
     vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
-    if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
-    if ((size_t) INT32_C(0) >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
+    VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+    VADER_ARRAY_CHECK_INDEX(_a1_slotarr, INT32_C(0))
     t3 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) INT32_C(0)];
     l4 = ((int64_t) (int32_t) t3);
     l2 = std_core_write_int(l1, l2, l4);
@@ -258,19 +258,19 @@ static int32_t snippet_main(void) {
         l2 = ((vader_array_t*) l1)->length;
     }
 #line 110 "lib/std/iter/iter.vader"
-    l5 = (size_t) (int64_t) INT64_C(0);
+    l5 = (size_t) 0;
     {
         loop_87: {
             if ((l5 < l2)) {
 #line 111 "lib/std/iter/iter.vader"
                 vader_array_t* _a4_slotarr = ((vader_array_t*) l0);
-                if (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = vader_array_buf_forward(_a4_slotarr->buf); }
-                if ((size_t) l5 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l5)
                 t4 = vader_array_box_slots(_a4_slotarr->buf)[_a4_slotarr->offset + (size_t) l5];
                 l7 = t4.payload.s;
                 vader_array_t* _a5_slotarr = ((vader_array_t*) l1);
-                if (_a5_slotarr->buf != NULL && _a5_slotarr->buf->header.forward != NULL) { _a5_slotarr->buf = vader_array_buf_forward(_a5_slotarr->buf); }
-                if ((size_t) l5 >= _a5_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l5)
                 l8 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l5];
 #line 16 "tests/snippets/iter_zip_chain/_main.vader"
                 l10 = l7;
@@ -278,7 +278,7 @@ static int32_t snippet_main(void) {
 #line 17 "tests/snippets/iter_zip_chain/_main.vader"
                 l6 = vader_host_std_core_byte_len(l10);
                 l11 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(21) + l6));
-                l12 = (size_t) (int64_t) INT64_C(0);
+                l12 = (size_t) 0;
                 l12 = std_core_write_string_at(l11, l12, l10);
                 l12 = std_core_write_string_at(l11, l12, 7u);
                 l4 = ((int64_t) (int32_t) l9);
@@ -305,17 +305,17 @@ static int32_t snippet_main(void) {
     l0 = (void*) _a7_arr;
 #line 23 "tests/snippets/iter_zip_chain/_main.vader"
     l2 = ((vader_array_t*) l1)->length;
-    l5 = (size_t) (int64_t) INT64_C(0);
+    l5 = (size_t) 0;
     {
         loop_160: {
             if ((l5 < l2)) {
                 vader_array_t* _a8_slotarr = ((vader_array_t*) l1);
-                if (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = vader_array_buf_forward(_a8_slotarr->buf); }
-                if ((size_t) l5 >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l5)
                 l8 = ((int32_t*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l5];
 #line 24 "tests/snippets/iter_zip_chain/_main.vader"
-                l11 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
-                l6 = (size_t) (int64_t) INT64_C(0);
+                l11 = std_core_new_byte_buffer((size_t) 22);
+                l6 = (size_t) 0;
                 l6 = std_core_write_string_at(l11, l6, 8u);
                 l4 = ((int64_t) (int32_t) l8);
                 l6 = std_core_write_int(l11, l6, l4);
@@ -329,17 +329,17 @@ static int32_t snippet_main(void) {
         }
     }
     l2 = ((vader_array_t*) l0)->length;
-    l5 = (size_t) (int64_t) INT64_C(0);
+    l5 = (size_t) 0;
     {
         loop_205: {
             if ((l5 < l2)) {
                 vader_array_t* _a9_slotarr = ((vader_array_t*) l0);
-                if (_a9_slotarr->buf != NULL && _a9_slotarr->buf->header.forward != NULL) { _a9_slotarr->buf = vader_array_buf_forward(_a9_slotarr->buf); }
-                if ((size_t) l5 >= _a9_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a9_slotarr, l5)
                 l8 = ((int32_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l5];
 #line 24 "tests/snippets/iter_zip_chain/_main.vader"
-                l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
-                l6 = (size_t) (int64_t) INT64_C(0);
+                l1 = std_core_new_byte_buffer((size_t) 22);
+                l6 = (size_t) 0;
                 l6 = std_core_write_string_at(l1, l6, 8u);
                 l4 = ((int64_t) (int32_t) l8);
                 l6 = std_core_write_int(l1, l6, l4);
@@ -359,16 +359,16 @@ static int32_t snippet_main(void) {
     vader_array_box_slots(_a10_arr->buf)[_a10_arr->offset + 0u] = vader_box_string(4u, 9u);
     l0 = (void*) _a10_arr;
 #line 157 "lib/std/iter/iter.vader"
-    l2 = (size_t) (int64_t) INT64_C(0);
+    l2 = (size_t) 0;
 #line 29 "tests/snippets/iter_zip_chain/_main.vader"
     l5 = ((vader_array_t*) l0)->length;
-    l6 = (size_t) (int64_t) INT64_C(0);
+    l6 = (size_t) 0;
     {
         loop_257: {
             if ((l6 < l5)) {
                 vader_array_t* _a11_slotarr = ((vader_array_t*) l0);
-                if (_a11_slotarr->buf != NULL && _a11_slotarr->buf->header.forward != NULL) { _a11_slotarr->buf = vader_array_buf_forward(_a11_slotarr->buf); }
-                if ((size_t) l6 >= _a11_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a11_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a11_slotarr, l6)
                 t4 = vader_array_box_slots(_a11_slotarr->buf)[_a11_slotarr->offset + (size_t) l6];
                 l7 = t4.payload.s;
                 l12 = l2;
@@ -376,7 +376,7 @@ static int32_t snippet_main(void) {
 #line 30 "tests/snippets/iter_zip_chain/_main.vader"
                 l13 = vader_host_std_core_byte_len(l10);
                 l1 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(22) + l13));
-                l14 = (size_t) (int64_t) INT64_C(0);
+                l14 = (size_t) 0;
                 t1 = ((int64_t) (size_t) l12);
                 l3 = (uint64_t) (int64_t) t1;
                 l14 = std_core_write_unsigned(l1, l14, l3);
@@ -419,8 +419,8 @@ static int32_t snippet_main(void) {
             } else {
                 l8 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l0)->f__0;
 #line 36 "tests/snippets/iter_zip_chain/_main.vader"
-                l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(22));
-                l2 = (size_t) (int64_t) INT64_C(0);
+                l1 = std_core_new_byte_buffer((size_t) 22);
+                l2 = (size_t) 0;
                 l2 = std_core_write_string_at(l1, l2, 13u);
                 l4 = ((int64_t) (int32_t) l8);
                 l2 = std_core_write_int(l1, l2, l4);
@@ -433,7 +433,6 @@ static int32_t snippet_main(void) {
     }
 #line 39 "tests/snippets/iter_zip_chain/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* __lambda_snippet_0(void* l0, int32_t l1) {
@@ -449,7 +448,6 @@ static void* __lambda_snippet_0(void* l0, int32_t l1) {
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) l1;
     t0 = (void*) _a0_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
@@ -466,11 +464,10 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     t0 = (l2 + l3);
     l3 = (size_t) (int64_t) t0;
     l4 = std_core_usize_BufferAlloc_new_buffer_vt(l3);
-    std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) (int64_t) INT64_C(0), l0);
+    std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) 0, l0);
     std_core_Buffer_ByteAccess_write_string_vt(l4, l2, l1);
     t1 = std_core_Buffer_ByteAccess_intern_string_vt(l4, l3);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* std_core_Range_Iterator_next__i32(void* l0) {
@@ -490,7 +487,6 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
     _a0_obj->f__1 = l1;
     t2 = (void*) _a0_obj;
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, uint8_t* __o1) {
@@ -514,7 +510,7 @@ static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, uint8_t
 #line 313 "lib/std/core/core.vader"
     if (l1) {
         t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
-        *__o1 = (uint8_t) (int32_t) INT32_C(1); *__o0 = t1; return;
+        *__o1 = (uint8_t) 1; *__o0 = t1; return;
     }
 #line 314 "lib/std/core/core.vader"
     l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
@@ -523,7 +519,7 @@ static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, uint8_t
     l3 = std_core_i32_Step_step(t1);
     ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor = l3;
 #line 316 "lib/std/core/core.vader"
-    *__o1 = (uint8_t) (int32_t) INT32_C(0); *__o0 = l2; return;
+    *__o1 = (uint8_t) 0; *__o0 = l2; return;
 }
 
 static void* std_core_Range_Iterator_next__usize(void* l0) {
@@ -543,7 +539,6 @@ static void* std_core_Range_Iterator_next__usize(void* l0) {
     _a0_obj->f__1 = l1;
     t2 = (void*) _a0_obj;
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_core_Range_Iterator_next__usize_v(void* l0, size_t* __o0, uint8_t* __o1) {
@@ -567,7 +562,7 @@ static void std_core_Range_Iterator_next__usize_v(void* l0, size_t* __o0, uint8_
 #line 313 "lib/std/core/core.vader"
     if (l1) {
         t1 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
-        *__o1 = (uint8_t) (int32_t) INT32_C(1); *__o0 = t1; return;
+        *__o1 = (uint8_t) 1; *__o0 = t1; return;
     }
 #line 314 "lib/std/core/core.vader"
     l2 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
@@ -576,7 +571,7 @@ static void std_core_Range_Iterator_next__usize_v(void* l0, size_t* __o0, uint8_
     l3 = std_core_usize_Step_step(t1);
     ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor = l3;
 #line 316 "lib/std/core/core.vader"
-    *__o1 = (uint8_t) (int32_t) INT32_C(0); *__o0 = l2; return;
+    *__o1 = (uint8_t) 0; *__o0 = l2; return;
 }
 
 static void* std_core_new_byte_buffer(size_t l0) {
@@ -587,7 +582,6 @@ static void* std_core_new_byte_buffer(size_t l0) {
 #line 101 "lib/std/core/primitives.vader"
     t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
@@ -599,7 +593,6 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 #line 104 "lib/std/core/primitives.vader"
     t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
@@ -613,7 +606,6 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
 #line 122 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     { size_t __vret = (size_t) (int64_t) (l1 + l3); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
@@ -626,7 +618,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 127 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
 #line 128 "lib/std/core/primitives.vader"
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) (int32_t) INT32_C(48));
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 48);
 #line 129 "lib/std/core/primitives.vader"
         return (size_t) (int64_t) (l1 + INT64_C(1));
 #line 127 "lib/std/core/primitives.vader"
@@ -638,7 +630,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
         l2 = -(l2);
     }
 #line 133 "lib/std/core/primitives.vader"
-    l4 = (size_t) (int64_t) INT64_C(0);
+    l4 = (size_t) 0;
 #line 134 "lib/std/core/primitives.vader"
     l5 = l2;
 #line 135 "lib/std/core/primitives.vader"
@@ -688,7 +680,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     }
 #line 146 "lib/std/core/primitives.vader"
     if (l3) {
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) (int32_t) INT32_C(45));
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 45);
     }
 #line 147 "lib/std/core/primitives.vader"
     return (size_t) (int64_t) (l1 + l6);
@@ -704,13 +696,13 @@ static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2) {
 #line 152 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
 #line 153 "lib/std/core/primitives.vader"
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) (int32_t) INT32_C(48));
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 48);
 #line 154 "lib/std/core/primitives.vader"
         return (size_t) (int64_t) (l1 + INT64_C(1));
 #line 152 "lib/std/core/primitives.vader"
     }
 #line 156 "lib/std/core/primitives.vader"
-    l3 = (size_t) (int64_t) INT64_C(0);
+    l3 = (size_t) 0;
 #line 157 "lib/std/core/primitives.vader"
     l4 = l2;
 #line 158 "lib/std/core/primitives.vader"
@@ -779,7 +771,6 @@ static vader_box_t std_core____Into_into__i32(void* l0) {
 #line 340 "lib/std/core/core.vader"
     t0 = std_core_array_iter__i32(l0);
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
@@ -867,12 +858,11 @@ static vader_box_t std_core_array_iter__i32(void* l0) {
     vader_struct___gen_state_std_core_0_t* _a0_obj = (vader_struct___gen_state_std_core_0_t*) vader_gc_alloc(sizeof(vader_struct___gen_state_std_core_0_t));
     vader_obj_header_init(_a0_obj, 16u);
     _a0_obj->f_s0 = l0;
-    _a0_obj->f_s1 = (size_t) (int64_t) INT64_C(0);
-    _a0_obj->f_s2 = (size_t) (int64_t) INT64_C(0);
+    _a0_obj->f_s1 = (size_t) 0;
+    _a0_obj->f_s2 = (size_t) 0;
     _a0_obj->f_state = INT32_C(5);
     t0 = (void*) _a0_obj;
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* std_core___gen_state_std_core_0_Iterator_next(void* l0) {
@@ -932,11 +922,11 @@ static void* std_core___gen_state_std_core_0_Iterator_next(void* l0) {
                 l6 = ((vader_struct___gen_state_std_core_0_t*) l0)->f_s2;
 #line 331 "lib/std/core/core.vader"
                 vader_array_t* _a0_slotarr = ((vader_array_t*) l5);
-                if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
-                if ((size_t) l6 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l6)
                 l7 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l6];
 #line 329 "lib/std/core/core.vader"
-                l8 = (uint8_t) (int32_t) INT32_C(0);
+                l8 = (uint8_t) 0;
                 vader_struct___Tuple_i32_u8_99ae0d29_t* _a1_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                 vader_obj_header_init(_a1_obj, 7u);
                 _a1_obj->f__0 = l7;
@@ -949,14 +939,14 @@ static void* std_core___gen_state_std_core_0_Iterator_next(void* l0) {
 #line 330 "lib/std/core/core.vader"
                 l9 = ((vader_array_t*) ((vader_struct___gen_state_std_core_0_t*) l0)->f_s0)->length;
                 ((vader_struct___gen_state_std_core_0_t*) l0)->f_s1 = l9;
-                ((vader_struct___gen_state_std_core_0_t*) l0)->f_s2 = (size_t) (int64_t) INT64_C(0);
+                ((vader_struct___gen_state_std_core_0_t*) l0)->f_s2 = (size_t) 0;
 #line 329 "lib/std/core/core.vader"
                 ((vader_struct___gen_state_std_core_0_t*) l0)->f_state = INT32_C(2);
             } else {
                 vader_struct___Tuple_i32_u8_99ae0d29_t* _a2_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                 vader_obj_header_init(_a2_obj, 7u);
                 _a2_obj->f__0 = INT32_C(0);
-                _a2_obj->f__1 = (uint8_t) (int32_t) INT32_C(1);
+                _a2_obj->f__1 = (uint8_t) 1;
                 t3 = (void*) _a2_obj;
                 { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
             }
@@ -969,18 +959,17 @@ static void* std_core___gen_state_std_core_0_Iterator_next(void* l0) {
     l6 = ((vader_struct___gen_state_std_core_0_t*) l0)->f_s2;
 #line 331 "lib/std/core/core.vader"
     vader_array_t* _a3_slotarr = ((vader_array_t*) l5);
-    if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
-    if ((size_t) l6 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
+    VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+    VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l6)
     l7 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l6];
 #line 329 "lib/std/core/core.vader"
-    l8 = (uint8_t) (int32_t) INT32_C(0);
+    l8 = (uint8_t) 0;
     vader_struct___Tuple_i32_u8_99ae0d29_t* _a4_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
     vader_obj_header_init(_a4_obj, 7u);
     _a4_obj->f__0 = l7;
     _a4_obj->f__1 = l8;
     t3 = (void*) _a4_obj;
     { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_io_write(uint8_t l0, vader_string_t l1) {
@@ -996,7 +985,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 205 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
 #line 206 "lib/std/io/io.vader"
-    l3 = (size_t) (int64_t) INT64_C(0);
+    l3 = (size_t) 0;
 #line 207 "lib/std/io/io.vader"
     {
         loop_6: {
@@ -1031,7 +1020,6 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     }
 #line 209 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
@@ -1049,7 +1037,6 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
 #line 180 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(l3, l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_io_println__string(vader_string_t l0) {
@@ -1059,9 +1046,8 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_top = &gc_frame;
 #line 235 "lib/std/io/io.vader"
     l1 = concat_2(l0, 14u);
-    std_io_write((uint8_t) (int32_t) INT32_C(0), l1);
+    std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* std_iter_clone__i32(void* l0) {
@@ -1080,7 +1066,6 @@ static void* std_iter_clone__i32(void* l0) {
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l0);
 #line 95 "lib/std/iter/iter.vader"
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static vader_box_t std_iter_flat_map__i32__i32(vader_box_t l0, void* l1) {
@@ -1104,13 +1089,12 @@ static vader_box_t std_iter_flat_map__i32__i32(vader_box_t l0, void* l1) {
     _a0_obj->f_s3 = l3;
     _a0_obj->f_s4 = INT32_C(0);
     _a0_obj->f_s5 = l4;
-    _a0_obj->f_s6 = (size_t) (int64_t) INT64_C(0);
-    _a0_obj->f_s7 = (size_t) (int64_t) INT64_C(0);
+    _a0_obj->f_s6 = (size_t) 0;
+    _a0_obj->f_s7 = (size_t) 0;
     _a0_obj->f_s8 = INT32_C(0);
     _a0_obj->f_state = INT32_C(16);
     t0 = (void*) _a0_obj;
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* std_iter___gen_state_std_iter_0_Iterator_next(void* l0) {
@@ -1203,7 +1187,7 @@ static void* std_iter___gen_state_std_iter_0_Iterator_next(void* l0) {
                 l4 = INT32_C(9);
                 ((vader_struct___gen_state_std_iter_0_t*) l0)->f_state = l4;
                 l5 = ((vader_struct___gen_state_std_iter_0_t*) l0)->f_s8;
-                l6 = (uint8_t) (int32_t) INT32_C(0);
+                l6 = (uint8_t) 0;
                 vader_struct___Tuple_i32_u8_99ae0d29_t* _a0_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                 vader_obj_header_init(_a0_obj, 7u);
                 _a0_obj->f__0 = l5;
@@ -1217,8 +1201,8 @@ static void* std_iter___gen_state_std_iter_0_Iterator_next(void* l0) {
                 l8 = ((vader_struct___gen_state_std_iter_0_t*) l0)->f_s7;
 #line 172 "lib/std/iter/iter.vader"
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l7);
-                if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
-                if ((size_t) l8 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
                 l9 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l8];
                 ((vader_struct___gen_state_std_iter_0_t*) l0)->f_s8 = l9;
 #line 170 "lib/std/iter/iter.vader"
@@ -1238,7 +1222,7 @@ static void* std_iter___gen_state_std_iter_0_Iterator_next(void* l0) {
 #line 172 "lib/std/iter/iter.vader"
                     l12 = ((vader_array_t*) ((vader_struct___gen_state_std_iter_0_t*) l0)->f_s5)->length;
                     ((vader_struct___gen_state_std_iter_0_t*) l0)->f_s6 = l12;
-                    ((vader_struct___gen_state_std_iter_0_t*) l0)->f_s7 = (size_t) (int64_t) INT64_C(0);
+                    ((vader_struct___gen_state_std_iter_0_t*) l0)->f_s7 = (size_t) 0;
 #line 170 "lib/std/iter/iter.vader"
                     ((vader_struct___gen_state_std_iter_0_t*) l0)->f_state = INT32_C(8);
                 } else {
@@ -1282,7 +1266,7 @@ static void* std_iter___gen_state_std_iter_0_Iterator_next(void* l0) {
                                     vader_struct___Tuple_i32_u8_99ae0d29_t* _a3_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                                     vader_obj_header_init(_a3_obj, 7u);
                                     _a3_obj->f__0 = INT32_C(0);
-                                    _a3_obj->f__1 = (uint8_t) (int32_t) INT32_C(1);
+                                    _a3_obj->f__1 = (uint8_t) 1;
                                     t3 = (void*) _a3_obj;
                                     { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                                 }
@@ -1297,14 +1281,13 @@ static void* std_iter___gen_state_std_iter_0_Iterator_next(void* l0) {
     l4 = INT32_C(9);
     ((vader_struct___gen_state_std_iter_0_t*) l0)->f_state = l4;
     l5 = ((vader_struct___gen_state_std_iter_0_t*) l0)->f_s8;
-    l6 = (uint8_t) (int32_t) INT32_C(0);
+    l6 = (uint8_t) 0;
     vader_struct___Tuple_i32_u8_99ae0d29_t* _a4_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
     vader_obj_header_init(_a4_obj, 7u);
     _a4_obj->f__0 = l5;
     _a4_obj->f__1 = l6;
     t3 = (void*) _a4_obj;
     { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
@@ -1314,7 +1297,6 @@ static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
     vader_gc_top = &gc_frame;
     t0 = (void*) vader_buffer_new((size_t) l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2) {
@@ -1330,7 +1312,6 @@ static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size
     vader_gc_top = &gc_frame;
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2) {

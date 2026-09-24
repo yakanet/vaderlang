@@ -55,7 +55,6 @@ static int32_t snippet_apply(void* l0, int32_t l1) {
     t0 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(2u, l1));
     t1 = ((int32_t) t0.payload.i);
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static int32_t snippet_main(void) {
@@ -82,7 +81,6 @@ static int32_t snippet_main(void) {
 #line 12 "tests/snippets/closure_callback/_main.vader"
     t1 = snippet_apply(t0, INT32_C(23));
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static int32_t __lambda_snippet_0(void* l0, int32_t l1) {

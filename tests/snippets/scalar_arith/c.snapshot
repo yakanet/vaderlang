@@ -217,7 +217,6 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
     _a0_obj->f__1 = l1;
     t2 = (void*) _a0_obj;
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, uint8_t* __o1) {
@@ -241,7 +240,7 @@ static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, uint8_t
 #line 313 "lib/std/core/core.vader"
     if (l1) {
         t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
-        *__o1 = (uint8_t) (int32_t) INT32_C(1); *__o0 = t1; return;
+        *__o1 = (uint8_t) 1; *__o0 = t1; return;
     }
 #line 314 "lib/std/core/core.vader"
     l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
@@ -250,7 +249,7 @@ static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, uint8_t
     l3 = std_core_i32_Step_step(t1);
     ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor = l3;
 #line 316 "lib/std/core/core.vader"
-    *__o1 = (uint8_t) (int32_t) INT32_C(0); *__o0 = l2; return;
+    *__o1 = (uint8_t) 0; *__o0 = l2; return;
 }
 
 static bool std_core_Range_Iterator_is_empty__i32(void* l0) {
@@ -270,7 +269,7 @@ static size_t std_core_Range_Iterator_count__i32(void* l0) {
     uint8_t t1;
     int64_t t2;
 #line 314411 "<clone>:lib/std/core/core.vader"
-    l1 = (size_t) (int64_t) INT64_C(0);
+    l1 = (size_t) 0;
     {
         loop_3: {
             std_core_Range_Iterator_next__i32_v(l0, &t0, &t1);
@@ -348,7 +347,6 @@ static void* std_core_Range_Iterator_next__usize(void* l0) {
     _a0_obj->f__1 = l1;
     t2 = (void*) _a0_obj;
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_core_Range_Iterator_next__usize_v(void* l0, size_t* __o0, uint8_t* __o1) {
@@ -372,7 +370,7 @@ static void std_core_Range_Iterator_next__usize_v(void* l0, size_t* __o0, uint8_
 #line 313 "lib/std/core/core.vader"
     if (l1) {
         t1 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
-        *__o1 = (uint8_t) (int32_t) INT32_C(1); *__o0 = t1; return;
+        *__o1 = (uint8_t) 1; *__o0 = t1; return;
     }
 #line 314 "lib/std/core/core.vader"
     l2 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
@@ -381,7 +379,7 @@ static void std_core_Range_Iterator_next__usize_v(void* l0, size_t* __o0, uint8_
     l3 = std_core_usize_Step_step(t1);
     ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor = l3;
 #line 316 "lib/std/core/core.vader"
-    *__o1 = (uint8_t) (int32_t) INT32_C(0); *__o0 = l2; return;
+    *__o1 = (uint8_t) 0; *__o0 = l2; return;
 }
 
 static bool std_core_Range_Iterator_is_empty__usize(void* l0) {
@@ -401,7 +399,7 @@ static size_t std_core_Range_Iterator_count__usize(void* l0) {
     uint8_t t1;
     int64_t t2;
 #line 314411 "<clone>:lib/std/core/core.vader"
-    l1 = (size_t) (int64_t) INT64_C(0);
+    l1 = (size_t) 0;
     {
         loop_3: {
             std_core_Range_Iterator_next__usize_v(l0, &t0, &t1);

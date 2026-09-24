@@ -51,7 +51,6 @@ static int32_t snippet_main(void) {
     l1 = ((vader_struct_snippet_Point_t*) l0)->f_x;
     l2 = ((vader_struct_snippet_Point_t*) l0)->f_y;
     { int32_t __vret = (l1 + l2); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 int main(int argc, char** argv) {

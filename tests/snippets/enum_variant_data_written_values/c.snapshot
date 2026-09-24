@@ -180,13 +180,13 @@ static int32_t snippet_main(void) {
 #line 34 "tests/snippets/enum_variant_data_written_values/_main.vader"
     l1 = l0;
     l2 = ((vader_array_t*) l1)->length;
-    l3 = (size_t) (int64_t) INT64_C(0);
+    l3 = (size_t) 0;
     {
         loop_11: {
             if ((l3 < l2)) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
-                if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
-                if ((size_t) l3 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
                 t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l3, 1u);
                 l4 = ((uint8_t) t0.payload.i);
 #line 14 "tests/snippets/enum_variant_data_written_values/_main.vader"
@@ -194,8 +194,8 @@ static int32_t snippet_main(void) {
 #line 35 "tests/snippets/enum_variant_data_written_values/_main.vader"
                 l6 = ((int64_t) (uint8_t) l4);
                 vader_array_t* _a2_slotarr = ((vader_array_t*) l5);
-                if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
-                if ((size_t) l6 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
                 t1 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l6);
                 l7 = ((vader_struct_snippet_StatusInfo_t*) t1)->f_reason;
                 l8 = snippet_describe(l4);
@@ -204,14 +204,14 @@ static int32_t snippet_main(void) {
                 t2 = (l9 + l10);
                 l11 = (size_t) (int64_t) t2;
                 l12 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(43) + l11));
-                l13 = (size_t) (int64_t) INT64_C(0);
+                l13 = (size_t) 0;
 #line 14 "tests/snippets/enum_variant_data_written_values/_main.vader"
                 l14 = (void*) &vader_data_0;
 #line 35 "tests/snippets/enum_variant_data_written_values/_main.vader"
                 l15 = ((int64_t) (uint8_t) l4);
                 vader_array_t* _a3_slotarr = ((vader_array_t*) l14);
-                if (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = vader_array_buf_forward(_a3_slotarr->buf); }
-                if ((size_t) l15 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l15)
                 t0 = vader_box_i32(13u, ((uint16_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l15]);
                 t3 = ((uint16_t) t0.payload.i);
                 l16 = ((int64_t) (int32_t) ((int32_t) (uint16_t) t3));
@@ -222,8 +222,8 @@ static int32_t snippet_main(void) {
 #line 35 "tests/snippets/enum_variant_data_written_values/_main.vader"
                 l18 = ((int64_t) (uint8_t) l4);
                 vader_array_t* _a4_slotarr = ((vader_array_t*) l17);
-                if (_a4_slotarr->buf != NULL && _a4_slotarr->buf->header.forward != NULL) { _a4_slotarr->buf = vader_array_buf_forward(_a4_slotarr->buf); }
-                if ((size_t) l18 >= _a4_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l18)
                 t0 = vader_box_i32(13u, ((uint16_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l18]);
                 t3 = ((uint16_t) t0.payload.i);
                 t2 = ((int64_t) (uint16_t) t3);
@@ -249,13 +249,13 @@ static int32_t snippet_main(void) {
     ((uint8_t*) _a5_arr->buf->slots)[_a5_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l1 = (void*) _a5_arr;
     l2 = ((vader_array_t*) l1)->length;
-    l3 = (size_t) (int64_t) INT64_C(0);
+    l3 = (size_t) 0;
     {
         loop_131: {
             if ((l3 < l2)) {
                 vader_array_t* _a6_slotarr = ((vader_array_t*) l1);
-                if (_a6_slotarr->buf != NULL && _a6_slotarr->buf->header.forward != NULL) { _a6_slotarr->buf = vader_array_buf_forward(_a6_slotarr->buf); }
-                if ((size_t) l3 >= _a6_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a6_slotarr, l3)
                 t0 = vader_array_read_u8(_a6_slotarr, _a6_slotarr->offset + (size_t) l3, 1u);
                 l4 = ((uint8_t) t0.payload.i);
 #line 20 "tests/snippets/enum_variant_data_written_values/_main.vader"
@@ -263,13 +263,13 @@ static int32_t snippet_main(void) {
 #line 38 "tests/snippets/enum_variant_data_written_values/_main.vader"
                 l6 = ((int64_t) (uint8_t) l4);
                 vader_array_t* _a7_slotarr = ((vader_array_t*) l5);
-                if (_a7_slotarr->buf != NULL && _a7_slotarr->buf->header.forward != NULL) { _a7_slotarr->buf = vader_array_buf_forward(_a7_slotarr->buf); }
-                if ((size_t) l6 >= _a7_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a7_slotarr, l6)
                 t1 = vader_array_ref_load_obj(_a7_slotarr->buf, _a7_slotarr->offset + (size_t) l6);
                 l7 = ((vader_struct_snippet_StatusInfo_t*) t1)->f_reason;
                 l9 = vader_host_std_core_byte_len(l7);
                 l12 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(21) + l9));
-                l10 = (size_t) (int64_t) INT64_C(0);
+                l10 = (size_t) 0;
                 l15 = ((int64_t) (int32_t) ((int32_t) (int64_t) (((int64_t) (uint8_t) l4) + INT64_C(1))));
                 l10 = std_core_write_int(l12, l10, l15);
                 l10 = std_core_write_string_at(l12, l10, 4u);
@@ -284,14 +284,14 @@ static int32_t snippet_main(void) {
         }
     }
 #line 40 "tests/snippets/enum_variant_data_written_values/_main.vader"
-    l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(47));
-    l2 = (size_t) (int64_t) INT64_C(0);
-    l6 = ((int64_t) (int32_t) ((int32_t) (int64_t) INT64_C(404)));
+    l1 = std_core_new_byte_buffer((size_t) 47);
+    l2 = (size_t) 0;
+    l6 = ((int64_t) (int32_t) ((int32_t) 404));
     l2 = std_core_write_int(l1, l2, l6);
     l2 = std_core_write_string_at(l1, l2, 4u);
     vader_array_t* _a8_slotarr = ((vader_array_t*) l0);
-    if (_a8_slotarr->buf != NULL && _a8_slotarr->buf->header.forward != NULL) { _a8_slotarr->buf = vader_array_buf_forward(_a8_slotarr->buf); }
-    if ((size_t) INT32_C(1) >= _a8_slotarr->length) { vader_trap("array index out of bounds"); }
+    VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
+    VADER_ARRAY_CHECK_INDEX(_a8_slotarr, INT32_C(1))
     t0 = vader_array_read_u8(_a8_slotarr, _a8_slotarr->offset + (size_t) INT32_C(1), 1u);
     l20 = ((int32_t) t0.payload.i) == INT32_C(1);
     l2 = std_core_write_bool(l1, l2, l20);
@@ -303,7 +303,6 @@ static int32_t snippet_main(void) {
     std_io_println__string(t4);
 #line 41 "tests/snippets/enum_variant_data_written_values/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-    vader_gc_top = gc_frame.prev;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
@@ -320,11 +319,10 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     t0 = (l2 + l3);
     l3 = (size_t) (int64_t) t0;
     l4 = std_core_usize_BufferAlloc_new_buffer_vt(l3);
-    std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) (int64_t) INT64_C(0), l0);
+    std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) 0, l0);
     std_core_Buffer_ByteAccess_write_string_vt(l4, l2, l1);
     t1 = std_core_Buffer_ByteAccess_intern_string_vt(l4, l3);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* std_core_new_byte_buffer(size_t l0) {
@@ -335,7 +333,6 @@ static void* std_core_new_byte_buffer(size_t l0) {
 #line 101 "lib/std/core/primitives.vader"
     t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
@@ -347,7 +344,6 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 #line 104 "lib/std/core/primitives.vader"
     t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
@@ -361,7 +357,6 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
 #line 122 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     { size_t __vret = (size_t) (int64_t) (l1 + l3); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
@@ -374,7 +369,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 127 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
 #line 128 "lib/std/core/primitives.vader"
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) (int32_t) INT32_C(48));
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 48);
 #line 129 "lib/std/core/primitives.vader"
         return (size_t) (int64_t) (l1 + INT64_C(1));
 #line 127 "lib/std/core/primitives.vader"
@@ -386,7 +381,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
         l2 = -(l2);
     }
 #line 133 "lib/std/core/primitives.vader"
-    l4 = (size_t) (int64_t) INT64_C(0);
+    l4 = (size_t) 0;
 #line 134 "lib/std/core/primitives.vader"
     l5 = l2;
 #line 135 "lib/std/core/primitives.vader"
@@ -436,7 +431,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     }
 #line 146 "lib/std/core/primitives.vader"
     if (l3) {
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) (int32_t) INT32_C(45));
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 45);
     }
 #line 147 "lib/std/core/primitives.vader"
     return (size_t) (int64_t) (l1 + l6);
@@ -452,13 +447,13 @@ static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2) {
 #line 152 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
 #line 153 "lib/std/core/primitives.vader"
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) (int32_t) INT32_C(48));
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 48);
 #line 154 "lib/std/core/primitives.vader"
         return (size_t) (int64_t) (l1 + INT64_C(1));
 #line 152 "lib/std/core/primitives.vader"
     }
 #line 156 "lib/std/core/primitives.vader"
-    l3 = (size_t) (int64_t) INT64_C(0);
+    l3 = (size_t) 0;
 #line 157 "lib/std/core/primitives.vader"
     l4 = l2;
 #line 158 "lib/std/core/primitives.vader"
@@ -516,7 +511,6 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
 #line 174 "lib/std/core/primitives.vader"
     t0 = std_core_write_string_at(l0, l1, 6u);
     { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_io_write(uint8_t l0, vader_string_t l1) {
@@ -532,7 +526,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 205 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
 #line 206 "lib/std/io/io.vader"
-    l3 = (size_t) (int64_t) INT64_C(0);
+    l3 = (size_t) 0;
 #line 207 "lib/std/io/io.vader"
     {
         loop_6: {
@@ -567,7 +561,6 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     }
 #line 209 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
@@ -585,7 +578,6 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
 #line 180 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(l3, l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_io_println__string(vader_string_t l0) {
@@ -595,9 +587,8 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_top = &gc_frame;
 #line 235 "lib/std/io/io.vader"
     l1 = concat_2(l0, 7u);
-    std_io_write((uint8_t) (int32_t) INT32_C(0), l1);
+    std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
@@ -607,7 +598,6 @@ static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
     vader_gc_top = &gc_frame;
     t0 = (void*) vader_buffer_new((size_t) l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2) {
@@ -623,7 +613,6 @@ static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size
     vader_gc_top = &gc_frame;
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2) {

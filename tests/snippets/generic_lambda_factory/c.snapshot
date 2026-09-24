@@ -94,7 +94,6 @@ static void* snippet_new_row(void) {
     vader_array_t* _a0_arr = vader_array_new(1u, 0u, 7u, 2u);
     t0 = (void*) _a0_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void snippet_fill(void* l0) {
@@ -107,19 +106,19 @@ static void snippet_fill(void* l0) {
     vader_gc_top = &gc_frame;
 #line 30 "tests/snippets/generic_lambda_factory/_main.vader"
     l1 = ((vader_array_t*) l0)->length;
-    l2 = (size_t) (int64_t) INT64_C(0);
+    l2 = (size_t) 0;
     {
         loop_6: {
             if ((l2 < l1)) {
 #line 31 "tests/snippets/generic_lambda_factory/_main.vader"
-                l3 = (size_t) (int64_t) INT64_C(0);
+                l3 = (size_t) 0;
                 {
                     loop_14: {
                         if ((l3 < INT64_C(9))) {
 #line 32 "tests/snippets/generic_lambda_factory/_main.vader"
                             vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
-                            if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
-                            if ((size_t) l2 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+                            VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+                            VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
                             l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l2);
                             l5 = (((int32_t) (size_t) l2) * INT32_C(100));
                             l6 = ((int32_t) (size_t) l3);
@@ -141,7 +140,6 @@ static void snippet_fill(void* l0) {
     }
 #line 29 "tests/snippets/generic_lambda_factory/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static int32_t snippet_mismatches(void* l0) {
@@ -154,14 +152,14 @@ static int32_t snippet_mismatches(void* l0) {
     l1 = INT32_C(0);
 #line 40 "tests/snippets/generic_lambda_factory/_main.vader"
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
-    if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
+    VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     l2 = ((vader_array_t*) l0)->length;
-    l3 = (size_t) (int64_t) INT64_C(0);
+    l3 = (size_t) 0;
     {
         loop_8: {
             if ((l3 < l2)) {
 #line 41 "tests/snippets/generic_lambda_factory/_main.vader"
-                if ((size_t) l3 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
                 l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l3);
 #line 42 "tests/snippets/generic_lambda_factory/_main.vader"
                 t0 = ((vader_array_t*) l4)->length;
@@ -176,14 +174,14 @@ static int32_t snippet_mismatches(void* l0) {
 #line 42 "tests/snippets/generic_lambda_factory/_main.vader"
                 }
 #line 46 "tests/snippets/generic_lambda_factory/_main.vader"
-                l5 = (size_t) (int64_t) INT64_C(0);
+                l5 = (size_t) 0;
                 {
                     loop_34: {
                         if ((l5 < INT64_C(9))) {
 #line 47 "tests/snippets/generic_lambda_factory/_main.vader"
                             vader_array_t* _a1_slotarr = ((vader_array_t*) l4);
-                            if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
-                            if ((size_t) l5 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
+                            VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+                            VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
                             l6 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l5];
                             l7 = (((int32_t) (size_t) l3) * INT32_C(100));
                             l8 = ((int32_t) (size_t) l5);
@@ -232,12 +230,12 @@ static int32_t snippet_main(void) {
     _a1_closure->code = (void*) &vader_fn_lift___lambda_snippet_0;
     _a1_closure->env = t0;
     l0 = (void*) _a1_closure;
-    l0 = snippet_build__i32__((size_t) (int64_t) INT64_C(40), l0);
+    l0 = snippet_build__i32__((size_t) 40, l0);
 #line 57 "tests/snippets/generic_lambda_factory/_main.vader"
     snippet_fill(l0);
 #line 58 "tests/snippets/generic_lambda_factory/_main.vader"
-    l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(38));
-    l2 = (size_t) (int64_t) INT64_C(0);
+    l1 = std_core_new_byte_buffer((size_t) 38);
+    l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 1u);
     t1 = snippet_mismatches(l0);
     l3 = ((int64_t) (int32_t) t1);
@@ -246,12 +244,12 @@ static int32_t snippet_main(void) {
     std_io_println__string(t2);
 #line 60 "tests/snippets/generic_lambda_factory/_main.vader"
     l0 = (void*) &vader_fn_static_snippet_new_row;
-    l0 = snippet_build__i32__((size_t) (int64_t) INT64_C(40), l0);
+    l0 = snippet_build__i32__((size_t) 40, l0);
 #line 61 "tests/snippets/generic_lambda_factory/_main.vader"
     snippet_fill(l0);
 #line 62 "tests/snippets/generic_lambda_factory/_main.vader"
-    l1 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(38));
-    l2 = (size_t) (int64_t) INT64_C(0);
+    l1 = std_core_new_byte_buffer((size_t) 38);
+    l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 2u);
     t1 = snippet_mismatches(l0);
     l3 = ((int64_t) (int32_t) t1);
@@ -260,7 +258,6 @@ static int32_t snippet_main(void) {
     std_io_println__string(t2);
 #line 63 "tests/snippets/generic_lambda_factory/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* __lambda_snippet_0(void* l0) {
@@ -272,7 +269,6 @@ static void* __lambda_snippet_0(void* l0) {
     vader_array_t* _a0_arr = vader_array_new(1u, 0u, 7u, 2u);
     t0 = (void*) _a0_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* snippet_build__i32__(size_t l0, void* l1) {
@@ -292,7 +288,7 @@ static void* snippet_build__i32__(size_t l0, void* l1) {
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (size_t) l0);
     l2 = (void*) _a1_arr;
 #line 14 "tests/snippets/generic_lambda_factory/_main.vader"
-    l3 = (size_t) (int64_t) INT64_C(0);
+    l3 = (size_t) 0;
     {
         loop_7: {
             if ((l3 < l0)) {
@@ -310,7 +306,6 @@ static void* snippet_build__i32__(size_t l0, void* l1) {
     }
 #line 17 "tests/snippets/generic_lambda_factory/_main.vader"
     { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
@@ -327,11 +322,10 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     t0 = (l2 + l3);
     l3 = (size_t) (int64_t) t0;
     l4 = std_core_usize_BufferAlloc_new_buffer_vt(l3);
-    std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) (int64_t) INT64_C(0), l0);
+    std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) 0, l0);
     std_core_Buffer_ByteAccess_write_string_vt(l4, l2, l1);
     t1 = std_core_Buffer_ByteAccess_intern_string_vt(l4, l3);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* std_core_new_byte_buffer(size_t l0) {
@@ -342,7 +336,6 @@ static void* std_core_new_byte_buffer(size_t l0) {
 #line 101 "lib/std/core/primitives.vader"
     t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
@@ -354,7 +347,6 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 #line 104 "lib/std/core/primitives.vader"
     t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
@@ -368,7 +360,6 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
 #line 122 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     { size_t __vret = (size_t) (int64_t) (l1 + l3); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
@@ -381,7 +372,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 127 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
 #line 128 "lib/std/core/primitives.vader"
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) (int32_t) INT32_C(48));
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 48);
 #line 129 "lib/std/core/primitives.vader"
         return (size_t) (int64_t) (l1 + INT64_C(1));
 #line 127 "lib/std/core/primitives.vader"
@@ -393,7 +384,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
         l2 = -(l2);
     }
 #line 133 "lib/std/core/primitives.vader"
-    l4 = (size_t) (int64_t) INT64_C(0);
+    l4 = (size_t) 0;
 #line 134 "lib/std/core/primitives.vader"
     l5 = l2;
 #line 135 "lib/std/core/primitives.vader"
@@ -443,7 +434,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     }
 #line 146 "lib/std/core/primitives.vader"
     if (l3) {
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) (int32_t) INT32_C(45));
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 45);
     }
 #line 147 "lib/std/core/primitives.vader"
     return (size_t) (int64_t) (l1 + l6);
@@ -462,7 +453,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 205 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
 #line 206 "lib/std/io/io.vader"
-    l3 = (size_t) (int64_t) INT64_C(0);
+    l3 = (size_t) 0;
 #line 207 "lib/std/io/io.vader"
     {
         loop_6: {
@@ -497,7 +488,6 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     }
 #line 209 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
@@ -515,7 +505,6 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
 #line 180 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(l3, l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_io_println__string(vader_string_t l0) {
@@ -525,9 +514,8 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_top = &gc_frame;
 #line 235 "lib/std/io/io.vader"
     l1 = concat_2(l0, 3u);
-    std_io_write((uint8_t) (int32_t) INT32_C(0), l1);
+    std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
@@ -537,7 +525,6 @@ static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
     vader_gc_top = &gc_frame;
     t0 = (void*) vader_buffer_new((size_t) l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2) {
@@ -553,7 +540,6 @@ static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size
     vader_gc_top = &gc_frame;
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2) {

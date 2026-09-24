@@ -132,6 +132,10 @@ FnState :: struct {
     /// no-alloc fn given a frame for debugging, say — split the two before
     /// changing this, or the resolve cache silently goes unsound.
     no_frame: bool
+    /// True when the last line emitted is a `return` at the function body's
+    /// top level — it pops the frame itself, so the fall-through restore after
+    /// it would be dead. Every line clears it ; the return emitters set it.
+    ends_with_return: bool = false
     /// Loops whose array state is currently lifted into C locals, innermost
     /// last. Pushed by the `Loop` opener that planned one, popped by its `end`.
     /// See `push_cache_emit.vader`.
@@ -198,6 +202,14 @@ line :: fn(s: FnState!, code: string) -> void {
     s.out.append_repeated(' ', s.indent * 4)
     s.out.append(code)
     s.out.append("\n")
+    s.ends_with_return = false
+}
+
+/// `line` for a statement that leaves the function : it records whether the
+/// body now ends on it (see `FnState.ends_with_return`).
+return_line :: fn(s: FnState!, code: string) -> void {
+    line(s, code)
+    s.ends_with_return = s.indent == 1
 }
 
 /// Open one nesting level — call right after emitting the opening brace.

@@ -815,6 +815,29 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t eleme
  * `arr_set` bench went +257 %). */
 VADER_PURE VADER_NOINLINE struct vader_array_buf* vader_array_buf_forward(struct vader_array_buf* buf);
 
+/* The two guards every emitted array access opens with. Resolve a pending
+ * forward on the array's DATA BUFFER — a separate GC object from the header
+ * (which `vader_array_resolve` resolves), so a mid-call collection may forward
+ * it independently ; a NULL buf (borrowed view) is left untouched. Then trap
+ * unless the index is in range.
+ *
+ * Macros, not inline functions : an access must reach the C compiler as plain
+ * statements. Even an always-inlined function hands it a different shape, and
+ * the loops it then generates differ. `a` must be a plain local : it is
+ * evaluated more than once. The chain walk stays out of line in
+ * `vader_array_buf_forward` (see there). */
+/* Statement position only, never before an `else` : a bare `if` binds it. */
+#define VADER_ARRAY_RESOLVE_BUF(a) \
+    if ((a)->buf != NULL && (a)->buf->header.forward != NULL) { (a)->buf = vader_array_buf_forward((a)->buf); }
+#define VADER_ARRAY_CHECK_INDEX(a, i) \
+    if ((size_t) (i) >= (a)->length) { vader_trap("array index out of bounds"); }
+
+/* `VADER_ARRAY_RESOLVE_BUF` for the runtime's own sites that read
+ * `a->buf->slots` after a possible safepoint. */
+static inline void vader_array_resolve_buf(vader_array_t* a) {
+    VADER_ARRAY_RESOLVE_BUF(a)
+}
+
 /* vader_array_get / vader_array_set are RETIRED — the C emitter open-codes every
  * `arr[i]` / `arr[i] = v` over the kept layout (typed slots inline, boxed via
  * `vader_array_box_slots` + the write barrier, u8 via `vader_array_read_u8`), so

@@ -2761,7 +2761,6 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t eleme
 }
 
 static vader_array_t* vader_array_resolve(vader_array_t* a);
-static void vader_array_resolve_buf(vader_array_t* a);
 
 /* Store a primitive-kind slot — writes the matching primitive width directly
  * to `buf->slots` ; the boxed kind routes through `vader_array_box_slots`. The
@@ -2857,18 +2856,6 @@ vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi) {
 static vader_array_t* vader_array_resolve(vader_array_t* a) {
     while (a->header.forward != NULL) a = (vader_array_t*) a->header.forward;
     return a;
-}
-
-/* Resolve a pending forward on the array's DATA BUFFER. The buf is a separate
- * GC object from the header (which `vader_array_resolve` resolves), so a
- * mid-call collection may forward it independently — and twice in one alloc
- * (minor THEN major-drain), hence the loop. A NULL buf (borrowed view) is left
- * untouched. Sites that read `a->buf->slots` after a possible safepoint call
- * this; the symmetric counterpart of `vader_array_resolve`. */
-static void vader_array_resolve_buf(vader_array_t* a) {
-    if (a->buf != NULL && a->buf->header.forward != NULL) {
-        a->buf = vader_array_buf_forward(a->buf);
-    }
 }
 
 /* Force a young object into the NON-MOVING old generation so a pointer into it

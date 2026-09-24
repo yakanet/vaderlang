@@ -448,9 +448,9 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         out.append("    vader_gc_top = &gc_frame;\n")
     }
     out.append(coalesced.body)
-    // Defensive fall-through restore (void / implicit-end fns) ; explicit
-    // returns pop the frame themselves.
-    if !no_frame {
+    // Fall-through restore (void / implicit-end fns) ; explicit returns pop
+    // the frame themselves, so a body ending on one needs none.
+    if !no_frame && !s.ends_with_return {
         out.append("    vader_gc_top = gc_frame.prev;\n")
     }
     out.append("}\n")
@@ -768,7 +768,8 @@ i32_lit_c :: fn(value: i32) -> string {
     return "INT32_C(${value})"
 }
 
-/// C literal for an i64 value. Same `INT64_MIN` caveat as `i32_lit_c`.
+/// C literal for an i64 value. Same `INT64_MIN` caveat as `i32_lit_c`. The
+/// `INT64_C(n)` spelling is parsed back by `literal_digits_of_class` (body.vader).
 i64_lit_c :: fn(value: i64) -> string {
     if value == i64(-9223372036854775807) - 1 {
         return "INT64_MIN"
@@ -1012,11 +1013,7 @@ emit_convert :: fn(s: FnState!, target_val: ValType, from_name: string) -> void 
     } else if from_val == target_val {
         push_expr(s, target_val, name_of(v))
     } else {
-        push_expr(
-            s,
-            target_val,
-            "((${c_type_for_val_bare(target_val)}) (${c_type_for_val_bare(from_val)}) ${name_of(v)})",
-        )
+        push_expr(s, target_val, "(${scalar_cast(name_of(v), from_val, target_val)})")
     }
 }
 
@@ -1061,7 +1058,7 @@ emit_return :: fn(s: FnState!) -> void {
     } else {
         // Snapshot the value before popping the frame : it may read a
         // frame-pinned local, so capturing first keeps the order safe.
-        line(
+        return_line(
             s,
             "{ ${c_type_for_val_bare(result)} __vret = ${rv}; vader_gc_top = gc_frame.prev; return __vret; }",
         )
@@ -1095,7 +1092,7 @@ emit_multi_return :: fn(s: FnState!) -> void {
         line(s, "${body}return;")
         return
     }
-    line(s, "{ ${body}vader_gc_top = gc_frame.prev; return; }")
+    return_line(s, "{ ${body}vader_gc_top = gc_frame.prev; return; }")
 }
 
 /// `return.lit` — the fused `<T>.const X ; return`. A const can't read a
@@ -1121,7 +1118,7 @@ emit_return_stmt :: fn(s: FnState!, ret: string) -> void {
     if s.no_frame {
         line(s, ret)
     } else {
-        line(s, "{ vader_gc_top = gc_frame.prev; ${ret} }")
+        return_line(s, "{ vader_gc_top = gc_frame.prev; ${ret} }")
     }
 }
 
@@ -2521,15 +2518,10 @@ resolve_array_local :: fn(s: FnState!, key: string, pin: bool) -> string {
     }
     arr :: aux(s, "slotarr")
     line(s, "vader_array_t* ${arr} = ${key};")
-    // Only the GUARD is open-coded here ; the chain walk lives out-of-line in
-    // `vader_array_buf_forward`. Its declaration in `runtime/c/vader.h` owns the
-    // rationale (why out-of-line, why `VADER_PURE` is load-bearing, why the chain
-    // can exceed one link) — do not restate the numbers here. Do NOT fold the
-    // loop back in.
-    line(
-        s,
-        "if (${arr}->buf != NULL && ${arr}->buf->header.forward != NULL) { ${arr}->buf = vader_array_buf_forward(${arr}->buf); }",
-    )
+    // `VADER_ARRAY_RESOLVE_BUF` expands the forward GUARD here ; the chain walk
+    // stays out of line in `vader_array_buf_forward`, whose declaration in
+    // `runtime/c/vader.h` owns the rationale. Do NOT fold the loop back in.
+    line(s, "VADER_ARRAY_RESOLVE_BUF(${arr})")
     s.resolved_arrays[key] = arr
     if pin {
         s.pinned_resolves.add(key)
@@ -2544,10 +2536,7 @@ emit_slot_array_local :: fn(s: FnState!, obj: StackVal, idx: StackVal, bounds_sa
     // over the array, body proven not to change its length). The G1 buf-resolve
     // above is NEVER skipped ; only this D7 trap is.
     if !bounds_safe {
-        line(
-            s,
-            "if ((size_t) ${name_of(idx)} >= ${arr}->length) { vader_trap(\"array index out of bounds\"); }",
-        )
+        line(s, "VADER_ARRAY_CHECK_INDEX(${arr}, ${name_of(idx)})")
     }
     return arr
 }

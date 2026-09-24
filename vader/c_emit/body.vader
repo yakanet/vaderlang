@@ -13,6 +13,7 @@
 
 module "vader/c_emit"
 
+import "std/string"
 import "std/string_builder"
 import "std/numbers"
 import "vader/bytecode"
@@ -306,7 +307,45 @@ export coerce_expr :: fn(types: BcType[], name: string, from: ValType, to: ValTy
     if is_ref_val(to) && is_ref_val(from) { return name }
     if is_ref_val(to) { return box_expr_unknown(types, name, from) }
     if is_ref_val(from) { return unbox_expr(name, to) }
+    return scalar_cast(name, from, to)
+}
+
+/// `(to) (from) name` — convert through `from` first, as `emit_convert` does.
+/// A literal of `from`'s own class takes one cast : `(size_t) 0`, not
+/// `(size_t) (int64_t) INT64_C(0)` ; C converts the constant the same way,
+/// negative values included. A literal re-read as another class (an `i32`
+/// constant taken as `u32`) keeps both casts : the inner one truncates.
+///
+/// @param name  the C expression to convert.
+/// @param from  its current stack class.
+/// @param to    the destination class.
+export scalar_cast :: fn(name: string, from: ValType, to: ValType) -> string {
+    digits :: literal_digits_of_class(name, from)
+    if digits != null {
+        return "(${c_type_for_val_bare(to)}) ${digits}"
+    }
     return "(${c_type_for_val_bare(to)}) (${c_type_for_val_bare(from)}) ${name}"
+}
+
+// The decimal digits of a literal of class `class` — `INT32_C(n)` for `i32`,
+// `INT64_C(n)` for `i64`, as `i32_lit_c` / `i64_lit_c` (walker.vader) spell
+// them — sign included ; null for any other expression or class.
+literal_digits_of_class :: fn(expression: string, class: ValType) -> string | null {
+    prefix :: if class == .I32 { "INT32_C(" } else if class == .I64 { "INT64_C(" } else { "" }
+    if prefix == "" || !expression.starts_with(prefix) {
+        return null
+    }
+    bytes :: expression.bytes()
+    if bytes.len() <= 9 || bytes[bytes.len() - 1] != ')' {
+        return null
+    }
+    for k in 8..<bytes.len() - 1 {
+        b :: bytes[k]
+        if !(b >= '0' && b <= '9') && !(k == 8 && b == '-') {
+            return null
+        }
+    }
+    return bytes[8..<bytes.len() - 1].bytes_to_string()
 }
 
 /// Coerce a binary / unary OPERAND to the op's class `to`. Only a boxed
