@@ -8,6 +8,7 @@
 
 module "vader/fmt"
 
+import "std/string"
 import "std/string_builder"
 import "std/io"
 import "vader/diagnostics"
@@ -146,13 +147,26 @@ flush_leading_comments :: fn(self: Printer!, before: usize, node_line: i32) -> v
     cs :: self.comments.take_before(before)
     prev_end_line: i32 = 0
     has_prev := false
+    // Callers flush right after a node, with or without the newline that ends
+    // it ; every comment below starts on a line of its own.
+    if cs.len() > 0 && self.column != 0 {
+        self.newline()
+    }
     for c in cs {
-        if has_prev && c.line > prev_end_line + 1 {
+        if c.after_code {
+            // Marked, on its own line : `attach_trailing_comments` moves it
+            // back to the end of the code line above and aligns the run.
+            self.write(TRAILING_MARK)
+            self.write(c.text)
+            self.newline()
+        } else {
+            if has_prev && c.line > prev_end_line + 1 {
+                self.newline()
+            }
+            self.indent()
+            self.write(c.text)
             self.newline()
         }
-        self.indent()
-        self.write(c.text)
-        self.newline()
         prev_end_line = c.end_line
         has_prev = true
     }
@@ -167,9 +181,96 @@ flush_remaining_comments :: fn(self: Printer!) -> void {
     cs :: self.comments.drain_remaining()
     for c in cs {
         self.newline()
-        self.indent()
+        if c.after_code {
+            self.write(TRAILING_MARK)
+        } else {
+            self.indent()
+        }
         self.write(c.text)
     }
+}
+
+// Close a braced body at `span`: flush the comments left inside it (after its
+// last member), dedent, and write `}` on its own line.
+close_brace_after_comments :: fn(self: Printer!, span: Span) -> void {
+    inner_trailing :: self.comments.has_before(span.end.offset)
+    self.flush_leading_comments(span.end.offset, span.end.line)
+    self.depth = self.depth - 1
+    // A flush ends on a newline, so only the indent is missing.
+    if inner_trailing {
+        self.indent()
+    } else {
+        self.nl_indent()
+    }
+    self.write("}")
+}
+
+// Prefix of a trailing comment in the raw output, on a line of its own.
+// Never produced otherwise : string and char literals escape control bytes.
+TRAILING_MARK :: "\u{1}"
+
+// Move each marked trailing comment to the end of the line above it, and
+// align the comments of a run of consecutive such lines at one indentation
+// on a single column : one space past the longest code line of the run.
+attach_trailing_comments :: fn(text: string) -> string {
+    if !(TRAILING_MARK in text) {
+        return text
+    }
+    codes: string[]!: []
+    notes: string[]!: []
+    // Set once a comment had to stand alone : the rest of its batch follows it
+    // on lines of their own, in source order.
+    standalone := false
+    for line in text.split("\n") {
+        if line.starts_with(TRAILING_MARK) && codes.len() > 0 {
+            last :: codes.len() - 1
+            note :: line.trim_prefix(TRAILING_MARK)
+            if notes[last] == "" && !standalone {
+                notes[last] = note
+            } else {
+                // Several source lines folded into one output line : one comment
+                // ends it, the others go below rather than inside that comment.
+                codes.push(" ".repeat(indent_width(codes[last])) + note)
+                notes.push("")
+                standalone = true
+            }
+            continue
+        }
+        codes.push(line)
+        notes.push("")
+        standalone = false
+    }
+    i: usize = 0
+    for i < codes.len() {
+        if notes[i] == "" {
+            i += 1
+            continue
+        }
+        ind :: indent_width(codes[i])
+        end := i
+        width: usize = 0
+        for end < codes.len() && notes[end] != "" && indent_width(codes[end]) == ind {
+            w :: codes[end].right_trim().bytes().len()
+            if w > width { width = w }
+            end += 1
+        }
+        for k in i..<end {
+            code :: codes[k].right_trim()
+            codes[k] = code + " ".repeat(width - code.bytes().len() + 1) + notes[k]
+        }
+        i = end
+    }
+    return codes.join("\n")
+}
+
+// Leading spaces of `line`.
+indent_width :: fn(line: string) -> usize {
+    n: usize = 0
+    for b in line.bytes() {
+        if b != ' ' { break }
+        n += 1
+    }
+    return n
 }
 
 // ============================================================================
@@ -244,7 +345,7 @@ export emit_program :: fn(self: Printer!, prog: p.Program) -> string {
     }
     self.flush_remaining_comments()
     self.newline()
-    return self.finish()
+    return attach_trailing_comments(self.finish())
 }
 
 // ============================================================================
@@ -625,16 +726,7 @@ emit_struct_decl :: fn(self: Printer!, d: p.StructDecl) -> void {
         self.indent()
         self.emit_struct_field(f)
     }
-    // Trailing comments after the last field, before the closing brace.
-    inner_trailing :: self.comments.has_before(d.span.end.offset)
-    self.flush_leading_comments(d.span.end.offset, d.span.end.line)
-    self.depth = self.depth - 1
-    if inner_trailing {
-        self.indent()
-    } else {
-        self.nl_indent()
-    }
-    self.write("}")
+    self.close_brace_after_comments(d.span)
 }
 
 // True when any field opts out of the public default via `@internal`
@@ -695,9 +787,7 @@ emit_enum_decl :: fn(self: Printer!, d: p.EnumDecl) -> void {
         self.emit_enum_variant(v)
         self.write(",")
     }
-    self.depth = self.depth - 1
-    self.nl_indent()
-    self.write("}")
+    self.close_brace_after_comments(d.span)
 }
 
 emit_enum_variant :: fn(self: Printer!, v: p.EnumVariant) -> void {
@@ -753,12 +843,7 @@ emit_trait_decl :: fn(self: Printer!, d: p.TraitDecl) -> void {
         self.emit_fn_decl(m)
         self.align_name_width = 0
     }
-    // Trailing comments before the closing brace.
-    inner_trailing :: self.comments.has_before(d.span.end.offset)
-    self.flush_leading_comments(d.span.end.offset, d.span.end.line)
-    self.depth = self.depth - 1
-    if inner_trailing { self.indent() } else { self.nl_indent() }
-    self.write("}")
+    self.close_brace_after_comments(d.span)
 }
 
 // Mirror of `compute_decl_alignment_widths` for `FnDecl[]` — drives the
@@ -890,11 +975,7 @@ emit_impl_decl :: fn(self: Printer!, d: p.ImplDecl) -> void {
         self.emit_fn_decl(m)
         self.align_name_width = 0
     }
-    inner_trailing :: self.comments.has_before(d.span.end.offset)
-    self.flush_leading_comments(d.span.end.offset, d.span.end.line)
-    self.depth = self.depth - 1
-    if inner_trailing { self.indent() } else { self.nl_indent() }
-    self.write("}")
+    self.close_brace_after_comments(d.span)
 }
 
 // ---- TypeAlias / Const / Assert ----
@@ -1706,7 +1787,9 @@ emit_match :: fn(self: Printer!, x: p.MatchExpr) -> void {
     // align without pushing the bodies off the line.
     align :: match_arm_align(self.source, x.arms)
     for arm in x.arms {
-        self.nl_indent()
+        self.newline()
+        self.flush_leading_comments(arm.span.start.offset, arm.span.start.line)
+        self.indent()
         self.emit_pattern(arm.pattern)
         self.emit_expr_with_prefix(" if ", arm.guard)
         if align > 0 {
@@ -1718,9 +1801,7 @@ emit_match :: fn(self: Printer!, x: p.MatchExpr) -> void {
         self.write(" -> ")
         self.emit_expr(arm.body)
     }
-    self.depth = self.depth - 1
-    self.nl_indent()
-    self.write("}")
+    self.close_brace_after_comments(x.span)
 }
 
 // Rendered width of a match arm's head — `pattern [if guard]`, the part before
@@ -1954,19 +2035,7 @@ emit_block_expr :: fn(self: Printer!, b: p.BlockExpr) -> void {
         self.indent()
         self.emit_expr(trailing)
     }
-    // Trailing inner comments (after every stmt / trailing) belong to the
-    // closing brace's interior. `b.span.end.line` is the line of `}`.
-    inner_trailing :: self.comments.has_before(b.span.end.offset)
-    self.flush_leading_comments(b.span.end.offset, b.span.end.line)
-    self.depth = self.depth - 1
-    if inner_trailing {
-        // `flush_leading_comments` already terminated every comment
-        // with `\n`, so we're at line start ; just indent.
-        self.indent()
-    } else {
-        self.nl_indent()
-    }
-    self.write("}")
+    self.close_brace_after_comments(b.span)
 }
 
 emit_lambda :: fn(self: Printer!, x: p.LambdaExpr) -> void {

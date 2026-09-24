@@ -38,6 +38,9 @@ export Comment :: struct {
     kind:        CommentKind
     // Verbatim source slice including delimiters. Re-emitted as-is.
     text:        string
+    // A line comment with code before it on its source line : it ends that
+    // line in the output too, instead of leading the node that follows.
+    after_code:  bool = false
 }
 
 /// Sorted-and-cursor view of every comment in a source file. `comments`
@@ -83,12 +86,13 @@ export scan_comments :: fn(source: string) -> CommentMap {
             text :: sb[start..<j].bytes_to_string()
             kind: CommentKind: if is_doc { .DocLine } else { .Line }
             out.push(Comment {
-                .offset = start,
+                .offset     = start,
                 .end_offset = j,
-                .line = start_line,
-                .end_line = start_line,
-                .kind = kind,
-                .text = text,
+                .line       = start_line,
+                .end_line   = start_line,
+                .kind       = kind,
+                .text       = text,
+                .after_code = code_before_on_line(sb, start),
             })
             i = j
             continue
@@ -214,6 +218,18 @@ export scan_comments :: fn(source: string) -> CommentMap {
     }
 
     return CommentMap { .comments = out, .cursor = 0 }
+}
+
+// True when a non-blank byte precedes `at` on its own line.
+code_before_on_line :: fn(sb: u8[], at: usize) -> bool {
+    k := at
+    for k > 0 {
+        k = k - 1
+        c :: sb[k]
+        if c == '\n'              { return false }
+        if c != ' ' && c != '\t' { return true }
+    }
+    return false
 }
 
 // True when at least one un-emitted comment has `offset < before`. The

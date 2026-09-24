@@ -361,6 +361,83 @@ for (const { name, source } of MATCH_ALIGN) {
   }, { timeout: MEDIUM_BUILD });
 }
 
+// ---------------------------------------------------------------------------
+// Trailing comments : a `//` after code stays at the end of its line, and a run
+// of consecutive such lines at one indentation shares one column — one space
+// past the longest code line of the run. Each source is already in that form,
+// so formatting must leave it unchanged.
+// ---------------------------------------------------------------------------
+const TRAILING_COMMENTS: { name: string; source: string }[] = [
+  {
+    name: "enum",
+    source: `module "reg/trailing_enum"
+
+Code :: enum(u8) {
+    First,  // X0001
+    Second, // X0002
+    Third,  // X0003
+}
+`,
+  },
+  {
+    name: "block",
+    source: `module "reg/trailing_block"
+
+f :: fn() -> i32 {
+    x :: 1   // one
+    return x // done
+}
+`,
+  },
+  {
+    name: "run_breaks_at_indent",
+    source: `module "reg/trailing_indent"
+
+f :: fn(n: i32) -> i32 {
+    if n > 0 { // positive
+        return n // as is
+    }
+    return 0 // otherwise
+}
+`,
+  },
+  {
+    name: "match_arms",
+    source: `module "reg/trailing_match"
+
+f :: fn(cp: u32) -> u32 = match cp {
+    0x61..=0x7A -> cp - 0x20 // a-z
+    0xFF        -> 0x178     // y
+    _           -> cp
+}
+`,
+  },
+  {
+    name: "struct_then_leading",
+    source: `module "reg/trailing_struct"
+
+Pair :: struct {
+    a: i32 // the a
+    b: i32 // the b
+    // a leading comment stays on its own line
+    c: i32
+}
+`,
+  },
+];
+
+for (const { name, source } of TRAILING_COMMENTS) {
+  test(`fmt trailing comments : ${name}`, async () => {
+    const src = join(process.cwd(), `.tmp-fmt-trailing-${name}.vader`);
+    await Bun.write(src, source);
+    try {
+      expect(await fmtStdout(src)).toBe(source);
+    } finally {
+      rmSync(src, { force: true });
+    }
+  }, { timeout: MEDIUM_BUILD });
+}
+
 for (const name of SNIPPETS) {
   test(`fmt idempotency : ${name}`, async () => {
     const path = join("tests", "snippets", name, "_main.vader");
