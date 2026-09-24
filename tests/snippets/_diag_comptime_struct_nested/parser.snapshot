@@ -18,18 +18,22 @@
       "kind": "EnumDecl",
       "name": "Kind",
       "visibility": "private",
-      "repr": {
-        "kind": "IdentExpr",
-        "name": "u8"
-      },
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "u8"
+        }
+      ],
       "variants": [
         {
           "name": "Type",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Value",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []

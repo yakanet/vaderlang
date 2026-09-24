@@ -152,7 +152,12 @@ collect_decl_idents :: fn(d: AST.Decl, out: Span[]!) -> void {
         }
         is AST.EnumDecl -> {
             collect_decorators(d.decorators, out)
-            collect_opt_type(d.repr, out)
+            for h in d.header { collect_type(h, out) }
+            for v in d.variants {
+                if v.data !is null {
+                    collect_struct_lit_items(v.data, out)
+                }
+            }
         }
         is AST.TraitDecl -> {
             collect_decorators(d.decorators, out)
@@ -320,12 +325,7 @@ collect_expr :: fn(e: AST.Expr, out: Span[]!) -> void {
         }
         is AST.StructLitExpr -> {
             collect_type(e.type_name, out)
-            for it in e.items {
-                match it {
-                    is AST.StructLitField  -> { collect_expr(it.value, out) }
-                    is AST.StructLitSpread -> { collect_expr(it.expr, out) }
-                }
-            }
+            collect_struct_lit_items(e.items, out)
         }
         is AST.SeqLitExpr -> { for it in e.elements { collect_expr(it, out) } }
         is AST.RangeExpr  -> {
@@ -422,6 +422,16 @@ collect_type :: fn(e: AST.Expr, out: Span[]!) -> void {
 collect_opt_type :: fn(e: AST.Expr | null, out: Span[]!) -> void {
     if e !is null {
         collect_type(e, out)
+    }
+}
+
+collect_struct_lit_items :: fn(items: AST.StructLitItem[], out: Span[]!) -> void {
+    for it in items {
+        if it is AST.StructLitField {
+            collect_expr(it.value, out)
+        } else {
+            collect_expr(it.expr, out)
+        }
     }
 }
 

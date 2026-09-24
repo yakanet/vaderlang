@@ -18,19 +18,22 @@
       "kind": "EnumDecl",
       "name": "Day",
       "visibility": "private",
-      "repr": null,
+      "header": [],
       "variants": [
         {
           "name": "Monday",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Tuesday",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Wednesday",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []

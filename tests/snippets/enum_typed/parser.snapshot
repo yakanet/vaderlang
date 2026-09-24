@@ -18,26 +18,32 @@
       "kind": "EnumDecl",
       "name": "Direction",
       "visibility": "public",
-      "repr": {
-        "kind": "IdentExpr",
-        "name": "u8"
-      },
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "u8"
+        }
+      ],
       "variants": [
         {
           "name": "North",
-          "value": "1n"
+          "value": "1n",
+          "data": null
         },
         {
           "name": "South",
-          "value": "2n"
+          "value": "2n",
+          "data": null
         },
         {
           "name": "East",
-          "value": "4n"
+          "value": "4n",
+          "data": null
         },
         {
           "name": "West",
-          "value": "8n"
+          "value": "8n",
+          "data": null
         }
       ],
       "decorators": []
@@ -46,26 +52,32 @@
       "kind": "EnumDecl",
       "name": "Op",
       "visibility": "public",
-      "repr": {
-        "kind": "IdentExpr",
-        "name": "u16"
-      },
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "u16"
+        }
+      ],
       "variants": [
         {
           "name": "Halt",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Push",
-          "value": "100n"
+          "value": "100n",
+          "data": null
         },
         {
           "name": "Pop",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Add",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []

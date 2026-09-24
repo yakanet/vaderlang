@@ -756,10 +756,8 @@ emit_enum_decl :: fn(self: Printer!, d: p.EnumDecl) -> void {
     self.emit_visibility(d.visibility)
     self.write(d.name)
     self.write(" :: enum")
-    if d.repr !is null {
-        self.write("(")
-        self.emit_type_expr(d.repr)
-        self.write(")")
+    if d.header.len() > 0 {
+        self.emit_comma_list(d.header, "(", ")", false, true, emit_type_expr_item)
     }
     if d.variants.len() == 0 {
         self.write(" {}")
@@ -792,6 +790,9 @@ emit_enum_decl :: fn(self: Printer!, d: p.EnumDecl) -> void {
 
 emit_enum_variant :: fn(self: Printer!, v: p.EnumVariant) -> void {
     self.write(v.name)
+    if v.data !is null {
+        self.emit_comma_list(v.data, " {", "}", true, true, emit_struct_lit_item)
+    }
     match v.value as n {
         is null -> {}
         is i64  -> {
@@ -1414,6 +1415,9 @@ emit_array_or_union_element :: fn(self: Printer!, e: p.Expr) -> void {
 // Type-position emission forwards. Vader's union-alias `TypeExpr` flattens
 // identically to `Expr` for the typechecker, so the same dispatcher serves
 // both positions.
+// `emit_comma_list` item emitter over a non-null type expression.
+emit_type_expr_item :: fn(self: Printer!, t: p.TypeExpr) -> void = self.emit_type_expr(t)
+
 emit_type_expr :: fn(self: Printer!, t: p.TypeExpr | null) -> void {
     self.emit_expr(t)
 }
@@ -2070,8 +2074,15 @@ emit_lambda :: fn(self: Printer!, x: p.LambdaExpr) -> void {
 // `open`+`close`. `emit_item` renders a single element — pass the element's
 // dedicated emitter (`emit_call_arg`, `emit_fn_param`, …). The caller writes
 // any prefix (callee, type name) and computes `inline` before calling.
-emit_comma_list :: fn<T>(self: Printer!, items: T[], open: string, close: string,
-                         inner_space: bool, inline: bool, emit_item: fn(Printer!, T) -> void) -> void {
+emit_comma_list :: fn<T>(
+    self: Printer!,
+    items: T[],
+    open: string,
+    close: string,
+    inner_space: bool,
+    inline: bool,
+    emit_item: fn(Printer!, T) -> void
+) -> void {
     self.write(open)
     if items.len() == 0 {
         self.write(close)

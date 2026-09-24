@@ -334,17 +334,18 @@ export StructField :: struct {
 
 // ---- Enum -----------------------------------------------------------------
 
-/// An enum declaration, `Name :: enum(u8) { A, B }`.
-///
-/// `repr` is the backing integer type as written, null when defaulted to `i32`.
+/// An enum declaration, `Name :: enum(u8) { A, B }` or
+/// `Name :: enum(Info) { A { .f = 1 } }`.
 export EnumDecl :: struct {
     span:       Span
     id:         usize = UNASSIGNED_NODE_ID
     name:       string
     name_span:  Span
     visibility: Visibility
-    // `null` means default `i32` — typechecker resolves the backing type.
-    repr:       TypeExpr | null
+    /// The parenthesised header as written : empty, `(width)`, `(data)` or
+    /// `(data, width)`. Which role a lone argument plays depends on what it
+    /// resolves to, so the typechecker decides, not the parser.
+    header:     TypeExpr[]
     variants:   EnumVariant![]
     decorators: Decorator[]
 }
@@ -359,6 +360,9 @@ export EnumVariant :: struct {
     // typechecker reduces it to the final integer.
     value:       i64 | null
     value_span:  Span | null
+    /// The `{ .f = v }` block as written, checked against the header's data
+    /// type ; null when the variant has none.
+    data:        StructLitItem![] | null = null
 }
 
 // ---- Trait ----------------------------------------------------------------

@@ -1470,10 +1470,13 @@ parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibilit
     p.reject_target_decorator(decorators, "an enum")
     p.reject_c_decorators(decorators, "an enum")
     p.advance()  // `enum`
-    repr: TypeExpr | null = null
+    header: TypeExpr[]!: []
     if p.match_kind(.LParen) != null {
-        repr = p.parse_type()
-        p.expect(.RParen, "`)` after enum backing type")
+        header.push(p.parse_type())
+        if p.match_kind(.Comma) != null {
+            header.push(p.parse_type())
+        }
+        p.expect(.RParen, "`)` after enum header")
     }
     p.expect(.LBrace, "`{` to open enum body")
     p.skip_newlines()
@@ -1481,6 +1484,11 @@ parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibilit
     for !p.check(.RBrace) && !p.check(.Eof) {
         errors_before :: p.errors.len()
         v_tok :: p.expect(.Ident, "variant name")
+        variant_data: StructLitItem![] | null = null
+        if p.match_kind(.LBrace) != null {
+            variant_data = p.parse_struct_lit_fields().items
+            p.expect(.RBrace, "`}` to close variant data")
+        }
         value: i64 | null = null
         value_span: Span | null = null
         if p.match_kind(.Assign) != null {
@@ -1502,6 +1510,7 @@ parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibilit
             .name       = v_tok.text,
             .value      = value,
             .value_span = value_span,
+            .data       = variant_data,
         })
         // `expect` reports without consuming : resynchronise on the next
         // separator, or the rejected token is re-read by every iteration.
@@ -1519,7 +1528,7 @@ parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibilit
         .name       = name_tok.text,
         .name_span  = name_tok.span,
         .visibility = visibility,
-        .repr       = repr,
+        .header     = header,
         .variants   = variants,
         .decorators = decorators,
     }
@@ -3863,13 +3872,21 @@ parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader"
     assert_eq(errors[0].code.id, "P1027")
 }
 
-// First variant of the first declaration, which the fixtures below make an enum.
-first_variant_value :: fn(src: string) -> i64 | null {
+// The first declaration, when the fixture makes it an enum.
+first_enum :: fn(src: string) -> EnumDecl | null {
     decl :: parse_source(src, "test.vader").program.decls[0]
     if decl is EnumDecl {
-        return decl.variants[0].value
+        return decl
     }
     return null
+}
+
+first_variant_value :: fn(src: string) -> i64 | null {
+    e :: first_enum(src)
+    if e == null {
+        return null
+    }
+    return e.variants[0].value
 }
 
 @test test_enum_negative_variant_value :: fn() -> void {
@@ -3888,4 +3905,30 @@ first_variant_value :: fn(src: string) -> i64 | null {
     src :: "module \"t\"\nE :: enum { A = 1.5, B }\n"
     assert_eq(parse_error_count(src), 1)
     assert(first_variant_value(src) == null, "a rejected value should leave the index implicit")
+}
+
+
+header_arity :: fn(src: string) -> usize {
+    e :: first_enum(src)
+    return if e == null { 99 } else { e.header.len() }
+}
+
+@test test_enum_header_is_kept_as_written :: fn() -> void {
+    assert_eq(header_arity("module \"t\"\nE :: enum { A }\n"), 0)
+    assert_eq(header_arity("module \"t\"\nE :: enum(Info) { A }\n"), 1)
+    assert_eq(header_arity("module \"t\"\nE :: enum(Info, u8) { A }\n"), 2)
+}
+
+@test test_enum_variant_data_then_value :: fn() -> void {
+    src :: "module \"t\"\nE :: enum(Info) {\n    A { .code = 200, .reason = \"OK\" } = 200,\n    B,\n}\n"
+    assert_eq(parse_error_count(src), 0)
+    e :: first_enum(src)
+    if e == null {
+        assert(false, "an enum should parse")
+        return
+    }
+    a :: e.variants[0]
+    assert(a.data != null && a.data.len() == 2, "`A` should carry two fields")
+    assert(a.value is i64 && a.value == 200, "`A` should keep its explicit value")
+    assert(e.variants[1].data == null, "`B` should carry no data")
 }

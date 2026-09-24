@@ -362,8 +362,8 @@ write_enum_decl :: fn(sb: StringBuilder!, d: EnumDecl, level: i32) -> void {
     sb.write_string(d.name)
     sb.entry(false, level + 1, "visibility")
     sb.write_visibility(d.visibility)
-    sb.entry(false, level + 1, "repr")
-    sb.write_optional_type(d.repr, level + 1)
+    sb.entry(false, level + 1, "header")
+    sb.write_types(d.header, level + 1)
     sb.entry(false, level + 1, "variants")
     if d.variants.len() == 0 { sb.close_arr_empty() }
     else {
@@ -383,6 +383,12 @@ write_enum_decl :: fn(sb: StringBuilder!, d: EnumDecl, level: i32) -> void {
             match mv {
                 is null    -> { sb.write_null() }
                 is i64 -> { sb.write_signed_bigint(mv) }
+            }
+            sb.entry(false, level + 3, "data")
+            if v.data is null {
+                sb.write_null()
+            } else {
+                sb.write_struct_lit_items(v.data, level + 3)
             }
             sb.close_obj(level + 2)
         }

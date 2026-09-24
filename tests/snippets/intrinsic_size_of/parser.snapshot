@@ -10,18 +10,22 @@
       "kind": "EnumDecl",
       "name": "Color",
       "visibility": "private",
-      "repr": {
-        "kind": "IdentExpr",
-        "name": "u8"
-      },
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "u8"
+        }
+      ],
       "variants": [
         {
           "name": "Red",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Green",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []
@@ -30,15 +34,17 @@
       "kind": "EnumDecl",
       "name": "Wide",
       "visibility": "private",
-      "repr": null,
+      "header": [],
       "variants": [
         {
           "name": "A",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "B",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []

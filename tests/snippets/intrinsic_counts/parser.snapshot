@@ -73,15 +73,17 @@
       "kind": "EnumDecl",
       "name": "Side",
       "visibility": "private",
-      "repr": null,
+      "header": [],
       "variants": [
         {
           "name": "Left",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Right",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []

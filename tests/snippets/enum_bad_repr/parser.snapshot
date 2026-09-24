@@ -10,18 +10,22 @@
       "kind": "EnumDecl",
       "name": "TooBig",
       "visibility": "public",
-      "repr": {
-        "kind": "IdentExpr",
-        "name": "u8"
-      },
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "u8"
+        }
+      ],
       "variants": [
         {
           "name": "A",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "B",
-          "value": "300n"
+          "value": "300n",
+          "data": null
         }
       ],
       "decorators": []
@@ -30,19 +34,22 @@
       "kind": "EnumDecl",
       "name": "DupVal",
       "visibility": "public",
-      "repr": null,
+      "header": [],
       "variants": [
         {
           "name": "X",
-          "value": "1n"
+          "value": "1n",
+          "data": null
         },
         {
           "name": "Y",
-          "value": "2n"
+          "value": "2n",
+          "data": null
         },
         {
           "name": "Z",
-          "value": "1n"
+          "value": "1n",
+          "data": null
         }
       ],
       "decorators": []
@@ -51,14 +58,17 @@
       "kind": "EnumDecl",
       "name": "NotInt",
       "visibility": "public",
-      "repr": {
-        "kind": "IdentExpr",
-        "name": "string"
-      },
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "string"
+        }
+      ],
       "variants": [
         {
           "name": "A",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []

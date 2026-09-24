@@ -18,26 +18,32 @@
       "kind": "EnumDecl",
       "name": "Level",
       "visibility": "private",
-      "repr": {
-        "kind": "IdentExpr",
-        "name": "i8"
-      },
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "i8"
+        }
+      ],
       "variants": [
         {
           "name": "Low",
-          "value": "-128n"
+          "value": "-128n",
+          "data": null
         },
         {
           "name": "Mid",
-          "value": "-1n"
+          "value": "-1n",
+          "data": null
         },
         {
           "name": "High",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Top",
-          "value": "127n"
+          "value": "127n",
+          "data": null
         }
       ],
       "decorators": []

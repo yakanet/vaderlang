@@ -53,18 +53,22 @@
       "kind": "EnumDecl",
       "name": "Mode",
       "visibility": "private",
-      "repr": {
-        "kind": "IdentExpr",
-        "name": "u8"
-      },
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "u8"
+        }
+      ],
       "variants": [
         {
           "name": "Fast",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Small",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []

@@ -1207,7 +1207,7 @@ broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram!>, projec
             for decl in file.program.decls {
                 if decl is AST.EnumDecl {
                     sym :: by_name[decl.name] ?? continue
-                    repr :: resolve_repr(decl.repr, typed.resolved, diag_sink())
+                    repr :: resolve_repr(decl, typed.resolved, diag_sink())
                     indices :: resolve_enum_indices(decl, repr, diag_sink())
                     collected[sym.id] = mk_enum(sym, repr, indices)
                 }

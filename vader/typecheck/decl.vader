@@ -1071,7 +1071,7 @@ declare_enum :: fn(
     diags: Diagnostic[]!,
 ) -> void {
     sym :: by_name[decl.name]
-    repr :: resolve_repr(decl.repr, resolved, diags)
+    repr :: resolve_repr(decl, resolved, diags)
     indices :: resolve_enum_indices(decl, repr, diags)
     if sym is Symbol {
         enum_type :: mk_enum(sym, repr, indices)
@@ -1261,13 +1261,16 @@ lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | nul
 // ---- helpers --------------------------------------------------------------
 
 resolve_repr :: fn(
-    repr: AST.TypeExpr | null,
+    decl: AST.EnumDecl,
     resolved: ResolvedModule,
     diags: Diagnostic[]!,
 ) -> string {
-    if repr is null {
+    // The width is the header's last argument. Variant data is not checked
+    // yet, so a lone data type is reported here as a non-integer width.
+    if decl.header.len() == 0 {
         return "i32"
     }
+    repr :: decl.header[decl.header.len() - 1]
     repr_ty :: type_from_expr(repr, resolved, diags)
     if repr_ty is PrimitiveType {
         if is_int_name(repr_ty.name) {

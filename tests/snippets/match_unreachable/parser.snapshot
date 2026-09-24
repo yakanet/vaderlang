@@ -18,19 +18,22 @@
       "kind": "EnumDecl",
       "name": "Color",
       "visibility": "private",
-      "repr": null,
+      "header": [],
       "variants": [
         {
           "name": "Red",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Green",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Blue",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []

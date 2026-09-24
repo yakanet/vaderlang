@@ -18,22 +18,27 @@
       "kind": "EnumDecl",
       "name": "Day",
       "visibility": "private",
-      "repr": {
-        "kind": "IdentExpr",
-        "name": "u8"
-      },
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "u8"
+        }
+      ],
       "variants": [
         {
           "name": "Mon",
-          "value": "1n"
+          "value": "1n",
+          "data": null
         },
         {
           "name": "Tue",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Wed",
-          "value": "200n"
+          "value": "200n",
+          "data": null
         }
       ],
       "decorators": []
@@ -42,18 +47,22 @@
       "kind": "EnumDecl",
       "name": "Big",
       "visibility": "private",
-      "repr": {
-        "kind": "IdentExpr",
-        "name": "u32"
-      },
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "u32"
+        }
+      ],
       "variants": [
         {
           "name": "A",
-          "value": "0n"
+          "value": "0n",
+          "data": null
         },
         {
           "name": "B",
-          "value": "4000000000n"
+          "value": "4000000000n",
+          "data": null
         }
       ],
       "decorators": []
@@ -62,19 +71,22 @@
       "kind": "EnumDecl",
       "name": "Color",
       "visibility": "private",
-      "repr": null,
+      "header": [],
       "variants": [
         {
           "name": "Red",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Green",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Blue",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []

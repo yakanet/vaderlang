@@ -163,7 +163,7 @@ walk_decl :: fn(self: ResolveState!, d: AST.Decl) -> void {
         is AST.ImportDecl    -> {}
         is AST.FnDecl        -> { self.walk_fn_decl(d) }
         is AST.StructDecl    -> { self.walk_struct_decl(d) }
-        is AST.EnumDecl      -> {}
+        is AST.EnumDecl      -> { self.reject_variant_data(d) }
         is AST.TraitDecl     -> { self.walk_trait_decl(d) }
         is AST.ImplDecl      -> { self.walk_impl_decl(d) }
         is AST.TypeAliasDecl -> {
@@ -181,6 +181,22 @@ walk_decl :: fn(self: ResolveState!, d: AST.Decl) -> void {
             self.walk_expr(d.value)
         }
         is AST.AssertDecl -> { self.walk_expr(d.condition) }
+    }
+}
+
+// Variant data parses but is not checked or lowered yet : stop at the resolver
+// rather than let a later pass meet a shape it does not handle. A lone header
+// argument cannot be told apart from a width before types resolve ; the
+// typechecker's width check reports it.
+reject_variant_data :: fn(self: ResolveState!, d: AST.EnumDecl) -> void {
+    span: Span | null = if d.header.len() == 2 { d.header[0].span } else { null }
+    for v in d.variants {
+        if span == null && v.data !is null {
+            span = v.span
+        }
+    }
+    if span != null {
+        self.diags.push(resolver_error(.FeatureNotYetImplemented, span, "enum variant data"))
     }
 }
 

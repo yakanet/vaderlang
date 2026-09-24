@@ -18,19 +18,22 @@
       "kind": "EnumDecl",
       "name": "Color",
       "visibility": "public",
-      "repr": null,
+      "header": [],
       "variants": [
         {
           "name": "Red",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Green",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Blue",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []
@@ -39,19 +42,22 @@
       "kind": "EnumDecl",
       "name": "Severity",
       "visibility": "public",
-      "repr": null,
+      "header": [],
       "variants": [
         {
           "name": "Info",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Warning",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Error",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []

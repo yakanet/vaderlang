@@ -314,8 +314,13 @@ walk_struct_field :: fn(f: AST.StructField, out: RawToken![]!) -> void {
 walk_enum_decl :: fn(d: AST.EnumDecl, out: RawToken![]!) -> void {
     walk_decorators(d.decorators, out)
     push_span(out, d.name_span, .Type)
-    walk_opt_type(d.repr, out)
-    for v in d.variants { push_span(out, v.span, .EnumMember) }
+    for h in d.header { walk_type_expr(h, out) }
+    for v in d.variants {
+        push_span(out, v.span, .EnumMember)
+        if v.data !is null {
+            walk_struct_lit_items(v.data, out)
+        }
+    }
 }
 
 walk_trait_decl :: fn(d: AST.TraitDecl, out: RawToken![]!) -> void {
@@ -584,13 +589,16 @@ walk_lambda :: fn(l: AST.LambdaExpr, out: RawToken![]!) -> void {
 
 walk_struct_lit :: fn(s: AST.StructLitExpr, out: RawToken![]!) -> void {
     walk_type_expr(s.type_name, out)
-    for it in s.items {
-        match it {
-            is AST.StructLitField -> {
-                push_span(out, it.name_span, .Property)
-                walk_expr(it.value, out)
-            }
-            is AST.StructLitSpread -> { walk_expr(it.expr, out) }
+    walk_struct_lit_items(s.items, out)
+}
+
+walk_struct_lit_items :: fn(items: AST.StructLitItem[], out: RawToken![]!) -> void {
+    for it in items {
+        if it is AST.StructLitField {
+            push_span(out, it.name_span, .Property)
+            walk_expr(it.value, out)
+        } else {
+            walk_expr(it.expr, out)
         }
     }
 }

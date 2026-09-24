@@ -75,10 +75,13 @@ walk_decl :: fn(d: Decl!, f: NodeIdFactory!) -> void {
         }
         is EnumDecl -> {
             d.id = f.mint()
-            if d.repr !is null {
-                walk_expr(d.repr, f)
+            for h in d.header { walk_expr(h, f) }
+            for v in d.variants {
+                v.id = f.mint()
+                if v.data !is null {
+                    walk_struct_lit_items(v.data, f)
+                }
             }
-            for v in d.variants { v.id = f.mint() }
             for dec in d.decorators { walk_decorator(dec, f) }
         }
         is TraitDecl -> {
@@ -255,18 +258,7 @@ walk_expr :: fn(e: Expr!, f: NodeIdFactory!) -> void {
         is StructLitExpr -> {
             e.id = f.mint()
             walk_expr(e.type_name, f)
-            for item in e.items {
-                match item {
-                    is StructLitField -> {
-                        item.id = f.mint()
-                        walk_expr(item.value, f)
-                    }
-                    is StructLitSpread  -> {
-                        item.id = f.mint()
-                        walk_expr(item.expr, f)
-                    }
-                }
-            }
+            walk_struct_lit_items(e.items, f)
         }
         is SeqLitExpr -> {
             e.id = f.mint()
@@ -315,6 +307,17 @@ walk_expr :: fn(e: Expr!, f: NodeIdFactory!) -> void {
 }
 
 // ---- block / stmt / pattern walkers ---------------------------------------
+
+walk_struct_lit_items :: fn(items: StructLitItem![], f: NodeIdFactory!) -> void {
+    for item in items {
+        item.id = f.mint()
+        if item is StructLitField {
+            walk_expr(item.value, f)
+        } else {
+            walk_expr(item.expr, f)
+        }
+    }
+}
 
 walk_block :: fn(b: BlockExpr!, f: NodeIdFactory!) -> void {
     b.id = f.mint()

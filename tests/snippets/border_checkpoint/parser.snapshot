@@ -18,18 +18,22 @@
       "kind": "EnumDecl",
       "name": "Lane",
       "visibility": "private",
-      "repr": {
-        "kind": "IdentExpr",
-        "name": "u8"
-      },
+      "header": [
+        {
+          "kind": "IdentExpr",
+          "name": "u8"
+        }
+      ],
       "variants": [
         {
           "name": "Cars",
-          "value": null
+          "value": null,
+          "data": null
         },
         {
           "name": "Trucks",
-          "value": null
+          "value": null,
+          "data": null
         }
       ],
       "decorators": []

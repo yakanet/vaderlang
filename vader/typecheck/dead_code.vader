@@ -106,16 +106,7 @@ collect_expr_names :: fn(e: AST.Expr, out: string[]!) -> void {
         }
         is AST.StructLitExpr     -> {
             collect_expr_names(e.type_name, out)
-            for it in e.items {
-                match it {
-                    is AST.StructLitField  -> {
-                        collect_expr_names(it.value, out)
-                    }
-                    is AST.StructLitSpread -> {
-                        collect_expr_names(it.expr, out)
-                    }
-                }
-            }
+            collect_struct_lit_item_names(e.items, out)
         }
         is AST.SeqLitExpr        -> {
             for it in e.elements {
@@ -251,6 +242,16 @@ collect_type_param_names :: fn(ps: AST.TypeParam[], out: string[]!) -> void {
     }
 }
 
+collect_struct_lit_item_names :: fn(items: AST.StructLitItem[], out: string[]!) -> void {
+    for it in items {
+        if it is AST.StructLitField {
+            collect_expr_names(it.value, out)
+        } else {
+            collect_expr_names(it.expr, out)
+        }
+    }
+}
+
 collect_opt_expr_names :: fn(e: AST.Expr | null, out: string[]!) -> void {
     if e != null {
         collect_expr_names(e, out)
@@ -373,7 +374,12 @@ collect_decl_refs :: fn(d: AST.Decl, seed_refs: string[]!) -> NamedDeclRefs | nu
         is AST.EnumDecl      -> {
             r: string[]!: []
             collect_decorator_names(d.decorators, r)
-            collect_opt_expr_names(d.repr, r)
+            for h in d.header { collect_expr_names(h, r) }
+            for v in d.variants {
+                if v.data !is null {
+                    collect_struct_lit_item_names(v.data, r)
+                }
+            }
             named_head(d.name, d.name_span, d.visibility, d.decorators, false, r)
         }
         is AST.TraitDecl     -> {
