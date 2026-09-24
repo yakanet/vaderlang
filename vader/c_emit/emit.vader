@@ -989,34 +989,29 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
 
     out.append("\n")
     out.append("const vader_type_info_t vader_type_info_table[${count}] = {\n")
-    // Per-type info initialiser rows — struct / fn / array carry an
-    // explicit row ; primitives / unions / refs leave the slot at its
-    // zero-init `VADER_TYPE_KIND_NONE` (so the GC scanner short-
-    // circuits without reading the payload).
+    // Per-type info initialiser rows — struct / fn / array carry a full row ;
+    // primitives / unions / refs only set `slot_size` and keep the zero-init
+    // `VADER_TYPE_KIND_NONE` (so the GC scanner short-circuits without reading
+    // the payload).
     for j in 0..<count {
         match types[j] as entry {
             is BcStruct -> emit_struct_info_row(ctx, entry, struct_offsets[j], j, out)
-            is BcFn -> out.append("    [${j}] = { .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .ptr_offsets = vader_type_${j}_ptrs, .ptr_count = 1 },\n")
-            is BcArray -> out.append("    [${j}] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_${j}_ptrs, .ptr_count = 1 },\n")
-            // primitives / unions / refs leave the slot at its zero-init
-    // VADER_TYPE_KIND_NONE. MUST stay `_ -> {}`, not `@partial` — those
-            // slots are reachable (e.g. an enum/distinct interning under its
-            // backing primitive's key), and a trapping fallback would abort.
-            _ -> {}
+            is BcFn -> out.append("    [${j}] = { .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = ${size_of_bc_type(entry)}, .ptr_offsets = vader_type_${j}_ptrs, .ptr_count = 1 },\n")
+            is BcArray -> out.append("    [${j}] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = ${size_of_bc_type(entry)}, .ptr_offsets = vader_type_${j}_ptrs, .ptr_count = 1 },\n")
+            // Primitives / unions / refs — every other `BcType`. MUST stay a
+            // `_` arm, not `@partial` : those slots are reachable (e.g. an
+            // enum/distinct interning under its backing primitive's key), and a
+            // trapping fallback would abort. `null` is 0 wide and keeps no row.
+            _ -> {
+                size :: size_of_bc_type(entry)
+                if size > 0 {
+                    out.append("    [${j}] = { .slot_size = ${size} },\n")
+                }
+            }
         }
     }
     out.append("};\n")
     out.append("const size_t vader_type_info_count = ${count};\n")
-    out.append("\n")
-
-    // Per-type size table — backs `@size_of(t)`. Emitted unconditionally
-    // so the `type.const N` payload's size lookup stays valid even
-    // when user code doesn't actually read it.
-    out.append("const size_t vader_type_size[${count}] = {\n")
-    for k in 0..<count {
-        out.append("    [${k}] = ${size_of_bc_type(types[k])}u,\n")
-    }
-    out.append("};\n")
     out.append("\n")
 }
 
@@ -1097,7 +1092,7 @@ emit_struct_offset_arrays :: fn(offs: StructOffsets, type_index: usize, out: Str
 /// gets a regular heap-backed `VADER_TYPE_KIND_STRUCT` row). Future
 /// phases will detect inline-variant (`VADER_TYPE_KIND_INLINE_REF`)
 /// and packed-payload shapes.
-emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type_index: usize, out: StringBuilder!) -> void {
+emit_struct_info_row :: fn(ctx: EmitCtx, s: BcStruct, offs: StructOffsets, type_index: usize, out: StringBuilder!) -> void {
     cname :: ctx.struct_c_names[type_index]
     ptr_count :: offs.ptr_offsets.len()
     str_count :: offs.str_offsets.len()
@@ -1107,7 +1102,7 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
     // field order — the committed seed is compiled against the header of the
     // tree, and a positional row would shift under any new field. An empty
     // offset list is left out : it stays zero, which is `NULL` / 0.
-    out.append("    [${type_index}] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(${cname})")
+    out.append("    [${type_index}] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(${cname}), .slot_size = ${size_of_bc_type(s)}")
     if ptr_count > 0 {
         out.append(", .ptr_offsets = vader_type_${type_index}_ptrs, .ptr_count = ${ptr_count}")
     }

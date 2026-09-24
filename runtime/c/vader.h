@@ -1122,6 +1122,10 @@ typedef struct {
     const uint16_t*     ptr_offsets;   /* byte offsets of vader_box_t fields */
     uint16_t            ptr_count;
     uint16_t            string_count;  /* byte offsets count of raw vader_string_t fields */
+    /* Width of the SLOT that carries a value of this type — a field, a local, an
+     * argument — not of the object a reference points at : what `@size_of`
+     * answers at run time. Sits in padding, so it costs no space. */
+    uint8_t             slot_size;
     const uint16_t*     string_offsets;/* byte offsets of raw vader_string_t fields */
     /* `T | null` fields stored as a raw `void*` (NULL = null variant, non-null
      * = pointer to the T variant's vader_obj_header_t). Saves 16 B per field

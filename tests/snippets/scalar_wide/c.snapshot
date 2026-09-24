@@ -92,31 +92,23 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 
 const vader_type_info_t vader_type_info_table[16] = {
-    [8] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i32_t) },
-    [9] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t) },
-    [13] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__usize_t) },
-    [14] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_usize_u8_de11f1ad_t) },
+    [1] = { .slot_size = 8 },
+    [2] = { .slot_size = 1 },
+    [3] = { .slot_size = 4 },
+    [4] = { .slot_size = 4 },
+    [5] = { .slot_size = 8 },
+    [6] = { .slot_size = 8 },
+    [7] = { .slot_size = 4 },
+    [8] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i32_t), .slot_size = 8 },
+    [9] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t), .slot_size = 8 },
+    [10] = { .slot_size = 1 },
+    [11] = { .slot_size = 8 },
+    [12] = { .slot_size = 16 },
+    [13] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__usize_t), .slot_size = 8 },
+    [14] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_usize_u8_de11f1ad_t), .slot_size = 8 },
+    [15] = { .slot_size = 16 },
 };
 const size_t vader_type_info_count = 16;
-
-const size_t vader_type_size[16] = {
-    [0] = 0u,
-    [1] = 8u,
-    [2] = 1u,
-    [3] = 4u,
-    [4] = 4u,
-    [5] = 8u,
-    [6] = 8u,
-    [7] = 4u,
-    [8] = 16u,
-    [9] = 16u,
-    [10] = 1u,
-    [11] = 8u,
-    [12] = 16u,
-    [13] = 16u,
-    [14] = 16u,
-    [15] = 16u,
-};
 
 
 static int64_t snippet_l_add(int64_t l0, int64_t l1) {

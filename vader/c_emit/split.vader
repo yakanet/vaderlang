@@ -320,7 +320,6 @@ emit_data_global_externs :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
         out.append("extern vader_gc_frame_t vader_global_const_frame;\n")
     }
     out.append("extern const vader_atom_entry_t vader_atom_comptime_table[];\n")
-    out.append("extern const size_t vader_type_size[];\n")
     out.append("\n")
 }
 

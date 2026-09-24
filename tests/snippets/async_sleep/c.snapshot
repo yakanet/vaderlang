@@ -76,36 +76,26 @@ static const uint16_t vader_type_3_ptrs[] = { offsetof(vader_struct___asyncstate
 static const uint16_t vader_type_13_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[20] = {
-    [3] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_0_t), .ptr_offsets = vader_type_3_ptrs, .ptr_count = 1 },
-    [5] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Suspended_t) },
-    [11] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t) },
-    [13] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_13_ptrs, .ptr_count = 1 },
-    [16] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_async_Sleep_t) },
+    [1] = { .slot_size = 16 },
+    [2] = { .slot_size = 4 },
+    [3] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_0_t), .slot_size = 8, .ptr_offsets = vader_type_3_ptrs, .ptr_count = 1 },
+    [4] = { .slot_size = 16 },
+    [5] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Suspended_t), .slot_size = 8 },
+    [6] = { .slot_size = 16 },
+    [7] = { .slot_size = 16 },
+    [8] = { .slot_size = 1 },
+    [9] = { .slot_size = 1 },
+    [10] = { .slot_size = 8 },
+    [11] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t), .slot_size = 8 },
+    [12] = { .slot_size = 8 },
+    [13] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_13_ptrs, .ptr_count = 1 },
+    [15] = { .slot_size = 16 },
+    [16] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_async_Sleep_t), .slot_size = 8 },
+    [17] = { .slot_size = 16 },
+    [18] = { .slot_size = 8 },
+    [19] = { .slot_size = 16 },
 };
 const size_t vader_type_info_count = 20;
-
-const size_t vader_type_size[20] = {
-    [0] = 0u,
-    [1] = 16u,
-    [2] = 4u,
-    [3] = 16u,
-    [4] = 16u,
-    [5] = 16u,
-    [6] = 16u,
-    [7] = 16u,
-    [8] = 1u,
-    [9] = 1u,
-    [10] = 8u,
-    [11] = 16u,
-    [12] = 8u,
-    [13] = 16u,
-    [14] = 0u,
-    [15] = 16u,
-    [16] = 16u,
-    [17] = 16u,
-    [18] = 8u,
-    [19] = 16u,
-};
 
 // Headers named by `@c_header` — they own the prototypes below.
 #include <unistd.h>

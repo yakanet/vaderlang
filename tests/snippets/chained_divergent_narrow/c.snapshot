@@ -65,32 +65,21 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_type_12_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[15] = {
-    [2] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_FnLike_t) },
-    [3] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Meta_t) },
-    [4] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Other_t) },
-    [5] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Unres_t) },
-    [10] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t) },
-    [12] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_12_ptrs, .ptr_count = 1 },
+    [1] = { .slot_size = 16 },
+    [2] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_FnLike_t), .slot_size = 8 },
+    [3] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Meta_t), .slot_size = 8 },
+    [4] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Other_t), .slot_size = 8 },
+    [5] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Unres_t), .slot_size = 8 },
+    [6] = { .slot_size = 4 },
+    [7] = { .slot_size = 16 },
+    [8] = { .slot_size = 1 },
+    [9] = { .slot_size = 8 },
+    [10] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t), .slot_size = 8 },
+    [11] = { .slot_size = 8 },
+    [12] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_12_ptrs, .ptr_count = 1 },
+    [14] = { .slot_size = 8 },
 };
 const size_t vader_type_info_count = 15;
-
-const size_t vader_type_size[15] = {
-    [0] = 0u,
-    [1] = 16u,
-    [2] = 16u,
-    [3] = 16u,
-    [4] = 16u,
-    [5] = 16u,
-    [6] = 4u,
-    [7] = 16u,
-    [8] = 1u,
-    [9] = 8u,
-    [10] = 16u,
-    [11] = 8u,
-    [12] = 16u,
-    [13] = 0u,
-    [14] = 8u,
-};
 
 // Headers named by `@c_header` — they own the prototypes below.
 #include <unistd.h>

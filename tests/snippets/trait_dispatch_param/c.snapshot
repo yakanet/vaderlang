@@ -18,14 +18,10 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 
 const vader_type_info_t vader_type_info_table[3] = {
+    [1] = { .slot_size = 4 },
+    [2] = { .slot_size = 8 },
 };
 const size_t vader_type_info_count = 3;
-
-const size_t vader_type_size[3] = {
-    [0] = 0u,
-    [1] = 4u,
-    [2] = 8u,
-};
 
 
 static int32_t snippet_main(void) {

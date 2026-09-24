@@ -45,27 +45,19 @@ static const uint16_t vader_type_8_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_11_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [6] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t) },
-    [8] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_8_ptrs, .ptr_count = 1 },
-    [11] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_11_ptrs, .ptr_count = 1 },
+    [1] = { .slot_size = 4 },
+    [2] = { .slot_size = 16 },
+    [3] = { .slot_size = 8 },
+    [4] = { .slot_size = 1 },
+    [5] = { .slot_size = 8 },
+    [6] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t), .slot_size = 8 },
+    [7] = { .slot_size = 8 },
+    [8] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_8_ptrs, .ptr_count = 1 },
+    [10] = { .slot_size = 8 },
+    [11] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_11_ptrs, .ptr_count = 1 },
+    [12] = { .slot_size = 16 },
 };
 const size_t vader_type_info_count = 13;
-
-const size_t vader_type_size[13] = {
-    [0] = 0u,
-    [1] = 4u,
-    [2] = 16u,
-    [3] = 8u,
-    [4] = 1u,
-    [5] = 8u,
-    [6] = 16u,
-    [7] = 8u,
-    [8] = 16u,
-    [9] = 0u,
-    [10] = 8u,
-    [11] = 16u,
-    [12] = 16u,
-};
 
 // Headers named by `@c_header` — they own the prototypes below.
 #include <unistd.h>
@@ -108,7 +100,7 @@ static int32_t snippet_main(void) {
                 l5 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(34));
                 l6 = (size_t) (int64_t) INT64_C(0);
                 l6 = std_core_write_string_at(l5, l6, 1u);
-                t0 = vader_type_size[(int32_t)(uintptr_t)l0.payload.obj];
+                t0 = (size_t)vader_type_info_table[(int32_t)(uintptr_t)l0.payload.obj].slot_size;
                 t1 = ((int64_t) (size_t) t0);
                 l7 = (uint64_t) (int64_t) t1;
                 l6 = std_core_write_unsigned(l5, l6, l7);

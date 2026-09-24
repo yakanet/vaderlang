@@ -38,25 +38,18 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_type_7_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [7] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_7_ptrs, .ptr_count = 1 },
-    [8] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t) },
+    [1] = { .slot_size = 4 },
+    [2] = { .slot_size = 16 },
+    [4] = { .slot_size = 16 },
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 8 },
+    [7] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_7_ptrs, .ptr_count = 1 },
+    [8] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t), .slot_size = 8 },
+    [9] = { .slot_size = 8 },
+    [10] = { .slot_size = 8 },
+    [11] = { .slot_size = 16 },
 };
 const size_t vader_type_info_count = 12;
-
-const size_t vader_type_size[12] = {
-    [0] = 0u,
-    [1] = 4u,
-    [2] = 16u,
-    [3] = 0u,
-    [4] = 16u,
-    [5] = 1u,
-    [6] = 8u,
-    [7] = 16u,
-    [8] = 16u,
-    [9] = 8u,
-    [10] = 8u,
-    [11] = 16u,
-};
 
 // Headers named by `@c_header` — they own the prototypes below.
 #include <unistd.h>

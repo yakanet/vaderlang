@@ -75,28 +75,19 @@ static const uint16_t vader_type_11_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_12_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [5] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t) },
-    [8] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_8_ptrs, .ptr_count = 1 },
-    [11] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_11_ptrs, .ptr_count = 1 },
-    [12] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_12_ptrs, .ptr_count = 1 },
+    [1] = { .slot_size = 4 },
+    [2] = { .slot_size = 16 },
+    [3] = { .slot_size = 1 },
+    [4] = { .slot_size = 8 },
+    [5] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t), .slot_size = 8 },
+    [6] = { .slot_size = 8 },
+    [7] = { .slot_size = 8 },
+    [8] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_8_ptrs, .ptr_count = 1 },
+    [10] = { .slot_size = 8 },
+    [11] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_11_ptrs, .ptr_count = 1 },
+    [12] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_12_ptrs, .ptr_count = 1 },
 };
 const size_t vader_type_info_count = 13;
-
-const size_t vader_type_size[13] = {
-    [0] = 0u,
-    [1] = 4u,
-    [2] = 16u,
-    [3] = 1u,
-    [4] = 8u,
-    [5] = 16u,
-    [6] = 8u,
-    [7] = 8u,
-    [8] = 16u,
-    [9] = 0u,
-    [10] = 8u,
-    [11] = 16u,
-    [12] = 16u,
-};
 
 // Headers named by `@c_header` — they own the prototypes below.
 #include <unistd.h>

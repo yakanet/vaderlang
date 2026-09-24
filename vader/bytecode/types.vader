@@ -603,19 +603,20 @@ export size_of_val_type :: fn(v: ValType) -> i32 = match v {
     .Any -> 16
 }
 
-/// Byte size of a `BcType` — primitives use their native widths, every
-/// reference shape (struct, array, union, ref, fn) fits in `vader_box_t`
-/// (16 B) at the boxed boundary. Backs `@size_of(t)` and the C-emit
-/// `vader_type_size[]` table.
+/// Byte size of the slot that carries a `BcType` — primitives use their native
+/// widths, a concrete reference (struct, array, fn value) is a bare pointer, and
+/// only an erased slot (union, trait ref) carries a `vader_box_t`. The same
+/// answer the lowerer folds for a static `@size_of` ; this one backs the run-time
+/// `size_of.type`, in the VM and through the C `slot_size` column.
 /// @param t  the bytecode type-table entry.
 /// @return   the byte size in the runtime layout.
 export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
     is BcPrimitive -> size_of_val_type(t.val)
-    is BcStruct -> 16
-    is BcArray -> 16
+    is BcStruct -> 8
+    is BcArray -> 8
+    is BcFn -> 8
     is BcUnion -> 16
     is BcRef -> 16
-    is BcFn -> 16
 }
 
 /// True when `t` can be stored as a raw `void*` array slot (T12/P3): a
@@ -732,4 +733,27 @@ key_join :: fn(types: BcType[], indices: i32[], sep: string) -> string {
         parts.push(bc_type_key(types, i))
     }
     return parts.join(sep)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_slot_size_of_primitive_is_its_width :: fn() -> void {
+    assert_eq(size_of_bc_type(BcPrimitive { .val = .U8 }), 1)
+    assert_eq(size_of_bc_type(BcPrimitive { .val = .I64 }), 8)
+}
+
+@test
+test_slot_size_of_concrete_reference_is_a_pointer :: fn() -> void {
+    assert_eq(size_of_bc_type(BcStruct { .name = "P", .fields = [], .c_name = "", .symbol_id = -1 }), 8)
+    assert_eq(size_of_bc_type(BcArray { .element = 0 }), 8)
+    assert_eq(size_of_bc_type(BcFn { .params = [], .return_type = 0 }), 8)
+}
+
+@test
+test_slot_size_of_erased_slot_is_a_box :: fn() -> void {
+    assert_eq(size_of_bc_type(BcUnion { .variants = [] }), 16)
+    assert_eq(size_of_bc_type(BcRef { .trait_name = "" }), 16)
 }

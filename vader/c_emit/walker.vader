@@ -1884,10 +1884,10 @@ emit_type_const :: fn(s: FnState!, op: vm.TypeConst) -> void = push_lit(
 )
 
 /// `size_of.type` — decode the `type.const` payload back to a BcType slot and
-/// index the `vader_type_size[]` table (emitted by `emit_type_info_table`).
+/// read its `slot_size` in `vader_type_info_table` (`emit_type_info_table`).
 emit_size_of_type :: fn(s: FnState!) -> void {
     tv :: pop(s)
-    push_into_tmp(s, "vader_type_size[(int32_t)(uintptr_t)${name_of(tv)}.payload.obj]", .Usize)
+    push_into_tmp(s, "(size_t)vader_type_info_table[(int32_t)(uintptr_t)${name_of(tv)}.payload.obj].slot_size", .Usize)
 }
 
 /// `type_check` — runtime `x is T`. A boxed value compares its tag (a trait
