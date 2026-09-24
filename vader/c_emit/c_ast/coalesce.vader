@@ -254,7 +254,6 @@ fused_copy :: fn(definition: CStatement, copy: CStatement, usage: TemporaryUsage
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/string_builder"
 import "std/testing"
 
 // A body built over temps `0..<count`, coalesced, then printed.
@@ -285,9 +284,9 @@ use :: fn(value: CExpression) -> CStatement = CExpressionStatement {
 }
 
 printed :: fn(block: CBlock) -> string {
-    out :: StringBuilder {}
-    print_block(out, block, 0)
-    return out.to_string()
+    printer :: CPrinter {}
+    printer.print_block(block, 0)
+    return printer.printed_text()
 }
 
 @test

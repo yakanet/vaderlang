@@ -327,8 +327,8 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     // frame and GC-root set. The declarations below are one per slot. See
     // `c_ast/coalesce.vader`.
     slot_types :: coalesce_temporaries(s.root, s.temporaries)
-    body :: StringBuilder {}
-    print_block(body, s.root, 1)
+    body :: CPrinter {}
+    body.print_block(s.root, 1)
     // GC roots : ref-typed params, then locals + temps (collected by the
     // decl emitters). Order is irrelevant to the GC scan. `no_frame` fns
     // skip the whole shadow-stack apparatus.
@@ -402,7 +402,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         )
         out.append("    vader_gc_top = &gc_frame;\n")
     }
-    out.append(body.to_string())
+    out.append(body.printed_text())
     out.append("}\n")
 }
 
@@ -1244,7 +1244,7 @@ emit_if_open :: fn(s: FnState!) -> void {
 }
 
 /// `else` — close the then-arm and open the else-arm ; an arm holding a single
-/// `if` prints as `else if` (`print_if`). Block results are already
+/// `if` prints as `else if` (`write_if`). Block results are already
 /// materialised into locals by the lowerer (every scope is `void`), so there is
 /// nothing to hoist across the boundary.
 emit_else :: fn(s: FnState!) -> void {

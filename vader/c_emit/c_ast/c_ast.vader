@@ -81,7 +81,7 @@ export CBlock :: struct {
 }
 
 /// `if (condition) { … } else { … }`. An `else` whose only statement is an
-/// `if` prints as `else if` (`print_if`).
+/// `if` prints as `else if` (`write_if`).
 export CIf :: struct {
     condition: CExpression
     then_block: CBlock!
