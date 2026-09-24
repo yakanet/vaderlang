@@ -255,7 +255,7 @@ export is_unsigned_val :: fn(v: ValType) -> bool = is_u32_class(v) || is_u64_cla
 /// True when the val-type is exactly `String`. Companion to
 /// `is_integer_val` / `is_float_val` ; consumed by the C emitter's
 /// per-struct field-classification walk (string fields land in the
-/// dedicated `_strs[]` GC-root array, distinct from heap-ref fields).
+/// row's `.string_offsets` GC-root list, distinct from heap-ref fields).
 ///
 /// @param v  the value class to classify.
 /// @return   `true` for `ValType.String`, `false` otherwise.

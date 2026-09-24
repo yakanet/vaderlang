@@ -75,18 +75,16 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-static const uint16_t vader_type_4_ptrs[] = { offsetof(vader_struct___asyncstate_snippet_0_t, f_awaited) };
-static const uint16_t vader_type_7_ptrs[] = { offsetof(vader_struct___asyncstate_snippet_1_t, f_awaited) };
-static const uint16_t vader_type_17_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[19] = {
     [1] = { .slot_size = 16 },
     [2] = { .slot_size = 16 },
     [3] = { .slot_size = 4 },
-    [4] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_0_t), .slot_size = 8, .ptr_offsets = vader_type_4_ptrs, .ptr_count = 1 },
+    [4] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_0_t), .slot_size = 8, .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_0_t, f_awaited) }, .ptr_count = 1 },
     [5] = { .slot_size = 16 },
     [6] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Suspended_t), .slot_size = 8 },
-    [7] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_1_t), .slot_size = 8, .ptr_offsets = vader_type_7_ptrs, .ptr_count = 1 },
+    [7] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_1_t), .slot_size = 8, .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_1_t, f_awaited) }, .ptr_count = 1 },
     [8] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Ready__i32_t), .slot_size = 8 },
     [9] = { .slot_size = 16 },
     [11] = { .slot_size = 16 },
@@ -95,7 +93,7 @@ const vader_type_info_t vader_type_info_table[19] = {
     [14] = { .slot_size = 8 },
     [15] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t), .slot_size = 8 },
     [16] = { .slot_size = 8 },
-    [17] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_17_ptrs, .ptr_count = 1 },
+    [17] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
     [18] = { .slot_size = 8 },
 };
 const size_t vader_type_info_count = 19;

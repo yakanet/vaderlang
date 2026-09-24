@@ -55,12 +55,12 @@ static vader_box_t vader_fn_lift___lambda_snippet_2(void* env, vader_box_t a0) {
     return vader_box_i32(1u, __lambda_snippet_2(env, ((int32_t) a0.payload.i)));
 }
 
-static const uint16_t vader_type_2_ptrs[] = { offsetof(vader_fn_t, env) };
-static const uint16_t vader_type_10_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
+static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
     [1] = { .slot_size = 4 },
-    [2] = { .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8, .ptr_offsets = vader_type_2_ptrs, .ptr_count = 1 },
+    [2] = { .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8, .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1 },
     [3] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_1_t), .slot_size = 8 },
     [4] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_3_t), .slot_size = 8 },
     [5] = { .slot_size = 16 },
@@ -68,7 +68,7 @@ const vader_type_info_t vader_type_info_table[13] = {
     [7] = { .slot_size = 8 },
     [8] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t), .slot_size = 8 },
     [9] = { .slot_size = 8 },
-    [10] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_10_ptrs, .ptr_count = 1 },
+    [10] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
     [12] = { .slot_size = 8 },
 };
 const size_t vader_type_info_count = 13;

@@ -131,32 +131,22 @@ static vader_box_t vader_fn_lift___lambda_snippet_0(void* env) {
     return vader_box_null();
 }
 
-static const uint16_t vader_type_3_ptrs[] = { offsetof(vader_struct___lambda_env_snippet_1_t, f_cap_0), offsetof(vader_struct___lambda_env_snippet_1_t, f_cap_1) };
-static const uint16_t vader_type_5_ptrs[] = { offsetof(vader_struct___asyncstate_snippet_2_t, f_s0), offsetof(vader_struct___asyncstate_snippet_2_t, f_s2), offsetof(vader_struct___asyncstate_snippet_2_t, f_awaited) };
-static const uint16_t vader_type_5_refs[] = { offsetof(vader_struct___asyncstate_snippet_2_t, f_s3) };
-static const uint16_t vader_type_8_ptrs[] = { offsetof(vader_struct___asyncstate_snippet_3_t, f_awaited) };
-static const uint16_t vader_type_8_refs[] = { offsetof(vader_struct___asyncstate_snippet_3_t, f_s0), offsetof(vader_struct___asyncstate_snippet_3_t, f_s1), offsetof(vader_struct___asyncstate_snippet_3_t, f_s2) };
-static const uint16_t vader_type_11_ptrs[] = { offsetof(vader_fn_t, env) };
-static const uint16_t vader_type_13_ptrs[] = { offsetof(vader_array_t, buf) };
-static const uint16_t vader_type_21_ptrs[] = { offsetof(vader_array_t, buf) };
-static const uint16_t vader_type_22_refs[] = { offsetof(vader_struct_std_async_All__i32_t, f_children), offsetof(vader_struct_std_async_All__i32_t, f_results) };
-static const uint16_t vader_type_27_ptrs[] = { offsetof(vader_array_t, buf) };
-static const uint16_t vader_type_29_refs[] = { offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_index) };
-static const uint16_t vader_type_31_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
+static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[34] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 16 },
-    [3] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_1_t), .slot_size = 8, .ptr_offsets = vader_type_3_ptrs, .ptr_count = 2 },
-    [5] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_2_t), .slot_size = 8, .ptr_offsets = vader_type_5_ptrs, .ptr_count = 3, .ref_offsets = vader_type_5_refs, .ref_count = 1 },
+    [3] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_1_t), .slot_size = 8, .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_snippet_1_t, f_cap_0), offsetof(vader_struct___lambda_env_snippet_1_t, f_cap_1) }, .ptr_count = 2 },
+    [5] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_2_t), .slot_size = 8, .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_2_t, f_s0), offsetof(vader_struct___asyncstate_snippet_2_t, f_s2), offsetof(vader_struct___asyncstate_snippet_2_t, f_awaited) }, .ptr_count = 3, .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_2_t, f_s3) }, .ref_count = 1 },
     [6] = { .slot_size = 16 },
     [7] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Suspended_t), .slot_size = 8 },
-    [8] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_3_t), .slot_size = 8, .ptr_offsets = vader_type_8_ptrs, .ptr_count = 1, .ref_offsets = vader_type_8_refs, .ref_count = 3 },
+    [8] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_3_t), .slot_size = 8, .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_3_t, f_awaited) }, .ptr_count = 1, .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_3_t, f_s0), offsetof(vader_struct___asyncstate_snippet_3_t, f_s1), offsetof(vader_struct___asyncstate_snippet_3_t, f_s2) }, .ref_count = 3 },
     [9] = { .slot_size = 16 },
     [10] = { .slot_size = 16 },
-    [11] = { .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8, .ptr_offsets = vader_type_11_ptrs, .ptr_count = 1 },
+    [11] = { .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8, .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1 },
     [12] = { .slot_size = 16 },
-    [13] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_13_ptrs, .ptr_count = 1 },
+    [13] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
     [14] = { .slot_size = 8 },
     [15] = { .slot_size = 1 },
     [16] = { .slot_size = 1 },
@@ -164,17 +154,17 @@ const vader_type_info_t vader_type_info_table[34] = {
     [18] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t), .slot_size = 8 },
     [19] = { .slot_size = 8 },
     [20] = { .slot_size = 8 },
-    [21] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_21_ptrs, .ptr_count = 1 },
-    [22] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_async_All__i32_t), .slot_size = 8, .ref_offsets = vader_type_22_refs, .ref_count = 2 },
+    [21] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
+    [22] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_async_All__i32_t), .slot_size = 8, .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_async_All__i32_t, f_children), offsetof(vader_struct_std_async_All__i32_t, f_results) }, .ref_count = 2 },
     [23] = { .slot_size = 16 },
     [24] = { .slot_size = 16 },
     [25] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_async_Sleep_t), .slot_size = 8 },
     [26] = { .slot_size = 16 },
-    [27] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_27_ptrs, .ptr_count = 1 },
+    [27] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
     [28] = { .slot_size = 16 },
-    [29] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__usize__i32_t), .slot_size = 8, .ref_offsets = vader_type_29_refs, .ref_count = 3 },
+    [29] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__usize__i32_t), .slot_size = 8, .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_index) }, .ref_count = 3 },
     [30] = { .slot_size = 8 },
-    [31] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_31_ptrs, .ptr_count = 1 },
+    [31] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
     [32] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct__Cell_i32_t), .slot_size = 8 },
     [33] = { .slot_size = 16 },
 };

@@ -78,12 +78,7 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-static const uint16_t vader_type_8_ptrs[] = { offsetof(vader_array_t, buf) };
-static const uint16_t vader_type_11_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__Any_t, f_index) };
-static const uint16_t vader_type_13_refs[] = { offsetof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t, f_index) };
-static const uint16_t vader_type_14_ptrs[] = { offsetof(vader_array_t, buf) };
-static const uint16_t vader_type_15_ptrs[] = { offsetof(vader_array_t, buf) };
-static const uint16_t vader_type_16_refs[] = { offsetof(vader_struct_snippet_lib_Wrap_t, f_items) };
+static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[20] = {
     [1] = { .slot_size = 4 },
@@ -93,14 +88,14 @@ const vader_type_info_t vader_type_info_table[20] = {
     [5] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t), .slot_size = 8 },
     [6] = { .slot_size = 8 },
     [7] = { .slot_size = 8 },
-    [8] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_8_ptrs, .ptr_count = 1 },
+    [8] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
     [10] = { .slot_size = 16 },
-    [11] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__i32__Any_t), .slot_size = 8, .ref_offsets = vader_type_11_refs, .ref_count = 3 },
+    [11] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__i32__Any_t), .slot_size = 8, .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__Any_t, f_index) }, .ref_count = 3 },
     [12] = { .slot_size = 16 },
-    [13] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t), .slot_size = 8, .ref_offsets = vader_type_13_refs, .ref_count = 3 },
-    [14] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_14_ptrs, .ptr_count = 1 },
-    [15] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_type_15_ptrs, .ptr_count = 1 },
-    [16] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_lib_Wrap_t), .slot_size = 8, .ref_offsets = vader_type_16_refs, .ref_count = 1 },
+    [13] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t), .slot_size = 8, .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t, f_index) }, .ref_count = 3 },
+    [14] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
+    [15] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },
+    [16] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_lib_Wrap_t), .slot_size = 8, .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_lib_Wrap_t, f_items) }, .ref_count = 1 },
     [17] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_lib_Out_t), .slot_size = 8 },
     [18] = { .slot_size = 8 },
     [19] = { .slot_size = 16 },

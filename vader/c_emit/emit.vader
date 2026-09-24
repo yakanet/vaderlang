@@ -948,15 +948,13 @@ erased_sig_params :: fn(n: i32) -> string {
 // lives in `walker.vader` (same module), next to `compute_may_alloc` — both
 // are whole-module body scans over the fn table.
 
-/// Per-type GC info table + size table + (at the end) the vtable
-/// section. Always emitted, even for an empty module — the runtime
-/// fallback expects strong symbols here.
+/// Per-type GC info table + (at the end) the vtable section. Always
+/// emitted, even for an empty module — the runtime fallback expects strong
+/// symbols here.
 ///
-/// Each struct visits its fields exactly once : a single classifier
-/// walk produces the `(ptr_offsets, str_offsets, ref_offsets)` lists
-/// from which both the offset-array decls (`static const uint16_t
-/// vader_type_N_ptrs[] = …`) and the info-row counts derive. Avoids
-/// the two-pass duplication of the earlier draft.
+/// Each struct visits its fields exactly once : a single classifier walk
+/// produces the `(ptr_offsets, str_offsets, ref_offsets)` lists its row
+/// writes in place.
 ///
 /// @param ctx  the emit context.
 /// @param out  the accumulating C source.
@@ -964,27 +962,20 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     types :: ctx.module.types
     count :: types.len()
 
-    // Per-type pre-classification : for each struct, capture its three
-    // offset lists once ; the info row downstream reads only the
-    // lengths. Non-struct kinds emit their fixed `_ptrs[]` immediately.
-    struct_offsets: StructOffsets[]!: []
-    for i in 0..<count {
-        match types[i] as s {
-            is BcStruct -> {
-                offs :: classify_struct_fields(ctx, s, i)
-                emit_struct_offset_arrays(offs, i, out, ctx.split)
-                struct_offsets.push(offs)
-            }
-            is BcFn     -> {
-                out.append("${linkage_prefix(ctx.split)}const uint16_t vader_type_${i}_ptrs[] = { offsetof(vader_fn_t, env) };\n")
-                struct_offsets.push(empty_struct_offsets())
-            }
-            is BcArray  -> {
-                out.append("${linkage_prefix(ctx.split)}const uint16_t vader_type_${i}_ptrs[] = { offsetof(vader_array_t, buf) };\n")
-                struct_offsets.push(empty_struct_offsets())
-            }
-            _           -> struct_offsets.push(empty_struct_offsets())
-        }
+    // Every array and every fn value has the same single reference, so they
+    // share one offset list each — emitted only when used, since an unused
+    // `static const` draws a C warning.
+    has_fn := false
+    has_array := false
+    for t in types {
+        if t is BcFn    { has_fn = true }
+        if t is BcArray { has_array = true }
+    }
+    if has_fn {
+        out.append("static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };\n")
+    }
+    if has_array {
+        out.append("static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };\n")
     }
 
     out.append("\n")
@@ -995,9 +986,9 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // the payload).
     for j in 0..<count {
         match types[j] as entry {
-            is BcStruct -> emit_struct_info_row(ctx, entry, struct_offsets[j], j, out)
-            is BcFn -> out.append("    [${j}] = { .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = ${size_of_bc_type(entry)}, .ptr_offsets = vader_type_${j}_ptrs, .ptr_count = 1 },\n")
-            is BcArray -> out.append("    [${j}] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = ${size_of_bc_type(entry)}, .ptr_offsets = vader_type_${j}_ptrs, .ptr_count = 1 },\n")
+            is BcStruct -> emit_struct_info_row(ctx, entry, classify_struct_fields(ctx, entry, j), j, out)
+            is BcFn -> out.append("    [${j}] = { .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = ${size_of_bc_type(entry)}, .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1 },\n")
+            is BcArray -> out.append("    [${j}] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = ${size_of_bc_type(entry)}, .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1 },\n")
             // Primitives / unions / refs — every other `BcType`. MUST stay a
             // `_` arm, not `@partial` : those slots are reachable (e.g. an
             // enum/distinct interning under its backing primitive's key), and a
@@ -1015,14 +1006,16 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     out.append("\n")
 }
 
-/// Per-struct field classification carrier. Captured once by
-/// `classify_struct_fields` ; consumed by `emit_struct_offset_arrays`
-/// (which emits the `_ptrs[]/_strs[]/_refs[]` decls) and
-/// `emit_struct_info_row` (which only reads the lengths). Splitting
-/// the walk from the emit lets both consumers share a single pass.
+/// Per-struct field classification carrier, captured once by
+/// `classify_struct_fields` and written by `emit_struct_info_row`. Each list
+/// holds `offsetof` expressions.
 StructOffsets :: struct {
+    /// Box-bearing fields.
     ptr_offsets: string[]!
+    /// Raw `vader_string_t` fields — the string GC marks them independently of
+    /// the box-aliased Cheney walk.
     str_offsets: string[]!
+    /// Nullable-ref slots that store a raw `void*`.
     ref_offsets: string[]!
 }
 
@@ -1068,30 +1061,9 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> St
     return offsets
 }
 
-/// Emit the optional per-struct ptr/str/ref offset arrays. A non-empty
-/// `_ptrs[]` lists box-bearing fields ; `_strs[]` lists raw
-/// `vader_string_t` fields (the string GC needs to mark them
-/// independently of the box-aliased Cheney walk) ; `_refs[]` lists B1
-/// nullable-ref slots that store a raw `void*`.
-emit_struct_offset_arrays :: fn(offs: StructOffsets, type_index: usize, out: StringBuilder!, split: bool) -> void {
-    link :: linkage_prefix(split)
-    if offs.ptr_offsets.len() > 0 {
-        out.append("${link}const uint16_t vader_type_${type_index}_ptrs[] = { ${offs.ptr_offsets.join(", ")} };\n")
-    }
-    if offs.str_offsets.len() > 0 {
-        out.append("${link}const uint16_t vader_type_${type_index}_strs[] = { ${offs.str_offsets.join(", ")} };\n")
-    }
-    if offs.ref_offsets.len() > 0 {
-        out.append("${link}const uint16_t vader_type_${type_index}_refs[] = { ${offs.ref_offsets.join(", ")} };\n")
-    }
-}
-
-/// Emit one struct's row of the type-info table. Reads the cached
-/// counts from `offs` rather than re-scanning the fields. Phase 2
-/// keeps it conservative — no inline-variant fast path (every struct
-/// gets a regular heap-backed `VADER_TYPE_KIND_STRUCT` row). Future
-/// phases will detect inline-variant (`VADER_TYPE_KIND_INLINE_REF`)
-/// and packed-payload shapes.
+/// Emit one struct's row of the type-info table, its offset lists written
+/// in place. Every struct gets a heap-backed `VADER_TYPE_KIND_STRUCT` row —
+/// no inline-variant (`VADER_TYPE_KIND_INLINE_REF`) or packed-payload shape.
 emit_struct_info_row :: fn(ctx: EmitCtx, s: BcStruct, offs: StructOffsets, type_index: usize, out: StringBuilder!) -> void {
     cname :: ctx.struct_c_names[type_index]
     ptr_count :: offs.ptr_offsets.len()
@@ -1103,14 +1075,16 @@ emit_struct_info_row :: fn(ctx: EmitCtx, s: BcStruct, offs: StructOffsets, type_
     // tree, and a positional row would shift under any new field. An empty
     // offset list is left out : it stays zero, which is `NULL` / 0.
     out.append("    [${type_index}] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(${cname}), .slot_size = ${size_of_bc_type(s)}")
+    // Each offset list is a compound literal : static storage, used by this
+    // row alone, so it needs no name.
     if ptr_count > 0 {
-        out.append(", .ptr_offsets = vader_type_${type_index}_ptrs, .ptr_count = ${ptr_count}")
+        out.append(", .ptr_offsets = (const uint16_t[]){ ${offs.ptr_offsets.join(", ")} }, .ptr_count = ${ptr_count}")
     }
     if str_count > 0 {
-        out.append(", .string_offsets = vader_type_${type_index}_strs, .string_count = ${str_count}")
+        out.append(", .string_offsets = (const uint16_t[]){ ${offs.str_offsets.join(", ")} }, .string_count = ${str_count}")
     }
     if ref_count > 0 {
-        out.append(", .ref_offsets = vader_type_${type_index}_refs, .ref_count = ${ref_count}")
+        out.append(", .ref_offsets = (const uint16_t[]){ ${offs.ref_offsets.join(", ")} }, .ref_count = ${ref_count}")
     }
     out.append(" },\n")
 }
