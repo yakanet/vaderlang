@@ -59,15 +59,13 @@ export infer_binary :: fn(
     // Right-side bidirectional context : when left is a concrete numeric,
     // narrow free numeric literals on the right (`size + 1` → `1: usize`).
     right_ctx :: numeric_propagation(e.op, left)
-    // `a is T && a.f` : the right operand of a conjunction sees the left's
-    // scrutinee / field narrowings, so a flow-narrowed access type-checks.
-    // Conjunction only. A disjunction's right operand runs exactly when the left
-    // was false, so it could see the left's NEGATIVE narrowings ; not wired.
-    cond_narrows: IsNarrow[] = []
-    if e.op == .And {
-        cond_narrows = collect_and_narrows(e.left, typed)
+    // A short-circuit's right operand runs only on one outcome of the left : true
+    // for `&&` (`a is T && a.f`), false for `||` (`a == null || a.f`). It sees
+    // the narrowings that outcome implies.
+    pushed: PushedNarrow[]!: []
+    if e.op == .And || e.op == .Or {
+        push_cond_narrows_into(e.left, e.op == .And, typed, diag_sink(), pushed)
     }
-    pushed :: push_then_narrows(cond_narrows, typed)
     right := check_expr_fn(e.right, right_ctx, typed, diags)
     pop_narrows(pushed, typed)
     // Symmetric repin : a free literal operand adopts the CONCRETE counterpart's

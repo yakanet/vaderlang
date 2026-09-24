@@ -1869,8 +1869,7 @@ push_divergent_narrow_if :: fn(
 // block. A `||` contributes one per operand : reaching the fall-through means
 // EVERY operand was false. Subtraction composes — pushing them in sequence, each
 // detected against the narrowing the previous one left, lands on the same type as
-// subtracting their union at once — so no grouping is needed here, unlike the
-// `else` side in `expr_if.vader` where the pushes would overwrite.
+// subtracting their union at once — so no grouping is needed.
 push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram!, stack: DivergentNarrow[]!) -> void {
     if cond is AST.BinaryExpr {
         if cond.op == .Or {

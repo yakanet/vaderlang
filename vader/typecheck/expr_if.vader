@@ -7,7 +7,7 @@
 // `x.f != null`, including `&&` and `||` chains) is applied through
 // `narrow.vader` in the then/else branches ; free-numeric branch types repin via
 // `join_if_branches` ; divergent guards (`if … { return }`) narrow the
-// fall-through. See `detect_is_narrow` / `collect_chain_narrows`.
+// fall-through. See `detect_is_narrow` / `push_cond_narrows`.
 
 module "vader/typecheck"
 
@@ -75,32 +75,7 @@ export infer_if :: fn(
         diags.push(typecheck_error(.ConditionMustBeBool, e.cond.span,
             "if condition must be `bool`, got ${display_type(cond_ty)}"))
     }
-    // A `&&` narrows EACH operand's scrutinee for the then-block
-    // (`if a is T && a.f { … }`) ; its else can't narrow, since a false
-    // conjunction doesn't say which operand failed. A `||` is the dual. Anything
-    // else keeps the single then + inverse-else narrowing.
-    then_narrows: IsNarrow[]! = []
-    else_narrows: IsNarrow[]! = []
-    if cond_has_op(e.cond, .And) {
-        then_narrows = collect_and_narrows(e.cond, typed)
-    } else if cond_has_op(e.cond, .Or) {
-        leaves :: collect_or_narrows(e.cond, typed)
-        groups :: group_or_narrows(leaves, typed)
-        // Every operand was false, so each slot's negative narrowing holds.
-        else_narrows = groups
-        // The then side only knows something when ONE slot accounts for EVERY
-        // operand — otherwise a true condition doesn't say which operand fired.
-        if groups.len() == 1 && leaves.len() == count_or_operands(e.cond) {
-            then_narrows.push(groups[0])
-        }
-    } else {
-        single :: detect_is_narrow(e.cond, typed, diags)
-        if single is IsNarrow {
-            then_narrows.push(single)
-            else_narrows.push(single)
-        }
-    }
-    pushed :: push_then_narrows(then_narrows, typed)
+    pushed :: push_cond_narrows(e.cond, true, typed, diags)
     then_ty :: check_block(e.then_block, expected, typed, diags, ctx, check_expr_fn)
     pop_narrows(pushed, typed)
     match e.else_branch as eb {
@@ -109,7 +84,7 @@ export infer_if :: fn(
         }
         is AST.IfElseBlock -> {
             else_ty :: check_else_with_narrow(
-                eb.block, else_narrows, expected, typed, diags, ctx, check_expr_fn)
+                eb.block, e.cond, expected, typed, diags, ctx, check_expr_fn)
             joined :: join_if_branches(then_ty, else_ty)
             // Only when nothing pins the result. With an `expected` slot each branch
             // was already checked against it, so the union is an artefact of the join
@@ -123,7 +98,7 @@ export infer_if :: fn(
         is AST.IfElseIf    -> {
             inner: AST.Expr: eb.branch
             else_ty :: check_else_branch_expr(
-                inner, else_narrows, expected, typed, diags, check_expr_fn)
+                inner, e.cond, expected, typed, diags, check_expr_fn)
             return collapse_if_unresolved(join_if_branches(then_ty, else_ty), then_ty, else_ty)
         }
     }
@@ -140,23 +115,23 @@ collapse_if_unresolved :: fn(joined: Type, a: Type, b: Type) -> Type {
 }
 
 check_else_with_narrow :: fn(
-    block: AST.BlockExpr!, narrows: IsNarrow[],
+    block: AST.BlockExpr!, cond: AST.Expr,
     expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
     ctx: FnContext! | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
-    pushed :: push_else_narrows(narrows, typed)
+    pushed :: push_cond_narrows(cond, false, typed, diag_sink())
     result :: check_block(block, expected, typed, diags, ctx, check_expr_fn)
     pop_narrows(pushed, typed)
     return result
 }
 
 check_else_branch_expr :: fn(
-    inner: AST.Expr!, narrows: IsNarrow[],
+    inner: AST.Expr!, cond: AST.Expr,
     expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
-    pushed :: push_else_narrows(narrows, typed)
+    pushed :: push_cond_narrows(cond, false, typed, diag_sink())
     result :: check_expr_fn(inner, expected, typed, diags)
     pop_narrows(pushed, typed)
     return result
@@ -177,60 +152,12 @@ IsNarrow :: struct {
     field_key: string = ""
 }
 
-// True when `cond` is a binary expression applying `op`. `infer_if` dispatches on
-// this rather than on a `BinaryOp` extracted with a stand-in for "not binary".
-cond_has_op :: fn(cond: AST.Expr, op: AST.BinaryOp) -> bool {
-    if cond is AST.BinaryExpr { return cond.op == op }
-    return false
-}
-
 // One pushed narrowing, recorded so a scope (a `&&` right operand, a
 // then-block) can unwind it.
 PushedNarrow :: struct {
     sym_id:    i32
     field_key: string
     prev:      NarrowSlot | null
-}
-
-// Collect the narrowings a chain of `op` introduces, left-to-right (flattening
-// nested applications). Each leaf (`x is T`, `x == null`, `x.f != null`, …)
-// contributes its `then` narrowing via `detect_is_narrow` ; an operand that
-// narrows nothing contributes no leaf, so the count is NOT the operand count.
-// Detection only — operands are type-checked with real diags by the caller, so
-// `detect_is_narrow` routes its own here to a sink.
-collect_chain_narrows :: fn(cond: AST.Expr, op: AST.BinaryOp, typed: TypedProgram!) -> IsNarrow[]! {
-    if cond is AST.BinaryExpr {
-        if cond.op == op {
-            out :: collect_chain_narrows(cond.left, op, typed)
-            for n in collect_chain_narrows(cond.right, op, typed) { out.push(n) }
-            return out
-        }
-    }
-    out: IsNarrow[]!: []
-    single :: detect_is_narrow(cond, typed, diag_sink())
-    if single is IsNarrow { out.push(single) }
-    return out
-}
-
-// A conjunction's else side can't narrow (nothing says which operand was false),
-// so callers apply these to the then side only.
-collect_and_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) =
-    collect_chain_narrows(cond, .And, typed)
-
-// The dual : a disjunction's THEN side is the weak one, so callers apply these
-// to the else side and only merge them into the then side under `group_or_narrows`.
-collect_or_narrows :: fn(cond: AST.Expr, typed: TypedProgram!) =
-    collect_chain_narrows(cond, .Or, typed)
-
-// Operands in a `||` chain, narrowing or not. Compared against the leaf count so
-// an operand that narrows nothing (`x is A || flag`) blocks the then side.
-count_or_operands :: fn(cond: AST.Expr) -> usize {
-    if cond is AST.BinaryExpr {
-        if cond.op == .Or {
-            return count_or_operands(cond.left) + count_or_operands(cond.right)
-        }
-    }
-    return 1
 }
 
 // What a leaf leaves on the TRUE side, as a type the union can carry. Normally
@@ -248,55 +175,84 @@ positive_of :: fn(n: IsNarrow) -> Type {
 // chain under it (`""` for a bare ident).
 same_slot :: fn(a: IsNarrow, b: IsNarrow) = a.sym_id == b.sym_id && a.field_key == b.field_key
 
-// Merge the leaves that narrow ONE slot. The then side sees the union of their
-// types ; the else side subtracts them ONE AT A TIME from the base.
-//
-// Both halves matter. Pushing each leaf's own `else_ty` in turn would OVERWRITE
-// rather than intersect, so `x is A || x is B` over `A | B | C` would land on
-// `A | C` (the last leaf's else) instead of `C` — hence one merged record.
-// Subtracting the merged UNION in one go would be just as wrong the other way :
-// `subtract_type_with_impls` also removes a trait's implementors, and it can only
-// see a trait it is handed directly, never one buried in a union. Folding keeps
-// each leaf's own removal, and the two compose — `(base − A) − B = base − (A ∪ B)`.
-merge_or_group :: fn(group: IsNarrow[], typed: TypedProgram!) -> IsNarrow {
-    first :: group[0]
-    tys: Type[]!: []
-    remainder := first.static_ty
-    for n in group {
-        tys.push(positive_of(n))
-        remainder = subtract_type_with_impls(remainder, n.then_ty, typed)
+// The leaves of a `||` chain (nested `||` flattened), or null as soon as one
+// operand narrows nothing — a true disjunction then says nothing about any slot.
+// Detection only : the operands were type-checked by the caller.
+or_leaves :: fn(cond: AST.Expr, typed: TypedProgram!, out: IsNarrow[]!) -> bool {
+    if cond is AST.BinaryExpr {
+        if cond.op == .Or {
+            return or_leaves(cond.left, typed, out) && or_leaves(cond.right, typed, out)
+        }
     }
-    return IsNarrow {
-        .sym_id    = first.sym_id,
-        .static_ty = first.static_ty,
-        .then_ty   = union_of(tys),
-        .else_ty   = remainder,
-        .field_key = first.field_key,
-    }
+    leaf :: detect_is_narrow(cond, typed, diag_sink()) ?? return false
+    out.push(leaf)
+    return true
 }
 
-// One merged record per slot the chain tests, in first-seen order.
-group_or_narrows :: fn(leaves: IsNarrow[], typed: TypedProgram!) -> IsNarrow[]! {
-    out: IsNarrow[]!: []
-    for lead in leaves {
-        already := false
-        for done in out {
-            if same_slot(done, lead) {
-                already = true
-            }
+/// Push the narrowings that hold where `cond` evaluated to `truth`, and return
+/// the records that unwind them (`pop_narrows`).
+///
+/// Composes through `!`, `&&` and `||` at any depth :
+/// - `!c` holds what `c` holds at the opposite truth ;
+/// - `a && b` true holds both sides ; false says nothing — which operand failed ;
+/// - `a || b` false holds both sides ; true holds only when ONE slot accounts for
+///   every operand (`x is A || x is B`), and then the union of their types.
+///
+/// Both-sides cases push left then right, each leaf detected against what the
+/// previous push left, so two subtractions on one slot compose — `(base − A) − B`
+/// — instead of the second overwriting the first.
+///
+/// @param cond   the condition, already type-checked by the caller.
+/// @param truth  which outcome the narrowed region sees : `true` for a then-block
+///               or a `&&` right operand, `false` for an else or a `||` right one.
+/// @param diags  receives what detecting a LONE leaf reports ; the leaves of a
+///               compound condition report to a sink, their operands having
+///               been checked already.
+push_cond_narrows :: fn(cond: AST.Expr, truth: bool, typed: TypedProgram!, diags: Diagnostic[]!) -> PushedNarrow[]! {
+    pushed: PushedNarrow[]!: []
+    push_cond_narrows_into(cond, truth, typed, diags, pushed)
+    return pushed
+}
+
+push_cond_narrows_into :: fn(
+    cond: AST.Expr, truth: bool, typed: TypedProgram!, diags: Diagnostic[]!, pushed: PushedNarrow[]!,
+) -> void {
+    if cond is AST.UnaryExpr {
+        if cond.op == .Not {
+            push_cond_narrows_into(cond.operand, !truth, typed, diags, pushed)
+            return
         }
-        if already {
-            continue
-        }
-        group: IsNarrow[]!: []
-        for n in leaves {
-            if same_slot(n, lead) {
-                group.push(n)
-            }
-        }
-        out.push(merge_or_group(group, typed))
     }
-    return out
+    if cond is AST.BinaryExpr {
+        if cond.op == .And || cond.op == .Or {
+            if (cond.op == .And) == truth {
+                push_cond_narrows_into(cond.left, truth, typed, diag_sink(), pushed)
+                push_cond_narrows_into(cond.right, truth, typed, diag_sink(), pushed)
+            } else if cond.op == .Or {
+                push_or_true(cond, typed, pushed)
+            }
+            return
+        }
+    }
+    leaf :: detect_is_narrow(cond, typed, diags) ?? return
+    pushed.push(push_one_narrow(typed, leaf, if truth { leaf.then_ty } else { leaf.else_ty }))
+}
+
+// A true `||` narrows only when every operand tests the SAME slot : then to the
+// union of what they matched.
+push_or_true :: fn(cond: AST.Expr, typed: TypedProgram!, pushed: PushedNarrow[]!) -> void {
+    leaves: IsNarrow[]!: []
+    if !or_leaves(cond, typed, leaves) {
+        return
+    }
+    tys: Type[]!: []
+    for n in leaves {
+        if !same_slot(n, leaves[0]) {
+            return
+        }
+        tys.push(positive_of(n))
+    }
+    pushed.push(push_one_narrow(typed, leaves[0], union_of(tys)))
 }
 
 // Narrow one slot to `ty`, returning the record that unwinds it. A `field_key` of
@@ -312,21 +268,6 @@ push_one_narrow :: fn(typed: TypedProgram!, n: IsNarrow, ty: Type) -> PushedNarr
         .field_key = n.field_key,
         .prev      = push_field_narrow(typed, n.field_key, ty),
     }
-}
-
-// Push each narrowing's `then` type and return the records to unwind later.
-push_then_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarrow[] {
-    pushed: PushedNarrow[]!: []
-    for n in narrows { pushed.push(push_one_narrow(typed, n, n.then_ty)) }
-    return pushed
-}
-
-// Same, for the else side : a `||` whose operands were all false narrows each
-// slot they tested. A single `is` uses this too, with one record.
-push_else_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram!) -> PushedNarrow[] {
-    pushed: PushedNarrow[]!: []
-    for n in narrows { pushed.push(push_one_narrow(typed, n, n.else_ty)) }
-    return pushed
 }
 
 // Unwind in reverse (LIFO) so stacked pushes on the same slot restore cleanly.

@@ -372,7 +372,9 @@ Flow narrowing flows through a `&&` condition: in `if x is T && <rest>` the scru
 
 Narrowing flows through a `||` condition in the mirror direction. The **false** branch of a disjunction narrows every binding its operands tested — reaching it means *each* operand was false — so `if x is A || x is B { … } else { … }` sees `x` as its declared type minus `A | B` in the else, and the same complement applies to the rest of the block after a divergent guard (`if x is A || x is B { return }`). The **true** branch narrows only when *every* operand tests the same binding, and then to the **union** of what they matched: `if x is A || x is B { … }` sees `x` as `A | B`. A disjunction with one non-narrowing operand (`if x is A || flag`) narrows nothing on the true side — a true condition doesn't reveal which operand fired — while the false side still narrows `x`; likewise `if x is A || y is B` narrows neither on the true side and both on the false one.
 
-The two operators are duals: a conjunction's **true** side applies each operand's positive narrowing and its false side applies none; a disjunction's **false** side applies each operand's negative narrowing and its true side applies one only in the single-binding case.
+The two operators are duals: a conjunction's **true** side applies each operand's positive narrowing and its false side applies none; a disjunction's **false** side applies each operand's negative narrowing and its true side applies one only in the single-binding case. The right operand of each sees the outcome its evaluation implies — `&&` the left's true side, `||` the left's false side — so `y == null || y.a > 0` type-checks with `y` non-null on the right.
+
+These rules compose at any depth, through `!` as well: `!c` narrows what `c` narrows on the opposite side, and each operand of `&&` / `||` is itself a condition. So `if (y is A || y is B) && p { … }` sees `y` as `A | B`, and `if !(y is A || y is B) { … }` sees it as what neither matched.
 
 ### Statement separators
 

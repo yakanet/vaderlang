@@ -40,7 +40,7 @@
   expr 33:15    IdentExpr      :: i32
   expr 34:13    IdentExpr      :: Dog!
   expr 34:20    BinaryExpr     :: bool
-  expr 34:20    IdentExpr      :: Bird | Cat | Dog
+  expr 34:20    IdentExpr      :: Bird | Cat
   expr 34:25    IdentExpr      :: Cat!
   expr 34:5     IfExpr         :: never
   expr 34:8     BinaryExpr     :: bool

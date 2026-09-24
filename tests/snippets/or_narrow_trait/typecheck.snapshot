@@ -13,7 +13,7 @@
   expr 22:31    IdentExpr      :: Refused
   expr 27:13    IdentExpr      :: Err
   expr 27:20    BinaryExpr     :: bool
-  expr 27:20    IdentExpr      :: Refused | string | Timeout
+  expr 27:20    IdentExpr      :: string
   expr 27:25    IdentExpr      :: string
   expr 27:5     IfExpr         :: void
   expr 27:8     BinaryExpr     :: bool
@@ -34,7 +34,7 @@
   expr 36:12    UnaryExpr      :: i32
   expr 41:13    IdentExpr      :: Err
   expr 41:20    BinaryExpr     :: bool
-  expr 41:20    IdentExpr      :: string | Timeout
+  expr 41:20    IdentExpr      :: string
   expr 41:25    IdentExpr      :: string
   expr 41:5     IfExpr         :: void
   expr 41:8     BinaryExpr     :: bool

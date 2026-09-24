@@ -1,0 +1,76 @@
+# Typecheck
+
+## tests/snippets/narrowing_or_compound
+  StructDecl     A                    :: A!
+  StructDecl     B                    :: B!
+  StructDecl     C                    :: C!
+  FnDecl         first_two            :: fn(A | B | C, bool) -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         neither              :: fn(A | B | C) -> string
+  FnDecl         null_or_positive     :: fn(null | P) -> bool
+  StructDecl     P                    :: P!
+  expr 17:47    BinaryExpr     :: bool
+  expr 17:47    BinaryExpr     :: bool
+  expr 17:47    IdentExpr      :: null | P
+  expr 17:60    BinaryExpr     :: bool
+  expr 17:60    FieldExpr      :: i32
+  expr 17:60    IdentExpr      :: P
+  expr 21:14    IdentExpr      :: A!
+  expr 21:19    BinaryExpr     :: bool
+  expr 21:19    IdentExpr      :: B | C
+  expr 21:24    IdentExpr      :: B!
+  expr 21:30    IdentExpr      :: bool
+  expr 21:5     IfExpr         :: void
+  expr 21:9     BinaryExpr     :: bool
+  expr 21:9     BinaryExpr     :: bool
+  expr 21:9     BinaryExpr     :: bool
+  expr 21:9     IdentExpr      :: A | B | C
+  expr 22:16    FieldExpr      :: i32
+  expr 22:16    IdentExpr      :: A | B
+  expr 29:10    BinaryExpr     :: bool
+  expr 29:10    BinaryExpr     :: bool
+  expr 29:10    IdentExpr      :: A | B | C
+  expr 29:15    IdentExpr      :: A!
+  expr 29:20    BinaryExpr     :: bool
+  expr 29:20    IdentExpr      :: B | C
+  expr 29:25    IdentExpr      :: B!
+  expr 29:5     IfExpr         :: void
+  expr 29:8     UnaryExpr      :: bool
+  expr 30:16    FieldExpr      :: string
+  expr 30:16    IdentExpr      :: C
+  expr 32:12    StringLitExpr  :: string
+  expr 36:102   UnaryExpr      :: i32
+  expr 36:13    StringLitExpr  :: string
+  expr 36:16    CallExpr       :: bool
+  expr 36:16    IdentExpr      :: fn(null | P) -> bool
+  expr 36:42    CallExpr       :: bool
+  expr 36:42    IdentExpr      :: fn(null | P) -> bool
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 36:59    StructLitExpr  :: P!
+  expr 36:76    CallExpr       :: bool
+  expr 36:76    IdentExpr      :: fn(null | P) -> bool
+  expr 36:93    StructLitExpr  :: P!
+  expr 37:101   StringLitExpr  :: string
+  expr 37:13    StringLitExpr  :: string
+  expr 37:16    CallExpr       :: i32
+  expr 37:16    IdentExpr      :: fn(A | B | C, bool) -> i32
+  expr 37:26    StructLitExpr  :: A!
+  expr 37:49    CallExpr       :: i32
+  expr 37:49    IdentExpr      :: fn(A | B | C, bool) -> i32
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 37:59    StructLitExpr  :: B!
+  expr 37:82    CallExpr       :: i32
+  expr 37:82    IdentExpr      :: fn(A | B | C, bool) -> i32
+  expr 37:92    StructLitExpr  :: C!
+  expr 38:13    StringLitExpr  :: string
+  expr 38:16    CallExpr       :: string
+  expr 38:16    IdentExpr      :: fn(A | B | C) -> string
+  expr 38:24    StructLitExpr  :: C!
+  expr 38:33    StringLitExpr  :: string
+  expr 38:43    CallExpr       :: string
+  expr 38:43    IdentExpr      :: fn(A | B | C) -> string
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 38:51    StructLitExpr  :: A!
