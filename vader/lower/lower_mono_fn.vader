@@ -407,8 +407,8 @@ find_fn_decl_by_name :: fn(decls: Decl[], name: string, arity: usize) -> FnDecl 
 // `array.len` on the iterator struct and traps. Match `name_span` against the
 // symbol's `defined_at` so each instance materialises its own overload body.
 find_fn_decl_for_symbol :: fn(decls: Decl[], sym: Symbol, arity: usize) -> FnDecl | null {
-    match sym.defined_at {
-        is Span as def -> {
+    match sym.defined_at as def {
+        is Span -> {
             for d in decls {
                 if d is FnDecl {
                     if d.type_params.len() != arity { continue }
@@ -444,9 +444,9 @@ find_nongeneric_fn_decl_by_name :: fn(decls: Decl[], name: string) -> FnDecl | n
 // wrong body — or drop entirely. Falls back to name when the symbol carries
 // no span.
 find_nongeneric_fn_decl_for_symbol :: fn(decls: Decl[], fn_sym: Symbol) -> FnDecl | null {
-    match fn_sym.defined_at {
+    match fn_sym.defined_at as want {
         is null -> { return find_nongeneric_fn_decl_by_name(decls, fn_sym.name) }
-        is Span as want -> {
+        is Span -> {
             for d in decls {
                 if d is FnDecl {
                     if d.name != fn_sym.name { continue }

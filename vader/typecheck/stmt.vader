@@ -202,10 +202,10 @@ expr_has_await :: fn(e: AST.Expr) -> bool = @partial match e {
     is AST.IfExpr        -> {
         if expr_has_await(e.cond)        { return true }
         if block_has_await(e.then_block) { return true }
-        match e.else_branch {
-            is AST.IfElseIf as ei    -> { return expr_has_await(ei.branch) }
-            is AST.IfElseBlock as eb -> { return block_has_await(eb.block) }
-            is null                  -> { return false }
+        match e.else_branch as ei {
+            is AST.IfElseIf    -> { return expr_has_await(ei.branch) }
+            is AST.IfElseBlock -> { return block_has_await(ei.block) }
+            is null            -> { return false }
         }
     }
     is AST.MatchExpr     -> {
@@ -291,9 +291,9 @@ stmt_has_yield :: fn(s: AST.Stmt) -> bool = match s {
     is AST.YieldStmt -> { return true }
     is AST.ForStmt   -> { return block_has_yield(s.body) }
     is AST.DeferStmt -> {
-        match s.body {
-            is AST.DeferStmtBody as b  -> { return stmt_has_yield(b.stmt) }
-            is AST.DeferBlockBody as b -> { return block_has_yield(b.block) }
+        match s.body as b {
+            is AST.DeferStmtBody  -> { return stmt_has_yield(b.stmt) }
+            is AST.DeferBlockBody -> { return block_has_yield(b.block) }
         }
     }
     is AST.LetStmt    -> { return false }
@@ -342,10 +342,10 @@ if_has_yield :: fn(i: AST.IfExpr) -> bool {
     if block_has_yield(i.then_block) {
         return true
     }
-    match i.else_branch {
-        is null                 -> { return false }
-        is AST.IfElseIf as e    -> { return if_has_yield(e.branch) }
-        is AST.IfElseBlock as e -> { return block_has_yield(e.block) }
+    match i.else_branch as e {
+        is null            -> { return false }
+        is AST.IfElseIf    -> { return if_has_yield(e.branch) }
+        is AST.IfElseBlock -> { return block_has_yield(e.block) }
     }
 }
 
@@ -1653,9 +1653,9 @@ check_for :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     binding: string | null = null
-    match s.form {
-        is AST.InfiniteFor   -> {}
-        is AST.WhileFor as w -> {
+    match s.form as w {
+        is AST.InfiniteFor -> {}
+        is AST.WhileFor    -> {
             got :: check_expr_fn(w.cond, null, typed, diags)
             // `for X { ... }` desugars to `for _ in X { ... }` when X
             // is iterable (array today ; custom Iterator impls land
@@ -1673,25 +1673,25 @@ check_for :: fn(
                 )
             }
         }
-        is AST.InFor as f    -> {
-            iter_ty :: check_expr_fn(f.iter, null, typed, diags)
+        is AST.InFor       -> {
+            iter_ty :: check_expr_fn(w.iter, null, typed, diags)
             elem :: for_in_element(iter_ty, typed)
-            match f.loop_var {
-                is AST.NamedVar as nv       -> {
+            match w.loop_var as nv {
+                is AST.NamedVar       -> {
                     typed.local_types[nv.span.hash()] = elem
-                    mark_loop_var_borrow(nv, f.iter, elem, typed)
+                    mark_loop_var_borrow(nv, w.iter, elem, typed)
                     // A real user name is var-targetable ; the `_` wildcard is not.
                     if nv.name != "_" { binding = nv.name }
                 }
-                is AST.DestructureVar as dv -> {
+                is AST.DestructureVar -> {
                     assign_binding_types(
-                        dv.pattern,
+                        nv.pattern,
                         elem,
                         typed,
                         diags,
                     )
                 }
-                is AST.DiscardVar           -> {}
+                is AST.DiscardVar     -> {}
             }            // `for [k, v] in …` — type each pattern leaf against the element
             // (a tuple / array, or a struct that implements `Into<[...]>`),
             // reusing the destructuring-let machinery. Not var-targetable.
@@ -1809,9 +1809,9 @@ check_defer :: fn(
     if effective != null && effective.is_generator {
         diags.push(typecheck_error(.DeferInGenerator, s.span, ""))
     }
-    match s.body {
-        is AST.DeferStmtBody as b  -> { check_stmt(b.stmt, typed, diags, ctx, check_expr_fn) }
-        is AST.DeferBlockBody as b -> { check_block(b.block, null, typed, diags, ctx, check_expr_fn) }
+    match s.body as b {
+        is AST.DeferStmtBody  -> { check_stmt(b.stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.DeferBlockBody -> { check_block(b.block, null, typed, diags, ctx, check_expr_fn) }
     }
     return
 }
@@ -1986,9 +1986,9 @@ stmt_breaks_loop :: fn(s: AST.Stmt, label: string | null, bare_counts: bool) -> 
     is AST.ForStmt   -> { return block_breaks_loop(s.body, label, false) }
     is AST.ExprStmt  -> { return expr_breaks_loop(s.expr, label, bare_counts) }
     is AST.DeferStmt -> {
-        match s.body {
-            is AST.DeferStmtBody as b  -> { return stmt_breaks_loop(b.stmt, label, bare_counts) }
-            is AST.DeferBlockBody as b -> { return block_breaks_loop(b.block, label, bare_counts) }
+        match s.body as b {
+            is AST.DeferStmtBody  -> { return stmt_breaks_loop(b.stmt, label, bare_counts) }
+            is AST.DeferBlockBody -> { return block_breaks_loop(b.block, label, bare_counts) }
         }
     }
     // `p :: next() ?? break` puts the exit inside a bound VALUE, not a stmt of
@@ -2044,10 +2044,10 @@ if_breaks_loop :: fn(i: AST.IfExpr, label: string | null, bare_counts: bool) -> 
     if block_breaks_loop(i.then_block, label, bare_counts) {
         return true
     }
-    match i.else_branch {
-        is null                 -> { return false }
-        is AST.IfElseIf as e    -> { return if_breaks_loop(e.branch, label, bare_counts) }
-        is AST.IfElseBlock as e -> { return block_breaks_loop(e.block, label, bare_counts) }
+    match i.else_branch as e {
+        is null            -> { return false }
+        is AST.IfElseIf    -> { return if_breaks_loop(e.branch, label, bare_counts) }
+        is AST.IfElseBlock -> { return block_breaks_loop(e.block, label, bare_counts) }
     }
 }
 
@@ -2411,11 +2411,11 @@ stub_check_module :: fn(src: string) -> StubResult {
     declare_module(parsed.program.decls, rm, typed, factory, diags)
     for decl in parsed.program.decls {
         if decl is AST.FnDecl {
-            match decl.body {
-                is AST.BlockExpr as body -> {
+            match decl.body as body {
+                is AST.BlockExpr -> {
                     check_fn_body(decl, body, typed, diags, stmt_check_stub)
                 }
-                is null                  -> {}
+                is null          -> {}
             }
         }
     }
@@ -2435,10 +2435,10 @@ stmt_check_stub :: fn(
     // @partial: test stub — only the literal / ident expr kinds the inline
     // tests build are typed; every other Expr is irrelevant here → unresolved.
     @partial match e {
-        is AST.IntLitExpr as x    -> { return narrow_for_expected(TY_FREE_INT, expected) }
-        is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr          -> { return infer_ident(e, typed) }
-        _                         -> { return TY_UNRESOLVED }
+        is AST.IntLitExpr    -> { return narrow_for_expected(TY_FREE_INT, expected) }
+        is AST.StringLitExpr -> { return TY_STRING }
+        is AST.IdentExpr     -> { return infer_ident(e, typed) }
+        _                    -> { return TY_UNRESOLVED }
     }
 }
 

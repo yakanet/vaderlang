@@ -25,9 +25,9 @@ main :: fn() -> i32 {
     println((0..<5).count())
 
     // Range — last yields the inclusive end.
-    match (10..=15).last() {
-        is i32 as v -> println(v)
-        is null     -> println("none")
+    match (10..=15).last() as v {
+        is i32  -> println(v)
+        is null -> println("none")
     }
 
     // is_empty — the empty range ends immediately.

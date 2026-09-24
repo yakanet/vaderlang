@@ -268,8 +268,7 @@
                       "kind": "IdentExpr",
                       "name": "null"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -311,8 +310,7 @@
                         }
                       ]
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {

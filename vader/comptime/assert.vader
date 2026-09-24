@@ -37,9 +37,9 @@ export evaluate_assert_decls :: fn(
     for decl in decls {
         if decl is AST.AssertDecl {
             result :: evaluate_expr(decl.condition, context)
-            match result.diag {
-                is null -> {}
-                is Diagnostic as d -> {
+            match result.diag as d {
+                is null       -> {}
+                is Diagnostic -> {
                     if d.code.id != "C4001" { diags.push(d) }
                 }
             }

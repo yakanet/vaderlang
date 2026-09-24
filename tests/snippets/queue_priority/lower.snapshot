@@ -13,20 +13,13 @@
                   is i32 :bool
                     __scrut_0 :i32 | string
                 r:
-                  block :bool
-                    let n: i32 =
+                  gt :bool
+                    l:
                       cast → i32
-                        __scrut_0 :i32 | string
-                    ~>
-                      gt :bool
-                        l:
-                          n :i32
-                        r:
-                          int(0) :i32
+                        item :i32 | string
+                    r:
+                      int(0) :i32
             then:
-              let n: i32 =
-                cast → i32
-                  __scrut_0 :i32 | string
               ~>
                 "rush order" :string
             else:
@@ -36,11 +29,9 @@
                     is string :bool
                       __scrut_0 :i32 | string
                   then:
-                    let s: string =
-                      cast → string
-                        __scrut_0 :i32 | string
                     ~>
-                      s :string
+                      cast → string
+                        item :i32 | string
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :string

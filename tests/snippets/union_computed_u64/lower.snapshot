@@ -37,20 +37,19 @@
               scale :fn(u64) -> Err | u64
             arg0:
               factor :u64
+        let n: Err | u64 = __scrut_0 :Err | u64
         ~>
           if :never
             cond:
               is u64 :bool
                 __scrut_0 :Err | u64
             then:
-              let n: u64 =
-                cast → u64
-                  __scrut_0 :Err | u64
               ~>
                 block :void
                   return
                     cast → i32
-                      n :u64
+                      cast → u64
+                        n :Err | u64
             else:
               ~>
                 if :never

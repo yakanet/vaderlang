@@ -283,9 +283,9 @@ find_type_param_in_resolved :: fn(resolved: ResolvedModule, name: string, def_sp
     for [_, s] in resolved.idents {
         if s.name != name { continue }
         if s.kind != .TypeParam { continue }
-        match s.defined_at {
+        match s.defined_at as def {
             is null -> {}
-            is Span as def -> {
+            is Span -> {
                 if def.hash() == target_key { return s }
             }
         }
@@ -318,8 +318,8 @@ build_impl_subst :: fn(
     }
     // Legacy form : the struct's typeParams are referenced by name in
     // the impl body. Bind by name against the impl module's symbols.
-    match impl_decl.for_type {
-        is GenericInstExpr as gi -> {
+    match impl_decl.for_type as gi {
+        is GenericInstExpr -> {
             for i in 0..<gi.type_args.len() {
                 if i >= args.len() { break }
                 tp_name :: type_expr_simple_name(gi.type_args[i])
@@ -332,7 +332,7 @@ build_impl_subst :: fn(
                 }
             }
         }
-        _ -> {}
+        _                  -> {}
     }
     return subst
 }
@@ -352,14 +352,14 @@ build_impl_subst :: fn(
 collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
     names: string[]!: []
     for tp in impl_decl.type_params { names.push(tp.name) }
-    match impl_decl.for_type {
-        is GenericInstExpr as gi -> {
+    match impl_decl.for_type as gi {
+        is GenericInstExpr -> {
             for ta in gi.type_args {
                 tp_name :: type_expr_simple_name(ta)
                 if tp_name != "" { names.push(tp_name) }
             }
         }
-        _ -> {}
+        _                  -> {}
     }
     return names
 }
@@ -446,17 +446,17 @@ find_struct_decl_by_name :: fn(decls: Decl[], name: string) -> StructDecl | null
 lookup_type_param_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Symbol | null {
     target_key :: name_span.hash()
     for s in resolved.symbols {
-        match s.defined_at {
+        match s.defined_at as def {
             is null -> {}
-            is Span as def -> {
+            is Span -> {
                 if def.hash() == target_key { return s }
             }
         }
     }
     for [_, s] in resolved.idents {
-        match s.defined_at {
+        match s.defined_at as def {
             is null -> {}
-            is Span as def -> {
+            is Span -> {
                 if def.hash() == target_key { return s }
             }
         }

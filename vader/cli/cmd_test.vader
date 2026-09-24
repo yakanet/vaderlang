@@ -86,12 +86,12 @@ cmd_test :: fn(args: string[]) -> i32 {
         state :: prepare(module)
         for t in fresh {
             ran.add(t.mangled)
-            match exec_fn(state, t.mangled) {
-                is Ok -> {
+            match exec_fn(state, t.mangled) as tr {
+                is Ok   -> {
                     println("  ${TTY.green("ok")} ${t.display}")
                     total_pass += 1
                 }
-                is Trap as tr -> {
+                is Trap -> {
                     println("  ${TTY.red("FAIL")} ${t.display}")
                     println("    ${tr.message}")
                     total_fail += 1

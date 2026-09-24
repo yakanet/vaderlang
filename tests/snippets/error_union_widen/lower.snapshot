@@ -123,15 +123,13 @@
             widen :fn(A | string) -> Error | string
           arg0:
             "hello" :string
+      let e: Error | string = __scrut_0 :Error | string
       ~>
         if :void
           cond:
             is Error :bool
               __scrut_0 :Error | string
           then:
-            let e: Error =
-              cast → Error
-                __scrut_0 :Error | string
             ~>
               call :void
                 callee:
@@ -145,7 +143,8 @@
                     arg1:
                       vcall Error.message :string
                         recv:
-                          e :Error
+                          cast → Error
+                            e :Error | string
           else:
             ~>
               if :void
@@ -153,9 +152,6 @@
                   is string :bool
                     __scrut_0 :Error | string
                 then:
-                  let s: string =
-                    cast → string
-                      __scrut_0 :Error | string
                   ~>
                     call :void
                       callee:
@@ -167,7 +163,8 @@
                           arg0:
                             "str " :string
                           arg1:
-                            s :string
+                            cast → string
+                              e :Error | string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

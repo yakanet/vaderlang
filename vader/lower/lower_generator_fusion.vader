@@ -374,20 +374,20 @@ match_source_loop :: fn(stmt: AST.Stmt, decl: AST.FnDecl) -> GenSourceLoop | nul
 combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr, receiver: AST.Expr) -> Symbol | null {
     // Unwrap an explicit type-arg wrapper (`chain<T>(...)`) to the inner callee,
     // mirroring `unpack_fluent_combinator`, so the sym resolves.
-    @partial match combinator_effective_callee(call.callee) {
-        is AST.FieldExpr as fe -> {
+    @partial match combinator_effective_callee(call.callee) as fe {
+        is AST.FieldExpr -> {
             found :: find_free_fn_ufcs(ctx, ctx.types.expr_type(receiver), fe.field)
             if found is UfcsMember { return found.symbol }
             return null
         }
-        is AST.IdentExpr as id -> {
-            sym :: ctx.typed.resolved.idents[id.span.hash()] ?? return null
+        is AST.IdentExpr -> {
+            sym :: ctx.typed.resolved.idents[fe.span.hash()] ?? return null
             // A directly-called imported combinator resolves to the `import`
             // ImportBinding ; follow it to the OWNER fn so `resolve_owner_typed`
             // + `gen_state_symbol` see the defining module.
             return follow_import_binding(ctx, sym)
         }
-        _ -> { return null }
+        _                -> { return null }
     }
 }
 

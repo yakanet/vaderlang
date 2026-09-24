@@ -14,9 +14,9 @@ main :: fn() -> i32 {
     m["a"] = 99   // overwrite
 
     // Index read returns `V | null`.
-    match m["a"] {
-        is i32 as v -> println("a=${v}")
-        is null     -> println("a missing")
+    match m["a"] as v {
+        is i32  -> println("a=${v}")
+        is null -> println("a missing")
     }
     match m["c"] {
         is i32  -> println("c found?!")

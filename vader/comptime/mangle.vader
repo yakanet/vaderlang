@@ -137,9 +137,9 @@ export for_type_name :: fn(t: TypeExpr) -> string = @partial match t {
 /// (`Mod.Foo<T>`, `(fn() -> i32)[T]`, …).
 // @partial: only an IdentExpr callee yields a bare name; other callee shapes
 // fall to the "?" sentinel.
-generic_callee_name :: fn(gi: GenericInstExpr) -> string = @partial match gi.callee {
-    is IdentExpr as ident -> ident.name
-    _                     -> "?"
+generic_callee_name :: fn(gi: GenericInstExpr) -> string = @partial match gi.callee as ident {
+    is IdentExpr -> ident.name
+    _            -> "?"
 }
 
 // ---- tests ----------------------------------------------------------------

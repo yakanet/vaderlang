@@ -216,19 +216,19 @@ walk_expr :: fn(e: Expr!, f: NodeIdFactory!) -> void {
         is NullCoalesceExpr -> {
             e.id = f.mint()
             walk_expr(e.left, f)
-            match e.fallback {
-                is ReturnStmt | BreakStmt | ContinueStmt as s -> { walk_stmt(s, f) }
-                is Expr as e -> { walk_expr(e, f) }
+            match e.fallback as s {
+                is ReturnStmt | BreakStmt | ContinueStmt -> { walk_stmt(s, f) }
+                is Expr                                  -> { walk_expr(s, f) }
             }
         }
         is IfExpr -> {
             e.id = f.mint()
             walk_expr(e.cond, f)
             walk_block(e.then_block, f)
-            match e.else_branch {
-                is null -> {}
-                is IfElseIf    as ei -> { walk_expr(ei.branch, f) }
-                is IfElseBlock as eb -> { walk_block(eb.block, f) }
+            match e.else_branch as ei {
+                is null        -> {}
+                is IfElseIf    -> { walk_expr(ei.branch, f) }
+                is IfElseBlock -> { walk_block(ei.block, f) }
             }
         }
         is MatchExpr -> {
@@ -362,9 +362,9 @@ walk_stmt :: fn(s: Stmt!, f: NodeIdFactory!) -> void {
         is ContinueStmt -> { s.id = f.mint() }
         is DeferStmt -> {
             s.id = f.mint()
-            match s.body {
-                is DeferStmtBody  as ds -> { walk_stmt(ds.stmt, f) }
-                is DeferBlockBody as db -> { walk_block(db.block, f) }
+            match s.body as ds {
+                is DeferStmtBody  -> { walk_stmt(ds.stmt, f) }
+                is DeferBlockBody -> { walk_block(ds.block, f) }
             }
         }
     }
@@ -403,9 +403,9 @@ walk_pattern :: fn(p: Pattern!, f: NodeIdFactory!) -> void {
             p.id = f.mint()
             for fld in p.fields {
                 fld.id = f.mint()
-                match fld.value {
-                    is PatternBinding as pb -> { pb.id = f.mint() }
-                    is PatternLiteral as pl -> { walk_expr(pl.value, f) }
+                match fld.value as pb {
+                    is PatternBinding -> { pb.id = f.mint() }
+                    is PatternLiteral -> { walk_expr(pb.value, f) }
                 }
             }
         }

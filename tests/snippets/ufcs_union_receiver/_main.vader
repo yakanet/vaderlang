@@ -15,15 +15,15 @@ Shape :: Circle | Square
 
 describe :: fn(s: Shape) -> string {
     return match s {
-        is Circle as c -> "circle(${c.radius})"
-        is Square as sq -> "square(${sq.side})"
+        is Circle -> "circle(${s.radius})"
+        is Square -> "square(${s.side})"
     }
 }
 
 area :: fn(s: Shape) -> i32 {
     return match s {
-        is Circle as c -> c.radius * c.radius * 3
-        is Square as sq -> sq.side * sq.side
+        is Circle -> s.radius * s.radius * 3
+        is Square -> s.side * s.side
     }
 }
 

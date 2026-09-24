@@ -2050,45 +2050,45 @@ export walk_bodies :: fn(
     }
     for decl in decls {
         match decl {
-            is AST.FnDecl as fd     -> {
-                walk_fn_body(fd, typed, diags, mode)
+            is AST.FnDecl        -> {
+                walk_fn_body(decl, typed, diags, mode)
             }
             // Literal-valued consts were typed in the pre-pass above. Checking
             // one twice is not idempotent: the second call reads the type the
             // first wrote as its EXPECTED type, and re-recording the value
             // against it drops the array literal's `!` marker (`i32[]!` became
             // `i32[]`, caught by the `const_array_*` snapshots).
-            is AST.ConstDecl as cd  -> {
-                if !is_body_independent_value(cd.value) {
-                    check_const_value(cd, typed, diags)
+            is AST.ConstDecl     -> {
+                if !is_body_independent_value(decl.value) {
+                    check_const_value(decl, typed, diags)
                 }
             }
-            is AST.AssertDecl as ad -> {
-                check_expr(ad.condition, null, typed, diags)
+            is AST.AssertDecl    -> {
+                check_expr(decl.condition, null, typed, diags)
             }
-            is AST.StructDecl as sd -> {
+            is AST.StructDecl    -> {
                 // Type each field's default value against the field's
                 // declared type so `delta: isize = -1` types the `-1`
                 // UnaryExpr as `isize`, not the default `{integer}`.
-                for f in sd.fields {
+                for f in decl.fields {
                     if f.default != null {
                         field_ty :: type_from_expr(f.ty, typed.resolved, diags)
                         check_expr(f.default, field_ty, typed, diags)
                     }
                 }
             }
-            is AST.ImplDecl as id   -> {
+            is AST.ImplDecl      -> {
                 // All impl metadata + structural checks ran in the pre-pass
                 // (`register_impl_metadata`) so forward references resolve ;
                 // only the member bodies remain to walk here.
-                for m in id.members {
+                for m in decl.members {
                     walk_fn_body(m, typed, diags, mode)
                 }
             }
-            is AST.EnumDecl         -> {}
-            is AST.TraitDecl        -> {}
-            is AST.TypeAliasDecl    -> {}
-            is AST.ImportDecl       -> {}
+            is AST.EnumDecl      -> {}
+            is AST.TraitDecl     -> {}
+            is AST.TypeAliasDecl -> {}
+            is AST.ImportDecl    -> {}
         }
     }    // Body-less decl kinds — nothing to walk. Listed explicitly (not
     // `_`) so a new Decl variant trips T3013 and forces a decision.

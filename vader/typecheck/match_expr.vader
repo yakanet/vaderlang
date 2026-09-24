@@ -112,7 +112,7 @@ export infer_match :: fn(
         // Re-bind the pattern types against the narrowed `remaining`
         // so wildcard/binding arms see only the still-possible
         // variants ("union − matched").
-        bind_pattern_types(arm.pattern, remaining, e.scrutinee, typed, diags)
+        bind_pattern_types(arm.pattern, remaining, typed, diags)
         // Per-arm narrowing — `is T` arms see just T, wildcard /
         // binding arms see `remaining` (subset of `scrut_ty` after
         // earlier arms removed their matched variants).
@@ -162,15 +162,15 @@ export infer_match :: fn(
         // still fall through. (The overlap check on `is T` stays — a guard
         // cannot make a type-impossible test reachable.)
         guarded :: arm.guard != null
-        match arm.pattern {
-            is AST.IsPattern as ip          -> {
-                matched :: pattern_type_of(ip.ty, remaining, typed, scratch_diags())
+        match arm.pattern as pattern {
+            is AST.IsPattern          -> {
+                matched :: pattern_type_of(pattern.ty, remaining, typed, scratch_diags())
                 if is_overlap_checkable(scrut_ty) && is_overlap_checkable(matched) {
                     if !types_overlap(scrut_ty, matched) {
                         diags.push(
                             typecheck_error(
                                 .UnreachableIsTest,
-                                ip.span,
+                                pattern.span,
                                 "`${display_type(matched)}` is never a value of `${display_type(scrut_ty)}`",
                             ),
                         )
@@ -194,7 +194,7 @@ export infer_match :: fn(
                         diags.push(
                             warning(
                                 .UnreachableMatchArm,
-                                ip.span,
+                                pattern.span,
                                 "`${display_type(matched)}` is matched by an earlier arm",
                             ),
                         )
@@ -202,7 +202,7 @@ export infer_match :: fn(
                     remaining = narrowed
                 }
             }
-            is AST.EnumVariantPattern as ev -> {
+            is AST.EnumVariantPattern -> {
                 // A variant in a PATTERN is checked exactly as one in an
                 // expression is (`expr_dot_variant`, same T3027): an arm naming
                 // a variant that does not exist would otherwise type-check,
@@ -210,56 +210,56 @@ export infer_match :: fn(
                 // directly enum-typed scrutinee is judged; anything wider stays
                 // silent rather than risk a false positive.
                 if scrut_ty is EnumType {
-                    if scrut_ty.indices[ev.variant] is null {
-                        diags.push(typecheck_error(.UnknownEnumVariant, ev.span,
-                            "`${ev.variant}` is not a variant of ${display_type(scrut_ty)}"))
+                    if scrut_ty.indices[pattern.variant] is null {
+                        diags.push(typecheck_error(.UnknownEnumVariant, pattern.span,
+                            "`${pattern.variant}` is not a variant of ${display_type(scrut_ty)}"))
                     }
                 }
                 if !guarded {
-                    if covered_enum_variants.contains(ev.variant) {
+                    if covered_enum_variants.contains(pattern.variant) {
                         diags.push(
                             warning(
                                 .UnreachableMatchArm,
-                                ev.span,
-                                "`.${ev.variant}` is matched by an earlier arm",
+                                pattern.span,
+                                "`.${pattern.variant}` is matched by an earlier arm",
                             ),
                         )
                     }
-                    covered_enum_variants.push(ev.variant)
+                    covered_enum_variants.push(pattern.variant)
                 }
             }
-            is AST.TuplePattern as tp       -> {
+            is AST.TuplePattern       -> {
                 if !guarded {
                     // Subtract any TupleType variant whose arity matches.
-                    tup_ty :: pick_tuple_variant(remaining, tp.elements.len())
+                    tup_ty :: pick_tuple_variant(remaining, pattern.elements.len())
                     if tup_ty !is null {
                         remaining = subtract_type(remaining, tup_ty)
                     }
                     // Irrefutable tuple (all bindings / wildcards) matches every
                     // tuple of that arity ; counts as a wildcard for exhaustiveness.
-                    if is_irrefutable_tuple_pattern(tp) {
+                    if is_irrefutable_tuple_pattern(pattern) {
                         has_wildcard = true
                     }
                 }
             }
-            is AST.WildcardPattern          -> {
+            is AST.WildcardPattern    -> {
                 if !guarded {
                     has_wildcard = true
                     remaining = TY_NEVER
                 }
             }
-            is AST.BindingPattern           -> {
+            is AST.BindingPattern     -> {
                 if !guarded {
                     has_wildcard = true
                     remaining = TY_NEVER
                 }
             }
-            is AST.OrPattern as op          -> {
+            is AST.OrPattern          -> {
                 // Each alternative consumes its own variant — enum variants add
                 // to the covered set, `is T` alternatives subtract their type.
                 // Literal alternatives exhaust nothing (open domain).
                 if !guarded {
-                    for sub in op.patterns {
+                    for sub in pattern.patterns {
                         if sub is AST.EnumVariantPattern {
                             covered_enum_variants.push(sub.variant)
                         }
@@ -273,7 +273,7 @@ export infer_match :: fn(
                     }
                 }
             }
-            _                               -> {}
+            _                         -> {}
         }
     }
     // T3013 — non-exhaustive match. `@partial` / `@unreachable` opt out
@@ -454,19 +454,17 @@ scrutinee_field_key :: fn(scrut: AST.Expr, typed: TypedProgram) -> string {
 
 /// Walk a match-arm pattern and record each binding's type in
 /// `typed.local_types`. Tuple patterns destructure element-wise
-/// against the scrutinee's `TupleType`. Other pattern shapes are
-/// no-ops at MVP — adding StructPattern field binding support
-/// requires the resolver to expose field-name → Symbol mappings,
-/// which lands with the deeper narrowing work.
+/// against the scrutinee's `TupleType`; struct patterns go through
+/// `bind_struct_pattern`.
 bind_pattern_types :: fn(
-    p: AST.Pattern, scrut: Type, scrut_expr: AST.Expr, typed: TypedProgram!, diags: Diagnostic[]!,
+    p: AST.Pattern, scrut: Type, typed: TypedProgram!, diags: Diagnostic[]!,
 ) -> void {
     match p {
         is AST.TuplePattern   -> {
             tu :: pick_tuple_variant(scrut, p.elements.len())
             if tu !is null {
                 for i in 0..<p.elements.len() {
-                    bind_pattern_types(p.elements[i], tu.elements[i], scrut_expr, typed, diags)
+                    bind_pattern_types(p.elements[i], tu.elements[i], typed, diags)
                 }
             }
         }
@@ -474,28 +472,18 @@ bind_pattern_types :: fn(
             typed.local_types[p.span.hash()] = scrut
         }
         is AST.IsPattern      -> {
-            // `is T as a` binds `a` to T (the narrowed type). The
-            // resolver mints the binding at `ip.span` when bind_as
-            // is non-null ; write the lowered T as its type.
             narrowed :: pattern_type_of(p.ty, scrut, typed, diags)
-            if p.bind_as !is null {
-                typed.local_types[p.span.hash()] = narrowed
-                // Same hop as the `if … is T as x` form (`expr_if.vader`): the binding
-                // inherits the scrutinee's mutability, so a rejected write through it
-                // is fixed wherever the SCRUTINEE's own lever is.
-                typed.narrow.binding_scrutinee[p.span.hash()] = scrut_expr
-            }
-            // Nested pattern (e.g. `is T as a { x, y }`) — recurse
+            // Nested pattern (e.g. `is T { x, y }`) — recurse
             // with the narrowed type so inner StructPattern bindings
             // pick up T's field types.
             if p.inner !is null {
-                bind_pattern_types(p.inner, narrowed, scrut_expr, typed, diags)
+                bind_pattern_types(p.inner, narrowed, typed, diags)
             }
         }
         is AST.StructPattern -> { bind_struct_pattern(p, scrut, typed, diags) }
         is AST.OrPattern     -> {
             for sub in p.patterns {
-                bind_pattern_types(sub, scrut, scrut_expr, typed, diags)
+                bind_pattern_types(sub, scrut, typed, diags)
             }
         }
         _                           -> {}
@@ -515,8 +503,8 @@ bind_struct_pattern :: fn(
                 // T3054 : reject binding an `@internal` field in a struct
                 // pattern from outside its declaring module.
                 check_internal_field(scrut, decl, field.name, field.name_span, typed, diags)
-                match field.value {
-                    is AST.PatternBinding as pb -> {
+                match field.value as pb {
+                    is AST.PatternBinding -> {
                         ft :: resolved_field_type(
                             scrut.symbol.id,
                             decl,
@@ -528,7 +516,7 @@ bind_struct_pattern :: fn(
                             typed.local_types[pb.span.hash()] = ft
                         }
                     }
-                    _                           -> {}
+                    _                     -> {}
                 }
             }
         }
@@ -585,11 +573,11 @@ match_expr_check_stub :: fn(
     // @partial: test stub — only the literal / ident / match expr kinds the
     // match tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr as x    -> { return narrow_for_expected(TY_FREE_INT, expected) }
-        is AST.BoolLitExpr as x   -> { return TY_BOOL }
-        is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr          -> { return infer_ident(e, typed) }
-        is AST.MatchExpr          -> { return infer_match(
+        is AST.IntLitExpr    -> { return narrow_for_expected(TY_FREE_INT, expected) }
+        is AST.BoolLitExpr   -> { return TY_BOOL }
+        is AST.StringLitExpr -> { return TY_STRING }
+        is AST.IdentExpr     -> { return infer_ident(e, typed) }
+        is AST.MatchExpr     -> { return infer_match(
             e,
             expected,
             typed,
@@ -597,7 +585,7 @@ match_expr_check_stub :: fn(
             null,
             match_expr_check_stub,
         ) }
-        _                         -> { return TY_UNRESOLVED }
+        _                    -> { return TY_UNRESOLVED }
     }
 }
 
@@ -622,9 +610,9 @@ expect_match :: fn(src: string) -> ExpectedMatch {
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {
-            match last.body {
-                is null               -> {}
-                is AST.BlockExpr as b -> {
+            match last.body as b {
+                is null          -> {}
+                is AST.BlockExpr -> {
                     hit :: find_first_in_block(b, accept_match)
                     if hit is AST.MatchExpr { return ExpectedMatch {
                         .typed = result.typed,

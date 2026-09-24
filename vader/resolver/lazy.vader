@@ -246,8 +246,8 @@ export preresolve_imports :: fn(
 scan_folder :: fn(dir: string, diags: Diagnostic[]!) -> FolderBucket | null {
     entries_opt :: read_dir(dir)
     raw: string[]: match entries_opt {
-        is string[]! as ss -> ss
-        is IOError -> []
+        is string[]! -> entries_opt
+        is IOError   -> []
     }
     if raw.len() == 0 { return null }
     sorted :: sort(raw, (a: string, b: string) -> compare_ascending(a, b))
@@ -260,7 +260,7 @@ scan_folder :: fn(dir: string, diags: Diagnostic[]!) -> FolderBucket | null {
     bucket :: FolderBucket { .name = "", .first_decl_span = empty_span(), .files = [] }
     for path in files_here {
         content_opt :: read_file_string(path)
-        content :: match content_opt { is string as s -> s, is IOError -> "" }
+        content :: match content_opt { is string -> content_opt, is IOError -> "" }
         if content == "" { continue }
         bucket.files.push(path)
         header :: parse_module_header(content, path)

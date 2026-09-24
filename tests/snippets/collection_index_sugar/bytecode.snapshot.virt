@@ -53,7 +53,7 @@ fn 0 snippet$main () -> i32
   local $arr_1 ref
   local $arr_2 ref
   local __scrut_0 any
-  local v i32
+  local v any
   local __off_2 usize
   local $cast_27 i64
   array.new 17 0   ; string[][]
@@ -85,11 +85,10 @@ fn 0 snippet$main () -> i32
   string.const 0   ; "a"
   call 12   ; std_collections$MutableMap$Index$at__string__i32
   local.tee 3   ; __scrut_0
+  local.set 4   ; v
+  local.get 3   ; __scrut_0
   type_check 1   ; i32
   if $L0 void
-    local.get 3   ; __scrut_0
-    ref.cast 1   ; -> i32
-    local.set 4   ; v
     i64.const 22
     call 2   ; std_core$new_byte_buffer
     local.set 1   ; $arr_1
@@ -101,6 +100,7 @@ fn 0 snippet$main () -> i32
     call 4   ; std_core$write_string_at
     local.set 5   ; __off_2
     local.get 4   ; v
+    ref.cast 1   ; -> i32
     i32.to_i64
     local.set 6   ; $cast_27
     local.get 1   ; $arr_1

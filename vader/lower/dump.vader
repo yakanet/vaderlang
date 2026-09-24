@@ -55,9 +55,9 @@ emit_decl :: fn(lines: string[]!, decl: LoweredDecl, indent: string) -> void {
         is LoweredFnDecl -> {
             params :: render_params(decl.params)
             lines.push("${indent}fn ${decl.mangled}(${params}) -> ${display_type(decl.return_type)}")
-            match decl.body {
-                is null -> { lines.push("${indent}  <extern / signature only>") }
-                is LoweredBlock as body -> { emit_block(lines, body, "${indent}  ") }
+            match decl.body as body {
+                is null         -> { lines.push("${indent}  <extern / signature only>") }
+                is LoweredBlock -> { emit_block(lines, body, "${indent}  ") }
             }
         }
         is LoweredStructDecl -> {
@@ -257,9 +257,9 @@ emit_expr_compound :: fn(lines: string[]!, expr: LoweredExpr, indent: string) ->
             emit_expr(lines, expr.cond, "${indent}    ")
             lines.push("${indent}  then:")
             emit_block(lines, expr.then_block, "${indent}    ")
-            match expr.else_block {
-                is null -> {}
-                is LoweredBlock as else_block -> {
+            match expr.else_block as else_block {
+                is null         -> {}
+                is LoweredBlock -> {
                     lines.push("${indent}  else:")
                     emit_block(lines, else_block, "${indent}    ")
                 }

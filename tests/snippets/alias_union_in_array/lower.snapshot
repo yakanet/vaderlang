@@ -13,9 +13,6 @@
               is Cat! :bool
                 p :Cat | Dog
             then:
-              let c: Cat! =
-                cast → Cat!
-                  p :Cat | Dog
               ~>
                 call :string
                   callee:
@@ -24,7 +21,8 @@
                     "cat " :string
                   arg1:
                     .name :string
-                      c :Cat
+                      cast → Cat
+                        p :Cat | Dog
             else:
               ~>
                 if :string
@@ -32,9 +30,6 @@
                     is Dog! :bool
                       p :Cat | Dog
                   then:
-                    let d: Dog! =
-                      cast → Dog!
-                        p :Cat | Dog
                     ~>
                       call :string
                         callee:
@@ -43,7 +38,8 @@
                           "dog " :string
                         arg1:
                           .name :string
-                            d :Dog
+                            cast → Dog
+                              p :Cat | Dog
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :string

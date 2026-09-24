@@ -211,9 +211,9 @@ walk_fn_decl :: fn(self: ResolveState!, d: AST.FnDecl) -> void {
         self.mark_param_borrow(p, sym)
     }
     self.walk_opt_expr(d.return_type)
-    match d.body {
-        is null -> {}
-        is AST.BlockExpr as b -> { self.walk_block(b) }
+    match d.body as b {
+        is null          -> {}
+        is AST.BlockExpr -> { self.walk_block(b) }
     }
     self.scope.pop()
 }
@@ -407,9 +407,9 @@ walk_let :: fn(self: ResolveState!, s: AST.LetStmt) -> void {
 }
 
 walk_defer :: fn(self: ResolveState!, d: AST.DeferStmt) -> void {
-    match d.body {
-        is AST.DeferStmtBody  as x -> { self.walk_stmt(x.stmt) }
-        is AST.DeferBlockBody as x -> { self.walk_block(x.block) }
+    match d.body as x {
+        is AST.DeferStmtBody  -> { self.walk_stmt(x.stmt) }
+        is AST.DeferBlockBody -> { self.walk_block(x.block) }
     }
 }
 
@@ -454,32 +454,32 @@ bind_let_binding :: fn(self: ResolveState!, b: AST.LetBinding, out: Symbol[]!) -
 }
 
 walk_for :: fn(self: ResolveState!, s: AST.ForStmt) -> void {
-    match s.form {
+    match s.form as form {
         is AST.InfiniteFor -> {}
-        is AST.WhileFor as w -> { self.walk_expr(w.cond) }
-        is AST.InFor as f -> { self.walk_expr(f.iter) }
+        is AST.WhileFor    -> { self.walk_expr(form.cond) }
+        is AST.InFor       -> { self.walk_expr(form.iter) }
     }
     self.scope.push()
-    match s.form {
-        is AST.InFor as f -> {
-            match f.loop_var {
+    match s.form as f {
+        is AST.InFor                      -> {
+            match f.loop_var as nv {
                 // `for [k, v] in …` binds each pattern leaf ; `for x in …` binds
                 // the single var ; `for <range>` (DiscardVar) binds nothing.
                 // The minted Symbol is recorded in `idents` under the loop var's own
                 // span — same reason as a fn param: a later pass (typecheck's
                 // `mark_loop_var_borrow`) needs to reach it without re-walking the
                 // body to find a use site.
-                is AST.NamedVar       as nv -> {
+                is AST.NamedVar       -> {
                     sym :: self.bind_local_checked(.Local, nv.name, nv.span)
                     self.idents[nv.span.hash()] = sym
                 }
-                is AST.DestructureVar as dv -> {
+                is AST.DestructureVar -> {
                     // A loop variable is declared by no operator, so it joins
                     // neither `immutable_locals` nor the W0015 candidates.
                     scratch: Symbol[]!: []
-                    self.bind_let_binding(dv.pattern, scratch)
+                    self.bind_let_binding(nv.pattern, scratch)
                 }
-                is AST.DiscardVar           -> {}
+                is AST.DiscardVar     -> {}
             }
         }
         // Neither header form binds a name; only `for x in …` does.
@@ -621,9 +621,9 @@ walk_expr :: fn(self: ResolveState!, e: AST.Expr) -> void {
         }
         is AST.NullCoalesceExpr -> {
             self.walk_expr(e.left)
-            match e.fallback {
-                is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt as s -> { self.walk_stmt(s) }
-                is AST.Expr as e -> { self.walk_expr(e) }
+            match e.fallback as fallback {
+                is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt -> { self.walk_stmt(fallback) }
+                is AST.Expr -> { self.walk_expr(fallback) }
             }
         }
         is AST.IfExpr -> { self.walk_if(e) }
@@ -679,10 +679,10 @@ walk_if :: fn(self: ResolveState!, e: AST.IfExpr) -> void {
     self.bind_cond_is_as(e.cond, false)
     self.walk_block(e.then_block)
     self.scope.pop()
-    match e.else_branch {
-        is null -> {}
-        is AST.IfElseIf as x -> { self.walk_if(x.branch) }
-        is AST.IfElseBlock as x -> { self.walk_block(x.block) }
+    match e.else_branch as x {
+        is null            -> {}
+        is AST.IfElseIf    -> { self.walk_if(x.branch) }
+        is AST.IfElseBlock -> { self.walk_block(x.block) }
     }
 }
 
@@ -741,25 +741,18 @@ bind_pattern :: fn(self: ResolveState!, p: AST.Pattern) -> void {
     match p {
         is AST.IsPattern -> {
             self.walk_expr(p.ty)
-            match p.bind_as {
-                is null -> {}
-                is string as name -> {
-                    sym :: self.mint_local(.Binding, name, p.span)
-                    self.scope.bind(name, sym)
-                }
-            }
             if p.inner !is null {
                 self.bind_pattern(p.inner)
             }
         }
         is AST.StructPattern -> {
             for f in p.fields {
-                match f.value {
+                match f.value as lit {
                     is AST.PatternBinding -> {
                         sym :: self.mint_local(.Binding, f.name, f.name_span)
                         self.scope.bind(f.name, sym)
                     }
-                    is AST.PatternLiteral as lit -> { self.walk_expr(lit.value) }
+                    is AST.PatternLiteral -> { self.walk_expr(lit.value) }
                 }
             }
         }

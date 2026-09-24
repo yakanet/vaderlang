@@ -221,10 +221,10 @@ collect_expr_deps :: fn(
         is AST.IfExpr     -> {
             collect_expr_deps(e.cond, typed, nodes, seen, record)
             collect_block_deps(e.then_block, typed, nodes, seen, record)
-            match e.else_branch {
-                is null -> {}
-                is AST.IfElseIf    as else_if -> { collect_expr_deps(else_if.branch, typed, nodes, seen, record) }
-                is AST.IfElseBlock as else_block -> { collect_block_deps(else_block.block, typed, nodes, seen, record) }
+            match e.else_branch as else_if {
+                is null            -> {}
+                is AST.IfElseIf -> { collect_expr_deps(else_if.branch, typed, nodes, seen, record) }
+                is AST.IfElseBlock -> { collect_block_deps(else_if.block, typed, nodes, seen, record) }
             }
         }
         is AST.MatchExpr  -> {
@@ -304,9 +304,9 @@ collect_stmt_deps :: fn(
         }
         is AST.AssignStmt -> { collect_expr_deps(s.target, typed, nodes, seen, record) collect_expr_deps(s.value, typed, nodes, seen, record) }
         is AST.ForStmt    -> {
-            match s.form {
-                is AST.WhileFor as while_for -> { collect_expr_deps(while_for.cond, typed, nodes, seen, record) }
-                is AST.InFor    as in_for -> { collect_expr_deps(in_for.iter, typed, nodes, seen, record) }
+            match s.form as while_for {
+                is AST.WhileFor -> { collect_expr_deps(while_for.cond, typed, nodes, seen, record) }
+                is AST.InFor -> { collect_expr_deps(while_for.iter, typed, nodes, seen, record) }
                 // `for { ... }` — no header expression, only the body below.
                 is AST.InfiniteFor -> {}
             }
@@ -314,9 +314,9 @@ collect_stmt_deps :: fn(
         }
         is AST.YieldStmt -> { collect_expr_deps(s.value, typed, nodes, seen, record) }
         is AST.DeferStmt -> {
-            match s.body {
-                is AST.DeferStmtBody  as dsb -> { collect_stmt_deps(dsb.stmt, typed, nodes, seen, record) }
-                is AST.DeferBlockBody as dbb -> { collect_block_deps(dbb.block, typed, nodes, seen, record) }
+            match s.body as dsb {
+                is AST.DeferStmtBody  -> { collect_stmt_deps(dsb.stmt, typed, nodes, seen, record) }
+                is AST.DeferBlockBody -> { collect_block_deps(dsb.block, typed, nodes, seen, record) }
             }
         }
         // Control transfers carry no expression.

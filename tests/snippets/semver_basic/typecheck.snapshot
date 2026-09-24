@@ -51,5 +51,5 @@
   expr 37:11    IdentExpr      :: fn(string) -> ParseError | Version
   expr 37:17    IdentExpr      :: string
   expr 37:5     MatchExpr      :: never
-  expr 38:37    IdentExpr      :: Version
+  expr 38:35    IdentExpr      :: Version
   expr 40:20    StructLitExpr  :: Version!

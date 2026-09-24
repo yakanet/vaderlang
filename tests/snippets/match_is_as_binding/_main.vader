@@ -2,19 +2,18 @@ module "snippet"
 
 import "std/io"
 
-// Regression: `is T as p` in a match arm used to make `p` a fresh synthetic
-// symbol unrelated to the resolver's binding symbol — the body's `p.x` would
-// fail to find a slot and lower to `unreachable`. Now the resolver records
-// the binding in `patternBindings`, the lowerer reuses it, and the
-// type-checker narrows the binding to the variant type.
+// Each arm reads the scrutinee narrowed in place to its variant: `a.x` in the
+// `is P` arm is a typed field load, not a read through the union box. Arms
+// used to need an `as` binder to get there, and that binder once lowered to
+// `unreachable`; the form is gone (P1036), the narrowing it provided is not.
 P :: struct { x: i32 }
 Q :: struct { y: string }
 
 show :: fn(a: P | Q | null) -> string {
     return match a {
         is null -> "null"
-        is P as p -> "P.x = ${p.x}"
-        is Q as q -> "Q.y = ${q.y}"
+        is P    -> "P.x = ${a.x}"
+        is Q    -> "Q.y = ${a.y}"
     }
 }
 

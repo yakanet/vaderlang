@@ -144,9 +144,9 @@ export find_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_name: str
 find_via_all :: fn(ctx: LowerProjectCtx, for_symbol: Symbol, trait_name: string) -> ImplEntry | null {
     for entry in ctx.impls.all {
         if entry.trait_symbol.name != trait_name { continue }
-        match entry.for_symbol {
-            is null -> {}
-            is Symbol as fs -> {
+        match entry.for_symbol as fs {
+            is null   -> {}
+            is Symbol -> {
                 if fs.id == for_symbol.id { return entry }
             }
         }

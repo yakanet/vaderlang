@@ -39,21 +39,21 @@ main :: fn() -> i32 {
     }
     r :: c_fopen(path, "rb")
     match r {
-        is CPointer as p -> {
+        is CPointer -> {
             println("matched CPointer")
-            c_fclose(p)
+            c_fclose(r)
         }
-        is null -> println("matched null")
+        is null     -> println("matched null")
     }
     println("after match")
 
     missing :: c_fopen("${temp_dir()}/vader_no_such_probe_at_all", "rb")
     match missing {
-        is CPointer as p -> {
+        is CPointer -> {
             println("unexpectedly opened")
-            c_fclose(p)
+            c_fclose(missing)
         }
-        is null -> println("matched null")
+        is null     -> println("matched null")
     }
     remove_file(path)
     return 0

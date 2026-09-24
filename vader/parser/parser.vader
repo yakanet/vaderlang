@@ -186,7 +186,7 @@ export Parser :: struct {
     errors: Diagnostic[]!
     // True except inside the immediate condition expression of if/for/match.
     allow_struct_lit: bool
-    // True except inside a match-arm guard : `is T as n if n > 0 -> body`
+    // True except inside a match-arm guard : `is T if n > 0 -> body`
     // must not parse `0 -> body` (or `flag -> body`) as a bare lambda —
     // the arrow belongs to the arm. Parenthesised sub-expressions restore
     // it, so an intentional lambda in a guard stays writable as `(x -> …)`.
@@ -550,9 +550,9 @@ parse_decl :: fn(p: Parser!) -> Decl | null {
             match msg_arg {
                 is StringLitExpr -> {
                     if msg_arg.parts.len() == 1 {
-                        match msg_arg.parts[0] {
-                            is StringLitText as t -> { message = t.value }
-                            _ -> {
+                        match msg_arg.parts[0] as t {
+                            is StringLitText -> { message = t.value }
+                            _                -> {
                                 p.error(.DecoratorArgumentForm, msg_arg.span,
                                     "`@assert` message must be a static string literal (no interpolation)")
                                 return null
@@ -1728,6 +1728,24 @@ reject_removed_const :: fn(p: Parser!) -> void {
     }
 }
 
+// A match arm binds nothing: the binder lives in the header, `match e as x
+// { is T -> … x … }`, where every arm and guard sees it. The arm form is
+// consumed so the rest of the arm still parses, and diagnosed only when a name
+// follows — a missing one is already `expect`'s error.
+reject_arm_binding :: fn(p: Parser!) -> void {
+    as_tok :: p.match_kind(.KwAs)
+    if as_tok == null {
+        return
+    }
+    name_tok :: p.expect(.Ident, "binding name after `as`")
+    if name_tok.kind == .Ident {
+        p.error(
+            .ArmBindingNotInHeader, p.span_of(as_tok, name_tok),
+            "name the scrutinee in the header: `match … as ${name_tok.text}`",
+        )
+    }
+}
+
 // `T & U & V` — left-associative `bitand` chain, tighter than `|` and
 // looser than the postfix operators. Same node shape as value-side trait
 // composition (e.g. `[T: Hash & Eq]`).
@@ -2870,8 +2888,8 @@ parse_expr :: fn(p: Parser!, min_bp: i32) -> Expr {
                 }
             } else {
                 // `is T as <ident>` — binds the narrowed RHS in the
-                // enclosing if's then-branch. Mirrors `parse_pattern`'s
-                // `IsPattern.bind_as` for match arms.
+                // enclosing if's then-branch. A match arm has no such form:
+                // its binder is the header's (`parse_match_expr`).
                 bind_as := ""
                 end_pos := right.span.end
                 if infix.op == .Is && p.peek().kind == .KwAs {
@@ -3648,15 +3666,11 @@ parse_pattern :: fn(p: Parser!) -> Pattern {
         if p.check(.LBrace) {
             inner = p.parse_struct_pattern()
         }
-        bind_as: string | null = null
-        if p.match_kind(.KwAs) != null {
-            bind_as = p.expect(.Ident, "binding name after `as`").text
-        }
+        p.reject_arm_binding()
         return IsPattern {
-            .span    = p.span_of(t, p.peek_at(-1)),
-            .ty      = ty,
-            .inner   = inner,
-            .bind_as = bind_as,
+            .span  = p.span_of(t, p.peek_at(-1)),
+            .ty    = ty,
+            .inner = inner,
         }
     }
     if t.kind == .Ident && t.text == "_" {

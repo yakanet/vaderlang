@@ -711,16 +711,16 @@ export bc_type_key :: fn(types: BcType[], idx: i32) -> string {
     if idx < 0 || usize(idx) >= types.len() {
         return "?"
     }
-    return match types[usize(idx)] {
-        is BcPrimitive as p -> "p:${i32(p.val)}"
+    return match types[usize(idx)] as t {
+        is BcPrimitive -> "p:${i32(t.val)}"
         // Structs key by NAME, not by their fields: the name is unique after
         // monomorphisation, and descending would not terminate on a recursive
         // struct.
-        is BcStruct as s -> "s:${s.name}"
-        is BcRef as r    -> "r:${r.trait_name}"
-        is BcArray as a  -> "a:<${bc_type_key(types, a.element)}>"
-        is BcUnion as u  -> "u:<${key_join(types, u.variants, "|")}>"
-        is BcFn as f     -> "f:(${key_join(types, f.params, "|")})->${bc_type_key(types, f.return_type)}"
+        is BcStruct    -> "s:${t.name}"
+        is BcRef       -> "r:${t.trait_name}"
+        is BcArray     -> "a:<${bc_type_key(types, t.element)}>"
+        is BcUnion     -> "u:<${key_join(types, t.variants, "|")}>"
+        is BcFn        -> "f:(${key_join(types, t.params, "|")})->${bc_type_key(types, t.return_type)}"
     }
 }
 

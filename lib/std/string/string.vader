@@ -759,13 +759,13 @@ import "std/testing"
 }
 
 @test test_parse_int_ok :: fn() -> void {
-    match parse_int("42") {
-        is i32 as v       -> assert_eq(v, 42)
-        is ParseError     -> assert(false, "expected ok i32")
+    match parse_int("42") as v {
+        is i32        -> assert_eq(v, 42)
+        is ParseError -> assert(false, "expected ok i32")
     }
-    match parse_int("-7") {
-        is i32 as v       -> assert_eq(v, -7)
-        is ParseError     -> assert(false, "expected ok i32")
+    match parse_int("-7") as v {
+        is i32        -> assert_eq(v, -7)
+        is ParseError -> assert(false, "expected ok i32")
     }
 }
 
@@ -777,12 +777,12 @@ import "std/testing"
 }
 
 @test test_parse_int_bounds :: fn() -> void {
-    match parse_int("2147483647") {
-        is i32 as v   -> assert_eq(v, 2147483647)
+    match parse_int("2147483647") as v {
+        is i32        -> assert_eq(v, 2147483647)
         is ParseError -> assert(false, "max i32 should parse")
     }
-    match parse_int("-2147483647") {
-        is i32 as v   -> assert_eq(v, -2147483647)
+    match parse_int("-2147483647") as v {
+        is i32        -> assert_eq(v, -2147483647)
         is ParseError -> assert(false, "negative should parse")
     }
     // i32::MIN parses (value not compared — the literal would overflow i32).
@@ -852,8 +852,8 @@ import "std/testing"
 }
 
 @test test_parse_float :: fn() -> void {
-    match parse_float("3.14") {
-        is f64 as v -> assert_close(v, 3.14, 0.000001)
+    match parse_float("3.14") as v {
+        is f64        -> assert_close(v, 3.14, 0.000001)
         is ParseError -> assert(false, "expected ok f64")
     }
 }

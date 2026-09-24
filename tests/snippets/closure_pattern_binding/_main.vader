@@ -13,13 +13,13 @@ P :: struct { name: string }
 // type-assert fail; C: segfault).
 greet :: fn(v: P | i32) -> void {
     match v {
-        is P as p -> {
-            shout :: fn() -> string { "HELLO ${p.name}" }
+        is P   -> {
+            shout :: fn() -> string { "HELLO ${v.name}" }
             println(shout())
             println("again ${shout()}")
         }
-        is i32 as n -> {
-            doubled :: fn() -> i32 { n + n }
+        is i32 -> {
+            doubled :: fn() -> i32 { v + v }
             println("twice = ${doubled()}")
         }
     }

@@ -105,8 +105,7 @@
                       "kind": "IdentExpr",
                       "name": "null"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -126,8 +125,7 @@
                       "kind": "IdentExpr",
                       "name": "P"
                     },
-                    "inner": null,
-                    "bindAs": "p"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -143,7 +141,7 @@
                           "kind": "FieldExpr",
                           "target": {
                             "kind": "IdentExpr",
-                            "name": "p"
+                            "name": "a"
                           },
                           "field": "x"
                         }
@@ -158,8 +156,7 @@
                       "kind": "IdentExpr",
                       "name": "Q"
                     },
-                    "inner": null,
-                    "bindAs": "q"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -175,7 +172,7 @@
                           "kind": "FieldExpr",
                           "target": {
                             "kind": "IdentExpr",
-                            "name": "q"
+                            "name": "a"
                           },
                           "field": "y"
                         }

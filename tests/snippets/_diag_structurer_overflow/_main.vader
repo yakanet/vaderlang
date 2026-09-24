@@ -29,8 +29,8 @@ run :: fn(u: U, gate1: bool, gate2: bool) -> i32 {
     items :: [1, 2, 3]
     base := 0
     match u {
-        is Pair as p -> { base = p.a }
-        is Wrap as w -> { base = w.b }
+        is Pair -> { base = u.a }
+        is Wrap -> { base = u.b }
     }
     n := base
     if gate1 {

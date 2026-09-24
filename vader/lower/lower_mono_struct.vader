@@ -584,9 +584,9 @@ flatten_trait_bound :: fn(bound: TypeExpr, out: string[]!) -> void {
             }
         }
         is GenericInstExpr -> {
-            match bound.callee {
-                is IdentExpr as cid -> { out.push(cid.name) }
-                _ -> {}
+            match bound.callee as cid {
+                is IdentExpr -> { out.push(cid.name) }
+                _            -> {}
             }
         }
         _ -> {}

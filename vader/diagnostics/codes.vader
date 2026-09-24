@@ -162,6 +162,7 @@ export ParserCode :: enum(u8) {
     // P1034 (DecoratorArgumentValue) retired : its only site bounded
     // `@c_size`'s width, and `@c_size` is gone from the language.
     CompoundAssignToPattern,                // P1035
+    ArmBindingNotInHeader,                  // P1036
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
@@ -392,6 +393,7 @@ export parser_info :: fn(c: ParserCode) = match c {
     .DecoratorArgumentCount             -> CodeInfo { .id = "P1032", .message = "wrong number of decorator arguments" }
     .DecoratorArgumentForm              -> CodeInfo { .id = "P1033", .message = "decorator argument has the wrong form" }
     .CompoundAssignToPattern            -> CodeInfo { .id = "P1035", .message = "compound assignment needs a single target" }
+    .ArmBindingNotInHeader              -> CodeInfo { .id = "P1036", .message = "a match arm cannot bind with `as`" }
     .DuplicateStructLitField            -> CodeInfo { .id = "P1015", .message = "duplicate field name in struct literal" }
     .ExpectedGenericArgList             -> CodeInfo { .id = "P1016", .message = "expected a generic argument list" }
     .MissingNewlineBetweenDecls         -> CodeInfo { .id = "P1017", .message = "missing newline between top-level declarations" }

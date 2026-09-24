@@ -50,15 +50,13 @@
             m :MutableMap<string, i32>!
           arg1:
             "a" :string
+      let v: i32 | null = __scrut_0 :i32 | null
       ~>
         if :void
           cond:
             is i32 :bool
               __scrut_0 :i32 | null
           then:
-            let v: i32 =
-              cast → i32
-                __scrut_0 :i32 | null
             ~>
               call :void
                 callee:
@@ -98,7 +96,8 @@
                             __off_2 :usize
                           arg2:
                             cast → i64
-                              v :i32
+                              cast → i32
+                                v :i32 | null
                     ~>
                       call :string
                         callee:

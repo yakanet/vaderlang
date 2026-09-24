@@ -79,10 +79,10 @@ collect_expr_names :: fn(e: AST.Expr, out: string[]!) -> void {
         is AST.IfExpr            -> {
             collect_expr_names(e.cond, out)
             collect_block_names(e.then_block, out)
-            match e.else_branch {
-                is null                 -> {}
-                is AST.IfElseIf as b    -> { collect_expr_names(b.branch, out) }
-                is AST.IfElseBlock as b -> { collect_block_names(b.block, out) }
+            match e.else_branch as b {
+                is null            -> {}
+                is AST.IfElseIf    -> { collect_expr_names(b.branch, out) }
+                is AST.IfElseBlock -> { collect_block_names(b.block, out) }
             }
         }
         is AST.MatchExpr         -> {
@@ -182,19 +182,19 @@ collect_stmt_names :: fn(s: AST.Stmt, out: string[]!) -> void {
         is AST.ReturnStmt   -> { collect_opt_expr_names(s.value, out) }
         is AST.YieldStmt    -> { collect_expr_names(s.value, out) }
         is AST.ForStmt      -> {
-            match s.form {
-                is AST.InfiniteFor   -> {}
-                is AST.WhileFor as w -> { collect_expr_names(w.cond, out) }
-                is AST.InFor as f    -> { collect_expr_names(f.iter, out) }
+            match s.form as w {
+                is AST.InfiniteFor -> {}
+                is AST.WhileFor    -> { collect_expr_names(w.cond, out) }
+                is AST.InFor       -> { collect_expr_names(w.iter, out) }
             }
             collect_block_names(s.body, out)
         }
         is AST.BreakStmt    -> {}
         is AST.ContinueStmt -> {}
         is AST.DeferStmt    -> {
-            match s.body {
-                is AST.DeferStmtBody as b  -> { collect_stmt_names(b.stmt, out) }
-                is AST.DeferBlockBody as b -> { collect_block_names(b.block, out) }
+            match s.body as b {
+                is AST.DeferStmtBody  -> { collect_stmt_names(b.stmt, out) }
+                is AST.DeferBlockBody -> { collect_block_names(b.block, out) }
             }
         }
     }

@@ -21,9 +21,6 @@
                     is P! :bool
                       a :null | P | Q
                   then:
-                    let p: P! =
-                      cast → P!
-                        a :null | P | Q
                     ~>
                       block :string
                         let __buf_0: Buffer =
@@ -60,7 +57,8 @@
                               arg2:
                                 cast → i64
                                   .x :i32
-                                    p :P
+                                    cast → P
+                                      a :null | P | Q
                         ~>
                           call :string
                             callee:
@@ -76,9 +74,6 @@
                           is Q! :bool
                             a :null | P | Q
                         then:
-                          let q: Q! =
-                            cast → Q!
-                              a :null | P | Q
                           ~>
                             call :string
                               callee:
@@ -87,7 +82,8 @@
                                 "Q.y = " :string
                               arg1:
                                 .y :string
-                                  q :Q
+                                  cast → Q
+                                    a :null | P | Q
                         else:
                           ~>
                             unreachable("non-exhaustive match (T3013 should have caught this)") :string

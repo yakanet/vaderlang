@@ -12,9 +12,9 @@ Lane :: enum(u8) { Cars, Trucks }
 
 inspect :: fn(load: i32 | string) -> string {
     return match load {
-        is i32 as kg if kg > 100 -> "heavy"
-        is i32 -> "light"
-        is string as tag -> tag
+        is i32 if load > 100 -> "heavy"
+        is i32               -> "light"
+        is string            -> load
     }
 }
 

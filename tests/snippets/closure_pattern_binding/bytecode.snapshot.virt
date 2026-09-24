@@ -14,8 +14,7 @@ type 11 struct std_core$Buffer {  }
 type 12 primitive i64
 type 13 array 9
 type 14 primitive isize
-type 15 struct "$Cell_Struct#snippet.P<>" { value:3 }
-type 16 struct $Cell_i32 { value:2 }
+type 15 struct "$Cell_Union<i32|Struct#snippet.P<>>" { value:1 }
 string 0 "again "
 string 1 "twice = "
 string 2 "world"
@@ -28,58 +27,60 @@ impl 11 ByteAccess
 export main 1
 
 fn 0 snippet$greet (any) -> void
+  local v any
+  local __scrut_0 any
   local shout ref
-  local $call_9 string
-  local __buf_1 ref
-  local __off_2 usize
-  local $cast_25 i64
+  local $call_10 string
+  local __buf_2 ref
+  local __off_3 usize
+  local $cast_23 i64
   local.get 0   ; arg 0
+  struct.new 15   ; $Cell_Union<i32|Struct#snippet.P<>>
+  local.set 1   ; v
+  local.field 1 15 0   ; v.value
+  local.tee 2   ; __scrut_0
   type_check 3   ; snippet$P
   if $L0 void
-    local.get 0   ; arg 0
-    ref.cast 3   ; -> snippet$P
-    struct.new 15   ; $Cell_Struct#snippet.P<>
+    local.get 1   ; v
     struct.new 6   ; __lambda_env_snippet_3
-    local.tee 1   ; shout
+    local.tee 3   ; shout
     call 3   ; __lambda_snippet_2
     call 11   ; std_io$println__string
-    local.get 1   ; shout
+    local.get 3   ; shout
     call 3   ; __lambda_snippet_2
-    local.set 2   ; $call_9
+    local.set 4   ; $call_10
     string.const 0   ; "again "
-    local.get 2   ; $call_9
+    local.get 4   ; $call_10
     call 4   ; concat_2
     call 11   ; std_io$println__string
   else
-    local.get 0   ; arg 0
+    local.get 2   ; __scrut_0
     type_check 2   ; i32
     if $L1 void
-      local.get 0   ; arg 0
-      ref.cast 2   ; -> i32
-      struct.new 16   ; $Cell_i32
+      local.get 1   ; v
       struct.new 5   ; __lambda_env_snippet_1
-      local.set 1   ; shout
+      local.set 3   ; shout
       i64.const 28
       call 5   ; std_core$new_byte_buffer
-      local.set 3   ; __buf_1
+      local.set 5   ; __buf_2
       i64.const 0
-      local.set 4   ; __off_2
-      local.get 3   ; __buf_1
-      local.get 4   ; __off_2
+      local.set 6   ; __off_3
+      local.get 5   ; __buf_2
+      local.get 6   ; __off_3
       string.const 1   ; "twice = "
       call 7   ; std_core$write_string_at
-      local.set 4   ; __off_2
-      local.get 1   ; shout
+      local.set 6   ; __off_3
+      local.get 3   ; shout
       call 2   ; __lambda_snippet_0
       i32.to_i64
-      local.set 5   ; $cast_25
-      local.get 3   ; __buf_1
-      local.get 4   ; __off_2
-      local.get 5   ; $cast_25
+      local.set 7   ; $cast_23
+      local.get 5   ; __buf_2
+      local.get 6   ; __off_3
+      local.get 7   ; $cast_23
       call 8   ; std_core$write_int
-      local.set 4   ; __off_2
-      local.get 3   ; __buf_1
-      local.get 4   ; __off_2
+      local.set 6   ; __off_3
+      local.get 5   ; __buf_2
+      local.get 6   ; __off_3
       call 6   ; std_core$finish_buffer
       call 11   ; std_io$println__string
     else
@@ -99,29 +100,32 @@ fn 1 snippet$main () -> i32
 end
 
 fn 2 __lambda_snippet_0 (ref) -> i32
-  local $cell_get_2 i32
-  local $cell_get_4 i32
+  local $cast_3 i32
+  local $cast_6 i32
   local.field 0 5 0   ; arg 0.cap_0
-  struct.get 16 0   ; $Cell_i32.value
-  local.set 1   ; $cell_get_2
+  struct.get 15 0   ; $Cell_Union<i32|Struct#snippet.P<>>.value
+  ref.cast 2   ; -> i32
+  local.set 1   ; $cast_3
   local.field 0 5 0   ; arg 0.cap_0
-  struct.get 16 0   ; $Cell_i32.value
-  local.set 2   ; $cell_get_4
-  local.get 1   ; $cell_get_2
-  local.get 2   ; $cell_get_4
+  struct.get 15 0   ; $Cell_Union<i32|Struct#snippet.P<>>.value
+  ref.cast 2   ; -> i32
+  local.set 2   ; $cast_6
+  local.get 1   ; $cast_3
+  local.get 2   ; $cast_6
   i32.add
   return
 end
 
 fn 3 __lambda_snippet_2 (ref) -> string
-  local $field_4 string
+  local $field_5 string
   local.field 0 6 0   ; arg 0.cap_0
-  struct.get 15 0   ; $Cell_Struct#snippet.P<>.value
+  struct.get 15 0   ; $Cell_Union<i32|Struct#snippet.P<>>.value
+  ref.cast 3   ; -> snippet$P
   struct.get 3 0   ; snippet$P.name
   ref.cast 7   ; -> string
-  local.set 1   ; $field_4
+  local.set 1   ; $field_5
   string.const 3   ; "HELLO "
-  local.get 1   ; $field_4
+  local.get 1   ; $field_5
   call 4   ; concat_2
   return
 end

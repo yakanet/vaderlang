@@ -72,7 +72,8 @@ export NarrowState :: struct {
     /// Kill generation per field-chain slot; mirrors `kill_gens` for `fields`.
     field_kill_gens: MutableMap<string, i32> = MutableMap<string, i32> {}
 
-    /// `is T as x` binding DECLARATION-span hash → the scrutinee. One hop
+    /// `as` binding (`if e is T as x`, `match e as x`) DECLARATION-span hash →
+    /// the scrutinee. One hop
     /// further: the binding inherits the scrutinee's mutability, so the lever is
     /// whatever the scrutinee's own lever is.
     ///

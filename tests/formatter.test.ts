@@ -328,9 +328,9 @@ const MATCH_ALIGN: { name: string; source: string }[] = [
     source: `module "reg/match_align"
 
 k :: fn(t: Type) -> string = match t {
-    is PrimitiveType as p -> p.name
-    is StructType as s    -> "s"
-    _                     -> "?"
+    is PrimitiveType -> t.name
+    is StructType    -> "s"
+    _                -> "?"
 }
 `,
   },
@@ -341,7 +341,7 @@ k :: fn(t: Type) -> string = match t {
 f :: fn(x: T) -> i32 {
     match x {
         is A -> 1
-        is SomeVeryLongVariantNameThatExceedsTheAlignmentCapWidth as binding -> 2
+        is SomeVeryLongVariantNameThatExceedsTheAlignmentCapWidthOnItsOwnHere -> 2
         is B -> 3
     }
 }

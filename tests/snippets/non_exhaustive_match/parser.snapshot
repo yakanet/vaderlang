@@ -53,8 +53,7 @@
                       "kind": "IdentExpr",
                       "name": "i32"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {

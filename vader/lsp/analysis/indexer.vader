@@ -16,10 +16,10 @@
 //   * Import bindings (`ImportDecl` destructure form) — recorded in
 //     `imports[]` for cross-file goto-def to consume.
 //
-// Match-as bindings (`is X as y`), lambda captures, and pattern
-// destructuring inside match arms aren't indexed yet — straightforward
-// follow-ups since the AST already exposes the shapes (`IsPattern.bind_as`,
-// `LambdaExpr.params`, etc.).
+// `as` bindings (`if x is T as y`, `match e as y`), lambda captures, and
+// pattern destructuring inside match arms aren't indexed yet — straightforward
+// follow-ups since the AST already exposes the shapes (`BinaryExpr.bind_as`,
+// `MatchExpr.bind_as`, `LambdaExpr.params`, etc.).
 
 module "vader/lsp/analysis"
 
@@ -208,9 +208,9 @@ lj_stmt :: fn(s: Stmt, stack: LjFrame[]!, out: LoopJump[]!) -> void {
         }
         is YieldStmt    -> { lj_expr(s.value, stack, out) }
         is DeferStmt    -> {
-            match s.body {
-                is DeferStmtBody  as ds -> { lj_stmt(ds.stmt, stack, out) }
-                is DeferBlockBody as db -> { lj_block(db.block, stack, out) }
+            match s.body as ds {
+                is DeferStmtBody  -> { lj_stmt(ds.stmt, stack, out) }
+                is DeferBlockBody -> { lj_block(ds.block, stack, out) }
             }
         }
     }
@@ -224,10 +224,10 @@ lj_expr :: fn(e: Expr, stack: LjFrame[]!, out: LoopJump[]!) -> void {
         is IfExpr    -> {
             lj_expr(e.cond, stack, out)
             lj_block(e.then_block, stack, out)
-            match e.else_branch {
-                is IfElseIf    as ei -> { lj_expr(ei.branch, stack, out) }
-                is IfElseBlock as eb -> { lj_block(eb.block, stack, out) }
-                is null              -> {}
+            match e.else_branch as ei {
+                is IfElseIf    -> { lj_expr(ei.branch, stack, out) }
+                is IfElseBlock -> { lj_block(ei.block, stack, out) }
+                is null        -> {}
             }
         }
         is MatchExpr -> { for arm in e.arms { lj_expr(arm.body, stack, out) } }
@@ -571,9 +571,9 @@ binding_entry :: fn(
 // ---- fn body walk : params + locals + for-in -----------------------------
 
 ix_walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]!) -> void {
-    match f.body {
-        is null -> {}
-        is BlockExpr as body -> {
+    match f.body as body {
+        is null      -> {}
+        is BlockExpr -> {
             scope :: body.span
             // Params live for the whole body. `FnParam.span` covers
             // the whole `name: T = default` form ; goto-def should
@@ -643,9 +643,9 @@ ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry
         is BreakStmt -> {}
         is ContinueStmt -> {}
         is DeferStmt -> {
-            match s.body {
-                is DeferStmtBody as ds -> { ix_walk_stmt(ds.stmt, block_span, source, entries) }
-                is DeferBlockBody as db -> { ix_walk_block(db.block, source, entries) }
+            match s.body as ds {
+                is DeferStmtBody  -> { ix_walk_stmt(ds.stmt, block_span, source, entries) }
+                is DeferBlockBody -> { ix_walk_block(ds.block, source, entries) }
             }
         }
     }
@@ -748,21 +748,21 @@ type_expr_slice :: fn(t: Expr, source: string) -> string {
 }
 
 ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]!) -> void {
-    match f.form {
+    match f.form as w {
         is InfiniteFor -> {}
-        is WhileFor as w -> { ix_walk_expr(w.cond, source, entries) }
-        is InFor as i -> {
+        is WhileFor    -> { ix_walk_expr(w.cond, source, entries) }
+        is InFor       -> {
             // for-in binding scope = the loop's body block.
-            match i.loop_var {
-                is NamedVar as nv -> {
+            match w.loop_var as nv {
+                is NamedVar       -> {
                     sig :: "for " + nv.name + " in ..."
                     entries.push(binding_entry(nv.name, .ForIn, nv.span, f.body.span, sig))
                 }
                 // `for [k, v] in …` : index each leaf as a body-scoped local.
-                is DestructureVar as dv -> { collect_let_binding(dv.pattern, f.body.span, source, "", entries) }
-                is DiscardVar -> {}
+                is DestructureVar -> { collect_let_binding(nv.pattern, f.body.span, source, "", entries) }
+                is DiscardVar     -> {}
             }
-            ix_walk_expr(i.iter, source, entries)
+            ix_walk_expr(w.iter, source, entries)
         }
     }
     ix_walk_block(f.body, source, entries)
@@ -782,10 +782,10 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
         is IfExpr -> {
             ix_walk_expr(e.cond, source, entries)
             ix_walk_block(e.then_block, source, entries)
-            match e.else_branch {
-                is null -> {}
-                is IfElseIf as ei -> { ix_walk_expr(ei.branch, source, entries) }
-                is IfElseBlock as eb -> { ix_walk_block(eb.block, source, entries) }
+            match e.else_branch as ei {
+                is null        -> {}
+                is IfElseIf    -> { ix_walk_expr(ei.branch, source, entries) }
+                is IfElseBlock -> { ix_walk_block(ei.block, source, entries) }
             }
         }
         is MatchExpr -> {
@@ -863,19 +863,19 @@ collect_import :: fn(
     d: ImportDecl, imports: ImportEntry[]!, wildcard_paths: string[]!,
     namespace_aliases: MutableMap<string, string>!,
 ) -> void {
-    match d.binding {
+    match d.binding as ns {
         // `Name :: import "..."` — the name is a namespace, not a value, so it
         // binds no `ImportEntry`. Recorded separately: `Name.member` needs the
         // path to look the member up as an EXPORT of that module.
-        is NamedNamespaceImport as ns -> { namespace_aliases[ns.name] = d.path }
+        is NamedNamespaceImport -> { namespace_aliases[ns.name] = d.path }
         is WildcardImport -> { wildcard_paths.push(d.path) } // bare `import "..."` — every export enters scope unqualified
-        is DestructureImport as de -> {
-            for n in de.names {
+        is DestructureImport -> {
+            for n in ns.names {
                 local_name := n.name
                 local_span :: n.span
-                match n.alias {
-                    is null -> {}
-                    is string as alias -> { local_name = alias }
+                match n.alias as alias {
+                    is null   -> {}
+                    is string -> { local_name = alias }
                 }
                 imports.push(ImportEntry {
                     .local_name    = local_name,
@@ -1032,7 +1032,7 @@ lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclE
             i = i + 1
             continue
         }
-        match d.scope_span {
+        match d.scope_span as sp {
             is null -> {
                 if !has_best {
                     best_idx = i
@@ -1040,7 +1040,7 @@ lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclE
                     has_best = true
                 }
             }
-            is Span as sp -> {
+            is Span -> {
                 if sp.start.offset <= offset && offset < sp.end.offset {
                     size :: sp.end.offset - sp.start.offset
                     if !has_best || best_size == 0 || size < best_size {

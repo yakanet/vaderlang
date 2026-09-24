@@ -980,13 +980,13 @@ type_label :: fn(module: BytecodeModule, type_id: i32) = type_label_at(module, t
 type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string {
     if depth > 6 { return "..." }
     if type_id < 0 || usize(type_id) >= module.types.len() { return "<type #${type_id} out of range>" }
-    return match module.types[usize(type_id)] {
-        is BcPrimitive as p -> val_type_name(p.val)
-        is BcStruct    as s -> s.name
-        is BcArray     as a -> "${type_label_at(module, a.element, depth + 1)}[]"
-        is BcUnion          -> "union"
-        is BcRef       as r -> if r.trait_name == "" { "ref" } else { "ref ${r.trait_name}" }
-        is BcFn             -> "fn"
+    return match module.types[usize(type_id)] as p {
+        is BcPrimitive -> val_type_name(p.val)
+        is BcStruct    -> p.name
+        is BcArray     -> "${type_label_at(module, p.element, depth + 1)}[]"
+        is BcUnion     -> "union"
+        is BcRef       -> if p.trait_name == "" { "ref" } else { "ref ${p.trait_name}" }
+        is BcFn        -> "fn"
     }
 }
 

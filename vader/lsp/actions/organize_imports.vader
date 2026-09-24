@@ -144,8 +144,8 @@ render_import_block :: fn(run: AST.ImportDecl[]) -> string {
 
     for i in 0..<run.len() {
         im :: run[i]
-        match im.binding {
-            is AST.DestructureImport as dst -> {
+        match im.binding as dst {
+            is AST.DestructureImport    -> {
                 existing :: destructure[im.path]
                 if existing == null {
                     // Copy : later same-path imports push into this array, which
@@ -156,14 +156,14 @@ render_import_block :: fn(run: AST.ImportDecl[]) -> string {
                     for ni in 0..<dst.names.len() { existing.push(dst.names[ni]) }
                 }
             }
-            is AST.NamedNamespaceImport as nn -> {
-                text :: render_namespace_import(im.path, nn)
+            is AST.NamedNamespaceImport -> {
+                text :: render_namespace_import(im.path, dst)
                 if ns_seen[text] == null {
                     ns_seen[text] = true
                     ns_entries.push(ImportEntry { .path = im.path, .text = text })
                 }
             }
-            is AST.WildcardImport -> {
+            is AST.WildcardImport       -> {
                 text :: "import \"" + im.path + "\""
                 if ns_seen[text] == null {
                     ns_seen[text] = true

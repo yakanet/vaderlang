@@ -428,8 +428,8 @@ struct_siblings_match :: fn(state: VmState, value_type_id: i32, target_type_id: 
 
 /// Return the mangled name of the struct type at `type_id`, or `""` when
 /// `type_id` doesn't point to a `BcStruct`.
-struct_name_at :: fn(state: VmState, type_id: i32) -> string = match state.bc.types[usize(type_id)] {
-    is bc.BcStruct as s -> s.name
+struct_name_at :: fn(state: VmState, type_id: i32) -> string = match state.bc.types[usize(type_id)] as s {
+    is bc.BcStruct    -> s.name
     is bc.BcArray     -> ""
     is bc.BcFn        -> ""
     is bc.BcPrimitive -> ""
@@ -509,9 +509,9 @@ export receiver_type_id_of :: fn(state: VmState, v: Value) -> i32 {
 export primitive_type_id :: fn(state: VmState, v: Value) -> i32 {
     tag :: describe_value_tag(v)
     for i in 0..<state.bc.types.len() {
-        match state.bc.types[i] {
-            is bc.BcPrimitive as p -> { if bc.val_type_name(p.val) == tag { return i32(i) } }
-            _                        -> { }
+        match state.bc.types[i] as p {
+            is bc.BcPrimitive -> { if bc.val_type_name(p.val) == tag { return i32(i) } }
+            _                 -> { }
         }
     }
     return -1

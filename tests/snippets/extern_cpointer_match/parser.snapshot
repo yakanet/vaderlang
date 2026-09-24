@@ -340,8 +340,7 @@
                       "kind": "IdentExpr",
                       "name": "CPointer"
                     },
-                    "inner": null,
-                    "bindAs": "p"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -384,7 +383,7 @@
                           "name": null,
                           "value": {
                             "kind": "IdentExpr",
-                            "name": "p"
+                            "name": "r"
                           },
                           "spread": false
                         }
@@ -399,8 +398,7 @@
                       "kind": "IdentExpr",
                       "name": "null"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -525,8 +523,7 @@
                       "kind": "IdentExpr",
                       "name": "CPointer"
                     },
-                    "inner": null,
-                    "bindAs": "p"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -569,7 +566,7 @@
                           "name": null,
                           "value": {
                             "kind": "IdentExpr",
-                            "name": "p"
+                            "name": "missing"
                           },
                           "spread": false
                         }
@@ -584,8 +581,7 @@
                       "kind": "IdentExpr",
                       "name": "null"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {

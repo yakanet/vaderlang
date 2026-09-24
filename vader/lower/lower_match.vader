@@ -2,9 +2,9 @@
 //
 // Flattens `match scrutinee { arm... }`
 // to a let-bind on the scrutinee + a chain of `if (predicate) <arm-body>`
-// blocks. Pattern bindings (`x is T as alias`, `BindingPattern("name")`,
-// struct destructure, tuple destructure) are introduced inside the arm
-// block so they're scoped per-arm.
+// blocks. Pattern bindings (`BindingPattern("name")`, struct destructure,
+// tuple destructure) are introduced inside the arm block so they're scoped
+// per-arm; the header alias (`match e as x`) is bound once, ahead of the arms.
 //
 // Tuple-with-union narrowing (`[a, b] | null` scrutinee) is handled :
 // `tuple_pattern_predicate` seeds an `is [tuple]` check to narrow the
@@ -180,7 +180,7 @@ arm_predicate :: fn(
     scrut_ident :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
     core :: pattern_predicate(ctx, arm.pattern, scrut_ident, scrut_type, span, recurse)
     if arm.guard == null { return core }
-    // The guard may read the pattern's bindings (`is i32 as n if n > 0`),
+    // The guard may read the pattern's bindings (`is P { x } if x > 0`),
     // which `lower_arm` only introduces inside the arm body — evaluated
     // AFTER the predicate. Materialise the bindings in a block wrapping
     // the guard so it reads defined slots. The block sits on the right of
@@ -280,8 +280,8 @@ struct_pattern_predicate :: fn(
 ) -> LoweredExpr {
     accumulator: LoweredExpr = LoweredBoolLit { .span = span, .type = TY_BOOL, .value = true }
     for field in pattern.fields {
-        match field.value {
-            is PatternLiteral as literal -> {
+        match field.value as literal {
+            is PatternLiteral -> {
                 literal_value :: recurse(ctx, literal.value)
                 eq :: LoweredBinary {
                     .span = field.span, .type = TY_BOOL, .op = .Eq,
@@ -296,7 +296,7 @@ struct_pattern_predicate :: fn(
                     .left = accumulator, .right = eq,
                 }
             }
-            _ -> {}
+            _                 -> {}
         }
     }
     return accumulator
@@ -458,25 +458,14 @@ walk_pattern_bindings :: fn(
         is IsPattern -> {
             inner_type :: resolve_pattern_type(ctx, pattern.ty)
             narrowed_target :: narrow_target(target, target_type, inner_type, span)
-            match pattern.bind_as {
-                is null -> {}
-                is string as alias -> {
-                    symbol :: resolve_pattern_symbol(ctx, pattern.span, alias)
-                    init :: lower_cell_init(ctx, symbol, narrowed_target, inner_type, span)
-                    out.push(LoweredLet {
-                        .span = span, .name = alias, .symbol = symbol,
-                        .type = init.slot_type, .value = init.value,
-                    })
-                }
-            }
             if pattern.inner !is null {
                 walk_pattern_bindings(ctx, pattern.inner, narrowed_target, inner_type, out, span)
             }
         }
         is StructPattern -> {
             for field in pattern.fields {
-                match field.value {
-                    is PatternBinding as binding -> {
+                match field.value as binding {
+                    is PatternBinding -> {
                         field_type :: struct_field_type(ctx, target_type, field.name)
                         field_access :: LoweredFieldAccess {
                             .span = field.span, .type = field_type,
@@ -489,7 +478,7 @@ walk_pattern_bindings :: fn(
                             .type = init.slot_type, .value = init.value,
                         })
                     }
-                    _ -> {}
+                    _                 -> {}
                 }
             }
         }
@@ -543,15 +532,10 @@ struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) 
     return TY_UNRESOLVED
 }
 
-// Pattern-introduced bindings : `resolved.idents.values()` exposes
-// every Symbol the resolver minted (use-sites stored against scope-
-// owned symbols). Scan once for one whose `defined_at` matches the
-// pattern's name_span. Synthesise a fresh symbol when the resolver
-// didn't write one — defensive against cascading diagnostics.
 // Resolve a pattern binding's Symbol via the shared per-module
 // `defined_span -> Symbol` index (`lookup_local_symbol`); mint a fresh
-// synthetic only when the binding is genuinely absent. Was a naive
-// O(idents) scan per binding until routed through the constant-time index.
+// synthetic only when the resolver wrote none — defensive against
+// cascading diagnostics.
 resolve_pattern_symbol :: fn(ctx: FnLowerCtx!, name_span: Span, name: string) -> Symbol {
     found :: lookup_local_symbol(ctx.project, ctx.typed.resolved, name_span)
     if found == null { return fresh_synthetic_symbol(ctx, name) }

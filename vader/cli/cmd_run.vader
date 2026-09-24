@@ -77,10 +77,10 @@ run_source :: fn(file: Path, host_argv: string[]) -> i32 {
     // folder can hold several `main` fns and `prepare`'s `main_index` would pick
     // the first-declared one regardless of which file was named on the CLI.
     entry_index :: entry_index_for_file(module, le.lowered, file, state.main_index)
-    return match exec_entry(state, entry_index, host_argv, null, false, null) {
-        is Ok   as o -> o.value
-        is Trap as t -> {
-            eprintln("vader vm: ${t.message}")
+    return match exec_entry(state, entry_index, host_argv, null, false, null) as o {
+        is Ok   -> o.value
+        is Trap -> {
+            eprintln("vader vm: ${o.message}")
             1
         }
     }

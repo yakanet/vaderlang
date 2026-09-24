@@ -213,9 +213,9 @@ bake_one_file_expr :: fn(
     project: EvaluatedProject!, diags: Diagnostic[],
 ) -> void {
     arg_result :: evaluate_expr(ic.args[0], context)
-    match arg_result.value {
-        is null -> {}
-        is StringValue as sv -> {
+    match arg_result.value as sv {
+        is null        -> {}
+        is StringValue -> {
             content_opt :: read_relative_file(sv.value, typed.resolved.path)
             match content_opt {
                 is null -> {}
@@ -224,7 +224,7 @@ bake_one_file_expr :: fn(
                 }
             }
         }
-        _ -> {}
+        _              -> {}
     }
 }
 
@@ -255,16 +255,16 @@ import "std/string"
 collect_file_intrinsics :: fn(decl: AST.Decl, out: AST.IntrinsicCallExpr[]!) -> void {
     match decl {
         is AST.FnDecl -> {
-            match decl.body {
-                is null -> {}
-                is AST.BlockExpr as b -> { collect_in_block(b, out) }
+            match decl.body as b {
+                is null          -> {}
+                is AST.BlockExpr -> { collect_in_block(b, out) }
             }
         }
         is AST.ImplDecl -> {
             for m in decl.members {
-                match m.body {
-                    is null -> {}
-                    is AST.BlockExpr as b -> { collect_in_block(b, out) }
+                match m.body as b {
+                    is null          -> {}
+                    is AST.BlockExpr -> { collect_in_block(b, out) }
                 }
             }
         }
@@ -295,17 +295,17 @@ collect_in_stmt :: fn(s: AST.Stmt, out: AST.IntrinsicCallExpr[]!) -> void {
             }
         }
         is AST.ForStmt -> {
-            match s.form {
-                is AST.WhileFor as wf -> { collect_in_expr(wf.cond, out) }
-                is AST.InFor as inf -> { collect_in_expr(inf.iter, out) }
-                _ -> {}
+            match s.form as wf {
+                is AST.WhileFor -> { collect_in_expr(wf.cond, out) }
+                is AST.InFor    -> { collect_in_expr(wf.iter, out) }
+                _               -> {}
             }
             collect_in_block(s.body, out)
         }
         is AST.DeferStmt -> {
-            match s.body {
-                is AST.DeferStmtBody as dsb -> { collect_in_stmt(dsb.stmt, out) }
-                is AST.DeferBlockBody as dbb -> { collect_in_block(dbb.block, out) }
+            match s.body as dsb {
+                is AST.DeferStmtBody  -> { collect_in_stmt(dsb.stmt, out) }
+                is AST.DeferBlockBody -> { collect_in_block(dsb.block, out) }
             }
         }
         _ -> {}
@@ -335,10 +335,10 @@ collect_in_expr :: fn(e: AST.Expr, out: AST.IntrinsicCallExpr[]!) -> void {
         is AST.IfExpr -> {
             collect_in_expr(e.cond, out)
             collect_in_block(e.then_block, out)
-            match e.else_branch {
-                is null -> {}
-                is AST.IfElseBlock as eb -> { collect_in_block(eb.block, out) }
-                is AST.IfElseIf as ei -> { collect_in_expr(ei.branch, out) }
+            match e.else_branch as eb {
+                is null            -> {}
+                is AST.IfElseBlock -> { collect_in_block(eb.block, out) }
+                is AST.IfElseIf    -> { collect_in_expr(eb.branch, out) }
             }
         }
         is AST.IntrinsicCallExpr -> {

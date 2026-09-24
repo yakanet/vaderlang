@@ -404,8 +404,7 @@
                         "kind": "IdentExpr",
                         "name": "null"
                       },
-                      "inner": null,
-                      "bindAs": null
+                      "inner": null
                     },
                     "guard": null,
                     "body": {
@@ -433,8 +432,7 @@
                         "kind": "IdentExpr",
                         "name": "Node"
                       },
-                      "inner": null,
-                      "bindAs": null
+                      "inner": null
                     },
                     "guard": null,
                     "body": {

@@ -209,7 +209,7 @@ export all :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
 }
 
 /// First element matching `pred`, or `null` if none does. Short-circuits.
-/// Consumers narrow naturally : `match arr.find(p) { is T as hit -> … }`.
+/// Consumers narrow naturally : `match arr.find(p) as hit { is T -> … }`.
 /// @param it    source array or iterator.
 /// @param pred  predicate invoked on each element until one returns `true`.
 export find :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> T | null {
@@ -401,9 +401,9 @@ import "std/testing"
 }
 
 @test test_find :: fn() -> void {
-    match [1, 2, 3, 4].find((x: i32) -> x > 2) {
-        is i32 as hit -> assert_eq(hit, 3)
-        is null       -> fail("expected to find 3")
+    match [1, 2, 3, 4].find((x: i32) -> x > 2) as hit {
+        is i32  -> assert_eq(hit, 3)
+        is null -> fail("expected to find 3")
     }
     match [1, 2, 3].find((x: i32) -> x > 99) {
         is i32 -> fail("should not find anything")
@@ -416,9 +416,9 @@ import "std/testing"
         if x > 0 { return x * 10 }
         return null
     }
-    match [-1, -2, 3, 4].find_map(parse_positive) {
-        is i32 as hit -> assert_eq(hit, 30)
-        is null       -> fail("expected first positive")
+    match [-1, -2, 3, 4].find_map(parse_positive) as hit {
+        is i32  -> assert_eq(hit, 30)
+        is null -> fail("expected first positive")
     }
     match [-1, -2, -3].find_map(parse_positive) {
         is i32 -> fail("should not find anything")

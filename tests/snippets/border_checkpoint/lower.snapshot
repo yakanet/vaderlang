@@ -13,20 +13,13 @@
                   is i32 :bool
                     __scrut_0 :i32 | string
                 r:
-                  block :bool
-                    let kg: i32 =
+                  gt :bool
+                    l:
                       cast → i32
-                        __scrut_0 :i32 | string
-                    ~>
-                      gt :bool
-                        l:
-                          kg :i32
-                        r:
-                          int(100) :i32
+                        load :i32 | string
+                    r:
+                      int(100) :i32
             then:
-              let kg: i32 =
-                cast → i32
-                  __scrut_0 :i32 | string
               ~>
                 "heavy" :string
             else:
@@ -45,11 +38,9 @@
                           is string :bool
                             __scrut_0 :i32 | string
                         then:
-                          let tag: string =
-                            cast → string
-                              __scrut_0 :i32 | string
                           ~>
-                            tag :string
+                            cast → string
+                              load :i32 | string
                         else:
                           ~>
                             unreachable("non-exhaustive match (T3013 should have caught this)") :string

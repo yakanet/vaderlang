@@ -119,9 +119,9 @@ export lower_generator_fn :: fn(
     // so an escaping generator — now typed as the concrete `__genstate_<fn>` — has
     // its `Iterator::next` mangle resolve at the consumer's devirtualized call.
     // Falls back to a fresh lifted symbol when the fn symbol is unavailable.
-    state_sym :: match fn_ctx.entry.symbol {
-        is Symbol as fn_sym -> gen_state_symbol(fn_sym)
-        is null             -> fresh_lifted_symbol_with_prefix(fn_ctx, true, "__gen_", "__gen_state_")
+    state_sym :: match fn_ctx.entry.symbol as fn_sym {
+        is Symbol -> gen_state_symbol(fn_sym)
+        is null   -> fresh_lifted_symbol_with_prefix(fn_ctx, true, "__gen_", "__gen_state_")
     }
     // The lowered state struct stays NO-ARG (`__genstate_<fn>`) — its `next()` body
     // accesses concrete fields (`self.state`, `self.s0`), so a parameterised type

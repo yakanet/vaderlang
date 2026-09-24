@@ -26,77 +26,74 @@ export main 2
 
 fn 0 snippet$describe (any) -> string
   local if_res string
-  local c ref
   local __buf_2 ref
   local __off_3 usize
-  local $cast_13 i64
+  local $cast_12 i64
   local.get 0   ; arg 0
   type_check 2   ; snippet$Circle
   if $L0 void
-    local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$Circle
-    local.set 2   ; c
     i64.const 28
     call 4   ; std_core$new_byte_buffer
-    local.set 3   ; __buf_2
+    local.set 2   ; __buf_2
     i64.const 0
-    local.set 4   ; __off_3
-    local.get 3   ; __buf_2
-    local.get 4   ; __off_3
+    local.set 3   ; __off_3
+    local.get 2   ; __buf_2
+    local.get 3   ; __off_3
     string.const 0   ; "circle("
     call 6   ; std_core$write_string_at
-    local.set 4   ; __off_3
-    local.field 2 2 0   ; c.radius
+    local.set 3   ; __off_3
+    local.get 0   ; arg 0
+    ref.cast 2   ; -> snippet$Circle
+    struct.get 2 0   ; snippet$Circle.radius
     ref.cast 5   ; -> i32
     i32.to_i64
-    local.set 5   ; $cast_13
-    local.get 3   ; __buf_2
-    local.get 4   ; __off_3
-    local.get 5   ; $cast_13
+    local.set 4   ; $cast_12
+    local.get 2   ; __buf_2
+    local.get 3   ; __off_3
+    local.get 4   ; $cast_12
     call 7   ; std_core$write_int
-    local.set 4   ; __off_3
-    local.get 3   ; __buf_2
-    local.get 4   ; __off_3
+    local.set 3   ; __off_3
+    local.get 2   ; __buf_2
+    local.get 3   ; __off_3
     string.const 1   ; ")"
     call 6   ; std_core$write_string_at
-    local.set 4   ; __off_3
-    local.get 3   ; __buf_2
-    local.get 4   ; __off_3
+    local.set 3   ; __off_3
+    local.get 2   ; __buf_2
+    local.get 3   ; __off_3
     call 5   ; std_core$finish_buffer
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
     type_check 3   ; snippet$Square
     if $L1 void
-      local.get 0   ; arg 0
-      ref.cast 3   ; -> snippet$Square
-      local.set 2   ; c
       i64.const 28
       call 4   ; std_core$new_byte_buffer
-      local.set 3   ; __buf_2
+      local.set 2   ; __buf_2
       i64.const 0
-      local.set 4   ; __off_3
-      local.get 3   ; __buf_2
-      local.get 4   ; __off_3
+      local.set 3   ; __off_3
+      local.get 2   ; __buf_2
+      local.get 3   ; __off_3
       string.const 2   ; "square("
       call 6   ; std_core$write_string_at
-      local.set 4   ; __off_3
-      local.field 2 3 0   ; c.side
+      local.set 3   ; __off_3
+      local.get 0   ; arg 0
+      ref.cast 3   ; -> snippet$Square
+      struct.get 3 0   ; snippet$Square.side
       ref.cast 5   ; -> i32
       i32.to_i64
-      local.set 5   ; $cast_13
-      local.get 3   ; __buf_2
-      local.get 4   ; __off_3
-      local.get 5   ; $cast_13
+      local.set 4   ; $cast_12
+      local.get 2   ; __buf_2
+      local.get 3   ; __off_3
+      local.get 4   ; $cast_12
       call 7   ; std_core$write_int
-      local.set 4   ; __off_3
-      local.get 3   ; __buf_2
-      local.get 4   ; __off_3
+      local.set 3   ; __off_3
+      local.get 2   ; __buf_2
+      local.get 3   ; __off_3
       string.const 1   ; ")"
       call 6   ; std_core$write_string_at
-      local.set 4   ; __off_3
-      local.get 3   ; __buf_2
-      local.get 4   ; __off_3
+      local.set 3   ; __off_3
+      local.get 2   ; __buf_2
+      local.get 3   ; __off_3
       call 5   ; std_core$finish_buffer
       local.set 1   ; if_res
     else
@@ -109,7 +106,6 @@ end
 
 fn 1 snippet$area (any) -> i32
   local if_res i32
-  local c ref
   local $field_6 i32
   local $field_14 i32
   local.get 0   ; arg 0
@@ -117,15 +113,16 @@ fn 1 snippet$area (any) -> i32
   if $L0 void
     local.get 0   ; arg 0
     ref.cast 2   ; -> snippet$Circle
-    local.set 2   ; c
-    local.field 2 2 0   ; c.radius
+    struct.get 2 0   ; snippet$Circle.radius
     ref.cast 5   ; -> i32
     local.set 1   ; if_res
-    local.field 2 2 0   ; c.radius
+    local.get 0   ; arg 0
+    ref.cast 2   ; -> snippet$Circle
+    struct.get 2 0   ; snippet$Circle.radius
     ref.cast 5   ; -> i32
-    local.set 3   ; $field_6
+    local.set 2   ; $field_6
     local.get 1   ; if_res
-    local.get 3   ; $field_6
+    local.get 2   ; $field_6
     i32.mul
     i32.const 3
     i32.mul
@@ -136,15 +133,16 @@ fn 1 snippet$area (any) -> i32
     if $L1 void
       local.get 0   ; arg 0
       ref.cast 3   ; -> snippet$Square
-      local.set 2   ; c
-      local.field 2 3 0   ; c.side
+      struct.get 3 0   ; snippet$Square.side
       ref.cast 5   ; -> i32
-      local.set 3   ; $field_6
-      local.field 2 3 0   ; c.side
+      local.set 2   ; $field_6
+      local.get 0   ; arg 0
+      ref.cast 3   ; -> snippet$Square
+      struct.get 3 0   ; snippet$Square.side
       ref.cast 5   ; -> i32
-      local.set 4   ; $field_14
-      local.get 3   ; $field_6
-      local.get 4   ; $field_14
+      local.set 3   ; $field_14
+      local.get 2   ; $field_6
+      local.get 3   ; $field_14
       i32.mul
       local.set 1   ; if_res
     else

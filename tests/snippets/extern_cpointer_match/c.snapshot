@@ -159,12 +159,12 @@ static int32_t snippet_main(void) {
     vader_string_t l3 = 0;
     vader_box_t l1 = vader_box_null();
     void* l2 = NULL;
-    void* l4;
     vader_string_t t0 = 0;
-    vader_string_t t1 = 0;
+    vader_string_t t2 = 0;
+    void* t1;
     vader_box_t* gc_roots[1] = { &l1 };
     void** gc_raw_roots[1] = { &l2 };
-    vader_string_t* gc_atom_roots[4] = { &l0, &l3, &t0, &t1 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l3, &t0, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 34 "tests/snippets/extern_cpointer_match/_main.vader"
@@ -187,11 +187,11 @@ static int32_t snippet_main(void) {
     l1 = vader_host_snippet_c_fopen(l0, 4u);
 #line 42 "tests/snippets/extern_cpointer_match/_main.vader"
     if (l1.tag == 4u) {
-        l4 = ((void*) (intptr_t) l1.payload.i);
 #line 43 "tests/snippets/extern_cpointer_match/_main.vader"
         std_io_println__string(5u);
 #line 44 "tests/snippets/extern_cpointer_match/_main.vader"
-        vader_host_snippet_c_fclose(l4);
+        t1 = ((void*) (intptr_t) l1.payload.i);
+        vader_host_snippet_c_fclose(t1);
 #line 42 "tests/snippets/extern_cpointer_match/_main.vader"
     } else {
 #line 46 "tests/snippets/extern_cpointer_match/_main.vader"
@@ -208,15 +208,15 @@ static int32_t snippet_main(void) {
     std_io_println__string(7u);
 #line 50 "tests/snippets/extern_cpointer_match/_main.vader"
     t0 = std_io_temp_dir();
-    t1 = concat_2(t0, 8u);
-    l1 = vader_host_snippet_c_fopen(t1, 4u);
+    t2 = concat_2(t0, 8u);
+    l1 = vader_host_snippet_c_fopen(t2, 4u);
 #line 52 "tests/snippets/extern_cpointer_match/_main.vader"
     if (l1.tag == 4u) {
-        l4 = ((void*) (intptr_t) l1.payload.i);
 #line 53 "tests/snippets/extern_cpointer_match/_main.vader"
         std_io_println__string(9u);
 #line 54 "tests/snippets/extern_cpointer_match/_main.vader"
-        vader_host_snippet_c_fclose(l4);
+        t1 = ((void*) (intptr_t) l1.payload.i);
+        vader_host_snippet_c_fclose(t1);
 #line 52 "tests/snippets/extern_cpointer_match/_main.vader"
     } else {
 #line 56 "tests/snippets/extern_cpointer_match/_main.vader"

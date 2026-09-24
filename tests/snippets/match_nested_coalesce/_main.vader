@@ -24,9 +24,9 @@ classify :: fn(n: i32) -> i32 = match n {
 // between predicates), so this keeps the `__scrut` spill — but the arm chain
 // still coalesces onto one slot.
 sign :: fn(n: i32) -> i32 = match n {
-    is i32 as v if v > 0 -> 1
-    is i32 as v if v < 0 -> -1
-    _                    -> 0
+    is i32 if n > 0 -> 1
+    is i32 if n < 0 -> -1
+    _               -> 0
 }
 
 export main :: fn() -> i32 {

@@ -26,9 +26,9 @@ tail_string :: fn(x: A | B | string) -> string {
 }
 
 main :: fn() -> i32 {
-    match widen("hello") {
-        is Error  as e -> println("err ${e.message()}")
-        is string as s -> println("str ${s}")
+    match widen("hello") as e {
+        is Error  -> println("err ${e.message()}")
+        is string -> println("str ${e}")
     }
     println(tail_string("plain"))
     return 0

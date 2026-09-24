@@ -43,12 +43,15 @@ end
 
 fn 1 snippet$show (u64) -> i32
   local __scrut_0 any
+  local n any
   local.get 0   ; arg 0
   call 0   ; snippet$scale
   local.tee 1   ; __scrut_0
+  local.set 2   ; n
+  local.get 1   ; __scrut_0
   type_check 1   ; u64
   if $L0 void
-    local.get 1   ; __scrut_0
+    local.get 2   ; n
     ref.cast 1   ; -> u64
     u64.to_i32
     return

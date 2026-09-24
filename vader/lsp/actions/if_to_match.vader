@@ -6,14 +6,16 @@
 // ≤ 2, which keeps the two actions from offering a round-trip on the same node)
 // and a final `else` (the `_` arm) so the match is exhaustive.
 //
-//   if x is A as a {        match x {
-//       …a…                     is A as a -> { …a… }
-//   } else if x == 0 {   →      0         -> { …0… }
-//       …0…                     _         -> { …e… }
+//   if x is A {             match x {
+//       …x…                     is A -> { …x… }
+//   } else if x == 0 {   →      0    -> { …0… }
+//       …0…                     _    -> { …e… }
 //   } else { …e… }          }
 //
 // Lossy = refuse : a non-`is`/`==` condition, a different scrutinee in any
-// branch, or a missing final `else` all decline.
+// branch, an `as` binder, or a missing final `else` all decline. An `as` over a
+// plain name has no place in the match: its arms cannot bind, and the header
+// would re-name a scrutinee that already has a name.
 
 module "vader/lsp/actions"
 
@@ -57,13 +59,15 @@ is_match_convertible :: fn(ifx: AST.IfExpr) -> bool {
     return chain_ok(ch)
 }
 
-// ≥ 2 conditions all discriminating the same identifier scrutinee on the left.
+// ≥ 2 conditions all discriminating the same identifier scrutinee on the left,
+// none of them binding with `as`.
 chain_ok :: fn(ch: IfChain) -> bool {
     if ch.conds.len() < 2 { return false }
     name :: scrutinee_name(ch.conds[0])
     if name == "" { return false }
     for c in ch.conds {
         if scrutinee_name(c) != name { return false }
+        if c.bind_as != "" { return false }
     }
     return true
 }
@@ -129,11 +133,10 @@ build_match :: fn(ifx: AST.IfExpr, ch: IfChain) -> AST.MatchExpr {
     }
 }
 
-// `x is T as y` → `is T as y` ; `x == v` → the literal pattern `v`.
+// `x is T` → `is T` ; `x == v` → the literal pattern `v`.
 cond_to_pattern :: fn(c: AST.BinaryExpr) -> AST.Pattern {
     if c.op == .Is {
-        bound :: if c.bind_as == "" { null } else { c.bind_as }
-        return AST.IsPattern { .span = c.span, .ty = c.right, .inner = null, .bind_as = bound }
+        return AST.IsPattern { .span = c.span, .ty = c.right, .inner = null }
     }
     return AST.LiteralPattern { .span = c.span, .value = c.right }
 }
@@ -155,7 +158,7 @@ tif_find_if :: fn(decls: AST.Decl[]) -> AST.IfExpr | null {
 
 @test
 test_if_to_match_converts :: fn() -> void {
-    src :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 as n {\n        n\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
+    src :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 {\n        v\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
     ifx :: tif_find_if(parsed.program.decls)
     if ifx == null {
@@ -165,11 +168,24 @@ test_if_to_match_converts :: fn() -> void {
     ctx :: ActionCtx { .source = src }
     assert(itm_applicable(ifx, ctx), "2-condition chain with else converts")
     out :: itm_apply(ifx, ctx)
-    assert("match v" in out, "renders a match on the scrutinee")
-    assert("is i32 as n" in out, "renders the is-binding arm")
+    assert("match v {" in out, "renders a match on the scrutinee")
+    assert("is i32" in out, "renders the is arm")
     // `_ ` (wildcard arm head) — the `->` may be padded to align with the
     // longer arms, so match on the head rather than the exact `_ ->`.
     assert("_ " in out, "renders the wildcard arm from the else")
+}
+
+@test
+test_if_to_match_declines_as_binder :: fn() -> void {
+    src :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 as n {\n        n\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
+    parsed :: Parse.parse_source(src, "t.vader")
+    ifx :: tif_find_if(parsed.program.decls)
+    if ifx == null {
+        assert(false, "expected an if")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(!itm_applicable(ifx, ctx), "an `as` binder has no place in the match -> decline")
 }
 
 @test

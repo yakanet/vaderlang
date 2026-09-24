@@ -364,11 +364,11 @@ try_fold_satisfies :: fn(
     trait_or_null  :: resolve_intrinsic_type_arg(ctx, intrinsic.args[1])
     value: bool = false
     if !(target_or_null is null) && !(trait_or_null is null) {
-        match arg_ty_or_unresolved(trait_or_null) {
-            is TraitType as tt -> {
+        match arg_ty_or_unresolved(trait_or_null) as tt {
+            is TraitType -> {
                 value = impl_exists_for(ctx, arg_ty_or_unresolved(target_or_null), tt.symbol)
             }
-            _ -> {}
+            _            -> {}
         }
     }
     return LoweredBoolLit { .span = intrinsic.span, .type = type, .value = value }

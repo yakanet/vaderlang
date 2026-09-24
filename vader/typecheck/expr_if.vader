@@ -103,11 +103,11 @@ export infer_if :: fn(
     pushed :: push_then_narrows(then_narrows, typed)
     then_ty :: check_block(e.then_block, expected, typed, diags, ctx, check_expr_fn)
     pop_narrows(pushed, typed)
-    match e.else_branch {
-        is null -> {
+    match e.else_branch as eb {
+        is null            -> {
             return collapse_if_unresolved(union_of([then_ty, TY_VOID]), then_ty, TY_VOID)
         }
-        is AST.IfElseBlock as eb -> {
+        is AST.IfElseBlock -> {
             else_ty :: check_else_with_narrow(
                 eb.block, else_narrows, expected, typed, diags, ctx, check_expr_fn)
             joined :: join_if_branches(then_ty, else_ty)
@@ -120,8 +120,8 @@ export infer_if :: fn(
             }
             return collapse_if_unresolved(joined, then_ty, else_ty)
         }
-        is AST.IfElseIf as ei -> {
-            inner: AST.Expr: ei.branch
+        is AST.IfElseIf    -> {
+            inner: AST.Expr: eb.branch
             else_ty :: check_else_branch_expr(
                 inner, else_narrows, expected, typed, diags, check_expr_fn)
             return collapse_if_unresolved(join_if_branches(then_ty, else_ty), then_ty, else_ty)
@@ -517,11 +517,11 @@ expr_if_check_stub :: fn(
     // @partial: test stub — only the literal / ident / if expr kinds the if
     // tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr  as x -> { return narrow_for_expected(TY_FREE_INT, expected) }
-        is AST.BoolLitExpr as x -> { return TY_BOOL }
-        is AST.IdentExpr -> { return infer_ident(e, typed) }
+        is AST.IntLitExpr  -> { return narrow_for_expected(TY_FREE_INT, expected) }
+        is AST.BoolLitExpr -> { return TY_BOOL }
+        is AST.IdentExpr   -> { return infer_ident(e, typed) }
         is AST.IfExpr -> { return infer_if(e, expected, typed, diags, null, expr_if_check_stub) }
-        _ -> { return TY_UNRESOLVED }
+        _                  -> { return TY_UNRESOLVED }
     }
 }
 
@@ -535,9 +535,9 @@ first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {
-            match last.body {
-                is null -> {}
-                is AST.BlockExpr as b -> {
+            match last.body as b {
+                is null          -> {}
+                is AST.BlockExpr -> {
                     hit :: find_first_in_block(b, accept_if)
                     if hit is AST.IfExpr { return hit }
                 }

@@ -69,8 +69,7 @@
                       "kind": "IdentExpr",
                       "name": "i32"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -103,8 +102,7 @@
                       "kind": "IdentExpr",
                       "name": "ParseError"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -167,8 +165,7 @@
                       "kind": "IdentExpr",
                       "name": "i32"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -201,8 +198,7 @@
                       "kind": "IdentExpr",
                       "name": "ParseError"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -265,8 +261,7 @@
                       "kind": "IdentExpr",
                       "name": "f64"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -299,8 +294,7 @@
                       "kind": "IdentExpr",
                       "name": "ParseError"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -363,8 +357,7 @@
                       "kind": "IdentExpr",
                       "name": "f64"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -397,8 +390,7 @@
                       "kind": "IdentExpr",
                       "name": "ParseError"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {

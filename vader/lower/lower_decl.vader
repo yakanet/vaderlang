@@ -525,9 +525,9 @@ overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
         if bucket is Symbol[] as symbols {
             if symbols.len() < 2 { return "" }
             for i in 0..<symbols.len() {
-                match symbols[i].defined_at {
+                match symbols[i].defined_at as defined {
                     is null -> {}
-                    is Span as defined -> {
+                    is Span -> {
                         if defined.hash() == name_span_or_null.hash() {
                             if i == 0 { return "" }
                             return "_${i}"

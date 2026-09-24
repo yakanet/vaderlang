@@ -9,24 +9,24 @@ import "std/string"
 import "std/io"
 
 main :: fn() -> i32 {
-    match parse("1.2.3-rc.1") {
-        is Version as ver -> {
+    match parse("1.2.3-rc.1") as ver {
+        is Version    -> {
             println("${ver}")
             base :: parse_one("1.0.0")
             if ver > base { println("after 1.0.0") }
-            match parse_range("^1.0.0") {
-                is VersionRange as rg -> {
+            match parse_range("^1.0.0") as rg {
+                is VersionRange -> {
                     target :: parse_one("1.5.0")
                     if target in rg { println("1.5.0 in ^1.0.0") }
                 }
-                is ParseError as e -> {
-                    eprintln("range err: ${e.message()}")
+                is ParseError   -> {
+                    eprintln("range err: ${rg.message()}")
                     return 1
                 }
             }
         }
-        is ParseError as e -> {
-            eprintln("err: ${e.message()}")
+        is ParseError -> {
+            eprintln("err: ${ver.message()}")
             return 1
         }
     }
@@ -34,8 +34,8 @@ main :: fn() -> i32 {
 }
 
 parse_one :: fn(s: string) -> Version {
-    match parse(s) {
-        is Version as v -> { return v }
+    match parse(s) as v {
+        is Version    -> { return v }
         is ParseError -> {
             return Version { .major = 0, .minor = 0, .patch = 0 }
         }

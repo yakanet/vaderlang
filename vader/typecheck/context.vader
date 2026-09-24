@@ -67,9 +67,9 @@ import "std/testing"
 @test
 test_new_fn_context_holds_return_type :: fn() -> void {
     ctx :: new_fn_context(mk_primitive("i32"), null)
-    match ctx.return_type {
-        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
-        _                     -> { assert(false, "expected i32 return type") }
+    match ctx.return_type as p {
+        is PrimitiveType -> { assert_eq(p.name, "i32") }
+        _                -> { assert(false, "expected i32 return type") }
     }
     assert_eq(ctx.loop_depth, 0)
     if ctx.self_type !is null {
@@ -81,9 +81,9 @@ test_new_fn_context_holds_return_type :: fn() -> void {
 test_new_fn_context_records_self :: fn() -> void {
     self_t: Type: mk_primitive("string")
     ctx :: new_fn_context(TY_NEVER, self_t)
-    match ctx.self_type {
-        is null                -> { assert(false, "self_type should be set") }
-        is .PrimitiveType as p -> { assert_eq(p.name, "string") }
-        _                      -> { assert(false, "expected string self_type") }
+    match ctx.self_type as self_type {
+        is null           -> { assert(false, "self_type should be set") }
+        is .PrimitiveType -> { assert_eq(self_type.name, "string") }
+        _                 -> { assert(false, "expected string self_type") }
     }
 }

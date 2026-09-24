@@ -159,7 +159,7 @@ fn 1 snippet$sign (i32) -> i32
   local.tee 1   ; __scrut_0
   type_check 1   ; i32
   if $L0 void
-    local.get 1   ; __scrut_0
+    local.get 0   ; arg 0
     i32.const 0
     i32.gt
     local.set 2   ; and_res
@@ -175,7 +175,7 @@ fn 1 snippet$sign (i32) -> i32
     local.get 1   ; __scrut_0
     type_check 1   ; i32
     if $L2 void
-      local.get 1   ; __scrut_0
+      local.get 0   ; arg 0
       i32.const 0
       i32.lt
       local.set 2   ; and_res

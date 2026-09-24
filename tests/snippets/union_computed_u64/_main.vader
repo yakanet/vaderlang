@@ -24,9 +24,9 @@ scale :: fn(factor: u64) -> u64 | Err {
 }
 
 show :: fn(factor: u64) -> i32 {
-    match scale(factor) {
-        is u64 as n -> { return i32(n) }
-        is Err      -> { return -1 }
+    match scale(factor) as n {
+        is u64 -> { return i32(n) }
+        is Err -> { return -1 }
     }
 }
 

@@ -312,11 +312,11 @@ collect_import :: fn(
             }
             excluded: string[]!: []
             for n in b.names {
-                match n.alias {
-                    is null -> {
+                match n.alias as alias {
+                    is null   -> {
                         diags.push(resolver_error(.PlainNameInImportModifiers, n.span, "`${n.name}`"))
                     }
-                    is string as alias -> {
+                    is string -> {
                         // Every modifier drops its source name from the wildcard.
                         excluded.push(n.name)
                         // `as _` is a pure exclusion ; any other alias renames —
@@ -518,8 +518,8 @@ import "x" { keep as kept, drop as _ }
     assert(collected.wildcards[0].paths.len() == 1, "the path is a wildcard")
     ex :: collected.wildcards[0].excludes["x"]
     match ex {
-        is string[] as names -> { assert(names.len() == 2, "both `keep` and `drop` excluded") }
-        is null              -> { assert(false, "excludes recorded for x") }
+        is string[] -> { assert(ex.len() == 2, "both `keep` and `drop` excluded") }
+        is null     -> { assert(false, "excludes recorded for x") }
     }
     // The rename `keep as kept` binds `kept` as an import-binding.
     kept :: collected.symbols["kept"]

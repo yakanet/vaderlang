@@ -61,8 +61,7 @@
                       "kind": "IdentExpr",
                       "name": "i32"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": {
                     "kind": "BinaryExpr",
@@ -93,8 +92,7 @@
                       "kind": "IdentExpr",
                       "name": "i32"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -114,8 +112,7 @@
                       "kind": "IdentExpr",
                       "name": "string"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -130,8 +127,7 @@
                       "kind": "IdentExpr",
                       "name": "null"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {

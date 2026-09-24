@@ -252,8 +252,8 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
 }
 
 lower_let_into :: fn(ctx: FnLowerCtx!, let_stmt: LetStmt, out: LoweredStmt[]!) -> void {
-    match let_stmt.binding {
-        is SimpleBinding as simple -> {
+    match let_stmt.binding as simple {
+        is SimpleBinding   -> {
             symbol_or_null :: lookup_local_symbol(ctx.project, ctx.typed.resolved, simple.name_span)
             // Synthesise a Local symbol when the resolver dropped this
             // binding (cascading-error case, e.g. T3001 on an invalid
@@ -284,7 +284,7 @@ lower_let_into :: fn(ctx: FnLowerCtx!, let_stmt: LetStmt, out: LoweredStmt[]!) -
                 .value = init.value,
             })
         }
-        is TupleBinding as tup -> {
+        is TupleBinding    -> {
             // Desugar `let [a, b] := value` into :
             //   let __tup_n = value
             //   let a = __tup_n._0   (or __tup_n[0] for arrays)
@@ -297,14 +297,14 @@ lower_let_into :: fn(ctx: FnLowerCtx!, let_stmt: LetStmt, out: LoweredStmt[]!) -
                 .symbol = tup_symbol, .type = value_type, .value = value,
             })
             tup_ref :: LoweredIdent { .span = let_stmt.span, .type = value_type, .symbol = tup_symbol }
-            emit_let_binding_leaves(ctx, tup, tup_ref, value_type, let_stmt.span, out)
+            emit_let_binding_leaves(ctx, simple, tup_ref, value_type, let_stmt.span, out)
         }
         is WildcardBinding -> {
             out.push(LoweredExprStmt {
                 .span = let_stmt.span, .expr = lower_expr(ctx, let_stmt.value),
             })
         }
-        is RestBinding -> {
+        is RestBinding     -> {
             out.push(LoweredExprStmt {
                 .span = let_stmt.span,
                 .expr = LoweredUnreachable {
@@ -368,18 +368,18 @@ ensure_local_symbol_index :: fn(
     index :: MutableMap<u64, Symbol> {}
     // `idents` first — every referenced binding's defined_at lands here.
     for [_, symbol] in resolved.idents {
-        match symbol.defined_at {
+        match symbol.defined_at as defined {
             is null -> {}
-            is Span as defined -> { index[defined.hash()] = symbol }
+            is Span -> { index[defined.hash()] = symbol }
         }
     }
     // Flat symbol list catches definitions with zero use-sites (shadowed
     // bindings, unused params). Resolver writes `defined_at` for every
     // minted Symbol.
     for symbol in resolved.symbols {
-        match symbol.defined_at {
+        match symbol.defined_at as defined {
             is null -> {}
-            is Span as defined -> {
+            is Span -> {
                 key :: defined.hash()
                 existing :: index[key]
                 if existing is null { index[key] = symbol }
@@ -500,7 +500,7 @@ lower_for :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt) -> LoweredStmt {
             return lower_comptime_for_in(ctx, for_stmt, in_form)
         }
     }
-    match for_stmt.form {
+    match for_stmt.form as while_for {
         is InfiniteFor -> {
             body :: lower_block(ctx, for_stmt.body, false, true)
             return LoweredLoop {
@@ -508,7 +508,7 @@ lower_for :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt) -> LoweredStmt {
                 .cond = null, .body = body,
             }
         }
-        is WhileFor as while_for -> {
+        is WhileFor    -> {
             // `for <iter> { body }` sugar : when the cond evaluates to an
             // iterable shape (array, range, struct with `Iterator` impl),
             // route through the for-in lowerer with a synthetic discard
@@ -532,8 +532,8 @@ lower_for :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt) -> LoweredStmt {
                 .cond = cond, .body = body,
             }
         }
-        is InFor as in_form -> {
-            return lower_for_in(ctx, for_stmt, in_form, lower_expr, lower_block)
+        is InFor       -> {
+            return lower_for_in(ctx, for_stmt, while_for, lower_expr, lower_block)
         }
     }
 }

@@ -946,8 +946,8 @@ test("lsp: code action converts a two-is-arm match (no wildcard) to if", async (
 const IF_TO_MATCH_SOURCE = `module "lsp_test"
 
 pick :: fn(v: i32 | string) -> i32 {
-    if v is i32 as n {
-        return n
+    if v is i32 {
+        return v
     } else if v == "x" {
         return 1
     } else {
@@ -958,7 +958,7 @@ pick :: fn(v: i32 | string) -> i32 {
 
 test("lsp: code action converts an if/else-if chain to match", async () => {
 
-  // Cursor on the leading `if` (line 3 = `    if v is i32 as n {`, char 4).
+  // Cursor on the leading `if` (line 3 = `    if v is i32 {`, char 4).
   const results = await driveLsp(IF_TO_MATCH_SOURCE, [
     { method: "textDocument/codeAction", position: { line: 3, character: 4 } },
   ]);
@@ -967,8 +967,8 @@ test("lsp: code action converts an if/else-if chain to match", async () => {
   expect(conv).toBeDefined();
   expect(conv!.kind).toBe("refactor.rewrite");
   const edit = soleFileEdits(conv!.edit)[0]!;
-  expect(edit.newText).toContain("match v");
-  expect(edit.newText).toContain("is i32 as n");
+  expect(edit.newText).toContain("match v {");
+  expect(edit.newText).toMatch(/is i32\s+->/);
   // The `_` arm — `->` may be padded to align with the longer arm's arrow.
   expect(edit.newText).toMatch(/_\s+->/);
 }, { timeout: MEDIUM_BUILD });

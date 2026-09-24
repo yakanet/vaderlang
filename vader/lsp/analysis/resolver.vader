@@ -107,10 +107,10 @@ member_in_module :: fn(
         return null
     }
     if is_dir(abs) {
-        files_or :: read_dir(abs)
-        match files_or {
+        files :: read_dir(abs)
+        match files {
             is IOError -> { return null }
-            is string[] as files -> {
+            is string[] -> {
                 for fname in files {
                     if !fname.ends_with_vader() {
                         continue
@@ -160,10 +160,10 @@ resolve_sibling :: fn(from_uri: string, name: string, encoding: PositionEncoding
     from_path :: uri_to_path(from_uri)
     if from_path.bytes().len() == 0 { return null }
     dir :: dirname_path(from_path)
-    files_or :: read_dir(dir)
-    match files_or {
-        is IOError -> { return null }
-        is string[] as files -> {
+    files :: read_dir(dir)
+    match files {
+        is IOError  -> { return null }
+        is string[] -> {
             for fname in files {
                 if !fname.ends_with_vader() { continue }
                 full :: path_join(dir, fname)
@@ -201,10 +201,10 @@ export resolve_in_module :: fn(state: ServerState, from_uri: string, module_path
     // Folder-form module : every `*.vader` file under the dir is
     // merged into one logical module. Walk them, return on first hit.
     if is_dir(abs) {
-        files_or :: read_dir(abs)
-        match files_or {
+        files :: read_dir(abs)
+        match files {
             is IOError -> { return null }
-            is string[] as files -> {
+            is string[] -> {
                 for fname in files {
                     if !fname.ends_with_vader() { continue }
                     full :: path_join(abs, fname)

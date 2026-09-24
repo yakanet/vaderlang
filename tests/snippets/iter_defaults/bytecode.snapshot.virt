@@ -87,6 +87,7 @@ fn 2 snippet$main () -> i32
   local __count_0 usize
   local __elem_1 i32
   local __scrut_2 any
+  local v any
   i64.const 0
   local.set 0   ; __count_0
   i32.const 0
@@ -118,9 +119,11 @@ fn 2 snippet$main () -> i32
   struct.new 8   ; std_core$Range__i32
   call 6   ; std_core$Range$Iterator$last__i32
   local.tee 2   ; __scrut_2
+  local.set 3   ; v
+  local.get 2   ; __scrut_2
   type_check 2   ; i32
   if $L3 void
-    local.get 2   ; __scrut_2
+    local.get 3   ; v
     ref.cast 2   ; -> i32
     call 21   ; std_io$println__i32
   else

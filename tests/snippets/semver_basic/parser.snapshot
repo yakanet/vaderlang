@@ -77,8 +77,7 @@
                       "kind": "IdentExpr",
                       "name": "Version"
                     },
-                    "inner": null,
-                    "bindAs": "ver"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -221,8 +220,7 @@
                               "kind": "IdentExpr",
                               "name": "VersionRange"
                             },
-                            "inner": null,
-                            "bindAs": "rg"
+                            "inner": null
                           },
                           "guard": null,
                           "body": {
@@ -311,8 +309,7 @@
                               "kind": "IdentExpr",
                               "name": "ParseError"
                             },
-                            "inner": null,
-                            "bindAs": "e"
+                            "inner": null
                           },
                           "guard": null,
                           "body": {
@@ -344,7 +341,7 @@
                                                 "kind": "FieldExpr",
                                                 "target": {
                                                   "kind": "IdentExpr",
-                                                  "name": "e"
+                                                  "name": "rg"
                                                 },
                                                 "field": "message"
                                               },
@@ -369,7 +366,8 @@
                             "trailing": null
                           }
                         }
-                      ]
+                      ],
+                      "bindAs": "rg"
                     }
                   }
                 },
@@ -380,8 +378,7 @@
                       "kind": "IdentExpr",
                       "name": "ParseError"
                     },
-                    "inner": null,
-                    "bindAs": "e"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -413,7 +410,7 @@
                                         "kind": "FieldExpr",
                                         "target": {
                                           "kind": "IdentExpr",
-                                          "name": "e"
+                                          "name": "ver"
                                         },
                                         "field": "message"
                                       },
@@ -438,7 +435,8 @@
                     "trailing": null
                   }
                 }
-              ]
+              ],
+              "bindAs": "ver"
             }
           },
           {
@@ -503,8 +501,7 @@
                   "kind": "IdentExpr",
                   "name": "Version"
                 },
-                "inner": null,
-                "bindAs": "v"
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -528,8 +525,7 @@
                   "kind": "IdentExpr",
                   "name": "ParseError"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -575,7 +571,8 @@
                 "trailing": null
               }
             }
-          ]
+          ],
+          "bindAs": "v"
         }
       },
       "decorators": []

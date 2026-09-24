@@ -72,16 +72,16 @@ HintCtx :: struct {
 collect_from_decl :: fn(d: AST.Decl, ctx: HintCtx, out: JsonValue[]!) -> void {
     match d {
         is AST.FnDecl -> {
-            match d.body {
-                is null -> {}
-                is AST.BlockExpr as b -> { collect_from_block(b, ctx, out) }
+            match d.body as b {
+                is null          -> {}
+                is AST.BlockExpr -> { collect_from_block(b, ctx, out) }
             }
         }
         is AST.ImplDecl -> {
             for m in d.members {
-                match m.body {
-                    is null -> {}
-                    is AST.BlockExpr as b -> { collect_from_block(b, ctx, out) }
+                match m.body as b {
+                    is null          -> {}
+                    is AST.BlockExpr -> { collect_from_block(b, ctx, out) }
                 }
             }
         }
@@ -125,9 +125,9 @@ collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]!) -> void {
             collect_from_expr(s.value, ctx, out)
         }
         is AST.ForStmt -> {
-            match s.form {
-                is AST.WhileFor as w -> { collect_from_expr(w.cond, ctx, out) }
-                is AST.InFor    as i -> { collect_from_expr(i.iter, ctx, out) }
+            match s.form as w {
+                is AST.WhileFor    -> { collect_from_expr(w.cond, ctx, out) }
+                is AST.InFor       -> { collect_from_expr(w.iter, ctx, out) }
                 is AST.InfiniteFor -> {}
             }
             collect_from_block(s.body, ctx, out)
@@ -135,9 +135,9 @@ collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]!) -> void {
         is AST.BreakStmt -> {}
         is AST.ContinueStmt -> {}
         is AST.DeferStmt -> {
-            match s.body {
-                is AST.DeferStmtBody  as dsb -> { collect_from_stmt(dsb.stmt, ctx, out) }
-                is AST.DeferBlockBody as dbb -> { collect_from_block(dbb.block, ctx, out) }
+            match s.body as dsb {
+                is AST.DeferStmtBody  -> { collect_from_stmt(dsb.stmt, ctx, out) }
+                is AST.DeferBlockBody -> { collect_from_block(dsb.block, ctx, out) }
             }
         }
     }
@@ -168,10 +168,10 @@ collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]!) -> void {
         is AST.IfExpr -> {
             collect_from_expr(e.cond, ctx, out)
             collect_from_block(e.then_block, ctx, out)
-            match e.else_branch {
-                is null -> {}
-                is AST.IfElseIf    as ei -> { collect_from_expr(ei.branch, ctx, out) }
-                is AST.IfElseBlock as eb -> { collect_from_block(eb.block, ctx, out) }
+            match e.else_branch as ei {
+                is null            -> {}
+                is AST.IfElseIf    -> { collect_from_expr(ei.branch, ctx, out) }
+                is AST.IfElseBlock -> { collect_from_block(ei.block, ctx, out) }
             }
         }
         is AST.MatchExpr -> {
@@ -314,15 +314,15 @@ emit_operator_hint :: fn(
 /// bindings are skipped (each leaf would need its own hint, and the
 /// static type isn't always useful on the destructure itself).
 emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]!) -> void {
-    match ls.binding {
-        is AST.SimpleBinding as sb -> {
+    match ls.binding as sb {
+        is AST.SimpleBinding -> {
             ty :: ctx.typed.local_types[sb.name_span.hash()] ?? return
             if ty is UnresolvedType { return }
             if ty is FreeIntType { return }
             if ty is FreeFloatType { return }
             emit_operator_hint(ctx, sb.name_span, ls.value.span, display_type(ty), out)
         }
-        _ -> {}
+        _                    -> {}
     }
 }
 

@@ -317,15 +317,14 @@
                   "kind": "IdentExpr",
                   "name": "i32"
                 },
-                "inner": null,
-                "bindAs": "v"
+                "inner": null
               },
               "guard": {
                 "kind": "BinaryExpr",
                 "op": "gt",
                 "left": {
                   "kind": "IdentExpr",
-                  "name": "v"
+                  "name": "n"
                 },
                 "right": {
                   "kind": "IntLitExpr",
@@ -344,15 +343,14 @@
                   "kind": "IdentExpr",
                   "name": "i32"
                 },
-                "inner": null,
-                "bindAs": "v"
+                "inner": null
               },
               "guard": {
                 "kind": "BinaryExpr",
                 "op": "lt",
                 "left": {
                   "kind": "IdentExpr",
-                  "name": "v"
+                  "name": "n"
                 },
                 "right": {
                   "kind": "IntLitExpr",

@@ -55,12 +55,12 @@
   expr 28:12    FieldExpr      :: fn() -> i32 | null
   expr 28:12    RangeExpr      :: Range<i32>!
   expr 28:5     MatchExpr      :: void
-  expr 29:24    CallExpr       :: void
-  expr 29:24    IdentExpr      :: fn(T) -> void
-  expr 29:32    IdentExpr      :: i32
-  expr 30:24    CallExpr       :: void
-  expr 30:24    IdentExpr      :: fn(T) -> void
-  expr 30:32    StringLitExpr  :: string
+  expr 29:20    CallExpr       :: void
+  expr 29:20    IdentExpr      :: fn(T) -> void
+  expr 29:28    IdentExpr      :: i32
+  expr 30:20    CallExpr       :: void
+  expr 30:20    IdentExpr      :: fn(T) -> void
+  expr 30:28    StringLitExpr  :: string
   expr 34:14    CallExpr       :: bool
   expr 34:14    FieldExpr      :: fn() -> bool
   expr 34:14    RangeExpr      :: Range<i32>!

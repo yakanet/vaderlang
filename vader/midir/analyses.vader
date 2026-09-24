@@ -20,11 +20,11 @@ import "std/iter"
 
 /// Successors of a block, derived from its terminator.
 export successors_of :: fn(b: BasicBlock) -> BlockId[]! {
-    match b.terminator {
-        is TermBranch     as t -> { return [t.target] }
-        is TermCondBranch as t -> { return [t.then_block, t.else_block] }
-        is TermReturn          -> { return [] }
-        is TermUnreachable     -> { return [] }
+    match b.terminator as t {
+        is TermBranch      -> { return [t.target] }
+        is TermCondBranch  -> { return [t.then_block, t.else_block] }
+        is TermReturn      -> { return [] }
+        is TermUnreachable -> { return [] }
     }
 }
 

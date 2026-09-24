@@ -3,8 +3,8 @@
 // the typecheck recorded the narrowed type but the lower/c-emit
 // pipeline kept reading `v` through the union box, producing C that
 // trapped on `vader_unreachable` or compared `vader_box_eq(0, n)`
-// instead of doing a typed field load. The workaround was to use
-// `match v { is HeapStruct as s -> s.field == n }` with a fresh binding.
+// instead of doing a typed field load. The workaround was a `match` with a
+// fresh binding for the narrowed value.
 //
 // Regression : exercise the natural `if`-chain form on a multi-field
 // heap struct (avoids the inline-variant escape hatch where the value

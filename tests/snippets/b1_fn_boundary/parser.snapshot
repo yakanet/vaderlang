@@ -192,8 +192,7 @@
                   "kind": "IdentExpr",
                   "name": "null"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -207,8 +206,7 @@
                   "kind": "IdentExpr",
                   "name": "Node"
                 },
-                "inner": null,
-                "bindAs": "h"
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -220,7 +218,7 @@
                     "kind": "FieldExpr",
                     "target": {
                       "kind": "IdentExpr",
-                      "name": "h"
+                      "name": "n"
                     },
                     "field": "value"
                   },
@@ -234,7 +232,7 @@
                   "stmts": [],
                   "trailing": {
                     "kind": "IdentExpr",
-                    "name": "h"
+                    "name": "n"
                   }
                 },
                 "else": {
@@ -253,7 +251,7 @@
                           "kind": "FieldExpr",
                           "target": {
                             "kind": "IdentExpr",
-                            "name": "h"
+                            "name": "n"
                           },
                           "field": "next"
                         },
@@ -322,8 +320,7 @@
                   "kind": "IdentExpr",
                   "name": "null"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -338,8 +335,7 @@
                   "kind": "IdentExpr",
                   "name": "Node"
                 },
-                "inner": null,
-                "bindAs": "h"
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -362,7 +358,7 @@
                         "kind": "FieldExpr",
                         "target": {
                           "kind": "IdentExpr",
-                          "name": "h"
+                          "name": "n"
                         },
                         "field": "next"
                       },
@@ -547,8 +543,7 @@
                       "kind": "IdentExpr",
                       "name": "null"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -585,8 +580,7 @@
                       "kind": "IdentExpr",
                       "name": "Node"
                     },
-                    "inner": null,
-                    "bindAs": "h"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -627,7 +621,8 @@
                     }
                   }
                 }
-              ]
+              ],
+              "bindAs": "h"
             }
           },
           {
@@ -667,8 +662,7 @@
                       "kind": "IdentExpr",
                       "name": "null"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -705,8 +699,7 @@
                       "kind": "IdentExpr",
                       "name": "Node"
                     },
-                    "inner": null,
-                    "bindAs": "h"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -747,7 +740,8 @@
                     }
                   }
                 }
-              ]
+              ],
+              "bindAs": "h"
             }
           },
           {

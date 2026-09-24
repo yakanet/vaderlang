@@ -32,15 +32,13 @@ end
 
 fn 1 snippet$describe (any) -> string
   local if_res string
-  local c ref
-  local $field_12 string
+  local $field_10 string
   local.get 0   ; arg 0
   type_check 3   ; snippet_types$Cat
   if $L0 void
     local.get 0   ; arg 0
     ref.cast 3   ; -> snippet_types$Cat
-    local.set 2   ; c
-    local.field 2 3 0   ; c.name
+    struct.get 3 0   ; snippet_types$Cat.name
     ref.cast 6   ; -> string
     local.set 1   ; if_res
     string.const 0   ; "cat "
@@ -53,12 +51,11 @@ fn 1 snippet$describe (any) -> string
     if $L1 void
       local.get 0   ; arg 0
       ref.cast 4   ; -> snippet_types$Dog
-      local.set 2   ; c
-      local.field 2 4 0   ; c.name
+      struct.get 4 0   ; snippet_types$Dog.name
       ref.cast 6   ; -> string
-      local.set 3   ; $field_12
+      local.set 2   ; $field_10
       string.const 1   ; "dog "
-      local.get 3   ; $field_12
+      local.get 2   ; $field_10
       call 3   ; concat_2
       local.set 1   ; if_res
     else

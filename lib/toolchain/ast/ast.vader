@@ -784,8 +784,7 @@ export BinaryExpr :: struct {
     right: Expr
     /// When `op == BinaryOp.Is`, an optional binding name parsed from
     /// `… is T as <ident>`. The binding lives in the enclosing `if`'s
-    /// then-branch (mirrors match-arm semantics). Empty string when
-    /// absent — `op != Is` always carries `""`.
+    /// then-branch. Empty string when absent — `op != Is` always carries `""`.
     bind_as: string = ""
 }
 
@@ -844,7 +843,7 @@ export MatchExpr :: struct {
     unreachable: bool = false
     /// `match e as x { … }` — the name the scrutinee is aliased under, visible in
     /// every arm and narrowed by each one. `""` when absent. The binding is minted
-    /// at the MatchExpr's own span (same convention as `IsPattern`).
+    /// at the MatchExpr's own span.
     bind_as: string = ""
 }
 
@@ -993,15 +992,15 @@ export DotVariantExpr :: struct {
 // Patterns (for `match`)
 // ============================================================================
 
-/// A type test in a pattern, `is T` — optionally binding via `as`.
+/// A type test in a pattern, `is T`. `inner` nests a further pattern.
 ///
-/// `inner` nests a further pattern; `bind_as` names the narrowed value.
+/// Binds nothing: the arm reads the scrutinee, narrowed in place, or the name
+/// the `match` header gives it (`MatchExpr.bind_as`).
 export IsPattern :: struct {
-    span:    Span
-    id:      usize = UNASSIGNED_NODE_ID
-    ty:      TypeExpr
-    inner:   Pattern | null
-    bind_as: string | null
+    span:  Span
+    id:    usize = UNASSIGNED_NODE_ID
+    ty:    TypeExpr
+    inner: Pattern | null
 }
 
 /// A struct destructuring pattern.

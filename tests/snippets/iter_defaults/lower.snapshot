@@ -154,21 +154,20 @@
               inclusive: true
               cursor: int(10) :i32
             }
+      let v: i32 | null = __scrut_2 :i32 | null
       ~>
         if :void
           cond:
             is i32 :bool
               __scrut_2 :i32 | null
           then:
-            let v: i32 =
-              cast → i32
-                __scrut_2 :i32 | null
             ~>
               call :void
                 callee:
                   std_io$println__i32 :void
                 arg0:
-                  v :i32
+                  cast → i32
+                    v :i32 | null
           else:
             ~>
               if :void

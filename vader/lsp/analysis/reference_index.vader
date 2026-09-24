@@ -234,16 +234,16 @@ collect_stmt :: fn(s: AST.Stmt, out: Span[]!) -> void {
         is AST.ReturnStmt -> { collect_opt_expr(s.value, out) }
         is AST.YieldStmt  -> { collect_expr(s.value, out) }
         is AST.ForStmt    -> {
-            match s.form {
+            match s.form as w {
                 is AST.InfiniteFor -> {}
-                is AST.WhileFor as w -> { collect_expr(w.cond, out) }
-                is AST.InFor    as f -> {
-                    match f.loop_var {
-                        is AST.NamedVar as nv -> { out.push(nv.span) }
-                        is AST.DestructureVar as dv -> { collect_binding(dv.pattern, out) }
-                        is AST.DiscardVar -> {}
+                is AST.WhileFor    -> { collect_expr(w.cond, out) }
+                is AST.InFor       -> {
+                    match w.loop_var as nv {
+                        is AST.NamedVar       -> { out.push(nv.span) }
+                        is AST.DestructureVar -> { collect_binding(nv.pattern, out) }
+                        is AST.DiscardVar     -> {}
                     }
-                    collect_expr(f.iter, out)
+                    collect_expr(w.iter, out)
                 }
             }
             collect_block(s.body, out)
@@ -251,9 +251,9 @@ collect_stmt :: fn(s: AST.Stmt, out: Span[]!) -> void {
         is AST.BreakStmt    -> {}
         is AST.ContinueStmt -> {}
         is AST.DeferStmt    -> {
-            match s.body {
-                is AST.DeferStmtBody  as b -> { collect_stmt(b.stmt, out) }
-                is AST.DeferBlockBody as b -> { collect_block(b.block, out) }
+            match s.body as b {
+                is AST.DeferStmtBody  -> { collect_stmt(b.stmt, out) }
+                is AST.DeferBlockBody -> { collect_block(b.block, out) }
             }
         }
     }
@@ -289,10 +289,10 @@ collect_expr :: fn(e: AST.Expr, out: Span[]!) -> void {
         is AST.IfExpr -> {
             collect_expr(e.cond, out)
             collect_block(e.then_block, out)
-            match e.else_branch {
-                is null                 -> {}
-                is AST.IfElseIf    as b -> { collect_expr(b.branch, out) }
-                is AST.IfElseBlock as b -> { collect_block(b.block, out) }
+            match e.else_branch as b {
+                is null            -> {}
+                is AST.IfElseIf    -> { collect_expr(b.branch, out) }
+                is AST.IfElseBlock -> { collect_block(b.block, out) }
             }
         }
         is AST.MatchExpr -> {
@@ -368,9 +368,9 @@ collect_pattern :: fn(p: AST.Pattern, out: Span[]!) -> void {
         }
         is AST.StructPattern -> {
             for f in p.fields {
-                match f.value {
-                    is AST.PatternBinding        -> {}
-                    is AST.PatternLiteral as lit -> { collect_expr(lit.value, out) }
+                match f.value as lit {
+                    is AST.PatternBinding -> {}
+                    is AST.PatternLiteral -> { collect_expr(lit.value, out) }
                 }
             }
         }

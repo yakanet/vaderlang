@@ -101,8 +101,8 @@ The classifier is `fn_instance_flavor` in `vader/lower/lower_mono_fn.vader` for 
 
 The lowerer consumes the monomorphised typed AST and produces a **separate, smaller AST** (the *Lowered AST*) where high-level constructs are desugared into a fixed set of primitive operations the backends understand. The original typed AST is never mutated. Specifically the lowerer:
 
-- **Pattern match → if/else chains.** Naive linear lowering: each arm becomes a guarded `if` whose predicate is the pattern's discriminator (type tag, struct shape, literal equality) ∧ its optional `if`-guard. Bindings introduced by `is T as x` and struct destructuring become local lets at the head of the arm body. No decision-tree compilation in MVP — naive code is fine for the bytecode emitter to optimise later.
-- **`expr?` → `match`.** Lowered to `match expr { is Error as e -> return e is T as t -> t }` over the typed scrutinee. Every `Error`-implementing variant routes to a `return` of that same value; the happy variant becomes the expression's result.
+- **Pattern match → if/else chains.** Naive linear lowering: each arm becomes a guarded `if` whose predicate is the pattern's discriminator (type tag, struct shape, literal equality) ∧ its optional `if`-guard. The `match e as x` binder becomes a local let ahead of the arms; struct destructuring binds locals at the head of the arm body. No decision-tree compilation in MVP — naive code is fine for the bytecode emitter to optimise later.
+- **`expr?` → `match`.** Lowered to `match expr as v { is Error -> return v  is T -> v }` over the typed scrutinee. Every `Error`-implementing variant routes to a `return` of that same value; the happy variant becomes the expression's result.
 - **String interpolation → builder intrinsics.** Each `"…${x}…"` lowers to a sequence of `builder.new`, `builder.append_str`, `builder.append_display(x)`, `builder.finish` intrinsic calls. The runtime (which `std/string_builder` wraps) provides the actual implementation; the lowerer only emits the call chain. `builder.append_display` is dispatched statically per the post-mono `Display` impl table.
 - **`defer` → exit-point duplication.** The lowerer keeps a per-block stack of pending defers (LIFO) and inlines them physically at every textual exit of the block: implicit fallthrough, `return`, `break`, `continue`. A `panic` (or trap) **runs the pending defers** of every frame it unwinds through — LIFO, innermost frame first — before the process aborts; the panic stays fatal (no recovery). Each frame runs its own defers as the stack tears down; defers do not otherwise propagate across function boundaries.
 - **Trait calls → static dispatch.** Because monomorphization has stripped abstract generics, every trait-method call site has a concrete receiver type. The lowerer rewrites `recv.to_string()` to a direct call of the specific impl's function. No vtable / dynamic dispatch in MVP.
@@ -1197,7 +1197,7 @@ match value {
 
 - **Scrutinee alias — `match e as x { … }`**: names the scrutinee for the whole match. `x` is visible in every arm (and in every guard), holds the value the scrutinee evaluated to — once — and is narrowed by each arm to what that arm's pattern matched.
 
-  The alias exists for an *expression* scrutinee. A scrutinee that is already a name needs none, since each arm narrows it in place:
+  The alias exists for an *expression* scrutinee. A scrutinee that is already a name needs none, since each arm narrows it in place. It is the only binder a `match` has: an arm cannot bind with `as` (`is T as x ->` is `P1036`), so every arm reads the one name the header gives:
 
   ```vader
   match shape_at(n) as s {        match shape {
@@ -1212,7 +1212,7 @@ match value {
 - **Or-patterns**: pipe-separated alternatives in one arm — `.North | .South -> …` (enum variants), `1 | 2 | 3 -> …` (literals). The arm matches when *any* alternative does (lowered to `p1 || p2 || …`); each alternative is checked against the scrutinee, and every enum variant listed counts toward exhaustiveness. Alternatives are value-level and bind nothing. **Type tests don't need an or-pattern**: `is A | B -> …` is already a single `is` over the union type `A | B` (no parentheses required) — it narrows to `A | B` and covers both for exhaustiveness.
 - Struct patterns with bindings and constraints.
 - **Binding patterns**: a bare identifier `name -> …` matches every remaining value and binds it to `name`. Combined with `is`-narrowing of prior arms, the binding sees the *narrowed* type, not the full scrutinee — `match v { is null -> {}; pet -> use(pet) }` narrows `pet` to "scrutinee − null".
-- Guards via `if cond`. The guard may read the pattern's bindings (`is i32 as n if n > 0`). **A guarded arm contributes nothing to exhaustiveness** — it only matches when its guard holds, so the variant it tests stays uncovered until an unguarded arm (or wildcard) handles it; `match x: i32 | string { is i32 as n if n > 0 -> …, is string -> … }` is rejected with `T3013`. Bare lambda sugar (`x -> …`, `(x) -> …`) is not parsed inside a guard — the arrow belongs to the arm; parenthesise the lambda (`(x -> …)`) on the rare occasion one is intended.
+- Guards via `if cond`. The guard may read the pattern's bindings and the header's (`match v as n { is i32 if n > 0 -> … }`). **A guarded arm contributes nothing to exhaustiveness** — it only matches when its guard holds, so the variant it tests stays uncovered until an unguarded arm (or wildcard) handles it; `match x: i32 | string { is i32 if x > 0 -> …, is string -> … }` is rejected with `T3013`. Bare lambda sugar (`x -> …`, `(x) -> …`) is not parsed inside a guard — the arrow belongs to the arm; parenthesise the lambda (`(x -> …)`) on the rare occasion one is intended.
 - Wildcard `_` — same flow-narrowing as binding arms.
 - **Flow narrowing through wildcard / binding arms**: after one or more `is X` arms (without inner struct refinement), the subsequent `_` or `name` arm sees the scrutinee narrowed to `union − matched`. Lets `match p: Pet | null { is null -> "no"; _ -> p.name }` read the common field without a wrapping cast.
 - **`is T` reachability** (`T3040`): an `is T` arm whose `T` can never be a value of the scrutinee's static type is rejected at compile time. `match p: Pet { is Bird -> … }` errors when `Bird` is not part of `Pet`'s union; same rule fires for `if x is T` expressions outside `match`. The check uses the symmetric `intersects(T, scrutinee)` predicate; unknowns (`Unresolved`, `TypeParam`) suppress cascading. **`==` / `!=` get the same check** — `if n: i32 == null` triggers T3040 with the same wording, replacing the misleading "no Eq impl" T3017. Use `is null` when you want the flow-narrowing; both forms work but `is` is the canonical idiom.
@@ -4015,9 +4015,9 @@ read_count :: fn(path: string) -> i32 | Error {
 }
 
 main :: fn() -> i32 {
-    match read_count("count.txt") {
-        is i32   as count -> println("Count: ${count}")
-        is Error as err   -> println("Error: ${err.message()}")
+    match read_count("count.txt") as result {
+        is i32   -> println("Count: ${result}")
+        is Error -> println("Error: ${result.message()}")
     }
     return 0
 }

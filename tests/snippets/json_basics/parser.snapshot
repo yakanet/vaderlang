@@ -95,8 +95,7 @@
                   "kind": "IdentExpr",
                   "name": "JsonError"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -151,8 +150,7 @@
                   "kind": "IdentExpr",
                   "name": "JsonString"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -216,8 +214,7 @@
                   "kind": "IdentExpr",
                   "name": "JsonNumber"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -281,8 +278,7 @@
                   "kind": "IdentExpr",
                   "name": "JsonBool"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -346,8 +342,7 @@
                   "kind": "IdentExpr",
                   "name": "JsonNull"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -411,8 +406,7 @@
                   "kind": "IdentExpr",
                   "name": "JsonArray"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -476,8 +470,7 @@
                   "kind": "IdentExpr",
                   "name": "JsonObject"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {

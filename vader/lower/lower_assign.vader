@@ -220,15 +220,15 @@ mk_slice_node :: fn(as_string: bool, span: Span, type: Type, target: LoweredExpr
 }
 
 try_lower_range_slice :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type, as_string: bool) -> LoweredExpr | null {
-    match expr.index {
-        is RangeExpr as range_lit -> {
+    match expr.index as range_lit {
+        is RangeExpr -> {
             target_lowered :: lower_expr(ctx, expr.target)
             lo_value :: cast_to_usize(lower_expr(ctx, range_lit.lower), range_lit.span)
             hi_raw   :: cast_to_usize(lower_expr(ctx, range_lit.upper), range_lit.span)
             hi_value :: adjust_hi_inclusive(hi_raw, range_lit.inclusive, range_lit.span)
             return mk_slice_node(as_string, expr.span, type, target_lowered, lo_value, hi_value)
         }
-        _ -> {}
+        _            -> {}
     }
     // Range-typed *value* index (`let r = 0..<n ; arr[r]`) — bind the
     // range to a temp so the three field reads (`.start`, `.end`,

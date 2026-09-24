@@ -134,8 +134,8 @@ iterator_element_of :: fn(t: Type) -> Type | null {
 // ident callee and the UFCS field callee (free fn whose first param fits the
 // receiver).
 callee_generator_symbol :: fn(c: AST.CallExpr, typed: TypedProgram) -> Symbol | null {
-    @partial match c.callee {
-        is AST.IdentExpr as id -> {
+    @partial match c.callee as id {
+        is AST.IdentExpr -> {
             // Direct call `name(args)` : the resolver already picked the overload,
             // so trust its bound symbol (a picked eager overload is simply not a
             // generator).
@@ -143,11 +143,11 @@ callee_generator_symbol :: fn(c: AST.CallExpr, typed: TypedProgram) -> Symbol | 
             if is_generator_symbol(sym, typed) { return sym }
             return null
         }
-        is AST.FieldExpr as fe -> {
-            recv_ty :: typed.expr_types[fe.target.id] ?? return null
-            return ufcs_generator_symbol(fe.field, recv_ty, typed)
+        is AST.FieldExpr -> {
+            recv_ty :: typed.expr_types[id.target.id] ?? return null
+            return ufcs_generator_symbol(id.field, recv_ty, typed)
         }
-        _ -> { return null }
+        _                -> { return null }
     }
 }
 

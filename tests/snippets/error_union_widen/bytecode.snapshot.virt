@@ -115,28 +115,31 @@ end
 
 fn 5 snippet$main () -> i32
   local __scrut_0 any
+  local e any
   local $vcall_7 string
   string.const 3   ; "hello"
   call 2   ; snippet$widen
   local.tee 0   ; __scrut_0
+  local.set 1   ; e
+  local.get 0   ; __scrut_0
   type_check 6   ; ref Error
   if $L0 void
-    local.get 0   ; __scrut_0
+    local.get 1   ; e
     virtual.call 1 Error.message
-    local.set 1   ; $vcall_7
+    local.set 2   ; $vcall_7
     string.const 4   ; "err "
-    local.get 1   ; $vcall_7
+    local.get 2   ; $vcall_7
     call 6   ; concat_2
     call 13   ; std_io$println__string
   else
     local.get 0   ; __scrut_0
     type_check 2   ; string
     if $L1 void
-      local.get 0   ; __scrut_0
+      local.get 1   ; e
       ref.cast 2   ; -> string
-      local.set 1   ; $vcall_7
+      local.set 2   ; $vcall_7
       string.const 5   ; "str "
-      local.get 1   ; $vcall_7
+      local.get 2   ; $vcall_7
       call 6   ; concat_2
       call 13   ; std_io$println__string
     else

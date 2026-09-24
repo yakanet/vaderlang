@@ -377,8 +377,7 @@
                       "kind": "IdentExpr",
                       "name": "Direction"
                     },
-                    "inner": null,
-                    "bindAs": "d"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -419,8 +418,7 @@
                       "kind": "IdentExpr",
                       "name": "ParseError"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -446,7 +444,8 @@
                     ]
                   }
                 }
-              ]
+              ],
+              "bindAs": "d"
             }
           },
           {
@@ -478,8 +477,7 @@
                       "kind": "IdentExpr",
                       "name": "Direction"
                     },
-                    "inner": null,
-                    "bindAs": "d"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -520,8 +518,7 @@
                       "kind": "IdentExpr",
                       "name": "ParseError"
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -547,7 +544,8 @@
                     ]
                   }
                 }
-              ]
+              ],
+              "bindAs": "d"
             }
           },
           {

@@ -585,20 +585,20 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
 // receiver is statically an array — else null (a non-array `.into()` head, e.g.
 // `set.into()`, is not a fusible array bottom).
 array_from_into_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | null {
-    @partial match call.callee {
-        is AST.FieldExpr as fe -> {
+    @partial match call.callee as fe {
+        is AST.FieldExpr -> {
             if fe.field != METHOD_INTO { return null }
             if ctx.types.expr_type(fe.target) is ArrayType { return fe.target }
             return null
         }
-        is AST.IdentExpr as id -> {
-            if id.name != METHOD_INTO { return null }
+        is AST.IdentExpr -> {
+            if fe.name != METHOD_INTO { return null }
             if call.args.len() != 1 { return null }
             arg :: call.args[0].value
             if ctx.types.expr_type(arg) is ArrayType { return arg }
             return null
         }
-        _ -> { return null }
+        _                -> { return null }
     }
 }
 
@@ -654,17 +654,17 @@ body_breaks_this_loop :: fn(body: AST.BlockExpr) -> bool {
 }
 
 stmt_breaks_this_loop :: fn(stmt: AST.Stmt) -> bool = match stmt {
-    is AST.BreakStmt -> true
-    is AST.ExprStmt -> expr_breaks_this_loop(stmt.expr)
-    is AST.LetStmt -> expr_breaks_this_loop(stmt.value)
-    is AST.AssignStmt -> expr_breaks_this_loop(stmt.value)
+    is AST.BreakStmt                  -> true
+    is AST.ExprStmt                   -> expr_breaks_this_loop(stmt.expr)
+    is AST.LetStmt                    -> expr_breaks_this_loop(stmt.value)
+    is AST.AssignStmt                 -> expr_breaks_this_loop(stmt.value)
     is AST.ReturnStmt ->
         if stmt.value is AST.Expr as rv { expr_breaks_this_loop(rv) } else { false }
     is AST.YieldStmt ->
         if stmt.value is AST.Expr as yv { expr_breaks_this_loop(yv) } else { false }
-    is AST.DeferStmt -> match stmt.body {
-        is AST.DeferStmtBody as ds -> stmt_breaks_this_loop(ds.stmt)
-        is AST.DeferBlockBody as db -> body_breaks_this_loop(db.block)
+    is AST.DeferStmt                  -> match stmt.body as ds {
+        is AST.DeferStmtBody  -> stmt_breaks_this_loop(ds.stmt)
+        is AST.DeferBlockBody -> body_breaks_this_loop(ds.block)
     }
     // A `break` inside a nested loop targets THAT loop, so the nested body is not
     // walked. `continue` never needs the guard.
@@ -679,10 +679,10 @@ expr_breaks_this_loop :: fn(expr: AST.Expr) -> bool {
         if body_breaks_this_loop(expr.then_block) {
             return true
         }
-        return match expr.else_branch {
-            is null -> false
-            is AST.IfElseIf as eif -> expr_breaks_this_loop(eif.branch)
-            is AST.IfElseBlock as eb -> body_breaks_this_loop(eb.block)
+        return match expr.else_branch as eif {
+            is null            -> false
+            is AST.IfElseIf    -> expr_breaks_this_loop(eif.branch)
+            is AST.IfElseBlock -> body_breaks_this_loop(eif.block)
         }
     }
     if expr is AST.MatchExpr {

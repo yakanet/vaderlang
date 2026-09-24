@@ -209,8 +209,8 @@ driver_input_key :: fn(driver_path: string) -> string {
     }
     exe :: read_file_bytes(current_executable_location(), READ_LIMIT_DEFAULT)
     compiler_hash :: match exe {
-        is u8[] as bytes -> sha256(bytes)
-        is IOError       -> ""
+        is u8[]    -> sha256(exe)
+        is IOError -> ""
     }
     return "${driver_hash}-${compiler_hash}"
 }
@@ -290,9 +290,9 @@ export driver_entry_path :: fn(root: string) -> string =
 /// @error       H6001 when no `build` fn is declared ; H6002 when one is declared
 ///              with a signature the generated entry cannot call.
 export validate_driver :: fn(path: string) -> Diagnostic | null {
-    source :: match read_file_string(path) {
-        is string as s -> s
-        is IOError     -> ""
+    source :: match read_file_string(path) as s {
+        is string  -> s
+        is IOError -> ""
     }
     if source == "" {
         return null

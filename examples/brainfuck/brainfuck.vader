@@ -303,10 +303,10 @@ main :: fn(argv: string[]) -> i32 {
         return 1
     }
     module :: compile_brainfuck(src)
-    return match exec(prepare(module), []) {
-        is Ok   as ok -> ok.value
-        is Trap as t  -> {
-            eprintln("brainfuck: vm trap — ${t.message}")
+    return match exec(prepare(module), []) as ok {
+        is Ok   -> ok.value
+        is Trap -> {
+            eprintln("brainfuck: vm trap — ${ok.message}")
             1
         }
     }

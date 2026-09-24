@@ -264,8 +264,7 @@
                   "kind": "IdentExpr",
                   "name": "Circle"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -304,8 +303,7 @@
                   "kind": "IdentExpr",
                   "name": "Square"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -336,8 +334,7 @@
                   "kind": "IdentExpr",
                   "name": "Point"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -402,8 +399,7 @@
                   "kind": "IdentExpr",
                   "name": "Circle"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": {
                 "kind": "BinaryExpr",
@@ -438,8 +434,7 @@
                   "kind": "IdentExpr",
                   "name": "Circle"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -459,8 +454,7 @@
                   "kind": "IdentExpr",
                   "name": "Square"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -480,8 +474,7 @@
                   "kind": "IdentExpr",
                   "name": "Point"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {

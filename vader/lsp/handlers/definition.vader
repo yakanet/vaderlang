@@ -374,10 +374,10 @@ member_in_declaring_module :: fn(
     if folder.bytes().len() == 0 {
         return null
     }
-    files_or :: read_dir(folder)
-    match files_or {
-        is IOError -> { return null }
-        is string[] as files -> {
+    files :: read_dir(folder)
+    match files {
+        is IOError  -> { return null }
+        is string[] -> {
             for fname in files {
                 if !fname.ends_with_vader() {
                     continue

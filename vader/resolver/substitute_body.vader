@@ -139,16 +139,16 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
         }
         is AST.IfExpr -> {
             new_else: AST.IfElse | null = null
-            match e.else_branch {
-                is null -> {}
-                is AST.IfElseBlock as eb -> {
+            match e.else_branch as eb {
+                is null            -> {}
+                is AST.IfElseBlock -> {
                     new_else = AST.IfElseBlock { .block = substitute_block(eb.block, subst) }
                 }
-                is AST.IfElseIf as ei -> {
+                is AST.IfElseIf    -> {
                     // IfElseIf.branch is specifically AST.IfExpr — extract
                     // via a narrow match since substitute_expr_full returns
                     // the wider Expr union.
-                    sub :: substitute_expr_full(ei.branch, subst)
+                    sub :: substitute_expr_full(eb.branch, subst)
                     match sub {
                         is AST.IfExpr -> {
                             new_else = AST.IfElseIf { .branch = sub }
@@ -356,14 +356,14 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
         }
         is AST.ForStmt -> {
             new_form: AST.ForForm! = s.form
-            match s.form {
-                is AST.WhileFor as w -> {
-                    new_form = AST.WhileFor { .cond = substitute_expr_full(w.cond, subst) }
+            match s.form as form {
+                is AST.WhileFor    -> {
+                    new_form = AST.WhileFor { .cond = substitute_expr_full(form.cond, subst) }
                 }
-                is AST.InFor as inf -> {
+                is AST.InFor       -> {
                     new_form = AST.InFor {
-                        .loop_var = inf.loop_var,
-                        .iter = substitute_expr_full(inf.iter, subst),
+                        .loop_var = form.loop_var,
+                        .iter = substitute_expr_full(form.iter, subst),
                     }
                 }
                 is AST.InfiniteFor -> {}    // no children
@@ -424,7 +424,6 @@ export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
             return AST.IsPattern {
                 .span = p.span, .id = AST.UNASSIGNED_NODE_ID,
                 .ty = substitute_type_expr(p.ty, subst),
-                .bind_as = p.bind_as,
                 .inner = new_inner,
             }
         }
@@ -523,15 +522,15 @@ stamp_stmt_spans :: fn(s: AST.Stmt!, stamp: StampCtx!) -> void {
         }
         is AST.ForStmt -> {
             s.span = next_clone_span(stamp)
-            match s.form {
-                is AST.WhileFor as w -> { stamp_expr_spans(w.cond, stamp) }
-                is AST.InFor as inf -> {
-                    match inf.loop_var {
-                        is AST.NamedVar as nv -> { inf.loop_var = AST.NamedVar { .name = nv.name, .span = next_clone_span(stamp) } }
-                        is AST.DestructureVar as dv -> { stamp_binding_spans(dv.pattern, stamp) }
-                        is AST.DiscardVar -> {}
+            match s.form as form {
+                is AST.WhileFor    -> { stamp_expr_spans(form.cond, stamp) }
+                is AST.InFor       -> {
+                    match form.loop_var as nv {
+                        is AST.NamedVar -> { form.loop_var = AST.NamedVar { .name = nv.name, .span = next_clone_span(stamp) } }
+                        is AST.DestructureVar -> { stamp_binding_spans(nv.pattern, stamp) }
+                        is AST.DiscardVar     -> {}
                     }
-                    stamp_expr_spans(inf.iter, stamp)
+                    stamp_expr_spans(form.iter, stamp)
                 }
                 is AST.InfiniteFor -> {}
             }
@@ -579,10 +578,10 @@ stamp_expr_spans :: fn(e: AST.Expr!, stamp: StampCtx!) -> void {
             e.span = next_clone_span(stamp)
             stamp_expr_spans(e.cond, stamp)
             stamp_block_spans(e.then_block, stamp)
-            match e.else_branch {
-                is null -> {}
-                is AST.IfElseBlock as eb -> { stamp_block_spans(eb.block, stamp) }
-                is AST.IfElseIf as ei -> { stamp_expr_spans(ei.branch, stamp) }
+            match e.else_branch as eb {
+                is null            -> {}
+                is AST.IfElseBlock -> { stamp_block_spans(eb.block, stamp) }
+                is AST.IfElseIf    -> { stamp_expr_spans(eb.branch, stamp) }
             }
         }
         is AST.MatchExpr -> {

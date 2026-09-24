@@ -103,15 +103,13 @@
             parse :fn(char) -> Direction | ParseError
           arg0:
             char(0x4e)
+      let d: Direction | ParseError = __scrut_0 :Direction | ParseError
       ~>
         if :void
           cond:
             is Direction :bool
               __scrut_0 :Direction | ParseError
           then:
-            let d: Direction =
-              cast → Direction
-                __scrut_0 :Direction | ParseError
             ~>
               call :void
                 callee:
@@ -121,7 +119,8 @@
                     callee:
                       dir_label :fn(Direction) -> string
                     arg0:
-                      d :Direction
+                      cast → Direction
+                        d :Direction | ParseError
           else:
             ~>
               if :void
@@ -145,15 +144,13 @@
             parse :fn(char) -> Direction | ParseError
           arg0:
             char(0x3f)
+      let d: Direction | ParseError = __scrut_1 :Direction | ParseError
       ~>
         if :void
           cond:
             is Direction :bool
               __scrut_1 :Direction | ParseError
           then:
-            let d: Direction =
-              cast → Direction
-                __scrut_1 :Direction | ParseError
             ~>
               call :void
                 callee:
@@ -163,7 +160,8 @@
                     callee:
                       dir_label :fn(Direction) -> string
                     arg0:
-                      d :Direction
+                      cast → Direction
+                        d :Direction | ParseError
           else:
             ~>
               if :void

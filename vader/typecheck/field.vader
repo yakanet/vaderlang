@@ -1446,11 +1446,11 @@ field_check_stub :: fn(
     // @partial: test stub — only the ident / field / literal expr kinds the
     // field tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr as x -> { return TY_FREE_INT }
-        is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr -> { return infer_ident(e, typed) }
-        is AST.FieldExpr -> { return infer_field(e, null, typed, diags, field_check_stub) }
-        _ -> { return TY_UNRESOLVED }
+        is AST.IntLitExpr    -> { return TY_FREE_INT }
+        is AST.StringLitExpr -> { return TY_STRING }
+        is AST.IdentExpr     -> { return infer_ident(e, typed) }
+        is AST.FieldExpr     -> { return infer_field(e, null, typed, diags, field_check_stub) }
+        _                    -> { return TY_UNRESOLVED }
     }
 }
 
@@ -1474,11 +1474,11 @@ first_field_in_last_fn :: fn(src: string) -> FieldFixture {
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl {
-        match last.body {
-            is null -> {
+        match last.body as b {
+            is null          -> {
                 return FieldFixture { .typed = result.typed, .field = null }
             }
-            is AST.BlockExpr as b -> {
+            is AST.BlockExpr -> {
                 hit :: find_first_in_block(b, accept_field)
                 field: AST.FieldExpr | null = null
                 if hit is AST.FieldExpr {
@@ -1501,9 +1501,9 @@ Point :: struct {
 get_x :: fn(p: Point) -> i32 { return p.x }
 """
     fx :: first_field_in_last_fn(src)
-    match fx.field {
-        is null -> { assert(false, "expected a field expr") }
-        is AST.FieldExpr as f -> {
+    match fx.field as f {
+        is null          -> { assert(false, "expected a field expr") }
+        is AST.FieldExpr -> {
             diags: Diagnostic[]!: []
             assert_eq(display_type(infer_field(f, null, fx.typed, diags, field_check_stub)), "i32")
             assert_eq(diags.len(), 0)
@@ -1520,9 +1520,9 @@ Point :: struct {
 get_z :: fn(p: Point) -> i32 { return p.z }
 """
     fx :: first_field_in_last_fn(src)
-    match fx.field {
-        is null -> { assert(false, "expected a field expr") }
-        is AST.FieldExpr as f -> {
+    match fx.field as f {
+        is null          -> { assert(false, "expected a field expr") }
+        is AST.FieldExpr -> {
             diags: Diagnostic[]!: []
             infer_field(f, null, fx.typed, diags, field_check_stub)
             assert(diags.len() >= 1, "expected a diagnostic")
@@ -1537,9 +1537,9 @@ test_field_on_non_struct_emits_T3008 :: fn() -> void {
 f :: fn(n: i32) -> i32 { return n.x }
 """
     fx :: first_field_in_last_fn(src)
-    match fx.field {
-        is null -> { assert(false, "expected a field expr") }
-        is AST.FieldExpr as f -> {
+    match fx.field as f {
+        is null          -> { assert(false, "expected a field expr") }
+        is AST.FieldExpr -> {
             diags: Diagnostic[]!: []
             infer_field(f, null, fx.typed, diags, field_check_stub)
             assert(diags.len() >= 1, "expected a diagnostic")

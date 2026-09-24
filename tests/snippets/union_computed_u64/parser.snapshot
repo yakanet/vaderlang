@@ -230,8 +230,7 @@
                   "kind": "IdentExpr",
                   "name": "u64"
                 },
-                "inner": null,
-                "bindAs": "n"
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -268,8 +267,7 @@
                   "kind": "IdentExpr",
                   "name": "Err"
                 },
-                "inner": null,
-                "bindAs": null
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -290,7 +288,8 @@
                 "trailing": null
               }
             }
-          ]
+          ],
+          "bindAs": "n"
         }
       },
       "decorators": []

@@ -108,8 +108,7 @@
                       "kind": "IdentExpr",
                       "name": "Circle"
                     },
-                    "inner": null,
-                    "bindAs": "c"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -125,7 +124,7 @@
                           "kind": "FieldExpr",
                           "target": {
                             "kind": "IdentExpr",
-                            "name": "c"
+                            "name": "s"
                           },
                           "field": "radius"
                         }
@@ -144,8 +143,7 @@
                       "kind": "IdentExpr",
                       "name": "Square"
                     },
-                    "inner": null,
-                    "bindAs": "sq"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -161,7 +159,7 @@
                           "kind": "FieldExpr",
                           "target": {
                             "kind": "IdentExpr",
-                            "name": "sq"
+                            "name": "s"
                           },
                           "field": "side"
                         }
@@ -220,8 +218,7 @@
                       "kind": "IdentExpr",
                       "name": "Circle"
                     },
-                    "inner": null,
-                    "bindAs": "c"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -234,7 +231,7 @@
                         "kind": "FieldExpr",
                         "target": {
                           "kind": "IdentExpr",
-                          "name": "c"
+                          "name": "s"
                         },
                         "field": "radius"
                       },
@@ -242,7 +239,7 @@
                         "kind": "FieldExpr",
                         "target": {
                           "kind": "IdentExpr",
-                          "name": "c"
+                          "name": "s"
                         },
                         "field": "radius"
                       }
@@ -260,8 +257,7 @@
                       "kind": "IdentExpr",
                       "name": "Square"
                     },
-                    "inner": null,
-                    "bindAs": "sq"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -271,7 +267,7 @@
                       "kind": "FieldExpr",
                       "target": {
                         "kind": "IdentExpr",
-                        "name": "sq"
+                        "name": "s"
                       },
                       "field": "side"
                     },
@@ -279,7 +275,7 @@
                       "kind": "FieldExpr",
                       "target": {
                         "kind": "IdentExpr",
-                        "name": "sq"
+                        "name": "s"
                       },
                       "field": "side"
                     }

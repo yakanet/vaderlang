@@ -118,9 +118,9 @@ pow2_i64 :: fn(k: i64) -> i64 {
 }
 
 span_of_value :: fn(v: EnumVariant) -> Span {
-    match v.value_span {
+    match v.value_span as s {
         is null -> { return v.span }
-        is Span as s -> { return s }
+        is Span -> { return s }
     }
 }
 

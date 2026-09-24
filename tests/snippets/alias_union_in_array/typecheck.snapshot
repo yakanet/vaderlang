@@ -10,12 +10,12 @@
   expr 18:5     IdentExpr      :: (Cat | Dog)[]!
   expr 22:12    MatchExpr      :: string
   expr 22:18    IdentExpr      :: Cat | Dog
-  expr 23:24    StringLitExpr  :: string
-  expr 23:31    FieldExpr      :: string
-  expr 23:31    IdentExpr      :: Cat
-  expr 24:24    StringLitExpr  :: string
-  expr 24:31    FieldExpr      :: string
-  expr 24:31    IdentExpr      :: Dog
+  expr 23:19    StringLitExpr  :: string
+  expr 23:26    FieldExpr      :: string
+  expr 23:26    IdentExpr      :: Cat
+  expr 24:19    StringLitExpr  :: string
+  expr 24:26    FieldExpr      :: string
+  expr 24:26    IdentExpr      :: Dog
   expr 29:19    SeqLitExpr     :: (Cat | Dog)[]!
   expr 30:14    IdentExpr      :: (Cat | Dog)[]!
   expr 30:20    StructLitExpr  :: Cat!

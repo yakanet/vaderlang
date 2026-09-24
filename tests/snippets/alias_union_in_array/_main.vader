@@ -20,8 +20,8 @@ push_pet :: fn(arr: Pet[]!, p: Pet) -> void {
 
 describe :: fn(p: Pet) -> string {
     return match p {
-        is Cat as c -> "cat ${c.name}"
-        is Dog as d -> "dog ${d.name}"
+        is Cat -> "cat ${p.name}"
+        is Dog -> "dog ${p.name}"
     }
 }
 

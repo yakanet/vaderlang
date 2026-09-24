@@ -152,8 +152,7 @@
                             }
                           }
                         ]
-                      },
-                      "bindAs": null
+                      }
                     },
                     "guard": null,
                     "body": {

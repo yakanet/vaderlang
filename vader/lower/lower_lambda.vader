@@ -114,9 +114,9 @@ build_lifted_params :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr, env_param_sym
 find_param_symbol :: fn(ctx: FnLowerCtx, fn_param: AST.FnParam) -> Symbol | null {
     target_key :: fn_param.span.hash()
     for [_, symbol] in ctx.typed.resolved.idents {
-        match symbol.defined_at {
+        match symbol.defined_at as defined {
             is null -> {}
-            is Span as defined -> {
+            is Span -> {
                 if defined.hash() == target_key { return symbol }
             }
         }

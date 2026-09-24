@@ -206,9 +206,9 @@ t_find_expr :: fn(decls: AST.Decl[], pred: fn(AST.Expr) -> bool) -> AST.Expr | n
     for di in 0..<decls.len() {
         d :: decls[di]
         if d is AST.FnDecl {
-            match d.body {
-                is null -> {}
-                is AST.BlockExpr as b -> {
+            match d.body as b {
+                is null          -> {}
+                is AST.BlockExpr -> {
                     found :: t_find_in_block(b, pred)
                     if found != null { return found }
                 }

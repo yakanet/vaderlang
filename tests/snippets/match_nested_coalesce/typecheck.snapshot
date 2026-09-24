@@ -18,11 +18,11 @@
   expr 20:16    UnaryExpr      :: i32
   expr 26:29    MatchExpr      :: i32
   expr 26:35    IdentExpr      :: i32
-  expr 27:20    BinaryExpr     :: bool
-  expr 27:20    IdentExpr      :: i32
-  expr 28:20    BinaryExpr     :: bool
-  expr 28:20    IdentExpr      :: i32
-  expr 28:29    UnaryExpr      :: i32
+  expr 27:15    BinaryExpr     :: bool
+  expr 27:15    IdentExpr      :: i32
+  expr 28:15    BinaryExpr     :: bool
+  expr 28:15    IdentExpr      :: i32
+  expr 28:24    UnaryExpr      :: i32
   expr 33:14    BinaryExpr     :: i32
   expr 33:14    CallExpr       :: i32
   expr 33:14    IdentExpr      :: fn(i32) -> i32

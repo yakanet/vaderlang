@@ -454,25 +454,25 @@ lower_first_param_type :: fn(src: string) -> string {
 
 @test
 test_primitive_from_name_recognises_canonical :: fn() -> void {
-    match primitive_from_name("i32") {
-        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
-        _ -> { assert(false, "i32 should be primitive") }
+    match primitive_from_name("i32") as p {
+        is PrimitiveType -> { assert_eq(p.name, "i32") }
+        _                -> { assert(false, "i32 should be primitive") }
     }
-    match primitive_from_name("string") {
-        is PrimitiveType as p -> { assert_eq(p.name, "string") }
-        _ -> { assert(false, "string should be primitive") }
+    match primitive_from_name("string") as p {
+        is PrimitiveType -> { assert_eq(p.name, "string") }
+        _                -> { assert(false, "string should be primitive") }
     }
 }
 
 @test
 test_primitive_from_name_recognises_aliases :: fn() -> void {
-    match primitive_from_name("int") {
-        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
-        _ -> { assert(false, "int aliases i32") }
+    match primitive_from_name("int") as p {
+        is PrimitiveType -> { assert_eq(p.name, "i32") }
+        _                -> { assert(false, "int aliases i32") }
     }
-    match primitive_from_name("byte") {
-        is PrimitiveType as p -> { assert_eq(p.name, "u8") }
-        _ -> { assert(false, "byte aliases u8") }
+    match primitive_from_name("byte") as p {
+        is PrimitiveType -> { assert_eq(p.name, "u8") }
+        _                -> { assert(false, "byte aliases u8") }
     }
 }
 

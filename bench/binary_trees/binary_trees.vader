@@ -29,8 +29,8 @@ build_tree :: fn(depth: i32, value: i32) -> Node {
 
 count_nodes :: fn(t: Node | null) -> i32 {
     match t {
-        is null      -> { return 0 }
-        is Node as n -> { return 1 + count_nodes(n.left) + count_nodes(n.right) }
+        is null -> { return 0 }
+        is Node -> { return 1 + count_nodes(t.left) + count_nodes(t.right) }
     }
 }
 

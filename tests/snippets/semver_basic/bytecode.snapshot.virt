@@ -99,24 +99,27 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local __scrut_0 any
-  local ver ref
+  local ver any
   local base ref
   local __scrut_1 any
+  local rg any
   local $call_29 string
   string.const 0   ; "1.2.3-rc.1"
   call 7   ; semver$parse
   local.tee 0   ; __scrut_0
+  local.set 1   ; ver
+  local.get 0   ; __scrut_0
   type_check 3   ; semver$Version
   if $L0 void
-    local.get 0   ; __scrut_0
+    local.get 1   ; ver
     ref.cast 3   ; -> semver$Version
-    local.tee 1   ; ver
     call 35   ; semver$Version$Display$to_string
     call 60   ; std_io$println__string
     string.const 1   ; "1.0.0"
     call 1   ; snippet$parse_one
     local.set 2   ; base
     local.get 1   ; ver
+    ref.cast 3   ; -> semver$Version
     local.get 2   ; base
     call 36   ; semver$Version$Comparable$compare
     i32.const 0
@@ -128,15 +131,15 @@ fn 0 snippet$main () -> i32
     string.const 3   ; "^1.0.0"
     call 8   ; semver$parse_range
     local.tee 3   ; __scrut_1
+    local.set 4   ; rg
+    local.get 3   ; __scrut_1
     type_check 15   ; semver$VersionRange
     if $L2 void
-      local.get 3   ; __scrut_1
-      ref.cast 15   ; -> semver$VersionRange
-      local.set 1   ; ver
       string.const 4   ; "1.5.0"
       call 1   ; snippet$parse_one
       local.set 2   ; base
-      local.get 1   ; ver
+      local.get 4   ; rg
+      ref.cast 15   ; -> semver$VersionRange
       local.get 2   ; base
       call 37   ; semver$VersionRange$Contains$contains
       if $L3 void
@@ -147,12 +150,12 @@ fn 0 snippet$main () -> i32
       local.get 3   ; __scrut_1
       type_check 13   ; std_string$ParseError
       if $L4 void
-        local.get 3   ; __scrut_1
+        local.get 4   ; rg
         ref.cast 13   ; -> std_string$ParseError
         call 53   ; std_string$ParseError$Error$message
-        local.set 4   ; $call_29
+        local.set 5   ; $call_29
         string.const 6   ; "range err: "
-        local.get 4   ; $call_29
+        local.get 5   ; $call_29
         call 2   ; concat_2
         call 61   ; std_io$eprintln__string
         return.lit i32.const 1
@@ -163,12 +166,12 @@ fn 0 snippet$main () -> i32
     local.get 0   ; __scrut_0
     type_check 13   ; std_string$ParseError
     if $L5 void
-      local.get 0   ; __scrut_0
+      local.get 1   ; ver
       ref.cast 13   ; -> std_string$ParseError
       call 53   ; std_string$ParseError$Error$message
-      local.set 4   ; $call_29
+      local.set 5   ; $call_29
       string.const 7   ; "err: "
-      local.get 4   ; $call_29
+      local.get 5   ; $call_29
       call 2   ; concat_2
       call 61   ; std_io$eprintln__string
       return.lit i32.const 1
@@ -180,12 +183,15 @@ end
 
 fn 1 snippet$parse_one (string) -> ref
   local __scrut_0 any
+  local v any
   local.get 0   ; arg 0
   call 7   ; semver$parse
   local.tee 1   ; __scrut_0
+  local.set 2   ; v
+  local.get 1   ; __scrut_0
   type_check 3   ; semver$Version
   if $L0 void
-    local.get 1   ; __scrut_0
+    local.get 2   ; v
     ref.cast 3   ; -> semver$Version
     return
   end $L0
@@ -390,8 +396,8 @@ fn 7 semver$parse (string) -> any
   local cn usize
   local k usize
   local v any
-  local $idx_150 i32
-  local $idx_152 i32
+  local $idx_146 i32
+  local $idx_148 i32
   local.get 0   ; arg 0
   call 44   ; std_string$is_empty
   if $L0 void
@@ -740,14 +746,14 @@ fn 7 semver$parse (string) -> any
   local.get 1   ; sb
   i32.const 1
   load_slot_i32
-  local.set 17   ; $idx_150
+  local.set 17   ; $idx_146
   local.get 1   ; sb
   i32.const 2
   load_slot_i32
-  local.set 18   ; $idx_152
+  local.set 18   ; $idx_148
   local.get 5   ; dots_seen
-  local.get 17   ; $idx_150
-  local.get 18   ; $idx_152
+  local.get 17   ; $idx_146
+  local.get 18   ; $idx_148
   local.get 11   ; pre
   local.get 12   ; build
   struct.new 3   ; semver$Version
@@ -761,7 +767,7 @@ fn 8 semver$parse_range (string) -> any
   local __for_len_1 usize
   local __for_i_2 usize
   local cl any
-  local c ref
+  local $cast_20 ref
   local.get 0   ; arg 0
   call 45   ; std_string$trim
   local.tee 1   ; trimmed
@@ -796,9 +802,9 @@ fn 8 semver$parse_range (string) -> any
         if $L4 void
           local.get 6   ; cl
           ref.cast 19   ; -> semver$RangeClause
-          local.set 7   ; c
+          local.set 7   ; $cast_20
           local.get 2   ; out_clauses
-          local.get 7   ; c
+          local.get 7   ; $cast_20
           array.push 19   ; semver$RangeClause[]
         else
           local.get 6   ; cl
@@ -837,6 +843,7 @@ end
 fn 9 semver$parse_numeric_id (string) -> any
   local and_res bool
   local __scrut_0 any
+  local v any
   local.get 0   ; arg 0
   call 44   ; std_string$is_empty
   if $L0 void
@@ -876,9 +883,11 @@ fn 9 semver$parse_numeric_id (string) -> any
   local.get 0   ; arg 0
   call 46   ; std_string$parse_int
   local.tee 2   ; __scrut_0
+  local.set 3   ; v
+  local.get 2   ; __scrut_0
   type_check 1   ; i32
   if $L4 void
-    local.get 2   ; __scrut_0
+    local.get 3   ; v
     ref.cast 1   ; -> i32
     box 1   ; -> i32
     return
@@ -1149,24 +1158,26 @@ fn 14 semver$parse_clause (string) -> any
   local $add_31 usize
   local $idx_32 string
   local __scrut_0 any
+  local parsed any
   local __for_arr_1 ref
   local __for_len_2 usize
   local __for_i_3 usize
   local t ref
   local and_res bool
-  local $add_61 usize
+  local $add_60 usize
   local lo_part any
-  local $add_70 usize
+  local $add_69 usize
   local hi_part any
-  local lp ref
-  local hp ref
+  local $cast_76 ref
+  local $cast_77 ref
   local __for_arr_4 ref
   local __for_len_5 usize
   local __for_i_6 usize
   local t ref
-  local $call_98 string
-  local $call_106 string
+  local $call_94 string
+  local $call_101 string
   local __scrut_7 any
+  local parsed any
   local __for_arr_8 ref
   local __for_len_9 usize
   local __for_i_10 usize
@@ -1249,32 +1260,34 @@ fn 14 semver$parse_clause (string) -> any
           call 2   ; concat_2
           call 20   ; semver$parse_token
           local.tee 11   ; __scrut_0
+          local.set 12   ; parsed
+          local.get 11   ; __scrut_0
           type_check 21   ; semver$RangeTerm[]
           if $L7 void
-            local.get 11   ; __scrut_0
+            local.get 12   ; parsed
             ref.cast 21   ; -> semver$RangeTerm[]
-            local.tee 12   ; __for_arr_1
+            local.tee 13   ; __for_arr_1
             array.len
-            local.set 13   ; __for_len_2
+            local.set 14   ; __for_len_2
             i64.const 0
-            local.set 14   ; __for_i_3
+            local.set 15   ; __for_i_3
             block $L8 void
               loop $L9 void
-                local.get 14   ; __for_i_3
-                local.get 13   ; __for_len_2
+                local.get 15   ; __for_i_3
+                local.get 14   ; __for_len_2
                 u64.lt
                 if $L10 void
-                  local.get 12   ; __for_arr_1
-                  local.get 14   ; __for_i_3
+                  local.get 13   ; __for_arr_1
+                  local.get 15   ; __for_i_3
                   array.get 21   ; semver$RangeTerm[][]
-                  local.set 15   ; t
+                  local.set 16   ; t
                   local.get 2   ; terms
-                  local.get 15   ; t
+                  local.get 16   ; t
                   array.push 22 2   ; semver$RangeTerm[]
-                  local.get 14   ; __for_i_3
+                  local.get 15   ; __for_i_3
                   i64.const 1
                   i64.add
-                  local.set 14   ; __for_i_3
+                  local.set 15   ; __for_i_3
                   br $L9
                 end $L10
               end $L9
@@ -1283,7 +1296,7 @@ fn 14 semver$parse_clause (string) -> any
             local.get 11   ; __scrut_0
             type_check 13   ; std_string$ParseError
             if $L11 void
-              local.get 11   ; __scrut_0
+              local.get 12   ; parsed
               ref.cast 13   ; -> std_string$ParseError
               call 53   ; std_string$ParseError$Error$message
               struct.new 13   ; std_string$ParseError
@@ -1306,73 +1319,73 @@ fn 14 semver$parse_clause (string) -> any
           local.get 4   ; i
           i64.const 1
           i64.add
-          local.set 17   ; $add_61
+          local.set 18   ; $add_60
           local.get 1   ; tokens
-          local.get 17   ; $add_61
+          local.get 18   ; $add_60
           array.get 17   ; string[][]
           ref.cast 2   ; -> string
           string.const 21   ; "-"
           string.eq
-          local.set 16   ; and_res
+          local.set 17   ; and_res
         else
           bool.const false
-          local.set 16   ; and_res
+          local.set 17   ; and_res
         end $L12
-        local.get 16   ; and_res
+        local.get 17   ; and_res
         if $L13 void
           local.get 1   ; tokens
           local.get 4   ; i
           array.get 17   ; string[][]
           ref.cast 2   ; -> string
           call 21   ; semver$parse_partial
-          local.set 18   ; lo_part
+          local.set 19   ; lo_part
           local.get 4   ; i
           i64.const 2
           i64.add
-          local.set 19   ; $add_70
+          local.set 20   ; $add_69
           local.get 1   ; tokens
-          local.get 19   ; $add_70
+          local.get 20   ; $add_69
           array.get 17   ; string[][]
           ref.cast 2   ; -> string
           call 21   ; semver$parse_partial
-          local.set 20   ; hi_part
-          local.get 18   ; lo_part
+          local.set 21   ; hi_part
+          local.get 19   ; lo_part
           type_check 24   ; semver$PartialVersion
           if $L14 void
-            local.get 18   ; lo_part
-            ref.cast 24   ; -> semver$PartialVersion
-            local.set 21   ; lp
-            local.get 20   ; hi_part
+            local.get 21   ; hi_part
             type_check 24   ; semver$PartialVersion
             if $L15 void
-              local.get 20   ; hi_part
+              local.get 19   ; lo_part
               ref.cast 24   ; -> semver$PartialVersion
-              local.set 22   ; hp
-              local.get 21   ; lp
-              local.get 22   ; hp
+              local.set 22   ; $cast_76
+              local.get 21   ; hi_part
+              ref.cast 24   ; -> semver$PartialVersion
+              local.set 23   ; $cast_77
+              local.get 22   ; $cast_76
+              local.get 23   ; $cast_77
               call 22   ; semver$expand_hyphen
-              local.tee 23   ; __for_arr_4
+              local.tee 24   ; __for_arr_4
               array.len
-              local.set 24   ; __for_len_5
+              local.set 25   ; __for_len_5
               i64.const 0
-              local.set 25   ; __for_i_6
+              local.set 26   ; __for_i_6
               block $L16 void
                 loop $L17 void
-                  local.get 25   ; __for_i_6
-                  local.get 24   ; __for_len_5
+                  local.get 26   ; __for_i_6
+                  local.get 25   ; __for_len_5
                   u64.lt
                   if $L18 void
-                    local.get 23   ; __for_arr_4
-                    local.get 25   ; __for_i_6
+                    local.get 24   ; __for_arr_4
+                    local.get 26   ; __for_i_6
                     array.get 21   ; semver$RangeTerm[][]
-                    local.set 26   ; t
+                    local.set 27   ; t
                     local.get 2   ; terms
-                    local.get 26   ; t
+                    local.get 27   ; t
                     array.push 22 2   ; semver$RangeTerm[]
-                    local.get 25   ; __for_i_6
+                    local.get 26   ; __for_i_6
                     i64.const 1
                     i64.add
-                    local.set 25   ; __for_i_6
+                    local.set 26   ; __for_i_6
                     br $L17
                   end $L18
                 end $L17
@@ -1383,30 +1396,30 @@ fn 14 semver$parse_clause (string) -> any
               local.set 4   ; i
               br $L2
             end $L15
-            local.get 20   ; hi_part
+            local.get 21   ; hi_part
             type_check 13   ; std_string$ParseError
             if $L19 void
-              local.get 20   ; hi_part
+              local.get 21   ; hi_part
               ref.cast 13   ; -> std_string$ParseError
               call 53   ; std_string$ParseError$Error$message
-              local.set 27   ; $call_98
+              local.set 28   ; $call_94
               string.const 22   ; "hyphen upper: "
-              local.get 27   ; $call_98
+              local.get 28   ; $call_94
               call 2   ; concat_2
               struct.new 13   ; std_string$ParseError
               return
             end $L19
             return
           end $L14
-          local.get 18   ; lo_part
+          local.get 19   ; lo_part
           type_check 13   ; std_string$ParseError
           if $L20 void
-            local.get 18   ; lo_part
+            local.get 19   ; lo_part
             ref.cast 13   ; -> std_string$ParseError
             call 53   ; std_string$ParseError$Error$message
-            local.set 28   ; $call_106
+            local.set 29   ; $call_101
             string.const 23   ; "hyphen lower: "
-            local.get 28   ; $call_106
+            local.get 29   ; $call_101
             call 2   ; concat_2
             struct.new 13   ; std_string$ParseError
             return
@@ -1418,42 +1431,44 @@ fn 14 semver$parse_clause (string) -> any
         array.get 17   ; string[][]
         ref.cast 2   ; -> string
         call 20   ; semver$parse_token
-        local.tee 29   ; __scrut_7
+        local.tee 30   ; __scrut_7
+        local.set 31   ; parsed
+        local.get 30   ; __scrut_7
         type_check 21   ; semver$RangeTerm[]
         if $L21 void
-          local.get 29   ; __scrut_7
+          local.get 31   ; parsed
           ref.cast 21   ; -> semver$RangeTerm[]
-          local.tee 30   ; __for_arr_8
+          local.tee 32   ; __for_arr_8
           array.len
-          local.set 31   ; __for_len_9
+          local.set 33   ; __for_len_9
           i64.const 0
-          local.set 32   ; __for_i_10
+          local.set 34   ; __for_i_10
           block $L22 void
             loop $L23 void
-              local.get 32   ; __for_i_10
-              local.get 31   ; __for_len_9
+              local.get 34   ; __for_i_10
+              local.get 33   ; __for_len_9
               u64.lt
               if $L24 void
-                local.get 30   ; __for_arr_8
-                local.get 32   ; __for_i_10
+                local.get 32   ; __for_arr_8
+                local.get 34   ; __for_i_10
                 array.get 21   ; semver$RangeTerm[][]
-                local.set 33   ; t
+                local.set 35   ; t
                 local.get 2   ; terms
-                local.get 33   ; t
+                local.get 35   ; t
                 array.push 22 2   ; semver$RangeTerm[]
-                local.get 32   ; __for_i_10
+                local.get 34   ; __for_i_10
                 i64.const 1
                 i64.add
-                local.set 32   ; __for_i_10
+                local.set 34   ; __for_i_10
                 br $L23
               end $L24
             end $L23
           end $L22
         else
-          local.get 29   ; __scrut_7
+          local.get 30   ; __scrut_7
           type_check 13   ; std_string$ParseError
           if $L25 void
-            local.get 29   ; __scrut_7
+            local.get 31   ; parsed
             ref.cast 13   ; -> std_string$ParseError
             call 53   ; std_string$ParseError$Error$message
             struct.new 13   ; std_string$ParseError
@@ -1883,8 +1898,8 @@ fn 20 semver$parse_token (string) -> any
   local $call_36 string
   local b0 u8
   local __scrut_0 any
-  local $call_89 string
-  local $struct_135 ref
+  local p any
+  local $call_88 string
   local.get 0   ; arg 0
   call 44   ; std_string$is_empty
   if $L0 void
@@ -2044,9 +2059,11 @@ fn 20 semver$parse_token (string) -> any
     local.get 7   ; $call_36
     call 21   ; semver$parse_partial
     local.tee 9   ; __scrut_0
+    local.set 10   ; p
+    local.get 9   ; __scrut_0
     type_check 24   ; semver$PartialVersion
     if $L12 void
-      local.get 9   ; __scrut_0
+      local.get 10   ; p
       ref.cast 24   ; -> semver$PartialVersion
       call 26   ; semver$expand_caret
       return
@@ -2054,12 +2071,12 @@ fn 20 semver$parse_token (string) -> any
     local.get 9   ; __scrut_0
     type_check 13   ; std_string$ParseError
     if $L13 void
-      local.get 9   ; __scrut_0
+      local.get 10   ; p
       ref.cast 13   ; -> std_string$ParseError
       call 53   ; std_string$ParseError$Error$message
-      local.set 10   ; $call_89
+      local.set 11   ; $call_88
       string.const 31   ; "caret: "
-      local.get 10   ; $call_89
+      local.get 11   ; $call_88
       call 2   ; concat_2
       struct.new 13   ; std_string$ParseError
       return
@@ -2073,9 +2090,11 @@ fn 20 semver$parse_token (string) -> any
     local.get 7   ; $call_36
     call 21   ; semver$parse_partial
     local.tee 9   ; __scrut_0
+    local.set 10   ; p
+    local.get 9   ; __scrut_0
     type_check 24   ; semver$PartialVersion
     if $L15 void
-      local.get 9   ; __scrut_0
+      local.get 10   ; p
       ref.cast 24   ; -> semver$PartialVersion
       call 27   ; semver$expand_tilde
       return
@@ -2083,7 +2102,7 @@ fn 20 semver$parse_token (string) -> any
     local.get 9   ; __scrut_0
     type_check 13   ; std_string$ParseError
     if $L16 void
-      local.get 9   ; __scrut_0
+      local.get 10   ; p
       ref.cast 13   ; -> std_string$ParseError
       call 53   ; std_string$ParseError$Error$message
       local.set 7   ; $call_36
@@ -2098,17 +2117,20 @@ fn 20 semver$parse_token (string) -> any
   local.get 0   ; arg 0
   call 21   ; semver$parse_partial
   local.tee 9   ; __scrut_0
+  local.set 10   ; p
+  local.get 9   ; __scrut_0
   type_check 24   ; semver$PartialVersion
   if $L17 void
-    local.get 9   ; __scrut_0
+    local.get 10   ; p
     ref.cast 24   ; -> semver$PartialVersion
-    local.set 4   ; tb
-    local.field 4 24 0   ; tb.major
+    struct.get 24 0   ; semver$PartialVersion.major
     ref.cast 1   ; -> i32
     i32.const 0
     i32.ge
     if $L18 void
-      local.field 4 24 1   ; tb.minor
+      local.get 10   ; p
+      ref.cast 24   ; -> semver$PartialVersion
+      struct.get 24 1   ; semver$PartialVersion.minor
       ref.cast 1   ; -> i32
       i32.const 0
       i32.ge
@@ -2119,7 +2141,9 @@ fn 20 semver$parse_token (string) -> any
     end $L18
     local.get 6   ; and_res
     if $L19 void
-      local.field 4 24 2   ; tb.patch
+      local.get 10   ; p
+      ref.cast 24   ; -> semver$PartialVersion
+      struct.get 24 2   ; semver$PartialVersion.patch
       ref.cast 1   ; -> i32
       i32.const 0
       i32.ge
@@ -2130,42 +2154,53 @@ fn 20 semver$parse_token (string) -> any
     end $L19
     local.get 6   ; and_res
     if $L20 void
-      local.field 4 24 0   ; tb.major
+      local.get 10   ; p
+      ref.cast 24   ; -> semver$PartialVersion
+      struct.get 24 0   ; semver$PartialVersion.major
       ref.cast 1   ; -> i32
       local.set 1   ; $unop_6
-      local.field 4 24 1   ; tb.minor
+      local.get 10   ; p
+      ref.cast 24   ; -> semver$PartialVersion
+      struct.get 24 1   ; semver$PartialVersion.minor
       ref.cast 1   ; -> i32
       local.set 2   ; $unop_8
-      local.field 4 24 2   ; tb.patch
+      local.get 10   ; p
+      ref.cast 24   ; -> semver$PartialVersion
+      struct.get 24 2   ; semver$PartialVersion.patch
       ref.cast 1   ; -> i32
       local.set 3   ; $unop_10
-      local.field 4 24 3   ; tb.prerelease
+      local.get 10   ; p
+      ref.cast 24   ; -> semver$PartialVersion
+      struct.get 24 3   ; semver$PartialVersion.prerelease
       ref.cast 2   ; -> string
       local.set 7   ; $call_36
-      local.field 4 24 4   ; tb.build
+      local.get 10   ; p
+      ref.cast 24   ; -> semver$PartialVersion
+      struct.get 24 4   ; semver$PartialVersion.build
       ref.cast 2   ; -> string
-      local.set 10   ; $call_89
+      local.set 11   ; $call_88
       local.get 1   ; $unop_6
       local.get 2   ; $unop_8
       local.get 3   ; $unop_10
       local.get 7   ; $call_36
-      local.get 10   ; $call_89
+      local.get 11   ; $call_88
       struct.new 3   ; semver$Version
-      local.set 11   ; $struct_135
+      local.set 4   ; tb
       i32.const 0
-      local.get 11   ; $struct_135
+      local.get 4   ; tb
       struct.new 22   ; semver$RangeTerm
       array.new 21 1   ; semver$RangeTerm[][]
       return
     end $L20
-    local.get 4   ; tb
+    local.get 10   ; p
+    ref.cast 24   ; -> semver$PartialVersion
     call 24   ; semver$expand_xrange
     return
   end $L17
   local.get 9   ; __scrut_0
   type_check 13   ; std_string$ParseError
   if $L21 void
-    local.get 9   ; __scrut_0
+    local.get 10   ; p
     ref.cast 13   ; -> std_string$ParseError
     call 53   ; std_string$ParseError$Error$message
     local.set 7   ; $call_36
@@ -2195,6 +2230,7 @@ fn 21 semver$parse_partial (string) -> any
   local build string
   local result ref
   local __scrut_0 any
+  local v any
   local.get 0   ; arg 0
   call 44   ; std_string$is_empty
   if $L0 void
@@ -2423,9 +2459,11 @@ fn 21 semver$parse_partial (string) -> any
       ref.cast 2   ; -> string
       call 9   ; semver$parse_numeric_id
       local.tee 16   ; __scrut_0
+      local.set 17   ; v
+      local.get 16   ; __scrut_0
       type_check 1   ; i32
       if $L19 void
-        local.get 16   ; __scrut_0
+        local.get 17   ; v
         ref.cast 1   ; -> i32
         local.set 1   ; $unop_6
         local.get 15   ; result
@@ -2435,7 +2473,7 @@ fn 21 semver$parse_partial (string) -> any
         local.get 16   ; __scrut_0
         type_check 13   ; std_string$ParseError
         if $L20 void
-          local.get 16   ; __scrut_0
+          local.get 17   ; v
           ref.cast 13   ; -> std_string$ParseError
           call 53   ; std_string$ParseError$Error$message
           local.set 12   ; core
@@ -2467,9 +2505,11 @@ fn 21 semver$parse_partial (string) -> any
       ref.cast 2   ; -> string
       call 9   ; semver$parse_numeric_id
       local.tee 16   ; __scrut_0
+      local.set 17   ; v
+      local.get 16   ; __scrut_0
       type_check 1   ; i32
       if $L23 void
-        local.get 16   ; __scrut_0
+        local.get 17   ; v
         ref.cast 1   ; -> i32
         local.set 1   ; $unop_6
         local.get 15   ; result
@@ -2479,7 +2519,7 @@ fn 21 semver$parse_partial (string) -> any
         local.get 16   ; __scrut_0
         type_check 13   ; std_string$ParseError
         if $L24 void
-          local.get 16   ; __scrut_0
+          local.get 17   ; v
           ref.cast 13   ; -> std_string$ParseError
           call 53   ; std_string$ParseError$Error$message
           local.set 12   ; core
@@ -2511,9 +2551,11 @@ fn 21 semver$parse_partial (string) -> any
       ref.cast 2   ; -> string
       call 9   ; semver$parse_numeric_id
       local.tee 16   ; __scrut_0
+      local.set 17   ; v
+      local.get 16   ; __scrut_0
       type_check 1   ; i32
       if $L27 void
-        local.get 16   ; __scrut_0
+        local.get 17   ; v
         ref.cast 1   ; -> i32
         local.set 1   ; $unop_6
         local.get 15   ; result
@@ -2523,7 +2565,7 @@ fn 21 semver$parse_partial (string) -> any
         local.get 16   ; __scrut_0
         type_check 13   ; std_string$ParseError
         if $L28 void
-          local.get 16   ; __scrut_0
+          local.get 17   ; v
           ref.cast 13   ; -> std_string$ParseError
           call 53   ; std_string$ParseError$Error$message
           local.set 12   ; core
@@ -2746,8 +2788,9 @@ end
 
 fn 25 semver$parse_comparator_token (i32,string) -> any
   local __scrut_0 any
-  local v ref
-  local $call_17 string
+  local v any
+  local $cast_10 ref
+  local $call_16 string
   local.get 1   ; arg 1
   call 44   ; std_string$is_empty
   if $L0 void
@@ -2758,13 +2801,15 @@ fn 25 semver$parse_comparator_token (i32,string) -> any
   local.get 1   ; arg 1
   call 7   ; semver$parse
   local.tee 2   ; __scrut_0
+  local.set 3   ; v
+  local.get 2   ; __scrut_0
   type_check 3   ; semver$Version
   if $L1 void
-    local.get 2   ; __scrut_0
-    ref.cast 3   ; -> semver$Version
-    local.set 3   ; v
-    local.get 0   ; arg 0
     local.get 3   ; v
+    ref.cast 3   ; -> semver$Version
+    local.set 4   ; $cast_10
+    local.get 0   ; arg 0
+    local.get 4   ; $cast_10
     struct.new 22   ; semver$RangeTerm
     array.new 21 1   ; semver$RangeTerm[][]
     return
@@ -2772,12 +2817,12 @@ fn 25 semver$parse_comparator_token (i32,string) -> any
   local.get 2   ; __scrut_0
   type_check 13   ; std_string$ParseError
   if $L2 void
-    local.get 2   ; __scrut_0
+    local.get 3   ; v
     ref.cast 13   ; -> std_string$ParseError
     call 53   ; std_string$ParseError$Error$message
-    local.set 4   ; $call_17
+    local.set 5   ; $call_16
     string.const 44   ; "comparator: "
-    local.get 4   ; $call_17
+    local.get 5   ; $call_16
     call 2   ; concat_2
     struct.new 13   ; std_string$ParseError
     return
@@ -3623,9 +3668,11 @@ fn 42 semver$compare_id (string,string) -> i32
   local b_num bool
   local and_res bool
   local __scrut_0 any
-  local va i32
+  local va any
   local __scrut_1 any
-  local vb i32
+  local vb any
+  local $cast_25 i32
+  local $cast_26 i32
   local na usize
   local nb usize
   local.get 0   ; arg 0
@@ -3675,21 +3722,25 @@ fn 42 semver$compare_id (string,string) -> i32
     local.get 0   ; arg 0
     call 46   ; std_string$parse_int
     local.tee 5   ; __scrut_0
+    local.set 6   ; va
+    local.get 5   ; __scrut_0
     type_check 1   ; i32
     if $L6 void
-      local.get 5   ; __scrut_0
-      ref.cast 1   ; -> i32
-      local.set 6   ; va
       local.get 1   ; arg 1
       call 46   ; std_string$parse_int
       local.tee 7   ; __scrut_1
+      local.set 8   ; vb
+      local.get 7   ; __scrut_1
       type_check 1   ; i32
       if $L7 void
-        local.get 7   ; __scrut_1
-        ref.cast 1   ; -> i32
-        local.set 8   ; vb
         local.get 6   ; va
+        ref.cast 1   ; -> i32
+        local.set 9   ; $cast_25
         local.get 8   ; vb
+        ref.cast 1   ; -> i32
+        local.set 10   ; $cast_26
+        local.get 9   ; $cast_25
+        local.get 10   ; $cast_26
         i32.lt
         if $L8 void
           i32.const 1
@@ -3697,7 +3748,13 @@ fn 42 semver$compare_id (string,string) -> i32
           return
         end $L8
         local.get 6   ; va
+        ref.cast 1   ; -> i32
+        local.set 9   ; $cast_25
         local.get 8   ; vb
+        ref.cast 1   ; -> i32
+        local.set 10   ; $cast_26
+        local.get 9   ; $cast_25
+        local.get 10   ; $cast_26
         i32.gt
         if $L9 void
           return.lit i32.const 1
@@ -3720,20 +3777,20 @@ fn 42 semver$compare_id (string,string) -> i32
     end $L6
     local.get 0   ; arg 0
     call.import 0   ; std_core$byte_len
-    local.set 9   ; na
+    local.set 11   ; na
     local.get 1   ; arg 1
     call.import 0   ; std_core$byte_len
-    local.set 10   ; nb
-    local.get 9   ; na
-    local.get 10   ; nb
+    local.set 12   ; nb
+    local.get 11   ; na
+    local.get 12   ; nb
     u64.lt
     if $L12 void
       i32.const 1
       i32.neg
       return
     end $L12
-    local.get 9   ; na
-    local.get 10   ; nb
+    local.get 11   ; na
+    local.get 12   ; nb
     u64.gt
     if $L13 void
       return.lit i32.const 1

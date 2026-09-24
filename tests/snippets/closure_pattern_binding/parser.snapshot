@@ -77,8 +77,7 @@
                   "kind": "IdentExpr",
                   "name": "P"
                 },
-                "inner": null,
-                "bindAs": "p"
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -115,7 +114,7 @@
                                 "kind": "FieldExpr",
                                 "target": {
                                   "kind": "IdentExpr",
-                                  "name": "p"
+                                  "name": "v"
                                 },
                                 "field": "name"
                               }
@@ -192,8 +191,7 @@
                   "kind": "IdentExpr",
                   "name": "i32"
                 },
-                "inner": null,
-                "bindAs": "n"
+                "inner": null
               },
               "guard": null,
               "body": {
@@ -222,11 +220,11 @@
                           "op": "add",
                           "left": {
                             "kind": "IdentExpr",
-                            "name": "n"
+                            "name": "v"
                           },
                           "right": {
                             "kind": "IdentExpr",
-                            "name": "n"
+                            "name": "v"
                           }
                         }
                       }

@@ -60,9 +60,6 @@
             is CPointer :bool
               r :CPointer | null
           then:
-            let p: CPointer =
-              cast → CPointer
-                r :CPointer | null
             ~>
               block :i32
                 call :void
@@ -75,7 +72,8 @@
                     callee:
                       c_fclose :fn(CPointer) -> i32
                     arg0:
-                      p :CPointer
+                      cast → CPointer
+                        r :CPointer | null
           else:
             ~>
               if :i32 | void
@@ -120,9 +118,6 @@
             is CPointer :bool
               missing :CPointer | null
           then:
-            let p: CPointer =
-              cast → CPointer
-                missing :CPointer | null
             ~>
               block :i32
                 call :void
@@ -135,7 +130,8 @@
                     callee:
                       c_fclose :fn(CPointer) -> i32
                     arg0:
-                      p :CPointer
+                      cast → CPointer
+                        missing :CPointer | null
           else:
             ~>
               if :i32 | void

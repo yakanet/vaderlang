@@ -53,15 +53,14 @@
                       "kind": "IdentExpr",
                       "name": "i32"
                     },
-                    "inner": null,
-                    "bindAs": "n"
+                    "inner": null
                   },
                   "guard": {
                     "kind": "BinaryExpr",
                     "op": "gt",
                     "left": {
                       "kind": "IdentExpr",
-                      "name": "n"
+                      "name": "item"
                     },
                     "right": {
                       "kind": "IntLitExpr",
@@ -85,13 +84,12 @@
                       "kind": "IdentExpr",
                       "name": "string"
                     },
-                    "inner": null,
-                    "bindAs": "s"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
                     "kind": "IdentExpr",
-                    "name": "s"
+                    "name": "item"
                   }
                 }
               ]

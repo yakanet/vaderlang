@@ -49,9 +49,9 @@ collect_ast_idents :: fn(source: string, uri: string, out: RawToken![]!) -> void
     // not a `Kw*` token at the lexer level (it stays an Ident). Surface
     // the keyword colour here using the parsed AST.ModuleDecl's nameSpan
     // start to anchor the 6-char "module" span.
-    match program.module {
-        is null -> {}
-        is AST.ModuleDecl as md -> { push_module_keyword_span(md, out) }
+    match program.module as md {
+        is null           -> {}
+        is AST.ModuleDecl -> { push_module_keyword_span(md, out) }
     }
     for d in program.decls {
         walk_decl(d, out)
@@ -258,10 +258,10 @@ walk_type_params :: fn(ps: AST.TypeParam[], out: RawToken![]!) -> void {
 
 walk_import_decl :: fn(d: AST.ImportDecl, out: RawToken![]!) -> void {
     walk_decorators(d.decorators, out)
-    match d.binding {
+    match d.binding as dest {
         is AST.NamedNamespaceImport -> {}
-        is AST.WildcardImport -> {}
-        is AST.DestructureImport as dest -> {
+        is AST.WildcardImport       -> {}
+        is AST.DestructureImport    -> {
             for n in dest.names {
                 // The destructured name pulls the imported symbol into scope.
                 // We don't know yet if it's a fn or a type — default to
@@ -384,25 +384,25 @@ walk_binding :: fn(b: AST.LetBinding, out: RawToken![]!) -> void {
 }
 
 walk_for :: fn(s: AST.ForStmt, out: RawToken![]!) -> void {
-    match s.form {
+    match s.form as w {
         is AST.InfiniteFor -> {}
-        is AST.WhileFor as w -> { walk_expr(w.cond, out) }
-        is AST.InFor    as f -> {
-            match f.loop_var {
-                is AST.NamedVar as nv -> { push_span(out, nv.span, .Variable) }
-                is AST.DestructureVar as dv -> { walk_binding(dv.pattern, out) }
-                is AST.DiscardVar -> {}
+        is AST.WhileFor    -> { walk_expr(w.cond, out) }
+        is AST.InFor       -> {
+            match w.loop_var as nv {
+                is AST.NamedVar       -> { push_span(out, nv.span, .Variable) }
+                is AST.DestructureVar -> { walk_binding(nv.pattern, out) }
+                is AST.DiscardVar     -> {}
             }
-            walk_expr(f.iter, out)
+            walk_expr(w.iter, out)
         }
     }
     walk_block(s.body, out)
 }
 
 walk_defer :: fn(s: AST.DeferStmt, out: RawToken![]!) -> void {
-    match s.body {
-        is AST.DeferStmtBody  as x -> { walk_stmt(x.stmt, out) }
-        is AST.DeferBlockBody as x -> { walk_block(x.block, out) }
+    match s.body as x {
+        is AST.DeferStmtBody  -> { walk_stmt(x.stmt, out) }
+        is AST.DeferBlockBody -> { walk_block(x.block, out) }
     }
 }
 
@@ -497,26 +497,26 @@ walk_call :: fn(c: AST.CallExpr, out: RawToken![]!) -> void {
     // Upgrade the callee's bare-ident position to Function — unless the
     // ident names a primitive type, in which case the call is a cast
     // (`i32(x)`, `usize(n)`) and the callee is a type.
-    match c.callee {
-        is AST.IdentExpr as i -> {
-            if i.name.is_primitive_type_name() {
-                push_span(out, i.span, .Type)
+    match c.callee as callee {
+        is AST.IdentExpr       -> {
+            if callee.name.is_primitive_type_name() {
+                push_span(out, callee.span, .Type)
             } else {
-                push_span(out, i.span, .Function)
+                push_span(out, callee.span, .Function)
             }
         }
-        is AST.FieldExpr as f -> {
-            walk_expr(f.target, out)
-            push_span(out, f.field_span, .Function)
+        is AST.FieldExpr       -> {
+            walk_expr(callee.target, out)
+            push_span(out, callee.field_span, .Function)
         }
-        is AST.GenericInstExpr as g -> {
-            match g.callee {
-                is AST.IdentExpr as i -> { push_span(out, i.span, .Function) }
-                _ -> { walk_expr(g.callee, out) }
+        is AST.GenericInstExpr -> {
+            match callee.callee as i {
+                is AST.IdentExpr -> { push_span(out, i.span, .Function) }
+                _                -> { walk_expr(callee.callee, out) }
             }
-            for a in g.type_args { walk_type_expr(a, out) }
+            for a in callee.type_args { walk_type_expr(a, out) }
         }
-        _ -> { walk_expr(c.callee, out) }
+        _                      -> { walk_expr(c.callee, out) }
     }
     for a in c.args { walk_expr(a.value, out) }
 }
@@ -524,10 +524,10 @@ walk_call :: fn(c: AST.CallExpr, out: RawToken![]!) -> void {
 walk_if :: fn(e: AST.IfExpr, out: RawToken![]!) -> void {
     walk_expr(e.cond, out)
     walk_block(e.then_block, out)
-    match e.else_branch {
-        is null                  -> {}
-        is AST.IfElseIf    as x  -> { walk_if(x.branch, out) }
-        is AST.IfElseBlock as x  -> { walk_block(x.block, out) }
+    match e.else_branch as x {
+        is null            -> {}
+        is AST.IfElseIf    -> { walk_if(x.branch, out) }
+        is AST.IfElseBlock -> { walk_block(x.block, out) }
     }
 }
 
@@ -549,9 +549,9 @@ walk_pattern :: fn(p: AST.Pattern, out: RawToken![]!) -> void {
         is AST.StructPattern -> {
             for f in p.fields {
                 push_span(out, f.name_span, .Variable)
-                match f.value {
-                    is AST.PatternBinding         -> {}
-                    is AST.PatternLiteral as lit  -> { walk_expr(lit.value, out) }
+                match f.value as lit {
+                    is AST.PatternBinding -> {}
+                    is AST.PatternLiteral -> { walk_expr(lit.value, out) }
                 }
             }
         }

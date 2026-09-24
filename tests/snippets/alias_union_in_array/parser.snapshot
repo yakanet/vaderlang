@@ -123,8 +123,7 @@
                       "kind": "IdentExpr",
                       "name": "Cat"
                     },
-                    "inner": null,
-                    "bindAs": "c"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -140,7 +139,7 @@
                           "kind": "FieldExpr",
                           "target": {
                             "kind": "IdentExpr",
-                            "name": "c"
+                            "name": "p"
                           },
                           "field": "name"
                         }
@@ -155,8 +154,7 @@
                       "kind": "IdentExpr",
                       "name": "Dog"
                     },
-                    "inner": null,
-                    "bindAs": "d"
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -172,7 +170,7 @@
                           "kind": "FieldExpr",
                           "target": {
                             "kind": "IdentExpr",
-                            "name": "d"
+                            "name": "p"
                           },
                           "field": "name"
                         }

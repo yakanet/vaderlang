@@ -755,8 +755,7 @@ lower_then_with_binding :: fn(ctx: FnLowerCtx!, if_expr: IfExpr) -> LoweredBlock
         // `cond.right.span`), so references to `a` inside the then-block —
         // which `resolved.idents` wires to THAT symbol — resolve to this
         // slot. A `fresh_synthetic_symbol` here mints a different id, leaving
-        // every `a` reference unresolved (build_ident → unreachable). Mirror
-        // of `lower_match`'s `resolve_pattern_symbol` on its `is T as a` arm.
+        // every `a` reference unresolved (build_ident → unreachable).
         symbol :: resolve_pattern_symbol(ctx, cond.right.span, cond.bind_as)
         let_stmt: LoweredStmt: LoweredLet {
             .span = cond.span, .name = cond.bind_as, .symbol = symbol,

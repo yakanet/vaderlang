@@ -72,9 +72,9 @@ wire_module :: fn(
             out.missing[sym_id] = true
             continue
         }
-        match info.imported_name {
+        match info.imported_name as imported {
             is null -> { out.namespace_targets[sym_id] = target_id }
-            is string as imported -> {
+            is string -> {
                 exported :: target_loaded.collected.symbols[imported]
                 match exported {
                     is null -> {

@@ -17,9 +17,6 @@
             is Pair! :bool
               u :Pair | Wrap
           then:
-            let p: Pair! =
-              cast → Pair!
-                u :Pair | Wrap
             ~>
               block :void
                 assign
@@ -27,7 +24,8 @@
                     base :i32
                   value:
                     .a :i32
-                      p :Pair
+                      cast → Pair
+                        u :Pair | Wrap
           else:
             ~>
               if :void
@@ -35,9 +33,6 @@
                   is Wrap! :bool
                     u :Pair | Wrap
                 then:
-                  let w: Wrap! =
-                    cast → Wrap!
-                      u :Pair | Wrap
                   ~>
                     block :void
                       assign
@@ -45,7 +40,8 @@
                           base :i32
                         value:
                           .b :i32
-                            w :Wrap
+                            cast → Wrap
+                              u :Pair | Wrap
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

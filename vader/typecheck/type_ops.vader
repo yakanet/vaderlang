@@ -684,19 +684,19 @@ test_union_of_flattens :: fn() -> void {
 
 @test
 test_default_if_free :: fn() -> void {
-    match default_if_free(TY_FREE_INT) {
-        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
-        _ -> { assert(false, "FreeInt defaults to i32") }
+    match default_if_free(TY_FREE_INT) as p {
+        is PrimitiveType -> { assert_eq(p.name, "i32") }
+        _                -> { assert(false, "FreeInt defaults to i32") }
     }
-    match default_if_free(TY_FREE_FLOAT) {
-        is PrimitiveType as p -> { assert_eq(p.name, "f64") }
-        _ -> { assert(false, "FreeFloat defaults to f64") }
+    match default_if_free(TY_FREE_FLOAT) as p {
+        is PrimitiveType -> { assert_eq(p.name, "f64") }
+        _                -> { assert(false, "FreeFloat defaults to f64") }
     }
     // Non-free types pass through.
     i32_t :: mk_primitive("i32")
-    match default_if_free(i32_t) {
-        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
-        _ -> { assert(false, "i32 should pass through") }
+    match default_if_free(i32_t) as p {
+        is PrimitiveType -> { assert_eq(p.name, "i32") }
+        _                -> { assert(false, "i32 should pass through") }
     }
 }
 

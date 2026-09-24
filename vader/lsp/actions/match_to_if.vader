@@ -70,8 +70,8 @@ is_convertible :: fn(m: AST.MatchExpr) -> bool {
     return cond_pattern_ok(a0.pattern) && else_pattern_ok(a1.pattern)
 }
 
-// A pattern that becomes the `if` condition : `is T [as y]` (no nested pattern)
-// or a literal.
+// A pattern that becomes the `if` condition : `is T` (no nested pattern) or a
+// literal.
 cond_pattern_ok :: fn(p: AST.Pattern) -> bool {
     if p is AST.IsPattern { return p.inner == null }
     if p is AST.LiteralPattern { return true }
@@ -79,13 +79,8 @@ cond_pattern_ok :: fn(p: AST.Pattern) -> bool {
 }
 
 // A pattern that can be dropped to the `else` branch — it binds nothing the arm
-// body could reference : `_`, a literal, or `is T` with no `as` binding.
-else_pattern_ok :: fn(p: AST.Pattern) -> bool {
-    if p is AST.WildcardPattern { return true }
-    if p is AST.LiteralPattern { return true }
-    if p is AST.IsPattern { return p.inner == null && p.bind_as == null }
-    return false
-}
+// body could reference : `_`, a literal, or `is T` with no nested pattern.
+else_pattern_ok :: fn(p: AST.Pattern) = p is AST.WildcardPattern || cond_pattern_ok(p)
 
 // Synthesise the `if` from a convertible match. Sub-expressions (scrutinee,
 // pattern type, literal value, arm bodies) are reused verbatim — they keep
@@ -140,12 +135,12 @@ negate_cond :: fn(cond: AST.Expr) -> AST.Expr {
         if cond.op == .Eq {
             return AST.BinaryExpr {
                 .span = cond.span, .op = .Neq,
-                .left = cond.left, .right = cond.right, .bind_as = "",
+                .left = cond.left, .right = cond.right,
             }
         }
         if cond.op == .Is {
             is_bare :: AST.BinaryExpr {
-                .span = cond.span, .op = .Is, .left = cond.left, .right = cond.right, .bind_as = "",
+                .span = cond.span, .op = .Is, .left = cond.left, .right = cond.right,
             }
             return AST.UnaryExpr { .span = cond.span, .op = .Not, .operand = is_bare }
         }
@@ -153,18 +148,16 @@ negate_cond :: fn(cond: AST.Expr) -> AST.Expr {
     return AST.UnaryExpr { .span = cond.span, .op = .Not, .operand = cond }
 }
 
-// `is T as y` → `scrutinee is T as y` ; literal `v` → `scrutinee == v`.
+// `is T` → `scrutinee is T` ; literal `v` → `scrutinee == v`.
 build_cond :: fn(scrut: AST.Expr, p: AST.Pattern) -> AST.Expr {
     if p is AST.IsPattern {
-        bound :: p.bind_as
-        name :: if bound == null { "" } else { bound }
         return AST.BinaryExpr {
-            .span = scrut.span, .op = .Is, .left = scrut, .right = p.ty, .bind_as = name,
+            .span = scrut.span, .op = .Is, .left = scrut, .right = p.ty,
         }
     }
     if p is AST.LiteralPattern {
         return AST.BinaryExpr {
-            .span = scrut.span, .op = .Eq, .left = scrut, .right = p.value, .bind_as = "",
+            .span = scrut.span, .op = .Eq, .left = scrut, .right = p.value,
         }
     }
     // Unreachable for a convertible match — `is_convertible` gates the kinds.
@@ -212,7 +205,7 @@ test_match_to_if_converts_literal :: fn() -> void {
 
 @test
 test_match_to_if_converts_is_pattern :: fn() -> void {
-    src :: "g :: fn(v: i32 | string) -> i32 {\n    return match v {\n        is i32 as n -> n\n        _ -> 0\n    }\n}\n"
+    src :: "g :: fn(v: i32 | string) -> i32 {\n    return match v {\n        is i32 -> v\n        _ -> 0\n    }\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
     m :: tm_find_match(parsed.program.decls)
     if m == null {
@@ -222,7 +215,7 @@ test_match_to_if_converts_is_pattern :: fn() -> void {
     ctx :: ActionCtx { .source = src }
     assert(mti_applicable(m, ctx), "is-pattern + wildcard converts")
     out :: mti_apply(m, ctx)
-    assert("if v is i32 as n" in out, "renders the is-binding condition")
+    assert("if v is i32" in out, "renders the is condition")
 }
 
 @test
@@ -308,9 +301,9 @@ g :: fn(v: i32 | string) -> void {
 }
 
 @test
-test_match_to_if_declines_binding_second_arm :: fn() -> void {
-    // The second arm binds `s` — it can't drop to a bindingless else.
-    src :: "k :: fn(v: i32 | string) -> i32 {\n    return match v {\n        is i32 -> 0\n        is string as s -> s.byte_len()\n    }\n}\n"
+test_match_to_if_declines_header_binding :: fn() -> void {
+    // The header names the scrutinee `s` for both arms — an `if` has no place for it.
+    src :: "k :: fn(v: i32 | string) -> i32 {\n    return match v as s {\n        is i32 -> 0\n        is string -> s.byte_len()\n    }\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
     m :: tm_find_match(parsed.program.decls)
     if m == null {
@@ -318,5 +311,5 @@ test_match_to_if_declines_binding_second_arm :: fn() -> void {
         return
     }
     ctx :: ActionCtx { .source = src }
-    assert(!mti_applicable(m, ctx), "binding-introducing second arm -> decline")
+    assert(!mti_applicable(m, ctx), "header binding -> decline")
 }

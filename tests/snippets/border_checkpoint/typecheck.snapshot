@@ -8,11 +8,11 @@
   FnDecl         wave_through         :: fn(i32 | string, bool) -> string
   expr 14:12    MatchExpr      :: string
   expr 14:18    IdentExpr      :: i32 | string
-  expr 15:25    BinaryExpr     :: bool
-  expr 15:25    IdentExpr      :: i32
-  expr 15:37    StringLitExpr  :: string
-  expr 16:19    StringLitExpr  :: string
-  expr 17:29    IdentExpr      :: string
+  expr 15:19    BinaryExpr     :: bool
+  expr 15:19    IdentExpr      :: i32
+  expr 15:33    StringLitExpr  :: string
+  expr 16:33    StringLitExpr  :: string
+  expr 17:33    IdentExpr      :: string
   expr 22:12    MatchExpr      :: string
   expr 22:18    IdentExpr      :: i32 | string
   expr 23:19    IdentExpr      :: bool

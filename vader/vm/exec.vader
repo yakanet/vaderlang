@@ -3148,10 +3148,10 @@ export run_virt :: fn(path: string, host_argv: string[]) -> i32 {
         eprintln(module.display_virt_parse_error("vader run", path))
         return 1
     }
-    return match exec(prepare(module), host_argv) {
-        is Ok   as o -> o.value
-        is Trap as t -> {
-            eprintln("vader vm: ${t.message}")
+    return match exec(prepare(module), host_argv) as o {
+        is Ok   -> o.value
+        is Trap -> {
+            eprintln("vader vm: ${o.message}")
             1
         }
     }

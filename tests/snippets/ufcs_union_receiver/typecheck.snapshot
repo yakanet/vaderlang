@@ -9,25 +9,25 @@
   StructDecl     Square               :: Square!
   expr 17:12    MatchExpr      :: string
   expr 17:18    IdentExpr      :: Circle | Square
-  expr 18:27    StringLitExpr  :: string
-  expr 18:37    FieldExpr      :: i32
-  expr 18:37    IdentExpr      :: Circle
-  expr 19:28    StringLitExpr  :: string
-  expr 19:38    FieldExpr      :: i32
-  expr 19:38    IdentExpr      :: Square
+  expr 18:22    StringLitExpr  :: string
+  expr 18:32    FieldExpr      :: i32
+  expr 18:32    IdentExpr      :: Circle
+  expr 19:22    StringLitExpr  :: string
+  expr 19:32    FieldExpr      :: i32
+  expr 19:32    IdentExpr      :: Square
   expr 24:12    MatchExpr      :: i32
   expr 24:18    IdentExpr      :: Circle | Square
-  expr 25:27    BinaryExpr     :: i32
-  expr 25:27    BinaryExpr     :: i32
-  expr 25:27    FieldExpr      :: i32
-  expr 25:27    IdentExpr      :: Circle
-  expr 25:38    FieldExpr      :: i32
-  expr 25:38    IdentExpr      :: Circle
-  expr 26:28    BinaryExpr     :: i32
-  expr 26:28    FieldExpr      :: i32
-  expr 26:28    IdentExpr      :: Square
-  expr 26:38    FieldExpr      :: i32
-  expr 26:38    IdentExpr      :: Square
+  expr 25:22    BinaryExpr     :: i32
+  expr 25:22    BinaryExpr     :: i32
+  expr 25:22    FieldExpr      :: i32
+  expr 25:22    IdentExpr      :: Circle
+  expr 25:33    FieldExpr      :: i32
+  expr 25:33    IdentExpr      :: Circle
+  expr 26:22    BinaryExpr     :: i32
+  expr 26:22    FieldExpr      :: i32
+  expr 26:22    IdentExpr      :: Square
+  expr 26:31    FieldExpr      :: i32
+  expr 26:31    IdentExpr      :: Square
   expr 31:15    StructLitExpr  :: Circle!
   expr 32:15    StructLitExpr  :: Square!
   expr 33:13    CallExpr       :: string

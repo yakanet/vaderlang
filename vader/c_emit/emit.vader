@@ -126,9 +126,9 @@ new_ctx :: fn(
 ) -> EmitCtx {
     names: string[]!: []
     for i in 0..<m.types.len() {
-        match m.types[i] {
-            is BcStruct as s -> names.push(struct_c_name(s.name))
-            _ -> names.push("")
+        match m.types[i] as s {
+            is BcStruct -> names.push(struct_c_name(s.name))
+            _           -> names.push("")
         }
     }
     string_tag :: string_primitive_tag(m.types)
@@ -969,21 +969,21 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // lengths. Non-struct kinds emit their fixed `_ptrs[]` immediately.
     struct_offsets: StructOffsets[]!: []
     for i in 0..<count {
-        match types[i] {
-            is BcStruct as s -> {
+        match types[i] as s {
+            is BcStruct -> {
                 offs :: classify_struct_fields(ctx, s, i)
                 emit_struct_offset_arrays(offs, i, out, ctx.split)
                 struct_offsets.push(offs)
             }
-            is BcFn -> {
+            is BcFn     -> {
                 out.append("${linkage_prefix(ctx.split)}const uint16_t vader_type_${i}_ptrs[] = { offsetof(vader_fn_t, env) };\n")
                 struct_offsets.push(empty_struct_offsets())
             }
-            is BcArray -> {
+            is BcArray  -> {
                 out.append("${linkage_prefix(ctx.split)}const uint16_t vader_type_${i}_ptrs[] = { offsetof(vader_array_t, buf) };\n")
                 struct_offsets.push(empty_struct_offsets())
             }
-            _ -> struct_offsets.push(empty_struct_offsets())
+            _           -> struct_offsets.push(empty_struct_offsets())
         }
     }
 
@@ -994,12 +994,12 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     // zero-init `VADER_TYPE_KIND_NONE` (so the GC scanner short-
     // circuits without reading the payload).
     for j in 0..<count {
-        match types[j] {
-            is BcStruct as s -> emit_struct_info_row(ctx, s, struct_offsets[j], j, out)
+        match types[j] as entry {
+            is BcStruct -> emit_struct_info_row(ctx, entry, struct_offsets[j], j, out)
             is BcFn -> out.append("    [${j}] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_${j}_ptrs, 1, 0, NULL, 0, NULL },\n")
             is BcArray -> out.append("    [${j}] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_${j}_ptrs, 1, 0, NULL, 0, NULL },\n")
             // primitives / unions / refs leave the slot at its zero-init
-            // VADER_TYPE_KIND_NONE. MUST stay `_ -> {}`, not `@partial` — those
+    // VADER_TYPE_KIND_NONE. MUST stay `_ -> {}`, not `@partial` — those
             // slots are reachable (e.g. an enum/distinct interning under its
             // backing primitive's key), and a trapping fallback would abort.
             _ -> {}

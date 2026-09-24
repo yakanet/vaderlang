@@ -1,5 +1,5 @@
-// `if x is T as <ident> { … }` — the if-condition mirror of match-arm
-// `is T as a -> …`. The binding lives only in the then-block ; the
+// `if x is T as <ident> { … }` — the if-condition mirror of the match
+// header `match x as a { … }`. The binding lives only in the then-block ; the
 // surrounding scope (else, post-if) does not see it. Combined with the
 // pre-existing flow-narrowing, the divergent-guard pattern
 // `if x is T as a { return f(a) }` continues to work : the then-block

@@ -26,21 +26,20 @@
                     is Node! :bool
                       n :Node | null
                   then:
-                    let h: Node! =
-                      cast → Node!
-                        n :Node | null
                     ~>
                       if :Node | null
                         cond:
                           eq :bool
                             l:
                               .value :i32
-                                h :Node
+                                cast → Node
+                                  n :Node | null
                             r:
                               needle :i32
                         then:
                           ~>
-                            h :Node
+                            cast → Node
+                              n :Node | null
                         else:
                           ~>
                             call :Node | null
@@ -48,7 +47,8 @@
                                 find :fn(Node | null, i32) -> Node | null
                               arg0:
                                 .next :Node | null
-                                  h :Node
+                                  cast → Node
+                                    n :Node | null
                               arg1:
                                 needle :i32
                   else:
@@ -72,9 +72,6 @@
                     is Node! :bool
                       n :Node | null
                   then:
-                    let h: Node! =
-                      cast → Node!
-                        n :Node | null
                     ~>
                       add :i32
                         l:
@@ -85,7 +82,8 @@
                               length :fn(Node | null) -> i32
                             arg0:
                               .next :Node | null
-                                h :Node
+                                cast → Node
+                                  n :Node | null
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :i32
@@ -170,6 +168,7 @@
             head :Node | null
           arg1:
             int(2) :i32
+      let h: Node | null = __scrut_2 :Node | null
       ~>
         if :void
           cond:
@@ -191,9 +190,6 @@
                   is Node! :bool
                     __scrut_2 :Node | null
                 then:
-                  let h: Node! =
-                    cast → Node!
-                      __scrut_2 :Node | null
                   ~>
                     block :void
                       ~>
@@ -236,7 +232,8 @@
                                     arg2:
                                       cast → i64
                                         .value :i32
-                                          h :Node
+                                          cast → Node
+                                            h :Node | null
                               ~>
                                 call :string
                                   callee:
@@ -257,6 +254,7 @@
             head :Node | null
           arg1:
             int(42) :i32
+      let h: Node | null = __scrut_5 :Node | null
       ~>
         if :void
           cond:
@@ -278,9 +276,6 @@
                   is Node! :bool
                     __scrut_5 :Node | null
                 then:
-                  let h: Node! =
-                    cast → Node!
-                      __scrut_5 :Node | null
                   ~>
                     block :void
                       ~>
@@ -323,7 +318,8 @@
                                     arg2:
                                       cast → i64
                                         .value :i32
-                                          h :Node
+                                          cast → Node
+                                            h :Node | null
                               ~>
                                 call :string
                                   callee:

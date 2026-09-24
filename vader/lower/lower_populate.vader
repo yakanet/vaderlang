@@ -78,9 +78,9 @@ populate_impls :: fn(loaded: LoadedProject, typed: TypedProject, project_ctx: Lo
         per_module :: build_impl_registry(module_decls_list, module_typed.resolved, project_ctx.core_symbols)
         for entry in per_module.all {
             project_ctx.impls.all.push(entry)
-            match entry.for_symbol {
-                is null -> {}
-                is Symbol as for_symbol -> {
+            match entry.for_symbol as for_symbol {
+                is null   -> {}
+                is Symbol -> {
                     key :: "${for_symbol.id}::${entry.trait_symbol.id}"
                     project_ctx.impls.user_index[key] = entry
                 }

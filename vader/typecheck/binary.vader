@@ -114,21 +114,21 @@ export infer_null_coalesce :: fn(
     if equals_type(result, left_ty) {
         diags.push(typecheck_error(.NullCoalesceOnNonOptional, e.span, ""))
     }
-    match e.fallback {
-        is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt as s -> {
+    match e.fallback as fallback {
+        is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt -> {
             // A divergent fallback is checked in the enclosing fn / loop context via
             // `check_stmt`'s existing `return` / `break` / `continue` dispatch
             // (ctx = null resolves to the global `current_fn_ctx` / `loop_stack`).
 
-            check_stmt(s, typed, diags, null, check_expr_fn)
+            check_stmt(fallback, typed, diags, null, check_expr_fn)
         }
-        is AST.Expr as fe -> {
-            got :: check_expr_fn(fe, result, typed, diags)
-            if !flows_into(got, result, fe.id, typed) {
+        is AST.Expr -> {
+            got :: check_expr_fn(fallback, result, typed, diags)
+            if !flows_into(got, result, fallback.id, typed) {
                 diags.push(
                     typecheck_error(
                         .TypeMismatch,
-                        fe.span,
+                        fallback.span,
                         "`??` fallback type ${display_type(got)} is not assignable to ${display_type(result)}",
                     ),
                 )
@@ -903,11 +903,11 @@ binary_check_stub :: fn(
     // @partial: test stub — only the literal / ident / binary expr kinds the
     // binary tests build are typed; every other Expr is irrelevant → unresolved.
     @partial match e {
-        is AST.IntLitExpr as x    -> { return narrow(TY_FREE_INT, expected) }
-        is AST.StringLitExpr as x -> { return TY_STRING }
-        is AST.IdentExpr          -> { return infer_ident(e, typed) }
-        is AST.BinaryExpr         -> { return infer_binary(e, null, typed, diags, binary_check_stub) }
-        _                         -> { return TY_UNRESOLVED }
+        is AST.IntLitExpr    -> { return narrow(TY_FREE_INT, expected) }
+        is AST.StringLitExpr -> { return TY_STRING }
+        is AST.IdentExpr     -> { return infer_ident(e, typed) }
+        is AST.BinaryExpr    -> { return infer_binary(e, null, typed, diags, binary_check_stub) }
+        _                    -> { return TY_UNRESOLVED }
     }
 }
 
@@ -938,9 +938,9 @@ expect_binary :: fn(src: string) -> ExpectedBinary {
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {
-            match last.body {
-                is null               -> {}
-                is AST.BlockExpr as b -> {
+            match last.body as b {
+                is null          -> {}
+                is AST.BlockExpr -> {
                     hit :: find_first_in_block(b, accept_binary)
                     if hit is AST.BinaryExpr {
                         return ExpectedBinary { .typed = result.typed, .bin = hit }

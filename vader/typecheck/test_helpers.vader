@@ -79,11 +79,11 @@ find_first_in_expr :: fn(
             if cond !is null { return cond }
             then :: find_first_in_block(e.then_block, pred)
             if then !is null { return then }
-            match e.else_branch {
-                is null -> { return null }
-                is AST.IfElseBlock as eb -> { return find_first_in_block(eb.block, pred) }
-                is AST.IfElseIf    as ei -> {
-                    inner: AST.Expr: ei.branch
+            match e.else_branch as eb {
+                is null            -> { return null }
+                is AST.IfElseBlock -> { return find_first_in_block(eb.block, pred) }
+                is AST.IfElseIf    -> {
+                    inner: AST.Expr: eb.branch
                     return find_first_in_expr(inner, pred)
                 }
             }

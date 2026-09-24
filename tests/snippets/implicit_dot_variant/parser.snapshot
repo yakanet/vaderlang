@@ -351,8 +351,7 @@
                       "name": "Some",
                       "implicitDot": true
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -397,8 +396,7 @@
                       "name": "None",
                       "implicitDot": true
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -464,8 +462,7 @@
                       "name": "Some",
                       "implicitDot": true
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {
@@ -510,8 +507,7 @@
                       "name": "None",
                       "implicitDot": true
                     },
-                    "inner": null,
-                    "bindAs": null
+                    "inner": null
                   },
                   "guard": null,
                   "body": {

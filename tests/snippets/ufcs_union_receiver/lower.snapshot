@@ -12,9 +12,6 @@
               is Circle! :bool
                 s :Circle | Square
             then:
-              let c: Circle! =
-                cast → Circle!
-                  s :Circle | Square
               ~>
                 block :string
                   let __buf_2: Buffer =
@@ -51,7 +48,8 @@
                         arg2:
                           cast → i64
                             .radius :i32
-                              c :Circle
+                              cast → Circle
+                                s :Circle | Square
                   assign
                     target:
                       __off_3 :usize
@@ -80,9 +78,6 @@
                     is Square! :bool
                       s :Circle | Square
                   then:
-                    let sq: Square! =
-                      cast → Square!
-                        s :Circle | Square
                     ~>
                       block :string
                         let __buf_0: Buffer =
@@ -119,7 +114,8 @@
                               arg2:
                                 cast → i64
                                   .side :i32
-                                    sq :Square
+                                    cast → Square
+                                      s :Circle | Square
                         assign
                           target:
                             __off_1 :usize
@@ -153,19 +149,18 @@
               is Circle! :bool
                 s :Circle | Square
             then:
-              let c: Circle! =
-                cast → Circle!
-                  s :Circle | Square
               ~>
                 mul :i32
                   l:
                     mul :i32
                       l:
                         .radius :i32
-                          c :Circle
+                          cast → Circle
+                            s :Circle | Square
                       r:
                         .radius :i32
-                          c :Circle
+                          cast → Circle
+                            s :Circle | Square
                   r:
                     int(3) :i32
             else:
@@ -175,17 +170,16 @@
                     is Square! :bool
                       s :Circle | Square
                   then:
-                    let sq: Square! =
-                      cast → Square!
-                        s :Circle | Square
                     ~>
                       mul :i32
                         l:
                           .side :i32
-                            sq :Square
+                            cast → Square
+                              s :Circle | Square
                         r:
                           .side :i32
-                            sq :Square
+                            cast → Square
+                              s :Circle | Square
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :i32

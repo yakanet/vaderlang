@@ -599,9 +599,9 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
                 fn_pair     :: existing.kind == .Fn && sym.kind == .Fn
                 import_pair :: existing.kind == .ImportBinding && sym.kind == .ImportBinding
                 if !fn_pair && !import_pair {
-                    span :: match sym.defined_at {
-                        is Span as s -> s
-                        is null      -> zero_span("")
+                    span :: match sym.defined_at as s {
+                        is Span -> s
+                        is null -> zero_span("")
                     }
                     diags.push(resolver_error(.DuplicateNonFnDeclInModule, span,
                         "`${name}` already declared in a sibling file of this module"))

@@ -716,14 +716,14 @@ write_for_form :: fn(sb: StringBuilder!, f: ForForm, level: i32) -> void {
         }
         is InFor -> {
             sb.kind_entry(level + 1, "in")
-            match f.loop_var {
-                is NamedVar as nv -> {
+            match f.loop_var as nv {
+                is NamedVar       -> {
                     sb.entry(false, level + 1, "binding")
                     sb.write_string(nv.name)
                 }
-                is DestructureVar as dv -> {
+                is DestructureVar -> {
                     sb.entry(false, level + 1, "pattern")
-                    sb.write_let_binding(dv.pattern, level + 1)
+                    sb.write_let_binding(nv.pattern, level + 1)
                 }
                 // DiscardVar (`for <range>`) : no binding entry — the iterable is
                 // the range itself.
@@ -885,9 +885,9 @@ write_expr :: fn(sb: StringBuilder!, e: Expr | null, level: i32) -> void {
             sb.entry(false, level + 1, "left")
             sb.write_expr(e.left, level + 1)
             sb.entry(false, level + 1, "fallback")
-            match e.fallback {
-                is ReturnStmt | BreakStmt | ContinueStmt as s -> sb.write_stmt(s, level + 1)
-                is Expr as x -> sb.write_expr(x, level + 1)
+            match e.fallback as s {
+                is ReturnStmt | BreakStmt | ContinueStmt -> sb.write_stmt(s, level + 1)
+                is Expr                                  -> sb.write_expr(s, level + 1)
             }
             sb.close_obj(level)
         }
@@ -1246,13 +1246,6 @@ write_pattern :: fn(sb: StringBuilder!, p: Pattern, level: i32) -> void {
                 is LiteralPattern -> { sb.write_pattern(inner, level + 1) }
                 is RangePattern -> { sb.write_pattern(inner, level + 1) }
                 is OrPattern -> { sb.write_pattern(inner, level + 1) }
-            }
-            sb.entry(false, level + 1, "bindAs")
-            bind_as :: p.bind_as
-
-            match bind_as {
-                is null        -> { sb.write_null() }
-                is string -> { sb.write_string(bind_as) }
             }
             sb.close_obj(level)
         }

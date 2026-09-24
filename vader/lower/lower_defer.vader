@@ -139,11 +139,11 @@ build_defer_capture_fields_map :: fn(captures: Capture[]) -> MutableMap<i32, str
 // Wrap the defer body (single Stmt OR BlockExpr) into a BlockExpr the
 // existing block_lowerer can drive.
 synth_body_block :: fn(defer_stmt: AST.DeferStmt) -> AST.BlockExpr {
-    match defer_stmt.body {
-        is AST.DeferBlockBody as bb -> { return bb.block }
-        is AST.DeferStmtBody  as sb -> {
+    match defer_stmt.body as bb {
+        is AST.DeferBlockBody -> { return bb.block }
+        is AST.DeferStmtBody  -> {
             stmts: AST.Stmt[]!: []
-            stmts.push(sb.stmt)
+            stmts.push(bb.stmt)
             return AST.BlockExpr {
                 .span     = defer_stmt.span,
                 .id       = AST.UNASSIGNED_NODE_ID,

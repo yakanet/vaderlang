@@ -35,8 +35,8 @@ export Formatted :: struct {
 /// @example
 ///   r :: format_source("export x :: 42", "demo.vader")
 ///   match r {
-///       is Formatted    as f -> println(f.output)
-///       is ParseFailure as e -> for d in e.diagnostics { eprintln(d.render()) }
+///       is Formatted    -> println(r.output)
+///       is ParseFailure -> for d in r.diagnostics { eprintln(d.render()) }
 ///   }
 export format_source :: fn(source: string, path: string) -> FormatResult {
     pr :: parse_source(source, path)

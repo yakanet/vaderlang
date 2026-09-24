@@ -35,7 +35,7 @@ fn 0 snippet$inspect (any) -> string
   local.tee 1   ; __scrut_0
   type_check 2   ; i32
   if $L0 void
-    local.get 1   ; __scrut_0
+    local.get 0   ; arg 0
     ref.cast 2   ; -> i32
     i32.const 100
     i32.gt
@@ -58,7 +58,7 @@ fn 0 snippet$inspect (any) -> string
       local.get 1   ; __scrut_0
       type_check 3   ; string
       if $L3 void
-        local.get 1   ; __scrut_0
+        local.get 0   ; arg 0
         ref.cast 3   ; -> string
         local.set 3   ; if_res
       else

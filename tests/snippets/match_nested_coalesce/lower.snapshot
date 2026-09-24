@@ -177,16 +177,12 @@
                   is i32 :bool
                     __scrut_0 :i32
                 r:
-                  block :bool
-                    let v: i32 = __scrut_0 :i32
-                    ~>
-                      gt :bool
-                        l:
-                          v :i32
-                        r:
-                          int(0) :i32
+                  gt :bool
+                    l:
+                      n :i32
+                    r:
+                      int(0) :i32
             then:
-              let v: i32 = __scrut_0 :i32
               ~>
                 int(1) :i32
             else:
@@ -198,16 +194,12 @@
                         is i32 :bool
                           __scrut_0 :i32
                       r:
-                        block :bool
-                          let v: i32 = __scrut_0 :i32
-                          ~>
-                            lt :bool
-                              l:
-                                v :i32
-                              r:
-                                int(0) :i32
+                        lt :bool
+                          l:
+                            n :i32
+                          r:
+                            int(0) :i32
                   then:
-                    let v: i32 = __scrut_0 :i32
                     ~>
                       neg :i32
                         int(1) :i32

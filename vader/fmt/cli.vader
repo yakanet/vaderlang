@@ -51,9 +51,9 @@ collect_files :: fn(root: string, out: string[]!) -> void {
     }
     r :: read_dir(root)
     match r {
-        is IOError -> eprintln("vader fmt: cannot read directory: ${root}")
-        is string[] as entries -> {
-            for name in entries {
+        is IOError  -> eprintln("vader fmt: cannot read directory: ${root}")
+        is string[] -> {
+            for name in r {
                 if name.starts_with(".") { continue }
                 if name == "node_modules" || name == "target" || name == "dist" || name == "build" {
                     continue

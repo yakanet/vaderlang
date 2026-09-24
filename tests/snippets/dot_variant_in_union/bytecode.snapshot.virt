@@ -104,12 +104,15 @@ end
 
 fn 2 snippet$main () -> i32
   local __scrut_0 any
+  local d any
   char.const 78
   call 0   ; snippet$parse
   local.tee 0   ; __scrut_0
+  local.set 1   ; d
+  local.get 0   ; __scrut_0
   type_check 3   ; i32
   if $L0 void
-    local.get 0   ; __scrut_0
+    local.get 1   ; d
     ref.cast 3   ; -> i32
     call 1   ; snippet$dir_label
     call 6   ; std_io$println__string
@@ -126,9 +129,11 @@ fn 2 snippet$main () -> i32
   char.const 63
   call 0   ; snippet$parse
   local.tee 0   ; __scrut_0
+  local.set 1   ; d
+  local.get 0   ; __scrut_0
   type_check 3   ; i32
   if $L2 void
-    local.get 0   ; __scrut_0
+    local.get 1   ; d
     ref.cast 3   ; -> i32
     call 1   ; snippet$dir_label
     call 6   ; std_io$println__string

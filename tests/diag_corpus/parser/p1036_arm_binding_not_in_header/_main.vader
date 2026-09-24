@@ -1,0 +1,12 @@
+module "snippet"
+
+// An arm does not bind: the header does, `match v as s { is string -> s }`, and
+// a scrutinee that is already a name needs no binder at all.
+describe :: fn(v: i32 | string) -> string {
+    return match v {
+        is i32         -> "number"
+        is string as s -> "text"
+    }
+}
+
+main :: fn() -> i32 = if describe(1) == "number" { 0 } else { 1 }
