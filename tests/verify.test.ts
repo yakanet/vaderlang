@@ -95,7 +95,9 @@ test("verify changes nothing about the emitted bytecode", async () => {
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
-});
+  // Two builds in a row, each allowed MEDIUM_BUILD: bun's 5 s default is shorter
+  // than one of them on a loaded 4-core runner.
+}, LONG_BUILD);
 
 // The compiler compiling itself is the broadest IR corpus in the tree — every
 // lowering, every generic flavour. A check that starts reporting sound IR
