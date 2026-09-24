@@ -55,21 +55,10 @@ jobs:
           bun-version: 1.3.13
       - name: Build Vader CLI from the C seed
         run: bash bootstrap/build.sh
-      # Temporary: the runtime's start-up and per-pass profile, same probe on both
-      # runners. tools/ci-probe/probe.ps1.
-      - name: Runtime probe
-        shell: pwsh
-        continue-on-error: true
-        run: pwsh -NoProfile -File tools/ci-probe/probe.ps1 runtime
       - name: Test
         env:
           VADER_TEST_GATE: ${{ inputs.gate }}
-        run: bun run test --only-failures --reporter=junit --reporter-outfile=build/junit.xml
-      - name: Test timings
-        if: always()
-        shell: pwsh
-        continue-on-error: true
-        run: pwsh -NoProfile -File tools/ci-probe/probe.ps1 tests
+        run: bun run test --only-failures
 
   # Real Windows build + test. Faithful (unlike wine) and a regression guard for
   # the Windows-specific surface (CRLF stdio, path separators, the runtime).
@@ -89,21 +78,10 @@ jobs:
       - name: Build Vader CLI from the C seed (Windows)
         shell: pwsh
         run: pwsh bootstrap/build.ps1
-      # Temporary: the runtime's start-up and per-pass profile, same probe on both
-      # runners. tools/ci-probe/probe.ps1.
-      - name: Runtime probe
-        shell: pwsh
-        continue-on-error: true
-        run: pwsh -NoProfile -File tools/ci-probe/probe.ps1 runtime
       - name: Test
         env:
           VADER_TEST_GATE: ${{ inputs.gate }}
-        run: bun run test --only-failures --reporter=junit --reporter-outfile=build/junit.xml
-      - name: Test timings
-        if: always()
-        shell: pwsh
-        continue-on-error: true
-        run: pwsh -NoProfile -File tools/ci-probe/probe.ps1 tests
+        run: bun run test --only-failures
 
   # Fixed-point check: build the toolchain from the committed seed, confirm stage1
   # and stage2 emit identical C for main.vader (release AND debug), and that two
