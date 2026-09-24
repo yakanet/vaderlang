@@ -996,8 +996,8 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
     for j in 0..<count {
         match types[j] as entry {
             is BcStruct -> emit_struct_info_row(ctx, entry, struct_offsets[j], j, out)
-            is BcFn -> out.append("    [${j}] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_${j}_ptrs, 1, 0, NULL, 0, NULL },\n")
-            is BcArray -> out.append("    [${j}] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_${j}_ptrs, 1, 0, NULL, 0, NULL },\n")
+            is BcFn -> out.append("    [${j}] = { .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .ptr_offsets = vader_type_${j}_ptrs, .ptr_count = 1 },\n")
+            is BcArray -> out.append("    [${j}] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_${j}_ptrs, .ptr_count = 1 },\n")
             // primitives / unions / refs leave the slot at its zero-init
     // VADER_TYPE_KIND_NONE. MUST stay `_ -> {}`, not `@partial` — those
             // slots are reachable (e.g. an enum/distinct interning under its
@@ -1103,11 +1103,21 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
     str_count :: offs.str_offsets.len()
     ref_count :: offs.ref_offsets.len()
 
-    ptr_arr :: if ptr_count > 0 { "vader_type_${type_index}_ptrs" } else { "NULL" }
-    str_arr :: if str_count > 0 { "vader_type_${type_index}_strs" } else { "NULL" }
-    ref_arr :: if ref_count > 0 { "vader_type_${type_index}_refs" } else { "NULL" }
-
-    out.append("    [${type_index}] = { VADER_TYPE_KIND_STRUCT, sizeof(${cname}), ${ptr_arr}, ${ptr_count}, ${str_count}, ${str_arr}, ${ref_count}, ${ref_arr} },\n")
+    // Fields are named, so the row does not depend on `vader_type_info_t`'s
+    // field order — the committed seed is compiled against the header of the
+    // tree, and a positional row would shift under any new field. An empty
+    // offset list is left out : it stays zero, which is `NULL` / 0.
+    out.append("    [${type_index}] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(${cname})")
+    if ptr_count > 0 {
+        out.append(", .ptr_offsets = vader_type_${type_index}_ptrs, .ptr_count = ${ptr_count}")
+    }
+    if str_count > 0 {
+        out.append(", .string_offsets = vader_type_${type_index}_strs, .string_count = ${str_count}")
+    }
+    if ref_count > 0 {
+        out.append(", .ref_offsets = vader_type_${type_index}_refs, .ref_count = ${ref_count}")
+    }
+    out.append(" },\n")
 }
 
 /// Shims that route `call.import` to runtime helpers (`vader_*`) or

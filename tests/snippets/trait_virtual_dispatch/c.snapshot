@@ -58,10 +58,10 @@ static const uint16_t vader_type_3_strs[] = { offsetof(vader_struct_snippet_NetE
 static const uint16_t vader_type_8_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [1] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_ParseErr_t), NULL, 0, 1, vader_type_1_strs, 0, NULL },
-    [3] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_NetErr_t), NULL, 0, 1, vader_type_3_strs, 0, NULL },
-    [8] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_8_ptrs, 1, 0, NULL, 0, NULL },
-    [9] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [1] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_ParseErr_t), .string_offsets = vader_type_1_strs, .string_count = 1 },
+    [3] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_NetErr_t), .string_offsets = vader_type_3_strs, .string_count = 1 },
+    [8] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_8_ptrs, .ptr_count = 1 },
+    [9] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t) },
 };
 const size_t vader_type_info_count = 12;
 

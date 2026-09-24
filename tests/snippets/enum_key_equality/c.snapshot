@@ -135,14 +135,14 @@ static const uint16_t vader_type_26_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_27_ptrs[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[28] = {
-    [7] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
-    [16] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_16_ptrs, 1, 0, NULL, 0, NULL },
-    [21] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__Any__i32_t), NULL, 0, 0, NULL, 3, vader_type_21_refs },
-    [22] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__HttpStatus__string_t), NULL, 0, 0, NULL, 3, vader_type_22_refs },
-    [24] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__Color__i32_t), NULL, 0, 0, NULL, 3, vader_type_24_refs },
-    [25] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_25_ptrs, 1, 0, NULL, 0, NULL },
-    [26] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_26_ptrs, 1, 0, NULL, 0, NULL },
-    [27] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_27_ptrs, 1, 0, NULL, 0, NULL },
+    [7] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t) },
+    [16] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_16_ptrs, .ptr_count = 1 },
+    [21] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__Any__i32_t), .ref_offsets = vader_type_21_refs, .ref_count = 3 },
+    [22] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__HttpStatus__string_t), .ref_offsets = vader_type_22_refs, .ref_count = 3 },
+    [24] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__Color__i32_t), .ref_offsets = vader_type_24_refs, .ref_count = 3 },
+    [25] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_25_ptrs, .ptr_count = 1 },
+    [26] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_26_ptrs, .ptr_count = 1 },
+    [27] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_27_ptrs, .ptr_count = 1 },
 };
 const size_t vader_type_info_count = 28;
 

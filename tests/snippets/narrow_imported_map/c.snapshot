@@ -86,14 +86,14 @@ static const uint16_t vader_type_15_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_16_refs[] = { offsetof(vader_struct_snippet_lib_Wrap_t, f_items) };
 
 const vader_type_info_t vader_type_info_table[20] = {
-    [5] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
-    [8] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_8_ptrs, 1, 0, NULL, 0, NULL },
-    [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__Any_t), NULL, 0, 0, NULL, 3, vader_type_11_refs },
-    [13] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t), NULL, 0, 0, NULL, 3, vader_type_13_refs },
-    [14] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_14_ptrs, 1, 0, NULL, 0, NULL },
-    [15] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_15_ptrs, 1, 0, NULL, 0, NULL },
-    [16] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_lib_Wrap_t), NULL, 0, 0, NULL, 1, vader_type_16_refs },
-    [17] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_lib_Out_t), NULL, 0, 0, NULL, 0, NULL },
+    [5] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t) },
+    [8] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_8_ptrs, .ptr_count = 1 },
+    [11] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__i32__Any_t), .ref_offsets = vader_type_11_refs, .ref_count = 3 },
+    [13] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t), .ref_offsets = vader_type_13_refs, .ref_count = 3 },
+    [14] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_14_ptrs, .ptr_count = 1 },
+    [15] = { .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .ptr_offsets = vader_type_15_ptrs, .ptr_count = 1 },
+    [16] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_lib_Wrap_t), .ref_offsets = vader_type_16_refs, .ref_count = 1 },
+    [17] = { .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_lib_Out_t) },
 };
 const size_t vader_type_info_count = 20;
 
