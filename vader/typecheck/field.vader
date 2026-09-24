@@ -376,7 +376,9 @@ try_union_common_field_dispatch :: fn(
     return union_common_field(target_ty, e.field, typed, diags)
 }
 
-// `Direction.North` — variant access on the enum type itself.
+// A field access on an enum-typed receiver : `Direction.North` on the enum type
+// is a variant, `v.code` on a value is a field of its variant data (T3009 when
+// there is none).
 try_enum_variant_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
@@ -387,12 +389,29 @@ try_enum_variant_dispatch :: fn(
     if target_ty !is EnumType {
         return null
     }
-    idx :: target_ty.indices[e.field]
-    if idx is null {
+    // A variant is looked up on the enum TYPE only ; on a value, `v.x` is a
+    // field of its variant data or nothing.
+    if !names_enum_type(e.target, typed) {
         data_field :: enum_data_field(target_ty, e, typed, diags)
         if data_field != null {
             return data_field
         }
+        hint :: if target_ty.indices[e.field] != null {
+            " — a variant is named on the enum type"
+        } else {
+            ""
+        }
+        diags.push(
+            typecheck_error(
+                .FieldDoesNotExist,
+                e.field_span,
+                "`${e.field}` on ${display_type(target_ty)}${hint}",
+            ),
+        )
+        return TY_UNRESOLVED
+    }
+    idx :: target_ty.indices[e.field]
+    if idx is null {
         diags.push(
             typecheck_error(
                 .UnknownEnumVariant,
@@ -414,28 +433,45 @@ try_enum_variant_dispatch :: fn(
 }
 
 // `v.field` on an enum VALUE whose header declares variant data : the type of
-// that field of the data struct. Null when the enum carries no data, when the
-// target names the enum type itself (`Enum.x` asks for a variant), or when the
+// that field of the data struct. Null when the enum carries no data or when the
 // struct has no such field.
 enum_data_field :: fn(target_ty: EnumType, e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[]!) -> Type | null {
     data :: target_ty.data ?? return null
-    if names_symbol_of_kind(e.target, .Enum, typed) {
-        return null
-    }
     found :: declared_struct_field_type(data, e.field, typed) ?? return null
     decl :: typed.struct_decls[data.symbol.id] ?? return null
     check_internal_field(data, decl, e.field, e.field_span, typed, diags)
     return found
 }
 
+/// Whether `target` names an enum-typed TYPE rather than a value of it — the
+/// receiver `Enum.Variant` needs : a name bound to a type, including through an
+/// import, or a namespace member `alias.Enum`.
+///
+/// @param target  the receiver of a field access whose type is an enum.
+/// @param typed   the module's typed program, for the name's symbol.
+export names_enum_type :: fn(target: AST.Expr, typed: TypedProgram) -> bool {
+    if target is AST.FieldExpr {
+        return namespace_base_mod_id(target.target, typed) != null
+    }
+    sym :: bare_name_symbol(target, typed) ?? return false
+    return is_type_kind(sym.kind)
+}
+
+// The declaration a bare name is bound to, followed through an import ; null
+// for any other expression.
+bare_name_symbol :: fn(target: AST.Expr, typed: TypedProgram) -> Symbol | null {
+    if target !is AST.IdentExpr {
+        return null
+    }
+    sym :: typed.resolved.idents[target.span.hash()] ?? return null
+    return redirect_import_typed(sym, typed)
+}
+
 /// Whether `target` is a bare name bound to a declaration of `kind`, through
 /// an import (`{ Info as I }`) included.
 export names_symbol_of_kind :: fn(target: AST.Expr, kind: SymbolKind, typed: TypedProgram) -> bool {
-    if target is AST.IdentExpr {
-        sym :: typed.resolved.idents[target.span.hash()] ?? return false
-        return redirect_import_typed(sym, typed).kind == kind
-    }
-    return false
+    sym :: bare_name_symbol(target, typed) ?? return false
+    return sym.kind == kind
 }
 
 // True when `name` has UFCS free-fn candidates visible in `file` (declared by

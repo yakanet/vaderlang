@@ -1,0 +1,11 @@
+// `c` is a `Color` VALUE, not the enum : a variant is named on the enum type,
+// so `c.Red` is a field read, and `Color` has no fields — T3009.
+module "snippet"
+
+Color :: enum { Red, Green }
+
+main :: fn() -> i32 {
+    c :: Color.Green
+    x :: c.Red
+    return i32(x)
+}

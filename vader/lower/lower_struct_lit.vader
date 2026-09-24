@@ -135,50 +135,31 @@ lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> Lo
     }
 }
 
-// `Enum.Variant` field access on the type-name ident — detect when the
-// FieldExpr's target is an IdentExpr resolving to an enum symbol +
-// the field name matches a variant. Returns null when either check
-// fails ; caller falls back to a regular field-access lowering.
+// A field access on an enum-typed receiver : `Enum.Variant` (the receiver names
+// the enum, see `names_enum_type`) folds to the variant's integer, and
+// `v.field` on a value of an enum with variant data reads its table slot.
+// Null for anything else ; the caller falls back to a regular field access.
 try_lower_enum_field :: fn(ctx: FnLowerCtx!, expr: FieldExpr, type: Type) -> LoweredExpr | null {
-    // Fold only when the target's type is an enum AND the target syntactically
-    // NAMES that enum (not a runtime enum-valued expression) : a bare ident
-    // (`Enum.Variant`) or a namespace member (`alias.Enum.Variant`, the receiver
-    // an `ImportBinding`). The type check runs first so a plain `struct.field`
-    // access bails before the (slightly costlier) syntactic gate — and the gate
-    // keeps `value.enumField.Variant` (an enum-VALUED field) on the field path.
-    target_type :: ctx.types.expr_type(expr.target)
-    enum_type :: enum_type_or_unwrap(ctx, target_type)
-    if enum_type is EnumType {
-        index :: enum_type.indices[expr.field]
-        if index == null && enum_type.data != null {
-            slot :: lower_enum_data_slot(ctx, lower_expr(ctx, expr.target), enum_type, expr.span)
-            return LoweredFieldAccess { .span = expr.span, .type = type, .target = slot, .field = expr.field }
-        }
-        if !target_is_enum_name(ctx, expr.target) { return null }
-        if index is i64 {
-            return LoweredIntLit {
-                .span = expr.span, .type = mk_primitive(enum_type.repr), .value = index,
-            }
+    enum_type :: enum_type_or_unwrap(ctx, ctx.types.expr_type(expr.target))
+    if enum_type !is EnumType {
+        return null
+    }
+    // Without variant data the typecheck only lets a receiver naming the enum
+    // through, so the name check is needed only when a value could read data.
+    if enum_type.data != null && !names_enum_type(expr.target, ctx.typed) {
+        slot :: lower_enum_data_slot(ctx, lower_expr(ctx, expr.target), enum_type, expr.span)
+        return LoweredFieldAccess {
+            .span = expr.span, .type = type, .target = slot, .field = expr.field,
         }
     }
-    return null
-}
-
-// True when `target` syntactically names an enum TYPE (not a runtime value) :
-// a bare ident (`Enum`) or a namespace member (`alias.Enum`, the receiver
-// resolving to an `ImportBinding`). Guards `try_lower_enum_field` so it only
-// folds variant accesses, never a real field read off an enum-typed value.
-target_is_enum_name :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
-    if target is IdentExpr { return true }
-    if target is FieldExpr { return !(as_namespace_binding(ctx, target.target) is null) }
-    return false
+    index :: enum_type.indices[expr.field] ?? return null
+    return LoweredIntLit { .span = expr.span, .type = mk_primitive(enum_type.repr), .value = index }
 }
 
 // Resolve `expr` to its namespace import-binding symbol when it is the bare
 // alias ident of a `<alias>.<member>` access (kind `ImportBinding`) ; null
-// otherwise. Shared by `try_lower_namespace_call` (member calls, passing the
-// callee's `field_expr.target`) and `try_lower_enum_field` (namespace-qualified
-// enum variants, passing the enum FieldExpr's receiver).
+// otherwise. Shared by the namespace member lowerings (calls, reads), each
+// passing the receiver of the member access.
 as_namespace_binding :: fn(ctx: FnLowerCtx, expr: Expr) -> Symbol | null {
     ident :: as_ident(expr) ?? return null
     sym :: ctx.typed.resolved.idents[ident.span.hash()] ?? return null

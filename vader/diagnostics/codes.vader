@@ -48,17 +48,16 @@ export LexerCode :: enum(CodeInfo) {
 // Typecheck-pass codes. New codes are appended ; retired IDs may be reused —
 // see the file header for the condition.
 export TypecheckCode :: enum(CodeInfo) {
-    TypeMismatch       { .id = "T3001", .message = "type mismatch" },
-    ExpectedKnownType  { .id = "T3002", .message = "expected an expression of a known type" },
-    WrongArgCount      { .id = "T3003", .message = "wrong number of arguments" },
-    UnknownNamedArg    { .id = "T3004", .message = "unknown named argument" },
-    MissingRequiredArg { .id = "T3005", .message = "missing required argument" },
-    TraitNotSatisfied  { .id = "T3006", .message = "trait not satisfied" },
-    NotCallable        { .id = "T3007", .message = "expression is not callable" },
-    NotIndexable       { .id = "T3008", .message = "expression is not indexable" },
-    FieldDoesNotExist  { .id = "T3009", .message = "field does not exist on this type" },
-    InvalidCast        { .id = "T3010", .message = "invalid cast" },
-    // T3011 / T3012 (try-operator diagnostics) retired with the `?` operator.
+    TypeMismatch                    { .id = "T3001", .message = "type mismatch" },
+    ExpectedKnownType               { .id = "T3002", .message = "expected an expression of a known type" },
+    WrongArgCount                   { .id = "T3003", .message = "wrong number of arguments" },
+    UnknownNamedArg                 { .id = "T3004", .message = "unknown named argument" },
+    MissingRequiredArg              { .id = "T3005", .message = "missing required argument" },
+    TraitNotSatisfied               { .id = "T3006", .message = "trait not satisfied" },
+    NotCallable                     { .id = "T3007", .message = "expression is not callable" },
+    NotIndexable                    { .id = "T3008", .message = "expression is not indexable" },
+    FieldDoesNotExist               { .id = "T3009", .message = "field does not exist on this type" },
+    InvalidCast                     { .id = "T3010", .message = "invalid cast" },
     NonExhaustiveMatch              { .id = "T3013", .message = "non-exhaustive match" },
     UnreachableMatchArm             { .id = "T3014", .message = "unreachable match arm" },
     BreakContinueOutsideLoop        { .id = "T3015", .message = "`break` / `continue` only allowed inside a loop" },
@@ -97,18 +96,14 @@ export TypecheckCode :: enum(CodeInfo) {
     CharLiteralOutOfRange           { .id = "T3055", .message = "character literal's codepoint does not fit the target integer type" },
     OperatorTraitNotImplemented     { .id = "T3043", .message = "operand type does not implement the trait this operator requires" },
     GeneratorReturnMustBeIterator   { .id = "T3056", .message = "a function that `yield`s must return `Iterator<T>`" },
-    // T3057 (GeneratorMissingYield) retired : generator-ness is inferred from a
-    // body `yield`, so a yield-less fn is simply not a generator (free to reuse).
-    IntegerLiteralOutOfRange   { .id = "T3066", .message = "integer literal does not fit the target integer type" },
-    ReturnValueInGenerator     { .id = "T3058", .message = "a generator produces values via `yield`; `return` with a value is not allowed (use a bare `return` to stop)" },
-    YieldOutsideGenerator      { .id = "T3059", .message = "`yield` is only allowed directly inside a generator's own body, not in a nested lambda" },
-    DeferInGenerator           { .id = "T3060", .message = "`defer` is not yet supported inside a generator" },
-    GeneratorYieldIncompatible { .id = "T3061", .message = "yielded value type does not match the generator's element type" },
-    BodylessFnMustBeIntrinsic  { .id = "T3062", .message = "a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol)" },
-    AssignTypeMismatch         { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" },
-    AwaitOutsideAsync          { .id = "T3064", .message = "`await` is not allowed inside a nested lambda (a lambda cannot be an async coroutine)" },
-    // T3065 (defer in async coroutine) retired : defer now runs at coroutine
-    // completion via the per-frame `__defers` stack (see `lower_coroutine`).
+    IntegerLiteralOutOfRange        { .id = "T3066", .message = "integer literal does not fit the target integer type" },
+    ReturnValueInGenerator          { .id = "T3058", .message = "a generator produces values via `yield`; `return` with a value is not allowed (use a bare `return` to stop)" },
+    YieldOutsideGenerator           { .id = "T3059", .message = "`yield` is only allowed directly inside a generator's own body, not in a nested lambda" },
+    DeferInGenerator                { .id = "T3060", .message = "`defer` is not yet supported inside a generator" },
+    GeneratorYieldIncompatible      { .id = "T3061", .message = "yielded value type does not match the generator's element type" },
+    BodylessFnMustBeIntrinsic       { .id = "T3062", .message = "a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol)" },
+    AssignTypeMismatch              { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" },
+    AwaitOutsideAsync               { .id = "T3064", .message = "`await` is not allowed inside a nested lambda (a lambda cannot be an async coroutine)" },
     LoopTargetNotLoopVariable       { .id = "T3067", .message = "`break` / `continue` target must be an enclosing loop's iteration variable or label" },
     NullCoalesceOnNonOptional       { .id = "T3068", .message = "`??` left operand is never null — the fallback is unreachable" },
     TypeArgumentNotInferable        { .id = "T3069", .message = "cannot infer type argument — nothing at this call site binds the type parameter" },
@@ -122,15 +117,13 @@ export TypecheckCode :: enum(CodeInfo) {
     ImmutableValueIntoMutableSlot   { .id = "T3077", .message = "a read-only value cannot fill a slot that promises mutation" },
     MethodOnlyBehindNamespaceAlias  { .id = "T3078", .message = "this free function is only in scope through its namespace alias" },
     InvalidParameterDecorator       { .id = "T3079", .message = "decorator not allowed on this parameter" },
-    // T3080 was `CSizeMissesTarget` until `@c_size` left the language; reused
-    // here rather than carrying a hole, per §12.
-    CallbackNotDirectFn          { .id = "T3080", .message = "callback argument must name a function directly" },
-    CannotDestructure            { .id = "T3081", .message = "value cannot be destructured into this many elements" },
-    InvalidAssignTarget          { .id = "T3082", .message = "not an assignment target" },
-    BodyFallsOffEnd              { .id = "T3083", .message = "not every path through the body returns a value" },
-    EnumDataNotStruct            { .id = "T3084", .message = "enum variant data must be a struct" },
-    VariantDataWithoutEnumData   { .id = "T3085", .message = "variant data on an enum whose header declares none" },
-    EnumDataValuesNotConsecutive { .id = "T3086", .message = "enum variant data needs consecutive values" },
+    CallbackNotDirectFn             { .id = "T3080", .message = "callback argument must name a function directly" },
+    CannotDestructure               { .id = "T3081", .message = "value cannot be destructured into this many elements" },
+    InvalidAssignTarget             { .id = "T3082", .message = "not an assignment target" },
+    BodyFallsOffEnd                 { .id = "T3083", .message = "not every path through the body returns a value" },
+    EnumDataNotStruct               { .id = "T3084", .message = "enum variant data must be a struct" },
+    VariantDataWithoutEnumData      { .id = "T3085", .message = "variant data on an enum whose header declares none" },
+    EnumDataValuesNotConsecutive    { .id = "T3086", .message = "enum variant data needs consecutive values" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -166,36 +159,33 @@ export ParserCode :: enum(CodeInfo) {
     MutabilityMarkerOnName            { .id = "P1031", .message = "`!` belongs on the type, not the parameter name" },
     DecoratorArgumentCount            { .id = "P1032", .message = "wrong number of decorator arguments" },
     DecoratorArgumentForm             { .id = "P1033", .message = "decorator argument has the wrong form" },
-    // P1034 (DecoratorArgumentValue) retired : its only site bounded
-    // `@c_size`'s width, and `@c_size` is gone from the language.
-    CompoundAssignToPattern { .id = "P1035", .message = "compound assignment needs a single target" },
-    ArmBindingNotInHeader   { .id = "P1036", .message = "a match arm cannot bind with `as`" },
-    PatternBindsName        { .id = "P1037", .message = "a match pattern cannot bind a name" },
+    CompoundAssignToPattern           { .id = "P1035", .message = "compound assignment needs a single target" },
+    ArmBindingNotInHeader             { .id = "P1036", .message = "a match arm cannot bind with `as`" },
+    PatternBindsName                  { .id = "P1037", .message = "a match pattern cannot bind a name" },
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,
 // never re-used.
 export ResolverCode :: enum(CodeInfo) {
-    ModuleNotFound            { .id = "R2001", .message = "module not found" },
-    EmptyImportPath           { .id = "R2002", .message = "import path is empty" },
-    ImportedNameNotExported   { .id = "R2003", .message = "imported name not exported by module" },
-    DuplicateTopLevelSymbol   { .id = "R2004", .message = "duplicate top-level symbol in module" },
-    ImportCycle               { .id = "R2005", .message = "import cycle detected" },
-    UnresolvedIdent           { .id = "R2006", .message = "unresolved identifier" },
-    UnresolvedTypeName        { .id = "R2007", .message = "unresolved type name" },
-    SymbolNotExported         { .id = "R2008", .message = "symbol is not exported from its module" },
-    TraitNameNotATrait        { .id = "R2009", .message = "trait name does not refer to a trait" },
-    UnknownDecorator          { .id = "R2010", .message = "decorator unknown to the compiler" },
-    DuplicateImportBinding    { .id = "R2011", .message = "duplicate import binding" },
-    ImportShadowsBuiltin      { .id = "R2012", .message = "imported symbol shadows a builtin" },
-    SelfOutsideFirstParam     { .id = "R2013", .message = "self only valid as the first parameter of a method" },
-    ManifestMalformed         { .id = "R2014", .message = "vader.json malformed or unreadable" },
-    ModuleFolderEmpty         { .id = "R2015", .message = "module folder is empty (no .vader files)" },
-    ShortImplFormSingleMethod { .id = "R2016", .message = "short impl form requires a trait with exactly one method" },
-    FeatureNotYetImplemented  { .id = "R2017", .message = "feature not yet implemented" },
-    OrphanImplForbidden       { .id = "R2018", .message = "orphan impl forbidden" },
-    ReservedName              { .id = "R2019", .message = "`void` is reserved and cannot be used as an identifier" },
-    // Module-system strict-mode codes.
+    ModuleNotFound               { .id = "R2001", .message = "module not found" },
+    EmptyImportPath              { .id = "R2002", .message = "import path is empty" },
+    ImportedNameNotExported      { .id = "R2003", .message = "imported name not exported by module" },
+    DuplicateTopLevelSymbol      { .id = "R2004", .message = "duplicate top-level symbol in module" },
+    ImportCycle                  { .id = "R2005", .message = "import cycle detected" },
+    UnresolvedIdent              { .id = "R2006", .message = "unresolved identifier" },
+    UnresolvedTypeName           { .id = "R2007", .message = "unresolved type name" },
+    SymbolNotExported            { .id = "R2008", .message = "symbol is not exported from its module" },
+    TraitNameNotATrait           { .id = "R2009", .message = "trait name does not refer to a trait" },
+    UnknownDecorator             { .id = "R2010", .message = "decorator unknown to the compiler" },
+    DuplicateImportBinding       { .id = "R2011", .message = "duplicate import binding" },
+    ImportShadowsBuiltin         { .id = "R2012", .message = "imported symbol shadows a builtin" },
+    SelfOutsideFirstParam        { .id = "R2013", .message = "self only valid as the first parameter of a method" },
+    ManifestMalformed            { .id = "R2014", .message = "vader.json malformed or unreadable" },
+    ModuleFolderEmpty            { .id = "R2015", .message = "module folder is empty (no .vader files)" },
+    ShortImplFormSingleMethod    { .id = "R2016", .message = "short impl form requires a trait with exactly one method" },
+    FeatureNotYetImplemented     { .id = "R2017", .message = "feature not yet implemented" },
+    OrphanImplForbidden          { .id = "R2018", .message = "orphan impl forbidden" },
+    ReservedName                 { .id = "R2019", .message = "`void` is reserved and cannot be used as an identifier" },
     ModuleDeclMissing            { .id = "R2020", .message = "module declaration missing on first non-trivial line" },
     DuplicateModuleDecl          { .id = "R2021", .message = "more than one module declaration in the same file" },
     MixedModuleNamesInFolder     { .id = "R2022", .message = "files in the same folder declare different module names" },
@@ -251,37 +241,17 @@ export LowerCode :: enum(CodeInfo) {
     IntoCoercionFailed       { .id = "M5004", .message = "`Into` coercion cannot be lowered" },
     IntrinsicUnsupported     { .id = "M5005", .message = "intrinsic not implemented by the lowerer" },
     SelfReceiverMissing      { .id = "M5006", .message = "method call lacks a resolvable `self` receiver" },
-    // M5007 was the generator half of a closure-capture pair, retired when
-    // captured locals started surviving suspension as heap cells. Reused here.
-    //
-    // It has NO fixture under `tests/diag_corpus/`, deliberately: it cannot be
-    // provoked from source. Every way a program can name something unknown is
-    // R2006, and this fires only when a name the resolver ACCEPTED is missing
-    // from the table the lowerer reads — a compiler self-check. It exists
-    // because the alternative was silence: the miss lowers to
-    // `LoweredUnreachable`, which makes `midir` replace the entry block, so the
-    // surrounding code vanished with nothing to read.
-    UnresolvedIdent { .id = "M5007", .message = "identifier did not resolve at lowering" },
-    // M5008 (async closure-capture) retired for the same reason as M5007's
-    // former meaning ; not reused.
+    UnresolvedIdent          { .id = "M5007", .message = "identifier did not resolve at lowering" },
     AwaitInShortCircuit      { .id = "M5009", .message = "`await` in a short-circuit operand or loop condition is not yet supported" },
     ComptimeForNotUnrollable { .id = "M5010", .message = "`@comptime for` cannot be unrolled" },
-    // M5011 (EnumVariantDataNotLowered) retired : variant data now lowers. Free to reuse.
 }
 
 // `WARNING` — non-fatal diagnostics. New entries appended ; retired IDs are free
 // to reuse — see the file header for the condition.
 export WarningCode :: enum(CodeInfo) {
-    UseOfDeprecated { .id = "W0001", .message = "use of deprecated declaration" },
-    UnreachableCode { .id = "W0002", .message = "unreachable code" },
-    // W0003 (IsAgainstUnion) retired : `is <union>` became a valid membership
-    // test once or-patterns made `emit_type_check` union-aware ; the genuine
-    // disjoint-type case is still caught by T3040 (`check_is_overlap`).
-    // W0004 (AmbiguousLoopJump) retired : a bare `break`/`continue` targets the
-    // innermost loop (blessed) ; reader clarity is served by the LSP go-to-loop, not
-    // a lint. Non-innermost jumps name their target (`break <var>` / `<label>`).
-    WildcardOnClosedUnion { .id = "W0005", .message = "wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`" },
-    // W0006 (unused-import) never shipped — see typecheck/dead_code.vader.
+    UseOfDeprecated             { .id = "W0001", .message = "use of deprecated declaration" },
+    UnreachableCode             { .id = "W0002", .message = "unreachable code" },
+    WildcardOnClosedUnion       { .id = "W0005", .message = "wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`" },
     DeadCode                    { .id = "W0007", .message = "declaration is never used in its module" },
     LocalShadowsOuter           { .id = "W0008", .message = "local binding shadows an outer local or parameter of the same name" },
     LocalRedeclaration          { .id = "W0009", .message = "redeclaration of a name already bound in this block" },
@@ -289,12 +259,9 @@ export WarningCode :: enum(CodeInfo) {
     EmptyImportModifierList     { .id = "W0011", .message = "empty modifier list on an import — `import \"p\" {}` is just a wildcard, write `import \"p\"`" },
     UnusedExport                { .id = "W0012", .message = "exported function is never reached from the project's roots" },
     SharedRepeatElement         { .id = "W0013", .message = "`[v] * n` repeats one reference — every slot shares this freshly allocated element" },
-    // W0014 reuses the id `ImplicitImmutableParam` held while the
-    // immutable-by-default rollout was staged; those writes are T3070 / T3071 /
-    // T3072 outright now.
-    UnreachableMatchArm    { .id = "W0014", .message = "match arm can never be taken — an earlier arm already covers it" },
-    MutableNeverReassigned { .id = "W0015", .message = "local is declared mutable but never reassigned — declare it with `::`" },
-    NeedlessEnumTypePrefix { .id = "W0016", .message = "the enum name adds nothing here — the slot already pins it, so the bare variant reads the same" },
+    UnreachableMatchArm         { .id = "W0014", .message = "match arm can never be taken — an earlier arm already covers it" },
+    MutableNeverReassigned      { .id = "W0015", .message = "local is declared mutable but never reassigned — declare it with `::`" },
+    NeedlessEnumTypePrefix      { .id = "W0016", .message = "the enum name adds nothing here — the slot already pins it, so the bare variant reads the same" },
 }
 
 /// `H6xxx` — the build driver (`build.vader`) and the hooks it registers.
@@ -322,17 +289,13 @@ export HookCode :: enum(CodeInfo) {
 /// `diag_corpus` harness provokes a diagnostic by compiling a source file,
 /// and no source file reaches these. `tests/verify.test.ts` pins them.
 export InternalCode :: enum(CodeInfo) {
-    StrayCoroutineMarker  { .id = "I7001", .message = "a transient coroutine marker survived lowering" },
-    UnresolvedFnReference { .id = "I7002", .message = "function reference resolves to no emitted function" },
-    // RESERVED, not dead: the field check behind `midir/emit.vader:1190`
-    // needs `intern_type`, which exists only at emit time.
-    FieldNotAMember       { .id = "I7003", .message = "field access names no member of its receiver" },
-    BlockIdOutOfRange     { .id = "I7004", .message = "terminator names a block outside the function" },
-    LocalIdOutOfRange     { .id = "I7005", .message = "instruction names a local outside the function" },
-    LocalReadNeverWritten { .id = "I7006", .message = "local is read but never written" },
-    EntryBlockNotZero     { .id = "I7008", .message = "entry block is not block 0" },
-    // RESERVED, not dead: the data-pool check behind `midir/build.vader:255`
-    // needs `is_bakeable`, whose second copy would be the drift it reports.
+    StrayCoroutineMarker     { .id = "I7001", .message = "a transient coroutine marker survived lowering" },
+    UnresolvedFnReference    { .id = "I7002", .message = "function reference resolves to no emitted function" },
+    FieldNotAMember          { .id = "I7003", .message = "field access names no member of its receiver" },
+    BlockIdOutOfRange        { .id = "I7004", .message = "terminator names a block outside the function" },
+    LocalIdOutOfRange        { .id = "I7005", .message = "instruction names a local outside the function" },
+    LocalReadNeverWritten    { .id = "I7006", .message = "local is read but never written" },
+    EntryBlockNotZero        { .id = "I7008", .message = "entry block is not block 0" },
     NonPrimitiveDataPoolLeaf { .id = "I7009", .message = "pooled constant holds a non-primitive leaf" },
     ReturnArityMismatch      { .id = "I7010", .message = "a return hands back a different number of values than the function declares" },
 }
