@@ -107,6 +107,13 @@ jobs:
         shell: pwsh
         continue-on-error: true
         run: pwsh -NoProfile -File tools/ci-probe/probe.ps1 tests
+      # Temporary: rebuild with the image's LLVM targeting MinGW, on this same
+      # machine, to compare against the gcc build above. tools/ci-probe/clang.ps1.
+      - name: Clang build probe
+        if: always()
+        shell: pwsh
+        continue-on-error: true
+        run: pwsh -NoProfile -File tools/ci-probe/clang.ps1
 
   # Fixed-point check: build the toolchain from the committed seed, confirm stage1
   # and stage2 emit identical C for main.vader (release AND debug), and that two
