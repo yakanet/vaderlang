@@ -1,0 +1,264 @@
+// vader/c_emit/c_print — writes a statement tree (`c_ast.vader`) as C text.
+//
+// Every layout decision lives here : indentation (4 spaces per level), braces,
+// `else if` chains, `end_N: ;` labels, `#line` directives at column 0, and the
+// spelling of a return around the GC frame restore.
+
+module "vader/c_emit"
+
+import "std/string_builder"
+
+/// Write `block`'s statements, one per line, `depth` levels deep.
+///
+/// @param out    receives the text.
+/// @param block  the statements to write.
+/// @param depth  the indentation level of `block`'s own lines.
+print_block :: fn(out: StringBuilder!, block: CBlock, depth: i32) -> void =
+    print_statements(out, block.body, 0, block.body.len(), depth)
+
+// `statements[from..<to]`, `depth` levels deep.
+print_statements :: fn(out: StringBuilder!, statements: CStmt[], from: usize, to: usize, depth: i32) -> void {
+    for k in from..<to {
+        statement :: statements[k]
+        match statement {
+            is CLine      -> print_line(out, statement.text, depth)
+            is CDirective -> print_directive(out, statement.text)
+            is CIf        -> print_if(out, statement, depth)
+            is CReturn    -> print_return(out, statement, depth)
+            is CScope     -> {
+                print_line(out, statement.head, depth)
+                print_block(out, statement.body, depth + 1)
+                print_closer(out, statement.end_label, depth)
+            }
+        }
+    }
+}
+
+print_if :: fn(out: StringBuilder!, node: CIf, depth: i32) -> void {
+    print_line(out, "if (${node.condition}) {", depth)
+    print_block(out, node.then_block, depth + 1)
+    print_else_chain(out, node, node.end_label, depth)
+}
+
+// `node`'s `else` arm, then the closing brace carrying `label`. An arm holding
+// a single `if` — `#line` directives aside — continues the chain as
+// `} else if`, the two closing braces merging into one ; so they may not both
+// carry a label. A directive leading an arm is written above the `} else` line,
+// next to the condition it describes ; one trailing it, below the shared
+// closing brace, innermost arm first.
+print_else_chain :: fn(out: StringBuilder!, node: CIf, label: string, depth: i32) -> void {
+    arm :: node.else_block
+    if arm == null {
+        print_closer(out, label, depth)
+        return
+    }
+    body :: arm.body
+    start :: leading_directives(body)
+    end :: body.len() - trailing_directives(body, start)
+    print_statements(out, body, 0, start, depth)
+    inner :: if end == start + 1 { body[start] } else { null }
+    if inner is CIf && (label == "" || inner.end_label == "") {
+        print_line(out, "} else if (${inner.condition}) {", depth)
+        print_block(out, inner.then_block, depth + 1)
+        print_else_chain(out, inner, if label != "" { label } else { inner.end_label }, depth)
+        print_statements(out, body, end, body.len(), depth)
+        return
+    }
+    print_line(out, "} else {", depth)
+    print_statements(out, body, start, body.len(), depth + 1)
+    print_closer(out, label, depth)
+}
+
+/// The statement that restores the caller's GC frame.
+FRAME_RESTORE :: "vader_gc_top = gc_frame.prev;"
+
+// A return on one line : bare, or braced around the frame restore — every value
+// is read before `vader_gc_top` moves, through the `__vret` snapshot when the
+// value may read a frame-pinned local.
+print_return :: fn(out: StringBuilder!, node: CReturn, depth: i32) -> void {
+    out.append_repeated(' ', depth * 4)
+    if node.pops_frame {
+        out.append("{ ")
+    }
+    for store in node.stores {
+        out.append(store)
+        out.append("; ")
+    }
+    result := node.value
+    if node.pops_frame {
+        if node.snapshot_type != "" {
+            out.append(node.snapshot_type)
+            out.append(" __vret = ")
+            out.append(node.value)
+            out.append("; ")
+            result = "__vret"
+        }
+        out.append(FRAME_RESTORE)
+        out.append(" ")
+    }
+    if result == "" {
+        out.append("return;")
+    } else {
+        out.append("return ")
+        out.append(result)
+        out.append(";")
+    }
+    out.append(if node.pops_frame { " }\n" } else { "\n" })
+}
+
+print_line :: fn(out: StringBuilder!, text: string, depth: i32) -> void {
+    out.append_repeated(' ', depth * 4)
+    out.append(text)
+    out.append("\n")
+}
+
+print_directive :: fn(out: StringBuilder!, text: string) -> void {
+    out.append(text)
+    out.append("\n")
+}
+
+print_closer :: fn(out: StringBuilder!, label: string, depth: i32) -> void =
+    print_line(out, if label == "" { "}" } else { "} ${label}" }, depth)
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+import "std/testing"
+
+@test
+test_print_block_indents_an_if :: fn() -> void {
+    root :: CBlock {
+        .body = [
+            CIf { .condition = "a", .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] } },
+        ],
+    }
+    out :: StringBuilder {}
+    print_block(out, root, 1)
+    assert_eq(out.to_string(), "    if (a) {\n        x = 1;\n    }\n")
+}
+
+@test
+test_print_block_folds_an_else_if_chain :: fn() -> void {
+    innermost :: CIf { .condition = "c", .then_block = CBlock { .body = [CLine { .text = "x = 3;" }] } }
+    inner :: CIf {
+        .condition  = "b",
+        .then_block = CBlock { .body = [CLine { .text = "x = 2;" }] },
+        .else_block = CBlock { .body = [innermost] },
+    }
+    root :: CBlock {
+        .body = [
+            CIf {
+                .condition  = "a",
+                .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] },
+                .else_block = CBlock { .body = [CDirective { .text = "#line 4 \"f.vader\"" }, inner] },
+            },
+        ],
+    }
+    out :: StringBuilder {}
+    print_block(out, root, 1)
+    assert_eq(out.to_string(), [
+        "    if (a) {",
+        "        x = 1;",
+        "#line 4 \"f.vader\"",
+        "    } else if (b) {",
+        "        x = 2;",
+        "    } else if (c) {",
+        "        x = 3;",
+        "    }",
+        "",
+    ].join("\n"))
+}
+
+@test
+test_print_block_keeps_an_arm_with_two_statements :: fn() -> void {
+    root :: CBlock {
+        .body = [
+            CIf {
+                .condition  = "a",
+                .then_block = CBlock { .body = [] },
+                .else_block = CBlock {
+                    .body = [
+                        CLine { .text = "t0 = f();" },
+                        CIf { .condition = "t0", .then_block = CBlock { .body = [] } },
+                    ],
+                },
+            },
+        ],
+    }
+    out :: StringBuilder {}
+    print_block(out, root, 1)
+    assert_eq(out.to_string(), "    if (a) {\n    } else {\n        t0 = f();\n        if (t0) {\n        }\n    }\n")
+}
+
+@test
+test_print_block_keeps_both_labels_apart :: fn() -> void {
+    inner :: CIf { .condition = "b", .then_block = CBlock { .body = [] }, .end_label = "end_7: ;" }
+    root :: CBlock {
+        .body = [
+            CIf {
+                .condition  = "a",
+                .then_block = CBlock { .body = [] },
+                .else_block = CBlock { .body = [inner] },
+                .end_label  = "end_3: ;",
+            },
+        ],
+    }
+    out :: StringBuilder {}
+    print_block(out, root, 1)
+    assert_eq(out.to_string(), "    if (a) {\n    } else {\n        if (b) {\n        } end_7: ;\n    } end_3: ;\n")
+}
+
+@test
+test_print_block_writes_trailing_directives_below_the_closer :: fn() -> void {
+    inner :: CIf {
+        .condition  = "b",
+        .then_block = CBlock { .body = [] },
+        .else_block = CBlock { .body = [CLine { .text = "x = 2;" }, CDirective { .text = "#line 9" }] },
+    }
+    root :: CBlock {
+        .body = [
+            CIf {
+                .condition  = "a",
+                .then_block = CBlock { .body = [] },
+                .else_block = CBlock { .body = [inner, CDirective { .text = "#line 8" }] },
+            },
+        ],
+    }
+    out :: StringBuilder {}
+    print_block(out, root, 1)
+    assert_eq(out.to_string(), [
+        "    if (a) {",
+        "    } else if (b) {",
+        "    } else {",
+        "        x = 2;",
+        "#line 9",
+        "    }",
+        "#line 8",
+        "",
+    ].join("\n"))
+}
+
+@test
+test_print_block_spells_every_return :: fn() -> void {
+    root :: CBlock {
+        .body = [
+            CReturn { .pops_frame = false },
+            CReturn { .value = "l0", .pops_frame = false },
+            CReturn { .stores = ["*out0 = l1"], .pops_frame = false },
+            CReturn { .pops_frame = true },
+            CReturn { .value = "l0", .snapshot_type = "int32_t", .pops_frame = true },
+            CReturn { .stores = ["*out0 = l1", "*out1 = l2"], .pops_frame = true },
+        ],
+    }
+    out :: StringBuilder {}
+    print_block(out, root, 0)
+    assert_eq(out.to_string(), [
+        "return;",
+        "return l0;",
+        "*out0 = l1; return;",
+        "{ vader_gc_top = gc_frame.prev; return; }",
+        "{ int32_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }",
+        "{ *out0 = l1; *out1 = l2; vader_gc_top = gc_frame.prev; return; }",
+        "",
+    ].join("\n"))
+}

@@ -1,20 +1,15 @@
 // vader/c_emit/c_ast — the statement tree a C function body is built as.
 //
-// The walker (`walker.vader`, through `stack.vader::line`) no longer writes a
-// body's text as it goes : it appends statements to the block it is in, and
-// `print_block` writes the whole tree once the walk is done. A nested block is
-// a node of its own, so its depth is structural — the printer derives the
-// indentation, 4 spaces per level, instead of every emission site carrying it.
+// The walker (`walker.vader`, through `stack.vader`) appends statements to the
+// block it is in, and `c_print.vader` writes the whole tree once the walk is
+// done. A nested block is a node of its own, so its depth is structural.
 //
-// A statement's text is still C : this is the first level of the tree, and
-// expressions stay strings until they get nodes of their own.
+// Expressions are C text : a node holds its condition or value as a string.
 
 module "vader/c_emit"
 
-import "std/string_builder"
-
 /// One statement of a C function body.
-CStmt :: CLine | CDirective | CIf | CScope
+CStmt :: CLine | CDirective | CIf | CScope | CReturn
 
 /// A node the walk has opened and not closed yet (`stack.vader::open_if`).
 COpenNode :: CIf | CScope
@@ -27,6 +22,20 @@ CLine :: struct {
 /// A preprocessor line (`#line`), written at column 0.
 CDirective :: struct {
     text: string
+}
+
+/// A statement that leaves the function : out-param stores, then `return`.
+CReturn :: struct {
+    /// Assignments run before leaving — a multi-value return's `*outN = v`.
+    stores:        string[] = []
+    /// The returned expression ; `""` for a void return.
+    value:         string = ""
+    /// The C type `value` is read into before the GC frame is popped, because
+    /// it may read a frame-pinned local ; `""` to return it directly. Only a
+    /// return that pops the frame needs it.
+    snapshot_type: string = ""
+    /// Restore the caller's GC frame on the way out.
+    pops_frame:    bool = false
 }
 
 /// A sequence of statements, written one level deeper than the construct that
@@ -54,64 +63,16 @@ CScope :: struct {
     end_label: string = ""
 }
 
-/// Write `block`'s statements, one per line, `depth` levels deep.
+// ---- queries ------------------------------------------------------------
+
+/// Whether `block` ends on a `return`, `#line` directives aside — its end is
+/// then unreachable.
 ///
-/// @param out    receives the text.
-/// @param block  the statements to write.
-/// @param depth  the indentation level of `block`'s own lines.
-print_block :: fn(out: StringBuilder!, block: CBlock, depth: i32) -> void =
-    print_statements(out, block.body, 0, block.body.len(), depth)
-
-// `statements[from..<to]`, `depth` levels deep.
-print_statements :: fn(out: StringBuilder!, statements: CStmt[], from: usize, to: usize, depth: i32) -> void {
-    for k in from..<to {
-        statement :: statements[k]
-        match statement {
-            is CLine      -> print_line(out, statement.text, depth)
-            is CDirective -> print_directive(out, statement.text)
-            is CIf        -> print_if(out, statement, depth)
-            is CScope     -> {
-                print_line(out, statement.head, depth)
-                print_block(out, statement.body, depth + 1)
-                print_closer(out, statement.end_label, depth)
-            }
-        }
-    }
-}
-
-print_if :: fn(out: StringBuilder!, node: CIf, depth: i32) -> void {
-    print_line(out, "if (${node.condition}) {", depth)
-    print_block(out, node.then_block, depth + 1)
-    print_else_chain(out, node, node.end_label, depth)
-}
-
-// `node`'s `else` arm, then the closing brace carrying `label`. An arm holding
-// a single `if` — `#line` directives aside — continues the chain as
-// `} else if`, the two closing braces merging into one ; so they may not both
-// carry a label. A directive leading an arm is written above the `} else` line,
-// next to the condition it describes ; one trailing it, below the shared
-// closing brace, innermost arm first.
-print_else_chain :: fn(out: StringBuilder!, node: CIf, label: string, depth: i32) -> void {
-    arm :: node.else_block
-    if arm == null {
-        print_closer(out, label, depth)
-        return
-    }
-    body :: arm.body
-    start :: leading_directives(body)
-    end :: body.len() - trailing_directives(body, start)
-    print_statements(out, body, 0, start, depth)
-    inner :: if end == start + 1 { body[start] } else { null }
-    if inner is CIf && (label == "" || inner.end_label == "") {
-        print_line(out, "} else if (${inner.condition}) {", depth)
-        print_block(out, inner.then_block, depth + 1)
-        print_else_chain(out, inner, if label != "" { label } else { inner.end_label }, depth)
-        print_statements(out, body, end, body.len(), depth)
-        return
-    }
-    print_line(out, "} else {", depth)
-    print_statements(out, body, start, body.len(), depth + 1)
-    print_closer(out, label, depth)
+/// @param block  the statements to inspect.
+ends_with_return :: fn(block: CBlock) -> bool {
+    body :: block.body
+    last :: body.len() - trailing_directives(body, 0)
+    return last > 0 && body[last - 1] is CReturn
 }
 
 // The number of `#line` directives `statements` starts with.
@@ -132,134 +93,17 @@ trailing_directives :: fn(statements: CStmt[], from: usize) -> usize {
     return n
 }
 
-print_line :: fn(out: StringBuilder!, text: string, depth: i32) -> void {
-    out.append_repeated(' ', depth * 4)
-    out.append(text)
-    out.append("\n")
-}
-
-print_directive :: fn(out: StringBuilder!, text: string) -> void {
-    out.append(text)
-    out.append("\n")
-}
-
-print_closer :: fn(out: StringBuilder!, label: string, depth: i32) -> void =
-    print_line(out, if label == "" { "}" } else { "} ${label}" }, depth)
-
 // ---- tests ----------------------------------------------------------------
 
-import "std/string"
 import "std/testing"
 
 @test
-test_print_block_indents_an_if :: fn() -> void {
-    root :: CBlock {
-        .body = [
-            CIf { .condition = "a", .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] } },
-        ],
-    }
-    out :: StringBuilder {}
-    print_block(out, root, 1)
-    assert_eq(out.to_string(), "    if (a) {\n        x = 1;\n    }\n")
+test_ends_with_return_skips_trailing_directives :: fn() -> void {
+    block :: CBlock { .body = [CReturn { .pops_frame = true }, CDirective { .text = "#line 3" }] }
+    assert(ends_with_return(block), "a return followed by a directive ends the block")
 }
 
 @test
-test_print_block_folds_an_else_if_chain :: fn() -> void {
-    innermost :: CIf { .condition = "c", .then_block = CBlock { .body = [CLine { .text = "x = 3;" }] } }
-    inner :: CIf {
-        .condition  = "b",
-        .then_block = CBlock { .body = [CLine { .text = "x = 2;" }] },
-        .else_block = CBlock { .body = [innermost] },
-    }
-    root :: CBlock {
-        .body = [
-            CIf {
-                .condition  = "a",
-                .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] },
-                .else_block = CBlock { .body = [CDirective { .text = "#line 4 \"f.vader\"" }, inner] },
-            },
-        ],
-    }
-    out :: StringBuilder {}
-    print_block(out, root, 1)
-    assert_eq(out.to_string(), [
-        "    if (a) {",
-        "        x = 1;",
-        "#line 4 \"f.vader\"",
-        "    } else if (b) {",
-        "        x = 2;",
-        "    } else if (c) {",
-        "        x = 3;",
-        "    }",
-        "",
-    ].join("\n"))
-}
-
-@test
-test_print_block_keeps_an_arm_with_two_statements :: fn() -> void {
-    root :: CBlock {
-        .body = [
-            CIf {
-                .condition  = "a",
-                .then_block = CBlock { .body = [] },
-                .else_block = CBlock {
-                    .body = [
-                        CLine { .text = "t0 = f();" },
-                        CIf { .condition = "t0", .then_block = CBlock { .body = [] } },
-                    ],
-                },
-            },
-        ],
-    }
-    out :: StringBuilder {}
-    print_block(out, root, 1)
-    assert_eq(out.to_string(), "    if (a) {\n    } else {\n        t0 = f();\n        if (t0) {\n        }\n    }\n")
-}
-
-@test
-test_print_block_keeps_both_labels_apart :: fn() -> void {
-    inner :: CIf { .condition = "b", .then_block = CBlock { .body = [] }, .end_label = "end_7: ;" }
-    root :: CBlock {
-        .body = [
-            CIf {
-                .condition  = "a",
-                .then_block = CBlock { .body = [] },
-                .else_block = CBlock { .body = [inner] },
-                .end_label  = "end_3: ;",
-            },
-        ],
-    }
-    out :: StringBuilder {}
-    print_block(out, root, 1)
-    assert_eq(out.to_string(), "    if (a) {\n    } else {\n        if (b) {\n        } end_7: ;\n    } end_3: ;\n")
-}
-
-@test
-test_print_block_writes_trailing_directives_below_the_closer :: fn() -> void {
-    inner :: CIf {
-        .condition  = "b",
-        .then_block = CBlock { .body = [] },
-        .else_block = CBlock { .body = [CLine { .text = "x = 2;" }, CDirective { .text = "#line 9" }] },
-    }
-    root :: CBlock {
-        .body = [
-            CIf {
-                .condition  = "a",
-                .then_block = CBlock { .body = [] },
-                .else_block = CBlock { .body = [inner, CDirective { .text = "#line 8" }] },
-            },
-        ],
-    }
-    out :: StringBuilder {}
-    print_block(out, root, 1)
-    assert_eq(out.to_string(), [
-        "    if (a) {",
-        "    } else if (b) {",
-        "    } else {",
-        "        x = 2;",
-        "#line 9",
-        "    }",
-        "#line 8",
-        "",
-    ].join("\n"))
+test_ends_with_return_rejects_directives_only :: fn() -> void {
+    assert(!ends_with_return(CBlock { .body = [CDirective { .text = "#line 3" }] }), "directives alone are no return")
 }

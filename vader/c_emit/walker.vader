@@ -371,6 +371,11 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     // frame and GC-root set. This compacts `s.tmp_types` and rewrites the body
     // text so `tN` names its assigned slot ; the decl emitters below then see
     // the reduced set. See `coalesce.vader`.
+    // Fall-through restore (void / implicit-end fns) ; explicit returns pop
+    // the frame themselves, so a body ending on one needs none.
+    if !s.no_frame && !ends_with_return(s.root) {
+        s.root.body.push(CLine { .text = FRAME_RESTORE })
+    }
     body :: StringBuilder {}
     print_block(body, s.root, 1)
     coalesced :: coalesce_temps(body.to_string(), s.tmp_types)
@@ -449,11 +454,6 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
         out.append("    vader_gc_top = &gc_frame;\n")
     }
     out.append(coalesced.body)
-    // Fall-through restore (void / implicit-end fns) ; explicit returns pop
-    // the frame themselves, so a body ending on one needs none.
-    if !no_frame && !s.ends_with_return {
-        out.append("    vader_gc_top = gc_frame.prev;\n")
-    }
     out.append("}\n")
 }
 
@@ -1039,7 +1039,7 @@ emit_return :: fn(s: FnState!) -> void {
     }
     result :: bc_single_result(s.function.signature)
     if result == .Void {
-        emit_return_stmt(s, "return;")
+        return_statement(s, CReturn {})
         return
     }
     // Dead trailing return : when an exhaustive-returning match (or any
@@ -1054,16 +1054,7 @@ emit_return :: fn(s: FnState!) -> void {
     }
     v :: pop(s)
     rv :: coerce_expr(s.ctx.module.types, name_of(v), val_of(v), result)
-    if s.no_frame {
-        line(s, "return ${rv};")
-    } else {
-        // Snapshot the value before popping the frame : it may read a
-        // frame-pinned local, so capturing first keeps the order safe.
-        return_line(
-            s,
-            "{ ${c_type_for_val_bare(result)} __vret = ${rv}; vader_gc_top = gc_frame.prev; return __vret; }",
-        )
-    }
+    return_statement(s, CReturn { .value = rv, .snapshot_type = c_type_for_val_bare(result) })
 }
 
 // A multi-value return writes each value through its out-param and returns void.
@@ -1080,20 +1071,16 @@ emit_multi_return :: fn(s: FnState!) -> void {
         line(s, "vader_unreachable(\"unreachable return in ${s.function.name}\");")
         return
     }
-    body :: StringBuilder {}
+    stores :: []
     for i in 0..<arity {
         // Popped from the top, so this is result `arity - 1 - i` — which is also
         // the order the assignments go out in.
         idx :: arity - 1 - i
         v :: pop(s)
         rv :: coerce_expr(s.ctx.module.types, name_of(v), val_of(v), results[idx])
-        body.append("*${out_param_name(idx)} = ${rv}; ")
+        stores.push("*${out_param_name(idx)} = ${rv}")
     }
-    if s.no_frame {
-        line(s, "${body}return;")
-        return
-    }
-    return_line(s, "{ ${body}vader_gc_top = gc_frame.prev; return; }")
+    return_statement(s, CReturn { .stores = stores })
 }
 
 /// `return.lit` — the fused `<T>.const X ; return`. A const can't read a
@@ -1108,19 +1095,7 @@ emit_return_lit :: fn(s: FnState!, value: vm.ConstOp) -> void {
         const_val(value),
         bc_single_result(s.function.signature),
     )
-    emit_return_stmt(s, "return ${rv};")
-}
-
-/// Emit a self-contained `return` statement (`ret`), wrapping it in the
-/// GC-frame pop for framed fns. For a value return whose expression may
-/// read a frame-pinned local, `emit_return` uses the `__vret` snapshot
-/// form instead.
-emit_return_stmt :: fn(s: FnState!, ret: string) -> void {
-    if s.no_frame {
-        line(s, ret)
-    } else {
-        return_line(s, "{ vader_gc_top = gc_frame.prev; ${ret} }")
-    }
+    return_statement(s, CReturn { .value = rv })
 }
 
 /// `local.set` / `local.tee` — materialise any stack entry the write

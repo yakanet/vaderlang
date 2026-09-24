@@ -128,10 +128,6 @@ FnState :: struct {
     /// no-alloc fn given a frame for debugging, say — split the two before
     /// changing this, or the resolve cache silently goes unsound.
     no_frame: bool
-    /// True when the last line emitted is a `return` at the function body's
-    /// top level — it pops the frame itself, so the fall-through restore after
-    /// it would be dead. Every line clears it ; the return emitters set it.
-    ends_with_return: bool = false
     /// Loops whose array state is currently lifted into C locals, innermost
     /// last. Pushed by the `Loop` opener that planned one, popped by its `end`.
     /// See `push_cache_emit.vader`.
@@ -196,7 +192,6 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState! = FnState {
 /// the block's indentation.
 line :: fn(s: FnState!, code: string) -> void {
     append_statement(s, CLine { .text = code })
-    s.ends_with_return = false
 }
 
 /// Append a `#line` directive : column 0, not a statement.
@@ -206,11 +201,20 @@ append_statement :: fn(s: FnState!, statement: CStmt) -> void {
     current_block(s).body.push(statement)
 }
 
-/// `line` for a statement that leaves the function : it records whether the
-/// body now ends on it (see `FnState.ends_with_return`).
-return_line :: fn(s: FnState!, code: string) -> void {
-    line(s, code)
-    s.ends_with_return = s.open_nodes.len() == 0
+/// Leave the function with `node`, through the frame restore when the
+/// function has one.
+///
+/// @param node  the return ; its `pops_frame` is set here.
+return_statement :: fn(s: FnState!, node: CReturn) -> void {
+    append_statement(
+        s,
+        CReturn {
+            .stores        = node.stores,
+            .value         = node.value,
+            .snapshot_type = node.snapshot_type,
+            .pops_frame    = !s.no_frame,
+        },
+    )
 }
 
 // The block statements go to : the innermost open node's, else the root. The
