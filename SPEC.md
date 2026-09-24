@@ -1071,7 +1071,7 @@ Direction :: enum {
 }
 ```
 
-An enum defines a **closed set of named variants** with no attached data. Each variant is a distinct constant of the enum's type.
+An enum defines a **closed set of named variants**. Each variant is a distinct constant of the enum's type; it may also carry a constant value of a struct the header names (§ Variant data).
 
 #### Access
 
@@ -1166,6 +1166,35 @@ Rules:
 ##### Memory model
 
 Enum values are **value-typed** (copied on assignment, like `bool`), not heap-allocated. The exact integer representation is not directly observable from Vader code.
+
+#### Variant data
+
+An enum header may name a **struct** instead of, or before, the width. Each variant then carries a constant value of that struct, written as its fields after the variant name:
+
+```vader
+StatusInfo :: struct {
+    code:   i32
+    reason: string
+    retry:  bool = false
+}
+
+HttpStatus :: enum(StatusInfo) {
+    Ok          { .code = 200, .reason = "OK" },
+    NotFound    { .code = 404, .reason = "Not Found" },
+    Unavailable { .code = 503, .reason = "Service Unavailable", .retry = true },
+}
+
+line :: "HTTP/1.1 ${s.code} ${s.reason}"   // s : HttpStatus
+info :: StatusInfo(s)                       // the whole value, read-only
+```
+
+The header takes three forms: `enum(u8)` (a width, no data), `enum(Info)` (data, width inferred), `enum(Info, u8)` (data, width pinned). A lone argument is the width when it resolves to an integer — directly or through a distinct over one (`Byte :: u8`, `enum(Byte)`) — and the data when it is a struct; anything else is `T3084` when it sits in the data position.
+
+- **Each block is checked as a literal of the data struct**: unknown field (`T3009`), wrong type (`T3001`), a required field left unset (`T3037`, on the variant). A variant without a block is valid when every field has a default. A block on an enum whose header names no data is `T3085`.
+- **Every value must be a constant** the compiler can bake (`C4001`): the data lives in one read-only table, built once.
+- **The values of an enum with data are consecutive** — any start, so `Error { … } = 1` then `Warning { … }` is fine — and a gap is `T3086`. A protocol value such as an HTTP code belongs in a field (`.code = 404`), not in the ordinal. An enum *without* data keeps any values it likes.
+- **Reading.** `v.field` is the field of `v`'s data; `Info(v)` is the whole value, **read-only** (`info.code = 5` is `T3070`). On the enum's name, `HttpStatus.code` is still a variant lookup (`T3027`). `i32(v)` is the ordinal, as for any enum.
+- **Representation.** The enum stays its integer; the data is a read-only table indexed by `ordinal − smallest`, so a read allocates nothing and `==`, `match`, the width and `@size_of` are those of a plain enum.
 
 #### `Display`
 
@@ -3041,7 +3070,7 @@ The "Signature" column below uses `T: type` for arguments that name a type. A ba
 
 | Intrinsic | Signature | Result | Notes |
 |-----------|-----------|--------|-------|
-| `@size_of(T)` | `(T: type) -> usize` | Width in bytes of the SLOT that carries a `T` — a field, a local, a parameter — not the size of the object a reference points at. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string` → 4 — an interned atom id, `null` → 0). An enum rides its `repr`, so `enum(u8)` → 1 and the `i32` default → 4. A concrete reference — struct, array, tuple, fn value — is a bare pointer, 8. Only an ERASED slot (trait object, union, `any`) carries a `vader_box_t`, 16, because no single object header answers for every variant it may hold. Comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
+| `@size_of(T)` | `(T: type) -> usize` | Width in bytes of the SLOT that carries a `T` — a field, a local, a parameter — not the size of the object a reference points at. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string` → 4 — an interned atom id, `null` → 0). An enum rides its `repr`, so `enum(u8)` → 1, `enum(i32)` → 4, and an unwritten width is the narrowest its values fit (`enum { A, B }` → 1). A concrete reference — struct, array, tuple, fn value — is a bare pointer, 8. Only an ERASED slot (trait object, union, `any`) carries a `vader_box_t`, 16, because no single object header answers for every variant it may hold. Comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
 | `@align_of(T)` | `(T: type) -> usize` | Alignment in bytes of that slot. | Each scalar aligns to its own width; a `vader_box_t` is 16 wide but its widest member is a word, so it aligns to 8. |
 | `@type_name(T)` | `(T: type) -> string` | Printable name of `T`. | Same shape as the typechecker's `displayType` (`"i32"`, `"MutableMap<i32, string>"`, `"i32 \| string"`). |
 | `@type_kind(T)` | `(T: type) -> string` | Discriminator of `T`'s shape. | Stable strings: `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`, `"tuple"`, `"fn"`, `"trait"`, `"type"`, `"any"`, `"unknown"`. User code is expected to compare on exact match (`if @type_kind(T) == "struct" { ... }`). |
