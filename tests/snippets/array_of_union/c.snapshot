@@ -117,17 +117,15 @@ static int32_t snippet_main(void) {
 #line 17 "tests/snippets/array_of_union/_main.vader"
     if (l4.tag == 0u) {
         std_io_println__string(2u);
-    } else {
 #line 18 "tests/snippets/array_of_union/_main.vader"
-        if (l4.tag == 3u) {
-            std_io_println__string(3u);
-        } else {
+    } else if (l4.tag == 3u) {
+        std_io_println__string(3u);
 #line 16 "tests/snippets/array_of_union/_main.vader"
-            vader_unreachable("unreachable return in snippet$main");
+    } else {
+        vader_unreachable("unreachable return in snippet$main");
 #line 18 "tests/snippets/array_of_union/_main.vader"
-        }
-#line 17 "tests/snippets/array_of_union/_main.vader"
     }
+#line 17 "tests/snippets/array_of_union/_main.vader"
 #line 20 "tests/snippets/array_of_union/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }

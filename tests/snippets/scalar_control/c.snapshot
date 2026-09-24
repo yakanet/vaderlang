@@ -36,8 +36,8 @@ static int32_t snippet_main(void) {
 #line 17 "tests/snippets/scalar_control/_main.vader"
                     l0 = (l0 + INT32_C(100));
 #line 16 "tests/snippets/scalar_control/_main.vader"
-                } else {
 #line 19 "tests/snippets/scalar_control/_main.vader"
+                } else {
                     l0 = (l0 + l1);
 #line 16 "tests/snippets/scalar_control/_main.vader"
                 }

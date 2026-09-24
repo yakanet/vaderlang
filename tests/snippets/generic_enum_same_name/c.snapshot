@@ -551,8 +551,8 @@ static void std_collections_write_entry__snippet_alpha_Status__i64(void* l0, uin
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
         ((int64_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3] = (int64_t) l2;
 #line 113 "lib/std/collections/collections.vader"
-    } else {
 #line 117 "lib/std/collections/collections.vader"
+    } else {
         vader_array_push_u8((vader_array_t*) ((vader_struct_std_collections_MutableMap__Status__i64_t*) l0)->f_ekeys, (int32_t) (uint8_t) l1);
 #line 118 "lib/std/collections/collections.vader"
         vader_array_push_i64((vader_array_t*) ((vader_struct_std_collections_MutableMap__Status__i64_t*) l0)->f_evals, l2);
@@ -633,8 +633,8 @@ static void std_collections_put__Status__i64(void* l0, uint8_t l1, int64_t l2) {
                         l7 = ((int64_t) (size_t) l3);
                     }
 #line 141 "lib/std/collections/collections.vader"
-                } else {
 #line 144 "lib/std/collections/collections.vader"
+                } else {
                     vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__Status__i64_t*) l0)->f_index);
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l3)

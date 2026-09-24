@@ -105,8 +105,8 @@ static int32_t snippet_main(void) {
                 std_io_println__string(t1);
 #line 10 "tests/snippets/generator_break/_main.vader"
                 if ((l3 > INT32_C(100))) {
-                } else {
 #line 15 "tests/snippets/generator_break/_main.vader"
+                } else {
                     t0 = (l2 + INT64_C(1));
                     l2 = (size_t) (int64_t) t0;
                     goto loop_12;

@@ -169,6 +169,18 @@ FnState :: struct {
     /// forwarded across a safepoint (else they dangle — the walk_elements
     /// closure-env use-after-forward bug).
     stack_storages: StackStorage[]!
+    /// An `else` whose `} else {` is not written yet : its arm may turn out to
+    /// hold a single `if` chain, written `} else if` one level up. The first
+    /// line of any other kind writes it (`flush_pending_else`).
+    pending_else: bool = false
+    /// The `if` the pending `else` folds into, when the arm's structure allows
+    /// it (`foldable_else_if`) ; -1 when it cannot fold.
+    pending_else_if: i32 = -1
+    /// `end` pcs that write nothing : the `else` arms a folded `else if` closed.
+    merged_ends: MutableSet<i32>
+    /// `end` pc → the scope opener whose `end_N` label it carries instead of
+    /// its own — the label of the arm its chain was folded out of.
+    end_label_owner: MutableMap<i32, i32>
 }
 
 /// Fresh state for `function`, emitting into `out`.
@@ -189,6 +201,8 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
     .pinned_resolves = MutableSet<string> {},
     .drop_call_result = false,
     .stack_storages = [],
+    .merged_ends = MutableSet<i32> {},
+    .end_label_owner = MutableMap<i32, i32> {},
 }
 
 // ---- indented output ------------------------------------------------------
@@ -199,6 +213,7 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
 /// right column ; level 1 (the function-body top) reproduces that prefix
 /// byte-for-byte.
 line :: fn(s: FnState!, code: string) -> void {
+    flush_pending_else(s)
     s.out.append_repeated(' ', s.indent * 4)
     s.out.append(code)
     s.out.append("\n")
@@ -210,6 +225,17 @@ line :: fn(s: FnState!, code: string) -> void {
 return_line :: fn(s: FnState!, code: string) -> void {
     line(s, code)
     s.ends_with_return = s.indent == 1
+}
+
+/// Write the `} else {` a pending `else` held back, and open its arm.
+flush_pending_else :: fn(s: FnState!) -> void {
+    if !s.pending_else {
+        return
+    }
+    s.pending_else = false
+    s.out.append_repeated(' ', s.indent * 4)
+    s.out.append("} else {\n")
+    indent_push(s)
 }
 
 /// Open one nesting level — call right after emitting the opening brace.

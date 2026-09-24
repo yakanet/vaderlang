@@ -98,8 +98,8 @@ static int32_t snippet_main(void) {
                 l4 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3];
 #line 270 "lib/std/iter/iter.vader"
                 if ((l0 >= INT64_C(3))) {
-                } else {
 #line 271 "lib/std/iter/iter.vader"
+                } else {
                     l5 = l4;
 #line 10 "tests/snippets/fuse_take_skip/_main.vader"
                     l6 = std_core_new_byte_buffer((size_t) 22);
@@ -190,8 +190,8 @@ static int32_t snippet_main(void) {
                     l5 = l4;
 #line 270 "lib/std/iter/iter.vader"
                     if ((l0 >= INT64_C(2))) {
-                    } else {
 #line 271 "lib/std/iter/iter.vader"
+                    } else {
                         l9 = l5;
 #line 12 "tests/snippets/fuse_take_skip/_main.vader"
                         l6 = std_core_new_byte_buffer((size_t) 23);
@@ -216,8 +216,8 @@ static int32_t snippet_main(void) {
 #line 270 "lib/std/iter/iter.vader"
                     }
 #line 281 "lib/std/iter/iter.vader"
-                } else {
 #line 282 "lib/std/iter/iter.vader"
+                } else {
                     l11 = (size_t) 1;
                     t1 = (l2 + l11);
                     l2 = (size_t) (int64_t) t1;

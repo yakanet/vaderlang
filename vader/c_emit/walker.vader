@@ -604,8 +604,8 @@ emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {
         is vm.FnRef                 -> emit_fn_ref(s, op)
         is vm.FnAddr                -> emit_fn_addr(s, op)
         is vm.MakeClosure           -> emit_make_closure(s, op)
-        is vm.If                    -> emit_if_open(s)
-        is vm.Else                  -> emit_else(s)
+        is vm.If                    -> emit_if_open(s, pc)
+        is vm.Else                  -> emit_else(s, pc)
         is vm.End                   -> emit_end(s, pc)
         is vm.Block                 -> emit_open_scope(s, pc, .Block)
         is vm.Loop                  -> emit_open_scope(s, pc, .Loop)
@@ -1347,37 +1347,113 @@ emit_open_scope :: fn(s: FnState!, pc: i32, kind: ScopeKind) -> void {
     indent_push(s)
 }
 
-/// `if` — pop the condition and open `if (<cond>) {`.
-emit_if_open :: fn(s: FnState!) -> void {
+/// `if` — pop the condition and open `if (<cond>) {` ; or, when it is the
+/// single `if` chain of a pending `else` arm, `} else if (<cond>) {` at the
+/// `else`'s own level. The arm's `end` then writes nothing, and the chain's
+/// closer carries the arm's `end_N` label if the arm had one.
+emit_if_open :: fn(s: FnState!, pc: i32) -> void {
     cond :: pop(s)
     assert_stack_empty(s, "if open")
+    if s.pending_else && s.pending_else_if == pc {
+        s.pending_else = false
+        inner :: scope_ending_for_opener(s.scopes, pc) ?? todo("emit_if_open: no scope opens at pc ${pc}")
+        arm_end :: inner.end_pc + 1
+        s.merged_ends.add(arm_end)
+        owner :: end_label_of(s, arm_end)
+        if owner >= 0 {
+            s.end_label_owner[inner.end_pc] = owner
+        }
+        line(s, "} else if (${name_of(cond)}) {")
+        indent_push(s)
+        return
+    }
     line(s, "if (${name_of(cond)}) {")
     indent_push(s)
 }
 
-/// `else` — close the then-arm and open the else-arm. Block results are
-/// already materialised into locals by the lowerer (every scope is
-/// `void`), so there is nothing to hoist across the boundary.
-emit_else :: fn(s: FnState!) -> void {
+/// `else` — close the then-arm and hold the `} else {` back : the first line of
+/// the arm writes it, unless the arm is a single `if` chain that folds into an
+/// `else if` (`emit_if_open`). Block results are already materialised into
+/// locals by the lowerer (every scope is `void`), so there is nothing to hoist
+/// across the boundary.
+emit_else :: fn(s: FnState!, pc: i32) -> void {
+    flush_pending_else(s)
     assert_stack_empty(s, "else")
     indent_pop(s)
-    line(s, "} else {")
-    indent_push(s)
+    s.pending_else = true
+    s.pending_else_if = foldable_else_if(s, pc)
+}
+
+/// The pc of the `if` the `else` at `else_pc` can fold into — the first scope
+/// op of its arm, an `if` whose `end` is the arm's last op — or -1. The ops
+/// before that `if` compute its condition ; if they write any line, that line
+/// writes the pending `} else {` first and the fold does not happen. The two
+/// closers merge into one, so at most one of them may carry an `end_N` label.
+foldable_else_if :: fn(s: FnState, else_pc: i32) -> i32 {
+    arm :: if_scope_around(s.scopes, else_pc) ?? return -1
+    body :: s.function.body
+    for q in else_pc + 1..<arm.end_pc {
+        op :: body[usize(q)]
+        if op is vm.If {
+            inner :: scope_ending_for_opener(s.scopes, q) ?? return -1
+            if inner.end_pc != arm.end_pc - 1 {
+                return -1
+            }
+            if end_label_of(s, inner.end_pc) >= 0 && end_label_of(s, arm.end_pc) >= 0 {
+                return -1
+            }
+            return q
+        }
+        if op is vm.Block || op is vm.Loop || op is vm.Else || op is vm.End || op is vm.Branch || op is vm.BranchIf {
+            return -1
+        }
+    }
+    return -1
+}
+
+/// The opener whose `end_N` label the `end` at `end_pc` writes — a label moved
+/// onto it by a fold, else its own scope's when a `br` exits past it — or -1.
+end_label_of :: fn(s: FnState, end_pc: i32) -> i32 {
+    moved :: s.end_label_owner[end_pc]
+    if moved != null {
+        return moved
+    }
+    sc :: scope_ending_at(s.scopes, end_pc) ?? return -1
+    return if sc.opener_pc in s.break_targets { sc.opener_pc } else { -1 }
+}
+
+/// The innermost `if` scope whose region holds `pc` — the one an `else` at
+/// `pc` belongs to.
+if_scope_around :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
+    found: ScopeInfo | null = null
+    for sc in scopes {
+        if sc.kind == .If && sc.opener_pc < pc && pc < sc.end_pc {
+            if found == null || sc.opener_pc > found.opener_pc {
+                found = sc
+            }
+        }
+    }
+    return found
 }
 
 /// `end` — close the scope opened earlier. Any scope (block / loop / if)
 /// that a `br` exits past gets its `end_<opener>: ;` label after the brace ;
 /// untargeted scopes close with a bare `}`.
 emit_end :: fn(s: FnState!, pc: i32) -> void {
+    flush_pending_else(s)
     assert_stack_empty(s, "scope end (pc ${pc})")
+    if pc in s.merged_ends {
+        return
+    }
     sc :: scope_ending_at(s.scopes, pc)
     if sc is ScopeInfo {
         // Before the dedent : the write-back belongs INSIDE the loop's block,
         // at the one place control falls out of it.
         pc_close_cache(s, sc.opener_pc)
         indent_pop(s)
-        if sc.opener_pc in s.break_targets {
-            line(s, "} end_${sc.opener_pc}: ;")
+        label :: end_label_of(s, pc)
+        if label >= 0 {
+            line(s, "} end_${label}: ;")
         } else {
             line(s, "}")
         }
