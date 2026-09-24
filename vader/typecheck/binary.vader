@@ -344,9 +344,32 @@ distinct_op_fallback :: fn(
     if left !is DistinctType && right !is DistinctType {
         return null
     }
+    // Every operator class shares this fallback, so every one refuses to mix
+    // two unrelated distincts here — `Meters + Seconds` as much as `<`.
+    if unrelated_distincts(left, right) {
+        push_unrelated_distincts(e, left, right, diags)
+        return TY_UNRESOLVED
+    }
     lb :: if left is DistinctType as ld { ld.backing } else { left }
     rb :: if right is DistinctType as rd { rd.backing } else { right }
     return recheck(e, lb, rb, typed, diags)
+}
+
+// Two distinct types that are not one another's backing (`Meters` against
+// `Seconds`, both over `i64`) : the same representation, but an operator
+// between them is the mix-up a distinct type exists to catch. A distinct over
+// a distinct (`A :: B`) still combines with `B`, its own backing.
+unrelated_distincts :: fn(left: Type, right: Type) -> bool =
+    left is DistinctType && right is DistinctType && !backs(left, right) && !backs(right, left)
+
+// True when `t` is `inner`, or `inner` lies in `t`'s chain of distinct backings.
+backs :: fn(t: DistinctType, inner: DistinctType) -> bool =
+    t.symbol.id == inner.symbol.id || (t.backing is DistinctType && backs(t.backing, inner))
+
+// The T3001 for `unrelated_distincts`, naming both written types.
+push_unrelated_distincts :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]!) -> void {
+    detail :: "`${display_type(left)}` and `${display_type(right)}` are unrelated distinct types"
+    diags.push(typecheck_error(.TypeMismatch, e.span, detail))
 }
 
 check_compare :: fn(
@@ -473,6 +496,10 @@ check_equality :: fn(
         check_is_overlap(e, right, left, diags)
         return TY_BOOL
     }
+    if unrelated_distincts(left, right) {
+        push_unrelated_distincts(e, left, right, diags)
+        return TY_BOOL
+    }
     // Both operands concrete (non-null). Numeric equality must be same family /
     // width — reuse the shared `numeric_result` gate (T3017 on `u32 == i32`,
     // `f64 == i32`, …). Free literals fold, so `x == 0` still type-checks.
@@ -489,7 +516,7 @@ check_equality :: fn(
     if left_scalar != null && right_scalar != null {
         if left_scalar.name != right_scalar.name {
             diags.push(typecheck_error(.TypeMismatch, e.span,
-                "expected ${display_type(left)}, got ${display_type(right)}"))
+                "expected `${display_type(left)}`, got `${display_type(right)}`"))
         }
         return TY_BOOL
     }
@@ -505,7 +532,7 @@ check_equality :: fn(
     if left_tuple != null && right_tuple != null {
         if !equals_type(left, right) {
             diags.push(typecheck_error(.TypeMismatch, e.span,
-                "expected ${display_type(left)}, got ${display_type(right)}"))
+                "expected `${display_type(left)}`, got `${display_type(right)}`"))
             return TY_BOOL
         }
         // Equal types, so walking one side is enough and the diagnostic cannot
@@ -1133,6 +1160,30 @@ test_equality_distinct_against_own_backing_ok :: fn() -> void {
 @test
 test_equality_byte_against_char_literal_ok :: fn() -> void {
     assert_eq(equality_diags("f :: fn(b: u8) -> bool { return b == '/' }").len(), 0)
+}
+
+@test
+test_equality_unrelated_distincts_is_T3001 :: fn() -> void {
+    src :: "Meters :: i64\nSeconds :: i64\nf :: fn(d: Meters, t: Seconds) -> bool { return d == t }"
+    assert(has_code(equality_diags(src), "T3001"), "Meters == Seconds")
+}
+
+@test
+test_ordering_unrelated_distincts_is_T3001 :: fn() -> void {
+    src :: "Meters :: i64\nSeconds :: i64\nf :: fn(d: Meters, t: Seconds) -> bool { return d < t }"
+    assert(has_code(equality_diags(src), "T3001"), "Meters < Seconds")
+}
+
+@test
+test_arith_unrelated_distincts_is_T3001 :: fn() -> void {
+    src :: "Meters :: i64\nSeconds :: i64\nf :: fn(d: Meters, t: Seconds) -> i64 { return i64(d + t) }"
+    assert(has_code(equality_diags(src), "T3001"), "Meters + Seconds")
+}
+
+@test
+test_equality_distinct_over_distinct_ok :: fn() -> void {
+    src :: "Meters :: i64\nKm :: Meters\nf :: fn(k: Km, m: Meters) -> bool { return k == m }"
+    assert_eq(equality_diags(src).len(), 0)
 }
 
 @test

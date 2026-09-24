@@ -1,0 +1,14 @@
+module "snippet"
+
+// Two distinct types over one backing do not combine : `Meters` and `Seconds`
+// share `i64`, and mixing them is what a distinct type is for — under `==`,
+// ordering, arithmetic and bitwise operators alike. Each still combines with
+// itself and with `i64`.
+Meters :: i64
+Seconds :: i64
+
+same :: fn(d: Meters, t: Seconds) -> bool = d == t
+before :: fn(d: Meters, t: Seconds) -> bool = d < t
+total :: fn(d: Meters, t: Seconds) -> i64 = i64(d + t)
+
+main :: fn() -> i32 = 0

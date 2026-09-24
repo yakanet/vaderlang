@@ -547,12 +547,14 @@ lowering boundary).
   define the operator but for a different Rhs errors on the Rhs mismatch rather
   than silently computing on the backing (so `instant + 5` is still rejected).
   This is what enables dimensional types (`Instant - Instant -> Duration`).
-- **Comparison / equality / hashing stay opaque.** A distinct does **not**
-  inherit its backing's `Comparable` / `Equals` / `Hash` (Vader has no
-  auto-derive) — `<`, `==`, hashing and map-key use each require an explicit
-  `Celsius implements Comparable { … }` / `Equals` / `Hash`, typically delegating
-  to the backing (`-> i32(self) == i32(other)`). No impl is the usual `T3043` /
-  `T3017`.
+- **A distinct combines only with itself and its backing.** Every operator —
+  `==` / `!=`, ordering, arithmetic, bitwise — refuses two distinct types that
+  are not one another's backing: `Meters == Seconds`, `Meters + Seconds`,
+  `Meters < Seconds` are `T3001`, although both are `i64`. A distinct over a
+  distinct (`Km :: Meters`) combines with the one it wraps. Against its own
+  backing a distinct compares and computes as that backing (`path == ""`,
+  `d < i64(3)`), through the distinct's own impl (`Equals`, `Comparable`,
+  operators) when it defines one.
 - **`@comptime Name :: <type>` is the exception** — it stays a transparent
   compile-time type alias (it resolves through the comptime type-alias channel,
   e.g. `@size_of(Name)`), never a newtype.
@@ -1550,7 +1552,7 @@ Resolution rule for **arithmetic** operators (`+ - * / %`):
 Resolution rule for **equality** (`==` / `!=`):
 1. Primitive operands (numerics, strings, chars, bools, null) use the built-in equality op.
 2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists; **without an impl it is T3043** (`` `X` does not implement `Equals` ``). `==` on a struct that never opted into value equality is almost always a bug, so it is rejected rather than silently comparing references.
-3. Mismatched types are an error. Two numerics of different family or width are T3017. Any other pair of scalars compares by **representation** — a distinct type stands for its backing, through any number of layers — and two different representations are **T3001**: `h == INVALID_HANDLE` with `h: Handle` (`Handle :: CPointer`) against an `isize`, `b == c` with `b: u8` and a `char` variable, `name == 3`. A distinct type against its own backing compares (`path == ""` with `Path :: string`), through the type's `Equals` impl when it has one. Free literals adopt the other operand's type first, so `b == '/'` and `x == 0` compare.
+3. Mismatched types are an error. Two numerics of different family or width are T3017. Any other pair of scalars compares by **representation** — a distinct type stands for its backing, through any number of layers — and two different representations are **T3001**: `h == INVALID_HANDLE` with `h: Handle` (`Handle :: CPointer`) against an `isize`, `b == c` with `b: u8` and a `char` variable, `name == 3`. A distinct type against its own backing compares (`path == ""` with `Path :: string`), through the type's `Equals` impl when it has one; two distinct types that are not one another's backing do not (`Meters == Seconds`, both `i64`: T3001). Free literals adopt the other operand's type first, so `b == '/'` and `x == 0` compare.
 
 Resolution rule for **ordering** (`< <= > >=`):
 1. Primitive numerics, strings, and chars use the built-in comparison ops.
