@@ -155,17 +155,40 @@ pc_liftable_kind :: fn(k: ArrayKind) -> bool {
 /// @param p   the plan from `pc_plan_for_loop`.
 pc_emit_preheader :: fn(s: FnState!, p: PushCache) -> void {
     n :: p.opener_pc
-    line(s, "vader_array_t* _pc${n}_hdr = (vader_array_t*) l${p.slot};")
-    line(s, "size_t _pc${n}_len = _pc${n}_hdr->length;")
-    line(s, "size_t _pc${n}_cap = ${pc_cap_expr(n)};")
-    line(s, "void* _pc${n}_slots = _pc${n}_hdr->buf->slots;")
+    declare(s, "vader_array_t*", "_pc${n}_hdr", array_pointer(CLocal { .slot = p.slot }))
+    declare(s, "size_t", "_pc${n}_len", pc_header(n, "length"))
+    declare(s, "size_t", "_pc${n}_cap", pc_capacity(n))
+    declare(s, "void*", "_pc${n}_slots", pc_header(n, "buf->slots"))
 }
 
-// The capacity, or 0 when the packed store is not allowed on this array.
-pc_cap_expr :: fn(n: i32) -> string {
-    plain :: "_pc${n}_hdr->offset == 0 && !vader_array_is_borrowed(_pc${n}_hdr)"
-    whole :: "_pc${n}_hdr->length >= _pc${n}_hdr->buf->length"
-    return "(${plain} && ${whole}) ? _pc${n}_hdr->capacity : (size_t) 0"
+// `_pc<n>_<name>` — one of the loop's lifted locals.
+pc_local :: fn(n: i32, name: string) -> CExpression = verbatim("_pc${n}_${name}")
+
+// `_pc<n>_hdr-><path>`.
+pc_header :: fn(n: i32, path: string) -> CExpression =
+    CMember { .base = pc_local(n, "hdr"), .member = path, .arrow = true }
+
+// The capacity, or 0 when the packed store is not allowed on this array : a
+// view with an offset, a borrowed view, or one shorter than its buffer.
+pc_capacity :: fn(n: i32) -> CExpression {
+    plain :: binary(.Equal, pc_header(n, "offset"), verbatim("0"))
+    owned :: CSequence {
+        .parts = [verbatim("!"), call("vader_array_is_borrowed", [pc_local(n, "hdr")])],
+    }
+    whole :: binary(.GreaterOrEqual, pc_header(n, "length"), pc_header(n, "buf->length"))
+    allowed :: binary(.LogicalAnd, binary(.LogicalAnd, plain, owned), whole)
+    return CConditional {
+        .condition = CParenthesized { .inner = allowed },
+        .then_value = pc_header(n, "capacity"),
+        .else_value = cast("size_t", verbatim("0")),
+    }
+}
+
+// Re-read the lifted state from the header `_pc<n>_hdr` points at.
+pc_reload :: fn(s: FnState!, n: i32) -> void {
+    assign(s, pc_local(n, "len"), pc_header(n, "length"))
+    assign(s, pc_local(n, "cap"), pc_capacity(n))
+    assign(s, pc_local(n, "slots"), pc_header(n, "buf->slots"))
 }
 
 /// Emit one push against the lifted state.
@@ -179,28 +202,37 @@ pc_cap_expr :: fn(n: i32) -> string {
 /// @param value  the already-coerced value.
 pc_emit_push :: fn(s: FnState!, p: PushCache, obj: CExpression, value: CExpression) -> void {
     n :: p.opener_pc
-    open_if(s, verbatim("VADER_LIKELY(_pc${n}_len < _pc${n}_cap)"))
-    cty :: pc_fill_of(p.kind).cty
-    assign(s, verbatim("((${cty}*) _pc${n}_slots)[_pc${n}_len]"), cast(cty, CParenthesized { .inner = value }))
-    line(s, "_pc${n}_len += 1;")
+    open_if(
+        s,
+        call("VADER_LIKELY", [binary(.Less, pc_local(n, "len"), pc_local(n, "cap"))]),
+    )
+    c_type :: pc_fill_of(p.kind).cty
+    slot :: CIndex {
+        .base = CParenthesized { .inner = cast("${c_type}*", pc_local(n, "slots")) },
+        .index = pc_local(n, "len"),
+    }
+    assign(s, slot, cast(c_type, CParenthesized { .inner = value }))
+    append_statement(
+        s,
+        CAssign { .target = pc_local(n, "len"), .value = verbatim("1"), .operator = .Add },
+    )
     open_else(s)
     // Hand the real state back before a call that may grow — and therefore may
     // collect, which is the one safepoint this region has.
     pc_emit_writeback(s, n)
-    evaluate(s, CCall { .callee = pc_helper_of(p.kind), .arguments = [array_pointer(obj), value] })
+    evaluate(s, call(pc_helper_of(p.kind), [array_pointer(obj), value]))
     // The grow may have moved both the header and the buffer.
-    assign(s, verbatim("_pc${n}_hdr"), array_pointer(obj))
-    line(s, "_pc${n}_len = _pc${n}_hdr->length;")
-    line(s, "_pc${n}_cap = ${pc_cap_expr(n)};")
-    line(s, "_pc${n}_slots = _pc${n}_hdr->buf->slots;")
+    assign(s, pc_local(n, "hdr"), array_pointer(obj))
+    pc_reload(s, n)
     close_node(s, "")
 }
 
 /// Emit the write-back — the loop's single exit, and before the slow arm.
 pc_emit_writeback :: fn(s: FnState!, n: i32) -> void {
-    line(s, "_pc${n}_hdr->length = _pc${n}_len;")
-    grow :: "_pc${n}_hdr->buf->length = _pc${n}_len;"
-    line(s, "if (_pc${n}_hdr->buf->length < _pc${n}_len) { ${grow} }")
+    assign(s, pc_header(n, "length"), pc_local(n, "len"))
+    open_if(s, binary(.Less, pc_header(n, "buf->length"), pc_local(n, "len")))
+    assign(s, pc_header(n, "buf->length"), pc_local(n, "len"))
+    close_node(s, "")
 }
 
 // The shared tables again, unwrapped — `pc_liftable_kind` already proved both

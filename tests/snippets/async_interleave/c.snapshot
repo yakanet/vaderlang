@@ -730,7 +730,9 @@ static vader_box_t std_async_All_Async_resume__i32(void* l0) {
                         _pc64_len += 1;
                     } else {
                         _pc64_hdr->length = _pc64_len;
-                        if (_pc64_hdr->buf->length < _pc64_len) { _pc64_hdr->buf->length = _pc64_len; }
+                        if (_pc64_hdr->buf->length < _pc64_len) {
+                            _pc64_hdr->buf->length = _pc64_len;
+                        }
                         vader_array_push_i32((vader_array_t*) l4, l5);
                         _pc64_hdr = (vader_array_t*) l4;
                         _pc64_len = _pc64_hdr->length;
@@ -744,7 +746,9 @@ static vader_box_t std_async_All_Async_resume__i32(void* l0) {
                 goto loop_64;
             }
             _pc64_hdr->length = _pc64_len;
-            if (_pc64_hdr->buf->length < _pc64_len) { _pc64_hdr->buf->length = _pc64_len; }
+            if (_pc64_hdr->buf->length < _pc64_len) {
+                _pc64_hdr->buf->length = _pc64_len;
+            }
         }
     }
 #line 121 "lib/std/async/async.vader"
@@ -974,7 +978,9 @@ static void std_collections_ensure_index__usize__i32(void* l0) {
                         _pc10_len += 1;
                     } else {
                         _pc10_hdr->length = _pc10_len;
-                        if (_pc10_hdr->buf->length < _pc10_len) { _pc10_hdr->buf->length = _pc10_len; }
+                        if (_pc10_hdr->buf->length < _pc10_len) {
+                            _pc10_hdr->buf->length = _pc10_len;
+                        }
                         vader_array_push_i32((vader_array_t*) l1, INT32_C(0));
                         _pc10_hdr = (vader_array_t*) l1;
                         _pc10_len = _pc10_hdr->length;
@@ -986,7 +992,9 @@ static void std_collections_ensure_index__usize__i32(void* l0) {
                     goto loop_10;
                 }
                 _pc10_hdr->length = _pc10_len;
-                if (_pc10_hdr->buf->length < _pc10_len) { _pc10_hdr->buf->length = _pc10_len; }
+                if (_pc10_hdr->buf->length < _pc10_len) {
+                    _pc10_hdr->buf->length = _pc10_len;
+                }
             }
         }
 #line 88 "lib/std/collections/collections.vader"
@@ -1028,7 +1036,9 @@ static void std_collections_rehash__usize__i32(void* l0, size_t l1) {
                     _pc5_len += 1;
                 } else {
                     _pc5_hdr->length = _pc5_len;
-                    if (_pc5_hdr->buf->length < _pc5_len) { _pc5_hdr->buf->length = _pc5_len; }
+                    if (_pc5_hdr->buf->length < _pc5_len) {
+                        _pc5_hdr->buf->length = _pc5_len;
+                    }
                     vader_array_push_i32((vader_array_t*) l2, INT32_C(0));
                     _pc5_hdr = (vader_array_t*) l2;
                     _pc5_len = _pc5_hdr->length;
@@ -1040,7 +1050,9 @@ static void std_collections_rehash__usize__i32(void* l0, size_t l1) {
                 goto loop_5;
             }
             _pc5_hdr->length = _pc5_len;
-            if (_pc5_hdr->buf->length < _pc5_len) { _pc5_hdr->buf->length = _pc5_len; }
+            if (_pc5_hdr->buf->length < _pc5_len) {
+                _pc5_hdr->buf->length = _pc5_len;
+            }
         }
     }
 #line 99 "lib/std/collections/collections.vader"

@@ -15,7 +15,6 @@ module "vader/c_emit"
 
 import "std/abort"
 import "std/collections"
-import "std/string_builder"
 import "vader/bytecode"
 import "vader/c_emit/c_ast"
 
@@ -193,13 +192,7 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState! = FnState {
     .open_nodes = [],
 }
 
-// ---- indented output ------------------------------------------------------
-
-/// Append one C statement with no operand in it to the block the walk is in ;
-/// `print_block` gives it the block's indentation.
-line :: fn(s: FnState!, code: string) -> void {
-    append_statement(s, CLine { .text = code })
-}
+// ---- tree statements ------------------------------------------------------
 
 /// Append `target = value;`.
 assign :: fn(s: FnState!, target: CExpression, value: CExpression) -> void =
@@ -209,6 +202,18 @@ assign :: fn(s: FnState!, target: CExpression, value: CExpression) -> void =
 evaluate :: fn(s: FnState!, expression: CExpression) -> void =
     append_statement(s, CExpressionStatement { .expression = expression })
 
+/// Append `vader_unreachable("message");`.
+unreachable :: fn(s: FnState!, message: string) -> void =
+    evaluate(s, call("vader_unreachable", [verbatim(c_string_lit(message))]))
+
+/// Append `vader_obj_header_init(object, <type_index>u);`.
+init_object_header :: fn(s: FnState!, object: string, type_index: i32) -> void =
+    evaluate(s, call("vader_obj_header_init", [verbatim(object), verbatim("${type_index}u")]))
+
+/// `(c_type*) vader_gc_alloc(sizeof(c_type))`.
+gc_allocation :: fn(c_type: string) -> CExpression =
+    cast("${c_type}*", call("vader_gc_alloc", [verbatim("sizeof(${c_type})")]))
+
 /// Append a statement macro call `name(arguments…)` — its expansion is a whole
 /// statement, so it takes no `;`.
 statement_macro :: fn(s: FnState!, name: string, arguments: CExpression[]) -> void =
@@ -216,16 +221,16 @@ statement_macro :: fn(s: FnState!, name: string, arguments: CExpression[]) -> vo
 
 /// Append `VADER_WRITE_BARRIER(object);`.
 write_barrier :: fn(s: FnState!, object: CExpression) -> void =
-    evaluate(s, CCall { .callee = "VADER_WRITE_BARRIER", .arguments = [object] })
+    evaluate(s, call("VADER_WRITE_BARRIER", [object]))
 
-/// Materialise a raw object address `address` (`&vader_data_3`, `_a0_obj`) into
-/// a fresh `.Ref` temp : `tN = (void*) address;`.
-push_object :: fn(s: FnState!, address: string) -> void =
-    push_into_temporary(s, cast("void*", verbatim(address)), .Ref)
+/// Materialise a raw object pointer (`&vader_data_3`, `_a0_obj`) into a fresh
+/// `.Ref` temp : `tN = (void*) pointer;`.
+push_object :: fn(s: FnState!, pointer: CExpression) -> void =
+    push_into_temporary(s, cast("void*", pointer), .Ref)
 
 /// Append `type name = value;`.
 declare :: fn(s: FnState!, type: string, name: string, value: CExpression) -> void =
-    append_statement(s, CDeclaration { .type = type, .name = name, .value = value })
+    append_statement(s, declaration(type, name, value))
 
 /// Append a `#line` directive : column 0, not a statement.
 directive :: fn(s: FnState!, text: string) -> void = append_statement(s, CDirective { .text = text })
@@ -281,9 +286,9 @@ open_else :: fn(s: FnState!) -> void {
     node.else_block = CBlock { .body = [] }
 }
 
-/// Open a braced scope whose first line is `head` (`{`, `loop_N: {`).
-open_scope :: fn(s: FnState!, head: string) -> void =
-    open_node(s, CScope { .head = head, .body = CBlock { .body = [] } })
+/// Open a braced scope, labelled `label:` when `label` is not `""`.
+open_scope :: fn(s: FnState!, label: string) -> void =
+    open_node(s, CScope { .label = label, .body = CBlock { .body = [] } })
 
 /// Close the innermost open node ; `end_label` (`end_N: ;`, or `""`) follows
 /// its closing brace.
@@ -357,7 +362,7 @@ slot_val_type :: fn(function: BcFunction, slot: i32) -> ValType {
 
 // ---- materialisation ------------------------------------------------------
 
-/// Allocate a fresh `tN` temp of type `val`, recorded for the prelude
+/// Allocate a fresh `tN` temp of type `val`, recorded for the prologue
 /// declaration. Monotone (id = count).
 new_temporary :: fn(s: FnState!, val: ValType) -> CTemporary {
     temporary :: CTemporary { .id = i32(s.temporaries.len()), .val = val }

@@ -1,4 +1,4 @@
-// vader/c_emit/c_ast/c_ast — the statement tree a C function body is built as.
+// vader/c_emit/c_ast/c_ast — the tree a C function is built as.
 //
 // The walker (`vader/c_emit/walker.vader`, through `stack.vader`) appends
 // statements to the block it is in, and `print.vader` writes the whole tree
@@ -15,8 +15,7 @@ module "vader/c_emit/c_ast"
 import "vader/bytecode"
 
 /// One statement of a C function body.
-export CStatement :: CLine
-            | CDirective
+export CStatement :: CDirective
             | CAssign
             | CExpressionStatement
             | CMacroStatement
@@ -26,15 +25,12 @@ export CStatement :: CLine
             | CReturn
             | CGoto
 
-/// A statement written on one line at its block's depth.
-export CLine :: struct {
-    text: string
-}
-
 /// `target = value;`.
 export CAssign :: struct {
     target: CExpression
     value: CExpression
+    /// `target operator= value` — a compound assignment ; null for plain `=`.
+    operator: CBinaryOperator | null = null
 }
 
 /// `expression;`.
@@ -48,11 +44,27 @@ export CMacroStatement :: struct {
     call: CCall
 }
 
-/// `type name = value;`.
+/// `type d1, d2 = v, d3[n] = { … };` — one type, several declarators.
 export CDeclaration :: struct {
     type: string
+    declarators: CDeclarator[]
+}
+
+/// One name of a `CDeclaration` : `name`, `name[length]`, `name = value`.
+export CDeclarator :: struct {
     name: string
-    value: CExpression
+    /// The element count of an array ; -1 for a scalar.
+    length: i32 = -1
+    value: CExpression | null = null
+}
+
+/// A C function definition : its signature, the statements declaring its
+/// locals and setting up its GC frame, then its body.
+export CFunction :: struct {
+    /// Linkage, return type, name and parameters — no brace.
+    signature: string
+    prologue: CStatement[]
+    body: CBlock
 }
 
 /// A preprocessor line (`#line`), written at column 0.
@@ -96,10 +108,11 @@ export CGoto :: struct {
     condition: CExpression | null = null
 }
 
-/// A braced block — `{` or a loop's `loop_N: {` — closed by `}`.
+/// A braced block — `{`, or `label: {` for a loop's continue target — closed
+/// by `}`.
 export CScope :: struct {
-    /// The opening line, brace included.
-    head: string
+    /// The label before the opening brace ; `""` for none.
+    label: string = ""
     body: CBlock!
     /// `end_N: ;` after the closing brace, when a `goto` exits past the scope.
     end_label: string = ""
@@ -116,10 +129,12 @@ export CExpression :: CTemporary
              | CCast
              | CBinary
              | CUnary
+             | CAddressOf
              | CParenthesized
              | CMember
              | CIndex
              | CConditional
+             | CInitializerList
              | CSequence
 
 /// An operand temporary of stack class `val`, printed `t<slot>` ; printing one
@@ -151,6 +166,11 @@ export CIntegerLiteral :: struct {
 export CCall :: struct {
     callee: string
     arguments: CExpression[]
+}
+
+/// `{ elements… }` — an aggregate initializer.
+export CInitializerList :: struct {
+    elements: CExpression[]
 }
 
 /// `(T1)(T2) value` : the casts in `types` apply right to left, written with
@@ -201,6 +221,12 @@ export CBinary :: struct {
 /// `operator(operand)`.
 export CUnary :: struct {
     operator: string
+    operand: CExpression
+}
+
+/// `&operand`. Unlike `CUnary`, whose `op(operand)` form always parenthesises,
+/// its operand is parenthesised only when C would otherwise bind it looser.
+export CAddressOf :: struct {
     operand: CExpression
 }
 
@@ -260,6 +286,52 @@ export any_of :: fn(parts: CExpression[]) -> CExpression {
     return disjunction
 }
 
+/// `type name = value;`, or `type name;` when `value` is null.
+///
+/// @param type   the declared C type.
+/// @param name   the declared name.
+/// @param value  its initializer.
+export declaration :: fn(type: string, name: string, value: CExpression | null = null) -> CStatement = CDeclaration {
+    .type = type,
+    .declarators = [CDeclarator { .name = name, .value = value }],
+}
+
+/// `type name[n] = { elements… };` — `n` is the element count.
+///
+/// @param type      the element type.
+/// @param name      the declared array.
+/// @param elements  its initializers.
+export array_declaration :: fn(type: string, name: string, elements: CExpression[]) -> CStatement {
+    initializer :: CInitializerList { .elements = elements }
+    declarator :: CDeclarator { .name = name, .length = i32(elements.len()), .value = initializer }
+    return CDeclaration { .type = type, .declarators = [declarator] }
+}
+
+/// The statement that restores the caller's GC frame.
+export FRAME_RESTORE :: CAssign {
+    .target = CVerbatim { .text = "vader_gc_top" },
+    .value = CVerbatim { .text = "gc_frame.prev" },
+}
+
+/// `callee(arguments…)`.
+///
+/// @param callee     the function or macro called.
+/// @param arguments  its arguments, left to right.
+export call :: fn(callee: string, arguments: CExpression[]) -> CExpression = CCall { .callee = callee, .arguments = arguments }
+
+/// `left operator right`.
+///
+/// @param operator  the binary operator.
+/// @param left      its left operand.
+/// @param right     its right operand.
+export binary :: fn(operator: CBinaryOperator, left: CExpression, right: CExpression) -> CExpression =
+    CBinary { .operator = operator, .left = left, .right = right }
+
+/// `&operand`.
+///
+/// @param operand  the object whose address is taken.
+export address_of :: fn(operand: CExpression) -> CExpression = CAddressOf { .operand = operand }
+
 /// `(type) value`.
 ///
 /// @param type   the C type to cast to.
@@ -314,6 +386,7 @@ export mentions_local :: fn(expression: CExpression, slot: i32) -> bool = match 
         slot,
     )
     is CUnary                                   -> mentions_local(expression.operand, slot)
+    is CAddressOf                               -> mentions_local(expression.operand, slot)
     is CParenthesized                           -> mentions_local(expression.inner, slot)
     is CMember                                  -> mentions_local(expression.base, slot)
     is CIndex                                   -> mentions_local(expression.base, slot) || mentions_local(
@@ -326,6 +399,7 @@ export mentions_local :: fn(expression: CExpression, slot: i32) -> bool = match 
             slot,
         )
     }
+    is CInitializerList                         -> any_mentions_local(expression.elements, slot)
     is CSequence                                -> any_mentions_local(expression.parts, slot)
 }
 
@@ -334,44 +408,46 @@ export mentions_local :: fn(expression: CExpression, slot: i32) -> bool = match 
 /// @param a  one expression.
 /// @param b  the other.
 export same_expression :: fn(a: CExpression, b: CExpression) -> bool = match a {
-    is CTemporary      -> b is CTemporary && b.id == a.id
-    is CLocal          -> b is CLocal && b.slot == a.slot
-    is CVerbatim       -> b is CVerbatim && b.text == a.text
-    is CIntegerLiteral -> b is CIntegerLiteral && b.class == a.class && b.value == a.value
-    is CCall           -> b is CCall && b.callee == a.callee && same_expressions(
+    is CTemporary       -> b is CTemporary && b.id == a.id
+    is CLocal           -> b is CLocal && b.slot == a.slot
+    is CVerbatim        -> b is CVerbatim && b.text == a.text
+    is CIntegerLiteral  -> b is CIntegerLiteral && b.class == a.class && b.value == a.value
+    is CCall            -> b is CCall && b.callee == a.callee && same_expressions(
         a.arguments,
         b.arguments,
     )
-    is CCast           -> b is CCast && same_strings(a.types, b.types) && same_expression(
+    is CCast            -> b is CCast && same_strings(a.types, b.types) && same_expression(
         a.value,
         b.value,
     )
-    is CBinary         -> {
+    is CBinary          -> {
         b is CBinary && b.operator == a.operator && same_expression(a.left, b.left) && same_expression(
             a.right,
             b.right,
         )
     }
-    is CUnary          -> b is CUnary && b.operator == a.operator && same_expression(
+    is CAddressOf       -> b is CAddressOf && same_expression(a.operand, b.operand)
+    is CUnary           -> b is CUnary && b.operator == a.operator && same_expression(
         a.operand,
         b.operand,
     )
-    is CParenthesized  -> b is CParenthesized && same_expression(a.inner, b.inner)
-    is CMember         -> b is CMember && b.member == a.member && b.arrow == a.arrow && same_expression(
+    is CParenthesized   -> b is CParenthesized && same_expression(a.inner, b.inner)
+    is CMember          -> b is CMember && b.member == a.member && b.arrow == a.arrow && same_expression(
         a.base,
         b.base,
     )
-    is CIndex          -> b is CIndex && same_expression(a.base, b.base) && same_expression(
+    is CIndex           -> b is CIndex && same_expression(a.base, b.base) && same_expression(
         a.index,
         b.index,
     )
-    is CConditional    -> {
+    is CConditional     -> {
         b is CConditional && same_expression(a.condition, b.condition) && same_expression(
             a.then_value,
             b.then_value,
         ) && same_expression(a.else_value, b.else_value)
     }
-    is CSequence       -> b is CSequence && same_expressions(a.parts, b.parts)
+    is CInitializerList -> b is CInitializerList && same_expressions(a.elements, b.elements)
+    is CSequence        -> b is CSequence && same_expressions(a.parts, b.parts)
 }
 
 // `a` and `b` pairwise the same.

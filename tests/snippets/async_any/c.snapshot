@@ -1123,7 +1123,9 @@ static void std_collections_ensure_index__usize__bool(void* l0) {
                         _pc10_len += 1;
                     } else {
                         _pc10_hdr->length = _pc10_len;
-                        if (_pc10_hdr->buf->length < _pc10_len) { _pc10_hdr->buf->length = _pc10_len; }
+                        if (_pc10_hdr->buf->length < _pc10_len) {
+                            _pc10_hdr->buf->length = _pc10_len;
+                        }
                         vader_array_push_i32((vader_array_t*) l1, INT32_C(0));
                         _pc10_hdr = (vader_array_t*) l1;
                         _pc10_len = _pc10_hdr->length;
@@ -1135,7 +1137,9 @@ static void std_collections_ensure_index__usize__bool(void* l0) {
                     goto loop_10;
                 }
                 _pc10_hdr->length = _pc10_len;
-                if (_pc10_hdr->buf->length < _pc10_len) { _pc10_hdr->buf->length = _pc10_len; }
+                if (_pc10_hdr->buf->length < _pc10_len) {
+                    _pc10_hdr->buf->length = _pc10_len;
+                }
             }
         }
 #line 88 "lib/std/collections/collections.vader"
@@ -1177,7 +1181,9 @@ static void std_collections_rehash__usize__bool(void* l0, size_t l1) {
                     _pc5_len += 1;
                 } else {
                     _pc5_hdr->length = _pc5_len;
-                    if (_pc5_hdr->buf->length < _pc5_len) { _pc5_hdr->buf->length = _pc5_len; }
+                    if (_pc5_hdr->buf->length < _pc5_len) {
+                        _pc5_hdr->buf->length = _pc5_len;
+                    }
                     vader_array_push_i32((vader_array_t*) l2, INT32_C(0));
                     _pc5_hdr = (vader_array_t*) l2;
                     _pc5_len = _pc5_hdr->length;
@@ -1189,7 +1195,9 @@ static void std_collections_rehash__usize__bool(void* l0, size_t l1) {
                 goto loop_5;
             }
             _pc5_hdr->length = _pc5_len;
-            if (_pc5_hdr->buf->length < _pc5_len) { _pc5_hdr->buf->length = _pc5_len; }
+            if (_pc5_hdr->buf->length < _pc5_len) {
+                _pc5_hdr->buf->length = _pc5_len;
+            }
         }
     }
 #line 99 "lib/std/collections/collections.vader"

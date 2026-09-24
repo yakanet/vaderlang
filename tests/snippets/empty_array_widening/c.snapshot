@@ -144,7 +144,9 @@ static int32_t snippet_main(void) {
                     _pc5_len += 1;
                 } else {
                     _pc5_hdr->length = _pc5_len;
-                    if (_pc5_hdr->buf->length < _pc5_len) { _pc5_hdr->buf->length = _pc5_len; }
+                    if (_pc5_hdr->buf->length < _pc5_len) {
+                        _pc5_hdr->buf->length = _pc5_len;
+                    }
                     vader_array_push_i32((vader_array_t*) l0, l1);
                     _pc5_hdr = (vader_array_t*) l0;
                     _pc5_len = _pc5_hdr->length;
@@ -156,7 +158,9 @@ static int32_t snippet_main(void) {
                 goto loop_5;
             }
             _pc5_hdr->length = _pc5_len;
-            if (_pc5_hdr->buf->length < _pc5_len) { _pc5_hdr->buf->length = _pc5_len; }
+            if (_pc5_hdr->buf->length < _pc5_len) {
+                _pc5_hdr->buf->length = _pc5_len;
+            }
         }
     }
 #line 29 "tests/snippets/empty_array_widening/_main.vader"
@@ -254,7 +258,9 @@ static int32_t snippet_main(void) {
                     _pc201_len += 1;
                 } else {
                     _pc201_hdr->length = _pc201_len;
-                    if (_pc201_hdr->buf->length < _pc201_len) { _pc201_hdr->buf->length = _pc201_len; }
+                    if (_pc201_hdr->buf->length < _pc201_len) {
+                        _pc201_hdr->buf->length = _pc201_len;
+                    }
                     vader_array_push_i32((vader_array_t*) l0, l9);
                     _pc201_hdr = (vader_array_t*) l0;
                     _pc201_len = _pc201_hdr->length;
@@ -266,7 +272,9 @@ static int32_t snippet_main(void) {
                 goto loop_201;
             }
             _pc201_hdr->length = _pc201_len;
-            if (_pc201_hdr->buf->length < _pc201_len) { _pc201_hdr->buf->length = _pc201_len; }
+            if (_pc201_hdr->buf->length < _pc201_len) {
+                _pc201_hdr->buf->length = _pc201_len;
+            }
         }
     }
 #line 43 "tests/snippets/empty_array_widening/_main.vader"

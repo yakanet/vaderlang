@@ -26,12 +26,32 @@ export printed_text :: fn(printer: CPrinter) -> string = printer.out.to_string()
 /// @param printer  receives the text.
 /// @param block    the statements to print.
 /// @param depth    the indentation level of `block`'s own lines.
-export print_block :: fn(printer: CPrinter!, block: CBlock, depth: i32) -> void =
-    write_block(printer.out, block, depth)
+export print_block :: fn(printer: CPrinter!, block: CBlock, depth: i32) -> void = write_block(
+    printer.out,
+    block,
+    depth,
+)
+
+/// Print `function` : its signature, then its prologue and body one level deep.
+///
+/// @param printer   receives the text.
+/// @param function  the definition to print.
+export print_function :: fn(printer: CPrinter!, function: CFunction) -> void {
+    printer.out.append(function.signature)
+    printer.out.append(" {\n")
+    write_statements(printer.out, function.prologue, 0, function.prologue.len(), 1)
+    write_block(printer.out, function.body, 1)
+    write_line(printer.out, "}", 0)
+}
 
 // `block`'s statements, `depth` levels deep.
-write_block :: fn(out: StringBuilder!, block: CBlock, depth: i32) -> void =
-    write_statements(out, block.body, 0, block.body.len(), depth)
+write_block :: fn(out: StringBuilder!, block: CBlock, depth: i32) -> void = write_statements(
+    out,
+    block.body,
+    0,
+    block.body.len(),
+    depth,
+)
 
 // `statements[from..<to]`, `depth` levels deep.
 write_statements :: fn(
@@ -44,7 +64,6 @@ write_statements :: fn(
     for k in from..<to {
         statement :: statements[k]
         match statement {
-            is CLine                -> write_line(out, statement.text, depth)
             is CDirective           -> write_directive(out, statement.text)
             is CAssign              -> {
                 indent(out, depth)
@@ -63,12 +82,8 @@ write_statements :: fn(
             }
             is CDeclaration         -> {
                 indent(out, depth)
-                out.append(statement.type)
-                out.append(" ")
-                out.append(statement.name)
-                out.append(" = ")
-                write_expression(out, statement.value)
-                out.append(";\n")
+                write_declaration(out, statement)
+                out.append("\n")
             }
             is CIf                  -> write_if(out, statement, depth)
             is CReturn              -> write_return(out, statement, depth)
@@ -85,7 +100,11 @@ write_statements :: fn(
                 out.append(";\n")
             }
             is CScope               -> {
-                write_line(out, statement.head, depth)
+                write_line(
+                    out,
+                    if statement.label == "" { "{" } else { "${statement.label}: {" },
+                    depth,
+                )
                 write_block(out, statement.body, depth + 1)
                 write_closer(out, statement.end_label, depth)
             }
@@ -142,31 +161,28 @@ export text_of :: fn(expression: CExpression) -> string {
 
 write_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
     match expression {
-        is CTemporary      -> {
+        is CTemporary       -> {
             if expression.slot < 0 {
-                panic("c_ast: temp ${expression.id} printed before `coalesce_temporaries` gave it a slot")
+                panic(
+                    "c_ast: temp ${expression.id} printed before `coalesce_temporaries` gave it a slot",
+                )
             }
             out.append("t")
             out.append("${expression.slot}")
         }
-        is CLocal          -> {
+        is CLocal           -> {
             out.append("l")
             out.append("${expression.slot}")
         }
-        is CVerbatim       -> out.append(expression.text)
-        is CIntegerLiteral -> write_integer_literal(out, expression)
-        is CCall           -> {
+        is CVerbatim        -> out.append(expression.text)
+        is CIntegerLiteral  -> write_integer_literal(out, expression)
+        is CCall            -> {
             out.append(expression.callee)
             out.append("(")
-            for k in 0..<expression.arguments.len() {
-                if k > 0 {
-                    out.append(", ")
-                }
-                write_expression(out, expression.arguments[k])
-            }
+            write_list(out, expression.arguments)
             out.append(")")
         }
-        is CCast           -> {
+        is CCast            -> {
             for type in expression.types {
                 out.append("(")
                 out.append(type)
@@ -175,7 +191,7 @@ write_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
             out.append(" ")
             write_operand(out, expression.value, CAST_PRECEDENCE)
         }
-        is CBinary         -> {
+        is CBinary          -> {
             operator :: COperatorInfo(expression.operator)
             write_operand(out, expression.left, operator.precedence)
             out.append(" ")
@@ -183,36 +199,45 @@ write_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
             out.append(" ")
             write_operand(out, expression.right, operator.precedence + 1)
         }
-        is CUnary          -> {
+        is CAddressOf       -> {
+            out.append("&")
+            write_operand(out, expression.operand, CAST_PRECEDENCE)
+        }
+        is CUnary           -> {
             out.append(expression.operator)
             out.append("(")
             write_expression(out, expression.operand)
             out.append(")")
         }
-        is CParenthesized  -> {
+        is CParenthesized   -> {
             out.append("(")
             write_expression(out, expression.inner)
             out.append(")")
         }
-        is CMember         -> {
+        is CMember          -> {
             write_expression(out, expression.base)
             out.append(if expression.arrow { "->" } else { "." })
             out.append(expression.member)
         }
-        is CIndex          -> {
+        is CIndex           -> {
             write_expression(out, expression.base)
             out.append("[")
             write_expression(out, expression.index)
             out.append("]")
         }
-        is CConditional    -> {
+        is CConditional     -> {
             write_expression(out, expression.condition)
             out.append(" ? ")
             write_expression(out, expression.then_value)
             out.append(" : ")
             write_expression(out, expression.else_value)
         }
-        is CSequence       -> {
+        is CInitializerList -> {
+            out.append("{ ")
+            write_list(out, expression.elements)
+            out.append(" }")
+        }
+        is CSequence        -> {
             for part in expression.parts {
                 write_expression(out, part)
             }
@@ -249,9 +274,6 @@ write_integer_literal :: fn(out: StringBuilder!, literal: CIntegerLiteral) -> vo
 
 // ---- statements -----------------------------------------------------------
 
-/// The statement that restores the caller's GC frame.
-export FRAME_RESTORE :: "vader_gc_top = gc_frame.prev;"
-
 // A return on one line : bare, or braced around the frame restore — every value
 // is read before `vader_gc_top` moves, through the `__vret` snapshot when the
 // value may read a frame-pinned local.
@@ -273,7 +295,7 @@ write_return :: fn(out: StringBuilder!, node: CReturn, depth: i32) -> void {
         out.append("; ")
     }
     if node.pops_frame {
-        out.append(FRAME_RESTORE)
+        write_assign(out, FRAME_RESTORE)
         out.append(" ")
     }
     if value == null {
@@ -301,9 +323,50 @@ write_if_head :: fn(out: StringBuilder!, opening: string, condition: CExpression
 // `target = value;`, without indentation or newline.
 write_assign :: fn(out: StringBuilder!, node: CAssign) -> void {
     write_expression(out, node.target)
-    out.append(" = ")
+    operator :: node.operator
+    if operator != null {
+        out.append(" ")
+        out.append(COperatorInfo(operator).spelling)
+        out.append("= ")
+    } else {
+        out.append(" = ")
+    }
     write_expression(out, node.value)
     out.append(";")
+}
+
+// `type d1, d2 = v, d3[n] = { … };`, without indentation or newline.
+write_declaration :: fn(out: StringBuilder!, node: CDeclaration) -> void {
+    out.append(node.type)
+    out.append(" ")
+    for k in 0..<node.declarators.len() {
+        if k > 0 {
+            out.append(", ")
+        }
+        declarator :: node.declarators[k]
+        out.append(declarator.name)
+        if declarator.length >= 0 {
+            out.append("[")
+            out.append("${declarator.length}")
+            out.append("]")
+        }
+        value :: declarator.value
+        if value != null {
+            out.append(" = ")
+            write_expression(out, value)
+        }
+    }
+    out.append(";")
+}
+
+// `expressions` separated by `, `.
+write_list :: fn(out: StringBuilder!, expressions: CExpression[]) -> void {
+    for k in 0..<expressions.len() {
+        if k > 0 {
+            out.append(", ")
+        }
+        write_expression(out, expressions[k])
+    }
 }
 
 indent :: fn(out: StringBuilder!, depth: i32) -> void = out.append_repeated(' ', depth * 4)
@@ -336,7 +399,7 @@ test_print_block_indents_an_if :: fn() -> void {
         .body = [
             CIf {
                 .condition = verbatim("a"),
-                .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] },
+                .then_block = CBlock { .body = [assigned("x", "1")] },
             },
         ],
     }
@@ -349,18 +412,18 @@ test_print_block_indents_an_if :: fn() -> void {
 test_print_block_folds_an_else_if_chain :: fn() -> void {
     innermost :: CIf {
         .condition = verbatim("c"),
-        .then_block = CBlock { .body = [CLine { .text = "x = 3;" }] },
+        .then_block = CBlock { .body = [assigned("x", "3")] },
     }
     inner :: CIf {
         .condition = verbatim("b"),
-        .then_block = CBlock { .body = [CLine { .text = "x = 2;" }] },
+        .then_block = CBlock { .body = [assigned("x", "2")] },
         .else_block = CBlock { .body = [innermost] },
     }
     root :: CBlock {
         .body = [
             CIf {
                 .condition = verbatim("a"),
-                .then_block = CBlock { .body = [CLine { .text = "x = 1;" }] },
+                .then_block = CBlock { .body = [assigned("x", "1")] },
                 .else_block = CBlock {
                     .body = [CDirective { .text = "#line 4 \"f.vader\"" }, inner],
                 },
@@ -396,7 +459,7 @@ test_print_block_keeps_an_arm_with_two_statements :: fn() -> void {
                 .then_block = CBlock { .body = [] },
                 .else_block = CBlock {
                     .body = [
-                        CLine { .text = "t0 = f();" },
+                        assigned("t0", "f()"),
                         CIf { .condition = verbatim("t0"), .then_block = CBlock { .body = [] } },
                     ],
                 },
@@ -442,7 +505,7 @@ test_print_block_writes_trailing_directives_below_the_closer :: fn() -> void {
         .condition = verbatim("b"),
         .then_block = CBlock { .body = [] },
         .else_block = CBlock {
-            .body = [CLine { .text = "x = 2;" }, CDirective { .text = "#line 9" }],
+            .body = [assigned("x", "2"), CDirective { .text = "#line 9" }],
         },
     }
     root :: CBlock {
@@ -471,6 +534,12 @@ test_print_block_writes_trailing_directives_below_the_closer :: fn() -> void {
             "\n",
         ),
     )
+}
+
+// `<name> = <value>;`.
+assigned :: fn(name: string, value: string) -> CStatement = CAssign {
+    .target = verbatim(name),
+    .value = verbatim(value),
 }
 
 // `*out<index> = l<slot>`.
@@ -515,7 +584,10 @@ test_print_block_spells_every_return :: fn() -> void {
 
 @test
 test_text_of_spells_every_expression :: fn() -> void {
-    value :: CMember { .base = CTemporary { .id = 3, .val = .Any, .slot = 3 }, .member = "payload.i" }
+    value :: CMember {
+        .base = CTemporary { .id = 3, .val = .Any, .slot = 3 },
+        .member = "payload.i",
+    }
     call :: CCall {
         .callee = "vader_box_i32",
         .arguments = [
@@ -550,6 +622,57 @@ test_text_of_spells_integer_extremes_as_macros :: fn() -> void {
 test_text_of_parenthesises_a_looser_operand :: fn() -> void {
     equality :: CBinary { .operator = .Equal, .left = CLocal { .slot = 0 }, .right = verbatim("1") }
     assert_eq(text_of(CCast { .types = ["uint8_t"], .value = equality }), "(uint8_t) (l0 == 1)")
-    assert_eq(text_of(CBinary { .operator = .Equal, .left = verbatim("a"), .right = equality }), "a == (l0 == 1)")
-    assert_eq(text_of(CBinary { .operator = .LogicalOr, .left = equality, .right = equality }), "l0 == 1 || l0 == 1")
+    assert_eq(
+        text_of(CBinary { .operator = .Equal, .left = verbatim("a"), .right = equality }),
+        "a == (l0 == 1)",
+    )
+    assert_eq(
+        text_of(CBinary { .operator = .LogicalOr, .left = equality, .right = equality }),
+        "l0 == 1 || l0 == 1",
+    )
+}
+
+@test
+test_print_block_spells_declarations :: fn() -> void {
+    root :: CBlock {
+        .body = [
+            CDeclaration {
+                .type = "int32_t",
+                .declarators = [
+                    CDeclarator { .name = "l1" },
+                    CDeclarator { .name = "l2", .value = verbatim("0") },
+                ],
+            },
+            array_declaration(
+                "void*",
+                "roots",
+                [address_of(CLocal { .slot = 1 }), verbatim("NULL")],
+            ),
+        ],
+    }
+    printer :: CPrinter {}
+    printer.print_block(root, 0)
+    assert_eq(printer.printed_text(), "int32_t l1, l2 = 0;\nvoid* roots[2] = { &l1, NULL };\n")
+}
+
+@test
+test_print_block_spells_a_compound_assignment :: fn() -> void {
+    root :: CBlock {
+        .body = [CAssign { .target = verbatim("n"), .value = verbatim("1"), .operator = .Add }],
+    }
+    printer :: CPrinter {}
+    printer.print_block(root, 0)
+    assert_eq(printer.printed_text(), "n += 1;\n")
+}
+
+@test
+test_print_function_writes_prologue_then_body :: fn() -> void {
+    function :: CFunction {
+        .signature = "static void f(void)",
+        .prologue = [declaration("int32_t", "l0")],
+        .body = CBlock { .body = [assigned("l0", "1")] },
+    }
+    printer :: CPrinter {}
+    printer.print_function(function)
+    assert_eq(printer.printed_text(), "static void f(void) {\n    int32_t l0;\n    l0 = 1;\n}\n")
 }

@@ -120,14 +120,21 @@ scan_block :: fn(block: CBlock, usage: TemporaryUsage!) -> void {
     for statement in block.body {
         usage.position += 1
         match statement {
-            is CLine | CDirective   -> {}
+            is CDirective           -> {}
             is CAssign              -> {
                 scan_expression(statement.target, usage)
                 scan_expression(statement.value, usage)
             }
             is CExpressionStatement -> scan_expression(statement.expression, usage)
             is CMacroStatement      -> scan_expression(statement.call, usage)
-            is CDeclaration         -> scan_expression(statement.value, usage)
+            is CDeclaration         -> {
+                for declarator in statement.declarators {
+                    value :: declarator.value
+                    if value != null {
+                        scan_expression(value, usage)
+                    }
+                }
+            }
             is CGoto                -> {
                 condition :: statement.condition
                 if condition != null {
@@ -179,6 +186,7 @@ scan_expression :: fn(expression: CExpression, usage: TemporaryUsage!) -> void {
             scan_expression(expression.right, usage)
         }
         is CUnary                               -> scan_expression(expression.operand, usage)
+        is CAddressOf                           -> scan_expression(expression.operand, usage)
         is CParenthesized                       -> scan_expression(expression.inner, usage)
         is CMember                              -> scan_expression(expression.base, usage)
         is CIndex                               -> {
@@ -189,6 +197,11 @@ scan_expression :: fn(expression: CExpression, usage: TemporaryUsage!) -> void {
             scan_expression(expression.condition, usage)
             scan_expression(expression.then_value, usage)
             scan_expression(expression.else_value, usage)
+        }
+        is CInitializerList                     -> {
+            for element in expression.elements {
+                scan_expression(element, usage)
+            }
         }
         is CSequence                            -> {
             for part in expression.parts {

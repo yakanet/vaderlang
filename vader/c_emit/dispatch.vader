@@ -152,7 +152,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder!) -> void {
             for i in 0..<tail {
                 args.push(coerce_expr(types, verbatim("a${i}"), .Any, csig.params[usize(i + 1)]))
             }
-            call_expr :: CCall { .callee = sanitise(callee.name), .arguments = args }
+            call_expr :: call(sanitise(callee.name), args)
             if bc_single_result(sig) == .Void {
                 out.append("        case ${e.receiver_type_index}u: ${text_of(call_expr)}; return;\n")
             } else {

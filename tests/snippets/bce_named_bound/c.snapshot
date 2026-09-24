@@ -98,7 +98,9 @@ static int64_t snippet_hoisted(void) {
                     _pc5_len += 1;
                 } else {
                     _pc5_hdr->length = _pc5_len;
-                    if (_pc5_hdr->buf->length < _pc5_len) { _pc5_hdr->buf->length = _pc5_len; }
+                    if (_pc5_hdr->buf->length < _pc5_len) {
+                        _pc5_hdr->buf->length = _pc5_len;
+                    }
                     vader_array_push_i32((vader_array_t*) l0, l2);
                     _pc5_hdr = (vader_array_t*) l0;
                     _pc5_len = _pc5_hdr->length;
@@ -110,7 +112,9 @@ static int64_t snippet_hoisted(void) {
                 goto loop_5;
             }
             _pc5_hdr->length = _pc5_len;
-            if (_pc5_hdr->buf->length < _pc5_len) { _pc5_hdr->buf->length = _pc5_len; }
+            if (_pc5_hdr->buf->length < _pc5_len) {
+                _pc5_hdr->buf->length = _pc5_len;
+            }
         }
     }
 #line 25 "tests/snippets/bce_named_bound/_main.vader"

@@ -227,18 +227,18 @@ box_expr :: fn(value: CExpression, val: ValType, type_index: i32) -> CExpression
     .Char                 -> box_call("i32", type_index, cast("int32_t", value))
     .String               -> box_call("string", type_index, value)
     .Null | .Any          -> value
-    .Void                 -> CCall { .callee = "vader_box_null", .arguments = [] }
+    .Void                 -> call("vader_box_null", [])
     .Pointer              -> box_call("i64", type_index, cast("int64_t", cast("intptr_t", value)))
     .Ref                  -> ref_box(value)
 }
 
 /// `vader_ref_box(value)` — a raw concrete ref widened into a box, its tag
 /// recovered from the object header.
-ref_box :: fn(value: CExpression) -> CExpression = CCall { .callee = "vader_ref_box", .arguments = [value] }
+ref_box :: fn(value: CExpression) -> CExpression = call("vader_ref_box", [value])
 
 /// `vader_box_<class>(<type_index>u, value)`.
 box_call :: fn(class: string, type_index: i32, value: CExpression) -> CExpression =
-    CCall { .callee = "vader_box_${class}", .arguments = [verbatim("${type_index}u"), value] }
+    call("vader_box_${class}", [verbatim("${type_index}u"), value])
 
 /// BcType index of the primitive whose stack class is `val`, or `0` when no
 /// such primitive is materialised in the type table. Used to tag a box when
