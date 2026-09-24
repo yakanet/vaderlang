@@ -20,7 +20,7 @@ const EXPECTED_STDOUT = "reserve inventory\ncharging 500\nrefund 500\nrelease ho
 // `vader/pipeline/emit.vader::default_cc`. Probing `cc` on Windows skipped the native
 // half on the platform that most needs it — and did not even skip cleanly, since
 // `spawn` THROWS on a missing program rather than exiting non-zero.
-const HOST_CC = process.platform === "win32" ? "gcc" : "cc";
+const HOST_CC = process.env.CC || (process.platform === "win32" ? "gcc" : "cc");
 
 async function haveCc(): Promise<boolean> {
   try {

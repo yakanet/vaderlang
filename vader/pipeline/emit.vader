@@ -16,6 +16,7 @@
 
 module "vader/pipeline"
 
+import "std/env"
 import "std/io"
 import "std/path"
 import "std/string"
@@ -211,13 +212,20 @@ export write_out :: fn(path: Path, content: string) -> i32 {
 
 // ---- native output --------------------------------------------------------
 
-/// The C compiler to invoke when nothing names one, resolved on the HOST.
+/// The C compiler to invoke when `--cc` names none: `$CC`, else the host's own.
 ///
-/// `cc` is the POSIX-guaranteed name; Windows has none. Keyed on the host and not
-/// on the build target: it names a program to spawn HERE, so a cross build has to
-/// name its own — `--cc=x86_64-w64-mingw32-gcc` on the command line, `ctx.cc` from
-/// a driver.
-export default_cc :: fn() -> string = if current_os() == .Windows { "gcc" } else { "cc" }
+/// `$CC` names ONE program — it is spawned as is, never split into a command
+/// line. Without it, `cc` is the POSIX-guaranteed name; Windows has none. Keyed
+/// on the host and not on the build target: it names a program to spawn HERE, so
+/// a cross build has to name its own — `--cc=x86_64-w64-mingw32-gcc` on the
+/// command line, `ctx.cc` from a driver.
+export default_cc :: fn() -> string {
+    from_env :: get_env("CC")
+    if from_env != null && from_env != "" {
+        return from_env
+    }
+    return if current_os() == .Windows { "gcc" } else { "cc" }
+}
 
 /// Write `c` beside `out` and link it into a native binary.
 ///

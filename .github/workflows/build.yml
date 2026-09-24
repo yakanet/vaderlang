@@ -81,14 +81,11 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.13
-      - name: Verify a mingw-w64 gcc is on PATH
+      # The image's LLVM, aimed at the image's MinGW sysroot, in place of MinGW's
+      # own gcc (ADR 0021). Exports `CC` to the steps below.
+      - name: Set up clang targeting MinGW
         shell: pwsh
-        run: |
-          gcc --version
-          $triple = & gcc -dumpmachine
-          if ($triple -ne "x86_64-w64-mingw32") {
-            throw "gcc targets '$triple', not x86_64-w64-mingw32 — bootstrap/build.ps1 needs mingw-w64"
-          }
+        run: pwsh -NoProfile -File tools/ci/mingw-clang.ps1
       - name: Build Vader CLI from the C seed (Windows)
         shell: pwsh
         run: pwsh bootstrap/build.ps1
@@ -107,13 +104,6 @@ jobs:
         shell: pwsh
         continue-on-error: true
         run: pwsh -NoProfile -File tools/ci-probe/probe.ps1 tests
-      # Temporary: rebuild with the image's LLVM targeting MinGW, on this same
-      # machine, to compare against the gcc build above. tools/ci-probe/clang.ps1.
-      - name: Clang build probe
-        if: always()
-        shell: pwsh
-        continue-on-error: true
-        run: pwsh -NoProfile -File tools/ci-probe/clang.ps1
 
   # Fixed-point check: build the toolchain from the committed seed, confirm stage1
   # and stage2 emit identical C for main.vader (release AND debug), and that two

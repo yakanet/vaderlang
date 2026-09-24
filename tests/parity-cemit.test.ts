@@ -23,9 +23,12 @@ import { snapshotDiff } from "./diff.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
 
+// `$CC` first, as `vader build` reads it (`vader/pipeline/emit.vader::default_cc`).
+const CC = process.env.CC || "cc";
+
 const CC_AVAILABLE = await (async () => {
   try {
-    const proc = Bun.spawn(["cc", "--version"], { stdout: "ignore", stderr: "ignore" });
+    const proc = Bun.spawn([CC, "--version"], { stdout: "ignore", stderr: "ignore" });
     return (await proc.exited) === 0;
   } catch {
     return false;
@@ -360,7 +363,7 @@ for (const s of scenarios) {
     writeFileSync(cFile, dump.stdout);
 
     const build = Bun.spawn([
-      "cc", "-std=c11", "-O0", "-I", RUNTIME_ROOT,
+      CC, "-std=c11", "-O0", "-I", RUNTIME_ROOT,
       cFile, join(RUNTIME_ROOT, "vader_runtime.c"),
       // `@extern` snippets carry their foreign symbols in helper `.c`
       // files next to `_main.vader` — compile them into the binary.

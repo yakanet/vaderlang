@@ -110,16 +110,13 @@ check_environment :: fn() -> Check[] {
             .detail = "${toggle.name}=${raw}",
         })
     }
-    // `CC` is honoured by the BOOTSTRAP scripts (`bootstrap/build.sh` line 24,
-    // `build.ps1` line 15) and by nothing else — `vader build` takes its default
-    // from `pipeline::default_cc` and reads only `--cc`. Someone who exported
-    // `CC=clang` and then wonders why the build invoked something else has no way
-    // to find that out, which is the whole shape of failure this command exists for.
+    // Reported because it silently replaces the host default: a build that
+    // invokes an unexpected compiler is otherwise hard to trace back to the shell.
     cc_env :: get_env("CC")
     if cc_env != null && cc_env != "" {
-        out.push(check_warn(
+        out.push(check_ok(
             "cc-env",
-            "`CC` is set, but only the bootstrap scripts read it — `vader build` needs `--cc`",
+            "`CC` names the C compiler used when `--cc` is absent",
             "CC=${cc_env}",
         ))
     }
