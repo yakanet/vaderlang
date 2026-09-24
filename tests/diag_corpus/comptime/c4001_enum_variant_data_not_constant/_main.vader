@@ -1,0 +1,17 @@
+// C4001 — an enum's variant data is baked into a read-only table, so every
+// value must be a constant: a call is refused, a literal is quiet.
+
+module "snippet"
+
+Info :: struct {
+    n: i32
+}
+
+compute :: fn() -> i32 = 41 + 1
+
+Answer :: enum(Info) {
+    Computed { .n = compute() },
+    Literal { .n = 42 },
+}
+
+main :: fn() -> i32 = Answer.Computed.n + Answer.Literal.n

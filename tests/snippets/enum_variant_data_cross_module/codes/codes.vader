@@ -1,0 +1,16 @@
+// An enum with variant data, declared in its own module and read from
+// another one: its table is lowered here, where the variant values were typed.
+
+module "snippet/codes"
+
+/// What each code carries.
+export Info :: struct {
+    id:      string
+    message: string
+}
+
+/// Two codes, each with its constant `Info`.
+export Code :: enum(Info) {
+    First { .id = "X0001", .message = "first" },
+    Second { .id = "X0002", .message = "second" },
+}

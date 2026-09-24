@@ -262,9 +262,7 @@ export LowerCode :: enum(u8) {
     // former meaning ; not reused.
     AwaitInShortCircuit,                    // M5009
     ComptimeForNotUnrollable,               // M5010
-    // Stands until the lowerer reads variant data ; the typechecker already
-    // accepts `v.field` and `Data(v)`.
-    EnumVariantDataNotLowered,              // M5011
+    // M5011 (EnumVariantDataNotLowered) retired : variant data now lowers. Free to reuse.
 }
 
 // `WARNING` — non-fatal diagnostics. New entries appended ; retired IDs are free
@@ -507,7 +505,6 @@ export lower_info :: fn(c: LowerCode) = match c {
     .UnresolvedIdent                    -> CodeInfo { .id = "M5007", .message = "identifier did not resolve at lowering" }
     .AwaitInShortCircuit                -> CodeInfo { .id = "M5009", .message = "`await` in a short-circuit operand or loop condition is not yet supported" }
     .ComptimeForNotUnrollable           -> CodeInfo { .id = "M5010", .message = "`@comptime for` cannot be unrolled" }
-    .EnumVariantDataNotLowered          -> CodeInfo { .id = "M5011", .message = "enum variant data is not lowered yet" }
 }
 
 export typecheck_info :: fn(c: TypecheckCode) = match c {

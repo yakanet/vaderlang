@@ -1657,13 +1657,14 @@ push_module_exported_fns :: fn(
     // Same for wildcard-exposed CONSTS : without their type in `external_types`,
     // a wildcard `println(CLI_VERSION)` const or `EnumName.Variant` types the const as `?`, so the generic
     // `println<T>` instance can't be pinned and its materialisation drops
-    // (GATE B1), and a wildcard enum-variant access mis-resolves. Structs/traits
-    // flow through `struct_decls` / `cross_publish` ; consts/enums/aliases need this.
+    // (GATE B1), and a wildcard enum-variant access mis-resolves. A struct's
+    // name in value position needs it too (`Info(v)` converts). Traits flow
+    // through `cross_publish`.
     for sym in from.resolved.symbols {
         if sym.visibility != .Public {
             continue
         }
-        if sym.kind != .Const && sym.kind != .Enum && sym.kind != .TypeAlias {
+        if sym.kind != .Const && sym.kind != .Enum && sym.kind != .TypeAlias && sym.kind != .Struct {
             continue
         }
         cty :: from.decl_types[sym.id] ?? continue

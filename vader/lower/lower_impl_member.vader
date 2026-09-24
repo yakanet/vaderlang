@@ -350,8 +350,9 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
 emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
     // The checked type, not the lowered one : a variant literal lowers to its
     // bare index and no longer says it is an enum.
-    if enum_data_of(ctx.types.expr_type(call.args[0].value), type) != null {
-        return refuse_enum_data(ctx, call.span, type)
+    source :: enum_type_or_unwrap(ctx, ctx.types.expr_type(call.args[0].value))
+    if source is EnumType && enum_data_of(source, type) != null {
+        return lower_enum_data_slot(ctx, lower_expr(ctx, call.args[0].value), source, call.span)
     }
     arg :: lower_expr(ctx, call.args[0].value)
     arg_type :: type_of(arg)

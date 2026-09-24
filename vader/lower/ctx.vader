@@ -156,6 +156,14 @@ export LowerProjectCtx :: struct {
     /// stranded). They are collected here and drained ONCE, unconditionally,
     /// into the entry module after the lowering fixpoint (`drain_concat_decls`).
     concat_decls:        LoweredFnDecl[]!
+    /// Enum symbol id → the synthetic read-only const holding that enum's
+    /// variant data, one slot per ordinal from the smallest. Minted at the
+    /// first read (`enum_data_const`) so every read shares one symbol.
+    enum_data_consts:    MutableMap<i32, Symbol>
+    /// Tables due, in first-read order. `materialize_enum_data` lowers each
+    /// from `enum_data_cursor` on, inside the lowering fixpoint.
+    enum_data_order:     EnumDataTable[]!
+    enum_data_cursor:    usize
 
     /// Monotonically-decreasing counter for synthetic symbol IDs.
     /// Starts at `-1` so it cannot collide with resolver-minted IDs
@@ -374,6 +382,9 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .synth_decls         = [],
         .concat_fn_syms      = MutableMap<i32, Symbol> {},
         .concat_decls        = [],
+        .enum_data_consts    = MutableMap<i32, Symbol> {},
+        .enum_data_order     = [],
+        .enum_data_cursor    = 0,
         .next_synthetic_id   = -1,
         .diags               = [],
     }
@@ -532,6 +543,12 @@ export new_fn_lower_ctx :: fn(
         .lifted_context    = null,
         .comptime_bindings = MutableMap<i32, LoweredExpr> {},
     }
+}
+
+/// An enum whose variant-data table is due, with the const that will hold it.
+export EnumDataTable :: struct {
+    enum_type: EnumType
+    symbol:    Symbol
 }
 
 // ---- tests ----------------------------------------------------------------

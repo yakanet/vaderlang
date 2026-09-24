@@ -151,7 +151,8 @@ try_lower_enum_field :: fn(ctx: FnLowerCtx!, expr: FieldExpr, type: Type) -> Low
     if enum_type is EnumType {
         index :: enum_type.indices[expr.field]
         if index == null && enum_type.data != null {
-            return refuse_enum_data(ctx, expr.span, type)
+            slot :: lower_enum_data_slot(ctx, lower_expr(ctx, expr.target), enum_type, expr.span)
+            return LoweredFieldAccess { .span = expr.span, .type = type, .target = slot, .field = expr.field }
         }
         if !target_is_enum_name(ctx, expr.target) { return null }
         if index is i64 {
@@ -161,17 +162,6 @@ try_lower_enum_field :: fn(ctx: FnLowerCtx!, expr: FieldExpr, type: Type) -> Low
         }
     }
     return null
-}
-
-/// Report M5011 for a read of enum variant data — `v.field` or `Data(v)` —
-/// which type-checks but does not lower yet.
-///
-/// @param span  the read.
-/// @param type  the read's checked type, carried by the stub.
-/// @return      a stub standing for the value.
-export refuse_enum_data :: fn(ctx: FnLowerCtx!, span: Span, type: Type) -> LoweredExpr {
-    ctx.project.diags.push(lower_error(.EnumVariantDataNotLowered, span, ""))
-    return stub(span, type, "enum variant data")
 }
 
 // True when `target` syntactically names an enum TYPE (not a runtime value) :

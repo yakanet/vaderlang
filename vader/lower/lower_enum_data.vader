@@ -1,0 +1,158 @@
+// vader/lower/lower_enum_data — the table behind enum variant data.
+//
+// An enum whose header declares variant data (`enum(Info)`) keeps its values in
+// a synthetic read-only module const `<Enum>$data : Info[]`, one slot per
+// ordinal from the smallest to the largest. A read lowers to a slot of it —
+// `v.field` to `<Enum>$data[i64(v) - min].field`, `Info(v)` to the slot itself —
+// and `inline_consts` routes the const to the data pool like any read-only
+// table, so it is baked once and never rebuilt. A slot for an ordinal no variant
+// takes holds a copy of the smallest ordinal's data : it is never read, and it
+// keeps every slot an `Info` the pool can bake.
+//
+// The const is minted at the first read (`enum_data_const`) and lowered inside
+// the lowering fixpoint (`materialize_enum_data`), in the enum's own module so
+// the variant values read the types that module recorded.
+
+module "vader/lower"
+
+import "toolchain/ast"
+import "toolchain/span"
+import "vader/comptime"
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "vader/types"
+
+/// The slot holding `value`'s variant data : `<Enum>$data[i64(value) - min]`.
+///
+/// @param value      the enum value, lowered.
+/// @param enum_type  its enum ; one without variant data yields a stub.
+/// @param span       the read, stamped on every node built here.
+/// @return           the slot, typed as the enum's read-only data.
+export lower_enum_data_slot :: fn(
+    ctx: FnLowerCtx!, value: LoweredExpr, enum_type: EnumType, span: Span,
+) -> LoweredExpr {
+    data :: enum_type.data ?? return stub(span, TY_UNRESOLVED, "enum without variant data")
+    i64_type :: mk_primitive("i64")
+    [lo, _] :: index_bounds(enum_type.indices)
+    index :: LoweredBinary {
+        .span  = span,
+        .type  = i64_type,
+        .op    = .Sub,
+        .left  = LoweredCast { .span = span, .type = i64_type, .value = value },
+        .right = LoweredIntLit { .span = span, .type = i64_type, .value = lo },
+    }
+    return LoweredIndex {
+        .span   = span,
+        .type   = data,
+        .target = LoweredIdent {
+            .span = span, .type = mk_array(data, true), .symbol = enum_data_const(ctx, enum_type),
+        },
+        .index  = index,
+    }
+}
+
+// The const holding `enum_type`'s table, minted at its first read and queued
+// for `materialize_enum_data`.
+enum_data_const :: fn(ctx: FnLowerCtx!, enum_type: EnumType) -> Symbol {
+    owner :: enum_type.symbol
+    existing :: ctx.project.enum_data_consts[owner.id]
+    if existing != null {
+        return existing
+    }
+    sym :: Symbol {
+        .id          = next_synthetic_id(ctx),
+        .kind        = .Const,
+        .name        = "${owner.name}\$data",
+        .module      = owner.module,
+        .module_name = owner.module_name,
+        .visibility  = .Private,
+        .defined_at  = null,
+    }
+    ctx.project.enum_data_consts[owner.id] = sym
+    ctx.project.enum_data_order.push(EnumDataTable { .enum_type = enum_type, .symbol = sym })
+    return sym
+}
+
+/// Lower the table of every enum read since the last round, in that enum's
+/// own module, and push it there for `inline_consts` to route. Runs inside the
+/// lowering fixpoint : a read in a module lowered later queues its enum then.
+///
+/// @param loaded       the source-level project, for the enum decls.
+/// @param typed        every module's typed program.
+/// @param project_ctx  carries the queue ; C4001 lands on its `diags`.
+/// @param project      the lowered project ; the owning modules gain the tables.
+/// @error              C4001 when a variant's data is not a constant the data
+///                     pool can bake.
+export materialize_enum_data :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!, project: LoweredProject,
+) -> void {
+    for project_ctx.enum_data_cursor < project_ctx.enum_data_order.len() {
+        due :: project_ctx.enum_data_order[project_ctx.enum_data_cursor]
+        project_ctx.enum_data_cursor += 1
+        owner :: due.enum_type.symbol
+        module_typed :: typed.modules[owner.module] ?? continue
+        module_loaded :: loaded.modules[owner.module] ?? continue
+        if module_typed is TypedProgram && module_loaded is LoadedModule {
+            decl :: find_enum_decl_by_name(module_decls(module_loaded), owner.name) ?? continue
+            table :: lower_enum_table(decl, due, module_typed, project_ctx) ?? continue
+            push_to_module(project, owner.module, table)
+        }
+    }
+}
+
+// The `<Enum>$data` const : each variant's data lowered as a literal of the
+// data struct, placed at `ordinal - min`, gaps filled with the smallest
+// ordinal's.
+lower_enum_table :: fn(
+    decl: EnumDecl, due: EnumDataTable, typed: TypedProgram, project_ctx: LowerProjectCtx!,
+) -> LoweredConstDecl | null {
+    enum_type :: due.enum_type
+    data :: enum_type.data ?? return null
+    table_type :: mk_array(data, true)
+    entry :: MonoEntry {
+        ...stub_entry(decl, typed),
+        .mangled = "${mangle_module_id(typed.resolved.display_path)}$${due.symbol.name}",
+        .symbol  = due.symbol,
+    }
+    fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, entry.subst, table_type)
+    by_ordinal :: MutableMap<i64, LoweredExpr> {}
+    for v in decl.variants {
+        ordinal :: enum_type.indices[v.name] ?? continue
+        lit :: StructLitExpr {
+            .span      = v.span,
+            .type_name = IdentExpr {
+                .span = v.span, .name = data.symbol.name, .implicit_dot = false, .is_type_param_intro = false,
+            },
+            .items     = v.data ?? [],
+        }
+        value :: lower_struct_lit(fn_ctx, lit, data)
+        if !is_bakeable_value(value) {
+            project_ctx.diags.push(comptime_error(.CannotEvaluate, v.span,
+                "the data of `${decl.name}.${v.name}` must be a constant"))
+        }
+        by_ordinal[ordinal] = value
+    }
+    [lo, hi] :: index_bounds(enum_type.indices)
+    filler :: by_ordinal[lo] ?? return null
+    elements: LoweredExpr[]!: []
+    for ordinal in lo..<hi + 1 {
+        elements.push(by_ordinal[ordinal] ?? filler)
+    }
+    return LoweredConstDecl {
+        .mangled = entry.mangled,
+        .type    = table_type,
+        .value   = LoweredArrayLit { .span = decl.span, .type = table_type, .elements = elements },
+        .origin  = entry,
+    }
+}
+
+find_enum_decl_by_name :: fn(decls: Decl[], name: string) -> EnumDecl | null {
+    for d in decls {
+        if d is EnumDecl && d.name == name {
+            return d
+        }
+    }
+    return null
+}

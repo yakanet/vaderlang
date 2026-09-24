@@ -1,0 +1,36 @@
+# Typecheck
+
+## tests/snippets/enum_variant_data_cross_module
+  FnDecl         main                 :: fn() -> i32
+  expr 13:10    FieldExpr      :: Code
+  expr 13:10    IdentExpr      :: Code
+  expr 14:13    StringLitExpr  :: string
+  expr 14:16    FieldExpr      :: string
+  expr 14:16    IdentExpr      :: Code
+  expr 14:25    FieldExpr      :: string
+  expr 14:25    IdentExpr      :: Code
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:13    CallExpr       :: Info
+  expr 15:13    FieldExpr      :: string
+  expr 15:13    IdentExpr      :: Info!
+  expr 15:18    IdentExpr      :: Code
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 16:10    StructLitExpr  :: Info!
+  expr 16:23    StringLitExpr  :: string
+  expr 16:39    StringLitExpr  :: string
+  expr 17:13    CallExpr       :: Info!
+  expr 17:13    FieldExpr      :: string
+  expr 17:13    IdentExpr      :: Info!
+  expr 17:18    IdentExpr      :: Info!
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/enum_variant_data_cross_module/codes
+  EnumDecl       Code                 :: Code
+  StructDecl     Info                 :: Info!
+  expr 14:19    StringLitExpr  :: string
+  expr 14:39    StringLitExpr  :: string
+  expr 15:20    StringLitExpr  :: string
+  expr 15:40    StringLitExpr  :: string

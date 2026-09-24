@@ -1,0 +1,19 @@
+// Reading an imported enum's variant data (`c.id`), converting it
+// (`Info(c)`), and converting an imported struct to itself (`Info(x)`) — an
+// imported struct's name used to type as unresolved in value position, and
+// the conversion silently produced nothing.
+// Expected: prints "X0002: second", "X0002", "b", exits 0.
+
+module "snippet"
+
+import "snippet/codes"
+import "std/io"
+
+main :: fn() -> i32 {
+    c :: Code.Second
+    println("${c.id}: ${c.message}")
+    println(Info(c).id)
+    x :: Info { .id = "a", .message = "b" }
+    println(Info(x).message)
+    return 0
+}
