@@ -1,167 +1,28 @@
 #include "bootstrap.split.h"
 
-static void* vader_diagnostics_comptime_info(uint8_t l0);
 static void* vader_diagnostics_dedup_diagnostics(void* l0);
 static vader_string_t vader_diagnostics_diag_key(void* l0);
 static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vader_string_t l3);
-static void* vader_diagnostics_lexer_info(uint8_t l0);
-static void* vader_diagnostics_lower_info(uint8_t l0);
 static void* vader_diagnostics_new_diagnostic(uint8_t l0, void* l1, void* l2, vader_string_t l3);
-static void* vader_diagnostics_parser_info(uint8_t l0);
 static vader_string_t vader_diagnostics_relative_to(vader_string_t l0, vader_string_t l1);
 static vader_string_t vader_diagnostics_render_diagnostics(void* l0, bool l1, bool l2);
-static void* vader_diagnostics_resolver_info(uint8_t l0);
-static void* vader_diagnostics_typecheck_info(uint8_t l0);
-static void* vader_diagnostics_warning_info(uint8_t l0);
 
 void* vader_diagnostics_comptime_error(uint8_t l0, void* l1, vader_string_t l2) {
     void* l3 = NULL;
+    int64_t l4;
     void* t0 = NULL;
     void** gc_raw_roots[3] = { &l1, &l3, &t0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l3 = vader_diagnostics_comptime_info(l0);
+    l3 = (void*) &vader_data_5;
+    l4 = ((int64_t) (uint8_t) l0);
+    vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
+    if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
+    if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+    l3 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
     t0 = vader_diagnostics_new_diagnostic((uint8_t) (int32_t) INT32_C(0), l3, l1, l2);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static void* vader_diagnostics_comptime_info(uint8_t l0) {
-    void* l1 = NULL;
-    void** gc_raw_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    if (l0 == INT32_C(0)) {
-        vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-        vader_obj_header_init(_a0_obj, 669u);
-        _a0_obj->f_id = 572u;
-        _a0_obj->f_message = 1618u;
-        l1 = (void*) _a0_obj;
-    } else {
-        if (l0 == INT32_C(1)) {
-            vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-            vader_obj_header_init(_a1_obj, 669u);
-            _a1_obj->f_id = 573u;
-            _a1_obj->f_message = 1474u;
-            l1 = (void*) _a1_obj;
-        } else {
-            if (l0 == INT32_C(2)) {
-                vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                vader_obj_header_init(_a2_obj, 669u);
-                _a2_obj->f_id = 574u;
-                _a2_obj->f_message = 1707u;
-                l1 = (void*) _a2_obj;
-            } else {
-                if (l0 == INT32_C(3)) {
-                    vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                    vader_obj_header_init(_a3_obj, 669u);
-                    _a3_obj->f_id = 575u;
-                    _a3_obj->f_message = 1470u;
-                    l1 = (void*) _a3_obj;
-                } else {
-                    if (l0 == INT32_C(4)) {
-                        vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                        vader_obj_header_init(_a4_obj, 669u);
-                        _a4_obj->f_id = 576u;
-                        _a4_obj->f_message = 1471u;
-                        l1 = (void*) _a4_obj;
-                    } else {
-                        if (l0 == INT32_C(5)) {
-                            vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                            vader_obj_header_init(_a5_obj, 669u);
-                            _a5_obj->f_id = 577u;
-                            _a5_obj->f_message = 554u;
-                            l1 = (void*) _a5_obj;
-                        } else {
-                            if (l0 == INT32_C(6)) {
-                                vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                vader_obj_header_init(_a6_obj, 669u);
-                                _a6_obj->f_id = 578u;
-                                _a6_obj->f_message = 1478u;
-                                l1 = (void*) _a6_obj;
-                            } else {
-                                if (l0 == INT32_C(7)) {
-                                    vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                    vader_obj_header_init(_a7_obj, 669u);
-                                    _a7_obj->f_id = 579u;
-                                    _a7_obj->f_message = 609u;
-                                    l1 = (void*) _a7_obj;
-                                } else {
-                                    if (l0 == INT32_C(8)) {
-                                        vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                        vader_obj_header_init(_a8_obj, 669u);
-                                        _a8_obj->f_id = 580u;
-                                        _a8_obj->f_message = 1472u;
-                                        l1 = (void*) _a8_obj;
-                                    } else {
-                                        if (l0 == INT32_C(9)) {
-                                            vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                            vader_obj_header_init(_a9_obj, 669u);
-                                            _a9_obj->f_id = 581u;
-                                            _a9_obj->f_message = 1476u;
-                                            l1 = (void*) _a9_obj;
-                                        } else {
-                                            if (l0 == INT32_C(10)) {
-                                                vader_struct_vader_diagnostics_CodeInfo_t* _a10_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                vader_obj_header_init(_a10_obj, 669u);
-                                                _a10_obj->f_id = 582u;
-                                                _a10_obj->f_message = 1475u;
-                                                l1 = (void*) _a10_obj;
-                                            } else {
-                                                if (l0 == INT32_C(11)) {
-                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a11_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                    vader_obj_header_init(_a11_obj, 669u);
-                                                    _a11_obj->f_id = 583u;
-                                                    _a11_obj->f_message = 553u;
-                                                    l1 = (void*) _a11_obj;
-                                                } else {
-                                                    if (l0 == INT32_C(12)) {
-                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a12_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                        vader_obj_header_init(_a12_obj, 669u);
-                                                        _a12_obj->f_id = 584u;
-                                                        _a12_obj->f_message = 1520u;
-                                                        l1 = (void*) _a12_obj;
-                                                    } else {
-                                                        if (l0 == INT32_C(13)) {
-                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a13_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                            vader_obj_header_init(_a13_obj, 669u);
-                                                            _a13_obj->f_id = 585u;
-                                                            _a13_obj->f_message = 1724u;
-                                                            l1 = (void*) _a13_obj;
-                                                        } else {
-                                                            if (l0 == INT32_C(14)) {
-                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a14_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                vader_obj_header_init(_a14_obj, 669u);
-                                                                _a14_obj->f_id = 586u;
-                                                                _a14_obj->f_message = 1466u;
-                                                                l1 = (void*) _a14_obj;
-                                                            } else {
-                                                                if (l0 == INT32_C(15)) {
-                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a15_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                    vader_obj_header_init(_a15_obj, 669u);
-                                                                    _a15_obj->f_id = 587u;
-                                                                    _a15_obj->f_message = 1809u;
-                                                                    l1 = (void*) _a15_obj;
-                                                                } else {
-                                                                    vader_unreachable("unreachable return in vader_diagnostics$comptime_info");
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -179,11 +40,11 @@ static void* vader_diagnostics_dedup_diagnostics(void* l0) {
     vader_string_t* gc_atom_roots[1] = { &l7 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 6u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 177u);
+    vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 178u);
     l1 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(6u, 0u, 12u, 175u);
+    vader_array_t* _a1_arr = vader_array_new(6u, 0u, 12u, 176u);
     l2 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(9u, 0u, 7u, 180u);
+    vader_array_t* _a2_arr = vader_array_new(9u, 0u, 7u, 181u);
     l3 = (void*) _a2_arr;
     vader_struct_std_collections_MutableMap__string__bool_t* _a3_obj = (vader_struct_std_collections_MutableMap__string__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__string__bool_t));
     vader_obj_header_init(_a3_obj, 329u);
@@ -198,7 +59,7 @@ static void* vader_diagnostics_dedup_diagnostics(void* l0) {
     vader_obj_header_init(_a4_obj, 351u);
     _a4_obj->f_inner = t0;
     l1 = (void*) _a4_obj;
-    vader_array_t* _a5_arr = vader_array_new(52u, 0u, 13u, 670u);
+    vader_array_t* _a5_arr = vader_array_new(53u, 0u, 13u, 670u);
     l2 = (void*) _a5_arr;
     l3 = l0;
     l4 = ((vader_array_t*) l3)->length;
@@ -254,21 +115,21 @@ static vader_string_t vader_diagnostics_diag_key(void* l0) {
     l4 = (size_t) (int64_t) INT64_C(0);
     l7 = ((int64_t) (int32_t) ((int32_t) (uint8_t) ((vader_struct_vader_diagnostics_Diagnostic_t*) l0)->f_severity));
     l4 = std_core_write_int(l6, l4, l7);
-    l4 = std_core_write_string_at(l6, l4, 2552u);
+    l4 = std_core_write_string_at(l6, l4, 2554u);
     l4 = std_core_write_string_at(l6, l4, l1);
-    l4 = std_core_write_string_at(l6, l4, 2552u);
+    l4 = std_core_write_string_at(l6, l4, 2554u);
     l4 = std_core_write_string_at(l6, l4, l2);
-    l4 = std_core_write_string_at(l6, l4, 2552u);
+    l4 = std_core_write_string_at(l6, l4, 2554u);
     t1 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l0)->f_primary)->f_start)->f_offset;
     t0 = ((int64_t) (size_t) t1);
     l8 = (uint64_t) (int64_t) t0;
     l4 = std_core_write_unsigned(l6, l4, l8);
-    l4 = std_core_write_string_at(l6, l4, 2552u);
+    l4 = std_core_write_string_at(l6, l4, 2554u);
     t1 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l0)->f_primary)->f_end)->f_offset;
     t0 = ((int64_t) (size_t) t1);
     l8 = (uint64_t) (int64_t) t0;
     l4 = std_core_write_unsigned(l6, l4, l8);
-    l4 = std_core_write_string_at(l6, l4, 2552u);
+    l4 = std_core_write_string_at(l6, l4, 2554u);
     l4 = std_core_write_string_at(l6, l4, l3);
     t2 = std_core_finish_buffer(l6, l4);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -352,16 +213,16 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
     vader_gc_top = &gc_frame;
     l5 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_severity;
     if (l5 == INT32_C(0)) {
-        l4 = 1575u;
+        l4 = 1577u;
     } else {
         if (l5 == INT32_C(1)) {
-            l4 = 2519u;
+            l4 = 2521u;
         } else {
             if (l5 == INT32_C(2)) {
-                l4 = 1816u;
+                l4 = 1818u;
             } else {
                 if (l5 == INT32_C(3)) {
-                    l4 = 1734u;
+                    l4 = 1736u;
                 } else {
                     { vader_gc_top = gc_frame.prev; return; }
                 }
@@ -397,7 +258,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
     t1 = std_string_is_empty(t0);
     if (!(t1)) {
         l9 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_detail;
-        l4 = concat_2(486u, l9);
+        l4 = concat_2(487u, l9);
     }
     if (l2) {
         t0 = ((vader_struct_toolchain_span_Position_t*) l8)->f_file;
@@ -406,11 +267,11 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
         l12 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(42) + l11));
         l11 = (size_t) (int64_t) INT64_C(0);
         l11 = std_core_write_string_at(l12, l11, l10);
-        l11 = std_core_write_string_at(l12, l11, 485u);
+        l11 = std_core_write_string_at(l12, l11, 486u);
         t2 = ((vader_struct_toolchain_span_Position_t*) l8)->f_line;
         l13 = ((int64_t) (int32_t) t2);
         l11 = std_core_write_int(l12, l11, l13);
-        l11 = std_core_write_string_at(l12, l11, 485u);
+        l11 = std_core_write_string_at(l12, l11, 486u);
         t2 = ((vader_struct_toolchain_span_Position_t*) l8)->f_column;
         l13 = ((int64_t) (int32_t) t2);
         l11 = std_core_write_int(l12, l11, l13);
@@ -421,7 +282,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
         t2 = ((vader_struct_toolchain_span_Position_t*) l8)->f_line;
         l13 = ((int64_t) (int32_t) t2);
         l11 = std_core_write_int(l12, l11, l13);
-        l11 = std_core_write_string_at(l12, l11, 485u);
+        l11 = std_core_write_string_at(l12, l11, 486u);
         t2 = ((vader_struct_toolchain_span_Position_t*) l8)->f_column;
         l13 = ((int64_t) (int32_t) t2);
         l11 = std_core_write_int(l12, l11, l13);
@@ -429,7 +290,7 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
     }
     l10 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_id;
     l14 = ((vader_struct_vader_diagnostics_CodeInfo_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_code)->f_message;
-    l4 = concat_9(881u, l9, 886u, l6, 881u, l10, 886u, l14, l4);
+    l4 = concat_9(882u, l9, 887u, l6, 882u, l10, 887u, l14, l4);
     std_string_builder_append(l0, l4);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -437,207 +298,39 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
 
 void* vader_diagnostics_lexer_error(uint8_t l0, void* l1, vader_string_t l2) {
     void* l3 = NULL;
+    int64_t l4;
     void* t0 = NULL;
     void** gc_raw_roots[3] = { &l1, &l3, &t0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l3 = vader_diagnostics_lexer_info(l0);
+    l3 = (void*) &vader_data_10;
+    l4 = ((int64_t) (uint8_t) l0);
+    vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
+    if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
+    if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+    l3 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
     t0 = vader_diagnostics_new_diagnostic((uint8_t) (int32_t) INT32_C(0), l3, l1, l2);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static void* vader_diagnostics_lexer_info(uint8_t l0) {
-    void* l1 = NULL;
-    void** gc_raw_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    if (l0 == INT32_C(0)) {
-        vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-        vader_obj_header_init(_a0_obj, 669u);
-        _a0_obj->f_id = 644u;
-        _a0_obj->f_message = 2383u;
-        l1 = (void*) _a0_obj;
-    } else {
-        if (l0 == INT32_C(1)) {
-            vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-            vader_obj_header_init(_a1_obj, 669u);
-            _a1_obj->f_id = 645u;
-            _a1_obj->f_message = 2409u;
-            l1 = (void*) _a1_obj;
-        } else {
-            if (l0 == INT32_C(2)) {
-                vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                vader_obj_header_init(_a2_obj, 669u);
-                _a2_obj->f_id = 646u;
-                _a2_obj->f_message = 2404u;
-                l1 = (void*) _a2_obj;
-            } else {
-                if (l0 == INT32_C(3)) {
-                    vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                    vader_obj_header_init(_a3_obj, 669u);
-                    _a3_obj->f_id = 647u;
-                    _a3_obj->f_message = 1853u;
-                    l1 = (void*) _a3_obj;
-                } else {
-                    if (l0 == INT32_C(4)) {
-                        vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                        vader_obj_header_init(_a4_obj, 669u);
-                        _a4_obj->f_id = 648u;
-                        _a4_obj->f_message = 1851u;
-                        l1 = (void*) _a4_obj;
-                    } else {
-                        if (l0 == INT32_C(5)) {
-                            vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                            vader_obj_header_init(_a5_obj, 669u);
-                            _a5_obj->f_id = 649u;
-                            _a5_obj->f_message = 1940u;
-                            l1 = (void*) _a5_obj;
-                        } else {
-                            if (l0 == INT32_C(6)) {
-                                vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                vader_obj_header_init(_a6_obj, 669u);
-                                _a6_obj->f_id = 650u;
-                                _a6_obj->f_message = 2201u;
-                                l1 = (void*) _a6_obj;
-                            } else {
-                                if (l0 == INT32_C(7)) {
-                                    vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                    vader_obj_header_init(_a7_obj, 669u);
-                                    _a7_obj->f_id = 651u;
-                                    _a7_obj->f_message = 2113u;
-                                    l1 = (void*) _a7_obj;
-                                } else {
-                                    if (l0 == INT32_C(8)) {
-                                        vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                        vader_obj_header_init(_a8_obj, 669u);
-                                        _a8_obj->f_id = 652u;
-                                        _a8_obj->f_message = 1845u;
-                                        l1 = (void*) _a8_obj;
-                                    } else {
-                                        if (l0 == INT32_C(9)) {
-                                            vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                            vader_obj_header_init(_a9_obj, 669u);
-                                            _a9_obj->f_id = 653u;
-                                            _a9_obj->f_message = 1836u;
-                                            l1 = (void*) _a9_obj;
-                                        } else {
-                                            if (l0 == INT32_C(10)) {
-                                                vader_struct_vader_diagnostics_CodeInfo_t* _a10_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                vader_obj_header_init(_a10_obj, 669u);
-                                                _a10_obj->f_id = 654u;
-                                                _a10_obj->f_message = 1831u;
-                                                l1 = (void*) _a10_obj;
-                                            } else {
-                                                vader_unreachable("unreachable return in vader_diagnostics$lexer_info");
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
 void* vader_diagnostics_lower_error(uint8_t l0, void* l1, vader_string_t l2) {
     void* l3 = NULL;
+    int64_t l4;
     void* t0 = NULL;
     void** gc_raw_roots[3] = { &l1, &l3, &t0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l3 = vader_diagnostics_lower_info(l0);
+    l3 = (void*) &vader_data_9;
+    l4 = ((int64_t) (uint8_t) l0);
+    vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
+    if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
+    if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+    l3 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
     t0 = vader_diagnostics_new_diagnostic((uint8_t) (int32_t) INT32_C(0), l3, l1, l2);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static void* vader_diagnostics_lower_info(uint8_t l0) {
-    void* l1 = NULL;
-    void** gc_raw_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    if (l0 == INT32_C(0)) {
-        vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-        vader_obj_header_init(_a0_obj, 669u);
-        _a0_obj->f_id = 658u;
-        _a0_obj->f_message = 1697u;
-        l1 = (void*) _a0_obj;
-    } else {
-        if (l0 == INT32_C(1)) {
-            vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-            vader_obj_header_init(_a1_obj, 669u);
-            _a1_obj->f_id = 659u;
-            _a1_obj->f_message = 1896u;
-            l1 = (void*) _a1_obj;
-        } else {
-            if (l0 == INT32_C(2)) {
-                vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                vader_obj_header_init(_a2_obj, 669u);
-                _a2_obj->f_id = 660u;
-                _a2_obj->f_message = 1943u;
-                l1 = (void*) _a2_obj;
-            } else {
-                if (l0 == INT32_C(3)) {
-                    vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                    vader_obj_header_init(_a3_obj, 669u);
-                    _a3_obj->f_id = 661u;
-                    _a3_obj->f_message = 1181u;
-                    l1 = (void*) _a3_obj;
-                } else {
-                    if (l0 == INT32_C(4)) {
-                        vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                        vader_obj_header_init(_a4_obj, 669u);
-                        _a4_obj->f_id = 662u;
-                        _a4_obj->f_message = 1841u;
-                        l1 = (void*) _a4_obj;
-                    } else {
-                        if (l0 == INT32_C(5)) {
-                            vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                            vader_obj_header_init(_a5_obj, 669u);
-                            _a5_obj->f_id = 663u;
-                            _a5_obj->f_message = 1956u;
-                            l1 = (void*) _a5_obj;
-                        } else {
-                            if (l0 == INT32_C(6)) {
-                                vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                vader_obj_header_init(_a6_obj, 669u);
-                                _a6_obj->f_id = 664u;
-                                _a6_obj->f_message = 1785u;
-                                l1 = (void*) _a6_obj;
-                            } else {
-                                if (l0 == INT32_C(7)) {
-                                    vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                    vader_obj_header_init(_a7_obj, 669u);
-                                    _a7_obj->f_id = 665u;
-                                    _a7_obj->f_message = 1189u;
-                                    l1 = (void*) _a7_obj;
-                                } else {
-                                    if (l0 == INT32_C(8)) {
-                                        vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                        vader_obj_header_init(_a8_obj, 669u);
-                                        _a8_obj->f_id = 666u;
-                                        _a8_obj->f_message = 1166u;
-                                        l1 = (void*) _a8_obj;
-                                    } else {
-                                        vader_unreachable("unreachable return in vader_diagnostics$lower_info");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -660,288 +353,20 @@ static void* vader_diagnostics_new_diagnostic(uint8_t l0, void* l1, void* l2, va
 
 void* vader_diagnostics_parser_error(uint8_t l0, void* l1, vader_string_t l2) {
     void* l3 = NULL;
+    int64_t l4;
     void* t0 = NULL;
     void** gc_raw_roots[3] = { &l1, &l3, &t0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l3 = vader_diagnostics_parser_info(l0);
+    l3 = (void*) &vader_data_11;
+    l4 = ((int64_t) (uint8_t) l0);
+    vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
+    if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
+    if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+    l3 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
     t0 = vader_diagnostics_new_diagnostic((uint8_t) (int32_t) INT32_C(0), l3, l1, l2);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static void* vader_diagnostics_parser_info(uint8_t l0) {
-    void* l1 = NULL;
-    void** gc_raw_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    if (l0 == INT32_C(0)) {
-        vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-        vader_obj_header_init(_a0_obj, 669u);
-        _a0_obj->f_id = 680u;
-        _a0_obj->f_message = 2385u;
-        l1 = (void*) _a0_obj;
-    } else {
-        if (l0 == INT32_C(1)) {
-            vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-            vader_obj_header_init(_a1_obj, 669u);
-            _a1_obj->f_id = 681u;
-            _a1_obj->f_message = 1606u;
-            l1 = (void*) _a1_obj;
-        } else {
-            if (l0 == INT32_C(2)) {
-                vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                vader_obj_header_init(_a2_obj, 669u);
-                _a2_obj->f_id = 682u;
-                _a2_obj->f_message = 1597u;
-                l1 = (void*) _a2_obj;
-            } else {
-                if (l0 == INT32_C(3)) {
-                    vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                    vader_obj_header_init(_a3_obj, 669u);
-                    _a3_obj->f_id = 683u;
-                    _a3_obj->f_message = 1594u;
-                    l1 = (void*) _a3_obj;
-                } else {
-                    if (l0 == INT32_C(4)) {
-                        vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                        vader_obj_header_init(_a4_obj, 669u);
-                        _a4_obj->f_id = 684u;
-                        _a4_obj->f_message = 1596u;
-                        l1 = (void*) _a4_obj;
-                    } else {
-                        if (l0 == INT32_C(5)) {
-                            vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                            vader_obj_header_init(_a5_obj, 669u);
-                            _a5_obj->f_id = 685u;
-                            _a5_obj->f_message = 1591u;
-                            l1 = (void*) _a5_obj;
-                        } else {
-                            if (l0 == INT32_C(6)) {
-                                vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                vader_obj_header_init(_a6_obj, 669u);
-                                _a6_obj->f_id = 686u;
-                                _a6_obj->f_message = 1593u;
-                                l1 = (void*) _a6_obj;
-                            } else {
-                                if (l0 == INT32_C(7)) {
-                                    vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                    vader_obj_header_init(_a7_obj, 669u);
-                                    _a7_obj->f_id = 687u;
-                                    _a7_obj->f_message = 1599u;
-                                    l1 = (void*) _a7_obj;
-                                } else {
-                                    if (l0 == INT32_C(8)) {
-                                        vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                        vader_obj_header_init(_a8_obj, 669u);
-                                        _a8_obj->f_id = 688u;
-                                        _a8_obj->f_message = 2278u;
-                                        l1 = (void*) _a8_obj;
-                                    } else {
-                                        if (l0 == INT32_C(9)) {
-                                            vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                            vader_obj_header_init(_a9_obj, 669u);
-                                            _a9_obj->f_id = 689u;
-                                            _a9_obj->f_message = 2009u;
-                                            l1 = (void*) _a9_obj;
-                                        } else {
-                                            if (l0 == INT32_C(10)) {
-                                                vader_struct_vader_diagnostics_CodeInfo_t* _a10_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                vader_obj_header_init(_a10_obj, 669u);
-                                                _a10_obj->f_id = 690u;
-                                                _a10_obj->f_message = 2223u;
-                                                l1 = (void*) _a10_obj;
-                                            } else {
-                                                if (l0 == INT32_C(11)) {
-                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a11_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                    vader_obj_header_init(_a11_obj, 669u);
-                                                    _a11_obj->f_id = 691u;
-                                                    _a11_obj->f_message = 1970u;
-                                                    l1 = (void*) _a11_obj;
-                                                } else {
-                                                    if (l0 == INT32_C(12)) {
-                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a12_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                        vader_obj_header_init(_a12_obj, 669u);
-                                                        _a12_obj->f_id = 692u;
-                                                        _a12_obj->f_message = 1582u;
-                                                        l1 = (void*) _a12_obj;
-                                                    } else {
-                                                        if (l0 == INT32_C(13)) {
-                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a13_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                            vader_obj_header_init(_a13_obj, 669u);
-                                                            _a13_obj->f_id = 693u;
-                                                            _a13_obj->f_message = 2388u;
-                                                            l1 = (void*) _a13_obj;
-                                                        } else {
-                                                            if (l0 == INT32_C(28)) {
-                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a14_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                vader_obj_header_init(_a14_obj, 669u);
-                                                                _a14_obj->f_id = 708u;
-                                                                _a14_obj->f_message = 2539u;
-                                                                l1 = (void*) _a14_obj;
-                                                            } else {
-                                                                if (l0 == INT32_C(29)) {
-                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a15_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                    vader_obj_header_init(_a15_obj, 669u);
-                                                                    _a15_obj->f_id = 709u;
-                                                                    _a15_obj->f_message = 1519u;
-                                                                    l1 = (void*) _a15_obj;
-                                                                } else {
-                                                                    if (l0 == INT32_C(30)) {
-                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a16_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                        vader_obj_header_init(_a16_obj, 669u);
-                                                                        _a16_obj->f_id = 710u;
-                                                                        _a16_obj->f_message = 1467u;
-                                                                        l1 = (void*) _a16_obj;
-                                                                    } else {
-                                                                        if (l0 == INT32_C(31)) {
-                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a17_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                            vader_obj_header_init(_a17_obj, 669u);
-                                                                            _a17_obj->f_id = 711u;
-                                                                            _a17_obj->f_message = 1233u;
-                                                                            l1 = (void*) _a17_obj;
-                                                                        } else {
-                                                                            if (l0 == INT32_C(32)) {
-                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a18_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                vader_obj_header_init(_a18_obj, 669u);
-                                                                                _a18_obj->f_id = 712u;
-                                                                                _a18_obj->f_message = 1235u;
-                                                                                l1 = (void*) _a18_obj;
-                                                                            } else {
-                                                                                if (l0 == INT32_C(14)) {
-                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a19_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                    vader_obj_header_init(_a19_obj, 669u);
-                                                                                    _a19_obj->f_id = 694u;
-                                                                                    _a19_obj->f_message = 1546u;
-                                                                                    l1 = (void*) _a19_obj;
-                                                                                } else {
-                                                                                    if (l0 == INT32_C(15)) {
-                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a20_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                        vader_obj_header_init(_a20_obj, 669u);
-                                                                                        _a20_obj->f_id = 695u;
-                                                                                        _a20_obj->f_message = 1592u;
-                                                                                        l1 = (void*) _a20_obj;
-                                                                                    } else {
-                                                                                        if (l0 == INT32_C(16)) {
-                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a21_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                            vader_obj_header_init(_a21_obj, 669u);
-                                                                                            _a21_obj->f_id = 696u;
-                                                                                            _a21_obj->f_message = 1971u;
-                                                                                            l1 = (void*) _a21_obj;
-                                                                                        } else {
-                                                                                            if (l0 == INT32_C(17)) {
-                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a22_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                vader_obj_header_init(_a22_obj, 669u);
-                                                                                                _a22_obj->f_id = 697u;
-                                                                                                _a22_obj->f_message = 2295u;
-                                                                                                l1 = (void*) _a22_obj;
-                                                                                            } else {
-                                                                                                if (l0 == INT32_C(18)) {
-                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a23_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                    vader_obj_header_init(_a23_obj, 669u);
-                                                                                                    _a23_obj->f_id = 698u;
-                                                                                                    _a23_obj->f_message = 1145u;
-                                                                                                    l1 = (void*) _a23_obj;
-                                                                                                } else {
-                                                                                                    if (l0 == INT32_C(19)) {
-                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a24_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                        vader_obj_header_init(_a24_obj, 669u);
-                                                                                                        _a24_obj->f_id = 699u;
-                                                                                                        _a24_obj->f_message = 1622u;
-                                                                                                        l1 = (void*) _a24_obj;
-                                                                                                    } else {
-                                                                                                        if (l0 == INT32_C(20)) {
-                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a25_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                            vader_obj_header_init(_a25_obj, 669u);
-                                                                                                            _a25_obj->f_id = 700u;
-                                                                                                            _a25_obj->f_message = 482u;
-                                                                                                            l1 = (void*) _a25_obj;
-                                                                                                        } else {
-                                                                                                            if (l0 == INT32_C(21)) {
-                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a26_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                vader_obj_header_init(_a26_obj, 669u);
-                                                                                                                _a26_obj->f_id = 701u;
-                                                                                                                _a26_obj->f_message = 1234u;
-                                                                                                                l1 = (void*) _a26_obj;
-                                                                                                            } else {
-                                                                                                                if (l0 == INT32_C(22)) {
-                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a27_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                    vader_obj_header_init(_a27_obj, 669u);
-                                                                                                                    _a27_obj->f_id = 702u;
-                                                                                                                    _a27_obj->f_message = 1902u;
-                                                                                                                    l1 = (void*) _a27_obj;
-                                                                                                                } else {
-                                                                                                                    if (l0 == INT32_C(23)) {
-                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a28_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                        vader_obj_header_init(_a28_obj, 669u);
-                                                                                                                        _a28_obj->f_id = 703u;
-                                                                                                                        _a28_obj->f_message = 1193u;
-                                                                                                                        l1 = (void*) _a28_obj;
-                                                                                                                    } else {
-                                                                                                                        if (l0 == INT32_C(24)) {
-                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a29_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                            vader_obj_header_init(_a29_obj, 669u);
-                                                                                                                            _a29_obj->f_id = 704u;
-                                                                                                                            _a29_obj->f_message = 1855u;
-                                                                                                                            l1 = (void*) _a29_obj;
-                                                                                                                        } else {
-                                                                                                                            if (l0 == INT32_C(25)) {
-                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a30_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                vader_obj_header_init(_a30_obj, 669u);
-                                                                                                                                _a30_obj->f_id = 705u;
-                                                                                                                                _a30_obj->f_message = 1621u;
-                                                                                                                                l1 = (void*) _a30_obj;
-                                                                                                                            } else {
-                                                                                                                                if (l0 == INT32_C(26)) {
-                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a31_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                    vader_obj_header_init(_a31_obj, 669u);
-                                                                                                                                    _a31_obj->f_id = 706u;
-                                                                                                                                    _a31_obj->f_message = 2081u;
-                                                                                                                                    l1 = (void*) _a31_obj;
-                                                                                                                                } else {
-                                                                                                                                    if (l0 == INT32_C(27)) {
-                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a32_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                        vader_obj_header_init(_a32_obj, 669u);
-                                                                                                                                        _a32_obj->f_id = 707u;
-                                                                                                                                        _a32_obj->f_message = 1114u;
-                                                                                                                                        l1 = (void*) _a32_obj;
-                                                                                                                                    } else {
-                                                                                                                                        vader_unreachable("unreachable return in vader_diagnostics$parser_info");
-                                                                                                                                    }
-                                                                                                                                }
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                    }
-                                                                                                                }
-                                                                                                            }
-                                                                                                        }
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -957,11 +382,11 @@ static vader_string_t vader_diagnostics_relative_to(vader_string_t l0, vader_str
     if (t0) {
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = std_string_ends_with(l1, 462u);
+    t0 = std_string_ends_with(l1, 463u);
     if (t0) {
         l2 = l1;
     } else {
-        l2 = concat_2(l1, 462u);
+        l2 = concat_2(l1, 463u);
     }
     t0 = std_string_starts_with(l0, l2);
     if (!(t0)) {
@@ -1004,7 +429,7 @@ static vader_string_t vader_diagnostics_render_diagnostics(void* l0, bool l1, bo
     } else {
         l5 = ((vader_array_t*) l3)->length;
     }
-    vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 177u);
+    vader_array_t* _a0_arr = vader_array_new(8u, 0u, 0u, 178u);
     t1 = (void*) _a0_arr;
     vader_struct_std_string_builder_StringBuilder_t* _a1_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
     vader_obj_header_init(_a1_obj, 361u);
@@ -1040,12 +465,12 @@ static vader_string_t vader_diagnostics_render_diagnostics(void* l0, bool l1, bo
         std_string_builder_append_char(l4, 10u);
         l7 = std_core_new_byte_buffer((size_t) (int64_t) INT64_C(47));
         l8 = (size_t) (int64_t) INT64_C(0);
-        l8 = std_core_write_string_at(l7, l8, 2561u);
+        l8 = std_core_write_string_at(l7, l8, 2563u);
         t0 = ((vader_array_t*) l3)->length;
         t2 = (t0 - l5);
         l11 = (uint64_t) (int64_t) t2;
         l8 = std_core_write_unsigned(l7, l8, l11);
-        l8 = std_core_write_string_at(l7, l8, 157u);
+        l8 = std_core_write_string_at(l7, l8, 155u);
         l6 = std_core_finish_buffer(l7, l8);
         std_string_builder_append(l4, l6);
     }
@@ -1056,1110 +481,58 @@ static vader_string_t vader_diagnostics_render_diagnostics(void* l0, bool l1, bo
 
 void* vader_diagnostics_resolver_error(uint8_t l0, void* l1, vader_string_t l2) {
     void* l3 = NULL;
+    int64_t l4;
     void* t0 = NULL;
     void** gc_raw_roots[3] = { &l1, &l3, &t0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l3 = vader_diagnostics_resolver_info(l0);
+    l3 = (void*) &vader_data_6;
+    l4 = ((int64_t) (uint8_t) l0);
+    vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
+    if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
+    if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+    l3 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
     t0 = vader_diagnostics_new_diagnostic((uint8_t) (int32_t) INT32_C(0), l3, l1, l2);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static void* vader_diagnostics_resolver_info(uint8_t l0) {
-    void* l1 = NULL;
-    void** gc_raw_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    if (l0 == INT32_C(0)) {
-        vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-        vader_obj_header_init(_a0_obj, 669u);
-        _a0_obj->f_id = 714u;
-        _a0_obj->f_message = 1984u;
-        l1 = (void*) _a0_obj;
-    } else {
-        if (l0 == INT32_C(1)) {
-            vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-            vader_obj_header_init(_a1_obj, 669u);
-            _a1_obj->f_id = 715u;
-            _a1_obj->f_message = 1804u;
-            l1 = (void*) _a1_obj;
-        } else {
-            if (l0 == INT32_C(2)) {
-                vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                vader_obj_header_init(_a2_obj, 669u);
-                _a2_obj->f_id = 716u;
-                _a2_obj->f_message = 1807u;
-                l1 = (void*) _a2_obj;
-            } else {
-                if (l0 == INT32_C(3)) {
-                    vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                    vader_obj_header_init(_a3_obj, 669u);
-                    _a3_obj->f_id = 717u;
-                    _a3_obj->f_message = 1549u;
-                    l1 = (void*) _a3_obj;
-                } else {
-                    if (l0 == INT32_C(4)) {
-                        vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                        vader_obj_header_init(_a4_obj, 669u);
-                        _a4_obj->f_id = 718u;
-                        _a4_obj->f_message = 1802u;
-                        l1 = (void*) _a4_obj;
-                    } else {
-                        if (l0 == INT32_C(5)) {
-                            vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                            vader_obj_header_init(_a5_obj, 669u);
-                            _a5_obj->f_id = 719u;
-                            _a5_obj->f_message = 2400u;
-                            l1 = (void*) _a5_obj;
-                        } else {
-                            if (l0 == INT32_C(6)) {
-                                vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                vader_obj_header_init(_a6_obj, 669u);
-                                _a6_obj->f_id = 720u;
-                                _a6_obj->f_message = 2401u;
-                                l1 = (void*) _a6_obj;
-                            } else {
-                                if (l0 == INT32_C(7)) {
-                                    vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                    vader_obj_header_init(_a7_obj, 669u);
-                                    _a7_obj->f_id = 721u;
-                                    _a7_obj->f_message = 2237u;
-                                    l1 = (void*) _a7_obj;
-                                } else {
-                                    if (l0 == INT32_C(8)) {
-                                        vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                        vader_obj_header_init(_a8_obj, 669u);
-                                        _a8_obj->f_id = 722u;
-                                        _a8_obj->f_message = 2282u;
-                                        l1 = (void*) _a8_obj;
-                                    } else {
-                                        if (l0 == INT32_C(9)) {
-                                            vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                            vader_obj_header_init(_a9_obj, 669u);
-                                            _a9_obj->f_id = 723u;
-                                            _a9_obj->f_message = 1523u;
-                                            l1 = (void*) _a9_obj;
-                                        } else {
-                                            if (l0 == INT32_C(10)) {
-                                                vader_struct_vader_diagnostics_CodeInfo_t* _a10_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                vader_obj_header_init(_a10_obj, 669u);
-                                                _a10_obj->f_id = 724u;
-                                                _a10_obj->f_message = 1547u;
-                                                l1 = (void*) _a10_obj;
-                                            } else {
-                                                if (l0 == INT32_C(11)) {
-                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a11_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                    vader_obj_header_init(_a11_obj, 669u);
-                                                    _a11_obj->f_id = 725u;
-                                                    _a11_obj->f_message = 1808u;
-                                                    l1 = (void*) _a11_obj;
-                                                } else {
-                                                    if (l0 == INT32_C(12)) {
-                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a12_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                        vader_obj_header_init(_a12_obj, 669u);
-                                                        _a12_obj->f_id = 726u;
-                                                        _a12_obj->f_message = 2110u;
-                                                        l1 = (void*) _a12_obj;
-                                                    } else {
-                                                        if (l0 == INT32_C(13)) {
-                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a13_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                            vader_obj_header_init(_a13_obj, 669u);
-                                                            _a13_obj->f_id = 727u;
-                                                            _a13_obj->f_message = 2416u;
-                                                            l1 = (void*) _a13_obj;
-                                                        } else {
-                                                            if (l0 == INT32_C(14)) {
-                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a14_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                vader_obj_header_init(_a14_obj, 669u);
-                                                                _a14_obj->f_id = 728u;
-                                                                _a14_obj->f_message = 1982u;
-                                                                l1 = (void*) _a14_obj;
-                                                            } else {
-                                                                if (l0 == INT32_C(15)) {
-                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a15_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                    vader_obj_header_init(_a15_obj, 669u);
-                                                                    _a15_obj->f_id = 729u;
-                                                                    _a15_obj->f_message = 2116u;
-                                                                    l1 = (void*) _a15_obj;
-                                                                } else {
-                                                                    if (l0 == INT32_C(16)) {
-                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a16_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                        vader_obj_header_init(_a16_obj, 669u);
-                                                                        _a16_obj->f_id = 730u;
-                                                                        _a16_obj->f_message = 1653u;
-                                                                        l1 = (void*) _a16_obj;
-                                                                    } else {
-                                                                        if (l0 == INT32_C(17)) {
-                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a17_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                            vader_obj_header_init(_a17_obj, 669u);
-                                                                            _a17_obj->f_id = 731u;
-                                                                            _a17_obj->f_message = 2035u;
-                                                                            l1 = (void*) _a17_obj;
-                                                                        } else {
-                                                                            if (l0 == INT32_C(18)) {
-                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a18_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                vader_obj_header_init(_a18_obj, 669u);
-                                                                                _a18_obj->f_id = 732u;
-                                                                                _a18_obj->f_message = 1203u;
-                                                                                l1 = (void*) _a18_obj;
-                                                                            } else {
-                                                                                if (l0 == INT32_C(19)) {
-                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a19_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                    vader_obj_header_init(_a19_obj, 669u);
-                                                                                    _a19_obj->f_id = 733u;
-                                                                                    _a19_obj->f_message = 1981u;
-                                                                                    l1 = (void*) _a19_obj;
-                                                                                } else {
-                                                                                    if (l0 == INT32_C(20)) {
-                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a20_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                        vader_obj_header_init(_a20_obj, 669u);
-                                                                                        _a20_obj->f_id = 734u;
-                                                                                        _a20_obj->f_message = 1985u;
-                                                                                        l1 = (void*) _a20_obj;
-                                                                                    } else {
-                                                                                        if (l0 == INT32_C(21)) {
-                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a21_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                            vader_obj_header_init(_a21_obj, 669u);
-                                                                                            _a21_obj->f_id = 735u;
-                                                                                            _a21_obj->f_message = 1682u;
-                                                                                            l1 = (void*) _a21_obj;
-                                                                                        } else {
-                                                                                            if (l0 == INT32_C(22)) {
-                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a22_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                vader_obj_header_init(_a22_obj, 669u);
-                                                                                                _a22_obj->f_id = 736u;
-                                                                                                _a22_obj->f_message = 2291u;
-                                                                                                l1 = (void*) _a22_obj;
-                                                                                            } else {
-                                                                                                if (l0 == INT32_C(23)) {
-                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a23_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                    vader_obj_header_init(_a23_obj, 669u);
-                                                                                                    _a23_obj->f_id = 737u;
-                                                                                                    _a23_obj->f_message = 2111u;
-                                                                                                    l1 = (void*) _a23_obj;
-                                                                                                } else {
-                                                                                                    if (l0 == INT32_C(24)) {
-                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a24_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                        vader_obj_header_init(_a24_obj, 669u);
-                                                                                                        _a24_obj->f_id = 738u;
-                                                                                                        _a24_obj->f_message = 2078u;
-                                                                                                        l1 = (void*) _a24_obj;
-                                                                                                    } else {
-                                                                                                        if (l0 == INT32_C(25)) {
-                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a25_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                            vader_obj_header_init(_a25_obj, 669u);
-                                                                                                            _a25_obj->f_id = 739u;
-                                                                                                            _a25_obj->f_message = 1548u;
-                                                                                                            l1 = (void*) _a25_obj;
-                                                                                                        } else {
-                                                                                                            if (l0 == INT32_C(26)) {
-                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a26_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                vader_obj_header_init(_a26_obj, 669u);
-                                                                                                                _a26_obj->f_id = 740u;
-                                                                                                                _a26_obj->f_message = 1613u;
-                                                                                                                l1 = (void*) _a26_obj;
-                                                                                                            } else {
-                                                                                                                if (l0 == INT32_C(27)) {
-                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a27_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                    vader_obj_header_init(_a27_obj, 669u);
-                                                                                                                    _a27_obj->f_id = 741u;
-                                                                                                                    _a27_obj->f_message = 1607u;
-                                                                                                                    l1 = (void*) _a27_obj;
-                                                                                                                } else {
-                                                                                                                    if (l0 == INT32_C(28)) {
-                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a28_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                        vader_obj_header_init(_a28_obj, 669u);
-                                                                                                                        _a28_obj->f_id = 742u;
-                                                                                                                        _a28_obj->f_message = 1188u;
-                                                                                                                        l1 = (void*) _a28_obj;
-                                                                                                                    } else {
-                                                                                                                        if (l0 == INT32_C(29)) {
-                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a29_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                            vader_obj_header_init(_a29_obj, 669u);
-                                                                                                                            _a29_obj->f_id = 743u;
-                                                                                                                            _a29_obj->f_message = 1484u;
-                                                                                                                            l1 = (void*) _a29_obj;
-                                                                                                                        } else {
-                                                                                                                            if (l0 == INT32_C(30)) {
-                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a30_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                vader_obj_header_init(_a30_obj, 669u);
-                                                                                                                                _a30_obj->f_id = 744u;
-                                                                                                                                _a30_obj->f_message = 1989u;
-                                                                                                                                l1 = (void*) _a30_obj;
-                                                                                                                            } else {
-                                                                                                                                if (l0 == INT32_C(31)) {
-                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a31_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                    vader_obj_header_init(_a31_obj, 669u);
-                                                                                                                                    _a31_obj->f_id = 745u;
-                                                                                                                                    _a31_obj->f_message = 2259u;
-                                                                                                                                    l1 = (void*) _a31_obj;
-                                                                                                                                } else {
-                                                                                                                                    if (l0 == INT32_C(32)) {
-                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a32_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                        vader_obj_header_init(_a32_obj, 669u);
-                                                                                                                                        _a32_obj->f_id = 746u;
-                                                                                                                                        _a32_obj->f_message = 1237u;
-                                                                                                                                        l1 = (void*) _a32_obj;
-                                                                                                                                    } else {
-                                                                                                                                        if (l0 == INT32_C(33)) {
-                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a33_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                            vader_obj_header_init(_a33_obj, 669u);
-                                                                                                                                            _a33_obj->f_id = 747u;
-                                                                                                                                            _a33_obj->f_message = 1239u;
-                                                                                                                                            l1 = (void*) _a33_obj;
-                                                                                                                                        } else {
-                                                                                                                                            if (l0 == INT32_C(34)) {
-                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a34_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                vader_obj_header_init(_a34_obj, 669u);
-                                                                                                                                                _a34_obj->f_id = 748u;
-                                                                                                                                                _a34_obj->f_message = 2393u;
-                                                                                                                                                l1 = (void*) _a34_obj;
-                                                                                                                                            } else {
-                                                                                                                                                if (l0 == INT32_C(35)) {
-                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a35_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                    vader_obj_header_init(_a35_obj, 669u);
-                                                                                                                                                    _a35_obj->f_id = 749u;
-                                                                                                                                                    _a35_obj->f_message = 1178u;
-                                                                                                                                                    l1 = (void*) _a35_obj;
-                                                                                                                                                } else {
-                                                                                                                                                    if (l0 == INT32_C(36)) {
-                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a36_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                        vader_obj_header_init(_a36_obj, 669u);
-                                                                                                                                                        _a36_obj->f_id = 750u;
-                                                                                                                                                        _a36_obj->f_message = 1176u;
-                                                                                                                                                        l1 = (void*) _a36_obj;
-                                                                                                                                                    } else {
-                                                                                                                                                        if (l0 == INT32_C(37)) {
-                                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a37_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                            vader_obj_header_init(_a37_obj, 669u);
-                                                                                                                                                            _a37_obj->f_id = 751u;
-                                                                                                                                                            _a37_obj->f_message = 2290u;
-                                                                                                                                                            l1 = (void*) _a37_obj;
-                                                                                                                                                        } else {
-                                                                                                                                                            if (l0 == INT32_C(38)) {
-                                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a38_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                vader_obj_header_init(_a38_obj, 669u);
-                                                                                                                                                                _a38_obj->f_id = 752u;
-                                                                                                                                                                _a38_obj->f_message = 1544u;
-                                                                                                                                                                l1 = (void*) _a38_obj;
-                                                                                                                                                            } else {
-                                                                                                                                                                if (l0 == INT32_C(39)) {
-                                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a39_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                    vader_obj_header_init(_a39_obj, 669u);
-                                                                                                                                                                    _a39_obj->f_id = 753u;
-                                                                                                                                                                    _a39_obj->f_message = 1177u;
-                                                                                                                                                                    l1 = (void*) _a39_obj;
-                                                                                                                                                                } else {
-                                                                                                                                                                    if (l0 == INT32_C(40)) {
-                                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a40_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                        vader_obj_header_init(_a40_obj, 669u);
-                                                                                                                                                                        _a40_obj->f_id = 754u;
-                                                                                                                                                                        _a40_obj->f_message = 2004u;
-                                                                                                                                                                        l1 = (void*) _a40_obj;
-                                                                                                                                                                    } else {
-                                                                                                                                                                        vader_unreachable("unreachable return in vader_diagnostics$resolver_info");
-                                                                                                                                                                    }
-                                                                                                                                                                }
-                                                                                                                                                            }
-                                                                                                                                                        }
-                                                                                                                                                    }
-                                                                                                                                                }
-                                                                                                                                            }
-                                                                                                                                        }
-                                                                                                                                    }
-                                                                                                                                }
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                    }
-                                                                                                                }
-                                                                                                            }
-                                                                                                        }
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
 void* vader_diagnostics_typecheck_error(uint8_t l0, void* l1, vader_string_t l2) {
     void* l3 = NULL;
+    int64_t l4;
     void* t0 = NULL;
     void** gc_raw_roots[3] = { &l1, &l3, &t0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l3 = vader_diagnostics_typecheck_info(l0);
+    l3 = (void*) &vader_data_8;
+    l4 = ((int64_t) (uint8_t) l0);
+    vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
+    if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
+    if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+    l3 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
     t0 = vader_diagnostics_new_diagnostic((uint8_t) (int32_t) INT32_C(0), l3, l1, l2);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
-static void* vader_diagnostics_typecheck_info(uint8_t l0) {
-    void* l1 = NULL;
-    void** gc_raw_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    if (l0 == INT32_C(0)) {
-        vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-        vader_obj_header_init(_a0_obj, 669u);
-        _a0_obj->f_id = 769u;
-        _a0_obj->f_message = 2294u;
-        l1 = (void*) _a0_obj;
-    } else {
-        if (l0 == INT32_C(1)) {
-            vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-            vader_obj_header_init(_a1_obj, 669u);
-            _a1_obj->f_id = 770u;
-            _a1_obj->f_message = 1598u;
-            l1 = (void*) _a1_obj;
-        } else {
-            if (l0 == INT32_C(2)) {
-                vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                vader_obj_header_init(_a2_obj, 669u);
-                _a2_obj->f_id = 771u;
-                _a2_obj->f_message = 2538u;
-                l1 = (void*) _a2_obj;
-            } else {
-                if (l0 == INT32_C(3)) {
-                    vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                    vader_obj_header_init(_a3_obj, 669u);
-                    _a3_obj->f_id = 772u;
-                    _a3_obj->f_message = 2392u;
-                    l1 = (void*) _a3_obj;
-                } else {
-                    if (l0 == INT32_C(4)) {
-                        vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                        vader_obj_header_init(_a4_obj, 669u);
-                        _a4_obj->f_id = 773u;
-                        _a4_obj->f_message = 1973u;
-                        l1 = (void*) _a4_obj;
-                    } else {
-                        if (l0 == INT32_C(5)) {
-                            vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                            vader_obj_header_init(_a5_obj, 669u);
-                            _a5_obj->f_id = 774u;
-                            _a5_obj->f_message = 2283u;
-                            l1 = (void*) _a5_obj;
-                        } else {
-                            if (l0 == INT32_C(6)) {
-                                vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                vader_obj_header_init(_a6_obj, 669u);
-                                _a6_obj->f_id = 775u;
-                                _a6_obj->f_message = 1619u;
-                                l1 = (void*) _a6_obj;
-                            } else {
-                                if (l0 == INT32_C(7)) {
-                                    vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                    vader_obj_header_init(_a7_obj, 669u);
-                                    _a7_obj->f_id = 776u;
-                                    _a7_obj->f_message = 1620u;
-                                    l1 = (void*) _a7_obj;
-                                } else {
-                                    if (l0 == INT32_C(8)) {
-                                        vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                        vader_obj_header_init(_a8_obj, 669u);
-                                        _a8_obj->f_id = 777u;
-                                        _a8_obj->f_message = 1665u;
-                                        l1 = (void*) _a8_obj;
-                                    } else {
-                                        if (l0 == INT32_C(9)) {
-                                            vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                            vader_obj_header_init(_a9_obj, 669u);
-                                            _a9_obj->f_id = 778u;
-                                            _a9_obj->f_message = 1850u;
-                                            l1 = (void*) _a9_obj;
-                                        } else {
-                                            if (l0 == INT32_C(10)) {
-                                                vader_struct_vader_diagnostics_CodeInfo_t* _a10_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                vader_obj_header_init(_a10_obj, 669u);
-                                                _a10_obj->f_id = 779u;
-                                                _a10_obj->f_message = 2010u;
-                                                l1 = (void*) _a10_obj;
-                                            } else {
-                                                if (l0 == INT32_C(11)) {
-                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a11_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                    vader_obj_header_init(_a11_obj, 669u);
-                                                    _a11_obj->f_id = 780u;
-                                                    _a11_obj->f_message = 2398u;
-                                                    l1 = (void*) _a11_obj;
-                                                } else {
-                                                    if (l0 == INT32_C(12)) {
-                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a12_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                        vader_obj_header_init(_a12_obj, 669u);
-                                                        _a12_obj->f_id = 781u;
-                                                        _a12_obj->f_message = 1191u;
-                                                        l1 = (void*) _a12_obj;
-                                                    } else {
-                                                        if (l0 == INT32_C(13)) {
-                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a13_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                            vader_obj_header_init(_a13_obj, 669u);
-                                                            _a13_obj->f_id = 782u;
-                                                            _a13_obj->f_message = 1199u;
-                                                            l1 = (void*) _a13_obj;
-                                                        } else {
-                                                            if (l0 == INT32_C(14)) {
-                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a14_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                vader_obj_header_init(_a14_obj, 669u);
-                                                                _a14_obj->f_id = 783u;
-                                                                _a14_obj->f_message = 2031u;
-                                                                l1 = (void*) _a14_obj;
-                                                            } else {
-                                                                if (l0 == INT32_C(15)) {
-                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a15_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                    vader_obj_header_init(_a15_obj, 669u);
-                                                                    _a15_obj->f_id = 784u;
-                                                                    _a15_obj->f_message = 2206u;
-                                                                    l1 = (void*) _a15_obj;
-                                                                } else {
-                                                                    if (l0 == INT32_C(16)) {
-                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a16_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                        vader_obj_header_init(_a16_obj, 669u);
-                                                                        _a16_obj->f_id = 785u;
-                                                                        _a16_obj->f_message = 1483u;
-                                                                        l1 = (void*) _a16_obj;
-                                                                    } else {
-                                                                        if (l0 == INT32_C(17)) {
-                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a17_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                            vader_obj_header_init(_a17_obj, 669u);
-                                                                            _a17_obj->f_id = 786u;
-                                                                            _a17_obj->f_message = 1705u;
-                                                                            l1 = (void*) _a17_obj;
-                                                                        } else {
-                                                                            if (l0 == INT32_C(18)) {
-                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a18_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                vader_obj_header_init(_a18_obj, 669u);
-                                                                                _a18_obj->f_id = 787u;
-                                                                                _a18_obj->f_message = 1723u;
-                                                                                l1 = (void*) _a18_obj;
-                                                                            } else {
-                                                                                if (l0 == INT32_C(19)) {
-                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a19_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                    vader_obj_header_init(_a19_obj, 669u);
-                                                                                    _a19_obj->f_id = 788u;
-                                                                                    _a19_obj->f_message = 1511u;
-                                                                                    l1 = (void*) _a19_obj;
-                                                                                } else {
-                                                                                    if (l0 == INT32_C(20)) {
-                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a20_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                        vader_obj_header_init(_a20_obj, 669u);
-                                                                                        _a20_obj->f_id = 789u;
-                                                                                        _a20_obj->f_message = 2411u;
-                                                                                        l1 = (void*) _a20_obj;
-                                                                                    } else {
-                                                                                        if (l0 == INT32_C(21)) {
-                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a21_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                            vader_obj_header_init(_a21_obj, 669u);
-                                                                                            _a21_obj->f_id = 790u;
-                                                                                            _a21_obj->f_message = 1709u;
-                                                                                            l1 = (void*) _a21_obj;
-                                                                                        } else {
-                                                                                            if (l0 == INT32_C(22)) {
-                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a22_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                vader_obj_header_init(_a22_obj, 669u);
-                                                                                                _a22_obj->f_id = 791u;
-                                                                                                _a22_obj->f_message = 1991u;
-                                                                                                l1 = (void*) _a22_obj;
-                                                                                            } else {
-                                                                                                if (l0 == INT32_C(23)) {
-                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a23_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                    vader_obj_header_init(_a23_obj, 669u);
-                                                                                                    _a23_obj->f_id = 792u;
-                                                                                                    _a23_obj->f_message = 2293u;
-                                                                                                    l1 = (void*) _a23_obj;
-                                                                                                } else {
-                                                                                                    if (l0 == INT32_C(24)) {
-                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a24_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                        vader_obj_header_init(_a24_obj, 669u);
-                                                                                                        _a24_obj->f_id = 793u;
-                                                                                                        _a24_obj->f_message = 2389u;
-                                                                                                        l1 = (void*) _a24_obj;
-                                                                                                    } else {
-                                                                                                        if (l0 == INT32_C(25)) {
-                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a25_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                            vader_obj_header_init(_a25_obj, 669u);
-                                                                                                            _a25_obj->f_id = 794u;
-                                                                                                            _a25_obj->f_message = 1430u;
-                                                                                                            l1 = (void*) _a25_obj;
-                                                                                                        } else {
-                                                                                                            if (l0 == INT32_C(26)) {
-                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a26_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                vader_obj_header_init(_a26_obj, 669u);
-                                                                                                                _a26_obj->f_id = 795u;
-                                                                                                                _a26_obj->f_message = 1566u;
-                                                                                                                l1 = (void*) _a26_obj;
-                                                                                                            } else {
-                                                                                                                if (l0 == INT32_C(27)) {
-                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a27_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                    vader_obj_header_init(_a27_obj, 669u);
-                                                                                                                    _a27_obj->f_id = 796u;
-                                                                                                                    _a27_obj->f_message = 1569u;
-                                                                                                                    l1 = (void*) _a27_obj;
-                                                                                                                } else {
-                                                                                                                    if (l0 == INT32_C(28)) {
-                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a28_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                        vader_obj_header_init(_a28_obj, 669u);
-                                                                                                                        _a28_obj->f_id = 797u;
-                                                                                                                        _a28_obj->f_message = 1545u;
-                                                                                                                        l1 = (void*) _a28_obj;
-                                                                                                                    } else {
-                                                                                                                        if (l0 == INT32_C(29)) {
-                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a29_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                            vader_obj_header_init(_a29_obj, 669u);
-                                                                                                                            _a29_obj->f_id = 798u;
-                                                                                                                            _a29_obj->f_message = 1258u;
-                                                                                                                            l1 = (void*) _a29_obj;
-                                                                                                                        } else {
-                                                                                                                            if (l0 == INT32_C(30)) {
-                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a30_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                vader_obj_header_init(_a30_obj, 669u);
-                                                                                                                                _a30_obj->f_id = 799u;
-                                                                                                                                _a30_obj->f_message = 1848u;
-                                                                                                                                l1 = (void*) _a30_obj;
-                                                                                                                            } else {
-                                                                                                                                if (l0 == INT32_C(31)) {
-                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a31_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                    vader_obj_header_init(_a31_obj, 669u);
-                                                                                                                                    _a31_obj->f_id = 800u;
-                                                                                                                                    _a31_obj->f_message = 2069u;
-                                                                                                                                    l1 = (void*) _a31_obj;
-                                                                                                                                } else {
-                                                                                                                                    if (l0 == INT32_C(32)) {
-                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a32_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                        vader_obj_header_init(_a32_obj, 669u);
-                                                                                                                                        _a32_obj->f_id = 801u;
-                                                                                                                                        _a32_obj->f_message = 2302u;
-                                                                                                                                        l1 = (void*) _a32_obj;
-                                                                                                                                    } else {
-                                                                                                                                        if (l0 == INT32_C(33)) {
-                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a33_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                            vader_obj_header_init(_a33_obj, 669u);
-                                                                                                                                            _a33_obj->f_id = 802u;
-                                                                                                                                            _a33_obj->f_message = 1798u;
-                                                                                                                                            l1 = (void*) _a33_obj;
-                                                                                                                                        } else {
-                                                                                                                                            if (l0 == INT32_C(34)) {
-                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a34_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                vader_obj_header_init(_a34_obj, 669u);
-                                                                                                                                                _a34_obj->f_id = 803u;
-                                                                                                                                                _a34_obj->f_message = 1975u;
-                                                                                                                                                l1 = (void*) _a34_obj;
-                                                                                                                                            } else {
-                                                                                                                                                if (l0 == INT32_C(35)) {
-                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a35_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                    vader_obj_header_init(_a35_obj, 669u);
-                                                                                                                                                    _a35_obj->f_id = 804u;
-                                                                                                                                                    _a35_obj->f_message = 1664u;
-                                                                                                                                                    l1 = (void*) _a35_obj;
-                                                                                                                                                } else {
-                                                                                                                                                    if (l0 == INT32_C(36)) {
-                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a36_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                        vader_obj_header_init(_a36_obj, 669u);
-                                                                                                                                                        _a36_obj->f_id = 805u;
-                                                                                                                                                        _a36_obj->f_message = 1180u;
-                                                                                                                                                        l1 = (void*) _a36_obj;
-                                                                                                                                                    } else {
-                                                                                                                                                        if (l0 == INT32_C(37)) {
-                                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a37_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                            vader_obj_header_init(_a37_obj, 669u);
-                                                                                                                                                            _a37_obj->f_id = 806u;
-                                                                                                                                                            _a37_obj->f_message = 2249u;
-                                                                                                                                                            l1 = (void*) _a37_obj;
-                                                                                                                                                        } else {
-                                                                                                                                                            if (l0 == INT32_C(38)) {
-                                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a38_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                vader_obj_header_init(_a38_obj, 669u);
-                                                                                                                                                                _a38_obj->f_id = 807u;
-                                                                                                                                                                _a38_obj->f_message = 1436u;
-                                                                                                                                                                l1 = (void*) _a38_obj;
-                                                                                                                                                            } else {
-                                                                                                                                                                if (l0 == INT32_C(39)) {
-                                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a39_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                    vader_obj_header_init(_a39_obj, 669u);
-                                                                                                                                                                    _a39_obj->f_id = 808u;
-                                                                                                                                                                    _a39_obj->f_message = 1433u;
-                                                                                                                                                                    l1 = (void*) _a39_obj;
-                                                                                                                                                                } else {
-                                                                                                                                                                    if (l0 == INT32_C(40)) {
-                                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a40_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                        vader_obj_header_init(_a40_obj, 669u);
-                                                                                                                                                                        _a40_obj->f_id = 810u;
-                                                                                                                                                                        _a40_obj->f_message = 1847u;
-                                                                                                                                                                        l1 = (void*) _a40_obj;
-                                                                                                                                                                    } else {
-                                                                                                                                                                        if (l0 == INT32_C(41)) {
-                                                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a41_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                            vader_obj_header_init(_a41_obj, 669u);
-                                                                                                                                                                            _a41_obj->f_id = 811u;
-                                                                                                                                                                            _a41_obj->f_message = 1172u;
-                                                                                                                                                                            l1 = (void*) _a41_obj;
-                                                                                                                                                                        } else {
-                                                                                                                                                                            if (l0 == INT32_C(42)) {
-                                                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a42_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                vader_obj_header_init(_a42_obj, 669u);
-                                                                                                                                                                                _a42_obj->f_id = 812u;
-                                                                                                                                                                                _a42_obj->f_message = 1614u;
-                                                                                                                                                                                l1 = (void*) _a42_obj;
-                                                                                                                                                                            } else {
-                                                                                                                                                                                if (l0 == INT32_C(43)) {
-                                                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a43_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                    vader_obj_header_init(_a43_obj, 669u);
-                                                                                                                                                                                    _a43_obj->f_id = 813u;
-                                                                                                                                                                                    _a43_obj->f_message = 1706u;
-                                                                                                                                                                                    l1 = (void*) _a43_obj;
-                                                                                                                                                                                } else {
-                                                                                                                                                                                    if (l0 == INT32_C(44)) {
-                                                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a44_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                        vader_obj_header_init(_a44_obj, 669u);
-                                                                                                                                                                                        _a44_obj->f_id = 814u;
-                                                                                                                                                                                        _a44_obj->f_message = 1247u;
-                                                                                                                                                                                        l1 = (void*) _a44_obj;
-                                                                                                                                                                                    } else {
-                                                                                                                                                                                        if (l0 == INT32_C(45)) {
-                                                                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a45_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                            vader_obj_header_init(_a45_obj, 669u);
-                                                                                                                                                                                            _a45_obj->f_id = 815u;
-                                                                                                                                                                                            _a45_obj->f_message = 1451u;
-                                                                                                                                                                                            l1 = (void*) _a45_obj;
-                                                                                                                                                                                        } else {
-                                                                                                                                                                                            if (l0 == INT32_C(46)) {
-                                                                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a46_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                vader_obj_header_init(_a46_obj, 669u);
-                                                                                                                                                                                                _a46_obj->f_id = 809u;
-                                                                                                                                                                                                _a46_obj->f_message = 2027u;
-                                                                                                                                                                                                l1 = (void*) _a46_obj;
-                                                                                                                                                                                            } else {
-                                                                                                                                                                                                if (l0 == INT32_C(47)) {
-                                                                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a47_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                    vader_obj_header_init(_a47_obj, 669u);
-                                                                                                                                                                                                    _a47_obj->f_id = 816u;
-                                                                                                                                                                                                    _a47_obj->f_message = 1231u;
-                                                                                                                                                                                                    l1 = (void*) _a47_obj;
-                                                                                                                                                                                                } else {
-                                                                                                                                                                                                    if (l0 == INT32_C(48)) {
-                                                                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a48_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                        vader_obj_header_init(_a48_obj, 669u);
-                                                                                                                                                                                                        _a48_obj->f_id = 824u;
-                                                                                                                                                                                                        _a48_obj->f_message = 1830u;
-                                                                                                                                                                                                        l1 = (void*) _a48_obj;
-                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                        if (l0 == INT32_C(49)) {
-                                                                                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a49_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                            vader_obj_header_init(_a49_obj, 669u);
-                                                                                                                                                                                                            _a49_obj->f_id = 817u;
-                                                                                                                                                                                                            _a49_obj->f_message = 1232u;
-                                                                                                                                                                                                            l1 = (void*) _a49_obj;
-                                                                                                                                                                                                        } else {
-                                                                                                                                                                                                            if (l0 == INT32_C(50)) {
-                                                                                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a50_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                vader_obj_header_init(_a50_obj, 669u);
-                                                                                                                                                                                                                _a50_obj->f_id = 818u;
-                                                                                                                                                                                                                _a50_obj->f_message = 1204u;
-                                                                                                                                                                                                                l1 = (void*) _a50_obj;
-                                                                                                                                                                                                            } else {
-                                                                                                                                                                                                                if (l0 == INT32_C(51)) {
-                                                                                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a51_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                    vader_obj_header_init(_a51_obj, 669u);
-                                                                                                                                                                                                                    _a51_obj->f_id = 819u;
-                                                                                                                                                                                                                    _a51_obj->f_message = 1194u;
-                                                                                                                                                                                                                    l1 = (void*) _a51_obj;
-                                                                                                                                                                                                                } else {
-                                                                                                                                                                                                                    if (l0 == INT32_C(52)) {
-                                                                                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a52_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                        vader_obj_header_init(_a52_obj, 669u);
-                                                                                                                                                                                                                        _a52_obj->f_id = 820u;
-                                                                                                                                                                                                                        _a52_obj->f_message = 2544u;
-                                                                                                                                                                                                                        l1 = (void*) _a52_obj;
-                                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                                        if (l0 == INT32_C(53)) {
-                                                                                                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a53_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                            vader_obj_header_init(_a53_obj, 669u);
-                                                                                                                                                                                                                            _a53_obj->f_id = 821u;
-                                                                                                                                                                                                                            _a53_obj->f_message = 1225u;
-                                                                                                                                                                                                                            l1 = (void*) _a53_obj;
-                                                                                                                                                                                                                        } else {
-                                                                                                                                                                                                                            if (l0 == INT32_C(54)) {
-                                                                                                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a54_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                vader_obj_header_init(_a54_obj, 669u);
-                                                                                                                                                                                                                                _a54_obj->f_id = 822u;
-                                                                                                                                                                                                                                _a54_obj->f_message = 1324u;
-                                                                                                                                                                                                                                l1 = (void*) _a54_obj;
-                                                                                                                                                                                                                            } else {
-                                                                                                                                                                                                                                if (l0 == INT32_C(55)) {
-                                                                                                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a55_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                    vader_obj_header_init(_a55_obj, 669u);
-                                                                                                                                                                                                                                    _a55_obj->f_id = 823u;
-                                                                                                                                                                                                                                    _a55_obj->f_message = 1190u;
-                                                                                                                                                                                                                                    l1 = (void*) _a55_obj;
-                                                                                                                                                                                                                                } else {
-                                                                                                                                                                                                                                    if (l0 == INT32_C(56)) {
-                                                                                                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a56_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                        vader_obj_header_init(_a56_obj, 669u);
-                                                                                                                                                                                                                                        _a56_obj->f_id = 825u;
-                                                                                                                                                                                                                                        _a56_obj->f_message = 1192u;
-                                                                                                                                                                                                                                        l1 = (void*) _a56_obj;
-                                                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                                                        if (l0 == INT32_C(57)) {
-                                                                                                                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a57_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                            vader_obj_header_init(_a57_obj, 669u);
-                                                                                                                                                                                                                                            _a57_obj->f_id = 826u;
-                                                                                                                                                                                                                                            _a57_obj->f_message = 1155u;
-                                                                                                                                                                                                                                            l1 = (void*) _a57_obj;
-                                                                                                                                                                                                                                        } else {
-                                                                                                                                                                                                                                            if (l0 == INT32_C(58)) {
-                                                                                                                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a58_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                vader_obj_header_init(_a58_obj, 669u);
-                                                                                                                                                                                                                                                _a58_obj->f_id = 827u;
-                                                                                                                                                                                                                                                _a58_obj->f_message = 1431u;
-                                                                                                                                                                                                                                                l1 = (void*) _a58_obj;
-                                                                                                                                                                                                                                            } else {
-                                                                                                                                                                                                                                                if (l0 == INT32_C(59)) {
-                                                                                                                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a59_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                    vader_obj_header_init(_a59_obj, 669u);
-                                                                                                                                                                                                                                                    _a59_obj->f_id = 828u;
-                                                                                                                                                                                                                                                    _a59_obj->f_message = 1434u;
-                                                                                                                                                                                                                                                    l1 = (void*) _a59_obj;
-                                                                                                                                                                                                                                                } else {
-                                                                                                                                                                                                                                                    if (l0 == INT32_C(60)) {
-                                                                                                                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a60_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                        vader_obj_header_init(_a60_obj, 669u);
-                                                                                                                                                                                                                                                        _a60_obj->f_id = 829u;
-                                                                                                                                                                                                                                                        _a60_obj->f_message = 2272u;
-                                                                                                                                                                                                                                                        l1 = (void*) _a60_obj;
-                                                                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                                                                        if (l0 == INT32_C(61)) {
-                                                                                                                                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a61_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                            vader_obj_header_init(_a61_obj, 669u);
-                                                                                                                                                                                                                                                            _a61_obj->f_id = 830u;
-                                                                                                                                                                                                                                                            _a61_obj->f_message = 2265u;
-                                                                                                                                                                                                                                                            l1 = (void*) _a61_obj;
-                                                                                                                                                                                                                                                        } else {
-                                                                                                                                                                                                                                                            if (l0 == INT32_C(62)) {
-                                                                                                                                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a62_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                vader_obj_header_init(_a62_obj, 669u);
-                                                                                                                                                                                                                                                                _a62_obj->f_id = 831u;
-                                                                                                                                                                                                                                                                _a62_obj->f_message = 2270u;
-                                                                                                                                                                                                                                                                l1 = (void*) _a62_obj;
-                                                                                                                                                                                                                                                            } else {
-                                                                                                                                                                                                                                                                if (l0 == INT32_C(63)) {
-                                                                                                                                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a63_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                    vader_obj_header_init(_a63_obj, 669u);
-                                                                                                                                                                                                                                                                    _a63_obj->f_id = 832u;
-                                                                                                                                                                                                                                                                    _a63_obj->f_message = 1242u;
-                                                                                                                                                                                                                                                                    l1 = (void*) _a63_obj;
-                                                                                                                                                                                                                                                                } else {
-                                                                                                                                                                                                                                                                    if (l0 == INT32_C(64)) {
-                                                                                                                                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a64_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                        vader_obj_header_init(_a64_obj, 669u);
-                                                                                                                                                                                                                                                                        _a64_obj->f_id = 833u;
-                                                                                                                                                                                                                                                                        _a64_obj->f_message = 1223u;
-                                                                                                                                                                                                                                                                        l1 = (void*) _a64_obj;
-                                                                                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                                                                                        if (l0 == INT32_C(65)) {
-                                                                                                                                                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a65_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                            vader_obj_header_init(_a65_obj, 669u);
-                                                                                                                                                                                                                                                                            _a65_obj->f_id = 834u;
-                                                                                                                                                                                                                                                                            _a65_obj->f_message = 1236u;
-                                                                                                                                                                                                                                                                            l1 = (void*) _a65_obj;
-                                                                                                                                                                                                                                                                        } else {
-                                                                                                                                                                                                                                                                            if (l0 == INT32_C(66)) {
-                                                                                                                                                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a66_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                                vader_obj_header_init(_a66_obj, 669u);
-                                                                                                                                                                                                                                                                                _a66_obj->f_id = 835u;
-                                                                                                                                                                                                                                                                                _a66_obj->f_message = 1238u;
-                                                                                                                                                                                                                                                                                l1 = (void*) _a66_obj;
-                                                                                                                                                                                                                                                                            } else {
-                                                                                                                                                                                                                                                                                if (l0 == INT32_C(67)) {
-                                                                                                                                                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a67_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                                    vader_obj_header_init(_a67_obj, 669u);
-                                                                                                                                                                                                                                                                                    _a67_obj->f_id = 836u;
-                                                                                                                                                                                                                                                                                    _a67_obj->f_message = 2269u;
-                                                                                                                                                                                                                                                                                    l1 = (void*) _a67_obj;
-                                                                                                                                                                                                                                                                                } else {
-                                                                                                                                                                                                                                                                                    if (l0 == INT32_C(68)) {
-                                                                                                                                                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a68_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                                        vader_obj_header_init(_a68_obj, 669u);
-                                                                                                                                                                                                                                                                                        _a68_obj->f_id = 837u;
-                                                                                                                                                                                                                                                                                        _a68_obj->f_message = 1522u;
-                                                                                                                                                                                                                                                                                        l1 = (void*) _a68_obj;
-                                                                                                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                                                                                                        if (l0 == INT32_C(69)) {
-                                                                                                                                                                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a69_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                                            vader_obj_header_init(_a69_obj, 669u);
-                                                                                                                                                                                                                                                                                            _a69_obj->f_id = 838u;
-                                                                                                                                                                                                                                                                                            _a69_obj->f_message = 1422u;
-                                                                                                                                                                                                                                                                                            l1 = (void*) _a69_obj;
-                                                                                                                                                                                                                                                                                        } else {
-                                                                                                                                                                                                                                                                                            if (l0 == INT32_C(70)) {
-                                                                                                                                                                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a70_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                                                vader_obj_header_init(_a70_obj, 669u);
-                                                                                                                                                                                                                                                                                                _a70_obj->f_id = 839u;
-                                                                                                                                                                                                                                                                                                _a70_obj->f_message = 2497u;
-                                                                                                                                                                                                                                                                                                l1 = (void*) _a70_obj;
-                                                                                                                                                                                                                                                                                            } else {
-                                                                                                                                                                                                                                                                                                if (l0 == INT32_C(71)) {
-                                                                                                                                                                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a71_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                                                    vader_obj_header_init(_a71_obj, 669u);
-                                                                                                                                                                                                                                                                                                    _a71_obj->f_id = 840u;
-                                                                                                                                                                                                                                                                                                    _a71_obj->f_message = 2013u;
-                                                                                                                                                                                                                                                                                                    l1 = (void*) _a71_obj;
-                                                                                                                                                                                                                                                                                                } else {
-                                                                                                                                                                                                                                                                                                    if (l0 == INT32_C(72)) {
-                                                                                                                                                                                                                                                                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a72_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                                                        vader_obj_header_init(_a72_obj, 669u);
-                                                                                                                                                                                                                                                                                                        _a72_obj->f_id = 841u;
-                                                                                                                                                                                                                                                                                                        _a72_obj->f_message = 2014u;
-                                                                                                                                                                                                                                                                                                        l1 = (void*) _a72_obj;
-                                                                                                                                                                                                                                                                                                    } else {
-                                                                                                                                                                                                                                                                                                        if (l0 == INT32_C(73)) {
-                                                                                                                                                                                                                                                                                                            vader_struct_vader_diagnostics_CodeInfo_t* _a73_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                                                            vader_obj_header_init(_a73_obj, 669u);
-                                                                                                                                                                                                                                                                                                            _a73_obj->f_id = 842u;
-                                                                                                                                                                                                                                                                                                            _a73_obj->f_message = 1567u;
-                                                                                                                                                                                                                                                                                                            l1 = (void*) _a73_obj;
-                                                                                                                                                                                                                                                                                                        } else {
-                                                                                                                                                                                                                                                                                                            if (l0 == INT32_C(74)) {
-                                                                                                                                                                                                                                                                                                                vader_struct_vader_diagnostics_CodeInfo_t* _a74_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                                                                vader_obj_header_init(_a74_obj, 669u);
-                                                                                                                                                                                                                                                                                                                _a74_obj->f_id = 843u;
-                                                                                                                                                                                                                                                                                                                _a74_obj->f_message = 2501u;
-                                                                                                                                                                                                                                                                                                                l1 = (void*) _a74_obj;
-                                                                                                                                                                                                                                                                                                            } else {
-                                                                                                                                                                                                                                                                                                                if (l0 == INT32_C(75)) {
-                                                                                                                                                                                                                                                                                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a75_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                                                                                                                                                                                                                                                                                    vader_obj_header_init(_a75_obj, 669u);
-                                                                                                                                                                                                                                                                                                                    _a75_obj->f_id = 844u;
-                                                                                                                                                                                                                                                                                                                    _a75_obj->f_message = 1568u;
-                                                                                                                                                                                                                                                                                                                    l1 = (void*) _a75_obj;
-                                                                                                                                                                                                                                                                                                                } else {
-                                                                                                                                                                                                                                                                                                                    vader_unreachable("unreachable return in vader_diagnostics$typecheck_info");
-                                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                }
-                                                                                                                                                                                                            }
-                                                                                                                                                                                                        }
-                                                                                                                                                                                                    }
-                                                                                                                                                                                                }
-                                                                                                                                                                                            }
-                                                                                                                                                                                        }
-                                                                                                                                                                                    }
-                                                                                                                                                                                }
-                                                                                                                                                                            }
-                                                                                                                                                                        }
-                                                                                                                                                                    }
-                                                                                                                                                                }
-                                                                                                                                                            }
-                                                                                                                                                        }
-                                                                                                                                                    }
-                                                                                                                                                }
-                                                                                                                                            }
-                                                                                                                                        }
-                                                                                                                                    }
-                                                                                                                                }
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                    }
-                                                                                                                }
-                                                                                                            }
-                                                                                                        }
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
 void* vader_diagnostics_warning(uint8_t l0, void* l1, vader_string_t l2) {
     void* l3 = NULL;
+    int64_t l4;
     void* t0 = NULL;
     void** gc_raw_roots[3] = { &l1, &l3, &t0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l3 = vader_diagnostics_warning_info(l0);
+    l3 = (void*) &vader_data_7;
+    l4 = ((int64_t) (uint8_t) l0);
+    vader_array_t* _a0_slotarr = ((vader_array_t*) l3);
+    if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
+    if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+    l3 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
     t0 = vader_diagnostics_new_diagnostic((uint8_t) (int32_t) INT32_C(1), l3, l1, l2);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static void* vader_diagnostics_warning_info(uint8_t l0) {
-    void* l1 = NULL;
-    void** gc_raw_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    if (l0 == INT32_C(0)) {
-        vader_struct_vader_diagnostics_CodeInfo_t* _a0_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-        vader_obj_header_init(_a0_obj, 669u);
-        _a0_obj->f_id = 861u;
-        _a0_obj->f_message = 2412u;
-        l1 = (void*) _a0_obj;
-    } else {
-        if (l0 == INT32_C(1)) {
-            vader_struct_vader_diagnostics_CodeInfo_t* _a1_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-            vader_obj_header_init(_a1_obj, 669u);
-            _a1_obj->f_id = 862u;
-            _a1_obj->f_message = 2397u;
-            l1 = (void*) _a1_obj;
-        } else {
-            if (l0 == INT32_C(2)) {
-                vader_struct_vader_diagnostics_CodeInfo_t* _a2_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                vader_obj_header_init(_a2_obj, 669u);
-                _a2_obj->f_id = 863u;
-                _a2_obj->f_message = 2525u;
-                l1 = (void*) _a2_obj;
-            } else {
-                if (l0 == INT32_C(3)) {
-                    vader_struct_vader_diagnostics_CodeInfo_t* _a3_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                    vader_obj_header_init(_a3_obj, 669u);
-                    _a3_obj->f_id = 864u;
-                    _a3_obj->f_message = 1518u;
-                    l1 = (void*) _a3_obj;
-                } else {
-                    if (l0 == INT32_C(4)) {
-                        vader_struct_vader_diagnostics_CodeInfo_t* _a4_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                        vader_obj_header_init(_a4_obj, 669u);
-                        _a4_obj->f_id = 865u;
-                        _a4_obj->f_message = 1915u;
-                        l1 = (void*) _a4_obj;
-                    } else {
-                        if (l0 == INT32_C(5)) {
-                            vader_struct_vader_diagnostics_CodeInfo_t* _a5_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                            vader_obj_header_init(_a5_obj, 669u);
-                            _a5_obj->f_id = 866u;
-                            _a5_obj->f_message = 2071u;
-                            l1 = (void*) _a5_obj;
-                        } else {
-                            if (l0 == INT32_C(6)) {
-                                vader_struct_vader_diagnostics_CodeInfo_t* _a6_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                vader_obj_header_init(_a6_obj, 669u);
-                                _a6_obj->f_id = 867u;
-                                _a6_obj->f_message = 2054u;
-                                l1 = (void*) _a6_obj;
-                            } else {
-                                if (l0 == INT32_C(7)) {
-                                    vader_struct_vader_diagnostics_CodeInfo_t* _a7_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                    vader_obj_header_init(_a7_obj, 669u);
-                                    _a7_obj->f_id = 868u;
-                                    _a7_obj->f_message = 1560u;
-                                    l1 = (void*) _a7_obj;
-                                } else {
-                                    if (l0 == INT32_C(8)) {
-                                        vader_struct_vader_diagnostics_CodeInfo_t* _a8_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                        vader_obj_header_init(_a8_obj, 669u);
-                                        _a8_obj->f_id = 869u;
-                                        _a8_obj->f_message = 1615u;
-                                        l1 = (void*) _a8_obj;
-                                    } else {
-                                        if (l0 == INT32_C(9)) {
-                                            vader_struct_vader_diagnostics_CodeInfo_t* _a9_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                            vader_obj_header_init(_a9_obj, 669u);
-                                            _a9_obj->f_id = 870u;
-                                            _a9_obj->f_message = 1182u;
-                                            l1 = (void*) _a9_obj;
-                                        } else {
-                                            if (l0 == INT32_C(10)) {
-                                                vader_struct_vader_diagnostics_CodeInfo_t* _a10_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                vader_obj_header_init(_a10_obj, 669u);
-                                                _a10_obj->f_id = 871u;
-                                                _a10_obj->f_message = 1942u;
-                                                l1 = (void*) _a10_obj;
-                                            } else {
-                                                if (l0 == INT32_C(11)) {
-                                                    vader_struct_vader_diagnostics_CodeInfo_t* _a11_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                    vader_obj_header_init(_a11_obj, 669u);
-                                                    _a11_obj->f_id = 872u;
-                                                    _a11_obj->f_message = 1916u;
-                                                    l1 = (void*) _a11_obj;
-                                                } else {
-                                                    if (l0 == INT32_C(12)) {
-                                                        vader_struct_vader_diagnostics_CodeInfo_t* _a12_obj = (vader_struct_vader_diagnostics_CodeInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_CodeInfo_t));
-                                                        vader_obj_header_init(_a12_obj, 669u);
-                                                        _a12_obj->f_id = 873u;
-                                                        _a12_obj->f_message = 2257u;
-                                                        l1 = (void*) _a12_obj;
-                                                    } else {
-                                                        vader_unreachable("unreachable return in vader_diagnostics$warning_info");
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

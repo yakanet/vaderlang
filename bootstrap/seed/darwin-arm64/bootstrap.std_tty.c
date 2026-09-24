@@ -12,7 +12,7 @@ static vader_string_t std_tty_escape(bool l0, vader_string_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0) {
-        l2 = concat_3(8u, l1, 1934u);
+        l2 = concat_3(8u, l1, 1936u);
     } else {
         l2 = 0u;
     }
@@ -30,7 +30,7 @@ static bool std_tty_is_tty(uint8_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l1 = std_tty_tty_slot(l0);
-    t0 = (void*) &vader_data_7;
+    t0 = (void*) &vader_data_14;
     vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
     if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
     if ((size_t) l1 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
@@ -41,7 +41,7 @@ static bool std_tty_is_tty(uint8_t l0) {
         } else {
             l2 = INT32_C(1);
         }
-        l3 = (void*) &vader_data_7;
+        l3 = (void*) &vader_data_14;
         t1 = vader_host_system_posix_sys_isatty(l2);
         if (t1 != INT32_C(0)) {
             l2 = INT32_C(1);
@@ -53,7 +53,7 @@ static bool std_tty_is_tty(uint8_t l0) {
         if ((size_t) l1 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
         ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l1] = (int32_t) l2;
     }
-    t0 = (void*) &vader_data_7;
+    t0 = (void*) &vader_data_14;
     vader_array_t* _a2_slotarr = ((vader_array_t*) t0);
     if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
     if ((size_t) l1 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
@@ -72,7 +72,7 @@ static vader_string_t std_tty_paint(vader_string_t l0, vader_string_t l1) {
     vader_gc_top = &gc_frame;
     l2 = std_tty_should_colorize();
     l3 = std_tty_escape(l2, l0);
-    l4 = std_tty_escape(l2, 477u);
+    l4 = std_tty_escape(l2, 478u);
     t0 = concat_3(l3, l1, l4);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
@@ -83,7 +83,7 @@ vader_string_t std_tty_red(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = std_tty_paint(483u, l0);
+    t0 = std_tty_paint(484u, l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -106,7 +106,7 @@ static bool std_tty_should_colorize(void) {
     if (!(l0)) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-    l1 = vader_host_std_env_get_env(674u);
+    l1 = vader_host_std_env_get_env(675u);
     if (l1.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return true; }
     }
@@ -130,7 +130,7 @@ vader_string_t std_tty_yellow(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = std_tty_paint(484u, l0);
+    t0 = std_tty_paint(485u, l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
