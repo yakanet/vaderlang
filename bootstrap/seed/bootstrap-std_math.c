@@ -9,4 +9,3 @@ size_t std_math_min_2(size_t l0, size_t l1) {
     }
     return l2;
 }
-

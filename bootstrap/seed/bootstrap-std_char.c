@@ -61,4 +61,3 @@ bool std_char_is_white_char(uint32_t l0) {
     }
     return l1;
 }
-

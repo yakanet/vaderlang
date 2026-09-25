@@ -48,7 +48,9 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
     vader_box_t* gc_roots[1] = { &t0 };
     void** gc_raw_roots[2] = { &l1, &t3 };
     vader_string_t* gc_atom_roots[2] = { &l0, &t4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
     l1 = vader_host_std_core_bytes(l0);
     l2 = ((vader_array_t*) l1)->length;
@@ -56,14 +58,14 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
     l3 = -(INT32_C(1));
-    l4 = (size_t) (int64_t) INT64_C(0);
+    l4 = (size_t) 0;
     {
         loop_16: {
             if ((l4 < l2)) {
                 vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
-                if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
-                if ((size_t) l4 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
-                t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l4, 184u);
+                VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
+                t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l4, 196u);
                 t1 = ((uint8_t) t0.payload.i);
                 if (t1 == INT32_C(36)) {
                     l3 = ((int32_t) (size_t) l4);
@@ -75,7 +77,7 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
         }
     }
     if ((l3 < INT32_C(0))) {
-        l4 = (size_t) (int64_t) INT64_C(0);
+        l4 = (size_t) 0;
     } else {
         t2 = (((int64_t) (int32_t) l3) + INT64_C(1));
         l4 = (size_t) (int64_t) t2;
@@ -84,17 +86,17 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
         loop_54: {
             if (((l4 + INT64_C(1)) < l2)) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
-                if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
-                if ((size_t) l4 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
-                t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l4, 184u);
+                VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
+                t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l4, 196u);
                 t1 = ((uint8_t) t0.payload.i);
                 if (t1 == INT32_C(95)) {
                     t2 = (l4 + INT64_C(1));
                     l6 = (size_t) (int64_t) t2;
                     vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
-                    if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
-                    if ((size_t) l6 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
-                    t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l6, 184u);
+                    VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+                    VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
+                    t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l6, 196u);
                     t1 = ((uint8_t) t0.payload.i);
                     l5 = t1 == INT32_C(95);
                 } else {
@@ -113,6 +115,4 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
         }
     }
     { vader_gc_top = gc_frame.prev; return 0u; }
-    vader_gc_top = gc_frame.prev;
 }
-

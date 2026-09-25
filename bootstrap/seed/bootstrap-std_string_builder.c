@@ -11,7 +11,9 @@ vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
     vader_box_t* gc_roots[1] = { &t0 };
     void** gc_raw_roots[3] = { &l0, &l2, &l6 };
     vader_string_t* gc_atom_roots[2] = { &l7, &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
     l1 = ((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts)->length;
     if (l1 == INT64_C(0)) {
@@ -19,22 +21,22 @@ vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
     }
     if (l1 == INT64_C(1)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts);
-        if (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = vader_array_buf_forward(_a0_slotarr->buf); }
-        if ((size_t) INT32_C(0) >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
         t0 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) INT32_C(0)];
         t1 = t0.payload.s;
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    l1 = (size_t) (int64_t) INT64_C(0);
+    l1 = (size_t) 0;
     l2 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     l3 = ((vader_array_t*) l2)->length;
-    l4 = (size_t) (int64_t) INT64_C(0);
+    l4 = (size_t) 0;
     {
         loop_27: {
             if ((l4 < l3)) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l2);
-                if (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = vader_array_buf_forward(_a1_slotarr->buf); }
-                if ((size_t) l4 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
                 t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
                 t1 = t0.payload.s;
                 l5 = vader_host_std_core_byte_len(t1);
@@ -47,16 +49,16 @@ vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
         }
     }
     l2 = std_core_usize_BufferAlloc_new_buffer_vt(l1);
-    l3 = (size_t) (int64_t) INT64_C(0);
+    l3 = (size_t) 0;
     l6 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     l4 = ((vader_array_t*) l6)->length;
-    l5 = (size_t) (int64_t) INT64_C(0);
+    l5 = (size_t) 0;
     {
         loop_62: {
             if ((l5 < l4)) {
                 vader_array_t* _a2_slotarr = ((vader_array_t*) l6);
-                if (_a2_slotarr->buf != NULL && _a2_slotarr->buf->header.forward != NULL) { _a2_slotarr->buf = vader_array_buf_forward(_a2_slotarr->buf); }
-                if ((size_t) l5 >= _a2_slotarr->length) { vader_trap("array index out of bounds"); }
+                VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l5)
                 t0 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l5];
                 l7 = t0.payload.s;
                 std_core_Buffer_ByteAccess_write_string_vt(l2, l3, l7);
@@ -71,17 +73,17 @@ vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
     }
     t1 = std_core_Buffer_ByteAccess_intern_string_vt(l2, l1);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
 
 void std_string_builder_append(void* l0, vader_string_t l1) {
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
-    vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(178u, l1));
+    vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(190u, l1));
     { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
 }
 
 void std_string_builder_append_char(void* l0, uint32_t l1) {
@@ -90,14 +92,15 @@ void std_string_builder_append_char(void* l0, uint32_t l1) {
     void* t0 = NULL;
     void** gc_raw_roots[3] = { &l0, &l2, &t0 };
     vader_string_t* gc_atom_roots[1] = { &l3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     t0 = std_core_utf8_encode(l1);
     l3 = vader_host_std_core_bytes_to_string(t0);
-    vader_array_push((vader_array_t*) l2, vader_box_string(178u, l3));
+    vader_array_push((vader_array_t*) l2, vader_box_string(190u, l3));
     { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
 }
 
 void std_string_builder_append_repeated(void* l0, uint32_t l1, int32_t l2) {
@@ -106,7 +109,9 @@ void std_string_builder_append_repeated(void* l0, uint32_t l1, int32_t l2) {
     void* t0 = NULL;
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_string_t* gc_atom_roots[1] = { &l3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
     t0 = std_core_utf8_encode(l1);
     l3 = vader_host_std_core_bytes_to_string(t0);
@@ -114,13 +119,11 @@ void std_string_builder_append_repeated(void* l0, uint32_t l1, int32_t l2) {
     {
         loop_7: {
             if ((l4 < l2)) {
-                vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(178u, l3));
+                vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(190u, l3));
                 l4 = (l4 + INT32_C(1));
                 goto loop_7;
             }
         }
     }
     { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
 }
-

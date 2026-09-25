@@ -3,65 +3,37 @@
 vader_string_t vader_resolver_symbol_kind_name(int32_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 1689u;
+        l1 = 1480u;
+    } else if (l0 == INT32_C(1)) {
+        l1 = 2027u;
+    } else if (l0 == INT32_C(2)) {
+        l1 = 1363u;
+    } else if (l0 == INT32_C(3)) {
+        l1 = 2090u;
+    } else if (l0 == INT32_C(4)) {
+        l1 = 1591u;
+    } else if (l0 == INT32_C(5)) {
+        l1 = 2110u;
+    } else if (l0 == INT32_C(6)) {
+        l1 = 1294u;
+    } else if (l0 == INT32_C(7)) {
+        l1 = 1599u;
+    } else if (l0 == INT32_C(8)) {
+        l1 = 1843u;
+    } else if (l0 == INT32_C(9)) {
+        l1 = 2111u;
+    } else if (l0 == INT32_C(10)) {
+        l1 = 1709u;
+    } else if (l0 == INT32_C(11)) {
+        l1 = 1133u;
+    } else if (l0 == INT32_C(12)) {
+        l1 = 1184u;
+    } else if (l0 == INT32_C(13)) {
+        l1 = 1183u;
+    } else if (l0 == INT32_C(14)) {
+        l1 = 2046u;
     } else {
-        if (l0 == INT32_C(1)) {
-            l1 = 2222u;
-        } else {
-            if (l0 == INT32_C(2)) {
-                l1 = 1568u;
-            } else {
-                if (l0 == INT32_C(3)) {
-                    l1 = 2282u;
-                } else {
-                    if (l0 == INT32_C(4)) {
-                        l1 = 1799u;
-                    } else {
-                        if (l0 == INT32_C(5)) {
-                            l1 = 2302u;
-                        } else {
-                            if (l0 == INT32_C(6)) {
-                                l1 = 1487u;
-                            } else {
-                                if (l0 == INT32_C(7)) {
-                                    l1 = 1807u;
-                                } else {
-                                    if (l0 == INT32_C(8)) {
-                                        l1 = 2044u;
-                                    } else {
-                                        if (l0 == INT32_C(9)) {
-                                            l1 = 2303u;
-                                        } else {
-                                            if (l0 == INT32_C(10)) {
-                                                l1 = 1916u;
-                                            } else {
-                                                if (l0 == INT32_C(11)) {
-                                                    l1 = 1339u;
-                                                } else {
-                                                    if (l0 == INT32_C(12)) {
-                                                        l1 = 1388u;
-                                                    } else {
-                                                        if (l0 == INT32_C(13)) {
-                                                            l1 = 1387u;
-                                                        } else {
-                                                            if (l0 == INT32_C(14)) {
-                                                                l1 = 2241u;
-                                                            } else {
-                                                                vader_unreachable("unreachable return in vader_resolver_symbol$kind_name");
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        vader_unreachable("unreachable return in vader_resolver_symbol$kind_name");
     }
     return l1;
 }
@@ -72,13 +44,15 @@ void* vader_resolver_symbol_make(void* l0, int32_t l1, vader_string_t l2, vader_
     vader_box_t* gc_roots[1] = { &l6 };
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_string_t* gc_atom_roots[3] = { &l2, &l3, &l4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
     l7 = ((vader_struct_vader_resolver_symbol_SymbolFactory_t*) l0)->f_next;
     l8 = (l7 + INT32_C(1));
     ((vader_struct_vader_resolver_symbol_SymbolFactory_t*) l0)->f_next = l8;
     vader_struct_vader_resolver_symbol_Symbol_t* _a0_obj = (vader_struct_vader_resolver_symbol_Symbol_t*) vader_gc_alloc(sizeof(vader_struct_vader_resolver_symbol_Symbol_t));
-    vader_obj_header_init(_a0_obj, 864u);
+    vader_obj_header_init(_a0_obj, 926u);
     _a0_obj->f_id = l7;
     _a0_obj->f_kind = l1;
     _a0_obj->f_name = l2;
@@ -88,6 +62,4 @@ void* vader_resolver_symbol_make(void* l0, int32_t l1, vader_string_t l2, vader_
     _a0_obj->f_defined_at = l6;
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
 }
-
