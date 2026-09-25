@@ -466,12 +466,14 @@ typedef struct vader_struct_vader_c_emit_c_ast_CAddressOf_t vader_struct_vader_c
 typedef struct vader_struct_vader_c_emit_c_ast_CAssign_t vader_struct_vader_c_emit_c_ast_CAssign_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CBinary_t vader_struct_vader_c_emit_c_ast_CBinary_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CBlock_t vader_struct_vader_c_emit_c_ast_CBlock_t;
+typedef struct vader_struct_vader_c_emit_c_ast_CBreak_t vader_struct_vader_c_emit_c_ast_CBreak_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CCall_t vader_struct_vader_c_emit_c_ast_CCall_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CCase_t vader_struct_vader_c_emit_c_ast_CCase_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CCast_t vader_struct_vader_c_emit_c_ast_CCast_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CCastToTypeOf_t vader_struct_vader_c_emit_c_ast_CCastToTypeOf_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CCompoundLiteral_t vader_struct_vader_c_emit_c_ast_CCompoundLiteral_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CConditional_t vader_struct_vader_c_emit_c_ast_CConditional_t;
+typedef struct vader_struct_vader_c_emit_c_ast_CContinue_t vader_struct_vader_c_emit_c_ast_CContinue_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CDeclaration_t vader_struct_vader_c_emit_c_ast_CDeclaration_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CDeclarator_t vader_struct_vader_c_emit_c_ast_CDeclarator_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CDefine_t vader_struct_vader_c_emit_c_ast_CDefine_t;
@@ -479,6 +481,7 @@ typedef struct vader_struct_vader_c_emit_c_ast_CDesignated_t vader_struct_vader_
 typedef struct vader_struct_vader_c_emit_c_ast_CDirective_t vader_struct_vader_c_emit_c_ast_CDirective_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CExpressionStatement_t vader_struct_vader_c_emit_c_ast_CExpressionStatement_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CField_t vader_struct_vader_c_emit_c_ast_CField_t;
+typedef struct vader_struct_vader_c_emit_c_ast_CFor_t vader_struct_vader_c_emit_c_ast_CFor_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CFunction_t vader_struct_vader_c_emit_c_ast_CFunction_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CFunctionPointerTypedef_t vader_struct_vader_c_emit_c_ast_CFunctionPointerTypedef_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CGlobal_t vader_struct_vader_c_emit_c_ast_CGlobal_t;
@@ -511,6 +514,7 @@ typedef struct vader_struct_vader_c_emit_c_ast_CTemporary_t vader_struct_vader_c
 typedef struct vader_struct_vader_c_emit_c_ast_CUnary_t vader_struct_vader_c_emit_c_ast_CUnary_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CUnsized_t vader_struct_vader_c_emit_c_ast_CUnsized_t;
 typedef struct vader_struct_vader_c_emit_c_ast_CVerbatim_t vader_struct_vader_c_emit_c_ast_CVerbatim_t;
+typedef struct vader_struct_vader_c_emit_c_ast_CWhile_t vader_struct_vader_c_emit_c_ast_CWhile_t;
 typedef struct vader_struct_vader_c_emit_c_ast_TemporaryUsage_t vader_struct_vader_c_emit_c_ast_TemporaryUsage_t;
 typedef struct vader_struct_vader_comptime_ArrayValue_t vader_struct_vader_comptime_ArrayValue_t;
 typedef struct vader_struct_vader_comptime_BoolValue_t vader_struct_vader_comptime_BoolValue_t;
@@ -3471,6 +3475,10 @@ struct vader_struct_vader_c_emit_c_ast_CBlock_t {
     vader_obj_header_t header;
     void* f_body;
 };
+struct vader_struct_vader_c_emit_c_ast_CBreak_t {
+    vader_obj_header_t header;
+    vader_box_t f_condition;
+};
 struct vader_struct_vader_c_emit_c_ast_CCall_t {
     vader_obj_header_t header;
     vader_string_t f_callee;
@@ -3501,6 +3509,10 @@ struct vader_struct_vader_c_emit_c_ast_CConditional_t {
     vader_box_t f_condition;
     vader_box_t f_then_value;
     vader_box_t f_else_value;
+};
+struct vader_struct_vader_c_emit_c_ast_CContinue_t {
+    vader_obj_header_t header;
+    vader_box_t f_condition;
 };
 struct vader_struct_vader_c_emit_c_ast_CDeclaration_t {
     vader_obj_header_t header;
@@ -3535,6 +3547,12 @@ struct vader_struct_vader_c_emit_c_ast_CField_t {
     vader_obj_header_t header;
     vader_string_t f_type;
     vader_string_t f_name;
+};
+struct vader_struct_vader_c_emit_c_ast_CFor_t {
+    vader_obj_header_t header;
+    vader_string_t f_label;
+    void* f_body;
+    vader_string_t f_end_label;
 };
 struct vader_struct_vader_c_emit_c_ast_CFunction_t {
     vader_obj_header_t header;
@@ -3699,6 +3717,13 @@ struct vader_struct_vader_c_emit_c_ast_CUnsized_t {
 struct vader_struct_vader_c_emit_c_ast_CVerbatim_t {
     vader_obj_header_t header;
     vader_string_t f_text;
+};
+struct vader_struct_vader_c_emit_c_ast_CWhile_t {
+    vader_obj_header_t header;
+    vader_string_t f_label;
+    void* f_body;
+    vader_box_t f_condition;
+    vader_string_t f_end_label;
 };
 struct vader_struct_vader_c_emit_c_ast_TemporaryUsage_t {
     vader_obj_header_t header;
@@ -6175,6 +6200,7 @@ vader_box_t vader_c_emit_c_ast_designated(vader_string_t l0, vader_box_t l1);
 vader_box_t vader_c_emit_c_ast_call(vader_string_t l0, void* l1);
 bool vader_c_emit_c_ast_ends_with_return(void* l0);
 void* vader_c_emit_c_ast_coalesce_temporaries(void* l0, void* l1);
+void vader_c_emit_c_ast_structure_loops(void* l0);
 vader_box_t vader_c_emit_c_ast_array_declaration(vader_string_t l0, vader_string_t l1, void* l2);
 vader_box_t vader_c_emit_c_ast_declaration(vader_string_t l0, vader_string_t l1, vader_box_t l2);
 vader_box_t vader_c_emit_c_ast_cast(vader_string_t l0, vader_box_t l1);
@@ -6289,7 +6315,7 @@ vader_string_t vader_vt_Display__to_string(vader_box_t recv);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2384u
+#define VADER_COMPTIME_ATOM_COUNT 2387u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

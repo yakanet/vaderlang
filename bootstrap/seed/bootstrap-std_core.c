@@ -79,7 +79,7 @@ static void* std_core_BigInt_Div_div(void* l0, uint32_t l1) {
         size_t _pc11_len = _pc11_hdr->length;
         size_t _pc11_cap = (_pc11_hdr->offset == 0 && !vader_array_is_borrowed(_pc11_hdr) && _pc11_hdr->length >= _pc11_hdr->buf->length) ? _pc11_hdr->capacity : (size_t) 0;
         void* _pc11_slots = _pc11_hdr->buf->slots;
-        loop_11: {
+        for (;;) {
             if ((l4 >= INT32_C(0))) {
                 t1 = (l3 << INT64_C(32));
                 l5 = (uint64_t) (int64_t) t1;
@@ -117,12 +117,13 @@ static void* std_core_BigInt_Div_div(void* l0, uint32_t l1) {
                 l11 = (uint64_t) (int64_t) t1;
                 l3 = vader_mod_u64(l8, l11);
                 l4 = (l4 - INT32_C(1));
-                goto loop_11;
+                continue;
             }
             _pc11_hdr->length = _pc11_len;
             if (_pc11_hdr->buf->length < _pc11_len) {
                 _pc11_hdr->buf->length = _pc11_len;
             }
+            break;
         }
     }
     vader_array_t* _a2_arr = vader_array_new(13u, 0u, 3u, 198u);
@@ -134,7 +135,7 @@ static void* std_core_BigInt_Div_div(void* l0, uint32_t l1) {
         size_t _pc68_len = _pc68_hdr->length;
         size_t _pc68_cap = (_pc68_hdr->offset == 0 && !vader_array_is_borrowed(_pc68_hdr) && _pc68_hdr->length >= _pc68_hdr->buf->length) ? _pc68_hdr->capacity : (size_t) 0;
         void* _pc68_slots = _pc68_hdr->buf->slots;
-        loop_68: {
+        for (;;) {
             if ((l4 >= INT32_C(0))) {
                 t1 = ((int64_t) (int32_t) l4);
                 l6 = (size_t) (int64_t) t1;
@@ -158,12 +159,13 @@ static void* std_core_BigInt_Div_div(void* l0, uint32_t l1) {
                     _pc68_slots = _pc68_hdr->buf->slots;
                 }
                 l4 = (l4 - INT32_C(1));
-                goto loop_68;
+                continue;
             }
             _pc68_hdr->length = _pc68_len;
             if (_pc68_hdr->buf->length < _pc68_len) {
                 _pc68_hdr->buf->length = _pc68_len;
             }
+            break;
         }
     }
     t5 = ((int32_t) (uint64_t) l3);
@@ -222,19 +224,14 @@ bool std_core____Contains_contains__ValType(void* l0, uint8_t l1) {
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
-    {
-        loop_7: {
-            if ((l4 < l3)) {
-                VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
-                t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l4, 196u);
-                if (((int32_t) t0.payload.i) == l1) {
-                    return true;
-                }
-                t1 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t1;
-                goto loop_7;
-            }
+    while ((l4 < l3)) {
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
+        t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l4, 196u);
+        if (((int32_t) t0.payload.i) == l1) {
+            return true;
         }
+        t1 = (l4 + INT64_C(1));
+        l4 = (size_t) (int64_t) t1;
     }
     return false;
 }
@@ -249,18 +246,13 @@ bool std_core____Contains_contains__i32(void* l0, int32_t l1) {
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
-    {
-        loop_7: {
-            if ((l4 < l3)) {
-                t0 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
-                if (t0 == l1) {
-                    return true;
-                }
-                t1 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t1;
-                goto loop_7;
-            }
+    while ((l4 < l3)) {
+        t0 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
+        if (t0 == l1) {
+            return true;
         }
+        t1 = (l4 + INT64_C(1));
+        l4 = (size_t) (int64_t) t1;
     }
     return false;
 }
@@ -276,20 +268,15 @@ bool std_core____Contains_contains__string(void* l0, vader_string_t l1) {
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
-    {
-        loop_7: {
-            if ((l4 < l3)) {
-                VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
-                t0 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l4];
-                t1 = t0.payload.s;
-                if (t1 == l1) {
-                    return true;
-                }
-                t2 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t2;
-                goto loop_7;
-            }
+    while ((l4 < l3)) {
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
+        t0 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l4];
+        t1 = t0.payload.s;
+        if (t1 == l1) {
+            return true;
         }
+        t2 = (l4 + INT64_C(1));
+        l4 = (size_t) (int64_t) t2;
     }
     return false;
 }
@@ -308,22 +295,17 @@ static bool std_core_any_below(void* l0, int32_t l1) {
     t0 = ((int64_t) (int32_t) l2);
     l4 = (size_t) (int64_t) t0;
     l5 = (size_t) 0;
-    {
-        loop_14: {
-            if ((l5 < l4)) {
-                vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
-                VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-                VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
-                t1 = vader_box_i32(198u, ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l5]);
-                t2 = ((uint32_t) t1.payload.i);
-                if (t2 != INT32_C(0)) {
-                    return true;
-                }
-                t0 = (l5 + INT64_C(1));
-                l5 = (size_t) (int64_t) t0;
-                goto loop_14;
-            }
+    while ((l5 < l4)) {
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
+        t1 = vader_box_i32(198u, ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l5]);
+        t2 = ((uint32_t) t1.payload.i);
+        if (t2 != INT32_C(0)) {
+            return true;
         }
+        t0 = (l5 + INT64_C(1));
+        l5 = (size_t) (int64_t) t0;
     }
     if ((l3 > INT32_C(0))) {
         t0 = ((int64_t) (int32_t) l2);
@@ -391,31 +373,26 @@ static int32_t std_core_bit_len(void* l0) {
     uint32_t t3;
     t0 = ((vader_array_t*) l0)->length;
     l1 = (((int32_t) (size_t) t0) - INT32_C(1));
-    {
-        loop_7: {
-            if ((l1 >= INT32_C(0))) {
-                t1 = ((int64_t) (int32_t) l1);
-                l2 = (size_t) (int64_t) t1;
-                vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
-                VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-                VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
-                t2 = vader_box_i32(198u, ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l2]);
-                t3 = ((uint32_t) t2.payload.i);
-                if (t3 != INT32_C(0)) {
-                    l3 = (l1 * INT32_C(32));
-                    t1 = ((int64_t) (int32_t) l1);
-                    l4 = (size_t) (int64_t) t1;
-                    VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
-                    t2 = vader_box_i32(198u, ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4]);
-                    t3 = ((uint32_t) t2.payload.i);
-                    l5 = std_core_clz32(t3);
-                    l6 = (INT32_C(32) - l5);
-                    return (l3 + l6);
-                }
-                l1 = (l1 - INT32_C(1));
-                goto loop_7;
-            }
+    while ((l1 >= INT32_C(0))) {
+        t1 = ((int64_t) (int32_t) l1);
+        l2 = (size_t) (int64_t) t1;
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
+        t2 = vader_box_i32(198u, ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l2]);
+        t3 = ((uint32_t) t2.payload.i);
+        if (t3 != INT32_C(0)) {
+            l3 = (l1 * INT32_C(32));
+            t1 = ((int64_t) (int32_t) l1);
+            l4 = (size_t) (int64_t) t1;
+            VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
+            t2 = vader_box_i32(198u, ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4]);
+            t3 = ((uint32_t) t2.payload.i);
+            l5 = std_core_clz32(t3);
+            l6 = (INT32_C(32) - l5);
+            return (l3 + l6);
         }
+        l1 = (l1 - INT32_C(1));
     }
     return INT32_C(0);
 }
@@ -461,9 +438,9 @@ static uint64_t std_core_bits64(void* l0, int32_t l1) {
 vader_string_t std_core_bool_Display_to_string(bool l0) {
     vader_string_t l1;
     if (l0) {
-        l1 = 2096u;
+        l1 = 2098u;
     } else {
-        l1 = 1444u;
+        l1 = 1445u;
     }
     return l1;
 }
@@ -488,15 +465,10 @@ static int32_t std_core_clz32(uint32_t l0) {
     int32_t t0;
     l1 = INT32_C(0);
     l2 = l0;
-    {
-        loop_5: {
-            if ((l2 & INT32_MIN) == INT32_C(0)) {
-                t0 = (l2 << INT32_C(1));
-                l2 = (uint32_t) (int32_t) t0;
-                l1 = (l1 + INT32_C(1));
-                goto loop_5;
-            }
-        }
+    while ((l2 & INT32_MIN) == INT32_C(0)) {
+        t0 = (l2 << INT32_C(1));
+        l2 = (uint32_t) (int32_t) t0;
+        l1 = (l1 + INT32_C(1));
     }
     return l1;
 }
@@ -637,70 +609,68 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         l19 = l12;
     }
     if (l19) {
-        {
-            loop_301: {
-                l7 = vader_div_u64(l9, INT64_C(10));
-                l16 = vader_div_u64(l10, INT64_C(10));
-                if ((l7 <= l16)) {
+        for (;;) {
+            l7 = vader_div_u64(l9, INT64_C(10));
+            l16 = vader_div_u64(l10, INT64_C(10));
+            if ((l7 <= l16)) {
+            } else {
+                t0 = (l16 * INT64_C(10));
+                l18 = (uint64_t) (int64_t) t0;
+                t0 = (l10 - l18);
+                l20 = (uint64_t) (int64_t) t0;
+                l21 = vader_div_u64(l8, INT64_C(10));
+                t0 = (l21 * INT64_C(10));
+                l22 = (uint64_t) (int64_t) t0;
+                t0 = (l8 - l22);
+                l23 = (uint64_t) (int64_t) t0;
+                if (l6) {
+                    l19 = l20 == INT64_C(0);
                 } else {
-                    t0 = (l16 * INT64_C(10));
-                    l18 = (uint64_t) (int64_t) t0;
-                    t0 = (l10 - l18);
-                    l20 = (uint64_t) (int64_t) t0;
-                    l21 = vader_div_u64(l8, INT64_C(10));
-                    t0 = (l21 * INT64_C(10));
+                    l19 = false;
+                }
+                l6 = l19;
+                if (l12) {
+                    l24 = l3 == INT64_C(0);
+                } else {
+                    l24 = false;
+                }
+                l12 = l24;
+                l3 = l23;
+                l8 = l21;
+                l9 = l7;
+                l10 = l16;
+                l2 = (l2 + INT32_C(1));
+                continue;
+            }
+            break;
+        }
+        if (l6) {
+            for (;;) {
+                l7 = vader_div_u64(l10, INT64_C(10));
+                t0 = (l7 * INT64_C(10));
+                l16 = (uint64_t) (int64_t) t0;
+                if ((l10 - l16) != INT64_C(0)) {
+                } else {
+                    l18 = vader_div_u64(l9, INT64_C(10));
+                    l20 = vader_div_u64(l8, INT64_C(10));
+                    t0 = (l20 * INT64_C(10));
+                    l21 = (uint64_t) (int64_t) t0;
+                    t0 = (l8 - l21);
                     l22 = (uint64_t) (int64_t) t0;
-                    t0 = (l8 - l22);
-                    l23 = (uint64_t) (int64_t) t0;
-                    if (l6) {
-                        l19 = l20 == INT64_C(0);
+                    if (l12) {
+                        l19 = l3 == INT64_C(0);
                     } else {
                         l19 = false;
                     }
-                    l6 = l19;
-                    if (l12) {
-                        l24 = l3 == INT64_C(0);
-                    } else {
-                        l24 = false;
-                    }
-                    l12 = l24;
-                    l3 = l23;
-                    l8 = l21;
-                    l9 = l7;
-                    l10 = l16;
+                    l12 = l19;
+                    l3 = l22;
+                    l8 = l20;
+                    l9 = l18;
+                    l10 = l7;
                     l2 = (l2 + INT32_C(1));
-                    goto loop_301;
+                    continue;
                 }
-            }
-        }
-        if (l6) {
-            {
-                loop_377: {
-                    l7 = vader_div_u64(l10, INT64_C(10));
-                    t0 = (l7 * INT64_C(10));
-                    l16 = (uint64_t) (int64_t) t0;
-                    if ((l10 - l16) != INT64_C(0)) {
-                    } else {
-                        l18 = vader_div_u64(l9, INT64_C(10));
-                        l20 = vader_div_u64(l8, INT64_C(10));
-                        t0 = (l20 * INT64_C(10));
-                        l21 = (uint64_t) (int64_t) t0;
-                        t0 = (l8 - l21);
-                        l22 = (uint64_t) (int64_t) t0;
-                        if (l12) {
-                            l19 = l3 == INT64_C(0);
-                        } else {
-                            l19 = false;
-                        }
-                        l12 = l19;
-                        l3 = l22;
-                        l8 = l20;
-                        l9 = l18;
-                        l10 = l7;
-                        l2 = (l2 + INT32_C(1));
-                        goto loop_377;
-                    }
-                }
+                break;
             }
         }
         if (l12) {
@@ -749,23 +719,22 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
             l10 = l7;
             l2 = (l2 + INT32_C(2));
         }
-        {
-            loop_540: {
-                l3 = vader_div_u64(l9, INT64_C(10));
-                l7 = vader_div_u64(l10, INT64_C(10));
-                if ((l3 <= l7)) {
-                } else {
-                    l16 = vader_div_u64(l8, INT64_C(10));
-                    t0 = (l16 * INT64_C(10));
-                    l18 = (uint64_t) (int64_t) t0;
-                    l4 = ((l8 - l18) >= INT64_C(5));
-                    l8 = l16;
-                    l9 = l3;
-                    l10 = l7;
-                    l2 = (l2 + INT32_C(1));
-                    goto loop_540;
-                }
+        for (;;) {
+            l3 = vader_div_u64(l9, INT64_C(10));
+            l7 = vader_div_u64(l10, INT64_C(10));
+            if ((l3 <= l7)) {
+            } else {
+                l16 = vader_div_u64(l8, INT64_C(10));
+                t0 = (l16 * INT64_C(10));
+                l18 = (uint64_t) (int64_t) t0;
+                l4 = ((l8 - l18) >= INT64_C(5));
+                l8 = l16;
+                l9 = l3;
+                l10 = l7;
+                l2 = (l2 + INT32_C(1));
+                continue;
             }
+            break;
         }
         if (l8 == l10) {
             l6 = true;
@@ -793,14 +762,9 @@ static int32_t std_core_decimal_width(uint64_t l0) {
     }
     l1 = INT32_C(0);
     l2 = l0;
-    {
-        loop_11: {
-            if (l2 != INT64_C(0)) {
-                l1 = (l1 + INT32_C(1));
-                l2 = vader_div_u64(l2, INT64_C(10));
-                goto loop_11;
-            }
-        }
+    while (l2 != INT64_C(0)) {
+        l1 = (l1 + INT32_C(1));
+        l2 = vader_div_u64(l2, INT64_C(10));
     }
     return l1;
 }
@@ -1054,52 +1018,50 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
         l17 = l13;
     }
     if (l17) {
-        {
-            loop_351: {
-                l5 = vader_div_u32(l10, INT32_C(10));
-                l6 = vader_div_u32(l11, INT32_C(10));
-                if ((l5 > l6)) {
-                    if (l7) {
-                        t1 = vader_mod_u32(l11, INT32_C(10));
-                        l17 = t1 == INT32_C(0);
+        for (;;) {
+            l5 = vader_div_u32(l10, INT32_C(10));
+            l6 = vader_div_u32(l11, INT32_C(10));
+            if ((l5 > l6)) {
+                if (l7) {
+                    t1 = vader_mod_u32(l11, INT32_C(10));
+                    l17 = t1 == INT32_C(0);
+                } else {
+                    l17 = false;
+                }
+                l7 = l17;
+                if (l13) {
+                    l22 = l14 == INT32_C(0);
+                } else {
+                    l22 = false;
+                }
+                l13 = l22;
+                l14 = vader_mod_u32(l9, INT32_C(10));
+                l9 = vader_div_u32(l9, INT32_C(10));
+                l10 = vader_div_u32(l10, INT32_C(10));
+                l11 = vader_div_u32(l11, INT32_C(10));
+                l2 = (l2 + INT32_C(1));
+                continue;
+            }
+            break;
+        }
+        if (l7) {
+            for (;;) {
+                t1 = vader_mod_u32(l11, INT32_C(10));
+                if (t1 == INT32_C(0)) {
+                    if (l13) {
+                        l17 = l14 == INT32_C(0);
                     } else {
                         l17 = false;
                     }
-                    l7 = l17;
-                    if (l13) {
-                        l22 = l14 == INT32_C(0);
-                    } else {
-                        l22 = false;
-                    }
-                    l13 = l22;
+                    l13 = l17;
                     l14 = vader_mod_u32(l9, INT32_C(10));
                     l9 = vader_div_u32(l9, INT32_C(10));
                     l10 = vader_div_u32(l10, INT32_C(10));
                     l11 = vader_div_u32(l11, INT32_C(10));
                     l2 = (l2 + INT32_C(1));
-                    goto loop_351;
+                    continue;
                 }
-            }
-        }
-        if (l7) {
-            {
-                loop_417: {
-                    t1 = vader_mod_u32(l11, INT32_C(10));
-                    if (t1 == INT32_C(0)) {
-                        if (l13) {
-                            l17 = l14 == INT32_C(0);
-                        } else {
-                            l17 = false;
-                        }
-                        l13 = l17;
-                        l14 = vader_mod_u32(l9, INT32_C(10));
-                        l9 = vader_div_u32(l9, INT32_C(10));
-                        l10 = vader_div_u32(l10, INT32_C(10));
-                        l11 = vader_div_u32(l11, INT32_C(10));
-                        l2 = (l2 + INT32_C(1));
-                        goto loop_417;
-                    }
-                }
+                break;
             }
         }
         if (l13) {
@@ -1135,19 +1097,18 @@ static void* std_core_f2d(uint32_t l0, uint32_t l1) {
         t0 = (l9 + l5);
         l3 = (uint32_t) (int32_t) t0;
     } else {
-        {
-            loop_527: {
-                l5 = vader_div_u32(l10, INT32_C(10));
-                l6 = vader_div_u32(l11, INT32_C(10));
-                if ((l5 > l6)) {
-                    l14 = vader_mod_u32(l9, INT32_C(10));
-                    l9 = vader_div_u32(l9, INT32_C(10));
-                    l10 = vader_div_u32(l10, INT32_C(10));
-                    l11 = vader_div_u32(l11, INT32_C(10));
-                    l2 = (l2 + INT32_C(1));
-                    goto loop_527;
-                }
+        for (;;) {
+            l5 = vader_div_u32(l10, INT32_C(10));
+            l6 = vader_div_u32(l11, INT32_C(10));
+            if ((l5 > l6)) {
+                l14 = vader_mod_u32(l9, INT32_C(10));
+                l9 = vader_div_u32(l9, INT32_C(10));
+                l10 = vader_div_u32(l10, INT32_C(10));
+                l11 = vader_div_u32(l11, INT32_C(10));
+                l2 = (l2 + INT32_C(1));
+                continue;
             }
+            break;
         }
         if (l9 == l11) {
             l4 = true;
@@ -1209,18 +1170,13 @@ void* std_core_filled__MutableSet_i32_(size_t l0, void* l1) {
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (size_t) l0);
     l2 = (void*) _a1_arr;
     l3 = (size_t) 0;
-    {
-        loop_7: {
-            if ((l3 < l0)) {
-                vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
-                t1 = ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
-                l4 = t1.payload.obj;
-                vader_array_push((vader_array_t*) l2, vader_ref_box(l4));
-                t2 = (l3 + INT64_C(1));
-                l3 = (size_t) (int64_t) t2;
-                goto loop_7;
-            }
-        }
+    while ((l3 < l0)) {
+        vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
+        t1 = ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
+        l4 = t1.payload.obj;
+        vader_array_push((vader_array_t*) l2, vader_ref_box(l4));
+        t2 = (l3 + INT64_C(1));
+        l3 = (size_t) (int64_t) t2;
     }
     { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1241,18 +1197,13 @@ void* std_core_filled__i32__(size_t l0, void* l1) {
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (size_t) l0);
     l2 = (void*) _a1_arr;
     l3 = (size_t) 0;
-    {
-        loop_7: {
-            if ((l3 < l0)) {
-                vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
-                t1 = ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
-                l4 = t1.payload.obj;
-                vader_array_push((vader_array_t*) l2, vader_ref_box(l4));
-                t2 = (l3 + INT64_C(1));
-                l3 = (size_t) (int64_t) t2;
-                goto loop_7;
-            }
-        }
+    while ((l3 < l0)) {
+        vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
+        t1 = ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
+        l4 = t1.payload.obj;
+        vader_array_push((vader_array_t*) l2, vader_ref_box(l4));
+        t2 = (l3 + INT64_C(1));
+        l3 = (size_t) (int64_t) t2;
     }
     { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1294,12 +1245,12 @@ static vader_string_t std_core_format_f32(float l0) {
     l1 = (uint32_t) (int32_t) t0;
     if (l1 == INT32_C(255)) {
         if (l3 != INT32_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 1788u; }
+            { vader_gc_top = gc_frame.prev; return 1790u; }
         }
         if (l2) {
             l4 = 257u;
         } else {
-            l4 = 1609u;
+            l4 = 1611u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -1347,12 +1298,12 @@ static vader_string_t std_core_format_f64(double l0) {
     l1 = (uint64_t) (int64_t) t0;
     if (l1 == INT64_C(2047)) {
         if (l3 != INT64_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 1788u; }
+            { vader_gc_top = gc_frame.prev; return 1790u; }
         }
         if (l2) {
             l4 = 257u;
         } else {
-            l4 = 1609u;
+            l4 = 1611u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -1400,15 +1351,10 @@ static vader_string_t std_core_format_signed(int64_t l0) {
     }
     l2 = (size_t) 0;
     l3 = l0;
-    {
-        loop_23: {
-            if (l3 != INT64_C(0)) {
-                t0 = (l2 + INT64_C(1));
-                l2 = (size_t) (int64_t) t0;
-                l3 = vader_div_i64(l3, INT64_C(10));
-                goto loop_23;
-            }
-        }
+    while (l3 != INT64_C(0)) {
+        t0 = (l2 + INT64_C(1));
+        l2 = (size_t) (int64_t) t0;
+        l3 = vader_div_i64(l3, INT64_C(10));
     }
     if (l1) {
         t0 = (l2 + INT64_C(1));
@@ -1418,21 +1364,16 @@ static vader_string_t std_core_format_signed(int64_t l0) {
     }
     l5 = std_core_usize_BufferAlloc_new_buffer_vt(l4);
     l2 = l4;
-    {
-        loop_56: {
-            if (l0 != INT64_C(0)) {
-                t0 = (l2 - INT64_C(1));
-                l2 = (size_t) (int64_t) t0;
-                t0 = vader_mod_i64(l0, INT64_C(10));
-                t1 = ((int32_t) (int64_t) -(t0));
-                l6 = (uint8_t) (int32_t) t1;
-                t1 = (INT32_C(48) + l6);
-                l7 = (uint8_t) (int32_t) t1;
-                std_core_Buffer_ByteAccess_store_u8_vt(l5, l2, l7);
-                l0 = vader_div_i64(l0, INT64_C(10));
-                goto loop_56;
-            }
-        }
+    while (l0 != INT64_C(0)) {
+        t0 = (l2 - INT64_C(1));
+        l2 = (size_t) (int64_t) t0;
+        t0 = vader_mod_i64(l0, INT64_C(10));
+        t1 = ((int32_t) (int64_t) -(t0));
+        l6 = (uint8_t) (int32_t) t1;
+        t1 = (INT32_C(48) + l6);
+        l7 = (uint8_t) (int32_t) t1;
+        std_core_Buffer_ByteAccess_store_u8_vt(l5, l2, l7);
+        l0 = vader_div_i64(l0, INT64_C(10));
     }
     if (l1) {
         std_core_Buffer_ByteAccess_store_u8_vt(l5, (size_t) 0, (uint8_t) 45);
@@ -1461,33 +1402,23 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
     }
     l1 = (size_t) 0;
     l2 = l0;
-    {
-        loop_11: {
-            if (l2 != INT64_C(0)) {
-                t0 = (l1 + INT64_C(1));
-                l1 = (size_t) (int64_t) t0;
-                l2 = vader_div_u64(l2, INT64_C(10));
-                goto loop_11;
-            }
-        }
+    while (l2 != INT64_C(0)) {
+        t0 = (l1 + INT64_C(1));
+        l1 = (size_t) (int64_t) t0;
+        l2 = vader_div_u64(l2, INT64_C(10));
     }
     l3 = std_core_usize_BufferAlloc_new_buffer_vt(l1);
     l4 = l1;
-    {
-        loop_34: {
-            if (l0 != INT64_C(0)) {
-                t0 = (l4 - INT64_C(1));
-                l4 = (size_t) (int64_t) t0;
-                t1 = vader_mod_u64(l0, INT64_C(10));
-                t2 = ((int32_t) (uint64_t) t1);
-                l5 = (uint8_t) (int32_t) t2;
-                t2 = (INT32_C(48) + l5);
-                l6 = (uint8_t) (int32_t) t2;
-                std_core_Buffer_ByteAccess_store_u8_vt(l3, l4, l6);
-                l0 = vader_div_u64(l0, INT64_C(10));
-                goto loop_34;
-            }
-        }
+    while (l0 != INT64_C(0)) {
+        t0 = (l4 - INT64_C(1));
+        l4 = (size_t) (int64_t) t0;
+        t1 = vader_mod_u64(l0, INT64_C(10));
+        t2 = ((int32_t) (uint64_t) t1);
+        l5 = (uint8_t) (int32_t) t2;
+        t2 = (INT32_C(48) + l5);
+        l6 = (uint8_t) (int32_t) t2;
+        std_core_Buffer_ByteAccess_store_u8_vt(l3, l4, l6);
+        l0 = vader_div_u64(l0, INT64_C(10));
     }
     t3 = std_core_Buffer_ByteAccess_intern_string_vt(l3, l1);
     { vader_string_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
@@ -1564,20 +1495,15 @@ static bool std_core_is_zero(void* l0) {
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     l1 = ((vader_array_t*) l0)->length;
     l2 = (size_t) 0;
-    {
-        loop_6: {
-            if ((l2 < l1)) {
-                VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
-                t0 = vader_box_i32(198u, ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l2]);
-                t1 = ((uint32_t) t0.payload.i);
-                if (t1 != INT32_C(0)) {
-                    return false;
-                }
-                t2 = (l2 + INT64_C(1));
-                l2 = (size_t) (int64_t) t2;
-                goto loop_6;
-            }
+    while ((l2 < l1)) {
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
+        t0 = vader_box_i32(198u, ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l2]);
+        t1 = ((uint32_t) t0.payload.i);
+        if (t1 != INT32_C(0)) {
+            return false;
         }
+        t2 = (l2 + INT64_C(1));
+        l2 = (size_t) (int64_t) t2;
     }
     return true;
 }
@@ -1601,19 +1527,14 @@ size_t std_core_len(vader_string_t l0) {
     l1 = (size_t) 0;
     l2 = vader_host_std_core_byte_len(l0);
     l3 = (size_t) 0;
-    {
-        loop_8: {
-            if ((l3 < l2)) {
-                t0 = vader_host_std_core_byte_at(l0, l3);
-                if ((t0 & INT32_C(192)) != INT32_C(128)) {
-                    t1 = (l1 + INT64_C(1));
-                    l1 = (size_t) (int64_t) t1;
-                }
-                t1 = (l3 + INT64_C(1));
-                l3 = (size_t) (int64_t) t1;
-                goto loop_8;
-            }
+    while ((l3 < l2)) {
+        t0 = vader_host_std_core_byte_at(l0, l3);
+        if ((t0 & INT32_C(192)) != INT32_C(128)) {
+            t1 = (l1 + INT64_C(1));
+            l1 = (size_t) (int64_t) t1;
         }
+        t1 = (l3 + INT64_C(1));
+        l3 = (size_t) (int64_t) t1;
     }
     { size_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1671,7 +1592,7 @@ static void* std_core_mul_add_small(void* l0, uint32_t l1, uint32_t l2) {
         size_t _pc11_len = _pc11_hdr->length;
         size_t _pc11_cap = (_pc11_hdr->offset == 0 && !vader_array_is_borrowed(_pc11_hdr) && _pc11_hdr->length >= _pc11_hdr->buf->length) ? _pc11_hdr->capacity : (size_t) 0;
         void* _pc11_slots = _pc11_hdr->buf->slots;
-        loop_11: {
+        for (;;) {
             if ((l6 < l5)) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
@@ -1703,12 +1624,13 @@ static void* std_core_mul_add_small(void* l0, uint32_t l1, uint32_t l2) {
                 l4 = (l9 >> INT64_C(32));
                 t0 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t0;
-                goto loop_11;
+                continue;
             }
             _pc11_hdr->length = _pc11_len;
             if (_pc11_hdr->buf->length < _pc11_len) {
                 _pc11_hdr->buf->length = _pc11_len;
             }
+            break;
         }
     }
     {
@@ -1716,7 +1638,7 @@ static void* std_core_mul_add_small(void* l0, uint32_t l1, uint32_t l2) {
         size_t _pc51_len = _pc51_hdr->length;
         size_t _pc51_cap = (_pc51_hdr->offset == 0 && !vader_array_is_borrowed(_pc51_hdr) && _pc51_hdr->length >= _pc51_hdr->buf->length) ? _pc51_hdr->capacity : (size_t) 0;
         void* _pc51_slots = _pc51_hdr->buf->slots;
-        loop_51: {
+        for (;;) {
             if ((l4 > INT64_C(0))) {
                 t3 = ((int32_t) (int64_t) (l4 & INT64_C(4294967295)));
                 l10 = (uint32_t) (int32_t) t3;
@@ -1735,12 +1657,13 @@ static void* std_core_mul_add_small(void* l0, uint32_t l1, uint32_t l2) {
                     _pc51_slots = _pc51_hdr->buf->slots;
                 }
                 l4 = (l4 >> INT64_C(32));
-                goto loop_51;
+                continue;
             }
             _pc51_hdr->length = _pc51_len;
             if (_pc51_hdr->buf->length < _pc51_len) {
                 _pc51_hdr->buf->length = _pc51_len;
             }
+            break;
         }
     }
     { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
@@ -2027,15 +1950,14 @@ static double std_core_parse_f64_slow(vader_string_t l0, bool l1) {
     t2 = ((vader_struct_std_core_SlowParts_t*) l2)->f_e;
     if ((t2 >= INT32_C(0))) {
         l7 = INT32_C(0);
-        {
-            loop_32: {
-                l8 = ((vader_struct_std_core_SlowParts_t*) l2)->f_e;
-                if ((l7 < l8)) {
-                    l4 = std_core_BigInt_Mul_mul(l4, (uint32_t) 5);
-                    l7 = (l7 + INT32_C(1));
-                    goto loop_32;
-                }
+        for (;;) {
+            l8 = ((vader_struct_std_core_SlowParts_t*) l2)->f_e;
+            if ((l7 < l8)) {
+                l4 = std_core_BigInt_Mul_mul(l4, (uint32_t) 5);
+                l7 = (l7 + INT32_C(1));
+                continue;
             }
+            break;
         }
         l5 = ((vader_struct_std_core_SlowParts_t*) l2)->f_e;
     } else {
@@ -2044,19 +1966,14 @@ static double std_core_parse_f64_slow(vader_string_t l0, bool l1) {
         l8 = ((l7 * INT32_C(4)) + INT32_C(64));
         l4 = std_core_shl(((vader_struct_std_core_SlowParts_t*) l2)->f_d, l8);
         l9 = INT32_C(0);
-        {
-            loop_72: {
-                if ((l9 < l7)) {
-                    l10 = std_core_BigInt_Div_div(l4, (uint32_t) 5);
-                    l4 = ((vader_struct___Tuple_Array_u32_u32_6fc96a7e_t*) l10)->f__0;
-                    t3 = ((vader_struct___Tuple_Array_u32_u32_6fc96a7e_t*) l10)->f__1;
-                    if (t3 != INT32_C(0)) {
-                        l6 = true;
-                    }
-                    l9 = (l9 + INT32_C(1));
-                    goto loop_72;
-                }
+        while ((l9 < l7)) {
+            l10 = std_core_BigInt_Div_div(l4, (uint32_t) 5);
+            l4 = ((vader_struct___Tuple_Array_u32_u32_6fc96a7e_t*) l10)->f__0;
+            t3 = ((vader_struct___Tuple_Array_u32_u32_6fc96a7e_t*) l10)->f__1;
+            if (t3 != INT32_C(0)) {
+                l6 = true;
             }
+            l9 = (l9 + INT32_C(1));
         }
         t2 = ((vader_struct_std_core_SlowParts_t*) l2)->f_e;
         l5 = (t2 - l8);
@@ -2109,15 +2026,10 @@ static int32_t std_core_pf_clz64(uint64_t l0) {
     int64_t t0;
     l1 = INT32_C(0);
     l2 = l0;
-    {
-        loop_5: {
-            if ((l2 & INT64_MIN) == INT64_C(0)) {
-                t0 = (l2 << INT64_C(1));
-                l2 = (uint64_t) (int64_t) t0;
-                l1 = (l1 + INT32_C(1));
-                goto loop_5;
-            }
-        }
+    while ((l2 & INT64_MIN) == INT64_C(0)) {
+        t0 = (l2 << INT64_C(1));
+        l2 = (uint64_t) (int64_t) t0;
+        l1 = (l1 + INT32_C(1));
     }
     return l1;
 }
@@ -2179,16 +2091,15 @@ static int32_t std_core_pow5_factor(uint64_t l0) {
     int64_t t0;
     l1 = l0;
     l2 = INT32_C(0);
-    {
-        loop_5: {
-            t0 = (l1 * INT64_C(-3689348814741910323));
-            l1 = (uint64_t) (int64_t) t0;
-            if ((l1 > INT64_C(3689348814741910323))) {
-            } else {
-                l2 = (l2 + INT32_C(1));
-                goto loop_5;
-            }
+    for (;;) {
+        t0 = (l1 * INT64_C(-3689348814741910323));
+        l1 = (uint64_t) (int64_t) t0;
+        if ((l1 > INT64_C(3689348814741910323))) {
+        } else {
+            l2 = (l2 + INT32_C(1));
+            continue;
         }
+        break;
     }
     return l2;
 }
@@ -2199,15 +2110,14 @@ static int32_t std_core_pow5_factor_32(uint32_t l0) {
     uint32_t t0;
     l1 = l0;
     l2 = INT32_C(0);
-    {
-        loop_5: {
-            t0 = vader_mod_u32(l1, INT32_C(5));
-            if (t0 == INT32_C(0)) {
-                l1 = vader_div_u32(l1, INT32_C(5));
-                l2 = (l2 + INT32_C(1));
-                goto loop_5;
-            }
+    for (;;) {
+        t0 = vader_mod_u32(l1, INT32_C(5));
+        if (t0 == INT32_C(0)) {
+            l1 = vader_div_u32(l1, INT32_C(5));
+            l2 = (l2 + INT32_C(1));
+            continue;
         }
+        break;
     }
     return l2;
 }
@@ -2231,15 +2141,14 @@ static vader_string_t std_core_render(uint64_t l0, int32_t l1, bool l2) {
     vader_gc_top = &gc_frame;
     l3 = l0;
     l4 = l1;
-    {
-        loop_5: {
-            t0 = vader_mod_u64(l3, INT64_C(10));
-            if (t0 == INT64_C(0)) {
-                l3 = vader_div_u64(l3, INT64_C(10));
-                l4 = (l4 + INT32_C(1));
-                goto loop_5;
-            }
+    for (;;) {
+        t0 = vader_mod_u64(l3, INT64_C(10));
+        if (t0 == INT64_C(0)) {
+            l3 = vader_div_u64(l3, INT64_C(10));
+            l4 = (l4 + INT32_C(1));
+            continue;
         }
+        break;
     }
     l5 = std_core_usize_BufferAlloc_new_buffer_vt((size_t) 25);
     l6 = (size_t) 0;
@@ -2291,8 +2200,49 @@ static vader_box_t std_core_scan_decimal(vader_string_t l0) {
     l6 = INT32_C(0);
     l7 = false;
     l8 = false;
-    {
-        loop_46: {
+    for (;;) {
+        if ((l2 < l1)) {
+            t1 = vader_host_std_core_byte_at(l0, l2);
+            l9 = std_core_pf_is_digit(t1);
+        } else {
+            l9 = false;
+        }
+        if (l9) {
+            l8 = true;
+            t1 = vader_host_std_core_byte_at(l0, l2);
+            t2 = ((int64_t) (uint32_t) (t1 - INT32_C(48)));
+            l10 = (uint64_t) (int64_t) t2;
+            if ((l5 < INT32_C(19))) {
+                if (l4 != INT64_C(0)) {
+                    l11 = true;
+                } else {
+                    l11 = l10 != INT64_C(0);
+                }
+                if (l11) {
+                    t2 = ((l4 * INT64_C(10)) + l10);
+                    l4 = (uint64_t) (int64_t) t2;
+                    l5 = (l5 + INT32_C(1));
+                }
+            } else {
+                l6 = (l6 + INT32_C(1));
+                l7 = true;
+            }
+            t2 = (l2 + INT64_C(1));
+            l2 = (size_t) (int64_t) t2;
+            continue;
+        }
+        break;
+    }
+    if ((l2 < l1)) {
+        t1 = vader_host_std_core_byte_at(l0, l2);
+        l9 = t1 == INT32_C(46);
+    } else {
+        l9 = false;
+    }
+    if (l9) {
+        t2 = (l2 + INT64_C(1));
+        l2 = (size_t) (int64_t) t2;
+        for (;;) {
             if ((l2 < l1)) {
                 t1 = vader_host_std_core_byte_at(l0, l2);
                 l9 = std_core_pf_is_digit(t1);
@@ -2315,58 +2265,15 @@ static vader_box_t std_core_scan_decimal(vader_string_t l0) {
                         l4 = (uint64_t) (int64_t) t2;
                         l5 = (l5 + INT32_C(1));
                     }
+                    l6 = (l6 - INT32_C(1));
                 } else {
-                    l6 = (l6 + INT32_C(1));
                     l7 = true;
                 }
                 t2 = (l2 + INT64_C(1));
                 l2 = (size_t) (int64_t) t2;
-                goto loop_46;
+                continue;
             }
-        }
-    }
-    if ((l2 < l1)) {
-        t1 = vader_host_std_core_byte_at(l0, l2);
-        l9 = t1 == INT32_C(46);
-    } else {
-        l9 = false;
-    }
-    if (l9) {
-        t2 = (l2 + INT64_C(1));
-        l2 = (size_t) (int64_t) t2;
-        {
-            loop_137: {
-                if ((l2 < l1)) {
-                    t1 = vader_host_std_core_byte_at(l0, l2);
-                    l9 = std_core_pf_is_digit(t1);
-                } else {
-                    l9 = false;
-                }
-                if (l9) {
-                    l8 = true;
-                    t1 = vader_host_std_core_byte_at(l0, l2);
-                    t2 = ((int64_t) (uint32_t) (t1 - INT32_C(48)));
-                    l10 = (uint64_t) (int64_t) t2;
-                    if ((l5 < INT32_C(19))) {
-                        if (l4 != INT64_C(0)) {
-                            l11 = true;
-                        } else {
-                            l11 = l10 != INT64_C(0);
-                        }
-                        if (l11) {
-                            t2 = ((l4 * INT64_C(10)) + l10);
-                            l4 = (uint64_t) (int64_t) t2;
-                            l5 = (l5 + INT32_C(1));
-                        }
-                        l6 = (l6 - INT32_C(1));
-                    } else {
-                        l7 = true;
-                    }
-                    t2 = (l2 + INT64_C(1));
-                    l2 = (size_t) (int64_t) t2;
-                    goto loop_137;
-                }
-            }
+            break;
         }
     }
     if (!(l8)) {
@@ -2423,26 +2330,25 @@ static vader_box_t std_core_scan_decimal(vader_string_t l0) {
             { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
         l5 = INT32_C(0);
-        {
-            loop_317: {
-                if ((l2 < l1)) {
-                    t1 = vader_host_std_core_byte_at(l0, l2);
-                    l9 = std_core_pf_is_digit(t1);
-                } else {
-                    l9 = false;
-                }
-                if (l9) {
-                    if ((l5 < INT32_C(100000))) {
-                        l12 = (l5 * INT32_C(10));
-                        t1 = vader_host_std_core_byte_at(l0, l2);
-                        l13 = (t1 - INT32_C(48));
-                        l5 = (l12 + l13);
-                    }
-                    t2 = (l2 + INT64_C(1));
-                    l2 = (size_t) (int64_t) t2;
-                    goto loop_317;
-                }
+        for (;;) {
+            if ((l2 < l1)) {
+                t1 = vader_host_std_core_byte_at(l0, l2);
+                l9 = std_core_pf_is_digit(t1);
+            } else {
+                l9 = false;
             }
+            if (l9) {
+                if ((l5 < INT32_C(100000))) {
+                    l12 = (l5 * INT32_C(10));
+                    t1 = vader_host_std_core_byte_at(l0, l2);
+                    l13 = (t1 - INT32_C(48));
+                    l5 = (l12 + l13);
+                }
+                t2 = (l2 + INT64_C(1));
+                l2 = (size_t) (int64_t) t2;
+                continue;
+            }
+            break;
         }
         if (l8) {
             l6 = (l6 - l5);
@@ -2536,8 +2442,44 @@ static void* std_core_sd_scan(vader_string_t l0) {
     l4 = (void*) _a0_arr;
     l5 = INT32_C(0);
     l3 = false;
-    {
-        loop_34: {
+    for (;;) {
+        if ((l2 < l1)) {
+            t0 = vader_host_std_core_byte_at(l0, l2);
+            l6 = std_core_pf_is_digit(t0);
+        } else {
+            l6 = false;
+        }
+        if (l6) {
+            t0 = vader_host_std_core_byte_at(l0, l2);
+            t1 = (t0 - INT32_C(48));
+            l7 = (uint8_t) (int32_t) t1;
+            if (l3) {
+                l8 = true;
+            } else {
+                l8 = l7 != INT32_C(0);
+            }
+            if (l8) {
+                t1 = ((int32_t) (uint8_t) l7);
+                l9 = (uint32_t) (int32_t) t1;
+                l4 = std_core_mul_add_small(l4, (uint32_t) 10, l9);
+                l3 = true;
+            }
+            t2 = (l2 + INT64_C(1));
+            l2 = (size_t) (int64_t) t2;
+            continue;
+        }
+        break;
+    }
+    if ((l2 < l1)) {
+        t0 = vader_host_std_core_byte_at(l0, l2);
+        l6 = t0 == INT32_C(46);
+    } else {
+        l6 = false;
+    }
+    if (l6) {
+        t2 = (l2 + INT64_C(1));
+        l2 = (size_t) (int64_t) t2;
+        for (;;) {
             if ((l2 < l1)) {
                 t0 = vader_host_std_core_byte_at(l0, l2);
                 l6 = std_core_pf_is_digit(t0);
@@ -2559,50 +2501,12 @@ static void* std_core_sd_scan(vader_string_t l0) {
                     l4 = std_core_mul_add_small(l4, (uint32_t) 10, l9);
                     l3 = true;
                 }
+                l5 = (l5 - INT32_C(1));
                 t2 = (l2 + INT64_C(1));
                 l2 = (size_t) (int64_t) t2;
-                goto loop_34;
+                continue;
             }
-        }
-    }
-    if ((l2 < l1)) {
-        t0 = vader_host_std_core_byte_at(l0, l2);
-        l6 = t0 == INT32_C(46);
-    } else {
-        l6 = false;
-    }
-    if (l6) {
-        t2 = (l2 + INT64_C(1));
-        l2 = (size_t) (int64_t) t2;
-        {
-            loop_108: {
-                if ((l2 < l1)) {
-                    t0 = vader_host_std_core_byte_at(l0, l2);
-                    l6 = std_core_pf_is_digit(t0);
-                } else {
-                    l6 = false;
-                }
-                if (l6) {
-                    t0 = vader_host_std_core_byte_at(l0, l2);
-                    t1 = (t0 - INT32_C(48));
-                    l7 = (uint8_t) (int32_t) t1;
-                    if (l3) {
-                        l8 = true;
-                    } else {
-                        l8 = l7 != INT32_C(0);
-                    }
-                    if (l8) {
-                        t1 = ((int32_t) (uint8_t) l7);
-                        l9 = (uint32_t) (int32_t) t1;
-                        l4 = std_core_mul_add_small(l4, (uint32_t) 10, l9);
-                        l3 = true;
-                    }
-                    l5 = (l5 - INT32_C(1));
-                    t2 = (l2 + INT64_C(1));
-                    l2 = (size_t) (int64_t) t2;
-                    goto loop_108;
-                }
-            }
+            break;
         }
     }
     if ((l2 < l1)) {
@@ -2644,26 +2548,25 @@ static void* std_core_sd_scan(vader_string_t l0) {
             }
         }
         l10 = INT32_C(0);
-        {
-            loop_248: {
-                if ((l2 < l1)) {
-                    t0 = vader_host_std_core_byte_at(l0, l2);
-                    l6 = std_core_pf_is_digit(t0);
-                } else {
-                    l6 = false;
-                }
-                if (l6) {
-                    if ((l10 < INT32_C(100000))) {
-                        l11 = (l10 * INT32_C(10));
-                        t0 = vader_host_std_core_byte_at(l0, l2);
-                        l12 = (t0 - INT32_C(48));
-                        l10 = (l11 + l12);
-                    }
-                    t2 = (l2 + INT64_C(1));
-                    l2 = (size_t) (int64_t) t2;
-                    goto loop_248;
-                }
+        for (;;) {
+            if ((l2 < l1)) {
+                t0 = vader_host_std_core_byte_at(l0, l2);
+                l6 = std_core_pf_is_digit(t0);
+            } else {
+                l6 = false;
             }
+            if (l6) {
+                if ((l10 < INT32_C(100000))) {
+                    l11 = (l10 * INT32_C(10));
+                    t0 = vader_host_std_core_byte_at(l0, l2);
+                    l12 = (t0 - INT32_C(48));
+                    l10 = (l11 + l12);
+                }
+                t2 = (l2 + INT64_C(1));
+                l2 = (size_t) (int64_t) t2;
+                continue;
+            }
+            break;
         }
         if (l3) {
             l5 = (l5 - l10);
@@ -2715,7 +2618,7 @@ static void* std_core_shl(void* l0, int32_t l1) {
         size_t _pc10_len = _pc10_hdr->length;
         size_t _pc10_cap = (_pc10_hdr->offset == 0 && !vader_array_is_borrowed(_pc10_hdr) && _pc10_hdr->length >= _pc10_hdr->buf->length) ? _pc10_hdr->capacity : (size_t) 0;
         void* _pc10_slots = _pc10_hdr->buf->slots;
-        loop_10: {
+        for (;;) {
             if ((l4 < l3)) {
                 if (VADER_LIKELY(_pc10_len < _pc10_cap)) {
                     ((int32_t*) _pc10_slots)[_pc10_len] = (int32_t) (INT32_C(0));
@@ -2733,12 +2636,13 @@ static void* std_core_shl(void* l0, int32_t l1) {
                 }
                 t1 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t1;
-                goto loop_10;
+                continue;
             }
             _pc10_hdr->length = _pc10_len;
             if (_pc10_hdr->buf->length < _pc10_len) {
                 _pc10_hdr->buf->length = _pc10_len;
             }
+            break;
         }
     }
     l5 = vader_mod_i32(l1, INT32_C(32));
@@ -2750,7 +2654,7 @@ static void* std_core_shl(void* l0, int32_t l1) {
             size_t _pc39_len = _pc39_hdr->length;
             size_t _pc39_cap = (_pc39_hdr->offset == 0 && !vader_array_is_borrowed(_pc39_hdr) && _pc39_hdr->length >= _pc39_hdr->buf->length) ? _pc39_hdr->capacity : (size_t) 0;
             void* _pc39_slots = _pc39_hdr->buf->slots;
-            loop_39: {
+            for (;;) {
                 if ((l4 < l3)) {
                     vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
                     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
@@ -2773,12 +2677,13 @@ static void* std_core_shl(void* l0, int32_t l1) {
                     }
                     t1 = (l4 + INT64_C(1));
                     l4 = (size_t) (int64_t) t1;
-                    goto loop_39;
+                    continue;
                 }
                 _pc39_hdr->length = _pc39_len;
                 if (_pc39_hdr->buf->length < _pc39_len) {
                     _pc39_hdr->buf->length = _pc39_len;
                 }
+                break;
             }
         }
         { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -2786,34 +2691,29 @@ static void* std_core_shl(void* l0, int32_t l1) {
     l6 = (uint32_t) 0;
     l3 = ((vader_array_t*) l0)->length;
     l4 = (size_t) 0;
-    {
-        loop_71: {
-            if ((l4 < l3)) {
-                vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
-                VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-                VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
-                t2 = vader_box_i32(198u, ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4]);
-                t3 = ((uint32_t) t2.payload.i);
-                t1 = ((int64_t) (uint32_t) t3);
-                l7 = (uint64_t) (int64_t) t1;
-                t1 = ((int64_t) (int32_t) l5);
-                l8 = (uint64_t) (int64_t) t1;
-                t1 = (l7 << l8);
-                l9 = (uint64_t) (int64_t) t1;
-                t1 = ((int64_t) (uint32_t) l6);
-                l10 = (uint64_t) (int64_t) t1;
-                t1 = (l9 | l10);
-                l11 = (uint64_t) (int64_t) t1;
-                t0 = ((int32_t) (int64_t) (l11 & INT64_C(4294967295)));
-                l12 = (uint32_t) (int32_t) t0;
-                vader_array_push_i32((vader_array_t*) l2, (int32_t) (uint32_t) l12);
-                t0 = ((int32_t) (uint64_t) (l11 >> INT64_C(32)));
-                l6 = (uint32_t) (int32_t) t0;
-                t1 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t1;
-                goto loop_71;
-            }
-        }
+    while ((l4 < l3)) {
+        vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
+        VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
+        t2 = vader_box_i32(198u, ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4]);
+        t3 = ((uint32_t) t2.payload.i);
+        t1 = ((int64_t) (uint32_t) t3);
+        l7 = (uint64_t) (int64_t) t1;
+        t1 = ((int64_t) (int32_t) l5);
+        l8 = (uint64_t) (int64_t) t1;
+        t1 = (l7 << l8);
+        l9 = (uint64_t) (int64_t) t1;
+        t1 = ((int64_t) (uint32_t) l6);
+        l10 = (uint64_t) (int64_t) t1;
+        t1 = (l9 | l10);
+        l11 = (uint64_t) (int64_t) t1;
+        t0 = ((int32_t) (int64_t) (l11 & INT64_C(4294967295)));
+        l12 = (uint32_t) (int32_t) t0;
+        vader_array_push_i32((vader_array_t*) l2, (int32_t) (uint32_t) l12);
+        t0 = ((int32_t) (uint64_t) (l11 >> INT64_C(32)));
+        l6 = (uint32_t) (int32_t) t0;
+        t1 = (l4 + INT64_C(1));
+        l4 = (size_t) (int64_t) t1;
     }
     if (l6 != INT32_C(0)) {
         vader_array_push_i32((vader_array_t*) l2, (int32_t) (uint32_t) l6);
@@ -3014,10 +2914,10 @@ size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l2) {
-        t0 = std_core_write_string_at(l0, l1, 2096u);
+        t0 = std_core_write_string_at(l0, l1, 2098u);
         { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = std_core_write_string_at(l0, l1, 1444u);
+    t0 = std_core_write_string_at(l0, l1, 1445u);
     { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -3113,21 +3013,16 @@ static size_t std_core_write_digits(void* l0, size_t l1, uint64_t l2, int32_t l3
     t0 = (l1 + l5);
     l5 = (size_t) (int64_t) t0;
     l6 = l5;
-    {
-        loop_11: {
-            if ((l6 > l1)) {
-                t0 = (l6 - INT64_C(1));
-                l6 = (size_t) (int64_t) t0;
-                t1 = vader_mod_u64(l4, INT64_C(10));
-                t2 = ((int32_t) (uint64_t) t1);
-                l7 = (uint8_t) (int32_t) t2;
-                t2 = (INT32_C(48) + l7);
-                l8 = (uint8_t) (int32_t) t2;
-                std_core_Buffer_ByteAccess_store_u8_vt(l0, l6, l8);
-                l4 = vader_div_u64(l4, INT64_C(10));
-                goto loop_11;
-            }
-        }
+    while ((l6 > l1)) {
+        t0 = (l6 - INT64_C(1));
+        l6 = (size_t) (int64_t) t0;
+        t1 = vader_mod_u64(l4, INT64_C(10));
+        t2 = ((int32_t) (uint64_t) t1);
+        l7 = (uint8_t) (int32_t) t2;
+        t2 = (INT32_C(48) + l7);
+        l8 = (uint8_t) (int32_t) t2;
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l6, l8);
+        l4 = vader_div_u64(l4, INT64_C(10));
     }
     return l5;
 }
@@ -3149,15 +3044,10 @@ size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     }
     l4 = (size_t) 0;
     l5 = l2;
-    {
-        loop_30: {
-            if (l5 != INT64_C(0)) {
-                t0 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t0;
-                l5 = vader_div_i64(l5, INT64_C(10));
-                goto loop_30;
-            }
-        }
+    while (l5 != INT64_C(0)) {
+        t0 = (l4 + INT64_C(1));
+        l4 = (size_t) (int64_t) t0;
+        l5 = vader_div_i64(l5, INT64_C(10));
     }
     if (l3) {
         t0 = (l4 + INT64_C(1));
@@ -3167,21 +3057,16 @@ size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     }
     t0 = (l1 + l6);
     l4 = (size_t) (int64_t) t0;
-    {
-        loop_62: {
-            if (l2 != INT64_C(0)) {
-                t0 = (l4 - INT64_C(1));
-                l4 = (size_t) (int64_t) t0;
-                t0 = vader_mod_i64(l2, INT64_C(10));
-                t1 = ((int32_t) (int64_t) -(t0));
-                l7 = (uint8_t) (int32_t) t1;
-                t1 = (INT32_C(48) + l7);
-                l8 = (uint8_t) (int32_t) t1;
-                std_core_Buffer_ByteAccess_store_u8_vt(l0, l4, l8);
-                l2 = vader_div_i64(l2, INT64_C(10));
-                goto loop_62;
-            }
-        }
+    while (l2 != INT64_C(0)) {
+        t0 = (l4 - INT64_C(1));
+        l4 = (size_t) (int64_t) t0;
+        t0 = vader_mod_i64(l2, INT64_C(10));
+        t1 = ((int32_t) (int64_t) -(t0));
+        l7 = (uint8_t) (int32_t) t1;
+        t1 = (INT32_C(48) + l7);
+        l8 = (uint8_t) (int32_t) t1;
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l4, l8);
+        l2 = vader_div_i64(l2, INT64_C(10));
     }
     if (l3) {
         std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 45);
@@ -3215,33 +3100,23 @@ size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2) {
     }
     l3 = (size_t) 0;
     l4 = l2;
-    {
-        loop_18: {
-            if (l4 != INT64_C(0)) {
-                t0 = (l3 + INT64_C(1));
-                l3 = (size_t) (int64_t) t0;
-                l4 = vader_div_u64(l4, INT64_C(10));
-                goto loop_18;
-            }
-        }
+    while (l4 != INT64_C(0)) {
+        t0 = (l3 + INT64_C(1));
+        l3 = (size_t) (int64_t) t0;
+        l4 = vader_div_u64(l4, INT64_C(10));
     }
     t0 = (l1 + l3);
     l5 = (size_t) (int64_t) t0;
-    {
-        loop_40: {
-            if (l2 != INT64_C(0)) {
-                t0 = (l5 - INT64_C(1));
-                l5 = (size_t) (int64_t) t0;
-                t1 = vader_mod_u64(l2, INT64_C(10));
-                t2 = ((int32_t) (uint64_t) t1);
-                l6 = (uint8_t) (int32_t) t2;
-                t2 = (INT32_C(48) + l6);
-                l7 = (uint8_t) (int32_t) t2;
-                std_core_Buffer_ByteAccess_store_u8_vt(l0, l5, l7);
-                l2 = vader_div_u64(l2, INT64_C(10));
-                goto loop_40;
-            }
-        }
+    while (l2 != INT64_C(0)) {
+        t0 = (l5 - INT64_C(1));
+        l5 = (size_t) (int64_t) t0;
+        t1 = vader_mod_u64(l2, INT64_C(10));
+        t2 = ((int32_t) (uint64_t) t1);
+        l6 = (uint8_t) (int32_t) t2;
+        t2 = (INT32_C(48) + l6);
+        l7 = (uint8_t) (int32_t) t2;
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l5, l7);
+        l2 = vader_div_u64(l2, INT64_C(10));
     }
     return (size_t) (int64_t) (l1 + l3);
 }
@@ -3251,18 +3126,13 @@ static size_t std_core_write_zeros(void* l0, size_t l1, int32_t l2) {
     size_t l4, l5;
     int64_t t0;
     l3 = INT32_C(0);
-    {
-        loop_3: {
-            if ((l3 < l2)) {
-                t0 = ((int64_t) (int32_t) l3);
-                l4 = (size_t) (int64_t) t0;
-                t0 = (l1 + l4);
-                l5 = (size_t) (int64_t) t0;
-                std_core_Buffer_ByteAccess_store_u8_vt(l0, l5, (uint8_t) 48);
-                l3 = (l3 + INT32_C(1));
-                goto loop_3;
-            }
-        }
+    while ((l3 < l2)) {
+        t0 = ((int64_t) (int32_t) l3);
+        l4 = (size_t) (int64_t) t0;
+        t0 = (l1 + l4);
+        l5 = (size_t) (int64_t) t0;
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l5, (uint8_t) 48);
+        l3 = (l3 + INT32_C(1));
     }
     t0 = ((int64_t) (int32_t) l2);
     l4 = (size_t) (int64_t) t0;

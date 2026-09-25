@@ -59,22 +59,17 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
     }
     l3 = -(INT32_C(1));
     l4 = (size_t) 0;
-    {
-        loop_16: {
-            if ((l4 < l2)) {
-                vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
-                VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-                VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
-                t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l4, 196u);
-                t1 = ((uint8_t) t0.payload.i);
-                if (t1 == INT32_C(36)) {
-                    l3 = ((int32_t) (size_t) l4);
-                }
-                t2 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t2;
-                goto loop_16;
-            }
+    while ((l4 < l2)) {
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
+        t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l4, 196u);
+        t1 = ((uint8_t) t0.payload.i);
+        if (t1 == INT32_C(36)) {
+            l3 = ((int32_t) (size_t) l4);
         }
+        t2 = (l4 + INT64_C(1));
+        l4 = (size_t) (int64_t) t2;
     }
     if ((l3 < INT32_C(0))) {
         l4 = (size_t) 0;
@@ -82,37 +77,32 @@ vader_string_t vader_text_prefix_before_double_underscore(vader_string_t l0) {
         t2 = (((int64_t) (int32_t) l3) + INT64_C(1));
         l4 = (size_t) (int64_t) t2;
     }
-    {
-        loop_54: {
-            if (((l4 + INT64_C(1)) < l2)) {
-                vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
-                VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-                VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
-                t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l4, 196u);
-                t1 = ((uint8_t) t0.payload.i);
-                if (t1 == INT32_C(95)) {
-                    t2 = (l4 + INT64_C(1));
-                    l6 = (size_t) (int64_t) t2;
-                    vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
-                    VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-                    VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
-                    t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l6, 196u);
-                    t1 = ((uint8_t) t0.payload.i);
-                    l5 = t1 == INT32_C(95);
-                } else {
-                    l5 = false;
-                }
-                if (l5) {
-                    vader_array_t* _a3_arr = vader_array_slice((vader_array_t*) l1, (size_t) INT64_C(0), (size_t) l4);
-                    t3 = (void*) _a3_arr;
-                    t4 = vader_host_std_core_bytes_to_string(t3);
-                    { vader_string_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
-                }
-                t2 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t2;
-                goto loop_54;
-            }
+    while (((l4 + INT64_C(1)) < l2)) {
+        vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
+        VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
+        t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l4, 196u);
+        t1 = ((uint8_t) t0.payload.i);
+        if (t1 == INT32_C(95)) {
+            t2 = (l4 + INT64_C(1));
+            l6 = (size_t) (int64_t) t2;
+            vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
+            VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
+            t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l6, 196u);
+            t1 = ((uint8_t) t0.payload.i);
+            l5 = t1 == INT32_C(95);
+        } else {
+            l5 = false;
         }
+        if (l5) {
+            vader_array_t* _a3_arr = vader_array_slice((vader_array_t*) l1, (size_t) INT64_C(0), (size_t) l4);
+            t3 = (void*) _a3_arr;
+            t4 = vader_host_std_core_bytes_to_string(t3);
+            { vader_string_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+        }
+        t2 = (l4 + INT64_C(1));
+        l4 = (size_t) (int64_t) t2;
     }
     { vader_gc_top = gc_frame.prev; return 0u; }
 }
