@@ -156,12 +156,15 @@ infer_no_expected :: fn(
     }
     widened :: default_each(elem_types)
     merged :: union_of(widened)
-    // Heterogeneous elements stay UnionType → treat as a tuple.
-    if merged is UnionType {
+    // Heterogeneous elements stay UnionType → treat as a tuple. Elements that
+    // all share one type are an array of it, even when that type is itself a
+    // union : `[shape]` with `shape: A | B` is a `(A | B)[]`, not a 1-tuple.
+    if merged is UnionType && !all_same_type(widened) {
         return mk_tuple(widened, false)
     }
     return mk_array(merged, false)
 }
+
 
 // ---- helpers -------------------------------------------------------------
 
@@ -174,6 +177,16 @@ walk_elements :: fn(
 ) -> Type[] = e.elements.map((el) -> check_expr_fn(el, hint, typed, diags)).collect()
 
 default_each :: fn(types: Type[]) -> Type[] = types.map((t) -> default_if_free(t)).collect()
+
+// Same type up to mutability — the rule `union_of` merges variants by.
+all_same_type :: fn(types: Type[]) -> bool {
+    for t in types {
+        if !equals_type_shape(t, types[0]) {
+            return false
+        }
+    }
+    return true
+}
 
 pick_seq_variant :: fn(u: UnionType, arity: usize) -> Type | null {
     for v in u.variants {

@@ -1,2 +1,4 @@
-# vader CLI failed (exit 134)
-vader: panic — midir/emit: unresolved callee 'next' (id=0) in 'snippet$count' — impl-member/for-in materialisation gap (GATE B1)
+
+# Diagnostics
+[25:14] error[T3074] a union mixes the same type at two mutabilities: `(A | B)[] | (A | B)[]!` — write `(A | B)[]!` on both sides, or pin the slot's type
+[25:14] error[T3088] value is not iterable: a `for` walks an array, a string or an `Iterator`, got `(A | B)[] | (A | B)[]!`

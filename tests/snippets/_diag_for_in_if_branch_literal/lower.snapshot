@@ -6,50 +6,7 @@
   struct snippet$Group { items: (A | B)[] }
   fn snippet$count(g: Group, one: A | B, many: bool) -> i32
     let total: i32 = int(0) :i32
-    block :void
-      let __iter_0: (A | B)[] | [A | B]! =
-        if :(A | B)[] | [A | B]!
-          cond:
-            many :bool
-          then:
-            ~>
-              .items :(A | B)[]
-                g :Group
-          else:
-            ~>
-              [A | B]! {
-                _0: one :A | B
-              }
-      loop
-        let __step_1: [?, Continuation]! =
-          call :[?, Continuation]!
-            callee:
-              next :?
-            arg0:
-              __iter_0 :(A | B)[] | [A | B]!
-        if :void
-          cond:
-            eq :bool
-              l:
-                ._1 :Continuation
-                  __step_1 :[?, Continuation]!
-              r:
-                int(1) :u8
-          then:
-            break
-          else:
-            let s: ? =
-              ._0 :?
-                __step_1 :[?, Continuation]!
-            assign
-              target:
-                total :i32
-              value:
-                add :i32
-                  l:
-                    total :i32
-                  r:
-                    int(1) :i32
+    unreachable("no Iterator impl on (A | B)[] | (A | B)[]!") :void
     return total :i32
   fn snippet$main() -> i32
     let g: Group! =
@@ -201,3 +158,7 @@
           buf :Buffer
         arg1:
           c1 :usize
+
+# Diagnostics
+[25:14] error[T3074] a union mixes the same type at two mutabilities: `(A | B)[] | (A | B)[]!` — write `(A | B)[]!` on both sides, or pin the slot's type
+[25:14] error[T3088] value is not iterable: a `for` walks an array, a string or an `Iterator`, got `(A | B)[] | (A | B)[]!`

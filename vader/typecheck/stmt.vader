@@ -1748,6 +1748,12 @@ check_for :: fn(
         is AST.InFor       -> {
             iter_ty :: check_expr_fn(w.iter, null, typed, diags)
             elem :: for_in_element(iter_ty, typed)
+            if elem is UnresolvedType && is_known_non_iterable(iter_ty) {
+                got :: display_type(iter_ty)
+                diags.push(typecheck_error(
+                    .NotIterable, w.iter.span,
+                    "a `for` walks an array, a string or an `Iterator`, got `${got}`"))
+            }
             match w.loop_var as nv {
                 is AST.NamedVar       -> {
                     typed.local_types[nv.span.hash()] = elem
@@ -2294,9 +2300,9 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
     if ab != null {
         return ab.element
     }
-    // @partial: only structs (Range, Iterator<T> wrappers) remain iterable here
-    // — `array_backing` already returned for every array ; other types yield an
-    // unresolved element.
+    // @partial: only structs (Range, Iterator<T> wrappers), distincts, enums and
+    // `Iterator` trait values remain iterable here — `array_backing` already
+    // returned for every array ; other types yield an unresolved element.
     @partial match iter_ty {
         is StructType -> {
             // A `generator`'s `<fn>$State<E>` carries the concrete element as its
@@ -2325,6 +2331,16 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             decl :: typed.struct_decls[iter_ty.symbol.id] ?? return elem
             return substitute_by_name(elem, decl.type_params, iter_ty.args)
         }
+        // A distinct or an enum keeps its own `Iterator` impl, recorded under its
+        // name ; a distinct without one iterates through its backing.
+        is DistinctType -> {
+            own :: typed.iter_element_types[type_base_name(iter_ty)]
+            if own != null {
+                return own
+            }
+            return for_in_element(iter_ty.backing, typed)
+        }
+        is EnumType -> { return typed.iter_element_types[type_base_name(iter_ty)] ?? TY_UNRESOLVED }
         is TraitType  -> {
             // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
             // result stored as the trait) carries its element as the sole type arg.
@@ -2342,6 +2358,21 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
         }
         _                   -> { return TY_UNRESOLVED }
     }
+}
+
+// A receiver `for_in_element` found no element for, that is not merely a type
+// still to be decided — an unresolved one carries its own diagnostic, a type
+// parameter or `Self` is iterated per instance, an erased `Any` is not ours to
+// judge, `never` is dead code — nor a string, which the lowering walks by
+// codepoint without an element type here.
+is_known_non_iterable :: fn(t: Type) -> bool {
+    if t is UnresolvedType | TypeParamType | SelfType | AnyType | NeverType {
+        return false
+    }
+    if t is PrimitiveType {
+        return t.name != "string"
+    }
+    return true
 }
 
 lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {

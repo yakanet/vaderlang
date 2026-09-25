@@ -1,0 +1,13 @@
+module "snippet"
+
+// A string iterates by codepoint through the `Iterator` impl `std/string`
+// declares — this file does not import it, so the `for` has nothing to call.
+count :: fn(s: string) -> i32 {
+    n := 0
+    for c in s {
+        n += 1
+    }
+    return n
+}
+
+main :: fn() -> i32 = count("ab")

@@ -1,19 +1,15 @@
-// Diag snippet: a `for` over an `if` whose branches are an array and an array
-// literal panics the compiler. The committed output is WRONG.
+// Diag snippet: a `for` over an `if` whose branches are an array field and an
+// array literal. The committed output is the CURRENT one, pending a decision.
 //
-// `if many { g.items } else { [one] }` should be a `Shape[]`: the literal in the
-// `else` branch has the `then` branch to type against. It is typed on its own
-// instead, as a one-element TUPLE `[A | B]`, and the `if` as the union
-// `(A | B)[] | [A | B]!` — neither an array nor an iterator. The lowering then
-// emits a call to an iterator `next` it never materialised (no M5001 for the
-// receiver), and midir stops on the unresolved callee:
+// It used to panic the compiler (GATE B1): the literal `[one]` read as a
+// one-element tuple, and the `for` over `(A | B)[] | [A | B]` reached midir as a
+// call to an unmaterialised `next`. Both halves are fixed — the literal is now a
+// `(A | B)[]`, and a `for` over a non-iterable is T3088.
 //
-//   midir/emit: unresolved callee 'next' (id=0) in 'snippet$count' —
-//   impl-member/for-in materialisation gap (GATE B1)
-//
-// Expected once fixed:
-//   2
-//   1
+// What remains is T3074: the field is read-only and the fresh literal is `!`, so
+// the `if` is `(A | B)[] | (A | B)[]!`. Whether the literal should instead take
+// the other branch's type — and this compile, printing `2` then `1` — is an open
+// language decision (TODO, "A literal in an `if` branch …").
 
 module "snippet"
 

@@ -1,0 +1,16 @@
+module "snippet"
+
+// A `for` walks an array, a string or an `Iterator` — a union of two array
+// types is none of them, and neither is a plain integer.
+count :: fn(xs: i32[] | string[], n: i32) -> i32 {
+    total := 0
+    for x in xs {
+        total += 1
+    }
+    for i in n {
+        total += 1
+    }
+    return total
+}
+
+main :: fn() -> i32 = count([1], 2)

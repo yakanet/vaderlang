@@ -113,17 +113,18 @@ export lower_for_in :: fn(
     // DCE prunes when it isn't reached by a symbol edge.
     iter_type :: erase_genstate_for_dispatch(ctx, iter_type_wrapped, element_type)
 
-    // M5001 — `for x in iter` needs an Iterator impl on `iter`. When
-    // wrapping leaves the iter as a primitive (string / numeric / …),
-    // no Iterator dispatch is reachable from the lower step-loop. Vader
-    // emits M5001 (IteratorImplMissing).
-    if iter_type is PrimitiveType {
-        // No Iterator impl is reachable from the step-loop for a bare
-        // primitive (string / numeric / …) — emit the diagnostic and a
-        // single `unreachable` rather than a dispatch loop that would
-        // call `next()` on the primitive.
-        ctx.project.diags.push(lower_error(.IteratorImplMissing, span,
-            "`for x in iter` requires an Iterator impl on ${display_type(iter_type)}"))
+    // No `Iterator` dispatch is reachable from the step loop for a primitive or a
+    // union : emit a single `unreachable` rather than a `next()` nothing
+    // materialised. The typechecker refused the receiver (T3088) unless it was a
+    // type parameter or `Self`, only known here per instance, or a string, which
+    // iterates only when its `Iterator` impl is in scope — those are M5001.
+    if iter_type is PrimitiveType | UnionType {
+        checked :: ctx.types.raw_expr_type(in_form.iter)
+        is_string :: iter_type is PrimitiveType && iter_type.name == "string"
+        if is_string || checked is TypeParamType | SelfType {
+            ctx.project.diags.push(lower_error(.IteratorImplMissing, span,
+                "`for x in iter` requires an Iterator impl on ${display_type(iter_type)}"))
+        }
         return LoweredExprStmt {
             .span = span,
             .expr = LoweredUnreachable {
