@@ -1,0 +1,14 @@
+module "snippet"
+
+P :: struct { x: u8 }
+
+// A literal field is compared with the field, so it takes the field's type.
+is_ten :: fn(p: P) -> bool = match p {
+    is P { x: "ten" } -> true
+    _                 -> false
+}
+
+main :: fn() -> i32 {
+    p :: P { .x = 10 }
+    return if is_ten(p) { 1 } else { 0 }
+}

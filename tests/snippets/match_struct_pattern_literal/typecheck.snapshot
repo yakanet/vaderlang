@@ -1,0 +1,75 @@
+# Typecheck
+
+## tests/snippets/match_struct_pattern_literal
+  StructDecl     Circle               :: Circle!
+  FnDecl         describe             :: fn(Circle | Square) -> string
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     P                    :: P!
+  ConstDecl      Shape                :: type
+  StructDecl     Square               :: Square!
+  expr 21:38    MatchExpr      :: string
+  expr 21:44    IdentExpr      :: Circle | Square
+  expr 22:53    StringLitExpr  :: string
+  expr 23:22    StringLitExpr  :: string
+  expr 23:53    StringLitExpr  :: string
+  expr 23:70    IdentExpr      :: u8
+  expr 24:53    StringLitExpr  :: string
+  expr 24:65    IdentExpr      :: u8
+  expr 25:38    BinaryExpr     :: bool
+  expr 25:38    IdentExpr      :: i64
+  expr 25:53    StringLitExpr  :: string
+  expr 26:53    StringLitExpr  :: string
+  expr 27:53    StringLitExpr  :: string
+  expr 31:14    SeqLitExpr     :: i32[]!
+  expr 32:14    StructLitExpr  :: P!
+  expr 32:23    IdentExpr      :: i32
+  expr 32:34    StringLitExpr  :: string
+  expr 33:15    IdentExpr      :: P!
+  expr 33:9     MatchExpr      :: void
+  expr 34:37    CallExpr       :: void
+  expr 34:37    IdentExpr      :: fn(T) -> void
+  expr 34:45    StringLitExpr  :: string
+  expr 34:50    IdentExpr      :: i32
+  expr 34:76    IdentExpr      :: string
+  expr 35:37    CallExpr       :: void
+  expr 35:37    IdentExpr      :: fn(T) -> void
+  expr 35:45    StringLitExpr  :: string
+  expr 35:50    IdentExpr      :: i32
+  expr 38:13    CallExpr       :: string
+  expr 38:13    IdentExpr      :: fn(Circle | Square) -> string
+  expr 38:22    StructLitExpr  :: Circle!
+  expr 38:46    StringLitExpr  :: string
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    CallExpr       :: string
+  expr 39:13    IdentExpr      :: fn(Circle | Square) -> string
+  expr 39:22    StructLitExpr  :: Circle!
+  expr 39:46    StringLitExpr  :: string
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 40:13    CallExpr       :: string
+  expr 40:13    IdentExpr      :: fn(Circle | Square) -> string
+  expr 40:22    StructLitExpr  :: Circle!
+  expr 40:46    StringLitExpr  :: string
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 41:13    CallExpr       :: string
+  expr 41:13    IdentExpr      :: fn(Circle | Square) -> string
+  expr 41:22    StructLitExpr  :: Square!
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T) -> void
+  expr 42:13    CallExpr       :: string
+  expr 42:13    IdentExpr      :: fn(Circle | Square) -> string
+  expr 42:22    StructLitExpr  :: Square!
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void
+  expr 43:13    CallExpr       :: string
+  expr 43:13    IdentExpr      :: fn(Circle | Square) -> string
+  expr 43:22    StructLitExpr  :: Square!
+  expr 43:5     CallExpr       :: void
+  expr 43:5     IdentExpr      :: fn(T) -> void
+  expr 44:13    CallExpr       :: string
+  expr 44:13    IdentExpr      :: fn(Circle | Square) -> string
+  expr 44:22    StructLitExpr  :: Square!
+  expr 44:5     CallExpr       :: void
+  expr 44:5     IdentExpr      :: fn(T) -> void

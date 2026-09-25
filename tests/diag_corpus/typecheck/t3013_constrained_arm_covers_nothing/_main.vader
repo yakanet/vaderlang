@@ -1,0 +1,14 @@
+module "snippet"
+
+A :: struct { v: i32 }
+B :: struct { w: i32 }
+U :: A | B
+
+// `is A { v: 10 }` matches only the `A`s whose `v` is 10, so `A { .v = 99 }`
+// would reach no arm: the match is not exhaustive.
+pick :: fn(u: U) -> i32 = match u {
+    is A { v: 10 } -> 1
+    is B           -> 2
+}
+
+main :: fn() -> i32 = pick(B { .w = 0 })

@@ -58,29 +58,6 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
   **The risk that decides whether it is worth it.** With `&outA`, the caller takes the address of a local; if the tuple carries a ref field (`[i32, string]`), that local must be a shadow-stack root BEFORE the call, initialised, or the collector scans an indeterminate slot. Today one root (the tuple pointer) covers it. A first cut restricted to all-primitive tuples sidesteps this entirely and still covers `utf8_decode_len`.
 
-- [ ] **A literal constraint in a struct pattern is silently dropped** (found 2026-09-21 while validating W0014). `is P { x: 10, name }` compiles to a bare `is P`: the lowered AST holds no trace of the `10`, so the arm matches every `P`. VM and native agree, which places it in the lowerer rather than a backend. Pinned by `tests/snippets/_diag_struct_pattern_literal`, whose `vm.snapshot` currently records the wrong output on purpose.
-
-  ```vader
-  match p {
-      is P { x: 10, name } -> println("matched ten")
-      _                    -> println("fell through")
-  }
-  // p.x == 99 prints "matched ten"
-  ```
-
-  **On a non-union scrutinee the consequence is hidden**, which is why it survived: T3013 demands a wildcard on any non-union match, so the `_` is there regardless and the wrong arm is merely taken before it. The visible damage needs a UNION scrutinee, where the same over-subtraction makes the match type-check as exhaustive with no wildcard AND take the wrong arm:
-
-  ```vader
-  U :: A | B
-  pick :: fn(u: U) -> string = match u {   // accepted, no diagnostic
-      is A { v: 10 } -> "ten"
-      is B           -> "b"
-  }
-  pick(A { .v = 99 })   // "ten"
-  ```
-
-  Two halves to fix, and the second is what makes it dangerous: the lowerer must emit the field test, and `check_match`'s coverage must stop subtracting the whole of `A` for a constrained pattern — today it does, which is what lets the union case pass exhaustiveness.
-
 - [ ] **Three style rules the compiler could enforce and does not** (found 2026-09-21 while sweeping the `_ -> {}` wildcards). Each is a rule the tree already states in prose, each is checkable where the typechecker already holds the information, and each currently decays silently.
 
   **(a) A duplicate / unreachable `match` arm draws no diagnostic.** T3013 checks that no variant is MISSING; nothing checks that one is covered TWICE. Verified on the current compiler — all three forms compile and run, the second arm dead:

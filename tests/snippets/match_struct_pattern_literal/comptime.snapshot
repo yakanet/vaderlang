@@ -1,10 +1,9 @@
 # Comptime
 
-## tests/snippets/_diag_struct_pattern_literal
+## tests/snippets/match_struct_pattern_literal
 
 ## generic instances
   __genstate_array_iter<T>
-  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -23,3 +22,4 @@
   Range<T>
   Range<T>
   Range<T>
+  ArrayOps<T>

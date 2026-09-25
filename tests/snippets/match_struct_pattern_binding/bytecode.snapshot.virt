@@ -21,6 +21,7 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local p ref
+  local and_res bool
   local name string
   i32.const 10
   string.const 0   ; "alice"
@@ -28,17 +29,28 @@ fn 0 snippet$main () -> i32
   local.tee 0   ; p
   type_check 3   ; snippet$P
   if $L0 void
+    local.field 0 3 0   ; p.x
+    ref.cast 1   ; -> i32
+    i32.const 10
+    i32.eq
+    local.set 1   ; and_res
+  else
+    bool.const false
+    local.set 1   ; and_res
+  end $L0
+  local.get 1   ; and_res
+  if $L1 void
     local.field 0 3 1   ; p.name
     ref.cast 2   ; -> string
-    local.set 1   ; name
+    local.set 2   ; name
     string.const 1   ; "ten alice="
-    local.get 1   ; name
+    local.get 2   ; name
     call 1   ; concat_2
     call 4   ; std_io$println__string
   else
     string.const 2   ; "other"
     call 4   ; std_io$println__string
-  end $L0
+  end $L1
   return.lit i32.const 0
 end
 

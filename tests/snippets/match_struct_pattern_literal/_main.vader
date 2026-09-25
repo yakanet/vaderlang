@@ -1,0 +1,46 @@
+// A literal field in a struct pattern constrains the arm.
+//
+// `is P { x: 10, name }` matches only a `P` whose `x` is 10 — the field test runs
+// after the type test, on the narrowed value, so on a union a field is only read
+// once the variant that carries it is confirmed.
+//
+// Such an arm covers only SOME values of its type, exactly as a guarded arm
+// does, so it removes nothing from exhaustiveness: `Shape` below still needs the
+// unconstrained `is Circle { r }` and `is Square` arms.
+
+module "snippet"
+
+import "std/io"
+
+P :: struct { x: i32, name: string }
+
+Circle :: struct { r: u8, tag: string }
+Square :: struct { side: i64, mark: char }
+Shape :: Circle | Square
+
+describe :: fn(s: Shape) -> string = match s {
+    is Circle { r: 0 }                           -> "dot"
+    is Circle { tag: "unit", r }                 -> "unit circle r=${r}"
+    is Circle { r }                              -> "circle r=${r}"
+    is Square { mark: 'x', side } if side > 10   -> "big crossed square"
+    is Square { side: 1 }                        -> "unit square"
+    is Square                                    -> "square"
+}
+
+main :: fn() -> i32 {
+    for v in [10, 99] {
+        p :: P { .x = v, .name = "bob" }
+        match p {
+            is P { x: 10, name } -> println("x=${v} -> matched ten, name=${name}")
+            _                    -> println("x=${v} -> fell through")
+        }
+    }
+    println(describe(Circle { .r = 0, .tag = "" }))
+    println(describe(Circle { .r = 5, .tag = "unit" }))
+    println(describe(Circle { .r = 5, .tag = "big" }))
+    println(describe(Square { .side = 20, .mark = 'x' }))
+    println(describe(Square { .side = 5, .mark = 'x' }))
+    println(describe(Square { .side = 1, .mark = 'o' }))
+    println(describe(Square { .side = 3, .mark = 'o' }))
+    return 0
+}

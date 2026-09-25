@@ -12,8 +12,17 @@
       ~>
         if :void
           cond:
-            is P! :bool
-              p :P!
+            and :bool
+              l:
+                is P! :bool
+                  p :P!
+              r:
+                eq :bool
+                  l:
+                    .x :i32
+                      p :P!
+                  r:
+                    int(10) :i32
           then:
             let name: string =
               .name :string

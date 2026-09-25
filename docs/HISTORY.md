@@ -381,6 +381,9 @@ Done items lifted out of otherwise-in-progress Phase 3 subsections (`TODO.md` ke
 Long-form write-ups of completed "next up" items. Their one-line summary stays in
 `TODO.md`.
 
+### Literal constraints in struct patterns (done 2026-09-25)
+`is P { x: 10, name }` compiled to a bare `is P`: the match lowering built the type test and never read the `IsPattern`'s inner struct pattern, whose field predicate existed but was only reached for a bare `StructPattern` the parser never produces. Coverage made it worse on a union — a constrained arm subtracted its whole type, so `match u { is A { v: 10 } -> …  is B -> … }` passed as exhaustive and took the wrong arm. Fixed together with the typecheck holes beside it: an unknown field name (a binding one crashed midir), a literal of the wrong type, and braces after a non-struct type were all accepted. A constrained arm now covers nothing, like a guarded one. Pinned by `tests/snippets/match_struct_pattern_literal/`.
+
 ### Destructuring assignment (done 2026-09-23, `_` and `...rest` 2026-09-25)
 `[a, b] = pair` used to parse as an `AssignStmt` over a literal target and lower to nothing. PR #12 made it a real form — every element read into a temporary before any is written, so `[a, b] = [b, a]` swaps — and the follow-up gave it its own node, `DestructureAssignStmt`, whose elements are places, `_` (read nothing) or a trailing `...place` (a fresh tail array, array sources only, P1038 when not last). Pinned by `tests/snippets/destructuring_assignment/`. The same pass closed a silent failure in the destructuring DECLARATION: a misplaced `...rest` (now P1038) or one over a tuple (now T3001) used to leave the trailing leaves unbound, and a read of one cut the function short with exit 0.
 

@@ -88,9 +88,9 @@ export infer_match :: fn(
         // the scrutinee's static type, so neither sees a variant covered twice.
         //
         // Unions and enums only, the same domain W0005 takes. A non-union
-        // scrutinee REQUIRES a wildcard (T3013 says so in as many words), and a
-        // constrained pattern like `is P { x: 10 }` still subtracts the whole of
-        // `P` here — so on those this would flag the arm T3013 just demanded.
+        // scrutinee REQUIRES a wildcard (T3013 says so in as many words), and an
+        // `is P` over it subtracts the whole of `P` here — so on those this
+        // would flag the arm T3013 just demanded.
         closed_scrutinee :: scrut_ty is UnionType || scrut_ty is EnumType
         if closed_scrutinee && (has_wildcard || remaining is NeverType) {
             diags.push(
@@ -110,7 +110,7 @@ export infer_match :: fn(
         // Re-bind the pattern types against the narrowed `remaining`
         // so the wildcard arm sees only the still-possible
         // variants ("union − matched").
-        bind_pattern_types(arm.pattern, remaining, typed, diags)
+        bind_pattern_types(arm.pattern, remaining, typed, diags, check_expr_fn)
         // Per-arm narrowing — `is T` arms see just T, the wildcard
         // arm sees `remaining` (subset of `scrut_ty` after
         // earlier arms removed their matched variants).
@@ -158,8 +158,9 @@ export infer_match :: fn(
         // coverage : no variant subtraction, no covered-variant record, no
         // wildcard. Counting it would silence T3013 on a match that can
         // still fall through. (The overlap check on `is T` stays — a guard
-        // cannot make a type-impossible test reachable.)
-        guarded :: arm.guard != null
+        // cannot make a type-impossible test reachable.) A literal field in the
+        // pattern (`is P { x: 10 }`) is a guard written inline, and counts the same.
+        guarded :: arm.guard != null || is_constrained(arm.pattern)
         match arm.pattern as pattern {
             is AST.IsPattern          -> {
                 matched :: pattern_type_of(pattern.ty, remaining, typed, scratch_diags())
@@ -241,7 +242,7 @@ export infer_match :: fn(
                         if sub is AST.EnumVariantPattern {
                             covered_enum_variants.push(sub.variant)
                         }
-                        if sub is AST.IsPattern {
+                        if sub is AST.IsPattern && !is_constrained(sub) {
                             remaining = subtract_type_with_impls(
                                 remaining,
                                 pattern_type_of(sub.ty, remaining, typed, scratch_diags()),
@@ -416,6 +417,7 @@ scrutinee_field_key :: fn(scrut: AST.Expr, typed: TypedProgram) -> string {
 /// `typed.local_types`. Struct patterns bind through `bind_struct_pattern`.
 bind_pattern_types :: fn(
     p: AST.Pattern, scrut: Type, typed: TypedProgram!, diags: Diagnostic[]!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     match p {
         is AST.IsPattern      -> {
@@ -424,54 +426,80 @@ bind_pattern_types :: fn(
             // with the narrowed type so inner StructPattern bindings
             // pick up T's field types.
             if p.inner !is null {
-                bind_pattern_types(p.inner, narrowed, typed, diags)
+                bind_pattern_types(p.inner, narrowed, typed, diags, check_expr_fn)
             }
         }
-        is AST.StructPattern -> { bind_struct_pattern(p, scrut, typed, diags) }
+        is AST.StructPattern -> { bind_struct_pattern(p, scrut, typed, diags, check_expr_fn) }
         is AST.OrPattern     -> {
             for sub in p.patterns {
-                bind_pattern_types(sub, scrut, typed, diags)
+                bind_pattern_types(sub, scrut, typed, diags, check_expr_fn)
             }
         }
         _                           -> {}
     }
 }
 
+// Each field of `{ name, x: 10 }` names a field of the struct: a binding takes
+// its type, a literal is checked against it (the lowering compares the two).
 bind_struct_pattern :: fn(
     sp: AST.StructPattern,
     scrut: Type,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
-    match scrut {
-        is StructType -> {
-            decl :: typed.struct_decls[scrut.symbol.id] ?? return
-            for field in sp.fields {
-                // T3054 : reject binding an `@internal` field in a struct
-                // pattern from outside its declaring module.
-                check_internal_field(scrut, decl, field.name, field.name_span, typed, diags)
-                match field.value as pb {
-                    is AST.PatternBinding -> {
-                        ft :: resolved_field_type(
-                            scrut.symbol.id,
-                            decl,
-                            field.name,
-                            typed,
-                            scratch_diags(),
-                        )
-                        if ft !is null {
-                            typed.local_types[pb.span.hash()] = ft
-                        }
-                    }
-                    _                     -> {}
+    st :: struct_backing(scrut)
+    if st == null {
+        if scrut !is UnresolvedType {
+            diags.push(typecheck_error(
+                .TypeMismatch, sp.span,
+                "a `{ … }` pattern reads the fields of a struct, got `${display_type(scrut)}`"))
+        }
+        return
+    }
+    decl :: typed.struct_decls[st.symbol.id] ?? return
+    for field in sp.fields {
+        // T3054 : reject binding an `@internal` field in a struct
+        // pattern from outside its declaring module.
+        check_internal_field(st, decl, field.name, field.name_span, typed, diags)
+        raw :: resolved_field_type(st.symbol.id, decl, field.name, typed, scratch_diags())
+        if raw == null {
+            diags.push(typecheck_error(
+                .FieldDoesNotExist, field.name_span,
+                "`${field.name}` on ${display_type(scrut)}"))
+            continue
+        }
+        // `Box<i32> { value }` reads `value` as `i32`, not as the declared `T`.
+        ft :: substitute_struct_field(raw, decl, st)
+        match field.value as value {
+            is AST.PatternBinding -> { typed.local_types[value.span.hash()] = ft }
+            is AST.PatternLiteral -> {
+                got :: check_expr_fn(value.value, ft, typed, diags)
+                if !is_assignable(got, ft) {
+                    diags.push(mismatch_diagnostic(got, ft, value.value.span, .TypeMismatch))
                 }
             }
         }
-        _                   -> {}
     }
 }
 
 scratch_diags :: fn() -> Diagnostic[]! { return [] }
+
+// Whether an `is T { … }` pattern tests a field against a literal — it then
+// matches only some values of `T`.
+is_constrained :: fn(p: AST.Pattern) -> bool {
+    if p !is AST.IsPattern {
+        return false
+    }
+    if p.inner is AST.StructPattern {
+        for field in p.inner.fields {
+            if field.value is AST.PatternLiteral {
+                return true
+            }
+        }
+    }
+    return false
+}
 
 // ---- tests ----------------------------------------------------------------
 

@@ -155,14 +155,24 @@ export block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
 /// @param span   span attached to every synthesised binary node.
 /// @param parts  individual boolean expressions.
 /// @return       the OR-chained expression.
-export or_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr {
+export or_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr = chain_all(span, parts, .Or)
+
+/// Combine a list of boolean expressions with short-circuit AND, left to
+/// right — a later part is only evaluated once every earlier one held. Empty
+/// input degrades to `true` ; a single element returns itself.
+/// @param span   span attached to every synthesised binary node.
+/// @param parts  individual boolean expressions.
+/// @return       the AND-chained expression.
+export and_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr = chain_all(span, parts, .And)
+
+chain_all :: fn(span: Span, parts: LoweredExpr[], op: LoweredBinaryOp) -> LoweredExpr {
     if parts.len() == 0 {
-        return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = false }
+        return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = op == .And }
     }
     accumulator: LoweredExpr = parts[0]
     for i in 1..<parts.len() {
         accumulator = LoweredBinary {
-            .span = span, .type = TY_BOOL, .op = .Or,
+            .span = span, .type = TY_BOOL, .op = op,
             .left = accumulator, .right = parts[i],
         }
     }

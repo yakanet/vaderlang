@@ -1,0 +1,11 @@
+module "snippet"
+
+P :: struct { x: i32 }
+
+// A struct pattern names fields of the struct; `y` is not one.
+read :: fn(p: P) -> i32 = match p {
+    is P { y } -> y
+    _          -> 0
+}
+
+main :: fn() -> i32 = read(P { .x = 1 })

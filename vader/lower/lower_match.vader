@@ -208,11 +208,23 @@ pattern_predicate :: fn(
         is WildcardPattern -> { return null }
         is IsPattern       -> {
             check_type :: resolve_pattern_type(ctx, pattern.ty)
-            return LoweredTypeCheck {
+            type_test :: LoweredTypeCheck {
                 .span = span, .type = TY_BOOL,
                 .value = target,
                 .check_type = check_type,
             }
+            // `is P { x: 10 }` — the field tests run on the narrowed target, on
+            // the right of a short-circuit `&&` : a field is only read once the
+            // type test has confirmed the variant that carries it.
+            if pattern.inner is StructPattern as inner {
+                narrowed :: narrow_target(target, target_type, check_type, span)
+                fields :: struct_pattern_predicate(ctx, inner, narrowed, span, recurse)
+                if fields == null {
+                    return type_test
+                }
+                return and_all(span, [type_test, fields])
+            }
+            return type_test
         }
         is StructPattern -> {
             return struct_pattern_predicate(ctx, pattern, target, span, recurse)
@@ -266,32 +278,32 @@ pattern_predicate :: fn(
     }
 }
 
+// `field == literal` for every literal field of `pattern`, joined by `&&` ; null
+// when the pattern only binds, so it constrains nothing.
 struct_pattern_predicate :: fn(
     ctx: FnLowerCtx!, pattern: StructPattern, target: LoweredExpr, span: Span,
     recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
-) -> LoweredExpr {
-    accumulator: LoweredExpr = LoweredBoolLit { .span = span, .type = TY_BOOL, .value = true }
+) -> LoweredExpr | null {
+    tests: LoweredExpr[]!: []
     for field in pattern.fields {
-        match field.value as literal {
-            is PatternLiteral -> {
-                literal_value :: recurse(ctx, literal.value)
-                eq :: LoweredBinary {
-                    .span = field.span, .type = TY_BOOL, .op = .Eq,
-                    .left = LoweredFieldAccess {
-                        .span = field.span, .type = type_of(literal_value),
-                        .target = target, .field = field.name,
-                    },
-                    .right = literal_value,
-                }
-                accumulator = LoweredBinary {
-                    .span = field.span, .type = TY_BOOL, .op = .And,
-                    .left = accumulator, .right = eq,
-                }
-            }
-            _                 -> {}
+        if field.value is PatternLiteral as literal {
+            // The typechecker checked the literal against the field with the
+            // type arguments applied, so its type is the field's.
+            value :: recurse(ctx, literal.value)
+            tests.push(LoweredBinary {
+                .span = field.span, .type = TY_BOOL, .op = .Eq,
+                .left = LoweredFieldAccess {
+                    .span = field.span, .type = type_of(value),
+                    .target = target, .field = field.name,
+                },
+                .right = value,
+            })
         }
     }
-    return accumulator
+    if tests.len() == 0 {
+        return null
+    }
+    return and_all(span, tests)
 }
 
 enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnLowerCtx) -> LoweredExpr {
