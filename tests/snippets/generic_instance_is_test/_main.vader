@@ -1,0 +1,30 @@
+// An `is` test tells apart the instances of a generic whose type arguments are
+// primitives: `Spec<bool>` and `Spec<string>` are two layouts with two tags, and
+// a value of one never matches the other — including through a `match`.
+
+module "snippet"
+
+import "std/io"
+
+Spec :: struct<T> { name: string, dflt: T }
+
+describe :: fn(s: Spec<bool> | Spec<string>) -> string = match s {
+    is Spec<bool>   -> "${s.name} is a flag, default ${s.dflt}"
+    is Spec<string> -> "${s.name} takes a value, default ${s.dflt}"
+}
+
+main :: fn() -> i32 {
+    specs: (Spec<bool> | Spec<string>)[]: [
+        Spec<bool> { .name = "release", .dflt = false },
+        Spec<string> { .name = "cc", .dflt = "cc" },
+    ]
+    for s in specs {
+        if s is Spec<bool> {
+            println("if: ${s.name} bool")
+        } else if s is Spec<string> {
+            println("if: ${s.name} string")
+        }
+        println(describe(s))
+    }
+    return 0
+}

@@ -1,0 +1,7 @@
+# stdout
+if: release bool
+release is a flag, default false
+if: cc string
+cc takes a value, default cc
+# exit
+0

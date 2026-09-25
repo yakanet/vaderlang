@@ -1,0 +1,46 @@
+# Typecheck
+
+## tests/snippets/generic_instance_is_test
+  FnDecl         describe             :: fn(Spec<bool> | Spec<string>) -> string
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Spec                 :: Spec<T>!
+  expr 11:58    MatchExpr      :: string
+  expr 11:64    IdentExpr      :: Spec<bool> | Spec<string>
+  expr 12:24    StringLitExpr  :: string
+  expr 12:27    FieldExpr      :: string
+  expr 12:27    IdentExpr      :: Spec<bool>
+  expr 12:56    FieldExpr      :: bool
+  expr 12:56    IdentExpr      :: Spec<bool>
+  expr 13:24    StringLitExpr  :: string
+  expr 13:27    FieldExpr      :: string
+  expr 13:27    IdentExpr      :: Spec<string>
+  expr 13:60    FieldExpr      :: string
+  expr 13:60    IdentExpr      :: Spec<string>
+  expr 17:43    SeqLitExpr     :: (Spec<bool> | Spec<string>)[]
+  expr 18:30    StringLitExpr  :: string
+  expr 18:9     StructLitExpr  :: Spec<bool>!
+  expr 19:32    StringLitExpr  :: string
+  expr 19:46    StringLitExpr  :: string
+  expr 19:9     StructLitExpr  :: Spec<string>!
+  expr 21:14    IdentExpr      :: (Spec<bool> | Spec<string>)[]
+  expr 22:12    BinaryExpr     :: bool
+  expr 22:12    IdentExpr      :: Spec<bool> | Spec<string>
+  expr 22:9     IfExpr         :: void
+  expr 23:13    CallExpr       :: void
+  expr 23:13    IdentExpr      :: fn(T) -> void
+  expr 23:21    StringLitExpr  :: string
+  expr 23:28    FieldExpr      :: string
+  expr 23:28    IdentExpr      :: Spec<bool>
+  expr 24:16    IfExpr         :: void
+  expr 24:19    BinaryExpr     :: bool
+  expr 24:19    IdentExpr      :: Spec<string>
+  expr 25:13    CallExpr       :: void
+  expr 25:13    IdentExpr      :: fn(T) -> void
+  expr 25:21    StringLitExpr  :: string
+  expr 25:28    FieldExpr      :: string
+  expr 25:28    IdentExpr      :: Spec<string>
+  expr 27:17    CallExpr       :: string
+  expr 27:17    IdentExpr      :: fn(Spec<bool> | Spec<string>) -> string
+  expr 27:26    IdentExpr      :: Spec<bool> | Spec<string>
+  expr 27:9     CallExpr       :: void
+  expr 27:9     IdentExpr      :: fn(T) -> void

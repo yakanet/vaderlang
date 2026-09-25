@@ -293,6 +293,34 @@ with_peephole_out :: fn(f: BcFunction, out: BcPeepholeOut) -> BcFunction! = BcFu
     .body = out.body, .debug = out.debug, .jump_table = out.jump_table,
 }
 
+// A `type_check` on an instance of a generic struct compares tags, which only
+// tells instances apart when every type argument is kept (`kept_type_argument`).
+// The typechecker refuses every such test in the source (T3087), so one reaching
+// here came from a lowering that built it: stop rather than emit a test that
+// would silently mix the instances.
+refuse_shared_identity_test :: fn(fn_name: string, check_type: Type) -> void {
+    if check_type is UnionType {
+        for variant in check_type.variants {
+            refuse_shared_instance(fn_name, variant)
+        }
+    } else {
+        refuse_shared_instance(fn_name, check_type)
+    }
+}
+
+refuse_shared_instance :: fn(fn_name: string, t: Type) -> void {
+    if t !is StructType {
+        return
+    }
+    for arg in t.args {
+        if kept_type_argument(arg) == null {
+            panic("bytecode emit: `${fn_name}` tests `is ${display_type(t)}`, "
+                + "an instance whose body is shared — its values cannot be told apart "
+                + "from the other instances erasing `${display_type(arg)}`")
+        }
+    }
+}
+
 /// Top-level entry — translate a `CFGProject` into a `BytecodeModule`.
 /// Wires every CFGFunction body through the structurer + per-instr
 /// emit. Does NOT run DCE/peephole — those are invoked by the caller
@@ -456,7 +484,17 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         // validated. `@extern` imports are link-resolved and exempt.
         for imp in ctx.imports { assert_host_import_wired(imp.mangled_name, imp.is_extern) }
     }
-    return BytecodeModule { .name = module_name, .types = ctx.types, .strings = ctx.strings, .data_pool = cfg.data_pool, .functions = ctx.functions, .imports = ctx.imports, .exports = ctx.exports, .impl_table = build_impl_table_from_vtable(cfg.vtable_entries, cfg.trait_membership, ctx), .vtables = build_vtables_from_entries(cfg.vtable_entries, ctx) }
+    return BytecodeModule {
+        .name       = module_name,
+        .types      = ctx.types,
+        .strings    = ctx.strings,
+        .data_pool  = cfg.data_pool,
+        .functions  = ctx.functions,
+        .imports    = ctx.imports,
+        .exports    = ctx.exports,
+        .impl_table = build_impl_table_from_vtable(cfg.vtable_entries, cfg.trait_membership, ctx),
+        .vtables    = build_vtables_from_entries(cfg.vtable_entries, ctx),
+    }
 }
 
 /// Resolve a vtable entry's target fn symbol to its (post-prune) function
@@ -1373,6 +1411,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrTypeCheck {
+        refuse_shared_identity_test(ctx.fn_.mangled, ins.check_type)
         emit_first_get(ctx, pos, ins.value, ins.span)
         type_index :: intern_type(ins.check_type, ctx.project)
         push_emit(ctx, TypeCheck { .type_id = type_index }, ins.span)

@@ -224,13 +224,13 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
         // Concrete primitive receiver with a bounded-trait method : a generic
         // instance concretised on a primitive K (e.g. `key.equals(other)` in
         // `MutableMap<i32,_>`), or on an enum with variant data, which
-        // `kept_concrete` keeps too. `Equals` is `@intrinsic` on primitives and
+        // `kept_type_argument` keeps too. `Equals` is `@intrinsic` on primitives and
         // an enum's `==` is an integer comparison, so devirtualise straight to
         // the comparison primop instead of a `virtual.call` / thunk — the
         // native build has no host binding for an int `equals`. Other trait methods
         // (Hash / Comparable have materialised bodies) fall through to the UFCS
         // direct-call path.
-        if kept_concrete(type_of(receiver)) != null {
+        if kept_type_argument(type_of(receiver)) != null {
             tname_opt :: ctx.typed.bounded_dispatch_trait[callee_field.id]
             if tname_opt is string {
                 // `equals` is `@intrinsic` on primitives ; `not_equals` is the

@@ -1827,17 +1827,13 @@ emit_type_check :: fn(s: FnState!, op: vm.TypeCheck) -> void {
 }
 
 // The C bool expr for `<value> is <single type_id>`, over the value's tag : a trait ref expands to a
-// disjunction over its implementers, a struct compares its sibling-aware tag,
-// anything else is a plain tag compare.
+// disjunction over its implementers, anything else is a plain tag compare.
 one_variant_check :: fn(s: FnState, tag_expr: CExpression, type_id: i32) -> CExpression {
     target :: s.ctx.module.types[usize(type_id)]
     if target is BcRef {
         if target.trait_name != "" {
             return trait_check_expr(s.ctx, tag_expr, target.trait_name, type_id)
         }
-    }
-    if target is BcStruct {
-        return struct_check_expr(s.ctx.module.types, tag_expr, type_id, target.name)
     }
     // f32/f64 share the F64 box representation, so the boxer tags a float value
     // by class and can't tell f32 from f64. Match ANY float-primitive tag here
@@ -1870,37 +1866,6 @@ float_tag_check_expr :: fn(types: BcType[], tag_expr: CExpression) -> CExpressio
     }
     if parts.len() == 0 {
         return verbatim("0")
-    }
-    return CParenthesized { .inner = any_of(parts) }
-}
-
-/// The C boolean expression testing whether `tag_expr` matches struct type
-/// `target_id` — its own tag OR any **sibling** struct's tag (same generic
-/// source, by `prefix_before_double_underscore`). Mirrors the VM's
-/// `struct_siblings_match` : an erased generic flows a runtime sibling shape
-/// (`Entry<i32,i32>`, a distinct tag) into a `type_check` typed against the
-/// erased one (`Entry<Any,Any>`) — exact-tag equality would miss it (and trip
-/// the dead-return guard on the match fall-through). A non-generic struct
-/// (empty prefix) has no siblings → a bare tag compare.
-struct_check_expr :: fn(types: BcType[], tag_expr: CExpression, target_id: i32, target_name: string) -> CExpression {
-    base :: tag_equals(tag_expr, target_id)
-    prefix :: prefix_before_double_underscore(target_name)
-    if prefix == "" {
-        return base
-    }
-    parts: CExpression[]!: [base]
-    for i in 0..<types.len() {
-        if i32(i) == target_id {
-            continue
-        }
-        if types[i] is BcStruct as st {
-            if prefix_before_double_underscore(st.name) == prefix {
-                parts.push(tag_equals(tag_expr, i32(i)))
-            }
-        }
-    }
-    if parts.len() == 1 {
-        return base
     }
     return CParenthesized { .inner = any_of(parts) }
 }

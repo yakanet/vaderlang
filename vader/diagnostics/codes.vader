@@ -124,6 +124,7 @@ export TypecheckCode :: enum(CodeInfo) {
     EnumDataNotStruct               { .id = "T3084", .message = "enum variant data must be a struct" },
     VariantDataWithoutEnumData      { .id = "T3085", .message = "variant data on an enum whose header declares none" },
     UnionEnumDataNotInterpolable    { .id = "T3086", .message = "a union holding an enum with variant data cannot be interpolated" },
+    IsTestOnSharedInstance          { .id = "T3087", .message = "an `is` test cannot tell apart the instances of a generic that share one body" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

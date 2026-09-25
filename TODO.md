@@ -196,27 +196,7 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 - [ ] **UFCS / member dispatch — two hand-mirrored priority ladders, and the elaboration that would retire one** (design frozen 2026-07-27; three defects reproduced, nothing implemented). The typer and the lowerer each resolve `a.f(b)` through their **own** ladder — the typer records coercions (`into_coercions`) and the lowerer **re-derives everything** from scratch — so the two can disagree, and every fix has to be applied twice by hand. ⚠️ **A parse-time desugar cannot fix this**: `a.f(b)` has ten distinct resolutions (struct field, trait impl, free fn by UFCS, namespace member, enum variant, intrinsic, …) and the parser knows none of them. **The three defects, all reproduced against `build/vader` at `e86d0cc13`:** **(a)** a free fn **silently shadows a struct field** of the same name — member should win; **(b)** the typer and lowerer disagree and the **IR carries a lying type**; **(c)** the typer accepts what the lowerer **cannot emit** (the panic site the distinct-cast bug — `docs/HISTORY.md` §1.13d — shares). **Staging:** phase 0 free cleanup with no semantics; phase 1 member-before-UFCS precedence (fixes (a)); phase 2 the un-called curried `FieldExpr` (fixes (b) and (c)); **phase 3 is the real chantier — elaboration**: the typer *writes* the resolved dispatch at every site and the lowerer *reads* it instead of re-deriving, landed in three independently shippable steps (3.1 write it while lower still uses its own ladder, guarded by a verifier asserting the two agree; 3.2 switch the shapes that are clean; 3.3 retire the lowerer's ladder shape by shape until the fallback is dead). What elaboration does **not** remove: the typer's own ladder — there will always be exactly one, which is the point.
 
-- [ ] **`is` on an instantiated generic struct ignores the type argument — silently wrong** (found 2026-07-27, re-verified 2026-09-25 on VM and native, evaluating whether `FlagSpec` could be generic over its kind). A test against one instantiation matches *every* instantiation, and the narrowed binding then reads the field at the wrong type, with no diagnostic. Repro (no snippet on purpose — its snapshots would enshrine the wrong output):
-
-      Spec :: struct<T> { name: string, dflt: T }
-
-      main :: fn() -> i32 {
-          xs: (Spec<bool> | Spec<string>)[] = [
-              Spec<bool>   { .name = "release", .dflt = false },
-              Spec<string> { .name = "cc",      .dflt = "cc" },
-          ]
-          for s in xs {
-              if s is Spec<bool> {
-                  println("${s.name} bool ${s.dflt}")
-              } else if s is Spec<string> {
-                  println("${s.name} str ${s.dflt}")
-              }
-          }
-          return 0
-      }
-
-  Prints `release bool false` then **`cc bool true`** (`cc bool false` on 2026-09-25 — the garbage read depends on layout) — the `Spec<string>` took the `Spec<bool>` arm, and its `string` field was read as a `bool`. Identical under `match`, identical for a local array and a module const, so it is neither the const path nor the match lowering: the `is` test compares the struct's *shape* and never looks at the type argument. Same family as the erased-vs-packed bugs (`docs/HISTORY.md` §3.8) — generics are erased, so `Spec<bool>` and `Spec<string>` share one runtime tag. **Two defensible fixes, to decide before coding:** carry the type arguments in the runtime tag so the test can discriminate (costs a wider tag, helps every `is` on a generic), or have the typechecker REJECT a union that mixes instantiations of one generic — the narrowing it would need is unimplementable under erasure, so promising it is the actual defect. The second is cheaper and honest; the first is what a user expects. Until then, a heterogeneous table of `Spec<T>` is unusable, which is why `FlagSpec` keeps a `kind` field instead of a type parameter.
-
+- [ ] **An `is` test on a generic instance whose type argument erases is refused (T3087) — lift it with type descriptors** (2026-09-25). `Box<Foo>` and `Box<Bar>` share one erased body; a value built there carries the tag `Box__Any` whatever it was built for, so `x is Box<Foo>` cannot be answered by a tag compare. The typechecker refuses it (T3087, `vader/typecheck/binary.vader::reject_shared_instance_is_test`) — for a type parameter too (`x is Box<T>`), conservatively, since a reference may bind it — and the bytecode emitter keeps the same rule as an internal invariant (`vader/midir/emit.vader::refuse_shared_identity_test`). Measured the same day: no such test anywhere in the tree (0 of 8458 `type_check` in the compiler, 0 of 1103 across the 511 snippet / bench / example programs). Lifting it means handing a shared body that BUILDS an instance of a generic struct over its own type parameters the concrete tag to stamp — a hidden argument, built at the call site, plus one dynamic `type_check` op in the VM and the C emitter. To be designed with the user before any code.
 - [ ] **Signed overflow wraps in debug, where SPEC says it panics** (carried over 2026-09-25 from the old MVP list, re-verified that day). SPEC §"Signed overflow" states that `a + b` overflowing **panics in debug, wraps in release**; both backends wrap in every mode — `a: i32: 2147483647` then `a + 1` prints `-2147483648` under `vader run` and from a debug native build alike. Either the checks land (VM + C, debug only) or SPEC is rewritten to say wrapping is the semantics; today the spec promises a safety net nobody provides.
 
 ---

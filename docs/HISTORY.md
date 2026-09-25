@@ -381,6 +381,9 @@ Done items lifted out of otherwise-in-progress Phase 3 subsections (`TODO.md` ke
 Long-form write-ups of completed "next up" items. Their one-line summary stays in
 `TODO.md`.
 
+### `is` on a generic instance compared the family, not the instance (done 2026-09-25)
+`s is Spec<bool>` also matched a `Spec<string>`: both backends widened a struct `type_check` to every instance sharing the mangle prefix (`struct_siblings_match` in the VM, `struct_check_expr` in the C emitter). The widening dated from before the .NET model, when primitive instances were erased and `Entry<i32, i32>` values really met `Entry<Any, Any>` tests; measured on 2026-09-25 it served no test left in the tree, while loosening every exact one. Removed: a struct test compares the exact tag. The case it could not answer either — a reference type argument, whose values carry the shared erased tag — is now refused up front (T3087). Pinned by `tests/snippets/generic_instance_is_test/`.
+
 ### Literal constraints in struct patterns (done 2026-09-25)
 `is P { x: 10, name }` compiled to a bare `is P`: the match lowering built the type test and never read the `IsPattern`'s inner struct pattern, whose field predicate existed but was only reached for a bare `StructPattern` the parser never produces. Coverage made it worse on a union — a constrained arm subtracted its whole type, so `match u { is A { v: 10 } -> …  is B -> … }` passed as exhaustive and took the wrong arm. Fixed together with the typecheck holes beside it: an unknown field name (a binding one crashed midir), a literal of the wrong type, and braces after a non-struct type were all accepted. A constrained arm now covers nothing, like a guarded one. Pinned by `tests/snippets/match_struct_pattern_literal/`.
 

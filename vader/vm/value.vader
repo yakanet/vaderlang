@@ -19,7 +19,6 @@ import "std/string"
 import "std/string_builder"
 import "vader/bytecode"
 import "vader/types"
-import "vader/text"
 bc :: import "vader/bytecode"
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -387,7 +386,7 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
         is bc.BcPrimitive -> primitive_matches(v, type_decl.val)
         // @partial: only StructVal carries a matchable tag; every other Value → false.
         is bc.BcStruct        -> @partial match v {
-            is StructVal -> v.type_id == type_id || struct_siblings_match(state, v.type_id, type_id)
+            is StructVal -> v.type_id == type_id
             _            -> false
         }
         // @partial: only ArrayVal carries a matchable tag; every other Value → false.
@@ -400,43 +399,6 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
         is bc.BcFn    -> false
     }
 }
-
-/// Erasure-aware sibling check : returns true when both struct types
-/// come from the same generic source declaration. Post-path-γ a value
-/// may carry a sibling shape's tag (e.g. a `Box<Any>` runtime value flowing
-/// into a match arm typed `is Box<i32>`). We approximate a
-/// `symbolId`-based grouping by comparing mangled-name prefixes up to
-/// the first `__` (which separates the source name from the type-arg
-/// suffix).
-///
-/// @param state    the running VM state (struct names live in `bc.types`).
-/// @param value_type_id   actual tag of the runtime value.
-/// @param target_type_id  static type the value is being matched against.
-/// @return         `true` when both refer to struct types whose names
-///                 share the same pre-`__` prefix ; `false` otherwise.
-struct_siblings_match :: fn(state: VmState, value_type_id: i32, target_type_id: i32) -> bool {
-    if value_type_id == target_type_id { return true }
-    if value_type_id < 0 || usize(value_type_id) >= state.bc.types.len() { return false }
-    if target_type_id < 0 || usize(target_type_id) >= state.bc.types.len() { return false }
-    value_name :: struct_name_at(state, value_type_id)
-    target_name :: struct_name_at(state, target_type_id)
-    if value_name == "" || target_name == "" { return false }
-    value_prefix :: prefix_before_double_underscore(value_name)
-    if value_prefix == "" { return false }
-    return value_prefix == prefix_before_double_underscore(target_name)
-}
-
-/// Return the mangled name of the struct type at `type_id`, or `""` when
-/// `type_id` doesn't point to a `BcStruct`.
-struct_name_at :: fn(state: VmState, type_id: i32) -> string = match state.bc.types[usize(type_id)] as s {
-    is bc.BcStruct    -> s.name
-    is bc.BcArray     -> ""
-    is bc.BcFn        -> ""
-    is bc.BcPrimitive -> ""
-    is bc.BcRef       -> ""
-    is bc.BcUnion     -> ""
-}
-
 
 /// Match a value against a `ref Trait` type. `is Error` routes to
 /// `ErrorVal` + impl-table check, `ref _` (empty trait name) accepts any

@@ -163,7 +163,7 @@ fn_instance_key :: fn(inst: GenericFnInstance) -> string {
         sb.append(":")
         // A kept enum names its module : two `Status` enums of different modules
         // are two instances, as `mixed_any_suffix` mangles them.
-        kept :: kept_concrete(a)
+        kept :: kept_type_argument(a)
         sb.append(if kept is EnumType { kept_suffix(kept) } else { display_type_key(a) })
     }
     return sb.to_string()
@@ -231,7 +231,7 @@ build_fn_instance_decl :: fn(
     //   Mono   — trait-dispatch (`fn_trait_dispatches`, the `virtual.call`-on-`ref _`
     //            gap) OR a bare type-param array return (the result's element kind
     //            must be concrete, S5 Solution A). Full-concrete subst.
-    //   Mixed  — ≥1 arg `kept_concrete` keeps (a primitive, an enum with variant
+    //   Mixed  — ≥1 arg `kept_type_argument` keeps (a primitive, an enum with variant
     //            data): keep those concrete (devirt + primops/atom-eq inline), erase
     //            the rest to `Any` via `build_fn_mixed_subst`. Mangle-indexed.
     //   Erased — all-reference: uniform pointer like Java, symbol-id indexed + deduped.
@@ -337,7 +337,7 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
 //   Mono   — full-concrete subst + `mono_suffix`. Trait-dispatch (the dispatch
 //            vtable needs the concrete struct) or a bare type-param array return
 //            (the result array's element kind must be concrete, S5 Solution A).
-//   Mixed  — `build_fn_mixed_subst` + `mixed_any_suffix`. ≥1 arg `kept_concrete`
+//   Mixed  — `build_fn_mixed_subst` + `mixed_any_suffix`. ≥1 arg `kept_type_argument`
 //            keeps: keep those concrete (devirt + primops/atom-eq inline), erase the
 //            rest to `Any`. Mangle-indexed (entry_symbol=null), invariant under ref-erasure.
 //   Erased — `build_fn_any_subst`, symbol-id indexed (flush keeps one body per fn).

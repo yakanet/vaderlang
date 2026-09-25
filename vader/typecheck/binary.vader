@@ -54,6 +54,7 @@ export infer_binary :: fn(
         }
         reject_marker_in_is_test(e.right, diags)
         check_is_overlap(e, left, rhs_ty, diags)
+        reject_shared_instance_is_test(rhs_ty, e.right.span, diags)
         return TY_BOOL
     }
     // Right-side bidirectional context : when left is a concrete numeric,
@@ -623,6 +624,36 @@ reject_marker_in_is_test :: fn(tested: AST.TypeExpr, diags: Diagnostic[]!) -> vo
         "an `is` test compares the shape — mutability has no runtime representation, "
         + "so drop the `!` (the narrowed binding keeps the scrutinee's own mutability)"))
 }
+
+// An `is` test reads the tested value's runtime tag. An instance of a generic
+// struct with a type argument that erases (`Box<Foo>`, `Pair<i32, Foo>`) is
+// served by one body shared with every other such instance, and a value that
+// body builds carries the shared tag whatever it was built for — so no tag
+// compare can tell `Box<Foo>` from `Box<Bar>`. A type parameter is refused too:
+// the instances that bind it to a reference share a body the same way, and the
+// check cannot wait for them. T3087.
+reject_shared_instance_is_test :: fn(tested: Type, span: Span, diags: Diagnostic[]!) -> void {
+    for variant in union_variants(tested) ?? [tested] {
+        if variant is StructType {
+            for arg in variant.args {
+                if is_shared_type_argument(arg) {
+                    instance :: display_type(variant)
+                    argument :: display_type(arg)
+                    diags.push(typecheck_error(
+                        .IsTestOnSharedInstance, span,
+                        "`${instance}` has the type argument `${argument}`, which erases ; "
+                            + "test the field that holds it instead (`x.value is ${argument}`)"))
+                    return
+                }
+            }
+        }
+    }
+}
+
+// A type argument the monomorphiser may erase — every one `kept_type_argument`
+// does not keep. An unresolved type already carries its own diagnostic.
+is_shared_type_argument :: fn(t: Type) -> bool =
+    t !is UnresolvedType && kept_type_argument(t) == null
 
 /// T3040 : `x is T` test where `T` can never be a runtime value of
 /// `x`'s static type. We surface the error for tests against `null`
