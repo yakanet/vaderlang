@@ -64,6 +64,9 @@ export Pattern :: IsPattern | StructPattern | WildcardPattern | EnumVariantPatte
 /// What a `::` / `:=` binds: one name, a tuple destructure, `_`, or a rest binding.
 export LetBinding :: SimpleBinding | TupleBinding | WildcardBinding | RestBinding
 
+/// One element of a `[...] = value` assignment: a place, `_`, or a `...rest` tail.
+export AssignTarget :: PlaceTarget | WildcardTarget | RestTarget
+
 /// Inside a struct pattern, what a field is matched against: a binding or a literal.
 export PatternFieldValue :: PatternBinding | PatternLiteral
 
@@ -83,6 +86,21 @@ export coalesce_fallback_expr :: fn(f: CoalesceFallback) -> Expr | null = match 
     is ReturnStmt -> f.value
     is BreakStmt | ContinueStmt -> null
     is Expr -> f
+}
+
+/// The places a destructuring assignment writes, in order — every target but `_`.
+///
+/// For the walkers that visit a statement's sub-expressions and have no use for
+/// each element's kind.
+export assign_places :: fn(s: DestructureAssignStmt) -> Expr[] {
+    out: Expr[]!: []
+    for t in s.targets {
+        match t {
+            is PlaceTarget | RestTarget -> { out.push(t.place) }
+            is WildcardTarget           -> {}
+        }
+    }
+    return out
 }
 
 /// A type AS WRITTEN — the same node set as `Expr`, deliberately.
@@ -513,6 +531,42 @@ export RestBinding :: struct {
     name_span: Span
 }
 
+/// An assignment to several existing places at once, `[a, b] = pair`.
+///
+/// Not an `AssignStmt` over a literal target: its elements are not expressions —
+/// `_` and `...rest` only mean something here.
+export DestructureAssignStmt :: struct {
+    span:    Span
+    id:      usize = UNASSIGNED_NODE_ID
+    targets: AssignTarget[]
+    value:   Expr
+}
+
+/// A place written by a destructuring assignment — a name, a field or an index.
+///
+/// Any expression parses here; the typechecker refuses what is not a place.
+export PlaceTarget :: struct {
+    span:  Span
+    id:    usize = UNASSIGNED_NODE_ID
+    place: Expr
+}
+
+/// A discarded element of a destructuring assignment, `_`.
+export WildcardTarget :: struct {
+    span: Span
+    id:   usize = UNASSIGNED_NODE_ID
+}
+
+/// The `...rest` tail of a destructuring assignment — writes a fresh array of
+/// every element its siblings did not consume into `place`.
+///
+/// Valid only as the LAST target, over an array-typed source.
+export RestTarget :: struct {
+    span:  Span
+    id:    usize = UNASSIGNED_NODE_ID
+    place: Expr
+}
+
 /// An assignment to an existing place, `target = value`.
 export AssignStmt :: struct {
     span:   Span
@@ -613,7 +667,7 @@ export DeferBlockBody :: struct { block: BlockExpr }
 /// Declared AFTER its variant structs, as `DeferBody` is: the resolver collects
 /// every decl name before resolving types, so either order works and this one
 /// reads top-down.
-export Stmt :: LetStmt | AssignStmt | ExprStmt | ReturnStmt | YieldStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
+export Stmt :: LetStmt | AssignStmt | DestructureAssignStmt | ExprStmt | ReturnStmt | YieldStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
 /// What a `defer` defers: one statement, or a block.
 export DeferBody :: DeferStmtBody | DeferBlockBody
 

@@ -314,7 +314,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
 // the walker is completed.
 export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
     @partial match s {
-        is AST.LetStmt -> {
+        is AST.LetStmt               -> {
             new_ty: AST.TypeExpr | null = null
             if s.ty !is null {
                 new_ty = substitute_type_expr(s.ty, subst)
@@ -331,13 +331,13 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
                 .value = substitute_expr_full(s.value, subst),
             }
         }
-        is AST.ExprStmt -> {
+        is AST.ExprStmt              -> {
             return AST.ExprStmt {
                 .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
                 .expr = substitute_expr_full(s.expr, subst),
             }
         }
-        is AST.ReturnStmt -> {
+        is AST.ReturnStmt            -> {
             new_value: AST.Expr | null = null
             if s.value !is null {
                 new_value = substitute_expr_full(s.value, subst)
@@ -347,14 +347,37 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
                 .value = new_value,
             }
         }
-        is AST.AssignStmt -> {
+        is AST.AssignStmt            -> {
             return AST.AssignStmt {
                 .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
                 .target = substitute_expr_full(s.target, subst),
                 .value = substitute_expr_full(s.value, subst),
             }
         }
-        is AST.ForStmt -> {
+        is AST.DestructureAssignStmt -> {
+            targets: AST.AssignTarget[]!: []
+            for t in s.targets {
+                match t {
+                    is AST.PlaceTarget    -> {
+                        place :: substitute_expr_full(t.place, subst)
+                        targets.push(AST.PlaceTarget { .span = t.span, .place = place })
+                    }
+                    is AST.RestTarget     -> {
+                        place :: substitute_expr_full(t.place, subst)
+                        targets.push(AST.RestTarget { .span = t.span, .place = place })
+                    }
+                    is AST.WildcardTarget -> {
+                        targets.push(AST.WildcardTarget { .span = t.span })
+                    }
+                }
+            }
+            return AST.DestructureAssignStmt {
+                .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
+                .targets = targets,
+                .value = substitute_expr_full(s.value, subst),
+            }
+        }
+        is AST.ForStmt               -> {
             new_form: AST.ForForm! = s.form
             match s.form as form {
                 is AST.WhileFor    -> {
@@ -366,7 +389,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
                         .iter = substitute_expr_full(form.iter, subst),
                     }
                 }
-                is AST.InfiniteFor -> {}    // no children
+                is AST.InfiniteFor -> {} // no children
             }
             return AST.ForStmt {
                 .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -376,10 +399,10 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
                 .is_comptime = s.is_comptime,
             }
         }
-        is AST.BreakStmt -> { return s }       // no children
-        is AST.ContinueStmt -> { return s }
+        is AST.BreakStmt             -> { return s } // no children
+        is AST.ContinueStmt          -> { return s }
         // TODO : DeferStmt. Falls through unchanged for the sketch.
-        _ -> { return s }
+        _                            -> { return s }
     }
 }
 
@@ -497,7 +520,7 @@ stamp_block_spans :: fn(b: AST.BlockExpr!, stamp: StampCtx!) -> void {
 
 stamp_stmt_spans :: fn(s: AST.Stmt!, stamp: StampCtx!) -> void {
     match s {
-        is AST.LetStmt -> {
+        is AST.LetStmt               -> {
             s.span = next_clone_span(stamp)
             stamp_binding_spans(s.binding, stamp)
             if s.ty !is null {
@@ -505,22 +528,31 @@ stamp_stmt_spans :: fn(s: AST.Stmt!, stamp: StampCtx!) -> void {
             }
             stamp_expr_spans(s.value, stamp)
         }
-        is AST.ExprStmt -> {
+        is AST.ExprStmt              -> {
             s.span = next_clone_span(stamp)
             stamp_expr_spans(s.expr, stamp)
         }
-        is AST.ReturnStmt -> {
+        is AST.ReturnStmt            -> {
             s.span = next_clone_span(stamp)
             if s.value !is null {
                 stamp_expr_spans(s.value, stamp)
             }
         }
-        is AST.AssignStmt -> {
+        is AST.AssignStmt            -> {
             s.span = next_clone_span(stamp)
             stamp_expr_spans(s.target, stamp)
             stamp_expr_spans(s.value, stamp)
         }
-        is AST.ForStmt -> {
+        is AST.DestructureAssignStmt -> {
+            s.span = next_clone_span(stamp)
+            // Only the places carry spans anything keys on ; a target's own span
+            // is never looked up.
+            for place in AST.assign_places(s) {
+                stamp_expr_spans(place, stamp)
+            }
+            stamp_expr_spans(s.value, stamp)
+        }
+        is AST.ForStmt               -> {
             s.span = next_clone_span(stamp)
             match s.form as form {
                 is AST.WhileFor    -> { stamp_expr_spans(form.cond, stamp) }
@@ -536,7 +568,7 @@ stamp_stmt_spans :: fn(s: AST.Stmt!, stamp: StampCtx!) -> void {
             }
             stamp_block_spans(s.body, stamp)
         }
-        _ -> {}
+        _                            -> {}
     }
 }
 

@@ -2101,16 +2101,17 @@ parse_block :: fn(p: Parser!) -> BlockExpr {
     for !p.check(.RBrace) && !p.check(.Eof) {
         s_opt :: p.parse_stmt()
         match s_opt {
-            is null         -> {}
-            is LetStmt      -> { raw.push(s_opt) }
-            is AssignStmt   -> { raw.push(s_opt) }
-            is ExprStmt     -> { raw.push(s_opt) }
-            is ReturnStmt   -> { raw.push(s_opt) }
-            is YieldStmt    -> { raw.push(s_opt) }
-            is ForStmt      -> { raw.push(s_opt) }
-            is BreakStmt    -> { raw.push(s_opt) }
-            is ContinueStmt -> { raw.push(s_opt) }
-            is DeferStmt    -> { raw.push(s_opt) }
+            is null                  -> {}
+            is LetStmt               -> { raw.push(s_opt) }
+            is AssignStmt            -> { raw.push(s_opt) }
+            is DestructureAssignStmt -> { raw.push(s_opt) }
+            is ExprStmt              -> { raw.push(s_opt) }
+            is ReturnStmt            -> { raw.push(s_opt) }
+            is YieldStmt             -> { raw.push(s_opt) }
+            is ForStmt               -> { raw.push(s_opt) }
+            is BreakStmt             -> { raw.push(s_opt) }
+            is ContinueStmt          -> { raw.push(s_opt) }
+            is DeferStmt             -> { raw.push(s_opt) }
         }
         p.skip_newlines()
     }
@@ -2123,18 +2124,19 @@ parse_block :: fn(p: Parser!) -> BlockExpr {
     if n > 0 {
         last :: raw[n - 1]
         match last {
-            is ExprStmt -> {
+            is ExprStmt              -> {
                 last_is_expr = true
                 last_expr = last.expr
             }
-            is LetStmt      -> {}
-            is AssignStmt   -> {}
-            is ReturnStmt   -> {}
-            is YieldStmt    -> {}
-            is ForStmt      -> {}
-            is BreakStmt    -> {}
-            is ContinueStmt -> {}
-            is DeferStmt    -> {}
+            is LetStmt               -> {}
+            is AssignStmt            -> {}
+            is DestructureAssignStmt -> {}
+            is ReturnStmt            -> {}
+            is YieldStmt             -> {}
+            is ForStmt               -> {}
+            is BreakStmt             -> {}
+            is ContinueStmt          -> {}
+            is DeferStmt             -> {}
         }
     }
     keep :: if last_is_expr { n - 1 } else { n }
@@ -2178,8 +2180,13 @@ parse_stmt :: fn(p: Parser!) -> Stmt | null {
     // Tuple-destructure let : `[a, b] := expr`, `[a, b] :: expr`, or
     // `[a, b]: [int, string] = expr`. Detected by the `[` whose matching `]`
     // is followed by `:=`, `::`, or `:` (typed form).
-    if p.check(.LBracket) && p.peek_tuple_let_start() {
-        return p.parse_tuple_let()
+    // A `=` (or a compound operator) after the `]` is a destructuring
+    // assignment — its elements are targets, not expressions, so it cannot go
+    // through the expression-statement path below.
+    if p.check(.LBracket) {
+        after :: p.kind_after_bracket_group()
+        if after == .DeclConst || after == .DeclVar || after == .Colon { return p.parse_tuple_let() }
+        if after == .Assign || after.compound_op().matched              { return p.parse_destructure_assign() }
     }
     // `name :: expr` or `name := expr`
     if p.check(.Ident) && (p.check_at(.DeclConst, 1) || p.check_at(.DeclVar, 1)) {
@@ -2206,16 +2213,6 @@ parse_stmt :: fn(p: Parser!) -> Stmt | null {
         p.advance()
         rhs :: p.parse_expr(0)
         sp  :: p.span_of(start, p.peek_at(-1))
-        // `[a, b] += v` has no meaning : the desugar would read the target list
-        // as a VALUE, and `[a, b] + [1, 2]` is array concatenation — four
-        // elements, of which the write then keeps two. Caught here because this
-        // is the only place that still knows the source wrote a compound ; by
-        // the time the typer sees it, it is an ordinary `=` over a `+`, which a
-        // user may legitimately write.
-        if expr is SeqLitExpr {
-            p.error(.CompoundAssignToPattern, expr.span,
-                "a destructuring target takes a plain `=` — write out the element the compound applies to")
-        }
         return AssignStmt {
             .span   = sp,
             .target = expr,
@@ -2290,13 +2287,15 @@ parse_let :: fn(p: Parser!) -> LetStmt {
 // Lookahead : after the leading `[`, scan past the matching `]` and check
 // whether the next significant token starts a let-destructure (`::`, `:=`, or
 // `:` for the typed form). Returns false otherwise.
-peek_tuple_let_start :: fn(p: Parser) -> bool {
+// The kind of the first non-newline token after the `]` closing the `[` at the
+// cursor ; `.Eof` when the group never closes.
+kind_after_bracket_group :: fn(p: Parser) -> TokenKind {
     depth := 1
     j := p.pos + 1
     n :: i32(p.tokens.len())
     for j < n && depth > 0 {
         k :: p.tokens[usize(j)].kind
-        if k == .Eof { return false }
+        if k == .Eof { return .Eof }
         if k == .LBracket { depth = depth + 1 }
         else if k == .RBracket {
             depth = depth - 1
@@ -2304,12 +2303,66 @@ peek_tuple_let_start :: fn(p: Parser) -> bool {
         }
         j = j + 1
     }
-    if depth != 0 { return false }
+    if depth != 0 { return .Eof }
     i := j + 1
     for i < n && p.tokens[usize(i)].kind == .Newline { i = i + 1 }
-    if i >= n { return false }
-    next :: p.tokens[usize(i)].kind
-    return next == .DeclConst || next == .DeclVar || next == .Colon
+    if i >= n { return .Eof }
+    return p.tokens[usize(i)].kind
+}
+
+parse_destructure_assign :: fn(p: Parser!) -> DestructureAssignStmt {
+    start :: p.advance()  // `[`
+    targets: AssignTarget[]!: []
+    for {
+        p.skip_newlines()
+        if p.check(.RBracket) {
+            break
+        }
+        targets.push(p.parse_assign_target())
+        p.skip_newlines()
+        if p.match_kind(.Comma) == null {
+            break
+        }
+    }
+    end :: p.expect(.RBracket, "`]` to close destructuring assignment")
+    if targets.len() == 0 {
+        p.error(.DestructureTooFewElements, p.span_of(start, end), "an assignment takes at least one target")
+    }
+    for i in 1..<targets.len() {
+        if targets[i - 1] is RestTarget as rest {
+            p.error(.RestNotLast, rest.span, "")
+        }
+    }
+    // `[a, b] += v` would desugar to array CONCATENATION — four elements, of
+    // which the write keeps two. Refused, then read as a plain `=` so the rest
+    // of the statement is still checked.
+    if p.peek().kind.compound_op().matched {
+        op :: p.advance()
+        p.error(.CompoundAssignToPattern, p.span_of(start, op),
+            "a destructuring target takes a plain `=` — write out the element the compound applies to")
+    } else {
+        p.expect(.Assign, "`=` after destructuring assignment target")
+    }
+    value :: p.parse_expr(0)
+    return DestructureAssignStmt {
+        .span    = p.span_of(start, p.peek_at(-1)),
+        .targets = targets,
+        .value   = value,
+    }
+}
+
+parse_assign_target :: fn(p: Parser!) -> AssignTarget {
+    start :: p.peek()
+    if p.match_kind(.DotDotDot) != null {
+        place :: p.parse_expr(0)
+        return RestTarget { .span = p.span_of(start, p.peek_at(-1)), .place = place }
+    }
+    if p.check(.Ident) && p.peek().text == "_" {
+        tok :: p.advance()
+        return WildcardTarget { .span = tok.span }
+    }
+    place :: p.parse_expr(0)
+    return PlaceTarget { .span = place.span, .place = place }
 }
 
 parse_tuple_let :: fn(p: Parser!) -> LetStmt {
@@ -2373,7 +2426,12 @@ parse_let_binding :: fn(p: Parser!) -> LetBinding {
         }
         end :: p.expect(.RBracket, "`]` to close destructure pattern")
         if elements.len() < 2 {
-            p.error(.LetDestructureRequiresTwoElements, p.span_of(start, end), "")
+            p.error(.DestructureTooFewElements, p.span_of(start, end), "a declaration takes at least two")
+        }
+        for i in 1..<elements.len() {
+            if elements[i - 1] is RestBinding as rest {
+                p.error(.RestNotLast, rest.span, "")
+            }
         }
         return TupleBinding {
             .span     = p.span_of(start, end),

@@ -10,14 +10,8 @@ import "vader/resolver/symbol"
 import "vader/types"
 import "toolchain/span"
 
-lower_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt {
-    // `[a, b] = pair` — every element read into a temp BEFORE any write, so
-    // `[a, b] = [b, a]` swaps instead of writing `a` then reading it back.
-    via_destructure :: try_lower_destructuring_assign(ctx, assign_stmt)
-    if via_destructure != null { return via_destructure }
-    return lower_assign_one(
-        ctx, assign_stmt.target, lower_expr(ctx, assign_stmt.value), assign_stmt.span)
-}
+lower_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt =
+    lower_assign_one(ctx, assign_stmt.target, lower_expr(ctx, assign_stmt.value), assign_stmt.span)
 
 /// One write to one target, with the value ALREADY lowered.
 ///
@@ -85,46 +79,66 @@ try_lower_cell_set_assign :: fn(
     return null
 }
 
-/// Lvalue lowerer — bypasses the match-narrowing `LoweredCast` wrap that
-/// `lower_ident` applies on use-site reads. The bytecode emitter resolves
-/// assignment slots via the raw `LoweredIdent` ; a cast in target position
-/// breaks that pattern match.
-// `[t0, t1, …] = value` — read every element into its own temp, THEN write.
+// `[t0, _, ...rest] = value` — read every element into its own temp, THEN write.
 //
 // The two phases are the whole point: writing as we read would make
 // `[a, b] = [b, a]` assign `a = b` and then read the NEW `a` back into `b`.
-// The source is bound once too, so `[a, b] = f()` calls `f` a single time.
-//
-// Returns null for any other target shape, leaving the plain assignment path.
-try_lower_destructuring_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt | null {
-    target :: assign_stmt.target
-    if target !is SeqLitExpr { return null }
-    span :: assign_stmt.span
-    value_ty :: ctx.types.expr_type(assign_stmt.value)
+// The source is bound once too, so `[a, b] = f()` calls `f` a single time. A
+// `_` reads nothing; a `...rest` builds its fresh tail array in the read phase.
+lower_destructuring_assign :: fn(ctx: FnLowerCtx!, s: DestructureAssignStmt) -> LoweredStmt {
+    span :: s.span
+    value_ty :: ctx.types.expr_type(s.value)
     src_sym :: fresh_synthetic_symbol(ctx, "destr_src")
     stmts: LoweredStmt[]!: [
         LoweredLet {
             .span = span, .name = src_sym.name, .symbol = src_sym,
-            .type = value_ty, .value = lower_expr(ctx, assign_stmt.value),
+            .type = value_ty, .value = lower_expr(ctx, s.value),
         },
     ]
     src :: synth_ident(src_sym, value_ty, span)
+    backing :: destructure_backing(value_ty)
+    writes: Expr[]!: []
     reads: LoweredExpr[]!: []
-    for i in 0..<target.elements.len() {
-        elem_ty :: ctx.types.expr_type(target.elements[i])
-        tmp :: fresh_synthetic_symbol(ctx, "destr_el")
-        stmts.push(LoweredLet {
-            .span = span, .name = tmp.name, .symbol = tmp, .type = elem_ty,
-            .value = build_leaf_access(src, destructure_backing(value_ty), elem_ty, span, i, null),
-        })
-        reads.push(synth_ident(tmp, elem_ty, span))
+    for i in 0..<s.targets.len() {
+        match s.targets[i] as t {
+            is PlaceTarget    -> {
+                elem_ty :: ctx.types.expr_type(t.place)
+                tmp :: fresh_synthetic_symbol(ctx, "destr_el")
+                stmts.push(LoweredLet {
+                    .span = span, .name = tmp.name, .symbol = tmp, .type = elem_ty,
+                    .value = build_leaf_access(src, backing, elem_ty, span, i, null),
+                })
+                writes.push(t.place)
+                reads.push(synth_ident(tmp, elem_ty, span))
+            }
+            is RestTarget     -> {
+                // The typechecker only lets a rest through over an array source.
+                arr :: array_backing(value_ty) ?? continue
+                elem_ty :: ctx.types.apply(arr.element)
+                tail_ty :: mk_array(elem_ty, false)
+                tmp :: fresh_synthetic_symbol(ctx, "destr_rest")
+                stmts.push(LoweredLet {
+                    .span = span, .name = tmp.name, .symbol = tmp, .type = tail_ty,
+                    .value = LoweredArrayLit { .span = span, .type = tail_ty, .elements = [] },
+                })
+                tail :: synth_ident(tmp, tail_ty, span)
+                emit_tail_copy(ctx, tail, i, src, elem_ty, span, stmts)
+                writes.push(t.place)
+                reads.push(tail)
+            }
+            is WildcardTarget -> {}
+        }
     }
-    for i in 0..<target.elements.len() {
-        stmts.push(lower_assign_one(ctx, target.elements[i], reads[i], span))
+    for i in 0..<writes.len() {
+        stmts.push(lower_assign_one(ctx, writes[i], reads[i], span))
     }
     return wrap_stmts(span, stmts)
 }
 
+/// Lvalue lowerer — bypasses the match-narrowing `LoweredCast` wrap that
+/// `lower_ident` applies on use-site reads. The bytecode emitter resolves
+/// assignment slots via the raw `LoweredIdent` ; a cast in target position
+/// breaks that pattern match.
 lower_assign_target :: fn(ctx: FnLowerCtx!, target: Expr) -> LoweredExpr {
     if target is IdentExpr {
         symbol :: ctx.typed.resolved.idents[target.span.hash()]

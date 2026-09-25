@@ -106,15 +106,22 @@ export check_stmt :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     match stmt {
-        is AST.LetStmt      -> { check_let(stmt, typed, diags, check_expr_fn) }
-        is AST.AssignStmt   -> { check_assign(stmt, typed, diags, check_expr_fn) }
-        is AST.ExprStmt     -> { check_expr_fn(stmt.expr, null, typed, diags) }
-        is AST.ReturnStmt   -> { check_return(stmt, typed, diags, ctx, check_expr_fn) }
-        is AST.YieldStmt    -> { check_yield(stmt, typed, diags, ctx, check_expr_fn) }
-        is AST.ForStmt      -> { check_for(stmt, typed, diags, ctx, check_expr_fn) }
-        is AST.BreakStmt    -> { check_loop_jump(stmt.span, stmt.label, typed, ctx, diags) }
-        is AST.ContinueStmt -> { check_loop_jump(stmt.span, stmt.label, typed, ctx, diags) }
-        is AST.DeferStmt    -> { check_defer(stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.LetStmt               -> { check_let(stmt, typed, diags, check_expr_fn) }
+        is AST.AssignStmt            -> { check_assign(stmt, typed, diags, check_expr_fn) }
+        is AST.DestructureAssignStmt -> {
+            check_destructuring_assign(stmt, typed, diags, check_expr_fn)
+        }
+        is AST.ExprStmt              -> { check_expr_fn(stmt.expr, null, typed, diags) }
+        is AST.ReturnStmt            -> { check_return(stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.YieldStmt             -> { check_yield(stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.ForStmt               -> { check_for(stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.BreakStmt             -> {
+            check_loop_jump(stmt.span, stmt.label, typed, ctx, diags)
+        }
+        is AST.ContinueStmt          -> {
+            check_loop_jump(stmt.span, stmt.label, typed, ctx, diags)
+        }
+        is AST.DeferStmt             -> { check_defer(stmt, typed, diags, ctx, check_expr_fn) }
     }
     return
 }
@@ -150,10 +157,18 @@ block_has_await :: fn(b: AST.BlockExpr) -> bool {
 }
 
 stmt_has_await :: fn(s: AST.Stmt) -> bool = @partial match s {
-    is AST.LetStmt    -> { return expr_has_await(s.value) }
-    is AST.AssignStmt -> { return expr_has_await(s.target) || expr_has_await(s.value) }
-    is AST.ExprStmt   -> { return expr_has_await(s.expr) }
-    is AST.ReturnStmt -> {
+    is AST.LetStmt               -> { return expr_has_await(s.value) }
+    is AST.AssignStmt            -> { return expr_has_await(s.target) || expr_has_await(s.value) }
+    is AST.DestructureAssignStmt -> {
+        for place in AST.assign_places(s) {
+            if expr_has_await(place) {
+                return true
+            }
+        }
+        return expr_has_await(s.value)
+    }
+    is AST.ExprStmt              -> { return expr_has_await(s.expr) }
+    is AST.ReturnStmt            -> {
         // @partial: only expr-carrying statements can hold an `await`; break /
         // continue / defer / yield can't reach one in a coroutine body.
 
@@ -163,8 +178,8 @@ stmt_has_await :: fn(s: AST.Stmt) -> bool = @partial match s {
         }
         return expr_has_await(rv)
     }
-    is AST.ForStmt    -> { return for_form_has_await(s.form) || block_has_await(s.body) }
-    _                 -> { return false }
+    is AST.ForStmt               -> { return for_form_has_await(s.form) || block_has_await(s.body) }
+    _                            -> { return false }
 }
 
 // Whether a for-form's iterable / condition expr carries an `await` (the
@@ -288,25 +303,26 @@ block_has_yield :: fn(block: AST.BlockExpr) -> bool {
 }
 
 stmt_has_yield :: fn(s: AST.Stmt) -> bool = match s {
-    is AST.YieldStmt -> { return true }
-    is AST.ForStmt   -> { return block_has_yield(s.body) }
-    is AST.DeferStmt -> {
+    is AST.YieldStmt             -> { return true }
+    is AST.ForStmt               -> { return block_has_yield(s.body) }
+    is AST.DeferStmt             -> {
         match s.body as b {
             is AST.DeferStmtBody  -> { return stmt_has_yield(b.stmt) }
             is AST.DeferBlockBody -> { return block_has_yield(b.block) }
         }
     }
-    is AST.LetStmt    -> { return false }
-    is AST.AssignStmt -> { return false }
-    is AST.ExprStmt   -> { return expr_has_yield(s.expr) }
-    is AST.ReturnStmt -> {
+    is AST.LetStmt               -> { return false }
+    is AST.AssignStmt            -> { return false }
+    is AST.DestructureAssignStmt -> { return false }
+    is AST.ExprStmt              -> { return expr_has_yield(s.expr) }
+    is AST.ReturnStmt            -> {
         if s.value == null {
             return false
         }
         return expr_has_yield(s.value)
     }
-    is AST.BreakStmt       -> { return false }
-    is AST.ContinueStmt    -> { return false }
+    is AST.BreakStmt             -> { return false }
+    is AST.ContinueStmt          -> { return false }
 }
 
 /// A `yield` can hide inside a block/if/match used in statement position
@@ -707,14 +723,6 @@ check_assign :: fn(
     diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
-    // `[a, b] = pair` — destructuring assignment. Checked here rather than in a
-    // pattern walk because the parser reads the target as a `SeqLitExpr`, not as
-    // a binding: every element is an assignment TARGET that already exists, not
-    // a name being introduced.
-    if s.target is AST.SeqLitExpr as seq {
-        check_destructuring_assign(seq, s, typed, diags, check_expr_fn)
-        return
-    }
     // T3041 : bare-ident assignment to a `::`-bound local. Surface
     // the diag and skip the value-side typing so the dump doesn't
     // carry extra expr_types for a rejected write.
@@ -903,37 +911,101 @@ emit_assign_mismatch_if :: fn(
     )
 }
 
-/// Check `[t0, t1, …] = value` — one assignment per element, against the
+/// Check `[t0, _, ...rest] = value` — one assignment per place, against the
 /// element types of a tuple or array `value`.
 ///
 /// Arity is fixed for a tuple and unknown for an array, so only the tuple case
-/// can be counted here ; an array of the wrong length is a runtime trap on the
-/// element read, exactly as `arr[i]` is elsewhere.
+/// can be counted here ; an array too short for its places is a runtime trap on
+/// the element read, exactly as `arr[i]` is elsewhere. A `...rest` target
+/// receives a fresh array, so it asks for an array source.
 check_destructuring_assign :: fn(
-    seq: AST.SeqLitExpr!,
-    s: AST.AssignStmt!,
+    s: AST.DestructureAssignStmt!,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
-    // The targets are typed FIRST so their slots can be handed to the source as
+    // `[] = v` — P1023 already reported it.
+    if s.targets.len() == 0 {
+        return
+    }
+    // The places are typed FIRST so their slots can be handed to the source as
     // the expected shape : without it a free literal defaults to `i32` and
     // `[u, v] = [1, 2]` over two `usize` slots fails on both elements, where
-    // `u = 1` passes. Same order as the plain assignment path below.
+    // `u = 1` passes. With a rest, the rest's own array type is that shape.
+    rest_slot: Type | null = null
+    for t in s.targets {
+        if t is AST.RestTarget {
+            rest_slot = check_expr_fn(t.place, null, typed, diags)
+        }
+    }
+    if rest_slot != null {
+        for t in s.targets {
+            if t is AST.PlaceTarget {
+                _ :: check_expr_fn(t.place, null, typed, diags)
+            }
+        }
+        value_ty :: check_expr_fn(s.value, rest_slot, typed, diags)
+        arr :: array_backing(value_ty)
+        if arr == null {
+            if value_ty !is UnresolvedType {
+                got :: display_type(default_if_free(value_ty))
+                diags.push(typecheck_error(
+                    .TypeMismatch, s.value.span,
+                    "a `...rest` target collects from an array, got `${got}`"))
+            }
+            return
+        }
+        for t in s.targets {
+            match t {
+                is AST.PlaceTarget    -> {
+                    check_destructure_target(t.place, arr.element, typed, diags, check_expr_fn)
+                }
+                // The tail is a fresh array, so it is mutable whatever the source.
+                is AST.RestTarget     -> {
+                    tail :: mk_array(arr.element, false)
+                    check_destructure_target(t.place, tail, typed, diags, check_expr_fn)
+                }
+                is AST.WildcardTarget -> {}
+            }
+        }
+        return
+    }
     slot_types: Type[]!: []
-    for el in seq.elements {
-        slot_types.push(check_expr_fn(el, null, typed, diags))
+    for t in s.targets {
+        match t {
+            is AST.PlaceTarget    -> {
+                slot_types.push(check_expr_fn(t.place, null, typed, diags))
+            }
+            is AST.WildcardTarget -> {
+                slot_types.push(TY_UNRESOLVED)
+            }
+            is AST.RestTarget     -> {}
+        }
+    }
+    // A literal of the wrong length is refused on its count alone : checked
+    // against the targets' shape it would fail once per element, and read as
+    // an array it would lose its arity.
+    if s.value is AST.SeqLitExpr as lit {
+        if lit.elements.len() != s.targets.len() {
+            _ :: check_expr_fn(s.value, null, typed, diags)
+            diags.push(typecheck_error(
+                .CannotDestructure, s.value.span,
+                "a literal of ${lit.elements.len()} elements into ${s.targets.len()} targets"))
+            return
+        }
     }
     value_ty :: check_expr_fn(s.value, mk_tuple(slot_types, true), typed, diags)
-    elem_types :: destructure_element_types(value_ty, seq.elements.len())
+    elem_types :: destructure_element_types(value_ty, s.targets.len())
     if elem_types == null {
         diags.push(typecheck_error(
             .CannotDestructure, s.value.span,
-            "cannot destructure `${display_type(value_ty)}` into ${seq.elements.len()} elements"))
+            "cannot destructure `${display_type(value_ty)}` into ${s.targets.len()} elements"))
         return
     }
-    for i in 0..<seq.elements.len() {
-        check_destructure_target(seq.elements[i], elem_types[i], typed, diags, check_expr_fn)
+    for i in 0..<s.targets.len() {
+        if s.targets[i] is AST.PlaceTarget as t {
+            check_destructure_target(t.place, elem_types[i], typed, diags, check_expr_fn)
+        }
     }
 }
 
@@ -1981,10 +2053,10 @@ break_targets_loop :: fn(b: AST.BreakStmt, label: string | null, bare_counts: bo
 }
 
 stmt_breaks_loop :: fn(s: AST.Stmt, label: string | null, bare_counts: bool) -> bool = match s {
-    is AST.BreakStmt -> { return break_targets_loop(s, label, bare_counts) }
-    is AST.ForStmt   -> { return block_breaks_loop(s.body, label, false) }
-    is AST.ExprStmt  -> { return expr_breaks_loop(s.expr, label, bare_counts) }
-    is AST.DeferStmt -> {
+    is AST.BreakStmt             -> { return break_targets_loop(s, label, bare_counts) }
+    is AST.ForStmt               -> { return block_breaks_loop(s.body, label, false) }
+    is AST.ExprStmt              -> { return expr_breaks_loop(s.expr, label, bare_counts) }
+    is AST.DeferStmt             -> {
         match s.body as b {
             is AST.DeferStmtBody  -> { return stmt_breaks_loop(b.stmt, label, bare_counts) }
             is AST.DeferBlockBody -> { return block_breaks_loop(b.block, label, bare_counts) }
@@ -1993,19 +2065,27 @@ stmt_breaks_loop :: fn(s: AST.Stmt, label: string | null, bare_counts: bool) -> 
     // `p :: next() ?? break` puts the exit inside a bound VALUE, not a stmt of
     // its own — the shape `std/io::read_dir` drains a directory with. Every
     // value-carrying stmt is descended for that reason.
-    is AST.LetStmt    -> { return expr_breaks_loop(s.value, label, bare_counts) }
-    is AST.AssignStmt -> {
+    is AST.LetStmt               -> { return expr_breaks_loop(s.value, label, bare_counts) }
+    is AST.AssignStmt            -> {
         if expr_breaks_loop(s.target, label, bare_counts) {
             return true
         }
         return expr_breaks_loop(s.value, label, bare_counts)
     }
-    is AST.YieldStmt  -> { return expr_breaks_loop(s.value, label, bare_counts) }
-    is AST.ReturnStmt -> {
+    is AST.DestructureAssignStmt -> {
+        for place in AST.assign_places(s) {
+            if expr_breaks_loop(place, label, bare_counts) {
+                return true
+            }
+        }
+        return expr_breaks_loop(s.value, label, bare_counts)
+    }
+    is AST.YieldStmt             -> { return expr_breaks_loop(s.value, label, bare_counts) }
+    is AST.ReturnStmt            -> {
         v :: s.value ?? return false
         return expr_breaks_loop(v, label, bare_counts)
     }
-    is AST.ContinueStmt -> { return false }
+    is AST.ContinueStmt          -> { return false }
 }
 
 // A `break` is a statement, so it only appears in a block's stmt list — but a
@@ -2052,15 +2132,16 @@ if_breaks_loop :: fn(i: AST.IfExpr, label: string | null, bare_counts: bool) -> 
 
 stmt_span :: fn(s: AST.Stmt) -> Span {
     match s {
-        is AST.LetStmt      -> { return s.span }
-        is AST.AssignStmt   -> { return s.span }
-        is AST.ExprStmt     -> { return s.span }
-        is AST.ReturnStmt   -> { return s.span }
-        is AST.YieldStmt    -> { return s.span }
-        is AST.ForStmt      -> { return s.span }
-        is AST.BreakStmt    -> { return s.span }
-        is AST.ContinueStmt -> { return s.span }
-        is AST.DeferStmt    -> { return s.span }
+        is AST.LetStmt               -> { return s.span }
+        is AST.AssignStmt            -> { return s.span }
+        is AST.DestructureAssignStmt -> { return s.span }
+        is AST.ExprStmt              -> { return s.span }
+        is AST.ReturnStmt            -> { return s.span }
+        is AST.YieldStmt             -> { return s.span }
+        is AST.ForStmt               -> { return s.span }
+        is AST.BreakStmt             -> { return s.span }
+        is AST.ContinueStmt          -> { return s.span }
+        is AST.DeferStmt             -> { return s.span }
     }
 }
 
@@ -2303,6 +2384,17 @@ assign_tuple :: fn(
     // shape checks are identical, only the nominal wrapper is stripped.
     tup :: tuple_backing(declared)
     if tup != null {
+        for leaf in tb.elements {
+            if leaf is AST.RestBinding {
+                diags.push(typecheck_error(
+                    .TypeMismatch, leaf.span,
+                    "a `...rest` binding collects from an array, got `${display_type(declared)}`"))
+                for each in tb.elements {
+                    assign_binding_types(each, TY_UNRESOLVED, typed, diags)
+                }
+                return
+            }
+        }
         if tup.elements.len() != tb.elements.len() {
             // Best-effort : Unresolved on each leaf, the resolver-
             // emitted shape error already surfaces upstream.

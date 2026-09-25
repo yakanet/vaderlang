@@ -1,0 +1,9 @@
+module "snippet"
+
+main :: fn() -> i32 {
+    head: i32[] = []
+    last := 0
+    // `...rest` takes whatever its siblings leave, so it can only come last.
+    [...head, last] = [1, 2, 3]
+    return last
+}

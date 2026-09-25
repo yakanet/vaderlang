@@ -166,17 +166,32 @@ emit_rest_loop :: fn(
         .span = rest.span, .name = rest.name, .symbol = rest_sym,
         .type = rest_init.slot_type, .value = rest_init.value,
     })
+    rest_ref :: read_local_cell_aware(ctx, rest_sym, array_type, span)
+    emit_tail_copy(ctx, rest_ref, rest_index, target, elem_type, span, out)
+}
+
+/// Push `target[rest_index..]` onto the array `dest`, one element at a time.
+///
+/// Shared by the `...rest` of a destructuring declaration and of a destructuring
+/// assignment ; `dest` is an empty array the caller has already bound.
+/// @param dest        the array receiving the tail.
+/// @param rest_index  the first index copied.
+/// @param target      the source array.
+/// @param elem_type   the source's element type.
+emit_tail_copy :: fn(
+    ctx: FnLowerCtx!, dest: LoweredExpr, rest_index: usize,
+    target: LoweredExpr, elem_type: Type, span: Span, out: LoweredStmt[]!,
+) -> void {
     idx_sym :: fresh_synthetic_symbol(ctx, "i")
     out.push(LoweredLet {
         .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = mk_primitive("usize"),
         .value = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = i64(rest_index) },
     })
     idx_ref :: LoweredIdent { .span = span, .type = mk_primitive("usize"), .symbol = idx_sym }
-    rest_ref :: read_local_cell_aware(ctx, rest_sym, array_type, span)
     push_stmt :: LoweredExprStmt {
         .span = span,
         .expr = LoweredArrayPush {
-            .span = span, .type = TY_VOID, .target = rest_ref,
+            .span = span, .type = TY_VOID, .target = dest,
             .value = LoweredIndex { .span = span, .type = elem_type, .target = target, .index = idx_ref },
         },
     }

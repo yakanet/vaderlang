@@ -124,19 +124,25 @@ hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindState!) -> vo
 
 hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState!) -> void {
     match s {
-        is AST.LetStmt -> { hv_walk_expr(s.value, typed, st) }
-        is AST.ExprStmt -> { hv_walk_expr(s.expr, typed, st) }
-        is AST.ReturnStmt -> {
+        is AST.LetStmt               -> { hv_walk_expr(s.value, typed, st) }
+        is AST.ExprStmt              -> { hv_walk_expr(s.expr, typed, st) }
+        is AST.ReturnStmt            -> {
             if s.value !is null {
                 hv_walk_expr(s.value, typed, st)
             }
         }
-        is AST.YieldStmt -> { hv_walk_expr(s.value, typed, st) }
-        is AST.AssignStmt -> {
+        is AST.YieldStmt             -> { hv_walk_expr(s.value, typed, st) }
+        is AST.AssignStmt            -> {
             hv_walk_expr(s.target, typed, st)
             hv_walk_expr(s.value, typed, st)
         }
-        is AST.ForStmt -> {
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(s) {
+                hv_walk_expr(place, typed, st)
+            }
+            hv_walk_expr(s.value, typed, st)
+        }
+        is AST.ForStmt               -> {
             match s.form as w {
                 is AST.WhileFor    -> { hv_walk_expr(w.cond, typed, st) }
                 is AST.InFor       -> { hv_walk_expr(w.iter, typed, st) }
@@ -144,9 +150,9 @@ hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState!) -> void {
             }
             hv_walk_block(s.body, typed, st)
         }
-        is AST.BreakStmt -> {}
-        is AST.ContinueStmt -> {}
-        is AST.DeferStmt -> {
+        is AST.BreakStmt             -> {}
+        is AST.ContinueStmt          -> {}
+        is AST.DeferStmt             -> {
             match s.body as dsb {
                 is AST.DeferStmtBody  -> { hv_walk_stmt(dsb.stmt, typed, st) }
                 is AST.DeferBlockBody -> { hv_walk_block(dsb.block, typed, st) }
@@ -330,7 +336,7 @@ binding_hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindBindi
 
 binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingState!) -> void {
     // No sub-statement and no binding of their own.
-    if s is AST.AssignStmt | AST.BreakStmt | AST.ContinueStmt {
+    if s is AST.AssignStmt | AST.DestructureAssignStmt | AST.BreakStmt | AST.ContinueStmt {
         return
     }
     match s {
@@ -515,19 +521,25 @@ ee_walk_block :: fn(b: AST.BlockExpr, st: EncloseState!) -> void {
 
 ee_walk_stmt :: fn(s: AST.Stmt, st: EncloseState!) -> void {
     match s {
-        is AST.LetStmt -> { ee_walk_expr(s.value, st) }
-        is AST.ExprStmt -> { ee_walk_expr(s.expr, st) }
-        is AST.ReturnStmt -> {
+        is AST.LetStmt               -> { ee_walk_expr(s.value, st) }
+        is AST.ExprStmt              -> { ee_walk_expr(s.expr, st) }
+        is AST.ReturnStmt            -> {
             if s.value !is null {
                 ee_walk_expr(s.value, st)
             }
         }
-        is AST.YieldStmt -> { ee_walk_expr(s.value, st) }
-        is AST.AssignStmt -> {
+        is AST.YieldStmt             -> { ee_walk_expr(s.value, st) }
+        is AST.AssignStmt            -> {
             ee_walk_expr(s.target, st)
             ee_walk_expr(s.value, st)
         }
-        is AST.ForStmt -> {
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(s) {
+                ee_walk_expr(place, st)
+            }
+            ee_walk_expr(s.value, st)
+        }
+        is AST.ForStmt               -> {
             match s.form as w {
                 is AST.WhileFor    -> { ee_walk_expr(w.cond, st) }
                 is AST.InFor       -> { ee_walk_expr(w.iter, st) }
@@ -535,9 +547,9 @@ ee_walk_stmt :: fn(s: AST.Stmt, st: EncloseState!) -> void {
             }
             ee_walk_block(s.body, st)
         }
-        is AST.BreakStmt -> {}
-        is AST.ContinueStmt -> {}
-        is AST.DeferStmt -> {
+        is AST.BreakStmt             -> {}
+        is AST.ContinueStmt          -> {}
+        is AST.DeferStmt             -> {
             match s.body as dsb {
                 is AST.DeferStmtBody  -> { ee_walk_stmt(dsb.stmt, st) }
                 is AST.DeferBlockBody -> { ee_walk_block(dsb.block, st) }

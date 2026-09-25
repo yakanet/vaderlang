@@ -611,7 +611,7 @@ write_stmts :: fn(sb: StringBuilder!, ss: Stmt[], level: i32) -> void {
 
 write_stmt :: fn(sb: StringBuilder!, s: Stmt, level: i32) -> void {
     match s {
-        is LetStmt -> {
+        is LetStmt               -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "LetStmt")
             sb.entry(false, level + 1, "mutable")
@@ -624,7 +624,7 @@ write_stmt :: fn(sb: StringBuilder!, s: Stmt, level: i32) -> void {
             sb.write_expr(s.value, level + 1)
             sb.close_obj(level)
         }
-        is AssignStmt -> {
+        is AssignStmt            -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "AssignStmt")
             sb.entry(false, level + 1, "target")
@@ -633,35 +633,44 @@ write_stmt :: fn(sb: StringBuilder!, s: Stmt, level: i32) -> void {
             sb.write_expr(s.value, level + 1)
             sb.close_obj(level)
         }
-        is ExprStmt -> {
+        is DestructureAssignStmt -> {
+            sb.open_obj()
+            sb.kind_entry(level + 1, "DestructureAssignStmt")
+            sb.entry(false, level + 1, "targets")
+            sb.write_assign_targets(s.targets, level + 1)
+            sb.entry(false, level + 1, "value")
+            sb.write_expr(s.value, level + 1)
+            sb.close_obj(level)
+        }
+        is ExprStmt              -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "ExprStmt")
             sb.entry(false, level + 1, "expr")
             sb.write_expr(s.expr, level + 1)
             sb.close_obj(level)
         }
-        is ReturnStmt -> {
+        is ReturnStmt            -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "ReturnStmt")
             sb.entry(false, level + 1, "value")
             sb.write_optional_expr(s.value, level + 1)
             sb.close_obj(level)
         }
-        is YieldStmt -> {
+        is YieldStmt             -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "YieldStmt")
             sb.entry(false, level + 1, "value")
             sb.write_expr(s.value, level + 1)
             sb.close_obj(level)
         }
-        is ForStmt -> {
+        is ForStmt               -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "ForStmt")
             sb.entry(false, level + 1, "label")
             label :: s.label
 
             match label {
-                is null        -> { sb.write_null() }
+                is null   -> { sb.write_null() }
                 is string -> { sb.write_string(label) }
             }
             sb.entry(false, level + 1, "form")
@@ -672,38 +681,38 @@ write_stmt :: fn(sb: StringBuilder!, s: Stmt, level: i32) -> void {
             sb.write_bool(s.is_comptime)
             sb.close_obj(level)
         }
-        is BreakStmt -> {
+        is BreakStmt             -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "BreakStmt")
             sb.entry(false, level + 1, "label")
             label :: s.label
 
             match label {
-                is null        -> { sb.write_null() }
+                is null   -> { sb.write_null() }
                 is string -> { sb.write_string(label) }
             }
             sb.close_obj(level)
         }
-        is ContinueStmt -> {
+        is ContinueStmt          -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "ContinueStmt")
             sb.entry(false, level + 1, "label")
             label :: s.label
 
             match label {
-                is null        -> { sb.write_null() }
+                is null   -> { sb.write_null() }
                 is string -> { sb.write_string(label) }
             }
             sb.close_obj(level)
         }
-        is DeferStmt -> {
+        is DeferStmt             -> {
             sb.open_obj()
             sb.kind_entry(level + 1, "DeferStmt")
             sb.entry(false, level + 1, "body")
             body :: s.body
 
             match body {
-                is DeferStmtBody -> { sb.write_stmt(body.stmt, level + 1) }
+                is DeferStmtBody  -> { sb.write_stmt(body.stmt, level + 1) }
                 is DeferBlockBody -> { sb.write_block_expr(body.block, level + 1) }
             }
             sb.close_obj(level)
@@ -1195,6 +1204,40 @@ write_let_binding :: fn(sb: StringBuilder!, b: LetBinding, level: i32) -> void {
             sb.close_obj(level)
         }
     }
+}
+
+write_assign_target :: fn(sb: StringBuilder!, t: AssignTarget, level: i32) -> void {
+    match t {
+        is PlaceTarget | RestTarget -> {
+            sb.open_obj()
+            sb.kind_entry(level + 1, if t is RestTarget { "RestTarget" } else { "PlaceTarget" })
+            sb.entry(false, level + 1, "place")
+            sb.write_expr(t.place, level + 1)
+            sb.close_obj(level)
+        }
+        is WildcardTarget           -> {
+            sb.open_obj()
+            sb.kind_entry(level + 1, "WildcardTarget")
+            sb.close_obj(level)
+        }
+    }
+}
+
+write_assign_targets :: fn(sb: StringBuilder!, ts: AssignTarget[], level: i32) -> void {
+    if ts.len() == 0 {
+        sb.close_arr_empty()
+        return
+    }
+    sb.open_arr()
+    for i in 0..<ts.len() {
+        if i > 0 {
+            sb.append_char(',')
+        }
+        sb.append_char('\n')
+        sb.indent(level + 1)
+        sb.write_assign_target(ts[i], level + 1)
+    }
+    sb.close_arr(level)
 }
 
 write_let_bindings :: fn(sb: StringBuilder!, bs: LetBinding[], level: i32) -> void {

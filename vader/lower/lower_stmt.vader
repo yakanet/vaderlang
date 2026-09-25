@@ -157,12 +157,13 @@ trailing_type :: fn(trailing: LoweredExpr | null) -> Type {
 // __tup binding + N leaf lets ; defer currently produces zero.
 lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void {
     match stmt {
-        is LetStmt    -> { lower_let_into(ctx, stmt, out) }
-        is AssignStmt -> { out.push(lower_assign(ctx, stmt)) }
-        is ExprStmt   -> {
+        is LetStmt               -> { lower_let_into(ctx, stmt, out) }
+        is AssignStmt            -> { out.push(lower_assign(ctx, stmt)) }
+        is DestructureAssignStmt -> { out.push(lower_destructuring_assign(ctx, stmt)) }
+        is ExprStmt              -> {
             out.push(LoweredExprStmt { .span = stmt.span, .expr = lower_expr(ctx, stmt.expr) })
         }
-        is ReturnStmt   -> {
+        is ReturnStmt            -> {
             // Drain every pending defer in the enclosing scopes BEFORE
             // the actual return op. Count = sum of `defers` across every
             // open BlockCtx (the innermost block back up to the fn root).
@@ -180,7 +181,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
                 out.push(exit)
             }
         }
-        is YieldStmt    -> {
+        is YieldStmt             -> {
             if ctx.gen_inline_sink is GenInlineSink as sink {
                 // Couche 4 generator inline: `yield e` becomes the consumer's
                 // loop-var binding + its body, splicing the consumption site in
@@ -210,8 +211,8 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
                 })
             }
         }
-        is ForStmt   -> { out.push(lower_for(ctx, stmt)) }
-        is BreakStmt -> {
+        is ForStmt               -> { out.push(lower_for(ctx, stmt)) }
+        is BreakStmt             -> {
             drain: LoweredStmt[]!: []
             drain_defers_to_loop(ctx, stmt.span, drain)
             exit :: LoweredBreak { .span = stmt.span, .label = stmt.label }
@@ -222,7 +223,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
                 out.push(exit)
             }
         }
-        is ContinueStmt -> {
+        is ContinueStmt          -> {
             drain: LoweredStmt[]!: []
             drain_defers_to_loop(ctx, stmt.span, drain)
             exit :: LoweredContinue { .span = stmt.span, .label = stmt.label }
@@ -233,7 +234,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
                 out.push(exit)
             }
         }
-        is DeferStmt    -> {
+        is DeferStmt             -> {
             // Lift to a synthetic `__defer_N` fn + emit
             // `LoweredDeferPush { LoweredMakeClosure }` at the source
             // site. Block-exit `defer.pop_exec N` emission is handled

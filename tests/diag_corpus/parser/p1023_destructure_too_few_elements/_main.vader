@@ -1,0 +1,8 @@
+module "snippet"
+
+main :: fn() -> i32 {
+    // A destructuring declaration names at least two elements — one name is a
+    // plain declaration.
+    [only] :: [1, 2]
+    return only
+}

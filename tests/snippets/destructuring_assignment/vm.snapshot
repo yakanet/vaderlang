@@ -6,5 +6,8 @@ mixed:   box.x=30 arr[1]=40
 rotate:  p=3 q=1 r=2
 map:     k=30 z=40
 capture: c1=50 c2=60
+skip:    s=seven
+rest:    head=1 xs=2 [3, 4]
+empty:   p=7 q=8 none=0 all=2
 # exit
 0

@@ -226,19 +226,25 @@ collect_binding :: fn(b: AST.LetBinding, out: Span[]!) -> void {
 
 collect_stmt :: fn(s: AST.Stmt, out: Span[]!) -> void {
     match s {
-        is AST.LetStmt -> {
+        is AST.LetStmt               -> {
             collect_binding(s.binding, out)
             collect_opt_type(s.ty, out)
             collect_expr(s.value, out)
         }
-        is AST.AssignStmt -> {
+        is AST.AssignStmt            -> {
             collect_expr(s.target, out)
             collect_expr(s.value, out)
         }
-        is AST.ExprStmt   -> { collect_expr(s.expr, out) }
-        is AST.ReturnStmt -> { collect_opt_expr(s.value, out) }
-        is AST.YieldStmt  -> { collect_expr(s.value, out) }
-        is AST.ForStmt    -> {
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(s) {
+                collect_expr(place, out)
+            }
+            collect_expr(s.value, out)
+        }
+        is AST.ExprStmt              -> { collect_expr(s.expr, out) }
+        is AST.ReturnStmt            -> { collect_opt_expr(s.value, out) }
+        is AST.YieldStmt             -> { collect_expr(s.value, out) }
+        is AST.ForStmt               -> {
             match s.form as w {
                 is AST.InfiniteFor -> {}
                 is AST.WhileFor    -> { collect_expr(w.cond, out) }
@@ -253,9 +259,9 @@ collect_stmt :: fn(s: AST.Stmt, out: Span[]!) -> void {
             }
             collect_block(s.body, out)
         }
-        is AST.BreakStmt    -> {}
-        is AST.ContinueStmt -> {}
-        is AST.DeferStmt    -> {
+        is AST.BreakStmt             -> {}
+        is AST.ContinueStmt          -> {}
+        is AST.DeferStmt             -> {
             match s.body as b {
                 is AST.DeferStmtBody  -> { collect_stmt(b.stmt, out) }
                 is AST.DeferBlockBody -> { collect_block(b.block, out) }

@@ -1,0 +1,12 @@
+module "snippet"
+
+pair :: fn() -> [i32, string] = [1, "x"]
+
+main :: fn() -> i32 {
+    n := 0
+    tail: string[] = []
+    // A `...rest` target receives a fresh array, so the source must be one: a
+    // tuple's tail has no element type to build it from.
+    [n, ...tail] = pair()
+    return n
+}

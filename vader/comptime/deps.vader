@@ -303,6 +303,12 @@ collect_stmt_deps :: fn(
             }
         }
         is AST.AssignStmt -> { collect_expr_deps(s.target, typed, nodes, seen, record) collect_expr_deps(s.value, typed, nodes, seen, record) }
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(s) {
+                collect_expr_deps(place, typed, nodes, seen, record)
+            }
+            collect_expr_deps(s.value, typed, nodes, seen, record)
+        }
         is AST.ForStmt    -> {
             match s.form as while_for {
                 is AST.WhileFor -> { collect_expr_deps(while_for.cond, typed, nodes, seen, record) }

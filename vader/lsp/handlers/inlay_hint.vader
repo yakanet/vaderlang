@@ -105,7 +105,7 @@ collect_from_block :: fn(b: AST.BlockExpr, ctx: HintCtx, out: JsonValue[]!) -> v
 
 collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]!) -> void {
     match s {
-        is AST.LetStmt -> {
+        is AST.LetStmt               -> {
             // Skip when the user already annotated the binding type.
             match s.ty {
                 is null -> { emit_let_hint(s, ctx, out) }
@@ -113,18 +113,24 @@ collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]!) -> void {
             }
             collect_from_expr(s.value, ctx, out)
         }
-        is AST.ExprStmt -> { collect_from_expr(s.expr, ctx, out) }
-        is AST.ReturnStmt -> {
+        is AST.ExprStmt              -> { collect_from_expr(s.expr, ctx, out) }
+        is AST.ReturnStmt            -> {
             if s.value !is null {
                 collect_from_expr(s.value, ctx, out)
             }
         }
-        is AST.YieldStmt -> { collect_from_expr(s.value, ctx, out) }
-        is AST.AssignStmt -> {
+        is AST.YieldStmt             -> { collect_from_expr(s.value, ctx, out) }
+        is AST.AssignStmt            -> {
             collect_from_expr(s.target, ctx, out)
             collect_from_expr(s.value, ctx, out)
         }
-        is AST.ForStmt -> {
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(s) {
+                collect_from_expr(place, ctx, out)
+            }
+            collect_from_expr(s.value, ctx, out)
+        }
+        is AST.ForStmt               -> {
             match s.form as w {
                 is AST.WhileFor    -> { collect_from_expr(w.cond, ctx, out) }
                 is AST.InFor       -> { collect_from_expr(w.iter, ctx, out) }
@@ -132,9 +138,9 @@ collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]!) -> void {
             }
             collect_from_block(s.body, ctx, out)
         }
-        is AST.BreakStmt -> {}
-        is AST.ContinueStmt -> {}
-        is AST.DeferStmt -> {
+        is AST.BreakStmt             -> {}
+        is AST.ContinueStmt          -> {}
+        is AST.DeferStmt             -> {
             match s.body as dsb {
                 is AST.DeferStmtBody  -> { collect_from_stmt(dsb.stmt, ctx, out) }
                 is AST.DeferBlockBody -> { collect_from_block(dsb.block, ctx, out) }

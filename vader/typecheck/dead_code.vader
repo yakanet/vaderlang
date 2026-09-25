@@ -161,18 +161,24 @@ collect_expr_names :: fn(e: AST.Expr, out: string[]!) -> void {
 
 collect_stmt_names :: fn(s: AST.Stmt, out: string[]!) -> void {
     match s {
-        is AST.LetStmt      -> {
+        is AST.LetStmt               -> {
             collect_opt_expr_names(s.ty, out)
             collect_expr_names(s.value, out)
         }
-        is AST.AssignStmt   -> {
+        is AST.AssignStmt            -> {
             collect_expr_names(s.target, out)
             collect_expr_names(s.value, out)
         }
-        is AST.ExprStmt     -> { collect_expr_names(s.expr, out) }
-        is AST.ReturnStmt   -> { collect_opt_expr_names(s.value, out) }
-        is AST.YieldStmt    -> { collect_expr_names(s.value, out) }
-        is AST.ForStmt      -> {
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(s) {
+                collect_expr_names(place, out)
+            }
+            collect_expr_names(s.value, out)
+        }
+        is AST.ExprStmt              -> { collect_expr_names(s.expr, out) }
+        is AST.ReturnStmt            -> { collect_opt_expr_names(s.value, out) }
+        is AST.YieldStmt             -> { collect_expr_names(s.value, out) }
+        is AST.ForStmt               -> {
             match s.form as w {
                 is AST.InfiniteFor -> {}
                 is AST.WhileFor    -> { collect_expr_names(w.cond, out) }
@@ -180,9 +186,9 @@ collect_stmt_names :: fn(s: AST.Stmt, out: string[]!) -> void {
             }
             collect_block_names(s.body, out)
         }
-        is AST.BreakStmt    -> {}
-        is AST.ContinueStmt -> {}
-        is AST.DeferStmt    -> {
+        is AST.BreakStmt             -> {}
+        is AST.ContinueStmt          -> {}
+        is AST.DeferStmt             -> {
             match s.body as b {
                 is AST.DeferStmtBody  -> { collect_stmt_names(b.stmt, out) }
                 is AST.DeferBlockBody -> { collect_block_names(b.block, out) }

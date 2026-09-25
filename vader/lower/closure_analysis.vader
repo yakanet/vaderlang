@@ -192,29 +192,35 @@ walk_stmt :: fn(
     out_captures: Capture[]! | null, out_seen: MutableSet<i32>! | null, ctx: WalkCtx!,
 ) -> void {
     match stmt {
-        is AST.LetStmt -> {
+        is AST.LetStmt               -> {
             walk_expr(stmt.value, scope, out_captures, out_seen, ctx)
             add_local_to_scope(stmt.binding, scope, ctx.symbol_index)
         }
-        is AST.AssignStmt -> {
+        is AST.AssignStmt            -> {
             walk_expr(stmt.target, scope, out_captures, out_seen, ctx)
             walk_expr(stmt.value,  scope, out_captures, out_seen, ctx)
         }
-        is AST.ExprStmt -> {
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(stmt) {
+                walk_expr(place, scope, out_captures, out_seen, ctx)
+            }
+            walk_expr(stmt.value, scope, out_captures, out_seen, ctx)
+        }
+        is AST.ExprStmt              -> {
             walk_expr(stmt.expr, scope, out_captures, out_seen, ctx)
         }
-        is AST.ReturnStmt -> {
+        is AST.ReturnStmt            -> {
             if stmt.value !is null {
                 walk_expr(stmt.value, scope, out_captures, out_seen, ctx)
             }
         }
-        is AST.YieldStmt -> {
+        is AST.YieldStmt             -> {
             walk_expr(stmt.value, scope, out_captures, out_seen, ctx)
         }
-        is AST.ForStmt -> { walk_for(stmt, scope, out_captures, out_seen, ctx) }
-        is AST.BreakStmt -> {}
-        is AST.ContinueStmt -> {}
-        is AST.DeferStmt -> {
+        is AST.ForStmt               -> { walk_for(stmt, scope, out_captures, out_seen, ctx) }
+        is AST.BreakStmt             -> {}
+        is AST.ContinueStmt          -> {}
+        is AST.DeferStmt             -> {
             // The defer body lifts to a synthetic fn with its own env struct
             // and no params of its own, so it has a distinct capture set from
             // the enclosing fn. Walk it under a FRESH (empty) scope plus FRESH

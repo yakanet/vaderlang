@@ -329,7 +329,7 @@ walk_block :: fn(b: BlockExpr!, f: NodeIdFactory!) -> void {
 
 walk_stmt :: fn(s: Stmt!, f: NodeIdFactory!) -> void {
     match s {
-        is LetStmt -> {
+        is LetStmt               -> {
             s.id = f.mint()
             walk_let_binding(s.binding, f)
             if s.ty !is null {
@@ -337,33 +337,40 @@ walk_stmt :: fn(s: Stmt!, f: NodeIdFactory!) -> void {
             }
             walk_expr(s.value, f)
         }
-        is AssignStmt -> {
+        is AssignStmt            -> {
             s.id = f.mint()
             walk_expr(s.target, f)
             walk_expr(s.value, f)
         }
-        is ExprStmt -> {
+        is DestructureAssignStmt -> {
+            s.id = f.mint()
+            for t in s.targets {
+                walk_assign_target(t, f)
+            }
+            walk_expr(s.value, f)
+        }
+        is ExprStmt              -> {
             s.id = f.mint()
             walk_expr(s.expr, f)
         }
-        is ReturnStmt -> {
+        is ReturnStmt            -> {
             s.id = f.mint()
             if s.value !is null {
                 walk_expr(s.value, f)
             }
         }
-        is YieldStmt -> {
+        is YieldStmt             -> {
             s.id = f.mint()
             walk_expr(s.value, f)
         }
-        is ForStmt -> {
+        is ForStmt               -> {
             s.id = f.mint()
             walk_for_form(s.form, f)
             walk_block(s.body, f)
         }
-        is BreakStmt -> { s.id = f.mint() }
-        is ContinueStmt -> { s.id = f.mint() }
-        is DeferStmt -> {
+        is BreakStmt             -> { s.id = f.mint() }
+        is ContinueStmt          -> { s.id = f.mint() }
+        is DeferStmt             -> {
             s.id = f.mint()
             match s.body as ds {
                 is DeferStmtBody  -> { walk_stmt(ds.stmt, f) }
@@ -378,6 +385,16 @@ walk_for_form :: fn(form: ForForm!, f: NodeIdFactory!) -> void {
         is InfiniteFor -> {}
         is WhileFor -> { walk_expr(form.cond, f) }
         is InFor -> { walk_expr(form.iter, f) }
+    }
+}
+
+walk_assign_target :: fn(t: AssignTarget!, f: NodeIdFactory!) -> void {
+    match t {
+        is PlaceTarget | RestTarget -> {
+            t.id = f.mint()
+            walk_expr(t.place, f)
+        }
+        is WildcardTarget           -> { t.id = f.mint() }
     }
 }
 

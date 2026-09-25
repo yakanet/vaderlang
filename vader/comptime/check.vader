@@ -283,18 +283,24 @@ collect_in_block :: fn(b: AST.BlockExpr, out: AST.IntrinsicCallExpr[]!) -> void 
 
 collect_in_stmt :: fn(s: AST.Stmt, out: AST.IntrinsicCallExpr[]!) -> void {
     match s {
-        is AST.LetStmt -> { collect_in_expr(s.value, out) }
-        is AST.AssignStmt -> {
+        is AST.LetStmt               -> { collect_in_expr(s.value, out) }
+        is AST.AssignStmt            -> {
             collect_in_expr(s.target, out)
             collect_in_expr(s.value, out)
         }
-        is AST.ExprStmt -> { collect_in_expr(s.expr, out) }
-        is AST.ReturnStmt -> {
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(s) {
+                collect_in_expr(place, out)
+            }
+            collect_in_expr(s.value, out)
+        }
+        is AST.ExprStmt              -> { collect_in_expr(s.expr, out) }
+        is AST.ReturnStmt            -> {
             if s.value !is null {
                 collect_in_expr(s.value, out)
             }
         }
-        is AST.ForStmt -> {
+        is AST.ForStmt               -> {
             match s.form as wf {
                 is AST.WhileFor -> { collect_in_expr(wf.cond, out) }
                 is AST.InFor    -> { collect_in_expr(wf.iter, out) }
@@ -302,13 +308,13 @@ collect_in_stmt :: fn(s: AST.Stmt, out: AST.IntrinsicCallExpr[]!) -> void {
             }
             collect_in_block(s.body, out)
         }
-        is AST.DeferStmt -> {
+        is AST.DeferStmt             -> {
             match s.body as dsb {
                 is AST.DeferStmtBody  -> { collect_in_stmt(dsb.stmt, out) }
                 is AST.DeferBlockBody -> { collect_in_block(dsb.block, out) }
             }
         }
-        _ -> {}
+        _                            -> {}
     }
 }
 

@@ -101,7 +101,7 @@ The classifier is `fn_instance_flavor` in `vader/lower/lower_mono_fn.vader` for 
 
 The lowerer consumes the monomorphised typed AST and produces a **separate, smaller AST** (the *Lowered AST*) where high-level constructs are desugared into a fixed set of primitive operations the backends understand. The original typed AST is never mutated. Specifically the lowerer:
 
-- **Pattern match → if/else chains.** Naive linear lowering: each arm becomes a guarded `if` whose predicate is the pattern's discriminator (type tag, struct shape, literal equality) ∧ its optional `if`-guard. The `match e as x` binder becomes a local let ahead of the arms; struct destructuring binds locals at the head of the arm body. No decision-tree compilation in MVP — naive code is fine for the bytecode emitter to optimise later.
+- **Pattern match → if/else chains.** Naive linear lowering: each arm becomes a guarded `if` whose predicate is the pattern's discriminator (type tag, struct shape, literal equality) ∧ its optional `if`-guard. The `match e as x` binder becomes a local binding ahead of the arms; struct destructuring binds locals at the head of the arm body. No decision-tree compilation in MVP — naive code is fine for the bytecode emitter to optimise later.
 - **`expr?` → `match`.** Lowered to `match expr as v { is Error -> return v  is T -> v }` over the typed scrutinee. Every `Error`-implementing variant routes to a `return` of that same value; the happy variant becomes the expression's result.
 - **String interpolation → builder intrinsics.** Each `"…${x}…"` lowers to a sequence of `builder.new`, `builder.append_str`, `builder.append_display(x)`, `builder.finish` intrinsic calls. The runtime (which `std/string_builder` wraps) provides the actual implementation; the lowerer only emits the call chain. `builder.append_display` is dispatched statically per the post-mono `Display` impl table.
 - **`defer` → exit-point duplication.** The lowerer keeps a per-block stack of pending defers (LIFO) and inlines them physically at every textual exit of the block: implicit fallthrough, `return`, `break`, `continue`. A `panic` (or trap) **runs the pending defers** of every frame it unwinds through — LIFO, innermost frame first — before the process aborts; the panic stays fatal (no recovery). Each frame runs its own defers as the stack tears down; defers do not otherwise propagate across function boundaries.
@@ -445,7 +445,7 @@ x := a + \
 | Null | `null` |
 | Metatype | `type` (comptime-only — see below) |
 
-`type` is the **metatype**: a value of static type `type` *is* a Vader type. It is **comptime-only** — values never reach runtime, so `: type` is only meaningful in comptime contexts (currently the angle-bracketed `<T: type>` generic-param head, soon `let T: type = i32` and the result type of intrinsics like `@type_of(x)`). The compiler enforces that any expression typed `type` is comptime-evaluable; emitting one in a runtime slot is an internal-bug error in the bytecode emitter.
+`type` is the **metatype**: a value of static type `type` *is* a Vader type. It is **comptime-only** — values never reach runtime, so `: type` is only meaningful in comptime contexts (currently the angle-bracketed `<T: type>` generic-param head, soon `T: type : i32` and the result type of intrinsics like `@type_of(x)`). The compiler enforces that any expression typed `type` is comptime-evaluable; emitting one in a runtime slot is an internal-bug error in the bytecode emitter.
 
 ### Built-in type aliases
 
@@ -663,7 +663,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - `T[]` (postfix) is a dynamic array (runtime length). `int[]`, `string[]`, `Foo<i32>[]`, ... `int[][]` is an array of int arrays.
 - **Implicit reference** semantics: `arr2 := arr` copies the reference; use `arr.clone()` (UFCS from `std/iter`) for a fresh mutable copy.
 - Indexing: `arr[i]`. Bounds-checked in debug (panic), elidable in release.
-- **Slicing**: `arr[r]` where `r: Range<integer>` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and let-bound range values work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted; bounds are coerced to `usize` at the use site. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
+- **Slicing**: `arr[r]` where `r: Range<integer>` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and range values bound to a local work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted; bounds are coerced to `usize` at the use site. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
 - Postfix `[]` binds tighter than `|`; use parens to group: `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U".
 
 #### Read-only arrays
@@ -839,7 +839,7 @@ differ in kind rather than in degree: `[a, b] := pair` is checked at compile tim
 
 #### Spread destructuring (arrays only)
 
-A `let`-binding may end with `...rest` to collect the tail of an array source into a fresh array. At most one rest, last position only.
+A destructuring declaration (`::` / `:=`) may end with `...rest` to collect the tail of an array source into a fresh array. At most one rest, last position only.
 
 ```vader
 arr :: [10, 20, 30, 40, 50]
@@ -848,7 +848,7 @@ arr :: [10, 20, 30, 40, 50]
 [_, _, ...short] := arr                // wildcards combine with rest
 ```
 
-Tuple sources keep the existing exact-arity rule (`[a, b] := pair` requires the tuple to have exactly two elements) — `...rest` is array-specific because the result type only makes sense when the tail length is dynamic. T3001 fires on a non-array source or when `...rest` isn't the last element.
+Tuple sources keep the existing exact-arity rule (`[a, b] := pair` requires the tuple to have exactly two elements) — `...rest` is array-specific because the result type only makes sense when the tail length is dynamic. T3001 fires on a non-array source, and P1038 when `...rest` isn't the last element.
 
 #### Destructuring via `Into<[...]>`
 
@@ -868,7 +868,9 @@ The same `[...]` shape also works on the left of an `=`, writing to targets that
 already exist rather than introducing names. Each element must be an assignment
 target in its own right — a name, a field, or an index — and is held to every
 rule a bare assignment faces. An element that is not an assignment target is
-`T3082`; a tuple source whose arity differs from the pattern is `T3081`.
+`T3082`; a tuple source whose arity differs from the pattern is `T3081`, and so
+is a literal source of the wrong length — a literal's length is known even when
+it would otherwise read as an array.
 
 ```vader
 a := 1
@@ -883,10 +885,22 @@ above mean what it reads as: the source is evaluated once, each element lands in
 a temporary, and only then are the targets written. A left-to-right
 read-then-write would assign `a = b` and read the *new* `a` back into `b`.
 
-The target is a flat list of assignment targets, not a pattern: **nesting
-(`[[a, b], c] = …`), `_` and `...rest` are not accepted here**, and a source that
-destructures only through `Into<[...]>` is refused. Those belong to `let` and to
-match arms, where a pattern introduces names.
+`_` skips an element: it counts toward a tuple's arity, and nothing is read or
+written for it. A trailing `...place` writes a **fresh array** of every element
+the other targets left, exactly as a destructuring declaration's `...rest` binds
+one — so it asks for an array source (`T3001` otherwise), comes last (`P1038`
+otherwise), and is built in the read phase like any other element.
+
+```vader
+[_, name] = lookup(id)                 // lookup runs once, its first element is dropped
+[head, ...queue] = queue               // head = queue[0], queue = a copy of the rest
+[x, _, ...tail] = coords               // tail = coords[2..], empty when there is none
+```
+
+The target is otherwise a flat list of places, not a pattern: **nesting
+(`[[a, b], c] = …`) is not accepted**, and a source that destructures only
+through `Into<[...]>` is refused. Those belong to a destructuring declaration and
+to match arms, where a pattern introduces names.
 
 ### Structs
 
@@ -1927,7 +1941,7 @@ items.map(x -> {
 })
 ```
 
-**No explicit return-type slot on lambdas.** The return type is always inferred — from the call-site signature, an enclosing struct field's fn-type, a typed `let`, or from the body itself. If you need to annotate the return type explicitly, declare a named function instead:
+**No explicit return-type slot on lambdas.** The return type is always inferred — from the call-site signature, an enclosing struct field's fn-type, a typed declaration, or from the body itself. If you need to annotate the return type explicitly, declare a named function instead:
 
 ```vader
 inc :: fn(x: i32) -> i32 { x + 1 }
@@ -2137,13 +2151,13 @@ The iteration form `for x in expr` accepts three shapes for `expr`:
 
 Raw `T[]` arrays are auto-wrapped through `array_iter` (via the shipped `T[] implements Into<Iterator<T>>` impl in `std/core`), and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Into<Iterator<T>>` so `for x in coll { ... }` works without an explicit `.into()`. There is no separate `Iterable` trait today (see the planned note below).
 
-The same auto-wrap fires at any *concrete* `Iterator<T>` slot — function arguments, `return` expressions, and typed `let` bindings — so `T[]` flows transparently:
+The same auto-wrap fires at any *concrete* `Iterator<T>` slot — function arguments, `return` expressions, and typed declarations — so `T[]` flows transparently:
 
 ```vader
 walk :: fn(it: Iterator<i32>) -> i32 { ... }
 walk([10, 20, 30])                            // call-arg coercion
 fold :: fn() -> Iterator<i32> { return [1, 2, 3] }   // return coercion
-buf: Iterator<i32> : [4, 5, 6]                // typed-let coercion
+buf: Iterator<i32> : [4, 5, 6]                // typed-declaration coercion
 ```
 
 The coercion is gated on **canonical symbol identity** of `std/core::Iterator`; a user-defined trait that happens to be named `Iterator` is left alone. The lazy `std/iter` combinators (`map` / `filter` / …, all generators — they `yield` — over `self: Iterator<T>`) resolve **directly on a bare array** through the generator receiver-dispatch path — `arr.map(f)` needs no explicit wrap and there is no array-driven overload (§ `std/iter`). Concrete trait-instance receivers (`Iterator<i32>`, `Iterator<string>`, …) are unaffected.

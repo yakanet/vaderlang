@@ -7,6 +7,10 @@
 // back into `b`, leaving both at the old `b`.
 //
 // The source is bound once too, so a call on the right runs a single time.
+//
+// `_` skips an element without reading it, and a trailing `...rest` writes a
+// fresh array of what the other targets left — built in the read phase like
+// every other element, so `[head, ...xs] = xs` sees the old `xs`.
 
 module "snippet"
 
@@ -59,5 +63,22 @@ main :: fn() -> i32 {
     show :: fn() -> void { println("capture: c1=${c1} c2=${c2}") }
     [c1, c2] = [50, 60]
     show()
+
+    // `_` counts toward a tuple's arity but reads nothing ; the call still runs once.
+    [_, s] = pair()
+    println("skip:    s=${s}")
+
+    // `...rest` collects the tail into a fresh array.
+    xs: i32[] = [1, 2, 3, 4]
+    head := 0
+    [head, _, ...xs] = xs
+    println("rest:    head=${head} xs=${xs.len()} [${xs[0]}, ${xs[1]}]")
+
+    // A rest with nothing left to collect is empty, and a lone rest copies.
+    none: i32[] = [9]
+    [p, q, ...none] = [7, 8]
+    all: i32[] = []
+    [...all] = [5, 6]
+    println("empty:   p=${p} q=${q} none=${none.len()} all=${all.len()}")
     return 0
 }

@@ -358,18 +358,24 @@ walk_const_decl :: fn(d: AST.ConstDecl, out: RawToken![]!) -> void {
 
 walk_stmt :: fn(s: AST.Stmt, out: RawToken![]!) -> void {
     match s {
-        is AST.LetStmt    -> { walk_let(s, out) }
-        is AST.AssignStmt -> {
+        is AST.LetStmt               -> { walk_let(s, out) }
+        is AST.AssignStmt            -> {
             walk_expr(s.target, out)
             walk_expr(s.value, out)
         }
-        is AST.ExprStmt     -> { walk_expr(s.expr, out) }
-        is AST.ReturnStmt   -> { walk_opt_expr(s.value, out) }
-        is AST.YieldStmt    -> { walk_expr(s.value, out) }
-        is AST.ForStmt      -> { walk_for(s, out) }
-        is AST.BreakStmt    -> {}
-        is AST.ContinueStmt -> {}
-        is AST.DeferStmt    -> { walk_defer(s, out) }
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(s) {
+                walk_expr(place, out)
+            }
+            walk_expr(s.value, out)
+        }
+        is AST.ExprStmt              -> { walk_expr(s.expr, out) }
+        is AST.ReturnStmt            -> { walk_opt_expr(s.value, out) }
+        is AST.YieldStmt             -> { walk_expr(s.value, out) }
+        is AST.ForStmt               -> { walk_for(s, out) }
+        is AST.BreakStmt             -> {}
+        is AST.ContinueStmt          -> {}
+        is AST.DeferStmt             -> { walk_defer(s, out) }
     }
 }
 

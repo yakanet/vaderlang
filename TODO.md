@@ -58,19 +58,6 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
   **The risk that decides whether it is worth it.** With `&outA`, the caller takes the address of a local; if the tuple carries a ref field (`[i32, string]`), that local must be a shadow-stack root BEFORE the call, initialised, or the collector scans an indeterminate slot. Today one root (the tuple pointer) covers it. A first cut restricted to all-primitive tuples sidesteps this entirely and still covers `utf8_decode_len`.
 
-- [ ] **A destructuring ASSIGNMENT parses, type-checks, and does nothing** (found 2026-09-21 by the W0015 review). SPEC destructures a `[...]` pattern in a `let` and in match arms only — `[a, b] = pair` is not a form of the language. The parser reads it anyway, as an `AssignStmt` whose target is a `SeqLitExpr`; nothing downstream rejects that shape, and the write is dropped on the way to codegen. Both backends agree on the wrong output, which places it before the split.
-
-  ```vader
-  a := 1
-  b := 2
-  [a, b] = [10, 20]
-  println("${a} ${b}")   // prints "1 2", with no diagnostic
-  ```
-
-  Pinned by `tests/snippets/_diag_destructuring_assignment/`. Either half closes it: reject the target shape at the typechecker (the cheap one — `check_assign` already branches on the target form for T3041 / T3070 / T3042), or lower it element-wise and add it to SPEC. Note that the two are not equivalent for the user: a swap has no other one-line spelling today.
-
-  W0015 counts this form as a rebinding regardless, so the warning stays right whichever way it is settled — see `vader/resolver/body.vader::note_rebind`.
-
 - [ ] **A literal constraint in a struct pattern is silently dropped** (found 2026-09-21 while validating W0014). `is P { x: 10, name }` compiles to a bare `is P`: the lowered AST holds no trace of the `10`, so the arm matches every `P`. VM and native agree, which places it in the lowerer rather than a backend. Pinned by `tests/snippets/_diag_struct_pattern_literal`, whose `vm.snapshot` currently records the wrong output on purpose.
 
   ```vader

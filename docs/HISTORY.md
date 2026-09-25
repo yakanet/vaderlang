@@ -381,6 +381,9 @@ Done items lifted out of otherwise-in-progress Phase 3 subsections (`TODO.md` ke
 Long-form write-ups of completed "next up" items. Their one-line summary stays in
 `TODO.md`.
 
+### Destructuring assignment (done 2026-09-23, `_` and `...rest` 2026-09-25)
+`[a, b] = pair` used to parse as an `AssignStmt` over a literal target and lower to nothing. PR #12 made it a real form — every element read into a temporary before any is written, so `[a, b] = [b, a]` swaps — and the follow-up gave it its own node, `DestructureAssignStmt`, whose elements are places, `_` (read nothing) or a trailing `...place` (a fresh tail array, array sources only, P1038 when not last). Pinned by `tests/snippets/destructuring_assignment/`. The same pass closed a silent failure in the destructuring DECLARATION: a misplaced `...rest` (now P1038) or one over a tuple (now T3001) used to leave the trailing leaves unbound, and a read of one cut the function short with exit 0.
+
 ### Narrow-int arithmetic width-truncation in the VM (done 2026-07-16)
 The VM now truncates `u8`/`u16`/`i8`/`i16` arithmetic + narrowing casts to width at store boundaries (`narrow_mask`, `vader/vm/exec.vader`), matching the native SPEC-correct oracle (`u8 200+100` → 44, was 300). Fixed in `bcd133a0c`; green regression guard `tests/snippets/narrow_int_wrap/` (compound/fn/cast = 44; an unstored `${a+b}` stays wide at 300 on both backends). Was listed under "Priority — next up" as "scoping done, not coded" — the fix landed the same day the item was written.
 

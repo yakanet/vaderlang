@@ -193,22 +193,23 @@ lj_block :: fn(b: BlockExpr, stack: LjFrame[]!, out: LoopJump[]!) -> void {
 
 lj_stmt :: fn(s: Stmt, stack: LjFrame[]!, out: LoopJump[]!) -> void {
     match s {
-        is ForStmt -> {
+        is ForStmt               -> {
             stack.push(LjFrame { .span = s.span, .binding = lj_for_binding(s), .label = s.label })
             lj_block(s.body, stack, out)
-            _ :: stack.remove_last()   // discard the popped frame — arm stays void
+            _ :: stack.remove_last() // discard the popped frame — arm stays void
         }
-        is BreakStmt    -> { lj_record(s.span, s.label, stack, out) }
-        is ContinueStmt -> { lj_record(s.span, s.label, stack, out) }
-        is ExprStmt     -> { lj_expr(s.expr, stack, out) }
-        is LetStmt      -> { lj_expr(s.value, stack, out) }
-        is AssignStmt   -> { lj_expr(s.value, stack, out) }
-        is ReturnStmt   -> {
+        is BreakStmt             -> { lj_record(s.span, s.label, stack, out) }
+        is ContinueStmt          -> { lj_record(s.span, s.label, stack, out) }
+        is ExprStmt              -> { lj_expr(s.expr, stack, out) }
+        is LetStmt               -> { lj_expr(s.value, stack, out) }
+        is AssignStmt            -> { lj_expr(s.value, stack, out) }
+        is DestructureAssignStmt -> { lj_expr(s.value, stack, out) }
+        is ReturnStmt            -> {
             rv :: s.value
             if rv != null { lj_expr(rv, stack, out) }
         }
-        is YieldStmt    -> { lj_expr(s.value, stack, out) }
-        is DeferStmt    -> {
+        is YieldStmt             -> { lj_expr(s.value, stack, out) }
+        is DeferStmt             -> {
             match s.body as ds {
                 is DeferStmtBody  -> { lj_stmt(ds.stmt, stack, out) }
                 is DeferBlockBody -> { lj_block(ds.block, stack, out) }
@@ -618,7 +619,7 @@ ix_walk_block :: fn(b: BlockExpr, source: string, entries: DeclEntry[]!) -> void
 
 ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[]!) -> void {
     match s {
-        is LetStmt -> {
+        is LetStmt               -> {
             // Local scope : from the let down to the end of the
             // enclosing block. Anything before the let in the same
             // block stays unresolved against this name.
@@ -627,21 +628,27 @@ ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry
             collect_let_binding(s.binding, local_scope, source, type_hint, entries)
             ix_walk_expr(s.value, source, entries)
         }
-        is AssignStmt -> {
+        is AssignStmt            -> {
             ix_walk_expr(s.target, source, entries)
             ix_walk_expr(s.value, source, entries)
         }
-        is ExprStmt -> { ix_walk_expr(s.expr, source, entries) }
-        is ReturnStmt -> {
+        is DestructureAssignStmt -> {
+            for place in assign_places(s) {
+                ix_walk_expr(place, source, entries)
+            }
+            ix_walk_expr(s.value, source, entries)
+        }
+        is ExprStmt              -> { ix_walk_expr(s.expr, source, entries) }
+        is ReturnStmt            -> {
             if s.value != null {
                 ix_walk_expr(s.value, source, entries)
             }
         }
-        is YieldStmt -> { ix_walk_expr(s.value, source, entries) }
-        is ForStmt -> { ix_walk_for(s, source, entries) }
-        is BreakStmt -> {}
-        is ContinueStmt -> {}
-        is DeferStmt -> {
+        is YieldStmt             -> { ix_walk_expr(s.value, source, entries) }
+        is ForStmt               -> { ix_walk_for(s, source, entries) }
+        is BreakStmt             -> {}
+        is ContinueStmt          -> {}
+        is DeferStmt             -> {
             match s.body as ds {
                 is DeferStmtBody  -> { ix_walk_stmt(ds.stmt, block_span, source, entries) }
                 is DeferBlockBody -> { ix_walk_block(ds.block, source, entries) }

@@ -151,7 +151,7 @@ export ParserCode :: enum(CodeInfo) {
     ExprBodiedFnExplicitReturnType    { .id = "P1020", .message = "expression-bodied function cannot also declare an explicit return type" },
     OneTupleNotAllowed                { .id = "P1021", .message = "1-tuple types are not allowed" },
     TuplePatternRemoved               { .id = "P1022", .message = "a match arm cannot destructure a tuple" },
-    LetDestructureRequiresTwoElements { .id = "P1023", .message = "let destructure requires at least 2 elements" },
+    DestructureTooFewElements         { .id = "P1023", .message = "too few elements to destructure" },
     RemovedConstQualifier             { .id = "P1027", .message = "`const` was removed from the language" },
     InvalidModuleName                 { .id = "P1028", .message = "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)" },
     ExpressionNestingTooDeep          { .id = "P1029", .message = "expression nesting too deep" },
@@ -162,6 +162,7 @@ export ParserCode :: enum(CodeInfo) {
     CompoundAssignToPattern           { .id = "P1035", .message = "compound assignment needs a single target" },
     ArmBindingNotInHeader             { .id = "P1036", .message = "a match arm cannot bind with `as`" },
     PatternBindsName                  { .id = "P1037", .message = "a match pattern cannot bind a name" },
+    RestNotLast                       { .id = "P1038", .message = "`...rest` must be the last element" },
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,

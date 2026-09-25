@@ -658,6 +658,7 @@ stmt_breaks_this_loop :: fn(stmt: AST.Stmt) -> bool = match stmt {
     is AST.ExprStmt                   -> expr_breaks_this_loop(stmt.expr)
     is AST.LetStmt                    -> expr_breaks_this_loop(stmt.value)
     is AST.AssignStmt                 -> expr_breaks_this_loop(stmt.value)
+    is AST.DestructureAssignStmt      -> expr_breaks_this_loop(stmt.value)
     is AST.ReturnStmt ->
         if stmt.value is AST.Expr as rv { expr_breaks_this_loop(rv) } else { false }
     is AST.YieldStmt ->

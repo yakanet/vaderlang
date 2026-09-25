@@ -385,19 +385,26 @@ walk_block :: fn(self: ResolveState!, b: AST.BlockExpr) -> void {
 
 walk_stmt :: fn(self: ResolveState!, s: AST.Stmt) -> void {
     match s {
-        is AST.LetStmt -> { self.walk_let(s) }
-        is AST.AssignStmt -> {
+        is AST.LetStmt               -> { self.walk_let(s) }
+        is AST.AssignStmt            -> {
             self.walk_expr(s.target)
             self.walk_expr(s.value)
             self.note_rebind(s.target)
         }
-        is AST.ExprStmt -> { self.walk_expr(s.expr) }
-        is AST.ReturnStmt -> { self.walk_opt_expr(s.value) }
-        is AST.YieldStmt -> { self.walk_expr(s.value) }
-        is AST.ForStmt -> { self.walk_for(s) }
-        is AST.BreakStmt -> {}
-        is AST.ContinueStmt -> {}
-        is AST.DeferStmt -> { self.walk_defer(s) }
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(s) {
+                self.walk_expr(place)
+                self.note_rebind(place)
+            }
+            self.walk_expr(s.value)
+        }
+        is AST.ExprStmt              -> { self.walk_expr(s.expr) }
+        is AST.ReturnStmt            -> { self.walk_opt_expr(s.value) }
+        is AST.YieldStmt             -> { self.walk_expr(s.value) }
+        is AST.ForStmt               -> { self.walk_for(s) }
+        is AST.BreakStmt             -> {}
+        is AST.ContinueStmt          -> {}
+        is AST.DeferStmt             -> { self.walk_defer(s) }
     }
 }
 
@@ -514,10 +521,8 @@ MutableDecl :: struct {
 //
 // A bare name as the WHOLE target is the form that rebinds it; `x.f = 1` and
 // `x[0] = 1` mutate what `x` designates, which a `::` local allows, so counting
-// them would demand `:=` where `::` is right. `[a, b] = pair` is the third form:
-// SPEC only destructures in a `let` and in match arms, and this one currently
-// lowers to nothing at all (TODO.md), but it READS as a rebinding — counting it
-// keeps the warning right whichever way that gets settled.
+// them would demand `:=` where `::` is right. Each place of a `[a, ...b] = v`
+// goes through here too, so a destructuring assignment rebinds its bare names.
 //
 // The mirror check reads the same `idents` table the same way, one pass later:
 // `typecheck/stmt.vader::is_const_reassign`, which rejects a write to a `::`.
@@ -527,10 +532,6 @@ note_rebind :: fn(self: ResolveState!, target: AST.Expr) -> void {
         // `add` reports whether the id was new; as the `if`'s last expression a
         // bare call would make this `void` body return `bool | void`.
         _ :: self.reassigned.add(sym.id)
-    } else if target is AST.SeqLitExpr {
-        for el in target.elements {
-            self.note_rebind(el)
-        }
     }
 }
 

@@ -1212,15 +1212,16 @@ emit_assert_decl :: fn(self: Printer!, d: p.AssertDecl) -> void {
 
 emit_stmt :: fn(self: Printer!, s: p.Stmt) -> void {
     match s {
-        is p.LetStmt      -> self.emit_let_stmt(s)
-        is p.AssignStmt   -> self.emit_assign_stmt(s)
-        is p.ExprStmt     -> self.emit_expr(s.expr)
-        is p.ReturnStmt   -> self.emit_return_stmt(s)
-        is p.YieldStmt    -> self.emit_yield_stmt(s)
-        is p.ForStmt      -> self.emit_for_stmt(s)
-        is p.BreakStmt    -> self.emit_break_stmt(s)
-        is p.ContinueStmt -> self.emit_continue_stmt(s)
-        is p.DeferStmt    -> self.emit_defer_stmt(s)
+        is p.LetStmt               -> self.emit_let_stmt(s)
+        is p.AssignStmt            -> self.emit_assign_stmt(s)
+        is p.DestructureAssignStmt -> self.emit_destructure_assign_stmt(s)
+        is p.ExprStmt              -> self.emit_expr(s.expr)
+        is p.ReturnStmt            -> self.emit_return_stmt(s)
+        is p.YieldStmt             -> self.emit_yield_stmt(s)
+        is p.ForStmt               -> self.emit_for_stmt(s)
+        is p.BreakStmt             -> self.emit_break_stmt(s)
+        is p.ContinueStmt          -> self.emit_continue_stmt(s)
+        is p.DeferStmt             -> self.emit_defer_stmt(s)
     }
 }
 
@@ -1272,6 +1273,25 @@ emit_let_stmt :: fn(self: Printer!, s: p.LetStmt) -> void {
             }
         }
     }
+    self.emit_expr(s.value)
+}
+
+emit_destructure_assign_stmt :: fn(self: Printer!, s: p.DestructureAssignStmt) -> void {
+    self.write("[")
+    for i in 0..<s.targets.len() {
+        if i > 0 {
+            self.write(", ")
+        }
+        match s.targets[i] as t {
+            is p.PlaceTarget    -> self.emit_expr(t.place)
+            is p.WildcardTarget -> self.write("_")
+            is p.RestTarget     -> {
+                self.write("...")
+                self.emit_expr(t.place)
+            }
+        }
+    }
+    self.write("] = ")
     self.emit_expr(s.value)
 }
 

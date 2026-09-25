@@ -1,0 +1,10 @@
+module "snippet"
+
+main :: fn() -> i32 {
+    a := 0
+    b :: 0
+    // A literal source has a length the compiler can count, even though it
+    // would otherwise read as an array — whose length is never checked.
+    [a, _] = [1, 2, 3]
+    return a + b
+}
