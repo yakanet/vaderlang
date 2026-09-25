@@ -30,11 +30,17 @@ export HostOk :: struct { value: Value }
 /// Pop two strings, run a binary predicate, wrap as `BoolVal`. Used
 /// by `starts_with` / `ends_with` / `contains`.
 host_str_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(string, string) -> bool) -> HostCallResult {
-    a :: read_string(stack[arg_base    ], at_pc, "${label} receiver")
-    b :: read_string(stack[arg_base + 1], at_pc, "${label} arg")
-    if a is Trap { return a }
-    if b is Trap { return b }
-    return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
+    a :: stack[arg_base]
+    b :: stack[arg_base + 1]
+    // The labels are interpolated, so they are built only once a read fails.
+    if a is StringVal && b is StringVal {
+        return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
+    }
+    a_read :: read_string(a, at_pc, "${label} receiver")
+    if a_read is Trap { return a_read }
+    b_read :: read_string(b, at_pc, "${label} arg")
+    if b_read is Trap { return b_read }
+    return HostOk { .value = BoolVal { .value = apply(a_read.value, b_read.value) } }
 }
 
 /// Two integer args → bool. Reads both via `read_i64` (widening `I32Val`), so
@@ -49,8 +55,8 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
 }
 
 
-/// Dispatch a host import. Matches on `intrinsic_id_for(info.mangled_name)`
-/// (the single manifest classification) — every arm pops the args from
+/// Dispatch a host import. Matches on `id`, the import's manifest
+/// classification — every arm pops the args from
 /// `stack[arg_base ..]`, executes the host action, and returns either
 /// `HostOk { value }` (the result pushed onto the caller's value stack) or a
 /// `Trap` (surfaced verbatim). Hosts the VM doesn't serve (native-only C shims)
@@ -81,13 +87,16 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
 ///                  evaluation (`exec_fn_value` path). Gates the impure hosts
 ///                  (see `is_impure_host`) so a compile-time constant can never
 ///                  bake a non-reproducible value.
+/// @param id        `intrinsic_id_for(info.mangled_name)`, classified by the
+///                  caller — `prepare` does it once per import (`VmState.import_ids`),
+///                  since the classification rebuilds and interns mangled names.
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
 ///                  import, malformed arg, host-level failure, or an impure host
 ///                  reached at comptime.
 /// @error           traps with an `is_impure_comptime_trap_message` marker when
 ///                  `is_comptime` and the host is impure — `comptime_vm` routes
 ///                  it to `C4016` rather than the generic `C4002`.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[]!, sched_state: usize[]!, at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null) -> HostCallResult {
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[]!, sched_state: usize[]!, at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId) -> HostCallResult {
     // ---- compiler-internal `@extern` hosts ---------------------------------
     //
     // `@extern` is EXEMPT from the emit-time wiring check (`midir/emit.vader` :
@@ -107,14 +116,11 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     if info.mangled_name == r"vader_profile$vader_prof_begin" { return HostOk { .value = zero_value() } }
     if info.mangled_name == r"vader_profile$vader_prof_end"   { return HostOk { .value = zero_value() } }
     if info.mangled_name == r"vader_profile$vader_prof_dump"  { return HostOk { .value = zero_value() } }
-    // A user `@extern` names a linker symbol, never a manifest entry, so
-    // classifying it first is waste — and `intrinsic_id_for` is not cheap: it
-    // rebuilds and INTERNS mangled names. Placed after the `vader_profile$*`
-    // arms above, which ARE `@extern` and must still be served.
+    // Placed after the `vader_profile$*` arms above, which ARE `@extern` and
+    // must still be served.
     if info.is_extern {
         return dispatch_extern(info, stack, arg_base, at_pc, types, debug)
     }
-    id :: bc.intrinsic_id_for(info.mangled_name)
     // Comptime gate. It is NARROW on purpose, and narrower than it once was.
     //
     // Baking a non-reproducible value is the program author's business: a build

@@ -286,12 +286,15 @@ export read_struct :: fn(v: Value, at_pc: i32, label: string) -> StructVal | Tra
 /// @return             the requested field value on success, or a `Trap`.
 /// @error              `v` isn't a struct, or `field_index` is out of range.
 export read_struct_field :: fn(v: Value, field_index: i32, at_pc: i32, label: string) -> Value | Trap {
-    struct_unwrap :: read_struct(v, at_pc, "${label} receiver")
-    if struct_unwrap is Trap { return struct_unwrap }
-    if field_index < 0 || usize(field_index) >= struct_unwrap.fields.len() {
-        return Trap { .message = "${label} field ${field_index} out of range (struct has ${struct_unwrap.fields.len()} fields) at pc=${at_pc}" }
+    // Test before building the receiver label: `read_struct` takes it
+    // interpolated, which would intern a string on every field read.
+    if !(v is StructVal) {
+        return read_struct(v, at_pc, "${label} receiver")
     }
-    return struct_unwrap.fields[usize(field_index)]
+    if field_index < 0 || usize(field_index) >= v.fields.len() {
+        return Trap { .message = "${label} field ${field_index} out of range (struct has ${v.fields.len()} fields) at pc=${at_pc}" }
+    }
+    return v.fields[usize(field_index)]
 }
 
 /// Unwrap an `ArrayVal` from a `Value`. Used by the array-op arms

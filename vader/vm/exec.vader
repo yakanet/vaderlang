@@ -532,10 +532,19 @@ project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32)
 /// @return                `null` on success, `Trap` if out of range.
 /// @error                 `function_index < 0` or `>= functions.len()`.
 validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: i32, op_label: string) -> Trap | null {
-    if function_index < 0 || usize(function_index) >= functions.len() {
-        return Trap { .message = "${op_label} function ${function_index} out of range at pc=${at_pc}" }
+    if is_fn_index_out_of_range(function_index, functions) {
+        return fn_index_trap(function_index, at_pc, op_label)
     }
     return null
+}
+
+// The per-call arms (`Call`, `VirtualCall`) test with this predicate and build
+// the trap only on failure: a fn that may build a `Trap` carries a GC frame, so
+// calling `validate_fn_index` on the hot path pays that frame on every call.
+is_fn_index_out_of_range :: fn(function_index: i32, functions: bc.BcFunction[]) = function_index < 0 || usize(function_index) >= functions.len()
+
+fn_index_trap :: fn(function_index: i32, at_pc: i32, op_label: string) = Trap {
+    .message = "${op_label} function ${function_index} out of range at pc=${at_pc}",
 }
 
 /// Final stage of a direct or indirect call : build the callee frame,
@@ -601,8 +610,9 @@ push_callee_frame :: fn(frames: Frame![]!, cursor: usize[]!, function_index: i32
     }
     for i in param_count..<total {
         f.slot_payload[i] = 0
+        // `slots[i]` is left as is: every read of a slot goes through its tag,
+        // and a `.Null` tag never reads the refs column.
         f.slot_tag[i] = .Null
-        f.slots[i] = NULL_VALUE
     }
     // Release every ref the pool would otherwise PIN. The columns are grow-only
     // and sized to the widest callee ever seen at this depth, so without this a
@@ -1146,6 +1156,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // Whether `return` has to truncate its value. A per-FUNCTION fact, cached
     // beside `cur_has_narrow` rather than recomputed on every `return`.
     cur_narrow_result := is_single_narrow_result(body.signature)
+    // Whether `return` moves several values — per-function, cached likewise.
+    cur_multi_result := bc.bc_result_arity(body.signature) > 1
     // Monotonic synthetic object-handle source for `buffer.new` (diagnostics
     // only — object identity is the `ObjVal` reference itself, never a machine
     // address). A 1-cell array so element mutation survives the `::` binding.
@@ -1214,6 +1226,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             cur_has_narrow = fn_narrow_tbl[usize(frame.function_index)]
             cur_slot_count = body.signature.params.len() + body.locals.len()
             cur_narrow_result = is_single_narrow_result(body.signature)
+            cur_multi_result = bc.bc_result_arity(body.signature) > 1
             cur_top = top
         }
 
@@ -1382,7 +1395,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "local.set slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
                 sidx :: usize(instr.slot)
-                if cur_has_narrow {
+                if cur_has_narrow && is_narrow_valtype(slot_valtype(body, instr.slot)) {
                     slot_set(frame, sidx, narrow_mask(peek_val(frame, frame.sp - 1), slot_valtype(body, instr.slot)))
                 } else {
                     st :: frame.tag[frame.sp - 1]
@@ -1402,9 +1415,10 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
                 // Tee stores AND leaves the value on the stack ; when the slot is
                 // narrow the expression value is the truncated one, so mask both.
-                // The all-wide fast path (`cur_has_narrow` false) skips the mask.
+                // A wide slot takes the unboxed path even in a function that has
+                // narrow ones: `narrow_mask` is the identity on it.
                 sidx :: usize(instr.slot)
-                if cur_has_narrow {
+                if cur_has_narrow && is_narrow_valtype(slot_valtype(body, instr.slot)) {
                     masked_tee :: narrow_mask(peek_val(frame, frame.sp - 1), slot_valtype(body, instr.slot))
                     push_val(frame, frame.sp - 1, masked_tee)
                     slot_set(frame, sidx, masked_tee)
@@ -1434,7 +1448,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "call.import '${info.mangled_name}' needs ${arg_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
                 arg_base :: frame.sp - arg_count
-                dispatch_outcome :: dispatch_import(info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, state.bc.types, is_comptime, debug)
+                dispatch_outcome :: dispatch_import(info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, state.bc.types, is_comptime, debug, state.import_ids[instr.index])
                 if dispatch_outcome is Trap {
                     // User-reachable (e.g. `panic()`) — run pending defers first.
                     if pending != null { return pending }
@@ -1451,8 +1465,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.Call -> {
-                index_check :: validate_fn_index(instr.function_index, state.bc.functions, frame.pc, "call")
-                if index_check is Trap { return index_check }
+                if is_fn_index_out_of_range(instr.function_index, state.bc.functions) {
+                    return fn_index_trap(instr.function_index, frame.pc, "call")
+                }
                 callee :: state.bc.functions[usize(instr.function_index)]
                 callee_arity :: callee.signature.params.len()
                 if frame.sp < callee_arity {
@@ -1540,7 +1555,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                             },
                             .is_extern    = false,
                         }
-                        host_outcome :: dispatch_import(synth_info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, state.bc.types, is_comptime, debug)
+                        host_outcome :: dispatch_import(synth_info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, state.bc.types, is_comptime, debug, bc.intrinsic_id_for(host_mangle))
                         if host_outcome is Trap { return host_outcome }
                         if host_outcome is HostOk {
                             push_val(frame, arg_base, host_outcome.value)
@@ -1551,8 +1566,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     }
                     return Trap { .message = "virtual.call '${instr.vtable_key}' : no impl for type ${receiver_type_id} at pc=${frame.pc}" }
                 }
-                index_check :: validate_fn_index(callee_fn, state.bc.functions, frame.pc, "virtual.call '${instr.vtable_key}'")
-                if index_check is Trap { return index_check }
+                if is_fn_index_out_of_range(callee_fn, state.bc.functions) {
+                    return fn_index_trap(callee_fn, frame.pc, "virtual.call '${instr.vtable_key}'")
+                }
                 callee :: state.bc.functions[usize(callee_fn)]
                 // The callee's signature has `(receiver, …user args)` so its
                 // param count should equal the instr's parameter_count.
@@ -2621,7 +2637,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // slots move to the caller in the order it receives them. The
                 // single-value path below stays exactly as it was — it owns the
                 // outermost frame, where a return becomes the exit code.
-                if bc.bc_result_arity(body.signature) > 1 {
+                if cur_multi_result {
                     outcome :: finalise_multi_return(frame, frames, frame_count, body.signature)
                     if !(outcome is null) {
                         return outcome
@@ -3038,14 +3054,18 @@ store_bytes_op :: fn(frame: Frame!, width: usize, value: u64, label: string) -> 
 /// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
 do_load_slot :: fn(frame: Frame!) -> Trap | null {
     if frame.sp < 2 { return Trap { .message = "load_slot needs array + index on stack at pc=${frame.pc}" } }
-    idx_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "load_slot index")
-    if idx_unwrap is Trap { return idx_unwrap }
+    // Read the index straight off the columns: `read_i32(peek_val(…))` would box
+    // it first, one allocation per indexing.
+    if !is_i32_tag(frame.tag[frame.sp - 1]) {
+        return arith_tag_trap(frame, 1, "load_slot index")
+    }
+    index :: i32(frame.payload[frame.sp - 1])
     arr :: peek_array_mut(frame, frame.sp - 2, frame.pc, "load_slot receiver")
     if arr is Trap { return arr }
-    if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= arr.length {
-        return Trap { .message = "load_slot index ${idx_unwrap.value} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
+    if index < 0 || usize(index) >= arr.length {
+        return Trap { .message = "load_slot index ${index} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
     }
-    push_val(frame, frame.sp - 2, arr.elements[arr.offset + usize(idx_unwrap.value)])
+    push_val(frame, frame.sp - 2, arr.elements[arr.offset + usize(index)])
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
     return null
@@ -3064,14 +3084,16 @@ do_load_slot :: fn(frame: Frame!) -> Trap | null {
 do_store_slot :: fn(frame: Frame!) -> Trap | null {
     if frame.sp < 3 { return Trap { .message = "store_slot needs array + index + value on stack at pc=${frame.pc}" } }
     value :: peek_val(frame, frame.sp - 1)
-    idx_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "store_slot index")
-    if idx_unwrap is Trap { return idx_unwrap }
+    if !is_i32_tag(frame.tag[frame.sp - 2]) {
+        return arith_tag_trap(frame, 2, "store_slot index")
+    }
+    index :: i32(frame.payload[frame.sp - 2])
     arr :: peek_array_mut(frame, frame.sp - 3, frame.pc, "store_slot receiver")
     if arr is Trap { return arr }
-    if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= arr.length {
-        return Trap { .message = "store_slot index ${idx_unwrap.value} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
+    if index < 0 || usize(index) >= arr.length {
+        return Trap { .message = "store_slot index ${index} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
     }
-    arr.elements[arr.offset + usize(idx_unwrap.value)] = value
+    arr.elements[arr.offset + usize(index)] = value
     frame.sp = frame.sp - 3
     frame.pc = frame.pc + 1
     return null

@@ -57,6 +57,11 @@ export VmState :: struct {
     /// indexed by.
     @internal
     fused: FusedBody[]
+    /// Manifest classification of each import, index-aligned with `bc.imports`,
+    /// so `call.import` never re-runs `intrinsic_id_for` (which rebuilds and
+    /// interns mangled names). A user `@extern` names a linker symbol, never a
+    /// manifest entry, so it is recorded `NotIntrinsic` without classifying.
+    import_ids: bc.IntrinsicId[]
 }
 
 /// Wrap a parsed `BytecodeModule` in the runtime `VmState` `exec` consumes.
@@ -69,6 +74,14 @@ export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState {
     narrow: bool[]!: [] * bc_mod.functions.len()
     for f in bc_mod.functions {
         narrow.push(fn_has_narrow_slot(f))
+    }
+    import_ids: bc.IntrinsicId[]!: [] * bc_mod.imports.len()
+    for imp in bc_mod.imports {
+        if imp.is_extern {
+            import_ids.push(.NotIntrinsic)
+        } else {
+            import_ids.push(bc.intrinsic_id_for(imp.mangled_name))
+        }
     }
     by_name :: MutableMap<string, i32> {}
     for i in 0..<bc_mod.functions.len() {
@@ -84,5 +97,6 @@ export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState {
         .fn_narrow            = narrow,
         .fn_index_by_name     = by_name,
         .fused                = fuse_module(bc_mod),
+        .import_ids           = import_ids,
     }
 }
