@@ -106,15 +106,19 @@ static void* vader_host_snippet_zero_pair(void* a0, int32_t a1, size_t a2) {
     ((vader_struct_snippet_Pair_t*) a0)->f_rem = (__typeof__(((vader_struct_snippet_Pair_t*) a0)->f_rem)) p0.rem;
     return r;
 }
+
 static size_t vader_host_std_core_byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
+
 static vader_string_t vader_host_std_core_bytes_to_string(void* a0) {
     return vader_string_as_string((vader_array_t*) a0);
 }
+
 static void* vader_host_std_core_bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 11u, 8u);
 }
+
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     return write(a0, s1.ptr, a2);

@@ -194,45 +194,56 @@ const size_t vader_type_info_count = 28;
 static size_t vader_host_std_core_byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
+
 static void* vader_host_std_core_bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 16u, 4u);
 }
+
 static bool vader_host_std_core_i8_Equals_equals(int8_t a0, int8_t a1) {
     vader_trap("unbound import: std_core$i8$Equals$equals");
 }
+
 static bool vader_host_std_core_i16_Equals_equals(int16_t a0, int16_t a1) {
     vader_trap("unbound import: std_core$i16$Equals$equals");
 }
+
 static bool vader_host_std_core_isize_Equals_equals(ptrdiff_t a0, ptrdiff_t a1) {
     vader_trap("unbound import: std_core$isize$Equals$equals");
 }
+
 static bool vader_host_std_core_u8_Equals_equals(uint8_t a0, uint8_t a1) {
     vader_trap("unbound import: std_core$u8$Equals$equals");
 }
+
 static bool vader_host_std_core_u16_Equals_equals(uint16_t a0, uint16_t a1) {
     vader_trap("unbound import: std_core$u16$Equals$equals");
 }
+
 static bool vader_host_std_core_u32_Equals_equals(uint32_t a0, uint32_t a1) {
     vader_trap("unbound import: std_core$u32$Equals$equals");
 }
+
 static bool vader_host_std_core_u64_Equals_equals(uint64_t a0, uint64_t a1) {
     vader_trap("unbound import: std_core$u64$Equals$equals");
 }
+
 static bool vader_host_std_core_usize_Equals_equals(size_t a0, size_t a1) {
     vader_trap("unbound import: std_core$usize$Equals$equals");
 }
+
 static uint64_t vader_host_std_core_string_Hash_hash(vader_string_t a0) {
     return vader_string_hash(a0);
 }
+
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     return write(a0, s1.ptr, a2);
 }
 
-
-/* ----------------------------------------------- vtable forwards */
+/* vtable forwards */
 static bool vader_vt_Equals__equals(vader_box_t recv, vader_box_t a0);
 static uint64_t vader_vt_Hash__hash(vader_box_t recv);
+
 static int32_t snippet_main(void) {
     uint8_t l0;
     void* l1 = NULL;
@@ -1739,8 +1750,7 @@ static uint64_t std_core_string_Hash_hash_vt(vader_string_t l0) {
     { uint64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-
-/* ----------------------------------------------- vtable dispatchers */
+/* vtable dispatchers */
 static bool vader_vt_Equals__equals(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 10u: return std_core_i8_Equals_equals_vt(((int8_t) recv.payload.i), ((int8_t) a0.payload.i));
@@ -1762,6 +1772,7 @@ static bool vader_vt_Equals__equals(vader_box_t recv, vader_box_t a0) {
     }
     vader_unreachable("vtable miss in Equals.equals");
 }
+
 static uint64_t vader_vt_Hash__hash(vader_box_t recv) {
     switch (recv.tag) {
         case 10u: return std_core_i8_Hash_hash(((int8_t) recv.payload.i));
@@ -1780,6 +1791,7 @@ static uint64_t vader_vt_Hash__hash(vader_box_t recv) {
     }
     vader_unreachable("vtable miss in Hash.hash");
 }
+
 int main(int argc, char** argv) {
     vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
     atexit(vader_atom_shutdown);

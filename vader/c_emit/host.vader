@@ -22,8 +22,7 @@ import "vader/c_emit/c_ast"
 
 /// Emit every import's shim plus the once-per-module `extern` declarations
 /// for `@extern` foreign symbols. Unused imports are pruned upstream, so
-/// `module.imports` already carries only the referenced host fns. A
-/// trailing blank line keeps the spacing before the fn bodies stable.
+/// `module.imports` already carries only the referenced host fns.
 emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
     // Ahead of the shims that dereference them, and of the assertions that check
     // them — both of which name these types. Only under `--split`, where this
@@ -54,38 +53,29 @@ emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
         }
         shims.push(import_shim(ctx, imp))
     }
-    if headers.len() > 0 {
-        printer.print_item(
-            CComment { .lines = ["Headers named by `@c_header` — they own the prototypes below."] },
-        )
-        for h in headers {
-            printer.print_item(include_of(h))
-        }
-        printer.print_item(BLANK_LINE)
+    includes: CTopLevel[]!: []
+    for h in headers {
+        includes.push(include_of(h))
     }
-    if extern_decls.len() > 0 {
-        printer.print_item(
-            CComment { .lines = ["User @extern foreign symbols — resolved by the linker."] },
-        )
-        printer.print_items(extern_decls)
-        printer.print_item(BLANK_LINE)
-    }
+    printer.print_section(CSection {
+        .comment = ["Headers named by `@c_header` — they own the prototypes below."],
+        .items = includes,
+    })
+    printer.print_section(CSection {
+        .comment = ["User @extern foreign symbols — resolved by the linker."],
+        .items = extern_decls,
+    })
     // Layout assertions for every `@c_struct` a shim marshals. `cc` — which has
     // the real header — refuses to compile a mirror whose field width differs
     // from what the library declares, in EITHER direction, or whose offset does.
     // So the field-by-field copy cannot truncate and the interpreter's block
     // cannot drift. `cc` IS the consumer: the check is spent entirely at build
     // time, and nothing reads it at run time.
-    asserts :: c_struct_layout_asserts(ctx.module.types, crossing_mirrors(ctx.module))
-    if asserts.len() > 0 {
-        printer.print_item(
-            CComment { .lines = ["`@c_struct` layout — checked against the real headers."] },
-        )
-        printer.print_items(asserts)
-        printer.print_item(BLANK_LINE)
-    }
-    printer.print_items(shims)
-    printer.print_item(BLANK_LINE)
+    printer.print_section(CSection {
+        .comment = ["`@c_struct` layout — checked against the real headers."],
+        .items = c_struct_layout_asserts(ctx.module.types, crossing_mirrors(ctx.module)),
+    })
+    printer.print_section(CSection { .items = shims })
 }
 
 // The `#include` an `@c_header` operand names : `<path>` is a system header,
@@ -381,42 +371,61 @@ null_member :: fn(type: string, member: string) -> CExpression = pointer_member(
 /// `extern <ret> <name>(<params>);` for an `@extern` import — foreign ABI
 /// types (`string` → `const char*`), declared once per distinct symbol.
 extern_decl :: fn(imp: BcImport, types: BcType[]) -> CTopLevel {
-    parts: string[]!: []
+    parameters: CParameter[]!: []
     for j in 0..<imp.signature.params.len() {
-        if is_abi_array(types, imp.signature.param_types[j]) {
-            // One Vader array = ONE C argument, a bare pointer. A length, when
-            // the callee wants one, is an ordinary declared parameter — so the
-            // declaration transcribes the C prototype one-to-one, and a callee
-            // wanting a NUL-terminated `LPCWSTR` gets exactly one argument.
-            // `!` decides `void*` vs `const void*`, through
-            // `BcSignature.param_mutable`.
-            parts.push(if param_is_mutable(imp.signature, j) { "void*" } else { "const void*" })
-        } else if mirrored_c_struct(types, imp.signature.param_types[j]) != "" {
-            // Classified BEFORE `@c_pointer`, as `user_extern_shim` does: the
-            // shim spills a real C struct and passes ITS address, so the erased
-            // slot type would declare `void**` against a `struct timespec*`.
-            // The two cascades must agree on the order or the prototype and the
-            // call site disagree.
-            mirror :: mirrored_c_struct(types, imp.signature.param_types[j])
-            parts.push(if param_is_mutable(imp.signature, j) { "${mirror}*" } else { "const ${mirror}*" })
-        } else if is_param_by_address(imp.signature, j) {
-            // `@c_pointer`: the callee takes `T*`. `const` unless the `!` says
-            // it writes through it.
-            cty :: c_type_for_val_bare(imp.signature.params[j])
-            parts.push(if param_is_mutable(imp.signature, j) { "${cty}*" } else { "const ${cty}*" })
-        } else if is_abi_nullable_pointer(types, imp.signature.param_types[j]) {
-            parts.push("void*")
-        } else {
-            parts.push(extern_c_type(imp.signature.params[j]))
-        }
+        parameters.push(CParameter { .type = extern_parameter_type(imp.signature, types, j) })
     }
-    params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
-    ret :: if is_abi_nullable_pointer(types, bc_single_result_type(imp.signature)) {
+    result :: if is_abi_nullable_pointer(types, bc_single_result_type(imp.signature)) {
         "void*"
     } else {
         extern_c_type(bc_single_result(imp.signature))
     }
-    return CPrototype { .signature = "extern ${ret} ${imp.extern_name}(${params})" }
+    signature :: CSignature {
+        .storage = .Declaration,
+        .result = result,
+        .name = imp.extern_name,
+        .parameters = parameters,
+    }
+    return CPrototype { .signature = signature }
+}
+
+// The C type the foreign symbol declares for parameter `j` of `sig`.
+extern_parameter_type :: fn(sig: BcSignature, types: BcType[], j: usize) -> string {
+    mutable :: param_is_mutable(sig, j)
+    if is_abi_array(types, sig.param_types[j]) {
+        // One Vader array = ONE C argument, a bare pointer. A length, when
+        // the callee wants one, is an ordinary declared parameter — so the
+        // declaration transcribes the C prototype one-to-one, and a callee
+        // wanting a NUL-terminated `LPCWSTR` gets exactly one argument.
+        // `!` decides `void*` vs `const void*`, through
+        // `BcSignature.param_mutable`.
+        return pointer_to("void", mutable)
+    }
+    mirror :: mirrored_c_struct(types, sig.param_types[j])
+    if mirror != "" {
+        // Classified BEFORE `@c_pointer`, as `user_extern_shim` does: the
+        // shim spills a real C struct and passes ITS address, so the erased
+        // slot type would declare `void**` against a `struct timespec*`.
+        // The two cascades must agree on the order or the prototype and the
+        // call site disagree.
+        return pointer_to(mirror, mutable)
+    }
+    if is_param_by_address(sig, j) {
+        // `@c_pointer`: the callee takes `T*`. `const` unless the `!` says
+        // it writes through it.
+        return pointer_to(c_type_for_val_bare(sig.params[j]), mutable)
+    }
+    if is_abi_nullable_pointer(types, sig.param_types[j]) {
+        return "void*"
+    }
+    return extern_c_type(sig.params[j])
+}
+
+// `type*`, or `const type*` when the callee may not write through it.
+pointer_to :: fn(type: string, mutable: bool) -> string = if mutable {
+    "${type}*"
+} else {
+    "const ${type}*"
 }
 
 /// True when the slot at `type_index` is `CPointer | null` — the nullable
@@ -563,30 +572,27 @@ is_abi_array :: fn(types: BcType[], type_index: i32) -> bool {
 /// @return     a valid C identifier, unique per import.
 export host_shim_name :: fn(imp: BcImport) -> string = "vader_host_${sanitise(imp.mangled_name)}"
 
-/// Storage class for an import shim. `static inline` in a split build, because
-/// the shim lives in the SHARED HEADER there — a one-line ABI wrapper is worth
-/// nothing as an out-of-line cross-TU call, and it was the real barrier: with
-/// the shim in unit 0, wordcount's per-byte read still paid a call per byte
-/// even after the runtime accessor behind it became inline (+211 % vs mono).
-shim_linkage_prefix :: fn(split: bool) -> string = if split { "static inline " } else { "static " }
-
 /// The `vader_host_*` definition for one import : its erased signature — each
-/// parameter `a<j>`, `void` when there is none — and the body `shim_body`
-/// builds.
+/// parameter `a<j>` — and the body `shim_body` builds.
+///
+/// It is `static inline` in a split build, because the shim lives in the SHARED
+/// HEADER there — a one-line ABI wrapper is worth nothing as an out-of-line
+/// cross-TU call, and it was the real barrier: with the shim in unit 0,
+/// wordcount's per-byte read still paid a call per byte even after the runtime
+/// accessor behind it became inline (+211 % vs mono).
 ///
 /// @param ctx  the emit context.
 /// @param imp  the import the shim serves.
 import_shim :: fn(ctx: EmitCtx, imp: BcImport) -> CFunction {
-    sig :: imp.signature
-    parts: string[]!: []
-    for j in 0..<sig.params.len() {
-        parts.push("${c_type_for_val_bare(sig.params[j])} a${j}")
+    signature :: CSignature {
+        .storage = .Internal,
+        .inline = ctx.split,
+        .result = c_type_for_val_bare(bc_single_result(imp.signature)),
+        .name = host_shim_name(imp),
+        .parameters = value_parameters(imp.signature.params, "a"),
     }
-    params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
-    result :: c_type_for_val_bare(bc_single_result(sig))
-    head :: "${shim_linkage_prefix(ctx.split)}${result} ${host_shim_name(imp)}(${params})"
     body :: CBlock { .body = shim_body(imp, ctx.module.types) }
-    return CFunction { .signature = head, .body = body }
+    return CFunction { .signature = signature, .body = body }
 }
 
 // The body of the `vader_host_*` shim for `imp`. A host `@intrinsic` routes to

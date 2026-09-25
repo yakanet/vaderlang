@@ -24,7 +24,6 @@ module "vader/c_emit"
 import "std/collections"
 import "std/sort"
 import "std/string"
-import "std/string_builder"
 import "vader/bytecode"
 import "vader/c_emit/c_ast"
 
@@ -77,19 +76,15 @@ vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
     }
 }
 
-/// Formal parameter list for a dispatcher : `vader_box_t recv` plus one
-/// `vader_box_t a<j>` per tail param. Tail params take the erased box type
-/// so impls with divergent concrete signatures share one dispatcher — each
-/// arm unboxes to its own signature.
-dispatcher_formal :: fn(sig: BcSignature) -> string {
-    sb :: StringBuilder {}
-    sb.append("vader_box_t recv")
-    tail :: i32(sig.params.len()) - 1
-    for j in 0..<tail {
-        sb.append(", vader_box_t a${j}")
-    }
-    return sb.to_string()
-}
+/// Parameters of a dispatcher : `vader_box_t recv` plus one `vader_box_t a<j>`
+/// per tail param. Tail params take the erased box type so impls with divergent
+/// concrete signatures share one dispatcher — each arm unboxes to its own
+/// signature.
+dispatcher_parameters :: fn(sig: BcSignature) -> CParameter[] = boxed_parameters(
+    CParameter { .type = "vader_box_t", .name = "recv" },
+    // Every trait method takes its receiver, so there is at least one.
+    sig.params.len() - 1,
+)
 
 // ---- emit -----------------------------------------------------------------
 
@@ -98,17 +93,15 @@ dispatcher_formal :: fn(sig: BcSignature) -> string {
 /// the bodies are emitted.
 emit_vtable_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
     rows :: ctx.module.vtables
-    if rows.len() == 0 {
-        return
-    }
-    printer.print_items(section_banner("vtable forwards"))
+    prototypes: CTopLevel[]!: []
     for row in rows {
         if row.entries.len() == 0 {
             continue
         }
         sig :: vtable_sig_for_row(ctx, row)
-        printer.print_item(CPrototype { .signature = dispatcher_signature(ctx, row.key, sig) })
+        prototypes.push(CPrototype { .signature = dispatcher_signature(ctx, row.key, sig) })
     }
+    printer.print_section(CSection { .comment = ["vtable forwards"], .items = prototypes })
 }
 
 /// Emit one dispatch helper per `(trait.method)` : `static <ret>
@@ -119,9 +112,8 @@ emit_vtable_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
 /// deferred to T12 (the non-erased subset never produces them).
 emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
     rows :: ctx.module.vtables
-    if rows.len() == 0 { return }
     types :: ctx.module.types
-    printer.print_items(section_banner("vtable dispatchers"))
+    dispatchers: CTopLevel[]!: []
     for row in rows {
         if row.entries.len() == 0 { continue }
         sig :: vtable_sig_for_row(ctx, row)
@@ -179,25 +171,21 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
         if bc_single_result(sig) != .Void {
             statements.push(miss)
         }
-        printer.print_item(CFunction {
+        dispatchers.push(CFunction {
             .signature = dispatcher_signature(ctx, row.key, sig),
             .body = CBlock { .body = statements },
         })
     }
+    printer.print_section(CSection { .comment = ["vtable dispatchers"], .items = dispatchers })
 }
 
 // The dispatcher's head, shared by its prototype and its definition.
-dispatcher_signature :: fn(ctx: EmitCtx, key: string, sig: BcSignature) -> string {
-    link :: linkage_prefix(ctx.split)
-    result :: c_type_for_val_bare(bc_single_result(sig))
-    return "${link}${result} ${vtable_helper_name(key)}(${dispatcher_formal(sig)})"
+dispatcher_signature :: fn(ctx: EmitCtx, key: string, sig: BcSignature) -> CSignature = CSignature {
+    .storage = wrapper_storage(ctx.split),
+    .result = c_type_for_val_bare(bc_single_result(sig)),
+    .name = vtable_helper_name(key),
+    .parameters = dispatcher_parameters(sig),
 }
-
-// A blank line, then `/* ------------ title */`.
-section_banner :: fn(title: string) -> CTopLevel[] = [
-    BLANK_LINE,
-    CComment { .lines = ["----------------------------------------------- ${title}"] },
-]
 
 /// The per-arm return expression : wrap the impl's result when the dispatcher
 /// returns the erased `any` and the impl does not.

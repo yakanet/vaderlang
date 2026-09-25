@@ -90,7 +90,6 @@ static size_t std_core_usize_Step_step(size_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-
 const vader_type_info_t vader_type_info_table[16] = {
     [1] = { .slot_size = 8 },
     [2] = { .slot_size = 1 },
@@ -121,7 +120,6 @@ const vader_type_info_t vader_type_info_table[16] = {
     [15] = { .slot_size = 16 },
 };
 const size_t vader_type_info_count = 16;
-
 
 static int64_t snippet_l_add(int64_t l0, int64_t l1) {
 #line 9 "tests/snippets/scalar_wide/_main.vader"

@@ -69,8 +69,7 @@ export UNSIZED :: CUnsized {}
 /// A C function definition : its signature, the statements declaring its
 /// locals and setting up its GC frame, then its body.
 export CFunction :: struct {
-    /// Linkage, return type, name and parameters — no brace.
-    signature: string
+    signature: CSignature
     prologue: CStatement[] = []
     body: CBlock
 }
@@ -406,8 +405,9 @@ export NULL_POINTER :: CVerbatim { .text = "NULL" }
 ///
 /// @param callee     the function called for its effect.
 /// @param arguments  its arguments, left to right.
-export perform :: fn(callee: string, arguments: CExpression[]) -> CStatement =
-    CExpressionStatement { .expression = call(callee, arguments) }
+export perform :: fn(callee: string, arguments: CExpression[]) -> CStatement = CExpressionStatement {
+    .expression = call(callee, arguments),
+}
 
 /// `return callee(arguments…);`.
 ///
@@ -487,11 +487,18 @@ I32_MIN: i64: -0x8000_0000
 
 // ---- translation units ----------------------------------------------------
 
+/// A run of top-level items under an optional comment. The printer sets a
+/// section a blank line away from the one before, and a function a blank line
+/// away from its neighbours ; a section with no item prints nothing.
+export CSection :: struct {
+    /// The comment above the items, one entry per line ; empty for none.
+    comment: string[] = []
+    items: CTopLevel[]
+}
+
 /// One top-level item of a C translation unit.
-export CTopLevel :: CComment
-           | CInclude
+export CTopLevel :: CInclude
            | CDefine
-           | CBlankLine
            | CStructForward
            | CStructDefinition
            | CGlobal
@@ -499,11 +506,6 @@ export CTopLevel :: CComment
            | CFunctionPointerTypedef
            | CFunction
            | CStaticAssert
-
-/// `/* … */` — one line per entry.
-export CComment :: struct {
-    lines: string[]
-}
 
 /// `#include "path"`, or `#include <path>` for a `system` header — searched on
 /// the system include path only.
@@ -517,12 +519,6 @@ export CDefine :: struct {
     name: string
     value: CExpression
 }
-
-/// An empty line between sections.
-export CBlankLine :: struct {}
-
-/// The blank line between sections.
-export BLANK_LINE :: CBlankLine {}
 
 /// `typedef struct name name;`.
 export CStructForward :: struct {
@@ -562,14 +558,33 @@ export CStorage :: enum {
 
 /// A function declaration : `signature;`.
 export CPrototype :: struct {
-    signature: string
+    signature: CSignature
+}
+
+/// `storage inline result name(parameters)` — the head a prototype and its
+/// definition share.
+export CSignature :: struct {
+    /// `.Declaration` is a prototype for a function defined in another unit.
+    storage: CStorage = .External
+    inline: bool = false
+    result: string
+    name: string
+    /// Empty for `(void)`.
+    parameters: CParameter[] = []
+}
+
+/// One parameter : `type name`, or `type` alone in a declaration that names
+/// none.
+export CParameter :: struct {
+    type: string
+    name: string = ""
 }
 
 /// `typedef result (*name)(parameters);`.
 export CFunctionPointerTypedef :: struct {
     result: string
     name: string
-    parameters: string
+    parameters: CParameter[]
 }
 
 /// `_Static_assert(condition, message);` — a check `cc` spends at build time.

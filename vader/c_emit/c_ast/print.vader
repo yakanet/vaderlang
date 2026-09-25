@@ -10,11 +10,20 @@ import "std/abort"
 import "std/string"
 import "std/string_builder"
 
+// The column C text is wrapped at.
+LINE_WIDTH: usize: 100
+
+// The columns one level of indentation takes.
+INDENT_WIDTH: usize: 4
+
 /// Accumulates C text printed from trees. Only this module can write the text,
 /// so an emitter can produce C only as a tree.
 export CPrinter :: struct {
     @internal
     out: StringBuilder! = StringBuilder {}
+    /// A section was printed : the next one starts after a blank line.
+    @internal
+    started: bool = false
 }
 
 /// The C printed so far.
@@ -33,38 +42,51 @@ export print_block :: fn(printer: CPrinter!, block: CBlock, depth: i32) -> void 
     depth,
 )
 
-/// Print one top-level item of a translation unit.
+/// Print `section` : its comment then its items, a blank line away from the
+/// section before — nothing at all when it has no item. A function stands
+/// apart from its neighbours.
 ///
 /// @param printer  receives the text.
-/// @param item     the declaration, definition or directive to print.
-export print_item :: fn(printer: CPrinter!, item: CTopLevel) -> void {
+/// @param section  the items to print, with the comment above them.
+export print_section :: fn(printer: CPrinter!, section: CSection) -> void {
+    if section.items.len() == 0 {
+        return
+    }
     // Joined before it joins the unit : a builder keeps every appended piece
     // until it is joined, and a unit's pieces would all stay alive together.
     text :: StringBuilder {}
-    write_top_level(text, item)
+    if printer.started {
+        text.append("\n")
+    }
+    printer.started = true
+    if section.comment.len() > 0 {
+        text.append("/* ${section.comment.join("\n * ")} */\n")
+    }
+    for k in 0..<section.items.len() {
+        if k > 0 && (section.items[k] is CFunction || section.items[k - 1] is CFunction) {
+            text.append("\n")
+        }
+        write_top_level(text, section.items[k])
+    }
     printer.out.append(text.to_string())
 }
 
-/// Print `items`, in order.
+/// Print `item` as a section of its own — one function of a stream, typically.
 ///
 /// @param printer  receives the text.
-/// @param items    the top-level items to print.
-export print_items :: fn(printer: CPrinter!, items: CTopLevel[]) -> void {
-    for item in items {
-        printer.print_item(item)
-    }
-}
+/// @param item     the declaration, definition or directive to print.
+export print_item :: fn(printer: CPrinter!, item: CTopLevel) -> void = printer.print_section(
+    CSection { .items = [item] },
+)
 
 write_top_level :: fn(out: StringBuilder!, item: CTopLevel) -> void {
     match item {
-        is CComment                -> out.append("/* ${item.lines.join("\n * ")} */\n")
         is CInclude                -> out.append("#include ${include_operand(item)}\n")
         is CDefine                 -> {
             out.append("#define ${item.name} ")
             write_expression(out, item.value)
             out.append("\n")
         }
-        is CBlankLine              -> out.append("\n")
         is CStructForward          -> out.append("typedef struct ${item.name} ${item.name};\n")
         is CStructDefinition       -> {
             out.append("struct ${item.name} {\n")
@@ -80,10 +102,15 @@ write_top_level :: fn(out: StringBuilder!, item: CTopLevel) -> void {
             write_declarator(out, item.declarator, head.bytes().len(), 0)
             out.append(";\n")
         }
-        is CPrototype              -> out.append("${item.signature};\n")
-        is CFunctionPointerTypedef -> out.append(
-            "typedef ${item.result} (*${item.name})(${item.parameters});\n",
-        )
+        is CPrototype              -> {
+            write_signature(out, item.signature)
+            out.append(";\n")
+        }
+        is CFunctionPointerTypedef -> {
+            out.append("typedef ${item.result} (*${item.name})(")
+            write_parameters(out, item.parameters)
+            out.append(");\n")
+        }
         is CFunction               -> write_function(out, item)
         is CStaticAssert           -> {
             out.append("_Static_assert(")
@@ -110,8 +137,39 @@ storage_keyword :: fn(storage: CStorage) -> string = match storage {
     .Declaration -> "extern "
 }
 
+// `storage inline result name(parameters)`, without `;` or body.
+write_signature :: fn(out: StringBuilder!, signature: CSignature) -> void {
+    out.append(storage_keyword(signature.storage))
+    if signature.inline {
+        out.append("inline ")
+    }
+    out.append("${signature.result} ${signature.name}(")
+    write_parameters(out, signature.parameters)
+    out.append(")")
+}
+
+// `parameters` separated by `, ` — `void` when there is none.
+write_parameters :: fn(out: StringBuilder!, parameters: CParameter[]) -> void {
+    if parameters.len() == 0 {
+        out.append("void")
+    }
+    for k in 0..<parameters.len() {
+        if k > 0 {
+            out.append(", ")
+        }
+        parameter :: parameters[k]
+        out.append(
+            if parameter.name == "" {
+                parameter.type
+            } else {
+                "${parameter.type} ${parameter.name}"
+            },
+        )
+    }
+}
+
 write_function :: fn(out: StringBuilder!, function: CFunction) -> void {
-    out.append(function.signature)
+    write_signature(out, function.signature)
     out.append(" {\n")
     write_statements(out, function.prologue, 0, function.prologue.len(), 1)
     write_block(out, function.body, 1)
@@ -658,9 +716,6 @@ text_of :: fn(expression: CExpression) -> string {
     return out.to_string()
 }
 
-// The column C text is wrapped at.
-LINE_WIDTH: usize: 100
-
 // `expressions` separated by `, `.
 write_list :: fn(out: StringBuilder!, expressions: CExpression[]) -> void {
     for k in 0..<expressions.len() {
@@ -675,9 +730,6 @@ indent :: fn(out: StringBuilder!, depth: i32) -> void = out.append_repeated(
     ' ',
     depth * i32(INDENT_WIDTH),
 )
-
-// The columns one level of indentation takes.
-INDENT_WIDTH: usize: 4
 
 write_line :: fn(out: StringBuilder!, text: string, depth: i32) -> void {
     indent(out, depth)
@@ -972,7 +1024,7 @@ test_print_block_spells_a_compound_assignment :: fn() -> void {
 @test
 test_print_function_writes_prologue_then_body :: fn() -> void {
     function :: CFunction {
-        .signature = "static void f(void)",
+        .signature = CSignature { .storage = .Internal, .result = "void", .name = "f" },
         .prologue = [declaration("int32_t", "l0")],
         .body = CBlock { .body = [assigned("l0", "1")] },
     }
@@ -1020,10 +1072,41 @@ names :: fn(count: i32) -> CExpression[]! {
 
 // An unsized `int x[]` initialised with `value`, as C text.
 global_text :: fn(value: CExpression) -> string {
-    printer :: CPrinter {}
+    text :: StringBuilder {}
     declarator :: CDeclarator { .name = "x", .length = UNSIZED, .value = value }
-    printer.print_item(CGlobal { .type = "int", .declarator = declarator })
-    return printer.printed_text()
+    write_top_level(text, CGlobal { .type = "int", .declarator = declarator })
+    return text.to_string()
+}
+
+@test
+test_print_section_sets_functions_apart :: fn() -> void {
+    signature :: CSignature { .result = "void", .name = "f" }
+    function :: CFunction { .signature = signature, .body = CBlock { .body = [] } }
+    printer :: CPrinter {}
+    printer.print_section(
+        CSection {
+            .comment = ["two prototypes", "then a function"],
+            .items = [
+                CPrototype { .signature = signature },
+                CPrototype { .signature = signature },
+                function,
+            ],
+        },
+    )
+    printer.print_section(CSection { .comment = ["nothing"], .items = [] })
+    printer.print_section(CSection { .items = [CInclude { .path = "last.h" }] })
+    expected :: """
+/* two prototypes
+ * then a function */
+void f(void);
+void f(void);
+
+void f(void) {
+}
+
+#include "last.h"
+"""
+    assert_eq(printer.printed_text(), expected)
 }
 
 @test

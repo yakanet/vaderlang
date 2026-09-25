@@ -14,22 +14,20 @@ module "vader/c_emit"
 import "std/abort"
 import "std/collections"
 import "std/string"
-import "std/string_builder"
 import "vader/bytecode"
 import "vader/c_emit/c_ast"
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
 vm :: import "vader/bytecode"
 
-/// Per-fn body emit — one C function definition per `BcFunction`,
-/// separated by a blank line. Delegates to `function_definition`, which
+/// Per-fn body emit — one C function definition per `BcFunction`, printed as
+/// soon as it is built. Delegates to `function_definition`, which
 /// walks the op stream against a `FnState` ; `emit_op` is the exhaustive
 /// per-op dispatch with a real arm for every `Op` variant.
 emit_functions :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
     fns :: ctx.module.functions
     for i in 0..<fns.len() {
         printer.print_item(function_definition(ctx, i32(i), fns[i]))
-        printer.print_item(BLANK_LINE)
     }
 }
 
@@ -409,7 +407,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
             },
         )
     }
-    signature :: "${fn_linkage_prefix(ctx, fn_index)}${signature_for(function)}"
+    signature :: signature_for(ctx, fn_index)
     return CFunction { .signature = signature, .prologue = prologue, .body = s.root }
 }
 
@@ -1574,17 +1572,18 @@ emit_fn_trampolines :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
         return
     }
     n :: ctx.module.functions.len()
+    wrappers: CTopLevel[]!: []
     for i in 0..<n {
         if usage.fn_ref_type[i] >= 0 {
-            emit_fn_ref_tramp(ctx, printer, i32(i), usage.fn_ref_type[i])
+            emit_fn_ref_tramp(ctx, wrappers, i32(i), usage.fn_ref_type[i])
         }
     }
     for i in 0..<n {
         if usage.is_closure[i] {
-            emit_closure_lift(ctx, printer, i32(i))
+            emit_closure_lift(ctx, wrappers, i32(i))
         }
     }
-    printer.print_item(BLANK_LINE)
+    printer.print_section(CSection { .items = wrappers })
 }
 
 /// Which fns are taken as fn-values — the shared scan behind both the
@@ -1643,51 +1642,43 @@ emit_closure_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
         return
     }
     fns :: ctx.module.functions
+    declarations: CTopLevel[]!: []
     for i in 0..<fns.len() {
         if usage.fn_ref_type[i] >= 0 {
             name :: fn_symbol_name(fns, i32(i))
-            head :: tramp_head(fns[i].signature.params.len())
-            printer.print_items([
-                CPrototype { .signature = "vader_box_t vader_fn_tramp_${name}(${head})" },
-                external("vader_fn_t", "vader_fn_static_${name}", null, false),
-            ])
+            trampoline :: trampoline_signature(ctx, name, fns[i].signature)
+            declarations.push(CPrototype { .signature = trampoline })
+            declarations.push(external("vader_fn_t", "vader_fn_static_${name}", null, false))
         }
     }
     for i in 0..<fns.len() {
         // Mirror `emit_closure_lift`'s guard : a 0-param fn emits no lift.
         if usage.is_closure[i] && fns[i].signature.params.len() > 0 {
             name :: fn_symbol_name(fns, i32(i))
-            head :: tramp_head(fns[i].signature.params.len() - 1)
-            printer.print_item(
-                CPrototype { .signature = "vader_box_t vader_fn_lift_${name}(${head})" },
-            )
+            lift :: lift_signature(ctx, name, fns[i].signature)
+            declarations.push(CPrototype { .signature = lift })
         }
     }
-    printer.print_item(BLANK_LINE)
+    printer.print_section(CSection { .items = declarations })
 }
 
 /// Emit the `fn.ref` trampoline (drops env, unboxes args to the fn's concrete
 /// sig, boxes the result) + the static `vader_fn_t` value pointing at it.
-emit_fn_ref_tramp :: fn(ctx: EmitCtx, printer: CPrinter!, fn_index: i32, type_id: i32) -> void {
+emit_fn_ref_tramp :: fn(ctx: EmitCtx, items: CTopLevel[]!, fn_index: i32, type_id: i32) -> void {
     fn_decl :: ctx.module.functions[usize(fn_index)]
     cname :: sanitise(fn_decl.name)
     sig :: fn_decl.signature
-    link :: linkage_prefix(ctx.split)
-    head :: tramp_head(sig.params.len())
     body :: CBlock {
         .body = [CExpressionStatement { .expression = cast("void", verbatim("env")) }],
     }
     body.body.push_all(forward_boxed(cname, tramp_unbox_args(sig.params), sig))
-    printer.print_item(CFunction {
-        .signature = "${link}vader_box_t vader_fn_tramp_${cname}(${head})",
-        .body = body,
-    })
+    items.push(CFunction { .signature = trampoline_signature(ctx, cname, sig), .body = body })
     value :: initializer_list([
         object_header(unsigned(i64(type_id))),
         cast("void*", address_of(verbatim("vader_fn_tramp_${cname}"))),
         NULL_POINTER,
     ])
-    printer.print_item(CGlobal {
+    items.push(CGlobal {
         .storage = global_storage(ctx.split),
         .type = "vader_fn_t",
         .declarator = CDeclarator { .name = "vader_fn_static_${cname}", .value = value },
@@ -1697,15 +1688,13 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, printer: CPrinter!, fn_index: i32, type_id
 /// Emit the `make_closure` lift wrapper : takes `void* env` + the tail args
 /// boxed, re-boxes env into the `vader_box_t` the lifted fn's first param
 /// expects, unboxes the tail to the concrete sig, boxes the result.
-emit_closure_lift :: fn(ctx: EmitCtx, printer: CPrinter!, fn_index: i32) -> void {
+emit_closure_lift :: fn(ctx: EmitCtx, items: CTopLevel[]!, fn_index: i32) -> void {
     fn_decl :: ctx.module.functions[usize(fn_index)]
     cname :: sanitise(fn_decl.name)
     sig :: fn_decl.signature
     if sig.params.len() == 0 {
         return
     }
-    tail :: i32(sig.params.len()) - 1
-    head :: tramp_head(usize(tail))
     // The lifted fn's env param (param 0) is a concrete captured-env struct → a
     // raw `void*` (`.Ref`) under T12 ; pass `env` directly. When it's `.Any`
     // (erased), coerce widens it to a box via `vader_ref_box`.
@@ -1713,29 +1702,31 @@ emit_closure_lift :: fn(ctx: EmitCtx, printer: CPrinter!, fn_index: i32) -> void
     arguments.push_all(lift_unbox_tail(sig.params))
     body :: CBlock { .body = [] }
     body.body.push_all(forward_boxed(cname, arguments, sig))
-    printer.print_item(CFunction {
-        .signature = "${linkage_prefix(ctx.split)}vader_box_t vader_fn_lift_${cname}(${head})",
-        .body = body,
-    })
+    items.push(CFunction { .signature = lift_signature(ctx, cname, sig), .body = body })
 }
 
-/// The erased-ABI head `void* env[, vader_box_t a0…]` for a wrapper with `count`
-/// boxed tail slots — `env` alone when `count == 0`. Shared by the trampoline /
-/// lift definitions AND their split-build forward decls so the two can't drift
-/// (a prototype must byte-match its definition).
-tramp_head :: fn(count: usize) = if count == 0 { "void* env" } else { "void* env, ${tramp_box_params(count)}" }
-
-/// `vader_box_t a0, vader_box_t a1, …` — `count` erased-ABI tail params.
-tramp_box_params :: fn(count: usize) -> string {
-    sb :: StringBuilder {}
-    for j in 0..<count {
-        if j > 0 {
-            sb.append(", ")
-        }
-        sb.append("vader_box_t a${j}")
+/// Head of an erased-ABI wrapper — a `fn.ref` trampoline or a `make_closure`
+/// lift : `env`, then `count` boxes. Shared by the definition and its
+/// split-build prototype, which must match.
+///
+/// @param ctx    the emit context, for the storage.
+/// @param name   the wrapper's C name.
+/// @param count  the boxed slots after `env`.
+erased_wrapper_signature :: fn(ctx: EmitCtx, name: string, count: usize) -> CSignature =
+    CSignature {
+        .storage = wrapper_storage(ctx.split),
+        .result = "vader_box_t",
+        .name = name,
+        .parameters = erased_parameters(count),
     }
-    return "${sb}"
-}
+
+// The `fn.ref` trampoline of the function called `name` takes every parameter
+// boxed ; its lift wrapper takes them after the captured environment.
+trampoline_signature :: fn(ctx: EmitCtx, name: string, signature: BcSignature) -> CSignature =
+    erased_wrapper_signature(ctx, "vader_fn_tramp_${name}", signature.params.len())
+
+lift_signature :: fn(ctx: EmitCtx, name: string, signature: BcSignature) -> CSignature =
+    erased_wrapper_signature(ctx, "vader_fn_lift_${name}", signature.params.len() - 1)
 
 /// Unbox `a0..a<n-1>` to the concrete `params` classes — the `fn.ref`
 /// trampoline's argument list (params map 1:1 to `a<j>`).

@@ -20,7 +20,6 @@ static int32_t snippet_main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-
 const vader_type_info_t vader_type_info_table[3] = {
     [1] = { .slot_size = 4 },
     [2] = {
@@ -29,7 +28,6 @@ const vader_type_info_t vader_type_info_table[3] = {
     },
 };
 const size_t vader_type_info_count = 3;
-
 
 static int32_t snippet_main(void) {
     void* l0 = NULL;

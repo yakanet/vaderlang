@@ -52,7 +52,6 @@ const vader_type_info_t vader_type_info_table[6] = {
 };
 const size_t vader_type_info_count = 6;
 
-
 static int32_t snippet_apply(void* l0, int32_t l1) {
     vader_box_t t0 = vader_box_null();
     int32_t t1;
