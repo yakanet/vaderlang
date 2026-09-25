@@ -2,13 +2,13 @@
 
 Implementation roadmap for the Vader compiler and standard library, derived from `SPEC.md`:
 
-- **Phase 1** — MVP compiler in TypeScript, plus stdlib in Vader.
+- **Phase 1** — MVP compiler in TypeScript, plus stdlib in Vader (closed; its open items now live in Priority and Phase 3).
 - **Phase 2** — Self-hosting (port the compiler to Vader).
 - **Phase 3** — Post-MVP language features and tooling.
 
 Completed items (`[x]`) are kept as one-liners — see git history for implementation notes, commit hashes, migration steps. Open (`[ ]`) and in-progress (`[~]`) items keep the full context needed to act on them.
 
-**Completed work — Phase 0, the done Phase 1 subsections, and the long-form detail of finished "Priority" items — lives in [`docs/HISTORY.md`](./docs/HISTORY.md).** This file tracks open + in-progress work only.
+**Completed work — Phase 0, Phase 1, and the long-form detail of finished "Priority" items — lives in [`docs/HISTORY.md`](./docs/HISTORY.md).** This file tracks open + in-progress work only.
 
 ---
 
@@ -135,6 +135,10 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 - [~] **`vader fmt` MVP** (first pass 2026-05-11) — written in Vader under `vader/fmt/`, exercises the self-host parser end-to-end. Idempotency + parse round-trip green on the stdlib ; byte-for-byte no-op pending on three stylistic gaps : (a) `::` column alignment in decl groups, (b) per-line grouping inside multi-line imports, (c) cap at 1 blank line between decls vs the stdlib's occasional double-blank. Tests : `tests/formatter*.test.ts` (gated `RUN_FMT_TESTS=1`). Open : column alignment decision, hand-curated snapshot scenarios, growing `NO_OP_FILES`.
   - **Shipped 2026-07-18 (`fb2b10960`) — control-flow block expansion.** A statement-position `if` / `for` / `while` body always renders multi-line (no inline `if cond { return x }`) ; a run of ≥2 aligned `if <cond> { <stmt> }` (lookup table) stays inline with `{`-column alignment ; value-position `if` (`x :: if c { a } else { b }`) stays inline. `BlockLayout` enum in `printer.vader`. Wired into the LSP (`textDocument/formatting`).
   - **Blocker for a clean-tree mass-reformat — formatter over-collapses.** Running `vader fmt` on the whole tree is a ~36k-line delta today, but MOST of it is pre-existing aggressiveness UNRELATED to the block-expansion change: the formatter collapses hand-wrapped multi-line **struct literals / fn signatures / array literals** into a single line **even when that line exceeds the 100-col soft-wrap** (`MAX_LINE`). The codebase deliberately avoids `fmt` because of this. Fix : make the collapse-to-one-line paths (struct-lit, fn signature, seq-lit) *length-aware* — keep the multi-line layout when the collapsed form would exceed `MAX_LINE`. Once fixed, a whole-tree reformat becomes reviewable + the tree can be made `fmt`-clean.
+  - Define formatting rules — write up the canonical layout as a design-freeze doc (the layout already ships in `style.vader`; this tracks the written spec).
+  - **`fmt` relocates trailing line-comments** — `EMPTY_SLOT :: i32(0)    // why` comes back as two lines, the comment moved above the NEXT declaration. Measured over `vader/` + `lib/`: **447 trailing comments across 59 files**. It is also the root cause of the two `UNSTABLE_IDEMPOTENCY` entries in `tests/formatter_stdlib.test.ts` — moving the comment splits a `::` alignment group, so pass 2 computes a narrower column.
+  - **`fmt` is not idempotent on 13 files** (272/285 across `vader/` + `lib/`). Two distinct causes: the comment relocation above, and a lookup-table `if`-chain member whose body does not fit — pass 1 explodes the body inside the inline braces, pass 2 stops reading the run as a chain. ⚠️ Giving `.Inline` the same fit test as `.Preserve` makes it **worse** (272 → 267): the member expands, the run stops being a chain, and the alignment moves instead. Measured, not assumed.
+  - Bring `vader/**` into a formatter corpus. `tests/formatter_stdlib.test.ts` covers `lib/` only, which is why 11 of the 13 non-idempotent files went unseen.
 
 
 - [~] **Reject private types in a public signature — return + params + exported struct fields DONE (T3052), type-alias RHS open** (`e12cde15`, params+fields 2026-07-24). `first_unexported_type` (`vader/typecheck/decl.vader`) fires **T3052** when an `export`ed fn's **return type OR any parameter type** names a non-`export`ed type (`check_public_fn_visibility`), and when a **public field of an exported struct** exposes one (`report_private_leak`, called from the `StructDecl` arm — an `@internal` field opts out). A single T3052 with a context-specific message ("returns" / "takes a parameter of type" / "exposes a field of type"). Fixtures: `tests/diag_corpus/typecheck/t3052_private_type_in_public_{return,param,field}/`. Real leaks the field check surfaced and fixed in the same landing: `Printer.block_mode` / `LowerProjectCtx.generic_collected` / `FunctionBuilder.scopes`+`pending` → `@internal` (internal state), `std/regex::InstClass.ranges` → export `CharRange` (public semantic content), `std/semver::VersionRange.clauses` → `@internal` (RangeClause deliberately private). **Remaining call sites, both natural pass-throughs of `report_private_leak`:** (1) **type-alias RHS** (`export Foo :: PrivateType`) — the debatable case: fire (Rust E0446 does) or treat as a sanctioned re-export of a private impl type ; hook `declare_type_alias` ; decide before implementing. (2) **trait method signatures** — `check_public_fn_visibility` is only called from `declare_fn`, which trait-method sigs never reach, so a public trait's method params/returns over a private type go unchecked ; hook wherever trait members are declared. Mirrors Rust's `private_interfaces` (E0446).
@@ -164,6 +168,8 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
   **So the first move is a measurement, not a rewrite.** Compile a dense enum `match` at `-O3` and look for a jump table (`jmp *%rax` / `.rodata` offsets) versus a comparison chain. If the table is already there, this is worth nothing on the C backend and stays a note for the future WASM emitter, where `br_table` has to be chosen explicitly and nothing will infer it. If it is not, the fix is narrow: emit `switch` when every arm is a literal over one integer scrutinee, keep the `if` chain for everything else (type tests, guards, string arms, or-patterns). Cross-ref the bytecode side — the VM dispatches the same shape and has no table either.
 
   ⚠️ Not to be confused with a correctness matter: the chain is correct today, and `@partial` / T3013 exhaustiveness is unaffected either way.
+
+  **The general form of the same work** is decision-tree compilation (Maranget): sharing tests across arms instead of re-testing the scrutinee per arm. Only worth it if the measurement above shows the chain costs something.
 
 - [ ] **Null-narrowing crosses `&&` but not `||`** (found 2026-08-28, writing `vader/resolver/target_select.vader`). The two short-circuit operators are treated asymmetrically, and only one of them is right:
 
@@ -197,7 +203,7 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
   So the impl resolves and the interpolation machinery works; only the path taken by a *qualified enum literal in interpolation position* skips it. Narrowed further on a real Windows guest (2026-08-28): `"${current_os()}"` — an interpolated CALL returning an enum — prints `windows` correctly, so the defect is not about enums in interpolation at all. It is specifically the qualified literal, which is the one form the compiler can see is an enum before any expression is evaluated. Everything that first binds the value — a local, an annotation, an argument — is correct, which is what makes this hard to notice: it needs a literal written inline, and the wrong answer is a plausible-looking number rather than a crash. Suspect the same `${int}` byte-buffer fast path that the interpolation perf work added (`perf_byte_buffer_interpolation`): an enum is an `i32` at runtime, so a shape test that asks "is this an integer?" before asking "does it implement Display?" would produce exactly this. `lib/std/target/target.vader`'s tests call `to_string()` explicitly and say why, so they do not encode the bug as expected behaviour.
 
 - [ ] **Warn on unused imports** (added 2026-06-07). An imported name that's never referenced in the file earns a compilation warning (new W-code). Covers both import forms : `import "path" { Name1, Name2 }` — each destructured name must be used at least once — and the namespace form `xx :: import "path"` — the binding `xx` must be referenced at least once (e.g. `xx.Member`), else the whole import is dead. Emit one warning per unused name, pointing at its import-list span. Update `SPEC.md` (imports section) in the same commit.
-  - **Attempted 2026-06-17, reverted — blocked on reference-tracking.** First cut scanned `resolved.idents` (span→Symbol) for `ImportBinding`-kind values to build the "used" set, emitting W0006 for every unreferenced import binding in `resolved.symbols`. Minimal snippets passed (an unused `eprintln` flagged, a used `println` not — across value position, let-binding RHS, and type position). But on the real tree it **systematically false-positives** : `vader/lexer/keywords.vader` (40 LoC, **zero own imports**) reported 16 W0006 — they were `vader/lexer`'s **sibling-file** imports, whose uses the resolver never recorded because **its body walker is structurally `files[0]`-only** (TODO §1.13d, `resolver/resolve.vader:153`). Worse, single-file `vader/cli/main.vader` reported 24 W0006 for top-of-file imports that are obviously used (`keys`, `values`, `resolve_module`, …) — so `resolved.idents` is **not a reliable record of every use** even within one file (some expr/type positions never land there ; root not fully pinned). **Conclusion :** a sound W0006 needs comprehensive, **symbol-id-keyed** (not span-hashed) reference tracking that covers *every* file of a (folder) module and *every* reference position. That is the same gap as **"Harden multi-file module support" (§1.13d, the `files[0]`-only body walker)**. Do this **after** §1.13d lands, or as a dedicated full-AST name-collection walk (params/return/fields/alias-RHS/const-types/all bodies, across all files) — not by scanning `resolved.idents`. Reverted cleanly (no W0006 in the tree).
+  - **Attempted 2026-06-17, reverted — blocked on reference-tracking.** First cut scanned `resolved.idents` (span→Symbol) for `ImportBinding`-kind values to build the "used" set, emitting W0006 for every unreferenced import binding in `resolved.symbols`. Minimal snippets passed (an unused `eprintln` flagged, a used `println` not — across value position, let-binding RHS, and type position). But on the real tree it **systematically false-positives** : `vader/lexer/keywords.vader` (40 LoC, **zero own imports**) reported 16 W0006 — they were `vader/lexer`'s **sibling-file** imports, whose uses the resolver never recorded because **its body walker is structurally `files[0]`-only** (closed since — `docs/HISTORY.md`, "Harden multi-file module support"). Worse, single-file `vader/cli/main.vader` reported 24 W0006 for top-of-file imports that are obviously used (`keys`, `values`, `resolve_module`, …) — so `resolved.idents` is **not a reliable record of every use** even within one file (some expr/type positions never land there ; root not fully pinned). **Conclusion :** a sound W0006 needs comprehensive, **symbol-id-keyed** (not span-hashed) reference tracking that covers *every* file of a (folder) module and *every* reference position. That was the same gap as **"Harden multi-file module support"** (the `files[0]`-only body walker, now closed — `docs/HISTORY.md`, "Harden multi-file module support"). Retry on top of it, or as a dedicated full-AST name-collection walk (params/return/fields/alias-RHS/const-types/all bodies, across all files) — not by scanning `resolved.idents`. Reverted cleanly (no W0006 in the tree).
 
 
 - [x] **UFCS resolves *through* a namespace alias — `x.f()` compiles where the bare `f(x)` is R2006** (found 2026-07-28, fixed 2026-08-02). `populate_imported_fn_overloads` now feeds the UFCS table from `CollectedModule.wildcard_paths` instead of `import_paths` — the collector already separated the two, and only the forms that put names in UNQUALIFIED scope (bare `import "p"`, `import "p" { … }`) belong in that table. A namespace alias contributes nothing, so `x.f()` now fails exactly where `f(x)` does. The miss reports **T3078** (`vader/typecheck/field.vader::report_namespace_alias_method`), checked ahead of both shape-based exits of `resolve_struct_field` so it covers a struct receiver and a scalar one; it spells the repair (`write `P.bump(c)``) but does NOT name the target module — `namespace_targets` carries the module's FOLDER, not the name the import spelled, and R2008 on a namespace member is likewise module-free. Fixture `tests/diag_corpus/typecheck/t3078_ufcs_through_namespace_alias/` (struct receiver + scalar receiver + a negative where the alias exports the name but no overload takes the receiver). SPEC §UFCS "Import requirement" now states that "same rule" includes the import form.
@@ -210,7 +216,7 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
   **The tree was leaning on the bug in 15 files.** Switching to file scope surfaced them all as hard errors: `core_seed.vader` used `.ends_with` without importing `std/string`, nine `vader/lower` + `c_emit` files used `.add`/`.len`/`.is_empty` without `std/collections` or `std/iter`, `parser.vader` and `lexer/dump.vader` used `.append` without `std/string_builder`, and `lower_iter_fusion.vader` used `span_of(AST.Expr)` — which lives in `vader/comptime`, not in its own module — while importing `vader/parser` under an alias only. Each was borrowing a sibling file's import, which SPEC §"Modules" forbids; each got the import it actually depends on. Cost measured on a full self-typecheck: 8.88 s → 8.92 s, RSS unchanged (~340 MB) — the per-file tables are ~30 prelude entries plus that file's imports, so the duplication is noise.
 
-  **Still open, and now the only side that diverges: the RESOLVER's unqualified seed.** `build_wildcard_seed` is still fed the module-wide union (`all_wildcard_paths` / `all_wildcard_excludes`), so in a multi-file module the BARE form is refused where the UFCS form now resolves — the mirror image of the bug just closed. `vader/lsp/main_entry.vader` is the live instance: its sibling drops `std/cli`'s `parse` to keep `std/json`'s, so the bare `parse(argv, LSP_FLAGS)` cannot resolve there and the call is now written `CLI.parse(...)` through an alias. Pinned by `tests/diag_corpus/typecheck/t3009_ufcs_import_modifier_is_file_scoped/`, whose snapshot deliberately records that R2006 — when the seed goes per-file (§1.13d, the same chantier as the `files[0]`-only body walker and W0006 unused-imports), the entry disappears and the snapshot moves, which is the signal.
+  **Still open, and now the only side that diverges: the RESOLVER's unqualified seed.** `build_wildcard_seed` is still fed the module-wide union (`all_wildcard_paths` / `all_wildcard_excludes`), so in a multi-file module the BARE form is refused where the UFCS form now resolves — the mirror image of the bug just closed. `vader/lsp/main_entry.vader` is the live instance: its sibling drops `std/cli`'s `parse` to keep `std/json`'s, so the bare `parse(argv, LSP_FLAGS)` cannot resolve there and the call is now written `CLI.parse(...)` through an alias. Pinned by `tests/diag_corpus/typecheck/t3009_ufcs_import_modifier_is_file_scoped/`, whose snapshot deliberately records that R2006 — when the seed goes per-file (the per-file seed, sibling of the closed `files[0]`-only body walker and of W0006 unused-imports), the entry disappears and the snapshot moves, which is the signal.
 
 - [ ] **A namespace alias behaves as module-GLOBAL during materialisation** (exposed 2026-08-27 by the `toolchain/` move, not introduced by it). Three files of one module each declared `AST :: import "..."`, and two retargeted the alias to `toolchain/ast` while the third kept `vader/parser` — a per-file alias, which SPEC treats as file-scoped. It TYPECHECKED, then panicked in midir under `vader test`: `unresolved callee 'is_valid_module_name' (id=0) in 'vader_hooks$generated_name_problem' — impl-member/for-in materialisation gap (GATE B1)`. Renaming the odd file's alias fixed it, which is what pins the cause on the alias NAME rather than on the call. Two things make it worth its own investigation: it surfaces only in the per-module test closure (the whole-tree build was clean), and it is silent up to the panic — the typechecker resolved the qualified call correctly, so whatever materialisation keys on is not what the typer used. Adjacent to the still-open half of the wildcard-modifier work, where `build_wildcard_seed` is fed the module-wide union rather than a per-file one.
 
@@ -224,87 +230,9 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
   Also fixed on the way: `tests/vader-sources.ts` owns `holdsTestFile` beside `containsTestFn`, because the `@test` substring check got hand-written a THIRD time and `std/testing`'s own doc-comment defeats it — that file exists because of the second time.
 
-- [ ] **UFCS / member dispatch — two hand-mirrored priority ladders, and the elaboration that would retire one** (design frozen 2026-07-27; three defects reproduced, nothing implemented). The typer and the lowerer each resolve `a.f(b)` through their **own** ladder — the typer records coercions (`into_coercions`) and the lowerer **re-derives everything** from scratch — so the two can disagree, and every fix has to be applied twice by hand. ⚠️ **A parse-time desugar cannot fix this**: `a.f(b)` has ten distinct resolutions (struct field, trait impl, free fn by UFCS, namespace member, enum variant, intrinsic, …) and the parser knows none of them. **The three defects, all reproduced against `build/vader` at `e86d0cc13`:** **(a)** a free fn **silently shadows a struct field** of the same name — member should win; **(b)** the typer and lowerer disagree and the **IR carries a lying type**; **(c)** the typer accepts what the lowerer **cannot emit** (the panic site the distinct-cast bug in §1.13d shares). **Staging:** phase 0 free cleanup with no semantics; phase 1 member-before-UFCS precedence (fixes (a)); phase 2 the un-called curried `FieldExpr` (fixes (b) and (c)); **phase 3 is the real chantier — elaboration**: the typer *writes* the resolved dispatch at every site and the lowerer *reads* it instead of re-deriving, landed in three independently shippable steps (3.1 write it while lower still uses its own ladder, guarded by a verifier asserting the two agree; 3.2 switch the shapes that are clean; 3.3 retire the lowerer's ladder shape by shape until the fallback is dead). What elaboration does **not** remove: the typer's own ladder — there will always be exactly one, which is the point.
+- [ ] **UFCS / member dispatch — two hand-mirrored priority ladders, and the elaboration that would retire one** (design frozen 2026-07-27; three defects reproduced, nothing implemented). The typer and the lowerer each resolve `a.f(b)` through their **own** ladder — the typer records coercions (`into_coercions`) and the lowerer **re-derives everything** from scratch — so the two can disagree, and every fix has to be applied twice by hand. ⚠️ **A parse-time desugar cannot fix this**: `a.f(b)` has ten distinct resolutions (struct field, trait impl, free fn by UFCS, namespace member, enum variant, intrinsic, …) and the parser knows none of them. **The three defects, all reproduced against `build/vader` at `e86d0cc13`:** **(a)** a free fn **silently shadows a struct field** of the same name — member should win; **(b)** the typer and lowerer disagree and the **IR carries a lying type**; **(c)** the typer accepts what the lowerer **cannot emit** (the panic site the distinct-cast bug — `docs/HISTORY.md` §1.13d — shares). **Staging:** phase 0 free cleanup with no semantics; phase 1 member-before-UFCS precedence (fixes (a)); phase 2 the un-called curried `FieldExpr` (fixes (b) and (c)); **phase 3 is the real chantier — elaboration**: the typer *writes* the resolved dispatch at every site and the lowerer *reads* it instead of re-deriving, landed in three independently shippable steps (3.1 write it while lower still uses its own ladder, guarded by a verifier asserting the two agree; 3.2 switch the shapes that are clean; 3.3 retire the lowerer's ladder shape by shape until the fallback is dead). What elaboration does **not** remove: the typer's own ladder — there will always be exactly one, which is the point.
 
----
-
-## Phase 1 — MVP compiler in TypeScript
-
-> Completed subsections (see the note above): §1.0 Diagnostics, §1.1 Lexer, §1.2 Parser, §1.3 Resolver, §1.4 Type-checker, §1.7 Bytecode emitter, §1.13b Self-hosting prerequisites, §1.13c Bugs, §1.14 Snapshot infra, §1.17 Enums, §1.18c-bis / §1.18c Overloading, §1.18 Built-in aliases. The subsections kept below still carry open `[ ]` / `[~]` items.
-
-### 1.5 Comptime engine + monomorphizer
-
-**Decision:** AST-walking interpreter at first, then ported to the bytecode VM in 1.5b. No separate comptime VM — the engine and the runtime VM share `src/bytecode/ops.ts`.
-
-> Shipped 1.5a + 1.5b: AST-walker → bytecode-VM comptime engine, `@comptime` cycle detection + topo eval, generic-fn instance registry + monomorphization, `std/iter` eager + lazy + short-circuiting combinators, transitive mono, first-class trait-method dispatch, generic `len`, `T[]`→`Iterator(T)` auto-coerce, `for x in iter` / `MutableList` inside `@comptime` (VM-backed staging).
-- [ ] **Default-init for generic typeParam** — `acc: T = T()` style, needed by `sum(it)` over an iterator. Either a `Default` trait + auto-impl on numerics, or a `zero<T>()` intrinsic. Currently blocks iterator-driven `sum`, `min`, `max`. Requires either (a) explicit type-args at call sites (`default[T]()`) or (b) `T()` constructor syntax for type-params. Recommendation : start with (a). `Default` trait can wait until a dispatch path exists.
-
-### 1.6 Lowerer — partial
-> Shipped: lowered AST, match → if/else chain, `expr?` + interpolation + `defer` + trait-call lowering, lambda lifting / closure conversion, `RangeExpr`/`T[]` → `Iterator` for-in.
-- [ ] Match decision-tree compilation (Maranget). Naive chain is enough for MVP.
-
-### 1.7b IR text emitter / reader (`--target=ir-text` → `.virt`) — partial
-> Shipped: line-oriented `.virt` grammar, `writeVir`/`parseVir` round-trip, `vader run program.virt`.
-- [ ] Manifest mode for multi-module bytecode merge.
-
-### 1.7c Bytecode format refresh — partial
-
-**Two-format split — done**
-- [~] Header flags — `has_debug_info` ✓. `target` and `module_id` deferred until WASM emitter / cache work lands.
-
-**"Plus IR-like" — open architecture question**
-
-Three variants on the table for the WASM-mimicking structured-control form vs midir's CFG :
-  (a) **Drop the WASM mimicry, keep stack-machine.** `block`/`loop`/`if`/`else`/`end` + `br <depth>` → `goto label` + `branch_if cond label`. ~3-4 days. Saves ~200 lines.
-  (b) **Bytecode adopts midir's CFG shape.** `BasicBlock { instrs, terminator }`. VM consumes a CFG. ~1-2 weeks.
-  (c) **Promote midir directly — bytecode and midir merge.** `BytecodeModule` becomes `IRModule`. `.vir` serialises the CFG. ~2-3 weeks.
-
-Bias : (a) is a fast win that keeps options open ; (c) is the right long-term destination ; (b) awkward intermediate. **Do not implement until discussed.**
-
-**LoweredAST ↔ CFG seam — decided**
-
-Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cleaner over expression trees ; `midir/build.ts` is a thin, cheap-to-maintain seam ; line savings from a merge would be ~250-400 (not the 1500 headline). Reopen only when : §1.7c above ships, a second CFG consumer appears without a matching LoweredAST consumer, or a new desugar pass naturally wants CFG shape (e.g. async/yield).
-
-### 1.8 VM — done
-- [ ] **REPL** — needs incremental compilation across phases. Punt until after the C/WASM emitters.
-- [ ] **Slot-typed numeric promotion verifier** — add debug-only verifier when the WASM target lands.
-
-### 1.9 C emitter (Iter-ready) — partial
-> Shipped: full `src/c_emit/emit.ts` (type repr γ, `std/io` shims, `vader build --target=native`, VM-parity tests), `--release` / `--cc` / `CC` / `--ldflags`, struct-field unbox after `is`, Windows cross-compile (mingw-w64 + Wine), `#line` debug directives, stable `@extern` ABI (T3050/T3051).
-- [ ] Manifest mode (`vader build --target=native --manifest`).
-- [ ] i32/i64 overflow handling per SPEC §4 (panic in debug). Wraps silently today.
-
-### 1.10 WASM emitter — moved to Phase 3 (§3.10)
-
-### 1.11 C runtime — done
-> Shipped: string + array runtime, StringBuilder consolidation (`stdlib/std/string_builder/`), panic handler (`vader_panic` / `vader_trap`, drain-defers-then-abort), libc-backed I/O for `std/io` (`vader_read_file_bytes` / `vader_write_file_bytes` / `fgets`). Full setjmp/longjmp panic-unwind on the C target is tracked under §3.8 `defer` unwinds on panic.
-
-### 1.12 CLI — partial
-> Shipped: `vader run` + `vader build` single-file, `--target=ir` (`.vir`/`.virt`), `vader test`, `vader dump --stage=<ast|typed-ast|bytecode|c|…>`, `--allow-env`.
-- [~] **`vader fmt [path]`** — see top "Priority — next up".
-- [ ] Manifest-driven build (`vader.json`) — single-file works ; manifest mode still gated "not yet implemented".
-- [ ] `vader build --target=wasm` — see §3.10.
-
-### 1.13 Stdlib (in Vader) — partial
-- [~] `std/core` finalisation, `std/io`, `std/string`, `std/math`.
-- [ ] **Immutable `Map`/`Set` ops + `to_immutable`** — re-add the struct decls when there's a real read-only-view design.
-- [ ] **Restore `MutableList(T)` once immutable `List<T>` lands** — raw `T[]` already covers push/len/indexing.
-- [~] **`std/cli`** (initial 2026-05-11) — minimal declarative `FlagSpec` + `parse(args, specs) -> ParsedArgs` + accessors. Supports `--name`, `--name=value`, `--`. Open : subcommands, `--help`/`--version`, short flags `-v`, `--name value` form, rewriting `vader/cli/main.vader` on top once subcommands land.
-
-### 1.13d Stdlib consolidation — partial
-> Shipped: hex/base helpers centralised in `std/numbers`, `std/json` char-predicate duplicates removed.
-
-  - **Promoted to a dedicated chantier (2026-06-16).** It folds in the `string.len()` miscompile (UFCS to a non-imported, non-`core` free fn → invalid C), the **frozen import policy** (using a non-imported fn — except `std/core` the prelude — is a compilation error), the prelude/layering rule, and the emitter ICE backstop. The `bytes_to_string` reconciliation item below is folded into that plan's Phase 3.
-- [ ] **Future audits** — revisit when new stdlib modules land. A shared `Cursor(T)` trait could unify `std/json` and `vader/lexer`'s hand-rolled cursors when a real need arises.
-- [x] **`.virt` reader silently drops unknown opcodes** (found + fixed 2026-07-27). `try_push_op` returned `false` for any line it couldn't parse and the caller `continue`d, so a dump carrying an instruction the reader didn't know ran with that op MISSING — unbalanced stack, plausible wrong output, no diagnostic. Found by removing an opcode while a stale `.virt` still used it: `path_basics` printed empty filenames rather than failing, and a subsequent `UPDATE_SNAPSHOTS=1` overwrote nine correct `vm.snapshot` oracles with the wrong output. **The premise of the tolerance was false**: a body holds no non-instruction lines (comments and blanks are gone by then, `local` and the closing `end` are taken earlier), and the directive vocabulary outside a body is closed at ten heads — so position alone tells an instruction from anything else, no heuristic needed. `parse_virt_bc` now returns `BytecodeModule | VirtParseError` (line number + line + reason) and stops at the first line it can't read, covering all three silent paths: unknown instruction, unknown directive, and a known head whose operands don't parse (each shifts every following pc against an already-built jump table). The one line that legitimately isn't bytecode — the terminal `# Diagnostics` report `vader dump` appends after a warning-raising compile — ends the stream instead. Callers mirror their existing `is IOError` arm (`run_virt`, `emit_c_source_from_virt`). Verified against all 387 `.virt` dumps in the corpus: zero traps, i.e. no writer→reader gap was hiding behind the tolerance. Cross-ref the snapshot-regeneration order trap — regenerate `bytecode.snapshot.virt` BEFORE the vm oracles, or `vader_vm.test.ts` measures the old dump. **This closes the silence at LINE level only** — the same degrade-quietly pattern survives inside the recognised directives, see the entry below.
-- [x] **The `.virt` directive parsers degraded quietly** (found 2026-07-27, fixed 2026-07-28). Each dropped or substituted on malformed input and returned as if it had succeeded. `parse_type_decl_bc` fell through to `bc.BcRef { .trait_name = "" }` for any kind it didn't recognise — the `BcStruct`→`BcRef` placeholder that is blocker #1 of the self-host bytecode audit, where an opaque ref makes every downstream field access a miss. `parse_struct_type_bc` skipped a field whose `name:tid` didn't split or whose tid wasn't numeric, silently renumbering every later field. `parse_import_decl_bc` / `parse_impl_decl_bc` / `parse_vtable_decl_bc` / `parse_data_decl_bc` each returned mute on a malformed line, dropping a whole pool entry and shifting every index after it.
-
-  All five now report. They return a `DirectiveError` — a named type rather than a bare `string | null`, because a string says nothing about whether it is a value or a complaint — carrying the reason without the position; `parse_virt_bc` holds the line number and pairs the two into the `VirtParseError` added for the line level. Verified against all 390 `.virt` dumps in the corpus: 385 read unchanged, **zero new refusals**, so nothing valid was tightened out. Covered by three colocated tests, one per failure family.
-
-  The remaining 5 are a **separate, pre-existing** limit, confirmed by rebuilding without these changes: `c_emit: baked struct symbol_id N not in the module type table`. The `.virt` text carries no struct `symbol_id` (the reader's header says so and falls back to `-1`), but a struct baked into `.rodata` needs one C-side. Affects `_diag_comptime_struct{,_nested}`, `module_const_mutability`, `array_add_concat`, `array_push_all_const` — all of them dumps holding a module const of structs. Either the dump must carry the symbol id, or `c_emit` must key baked structs on something the text preserves.
-
-- [x] **A distinct-type cast lost its type when a method was chained onto it** (found + fixed 2026-07-27). `string(n).trim()` on a `string`-backed distinct panicked in midir — `no field 'trim' on 'Name' — a method reference on a primitive isn't a first-class value` — while binding the cast to a local first, or calling `trim(string(n))`, both worked. Cause: `emit_value_cast` (`vader/lower/lower_impl_member.vader`) returned the argument VERBATIM for a `string` / `bool` / `void` / `null` target, so the lowered tree kept carrying the distinct and any read of the result's type resolved against it. The numeric arm and the WRAP direction both stamped their target already; this was the missing half, and the fix is to stamp unless the cast is a true identity. Free at runtime — `bc_type_of(distinct) == bc_type_of(backing)`, so the emitted cast is a no-op. **Two things my first write-up got wrong**: it is not limited to the isolated per-module compile (a plain `vader run` reproduces in twenty lines — `to_posix` only surfaced there because that was its only caller), and it is not about lambdas or `replace_chars_where` (`string(n).trim()` breaks identically, so it is any method on any such unwrap). Same panic site as the third reproduced defect of the open UFCS dispatch-elaboration chantier — "the typer accepts what the lowerer cannot emit", see the item under "Priority — next up" — and a fourth member of the two-priority-ladder family it describes, but independently fixable. Pinned by `tests/snippets/distinct_unwrap_method_chain`, which covers all three backing families plus the identity cast and the two forms that already worked.
-- [ ] **`is` on an instantiated generic struct ignores the type argument — silently wrong** (found 2026-07-27 evaluating whether `FlagSpec` could be generic over its kind). A test against one instantiation matches *every* instantiation, and the narrowed binding then reads the field at the wrong type, with no diagnostic. Repro (no snippet on purpose — its snapshots would enshrine the wrong output):
+- [ ] **`is` on an instantiated generic struct ignores the type argument — silently wrong** (found 2026-07-27, re-verified 2026-09-25 on VM and native, evaluating whether `FlagSpec` could be generic over its kind). A test against one instantiation matches *every* instantiation, and the narrowed binding then reads the field at the wrong type, with no diagnostic. Repro (no snippet on purpose — its snapshots would enshrine the wrong output):
 
       Spec :: struct<T> { name: string, dflt: T }
 
@@ -314,142 +242,18 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
               Spec<string> { .name = "cc",      .dflt = "cc" },
           ]
           for s in xs {
-              if s is Spec<bool> as b {
-                  println("${b.name} bool ${b.dflt}")
-              } else if s is Spec<string> as t {
-                  println("${t.name} str ${t.dflt}")
+              if s is Spec<bool> {
+                  println("${s.name} bool ${s.dflt}")
+              } else if s is Spec<string> {
+                  println("${s.name} str ${s.dflt}")
               }
           }
           return 0
       }
 
-  Prints `release bool false` then **`cc bool true`** — the `Spec<string>` took the `Spec<bool>` arm, and its `string` field was read as a `bool`. Identical under `match`, identical for a local array and a module const, so it is neither the const path nor the match lowering: the `is` test compares the struct's *shape* and never looks at the type argument. Same family as the erased-vs-packed bugs (`docs/HISTORY.md` §3.8) — generics are erased, so `Spec<bool>` and `Spec<string>` share one runtime tag. **Two defensible fixes, to decide before coding:** carry the type arguments in the runtime tag so the test can discriminate (costs a wider tag, helps every `is` on a generic), or have the typechecker REJECT a union that mixes instantiations of one generic — the narrowing it would need is unimplementable under erasure, so promising it is the actual defect. The second is cheaper and honest; the first is what a user expects. Until then, a heterogeneous table of `Spec<T>` is unusable, which is why `FlagSpec` keeps a `kind` field instead of a type parameter.
-- [x] **`push_all` copied between arrays without checking their element kinds** (found + fixed 2026-07-27). `vader_array_push_all` ended in a memcpy sized by the SOURCE's element width and never compared the two buffers' `element_kind`. A module const materialises BOXED (24-byte `vader_box_t` slots), a freshly allocated `T[]!` is KIND_REF (8-byte raw pointers) — so `dst.push_all(SOME_CONST)` wrote 24-byte boxes at 24-byte strides into an 8-byte-stride buffer and died reading them back as pointers. Native only; the VM boxes uniformly. Surfaced as `vader lsp --stdlib-root=…` exiting 139 with no diagnostic, because `command_specs` used `push_all` on a flag-spec const. **Two wrong guesses, recorded because they cost time**: it is not the cross-module hop (a same-module copy of the same const still crashes), and it is not the removal of a nearby function (the first bisection blamed a deleted `basename`, and putting it back did not fix it — the lesson being that removing the supposed cause is the only test that counts). What settled it: the C dump with `#line`, where the `push` loop emits `vader_ref_box` per element and `push_all` emits a bare memcpy. Matching kinds keep the memcpy; differing kinds go through the boxed form element by element via a `vader_array_load_slot` extracted as the symmetric read of `vader_array_store_slot`. Pinned by `tests/snippets/array_push_all_const` — note the nested array field, without which the const materialises REF and nothing reproduces.
-- [x] **A single-dash CLI token is swallowed instead of rejected** (found + fixed 2026-07-27). Closed by the declarative-CLI work: `std/cli`'s single parser inspects a `-x` token instead of assuming it positional, so an unrecognised short flag is an error like an unrecognised long one. `vader build x.virt --target=c -o out` no longer exits 0 having ignored the `-o` — which is what littered 384 stray `.c` files across the snippet corpus. Short aliases are now real (`-o`, `-t`, `-r`, `-s`, `-h`, `-v`), so `-o` means `--out`.
-- [x] **Minify the C that becomes `bootstrap.c` — DROPPED 2026-07-28**, the same day it was measured, because the seed-size chantier removed its entire justification. Kept below as record: the measurements are sound, the prototype works, and the reasoning is what stops this being picked up again.
+  Prints `release bool false` then **`cc bool true`** (`cc bool false` on 2026-09-25 — the garbage read depends on layout) — the `Spec<string>` took the `Spec<bool>` arm, and its `string` field was read as a `bool`. Identical under `match`, identical for a local array and a module const, so it is neither the const path nor the match lowering: the `is` test compares the struct's *shape* and never looks at the type argument. Same family as the erased-vs-packed bugs (`docs/HISTORY.md` §3.8) — generics are erased, so `Spec<bool>` and `Spec<string>` share one runtime tag. **Two defensible fixes, to decide before coding:** carry the type arguments in the runtime tag so the test can discriminate (costs a wider tag, helps every `is` on a generic), or have the typechecker REJECT a union that mixes instantiations of one generic — the narrowing it would need is unimplementable under erasure, so promising it is the actual defect. The second is cheaper and honest; the first is what a user expects. Until then, a heterogeneous table of `Spec<T>` is unusable, which is why `FlagSpec` keeps a `kind` field instead of a type parameter.
 
-  **Why it is dead.** The original headline — 1064 KB → 950 KB gzipped, "114 KB per reseed" — measured the *compressed artefact*, which no longer exists. The seed-storage chantier stored the seed raw (Phase 1), moved reseeds to one per push (Phase 2) and converted the 400 historical seeds (Phase 3), taking `.git` from 535 MB to 61 MB. What is left for minification to win: ~12 % of the per-reseed delta (measured on four real consecutive seeds packed both ways, 1.6 MB → 1.4 MB), so roughly **6 MB a year** at ~46 reseeds/month — against a repository that is now 61 MB, and after paying ~2 MB up front for the first minified reseed rewriting every line's indentation. Break-even around four months, for a rounding error.
-
-  Against that: a `minify_c` function, a CLI flag, **two** emit sites to keep in lockstep, and the permanent trap documented below — get the `cmp` sides out of sync and `verify.sh` is red in CI forever. The two secondary arguments went too: the seed is not distributed separately (a fresh clone is 83 MB), and a 20 %-smaller translation unit is noise against the 1 min 40 bootstrap, since lexing is a tiny fraction of it.
-
-  **If it is ever revived, the reason will not be size.** It would be readability of the emitted C, or a target where the artefact ships on its own.
-
-  **It does NOT produce enormous lines** — worth stating because the name suggests otherwise. `minify_c` trims each line and drops the empty ones; it never fuses two lines. Measured on the seed: 215 444 lines → 212 846 (−1.2 %, exactly the blank lines), mean line length 52.4 → 42.0 chars, and the **longest line is unchanged at ~55 000 characters** (a `UINT64_C` comptime table, one of 6 lines already past 10 000 chars). The byte win comes entirely from the indentation, not from removing lines.
-
-  **Shape: a `--pretty` flag on `build --target=c` (default true), applied to the WHOLE emitted string at the end — not threaded through the emitter.** Conditioning each site is what makes this sound expensive: `c_emit` has 48 places emitting hard-coded indentation and 141 emitting a newline, none of it behind a shared `indent()` helper. But nothing requires touching them. `build_c` already holds the finished C as one string before `write_out`; running it through a `minify_c(source) -> string` there costs one call site, leaves the emitter untouched, and makes the transform a testable Vader function rather than a shell filter duplicated across scripts.
-
-  Only the seed uses it. `regenerate.sh:31` and `verify.sh:26` emit the seed with the *same* command, so adding the flag to both keeps `verify.sh:27`'s byte-for-byte `cmp` valid with no filter of its own — the freshness guard stays exactly as it is. stage1 / stage2 (`build.sh`, `verify.sh`'s `fp1.c` / `fp2.c`) don't pass it and stay readable, which is what `--target=c` exists for.
-
-  **`--pretty=false` and `--release` are independent, and it is worth not conflating them.** The worry that minifying a debug build would wreck the `#line` directives does not hold: all 48 844 of them sit in column 0, so stripping indentation leaves them untouched — checked, the minified debug C still compiles and keeps them. The gain is comparable either way (9.5 % debug, 10.6 % release). What `--release` removes is the `#line` lines themselves, which are worth 1.2× on their own; what `--pretty=false` removes is whitespace. Different axes.
-
-  So don't make the flag *require* `--release`. Combining them is simply what the seed wants — a minified debug C has no use, since debug info exists to be read and minification is for what isn't. Document the pairing rather than enforcing it; `--annotate` is the precedent for a flag that is documented as belonging to one stage without the parser policing it.
-
-  **`minify_c` itself is ~20 lines — prototyped and run against the real seed.** Split on newline, `trim()` each line, drop the empties, re-join. Two details are the whole difficulty, and both are cheap:
-
-  - **Continuation lines.** A line ending in `\` means the next line's leading whitespace belongs to a string literal or macro body, so both must pass through untouched. The emitter produces **zero** of them today (checked across all 215k lines of the seed), which is why the crude `sed` measurement was safe — but the guard is four lines and makes the function correct regardless of what the emitter does later. Verified on a `#define A(x) \` / indented body pair: preserved intact.
-  - **The trailing newline.** `join("\n")` drops the file's final newline, so the output differs from the source by exactly that one byte. Re-add it when the input had one, or the artefact churns for no reason.
-
-  Measured on the 11.6 MB seed: **0.39 s**, output identical to the `sed` reference modulo that trailing newline. Cost is negligible at reseed.
-
-  Going further than indentation + blank lines (collapsing statements onto one line, spaces around operators) buys the rest of the 20 % but needs real C tokenisation to stay safe inside string literals — a different project. Stripping leading whitespace is safe as-is: C has no literal newline inside a string.
-
-  **The trap, whichever shape is chosen: the minified form must appear on BOTH sides of every comparison.** `verify.sh` does `cmp -s build/bootstrap.new.c bootstrap/bootstrap.c` — freshly-emitted C against the committed seed. Minify only the seed and it reports **STALE SEED on every run**, forever; `verify.sh` runs in CI, so that is a permanently red job, and the likely reaction — muting the check — costs far more than the bytes saved. Passing the flag at both emit sites is what avoids this, and is the reason the flag beats an external filter: there is nothing to keep in sync.
-
-  One residual cost: `regenerate.sh` suggests reviewing `diff <(git show HEAD:bootstrap/bootstrap.c) bootstrap/bootstrap.c`, and both sides would now be minified — so the diff still works, just unreadable line-by-line. Arguably it already is at 215k lines of generated C; what gets checked in practice is the byte delta and the fixed point. Reword the suggestion rather than leave one that misleads.
-
-  A second, one-off cost: the first minified reseed rewrites the leading whitespace of essentially every line, so **that single commit gets a near-full-size delta** (~2 MB rather than ~60 KB). Reseeds after it delta normally. Worth knowing so the numstat spike is not read as a regression.
-
-- [ ] **`std/encoding` over `Buffer` — the consumer the multi-byte memory opcodes are waiting for** (noted 2026-07-27). `LoadI32`/`I64`/`F64` and their `Store*` twins are implemented end to end — VM (`vm/exec.vader`), C emit (`c_emit/walker.vader` → `vader_buffer_load_i32`), dump, `.virt` reader — but NOTHING can mint them: a memory op only comes from a mangle match in `bytecode/intrinsics.vader`, and `std/core/buffer.vader`'s `ByteAccess` declares only `load_u8` / `store_u8` / `memory_copy` / `intern_string` / `write_string`. They are an ABI landed ahead of its surface; do not prune them as unreachable (an audit nearly did). Two constraints to settle before exposing anything:
-  - **Name the endianness** (`load_i32_le` / `_be`), never leave it "native". WASM defines its linear memory little-endian NORMATIVELY, while the C backend's `memcpy` follows the machine — so a single "native" accessor means two different things across backends on a big-endian target. An explicit `_le` is one instruction on both (`i32.load` / `memcpy`).
-  - **`_be` is cheap natively, expensive in WASM**: `__builtin_bswap32` is one instruction, but WASM has NO byteswap instruction, so it costs shifts + masks — roughly what the existing pure-Vader shift loop costs. Consequence for the obvious candidates: MD5 (little-endian) would gain on both backends, **SHA-256 (big-endian) gains nothing in WASM**. Measure before promising a crypto speed-up. Note also that `crypto.vader` works on `u8[]`, not `Buffer`, so it would first have to move onto a `Buffer`.
-  - Reference implementation of the byte semantics already exists in `vader/vm/byte_codec.vader`, which explicitly names `std/encoding` as its successor — and which cannot itself use the opcodes it implements.
-
-### 1.13e Language ergonomics surfaced by self-host port — partial
-
-Patterns counted on the existing Vader code that paid an outsized boilerplate cost. Each item is additive, back-compat by construction.
-
-> Shipped: `usize` literal context-sensitivity, `T | null` flow-narrowing, divergence → `never` (blocks / infinite loops), W0002 unreachable-code, enum-to-repr cast, const-binding mutation reject (T3041), field-expr + `is T` narrowing, tuple-destructure-after-narrow, byte literals `b'X'`, free type-alias order, namespace-alias unification, `MatchResult` cleanup, self-host lexer u64, `if x is T as binding`, lambda `fn`-keyword drop, `for <range>` shorthand, generic-syntax normalisation to `<T>` (full migration — 0 real code sites left in legacy `[T]`/`(T)` form ; fmt emits `<T>` ; legacy parser openers `parse_bracketed_type_params` / `parse_generic_arg_list` removed ; the surviving `($N: i32)` head is the intentional comptime-value surface, not legacy generics).
-- [ ] **AST node id boilerplate** — re-audited 2026-05-15 ; deferred. ~11 self-host fields carrying `id: UNASSIGNED_NODE_ID`. All three resolution shapes (decorator, mixin, marker) need new compiler infrastructure that's bigger than the 128 lines it would save. Revisit if decorator infra lands for other reasons.
-
-### 1.15 Formatter — partial
-> Shipped: AST → formatted source + idempotency check (`vader/fmt/printer.vader` + `format.vader`, `vader fmt --check`). The canonical no-options layout is codified in `vader/fmt/style.vader`.
-- [ ] Define formatting rules — write up the canonical layout as a design-freeze doc (the layout already ships in `style.vader`; this tracks the written spec). See the `vader fmt` MVP under "Priority — next up".
-- [ ] **`fmt` relocates trailing line-comments** — `EMPTY_SLOT :: i32(0)    // why` comes back as two lines, the comment moved above the NEXT declaration. Measured over `vader/` + `lib/`: **447 trailing comments across 59 files**. It is also the root cause of the two `UNSTABLE_IDEMPOTENCY` entries in `tests/formatter_stdlib.test.ts` — moving the comment splits a `::` alignment group, so pass 2 computes a narrower column.
-- [ ] **`fmt` is not idempotent on 13 files** (272/285 across `vader/` + `lib/`). Two distinct causes: the comment relocation above, and a lookup-table `if`-chain member whose body does not fit — pass 1 explodes the body inside the inline braces, pass 2 stops reading the run as a chain. ⚠️ Giving `.Inline` the same fit test as `.Preserve` makes it **worse** (272 → 267): the member expands, the run stops being a chain, and the alignment moves instead. Measured, not assumed.
-- [ ] Bring `vader/**` into a formatter corpus. `tests/formatter_stdlib.test.ts` covers `lib/` only, which is why 11 of the 13 non-idempotent files went unseen.
-
-### 1.16 Examples — partial
-> Shipped: `hello`, `fibonacci`, `fizzbuzz`, `rule110`, `primes` (+ `brainfuck`, `mandelbrot`, `mowitnow` — see git).
-- [ ] `aoc_2024_day1.vader` — validate I/O + parsing + collections.
-- [ ] `wasm_browser/` — moved to Phase 3 (§3.10).
-
-### 1.18b Generics & primitive type ergonomics — partial
-> Shipped: `usize`/`isize` first-class + migrated across `arr.len()` / `std/iter` / `std/string`, deduped bounded `Range[T] implements Iterator[T]` + `Step`, generic `Range` with per-width `Contains`/`Iterator`, first-class fn values, `void!` desugar, struct-level bound enforcement (T3006) + auto-inherit onto methods.
-- [ ] **Decide `usize` width on the WASM target** — moved to §3.10.
-
-### 1.18d Common-field access on discriminated unions — partial
-> Shipped: typecheck + lowerer + same-offset shortcut, peephole spread-bug fix, divergent-type policy (`unionOf` + caller narrows).
-- [ ] **Methods (deferred)** — extend to UFCS calls (`e.method()` valid when every variant has a callable `method`). Invasive : overload resolution × variant set.
-- [ ] **Nullable receivers** — `(T | null).f` follows the gate today (`null` lacks the field → T3009). Decide later whether to special-case optional-chaining.
-
-### 1.19 Type-first design — remaining layers
-
-Surface layers (1.A–1.D, 2.A, 2.B, 3.A–3.F, 7b/7c/7e, 8a) all landed. Remaining work targets the architectural depth.
-
-#### Layer 2 (full) — monomorphisation as comptime evaluation
-
-- [ ] **Direction A — mono dissolves into the comptime engine** (deferred). `fn[T](...)` partially evaluated with `T` bound, comptime engine owns instantiation. Only worth it if the type-first milestone (Layer 4/5) needs it. The old dormant scaffolding is gone, so this is now a from-scratch build ; Direction B closed no doors (the harvest + lower-side erasure stay).
-
-#### Layer 4 — `type` as a first-class comptime value
-
-Architectural prerequisite for full mono → comptime migration. Built bottom-up via milestones B.0 → B.6.
-
-##### B.0 — `@comptime` type-alias decls (DONE)
-
-##### B.1 — Type as a VM Value (DONE 2026-05-16)
-
-##### B.2 — Type values flow through intrinsics (DONE 2026-05-16)
-
-##### Vader VM port of Layer 4 ops (DONE 2026-05-16)
-
-##### B.3 — Type-typed bindings in comptime
-- [ ] Resolver, typechecker, lower for `let T: type = i32` in comptime context.
-- [ ] T3035 "type expression must be comptime-evaluable" (closes Layer 5b).
-
-##### B.4 — Type-yielding operations
-- [ ] `GenericInstExpr` in value position → `LoweredTypeConst`.
-- [ ] `BinaryExpr(.BitOr/.BitAnd)` in value position with TypeMeta operands → union/intersection Type value.
-- [ ] Memoisation by `(generator-symbol, type-args)`.
-
-##### B.5 — fn-form type aliases
-- [ ] Comptime engine drives evaluation of `boxed :: fn[T]() = if @size_of(T) > 16 { Heap[T] } else { Stack[T] }`.
-- [ ] Typechecker recognises a type-yielding fn signature.
-- [ ] Layer 2 Phase 3 (partial eval per call site) unblocked.
-
-##### B.6 — Computed type aliases via `type` keyword
-- [ ] Struct-literal-as-type-expression — `Pair :: type[A, B] struct { first: A, second: B }`.
-
-#### Layer 5a — uniform `[]` for type-args at call sites
-- [ ] Decide whether `MutableMap(K, V)` at call sites (still accepted) emits a deprecation warning.
-
-#### Layer 5b — comptime contagion
-- [ ] **Accept conditional type expressions** — `t :: if @size_of(i32) > 16 { i64 } else { i32 }`. Blocked by Layer 4 B.1.
-
-#### Layer 6 — reflection iteration
-
-#### Layer 7d — non-trait predicates on generics
-- Open question. `where` was removed entirely ; decide whether to re-introduce it as a keyword, expose predicates via `[T satisfies @size_of(T) <= 64]`, or forgo non-trait predicates until a real use case surfaces.
-
-#### Layer 7a/7e — bounds as comptime predicates
-- [~] Rewrite `[T: Trait]` enforcement to `@satisfies(T, Trait)` via the comptime engine.
-- [ ] Trait method dispatch on bounded type-param via comptime predicates.
-
-#### Layer 8 — impl & coherence — mostly done
-
-#### Open questions deferred
-- Q8 — comptime evaluation budget (decide once Layer 2 lands).
-- Q10 — hygienic macros vs `@comptime for`-only (`@comptime for` covers ~95 %).
-- Q11 — migration phasing (layer-by-layer is the plan).
+- [ ] **Signed overflow wraps in debug, where SPEC says it panics** (carried over 2026-09-25 from the old MVP list, re-verified that day). SPEC §"Signed overflow" states that `a + b` overflowing **panics in debug, wraps in release**; both backends wrap in every mode — `a: i32: 2147483647` then `a + 1` prints `-2147483648` under `vader run` and from a debug native build alike. Either the checks land (VM + C, debug only) or SPEC is rewritten to say wrapping is the semantics; today the spec promises a safety net nobody provides.
 
 ---
 
@@ -628,7 +432,7 @@ Wall ~8 s, peak RSS 1.12 GB. Self-time is **~74 % substrate, not pass logic**: *
       copies per block. Knowing `block.stmts.len()` upfront lets the
       caller reserve capacity. Requires either a stdlib `with_capacity`
       helper or a runtime intrinsic — same surface as the `pop` note
-      in §1.11. ~187 sites in the lower/typecheck use the
+      in `docs/HISTORY.md` §1.11. ~187 sites in the lower/typecheck use the
       `T[] = []` shape ; this one fires per-block.
 
 #### Typecheck
@@ -678,6 +482,15 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 
 - [ ] **`std/bignum` — `BigInteger` / `BigDecimal`** — arbitrary precision. Use cases : JSON parsing without precision loss past 2^53, money/financial DSLs, crypto bignums. Pure Vader ~600-1000 LoC each. BigInteger first.
 
+- [ ] **`std/encoding` over `Buffer` — the consumer the multi-byte memory opcodes are waiting for** (noted 2026-07-27). `LoadI32`/`I64`/`F64` and their `Store*` twins are implemented end to end — VM (`vm/exec.vader`), C emit (`c_emit/walker.vader` → `vader_buffer_load_i32`), dump, `.virt` reader — but NOTHING can mint them: a memory op only comes from a mangle match in `bytecode/intrinsics.vader`, and `std/core/buffer.vader`'s `ByteAccess` declares only `load_u8` / `store_u8` / `memory_copy` / `intern_string` / `write_string`. They are an ABI landed ahead of its surface; do not prune them as unreachable (an audit nearly did). Two constraints to settle before exposing anything:
+  - **Name the endianness** (`load_i32_le` / `_be`), never leave it "native". WASM defines its linear memory little-endian NORMATIVELY, while the C backend's `memcpy` follows the machine — so a single "native" accessor means two different things across backends on a big-endian target. An explicit `_le` is one instruction on both (`i32.load` / `memcpy`).
+  - **`_be` is cheap natively, expensive in WASM**: `__builtin_bswap32` is one instruction, but WASM has NO byteswap instruction, so it costs shifts + masks — roughly what the existing pure-Vader shift loop costs. Consequence for the obvious candidates: MD5 (little-endian) would gain on both backends, **SHA-256 (big-endian) gains nothing in WASM**. Measure before promising a crypto speed-up. Note also that `crypto.vader` works on `u8[]`, not `Buffer`, so it would first have to move onto a `Buffer`.
+  - Reference implementation of the byte semantics already exists in `vader/vm/byte_codec.vader`, which explicitly names `std/encoding` as its successor — and which cannot itself use the opcodes it implements.
+
+- [ ] **`std/cli` — subcommands** (lib `lib/cli/`). The declarative `FlagSpec` parser, generated help, long + short aliases and the rejection of unknown `-x` tokens have landed, and `vader/cli` runs on them. Still missing: first-class subcommands, so each CLI keeps dispatching on the first positional by hand.
+
+- [ ] **Example `aoc_2024_day1`** — a small program validating I/O + parsing + collections end to end, alongside `examples/`.
+
 ### 3.5 Performance
 > Shipped: generational GC + card table, GC robustness under string-alloc / array-doubling pressure, whole-program DCE, `match enum → switch` static lookup tables, peephole temp-elimination, hash-cons `Type` + WeakMap registries, iterator-chain fusion, inline small tagged unions, inline `MutableMap`/`MutableSet` for-in, inline trivial trait-method impls (`vader/lower/inline.vader`).
 - [ ] Direct-ASM backend for one native target (validate the design).
@@ -708,6 +521,13 @@ The original TS-compiler bootstrap path was superseded by the C seed.
   - **(c) Type-erase non-perf-critical generic containers** — **paused 2026-05-19 via option (Φ)**, see `docs/STDLIB_GENERIC_COLLAPSE.md` Decision log. Shipped sub-deliverables : Phase 0 (`4f639e99`) vtable runtime + slot registry + internal `Any` Type kind ; Phase 1 (`0d9ebc80`) packed inline-box multi-field POD ≤ 16 B ; β raw-array for-in fix (`aa2dc5ce`) ; Phase 2 plumbing (`9b38e860`, `ef76fe6f`) committed but gated off. Phase 2 §9 documents 9 cascade issues encountered ; the cascade is fundamental (Any-bearing queries against `@specialize`d types' concrete-arg registries), so full automatic erasure deferred to a future investigation with a different design (option (γ) "synthesise Any-bearing instances for every `@specialize`d reachable type" estimated 3-5 d, worth pursuing only when cc -O3 baseline becomes a workflow blocker). Iterator-skip `@specialize` decorator landed in the same arc.
   - **(d) `__attribute__((cold))` on rarely-hit generated fns** — calms the inliner / frees IPSCCP budget. Candidates : error paths, diagnostic builders, init-only helpers. Touches `vader/c_emit/emit.vader`. Smallest expected win — measure on a smaller TU first since the structural-pass dominance pattern caps the ceiling.
 
+- [ ] **Bytecode shape — keep the WASM-style structured control, or move toward midir's CFG?** Open architecture question, **do not implement until discussed**. The bytecode still carries `block` / `loop` / `if` / `end` + `br <depth>`:
+  (a) **Drop the WASM mimicry, keep stack-machine.** `block`/`loop`/`if`/`else`/`end` + `br <depth>` → `goto label` + `branch_if cond label`. ~3-4 days. Saves ~200 lines.
+  (b) **Bytecode adopts midir's CFG shape.** `BasicBlock { instrs, terminator }`. VM consumes a CFG. ~1-2 weeks.
+  (c) **Promote midir directly — bytecode and midir merge.** `BytecodeModule` becomes `IRModule`. `.vir` serialises the CFG. ~2-3 weeks.
+
+  Bias: (a) is a fast win that keeps options open; (c) is the right long-term destination; (b) is an awkward intermediate. Coupled to the decided LoweredAST ↔ CFG seam (`docs/HISTORY.md` §1.7c), which reopens if this one moves toward the CFG.
+
 ### 3.7 Tooling
 > Shipped: LSP server in Vader (`vader/lsp/`) — diagnostics, hover, go-to-def, completion, references, typeDefinition, documentSymbol, documentHighlight, foldingRange, documentLink, signatureHelp, inlayHint, formatting; VS Code extension (`editors/vscode/`).
 - [~] **LSP completeness roadmap** (added 2026-06-07). Takes the server from core navigation to feature-complete : shared infra (project-wide reference index, workspace-symbol index, cross-file diagnostics, file-watch, incremental analysis) then the feature tiers — quick wins (`documentSymbol`, `formatting` via the existing `vader/fmt`, `documentHighlight`, `foldingRange`, `documentLink`), navigation (`references`, `workspace/symbol`, `typeDefinition`, `implementation`, `callHierarchy`), productivity (`codeLens` run-test, completion docs, `linkedEditingRange`), and protocol modernization (pull diagnostics, incremental sync). Sequencing + per-feature code hooks in the doc. Cross-ref the `LSP code actions framework`, completion, rename, and find-references items.
@@ -716,7 +536,7 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 - [ ] **LSP : index fn-param + type-param *declarations* for rename / references** (noted 2026-06-17). The reference index (`vader/lsp/analysis/reference_index.vader::build_reference_index`) collects fn-param and type-param **uses** but not their **declarations** : `FnParam.span` / `TypeParam.span` cover the whole `name: Type` slot, too wide to use as a precise rename target or reference range (collecting them would make prepareRename select `a: i32` and rename's text-guard skip them anyway). Consequence : renaming from a parameter (or type param) rewrites its uses but leaves the `name` in the declaration untouched ; references on a param decl name finds nothing. Locals / for-/match-bindings already work (their `SimpleBinding.name_span` is name-only). Fix : derive a name-only span for the param/type-param (the name sits at `span.start`, length `len(name)`) — but the body-walker keys `idents` by the wide `p.span` (`vader/resolver/body.vader`, `bind_fn_param` / `mint_local` on the TypeParam path), so either re-key that `idents` entry by the name-only span, or record the name-only span and reconcile at lookup. Until then, param/type-param rename is uses-only. Cross-ref the reference-index + rename items above.
 - [~] **LSP : reconcile semantic tokens with the TextMate grammar** (added 2026-06-07). Opening a `.vader` file shows a visible color flash : the editor first paints from the static TextMate grammar (`editors/common/vader.tmLanguage.json`), then the LSP's semantic tokens (`vader/lsp/handlers/semantic_tokens.vader` /
 `handlers/ast_tokens.vader`) arrive a beat later and recolor. Root cause : the grammar classifies by **syntactic shape** (everything gets a colour on open), while the LSP classifies by the **resolved Symbol kind** (`handlers/ast_tokens.vader::token_type_of_symbol`) and falls back to `Variable` whenever a name doesn't resolve — so anything the resolver misses degrades to the variable colour (and LSP4IJ underlines it). Concrete divergences observed on `vader/lower/lower_intrinsic.vader` :
-  - **Three divergences closed 2026-07-26.** (a) String / char literals emit no semantic token, so TextMate keeps them *and* their escapes (`classify_token` → `-1`). (b) `function` and `type` also yield to the grammar (`VaderSemanticTokensFeature` returns `null`): LSP4IJ's default maps them to `FUNCTION_CALL` / `CLASS_NAME`, keys themes leave at the plain foreground, whereas the grammar's `entity.name.function.call.vader` / `entity.name.type.vader` / `support.type.primitive.vader` ARE coloured — so call sites and type names went white while the grammar could paint them. (c) Struct fields are their own `Property` token and module consts carry `static readonly`, instead of both falling into the `Variable` catch-all whose LSP4IJ fallback is `REASSIGNED_LOCAL_VARIABLE` — a key IntelliJ UNDERLINES, so every field and constant read as a reassigned local. **Still open:** the load-time flash, the `Variable` fallback on names the body-resolver can't see (needs §1.13d), and locals themselves still taking that underlining key — emitting `readonly` on `::` bindings would fix the last one and turn the underline into a genuine `:=`-detector (designed, not implemented). One more small follow-on: `Mode.Fast` is tagged `Property` rather than `EnumMember` because `body.vader`'s `FieldExpr` arm only recurses into the target and never records anything keyed by `field_span` — recording one when the target resolves to a type-kind symbol would close it (`Prof.CONST` needs cross-module wiring and stays out of reach).
+  - **Three divergences closed 2026-07-26.** (a) String / char literals emit no semantic token, so TextMate keeps them *and* their escapes (`classify_token` → `-1`). (b) `function` and `type` also yield to the grammar (`VaderSemanticTokensFeature` returns `null`): LSP4IJ's default maps them to `FUNCTION_CALL` / `CLASS_NAME`, keys themes leave at the plain foreground, whereas the grammar's `entity.name.function.call.vader` / `entity.name.type.vader` / `support.type.primitive.vader` ARE coloured — so call sites and type names went white while the grammar could paint them. (c) Struct fields are their own `Property` token and module consts carry `static readonly`, instead of both falling into the `Variable` catch-all whose LSP4IJ fallback is `REASSIGNED_LOCAL_VARIABLE` — a key IntelliJ UNDERLINES, so every field and constant read as a reassigned local. **Still open:** the load-time flash, the `Variable` fallback on names the body-resolver can't see (the multi-file body walk, `docs/HISTORY.md`, "Harden multi-file module support"), and locals themselves still taking that underlining key — emitting `readonly` on `::` bindings would fix the last one and turn the underline into a genuine `:=`-detector (designed, not implemented). One more small follow-on: `Mode.Fast` is tagged `Property` rather than `EnumMember` because `body.vader`'s `FieldExpr` arm only recurses into the target and never records anything keyed by `field_span` — recording one when the target resolves to a type-kind symbol would close it (`Prof.CONST` needs cross-module wiring and stays out of reach).
   - **Function / method calls** — grammar tags `ident(` and `.ident(` as `entity.name.function.call` (`vader.tmLanguage.json:369-379`, the blue). The LSP only emits `Function` when the callee resolves to a `Fn` / `BuiltinFn` Symbol ; an unresolved callee — a **sibling-file fn of the same module** (`lower_expr`, `resolve_field_type`, `try_fold_static_intrinsic`) or a **method / UFCS call** — hits the `Variable` fallback (`ast_tokens.vader:130`), so the call loses its function colour after parse.
   - **UpperCamelCase identifiers** — grammar colours **every** `[A-Z]…` word as `entity.name.type` unconditionally (`vader.tmLanguage.json` "Type names" rule). The LSP emits `Type` only when the name resolves to a type-kind Symbol ; an unresolved type name flips to `Variable`.
   - **Locals / params / fields** — grammar leaves them default ; the LSP emits `variable` / `parameter` tokens (+ LSP4IJ underline decoration), so they gain colour + underline after parse.
@@ -851,6 +671,10 @@ The original TS-compiler bootstrap path was superseded by the C seed.
       **Next measurement, already wired**: `VADER_TEST_GATE` is a `workflow_dispatch` input on the CI workflow. Dispatch with `gate=1` and `gate=2` and compare the Test step. If 6 × 21 s is what a serialised file costs, the Windows step should fall from 272 s toward ~130 s.
 - [ ] **GitHub Actions matrix per OS** (post self-host) — fan out to `ubuntu`/`macos`/`windows` runners that each run `bun test` on their native binary and assemble locally.
 
+- [ ] **A `.virt` holding a module const of structs cannot be built to C** — `c_emit: baked struct symbol_id N not in the module type table`. The `.virt` text carries no struct `symbol_id` (the reader falls back to `-1`), but a struct baked into `.rodata` needs one C-side. Affects `_diag_comptime_struct{,_nested}`, `module_const_mutability`, `array_add_concat`, `array_push_all_const`. Either the dump carries the symbol id, or `c_emit` keys baked structs on something the text preserves.
+- [ ] **REPL** — `vader repl` is a stub (`vader/cli/cmd_repl.vader`). Needs incremental compilation across phases.
+- [ ] **Manifest-driven build** — `vader build --manifest` is still "not yet implemented" (`vader/cli/cmd_build.vader`), for the native, C and bytecode targets alike (the three old entries merged). `vader.json` exists meanwhile as the include-path manifest read by the loader; a build manifest would extend it, not add a second file — the same `vader.json` the build-shape note under the `cli/prompt` item and the `std/json` v2 generator key already assume.
+
 ### 3.8 Language ergonomics
 > Shipped: UFCS on union receivers, cross-module type-alias unions, codepoint-first `string` model + non-owning array slice views, literal-value match patterns, `enum`→int cast, implicit `void` return, auto-`.iter()` for-in, trait-object boxing + dynamic dispatch, operator overloading via traits, `Into[Target]` auto-coerce, expression-bodied fns, struct spread / field defaults, tuples + destructuring, comptime tuple/struct/array values, spread destructuring, `std/process.spawn`, inline `@file`, implicit selector expressions, `@assert` / `@partial` / `@deprecated`.
 - [~] **`defer` unwinds on panic** (gap surfaced 2026-05-19) — **VM DONE, C target pending.** Defers lower to per-frame `DeferPush` / `DeferPopExec` ops; on a trap the **VM now walks frames bottom-up and drains each frame's pending defers before propagating** (`vader/vm/exec.vader:1008`). Remaining: the **C target** still raises without unwinding (`runtime/c/vader.h` setjmp/longjmp work pending), so native panics skip defers — files left open, locks held. Same fix unlocks a future `recover` / `rescue` primitive. Cross-ref §3.1 Concurrency (panic propagation across spawned tasks).
@@ -893,6 +717,55 @@ The original TS-compiler bootstrap path was superseded by the C seed.
   **Resolved:** the Phase-0 cascade spike chose approach **B** (an AST/lower desugar to a `loop { match state }` state machine, synthesized as a `LoweredLoop` + `i32` if-chain since there's no `LoweredMatch` node) and validated its output shape on both backends before implementation. Perf (per-element virtual dispatch on the erased `Iterator<T>`; fusion + caller-monomorphization) and migration (callers needing `.len()`/indexing break; audit before converting) remain the deferred Phase-5 work.
 - [~] **Stream-fusion generalization — lazy iterator chains → the eager loop** (perf). Both the eager combinators (`arr.map(f).filter(p)` = a throwaway array per stage) and the lazy ones (`MappedIterator`/… = a tower of erased trait-object iterators, virtual `next()` + boxed `Yield<T>` per element under erasure) collapse to one flat loop via fusion. `try_lower_chain_fusion` (`vader/lower/lower_for_in.vader:889`) already does this but ONLY for int-range sources, `map`/`filter`, and `for-in` terminals. Widen it: Couche 1 array/string/map-set sources (+ a concrete `arr.iter()` — none exists today, only erasing `.into()`), Couche 2 `take`/`skip`/`enumerate`/`flat_map`, Couche 3 recognize `.collect()`/`.count()`/`.any()`/`.fold()`/… terminals at the call site (synthesize their accumulation as the fused body), Couche 4 inline `@generator` yield-loops. Independent of generators for Couches 1-3 (bulk of the win); Couche 4 + the combinator-struct→`@generator` rewrite (Tier 1: Mapped/Filter/Take/Skip; Tier 2: Map/Set near-vestigial; Tier 3 keep ArrayIterator/StringChars as primitives) come after generators. Enablers: `arr.iter()`, harden generic-HOF lambda inference (works-but-untested + silent mistype today), explicit concrete chain heads for Map/Set/String (UFCS Into gate is array-only). Measure alloc volume, not RSS (short-lived allocs = profiler blind spot).
 
+- [ ] **Default-init for generic typeParam** — `acc: T = T()` style, needed by `sum(it)` over an iterator. Either a `Default` trait + auto-impl on numerics, or a `zero<T>()` intrinsic. Currently blocks iterator-driven `sum`, `min`, `max`. Requires either (a) explicit type-args at call sites (`default[T]()`) or (b) `T()` constructor syntax for type-params. Recommendation : start with (a). `Default` trait can wait until a dispatch path exists.
+- [ ] **Common-field access on unions — methods** — extend to UFCS calls (`e.method()` valid when every variant has a callable `method`). Invasive: overload resolution × variant set.
+- [ ] **Common-field access on unions — nullable receivers** — `(T | null).f` follows the gate today (`null` lacks the field → T3009). Decide whether to special-case optional chaining; `??` already covers the common case.
+- [ ] **AST node id boilerplate** — re-audited 2026-05-15 ; deferred. ~11 self-host fields carrying `id: UNASSIGNED_NODE_ID`. All three resolution shapes (decorator, mixin, marker) need new compiler infrastructure that's bigger than the 128 lines it would save. Revisit if decorator infra lands for other reasons.
+
+#### Type-first design — remaining layers
+
+Surface layers (1.A–1.D, 2.A, 2.B, 3.A–3.F, 7b/7c/7e, 8a) all landed. Remaining work targets the architectural depth.
+
+##### Layer 2 (full) — monomorphisation as comptime evaluation
+
+- [ ] **Direction A — mono dissolves into the comptime engine** (deferred). `fn[T](...)` partially evaluated with `T` bound, comptime engine owns instantiation. Only worth it if the type-first milestone (Layer 4/5) needs it. The old dormant scaffolding is gone, so this is now a from-scratch build ; Direction B closed no doors (the harvest + lower-side erasure stay).
+
+##### Layer 4 — `type` as a first-class comptime value
+
+Architectural prerequisite for full mono → comptime migration. Built bottom-up via milestones; B.0–B.2 landed, B.3 → B.6 remain.
+
+**B.3 — Type-typed bindings in comptime**
+- [ ] Resolver, typechecker, lower for `let T: type = i32` in comptime context.
+- [ ] T3035 "type expression must be comptime-evaluable" (closes Layer 5b).
+
+**B.4 — Type-yielding operations**
+- [ ] `GenericInstExpr` in value position → `LoweredTypeConst`.
+- [ ] `BinaryExpr(.BitOr/.BitAnd)` in value position with TypeMeta operands → union/intersection Type value.
+- [ ] Memoisation by `(generator-symbol, type-args)`.
+
+**B.5 — fn-form type aliases**
+- [ ] Comptime engine drives evaluation of `boxed :: fn[T]() = if @size_of(T) > 16 { Heap[T] } else { Stack[T] }`.
+- [ ] Typechecker recognises a type-yielding fn signature.
+- [ ] Layer 2 Phase 3 (partial eval per call site) unblocked.
+
+**B.6 — Computed type aliases via `type` keyword**
+- [ ] Struct-literal-as-type-expression — `Pair :: type[A, B] struct { first: A, second: B }`.
+
+##### Layer 5b — comptime contagion
+- [ ] **Accept conditional type expressions** — `t :: if @size_of(i32) > 16 { i64 } else { i32 }`. Blocked on B.3.
+
+##### Layer 7d — non-trait predicates on generics
+- Open question. `where` was removed entirely ; decide whether to re-introduce it as a keyword, expose predicates via `[T satisfies @size_of(T) <= 64]`, or forgo non-trait predicates until a real use case surfaces.
+
+##### Layer 7a/7e — bounds as comptime predicates
+- [~] Rewrite `[T: Trait]` enforcement to `@satisfies(T, Trait)` via the comptime engine.
+- [ ] Trait method dispatch on bounded type-param via comptime predicates.
+
+##### Open questions deferred
+- Q8 — comptime evaluation budget (decide once Layer 2 lands).
+- Q10 — hygienic macros vs `@comptime for`-only (`@comptime for` covers ~95 %).
+- Q11 — migration phasing (layer-by-layer is the plan).
+
 ### 3.9 Companion projects
 > Shipped: Brainfuck compiler in Vader (`examples/brainfuck.vader`), targeting the Vader VM + native. BF `,` not wired.
 - [ ] **Rework the Brainfuck example onto the driver API** (added 2026-08-27, user request). `examples/brainfuck.vader` predates the build driver and reaches for the pipeline on its own. It is the natural second client of the public build-time API (§3.7): a compiler for another language is exactly the shape that wants *read source → generate Vader → hand it to the compiler*, which is what `ctx.emit_module` + draining `messages()` now provide. Reworking it would (a) exercise the API from outside the compiler's own tree, where the JSON serialiser fixture still sits inside it, (b) test the API's surface against a consumer that is not a derive-style generator, and (c) show what the API is missing before third parties find out. Also wire BF `,` while there.
@@ -909,8 +782,8 @@ Moved out of MVP (was §1.10). C backend already covers native deployment.
 - [ ] CLI : `vader build --target=wasm` + `vader dump --stage=wasm`.
 - [ ] **Decide `usize` width** : WASM64 only vs supporting WASM32 (`usize → i32`). Affects the C-emit too if one binary should share logic.
 - [ ] **`examples/wasm_browser/`** — minimal HTML + Vader calling JS via `@extern`. End-to-end smoke test.
-- [ ] **Slot-typed numeric promotion verifier** — debug-only ; enforces op/slot agreement before emission (cf. §1.8 note).
-- [ ] **Memory ops map 1:1 — but pin down endianness and `align`** (noted 2026-07-27). The whole `Load*` / `Store*` / `MemoryCopy` family has a direct WASM counterpart (`i32.load8_u`, `i32.load`, `i64.store`, `f64.load`, `memory.copy`), and WASM permits UNALIGNED access, which matters since a `Buffer` offset carries no alignment guarantee. Two decisions for the emitter: (a) WASM memory is little-endian by spec while the C backend follows the machine — so the two backends only agree as long as no big-endian target exists, which is an argument for naming endianness in the stdlib surface rather than in the opcode (see `std/encoding` under §1.13); (b) what to put in each `memarg`'s `align` — 1 (always safe, possibly slower) or derived from the offset when statically known.
+- [ ] **Slot-typed numeric promotion verifier** — debug-only ; enforces op/slot agreement before emission.
+- [ ] **Memory ops map 1:1 — but pin down endianness and `align`** (noted 2026-07-27). The whole `Load*` / `Store*` / `MemoryCopy` family has a direct WASM counterpart (`i32.load8_u`, `i32.load`, `i64.store`, `f64.load`, `memory.copy`), and WASM permits UNALIGNED access, which matters since a `Buffer` offset carries no alignment guarantee. Two decisions for the emitter: (a) WASM memory is little-endian by spec while the C backend follows the machine — so the two backends only agree as long as no big-endian target exists, which is an argument for naming endianness in the stdlib surface rather than in the opcode (see `std/encoding` under §3.4); (b) what to put in each `memarg`'s `align` — 1 (always safe, possibly slower) or derived from the offset when statically known.
 
 ---
 

@@ -8,10 +8,9 @@ verbatim as it was tracked; see git history for the commits themselves.
 What lives here, in document order:
 
 - **Phase 0** — project bootstrap (complete).
-- **Phase 1** — first the fully-completed subsections of the MVP TypeScript
-  compiler, then the done items lifted out of Phase 1 subsections that are
-  still in progress (their open `[ ]` / `[~]` work + a "Shipped" pointer stay
-  in `TODO.md`).
+- **Phase 1** — the MVP TypeScript compiler: first the subsections completed
+  as a whole, then the done items of the subsections dissolved on 2026-09-25
+  (their open work moved to `TODO.md`'s Priority and Phase 3).
 - **Phase 2** — done items lifted out of in-progress self-host subsections.
 - **Phase 3** — completed post-MVP items pulled from in-progress subsections.
 - **Priority — archived detail** — the long-form write-ups of done "next up"
@@ -97,7 +96,7 @@ Required before self-hosting. All phases wired end-to-end.
 
 ## Phase 1 — completed items from in-progress subsections
 
-Done bullets lifted out of Phase 1 subsections that still carry a few open items (`TODO.md` keeps the open `[ ]` / `[~]` work + a one-line "Shipped" pointer).
+Done bullets of the Phase 1 subsections that stayed open until the section was dissolved (2026-09-25).
 
 ### 1.5 Comptime engine + monomorphizer
 - [x] Comptime value IR, AST-walking interpreter, sandbox (`@file`, `@env` gated by `--allow-env`), `@comptime` evaluation pass, generic instance registry, minimal monomorphization pass, codes `C4001..C4013`. `vader dump --stage=evaluated-ast`. 5 snapshot scenarios.
@@ -125,6 +124,17 @@ Done bullets lifted out of Phase 1 subsections that still carry a few open items
 ### 1.7b IR text emitter / reader (`--target=ir-text` → `.virt`)
 - [x] Line-oriented `.virt` grammar, `writeVir`/`parseVir`, round-trip fixpoint verified by snapshot banner. `vader run program.virt` wired.
 
+### 1.7c Bytecode format refresh — LoweredAST ↔ CFG seam
+
+Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cleaner over expression trees ; `midir/build` is a thin, cheap-to-maintain seam ; line savings from a merge would be ~250-400 (not the 1500 headline). Reopen only when : the bytecode-shape question (`TODO.md` §3.5) is settled toward the CFG, a second CFG consumer appears without a matching LoweredAST consumer, or a new desugar pass naturally wants CFG shape (e.g. async/yield).
+
+### Dropped when Phase 1 was dissolved (2026-09-25)
+- Bytecode header flags `target` / `module_id` — there is no binary bytecode format any more (`--emit=bytecode` is unimplemented); revisit with it.
+- Immutable `Map` / `Set` + `to_immutable`, and restoring `MutableList(T)` — they waited on a read-only view design; the `!` marker on the type is that design (an unmarked `T[]` is the read-only view).
+- Layer 5a — whether `MutableMap(K, V)` at call sites should warn: the legacy parenthesised generic syntax was removed from the parser, and pre-1.0 nothing gets a deprecation path.
+- "`std/core` / `io` / `string` / `math` finalisation" and "future stdlib audits (`Cursor(T)`)" — open-ended, no actionable content.
+- Duplicates of `TODO.md` §3.10 (WASM target, `usize` width, `wasm_browser/`, slot-typed verifier) and of the `vader fmt` Priority item.
+
 ### 1.9 C emitter (Iter-ready)
 - [x] Runtime C surface in `runtime/c/`, type representation γ (primitives stay primitive, struct/array via typed pointer, union/`any` via `vader_box_t`), full emitter (`src/c_emit/emit.ts`), import shims with `std/io` mapped to runtime fns, `vader build --target=native [--out=<out>]`, parity tests against the VM snapshot.
 - [x] `--release` flag — flips `cc` from `-O0 -ggdb` to `-O3 -DNDEBUG` + best-effort `strip`.
@@ -144,6 +154,49 @@ Done bullets lifted out of Phase 1 subsections that still carry a few open items
 ### 1.13d Stdlib consolidation
 - [x] hex/base helpers centralised in `std/numbers`.
 - [x] char-predicate duplicates in `std/json` removed.
+- [x] **`.virt` reader silently drops unknown opcodes** (found + fixed 2026-07-27). `try_push_op` returned `false` for any line it couldn't parse and the caller `continue`d, so a dump carrying an instruction the reader didn't know ran with that op MISSING — unbalanced stack, plausible wrong output, no diagnostic. Found by removing an opcode while a stale `.virt` still used it: `path_basics` printed empty filenames rather than failing, and a subsequent `UPDATE_SNAPSHOTS=1` overwrote nine correct `vm.snapshot` oracles with the wrong output. **The premise of the tolerance was false**: a body holds no non-instruction lines (comments and blanks are gone by then, `local` and the closing `end` are taken earlier), and the directive vocabulary outside a body is closed at ten heads — so position alone tells an instruction from anything else, no heuristic needed. `parse_virt_bc` now returns `BytecodeModule | VirtParseError` (line number + line + reason) and stops at the first line it can't read, covering all three silent paths: unknown instruction, unknown directive, and a known head whose operands don't parse (each shifts every following pc against an already-built jump table). The one line that legitimately isn't bytecode — the terminal `# Diagnostics` report `vader dump` appends after a warning-raising compile — ends the stream instead. Callers mirror their existing `is IOError` arm (`run_virt`, `emit_c_source_from_virt`). Verified against all 387 `.virt` dumps in the corpus: zero traps, i.e. no writer→reader gap was hiding behind the tolerance. Cross-ref the snapshot-regeneration order trap — regenerate `bytecode.snapshot.virt` BEFORE the vm oracles, or `vader_vm.test.ts` measures the old dump. **This closes the silence at LINE level only** — the same degrade-quietly pattern survives inside the recognised directives, see the entry below.
+- [x] **The `.virt` directive parsers degraded quietly** (found 2026-07-27, fixed 2026-07-28). Each dropped or substituted on malformed input and returned as if it had succeeded. `parse_type_decl_bc` fell through to `bc.BcRef { .trait_name = "" }` for any kind it didn't recognise — the `BcStruct`→`BcRef` placeholder that is blocker #1 of the self-host bytecode audit, where an opaque ref makes every downstream field access a miss. `parse_struct_type_bc` skipped a field whose `name:tid` didn't split or whose tid wasn't numeric, silently renumbering every later field. `parse_import_decl_bc` / `parse_impl_decl_bc` / `parse_vtable_decl_bc` / `parse_data_decl_bc` each returned mute on a malformed line, dropping a whole pool entry and shifting every index after it.
+
+  All five now report. They return a `DirectiveError` — a named type rather than a bare `string | null`, because a string says nothing about whether it is a value or a complaint — carrying the reason without the position; `parse_virt_bc` holds the line number and pairs the two into the `VirtParseError` added for the line level. Verified against all 390 `.virt` dumps in the corpus: 385 read unchanged, **zero new refusals**, so nothing valid was tightened out. Covered by three colocated tests, one per failure family.
+
+  The remaining 5 are a **separate, pre-existing** limit (a `.virt` holding a module const of structs cannot be built to C), tracked as its own item in `TODO.md` §3.7.
+
+- [x] **A distinct-type cast lost its type when a method was chained onto it** (found + fixed 2026-07-27). `string(n).trim()` on a `string`-backed distinct panicked in midir — `no field 'trim' on 'Name' — a method reference on a primitive isn't a first-class value` — while binding the cast to a local first, or calling `trim(string(n))`, both worked. Cause: `emit_value_cast` (`vader/lower/lower_impl_member.vader`) returned the argument VERBATIM for a `string` / `bool` / `void` / `null` target, so the lowered tree kept carrying the distinct and any read of the result's type resolved against it. The numeric arm and the WRAP direction both stamped their target already; this was the missing half, and the fix is to stamp unless the cast is a true identity. Free at runtime — `bc_type_of(distinct) == bc_type_of(backing)`, so the emitted cast is a no-op. **Two things my first write-up got wrong**: it is not limited to the isolated per-module compile (a plain `vader run` reproduces in twenty lines — `to_posix` only surfaced there because that was its only caller), and it is not about lambdas or `replace_chars_where` (`string(n).trim()` breaks identically, so it is any method on any such unwrap). Same panic site as the third reproduced defect of the open UFCS dispatch-elaboration chantier — "the typer accepts what the lowerer cannot emit", see the item under "Priority — next up" — and a fourth member of the two-priority-ladder family it describes, but independently fixable. Pinned by `tests/snippets/distinct_unwrap_method_chain`, which covers all three backing families plus the identity cast and the two forms that already worked.
+- [x] **`push_all` copied between arrays without checking their element kinds** (found + fixed 2026-07-27). `vader_array_push_all` ended in a memcpy sized by the SOURCE's element width and never compared the two buffers' `element_kind`. A module const materialises BOXED (24-byte `vader_box_t` slots), a freshly allocated `T[]!` is KIND_REF (8-byte raw pointers) — so `dst.push_all(SOME_CONST)` wrote 24-byte boxes at 24-byte strides into an 8-byte-stride buffer and died reading them back as pointers. Native only; the VM boxes uniformly. Surfaced as `vader lsp --stdlib-root=…` exiting 139 with no diagnostic, because `command_specs` used `push_all` on a flag-spec const. **Two wrong guesses, recorded because they cost time**: it is not the cross-module hop (a same-module copy of the same const still crashes), and it is not the removal of a nearby function (the first bisection blamed a deleted `basename`, and putting it back did not fix it — the lesson being that removing the supposed cause is the only test that counts). What settled it: the C dump with `#line`, where the `push` loop emits `vader_ref_box` per element and `push_all` emits a bare memcpy. Matching kinds keep the memcpy; differing kinds go through the boxed form element by element via a `vader_array_load_slot` extracted as the symmetric read of `vader_array_store_slot`. Pinned by `tests/snippets/array_push_all_const` — note the nested array field, without which the const materialises REF and nothing reproduces.
+- [x] **A single-dash CLI token is swallowed instead of rejected** (found + fixed 2026-07-27). Closed by the declarative-CLI work: `std/cli`'s single parser inspects a `-x` token instead of assuming it positional, so an unrecognised short flag is an error like an unrecognised long one. `vader build x.virt --target=c -o out` no longer exits 0 having ignored the `-o` — which is what littered 384 stray `.c` files across the snippet corpus. Short aliases are now real (`-o`, `-t`, `-r`, `-s`, `-h`, `-v`), so `-o` means `--out`.
+- [x] **Minify the C that becomes `bootstrap.c` — DROPPED 2026-07-28**, the same day it was measured, because the seed-size chantier removed its entire justification. Kept below as record: the measurements are sound, the prototype works, and the reasoning is what stops this being picked up again.
+
+  **Why it is dead.** The original headline — 1064 KB → 950 KB gzipped, "114 KB per reseed" — measured the *compressed artefact*, which no longer exists. The seed-storage chantier stored the seed raw (Phase 1), moved reseeds to one per push (Phase 2) and converted the 400 historical seeds (Phase 3), taking `.git` from 535 MB to 61 MB. What is left for minification to win: ~12 % of the per-reseed delta (measured on four real consecutive seeds packed both ways, 1.6 MB → 1.4 MB), so roughly **6 MB a year** at ~46 reseeds/month — against a repository that is now 61 MB, and after paying ~2 MB up front for the first minified reseed rewriting every line's indentation. Break-even around four months, for a rounding error.
+
+  Against that: a `minify_c` function, a CLI flag, **two** emit sites to keep in lockstep, and the permanent trap documented below — get the `cmp` sides out of sync and `verify.sh` is red in CI forever. The two secondary arguments went too: the seed is not distributed separately (a fresh clone is 83 MB), and a 20 %-smaller translation unit is noise against the 1 min 40 bootstrap, since lexing is a tiny fraction of it.
+
+  **If it is ever revived, the reason will not be size.** It would be readability of the emitted C, or a target where the artefact ships on its own.
+
+  **It does NOT produce enormous lines** — worth stating because the name suggests otherwise. `minify_c` trims each line and drops the empty ones; it never fuses two lines. Measured on the seed: 215 444 lines → 212 846 (−1.2 %, exactly the blank lines), mean line length 52.4 → 42.0 chars, and the **longest line is unchanged at ~55 000 characters** (a `UINT64_C` comptime table, one of 6 lines already past 10 000 chars). The byte win comes entirely from the indentation, not from removing lines.
+
+  **Shape: a `--pretty` flag on `build --target=c` (default true), applied to the WHOLE emitted string at the end — not threaded through the emitter.** Conditioning each site is what makes this sound expensive: `c_emit` has 48 places emitting hard-coded indentation and 141 emitting a newline, none of it behind a shared `indent()` helper. But nothing requires touching them. `build_c` already holds the finished C as one string before `write_out`; running it through a `minify_c(source) -> string` there costs one call site, leaves the emitter untouched, and makes the transform a testable Vader function rather than a shell filter duplicated across scripts.
+
+  Only the seed uses it. `regenerate.sh:31` and `verify.sh:26` emit the seed with the *same* command, so adding the flag to both keeps `verify.sh:27`'s byte-for-byte `cmp` valid with no filter of its own — the freshness guard stays exactly as it is. stage1 / stage2 (`build.sh`, `verify.sh`'s `fp1.c` / `fp2.c`) don't pass it and stay readable, which is what `--target=c` exists for.
+
+  **`--pretty=false` and `--release` are independent, and it is worth not conflating them.** The worry that minifying a debug build would wreck the `#line` directives does not hold: all 48 844 of them sit in column 0, so stripping indentation leaves them untouched — checked, the minified debug C still compiles and keeps them. The gain is comparable either way (9.5 % debug, 10.6 % release). What `--release` removes is the `#line` lines themselves, which are worth 1.2× on their own; what `--pretty=false` removes is whitespace. Different axes.
+
+  So don't make the flag *require* `--release`. Combining them is simply what the seed wants — a minified debug C has no use, since debug info exists to be read and minification is for what isn't. Document the pairing rather than enforcing it; `--annotate` is the precedent for a flag that is documented as belonging to one stage without the parser policing it.
+
+  **`minify_c` itself is ~20 lines — prototyped and run against the real seed.** Split on newline, `trim()` each line, drop the empties, re-join. Two details are the whole difficulty, and both are cheap:
+
+  - **Continuation lines.** A line ending in `\` means the next line's leading whitespace belongs to a string literal or macro body, so both must pass through untouched. The emitter produces **zero** of them today (checked across all 215k lines of the seed), which is why the crude `sed` measurement was safe — but the guard is four lines and makes the function correct regardless of what the emitter does later. Verified on a `#define A(x) \` / indented body pair: preserved intact.
+  - **The trailing newline.** `join("\n")` drops the file's final newline, so the output differs from the source by exactly that one byte. Re-add it when the input had one, or the artefact churns for no reason.
+
+  Measured on the 11.6 MB seed: **0.39 s**, output identical to the `sed` reference modulo that trailing newline. Cost is negligible at reseed.
+
+  Going further than indentation + blank lines (collapsing statements onto one line, spaces around operators) buys the rest of the 20 % but needs real C tokenisation to stay safe inside string literals — a different project. Stripping leading whitespace is safe as-is: C has no literal newline inside a string.
+
+  **The trap, whichever shape is chosen: the minified form must appear on BOTH sides of every comparison.** `verify.sh` does `cmp -s build/bootstrap.new.c bootstrap/bootstrap.c` — freshly-emitted C against the committed seed. Minify only the seed and it reports **STALE SEED on every run**, forever; `verify.sh` runs in CI, so that is a permanently red job, and the likely reaction — muting the check — costs far more than the bytes saved. Passing the flag at both emit sites is what avoids this, and is the reason the flag beats an external filter: there is nothing to keep in sync.
+
+  One residual cost: `regenerate.sh` suggests reviewing `diff <(git show HEAD:bootstrap/bootstrap.c) bootstrap/bootstrap.c`, and both sides would now be minified — so the diff still works, just unreadable line-by-line. Arguably it already is at 215k lines of generated C; what gets checked in practice is the byte delta and the fixed point. Reword the suggestion rather than leave one that misleads.
+
+  A second, one-off cost: the first minified reseed rewrites the leading whitespace of essentially every line, so **that single commit gets a near-full-size delta** (~2 MB rather than ~60 KB). Reseeds after it delta normally. Worth knowing so the numstat spike is not read as a regression.
+
 
 ### 1.13e Language ergonomics surfaced by self-host port
 Patterns counted on the existing Vader code that paid an outsized boilerplate cost. Each item is additive, back-compat by construction.
