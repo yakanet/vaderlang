@@ -134,36 +134,26 @@ static void snippet_fill(void* l0) {
 #line 30 "tests/snippets/generic_lambda_factory/_main.vader"
     l1 = ((vader_array_t*) l0)->length;
     l2 = (size_t) 0;
-    {
-        loop_6: {
-            if ((l2 < l1)) {
+    while ((l2 < l1)) {
 #line 31 "tests/snippets/generic_lambda_factory/_main.vader"
-                l3 = (size_t) 0;
-                {
-                    loop_14: {
-                        if ((l3 < INT64_C(9))) {
+        l3 = (size_t) 0;
+        while ((l3 < INT64_C(9))) {
 #line 32 "tests/snippets/generic_lambda_factory/_main.vader"
-                            vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
-                            VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-                            VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
-                            l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l2);
-                            l5 = (((int32_t) (size_t) l2) * INT32_C(100));
-                            l6 = ((int32_t) (size_t) l3);
-                            l7 = (l5 + l6);
-                            vader_array_push_i32((vader_array_t*) l4, l7);
+            vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
+            VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
+            l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l2);
+            l5 = (((int32_t) (size_t) l2) * INT32_C(100));
+            l6 = ((int32_t) (size_t) l3);
+            l7 = (l5 + l6);
+            vader_array_push_i32((vader_array_t*) l4, l7);
 #line 31 "tests/snippets/generic_lambda_factory/_main.vader"
-                            t0 = (l3 + INT64_C(1));
-                            l3 = (size_t) (int64_t) t0;
-                            goto loop_14;
-                        }
-                    }
-                }
-#line 30 "tests/snippets/generic_lambda_factory/_main.vader"
-                t0 = (l2 + INT64_C(1));
-                l2 = (size_t) (int64_t) t0;
-                goto loop_6;
-            }
+            t0 = (l3 + INT64_C(1));
+            l3 = (size_t) (int64_t) t0;
         }
+#line 30 "tests/snippets/generic_lambda_factory/_main.vader"
+        t0 = (l2 + INT64_C(1));
+        l2 = (size_t) (int64_t) t0;
     }
 #line 29 "tests/snippets/generic_lambda_factory/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
@@ -182,55 +172,45 @@ static int32_t snippet_mismatches(void* l0) {
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     l2 = ((vader_array_t*) l0)->length;
     l3 = (size_t) 0;
-    {
-        loop_8: {
-            if ((l3 < l2)) {
+    while ((l3 < l2)) {
 #line 41 "tests/snippets/generic_lambda_factory/_main.vader"
-                VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
-                l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l3);
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
+        l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l3);
 #line 42 "tests/snippets/generic_lambda_factory/_main.vader"
-                t0 = ((vader_array_t*) l4)->length;
-                if (t0 != INT64_C(9)) {
+        t0 = ((vader_array_t*) l4)->length;
+        if (t0 != INT64_C(9)) {
 #line 43 "tests/snippets/generic_lambda_factory/_main.vader"
-                    l1 = (l1 + INT32_C(1));
+            l1 = (l1 + INT32_C(1));
 #line 40 "tests/snippets/generic_lambda_factory/_main.vader"
-                    t1 = (l3 + INT64_C(1));
-                    l3 = (size_t) (int64_t) t1;
+            t1 = (l3 + INT64_C(1));
+            l3 = (size_t) (int64_t) t1;
 #line 44 "tests/snippets/generic_lambda_factory/_main.vader"
-                    goto loop_8;
+            continue;
 #line 42 "tests/snippets/generic_lambda_factory/_main.vader"
-                }
-#line 46 "tests/snippets/generic_lambda_factory/_main.vader"
-                l5 = (size_t) 0;
-                {
-                    loop_34: {
-                        if ((l5 < INT64_C(9))) {
-#line 47 "tests/snippets/generic_lambda_factory/_main.vader"
-                            vader_array_t* _a1_slotarr = ((vader_array_t*) l4);
-                            VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-                            VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
-                            l6 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l5];
-                            l7 = (((int32_t) (size_t) l3) * INT32_C(100));
-                            l8 = ((int32_t) (size_t) l5);
-                            l9 = (l7 + l8);
-                            if (l6 != l9) {
-#line 48 "tests/snippets/generic_lambda_factory/_main.vader"
-                                l1 = (l1 + INT32_C(1));
-#line 47 "tests/snippets/generic_lambda_factory/_main.vader"
-                            }
-#line 46 "tests/snippets/generic_lambda_factory/_main.vader"
-                            t1 = (l5 + INT64_C(1));
-                            l5 = (size_t) (int64_t) t1;
-                            goto loop_34;
-                        }
-                    }
-                }
-#line 40 "tests/snippets/generic_lambda_factory/_main.vader"
-                t1 = (l3 + INT64_C(1));
-                l3 = (size_t) (int64_t) t1;
-                goto loop_8;
-            }
         }
+#line 46 "tests/snippets/generic_lambda_factory/_main.vader"
+        l5 = (size_t) 0;
+        while ((l5 < INT64_C(9))) {
+#line 47 "tests/snippets/generic_lambda_factory/_main.vader"
+            vader_array_t* _a1_slotarr = ((vader_array_t*) l4);
+            VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
+            l6 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l5];
+            l7 = (((int32_t) (size_t) l3) * INT32_C(100));
+            l8 = ((int32_t) (size_t) l5);
+            l9 = (l7 + l8);
+            if (l6 != l9) {
+#line 48 "tests/snippets/generic_lambda_factory/_main.vader"
+                l1 = (l1 + INT32_C(1));
+#line 47 "tests/snippets/generic_lambda_factory/_main.vader"
+            }
+#line 46 "tests/snippets/generic_lambda_factory/_main.vader"
+            t1 = (l5 + INT64_C(1));
+            l5 = (size_t) (int64_t) t1;
+        }
+#line 40 "tests/snippets/generic_lambda_factory/_main.vader"
+        t1 = (l3 + INT64_C(1));
+        l3 = (size_t) (int64_t) t1;
     }
 #line 52 "tests/snippets/generic_lambda_factory/_main.vader"
     return l1;
@@ -318,20 +298,15 @@ static void* snippet_build__i32__(size_t l0, void* l1) {
     l2 = (void*) _a1_arr;
 #line 14 "tests/snippets/generic_lambda_factory/_main.vader"
     l3 = (size_t) 0;
-    {
-        loop_7: {
-            if ((l3 < l0)) {
+    while ((l3 < l0)) {
 #line 15 "tests/snippets/generic_lambda_factory/_main.vader"
-                vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
-                t1 = ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
-                l4 = t1.payload.obj;
-                vader_array_push((vader_array_t*) l2, vader_ref_box(l4));
+        vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
+        t1 = ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
+        l4 = t1.payload.obj;
+        vader_array_push((vader_array_t*) l2, vader_ref_box(l4));
 #line 14 "tests/snippets/generic_lambda_factory/_main.vader"
-                t2 = (l3 + INT64_C(1));
-                l3 = (size_t) (int64_t) t2;
-                goto loop_7;
-            }
-        }
+        t2 = (l3 + INT64_C(1));
+        l3 = (size_t) (int64_t) t2;
     }
 #line 17 "tests/snippets/generic_lambda_factory/_main.vader"
     { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -423,18 +398,13 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 134 "lib/std/core/primitives.vader"
     l5 = l2;
 #line 135 "lib/std/core/primitives.vader"
-    {
-        loop_30: {
-            if (l5 != INT64_C(0)) {
+    while (l5 != INT64_C(0)) {
 #line 136 "lib/std/core/primitives.vader"
-                t0 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t0;
+        t0 = (l4 + INT64_C(1));
+        l4 = (size_t) (int64_t) t0;
 #line 137 "lib/std/core/primitives.vader"
-                l5 = vader_div_i64(l5, INT64_C(10));
+        l5 = vader_div_i64(l5, INT64_C(10));
 #line 135 "lib/std/core/primitives.vader"
-                goto loop_30;
-            }
-        }
     }
 #line 139 "lib/std/core/primitives.vader"
     if (l3) {
@@ -447,25 +417,20 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     t0 = (l1 + l6);
     l4 = (size_t) (int64_t) t0;
 #line 141 "lib/std/core/primitives.vader"
-    {
-        loop_62: {
-            if (l2 != INT64_C(0)) {
+    while (l2 != INT64_C(0)) {
 #line 142 "lib/std/core/primitives.vader"
-                t0 = (l4 - INT64_C(1));
-                l4 = (size_t) (int64_t) t0;
+        t0 = (l4 - INT64_C(1));
+        l4 = (size_t) (int64_t) t0;
 #line 143 "lib/std/core/primitives.vader"
-                t0 = vader_mod_i64(l2, INT64_C(10));
-                t1 = ((int32_t) (int64_t) -(t0));
-                l7 = (uint8_t) (int32_t) t1;
-                t1 = (INT32_C(48) + l7);
-                l8 = (uint8_t) (int32_t) t1;
-                std_core_Buffer_ByteAccess_store_u8_vt(l0, l4, l8);
+        t0 = vader_mod_i64(l2, INT64_C(10));
+        t1 = ((int32_t) (int64_t) -(t0));
+        l7 = (uint8_t) (int32_t) t1;
+        t1 = (INT32_C(48) + l7);
+        l8 = (uint8_t) (int32_t) t1;
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l4, l8);
 #line 144 "lib/std/core/primitives.vader"
-                l2 = vader_div_i64(l2, INT64_C(10));
+        l2 = vader_div_i64(l2, INT64_C(10));
 #line 141 "lib/std/core/primitives.vader"
-                goto loop_62;
-            }
-        }
     }
 #line 146 "lib/std/core/primitives.vader"
     if (l3) {
@@ -492,36 +457,34 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 206 "lib/std/io/io.vader"
     l3 = (size_t) 0;
 #line 207 "lib/std/io/io.vader"
-    {
-        loop_6: {
+    for (;;) {
 #line 208 "lib/std/io/io.vader"
-            l4 = ((vader_array_t*) l2)->length;
-            if ((l3 >= l4)) {
+        l4 = ((vader_array_t*) l2)->length;
+        if ((l3 >= l4)) {
 #line 209 "lib/std/io/io.vader"
-                { vader_gc_top = gc_frame.prev; return; }
+            { vader_gc_top = gc_frame.prev; return; }
 #line 208 "lib/std/io/io.vader"
-            }
-#line 211 "lib/std/io/io.vader"
-            l5 = ((vader_array_t*) l2)->length;
-            vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
-            l6 = (void*) _a0_arr;
-#line 212 "lib/std/io/io.vader"
-            l7 = ((vader_array_t*) l6)->length;
-            l8 = std_io_write_bytes(l0, l6, l7);
-#line 213 "lib/std/io/io.vader"
-            if ((l8 <= INT32_C(0))) {
-#line 214 "lib/std/io/io.vader"
-                { vader_gc_top = gc_frame.prev; return; }
-#line 213 "lib/std/io/io.vader"
-            }
-#line 216 "lib/std/io/io.vader"
-            t0 = ((int64_t) (int32_t) l8);
-            l9 = (size_t) (int64_t) t0;
-            t0 = (l3 + l9);
-            l3 = (size_t) (int64_t) t0;
-#line 207 "lib/std/io/io.vader"
-            goto loop_6;
         }
+#line 211 "lib/std/io/io.vader"
+        l5 = ((vader_array_t*) l2)->length;
+        vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
+        l6 = (void*) _a0_arr;
+#line 212 "lib/std/io/io.vader"
+        l7 = ((vader_array_t*) l6)->length;
+        l8 = std_io_write_bytes(l0, l6, l7);
+#line 213 "lib/std/io/io.vader"
+        if ((l8 <= INT32_C(0))) {
+#line 214 "lib/std/io/io.vader"
+            { vader_gc_top = gc_frame.prev; return; }
+#line 213 "lib/std/io/io.vader"
+        }
+#line 216 "lib/std/io/io.vader"
+        t0 = ((int64_t) (int32_t) l8);
+        l9 = (size_t) (int64_t) t0;
+        t0 = (l3 + l9);
+        l3 = (size_t) (int64_t) t0;
+#line 207 "lib/std/io/io.vader"
+        continue;
     }
 #line 209 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }

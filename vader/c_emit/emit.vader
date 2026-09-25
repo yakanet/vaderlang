@@ -12,9 +12,9 @@
 //   - the bytecode's value stack maps to a chain of generated C tmp
 //     vars (one per push) ; the C compiler folds the chain back into
 //     expression form ;
-//   - structured control (`block`/`loop`/`if`) uses C labels + goto
-//     for `br` semantics ; label naming derives from the open-ip so
-//     jumps resolve without a runtime label stack ;
+//   - structured control (`block`/`loop`/`if`) is walked into labelled
+//     scopes and `goto`s, named from the opener's pc ; `c_ast/loops.vader`
+//     then rewrites them as `while` / `for (;;)` with `continue` / `break` ;
 //   - primitives flow as their native C type ; struct/array refs as
 //     `vader_box_t` ; the emitter inserts box/unbox sequences at every
 //     value boundary (γ representation) ;

@@ -162,6 +162,17 @@ scan_statements :: fn(statements: CStatement[], usage: TemporaryUsage!) -> void 
                 }
             }
             is CScope               -> scan_block(statement.body, usage)
+            is CWhile               -> {
+                scan_expression(statement.condition, usage)
+                scan_block(statement.body, usage)
+            }
+            is CFor                 -> scan_block(statement.body, usage)
+            is CContinue | CBreak   -> {
+                condition :: statement.condition
+                if condition != null {
+                    scan_expression(condition, usage)
+                }
+            }
             is CReturn              -> {
                 for store in statement.stores {
                     scan_expression(store.target, usage)

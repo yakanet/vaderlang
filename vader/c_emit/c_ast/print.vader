@@ -226,13 +226,32 @@ write_statements :: fn(
             }
             is CSwitch              -> write_switch(out, statement, depth)
             is CScope               -> {
-                write_line(
-                    out,
-                    if statement.label == "" { "{" } else { "${statement.label}: {" },
-                    depth,
-                )
+                write_line(out, labelled(statement.label, "{"), depth)
                 write_block(out, statement.body, depth + 1)
                 write_closer(out, statement.end_label, depth)
+            }
+            is CWhile               -> {
+                indent(out, depth)
+                out.append(labelled(statement.label, "while ("))
+                write_expression(out, statement.condition)
+                out.append(") {\n")
+                write_block(out, statement.body, depth + 1)
+                write_closer(out, statement.end_label, depth)
+            }
+            is CFor                 -> {
+                write_line(out, labelled(statement.label, "for (;;) {"), depth)
+                write_block(out, statement.body, depth + 1)
+                write_closer(out, statement.end_label, depth)
+            }
+            is CContinue            -> {
+                indent(out, depth)
+                write_jump(out, statement.condition, "continue;")
+                out.append("\n")
+            }
+            is CBreak               -> {
+                indent(out, depth)
+                write_jump(out, statement.condition, "break;")
+                out.append("\n")
             }
         }
     }
@@ -466,16 +485,25 @@ write_return_text :: fn(out: StringBuilder!, node: CReturn) -> void {
 }
 
 // `goto label;`, or `if (condition) goto label;`, without indentation or newline.
-write_goto :: fn(out: StringBuilder!, node: CGoto) -> void {
-    condition :: node.condition
+write_goto :: fn(out: StringBuilder!, node: CGoto) -> void = write_jump(
+    out,
+    node.condition,
+    "goto ${node.label};",
+)
+
+// `jump`, or `if (condition) jump` — a jump guarded by its condition.
+write_jump :: fn(out: StringBuilder!, condition: CExpression | null, jump: string) -> void {
     if condition != null {
         out.append("if (")
         write_expression(out, condition)
         out.append(") ")
     }
-    out.append("goto ")
-    out.append(node.label)
-    out.append(";")
+    out.append(jump)
+}
+
+// `head`, preceded by `label: ` when there is one.
+labelled :: fn(label: string, head: string) -> string = if label == "" { head } else {
+    "${label}: ${head}"
 }
 
 // `switch (subject) {`, one line per clause, then `}`.
@@ -744,7 +772,7 @@ write_directive :: fn(out: StringBuilder!, text: string) -> void {
 
 write_closer :: fn(out: StringBuilder!, label: string, depth: i32) -> void = write_line(
     out,
-    if label == "" { "}" } else { "} ${label}" },
+    if label == "" { "}" } else { "} ${label}: ;" },
     depth,
 )
 
@@ -838,7 +866,7 @@ test_print_block_keeps_both_labels_apart :: fn() -> void {
     inner :: CIf {
         .condition = verbatim("b"),
         .then_block = CBlock { .body = [] },
-        .end_label = "end_7: ;",
+        .end_label = "end_7",
     }
     root :: CBlock {
         .body = [
@@ -846,7 +874,7 @@ test_print_block_keeps_both_labels_apart :: fn() -> void {
                 .condition = verbatim("a"),
                 .then_block = CBlock { .body = [] },
                 .else_block = CBlock { .body = [inner] },
-                .end_label = "end_3: ;",
+                .end_label = "end_3",
             },
         ],
     }

@@ -319,6 +319,9 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
     // frame and GC-root set. The declarations below are one per slot. See
     // `c_ast/coalesce.vader`.
     slot_types :: coalesce_temporaries(s.root, s.temporaries)
+    // After the coalescing, whose live ranges read the scopes as the walk built
+    // them. See `c_ast/loops.vader`.
+    structure_loops(s.root)
     // GC roots : ref-typed params, then locals + temps (collected by the
     // decl emitters). Order is irrelevant to the GC scan. `no_frame` fns
     // skip the whole shadow-stack apparatus.
@@ -1276,14 +1279,15 @@ emit_end :: fn(s: FnState!, pc: i32) -> void {
     // Before the close : the write-back belongs INSIDE the loop's block, at the
     // one place control falls out of it.
     pc_close_cache(s, sc.opener_pc)
-    close_node(s, if sc.opener_pc in s.break_targets { "end_${sc.opener_pc}: ;" } else { "" })
+    close_node(s, if sc.opener_pc in s.break_targets { "end_${sc.opener_pc}" } else { "" })
 }
 
 /// `br` / `br_if` — a `goto` to the resolved scope label (`loop_<opener>`
 /// for a continue back-edge, `end_<opener>` for a break forward-exit).
 /// `br_if` pops its i32 condition and guards the jump. Block results are
 /// local-materialised by the lowerer, so no value is hoisted before the
-/// jump.
+/// jump. `structure_loops` later turns most of these into `continue` /
+/// `break`.
 emit_branch :: fn(s: FnState!, pc: i32, conditional: bool) -> void {
     target :: s.function.jump_table[pc]
     found :: branch_target(s.scopes, target)

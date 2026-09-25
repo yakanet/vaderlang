@@ -290,8 +290,8 @@ open_else :: fn(s: FnState!) -> void {
 open_scope :: fn(s: FnState!, label: string) -> void =
     open_node(s, CScope { .label = label, .body = CBlock { .body = [] } })
 
-/// Close the innermost open node ; `end_label` (`end_N: ;`, or `""`) follows
-/// its closing brace.
+/// Close the innermost open node ; the label `end_label` (`end_N`, or `""` for
+/// none) follows its closing brace.
 close_node :: fn(s: FnState!, end_label: string) -> void {
     node :: s.open_nodes[s.open_nodes.len() - 1]
     // Narrowed per variant : `end_label` sits at a different offset in each,

@@ -1,0 +1,469 @@
+// vader/c_emit/c_ast/loops — C loops in place of labels and `goto`.
+//
+// The walker lowers a bytecode `loop` to a labelled scope, `loop_N: { … }`,
+// and every `br` to a `goto` : to `loop_N` to continue, to the `end_N` label
+// after a scope to leave it. This pass rewrites each labelled scope as a
+// `while` or a `for (;;)`, the gotos it can as `continue` / `break`, then drops
+// the labels nothing jumps to any more and the bare braces left around nothing.
+//
+// It runs after `coalesce_temporaries` (`coalesce.vader`), whose live ranges
+// are computed on the scopes the walker built.
+
+module "vader/c_emit/c_ast"
+
+import "std/collections"
+import "std/iter"
+
+/// Rewrite the loops of a function body as C loops.
+///
+/// A labelled `CScope` is a loop : falling off its end leaves it, a `goto` to
+/// its label runs it again. It becomes `while (c) { … }` when its body is a
+/// lone `if (c)` whose live branch ends by continuing, `for (;;) { … }`
+/// otherwise. A `goto` it can express is a `continue` or a `break` ; one it
+/// cannot — a continue of an OUTER loop, which C cannot name — keeps its label.
+///
+/// @param root  the body to rewrite in place.
+export structure_loops :: fn(root: CBlock!) -> void {
+    rewrite_block(root, [])
+    used :: MutableSet<string> {}
+    collect_goto_labels(root, used)
+    tidy_block(root, used)
+}
+
+// ---- loops ----------------------------------------------------------------
+
+// Rewrite the loops in `block`, innermost first. `exits` are the labels control
+// reaches by falling off the end of `block`.
+rewrite_block :: fn(block: CBlock!, exits: string[]) -> void {
+    end :: statements_end(block.body)
+    for k in 0..<block.body.len() {
+        statement :: block.body[k]
+        falls_out :: k + 1 == end
+        if statement is CIf {
+            after :: exits_after(statement.end_label, exits, falls_out)
+            rewrite_block(statement.then_block, after)
+            else_block :: statement.else_block
+            if else_block != null {
+                rewrite_block(else_block, after)
+            }
+        } else if statement is CScope {
+            // A loop's body falls into the loop's exit, like any scope's.
+            after :: exits_after(statement.end_label, exits, falls_out)
+            rewrite_block(statement.body, after)
+            if statement.label != "" {
+                breaks :: after.clone()
+                push_tail_labels(statement.body, breaks)
+                substitute_jumps(statement.body, statement.label, breaks)
+                block.body[k] = loop_of(statement)
+            }
+        }
+    }
+}
+
+// The labels reached by falling off a statement ending on `end_label` : that
+// label, and the block's `exits` when nothing follows the statement there.
+exits_after :: fn(end_label: string, exits: string[], falls_out: bool) -> string[] {
+    out: string[]!: []
+    if end_label != "" {
+        out.push(end_label)
+    }
+    if falls_out {
+        out.push_all(exits)
+    }
+    return out
+}
+
+// The end labels of the statements `block` ends with, followed down its tail :
+// a jump to one of them lands where falling off `block` does.
+push_tail_labels :: fn(block: CBlock, labels: string[]!) -> void {
+    statement :: tail_statement(block.body)
+    if statement is CIf {
+        if statement.end_label != "" {
+            labels.push(statement.end_label)
+        }
+        push_tail_labels(statement.then_block, labels)
+        else_block :: statement.else_block
+        if else_block != null {
+            push_tail_labels(else_block, labels)
+        }
+    } else if statement is CScope {
+        if statement.end_label != "" {
+            labels.push(statement.end_label)
+        }
+        push_tail_labels(statement.body, labels)
+    } else if statement is CWhile && statement.end_label != "" {
+        labels.push(statement.end_label)
+    } else if statement is CFor && statement.end_label != "" {
+        labels.push(statement.end_label)
+    }
+}
+
+// In a loop's body, `goto <continue_label>` becomes `continue` and a `goto` to
+// one of `breaks` becomes `break` — outside any inner loop or `switch`, which
+// would take the jump for themselves.
+substitute_jumps :: fn(block: CBlock!, continue_label: string, breaks: string[]) -> void {
+    for k in 0..<block.body.len() {
+        statement :: block.body[k]
+        if statement is CGoto {
+            if statement.label == continue_label {
+                block.body[k] = CContinue { .condition = statement.condition }
+            } else if statement.label in breaks {
+                block.body[k] = CBreak { .condition = statement.condition }
+            }
+        } else if statement is CIf {
+            substitute_jumps(statement.then_block, continue_label, breaks)
+            else_block :: statement.else_block
+            if else_block != null {
+                substitute_jumps(else_block, continue_label, breaks)
+            }
+        } else if statement is CScope {
+            substitute_jumps(statement.body, continue_label, breaks)
+        }
+    }
+}
+
+// The C loop for `scope`, its jumps already substituted.
+loop_of :: fn(scope: CScope) -> CStatement {
+    statements :: scope.body.body
+    lead :: leading_directives(statements)
+    trail :: trailing_directives(statements, lead)
+    if statements.len() - lead - trail == 1 {
+        core :: statements[lead]
+        // A label after the `if` marks the loop's exit : it moves after the
+        // `while`, unless the loop already carries one there.
+        if core is CIf && (core.end_label == "" || scope.end_label == "") {
+            end_label :: if core.end_label == "" { scope.end_label } else { core.end_label }
+            else_block :: core.else_block
+            // The branch that loops, and the condition that selects it.
+            looping :: if else_block == null && ends_with_continue(core.then_block) {
+                core.then_block
+            } else if else_block != null && is_empty(core.then_block) && ends_with_continue(
+                else_block,
+            ) {
+                else_block
+            } else {
+                null
+            }
+            if looping != null {
+                condition :: if else_block == null {
+                    core.condition
+                } else {
+                    CUnary { .operator = "!", .operand = core.condition }
+                }
+                return CWhile {
+                    .label = scope.label,
+                    .body = spliced(statements, lead, trail, looping),
+                    .condition = condition,
+                    .end_label = end_label,
+                }
+            }
+        }
+    }
+    body :: CBlock { .body = [] }
+    body.body.push_all(statements)
+    if end_is_reachable(statements) {
+        body.body.push(CBreak {})
+    }
+    return CFor { .label = scope.label, .body = body, .end_label = scope.end_label }
+}
+
+// `branch` without its closing `continue`, between the loop body's leading and
+// trailing directives.
+spliced :: fn(statements: CStatement[], lead: usize, trail: usize, branch: CBlock) -> CBlock! {
+    body :: CBlock { .body = [] }
+    body.body.push_all(statements[0..<lead])
+    continuing :: statements_end(branch.body) - 1
+    for k in 0..<branch.body.len() {
+        if k != continuing {
+            body.body.push(branch.body[k])
+        }
+    }
+    body.body.push_all(statements[statements.len() - trail..<statements.len()])
+    return body
+}
+
+// Whether `block` ends, `#line` directives aside, on an unconditional
+// `continue`.
+ends_with_continue :: fn(block: CBlock) -> bool {
+    tail :: tail_statement(block.body)
+    return tail is CContinue && tail.condition == null
+}
+
+// Whether `block` holds nothing but `#line` directives.
+is_empty :: fn(block: CBlock) -> bool = leading_directives(block.body) == block.body.len()
+
+// Whether control can fall off the end of `statements`.
+end_is_reachable :: fn(statements: CStatement[]) -> bool {
+    tail :: tail_statement(statements)
+    if tail == null {
+        return true
+    }
+    // @partial: every other statement hands control to the next one.
+    return @partial match tail {
+        is CContinue | CBreak -> tail.condition != null
+        is CGoto              -> tail.condition != null
+        is CReturn            -> false
+        _                     -> true
+    }
+}
+
+// The index just past the last statement that is not a `#line` directive.
+statements_end :: fn(statements: CStatement[]) -> usize = statements.len() - trailing_directives(
+    statements,
+    0,
+)
+
+// The last statement that is not a `#line` directive, or null.
+tail_statement :: fn(statements: CStatement[]) -> CStatement | null {
+    end :: statements_end(statements)
+    if end == 0 {
+        return null
+    }
+    return statements[end - 1]
+}
+
+// ---- labels and braces ----------------------------------------------------
+
+// Every label a `goto` in `block` still names.
+collect_goto_labels :: fn(block: CBlock, used: MutableSet<string>!) -> void {
+    for statement in block.body {
+        // @partial: only these statements hold a jump or a nested block.
+        @partial match statement {
+            is CGoto                  -> used.add(statement.label)
+            is CIf                    -> {
+                collect_goto_labels(statement.then_block, used)
+                else_block :: statement.else_block
+                if else_block != null {
+                    collect_goto_labels(else_block, used)
+                }
+            }
+            is CScope | CWhile | CFor -> collect_goto_labels(statement.body, used)
+            is CSwitch                -> {
+                for clause in statement.cases {
+                    collect_clause_labels(clause.body, used)
+                }
+                default_body :: statement.default_body
+                if default_body != null {
+                    collect_clause_labels(default_body, used)
+                }
+            }
+            _                         -> {}
+        }
+    }
+}
+
+// The labels the `goto`s of a switch clause name.
+collect_clause_labels :: fn(body: CCaseStatement[], used: MutableSet<string>!) -> void {
+    for statement in body {
+        if statement is CGoto {
+            used.add(statement.label)
+        }
+    }
+}
+
+// Drop the labels no `goto` names, then splice into `block` every bare scope —
+// no label, no declaration of its own — that only groups statements.
+tidy_block :: fn(block: CBlock!, used: MutableSet<string>) -> void {
+    kept: CStatement[]!: []
+    for statement in block.body {
+        match statement {
+            is CIf    -> {
+                tidy_block(statement.then_block, used)
+                else_block :: statement.else_block
+                if else_block != null {
+                    tidy_block(else_block, used)
+                }
+                end_label :: used_label(statement.end_label, used)
+                kept.push(
+                    if end_label == statement.end_label {
+                        statement
+                    } else {
+                        CIf {
+                            .condition = statement.condition,
+                            .then_block = statement.then_block,
+                            .else_block = statement.else_block,
+                        }
+                    },
+                )
+            }
+            is CScope -> {
+                tidy_block(statement.body, used)
+                label :: used_label(statement.label, used)
+                end_label :: used_label(statement.end_label, used)
+                if label == "" && end_label == "" && !declares(statement.body) {
+                    kept.push_all(statement.body.body)
+                } else if label == statement.label && end_label == statement.end_label {
+                    kept.push(statement)
+                } else {
+                    kept.push(
+                        CScope { .label = label, .body = statement.body, .end_label = end_label },
+                    )
+                }
+            }
+            is CWhile -> {
+                tidy_block(statement.body, used)
+                label :: used_label(statement.label, used)
+                end_label :: used_label(statement.end_label, used)
+                kept.push(
+                    if label == statement.label && end_label == statement.end_label {
+                        statement
+                    } else {
+                        CWhile {
+                            .label = label,
+                            .body = statement.body,
+                            .condition = statement.condition,
+                            .end_label = end_label,
+                        }
+                    },
+                )
+            }
+            is CFor   -> {
+                tidy_block(statement.body, used)
+                label :: used_label(statement.label, used)
+                end_label :: used_label(statement.end_label, used)
+                kept.push(
+                    if label == statement.label && end_label == statement.end_label {
+                        statement
+                    } else {
+                        CFor { .label = label, .body = statement.body, .end_label = end_label }
+                    },
+                )
+            }
+            _         -> kept.push(statement)
+        }
+    }
+    block.body.clear()
+    block.body.push_all(kept)
+}
+
+// `label` when a `goto` names it, `""` otherwise.
+used_label :: fn(label: string, used: MutableSet<string>) -> string {
+    if label in used {
+        return label
+    }
+    return ""
+}
+
+// Whether `block` declares a variable of its own.
+declares :: fn(block: CBlock) -> bool {
+    for statement in block.body {
+        if statement is CDeclaration {
+            return true
+        }
+    }
+    return false
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// `loop_1: { body }` — a loop scope as the walker builds it.
+loop_scope :: fn(body: CStatement[]!) -> CStatement = CScope {
+    .label = "loop_1",
+    .body = CBlock { .body = body },
+}
+
+// `root` after the pass, printed.
+structured :: fn(root: CBlock!) -> string {
+    structure_loops(root)
+    printer :: CPrinter {}
+    printer.print_block(root, 0)
+    return printer.printed_text()
+}
+
+@test
+test_structure_loops_makes_a_while :: fn() -> void {
+    body :: CBlock {
+        .body = [
+            CAssign { .target = verbatim("x"), .value = verbatim("1") },
+            CGoto { .label = "loop_1" },
+        ],
+    }
+    root :: CBlock {
+        .body = [loop_scope([CIf { .condition = verbatim("c"), .then_block = body }])],
+    }
+    assert_eq(structured(root), "while (c) {\n    x = 1;\n}\n")
+}
+
+@test
+test_structure_loops_negates_an_empty_then :: fn() -> void {
+    live :: CBlock { .body = [CGoto { .label = "loop_1" }] }
+    root :: CBlock {
+        .body = [
+            loop_scope(
+                [
+                    CIf {
+                        .condition = verbatim("c"),
+                        .then_block = CBlock { .body = [] },
+                        .else_block = live,
+                    },
+                ],
+            ),
+        ],
+    }
+    assert_eq(structured(root), "while (!(c)) {\n}\n")
+}
+
+@test
+test_structure_loops_makes_a_for_with_break :: fn() -> void {
+    tested :: CIf {
+        .condition = verbatim("c"),
+        .then_block = CBlock { .body = [CGoto { .label = "loop_1" }] },
+    }
+    root :: CBlock {
+        .body = [
+            loop_scope([CAssign { .target = verbatim("c"), .value = verbatim("f()") }, tested]),
+        ],
+    }
+    assert_eq(
+        structured(root),
+        "for (;;) {\n    c = f();\n    if (c) {\n        continue;\n    }\n    break;\n}\n",
+    )
+}
+
+@test
+test_structure_loops_breaks_to_the_enclosing_exit :: fn() -> void {
+    leave :: CGoto { .label = "end_0", .condition = verbatim("done") }
+    inner :: loop_scope([leave, CGoto { .label = "loop_1" }])
+    root :: CBlock { .body = [CScope { .body = CBlock { .body = [inner] }, .end_label = "end_0" }] }
+    assert_eq(structured(root), "for (;;) {\n    if (done) break;\n    continue;\n}\n")
+}
+
+@test
+test_structure_loops_breaks_past_a_tail_if :: fn() -> void {
+    leave :: CGoto { .label = "end_2", .condition = verbatim("done") }
+    tested :: CIf {
+        .condition = verbatim("c"),
+        .then_block = CBlock { .body = [leave, CGoto { .label = "loop_1" }] },
+        .end_label = "end_2",
+    }
+    root :: CBlock { .body = [loop_scope([tested])] }
+    assert_eq(structured(root), "while (c) {\n    if (done) break;\n}\n")
+}
+
+@test
+test_structure_loops_keeps_a_continue_of_an_outer_loop :: fn() -> void {
+    inner :: CScope {
+        .label = "loop_2",
+        .body = CBlock {
+            .body = [
+                CGoto { .label = "loop_1", .condition = verbatim("next") },
+                CGoto { .label = "loop_2" },
+            ],
+        },
+    }
+    root :: CBlock { .body = [loop_scope([inner])] }
+    assert_eq(
+        structured(root),
+        """
+loop_1: for (;;) {
+    for (;;) {
+        if (next) goto loop_1;
+        continue;
+    }
+    break;
+}
+""",
+    )
+}

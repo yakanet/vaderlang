@@ -280,17 +280,16 @@ static size_t std_core_Range_Iterator_count__i32(void* l0) {
     int64_t t2;
 #line 314411 "<clone>:lib/std/core/core.vader"
     l1 = (size_t) 0;
-    {
-        loop_3: {
-            std_core_Range_Iterator_next__i32_v(l0, &t0, &t1);
-            l2 = t1;
-            if (l2 == INT32_C(1)) {
-            } else {
-                t2 = (l1 + INT64_C(1));
-                l1 = (size_t) (int64_t) t2;
-                goto loop_3;
-            }
+    for (;;) {
+        std_core_Range_Iterator_next__i32_v(l0, &t0, &t1);
+        l2 = t1;
+        if (l2 == INT32_C(1)) {
+        } else {
+            t2 = (l1 + INT64_C(1));
+            l1 = (size_t) (int64_t) t2;
+            continue;
         }
+        break;
     }
     return l1;
 }
@@ -303,17 +302,16 @@ static vader_box_t std_core_Range_Iterator_last__i32(void* l0) {
     uint8_t t1;
 #line 314411 "<clone>:lib/std/core/core.vader"
     l1 = vader_box_obj(0u, NULL);
-    {
-        loop_3: {
-            std_core_Range_Iterator_next__i32_v(l0, &t0, &t1);
-            l3 = t1;
-            l2 = t0;
-            if (l3 == INT32_C(1)) {
-            } else {
-                l1 = vader_box_i32(1u, l2);
-                goto loop_3;
-            }
+    for (;;) {
+        std_core_Range_Iterator_next__i32_v(l0, &t0, &t1);
+        l3 = t1;
+        l2 = t0;
+        if (l3 == INT32_C(1)) {
+        } else {
+            l1 = vader_box_i32(1u, l2);
+            continue;
         }
+        break;
     }
     return l1;
 }
@@ -410,17 +408,16 @@ static size_t std_core_Range_Iterator_count__usize(void* l0) {
     int64_t t2;
 #line 314411 "<clone>:lib/std/core/core.vader"
     l1 = (size_t) 0;
-    {
-        loop_3: {
-            std_core_Range_Iterator_next__usize_v(l0, &t0, &t1);
-            l2 = t1;
-            if (l2 == INT32_C(1)) {
-            } else {
-                t2 = (l1 + INT64_C(1));
-                l1 = (size_t) (int64_t) t2;
-                goto loop_3;
-            }
+    for (;;) {
+        std_core_Range_Iterator_next__usize_v(l0, &t0, &t1);
+        l2 = t1;
+        if (l2 == INT32_C(1)) {
+        } else {
+            t2 = (l1 + INT64_C(1));
+            l1 = (size_t) (int64_t) t2;
+            continue;
         }
+        break;
     }
     return l1;
 }
@@ -433,17 +430,16 @@ static vader_box_t std_core_Range_Iterator_last__usize(void* l0) {
     uint8_t t1;
 #line 314411 "<clone>:lib/std/core/core.vader"
     l1 = vader_box_obj(0u, NULL);
-    {
-        loop_3: {
-            std_core_Range_Iterator_next__usize_v(l0, &t0, &t1);
-            l3 = t1;
-            l2 = t0;
-            if (l3 == INT32_C(1)) {
-            } else {
-                l1 = vader_box_i64(6u, (int64_t)(uint64_t) l2);
-                goto loop_3;
-            }
+    for (;;) {
+        std_core_Range_Iterator_next__usize_v(l0, &t0, &t1);
+        l3 = t1;
+        l2 = t0;
+        if (l3 == INT32_C(1)) {
+        } else {
+            l1 = vader_box_i64(6u, (int64_t)(uint64_t) l2);
+            continue;
         }
+        break;
     }
     return l1;
 }

@@ -22,25 +22,20 @@ static int32_t snippet_main(void) {
 #line 14 "tests/snippets/scalar_control/_main.vader"
     l1 = INT32_C(0);
 #line 15 "tests/snippets/scalar_control/_main.vader"
-    {
-        loop_5: {
-            if ((l1 < INT32_C(10))) {
+    while ((l1 < INT32_C(10))) {
 #line 16 "tests/snippets/scalar_control/_main.vader"
-                if (l1 == INT32_C(3)) {
+        if (l1 == INT32_C(3)) {
 #line 17 "tests/snippets/scalar_control/_main.vader"
-                    l0 = (l0 + INT32_C(100));
+            l0 = (l0 + INT32_C(100));
 #line 16 "tests/snippets/scalar_control/_main.vader"
 #line 19 "tests/snippets/scalar_control/_main.vader"
-                } else {
-                    l0 = (l0 + l1);
+        } else {
+            l0 = (l0 + l1);
 #line 16 "tests/snippets/scalar_control/_main.vader"
-                }
-#line 21 "tests/snippets/scalar_control/_main.vader"
-                l1 = (l1 + INT32_C(1));
-#line 15 "tests/snippets/scalar_control/_main.vader"
-                goto loop_5;
-            }
         }
+#line 21 "tests/snippets/scalar_control/_main.vader"
+        l1 = (l1 + INT32_C(1));
+#line 15 "tests/snippets/scalar_control/_main.vader"
     }
 #line 23 "tests/snippets/scalar_control/_main.vader"
     return l0;

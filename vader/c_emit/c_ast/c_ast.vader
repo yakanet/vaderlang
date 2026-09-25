@@ -25,6 +25,10 @@ export CStatement :: CDirective
             | CReturn
             | CGoto
             | CSwitch
+            | CWhile
+            | CFor
+            | CContinue
+            | CBreak
 
 /// `target = value;`.
 export CAssign :: struct {
@@ -105,7 +109,8 @@ export CIf :: struct {
     condition: CExpression
     then_block: CBlock!
     else_block: CBlock! | null = null
-    /// `end_N: ;` after the closing brace, when a `goto` exits past the `if`.
+    /// The label after the closing brace (`} end_N: ;`), when a `goto` exits
+    /// past the `if` ; `""` for none.
     end_label: string = ""
 }
 
@@ -139,8 +144,39 @@ export CScope :: struct {
     /// The label before the opening brace ; `""` for none.
     label: string = ""
     body: CBlock!
-    /// `end_N: ;` after the closing brace, when a `goto` exits past the scope.
+    /// The label after the closing brace (`} end_N: ;`), when a `goto` exits
+    /// past the scope ; `""` for none.
     end_label: string = ""
+}
+
+/// `while (condition) { … }`.
+export CWhile :: struct {
+    /// The label before `while`, when a `goto` from an inner loop continues
+    /// this one ; `""` for none.
+    label: string = ""
+    body: CBlock!
+    condition: CExpression
+    /// The label after the closing brace ; `""` for none.
+    end_label: string = ""
+}
+
+/// `for (;;) { … }` — a loop left only by `break`, `return` or `goto`.
+export CFor :: struct {
+    /// The label before `for` ; `""` for none.
+    label: string = ""
+    body: CBlock!
+    /// The label after the closing brace ; `""` for none.
+    end_label: string = ""
+}
+
+/// `continue;`, or `if (condition) continue;`.
+export CContinue :: struct {
+    condition: CExpression | null = null
+}
+
+/// `break;`, or `if (condition) break;`.
+export CBreak :: struct {
+    condition: CExpression | null = null
 }
 
 // ---- expressions ----------------------------------------------------------
