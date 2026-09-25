@@ -1,0 +1,2 @@
+# vader CLI failed (exit 134)
+vader: panic — midir/emit: unresolved callee 'next' (id=0) in 'snippet$count' — impl-member/for-in materialisation gap (GATE B1)

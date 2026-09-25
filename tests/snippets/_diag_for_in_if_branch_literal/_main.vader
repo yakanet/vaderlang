@@ -1,0 +1,40 @@
+// Diag snippet: a `for` over an `if` whose branches are an array and an array
+// literal panics the compiler. The committed output is WRONG.
+//
+// `if many { g.items } else { [one] }` should be a `Shape[]`: the literal in the
+// `else` branch has the `then` branch to type against. It is typed on its own
+// instead, as a one-element TUPLE `[A | B]`, and the `if` as the union
+// `(A | B)[] | [A | B]!` — neither an array nor an iterator. The lowering then
+// emits a call to an iterator `next` it never materialised (no M5001 for the
+// receiver), and midir stops on the unresolved callee:
+//
+//   midir/emit: unresolved callee 'next' (id=0) in 'snippet$count' —
+//   impl-member/for-in materialisation gap (GATE B1)
+//
+// Expected once fixed:
+//   2
+//   1
+
+module "snippet"
+
+import "std/io"
+
+A :: struct { n: i32 }
+B :: struct { m: i32 }
+Shape :: A | B
+Group :: struct { items: Shape[] }
+
+count :: fn(g: Group, one: Shape, many: bool) -> i32 {
+    total := 0
+    for s in if many { g.items } else { [one] } {
+        total += 1
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    g :: Group { .items = [A { .n = 1 }, B { .m = 2 }] }
+    println("${count(g, A { .n = 0 }, true)}")
+    println("${count(g, B { .m = 0 }, false)}")
+    return 0
+}

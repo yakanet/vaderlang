@@ -1,0 +1,36 @@
+# Typecheck
+
+## tests/snippets/_diag_for_in_if_branch_literal
+  StructDecl     A                    :: A!
+  StructDecl     B                    :: B!
+  FnDecl         count                :: fn(Group, A | B, bool) -> i32
+  StructDecl     Group                :: Group!
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Shape                :: type
+  expr 29:14    IfExpr         :: (A | B)[] | [A | B]!
+  expr 29:17    IdentExpr      :: bool
+  expr 29:24    FieldExpr      :: (A | B)[]
+  expr 29:24    IdentExpr      :: Group
+  expr 29:41    SeqLitExpr     :: [A | B]!
+  expr 29:42    IdentExpr      :: A | B
+  expr 30:9     BinaryExpr     :: i32
+  expr 30:9     IdentExpr      :: i32
+  expr 32:12    IdentExpr      :: i32
+  expr 36:10    StructLitExpr  :: Group!
+  expr 36:27    SeqLitExpr     :: (A | B)[]
+  expr 36:28    StructLitExpr  :: A!
+  expr 36:42    StructLitExpr  :: B!
+  expr 37:13    StringLitExpr  :: string
+  expr 37:16    CallExpr       :: i32
+  expr 37:16    IdentExpr      :: fn(Group, A | B, bool) -> i32
+  expr 37:22    IdentExpr      :: Group!
+  expr 37:25    StructLitExpr  :: A!
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 38:13    StringLitExpr  :: string
+  expr 38:16    CallExpr       :: i32
+  expr 38:16    IdentExpr      :: fn(Group, A | B, bool) -> i32
+  expr 38:22    IdentExpr      :: Group!
+  expr 38:25    StructLitExpr  :: B!
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void

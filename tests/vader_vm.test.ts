@@ -292,6 +292,11 @@ const KNOWN_DIVERGENT = new Set<string>([
   // body with `unreachable ; unresolved ident x`. Nested-capture chain
   // through the defer thunk — tracked in TODO §3.8.
   "defer_in_lambda",
+  // No bytecode to run : the compiler panics (GATE B1) on a `for` over an
+  // `if` whose `else` branch is an array literal, typed as a tuple — the
+  // snippet pins the wrong output until it is fixed. Tracked in TODO
+  // (Priority, "A literal in an `if` branch is not typed against the other").
+  "_diag_for_in_if_branch_literal",
 
 ]);
 
