@@ -9,16 +9,13 @@
 //   bun bench/run.ts --update         # write current measurements as baseline
 //   bun bench/run.ts --runs=5         # override default 10 timed runs
 //   bun bench/run.ts --workload=mandelbrot   # narrow to a single workload
-//   bun bench/run.ts --vm             # the VM suite instead (`bench/baseline-vm.json`)
 
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const REPO = import.meta.dir.replace(/\/bench$/, "");
-const VM_MODE = process.argv.includes("--vm");
-const BASELINE_PATH = process.env.BENCH_BASELINE
-  ?? join(REPO, "bench", VM_MODE ? "baseline-vm.json" : "baseline.json");
+const BASELINE_PATH = process.env.BENCH_BASELINE ?? join(REPO, "bench", "baseline.json");
 const THRESHOLD = 0.15;       // 15 % regression triggers a non-zero exit
                               // Tight enough to catch real regressions ; loose enough that
                               // a single sample blip on a < 20 ms native workload doesn't
@@ -36,7 +33,6 @@ function parseArgs(): Args {
     if (a === "--update") update = true;
     else if (a.startsWith("--runs=")) runs = Number(a.slice(7));
     else if (a.startsWith("--workload=")) workloads = a.slice(11).split(",");
-    else if (a === "--vm") continue;   // read up front: it picks the baseline and impls
     else { console.error(`unknown arg: ${a}`); process.exit(2); }
   }
   return { runs, update, workloads };
@@ -78,6 +74,16 @@ const WORKLOADS: readonly Workload[] = [
   { name: "parse_float",    description: "655 k correctly-rounded decimal → f64 parses",         outputMatch: "parse_float" },
   { name: "sort_by",        description: "24 stable comparator sorts of 20 k i64",               outputMatch: "sort_by" },
   { name: "split_join",     description: "24 × split a 20 k-field line, filter, rejoin",         outputMatch: "split_join" },
+  // VM-only : programs sized for the bytecode interpreter, which runs them one to
+  // two orders of magnitude slower than native code. Only `vader-vm` has a source
+  // for them (`bench/vm/<name>/`), so the other columns stay empty.
+  { name: "vm_fib",    description: "fib(32), doubly recursive",                    outputMatch: "vm_fib" },
+  { name: "vm_loop",   description: "30 M iterations of integer arithmetic",        outputMatch: "vm_loop" },
+  { name: "vm_arr",    description: "1024-elt i32[] read-modify-write, 5k passes",  outputMatch: "vm_arr" },
+  { name: "vm_field",  description: "5 M struct field read-modify-writes",          outputMatch: "vm_field" },
+  { name: "vm_str",    description: "300 k StringBuilder appends with ${}",         outputMatch: "vm_str" },
+  { name: "vm_map",    description: "4 × 50 k MutableMap inserts + lookups",        outputMatch: "vm_map" },
+  { name: "vm_shapes", description: "1 M trait calls over 3 cycled concrete types", outputMatch: "vm_shapes" },
   // Vader-only : compiler THROUGHPUT, not generated-code runtime. Times a full C
   // emission of the self-hosted compiler (~30 kLoC) — the largest realistic input,
   // and the one thing the runtime-only workloads above can't catch (an O(n²) crept
@@ -90,22 +96,7 @@ const WORKLOADS: readonly Workload[] = [
   { name: "selfcompile_c",  description: "emit C for the whole self-hosted compiler (~30 kLoC)", outputMatch: "" },
 ];
 
-// The VM suite : programs sized for the interpreter, which runs them one to two
-// orders of magnitude slower than native code.
-const VM_WORKLOADS: readonly Workload[] = [
-  { name: "vm_fib",    description: "fib(32), doubly recursive",                    outputMatch: "vm_fib" },
-  { name: "vm_loop",   description: "30 M iterations of integer arithmetic",        outputMatch: "vm_loop" },
-  { name: "vm_arr",    description: "1024-elt i32[] read-modify-write, 5k passes",  outputMatch: "vm_arr" },
-  { name: "vm_field",  description: "5 M struct field read-modify-writes",          outputMatch: "vm_field" },
-  { name: "vm_str",    description: "300 k StringBuilder appends with ${}",         outputMatch: "vm_str" },
-  { name: "vm_map",    description: "4 × 50 k MutableMap inserts + lookups",        outputMatch: "vm_map" },
-  { name: "vm_shapes", description: "1 M trait calls over 3 cycled concrete types", outputMatch: "vm_shapes" },
-];
 
-/** Source of a VM-suite workload. */
-function vmSource(w: string): string {
-  return `bench/vm/${w}/${w}.vader`;
-}
 
 interface Impl {
   readonly name: string;
@@ -149,19 +140,7 @@ async function runBuild(cmd: string, args: readonly string[], label: string): Pr
   }
 }
 
-const VM_IMPL: Impl = {
-  name: "vader-vm",
-  source: vmSource,
-  // Compiled once up front, so the timed run is the VM alone.
-  build: (w) => runBuild(
-    "./build/vader",
-    ["build", "--emit=bytecode-text", "-o", `build/_bench_vm/${w}.virt`, vmSource(w)],
-    `vader bytecode build for ${w}`,
-  ),
-  run: (w) => ({ cmd: "./build/vader", args: ["run", `build/_bench_vm/${w}.virt`] }),
-};
-
-const NATIVE_IMPLS: readonly Impl[] = [
+const IMPLS: readonly Impl[] = [
   {
     name: "vader-native",
     // `selfcompile_c` is special : its source IS the compiler entry, and the
@@ -178,6 +157,20 @@ const NATIVE_IMPLS: readonly Impl[] = [
       // updated with this change rather than the measurement bent to fit it.
       ? { cmd: "./build/vader", args: ["build", "--emit=c", "--release", "--out=build/_bench_selfcompile", "vader/cli/main.vader"] }
       : { cmd: `./bench/${w}/${w}`, args: [] },
+  },
+  {
+    name: "vader-vm",
+    source: (w) => `bench/vm/${w}/${w}.vader`,
+    // Compiled once up front, so the timed run is the VM alone.
+    build: (w) => {
+      mkdirSync(join(REPO, "build", "_bench_vm"), { recursive: true });
+      return runBuild(
+        "./build/vader",
+        ["build", "--emit=bytecode-text", "-o", `build/_bench_vm/${w}.virt`, `bench/vm/${w}/${w}.vader`],
+        `vader bytecode build for ${w}`,
+      );
+    },
+    run: (w) => ({ cmd: "./build/vader", args: ["run", `build/_bench_vm/${w}.virt`] }),
   },
   {
     name: "bun-ts",
@@ -197,8 +190,6 @@ const NATIVE_IMPLS: readonly Impl[] = [
     run: (w) => ({ cmd: "java", args: ["-cp", `bench/${w}`, w] }),
   },
 ];
-
-const IMPLS: readonly Impl[] = VM_MODE ? [VM_IMPL] : NATIVE_IMPLS;
 
 interface SampleResult {
   readonly workload: string;
@@ -323,11 +314,9 @@ async function buildAll(workloads: readonly Workload[]): Promise<void> {
 
 async function main(): Promise<void> {
   const args = parseArgs();
-  const suite = VM_MODE ? VM_WORKLOADS : WORKLOADS;
-  if (VM_MODE) mkdirSync(join(REPO, "build", "_bench_vm"), { recursive: true });
   const workloads = args.workloads === null
-    ? suite
-    : suite.filter((w) => args.workloads!.includes(w.name));
+    ? WORKLOADS
+    : WORKLOADS.filter((w) => args.workloads!.includes(w.name));
   await buildAll(workloads);
   const results: SampleResult[] = [];
   for (const w of workloads) {

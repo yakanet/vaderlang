@@ -464,5 +464,47 @@
       "minMs": 4121.895666999975,
       "checksum": ""
     }
+  },
+  "vm_fib": {
+    "vader-vm": {
+      "minMs": 648.13,
+      "checksum": "vm_fib 2178309"
+    }
+  },
+  "vm_loop": {
+    "vader-vm": {
+      "minMs": 1900.0236249999998,
+      "checksum": "vm_loop 244416"
+    }
+  },
+  "vm_arr": {
+    "vader-vm": {
+      "minMs": 633.8499999999985,
+      "checksum": "vm_arr 15421440000"
+    }
+  },
+  "vm_field": {
+    "vader-vm": {
+      "minMs": 782.2435839999998,
+      "checksum": "vm_field 28064 5000001"
+    }
+  },
+  "vm_str": {
+    "vader-vm": {
+      "minMs": 1158.2515830000011,
+      "checksum": "vm_str 1988890"
+    }
+  },
+  "vm_map": {
+    "vader-vm": {
+      "minMs": 358.09999999999854,
+      "checksum": "vm_map 50000 20005469208"
+    }
+  },
+  "vm_shapes": {
+    "vader-vm": {
+      "minMs": 207.5164999999979,
+      "checksum": "vm_shapes count=50000 passes=20 total=999199780020"
+    }
   }
 }

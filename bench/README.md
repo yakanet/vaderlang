@@ -63,13 +63,13 @@ bun run bench                    # measure + compare to baseline
 bun run bench -- --update        # rewrite baseline with current measurements
 bun run bench -- --runs=5         # override the default of 10 timed runs (+ 1 warmup)
 bun run bench -- --workload=primes  # narrow to a single workload
-bun run bench -- --vm              # the VM suite instead (see below)
+bun run bench -- --workload=vm_fib,vm_loop  # the VM rows only
 ```
 
-`--vm` runs `bench/vm/*` — programs sized for the bytecode interpreter, which is one
-to two orders of magnitude slower than native code — under `vader run` on a `.virt`
-compiled once up front, so the timed run is the VM alone. Its baseline is
-`bench/baseline-vm.json`; the same thresholds apply.
+The `vm_*` workloads (`bench/vm/`) are sized for the bytecode interpreter, which is
+one to two orders of magnitude slower than native code, and only the `vader-vm`
+column runs them: `vader run` on a `.virt` compiled once up front, so the timed run
+is the VM alone.
 
 Exit status is non-zero if any (workload, implementation) `min(samples)` regresses by more than **15 %** against `bench/baseline.json`, or if any implementation's checksum diverges from its committed baseline.
 
