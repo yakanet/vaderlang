@@ -667,8 +667,6 @@ static vader_string_t std_io_without_trailing_sep(vader_string_t l0) {
 #line 1001 "lib/std/io/io.vader"
     l2 = (size_t) 0;
 #line 1002 "lib/std/io/io.vader"
-    vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
-    VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     l3 = ((vader_array_t*) l1)->length;
     l4 = (size_t) 0;
     for (;;) {
@@ -681,10 +679,10 @@ static vader_string_t std_io_without_trailing_sep(vader_string_t l0) {
             if (l5 == INT64_C(0)) {
                 l6 = true;
             } else {
-                vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
-                VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-                VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
-                t2 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l5, 5u);
+                vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
+                VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
+                t2 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l5, 5u);
                 t3 = ((uint8_t) t2.payload.i);
                 l6 = t3 != INT32_C(47);
             }
@@ -693,10 +691,10 @@ static vader_string_t std_io_without_trailing_sep(vader_string_t l0) {
             } else {
                 t1 = (l5 - INT64_C(1));
                 l7 = (size_t) (int64_t) t1;
-                vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
-                VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-                VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l7)
-                t2 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l7, 5u);
+                vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
+                VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l7)
+                t2 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l7, 5u);
                 t3 = ((uint8_t) t2.payload.i);
                 if (t3 == INT32_C(58)) {
 #line 1011 "lib/std/io/io.vader"
@@ -725,8 +723,8 @@ static vader_string_t std_io_without_trailing_sep(vader_string_t l0) {
     t0 = ((vader_array_t*) l1)->length;
     t1 = (t0 - l2);
     l2 = (size_t) (int64_t) t1;
-    vader_array_t* _a3_arr = vader_array_slice((vader_array_t*) l1, (size_t) INT64_C(0), (size_t) l2);
-    t4 = (void*) _a3_arr;
+    vader_array_t* _a2_arr = vader_array_slice((vader_array_t*) l1, (size_t) INT64_C(0), (size_t) l2);
+    t4 = (void*) _a2_arr;
     t5 = vader_host_std_core_bytes_to_string(t4);
     { vader_string_t __vret = t5; vader_gc_top = gc_frame.prev; return __vret; }
 }

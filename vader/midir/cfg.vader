@@ -386,9 +386,6 @@ export InstrArrayLen :: struct {
     span:   Span
     dst:    LocalId
     target: LocalId
-    /// BCE resolve-hoist : forwarded from `LoweredArrayLen.resolve_buf` to the
-    /// `ArrayLen` op, telling the C backend to pin a hoisted buf-resolve here.
-    resolve_buf: bool = false
 }
 
 export InstrArrayPush :: struct {

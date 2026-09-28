@@ -3,9 +3,8 @@
 /// Every other array workload here is one-dimensional, and a second dimension is
 /// not more of the same: a row is its OWN `vader_array_t`, so `a[i][j]` walks two
 /// headers and two buffers where `a[i]` walks one. The inner loop also holds the
-/// row it reads across the whole of `k`, which is exactly the shape the BCE
-/// resolve-hoist is supposed to pay for — and the row is reloaded per `i`, not
-/// per element, so the hoist has somewhere to land.
+/// row it reads across the whole of `k`, and the row is reloaded per `i`, not
+/// per element.
 ///
 /// Integer arithmetic, and the operands are bounded by a modulus, so the product
 /// stays exact in an f64 mantissa and the Bun-TS peer needs no BigInt. The

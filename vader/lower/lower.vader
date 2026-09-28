@@ -247,11 +247,11 @@ lower_project_impl :: fn(
     // Devirtualize calls through a fn-value local (`let f = named_fn ; … f(x) …`) to
     // direct calls to the concrete fn — kills the erased-fn-value indirect+boxed
     // dispatch (the `.map(f).filter(p)` iterator-fusion regression). The direct
-    // calls it produces are what `bce_hoist_tag` needs to see a pure callback.
+    // calls it produces are what `bce_prove_tag` needs to see a pure callback.
     devirtualize_fn_refs(project)
     // Elide non-escaping `s.bytes()` views bound to a local and only read via
     // `.len()` / `[i]` — rewrite those to the header-free `byte_len` / `byte_at`
-    // intrinsics and drop the borrowed-view header alloc. Before `bce_hoist_tag`.
+    // intrinsics and drop the borrowed-view header alloc. Before `bce_prove_tag`.
     // See `bytes_view_elision.vader`.
     elide_bytes_views(project, project_ctx)
     // Route non-scalar const decls to their read sites : bulky array consts
@@ -262,17 +262,17 @@ lower_project_impl :: fn(
     // never collide with a lowering-synthetic fn-decl id (lambda / defer /
     // `concat_N`). See `inline_consts.vader`.
     inline_consts(project, project_ctx)
-    // BCE : hoist the array buffer-resolve out of `0..<len(arr)` counter loops
-    // (foreach / int-range / iterator fusion) whose body is now — post-inline —
-    // proven free of allocation / calls / rebinds. Runs LAST so map/filter
-    // callbacks and inlinable helpers in the loop body are their inlined bodies.
-    // See `bce_hoist.vader`.
-    bce_hoist_tag(project)
+    // BCE : drop the bounds check of the `arr[idx]` a foreach or a fused iterator
+    // synthesises, when the loop body is now — post-inline — proven free of
+    // allocation / calls / rebinds. Runs LAST so map/filter callbacks and
+    // inlinable helpers in the loop body are their inlined bodies.
+    // See `bce_prove.vader`.
+    bce_prove_tag(project)
     // Report AFTER the tagging pass: what matters is which accesses still carry
-    // a check, whatever the route that left them there. See `bce_hoist.vader`.
+    // a check, whatever the route that left them there. See `bce_prove.vader`.
     bce_unproven_accesses(project, project_ctx)
     // Mark the pushes whose loop can keep the array's state in locals. Shares
-    // `bce_hoist_tag`'s purity question and runs beside it, but tags a different
+    // `bce_prove_tag`'s purity question and runs beside it, but tags a different
     // node — and answers for the WRITE path where BCE answers for the read one.
     // See `push_cache.vader`.
     push_cache_tag(project)

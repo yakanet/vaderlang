@@ -106,94 +106,61 @@ fn_calls_may_alloc :: fn(fn_decl: BcFunction, may_alloc: i32[]) -> bool {
     return false
 }
 
-// Drop the resolve-CSE cache entries this op invalidates — see
-// `FnState.resolved_arrays`. Called before every op is emitted.
-invalidate_resolve_cache :: fn(s: FnState!, op: vm.Op) -> void {
+// Drop the header-cache entries this op invalidates — see
+// `FnState.bound_arrays`. Called before every op is emitted.
+invalidate_header_cache :: fn(s: FnState!, op: vm.Op) -> void {
     if op is vm.LocalSet {
-        drop_resolved_for_local(s, op.slot)
+        drop_bound_for_local(s, op.slot)
         return
     }
     if op is vm.LocalTee {
-        drop_resolved_for_local(s, op.slot)
+        drop_bound_for_local(s, op.slot)
         return
     }
     if is_cache_safe(op) {
         return
     }
-    // The op ends the straight-line region. Two rules can still save entries.
-
-    // (1) ENTERING a nested scope keeps the WHOLE cache : the region being opened
-    // is dominated by the code that produced those resolves, and their
-    // `_slotarrK` C locals are declared in the enclosing block, so they stay both
-    // live and in C scope inside it. A probe loop then resolves once per
-    // iteration instead of once per array test.
+    // The op ends the straight-line region and clears the cache, except in one case.
+    //
+    // ENTERING a nested scope keeps the WHOLE cache : the region being opened is
+    // dominated by the code that bound those headers, and their `_slotarrK` C
+    // locals are declared in the enclosing block, so they stay both live and in
+    // C scope inside it. A probe loop then binds once per iteration instead of
+    // once per array test.
     //
     // Sound only in a `no_frame` fn : `no_frame` is `!(fn in ctx.may_alloc)`, and
     // `compute_may_alloc` is the safepoint-reachability closure, so a `no_frame`
-    // body provably reaches NO GC safepoint and no buffer can move inside the
+    // body provably reaches NO GC safepoint and no header can move inside the
     // scope. That is a second reading of the bit — `FnState.no_frame` documents
     // itself in terms of frame emission — so the two contracts are cross-linked
     // there ; keep them in sync.
     //
     // Deliberately the cheap slice of a dominance design, not its ceiling : a
     // framed fn could keep entries too if each carried its declaring scope depth
-    // and a safepoint epoch. That bookkeeping isn't here, so framed fns still
-    // fall through to (2).
+    // and a safepoint epoch. That bookkeeping isn't here, so framed fns clear.
     //
     // LEAVING a scope must NOT keep the cache : the code that follows is no
-    // longer dominated (the resolve may sit in a branch that didn't run) and its
+    // longer dominated (the binding may sit in a branch that didn't run) and its
     // C local has gone out of scope. Hence the scope-OPENING subset only.
     if s.no_frame && is_scope_opening(op) {
         return
     }
-
-    // (2) A PINNED resolve (BCE hoist) survives a PURE control-flow op — such an
-    // op can't move a buffer, so the hoisted resolve stays valid across the
-    // loop's Loop / Branch / End. Pins are minted only by `emit_array_len`'s
-    // preheader hoist, which declares its C local OUTSIDE the loop — that is what
-    // makes keeping them across a scope EXIT sound, where (1) would not be.
-    // Anything else (a call / alloc — a real GC safepoint) drops everything.
-    if is_pure_control_flow(op) {
-        keep_pinned_resolves(s, op)
-    } else {
-        s.resolved_arrays.clear()
-    }
+    s.bound_arrays.clear()
 }
 
-// Structured control-flow ops that end a straight-line region but provably move
-// no buffer (no allocation, no GC) — so a pinned BCE resolve survives them.
-is_pure_control_flow :: fn(op: vm.Op) -> bool {
-    return op is vm.Block | vm.Loop | vm.If | vm.End | vm.Branch | vm.BranchIf | vm.Return
-}
-
-// The subset of `is_pure_control_flow` that OPENS a nested scope (pushes a C
-// block) rather than closing one. Split out because only the opening half keeps
-// a cached resolve dominating — and in C scope — for the code it admits. Extend
-// both predicates together if a new structured op lands.
+// Structured control-flow ops that OPEN a nested scope (push a C block) rather
+// than closing one : only these keep a cached header dominating — and in C
+// scope — for the code they admit.
 is_scope_opening :: fn(op: vm.Op) -> bool = op is vm.Block | vm.Loop | vm.If
 
-// Drop every non-pinned resolve, keep the pinned ones (their buffer can't have
-// moved across a pure control-flow op) — unless `op` closes the block their C
-// local is declared in, which takes it out of C scope.
-keep_pinned_resolves :: fn(s: FnState!, op: vm.Op) -> void {
-    surviving_depth :: if op is vm.End { s.open_nodes.len() - 1 } else { s.open_nodes.len() }
-    kept: ResolvedArray![]!: []
-    for resolved in s.resolved_arrays {
-        if resolved.pinned && resolved.depth <= surviving_depth {
-            kept.push(resolved)
-        }
-    }
-    s.resolved_arrays = kept
-}
-
-// True when the op provably cannot move/realloc an array buffer, trigger a GC, or
-// end the straight-line region the cached `_slotarr` C temps are scoped to — so
-// the resolve cache survives it. DEFAULT-DENY : anything NOT listed clears the
-// cache. A missing pure op only costs CSE coverage (under-optimised) ; trusting an
+// True when the op provably cannot trigger a GC (which moves headers) or end the
+// straight-line region the cached `_slotarr` C temps are scoped to — so the
+// header cache survives it. DEFAULT-DENY : anything NOT listed clears the cache.
+// A missing pure op only costs CSE coverage (under-optimised) ; trusting an
 // allow-list of *dangerous* ops would turn a missing alloc/call op (e.g. the
 // GC-moving `array.slice`) into a stale-pointer use-after-free. New pure value ops
 // just get added here. `LocalSet` / `LocalTee` never reach this — they invalidate
-// precisely upstream. Slot stores stay safe : a write never reallocs.
+// precisely upstream. Slot stores stay safe : every access re-reads `->buf`.
 is_cache_safe :: fn(op: vm.Op) -> bool {
     if op is vm.LocalGet | vm.LocalField | vm.StructGet                                                                        { return true }
     if op is vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64                                    { return true }
@@ -222,15 +189,15 @@ is_cache_safe :: fn(op: vm.Op) -> bool {
 }
 
 // Drop cache entries whose array expression reads local `l<slot>` — it was
-// just reassigned, so any `_slotarr` resolved from its old value is stale.
-drop_resolved_for_local :: fn(s: FnState!, slot: i32) -> void {
-    kept: ResolvedArray![]!: []
-    for resolved in s.resolved_arrays {
-        if !mentions_local(resolved.pointer, slot) {
-            kept.push(resolved)
+// just reassigned, so any `_slotarr` bound from its old value is stale.
+drop_bound_for_local :: fn(s: FnState!, slot: i32) -> void {
+    kept: BoundArray[]!: []
+    for bound in s.bound_arrays {
+        if !mentions_local(bound.pointer, slot) {
+            kept.push(bound)
         }
     }
-    s.resolved_arrays = kept
+    s.bound_arrays = kept
 }
 
 // Whether an op can allocate on the GC heap (may trigger a collection). Drives
@@ -278,7 +245,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
         // A `call` / `call.import` whose non-void result is dropped immediately
         // was emitted as a bare statement (see `emit_call_result`) — the result
         // was never pushed, so skip the paired `drop` rather than pop a live
-        // value. The preceding call already invalidated the resolve cache.
+        // value. The preceding call already invalidated the header cache.
         if s.drop_call_result && op is vm.Drop {
             s.drop_call_result = false
             continue
@@ -549,7 +516,7 @@ emit_slot_decls :: fn(
 /// bytecode guards inside a handler (e.g. `struct.new` on a non-struct
 /// type), never a not-yet-ported placeholder.
 emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {
-    invalidate_resolve_cache(s, op)
+    invalidate_header_cache(s, op)
     match op {
         is vm.I32Const              -> push_const(s, op)
         is vm.I64Const              -> push_const(s, op)
@@ -584,7 +551,7 @@ emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {
         is vm.StructGet             -> emit_struct_get(s, op)
         is vm.StructSet             -> emit_struct_set(s, op)
         is vm.ArrayNew              -> emit_array_new(s, op)
-        is vm.ArrayLen              -> emit_array_len(s, op.resolve_buf)
+        is vm.ArrayLen              -> emit_array_len(s)
         is vm.ArrayPush             -> emit_array_push(s, op)
         is vm.ArrayGet              -> emit_array_get(s, op)
         is vm.ArraySet              -> emit_array_set(s, op)
@@ -2405,17 +2372,11 @@ box_slot :: fn(array: string, index: CExpression) -> CExpression = CIndex {
 
 /// Bind `pointer`'s array header to a cached `_slotarrK` C local, behind the
 /// buffer guard (`VADER_ARRAY_RESOLVE_BUF`), and return its name. Reuses an
-/// earlier binding of the same array in this straight-line region. `pin` marks
-/// the entry so it survives the loop's pure control-flow ops (the BCE hoist) —
-/// passed `true` ONLY by `emit_array_len`'s preheader binding, and only for a
-/// BCE-safe loop.
-resolve_array_local :: fn(s: FnState!, pointer: CExpression, pin: bool) -> string {
-    for resolved in s.resolved_arrays {
-        if same_expression(resolved.pointer, pointer) {
-            if pin {
-                resolved.pinned = true
-            }
-            return resolved.name
+/// earlier binding of the same array in this straight-line region.
+bind_array_local :: fn(s: FnState!, pointer: CExpression) -> string {
+    for bound in s.bound_arrays {
+        if same_expression(bound.pointer, pointer) {
+            return bound.name
         }
     }
     arr :: aux(s, "slotarr")
@@ -2424,16 +2385,15 @@ resolve_array_local :: fn(s: FnState!, pointer: CExpression, pin: bool) -> strin
     // trap in a debug one ; its definition in `runtime/c/vader.h` owns the
     // invariant that lets it be.
     statement_macro(s, "VADER_ARRAY_RESOLVE_BUF", [verbatim(arr)])
-    s.resolved_arrays.push(ResolvedArray { .name = arr, .pointer = pointer, .pinned = pin, .depth = s.open_nodes.len() })
+    s.bound_arrays.push(BoundArray { .name = arr, .pointer = pointer })
     return arr
 }
 
 emit_slot_array_local :: fn(s: FnState!, obj: StackVal, idx: StackVal, bounds_safe: bool) -> string {
-    arr :: resolve_array_local(s, array_header_pointer(obj), false)
-    // Bounds is per-access (the reused resolve only shares the buffer walk),
-    // EXCEPT when the producer proved the index in range (BCE — e.g. a foreach
-    // over the array, body proven not to change its length). The buf guard
-    // above is never skipped ; only this bounds trap is.
+    arr :: bind_array_local(s, array_header_pointer(obj))
+    // Bounds is per-access (the reused local only shares the header binding and
+    // its buffer guard), EXCEPT when the producer proved the index in range (BCE —
+    // e.g. a foreach over the array, body proven not to change its length).
     if !bounds_safe {
         statement_macro(s, "VADER_ARRAY_CHECK_INDEX", [verbatim(arr), expression_of(idx)])
     }
@@ -2442,7 +2402,7 @@ emit_slot_array_local :: fn(s: FnState!, obj: StackVal, idx: StackVal, bounds_sa
 
 /// Primitive slot load — pop array + slot index, read the `cty`-typed element
 /// at `arr->buf->slots[arr->offset + i]`, push it with stack class `result`.
-/// Bounds-checked + buf-forward-resolved (see `emit_slot_array_local`).
+/// Bounds-checked + buffer-guarded (see `emit_slot_array_local`).
 emit_slot_load_prim :: fn(s: FnState!, cty: string, result: ValType, bounds_safe: bool) -> void {
     idx :: pop(s)
     obj :: pop(s)
@@ -2469,7 +2429,7 @@ emit_typed_slot_write :: fn(
 
 /// Primitive slot store — pop array + slot index + value ; write the `cty`-typed
 /// element. No write barrier (the primitive region holds no references).
-/// Bounds-checked + buf-forward-resolved (see `emit_slot_array_local`).
+/// Bounds-checked + buffer-guarded (see `emit_slot_array_local`).
 emit_slot_store_prim :: fn(s: FnState!, cty: string, val: ValType, bounds_safe: bool) -> void {
     value :: pop(s)
     idx :: pop(s)
@@ -2604,9 +2564,9 @@ emit_array_new :: fn(s: FnState!, op: vm.ArrayNew) -> void {
 ///     added and the read inlines at -O3 (§5 C-emit convention).
 ///   - any other sub-word width → an inline typed read, re-boxed via `box_expr`
 ///     (the uint/int/float promotion mirrors `vader_array_load_slot`).
-/// `emit_slot_array_local` (G1 forward-resolve + D7 bounds) is hoisted before the
-/// branch — borrowed-safe (its forward loop is guarded on `buf != NULL` and the
-/// bounds check reads the header). Flippable widths never reach here (midir
+/// `emit_slot_array_local` (buffer guard + D7 bounds) is hoisted before the
+/// branch — borrowed-safe (its guard tests `buf != NULL` and the bounds check
+/// reads the header). Flippable widths never reach here (midir
 /// routes them to `LoadSlot*`).
 emit_array_get :: fn(s: FnState!, op: vm.ArrayGet) -> void {
     idx :: pop(s)
@@ -2756,19 +2716,11 @@ emit_array_push :: fn(s: FnState!, op: vm.ArrayPush) -> void {
 ///
 /// Target ABI S5 (inc-3) : reads the `length` header field inline instead of
 /// calling the runtime accessor — `vader_array_len` is `a->length`, so the
-/// open-coded read is byte-equivalent (no buf deref, no forward-resolve : the
-/// length lives on the array header, which is the live gc_root). Drops the
-/// codegen dependency on `vader_array_len`.
-emit_array_len :: fn(s: FnState!, resolve_buf: bool) -> void {
+/// open-coded read is byte-equivalent (no buf deref : the length lives on the
+/// array header, which is the live gc_root). Drops the codegen dependency on
+/// `vader_array_len`.
+emit_array_len :: fn(s: FnState!) -> void {
     arr :: pop(s)
-    if resolve_buf {
-        // BCE resolve-hoist : chase + PIN the buf-forward chain here (this
-        // `array.len` sits in the loop preheader), so the loop body's element
-        // accesses reuse the resolved `_slotarr` instead of re-resolving per
-        // iteration. Sound only because the caller (the `for x in a` desugar)
-        // sets this exclusively for a BCE-safe loop (no call / alloc in the body).
-        resolve_array_local(s, array_header_pointer(arr), true)
-    }
     push_into_temporary(s, CMember { .base = array_header_pointer(arr), .member = "length", .arrow = true }, .Usize)
 }
 

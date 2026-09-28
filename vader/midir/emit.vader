@@ -1348,7 +1348,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrArrayLen {
         emit_first_get(ctx, pos, ins.target, ins.span)
-        push_emit(ctx, ArrayLen { .resolve_buf = ins.resolve_buf }, ins.span)
+        push_emit(ctx, ArrayLen {}, ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
         return
     }

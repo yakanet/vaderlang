@@ -3,9 +3,9 @@
 // Within a basic block, a second read `a[i]` of a slot whose value is already
 // known — from a prior read, or the `a[i] = v` store that just wrote it — is
 // rewritten to an `InstrMove` from that value. This drops the per-`ArrayGet`
-// buf-forward resolve + bounds-check the C backend re-emits otherwise
+// bounds check and load the C backend re-emits otherwise
 // (`c_emit/walker.vader::emit_slot_array_local`) — the dominant cost in tight
-// `a[i] = a[i] + 1` loops (the `arr_rw` bench weak spot, 3 resolves per iter).
+// `a[i] = a[i] + 1` loops.
 //
 // Conservative, intra-block only :
 //   - the tracked `value` is a LocalId (an already-loaded value), so a GC

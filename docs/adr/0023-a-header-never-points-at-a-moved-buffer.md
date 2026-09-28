@@ -96,6 +96,9 @@ sliced before it free to move under C during a callback.
 - `tests/snippets/extern_lend_sliced_array` pins both halves: its `early` view
   reads `9 1 7 2` without the promotion at the first escape, its `view` without
   the tenure at the slice.
-- The emitter still carries the BCE resolve-hoist (`ArrayLen.resolve_buf`, the
-  pinned resolve in `emit_array_len`), which now expands to the same empty guard.
-  Removing it is a separate cleanup.
+- The BCE resolve-hoist (`ArrayLen.resolve_buf`, the pinned resolve in
+  `emit_array_len`, and the int-range / named-bound pairing in `bce_prove` that
+  existed only to set it) has no job left and is removed. What stays in the C
+  emitter is the straight-line reuse of a `_slotarrK` header local: the local is
+  not a GC root, so it is still dropped at every safepoint. Bounds-check
+  elimination for `for x in a` and fused iterators is unaffected.

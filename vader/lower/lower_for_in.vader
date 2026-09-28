@@ -548,10 +548,9 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 // back to the generic step-loop.
 // ---- BCE : sound loop-body safepoint probe --------------------------------
 
-// Is this loop body UNSAFE for bounds-check elimination AND for the buf-resolve
-// hoist ? Both need the SAME guarantee, so one probe gates both : the body must
-// contain no GC safepoint and no array-length mutation. It is UNSAFE if it
-// contains any of —
+// Is this loop body UNSAFE for bounds-check elimination (and for the push cache,
+// `push_cache.vader`) ? The body must contain no GC safepoint and no array-length
+// mutation. It is UNSAFE if it contains any of —
 //   - a CALL (`LoweredCall` / `LoweredVirtualCall` / `LoweredIntrinsicCall`) or a
 //     `push` : may allocate (⟹ GC ⟹ the buffer moves) and/or change the length ;
 //   - a pure ALLOCATION (`LoweredArrayLit` / `StructLit` / `CellNew` /
@@ -564,11 +563,10 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 // silently pass as "safe" (T3013). Over-approximate : a call/alloc that never
 // touches THIS array still bails — refining is a later tier.
 // `guard_sym` (or `-1` for none) : a symbol whose REBIND (`guard_sym = <expr>`)
-// also makes the body unsafe — the raw-array foreach captures the iterated
-// array's value so it doesn't care, but Tier 2's index loop reads the user's
-// array directly, so rebinding it would leave the hoisted resolve pointing at
-// the old array. Rebinding is an assignment (a statement), but a statement can
-// nest inside an `if` / block expr, so the guard rides the same exhaustive walk.
+// also makes the body unsafe — a length proven for one array says nothing about
+// the array rebound in its place. Rebinding is an assignment (a statement), but a
+// statement can nest inside an `if` / block expr, so the guard rides the same
+// exhaustive walk.
 // A CALL is unsafe UNLESS its callee is a fn PROVEN non-allocating (transitively,
 // via `bce_fn_pure`) — then the call itself triggers no GC and can't change an
 // array's length, so it is treated like a pure operator : the loop stays safe iff
@@ -701,8 +699,8 @@ try_lower_for_in_raw_array :: fn(
     }
     arr_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = arr_sym }
     // BCE : mark the preheader `arr.len()` + the synthesized `arr[idx]` access as
-    // candidates ; the post-inline `bce_hoist_tag` pass proves the (inlined) loop
-    // body safe and flips `resolve_buf` / `bounds_safe`. Deferred to post-inline
+    // candidates ; the post-inline `bce_prove_tag` pass proves the (inlined) loop
+    // body safe and flips `bounds_safe`. Deferred to post-inline
     // so bodies whose calls inline away (or, in iterator fusion, whose callbacks
     // inline) still qualify. The synthesized counter runs `0..<len(arr)` over `arr`.
     len_let :: LoweredLet {
@@ -824,7 +822,6 @@ try_lower_for_in_int_range :: fn(
         .span = span, .type = bound_type, .symbol = counter_symbol,
     }
 
-    // Body is lowered before the bound hoist so BCE can inspect it.
     raw_user_body :: block_lowerer(ctx, for_stmt.body, false, true)
     user_body :: if !captured { raw_user_body } else {
         // The counter runs on `counter_symbol` ; rebind the user's loop var to a
@@ -833,32 +830,16 @@ try_lower_for_in_int_range :: fn(
         prepend_stmts_to_block(bind_stmts, raw_user_body)
     }
 
-    // Tier 2 BCE resolve-hoist : `for i in 0..<arr.len()` where the body neither
-    // allocates (⟹ no GC ⟹ arr's buffer can't move) nor rebinds `arr`. The
-    // `arr.len()` bound is hoisted into the preheader anyway ; tag it `resolve_buf`
-    // so that same `array.len` also resolves + PINS arr's buffer there. The body's
-    // `arr[i]` accesses then reuse the pinned resolve (cache hit) instead of
-    // re-resolving every iteration — the measured 4.5x lever on index-store loops.
-    // The bounds check stays (near-free, and it catches any residual OOB).
-    hoisted :: !is_cheap_invariant(hi_raw)
-
     // Hoist non-trivial upper bounds (calls, casts, …) into a `__for_hi_N`
     // synthetic let so the loop condition reads a single slot per iteration.
     // Cheap shapes (Ident / FieldAccess / IntLit / CharLit) skip the hoist.
     hoist_stmts: LoweredStmt[]!: []
     hi: LoweredExpr = hi_raw
-    if hoisted {
-        // BCE : when the bound is `arr.len()`, mark it a candidate — the post-inline
-        // `bce_hoist_tag` pass hoists arr's buffer resolve if the loop body is safe
-        // (the body's user-written `arr[i]` reuse the pinned resolve via cache hit).
-        hi_value: LoweredExpr = hi_raw
-        if hi_raw is LoweredArrayLen {
-            hi_value = LoweredArrayLen { .span = hi_raw.span, .type = hi_raw.type, .target = hi_raw.target, .bce_recheck = true }
-        }
+    if !is_cheap_invariant(hi_raw) {
         hi_sym :: fresh_synthetic_symbol(ctx, "for_hi")
         hoist_stmts.push(LoweredLet {
             .span = span, .name = hi_sym.name, .symbol = hi_sym,
-            .type = bound_type, .value = hi_value,
+            .type = bound_type, .value = hi_raw,
         })
         hi = LoweredIdent { .span = span, .type = bound_type, .symbol = hi_sym }
     }

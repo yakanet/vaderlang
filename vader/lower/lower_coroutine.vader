@@ -745,7 +745,7 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
             for el in e.elements { new_elements.push(gb_route_expr(gb, el)) }
             return LoweredArrayLit { .span = e.span, .type = e.type, .elements = new_elements }
         }
-        is LoweredArrayLen -> LoweredArrayLen { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .resolve_buf = e.resolve_buf, .bce_recheck = e.bce_recheck }
+        is LoweredArrayLen -> LoweredArrayLen { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .bce_recheck = e.bce_recheck }
         is LoweredArrayPush -> LoweredArrayPush { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .value = gb_route_expr(gb, e.value) }
         is LoweredArraySlice -> LoweredArraySlice { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .lo = gb_route_expr(gb, e.lo), .hi = gb_route_expr(gb, e.hi) }
         is LoweredStringSlice -> LoweredStringSlice { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .lo = gb_route_expr(gb, e.lo), .hi = gb_route_expr(gb, e.hi) }

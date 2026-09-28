@@ -20,14 +20,14 @@
 // same thing — so the split is: this pass proves it is SAFE, the backend decides
 // where the state lives.
 //
-// Sibling: `bce_hoist.vader`, which asks the same "can this body move a buffer"
+// Sibling: `bce_prove.vader`, which asks the same "can this body move a buffer"
 // question for the read path and shares the predicate this pass calls.
 
 module "vader/lower"
 
 /// Mark every `push` whose loop can keep the array's state out of memory.
 ///
-/// Runs over the whole project after lowering, alongside `bce_hoist_tag`.
+/// Runs over the whole project after lowering, alongside `bce_prove_tag`.
 ///
 /// @param project  the lowered project ; pushes are marked in place.
 export push_cache_tag :: fn(project: LoweredProject) -> void {

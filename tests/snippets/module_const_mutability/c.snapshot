@@ -1586,11 +1586,11 @@ static int32_t snippet_main(void) {
 #line 67 "tests/snippets/module_const_mutability/_main.vader"
     l2 = (void*) &vader_data_1;
 #line 160 "tests/snippets/module_const_mutability/_main.vader"
-    vader_array_t* _a20_slotarr = ((vader_array_t*) l2);
-    VADER_ARRAY_RESOLVE_BUF(_a20_slotarr)
     l1 = ((vader_array_t*) l2)->length;
     l7 = (size_t) 0;
     while ((l7 < l1)) {
+        vader_array_t* _a20_slotarr = ((vader_array_t*) l2);
+        VADER_ARRAY_RESOLVE_BUF(_a20_slotarr)
         l11 = ((int32_t*) _a20_slotarr->buf->slots)[_a20_slotarr->offset + (size_t) l7];
 #line 161 "tests/snippets/module_const_mutability/_main.vader"
         l9 = (l9 + l11);

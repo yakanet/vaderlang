@@ -72,21 +72,11 @@ val_of :: fn(sv: StackVal) -> ValType = match sv {
 
 // ---- FnState --------------------------------------------------------------
 
-/// A `_slotarrK` local holding an array whose buffer-forward chain is resolved.
-ResolvedArray :: struct {
+/// A `_slotarrK` local holding an array's header pointer.
+BoundArray :: struct {
     name:    string
-    /// The array expression it was resolved from.
+    /// The array expression it was bound from.
     pointer: CExpression
-    /// A BCE resolve-hoist : emitted in a loop preheader by `emit_array_len`
-    /// with `resolve_buf`, it survives the loop's pure control-flow ops so the
-    /// body reuses it. Dropped only by an op that could move a buffer (call /
-    /// alloc — a real GC safepoint) or by reassignment of the array's local.
-    /// Sound because pins are minted ONLY for BCE-safe loops (no call / alloc
-    /// in the body).
-    pinned:  bool = false
-    /// `open_nodes.len()` when its C local was declared : the local is in C
-    /// scope only while the walk stays that deep.
-    depth:   usize = 0
 }
 
 /// One escape-stack-allocated GC struct to hoist to the function top. Both the
@@ -133,26 +123,26 @@ FnState :: struct {
     /// restore and ref slots skip the `= vader_box_null()` root-init. Set by
     /// `function_definition` ; default `true` (the scalar / stack subset).
     ///
-    /// SECOND CONSUMER — `invalidate_resolve_cache` reads this bit for a
+    /// SECOND CONSUMER — `invalidate_header_cache` reads this bit for a
     /// stronger property than frame emission : "this body reaches no GC
-    /// safepoint at all", which is what lets a resolve survive entering a
-    /// nested scope. That holds because `may_alloc` IS the safepoint-
+    /// safepoint at all", which is what lets a cached header survive entering
+    /// a nested scope. That holds because `may_alloc` IS the safepoint-
     /// reachability closure (`compute_may_alloc`), not by coincidence. If the
     /// frame decision ever stops tracking safepoint-freedom exactly — a
     /// no-alloc fn given a frame for debugging, say — split the two before
-    /// changing this, or the resolve cache silently goes unsound.
+    /// changing this, or the header cache silently goes unsound.
     no_frame: bool
     /// Loops whose array state is currently lifted into C locals, innermost
     /// last. Pushed by the `Loop` opener that planned one, popped by its `end`.
     /// See `push_cache_emit.vader`.
     push_caches: PushCache[]!
-    /// Resolve-CSE cache : the `_slotarrK` locals that already chased their
-    /// array's buf-forward chain in this straight-line region. A second slot
-    /// access on the same array expression reuses one, skipping the walk.
+    /// Header cache : the `_slotarrK` locals already bound to an array header
+    /// in this straight-line region. A second slot access on the same array
+    /// expression reuses one instead of binding (and guarding) a fresh local.
     /// Cleared at every GC safepoint / control-flow op and on reassignment of
-    /// the array's local (see `invalidate_resolve_cache`) — a stale entry would
-    /// read a moved buffer.
-    resolved_arrays: ResolvedArray![]!
+    /// the array's local (see `invalidate_header_cache`) — a `_slotarrK` is
+    /// not a GC root, so a stale entry would point at a moved header.
+    bound_arrays: BoundArray[]!
     /// Set by the walk driver when the current `call` / `call.import` op is
     /// immediately followed by a `drop` — its non-void result is emitted as a
     /// bare statement (like a void call) instead of `tN = call(...);` + an
@@ -186,7 +176,7 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState! = FnState {
     .break_targets = [],
     .no_frame = true,
     .push_caches = [],
-    .resolved_arrays = [],
+    .bound_arrays = [],
     .drop_call_result = false,
     .stack_storages = [],
     .open_nodes = [],

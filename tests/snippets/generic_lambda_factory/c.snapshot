@@ -168,12 +168,12 @@ static int32_t snippet_mismatches(void* l0) {
 #line 39 "tests/snippets/generic_lambda_factory/_main.vader"
     l1 = INT32_C(0);
 #line 40 "tests/snippets/generic_lambda_factory/_main.vader"
-    vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
-    VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     l2 = ((vader_array_t*) l0)->length;
     l3 = (size_t) 0;
     while ((l3 < l2)) {
 #line 41 "tests/snippets/generic_lambda_factory/_main.vader"
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
         l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l3);
 #line 42 "tests/snippets/generic_lambda_factory/_main.vader"

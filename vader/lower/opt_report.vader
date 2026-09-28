@@ -24,7 +24,7 @@
 // ⚠️ COUNT THE STATE, NOT THE ATTEMPT. A pass can miss in two ways: it tried and
 // refused, or it was never reached at all. Instrumenting only the first leaves a
 // blind spot — `bench/arr_rw` walks `for i in 0..<n` with `n` a separate local,
-// so no `arr.len()` bound exists to pair with the loop, `bh_try_hoist` never
+// so no `arr.len()` bound exists to pair with the loop, `bp_try_prove` never
 // runs, and the report stays silent on a loop that is documented as costing
 // 1.6x against Go. A site added here should ask "does this construct END UP on
 // the slow path", not "did a recogniser decline". The `for-in` fall site does

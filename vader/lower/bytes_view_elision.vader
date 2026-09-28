@@ -35,7 +35,7 @@
 // hoists that view into `Lexer.bytes` once. Bounds semantics are preserved:
 // `byte_at` traps on `i >= byte_len(s)`, matching `s.bytes()[i]`.
 //
-// Runs as a whole-body pass before `bce_hoist_tag`. Modelled on `devirt_fn_ref.vader`; every
+// Runs as a whole-body pass before `bce_prove_tag`. Modelled on `devirt_fn_ref.vader`; every
 // helper is `bve_`-prefixed since that sibling shares the `vader/lower` namespace.
 //
 // The callee of a `.bytes()` call is already canonical here, so a direct `symbol.id == bytes_sym.id` match suffices — no import-binding

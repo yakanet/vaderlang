@@ -1,9 +1,6 @@
 /// Indexed read-modify-write hot loop bounded by `a.len()` — the counterpart to
-/// `arr_rw` (which bounds on a separate `n`). The `for i in 0..<a.len()` form
-/// lets the lowerer prove `i ∈ [0, len(a))` and, since the body neither allocates
-/// nor rebinds `a`, HOIST a's buffer-forward resolve out of the loop (BCE Tier 2)
-/// — the per-iteration resolve was the vectorisation barrier. Same computation
-/// and checksum as `arr_rw`.
+/// `arr_rw` (which bounds on a separate `n`). Same computation and checksum as
+/// `arr_rw`.
 
 module "main"
 

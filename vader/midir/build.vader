@@ -1214,7 +1214,7 @@ build_intrinsic_call :: fn(fn_ctx: FnCtx!, e: LoweredIntrinsicCall) -> LocalId |
 build_array_len :: fn(fn_ctx: FnCtx!, e: LoweredArrayLen) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target) ?? return null
     dst :: fresh_tmp(fn_ctx, "len", e.type)
-    emit(fn_ctx, InstrArrayLen { .dst = dst, .target = target, .span = e.span, .resolve_buf = e.resolve_buf })
+    emit(fn_ctx, InstrArrayLen { .dst = dst, .target = target, .span = e.span })
     return dst
 }
 

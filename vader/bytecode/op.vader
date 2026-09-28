@@ -292,7 +292,7 @@ export ArraySet :: struct { type_id: i32, bounds_safe: bool = false }
 /// Pop an array, push its element count (approximated as an i32 ;
 /// our `Value` doesn't carry width tags).
 /// Sprint 4 (b2) addition.
-export ArrayLen :: struct { resolve_buf: bool = false }
+export ArrayLen :: struct {}
 
 /// Zero-copy slice : pops `arr` / `lo` / `hi` from the stack ; pushes a
 /// fresh array header that shares `arr.elements` semantically. On the
