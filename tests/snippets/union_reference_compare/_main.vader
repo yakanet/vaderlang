@@ -1,0 +1,44 @@
+// tests/snippets/union_reference_compare — `==` on a union is a reference
+// compare, on both backends.
+//
+// The compiler relies on it (`t == TY_VOID`): a baked module const is one shared
+// object, so a value read from it compares equal to another read of it, while a
+// structurally identical value built elsewhere does not. Scalars in the union
+// still compare by value. `vm.snapshot` is the oracle both harnesses share.
+
+module "snippet"
+
+import "std/io"
+
+Circle :: struct {
+    r: i32
+}
+
+Square :: struct {
+    side: i32
+}
+
+UNIT :: Circle { .r = 1 }
+
+pick :: fn(k: i32) -> Circle | Square | i64 | null {
+    if k == 0 {
+        return UNIT
+    }
+    if k == 1 {
+        return Circle { .r = 1 }
+    }
+    if k == 2 {
+        return i64(7)
+    }
+    return null
+}
+
+main :: fn() -> i32 {
+    shared: Circle | Square | i64 | null: UNIT
+    println("const == const: ${pick(0) == shared}")
+    println("fresh == const: ${pick(1) == shared}")
+    println("i64 == i64: ${pick(2) == pick(2)}")
+    println("null == null: ${pick(3) == pick(3)}")
+    println("i64 != const: ${pick(2) != shared}")
+    return 0
+}

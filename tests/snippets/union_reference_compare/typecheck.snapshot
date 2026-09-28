@@ -1,0 +1,60 @@
+# Typecheck
+
+## tests/snippets/union_reference_compare
+  StructDecl     Circle               :: Circle!
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         pick                 :: fn(i32) -> Circle | i64 | null | Square
+  StructDecl     Square               :: Square!
+  ConstDecl      UNIT                 :: Circle
+  expr 21:9     StructLitExpr  :: Circle!
+  expr 24:5     IfExpr         :: void
+  expr 24:8     BinaryExpr     :: bool
+  expr 24:8     IdentExpr      :: i32
+  expr 25:16    IdentExpr      :: Circle
+  expr 27:5     IfExpr         :: void
+  expr 27:8     BinaryExpr     :: bool
+  expr 27:8     IdentExpr      :: i32
+  expr 28:16    StructLitExpr  :: Circle!
+  expr 30:5     IfExpr         :: void
+  expr 30:8     BinaryExpr     :: bool
+  expr 30:8     IdentExpr      :: i32
+  expr 31:16    CallExpr       :: i64
+  expr 31:16    IdentExpr      :: type
+  expr 37:43    IdentExpr      :: Circle
+  expr 38:13    StringLitExpr  :: string
+  expr 38:32    BinaryExpr     :: bool
+  expr 38:32    CallExpr       :: Circle | i64 | null | Square
+  expr 38:32    IdentExpr      :: fn(i32) -> Circle | i64 | null | Square
+  expr 38:43    IdentExpr      :: Circle | i64 | null | Square
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    StringLitExpr  :: string
+  expr 39:32    BinaryExpr     :: bool
+  expr 39:32    CallExpr       :: Circle | i64 | null | Square
+  expr 39:32    IdentExpr      :: fn(i32) -> Circle | i64 | null | Square
+  expr 39:43    IdentExpr      :: Circle | i64 | null | Square
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 40:13    StringLitExpr  :: string
+  expr 40:28    BinaryExpr     :: bool
+  expr 40:28    CallExpr       :: Circle | i64 | null | Square
+  expr 40:28    IdentExpr      :: fn(i32) -> Circle | i64 | null | Square
+  expr 40:39    CallExpr       :: Circle | i64 | null | Square
+  expr 40:39    IdentExpr      :: fn(i32) -> Circle | i64 | null | Square
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 41:13    StringLitExpr  :: string
+  expr 41:30    BinaryExpr     :: bool
+  expr 41:30    CallExpr       :: Circle | i64 | null | Square
+  expr 41:30    IdentExpr      :: fn(i32) -> Circle | i64 | null | Square
+  expr 41:41    CallExpr       :: Circle | i64 | null | Square
+  expr 41:41    IdentExpr      :: fn(i32) -> Circle | i64 | null | Square
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T) -> void
+  expr 42:13    StringLitExpr  :: string
+  expr 42:30    BinaryExpr     :: bool
+  expr 42:30    CallExpr       :: Circle | i64 | null | Square
+  expr 42:30    IdentExpr      :: fn(i32) -> Circle | i64 | null | Square
+  expr 42:41    IdentExpr      :: Circle | i64 | null | Square
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void

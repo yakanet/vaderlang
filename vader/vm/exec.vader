@@ -2499,8 +2499,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             }
             is bc.RefEq -> {
                 if frame.sp < 2 { return Trap { .message = "ref.eq needs 2 values on stack at pc=${frame.pc}" } }
-                outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1), frame.pc, "ref.eq")
-                if outcome is Trap { return outcome }
+                outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1))
                 if stack_needs_grow(frame, frame.sp - 2) {
                     stack_grow(frame)
                 }
@@ -2511,8 +2510,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             }
             is bc.RefNe -> {
                 if frame.sp < 2 { return Trap { .message = "ref.ne needs 2 values on stack at pc=${frame.pc}" } }
-                outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1), frame.pc, "ref.ne")
-                if outcome is Trap { return outcome }
+                outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1))
                 if stack_needs_grow(frame, frame.sp - 2) {
                     stack_grow(frame)
                 }

@@ -1,0 +1,8 @@
+# stdout
+const == const: true
+fresh == const: false
+i64 == i64: true
+null == null: true
+i64 != const: true
+# exit
+0

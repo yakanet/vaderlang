@@ -364,21 +364,25 @@ export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Tra
     return Trap { .message = "${label} at pc=${at_pc}: expected string, got ${describe_value_tag(v)}" }
 }
 
-/// Structural equality for `ref.eq` / `ref.ne`. Restricted to primitives
-/// (`I32Val` / `BoolVal` / `CharVal` / `StringVal`) and `NullVal` ; heap-
-/// allocated variants Trap because the lowerer only emits `ref.eq` against
-/// null or between freshly-built sentinels.
-export value_ref_eq :: fn(a: Value, b: Value, at_pc: i32, label: string) -> bool | Trap {
-    // @partial: null + primitive operands compare; heap-allocated variants trap.
-    return @partial match a {
-        is NullVal   -> b is NullVal
-        is I32Val    -> if b is I32Val    as bi { a.value == bi.value } else { false }
-        is BoolVal   -> if b is BoolVal   as bb { a.value == bb.value } else { false }
-        is CharVal   -> if b is CharVal   as bc { a.value == bc.value } else { false }
-        is StringVal -> if b is StringVal as bx { a.value == bx.value } else { false }
-        _            -> Trap { .message = "${label} on ${describe_value_tag(a)} not supported at pc=${at_pc} (only null + primitive operands)" }
-    }
+/// `ref.eq` / `ref.ne`: value equality for null and the scalars the VM boxes,
+/// identity for a heap value —
+/// what a pointer compare answers natively. The compiler leans on the latter: a
+/// union `==` (`t == TY_VOID`) is a reference compare, and a baked const is one
+/// shared object on both backends.
+export value_ref_eq :: fn(a: Value, b: Value) -> bool = match a {
+    is NullVal   -> b is NullVal
+    is I32Val    -> if b is I32Val    as bi { a.value == bi.value } else { false }
+    is BoolVal   -> if b is BoolVal   as bb { a.value == bb.value } else { false }
+    is CharVal   -> if b is CharVal   as bc { a.value == bc.value } else { false }
+    is StringVal -> if b is StringVal as bx { a.value == bx.value } else { false }
+    is I64Val    -> if b is I64Val    as bl { a.value == bl.value } else { false }
+    // A boxed float compares its bits, as the native payload compare does.
+    is F64Val    -> if b is F64Val    as bf { a.value.to_bits() == bf.value.to_bits() } else { false }
+    is StructVal | ArrayVal | FnVal | ErrorVal | TypeVal | ObjVal -> same_value(a, b)
 }
+
+// Identity of two VM values: a union `==` compares references.
+same_value :: fn(a: Value, b: Value) -> bool = a == b
 
 /// Type-check : does `v`'s runtime tag match `state.bc.types[type_id]` ?
 /// Returns `false` for `BcFn` (placeholder until ref/trait dispatch lands).
