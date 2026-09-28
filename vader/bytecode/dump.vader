@@ -61,7 +61,7 @@ dump_bytecode_impl :: fn(module: BytecodeModule, entry_mangled: string, annotate
     sb.append("module ${module.name}\n")
     write_types(sb, module.types)
     write_strings(sb, module.strings)
-    write_data_pool(sb, module.data_pool, module.strings)
+    write_data_pool(sb, module.data_pool, module.strings, module.types)
     write_imports(sb, module.imports)
     write_impl_table(sb, module.impl_table)
     write_vtable_rows(sb, module.vtables)
@@ -86,7 +86,7 @@ write_types :: fn(sb: StringBuilder!, types: BcType[]) -> void {
 // Round-trips through `virt_reader_bc::parse_data_decl_bc` so the VM reconstructs
 // the pool ; without this the `.virt` carries `data.const N` ops with no backing
 // entry (pool_index out of range).
-write_data_pool :: fn(sb: StringBuilder!, data_pool: BcDataEntry[], strings: string[]) -> void {
+write_data_pool :: fn(sb: StringBuilder!, data_pool: BcDataEntry[], strings: string[], types: BcType[]) -> void {
     // Only aggregate entries reference the pool via `strref` ; skip the index
     // build for pools without one (`string[]` / primitive tables) so a dump
     // over a large `module.strings` stays free.
@@ -107,21 +107,24 @@ write_data_pool :: fn(sb: StringBuilder!, data_pool: BcDataEntry[], strings: str
             // textual redundancy. A HOMOGENEOUS struct array hoists its element type
             // + field count to the header and drops the per-element `struct <symid>
             // <nfields>` prefix :
-            //   data N structs <symid> <nfields> <count> <field-value>…
+            //   data N structs <typeidx> <nfields> <count> <field-value>…
             // Heterogeneous / nested arrays keep the general per-element form :
             //   data N agg <elemname> <count> <value>…
             // where <value> is `<kind> <hex>` (primitive) | `str "…"` | `strref <i>` |
-            //   `struct <symid> <nfields> <value>…` | `array <elemname> <n> <value>…`.
+            //   `struct <typeidx> <nfields> <value>…` | `array <elemname> <n> <value>…`.
+            // A struct is named by its TYPE INDEX, not its symbol id: the `type` lines
+            // carry no symbol id, so an id would name nothing once read back.
             out :: StringBuilder {}
             hs :: homogeneous_struct(e)
             if hs.symbol_id >= 0 {
-                out.append("data ${i} ${storage_class(e.mutable)}structs ${hs.symbol_id} ${hs.nfields} ${e.elements.len()}")
+                at :: struct_symbol_type_index(types, hs.symbol_id)
+                out.append("data ${i} ${storage_class(e.mutable)}structs ${at} ${hs.nfields} ${e.elements.len()}")
                 for v in e.elements {
-                    if v is BcValStruct { for f in v.fields { write_data_value(out, f, str_index) } }
+                    if v is BcValStruct { for f in v.fields { write_data_value(out, f, str_index, types) } }
                 }
             } else {
                 out.append("data ${i} ${storage_class(e.mutable)}agg ${e.element_type_name} ${e.elements.len()}")
-                for v in e.elements { write_data_value(out, v, str_index) }
+                for v in e.elements { write_data_value(out, v, str_index, types) }
             }
             sb.append("${out}\n")
         }
@@ -167,7 +170,9 @@ build_string_index :: fn(strings: string[]) -> MutableMap<string, i32> {
 }
 
 // Serialise one recursive baked value into the count-prefixed `.virt` form.
-write_data_value :: fn(out: StringBuilder!, v: BcDataValue, str_index: MutableMap<string, i32>) -> void {
+write_data_value :: fn(
+    out: StringBuilder!, v: BcDataValue, str_index: MutableMap<string, i32>, types: BcType[],
+) -> void {
     if v is BcValPrim {
         // No `prim` tag : a primitive leaf is `<kind> <hex>`. The kind name
         // (i32, u8, f64, …) never collides with the str/strref/struct/array tags,
@@ -181,12 +186,22 @@ write_data_value :: fn(out: StringBuilder!, v: BcDataValue, str_index: MutableMa
             out.append(" str ${quote_string(v.value)}")
         }
     } else if v is BcValStruct {
-        out.append(" struct ${v.symbol_id} ${v.fields.len()}")
-        for f in v.fields { write_data_value(out, f, str_index) }
+        out.append(" struct ${struct_symbol_type_index(types, v.symbol_id)} ${v.fields.len()}")
+        for f in v.fields { write_data_value(out, f, str_index, types) }
     } else if v is BcValArray {
         out.append(" array ${v.element_type_name} ${v.elements.len()}")
-        for e in v.elements { write_data_value(out, e, str_index) }
+        for e in v.elements { write_data_value(out, e, str_index, types) }
     }
+}
+
+// Type-table index of the struct declared by `symbol_id`, or -1 when none is.
+struct_symbol_type_index :: fn(types: BcType[], symbol_id: i32) -> i32 {
+    for i in 0..<types.len() {
+        if types[i] is BcStruct as s {
+            if s.symbol_id == symbol_id { return i32(i) }
+        }
+    }
+    return -1
 }
 
 // Little-endian hex of a single bit pattern at the kind's natural width.

@@ -14,7 +14,8 @@
 // `symbol_id`, and no debug spans. The first is RECONSTRUCTED here from the
 // type table via `primitive_index_for` (exact for primitive slots ; `0` for
 // ref/any slots, which `c_emit::box_expr` ignores anyway — Ref/Any box to a
-// bare value, no tag). `symbol_id` falls back to `-1` and `debug` to all-null
+// bare value, no tag). A struct's `symbol_id` becomes its TYPE INDEX — the
+// identity the data section names it by (`bytecode/dump`) — and `debug` all-null
 // (`#line` directives are dropped from `.virt`-sourced C). The contract this
 // upholds is *emitted-C equivalence* (`source → C` == `source → .virt → C`,
 // modulo `#line`), not byte-identical module round-trip.
@@ -325,7 +326,14 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]!) -> DirectiveError
         if parsed is DirectiveError {
             return parsed
         }
-        types.push(parsed)
+        // Its index is its identity here: the data section names a baked struct
+        // by type index, and `type_id_for_symbol` resolves it against this field.
+        types.push(bc.BcStruct {
+            .name      = parsed.name,
+            .fields    = parsed.fields,
+            .c_name    = parsed.c_name,
+            .symbol_id = i32(types.len()),
+        })
         return null
     }
     if rest.starts_with("primitive ") {
@@ -1086,9 +1094,9 @@ bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value {
 }
 
 // Type-table index of the `BcStruct` declared by `symbol_id`, or 0 when absent.
-// 0 is harmless for the VM : a `StructVal` is read positionally, so its `type_id`
-// is not load-bearing — and a `.virt`-parsed type table carries `symbol_id = -1`
-// for every struct (`parse_struct_type_bc`), so this legitimately misses there.
+// The `type_id` IS load-bearing: `type_check` compares it, so a baked struct with
+// the wrong one fails every `is` test. A `.virt`-parsed table resolves because each
+// struct's `symbol_id` is its own index (`parse_type_decl_bc`).
 type_id_for_symbol :: fn(types: bc.BcType[], symbol_id: i32) -> i32 {
     for i in 0..<types.len() {
         if types[i] is bc.BcStruct as s {

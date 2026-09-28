@@ -1,0 +1,48 @@
+// tests/snippets/pooled_struct_narrowing — an element of a baked struct array,
+// narrowed with `is`.
+//
+// A baked struct names its type in the `.virt` data section, and the VM stamps the
+// `StructVal` it materialises with that type's index — the `type_id` a `type_check`
+// compares. The `vader-vm:` harness runs this from the `.virt`, so the narrowing
+// below is only right if the name survives the text round trip.
+
+module "snippet"
+
+import "std/io"
+
+Spec :: struct {
+    name:  string
+    arity: i32
+}
+
+SPECS :: [
+    Spec { .name = "size_of", .arity = 1 },
+    Spec { .name = "field",   .arity = 2 },
+]
+
+ORIGIN :: Spec { .name = "origin", .arity = 0 }
+
+find :: fn(name: string) -> Spec | null {
+    for s in SPECS {
+        if s.name == name {
+            return s
+        }
+    }
+    return null
+}
+
+describe :: fn(name: string) -> string = match find(name) as s {
+    is null -> "${name}: unknown"
+    is Spec -> "${name}: ${s.arity}"
+}
+
+main :: fn() -> i32 {
+    println(describe("field"))
+    println(describe("size_of"))
+    println(describe("nope"))
+    lone: Spec | null: ORIGIN
+    if lone is Spec {
+        println("lone: ${lone.name}")
+    }
+    return 0
+}
