@@ -1,0 +1,19 @@
+// bench/vm/vm_str/vm_str.vader — `StringBuilder` appends with `${}` interpolation.
+//
+// Sized for the VM (`bun bench/run.ts --vm`), not for native code.
+
+module "main"
+
+import "std/io"
+import "std/string_builder"
+
+main :: fn() -> i32 {
+    sb :: StringBuilder {}
+    for i in 0..<300000 {
+        sb.append("k")
+        sb.append("${i}")
+    }
+    s :: sb.to_string()
+    println("vm_str ${s.byte_len()}")
+    return 0
+}

@@ -1,0 +1,28 @@
+// bench/vm/vm_map/vm_map.vader — `MutableMap<i32, i32>` inserts and lookups.
+//
+// Sized for the VM (`bun bench/run.ts --vm`), not for native code.
+
+module "main"
+
+import "std/collections"
+import "std/io"
+
+main :: fn() -> i32 {
+    m :: MutableMap<i32, i32> {}
+    checksum: i64 = 0
+    for r in 0..<4 {
+        for i in 0..<50000 {
+            k :: i32(i64(i) * 131101 % 200003)
+            m[k] = k + r
+        }
+        for i in 0..<50000 {
+            k :: i32(i64(i) * 131101 % 200003)
+            v :: m[k]
+            if v != null {
+                checksum += i64(v)
+            }
+        }
+    }
+    println("vm_map ${m.len()} ${checksum}")
+    return 0
+}

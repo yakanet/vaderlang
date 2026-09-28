@@ -1,0 +1,60 @@
+// bench/vm/vm_shapes/vm_shapes.vader — `bench/shapes`, scaled down for the VM.
+//
+// Sized for the VM (`bun bench/run.ts --vm`), not for native code.
+
+module "main"
+
+import "std/io"
+
+SHAPE_COUNT     :: 50_000
+PASS_COUNT      :: 20
+DIMENSION_LIMIT :: 1000
+
+Shape :: trait {
+    /// Twice the area, so every shape's answer is an exact integer.
+    area :: fn(self) -> i64
+}
+
+Circle :: struct { radius: i64 }
+Rectangle :: struct { width: i64, height: i64 }
+Triangle :: struct { base: i64, height: i64 }
+
+Circle implements Shape {
+    area :: fn(self) -> i64 = 6 * self.radius * self.radius
+}
+
+Rectangle implements Shape {
+    area :: fn(self) -> i64 = 2 * self.width * self.height
+}
+
+Triangle implements Shape {
+    area :: fn(self) -> i64 = self.base * self.height
+}
+
+main :: fn() -> i32 {
+    shapes :: build_shapes()
+    total: i64 = 0
+    for 0..<PASS_COUNT {
+        for shape in shapes {
+            total += shape.area()
+        }
+    }
+    println("vm_shapes count=${SHAPE_COUNT} passes=${PASS_COUNT} total=${total}")
+    return 0
+}
+
+build_shapes :: fn() -> Shape[] {
+    shapes: Shape[]!: []
+    for index in 0..<SHAPE_COUNT {
+        dimension :: i64(index % DIMENSION_LIMIT)
+        kind :: index % 3
+        if kind == 0 {
+            shapes.push(Circle { .radius = dimension })
+        } else if kind == 1 {
+            shapes.push(Rectangle { .width = dimension, .height = dimension + 1 })
+        } else {
+            shapes.push(Triangle { .base = dimension, .height = dimension + 2 })
+        }
+    }
+    return shapes
+}

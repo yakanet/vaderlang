@@ -1,0 +1,24 @@
+// bench/vm/vm_arr/vm_arr.vader — Indexed read-modify-write over a 1024-element `i32[]`.
+//
+// Sized for the VM (`bun bench/run.ts --vm`), not for native code.
+
+module "main"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    n: usize: 1024
+    a: i32[]!: []
+    for i in 0..<n {
+        a.push(i32(i))
+    }
+    sum: i64 = 0
+    for 0..<5000 {
+        for i in 0..<n {
+            a[i] += 1
+            sum += i64(a[i])
+        }
+    }
+    println("vm_arr ${sum}")
+    return 0
+}

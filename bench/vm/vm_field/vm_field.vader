@@ -1,0 +1,19 @@
+// bench/vm/vm_field/vm_field.vader — Struct field reads and writes in a loop.
+//
+// Sized for the VM (`bun bench/run.ts --vm`), not for native code.
+
+module "main"
+
+import "std/io"
+
+Point :: struct { x: i32, y: i32 }
+
+main :: fn() -> i32 {
+    p :: Point { .x = 0, .y = 1 }
+    for 0..<5000000 {
+        p.x = (p.x + p.y) & 65535
+        p.y += 1
+    }
+    println("vm_field ${p.x} ${p.y}")
+    return 0
+}

@@ -1,0 +1,14 @@
+// bench/vm/vm_fib/vm_fib.vader — Naive doubly recursive Fibonacci: a call and a return per few ops.
+//
+// Sized for the VM (`bun bench/run.ts --vm`), not for native code.
+
+module "main"
+
+import "std/io"
+
+fib :: fn(n: i32) -> i32 = if n < 2 { n } else { fib(n - 1) + fib(n - 2) }
+
+main :: fn() -> i32 {
+    println("vm_fib ${fib(32)}")
+    return 0
+}
