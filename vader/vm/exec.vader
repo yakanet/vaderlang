@@ -199,41 +199,29 @@ convert_int_fast :: fn(frame: Frame!, target: ConvertTarget, from_name: string) 
     return true
 }
 
-/// Grow the three stack columns by one slot — the cold half of a push.
-///
-/// Kept OUT OF LINE, and out of the predicate beside it: three array pushes, each
-/// a runtime grow plus a write barrier. Splitting it for its BULK was not enough,
-/// because what actually blocked the inline was the GC frame its caller inherited
-/// for calling it at all — see `stack_needs_grow`.
+/// Grow the three stack columns by one slot. Only `reserve_stack` calls it, when
+/// a frame becomes active — never a push op.
 stack_grow :: fn(frame: Frame!) -> void {
     frame.payload.push(0)
     frame.tag.push(.Null)
     frame.stack.push(NullVal {})
 }
 
-/// True when `cursor` needs a fresh slot in the three stack columns.
-///
-/// A PREDICATE, not the grow itself, and that is the whole point. `may_alloc` is a
-/// transitive reachability set (`c_emit/walker.vader::compute_may_alloc`), so any fn
-/// that CALLS `stack_grow` inherits a GC shadow frame — `gc_raw_roots`, a 7-field
-/// `vader_gc_frame_t`, two `vader_gc_top` writes — and that frame is what pushes it
-/// past clang's inline threshold. A push op then paid a real call for one compare.
-/// Keeping the call out of here leaves nothing to root, so it inlines.
-stack_needs_grow :: fn(frame: Frame, cursor: usize) -> bool = cursor == frame.payload.len()
+/// Size `frame`'s three stack columns to at least `depth` — the verified deepest
+/// point of the function it runs (`VmState.max_depth`). Called when a frame becomes
+/// active, so a push inside it never checks capacity. The columns are grow-only,
+/// so a pooled frame that already ran a deeper callee does nothing here.
+reserve_stack :: fn(frame: Frame!, depth: usize) -> void {
+    for frame.payload.len() < depth {
+        stack_grow(frame)
+    }
+}
 
-/// True when `slot` is not a valid local index for a frame holding `count` slots.
-///
-/// Scalars only, so there is nothing to root and it inlines for the same reason
-/// `stack_needs_grow` does — see the note there.
-slot_out_of_range :: fn(slot: i32, count: usize) -> bool = slot < 0 || usize(slot) >= count
 
-/// Write `value` into the stack columns at `cursor` (growing if needed).
+/// Write `value` into the stack columns at `cursor` — sized by `reserve_stack`.
 /// Mirrors `push_value` (caller bumps `sp`). Scalars land in payload + tag,
 /// heap values in the refs column.
 push_val :: fn(frame: Frame!, cursor: usize, value: Value!) -> void {
-    if stack_needs_grow(frame, cursor) {
-        stack_grow(frame)
-    }
     match value {
         is I32Val -> {
             frame.payload[cursor] = i64(value.value)
@@ -519,17 +507,16 @@ project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32)
     return out
 }
 
-/// Bounds-check a `function_index` against `functions`. Used by
-/// `Call`, `FnRef`, `MakeClosure`, and `CallIndirect` to surface the
-/// same Trap shape on a malformed reference rather than indexing into
+/// Bounds-check a `function_index` against `functions`, for an index that comes
+/// from a VALUE (a fn value, a vtable row, a deferred thunk) — an immediate one was
+/// checked by the load-time verifier. Surfaces a Trap rather than indexing into
 /// the array and letting the host runtime trap.
 ///
 /// @param function_index  candidate index into `functions`.
 /// @param functions       the running module's function table.
 /// @param at_pc           pc of the op doing the lookup.
 /// @param op_label        op-name prefix for the diagnostic message
-///                        (`"call"`, `"fn.ref"`, `"make_closure"`,
-///                        `"call.indirect"`).
+///                        (`"call.indirect"`, `"defer.pop_exec"`, …).
 /// @return                `null` on success, `Trap` if out of range.
 /// @error                 `function_index < 0` or `>= functions.len()`.
 validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: i32, op_label: string) -> Trap | null {
@@ -539,9 +526,9 @@ validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: 
     return null
 }
 
-// The per-call arms (`Call`, `VirtualCall`) test with this predicate and build
-// the trap only on failure: a fn that may build a `Trap` carries a GC frame, so
-// calling `validate_fn_index` on the hot path pays that frame on every call.
+// `VirtualCall` tests with this predicate and builds the trap only on failure: a
+// fn that may build a `Trap` carries a GC frame, so calling `validate_fn_index`
+// on the hot path pays that frame on every call.
 is_fn_index_out_of_range :: fn(function_index: i32, functions: bc.BcFunction[]) = function_index < 0 || usize(function_index) >= functions.len()
 
 fn_index_trap :: fn(function_index: i32, at_pc: i32, op_label: string) = Trap {
@@ -790,11 +777,6 @@ finalise_multi_return :: fn(
     frame: Frame!, frames: Frame![]!, frame_count: usize[]!, signature: bc.BcSignature,
 ) -> VmResult | null {
     arity :: bc.bc_result_arity(signature)
-    if frame.sp < arity {
-        return Trap {
-            .message = "return: the frame holds fewer values than the signature declares",
-        }
-    }
     base :: frame.sp - arity
     values: Value[]!: []
     for i in 0..<arity {
@@ -810,9 +792,6 @@ finalise_multi_return :: fn(
     }
     caller :: frames[frame_count[0] - 1]
     for v in values {
-        if stack_needs_grow(caller, caller.sp) {
-            stack_grow(caller)
-        }
         push_val(caller, caller.sp, v)
         caller.sp = caller.sp + 1
     }
@@ -1145,17 +1124,15 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
         cur_jump = fb.jump_table
     }
     op_count := cur_ops.len()
+    if frame.payload.len() < state.max_depth[usize(frame.function_index)] {
+        reserve_stack(frame, state.max_depth[usize(frame.function_index)])
+    }
     cur_top := init_top
     // Narrow-mask fast path : most functions have only wide (i32/i64/ref) slots,
     // so `local.set` / `local.tee` can skip `slot_valtype` + `narrow_mask`
     // altogether. Recomputed alongside `body` whenever the active frame changes.
     fn_narrow_tbl :: state.fn_narrow
     cur_has_narrow := fn_narrow_tbl[usize(frame.function_index)]
-    // The pooled frame's `slots` array is grow-only and sized to the WIDEST
-    // callee ever seen at this depth, so `slots.len()` is not this callee's slot
-    // count — bounding `local.*` against it lets an out-of-range slot read the
-    // previous frame's stale data. Bound against the signature instead.
-    cur_slot_count := body.signature.params.len() + body.locals.len()
     // Whether `return` has to truncate its value. A per-FUNCTION fact, cached
     // beside `cur_has_narrow` rather than recomputed on every `return`.
     cur_narrow_result := is_single_narrow_result(body.signature)
@@ -1226,8 +1203,13 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 cur_jump = body.jump_table
             }
             op_count = cur_ops.len()
+            // Tested here, the grow called only when needed: `reserve_stack` may
+            // allocate, so calling it at every frame change pays its GC frame.
+            depth :: state.max_depth[usize(frame.function_index)]
+            if frame.payload.len() < depth {
+                reserve_stack(frame, depth)
+            }
             cur_has_narrow = fn_narrow_tbl[usize(frame.function_index)]
-            cur_slot_count = body.signature.params.len() + body.locals.len()
             cur_narrow_result = is_single_narrow_result(body.signature)
             cur_multi_result = bc.bc_result_arity(body.signature) > 1
             cur_top = top
@@ -1297,9 +1279,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
         instr :: cur_ops[frame.pc]
         match instr {
             is bc.I32Const -> {
-                if stack_needs_grow(frame, frame.sp) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp] = i64(instr.value)
                 frame.tag[frame.sp] = .I32
                 frame.sp = frame.sp + 1
@@ -1309,21 +1288,11 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             // to back; kept beside them so a change to one is visibly a change to
             // both, and spelled with their `sidx` / `st` names for that reason.
             is Get2 -> {
-                if slot_out_of_range(instr.slot_a, cur_slot_count) ||
-                    slot_out_of_range(instr.slot_b, cur_slot_count) {
-                    return Trap { .message = "local.get slot out of range at pc=${frame.pc} in '${body.name}'" }
-                }
-                if stack_needs_grow(frame, frame.sp) {
-                    stack_grow(frame)
-                }
                 sidx_a :: usize(instr.slot_a)
                 st_a :: frame.slot_tag[sidx_a]
                 frame.payload[frame.sp] = frame.slot_payload[sidx_a]
                 frame.tag[frame.sp] = st_a
                 if st_a == .Ref { frame.stack[frame.sp] = frame.slots[sidx_a] }
-                if stack_needs_grow(frame, frame.sp + 1) {
-                    stack_grow(frame)
-                }
                 sidx_b :: usize(instr.slot_b)
                 st_b :: frame.slot_tag[sidx_b]
                 frame.payload[frame.sp + 1] = frame.slot_payload[sidx_b]
@@ -1335,13 +1304,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             // `local.set A ; local.get B`. Only ever built for a fn with no narrow
             // slot, so the mask branch cannot apply.
             is SetGet -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "local.set on empty stack at pc=${frame.pc} in '${body.name}'" }
-                }
-                if slot_out_of_range(instr.set_slot, cur_slot_count) ||
-                    slot_out_of_range(instr.get_slot, cur_slot_count) {
-                    return Trap { .message = "local slot out of range at pc=${frame.pc} in '${body.name}'" }
-                }
                 sidx_set :: usize(instr.set_slot)
                 st_set :: frame.tag[frame.sp - 1]
                 frame.slot_payload[sidx_set] = frame.payload[frame.sp - 1]
@@ -1356,32 +1318,17 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             }
             // `local.get A ; <int>.const V`.
             is GetConst -> {
-                if slot_out_of_range(instr.slot, cur_slot_count) {
-                    return Trap { .message = "local.get slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
-                }
-                if stack_needs_grow(frame, frame.sp) {
-                    stack_grow(frame)
-                }
                 sidx :: usize(instr.slot)
                 st :: frame.slot_tag[sidx]
                 frame.payload[frame.sp] = frame.slot_payload[sidx]
                 frame.tag[frame.sp] = st
                 if st == .Ref { frame.stack[frame.sp] = frame.slots[sidx] }
-                if stack_needs_grow(frame, frame.sp + 1) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp + 1] = instr.value
                 frame.tag[frame.sp + 1] = instr.tag
                 frame.sp = frame.sp + 2
                 frame.pc = frame.pc + 1
             }
             is bc.LocalGet -> {
-                if instr.slot < 0 || usize(instr.slot) >= cur_slot_count {
-                    return Trap { .message = "local.get slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
-                }
-                if stack_needs_grow(frame, frame.sp) {
-                    stack_grow(frame)
-                }
                 sidx :: usize(instr.slot)
                 st :: frame.slot_tag[sidx]
                 frame.payload[frame.sp] = frame.slot_payload[sidx]
@@ -1391,12 +1338,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.LocalSet -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "local.set on empty stack at pc=${frame.pc} in '${body.name}'" }
-                }
-                if instr.slot < 0 || usize(instr.slot) >= cur_slot_count {
-                    return Trap { .message = "local.set slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
-                }
                 sidx :: usize(instr.slot)
                 if cur_has_narrow && is_narrow_valtype(slot_valtype(body, instr.slot)) {
                     slot_set(frame, sidx, narrow_mask(peek_val(frame, frame.sp - 1), slot_valtype(body, instr.slot)))
@@ -1410,12 +1351,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.LocalTee -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "local.tee on empty stack at pc=${frame.pc} in '${body.name}'" }
-                }
-                if instr.slot < 0 || usize(instr.slot) >= cur_slot_count {
-                    return Trap { .message = "local.tee slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
-                }
                 // Tee stores AND leaves the value on the stack ; when the slot is
                 // narrow the expression value is the truncated one, so mask both.
                 // A wide slot takes the unboxed path even in a function that has
@@ -1434,22 +1369,13 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.StringConst -> {
-                if instr.index < 0 || usize(instr.index) >= state.bc.strings.len() {
-                    return Trap { .message = "string.const index ${instr.index} out of range at pc=${frame.pc}" }
-                }
                 push_val(frame, frame.sp, StringVal { .value = state.bc.strings[instr.index] })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.CallImport -> {
-                if instr.index < 0 || usize(instr.index) >= state.bc.imports.len() {
-                    return Trap { .message = "call.import ${instr.index} out of range at pc=${frame.pc}" }
-                }
                 info :: state.bc.imports[instr.index]
                 arg_count :: info.signature.params.len()
-                if frame.sp < arg_count {
-                    return Trap { .message = "call.import '${info.mangled_name}' needs ${arg_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
-                }
                 arg_base :: frame.sp - arg_count
                 dispatch_outcome :: dispatch_import(info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, state.bc.types, is_comptime, debug, state.import_ids[instr.index])
                 if dispatch_outcome is Trap {
@@ -1468,21 +1394,13 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.Call -> {
-                if is_fn_index_out_of_range(instr.function_index, state.bc.functions) {
-                    return fn_index_trap(instr.function_index, frame.pc, "call")
-                }
                 callee :: state.bc.functions[usize(instr.function_index)]
                 callee_arity :: callee.signature.params.len()
-                if frame.sp < callee_arity {
-                    return Trap { .message = "call to '${callee.name}' needs ${callee_arity} arg(s) but stack has ${frame.sp} at pc=${frame.pc} in '${body.name}'" }
-                }
                 arg_base :: frame.sp - callee_arity
                 dispatched :: dispatch_call_into(frame, frames, frame_count, callee, instr.function_index, arg_base, null)
                 if dispatched is Trap { return dispatched }
             }
             is bc.FnRef -> {
-                index_check :: validate_fn_index(instr.function_index, state.bc.functions, frame.pc, "fn.ref")
-                if index_check is Trap { return index_check }
                 push_val(frame, frame.sp, FnVal { .function_index = instr.function_index, .env = null })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
@@ -1494,19 +1412,11 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 }
             }
             is bc.MakeClosure -> {
-                index_check :: validate_fn_index(instr.function_index, state.bc.functions, frame.pc, "make_closure")
-                if index_check is Trap { return index_check }
-                if frame.sp == 0 {
-                    return Trap { .message = "make_closure needs env on stack at pc=${frame.pc}" }
-                }
                 env_value :: peek_val(frame, frame.sp - 1)
                 push_val(frame, frame.sp - 1, FnVal { .function_index = instr.function_index, .env = env_value })
                 frame.pc = frame.pc + 1
             }
             is bc.VirtualCall -> {
-                if frame.sp < usize(instr.parameter_count) {
-                    return Trap { .message = "virtual.call '${instr.vtable_key}' needs ${instr.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
-                }
                 // UFCS layout: receiver is on TOP of the stack, explicit
                 // args sit below it in source order. To match the callee's
                 // `(self, ...args)` signature we move the receiver to the
@@ -1594,17 +1504,11 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // lifted fn's first slot is bound to `env` and the user
                 // args fill `slot 1..N+1` ; otherwise the user args fill
                 // `slot 0..N`.
-                if instr.type_id < 0 || usize(instr.type_id) >= state.bc.types.len() {
-                    return Trap { .message = "call.indirect type ${instr.type_id} out of range at pc=${frame.pc}" }
-                }
                 fn_type_decl :: state.bc.types[usize(instr.type_id)]
                 if !(fn_type_decl is bc.BcFn) {
                     return Trap { .message = "call.indirect type ${instr.type_id} is not a fn type at pc=${frame.pc}" }
                 }
                 indirect_arity :: fn_type_decl.params.len()
-                if frame.sp < 1 + indirect_arity {
-                    return Trap { .message = "call.indirect needs ${indirect_arity} arg(s) + fn-ref but stack has ${frame.sp} at pc=${frame.pc} in '${body.name}'" }
-                }
                 fn_unwrap :: read_fn(peek_val(frame, frame.sp - 1), frame.pc, "call.indirect receiver")
                 if fn_unwrap is Trap { return fn_unwrap }
                 callee_index_check :: validate_fn_index(fn_unwrap.function_index, state.bc.functions, frame.pc, "call.indirect")
@@ -1625,18 +1529,12 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if outcome is Trap { return outcome }
             }
             is bc.StructGet -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "struct.get on empty stack at pc=${frame.pc}" }
-                }
                 field_value :: read_struct_field(peek_val(frame, frame.sp - 1), instr.field_index, frame.pc, "struct.get")
                 if field_value is Trap { return field_value }
                 push_val(frame, frame.sp - 1, field_value)
                 frame.pc = frame.pc + 1
             }
             is bc.StructSet -> {
-                if frame.sp < 2 {
-                    return Trap { .message = "struct.set needs receiver + value on stack at pc=${frame.pc}" }
-                }
                 struct_unwrap :: read_struct(peek_val(frame, frame.sp - 2), frame.pc, "struct.set receiver")
                 if struct_unwrap is Trap { return struct_unwrap }
                 if instr.field_index < 0 || usize(instr.field_index) >= struct_unwrap.fields.len() {
@@ -1647,9 +1545,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.LocalField -> {
-                if instr.slot < 0 || usize(instr.slot) >= cur_slot_count {
-                    return Trap { .message = "local.field slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
-                }
                 field_value :: read_struct_field(slot_val(frame, usize(instr.slot)), instr.field_index, frame.pc, "local.field")
                 if field_value is Trap { return field_value }
                 push_val(frame, frame.sp, field_value)
@@ -1661,9 +1556,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if outcome is Trap { return outcome }
             }
             is bc.ArrayPush -> {
-                if frame.sp < 2 {
-                    return Trap { .message = "array.push needs array + value on stack at pc=${frame.pc}" }
-                }
                 array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.push receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 detach_array_view(array_unwrap)
@@ -1673,9 +1565,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.ArrayGet -> {
-                if frame.sp < 2 {
-                    return Trap { .message = "array.get needs array + index on stack at pc=${frame.pc}" }
-                }
                 // Tag test then a raw `payload` read, the same shape the arithmetic
                 // arms use.
                 if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "array.get index") }
@@ -1693,9 +1582,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.ArraySet -> {
-                if frame.sp < 3 {
-                    return Trap { .message = "array.set needs array + index + value on stack at pc=${frame.pc}" }
-                }
                 // Index read direct off `payload`, as in `array.get`. The VALUE
                 // peek below stays boxed: it lands in a `Value[]` elements column,
                 // so that box is the storage, not a detour.
@@ -1718,14 +1604,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.ArrayLen -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "array.len on empty stack at pc=${frame.pc}" }
-                }
                 array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.len receiver")
                 if array_unwrap is Trap { return array_unwrap }
-                if stack_needs_grow(frame, frame.sp - 1) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 1] = i64(i32(array_unwrap.length))
                 frame.tag[frame.sp - 1] = .I32
                 frame.pc = frame.pc + 1
@@ -1747,15 +1627,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if outcome is Trap { return outcome }
             }
             is bc.ArrayRemoveLast -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "array.remove_last on empty stack at pc=${frame.pc}" }
-                }
                 array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.remove_last receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 if array_unwrap.length == 0 {
-                    if stack_needs_grow(frame, frame.sp - 1) {
-                        stack_grow(frame)
-                    }
                     frame.tag[frame.sp - 1] = .Null
                 } else {
                     last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
@@ -1774,9 +1648,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.ArrayClear -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "array.clear on empty stack at pc=${frame.pc}" }
-                }
                 array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.clear receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 // Clear the SHARED backing when this array owns it, the way the
@@ -1800,9 +1671,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.DataConst -> {
-                if instr.pool_index < 0 || usize(instr.pool_index) >= state.data_pool.len() {
-                    return Trap { .message = "data.const pool_index ${instr.pool_index} out of range at pc=${frame.pc}" }
-                }
                 shared :: state.data_pool[usize(instr.pool_index)]
                 if shared.type_id == instr.type_id {
                     push_val(frame, frame.sp, shared)
@@ -1836,9 +1704,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 continue
             }
             is bc.Convert -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "convert on empty stack at pc=${frame.pc} in '${body.name}'" }
-                }
                 if !convert_int_fast(frame, instr.target, instr.from_name) {
                     v :: peek_val(frame, frame.sp - 1)
                     converted :: convert_value(v, instr.target, instr.from_name, frame.pc)
@@ -1850,9 +1715,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.SizeOfType -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "intrinsic size_of.type on empty stack at pc=${frame.pc}" }
-                }
                 top_val :: peek_val(frame, frame.sp - 1)
                 if !(top_val is TypeVal) {
                     return Trap { .message = "intrinsic size_of.type: expected type value, got ${describe_value_tag(top_val)} at pc=${frame.pc}" }
@@ -1862,9 +1724,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     return Trap { .message = "intrinsic size_of.type: type ${type_id} out of range at pc=${frame.pc}" }
                 }
                 size :: bc.size_of_bc_type(state.bc.types[usize(type_id)])
-                if stack_needs_grow(frame, frame.sp - 1) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 1] = i64(size)
                 frame.tag[frame.sp - 1] = .I64
                 frame.pc = frame.pc + 1
@@ -2070,18 +1929,12 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.F64Const -> {
-                if stack_needs_grow(frame, frame.sp) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp] = i64((instr.value).to_bits())
                 frame.tag[frame.sp] = .F64
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.I64Const -> {
-                if stack_needs_grow(frame, frame.sp) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp] = instr.value
                 frame.tag[frame.sp] = .I64
                 frame.sp = frame.sp + 1
@@ -2379,26 +2232,17 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 frame.pc = frame.pc + 1
             }
             is bc.NullConst -> {
-                if stack_needs_grow(frame, frame.sp) {
-                    stack_grow(frame)
-                }
                 frame.tag[frame.sp] = .Null
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.BoolConst -> {
-                if stack_needs_grow(frame, frame.sp) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp] = if instr.value { 1 } else { 0 }
                 frame.tag[frame.sp] = .Bool
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.CharConst -> {
-                if stack_needs_grow(frame, frame.sp) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp] = i64(u32(instr.value))
                 frame.tag[frame.sp] = .Char
                 frame.sp = frame.sp + 1
@@ -2409,9 +2253,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if left  is Trap { return left  }
                 right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.eq")
                 if right is Trap { return right }
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = if left.value == right.value { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
@@ -2422,9 +2263,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if left  is Trap { return left  }
                 right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.ne")
                 if right is Trap { return right }
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = if left.value != right.value { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
@@ -2435,9 +2273,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if left  is Trap { return left  }
                 right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.and")
                 if right is Trap { return right }
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = if left.value && right.value { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
@@ -2448,21 +2283,14 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if left  is Trap { return left  }
                 right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.or")
                 if right is Trap { return right }
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = if left.value || right.value { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.BoolNot -> {
-                if frame.sp == 0 { return Trap { .message = "bool.not on empty stack at pc=${frame.pc}" } }
                 operand :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.not")
                 if operand is Trap { return operand }
-                if stack_needs_grow(frame, frame.sp - 1) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 1] = if !operand.value { 1 } else { 0 }
                 frame.tag[frame.sp - 1] = .Bool
                 frame.pc = frame.pc + 1
@@ -2472,9 +2300,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if left  is Trap { return left  }
                 right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.eq")
                 if right is Trap { return right }
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = if left.value == right.value { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
@@ -2485,9 +2310,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if left  is Trap { return left  }
                 right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.ne")
                 if right is Trap { return right }
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = if left.value != right.value { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
@@ -2498,57 +2320,35 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if outcome is Trap { return outcome }
             }
             is bc.RefEq -> {
-                if frame.sp < 2 { return Trap { .message = "ref.eq needs 2 values on stack at pc=${frame.pc}" } }
                 outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1))
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = if outcome { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.RefNe -> {
-                if frame.sp < 2 { return Trap { .message = "ref.ne needs 2 values on stack at pc=${frame.pc}" } }
                 outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1))
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = if !outcome { 1 } else { 0 }
                 frame.tag[frame.sp - 2] = .Bool
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.Drop -> {
-                if frame.sp == 0 { return Trap { .message = "drop on empty stack at pc=${frame.pc} in '${body.name}'" } }
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.TypeCheck -> {
-                if frame.sp == 0 { return Trap { .message = "type_check on empty stack at pc=${frame.pc}" } }
-                if instr.type_id < 0 || usize(instr.type_id) >= state.bc.types.len() {
-                    return Trap { .message = "type_check type ${instr.type_id} out of range at pc=${frame.pc}" }
-                }
                 matched :: type_matches(state, peek_val(frame, frame.sp - 1), instr.type_id)
-                if stack_needs_grow(frame, frame.sp - 1) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 1] = if matched { 1 } else { 0 }
                 frame.tag[frame.sp - 1] = .Bool
                 frame.pc = frame.pc + 1
             }
             is bc.TypeConst -> {
-                if instr.type_id < 0 || usize(instr.type_id) >= state.bc.types.len() {
-                    return Trap { .message = "type.const type ${instr.type_id} out of range at pc=${frame.pc}" }
-                }
                 push_val(frame, frame.sp, TypeVal { .type_id = instr.type_id })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.DeferPush -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "defer.push on empty stack at pc=${frame.pc}" }
-                }
                 closure :: peek_val(frame, frame.sp - 1)
                 push_value(frame.defers, frame.defer_count, closure)
                 frame.sp = frame.sp - 1
@@ -2596,7 +2396,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.Block -> { frame.pc = frame.pc + 1 }
             is bc.Loop  -> { frame.pc = frame.pc + 1 }
             is bc.If -> {
-                if frame.sp == 0 { return Trap { .message = "if on empty stack at pc=${frame.pc} in '${body.name}'" } }
                 cond :: frame.payload[frame.sp - 1] != 0
                 new_sp :: frame.sp - 1
                 if cond {
@@ -2604,37 +2403,24 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     frame.pc = frame.pc + 1
                 } else {
                     target :: cur_jump[frame.pc]
-                    if target < 0 {
-                        return Trap { .message = "if has no jump target at pc=${frame.pc} (bad bytecode)" }
-                    }
                     frame.sp = new_sp
                     frame.pc = target
                 }
             }
             is bc.Else -> {
                 target :: cur_jump[frame.pc]
-                if target < 0 {
-                    return Trap { .message = "else has no jump target at pc=${frame.pc} (bad bytecode)" }
-                }
                 frame.pc = target
             }
             is bc.End -> { frame.pc = frame.pc + 1 }
             is bc.Branch -> {
                 target :: cur_jump[frame.pc]
-                if target < 0 {
-                    return Trap { .message = "br has no jump target at pc=${frame.pc} (bad bytecode)" }
-                }
                 frame.pc = target
             }
             is bc.BranchIf -> {
-                if frame.sp == 0 { return Trap { .message = "br_if on empty stack at pc=${frame.pc} in '${body.name}'" } }
                 cond :: frame.payload[frame.sp - 1] != 0
                 new_sp :: frame.sp - 1
                 if cond {
                     target :: cur_jump[frame.pc]
-                    if target < 0 {
-                        return Trap { .message = "br_if has no jump target at pc=${frame.pc} (bad bytecode)" }
-                    }
                     frame.sp = new_sp
                     frame.pc = target
                 } else {
@@ -2667,9 +2453,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                     pay :: frame.payload[src]
                     pop_frame(frame_count)
                     caller :: frames[frame_count[0] - 1]
-                    if stack_needs_grow(caller, caller.sp) {
-                        stack_grow(caller)
-                    }
                     caller.payload[caller.sp] = pay
                     caller.tag[caller.sp] = st
                     if st == .Ref {
@@ -2700,9 +2483,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.LoadU8 -> {
                 raw :: load_bytes_op(frame, 1, "load_u8")
                 if raw is Trap { return raw }
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = i64(i32(raw))
                 frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
@@ -2711,9 +2491,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.LoadI32 -> {
                 raw :: load_bytes_op(frame, 4, "load_i32")
                 if raw is Trap { return raw }
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = i64(i32(raw))
                 frame.tag[frame.sp - 2] = .I32
                 frame.sp = frame.sp - 1
@@ -2722,9 +2499,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.LoadI64 -> {
                 raw :: load_bytes_op(frame, 8, "load_i64")
                 if raw is Trap { return raw }
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = i64(raw)
                 frame.tag[frame.sp - 2] = .I64
                 frame.sp = frame.sp - 1
@@ -2733,37 +2507,30 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.LoadF64 -> {
                 raw :: load_bytes_op(frame, 8, "load_f64")
                 if raw is Trap { return raw }
-                if stack_needs_grow(frame, frame.sp - 2) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 2] = i64(((u64(raw)).from_bits()).to_bits())
                 frame.tag[frame.sp - 2] = .F64
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
             is bc.StoreU8 -> {
-                if frame.sp < 3 { return Trap { .message = "store_u8 needs object + offset + value on stack at pc=${frame.pc}" } }
                 val_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "store_u8 value")
                 if val_unwrap is Trap { return val_unwrap }
                 outcome :: store_bytes_op(frame, 1, u64(u8(val_unwrap.value)), "store_u8")
                 if outcome is Trap { return outcome }
             }
             is bc.StoreI32 -> {
-                if frame.sp < 3 { return Trap { .message = "store_i32 needs object + offset + value on stack at pc=${frame.pc}" } }
                 val_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "store_i32 value")
                 if val_unwrap is Trap { return val_unwrap }
                 outcome :: store_bytes_op(frame, 4, u64(u32(val_unwrap.value)), "store_i32")
                 if outcome is Trap { return outcome }
             }
             is bc.StoreI64 -> {
-                if frame.sp < 3 { return Trap { .message = "store_i64 needs object + offset + value on stack at pc=${frame.pc}" } }
                 val_unwrap :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "store_i64 value")
                 if val_unwrap is Trap { return val_unwrap }
                 outcome :: store_bytes_op(frame, 8, u64(val_unwrap.value), "store_i64")
                 if outcome is Trap { return outcome }
             }
             is bc.StoreF64 -> {
-                if frame.sp < 3 { return Trap { .message = "store_f64 needs object + offset + value on stack at pc=${frame.pc}" } }
                 val_unwrap :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "store_f64 value")
                 if val_unwrap is Trap { return val_unwrap }
                 outcome :: store_bytes_op(frame, 8, (val_unwrap.value).to_bits(), "store_f64")
@@ -2788,7 +2555,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.BufferToString -> {
                 // Pop buffer + len ; intern the leading `len` bytes verbatim as a
                 // string (same semantics as `bytes_to_string` over a `u8[]`).
-                if frame.sp < 2 { return Trap { .message = "buffer_to_string needs object + len on stack at pc=${frame.pc}" } }
                 len_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "buffer_to_string len")
                 if len_unwrap is Trap { return len_unwrap }
                 obj_unwrap :: read_obj(peek_val(frame, frame.sp - 2), frame.pc, "buffer_to_string receiver")
@@ -2808,12 +2574,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // Bit-reinterpret the TOS f64 as its raw u64 bits (held in an
                 // I64Val — same 64 bits) via the runtime `@extern` (see the
                 // module-top note : the VM can't use the intrinsic itself).
-                if frame.sp < 1 { return Trap { .message = "f64_to_bits needs a value on the stack at pc=${frame.pc}" } }
                 fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f64_to_bits")
                 if fv is Trap { return fv }
-                if stack_needs_grow(frame, frame.sp - 1) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 1] = i64((fv.value).to_bits())
                 frame.tag[frame.sp - 1] = .I64
                 frame.pc = frame.pc + 1
@@ -2821,12 +2583,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.BitsToF64 -> {
                 // Inverse : reinterpret the TOS u64 bit pattern (in an I64Val) as
                 // an f64, via the runtime `@extern`.
-                if frame.sp < 1 { return Trap { .message = "bits_to_f64 needs a value on the stack at pc=${frame.pc}" } }
                 iv :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f64")
                 if iv is Trap { return iv }
-                if stack_needs_grow(frame, frame.sp - 1) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 1] = i64(((u64(iv.value)).from_bits()).to_bits())
                 frame.tag[frame.sp - 1] = .F64
                 frame.pc = frame.pc + 1
@@ -2835,12 +2593,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // f32→u32 bits. The VM holds f32 in an F64Val (exact, since f32
                 // widens losslessly), so narrow back to f32 before the cast; the
                 // u32 result rides in an I32Val.
-                if frame.sp < 1 { return Trap { .message = "f32_to_bits needs a value on the stack at pc=${frame.pc}" } }
                 fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f32_to_bits")
                 if fv is Trap { return fv }
-                if stack_needs_grow(frame, frame.sp - 1) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 1] = i64(i32((f32(fv.value)).to_bits()))
                 frame.tag[frame.sp - 1] = .I32
                 frame.pc = frame.pc + 1
@@ -2848,12 +2602,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             is bc.BitsToF32 -> {
                 // Inverse : reinterpret the TOS u32 bit pattern (in an I32Val) as
                 // an f32, widened back into an F64Val for VM storage.
-                if frame.sp < 1 { return Trap { .message = "bits_to_f32 needs a value on the stack at pc=${frame.pc}" } }
                 iv :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f32")
                 if iv is Trap { return iv }
-                if stack_needs_grow(frame, frame.sp - 1) {
-                    stack_grow(frame)
-                }
                 frame.payload[frame.sp - 1] = i64((f64((u32(iv.value)).from_bits())).to_bits())
                 frame.tag[frame.sp - 1] = .F64
                 frame.pc = frame.pc + 1
@@ -2880,9 +2630,6 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame!) -> Trap | null {
         return Trap { .message = "array.new length ${length} is negative at pc=${frame.pc}" }
     }
     needed :: usize(length)
-    if frame.sp < needed {
-        return Trap { .message = "array.new type ${type_id} needs ${needed} initial element(s) but stack has ${frame.sp} at pc=${frame.pc}" }
-    }
     arg_base :: frame.sp - needed
     elements: Value[]!: [] * needed
     for element_index in 0..<needed {
@@ -2909,17 +2656,11 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame!) -> Trap | null {
 ///                 `BcStruct` ; stack carries fewer than `field_count`
 ///                 values.
 build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame!) -> Trap | null {
-    if type_id < 0 || usize(type_id) >= types.len() {
-        return Trap { .message = "struct.new type ${type_id} out of range at pc=${frame.pc}" }
-    }
     type_decl :: types[usize(type_id)]
     if !(type_decl is bc.BcStruct) {
         return Trap { .message = "struct.new type ${type_id} is not a struct at pc=${frame.pc}" }
     }
     field_count :: type_decl.fields.len()
-    if frame.sp < field_count {
-        return Trap { .message = "struct.new type ${type_id} needs ${field_count} field value(s) but stack has ${frame.sp} at pc=${frame.pc}" }
-    }
     arg_base :: frame.sp - field_count
     fields: Value[]!: []
     for field_index in 0..<field_count {
@@ -2959,9 +2700,6 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame!) -> Trap | nu
 ///                     negative size.
 /// @error              empty stack ; negative size.
 build_buffer :: fn(frame: Frame!, handle_cell: i32[]!) -> Trap | null {
-    if frame.sp < 1 {
-        return Trap { .message = "buffer.new needs size on stack at pc=${frame.pc}" }
-    }
     size_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "buffer.new size")
     if size_unwrap is Trap { return size_unwrap }
     if size_unwrap.value < 0 {
@@ -3017,9 +2755,6 @@ check_byte_range :: fn(off: i32, width: usize, bytes_len: usize, label: string, 
 /// @error        fewer than 2 stack slots ; non-object receiver ; negative or
 ///               out-of-range offset.
 load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
-    if frame.sp < 2 {
-        return Trap { .message = "${label} needs object + offset on stack at pc=${frame.pc}" }
-    }
     off_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "${label} offset")
     if off_unwrap is Trap { return off_unwrap }
     obj_unwrap :: read_obj(peek_val(frame, frame.sp - 2), frame.pc, "${label} receiver")
@@ -3063,7 +2798,6 @@ store_bytes_op :: fn(frame: Frame!, width: usize, value: u64, label: string) -> 
 /// @param frame  current top frame, mutated in place (1 operand dropped).
 /// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
 do_load_slot :: fn(frame: Frame!) -> Trap | null {
-    if frame.sp < 2 { return Trap { .message = "load_slot needs array + index on stack at pc=${frame.pc}" } }
     // Read the index straight off the columns: `read_i32(peek_val(…))` would box
     // it first, one allocation per indexing.
     if !is_i32_tag(frame.tag[frame.sp - 1]) {
@@ -3092,7 +2826,6 @@ do_load_slot :: fn(frame: Frame!) -> Trap | null {
 /// @param frame  current top frame, mutated in place (3 operands dropped).
 /// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
 do_store_slot :: fn(frame: Frame!) -> Trap | null {
-    if frame.sp < 3 { return Trap { .message = "store_slot needs array + index + value on stack at pc=${frame.pc}" } }
     value :: peek_val(frame, frame.sp - 1)
     if !is_i32_tag(frame.tag[frame.sp - 2]) {
         return arith_tag_trap(frame, 2, "store_slot index")
@@ -3120,9 +2853,6 @@ do_store_slot :: fn(frame: Frame!) -> Trap | null {
 /// @error        fewer than 5 stack slots ; non-object dst/src ; negative
 ///               length/offset ; source or dest range past the byte length.
 do_memory_copy :: fn(frame: Frame!) -> Trap | null {
-    if frame.sp < 5 {
-        return Trap { .message = "memory_copy needs dst + dst_off + src + src_off + n on stack at pc=${frame.pc}" }
-    }
     n_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "memory_copy n")
     if n_unwrap is Trap { return n_unwrap }
     src_off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "memory_copy src_off")

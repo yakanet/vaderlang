@@ -23,9 +23,6 @@ clamp_nonneg :: fn(v: i32) -> usize = if v < 0 { 0 } else { usize(v) }
 
 /// `array.copy` — overlap-safe window copy between two arrays.
 exec_array_copy :: fn(frame: Frame!) -> Trap | null {
-    if frame.sp < 5 {
-        return Trap { .message = "array.copy needs src + src_start + dst + dst_start + len on stack at pc=${frame.pc}" }
-    }
     len_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.copy len")
     if len_unwrap is Trap { return len_unwrap }
     dst_start_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.copy dst_start")
@@ -62,9 +59,6 @@ exec_array_copy :: fn(frame: Frame!) -> Trap | null {
 ///
 /// @param instr  the op itself — the view carries its own `type_id`.
 exec_array_slice :: fn(frame: Frame!, instr: bc.ArraySlice) -> Trap | null {
-    if frame.sp < 3 {
-        return Trap { .message = "array.slice needs array + lo + hi on stack at pc=${frame.pc}" }
-    }
     hi_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.slice hi")
     if hi_unwrap is Trap { return hi_unwrap }
     lo_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.slice lo")
@@ -92,9 +86,6 @@ exec_array_slice :: fn(frame: Frame!, instr: bc.ArraySlice) -> Trap | null {
 
 /// `array.push_all` — append every element of one array to another.
 exec_array_push_all :: fn(frame: Frame!) -> Trap | null {
-    if frame.sp < 2 {
-        return Trap { .message = "array.push_all needs dst + src on stack at pc=${frame.pc}" }
-    }
     src_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.push_all source")
     if src_unwrap is Trap { return src_unwrap }
     dst_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.push_all receiver")
@@ -114,9 +105,6 @@ exec_array_push_all :: fn(frame: Frame!) -> Trap | null {
 
 /// `array.repeat` — an array of `n` copies of one element.
 exec_array_repeat :: fn(frame: Frame!) -> Trap | null {
-    if frame.sp < 2 {
-        return Trap { .message = "array.repeat needs array + count on stack at pc=${frame.pc}" }
-    }
     count_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.repeat count")
     if count_unwrap is Trap { return count_unwrap }
     array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.repeat receiver")
@@ -143,9 +131,6 @@ exec_array_repeat :: fn(frame: Frame!) -> Trap | null {
 
 /// `string.slice_codepoints` — a codepoint-indexed substring.
 exec_string_slice_codepoints :: fn(frame: Frame!) -> Trap | null {
-    if frame.sp < 3 {
-        return Trap { .message = "string.slice_codepoints needs string + lo + hi at pc=${frame.pc}" }
-    }
     s_box  :: read_string(peek_val(frame, frame.sp - 3), frame.pc, "string.slice_codepoints receiver")
     lo_box :: read_i32   (peek_val(frame, frame.sp - 2), frame.pc, "string.slice_codepoints lo")
     hi_box :: read_i32   (peek_val(frame, frame.sp - 1), frame.pc, "string.slice_codepoints hi")
@@ -185,9 +170,6 @@ exec_string_slice_codepoints :: fn(frame: Frame!) -> Trap | null {
 exec_buffer_write_string :: fn(frame: Frame!) -> Trap | null {
     // Pop buffer + off + string ; memcpy the string's bytes into the
     // buffer at `off` (the parts-model `to_string` assembly step).
-    if frame.sp < 3 {
-        return Trap { .message = "buffer_write_string needs object + off + string at pc=${frame.pc}" }
-    }
     str_unwrap :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "buffer_write_string source")
     if str_unwrap is Trap { return str_unwrap }
     off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "buffer_write_string off")

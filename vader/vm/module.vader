@@ -60,6 +60,11 @@ export VmState :: struct {
     /// interns mangled names). A user `@extern` names a linker symbol, never a
     /// manifest entry, so it is recorded `NotIntrinsic` without classifying.
     import_ids: bc.IntrinsicId[]
+    /// The deepest each function's operand stack gets, index-aligned with
+    /// `bc.functions` (from `verify_module`). A frame's stack is sized to it when
+    /// the frame becomes active, so no push checks capacity.
+    @internal
+    max_depth: usize[]
 }
 
 /// Verify a `BytecodeModule` and wrap it in the runtime `VmState` `exec`
@@ -71,9 +76,9 @@ export VmState :: struct {
 /// @error         a `VerifyError` when the bytecode is malformed (`verify.vader`) ;
 ///                nothing of it runs.
 export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState | VerifyError {
-    rejected :: verify_module(bc_mod)
-    if rejected != null {
-        return rejected
+    depths :: verify_module(bc_mod)
+    if depths is VerifyError {
+        return depths
     }
     narrow: bool[]!: [] * bc_mod.functions.len()
     for f in bc_mod.functions {
@@ -103,5 +108,6 @@ export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState | VerifyError {
         .fn_index_by_name     = by_name,
         .fused                = fuse_module(bc_mod),
         .import_ids           = import_ids,
+        .max_depth            = depths,
     }
 }

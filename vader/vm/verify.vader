@@ -4,8 +4,9 @@
 // for every execution: the operand-stack depth at each pc, that no op pops below
 // the bottom of its frame's stack, that every immediate index (slot, fn, import,
 // pool, string, type) names something, that every jump lands inside the body, and
-// that every path out of a value-returning function leaves its results. `prepare`
-// rejects a module that fails, so `exec` never meets malformed bytecode.
+// that every path out of a function leaves exactly its results. `prepare` rejects
+// a module that fails, so `exec` never meets malformed bytecode — and sizes each
+// frame's stack to the deepest point found, so no push checks capacity.
 //
 // Blocks carry no values: a scope marker (`block` / `loop` / `if` / `else` /
 // `end`) moves nothing, and a jump must land at the depth it left. The analysis is
@@ -38,16 +39,19 @@ export display_verify_error :: fn(e: VerifyError) -> string = "${e.message} at p
 /// Verify every function of `module` ; see the file header for what is checked.
 ///
 /// @param module  the module `prepare` is about to wrap.
-/// @return        `null` when every body is sound, the first defect otherwise.
-/// @error         a `VerifyError` naming the function, the pc and the defect.
-export verify_module :: fn(module: bc.BytecodeModule) -> VerifyError | null {
+/// @return        the deepest the operand stack gets in each function, index-aligned
+///                with `module.functions` — what a frame's stack is sized to.
+/// @error         a `VerifyError` naming the function, the pc and the first defect.
+export verify_module :: fn(module: bc.BytecodeModule) -> usize[]! | VerifyError {
+    depths: usize[]!: [] * module.functions.len()
     for f in module.functions {
         found :: verify_function(module, f)
-        if found != null {
+        if found is VerifyError {
             return found
         }
+        depths.push(found)
     }
-    return null
+    return depths
 }
 
 /// Every defect of `module`, one per failing function — the report form of
@@ -59,7 +63,7 @@ export verify_all :: fn(module: bc.BytecodeModule) -> VerifyError[]! {
     out: VerifyError[]!: []
     for f in module.functions {
         found :: verify_function(module, f)
-        if found != null {
+        if found is VerifyError {
             out.push(found)
         }
     }
@@ -79,11 +83,13 @@ Flow :: enum { Next, Jump, Fork, Stop }
 
 effect :: fn(pops: usize, pushes: usize) = StackEffect { .pops = pops, .pushes = pushes, .flow = .Next }
 
-verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> VerifyError | null {
+// The function's deepest operand stack, or its first defect.
+verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> usize | VerifyError {
     n :: f.body.len()
     if n == 0 {
-        return null
+        return 0
     }
+    deepest: usize = 0
     results :: bc.bc_result_arity(f.signature)
     depth: i64[]!: [-1] * n
     depth[0] = 0
@@ -96,10 +102,13 @@ verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> VerifyErro
         if d < e.pops {
             return defect(f, pc, "`${op_text(op)}` needs ${e.pops} value(s) but the stack holds ${d}")
         }
-        if op is bc.Return && d < results {
-            return defect(f, pc, "`return` needs ${results} value(s) but the stack holds ${d}")
+        if op is bc.Return && d != results {
+            return defect(f, pc, "`return` returns ${results} value(s) but the stack holds ${d}")
         }
         after :: d - e.pops + e.pushes
+        if after > deepest {
+            deepest = after
+        }
         if e.flow == .Next || e.flow == .Fork {
             // Falling off the end is a `return` with nothing on top.
             fall :: flow_to(f, depth, work, pc + 1, after, pc, results)
@@ -118,7 +127,7 @@ verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> VerifyErro
             }
         }
     }
-    return null
+    return deepest
 }
 
 // Control reaching `at` with `d` values: past the last op it leaves the function,
@@ -129,7 +138,7 @@ flow_to :: fn(
     if at < f.body.len() {
         return merge(f, depth, work, at, d, from)
     }
-    if d < results {
+    if d != results {
         return defect(f, from, "control leaves the body with ${d} value(s) where ${results} are returned")
     }
     return null
@@ -196,9 +205,11 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
         is bc.MakeClosure -> if in_range(op.function_index, module.functions.len()) { effect(1, 1) } else { null }
         is bc.StructNew  -> struct_new_effect(module, op.type_id)
         is bc.ArrayNew   -> if op.length >= 0 { effect(usize(op.length), 1) } else { null }
-        is bc.I32Const | bc.NullConst | bc.BoolConst | bc.CharConst | bc.F64Const | bc.I64Const
-         | bc.TypeConst -> effect(0, 1)
-        is bc.StructGet | bc.ArrayLen | bc.RefCast | bc.Box | bc.Convert | bc.TypeCheck
+        is bc.TypeConst  -> if in_range(op.type_id, module.types.len()) { effect(0, 1) } else { null }
+        is bc.TypeCheck  -> if in_range(op.type_id, module.types.len()) { effect(1, 1) } else { null }
+        is bc.I32Const | bc.NullConst | bc.BoolConst | bc.CharConst | bc.F64Const
+         | bc.I64Const -> effect(0, 1)
+        is bc.StructGet | bc.ArrayLen | bc.RefCast | bc.Box | bc.Convert
          | bc.SizeOfType | bc.ArrayRemoveLast | bc.BufferNew | bc.I32Neg | bc.I32BitNot
          | bc.I64Neg | bc.I64BitNot | bc.F64Neg | bc.BoolNot | bc.F64ToBits | bc.BitsToF64
          | bc.F32ToBits | bc.BitsToF32 -> effect(1, 1)
@@ -295,7 +306,7 @@ rejection :: fn(body: string) -> string {
         return "fixture does not parse"
     }
     found :: verify_module(module)
-    return if found == null { "" } else { found.message }
+    return if found is VerifyError { found.message } else { "" }
 }
 
 @test
@@ -310,7 +321,7 @@ test_verify_rejects_a_pop_below_the_stack :: fn() -> void {
 
 @test
 test_verify_rejects_a_bare_return_from_a_value_function :: fn() -> void {
-    assert("`return` needs 1 value(s)" in rejection("  return\n"), "bare return from -> i32")
+    assert("`return` returns 1 value(s)" in rejection("  return\n"), "bare return from -> i32")
 }
 
 @test
