@@ -824,7 +824,7 @@ export infer_call :: fn(
         report_unbound_type_args(c, callee_ty, bindings, arg_types, expected, n, typed, diags)
         for i in 0..<n {
             want :: substitute_map(callee_ty.params[i], bindings)
-            reject_immutable_into_mutable_param(callee_ty, i, c, typed, diags)
+            reject_immutable_into_mutable_param(callee_ty, i, want, c, typed, diags)
             if type_contains_type_param(want)                          { continue }
             // A SUBSTITUTED element bit is fiction — see `substituted_element_fiction`.
             // Decided once : the guard walks the declared type recursively.
@@ -893,7 +893,7 @@ export infer_call :: fn(
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-        reject_immutable_into_mutable_param(callee_ty, i, c, typed, diags)
+        reject_immutable_into_mutable_param(callee_ty, i, param_ty, c, typed, diags)
         // T3072 above owns struct mutability at an argument, and says it better (it
         // names the parameter and the annotatable root). Clear the top-level struct
         // bit so the generic assignability check doesn't double-report the same
@@ -976,7 +976,8 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram!) -> void {
     // but leaving a type that lies is how the literal-vs-local mismatch started,
     // and the LSP reads these same entries for hover.
     typed.expr_types[target_ident.id] = widened
-    typed.expr_types[c.callee.id] = mk_fn([element], TY_VOID)
+    // `push` takes `value: T!` ; the rebuilt member keeps the marker.
+    typed.expr_types[c.callee.id] = FnType { .params = [element], .params_mutable = [true], .return_type = TY_VOID }
     init_id :: typed.empty_array_inits[binding_key] ?? return
     typed.expr_types[init_id] = widened
 }
@@ -1444,6 +1445,8 @@ arg_mutability_cleared :: fn(t: Type) -> Type = if t is ArrayType { t } else { e
 // Ignoring that claim costs nothing: inside a generic body the element is a `T`, and
 // `type_grants_mutation` answers false for a type param, so the callee cannot write
 // through a promise it never made. A written `Box![]` still has its element judged.
+// Where the callee STORES a `T`, it says so with `T!`, and that is judged apart, in
+// `reject_immutable_into_mutable_param`.
 // The TOP level is excluded: a bare `T` is judged by `type_grants_mutation`, which
 // answers false for a type param, and a fn type carries no element bit to be fiction
 // about — its per-parameter marker rides `params_mutable`.
@@ -1471,12 +1474,19 @@ arg_mutability_cleared_each :: fn(ts: Type[]) -> Type[] {
     return out
 }
 
-// T3071's job, in `field.vader`.
+// T3071's job, in `field.vader`. `param_ty` is parameter `i` as this call sees it,
+// substituted.
 reject_immutable_into_mutable_param :: fn(
-    callee_ty: FnType, i: usize, c: AST.CallExpr,
+    callee_ty: FnType, i: usize, param_ty: Type, c: AST.CallExpr,
     typed: TypedProgram, diags: Diagnostic[]!,
 ) -> void {
     if !param_mutable_at(callee_ty, i) {
+        return
+    }
+    // A `!` on a type parameter promises as much mutation as `T` is bound to, and
+    // no more: `push :: fn(self!, value: T!)` stores `value` in the receiver, so a
+    // `Box![]` demands a mutable `Box` while a `Box[]` or an `i32[]` asks nothing.
+    if !type_may_grant_mutation(param_ty) {
         return
     }
     // Return value ignored: the remaining arguments must still be typed.

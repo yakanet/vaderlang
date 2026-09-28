@@ -1,0 +1,14 @@
+// The module-const freeze is recursive: `TABLE` is `Box[]`, spine AND elements, so
+// an element cannot fill a slot that promises a mutable `Box`. T3077.
+module "snippet"
+
+Box :: struct {
+    n: i32
+}
+
+TABLE :: [Box { .n = 1 }]
+
+main :: fn() -> i32 {
+    w: Box!: TABLE[0]
+    return w.n
+}

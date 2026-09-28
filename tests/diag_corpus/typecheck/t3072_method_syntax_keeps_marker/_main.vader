@@ -1,0 +1,28 @@
+// A `!` parameter binds the same way whether the function is called bare or through
+// method syntax: `c.absorb(CFG)` is `absorb(c, CFG)`, and the marker on `other` still
+// forbids a read-only argument. The receiver is dropped from the method's type, its
+// markers are not. T3072.
+module "snippet"
+
+Cfg :: struct {
+    count: i32
+}
+
+CFG :: Cfg { .count = 1 }
+
+Merges :: trait {
+    absorb :: fn(self!, other: Cfg!) -> void
+}
+
+Cfg implements Merges {
+    absorb :: fn(self!, other: Cfg!) -> void {
+        self.count += other.count
+        other.count = 0
+    }
+}
+
+main :: fn() -> i32 {
+    c :: Cfg { .count = 0 }
+    c.absorb(CFG)
+    return c.count
+}

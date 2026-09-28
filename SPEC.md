@@ -1662,7 +1662,7 @@ Vader separates **who may rebind a name** from **who may mutate what it points a
 
 **The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041).
 
-**The referent.** An **inferred local is owned**: `::` freezes only its binding, so `p.x = 5` and `x :: [1, 2] ; x.push(3)` stay legal. A **written type is a read-only slot** — that covers parameters, struct fields, return types *and* annotated locals, see below. And a **module-level const freezes both**: it has no runtime storage (its value is rebuilt at each read site), so a write through it would be silently discarded, and is rejected instead (T3070).
+**The referent.** An **inferred local is owned**: `::` freezes only its binding, so `p.x = 5` and `x :: [1, 2] ; x.push(3)` stay legal. A **written type is a read-only slot** — that covers parameters, struct fields, return types *and* annotated locals, see below. And a **module-level const freezes both, at every level**: its value is not the reader's to change, so a write through it is rejected (T3070) — directly, through an element (`TABLE[0].n = 1`), or through a local bound from it: `p :: ORIGIN` is a read-only view of the const, not a copy. A mutable copy is spelled as one, `p :: Point { ...ORIGIN }`.
 
 ```vader
 CONFIG :: Config { .retries = 3 }
@@ -1671,7 +1671,8 @@ main :: fn() -> i32 {
     p :: Point { .x = 1, .y = 2 }
     p.x = 5              // OK — a local is owned; `::` froze the name, not the contents
     // p = otherPoint    // T3041 — that IS the binding
-    // CONFIG.retries = 5  // T3070 — a module const has no storage to mutate
+    // CONFIG.retries = 5  // T3070 — a module const is frozen
+    // c :: CONFIG ; c.retries = 5   // T3070 — `c` is a view of it, not a copy
     return 0
 }
 ```
@@ -1740,6 +1741,19 @@ Invariance is enforced in one direction only, the unsound one: a value may alway
 
 A **generic** parameter is the exception, and it has to be: inference binds `T` from the argument's *shape*, dropping mutability, or `MutableMap<i32, Cfg>` built from a borrow would stop being the same type as one built from a local. So `sort<T>(arr: T[], …)` takes a `Cfg[]` and a `Cfg![]` alike, and the exemption costs nothing — inside the body the element is a `T`, which grants no mutation, so the callee cannot write through a claim inference invented for it.
 
+**A generic that stores its argument** says so. The exemption covers what the callee *does* with a `T`, not where it *puts* it: `push` writes nothing through its argument, but stores it in an array that hands it back writable. Such a parameter carries the marker on the type parameter — `push :: fn(self!, value: T!)` — and the argument must then be as mutable as `T` is bound to:
+
+```vader
+held: Cfg![]!: []
+held.push(borrowed)       // T3072 — it would come back out as a mutable `Cfg`
+frozen: Cfg[]!: []
+frozen.push(borrowed)     // fine — `T` is `Cfg`, frozen ; the marker asks nothing
+ints: i32[]!: []
+ints.push(n)              // fine — a scalar has no level to grant
+```
+
+Inside the generic body an unbound `T` asks nothing either: the call that binds it is the one judged. The marker holds through method syntax as through a bare call — `c.absorb(x)` checks `absorb`'s parameters exactly as `absorb(c, x)` does.
+
 #### In a union, the marker is distributed
 
 A union carries no mutability of its own — each variant carries its own. `u8[]! | Err` marks **only** the array; `Err` stays read-only. This is why the marker is a suffix: a prefix would read as governing the whole union.
@@ -1779,7 +1793,7 @@ freeze :: fn(cfgs: Cfg[]) -> Cfg[]! {
 
 #### Only a type with an interior takes the marker
 
-`!` grants mutation *through* a slot, so it means something only where there is something to mutate: an array, a struct, a tuple. On a **primitive**, an **enum**, a **fn** or **`never`** the marker is a no-op, and writing it is T3075 — `s: string!` was a promise the compiler dropped silently. A **type parameter** (`fn<T>(x: T!)`) is not rejected: the marker there is intent about the instantiation, which may well be a struct.
+`!` grants mutation *through* a slot, so it means something only where there is something to mutate: an array, a struct, a tuple. On a **primitive**, an **enum**, a **fn** or **`never`** the marker is a no-op, and writing it is T3075 — `s: string!` was a promise the compiler dropped silently. A **type parameter** (`fn<T>(x: T!)`) is not rejected: the marker there is intent about the instantiation, which may well be a struct — see *A generic that stores its argument* below.
 
 #### `self`
 

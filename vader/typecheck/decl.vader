@@ -1128,7 +1128,7 @@ declare_const :: fn(
         // type is read-only, so an annotated const that skipped it goes back to
         // being rebuilt op-by-op at every read site (one `.const` per element plus
         // an `array.new`, instead of a single `data.const`). The UNANNOTATED path
-        // gets the same result through `auto_const_module_array`.
+        // gets the same result through `auto_freeze_module_const`.
         _       -> {
             ty :: apply_readonly_default(type_from_expr(annotation, resolved, diags), annotation)
             reject_mutable_module_const(ty, annotation, diags)

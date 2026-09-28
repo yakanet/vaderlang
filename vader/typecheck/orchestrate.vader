@@ -2305,16 +2305,18 @@ ufcs_method_type :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> Type {
+    has_self :: fd.params.len() > 0 && fd.params[0].name == "self"
     rest: Type[]!: []
-    for i in 0..<fd.params.len() {
-        p :: fd.params[i]
-        if i == 0 && p.name == "self" {
-            continue
-        }
-        rest.push(param_type(p, for_ty, typed, diags))
+    for i in (if has_self { 1 } else { 0 })..<fd.params.len() {
+        rest.push(param_type(fd.params[i], for_ty, typed, diags))
     }
     ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
-    return mk_fn(rest, ret)
+    // The markers ride along, or a `!` parameter reached by method syntax would
+    // never be checked against its argument (T3072).
+    if has_self {
+        return member_fn_type(fd, rest, ret)
+    }
+    return FnType { .params = rest, .params_mutable = params_mutable_of(fd.params), .return_type = ret }
 }
 
 /// Pre-walk an impl method's signature so `self` resolves to the impl block's
@@ -2459,33 +2461,20 @@ check_const_value :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, diags: Diagnos
     }
     got :: check_expr(cd.value, expected, typed, diags)
     if annot is null {
-        typed.decl_types[sym.id] = auto_const_module_array(default_if_free(got))
+        typed.decl_types[sym.id] = auto_freeze_module_const(default_if_free(got))
     }
 }
 
-// A module-level const has NO runtime storage : `lower/inline_consts.vader`
-// re-builds its value at every read site (`inline` bucket) or returns a freshly
-// built literal from a synthesised accessor (`fn-wrap` bucket). So a mutation
-// through such a const targets a throwaway copy and is silently discarded —
-// `KEYWORDS[0] = "x"` used to compile and do nothing. An UNANNOTATED const whose
-// inferred type is a mutable array is therefore auto-typed read-only `T[]`, turning
-// that silent loss into T3042 at typecheck. This is what SPEC.md §"Read-only arrays"
-// (Inference) has always promised.
-//
-// `@comptime` consts have a second, harder reason : a primitive array is
-// materialised into read-only `.rodata`, where mutating would segfault. They are
-// covered by the same rule, no longer by a dedicated one.
+// An UNANNOTATED module const is frozen at every level — the same recursive default
+// a written type takes. `lower/inline_consts.vader` may hand every read the same
+// value (a `.rodata` view for a baked one), so a write through it, an element of
+// it, or a local bound from it would land in memory the program does not own:
+// silently lost, shared with every other reader, or a fault in `.rodata`. Frozen,
+// each of those is T3070 / T3042 / T3077 at typecheck instead.
 //
 // Explicit annotations are respected (this only runs when `annot is null`), so
-// `X: u32[]: [...]` stays a mutable, non-baked opt-out.
-auto_const_module_array :: fn(t: Type) -> Type {
-    if t is ArrayType {
-        if !t.immutable {
-            return mk_array(t.element, true)
-        }
-    }
-    return t
-}
+// `X: u32[]!: [...]` stays the writable-global opt-out.
+auto_freeze_module_const :: fn(t: Type) -> Type = apply_readonly_default(t, null)
 
 lookup_sym_by_name_orch :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
     for s in resolved.symbols {

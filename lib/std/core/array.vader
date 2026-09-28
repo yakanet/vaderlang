@@ -23,7 +23,9 @@ export ArrayOps :: trait<T> {
     /// Number of live elements.
     len :: fn(self) -> usize
     /// Append `value` to the end, growing the backing storage as needed.
-    push :: fn(self!, value: T) -> void
+    /// `value` is stored, hence the marker: on a `Box![]` it must be a mutable
+    /// `Box`, since the array hands it back writable.
+    push :: fn(self!, value: T!) -> void
     /// Append every element of `other` (a borrowed, immutable view).
     push_all :: fn(self!, other: T[]) -> void
     /// Copy `count` elements from `self[src_off..]` into `dst[dst_off..]`.

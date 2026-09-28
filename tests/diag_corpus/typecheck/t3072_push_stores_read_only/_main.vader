@@ -1,0 +1,26 @@
+// `push :: fn(self!, value: T!)` STORES its argument, and the array hands it back
+// writable when its elements are `Box!` — so a read-only `Box` cannot go in: it
+// would come out mutable. On a baked const the write lands in read-only memory.
+//
+// The marker asks as much as `T` is bound to: an `i32[]` or a `Box[]` (frozen
+// elements) take a read-only value without complaint. T3072.
+module "snippet"
+
+Box :: struct {
+    n: i32
+}
+
+TABLE :: [Box { .n = 1 }]
+
+keep :: fn(b: Box) -> usize {
+    held: Box![]!: []
+    held.push(b)
+    held.push(TABLE[0])
+    frozen: Box[]!: []
+    frozen.push(b)
+    ints: i32[]!: []
+    ints.push(b.n)
+    return held.len() + frozen.len() + ints.len()
+}
+
+main :: fn() -> i32 = i32(keep(Box { .n = 0 }))

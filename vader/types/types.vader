@@ -467,6 +467,33 @@ export type_grants_mutation :: fn(t: Type) -> bool = match t {
      | NeverType | AnyType | DistinctType -> false
 }
 
+/// Whether ANY level of `t` could hand out mutation — the "some variant" dual of
+/// `type_grants_mutation`. False for a scalar, a frozen array / struct / tuple, or
+/// a union of those ; a distinct type answers for its backing.
+///
+/// An unbound type parameter answers false: inside a generic body `T` grants
+/// nothing, and the call that binds it is where an argument is judged. A trait,
+/// `Self` or an unresolved type answers true — nothing is known yet.
+///
+/// @param t  the type to ask.
+export type_may_grant_mutation :: fn(t: Type) -> bool = match t {
+    is ArrayType | StructType | TupleType -> !type_is_immutable(t)
+    is UnionType     -> any_variant_may_grant_mutation(t.variants)
+    is DistinctType  -> type_may_grant_mutation(t.backing)
+    is TraitType | SelfType | AnyType | UnresolvedType -> true
+    is PrimitiveType | EnumType | FnType | TypeParamType | TypeMetaType | FreeIntType
+     | FreeFloatType | FreeCharType | NeverType -> false
+}
+
+any_variant_may_grant_mutation :: fn(variants: Type[]) -> bool {
+    for v in variants {
+        if type_may_grant_mutation(v) {
+            return true
+        }
+    }
+    return false
+}
+
 variants_grant_mutation :: fn(variants: Type[]) -> bool {
     if variants.len() == 0 {
         return false

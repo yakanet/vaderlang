@@ -126,9 +126,10 @@ push_value :: fn(stack: Value[]!, cursor: usize, value: Value) -> void {
 /// keeps the boxed `Value` in the refs column.
 StackTag :: enum(u8) { I32, I64, F64, Bool, Char, Null, Ref }
 
-/// Shared placeholder written into a refs column over a freshly-grown slot,
-/// never dereferenced (its tag is not `StackTag.Ref`) but kept valid so the GC's
-/// generic scan of the refs array never chases garbage.
+/// What a `.Null` slot reads back as. A freshly-grown refs column takes a fresh
+/// `NullVal {}` rather than this: the column is `Value![]`, and a module const is
+/// read-only. The filler is never dereferenced (its tag is not `StackTag.Ref`) but
+/// stays valid so the GC's generic scan of the refs array never chases garbage.
 NULL_VALUE :: NullVal {}
 
 /// True when `t` marks a value `read_i32` accepts (i32 / char / i64 carriers).
@@ -207,7 +208,7 @@ convert_int_fast :: fn(frame: Frame!, target: ConvertTarget, from_name: string) 
 stack_grow :: fn(frame: Frame!) -> void {
     frame.payload.push(0)
     frame.tag.push(.Null)
-    frame.stack.push(NULL_VALUE)
+    frame.stack.push(NullVal {})
 }
 
 /// True when `cursor` needs a fresh slot in the three stack columns.
@@ -592,8 +593,9 @@ push_callee_frame :: fn(frames: Frame![]!, cursor: usize[]!, function_index: i32
     f.pc = 0
     f.defer_count = 0
     if f.slot_payload.len() < total {
+        filler :: NullVal {}
         for _ in f.slot_payload.len()..<total {
-            f.slots.push(NULL_VALUE)
+            f.slots.push(filler)
             f.slot_payload.push(0)
             f.slot_tag.push(.Null)
         }
@@ -666,8 +668,9 @@ build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Fra
     slots: Value![]!: []
     slot_payload: i64[]!: []
     slot_tag: StackTag[]!: []
+    filler :: NullVal {}
     for _ in 0..<total {
-        slots.push(NULL_VALUE)
+        slots.push(filler)
         slot_payload.push(0)
         slot_tag.push(.Null)
     }
@@ -704,7 +707,7 @@ build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Fra
 /// stack, so they are decomposed one-off through `slot_set`.
 build_entry_frame :: fn(function_index: i32, callee: bc.BcFunction, args: Value![]) -> Frame {
     total :: callee.signature.params.len() + callee.locals.len()
-    slots: Value![]!: [NULL_VALUE] * total
+    slots: Value![]!: [NullVal {}] * total
     slot_payload: i64[]!: [0] * total
     slot_tag: StackTag[]!: [.Null] * total
     result :: Frame {

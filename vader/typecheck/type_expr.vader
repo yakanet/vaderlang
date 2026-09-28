@@ -425,6 +425,21 @@ params_mutable_of :: fn(ps: AST.FnParam[]) -> bool[] {
     return if any_mutable { out } else { [] }
 }
 
+/// `params_mutable_of` for a member called with its receiver curried away: the
+/// flags of `ps[1..]`, empty when none of them is marked.
+///
+/// @param ps  the member's parameters, receiver first.
+params_mutable_after_receiver :: fn(ps: AST.FnParam[]) -> bool[] {
+    out: bool[]!: []
+    any_mutable := false
+    for i in 1..<ps.len() {
+        m :: AST.param_is_mutable(ps[i])
+        if m { any_mutable = true }
+        out.push(m)
+    }
+    return if any_mutable { out } else { [] }
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

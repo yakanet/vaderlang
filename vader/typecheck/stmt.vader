@@ -480,7 +480,7 @@ patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram!)
             sp_key :: fn_decl.name_span.hash()
             cur :: typed.impl_method_decl_types[sp_key]
             match cur {
-                is FnType -> { typed.impl_method_decl_types[sp_key] = mk_fn(cur.params, ret) }
+                is FnType -> { typed.impl_method_decl_types[sp_key] = mk_fn_like(cur, cur.params, ret) }
                 _         -> {}
             }
         }
@@ -1466,10 +1466,9 @@ immutable_root_symbol :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null =
 ///
 /// @param container  the expression the written field belongs to.
 export container_is_immutable :: fn(container: AST.Expr, typed: TypedProgram) -> bool {
-    // A STORAGELESS module const is frozen whatever its type says : an unannotated
-    // struct const takes its type from a fresh literal, which is mutable, so asking
-    // the type alone would let the write through — and it would be discarded, since
-    // the value is rebuilt at every read. Only the path knows this.
+    // A module const without writable storage is frozen at every level. Its type
+    // says so once declared (`auto_freeze_module_const`) ; the path answers too, so
+    // the guard holds before that type is recorded.
     if rooted_in_storageless_const(container, typed) {
         return true
     }
@@ -1501,10 +1500,8 @@ export expr_is_immutable :: fn(
 NARROW_BORROW_BUDGET :: 8
 
 expr_is_immutable_within :: fn(e: AST.Expr, typed: TypedProgram, budget: i32) -> bool {
-    // A storageless module const wins over everything below: an unannotated struct
-    // const takes its type from a fresh literal, which is MUTABLE, so the type lies.
-    // Only the path knows the write would land on a throwaway copy. Same precedence
-    // as `container_is_immutable`, which leads with the same guard.
+    // A module const without writable storage wins over everything below — same
+    // guard, same precedence as `container_is_immutable`.
     //
     // Asked ONCE, here : it is a property of the path's ROOT, so `a.b.c`, `a.b` and
     // `a` all have the same answer, and `walk_levels` below must not re-ask it at
@@ -1599,8 +1596,7 @@ mark_loop_var_borrow :: fn(
     // Recorded for EVERY loop variable — see `loop_var_iterable`'s doc for why the
     // interesting case never reaches the borrow marking below.
     typed.loop_var_iterable[sym.id] = iter
-    // Storageless const first, for the reason `expr_is_immutable_within` gives: its
-    // element type comes from a literal and claims to be mutable.
+    // A const without writable storage first, as in `expr_is_immutable_within`.
     if rooted_in_storageless_const(iter, typed) {
         typed.resolved.immutable_borrows[sym.id] = true
         return

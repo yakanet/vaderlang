@@ -92,7 +92,7 @@ impl_receiver_type_from_decl :: fn(fd: LoweredFnDecl, _typed: TypedProject) -> T
     return fd.params[0].type
 }
 
-push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDecl) -> void {
+push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDecl!) -> void {
     m :: project.modules[module_id] ?? return
     if m is LoweredModule {
         m.decls.push(decl)

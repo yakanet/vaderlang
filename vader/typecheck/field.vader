@@ -1088,7 +1088,7 @@ try_default_trait_method :: fn(
             // Substitute Self → struct, then trait type-params →
             // recorded impl args. Lets `(0..<5).last()` report
             // `i32 | null` instead of `T | null`.
-            sub_self :: substitute_self(mk_fn(params, ret), target_ty)
+            sub_self :: substitute_self(member_fn_type(m, params, ret), target_ty)
             return substitute_trait_typeparams(sub_self, decl, trait_name, target_ty, typed)
         }
     }
@@ -1182,9 +1182,17 @@ try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type 
         }
         ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
         padded :: pad_trait_default_args(t.args, decl.type_params, owner_resolved)
-        return substitute_by_name(mk_fn(params, ret), decl.type_params, padded)
+        return substitute_by_name(member_fn_type(m, params, ret), decl.type_params, padded)
     }
     return null
+}
+
+// A trait member's type with its receiver dropped — `params` are its tail — and
+// the tail's `!` markers kept, so T3072 still sees them through method syntax.
+member_fn_type :: fn(m: AST.FnDecl, params: Type[], ret: Type) -> Type = FnType {
+    .params         = params,
+    .params_mutable = params_mutable_after_receiver(m.params),
+    .return_type    = ret,
 }
 
 type_from_expr_opt_in :: fn(e: AST.TypeExpr | null, resolved: ResolvedModule) -> Type {

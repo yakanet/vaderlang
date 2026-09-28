@@ -24,8 +24,8 @@
 //     a `data.const` op, so the value exists in one place instead of being
 //     rebuilt. Tried FIRST ; mutable arrays are refused outright.
 //
-// Since `orchestrate::auto_const_module_array` pins every unannotated
-// module-level array const as read-only `T[]`, the data pool is now the default
+// Since `orchestrate::auto_freeze_module_const` pins every unannotated
+// module-level const as read-only at every level, the data pool is now the default
 // route for them (`KEYWORDS`, `TOKEN_TYPES`, …) and fn-wrap is reached only by
 // consts that opt out with an explicit mutable annotation, or whose elements
 // aren't bakeable. `tests/snippets/const_fn_wrap` guards that remaining path.

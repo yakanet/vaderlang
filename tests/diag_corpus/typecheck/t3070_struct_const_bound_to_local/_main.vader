@@ -1,0 +1,15 @@
+// A module const is frozen at every level, and a local bound from it borrows that:
+// `p :: ORIGIN` is a read-only view of the const, not a copy of it. T3070.
+module "snippet"
+
+Point :: struct {
+    x: i32
+}
+
+ORIGIN :: Point { .x = 1 }
+
+main :: fn() -> i32 {
+    p :: ORIGIN
+    p.x = 5
+    return p.x
+}

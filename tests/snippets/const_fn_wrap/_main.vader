@@ -5,7 +5,7 @@
 // (the suite never exercises the Vader emitter outside VADER_SELF_EMIT).
 //
 // The GENERIC struct element is LOAD-BEARING — do not "clean it up" to a plain
-// `Spec`. Every module const is read-only (`auto_const_module_array` for the
+// `Spec`. Every module const is read-only (`auto_freeze_module_const` for the
 // unannotated ones, the read-only default for the annotated ones), so the pool
 // would otherwise bake this array and leave fn-wrap with no regression guard.
 // `inline_consts::is_bakeable_struct` refuses a struct carrying type args
