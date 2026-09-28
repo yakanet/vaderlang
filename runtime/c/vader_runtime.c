@@ -191,6 +191,10 @@ static uint8_t g_mark_value = 1u;
  * address it may call it at any later point, through any other function. */
 uint8_t vader_ffi_callback_escaped = 0u;
 
+/* Set for the one minor `vader_ffi_callback_first_escape` runs: a shared array
+ * buffer is promoted, whatever its age. */
+static uint8_t g_minor_promote_shared = 0u;
+
 /* Gray worklist — objects whose slots still need scanning. Reused by both
  * cycles: minor pushes freshly-promoted old objects (to forward their young
  * refs); major pushes freshly-marked old objects (to mark their children). */
@@ -1945,11 +1949,14 @@ static void* vader_gc_forward(void* obj, uint32_t type_index) {
     size_t bytes = vader_gc_obj_size(obj, type_index);
     if (bytes == 0) return obj;
 
-    /* Promote into the slab old gen once the object has earned its tenure. If the
+    /* Promote into the slab old gen once the object has earned its tenure, or is
+     * a shared buffer the first callback escape needs still. If the
      * old reservation is exhausted, fall back to surviving another cycle in
      * young.to — the retry path in vader_gc_alloc escalates to a major (whose
      * sweep frees old room) and traps only at the true cap. */
-    if (hdr->age + 1u >= VADER_TENURE_AGE) {
+    if (hdr->age + 1u >= VADER_TENURE_AGE
+        || (VADER_UNLIKELY(g_minor_promote_shared) && type_index == VADER_TYPE_INDEX_ARRAY_BUF
+            && vader_array_buf_is_shared((vader_array_buf_t*) obj))) {
         void* dst = vader_gc_promote(obj, hdr, bytes, (uint8_t)(hdr->age + 1u));
         if (dst != NULL) {
             g_total_copied += bytes;
@@ -2796,6 +2803,18 @@ static void vader_array_store_slot(vader_array_buf_t* buf, size_t i, vader_box_t
  * the Target-ABI Array-accessor retirement. `push` / `slice` / `new` stay (the
  * GC-coupled construction primitives). */
 
+/* From here on a lend may collect, so every shared buffer must be still: the
+ * ones sliced before now are promoted, inside a collection that rewrites every
+ * header of them. Invariant: vader.h, `VADER_ARRAY_RESOLVE_BUF`. */
+void vader_ffi_callback_first_escape(void) {
+    vader_ffi_callback_escaped = 1u;
+    g_minor_promote_shared = 1u;
+    vader_minor_collect();
+    g_minor_promote_shared = 0u;
+}
+
+static void* vader_gc_force_tenure(void* obj);
+
 vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi) {
     a = vader_array_resolve(a);
     /* Clamp bounds against the header length (independent of `buf`, so it's
@@ -2835,6 +2854,15 @@ vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi) {
     vader_array_t* view = (vader_array_t*) vader_gc_alloc(vader_gc_align(sizeof(vader_array_t)));
     vader_gc_top = frame.prev;
     a = (vader_array_t*) a_box.payload.obj;
+    /* A second header now shares this buffer: mark it, and once a callback has
+     * escaped, make it still. Only a young buffer can move — an immortal one may
+     * sit in read-only memory. Invariant: vader.h, `VADER_ARRAY_RESOLVE_BUF`. */
+    if (a->buf != NULL && vader_in_young_from(a->buf)) {
+        if (vader_ffi_callback_escaped) {
+            a->buf = (vader_array_buf_t*) vader_gc_force_tenure(a->buf);
+        }
+        vader_array_buf_mark_shared(a->buf);
+    }
     vader_obj_header_init(view, tag);
     view->length   = len;
     /* Views aren't growable in-place — push detaches into a fresh buf. */
@@ -2861,12 +2889,14 @@ static vader_array_t* vader_array_resolve(vader_array_t* a) {
 /* Force a young object into the NON-MOVING old generation so a pointer into it
  * survives a foreign call, leaving a forwarding pointer behind.
  *
- * NOT a pin — the object MOVES, and safety rests entirely on every reader
- * re-resolving through `forward`. The array data buffer is such a reader
- * (`vader_array_resolve_buf` runs at every site that touches `buf->slots`); an
- * object Vader holds directly is NOT, because the caller's own local would keep
- * addressing the evacuated copy until the next minor rewrote it, and every write
- * in between would be lost. Those root the pointer across the call instead.
+ * NOT a pin — the object MOVES, outside any collection, so the caller must
+ * rewrite every reference to it. For an array data buffer that is the one header
+ * the caller holds: a buffer with a second header was sliced and marked shared
+ * (`vader_array_slice`), and the lend leaves it alone. An object
+ * Vader holds directly is NOT safe to move this way — the caller's own local
+ * would keep addressing the evacuated copy until the next minor rewrote it, and
+ * every write in between would be lost. Those root the pointer across the call
+ * instead.
  *
  * Tenuring is permanent: the old generation is non-moving, so the object never
  * returns to young and only a major reclaims it. That is why the caller gates on
@@ -2916,10 +2946,12 @@ vader_slice_t vader_array_bytes(vader_array_t* a) {
     }
     /* C holds this pointer for the whole call. If a Vader function address has
      * ever crossed into C, any foreign call can re-enter and collect, so the
-     * buffer has to stop moving; other headers sharing it pick the new address
-     * up through `vader_array_resolve_buf`. Until one has, no callee can call
-     * back and the lend costs what it always did. */
-    if (vader_ffi_callback_escaped) {
+     * buffer has to stop moving. Rewriting `a->buf` is the whole move while `a`
+     * is its only header; a shared buffer is never moved here (invariant:
+     * vader.h, `VADER_ARRAY_RESOLVE_BUF`). Until a callback has escaped, no
+     * callee can call back and the lend costs what it always did. */
+    if (vader_ffi_callback_escaped
+        && !vader_array_buf_is_shared(a->buf)) {
         a->buf = (vader_array_buf_t*) vader_gc_force_tenure(a->buf);
     }
     size_t esz = vader_array_element_size(a->buf->element_kind);
@@ -2928,7 +2960,7 @@ vader_slice_t vader_array_bytes(vader_array_t* a) {
     return s;
 }
 
-/* Out-of-line half of the emitter's per-access buf resolve — see the contract
+/* Out-of-line half of the runtime's buf resolve — see the contract
  * on the declaration in `vader.h`. The caller has already established that
  * `buf` is non-NULL and carries a live forward, so the first iteration always
  * advances; the loop then drains a chain longer than one link. */

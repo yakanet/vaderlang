@@ -119,7 +119,7 @@ static int32_t snippet_main(void) {
     while ((l1 < INT32_C(2))) {
 #line 31 "tests/snippets/extern_callback_slot/_main.vader"
         t0 = (void*) &snippet_bump;
-        vader_ffi_callback_escaped = 1;
+        vader_ffi_callback_escape();
         l2 = t0;
         l3 = vader_host_snippet_apply_twice(INT32_C(10), l2, INT32_C(3));
         l0 = (l0 + l3);

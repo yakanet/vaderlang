@@ -300,6 +300,10 @@ const C_PARITY = new Set<string>([
   "extern_callback",
   "extern_callback_slot",
   "extern_lend_across_callback",
+  // A slice and its parent share one buffer, and emitted accesses do not
+  // re-check where it lives: a lend that moved it behind the view's back would
+  // leave the view reading the abandoned copy. Native only — the VM never moves.
+  "extern_lend_sliced_array",
   // Element-REPRESENTATION divergence between a module const (BOXED slots) and a
   // freshly allocated array (KIND_REF): the VM never runs the copy, so only the
   // native oracle can judge these. `array_push_all_const` existed as a snippet

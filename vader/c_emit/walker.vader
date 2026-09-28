@@ -243,8 +243,8 @@ drop_resolved_for_local :: fn(s: FnState!, slot: i32) -> void {
 // arm iff its emitted C reaches `vader_gc_alloc` (directly or transitively).
 op_allocates :: fn(op: vm.Op) -> bool = match op {
     is vm.StructNew -> !op.stack
-    is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallImport | vm.CallIndirect | vm.VirtualCall -> true
-    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.FnAddr | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Box | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
+    is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallImport | vm.CallIndirect | vm.VirtualCall | vm.FnAddr -> true
+    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Box | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
 }
 
 /// One C function definition. Walks the bytecode body op by op into `s.root`,
@@ -1465,8 +1465,8 @@ emit_fn_addr :: fn(s: FnState!, op: vm.FnAddr) -> void {
     // and anything lent to one can move under it. This is the ONLY way a Vader
     // address reaches C, which is what makes the flag exact rather than a guess:
     // a program that never reaches this line pays nothing for the lend guard in
-    // `vader_array_bytes`.
-    assign(s, verbatim("vader_ffi_callback_escaped"), verbatim("1"))
+    // `vader_array_bytes`. The first escape collects, hence `op_allocates`.
+    evaluate(s, call("vader_ffi_callback_escape", []))
     push_temporary(s, temporary, .Pointer)
 }
 
@@ -2403,16 +2403,12 @@ box_slot :: fn(array: string, index: CExpression) -> CExpression = CIndex {
     .index = index,
 }
 
-/// Bind a `vader_array_t*` C local to `obj` and emit the access guards shared by
-/// the primitive slot load/store : the G1 buf-forwarding resolve (the array box
-/// is a gc_root so the array itself is current, but a minor may have relocated
-/// its buf — chase the forward chain via `vader_array_buf_forward`) and the D7
-/// always-on bounds check (trap on out-of-range). Returns the local's name.
-// Resolve `pointer`'s array buffer-forward chain into a cached `_slotarrK` C local
-// and return its name. Reuses an earlier resolve on the same array in this
-// straight-line region (the arr_rw CSE win). `pin` marks the entry so it survives
-// the loop's pure control-flow ops (the BCE resolve-hoist) — passed `true` ONLY by
-// `emit_array_len`'s hoisted preheader resolve, and only for a BCE-safe loop.
+/// Bind `pointer`'s array header to a cached `_slotarrK` C local, behind the
+/// buffer guard (`VADER_ARRAY_RESOLVE_BUF`), and return its name. Reuses an
+/// earlier binding of the same array in this straight-line region. `pin` marks
+/// the entry so it survives the loop's pure control-flow ops (the BCE hoist) —
+/// passed `true` ONLY by `emit_array_len`'s preheader binding, and only for a
+/// BCE-safe loop.
 resolve_array_local :: fn(s: FnState!, pointer: CExpression, pin: bool) -> string {
     for resolved in s.resolved_arrays {
         if same_expression(resolved.pointer, pointer) {
@@ -2424,9 +2420,9 @@ resolve_array_local :: fn(s: FnState!, pointer: CExpression, pin: bool) -> strin
     }
     arr :: aux(s, "slotarr")
     declare(s, "vader_array_t*", arr, pointer)
-    // `VADER_ARRAY_RESOLVE_BUF` expands the forward GUARD here ; the chain walk
-    // stays out of line in `vader_array_buf_forward`, whose declaration in
-    // `runtime/c/vader.h` owns the rationale. Do NOT fold the loop back in.
+    // `VADER_ARRAY_RESOLVE_BUF` is empty in a release build and a stale-buffer
+    // trap in a debug one ; its definition in `runtime/c/vader.h` owns the
+    // invariant that lets it be.
     statement_macro(s, "VADER_ARRAY_RESOLVE_BUF", [verbatim(arr)])
     s.resolved_arrays.push(ResolvedArray { .name = arr, .pointer = pointer, .pinned = pin, .depth = s.open_nodes.len() })
     return arr
@@ -2436,8 +2432,8 @@ emit_slot_array_local :: fn(s: FnState!, obj: StackVal, idx: StackVal, bounds_sa
     arr :: resolve_array_local(s, array_header_pointer(obj), false)
     // Bounds is per-access (the reused resolve only shares the buffer walk),
     // EXCEPT when the producer proved the index in range (BCE — e.g. a foreach
-    // over the array, body proven not to change its length). The G1 buf-resolve
-    // above is NEVER skipped ; only this D7 trap is.
+    // over the array, body proven not to change its length). The buf guard
+    // above is never skipped ; only this bounds trap is.
     if !bounds_safe {
         statement_macro(s, "VADER_ARRAY_CHECK_INDEX", [verbatim(arr), expression_of(idx)])
     }

@@ -1,0 +1,48 @@
+# Typecheck
+
+## tests/snippets/extern_lend_sliced_array
+  FnDecl         churn                :: fn(i32) -> void
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         slice_fill           :: fn(i32[]!, usize) -> void
+  FnDecl         slice_set_cb         :: fn(fn(i32) -> void) -> void
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn() -> void
+  expr 26:17    SeqLitExpr     :: i32[]!
+  expr 27:14    IdentExpr      :: i32[]!
+  expr 27:14    IndexExpr      :: i32[]!
+  expr 27:17    RangeExpr      :: Range<i32>!
+  expr 28:18    IdentExpr      :: fn(i32) -> void
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(fn(i32) -> void) -> void
+  expr 29:16    IdentExpr      :: i32[]!
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(i32[]!, usize) -> void
+  expr 30:13    StringLitExpr  :: string
+  expr 30:22    IdentExpr      :: i32[]!
+  expr 30:22    IndexExpr      :: i32
+  expr 30:34    IdentExpr      :: i32[]!
+  expr 30:34    IndexExpr      :: i32
+  expr 30:46    IdentExpr      :: i32[]!
+  expr 30:46    IndexExpr      :: i32
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 30:58    IdentExpr      :: i32[]!
+  expr 30:58    IndexExpr      :: i32
+  expr 32:17    SeqLitExpr     :: i32[]!
+  expr 33:13    IdentExpr      :: i32[]!
+  expr 33:13    IndexExpr      :: i32[]!
+  expr 33:16    RangeExpr      :: Range<i32>!
+  expr 34:16    IdentExpr      :: i32[]!
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(i32[]!, usize) -> void
+  expr 35:13    StringLitExpr  :: string
+  expr 35:21    IdentExpr      :: i32[]!
+  expr 35:21    IndexExpr      :: i32
+  expr 35:32    IdentExpr      :: i32[]!
+  expr 35:32    IndexExpr      :: i32
+  expr 35:43    IdentExpr      :: i32[]!
+  expr 35:43    IndexExpr      :: i32
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 35:54    IdentExpr      :: i32[]!
+  expr 35:54    IndexExpr      :: i32

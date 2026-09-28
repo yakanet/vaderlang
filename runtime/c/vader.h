@@ -477,6 +477,11 @@ static inline size_t vader_array_element_size(uint8_t kind) {
  * keeps the owner atom alive through it. */
 #define VADER_ARRAY_FLAG_BORROWED  ((uint16_t) 0x0001u)
 
+/* Shared-buffer mark — stored in `_reserved` of a `vader_array_buf_t`, set by
+ * `vader_array_slice` when a second header comes to reference the buffer. Such
+ * a buffer may only move inside a collection; see `VADER_ARRAY_RESOLVE_BUF`. */
+#define VADER_ARRAY_BUF_FLAG_SHARED ((uint16_t) 0x0001u)
+
 /* Array data buffer — a separate GC object so `push` can reallocate without
  * breaking aliases to the array header. The buf carries its own
  * `element_kind` so the GC scanner can decide whether to walk slots for refs
@@ -557,8 +562,17 @@ vader_slice_t vader_array_bytes(vader_array_t* a);
 
 /* Set the first time a Vader function's address is handed to C. Read by
  * `vader_array_bytes` to decide whether a lend must be secured against a
- * collection; written by the `fn.addr` the C emitter issues. */
+ * collection, and by `vader_array_slice` to decide whether a shared buffer must
+ * leave the moving generation. */
 extern uint8_t vader_ffi_callback_escaped;
+
+void vader_ffi_callback_first_escape(void);
+
+/* Issued by every `fn.addr` the C emitter writes — a GC safepoint. The first
+ * one collects (`vader_ffi_callback_first_escape`); the rest cost a test. */
+static inline void vader_ffi_callback_escape(void) {
+    if (VADER_UNLIKELY(!vader_ffi_callback_escaped)) vader_ffi_callback_first_escape();
+}
 
 /* Flag `a` as a borrowed view over `owner`'s bytes, packing the element tag. */
 static inline void vader_array_make_borrowed(vader_array_t* a, uint32_t elem_tag, vader_atom_t owner) {
@@ -587,6 +601,13 @@ typedef struct vader_array_buf {
     uint8_t                  _pad[3];
     uint8_t                  slots[];
 } vader_array_buf_t;
+
+static inline bool vader_array_buf_is_shared(const vader_array_buf_t* buf) {
+    return (buf->header._reserved & VADER_ARRAY_BUF_FLAG_SHARED) != 0;
+}
+static inline void vader_array_buf_mark_shared(vader_array_buf_t* buf) {
+    buf->header._reserved |= VADER_ARRAY_BUF_FLAG_SHARED;
+}
 
 /* Typed slot access for the BOXED case. Primitive arrays use direct casts
  * `((uint32_t*)buf->slots)[i]` etc. at the access site. */
@@ -796,46 +817,54 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t eleme
 /* Walk a buf's forwarding chain to its final address — the single home of that
  * loop. Every buf resolver guards with `buf != NULL && buf->header.forward !=
  * NULL` and delegates here (`vader_array_resolve_buf` and the two grow paths in
- * `vader_array_push` / `vader_array_push_all`, plus every emitted access site);
- * callers must have made that check, so the first hop always advances. The
- * sibling `vader_array_resolve` walks the array HEADER's chain, a different
- * object, and keeps its own loop.
+ * `vader_array_push` / `vader_array_push_all`); callers must have made that
+ * check, so the first hop always advances. The sibling `vader_array_resolve`
+ * walks the array HEADER's chain, a different object, and keeps its own loop.
  *
  * The chain can exceed one link : a single `vader_gc_alloc` may run a minor THEN
  * a major (whose first step is an internal minor, `MAJOR_DRAIN`), forwarding the
  * same buf twice at one allocation site. So this must stay a loop, and no caller
  * may weaken its guard into a one-step resolve.
  *
- * Out-of-line on purpose : the emitter open-codes the guard at every array
- * access, and the body is reached on a vanishingly small fraction of them.
- * Inlining the loop at all ~4.7 k sites instead handed LLVM 4.7 k tiny loops to
- * rotate and LICM — 5.4 s of a 28 s self-build for a body that essentially never
- * runs. `VADER_PURE` is load-bearing, not decorative : without it the call is an
- * opaque barrier that clobbers every alias and kills the BCE resolve-hoist (the
- * `arr_set` bench went +257 %). */
+ * Out-of-line : the body is reached on a vanishingly small fraction of the
+ * resolving sites. `VADER_PURE` lets the compiler treat the call as clobbering
+ * no alias. */
 VADER_PURE VADER_NOINLINE struct vader_array_buf* vader_array_buf_forward(struct vader_array_buf* buf);
 
-/* The two guards every emitted array access opens with. Resolve a pending
- * forward on the array's DATA BUFFER — a separate GC object from the header
- * (which `vader_array_resolve` resolves), so a mid-call collection may forward
- * it independently ; a NULL buf (borrowed view) is left untouched. Then trap
- * unless the index is in range.
+/* The two guards every emitted array access opens with.
+ *
+ * INVARIANT the first one relies on: a header never points at a forwarded data
+ * buffer. A collection rewrites every reachable header's `buf` as it moves the
+ * buffer, and the one move outside a collection — `vader_gc_force_tenure`, from
+ * an FFI lend — rewrites the header it was handed, and is refused for a buffer
+ * marked `VADER_ARRAY_BUF_FLAG_SHARED`. A buffer is shared one way only,
+ * `vader_array_slice`, which sets the mark. A shared buffer must also be still
+ * before a lend, since the lend's callee may collect: slicing tenures it once a
+ * callback has escaped, and the first escape tenures every shared buffer young
+ * then (`vader_ffi_callback_first_escape`). A `--release` build (NDEBUG) emits no
+ * guard; a debug build traps on a header that breaks the invariant.
+ * Record: docs/adr/0023.
  *
  * Macros, not inline functions : an access must reach the C compiler as plain
- * statements. Even an always-inlined function hands it a different shape, and
- * the loops it then generates differ. `a` must be a plain local : it is
- * evaluated more than once. The chain walk stays out of line in
- * `vader_array_buf_forward` (see there). */
+ * statements. `a` must be a plain local : it is evaluated more than once. */
 /* Statement position only, never before an `else` : a bare `if` binds it. */
-#define VADER_ARRAY_RESOLVE_BUF(a) \
-    if ((a)->buf != NULL && (a)->buf->header.forward != NULL) { (a)->buf = vader_array_buf_forward((a)->buf); }
+#ifndef NDEBUG
+#define VADER_ARRAY_RESOLVE_BUF(a)                                           \
+    if ((a)->buf != NULL && (a)->buf->header.forward != NULL) {             \
+        vader_trap("stale array buffer: header points at a forwarded buf"); \
+    }
+#else
+#define VADER_ARRAY_RESOLVE_BUF(a)
+#endif
 #define VADER_ARRAY_CHECK_INDEX(a, i) \
     if ((size_t) (i) >= (a)->length) { vader_trap("array index out of bounds"); }
 
-/* `VADER_ARRAY_RESOLVE_BUF` for the runtime's own sites that read
- * `a->buf->slots` after a possible safepoint. */
+/* The resolving form, for the runtime's own sites that read `a->buf->slots`
+ * after a collection they may have triggered themselves. */
 static inline void vader_array_resolve_buf(vader_array_t* a) {
-    VADER_ARRAY_RESOLVE_BUF(a)
+    if (a->buf != NULL && a->buf->header.forward != NULL) {
+        a->buf = vader_array_buf_forward(a->buf);
+    }
 }
 
 /* vader_array_get / vader_array_set are RETIRED — the C emitter open-codes every
