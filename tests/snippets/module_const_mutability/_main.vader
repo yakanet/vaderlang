@@ -70,7 +70,8 @@ SPECS: Spec[]: [
     Spec { .name = "alpha", .code = 1 },
     Spec { .name = "beta",  .code = 2 },
 ]
-// A lone struct is not a pool candidate — it inlines.
+// A lone struct is baked too — the single element of an aggregate entry, each
+// read a `pool[k][0]` pointer to one read-only static.
 ORIGIN: Spec: Spec { .name = "origin", .code = 0 }
 // A tuple carries the bit per level like an array does.
 PAIR: [i32, string]: [7, "seven"]

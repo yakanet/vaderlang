@@ -8,11 +8,6 @@
     "hello" :string
   const snippet$MODE: Mode =
     int(0) :u8
-  const snippet$ORIGIN: Spec =
-    Spec! {
-      name: "origin" :string
-      code: int(0) :i32
-    }
   const snippet$PAIR: [i32, string] =
     [i32, string] {
       _0: int(7) :?
@@ -1386,4 +1381,4 @@
           c1 :usize
 
 # Diagnostics
-[93:43] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Fast`
+[94:43] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Fast`

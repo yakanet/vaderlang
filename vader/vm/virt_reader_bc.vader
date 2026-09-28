@@ -1040,9 +1040,14 @@ reduce_main_index :: fn(funcs: bc.BcFunction[]) -> i32 {
     return 0
 }
 
-reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[]) -> ArrayVal[] {
-    out: ArrayVal[]!: []
-    for e in entries {
+// One header per pool entry, stamped with the type_id its `data.const` sites read
+// it at (`type_ids`, from `bc.data_pool_type_ids`) — or `-1` for a writable entry,
+// which then never matches a site and gets a fresh header per read. The `!` on the
+// element is storage: `exec` pushes a read-only entry's header onto `Frame.stack`.
+reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[], type_ids: i32[]) -> ArrayVal![] {
+    out: ArrayVal![]!: []
+    for i in 0..<entries.len() {
+        e :: entries[i]
         elements: Value[]!: []
         if e is bc.BcStrData {
             for v in e.values { elements.push(StringVal { .value = v }) }
@@ -1051,7 +1056,12 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[]) -> ArrayVa
         } else if e is bc.BcAggregateData {
             for v in e.elements { elements.push(bc_value_to_vm(v, types)) }
         }
-        out.push(ArrayVal { .type_id = 0, .elements = elements, .offset = 0, .length = elements.len() })
+        out.push(ArrayVal {
+            .type_id  = if bc.data_entry_mutable(e) { -1 } else { type_ids[i] },
+            .elements = elements,
+            .offset   = 0,
+            .length   = elements.len(),
+        })
     }
     return out
 }

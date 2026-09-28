@@ -242,3 +242,26 @@ export BytecodeModule :: struct {
     impl_table: ImplEntry[]
     vtables: VtableRow[]
 }
+
+/// Each pool entry's array type_id, taken from the `data.const` ops that name it —
+/// the entry itself does not carry one. Every read of one entry comes from one
+/// const, so its sites agree ; an entry no op names reads `0`.
+///
+/// @param module  the module whose pool and fn bodies are scanned.
+/// @return        one type_id per `module.data_pool` entry.
+export data_pool_type_ids :: fn(module: BytecodeModule) -> i32[] {
+    out: i32[]!: [0] * module.data_pool.len()
+    if out.len() == 0 {
+        return out
+    }
+    for f in module.functions {
+        for op in f.body {
+            if op is DataConst {
+                if op.pool_index >= 0 && usize(op.pool_index) < out.len() {
+                    out[usize(op.pool_index)] = op.type_id
+                }
+            }
+        }
+    }
+    return out
+}

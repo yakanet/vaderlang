@@ -406,6 +406,16 @@ export array_kind_from_name :: fn(name: string) -> ArrayKind = match name {
 /// tuple / nested-array elements.
 export BcDataEntry :: BcPrimData | BcStrData | BcAggregateData
 
+/// Whether a pool entry is a writable global (`X: T[]!: …`) rather than a
+/// read-only blob. Read per variant: the three do not share a field layout.
+///
+/// @param e  the pool entry.
+export data_entry_mutable :: fn(e: BcDataEntry) -> bool = match e {
+    is BcPrimData      -> e.mutable
+    is BcStrData       -> e.mutable
+    is BcAggregateData -> e.mutable
+}
+
 /// A pooled array of primitive elements. `items` carries one u64 entry per
 /// element — the raw bit pattern at the element's natural width (low bits used).
 /// For signed integers, callers reinterpret the u64 as `iN` ; for floats, as the

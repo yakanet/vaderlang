@@ -1803,11 +1803,20 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 if instr.pool_index < 0 || usize(instr.pool_index) >= state.data_pool.len() {
                     return Trap { .message = "data.const pool_index ${instr.pool_index} out of range at pc=${frame.pc}" }
                 }
-                entry :: state.data_pool[usize(instr.pool_index)]
-                // Re-stamp the call-site's type_id onto a fresh header sharing
-                // the pool entry's `elements` ; mirrors `.rodata` sharing in
-                // the native runtime.
-                push_val(frame, frame.sp, ArrayVal { .type_id = instr.type_id, .elements = entry.elements, .offset = 0, .length = entry.elements.len() })
+                shared :: state.data_pool[usize(instr.pool_index)]
+                if shared.type_id == instr.type_id {
+                    push_val(frame, frame.sp, shared)
+                } else {
+                    // A writable entry (or a site at another type_id) : a fresh
+                    // header over the same `elements`, as `.rodata` is shared
+                    // natively.
+                    push_val(frame, frame.sp, ArrayVal {
+                        .type_id  = instr.type_id,
+                        .elements = shared.elements,
+                        .offset   = 0,
+                        .length   = shared.elements.len(),
+                    })
+                }
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }

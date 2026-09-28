@@ -1544,7 +1544,7 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32)
         // ... except for the ONE shape that gets real storage : a mutable array of
         // value elements is emitted as a fixed-capacity global, so an element write
         // through it lands somewhere and must be allowed. Every other module const
-        // is rebuilt at each read site, so a write would be discarded — frozen.
+        // is frozen: its value may be shared by every read, `.rodata` included.
         // `declare_const`'s T3076 is what keeps this shape to value elements.
         return !has_mutable_const_storage(typed.decl_types[sym.id])
     }

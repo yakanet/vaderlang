@@ -1,15 +1,10 @@
 // vader/vm/module — the VM's runtime state wrapper over a `BytecodeModule`.
 //
 // The VM executes a `vader/bytecode::BytecodeModule` directly. `VmState`
-// is a thin wrapper that pairs the module with the two pieces of run-time
-// scratch the executor needs in a ready-to-use shape but the module itself
-// carries in a more compact form :
-//   - `data_pool` — the module's `BcDataEntry[]` (raw `u64` bits per element)
-//     materialised once into `ArrayVal[]` so `data.const N` pushes a view
-//     without re-decoding the bits on every reference.
-//   - `main_index` — the entry fn's index, resolved once from the `is_main`
-//     flag (set by `parse_virt_bc` from `export main N` / the `$main`-suffix
-//     fallback).
+// pairs the module with the run-time state the executor needs in a ready-to-use
+// shape, built once here rather than per `exec_entry` — the data pool
+// materialised, the entry index, per-function tables. Each field's doc says what
+// it caches and why.
 //
 // Same `vader/vm` module as the sibling `op.vader` (opcodes), `value.vader`
 // (runtime values), and `virt_reader_bc.vader` (the `.virt` → `BytecodeModule`
@@ -25,9 +20,12 @@ bc :: import "vader/bytecode"
 /// runtime `ArrayVal`s ; `main_index` is the entry fn's index in `bc.functions`.
 export VmState :: struct {
     bc:         bc.BytecodeModule
-    /// Materialised primitive arrays — `data.const N` indexes this directly.
-    /// Distinct from `bc.data_pool` (`BcDataEntry[]`, raw `u64` bits).
-    data_pool:  ArrayVal[]
+    /// The pool materialised, one header per entry, index-aligned with
+    /// `bc.data_pool`. A read-only entry's header is stamped with the type_id its
+    /// `data.const` sites use and handed out as is — nothing writes through a
+    /// read-only array. A writable entry carries `-1` and gets a fresh header per
+    /// read. The `!` on the element is storage, as on `Frame.stack`.
+    data_pool:  ArrayVal![]
     /// Entry fn's index in `bc.functions`.
     main_index: i32
     /// The `string[]` ArrayType index — stamped onto every host-produced string
@@ -87,9 +85,10 @@ export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState {
     for i in 0..<bc_mod.functions.len() {
         by_name[bc_mod.functions[i].name] = i32(i)
     }
+    data_pool :: reduce_data_pool(bc_mod.data_pool, bc_mod.types, bc.data_pool_type_ids(bc_mod))
     return VmState {
         .bc                   = bc_mod,
-        .data_pool            = reduce_data_pool(bc_mod.data_pool, bc_mod.types),
+        .data_pool            = data_pool,
         .main_index           = reduce_main_index(bc_mod.functions),
         .string_array_type_id = find_string_array_type_id(bc_mod.types),
         .u8_array_type_id     = find_u8_array_type_id(bc_mod.types),

@@ -13,16 +13,18 @@
 //     `call` instead of re-emitting the whole literal. In-place replacement
 //     keeps the accessor at the const's fn-table position so emission order
 //     stays stable.
-//   - inline  : everything else (scalars, small lists, struct literals). The
-//     value is recorded verbatim and `build_ident` re-builds it at each read
-//     site. Scalars normally fold earlier in `lower_expr.vader::lower_ident` ;
-//     recording them here is a safety net for any reference that didn't fold.
+//   - inline  : everything else (scalars, small lists, a struct literal that is
+//     not bakeable). The value is recorded verbatim and `build_ident` re-builds
+//     it at each read site. Scalars normally fold earlier in
+//     `lower_expr.vader::lower_ident` ; recording them here is a safety net for
+//     any reference that didn't fold.
 //
-//   - data pool : an read-only array literal whose elements are all
-//     bakeable (primitives, strings, or named-struct literals) — see
-//     `try_data_pool`. Registered once in `project.data_pool` and read back via
-//     a `data.const` op, so the value exists in one place instead of being
-//     rebuilt. Tried FIRST ; mutable arrays are refused outright.
+//   - data pool : an array literal whose elements are all bakeable (primitives,
+//     strings, or named-struct literals) — see `try_data_pool` — or a bakeable
+//     struct literal, pooled as the single element of an aggregate entry and read
+//     as `pool[k][0]` — see `try_pool_struct`. Registered once in
+//     `project.data_pool` and read back via a `data.const` op, so the value
+//     exists in one place instead of being rebuilt. Tried FIRST.
 //
 // Since `orchestrate::auto_freeze_module_const` pins every unannotated
 // module-level const as read-only at every level, the data pool is now the default
@@ -66,14 +68,13 @@ export inline_consts :: fn(project: LoweredProject!, project_ctx: LowerProjectCt
             if d is LoweredConstDecl {
                 sym :: d.origin.symbol
                 if sym is Symbol {
-                    // Data-pool bucket : an read-only of primitive
-                    // literals is materialised once into `.rodata` (native) /
-                    // a data segment (wasm) / an in-memory const buffer (VM),
-                    // and every read site lowers to a zero-copy `data.const`
-                    // view — never rebuilt. Takes priority over fn-wrap, which
-                    // would `array.new` + refill at each call. Mutable / non-
-                    // primitive arrays fall through to the existing buckets.
-                    if try_data_pool(d, sym, project) {
+                    // Data-pool bucket : a bakeable array or struct literal is
+                    // materialised once into `.rodata` (native) / a data segment
+                    // (wasm) / an in-memory const buffer (VM), and every read site
+                    // lowers to a `data.const` view — never rebuilt. Takes
+                    // priority over fn-wrap, which would `array.new` + refill at
+                    // each call. What is not bakeable falls through.
+                    if try_data_pool(d, sym, project) || try_pool_struct(d, sym, project) {
                         changed = true
                         continue
                     }
@@ -100,7 +101,7 @@ export inline_consts :: fn(project: LoweredProject!, project_ctx: LowerProjectCt
 }
 
 // fn-wrap eligibility : a bulky array literal. Smaller arrays + every other
-// shape (scalars, struct literals) route through the inline bucket.
+// shape (scalars, non-bakeable struct literals) route through the inline bucket.
 should_fn_wrap :: fn(value: LoweredExpr) -> bool {
     if value is LoweredArrayLit { return value.elements.len() >= FN_WRAP_MIN_ELEMENTS }
     return false
@@ -135,6 +136,44 @@ try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProjec
         }
     }
     return false
+}
+
+// Route a bakeable struct const into the data pool, as the single element of an
+// aggregate entry : every read becomes `pool[k][0]`, a pointer to one static
+// object. Sound only because a module const is frozen at every level (typecheck's
+// `auto_freeze_module_const`), so nothing can write into the shared `.rodata`
+// object. A const whose declared type is not the struct itself (`X: Value: …`)
+// keeps the inline bucket: its reads must carry the declared type.
+try_pool_struct :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject!) -> bool {
+    if cd.type !is StructType || cd.value !is LoweredStructLit {
+        return false
+    }
+    span :: cd.value.span
+    pool_type :: mk_array(cd.type, true)
+    wrapped :: LoweredArrayLit {
+        .span     = span,
+        .type     = pool_type,
+        .elements = [cd.value],
+    }
+    entry :: render_data_pool_entry(wrapped, display_type_key(cd.type), false) ?? return false
+    pool_index :: project.data_pool.len()
+    project.data_pool.push(entry)
+    project.const_inline[symbol.id] = LoweredIndex {
+        .span        = span,
+        .type        = cd.type,
+        .target      = LoweredDataConst {
+            .span       = span,
+            .type       = pool_type,
+            .pool_index = pool_index,
+        },
+        .index       = LoweredIntLit {
+            .span  = span,
+            .type  = mk_primitive("usize"),
+            .value = 0,
+        },
+        .bounds_safe = true,
+    }
+    return true
 }
 
 // The array literal a const's value pools from, expanding the repeat form.
