@@ -84,6 +84,11 @@ cmd_test :: fn(args: string[]) -> i32 {
             EmitOptions { .optimize = true, .keep_mangles = mangles, .want_debug = false },
         )
         state :: prepare(module)
+        if state is VerifyError {
+            eprintln("vader test: ${display_verify_error(state)}")
+            total_fail += 1
+            continue
+        }
         for t in fresh {
             ran.add(t.mangled)
             match exec_fn(state, t.mangled) as tr {

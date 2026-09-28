@@ -275,7 +275,12 @@ main :: fn(argv: string[]) -> i32 {
         eprintln("brainfuck: ${path} has unmatched `[` or `]`")
         return 1
     }
-    result :: exec_fn_value(prepare(compile_brainfuck(tokens, partner)), "bf_main")
+    state :: prepare(compile_brainfuck(tokens, partner))
+    if state is VerifyError {
+        eprintln("brainfuck: the compiled program is malformed — ${display_verify_error(state)}")
+        return 1
+    }
+    result :: exec_fn_value(state, "bf_main")
     if result is Trap {
         eprintln("brainfuck: vm trap — ${result.message}")
         return 1

@@ -72,6 +72,10 @@ run_source :: fn(file: Path, host_argv: string[]) -> i32 {
     // pointless overhead and lossy (dump_bytecode drops the data pool).
     // `run_virt` still parses real `.virt` files ; this is the source path.
     state :: prepare(module)
+    if state is VerifyError {
+        eprintln("vader run: ${display_verify_error(state)}")
+        return 1
+    }
     // Run the `main` declared in the NAMED file, not the VM's default first
     // `is_main` : sibling files in one folder merge into a single module, so a
     // folder can hold several `main` fns and `prepare`'s `main_index` would pick

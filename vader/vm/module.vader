@@ -62,13 +62,19 @@ export VmState :: struct {
     import_ids: bc.IntrinsicId[]
 }
 
-/// Wrap a parsed `BytecodeModule` in the runtime `VmState` `exec` consumes.
-/// Materialises the data pool and resolves the entry index up front so the
-/// hot loop never re-decodes either.
+/// Verify a `BytecodeModule` and wrap it in the runtime `VmState` `exec`
+/// consumes. Materialises the data pool and resolves the entry index up front so
+/// the hot loop never re-decodes either.
 ///
 /// @param bc_mod  the parsed module (from `parse_virt_bc` or the builder).
 /// @return        a `VmState` ready to pass to `exec`.
-export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState {
+/// @error         a `VerifyError` when the bytecode is malformed (`verify.vader`) ;
+///                nothing of it runs.
+export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState | VerifyError {
+    rejected :: verify_module(bc_mod)
+    if rejected != null {
+        return rejected
+    }
     narrow: bool[]!: [] * bc_mod.functions.len()
     for f in bc_mod.functions {
         narrow.push(fn_has_narrow_slot(f))

@@ -54,6 +54,14 @@ export resolve_vm_required_decls :: fn(
     stage_diags: Diagnostic[]!: []
     module :: stage_to_bytecode(loaded, typed, evaluated, stage_diags)
     state :: Vm.prepare(module)
+    if state is Vm.VerifyError {
+        // The staged bytecode is the compiler's own output, so this is an emitter
+        // bug ; every decl waiting on it is left un-baked, and says why.
+        for vr in evaluated.vm_required {
+            diags.push(comptime_error(.EvaluationPanic, vr.span, Vm.display_verify_error(state)))
+        }
+        return
+    }
 
     for vr in evaluated.vm_required {
         mangle :: find_callee_mangle(module, vr.callee_name)

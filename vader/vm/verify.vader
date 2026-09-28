@@ -1,0 +1,330 @@
+// vader/vm/verify — load-time verification of the bytecode the VM will run.
+//
+// Every property checked here depends on the bytecode alone, so it has one answer
+// for every execution: the operand-stack depth at each pc, that no op pops below
+// the bottom of its frame's stack, that every immediate index (slot, fn, import,
+// pool, string, type) names something, that every jump lands inside the body, and
+// that every path out of a value-returning function leaves its results. `prepare`
+// rejects a module that fails, so `exec` never meets malformed bytecode.
+//
+// Blocks carry no values: a scope marker (`block` / `loop` / `if` / `else` /
+// `end`) moves nothing, and a jump must land at the depth it left. The analysis is
+// the classic forward dataflow over pcs, one depth per pc, merged at jump targets.
+//
+// The ORIGINAL bodies are verified — the ones a debugger dispatches, and the input
+// `fuse.vader` rewrites without changing any depth. What depends on a VALUE stays a
+// run-time check in `exec`: `call.indirect` / `virtual.call` targets, array bounds,
+// operand tags.
+
+module "vader/vm"
+
+bc :: import "vader/bytecode"
+
+/// Why a module was refused at load time — the first defect found.
+export VerifyError :: struct {
+    /// Mangled name of the function holding the defect.
+    function: string
+    /// Index of the offending op in that function's body.
+    pc:       i32
+    message:  string
+}
+
+/// Render a `VerifyError` the way a VM trap reads.
+///
+/// @param e  the error.
+/// @return   `<message> at pc=<pc> in '<function>'`.
+export display_verify_error :: fn(e: VerifyError) -> string = "${e.message} at pc=${e.pc} in '${e.function}'"
+
+/// Verify every function of `module` ; see the file header for what is checked.
+///
+/// @param module  the module `prepare` is about to wrap.
+/// @return        `null` when every body is sound, the first defect otherwise.
+/// @error         a `VerifyError` naming the function, the pc and the defect.
+export verify_module :: fn(module: bc.BytecodeModule) -> VerifyError | null {
+    for f in module.functions {
+        found :: verify_function(module, f)
+        if found != null {
+            return found
+        }
+    }
+    return null
+}
+
+/// Every defect of `module`, one per failing function — the report form of
+/// `verify_module`, for tooling that lists them all.
+///
+/// @param module  the module to verify.
+/// @return        the first defect of each failing function, in body order.
+export verify_all :: fn(module: bc.BytecodeModule) -> VerifyError[]! {
+    out: VerifyError[]!: []
+    for f in module.functions {
+        found :: verify_function(module, f)
+        if found != null {
+            out.push(found)
+        }
+    }
+    return out
+}
+
+// What one op does to the operand stack, and where control goes next.
+StackEffect :: struct {
+    pops:   usize
+    pushes: usize
+    flow:   Flow
+}
+
+// `Next` falls through ; `Jump` goes to `jump_table[pc]` only ; `Fork` does both
+// (a condition) ; `Stop` leaves the function or traps.
+Flow :: enum { Next, Jump, Fork, Stop }
+
+effect :: fn(pops: usize, pushes: usize) = StackEffect { .pops = pops, .pushes = pushes, .flow = .Next }
+
+verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> VerifyError | null {
+    n :: f.body.len()
+    if n == 0 {
+        return null
+    }
+    results :: bc.bc_result_arity(f.signature)
+    depth: i64[]!: [-1] * n
+    depth[0] = 0
+    work: usize[]!: [0]
+    for work.len() > 0 {
+        pc :: work.remove_last() ?? break
+        d :: usize(depth[pc])
+        op :: f.body[pc]
+        e :: effect_of(module, f, op) ?? return defect(f, pc, "`${op_text(op)}` names nothing")
+        if d < e.pops {
+            return defect(f, pc, "`${op_text(op)}` needs ${e.pops} value(s) but the stack holds ${d}")
+        }
+        if op is bc.Return && d < results {
+            return defect(f, pc, "`return` needs ${results} value(s) but the stack holds ${d}")
+        }
+        after :: d - e.pops + e.pushes
+        if e.flow == .Next || e.flow == .Fork {
+            // Falling off the end is a `return` with nothing on top.
+            fall :: flow_to(f, depth, work, pc + 1, after, pc, results)
+            if fall != null {
+                return fall
+            }
+        }
+        if e.flow == .Jump || e.flow == .Fork {
+            target :: if pc < f.jump_table.len() { f.jump_table[pc] } else { -1 }
+            if target < 0 || usize(target) > n {
+                return defect(f, pc, "`${op_text(op)}` has no jump target inside the body")
+            }
+            jump :: flow_to(f, depth, work, usize(target), after, pc, results)
+            if jump != null {
+                return jump
+            }
+        }
+    }
+    return null
+}
+
+// Control reaching `at` with `d` values: past the last op it leaves the function,
+// which must then hold its results ; anywhere else the depth is merged.
+flow_to :: fn(
+    f: bc.BcFunction, depth: i64[]!, work: usize[]!, at: usize, d: usize, from: usize, results: usize,
+) -> VerifyError | null {
+    if at < f.body.len() {
+        return merge(f, depth, work, at, d, from)
+    }
+    if d < results {
+        return defect(f, from, "control leaves the body with ${d} value(s) where ${results} are returned")
+    }
+    return null
+}
+
+// Record `at`'s depth, or check it against the one already recorded.
+merge :: fn(
+    f: bc.BcFunction, depth: i64[]!, work: usize[]!, at: usize, d: usize, from: usize,
+) -> VerifyError | null {
+    if depth[at] < 0 {
+        depth[at] = i64(d)
+        work.push(at)
+        return null
+    }
+    if depth[at] != i64(d) {
+        return defect(f, from, "reaches pc=${at} with ${d} value(s) where another path brings ${depth[at]}")
+    }
+    return null
+}
+
+defect :: fn(f: bc.BcFunction, pc: usize, message: string) = VerifyError {
+    .function = f.name,
+    .pc       = i32(pc),
+    .message  = message,
+}
+
+// The stack effect of `op`, checking its immediates on the way: `null` when one of
+// them names nothing (a slot, fn, import, pool entry, string or type out of range).
+effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> StackEffect | null {
+    slots :: f.signature.params.len() + f.locals.len()
+    return match op {
+        is bc.LocalGet   -> if in_range(op.slot, slots) { effect(0, 1) } else { null }
+        is bc.LocalSet   -> if in_range(op.slot, slots) { effect(1, 0) } else { null }
+        is bc.LocalTee   -> if in_range(op.slot, slots) { effect(1, 1) } else { null }
+        is bc.LocalField -> if in_range(op.slot, slots) { effect(0, 1) } else { null }
+        is bc.StringConst -> if in_range(op.index, module.strings.len()) { effect(0, 1) } else { null }
+        is bc.DataConst  -> if in_range(op.pool_index, module.data_pool.len()) { effect(0, 1) } else { null }
+        is bc.Call -> {
+            if !in_range(op.function_index, module.functions.len()) {
+                null
+            } else {
+                callee :: module.functions[usize(op.function_index)].signature
+                effect(callee.params.len(), bc.bc_result_arity(callee))
+            }
+        }
+        is bc.CallImport -> {
+            if !in_range(op.index, module.imports.len()) {
+                null
+            } else {
+                sig :: module.imports[usize(op.index)].signature
+                effect(sig.params.len(), bc.bc_result_arity(sig))
+            }
+        }
+        is bc.CallIndirect -> indirect_effect(module, op.type_id)
+        is bc.VirtualCall  -> {
+            if op.parameter_count < 0 {
+                null
+            } else {
+                effect(usize(op.parameter_count), virtual_result_arity(module, op.vtable_key))
+            }
+        }
+        is bc.FnRef  -> if in_range(op.function_index, module.functions.len()) { effect(0, 1) } else { null }
+        is bc.FnAddr -> if in_range(op.function_index, module.functions.len()) { effect(0, 1) } else { null }
+        is bc.MakeClosure -> if in_range(op.function_index, module.functions.len()) { effect(1, 1) } else { null }
+        is bc.StructNew  -> struct_new_effect(module, op.type_id)
+        is bc.ArrayNew   -> if op.length >= 0 { effect(usize(op.length), 1) } else { null }
+        is bc.I32Const | bc.NullConst | bc.BoolConst | bc.CharConst | bc.F64Const | bc.I64Const
+         | bc.TypeConst -> effect(0, 1)
+        is bc.StructGet | bc.ArrayLen | bc.RefCast | bc.Box | bc.Convert | bc.TypeCheck
+         | bc.SizeOfType | bc.ArrayRemoveLast | bc.BufferNew | bc.I32Neg | bc.I32BitNot
+         | bc.I64Neg | bc.I64BitNot | bc.F64Neg | bc.BoolNot | bc.F64ToBits | bc.BitsToF64
+         | bc.F32ToBits | bc.BitsToF32 -> effect(1, 1)
+        is bc.I32Add | bc.I32Sub | bc.I32Mul | bc.I32Div | bc.I32Mod | bc.I32Eq | bc.I32Ne
+         | bc.I32Lt | bc.I32Le | bc.I32Gt | bc.I32Ge | bc.I32BitAnd | bc.I32BitOr | bc.I32BitXor
+         | bc.I32Shl | bc.I32Shr | bc.I32ShrU | bc.U32Div | bc.U32Mod | bc.U32Lt | bc.U32Le
+         | bc.U32Gt | bc.U32Ge | bc.I64Add | bc.I64Sub | bc.I64Mul | bc.I64Div | bc.I64Mod
+         | bc.I64Eq | bc.I64Ne | bc.I64Lt | bc.I64Le | bc.I64Gt | bc.I64Ge | bc.U64Div
+         | bc.U64Mod | bc.U64Lt | bc.U64Le | bc.U64Gt | bc.U64Ge | bc.I64Shl | bc.I64Shr
+         | bc.I64ShrU | bc.I64BitAnd | bc.I64BitOr | bc.I64BitXor | bc.F64Add | bc.F64Sub
+         | bc.F64Mul | bc.F64Div | bc.F64Eq | bc.F64Ne | bc.F64Lt | bc.F64Le | bc.F64Gt
+         | bc.F64Ge | bc.BoolEq | bc.BoolNe | bc.BoolAnd | bc.BoolOr | bc.StringEq | bc.StringNe
+         | bc.RefEq | bc.RefNe | bc.ArrayGet | bc.ArrayRepeat | bc.LoadU8 | bc.LoadI32
+         | bc.LoadI64 | bc.LoadF64 | bc.LoadSlotI32 | bc.LoadSlotI64 | bc.LoadSlotF64
+         | bc.BufferToString -> effect(2, 1)
+        is bc.StructSet | bc.ArrayPush | bc.ArrayPushAll -> effect(2, 0)
+        is bc.ArraySet | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.StoreSlotI32
+         | bc.StoreSlotI64 | bc.StoreSlotF64 | bc.BufferWriteString -> effect(3, 0)
+        is bc.ArraySlice | bc.StringSliceCodepoints -> effect(3, 1)
+        is bc.ArrayCopy | bc.MemoryCopy -> effect(5, 0)
+        is bc.Drop | bc.ArrayClear | bc.DeferPush -> effect(1, 0)
+        is bc.Block | bc.Loop | bc.End | bc.DeferPopExec -> effect(0, 0)
+        is bc.If | bc.BranchIf -> StackEffect { .pops = 1, .pushes = 0, .flow = .Fork }
+        is bc.Else | bc.Branch -> StackEffect { .pops = 0, .pushes = 0, .flow = .Jump }
+        is bc.Return | bc.ReturnLit | bc.Unreachable -> StackEffect { .pops = 0, .pushes = 0, .flow = .Stop }
+    }
+}
+
+in_range :: fn(index: i32, len: usize) = index >= 0 && usize(index) < len
+
+op_text :: fn(op: bc.Op) -> string {
+    sb :: StringBuilder {}
+    bc.write_op(sb, op)
+    return "${sb}"
+}
+
+// `call.indirect` pops the fn value on top of its arguments.
+indirect_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect | null {
+    if !in_range(type_id, module.types.len()) {
+        return null
+    }
+    t :: module.types[usize(type_id)]
+    if t !is bc.BcFn {
+        return null
+    }
+    results: usize: if returns_void(module, t.return_type) { 0 } else { 1 }
+    return effect(t.params.len() + 1, results)
+}
+
+returns_void :: fn(module: bc.BytecodeModule, type_index: i32) -> bool {
+    if !in_range(type_index, module.types.len()) {
+        return false
+    }
+    t :: module.types[usize(type_index)]
+    return t is bc.BcPrimitive && t.val == .Void
+}
+
+// Every implementation behind one vtable key shares its signature, so the first
+// entry answers for all. A key with no row is served by a host impl, which
+// always leaves one value.
+virtual_result_arity :: fn(module: bc.BytecodeModule, key: string) -> usize {
+    for row in module.vtables {
+        if row.key == key && row.entries.len() > 0 {
+            at :: row.entries[0].fn_index
+            if in_range(at, module.functions.len()) {
+                return bc.bc_result_arity(module.functions[usize(at)].signature)
+            }
+        }
+    }
+    return 1
+}
+
+struct_new_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect | null {
+    if !in_range(type_id, module.types.len()) {
+        return null
+    }
+    t :: module.types[usize(type_id)]
+    if t !is bc.BcStruct {
+        return null
+    }
+    return effect(t.fields.len(), 1)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+VIRT_HEAD :: r"module t" + "\n" + r"type 0 primitive null" + "\n" + r"type 1 primitive i32" + "\n" + r"export main 0" + "\n\n"
+
+// Verify a one-function module whose `-> i32` body is `body` ; "" when accepted.
+rejection :: fn(body: string) -> string {
+    module :: parse_virt_bc(VIRT_HEAD + r"fn 0 t$main () -> i32" + "\n" + body + "end\n")
+    if module is VirtParseError {
+        return "fixture does not parse"
+    }
+    found :: verify_module(module)
+    return if found == null { "" } else { found.message }
+}
+
+@test
+test_verify_accepts_a_well_formed_body :: fn() -> void {
+    assert_eq(rejection("  i32.const 1\n  i32.const 2\n  i32.add\n  return\n"), "")
+}
+
+@test
+test_verify_rejects_a_pop_below_the_stack :: fn() -> void {
+    assert("needs 2 value(s)" in rejection("  i32.const 1\n  i32.add\n  return\n"), "i32.add on one value")
+}
+
+@test
+test_verify_rejects_a_bare_return_from_a_value_function :: fn() -> void {
+    assert("`return` needs 1 value(s)" in rejection("  return\n"), "bare return from -> i32")
+}
+
+@test
+test_verify_rejects_a_slot_out_of_range :: fn() -> void {
+    assert("names nothing" in rejection("  local.get 3\n  return\n"), "local.get past the slots")
+}
+
+@test
+test_verify_rejects_a_call_to_a_missing_function :: fn() -> void {
+    assert("names nothing" in rejection("  call 9\n  return\n"), "call past the fn table")
+}
+
+@test
+test_verify_rejects_branches_that_disagree_on_depth :: fn() -> void {
+    body :: "  i32.const 1\n" + r"  if $L0 void" + "\n    i32.const 2\n" + r"  end $L0" + "\n  i32.const 3\n  return\n"
+    assert("another path brings" in rejection(body), "if arm leaves an extra value")
+}

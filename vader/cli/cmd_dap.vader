@@ -50,6 +50,9 @@ compile_for_dap :: fn(program: string) -> DapProgram {
     pruned :: prune_unreachable_fns(le.lowered, false)
     module :: cfg_to_bytecode(pruned, module_name_from_file(path), EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = true })
     state :: prepare(module)
+    if state is VerifyError {
+        return DapProgram { .state = null, .entry_index = -1, .error = display_verify_error(state) }
+    }
     entry :: entry_index_for_file(module, le.lowered, path, state.main_index)
     return DapProgram { .state = state, .entry_index = entry, .error = "" }
 }
