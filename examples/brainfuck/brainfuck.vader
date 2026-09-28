@@ -212,7 +212,7 @@ compile_brainfuck :: fn(tokens: char[], partner: i32[]) -> bc.BytecodeModule {
     cells_type_id :: module_builder.add_type(bc.BcArray { .element = primitive_i32_type_id })
 
     // ---- fn bf_main() -> i32[] -------------------------------------------
-    bf_main :: new_function_builder("bf_main", 0, 3)
+    bf_main :: new_function_builder("bf_main", [], 3)
 
     // __mem = [0] — start with a single zero cell ; the tape grows on demand
     // as `>` walks past the current end (see emit_bf_char). No 30000-cell

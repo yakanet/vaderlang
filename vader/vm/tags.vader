@@ -1,0 +1,569 @@
+// vader/vm/tags — the operand tags each pc can see, inferred from the bytecode.
+//
+// Every value the VM holds carries a `StackTag` (`exec.vader`). Some arms test an
+// operand's tag before they read its raw bits (`accepted_tags`). This pass
+// computes, for every pc, the SET of tags each stack cell can hold there — a
+// forward dataflow over the basic blocks of `verify.vader`'s graph, merged by
+// union until nothing grows — and `prepare` refuses a module in which one of those
+// arms could meet a tag it does not accept (`check_module_tags`). An accepted
+// module therefore never trips those tests.
+//
+// Tags come from the declared types the bytecode carries: a signature's `ValType`s
+// for parameters and results, the `type_id` on heap reads (`struct.get`,
+// `local.field`, `array.get`), the op itself for everything computed. A parameter
+// holds what its type declares — callers push values of that type, and the host
+// hands an entry nothing else (`build_main_args`). A local starts `.Null`: `exec`
+// zeroes a callee's locals that way. What the bytecode declares `any`, `ref _` or
+// a union keeps every tag its variants allow.
+//
+// Run only on a module `verify_module` accepted: depths and immediates are
+// trusted here.
+
+module "vader/vm"
+
+import "std/collections"
+import "std/string_builder"
+bc :: import "vader/bytecode"
+
+// A tag set is a `u8` with one bit per `StackTag`, in declaration order ;
+// `TAG_NAMES` spells them in the same order.
+TAGS_I32:  u8: 1
+TAGS_I64:  u8: 2
+TAGS_F64:  u8: 4
+TAGS_BOOL: u8: 8
+TAGS_CHAR: u8: 16
+TAGS_NULL: u8: 32
+TAGS_REF:  u8: 64
+TAGS_ANY:  u8: 127
+TAG_NAMES :: ["i32", "i64", "f64", "bool", "char", "null", "ref"]
+
+/// What an integer arm reading an `i32` accepts (`is_i32_tag`).
+TAGS_I32_OPERAND: u8: TAGS_I32 | TAGS_I64 | TAGS_CHAR
+/// What an integer arm reading an `i64` accepts (`is_i64_tag`).
+TAGS_I64_OPERAND: u8: TAGS_I64 | TAGS_I32
+
+/// Inferred tags of one function.
+FunctionTags :: struct {
+    /// The deepest the operand stack gets: the sets each pc takes in `stack`.
+    deepest: usize
+    /// Operand-stack depth before each pc, `-1` where no path reaches it.
+    depth:   i64[]!
+    /// For each pc, `deepest` sets: the stack cells from the bottom. A slot's tags
+    /// are not kept — every read of a slot lands on the stack.
+    stack:   u8[]!
+}
+
+/// The tag set of the stack cell `back` places below the top, before `pc` —
+/// `back = 1` is the top.
+///
+/// @param facts  the function's inferred tags.
+/// @param pc     the op ; it must be reachable.
+/// @param back   distance from the top, at least 1.
+stack_tags :: fn(facts: FunctionTags, pc: usize, back: usize) -> u8 {
+    at :: usize(facts.depth[pc]) - back
+    return facts.stack[pc * facts.deepest + at]
+}
+
+/// True when every tag of `have` is in `allowed`.
+tags_within :: fn(have: u8, allowed: u8) = have | allowed == allowed
+
+/// The tags a value of class `v` is carried with.
+///
+/// Integer carriers are loose, and the arms accept them loose (`is_i32_tag`,
+/// `is_i64_tag`): a `char` literal passed as a `u8` stays a `Char`, and a 64-bit
+/// count a host or `array.len` computes comes back as an `I32`.
+tags_of_val :: fn(v: bc.ValType) -> u8 = match v {
+    .I8 | .I16 | .I32 | .U8 | .U16 | .U32 -> TAGS_I32 | TAGS_CHAR
+    .I64 | .Isize | .U64 | .Usize | .Pointer -> TAGS_I64 | TAGS_I32
+    .F32 | .F64 -> TAGS_F64
+    .Bool -> TAGS_BOOL
+    .Char -> TAGS_CHAR
+    .Null -> TAGS_NULL
+    .String | .Ref -> TAGS_REF
+    .Void -> 0
+    .Any -> TAGS_ANY
+}
+
+// What the inference reads of a module, resolved once.
+TagContext :: struct {
+    module:          bc.BytecodeModule
+    /// Tags of each type-table entry (`type_tags`).
+    type_tags:       u8[]
+    /// Results of the implementations behind each vtable key.
+    virtual_results: MutableMap<string, bc.ValType[]>
+}
+
+new_tag_context :: fn(module: bc.BytecodeModule) -> TagContext {
+    types: u8[]!: [] * module.types.len()
+    for i in 0..<module.types.len() {
+        types.push(type_tags(module.types, i32(i), 0))
+    }
+    virtual_results :: MutableMap<string, bc.ValType[]> {}
+    for row in module.vtables {
+        if !(row.key in virtual_results) {
+            sig :: virtual_signature(module, row.key)
+            if sig != null {
+                virtual_results[row.key] = sig.results
+            }
+        }
+    }
+    return TagContext {
+        .module          = module,
+        .type_tags       = types,
+        .virtual_results = virtual_results,
+    }
+}
+
+// The tags a value of type `types[index]` is carried with. A value boxed into an
+// erased slot keeps its own tag (`box` moves nothing), so a `ref _` answers every
+// tag.
+type_tags :: fn(types: bc.BcType[], index: i32, nesting: i32) -> u8 {
+    if !in_range(index, types.len()) || nesting > 8 {
+        return TAGS_ANY
+    }
+    t :: types[usize(index)]
+    return match t {
+        is bc.BcPrimitive -> tags_of_val(t.val)
+        is bc.BcStruct | bc.BcArray | bc.BcFn -> TAGS_REF
+        is bc.BcRef -> TAGS_ANY
+        is bc.BcUnion -> {
+            out: u8 = 0
+            for v in t.variants {
+                out = out | type_tags(types, v, nesting + 1)
+            }
+            out
+        }
+    }
+}
+
+tags_of_type :: fn(ctx: TagContext, index: i32) -> u8 =
+    if in_range(index, ctx.type_tags.len()) { ctx.type_tags[usize(index)] } else { TAGS_ANY }
+
+// The type of field `field` of struct `types[type_id]`.
+field_tags :: fn(ctx: TagContext, type_id: i32, field: i32) -> u8 {
+    types :: ctx.module.types
+    if in_range(type_id, types.len()) {
+        t :: types[usize(type_id)]
+        if t is bc.BcStruct && in_range(field, t.fields.len()) {
+            return tags_of_type(ctx, t.fields[usize(field)].type_index)
+        }
+    }
+    return TAGS_ANY
+}
+
+// The element type of array `types[type_id]`.
+element_tags :: fn(ctx: TagContext, type_id: i32) -> u8 {
+    types :: ctx.module.types
+    if in_range(type_id, types.len()) {
+        t :: types[usize(type_id)]
+        if t is bc.BcArray {
+            return tags_of_type(ctx, t.element)
+        }
+    }
+    return TAGS_ANY
+}
+
+/// Infer the tags of every function of `module`, index-aligned with
+/// `module.functions`.
+///
+/// @param module  a module `verify_module` accepted.
+/// @param depths  its result: the deepest stack of each function.
+infer_module_tags :: fn(module: bc.BytecodeModule, depths: usize[]) -> FunctionTags[]! {
+    ctx :: new_tag_context(module)
+    out: FunctionTags[]!: [] * module.functions.len()
+    for i in 0..<module.functions.len() {
+        out.push(infer_function_tags(ctx, module.functions[i], depths[i]))
+    }
+    return out
+}
+
+// The tags of one function. The fixpoint keeps a full state — slots and stack —
+// only at the entry of each basic block and walks a block's ops linearly ; a last
+// walk records the stack of every pc.
+infer_function_tags :: fn(ctx: TagContext, f: bc.BcFunction, deepest: usize) -> FunctionTags {
+    n :: f.body.len()
+    facts :: FunctionTags {
+        .deepest = deepest,
+        .depth   = [-1] * n,
+        .stack   = [0] * (n * deepest),
+    }
+    if n == 0 {
+        return facts
+    }
+    params :: f.signature.params
+    slots :: params.len() + f.locals.len()
+    blocks :: new_blocks(ctx.module, f, slots + deepest)
+    start: u8[]!: [0] * blocks.width
+    for i in 0..<params.len() {
+        start[i] = tags_of_val(params[i])
+    }
+    for i in params.len()..<slots {
+        start[i] = TAGS_NULL
+    }
+    merge_block(blocks, 0, 0, start)
+    state: u8[]!: [0] * blocks.width
+    for blocks.work.len() > 0 {
+        b :: blocks.work.remove_last() ?? break
+        blocks.queued[b] = false
+        walk_block(ctx, f, blocks, b, slots, state, null)
+    }
+    for b in 0..<blocks.leaders.len() {
+        if blocks.entry_depth[b] >= 0 {
+            walk_block(ctx, f, blocks, b, slots, state, facts)
+        }
+    }
+    return facts
+}
+
+// The basic blocks of one function and the state at each block's entry.
+Blocks :: struct {
+    width:       usize
+    /// First pc of each block, ascending.
+    leaders:     usize[]!
+    /// Block index of each pc that starts one, `-1` elsewhere.
+    block_at:    i64[]!
+    entry_depth: i64[]!
+    /// `width` sets per block: slots, then the stack from the bottom.
+    entry:       u8[]!
+    work:        usize[]!
+    /// True while a block waits in `work`.
+    queued:      bool[]!
+}
+
+// A block starts at pc 0, at every jump target, and after every op that does not
+// fall through alone.
+new_blocks :: fn(module: bc.BytecodeModule, f: bc.BcFunction, width: usize) -> Blocks {
+    n :: f.body.len()
+    leader: bool[]!: [false] * n
+    leader[0] = true
+    for pc in 0..<n {
+        e :: effect_of(module, f, f.body[pc]) ?? continue
+        if e.flow == .Jump || e.flow == .Fork {
+            target :: f.jump_table[pc]
+            if usize(target) < n {
+                leader[usize(target)] = true
+            }
+        }
+        if e.flow != .Next && pc + 1 < n {
+            leader[pc + 1] = true
+        }
+    }
+    leaders: usize[]!: []
+    block_at: i64[]!: [-1] * n
+    for pc in 0..<n {
+        if leader[pc] {
+            block_at[pc] = i64(leaders.len())
+            leaders.push(pc)
+        }
+    }
+    return Blocks {
+        .width       = width,
+        .leaders     = leaders,
+        .block_at    = block_at,
+        .entry_depth = [-1] * leaders.len(),
+        .entry       = [0] * (leaders.len() * width),
+        .work        = [],
+        .queued      = [false] * leaders.len(),
+    }
+}
+
+// Union `state` into block `b`'s entry ; queue `b` when it grew.
+merge_block :: fn(blocks: Blocks!, b: usize, d: usize, state: u8[]) -> void {
+    base :: b * blocks.width
+    grew := blocks.entry_depth[b] < 0
+    blocks.entry_depth[b] = i64(d)
+    for i in 0..<blocks.width {
+        old :: blocks.entry[base + i]
+        joined :: old | state[i]
+        if joined != old {
+            blocks.entry[base + i] = joined
+            grew = true
+        }
+    }
+    if grew && !blocks.queued[b] {
+        blocks.queued[b] = true
+        blocks.work.push(b)
+    }
+}
+
+// Run block `b` from its entry state, merging into its successors. With `record`,
+// write each pc's depth and stack instead, and merge nothing.
+walk_block :: fn(
+    ctx: TagContext, f: bc.BcFunction, blocks: Blocks!, b: usize, slots: usize, state: u8[]!,
+    record: FunctionTags! | null,
+) -> void {
+    n :: f.body.len()
+    base :: b * blocks.width
+    for i in 0..<blocks.width {
+        state[i] = blocks.entry[base + i]
+    }
+    d := usize(blocks.entry_depth[b])
+    pc := blocks.leaders[b]
+    for pc < n {
+        if record != null {
+            record.depth[pc] = i64(d)
+            for i in 0..<d {
+                record.stack[pc * record.deepest + i] = state[slots + i]
+            }
+        }
+        op :: f.body[pc]
+        e :: effect_of(ctx.module, f, op) ?? return
+        d = transfer(ctx, op, state, slots, d, e)
+        if record == null && (e.flow == .Jump || e.flow == .Fork) {
+            target :: usize(f.jump_table[pc])
+            if target < n {
+                merge_block(blocks, usize(blocks.block_at[target]), d, state)
+            }
+        }
+        if e.flow != .Next && e.flow != .Fork {
+            return
+        }
+        pc += 1
+        if pc < n && blocks.block_at[pc] >= 0 {
+            if record == null {
+                merge_block(blocks, usize(blocks.block_at[pc]), d, state)
+            }
+            return
+        }
+    }
+}
+
+// Apply `op` to `state` in place ; the depth after it. Cells above the new top keep
+// whatever they held: `exec` never clears them, and nothing reads them before a
+// push overwrites them.
+transfer :: fn(
+    ctx: TagContext, op: bc.Op, state: u8[]!, slots: usize, d: usize, e: StackEffect,
+) -> usize {
+    top :: if d > 0 { state[slots + d - 1] } else { 0 }
+    base :: d - e.pops
+    if op is bc.LocalSet {
+        state[usize(op.slot)] = top
+    } else if op is bc.LocalTee {
+        state[usize(op.slot)] = top
+    }
+    results :: call_results(ctx, op)
+    if results != null {
+        at := slots + base
+        for v in results {
+            if v != .Void {
+                state[at] = tags_of_val(v)
+                at += 1
+            }
+        }
+    } else if e.pushes == 1 {
+        state[slots + base] = pushed_tags(ctx, op, state, top)
+    }
+    return base + e.pushes
+}
+
+// What a call leaves — possibly several values — or `null` for any other op. A
+// vtable key with no row is served by the host, which leaves one value.
+call_results :: fn(ctx: TagContext, op: bc.Op) -> bc.ValType[] | null {
+    module :: ctx.module
+    if op is bc.Call {
+        return module.functions[usize(op.function_index)].signature.results
+    }
+    if op is bc.CallImport {
+        return module.imports[usize(op.index)].signature.results
+    }
+    if op is bc.VirtualCall {
+        return ctx.virtual_results[op.vtable_key] ?? [.Any]
+    }
+    return null
+}
+
+// What `op` pushes when it pushes one value and is not a call (`call_results`).
+pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = match op {
+    is bc.I32Const | bc.ArrayLen | bc.LoadU8 | bc.LoadI32 | bc.F32ToBits | bc.I32Add | bc.I32Sub
+     | bc.I32Mul | bc.I32Div | bc.I32Mod | bc.I32BitAnd | bc.I32BitOr | bc.I32BitXor | bc.I32Shl
+     | bc.I32Shr | bc.I32ShrU | bc.U32Div | bc.U32Mod | bc.I32Neg | bc.I32BitNot -> TAGS_I32
+    is bc.I64Const | bc.SizeOfType | bc.LoadI64 | bc.F64ToBits | bc.I64Add | bc.I64Sub | bc.I64Mul
+     | bc.I64Div | bc.I64Mod | bc.U64Div | bc.U64Mod | bc.I64Shl | bc.I64Shr | bc.I64ShrU
+     | bc.I64BitAnd | bc.I64BitOr | bc.I64BitXor | bc.I64Neg | bc.I64BitNot -> TAGS_I64
+    is bc.F64Const | bc.LoadF64 | bc.LoadSlotF64 | bc.BitsToF64 | bc.BitsToF32 | bc.F64Add
+     | bc.F64Sub | bc.F64Mul | bc.F64Div | bc.F64Neg -> TAGS_F64
+    is bc.BoolConst | bc.TypeCheck | bc.I32Eq | bc.I32Ne | bc.I32Lt | bc.I32Le | bc.I32Gt
+     | bc.I32Ge | bc.U32Lt | bc.U32Le | bc.U32Gt | bc.U32Ge | bc.I64Eq | bc.I64Ne | bc.I64Lt
+     | bc.I64Le | bc.I64Gt | bc.I64Ge | bc.U64Lt | bc.U64Le | bc.U64Gt | bc.U64Ge | bc.F64Eq
+     | bc.F64Ne | bc.F64Lt | bc.F64Le | bc.F64Gt | bc.F64Ge | bc.BoolEq | bc.BoolNe | bc.BoolAnd
+     | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.RefEq | bc.RefNe -> TAGS_BOOL
+    is bc.CharConst -> TAGS_CHAR
+    is bc.NullConst -> TAGS_NULL
+    is bc.StringConst | bc.DataConst | bc.TypeConst | bc.FnRef | bc.FnAddr | bc.MakeClosure
+     | bc.StructNew | bc.ArrayNew | bc.ArrayRepeat | bc.ArraySlice | bc.StringSliceCodepoints
+     | bc.BufferNew | bc.BufferToString -> TAGS_REF
+    is bc.LocalGet -> state[usize(op.slot)]
+    is bc.LocalTee | bc.Box -> top
+    is bc.RefCast -> {
+        narrowed :: top & tags_of_type(ctx, op.type_id)
+        if narrowed != 0 { narrowed } else { top }
+    }
+    is bc.Convert -> match op.target {
+        .I32  -> TAGS_I32
+        .I64  -> TAGS_I64
+        .F64  -> TAGS_F64
+        .Char -> TAGS_CHAR
+    }
+    is bc.StructGet -> field_tags(ctx, op.type_id, op.field_index)
+    is bc.LocalField -> field_tags(ctx, op.type_id, op.field_index)
+    is bc.ArrayGet -> element_tags(ctx, op.type_id)
+    is bc.ArrayRemoveLast -> TAGS_ANY
+    // A slot load pushes the element as stored, whatever width its name says.
+    is bc.LoadSlotI32 -> TAGS_I32 | TAGS_CHAR
+    is bc.LoadSlotI64 -> TAGS_I64 | TAGS_I32
+    is bc.CallIndirect -> {
+        t :: fn_type_of(ctx.module, op.type_id)
+        if t != null { tags_of_type(ctx, t.return_type) } else { TAGS_ANY }
+    }
+    // Calls go through `call_results` ; the rest push nothing.
+    is bc.Call | bc.CallImport | bc.VirtualCall | bc.LocalSet | bc.StructSet | bc.ArrayPush
+     | bc.ArrayPushAll | bc.ArraySet | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64
+     | bc.StoreSlotI32 | bc.StoreSlotI64 | bc.StoreSlotF64 | bc.BufferWriteString | bc.ArrayCopy
+     | bc.MemoryCopy | bc.Drop | bc.ArrayClear | bc.DeferPush | bc.Block | bc.Loop | bc.End
+     | bc.DeferPopExec | bc.If | bc.BranchIf | bc.Else | bc.Branch | bc.Return | bc.ReturnLit
+     | bc.Unreachable -> 0
+}
+
+// The tags `op`'s arm accepts on the operand `back` places below the top, when the
+// arm tests that operand's tag ; `null` otherwise. Arms that read an operand
+// through a boxed `read_*` rather than a tag test (`convert`, `bool.and`, the
+// stored value of a `store*`) have no row. `i32.eq` / `i32.ne` also accept a
+// `.Null`, which they compare without reading bits.
+accepted_tags :: fn(op: bc.Op, back: usize) -> u8 | null = match op {
+    is bc.I32Add | bc.I32Sub | bc.I32Mul | bc.I32Div | bc.I32Mod | bc.I32Lt | bc.I32Le | bc.I32Gt
+     | bc.I32Ge | bc.I32BitAnd | bc.I32BitOr | bc.I32BitXor | bc.I32Shl | bc.I32Shr | bc.I32ShrU
+     | bc.U32Div | bc.U32Mod | bc.U32Lt | bc.U32Le | bc.U32Gt | bc.U32Ge -> TAGS_I32_OPERAND
+    is bc.I32Neg | bc.I32BitNot -> if back == 1 { TAGS_I32_OPERAND } else { null }
+    is bc.I32Eq | bc.I32Ne -> TAGS_I32_OPERAND | TAGS_NULL
+    is bc.I64Add | bc.I64Sub | bc.I64Mul | bc.I64Div | bc.I64Mod | bc.I64Eq | bc.I64Ne | bc.I64Lt
+     | bc.I64Le | bc.I64Gt | bc.I64Ge | bc.U64Div | bc.U64Mod | bc.U64Lt | bc.U64Le | bc.U64Gt
+     | bc.U64Ge | bc.I64Shl | bc.I64Shr | bc.I64ShrU | bc.I64BitAnd | bc.I64BitOr
+     | bc.I64BitXor -> TAGS_I64_OPERAND
+    is bc.I64Neg | bc.I64BitNot -> if back == 1 { TAGS_I64_OPERAND } else { null }
+    is bc.F64Add | bc.F64Sub | bc.F64Mul | bc.F64Div | bc.F64Eq | bc.F64Ne | bc.F64Lt | bc.F64Le
+     | bc.F64Gt | bc.F64Ge -> TAGS_F64
+    is bc.F64Neg -> if back == 1 { TAGS_F64 } else { null }
+    is bc.ArrayGet | bc.LoadSlotI32 | bc.LoadSlotI64
+     | bc.LoadSlotF64 -> if back == 1 { TAGS_I32_OPERAND } else { null }
+    is bc.ArraySet | bc.StoreSlotI32 | bc.StoreSlotI64
+     | bc.StoreSlotF64 -> if back == 2 { TAGS_I32_OPERAND } else { null }
+    is bc.Unreachable | bc.I32Const | bc.LocalGet | bc.LocalSet | bc.LocalTee | bc.StringConst
+     | bc.NullConst | bc.BoolConst | bc.CharConst | bc.F64Const | bc.I64Const | bc.CallImport
+     | bc.Call | bc.FnRef | bc.MakeClosure | bc.CallIndirect | bc.VirtualCall | bc.StructNew
+     | bc.StructGet | bc.StructSet | bc.LocalField | bc.ArrayNew | bc.ArrayPush | bc.ArrayLen
+     | bc.ArraySlice | bc.DataConst | bc.RefCast | bc.Box | bc.Convert | bc.TypeCheck
+     | bc.TypeConst | bc.DeferPush | bc.DeferPopExec | bc.SizeOfType | bc.BoolEq | bc.BoolNe
+     | bc.BoolAnd | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.StringSliceCodepoints
+     | bc.RefEq | bc.RefNe | bc.Drop | bc.Block | bc.Loop | bc.If | bc.Else | bc.End | bc.Branch
+     | bc.BranchIf | bc.Return | bc.ReturnLit | bc.BufferNew | bc.LoadU8 | bc.LoadI32 | bc.LoadI64
+     | bc.LoadF64 | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.MemoryCopy
+     | bc.BufferToString | bc.BufferWriteString | bc.F64ToBits | bc.BitsToF64 | bc.F32ToBits
+     | bc.BitsToF32 | bc.ArrayRepeat | bc.ArrayPushAll | bc.ArrayCopy | bc.ArrayRemoveLast
+     | bc.ArrayClear | bc.FnAddr -> null
+}
+
+/// Refuse `module` when some arm could meet an operand tag it does not accept.
+///
+/// @param module  a module `verify_module` accepted.
+/// @param facts   its inferred tags (`infer_module_tags`).
+/// @return        `null` when every tested operand is proven.
+/// @error         a `VerifyError` at the first arm whose operand is not.
+check_module_tags :: fn(module: bc.BytecodeModule, facts: FunctionTags[]) -> VerifyError | null {
+    operands: usize: 2
+    for fi in 0..<module.functions.len() {
+        f :: module.functions[fi]
+        ft :: facts[fi]
+        for pc in 0..<f.body.len() {
+            if ft.depth[pc] < 0 {
+                continue
+            }
+            op :: f.body[pc]
+            for back in 1..=operands {
+                want :: accepted_tags(op, back) ?? continue
+                have :: stack_tags(ft, pc, back)
+                if !tags_within(have, want) {
+                    met :: display_tags(have)
+                    accepted :: display_tags(want)
+                    text :: op_text(op)
+                    return defect(f, pc, "`${text}` may meet ${met} where it accepts ${accepted}")
+                }
+            }
+        }
+    }
+    return null
+}
+
+// A tag set spelled `i32|char`.
+display_tags :: fn(tags: u8) -> string {
+    if tags == 0 {
+        return "nothing"
+    }
+    sb :: StringBuilder {}
+    first := true
+    for i in 0..<TAG_NAMES.len() {
+        if tags & (1 << u8(i)) != 0 {
+            if !first {
+                sb.append("|")
+            }
+            sb.append(TAG_NAMES[i])
+            first = false
+        }
+    }
+    return sb.to_string()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// The tag check of a one-function module whose `-> i32` body is `body` and whose
+// locals are `locals` ; "" when accepted.
+tag_rejection :: fn(locals: string, body: string) -> string {
+    module :: parse_virt_bc(VIRT_HEAD + r"fn 0 t$main () -> i32" + "\n" + locals + body + "end\n")
+    if module is VirtParseError {
+        return "fixture does not parse"
+    }
+    depths :: verify_module(module)
+    if depths is VerifyError {
+        return "fixture does not verify"
+    }
+    found :: check_module_tags(module, infer_module_tags(module, depths))
+    return if found is VerifyError { found.message } else { "" }
+}
+
+@test
+test_tags_accept_arithmetic_on_constants :: fn() -> void {
+    assert_eq(tag_rejection("", "  i32.const 1\n  i32.const 2\n  i32.add\n  return\n"), "")
+}
+
+@test
+test_tags_follow_a_local_through_its_store :: fn() -> void {
+    body :: "  i32.const 4\n  local.set 0\n  local.get 0\n  i32.const 1\n  i32.add\n  return\n"
+    assert_eq(tag_rejection("  local x i32\n", body), "")
+}
+
+@test
+test_tags_reject_arithmetic_on_an_unset_local :: fn() -> void {
+    body :: "  local.get 0\n  i32.const 1\n  i32.add\n  return\n"
+    rejection :: tag_rejection("  local x i32\n", body)
+    assert("may meet null" in rejection, "an unset local reads as null")
+}
+
+@test
+test_tags_reject_i32_arithmetic_on_a_float :: fn() -> void {
+    body :: "  f64.const 1.5\n  i32.const 1\n  i32.add\n  return\n"
+    assert("may meet f64" in tag_rejection("", body), "an f64 into i32.add")
+}
+
+@test
+test_tags_merge_both_arms_of_an_if :: fn() -> void {
+    body :: "  i32.const 1\n  local.set 0\n  bool.const true\n" + r"  if $L0 void" + "\n" +
+        "    f64.const 2.0\n    drop\n" + r"  end $L0" + "\n" +
+        "  local.get 0\n  i32.const 1\n  i32.add\n  return\n"
+    assert_eq(tag_rejection("  local x i32\n", body), "")
+}
+
+@test
+test_display_tags_lists_every_member :: fn() -> void {
+    assert_eq(display_tags(TAGS_I32 | TAGS_CHAR), "i32|char")
+}

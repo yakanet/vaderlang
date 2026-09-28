@@ -11,7 +11,7 @@
 //   string_pool_index :: builder.intern_string("hello")
 //   type_id_i32 :: builder.add_type(bc.BcPrimitive { .val = bc.ValType.I32 })
 //
-//   function :: new_function_builder("main", 0, 0)
+//   function :: new_function_builder("main", [], 0)
 //   function.push(bc.I32Const { .value = 42 })
 //   function.push(bc.Return {})
 //   main_index :: builder.add_function(function)
@@ -120,14 +120,12 @@ export add_type :: fn(self: ModuleBuilder!, type_decl: bc.BcType) -> i32 {
     return index
 }
 
-/// Build a synthetic `BcSignature` from an arity + a has-result flag. The
-/// builder API doesn't carry per-slot `ValType`s, so each slot is `Any` ;
+/// Build a synthetic `BcSignature` from parameter classes + a has-result flag.
 /// `result` is `Any` when the callee returns a value, `Void` otherwise. The
 /// `param_types` / `result_type` `BcType` indices are left at `0` — the VM
-/// only reads `params.len()` / `result`, and a `.virt` round-trip
-/// reconstructs the indices from the type table.
-synth_signature :: fn(parameter_count: usize, has_return: bool) -> bc.BcSignature {
-    params: bc.ValType[]: [.Any] * parameter_count
+/// reads the `ValType`s only, and a `.virt` round-trip reconstructs the indices
+/// from the type table.
+synth_signature :: fn(params: bc.ValType[], has_return: bool) -> bc.BcSignature {
     return bc.BcSignature {
         .params      = params,
         .results     = [if has_return { .Any } else { .Void }],
@@ -154,7 +152,7 @@ export add_import :: fn(self: ModuleBuilder!, name: string, mangled: string, par
     self.imports.push(bc.BcImport {
         .extern_name  = name,
         .mangled_name = mangled,
-        .signature    = synth_signature(parameter_count, has_return),
+        .signature    = synth_signature([.Any] * parameter_count, has_return),
         .is_extern    = false,
     })
     return index
@@ -191,9 +189,9 @@ export add_impl :: fn(self: ModuleBuilder!, type_id: i32, trait_name: string) ->
 /// `BcFunction`. Returns the function's index, which can be
 /// referenced by `Call` ops and `set_main`.
 ///
-/// The builder API carries arities but no per-slot `ValType`s, so the
-/// signature's params + the locals are all `Any` and `debug` is all-null
-/// (the VM reads neither beyond `params.len()` / `locals.len()`).
+/// The locals are `Any` and `debug` is all-null. A local holds what the body
+/// stores in it — `prepare` follows it (`tags.vader`) — whereas a parameter holds
+/// what its declared class allows, so an arithmetic op on one needs the class.
 ///
 /// @param self      the builder.
 /// @param function  the in-progress function builder, already populated
@@ -210,7 +208,7 @@ export add_function :: fn(self: ModuleBuilder!, function: FunctionBuilder) -> i3
     self.functions.push(bc.BcFunction {
         .name       = function.name,
         .is_main    = false,
-        .signature  = synth_signature(function.parameter_count, true),
+        .signature  = synth_signature(function.params, true),
         .locals     = locals,
         .body       = function.ops,
         .debug      = debug,
@@ -296,13 +294,14 @@ PendingBranch :: struct {
 /// table being filled out as control-flow ops are wired, and the scope
 /// / pending-branch state needed to resolve labels.
 ///
-/// `parameter_count` and `local_count` are set at construction ; the
+/// `params` and `local_count` are set at construction ; the
 /// op sequence and table grow as the caller pushes ops. The 1-element
 /// `scope_sp` / `pending_sp` arrays are the "boxed scalar" pattern used
 /// to keep cursors mutable across method calls.
 export FunctionBuilder :: struct {
     name: string
-    parameter_count: usize
+    /// Class of each parameter, in slot order.
+    params: bc.ValType[]
     local_count: usize
     ops: bc.Op[]!
     table: i32[]!
@@ -314,20 +313,22 @@ export FunctionBuilder :: struct {
     pending_sp: usize[]!
 }
 
-/// Fresh function builder with `parameter_count` argument slots followed
-/// by `local_count` additional local slots — total frame size is
-/// `parameter_count + local_count`, with parameters at slots `0..parameter_count`.
+/// Fresh function builder with one argument slot per entry of `params`,
+/// followed by `local_count` additional local slots — parameters at slots
+/// `0..params.len()`.
 ///
 /// @param name             the mangled function name (used for the
 ///                         `$main` fallback in `finish()` and for trait-
 ///                         method vtable synthesis).
-/// @param parameter_count  number of slots the caller pushes per call.
+/// @param params           the class of each value the caller pushes per call.
 /// @param local_count      number of additional locals declared in the body.
 /// @return                 a FunctionBuilder ready to receive ops.
-export new_function_builder :: fn(name: string, parameter_count: usize, local_count: usize) -> FunctionBuilder {
+export new_function_builder :: fn(
+    name: string, params: bc.ValType[], local_count: usize,
+) -> FunctionBuilder {
     return FunctionBuilder {
         .name            = name,
-        .parameter_count = parameter_count,
+        .params          = params,
         .local_count     = local_count,
         .ops             = [],
         .table           = [],

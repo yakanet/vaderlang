@@ -44,7 +44,7 @@ test_virt_roundtrip :: fn() -> void {
     builder.add_type(bc.BcPrimitive { .val = .I32 })
 
     // compute(a, b) -> i32 = (a + b) * 2
-    compute :: new_function_builder("compute", 2, 0)
+    compute :: new_function_builder("compute", [.I32, .I32], 0)
     compute.push(bc.LocalGet { .slot = 0 })
     compute.push(bc.LocalGet { .slot = 1 })
     compute.push(bc.I32Add {})
@@ -54,7 +54,7 @@ test_virt_roundtrip :: fn() -> void {
     compute_index :: builder.add_function(compute)
 
     // main() -> i32 = compute(40, 1)   // → 82
-    entry :: new_function_builder("main", 0, 0)
+    entry :: new_function_builder("main", [], 0)
     entry.push(bc.I32Const { .value = 40 })
     entry.push(bc.I32Const { .value = 1 })
     entry.push(bc.Call { .function_index = compute_index })

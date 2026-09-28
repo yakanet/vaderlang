@@ -894,15 +894,36 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
 /// synthetic path element. Returns an empty arg list when `main` takes no
 /// parameters.
 ///
-/// @param parameter_count        the entry fn's declared parameter count.
+/// `prepare` inferred every function's operand tags from its declared parameter
+/// types (`tags.vader`), so a parameter that cannot hold a reference must not be
+/// handed the array.
+///
+/// @param entry                  the entry fn.
 /// @param host_argv              forwarded CLI argv, or empty for the synthetic
 ///                               path.
 /// @param string_array_type_id   the module's `string[]` type-table index, used
 ///                               to tag the boxed array.
 /// @return                       the `Value[]` to seed the main frame's slots.
-build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_type_id: i32) -> Value![] {
+/// @error                        a `Trap` when the entry takes more than one
+///                               parameter, or one that cannot hold a `string[]`.
+build_main_args :: fn(
+    entry: bc.BcFunction, host_argv: string[], string_array_type_id: i32,
+) -> Value![] | Trap {
     out: Value![]!: []
-    if parameter_count != 1 { return out }
+    params :: entry.signature.params
+    if params.len() == 0 {
+        return out
+    }
+    if params.len() > 1 {
+        count :: params.len()
+        message :: "entry function '${entry.name}' takes ${count} parameters; the host passes one"
+        return Trap { .message = message }
+    }
+    if !tags_within(TAGS_REF, tags_of_val(params[0])) {
+        class :: bc.val_type_name(params[0])
+        message :: "entry function '${entry.name}' takes a ${class}, but the host passes a string[]"
+        return Trap { .message = message }
+    }
     // Pushed per branch rather than through a joined local : the fallback is a fresh
     // literal (mutable) and `host_argv` is a read-only borrow, so a join would have
     // to pick one mutability for both (T3074).
@@ -1091,7 +1112,10 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // dispatch fn) past the bytecode emitter's per-function buffer limit —
     // a latent emit bug (array-index-OOB in emit at scale). The split is also
     // cleaner; the underlying limit still needs a real fix.
-    main_args :: build_main_args(main_function.signature.params.len(), host_argv, string_array_type_id)
+    main_args :: build_main_args(main_function, host_argv, string_array_type_id)
+    if main_args is Trap {
+        return main_args
+    }
     main_frame :: build_entry_frame(entry_index, main_function, main_args)
     push_frame(frames, frame_count, main_frame)
 

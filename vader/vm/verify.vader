@@ -13,9 +13,9 @@
 // the classic forward dataflow over pcs, one depth per pc, merged at jump targets.
 //
 // The ORIGINAL bodies are verified — the ones a debugger dispatches, and the input
-// `fuse.vader` rewrites without changing any depth. What depends on a VALUE stays a
-// run-time check in `exec`: `call.indirect` / `virtual.call` targets, array bounds,
-// operand tags.
+// `fuse.vader` rewrites without changing any depth. Operand tags are checked by the
+// sibling pass `tags.vader`. What depends on a VALUE stays a run-time check in
+// `exec`: `call.indirect` / `virtual.call` targets, array bounds.
 
 module "vader/vm"
 
@@ -248,15 +248,18 @@ op_text :: fn(op: bc.Op) -> string {
 
 // `call.indirect` pops the fn value on top of its arguments.
 indirect_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect | null {
+    t :: fn_type_of(module, type_id) ?? return null
+    results: usize: if returns_void(module, t.return_type) { 0 } else { 1 }
+    return effect(t.params.len() + 1, results)
+}
+
+// The function type `type_id` names, or `null` when it names another type.
+fn_type_of :: fn(module: bc.BytecodeModule, type_id: i32) -> bc.BcFn | null {
     if !in_range(type_id, module.types.len()) {
         return null
     }
     t :: module.types[usize(type_id)]
-    if t !is bc.BcFn {
-        return null
-    }
-    results: usize: if returns_void(module, t.return_type) { 0 } else { 1 }
-    return effect(t.params.len() + 1, results)
+    return if t is bc.BcFn { t } else { null }
 }
 
 returns_void :: fn(module: bc.BytecodeModule, type_index: i32) -> bool {
@@ -267,19 +270,24 @@ returns_void :: fn(module: bc.BytecodeModule, type_index: i32) -> bool {
     return t is bc.BcPrimitive && t.val == .Void
 }
 
-// Every implementation behind one vtable key shares its signature, so the first
-// entry answers for all. A key with no row is served by a host impl, which
-// always leaves one value.
+// A key with no row is served by a host impl, which always leaves one value.
 virtual_result_arity :: fn(module: bc.BytecodeModule, key: string) -> usize {
+    sig :: virtual_signature(module, key) ?? return 1
+    return bc.bc_result_arity(sig)
+}
+
+// Every implementation behind one vtable key shares its signature, so the first
+// entry answers for all ; `null` when no row names one.
+virtual_signature :: fn(module: bc.BytecodeModule, key: string) -> bc.BcSignature | null {
     for row in module.vtables {
         if row.key == key && row.entries.len() > 0 {
             at :: row.entries[0].fn_index
             if in_range(at, module.functions.len()) {
-                return bc.bc_result_arity(module.functions[usize(at)].signature)
+                return module.functions[usize(at)].signature
             }
         }
     }
-    return 1
+    return null
 }
 
 struct_new_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect | null {
