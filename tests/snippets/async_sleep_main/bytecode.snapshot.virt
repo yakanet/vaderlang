@@ -18,7 +18,6 @@ type 15 ref Async
 type 16 struct std_async$Sleep { ms:13,deadline:13,armed:7 }
 type 17 union 0,4
 type 18 primitive isize
-type 19 ref _
 string 0 "woke at 5"
 string 1 "woke at 2"
 string 2 "start"
@@ -408,10 +407,14 @@ fn 9 std_async$block_on__i32 (any) -> i32
         if $L3 void
           string.const 4   ; "async deadlock: a task is suspended with nothing left to wake it"
           call.import 6   ; std_abort$panic
-          drop
+          unreachable
         end $L3
-        br $L1
+      else
+        local.get 1   ; r
+        ref.cast 1   ; -> i32
+        return
       end $L2
+      br $L1
     end $L1
   end $L0
   local.get 1   ; r

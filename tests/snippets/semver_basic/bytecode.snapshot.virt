@@ -160,7 +160,7 @@ fn 0 snippet$main () -> i32
         call 61   ; std_io$eprintln__string
         return.lit i32.const 1
       end $L4
-      return
+      unreachable
     end $L2
   else
     local.get 0   ; __scrut_0
@@ -176,7 +176,7 @@ fn 0 snippet$main () -> i32
       call 61   ; std_io$eprintln__string
       return.lit i32.const 1
     end $L5
-    return
+    unreachable
   end $L0
   return.lit i32.const 0
 end
@@ -206,7 +206,7 @@ fn 1 snippet$parse_one (string) -> ref
     struct.new 3   ; semver$Version
     return
   end $L1
-  return
+  unreachable
 end
 
 fn 2 concat_2 (string,string) -> string
@@ -616,7 +616,7 @@ fn 7 semver$parse (string) -> any
               struct.new 13   ; std_string$ParseError
               return
             end $L20
-            return
+            unreachable
           end $L19
           local.get 6   ; j
           i64.const 1
@@ -673,7 +673,7 @@ fn 7 semver$parse (string) -> any
       struct.new 13   ; std_string$ParseError
       return
     end $L23
-    return
+    unreachable
   end $L22
   local.get 4   ; i
   local.get 3   ; plus_pos
@@ -816,7 +816,7 @@ fn 8 semver$parse_range (string) -> any
             struct.new 13   ; std_string$ParseError
             return
           end $L5
-          return
+          unreachable
         end $L4
         local.get 5   ; __for_i_2
         i64.const 1
@@ -899,7 +899,7 @@ fn 9 semver$parse_numeric_id (string) -> any
     struct.new 13   ; std_string$ParseError
     return
   end $L5
-  return
+  unreachable
 end
 
 fn 10 semver$validate_prerelease (string) -> string
@@ -1302,7 +1302,7 @@ fn 14 semver$parse_clause (string) -> any
               struct.new 13   ; std_string$ParseError
               return
             end $L11
-            return
+            unreachable
           end $L7
           local.get 4   ; i
           i64.const 2
@@ -1409,22 +1409,23 @@ fn 14 semver$parse_clause (string) -> any
               struct.new 13   ; std_string$ParseError
               return
             end $L19
-            return
-          end $L14
-          local.get 19   ; lo_part
-          type_check 13   ; std_string$ParseError
-          if $L20 void
+            unreachable
+          else
             local.get 19   ; lo_part
-            ref.cast 13   ; -> std_string$ParseError
-            call 53   ; std_string$ParseError$Error$message
-            local.set 29   ; $call_101
-            string.const 23   ; "hyphen lower: "
-            local.get 29   ; $call_101
-            call 2   ; concat_2
-            struct.new 13   ; std_string$ParseError
-            return
-          end $L20
-          return
+            type_check 13   ; std_string$ParseError
+            if $L20 void
+              local.get 19   ; lo_part
+              ref.cast 13   ; -> std_string$ParseError
+              call 53   ; std_string$ParseError$Error$message
+              local.set 29   ; $call_101
+              string.const 23   ; "hyphen lower: "
+              local.get 29   ; $call_101
+              call 2   ; concat_2
+              struct.new 13   ; std_string$ParseError
+              return
+            end $L20
+            unreachable
+          end $L14
         end $L13
         local.get 1   ; tokens
         local.get 4   ; i
@@ -1474,7 +1475,7 @@ fn 14 semver$parse_clause (string) -> any
             struct.new 13   ; std_string$ParseError
             return
           end $L25
-          return
+          unreachable
         end $L21
         local.get 4   ; i
         i64.const 1
@@ -2081,7 +2082,7 @@ fn 20 semver$parse_token (string) -> any
       struct.new 13   ; std_string$ParseError
       return
     end $L13
-    return
+    unreachable
   end $L11
   local.get 8   ; b0
   i32.const 126
@@ -2112,7 +2113,7 @@ fn 20 semver$parse_token (string) -> any
       struct.new 13   ; std_string$ParseError
       return
     end $L16
-    return
+    unreachable
   end $L14
   local.get 0   ; arg 0
   call 21   ; semver$parse_partial
@@ -2210,7 +2211,7 @@ fn 20 semver$parse_token (string) -> any
     struct.new 13   ; std_string$ParseError
     return
   end $L21
-  return
+  unreachable
 end
 
 fn 21 semver$parse_partial (string) -> any
@@ -2483,7 +2484,7 @@ fn 21 semver$parse_partial (string) -> any
           struct.new 13   ; std_string$ParseError
           return
         end $L20
-        return
+        unreachable
       end $L19
     end $L18
   end $L17
@@ -2529,7 +2530,7 @@ fn 21 semver$parse_partial (string) -> any
           struct.new 13   ; std_string$ParseError
           return
         end $L24
-        return
+        unreachable
       end $L23
     end $L22
   end $L21
@@ -2575,7 +2576,7 @@ fn 21 semver$parse_partial (string) -> any
           struct.new 13   ; std_string$ParseError
           return
         end $L28
-        return
+        unreachable
       end $L27
     end $L26
   end $L25
@@ -2827,7 +2828,7 @@ fn 25 semver$parse_comparator_token (u8,string) -> any
     struct.new 13   ; std_string$ParseError
     return
   end $L2
-  return
+  unreachable
 end
 
 fn 26 semver$expand_caret (ref) -> any
@@ -3660,7 +3661,7 @@ fn 41 semver$term_satisfies (ref,ref) -> bool
     i32.ge
     return
   end $L4
-  return
+  unreachable
 end
 
 fn 42 semver$compare_id (string,string) -> i32
@@ -3765,14 +3766,14 @@ fn 42 semver$compare_id (string,string) -> i32
       type_check 13   ; std_string$ParseError
       if $L10 void
       else
-        return
+        unreachable
       end $L10
     else
       local.get 5   ; __scrut_0
       type_check 13   ; std_string$ParseError
       if $L11 void
       else
-        return
+        unreachable
       end $L11
     end $L6
     local.get 0   ; arg 0

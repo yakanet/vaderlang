@@ -47,7 +47,6 @@ type 44 union 23,0
 type 45 array 5
 type 46 ref Async
 type 47 union 29,9
-type 48 ref _
 string 0 "down: "
 string 1 "unexpected: "
 string 2 "?"
@@ -1335,10 +1334,14 @@ fn 24 std_async$block_on__i32 (any) -> i32
         if $L3 void
           string.const 9   ; "async deadlock: a task is suspended with nothing left to wake it"
           call.import 6   ; std_abort$panic
-          drop
+          unreachable
         end $L3
-        br $L1
+      else
+        local.get 1   ; r
+        ref.cast 6   ; -> i32
+        return
       end $L2
+      br $L1
     end $L1
   end $L0
   local.get 1   ; r

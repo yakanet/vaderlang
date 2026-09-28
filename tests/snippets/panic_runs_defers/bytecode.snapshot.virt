@@ -14,7 +14,6 @@ type 11 array 7
 type 12 primitive isize
 type 13 struct $Cell_i32 { value:1 }
 type 14 fn () -> 2
-type 15 ref _
 string 0 "charging "
 string 1 "card declined"
 string 2 "reserve inventory"
@@ -33,7 +32,6 @@ fn 0 snippet$charge (i32) -> void
   local __buf_1 ref
   local __off_2 usize
   local $cast_13 i64
-  local __block_3 void
   local.get 0   ; arg 0
   struct.new 13   ; $Cell_i32
   local.tee 1   ; amount
@@ -64,10 +62,7 @@ fn 0 snippet$charge (i32) -> void
   call 12   ; std_io$println__string
   string.const 1   ; "card declined"
   call.import 2   ; std_abort$panic
-  local.set 5   ; __block_3
-  defer.pop_exec 1
-  local.get 5   ; __block_3
-  return
+  unreachable
 end
 
 fn 1 snippet$reserve () -> void

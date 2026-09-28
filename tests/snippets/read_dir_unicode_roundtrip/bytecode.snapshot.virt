@@ -1098,7 +1098,7 @@ fn 18 std_io$describe_io_error_kind (u8) -> string
                             string.const 23   ; ""
                             local.set 1   ; if_res
                           else
-                            return
+                            unreachable
                           end $L12
                         end $L11
                       end $L10

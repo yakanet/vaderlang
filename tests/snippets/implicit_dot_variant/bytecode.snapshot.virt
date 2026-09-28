@@ -46,7 +46,7 @@ fn 0 snippet$show_day (u8) -> string
         string.const 2   ; "Wed"
         local.set 1   ; if_res
       else
-        return
+        unreachable
       end $L2
     end $L1
   end $L0
@@ -127,7 +127,7 @@ fn 1 snippet$main () -> i32
       string.const 4   ; "nothing"
       call 9   ; std_io$println__string
     else
-      return
+      unreachable
     end $L4
   end $L3
   struct.new_stack 5   ; snippet$None
@@ -166,7 +166,7 @@ fn 1 snippet$main () -> i32
       string.const 4   ; "nothing"
       call 9   ; std_io$println__string
     else
-      return
+      unreachable
     end $L6
   end $L5
   return.lit i32.const 0

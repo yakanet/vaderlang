@@ -77,7 +77,7 @@ fn 0 snippet$main () -> i32
       string.const 2   ; "got value"
       call 8   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   return.lit i32.const 0

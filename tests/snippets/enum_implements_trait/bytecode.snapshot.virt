@@ -49,7 +49,7 @@ fn 0 snippet$Direction$Display$to_string (u8) -> string
           string.const 3   ; "W"
           local.set 1   ; if_res
         else
-          return
+          unreachable
         end $L3
       end $L2
     end $L1

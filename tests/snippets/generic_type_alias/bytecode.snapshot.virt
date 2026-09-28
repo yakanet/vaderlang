@@ -67,7 +67,7 @@ fn 0 snippet$main () -> i32
       call 3   ; std_core$finish_buffer
       call 8   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 1   ; y
@@ -103,7 +103,7 @@ fn 0 snippet$main () -> i32
       call 3   ; std_core$finish_buffer
       call 8   ; std_io$println__string
     else
-      return
+      unreachable
     end $L3
   end $L2
   string.const 4   ; "hello"
@@ -145,7 +145,7 @@ fn 0 snippet$main () -> i32
       call 1   ; concat_2
       call 8   ; std_io$println__string
     else
-      return
+      unreachable
     end $L5
   end $L4
   return.lit i32.const 0

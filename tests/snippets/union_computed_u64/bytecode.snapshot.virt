@@ -63,7 +63,7 @@ fn 1 snippet$show (u64) -> i32
     i32.neg
     return
   end $L1
-  return
+  unreachable
 end
 
 fn 2 snippet$main () -> i32

@@ -240,7 +240,7 @@ fn 0 snippet$show (string,string) -> void
                 call 2   ; concat_3
                 call 47   ; std_io$println__string
               else
-                return
+                unreachable
               end $L6
             end $L5
           end $L4
@@ -4815,7 +4815,7 @@ fn 55 json$write_value (ref,any,i32,i32) -> void
               local.get 3   ; arg 3
               call 64   ; json$write_object
             else
-              return
+              unreachable
             end $L6
           end $L5
         end $L4
@@ -5532,7 +5532,7 @@ fn 62 json$parse_number (ref) -> any
     call 54   ; json$fail
     return
   end $L31
-  return
+  unreachable
 end
 
 fn 63 json$advance (ref) -> void

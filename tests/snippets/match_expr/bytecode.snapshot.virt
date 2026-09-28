@@ -61,7 +61,7 @@ fn 0 snippet$classify (any) -> string
           string.const 2   ; "nothing"
           local.set 3   ; if_res
         else
-          return
+          unreachable
         end $L4
       end $L3
     end $L2

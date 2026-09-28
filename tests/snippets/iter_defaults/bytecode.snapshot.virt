@@ -133,7 +133,7 @@ fn 2 snippet$main () -> i32
       string.const 0   ; "none"
       call 22   ; std_io$println__string
     else
-      return
+      unreachable
     end $L4
   end $L3
   i32.const 0

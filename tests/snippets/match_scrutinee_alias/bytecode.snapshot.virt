@@ -100,7 +100,7 @@ fn 1 snippet$area (i32) -> i32
         i32.const 0
         local.set 3   ; if_res
       else
-        return
+        unreachable
       end $L2
     end $L1
   end $L0
@@ -154,7 +154,7 @@ fn 2 snippet$describe (i32) -> string
           string.const 3   ; "point"
           local.set 4   ; if_res
         else
-          return
+          unreachable
         end $L4
       end $L3
     end $L2

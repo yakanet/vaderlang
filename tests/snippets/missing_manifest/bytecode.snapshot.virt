@@ -670,7 +670,7 @@ fn 10 std_io$describe_io_error_kind (u8) -> string
                             string.const 10   ; ""
                             local.set 1   ; if_res
                           else
-                            return
+                            unreachable
                           end $L12
                         end $L11
                       end $L10

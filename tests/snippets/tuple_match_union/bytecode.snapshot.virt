@@ -103,7 +103,7 @@ fn 1 snippet$main () -> i32
       call 4   ; std_core$finish_buffer
       call 9   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   string.const 5   ; "missing"
@@ -163,7 +163,7 @@ fn 1 snippet$main () -> i32
       call 4   ; std_core$finish_buffer
       call 9   ; std_io$println__string
     else
-      return
+      unreachable
     end $L3
   end $L2
   return.lit i32.const 0

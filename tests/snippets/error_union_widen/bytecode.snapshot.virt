@@ -143,7 +143,7 @@ fn 5 snippet$main () -> i32
       call 6   ; concat_2
       call 13   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   string.const 6   ; "plain"

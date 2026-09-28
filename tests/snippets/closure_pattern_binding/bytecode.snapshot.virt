@@ -84,7 +84,7 @@ fn 0 snippet$greet (any) -> void
       call 6   ; std_core$finish_buffer
       call 11   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   return

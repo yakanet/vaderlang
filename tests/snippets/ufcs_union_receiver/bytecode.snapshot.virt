@@ -97,7 +97,7 @@ fn 0 snippet$describe (any) -> string
       call 5   ; std_core$finish_buffer
       local.set 1   ; if_res
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 1   ; if_res
@@ -146,7 +146,7 @@ fn 1 snippet$area (any) -> i32
       i32.mul
       local.set 1   ; if_res
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 1   ; if_res

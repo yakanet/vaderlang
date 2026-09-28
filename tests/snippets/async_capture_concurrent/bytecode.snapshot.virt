@@ -32,7 +32,6 @@ type 29 struct std_collections$MutableMap__usize__i32 { ekeys:31,evals:13,index:
 type 30 primitive isize
 type 31 array 14
 type 32 struct $Cell_i32 { value:1 }
-type 33 ref _
 string 0 "\n"
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len result_type=14 param_types=9 param_mutable=0 param_by_address= (string) -> usize
@@ -1056,10 +1055,14 @@ fn 21 std_async$block_on__i32 (any) -> i32
         if $L3 void
           string.const 1   ; "async deadlock: a task is suspended with nothing left to wake it"
           call.import 6   ; std_abort$panic
-          drop
+          unreachable
         end $L3
-        br $L1
+      else
+        local.get 1   ; r
+        ref.cast 1   ; -> i32
+        return
       end $L2
+      br $L1
     end $L1
   end $L0
   local.get 1   ; r

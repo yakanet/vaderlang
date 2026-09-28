@@ -53,7 +53,7 @@ fn 0 snippet$describe (u8) -> string
           string.const 3   ; "W"
           local.set 1   ; if_res
         else
-          return
+          unreachable
         end $L3
       end $L2
     end $L1
@@ -99,7 +99,7 @@ fn 1 snippet$main () -> i32
           string.const 7   ; "add"
           call 5   ; std_io$println__string
         else
-          return
+          unreachable
         end $L3
       end $L2
     end $L1

@@ -38,7 +38,7 @@ fn 0 snippet$run (any,bool,bool) -> i32
       ref.cast 5   ; -> i32
       local.set 4   ; base
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 1   ; arg 1

@@ -106,7 +106,7 @@ fn 0 snippet$main () -> i32
       string.const 5   ; "matched null"
       call 12   ; std_io$println__string
     else
-      return
+      unreachable
     end $L2
   end $L1
   string.const 6   ; "after match"
@@ -132,7 +132,7 @@ fn 0 snippet$main () -> i32
       string.const 5   ; "matched null"
       call 12   ; std_io$println__string
     else
-      return
+      unreachable
     end $L4
   end $L3
   local.get 0   ; path
@@ -730,7 +730,7 @@ fn 11 std_io$describe_io_error_kind (u8) -> string
                             string.const 11   ; ""
                             local.set 1   ; if_res
                           else
-                            return
+                            unreachable
                           end $L12
                         end $L11
                       end $L10

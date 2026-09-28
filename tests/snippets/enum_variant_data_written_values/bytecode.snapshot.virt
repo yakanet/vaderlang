@@ -60,7 +60,7 @@ fn 0 snippet$describe (u8) -> string
         string.const 2   ; "later"
         local.set 1   ; if_res
       else
-        return
+        unreachable
       end $L2
     end $L1
   end $L0

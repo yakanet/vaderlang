@@ -132,7 +132,7 @@ static vader_string_t snippet_describe(vader_box_t l0) {
         l1 = concat_2(2u, l2);
 #line 22 "tests/snippets/alias_union_in_array/_main.vader"
     } else {
-        vader_unreachable("unreachable return in snippet$describe");
+        vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 #line 24 "tests/snippets/alias_union_in_array/_main.vader"
     }
 #line 23 "tests/snippets/alias_union_in_array/_main.vader"

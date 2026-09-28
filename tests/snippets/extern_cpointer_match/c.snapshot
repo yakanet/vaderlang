@@ -258,7 +258,7 @@ static int32_t snippet_main(void) {
         std_io_println__string(6u);
 #line 41 "tests/snippets/extern_cpointer_match/_main.vader"
     } else {
-        vader_unreachable("unreachable return in snippet$main");
+        vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 #line 46 "tests/snippets/extern_cpointer_match/_main.vader"
     }
 #line 42 "tests/snippets/extern_cpointer_match/_main.vader"
@@ -281,7 +281,7 @@ static int32_t snippet_main(void) {
         std_io_println__string(6u);
 #line 51 "tests/snippets/extern_cpointer_match/_main.vader"
     } else {
-        vader_unreachable("unreachable return in snippet$main");
+        vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 #line 56 "tests/snippets/extern_cpointer_match/_main.vader"
     }
 #line 52 "tests/snippets/extern_cpointer_match/_main.vader"
@@ -774,7 +774,7 @@ static vader_string_t std_io_describe_io_error_kind(uint8_t l0) {
         l1 = 0u;
 #line 69 "lib/std/io/io.vader"
     } else {
-        vader_unreachable("unreachable return in std_io$describe_io_error_kind");
+        vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 #line 82 "lib/std/io/io.vader"
     }
 #line 81 "lib/std/io/io.vader"

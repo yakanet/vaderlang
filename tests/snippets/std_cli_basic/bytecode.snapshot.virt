@@ -1507,7 +1507,7 @@ fn 16 cli$bool_flag (ref,string) -> bool
     string.eq
     return
   end $L1
-  return
+  unreachable
 end
 
 fn 17 cli$string_flag (ref,string,string) -> string
@@ -1528,7 +1528,7 @@ fn 17 cli$string_flag (ref,string,string) -> string
     ref.cast 2   ; -> string
     return
   end $L1
-  return
+  unreachable
 end
 
 fn 18 cli$find_spec (ref,string,bool) -> any

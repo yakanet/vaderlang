@@ -58,7 +58,7 @@ fn 1 snippet$find (any,i32) -> any
         local.set 2   ; if_res
       end $L2
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 2   ; if_res
@@ -87,7 +87,7 @@ fn 2 snippet$length (any) -> i32
       i32.add
       local.set 1   ; if_res
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 1   ; if_res
@@ -176,7 +176,7 @@ fn 3 snippet$main () -> i32
       call 6   ; std_core$finish_buffer
       call 11   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 0   ; $call_4
@@ -219,7 +219,7 @@ fn 3 snippet$main () -> i32
       call 6   ; std_core$finish_buffer
       call 11   ; std_io$println__string
     else
-      return
+      unreachable
     end $L3
   end $L2
   return.lit i32.const 0

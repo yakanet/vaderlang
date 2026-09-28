@@ -263,7 +263,7 @@ fn 7 __lambda_snippet_2 (ref,any) -> void
       call 11   ; std_core$finish_buffer
       call 16   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   return

@@ -185,7 +185,7 @@ static vader_string_t snippet_describe(uint8_t l0) {
         l1 = 3u;
 #line 26 "tests/snippets/enum_variant_data_written_values/_main.vader"
     } else {
-        vader_unreachable("unreachable return in snippet$describe");
+        vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 #line 29 "tests/snippets/enum_variant_data_written_values/_main.vader"
     }
 #line 28 "tests/snippets/enum_variant_data_written_values/_main.vader"

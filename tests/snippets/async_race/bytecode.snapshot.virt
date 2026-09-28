@@ -28,7 +28,6 @@ type 25 union 0,9
 type 26 array 3
 type 27 primitive isize
 type 28 struct $Cell_string { value:1 }
-type 29 ref _
 string 0 ""
 string 1 "cleanup "
 string 2 "winner: "
@@ -761,10 +760,14 @@ fn 17 std_async$block_on__i32 (any) -> i32
         if $L3 void
           string.const 6   ; "async deadlock: a task is suspended with nothing left to wake it"
           call.import 6   ; std_abort$panic
-          drop
+          unreachable
         end $L3
-        br $L1
+      else
+        local.get 1   ; r
+        ref.cast 4   ; -> i32
+        return
       end $L2
+      br $L1
     end $L1
   end $L0
   local.get 1   ; r

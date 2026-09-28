@@ -154,7 +154,7 @@ export lower_expr :: fn(ctx: FnLowerCtx!, expr: Expr) -> LoweredExpr {
             // T3064 typecheck error already reported ; trap if one still reaches.
             if !ctx.in_async {
                 return LoweredUnreachable {
-                    .span = expr.span, .type = type, .reason = "await outside an async coroutine", .trap = true,
+                    .span = expr.span, .type = type, .reason = "await outside an async coroutine",
                 }
             }
             awaited :: lower_expr(ctx, expr.inner)
@@ -625,7 +625,7 @@ coalesce_diverge_block :: fn(ctx: FnLowerCtx!, s: Stmt, result: Type) -> Lowered
         .span = s.span, .type = result, .stmts = stmts,
         .trailing = LoweredUnreachable {
             .span = s.span, .type = result,
-            .reason = "`??` fallback diverges", .trap = false,
+            .reason = "`??` fallback diverges",
         },
     }
 }

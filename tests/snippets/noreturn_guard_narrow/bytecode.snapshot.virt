@@ -11,7 +11,6 @@ type 8 primitive i64
 type 9 array 5
 type 10 primitive void
 type 11 primitive isize
-type 12 ref _
 string 0 "nil box"
 string 1 "v="
 string 2 "logged="
@@ -29,7 +28,7 @@ fn 0 snippet$unwrap (any) -> i32
   if $L0 void
     string.const 0   ; "nil box"
     call.import 2   ; std_abort$panic
-    drop
+    unreachable
   end $L0
   local.get 0   ; arg 0
   ref.cast 2   ; -> snippet$Box
@@ -46,7 +45,7 @@ fn 1 snippet$unwrap_logged (any) -> i32
     call 10   ; std_io$println__string
     string.const 0   ; "nil box"
     call.import 2   ; std_abort$panic
-    drop
+    unreachable
   end $L0
   local.get 0   ; arg 0
   ref.cast 2   ; -> snippet$Box

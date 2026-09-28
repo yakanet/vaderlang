@@ -25,7 +25,6 @@ type 22 struct std_async$Sleep { ms:20,deadline:20,armed:15 }
 type 23 union 0,9
 type 24 primitive isize
 type 25 struct $Cell_string { value:1 }
-type 26 ref _
 string 0 "defer 1 "
 string 1 "defer 2 "
 string 2 "body "
@@ -602,10 +601,14 @@ fn 13 std_async$block_on__i32 (any) -> i32
         if $L3 void
           string.const 5   ; "async deadlock: a task is suspended with nothing left to wake it"
           call.import 6   ; std_abort$panic
-          drop
+          unreachable
         end $L3
-        br $L1
+      else
+        local.get 1   ; r
+        ref.cast 3   ; -> i32
+        return
       end $L2
+      br $L1
     end $L1
   end $L0
   local.get 1   ; r

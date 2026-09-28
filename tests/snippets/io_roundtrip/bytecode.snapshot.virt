@@ -120,7 +120,7 @@ fn 0 snippet$main () -> i32
       string.const 4   ; "read failed"
       call 18   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   return.lit i32.const 0
@@ -904,7 +904,7 @@ fn 17 std_io$describe_io_error_kind (u8) -> string
                             string.const 8   ; ""
                             local.set 1   ; if_res
                           else
-                            return
+                            unreachable
                           end $L12
                         end $L11
                       end $L10

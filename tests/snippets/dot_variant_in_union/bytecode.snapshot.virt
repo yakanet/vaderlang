@@ -93,7 +93,7 @@ fn 1 snippet$dir_label (u8) -> string
           string.const 4   ; "W"
           local.set 1   ; if_res
         else
-          return
+          unreachable
         end $L3
       end $L2
     end $L1
@@ -123,7 +123,7 @@ fn 2 snippet$main () -> i32
       string.const 5   ; "err"
       call 6   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   char.const 63
@@ -144,7 +144,7 @@ fn 2 snippet$main () -> i32
       string.const 5   ; "err"
       call 6   ; std_io$println__string
     else
-      return
+      unreachable
     end $L3
   end $L2
   return.lit i32.const 0

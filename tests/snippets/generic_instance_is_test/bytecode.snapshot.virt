@@ -97,7 +97,7 @@ fn 0 snippet$describe (any) -> string
       call 2   ; concat_3
       local.set 1   ; if_res
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 1   ; if_res

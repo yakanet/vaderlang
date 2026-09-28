@@ -46,7 +46,7 @@ fn 0 snippet$can_go (u8) -> bool
       bool.const false
       local.set 1   ; if_res
     else
-      return
+      unreachable
     end $L3
   end $L0
   local.get 1   ; if_res
@@ -122,7 +122,7 @@ fn 2 snippet$kind (any) -> i32
       i32.const 2
       local.set 1   ; if_res
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 1   ; if_res

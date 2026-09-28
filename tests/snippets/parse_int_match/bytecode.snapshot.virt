@@ -61,7 +61,7 @@ fn 0 snippet$main () -> i32
       string.const 2   ; "int err"
       call 25   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   string.const 3   ; "nope"
@@ -78,7 +78,7 @@ fn 0 snippet$main () -> i32
       string.const 2   ; "int err"
       call 25   ; std_io$println__string
     else
-      return
+      unreachable
     end $L3
   end $L2
   string.const 4   ; "3.14"
@@ -95,7 +95,7 @@ fn 0 snippet$main () -> i32
       string.const 6   ; "float err"
       call 25   ; std_io$println__string
     else
-      return
+      unreachable
     end $L5
   end $L4
   string.const 3   ; "nope"
@@ -112,7 +112,7 @@ fn 0 snippet$main () -> i32
       string.const 6   ; "float err"
       call 25   ; std_io$println__string
     else
-      return
+      unreachable
     end $L7
   end $L6
   return.lit i32.const 0

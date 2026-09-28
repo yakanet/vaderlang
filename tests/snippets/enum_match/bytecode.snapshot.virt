@@ -63,7 +63,7 @@ fn 1 snippet$label (u8) -> string
         string.const 2   ; "blue"
         local.set 1   ; if_res
       else
-        return
+        unreachable
       end $L2
     end $L1
   end $L0
@@ -189,7 +189,7 @@ fn 3 snippet$main () -> i32
         string.const 5   ; "error"
         call 11   ; std_io$println__string
       else
-        return
+        unreachable
       end $L2
     end $L1
   end $L0
@@ -216,7 +216,7 @@ fn 3 snippet$main () -> i32
         string.const 5   ; "error"
         call 11   ; std_io$println__string
       else
-        return
+        unreachable
       end $L5
     end $L4
   end $L3
@@ -243,7 +243,7 @@ fn 3 snippet$main () -> i32
         string.const 5   ; "error"
         call 11   ; std_io$println__string
       else
-        return
+        unreachable
       end $L8
     end $L7
   end $L6

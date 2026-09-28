@@ -142,7 +142,7 @@ static int32_t snippet_main(void) {
         std_io_println__string(3u);
 #line 16 "tests/snippets/array_of_union/_main.vader"
     } else {
-        vader_unreachable("unreachable return in snippet$main");
+        vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 #line 18 "tests/snippets/array_of_union/_main.vader"
     }
 #line 17 "tests/snippets/array_of_union/_main.vader"

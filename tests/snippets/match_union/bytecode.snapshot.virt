@@ -40,7 +40,7 @@ fn 0 snippet$describe (any) -> string
         string.const 2   ; "nothing"
         local.set 1   ; if_res
       else
-        return
+        unreachable
       end $L2
     end $L1
   end $L0

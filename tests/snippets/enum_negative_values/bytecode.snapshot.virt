@@ -53,7 +53,7 @@ fn 0 snippet$name (i8) -> string
           string.const 3   ; "top"
           local.set 1   ; if_res
         else
-          return
+          unreachable
         end $L3
       end $L2
     end $L1

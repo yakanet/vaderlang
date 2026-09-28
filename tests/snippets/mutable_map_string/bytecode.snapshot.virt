@@ -136,7 +136,7 @@ fn 0 snippet$main () -> i32
       call 3   ; std_core$finish_buffer
       call 10   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 0   ; $arr_0
@@ -175,7 +175,7 @@ fn 0 snippet$main () -> i32
       call 3   ; std_core$finish_buffer
       call 10   ; std_io$println__string
     else
-      return
+      unreachable
     end $L3
   end $L2
   local.get 0   ; $arr_0
@@ -214,7 +214,7 @@ fn 0 snippet$main () -> i32
       call 3   ; std_core$finish_buffer
       call 10   ; std_io$println__string
     else
-      return
+      unreachable
     end $L5
   end $L4
   i64.const 16
@@ -303,7 +303,7 @@ fn 0 snippet$main () -> i32
       call 3   ; std_core$finish_buffer
       call 10   ; std_io$println__string
     else
-      return
+      unreachable
     end $L7
   end $L6
   return.lit i32.const 0

@@ -130,7 +130,7 @@ fn 1 snippet$describe (string) -> string
       call 5   ; std_core$finish_buffer
       local.set 3   ; if_res
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 3   ; if_res

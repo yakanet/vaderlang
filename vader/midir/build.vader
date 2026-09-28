@@ -743,7 +743,7 @@ build_expr :: fn(fn_ctx: FnCtx!, e: LoweredExpr) -> LocalId | null {
         is LoweredArrayLit      -> { return build_array_lit(fn_ctx, e) }
         is LoweredCast          -> { return build_cast(fn_ctx, e) }
         is LoweredTypeCheck     -> { return build_type_check(fn_ctx, e) }
-        is LoweredUnreachable   -> { return build_unreachable_type(fn_ctx, e.type, e.span, e.reason, e.trap) }
+        is LoweredUnreachable   -> { return build_unreachable_type(fn_ctx, e.type, e.span, e.reason) }
         is LoweredIntrinsicCall -> { return build_intrinsic_call(fn_ctx, e) }
         is LoweredArrayLen      -> { return build_array_len(fn_ctx, e) }
         is LoweredArrayPush     -> { return build_array_push(fn_ctx, e) }
@@ -809,7 +809,7 @@ build_ident :: fn(fn_ctx: FnCtx!, e: LoweredIdent) -> LocalId | null {
     fn_ctx.project.diags.push(lower_error(
         .UnresolvedIdent, e.span,
         "`${e.symbol.name}` resolved to a symbol with no local in this function — a binding was lost between the resolver and here"))
-    return build_unreachable_type(fn_ctx, e.type, e.span, "unresolved ident ${e.symbol.name}", false)
+    return build_unreachable_type(fn_ctx, e.type, e.span, "unresolved ident ${e.symbol.name}")
 }
 
 build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
@@ -821,7 +821,7 @@ build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
             } else {
                 build_args(fn_ctx, e.args) ?? return null
             }
-            dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "call", e.type) }
+            dst :: if is_void(e.type) || e.type is NeverType { null } else { fresh_tmp(fn_ctx, "call", e.type) }
             emit(fn_ctx, InstrCall {
                 .dsts = if dst == null { [] } else { [dst] },
                 .callee = callee_id.symbol,
@@ -829,16 +829,28 @@ build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
                 .type = e.type,
                 .span = e.span,
             })
-            return dst
+            return end_after_no_return(fn_ctx, e, dst)
         }
     }
     callee :: build_expr(fn_ctx, e.callee) ?? return null
     args :: build_args(fn_ctx, e.args) ?? return null
-    dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "call_ind", e.type) }
+    dst :: if is_void(e.type) || e.type is NeverType { null } else { fresh_tmp(fn_ctx, "call_ind", e.type) }
     emit(fn_ctx, InstrCallIndirect {
         .dst = dst, .callee = callee, .args = args,
         .fn_type = type_of(e.callee), .type = e.type, .span = e.span,
     })
+    return end_after_no_return(fn_ctx, e, dst)
+}
+
+// A call typed `never` does not come back: it gets no result slot, and the block
+// ends there, so nothing is emitted for a result it never produces (the `drop` of
+// a statement call, the `return` of a `-> never` body). `null` is the builder's
+// "this path diverged".
+end_after_no_return :: fn(fn_ctx: FnCtx!, e: LoweredCall, dst: LocalId | null) -> LocalId | null {
+    if e.type is NeverType {
+        terminate(fn_ctx, TermUnreachable { .reason = "a no-return call returned", .span = e.span })
+        return null
+    }
     return dst
 }
 
@@ -1183,10 +1195,10 @@ build_type_check :: fn(fn_ctx: FnCtx!, e: LoweredTypeCheck) -> LocalId | null {
     return dst
 }
 
-build_unreachable_type :: fn(fn_ctx: FnCtx!, type: Type, span: Span, reason: string, trap: bool) -> LocalId | null {
+build_unreachable_type :: fn(fn_ctx: FnCtx!, type: Type, span: Span, reason: string) -> LocalId | null {
     if fn_ctx.current is null { return null }
     placeholder :: if is_void(type) { null } else { declare_local(fn_ctx, "unreachable", type, null) }
-    terminate(fn_ctx, TermUnreachable { .reason = reason, .span = span, .trap = trap })
+    terminate(fn_ctx, TermUnreachable { .reason = reason, .span = span })
     return placeholder
 }
 

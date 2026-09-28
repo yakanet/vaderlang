@@ -30,7 +30,6 @@ type 27 struct std_async$Sleep { ms:21,deadline:21,armed:17 }
 type 28 union 0,8
 type 29 ref Async
 type 30 primitive isize
-type 31 ref _
 string 0 "work cleanup"
 string 1 "done"
 string 2 "timed out: "
@@ -917,10 +916,14 @@ fn 22 std_async$block_on__i32 (any) -> i32
         if $L3 void
           string.const 7   ; "async deadlock: a task is suspended with nothing left to wake it"
           call.import 6   ; std_abort$panic
-          drop
+          unreachable
         end $L3
-        br $L1
+      else
+        local.get 1   ; r
+        ref.cast 2   ; -> i32
+        return
       end $L2
+      br $L1
     end $L1
   end $L0
   local.get 1   ; r

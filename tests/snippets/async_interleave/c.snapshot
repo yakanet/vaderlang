@@ -120,7 +120,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[30] = {
+const vader_type_info_t vader_type_info_table[29] = {
     [1] = { .slot_size = 16 },
     [2] = { .slot_size = 8 },
     [3] = { .slot_size = 16 },
@@ -193,9 +193,8 @@ const vader_type_info_t vader_type_info_table[30] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [29] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 30;
+const size_t vader_type_info_count = 29;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -924,14 +923,18 @@ static int32_t std_async_block_on__i32(vader_box_t l0) {
             if (t0 == INT32_C(1)) {
 #line 84 "lib/std/async/async.vader"
                 vader_host_std_abort_panic(8u);
+                vader_unreachable("a no-return call returned");
 #line 83 "lib/std/async/async.vader"
             }
-#line 80 "lib/std/async/async.vader"
-            continue;
+#line 82 "lib/std/async/async.vader"
+#line 87 "lib/std/async/async.vader"
+        } else {
+            t0 = ((int32_t) l1.payload.i);
+            { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 #line 82 "lib/std/async/async.vader"
         }
 #line 80 "lib/std/async/async.vader"
-        break;
+        continue;
     }
 #line 87 "lib/std/async/async.vader"
     t0 = ((int32_t) l1.payload.i);

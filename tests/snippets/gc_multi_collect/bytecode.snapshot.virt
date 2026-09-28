@@ -122,7 +122,7 @@ fn 0 snippet$main () -> i32
             struct.get 3 1   ; snippet$Pair.right
             local.set 0   ; head
           else
-            return
+            unreachable
           end $L8
         end $L7
         br $L5

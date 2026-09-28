@@ -95,13 +95,8 @@ export lower_match :: fn(
     } else {
         "non-exhaustive match (T3013 should have caught this)"
     }
-    // Only `@partial` / `@unreachable` matches can actually reach the
-    // fallback at runtime, so only they emit the trapping `unreachable` op.
-    // A plain match is exhaustive (T3013), so its fallback is provably dead
-    // and stays a no-op — no bytecode bloat, no snapshot drift.
     fallback: LoweredBlock: wrap_block(expr.span, LoweredUnreachable {
-        .span = expr.span, .type = result_type,
-        .reason = fallback_reason, .trap = expr.partial || expr.unreachable,
+        .span = expr.span, .type = result_type, .reason = fallback_reason,
     })
 
     arm_count :: expr.arms.len()

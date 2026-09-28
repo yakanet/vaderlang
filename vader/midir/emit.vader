@@ -953,15 +953,11 @@ emit_block_contents :: fn(ctx: FnEmitCfg!, block_id: BlockId, until: BlockId) ->
         return BlockId(-1)
     }
     if t is TermUnreachable {
-        // Reachable fall-through (`@partial` / `@unreachable`) → the trapping
-        // `Unreachable` op (tag 0 ; VM `Trap` + `vader_unreachable` in C). Dead
-        // fallbacks / placeholders keep the plain `Return` terminator they had
-        // before, so neither the bytecode nor the snapshots change.
-        if t.trap {
-            push_emit(ctx, Unreachable { .reason = t.reason }, t.span)
-        } else {
-            push_emit(ctx, Return {}, t.span)
-        }
+        // Always the trapping op (VM `Trap`, `vader_unreachable` in C), a
+        // provably dead fallback included: a bare `return` there would leave a
+        // value-returning function with nothing on the stack, which the VM's
+        // load-time verifier rejects.
+        push_emit(ctx, Unreachable { .reason = t.reason }, t.span)
         return BlockId(-1)
     }
     if t is TermBranch {

@@ -23,7 +23,6 @@ type 20 struct std_async$Sleep { ms:17,deadline:17,armed:13 }
 type 21 union 0,7
 type 22 primitive isize
 type 23 struct $Cell_i32 { value:1 }
-type 24 ref _
 string 0 "\n"
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len result_type=15 param_types=9 param_mutable=0 param_by_address= (string) -> usize
@@ -747,10 +746,14 @@ fn 15 std_async$block_on__i32 (any) -> i32
         if $L3 void
           string.const 1   ; "async deadlock: a task is suspended with nothing left to wake it"
           call.import 6   ; std_abort$panic
-          drop
+          unreachable
         end $L3
-        br $L1
+      else
+        local.get 1   ; r
+        ref.cast 1   ; -> i32
+        return
       end $L2
+      br $L1
     end $L1
   end $L0
   local.get 1   ; r

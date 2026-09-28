@@ -62,7 +62,7 @@ fn 0 snippet$inspect (any) -> string
         ref.cast 3   ; -> string
         local.set 3   ; if_res
       else
-        return
+        unreachable
       end $L3
     end $L2
   end $L1
@@ -101,7 +101,7 @@ fn 1 snippet$wave_through (any,bool) -> string
         string.const 4   ; "papers"
         local.set 4   ; if_res
       else
-        return
+        unreachable
       end $L3
     end $L2
   end $L1
@@ -143,7 +143,7 @@ fn 2 snippet$lane_call (u8,bool) -> string
         string.const 7   ; "cars go"
         local.set 4   ; if_res
       else
-        return
+        unreachable
       end $L3
     end $L2
   end $L1

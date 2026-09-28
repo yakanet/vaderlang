@@ -119,7 +119,7 @@ fn 0 snippet$main () -> i32
       string.const 3   ; "a missing"
       call 9   ; std_io$println__string
     else
-      return
+      unreachable
     end $L1
   end $L0
   local.get 0   ; $arr_0
@@ -137,7 +137,7 @@ fn 0 snippet$main () -> i32
       string.const 6   ; "c missing"
       call 9   ; std_io$println__string
     else
-      return
+      unreachable
     end $L3
   end $L2
   local.get 0   ; $arr_0

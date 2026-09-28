@@ -271,7 +271,7 @@ async_main_driver :: fn(
             .stmts = [LoweredExprStmt {
                 .span = span,
                 .expr = LoweredUnreachable {
-                    .span = span, .type = TY_VOID, .trap = true,
+                    .span = span, .type = TY_VOID,
                     .reason = "async `main` suspended, but this build has no scheduler (Phase 2b) to resume it",
                 },
             }],
