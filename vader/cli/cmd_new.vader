@@ -25,6 +25,7 @@ module "vader/cli"
 
 import "cli"
 import "std/io"
+import "std/iter"
 import "std/path"
 import "std/process"
 import "std/string"
@@ -178,13 +179,8 @@ choose_build :: fn(parsed: ParsedArgs) -> BuildSetup | PromptError {
 // restated beside them. The first cut wrote its own three strings, in a
 // different order and different words — drift that was already visible in the
 // same diff, and would have grown with a fourth shape.
-build_setup_labels :: fn() -> string[] {
-    out: string[]!: []
-    for v in NEW_BUILD_SETUPS {
-        out.push("${v.name} — ${v.help}")
-    }
-    return out
-}
+build_setup_labels :: fn() -> string[] =
+    NEW_BUILD_SETUPS.map((v) -> "${v.name} — ${v.help}").collect()
 
 // The flag's value, and the prompt's answer — both arrive as a name from
 // `NEW_BUILD_SETUPS`, so one function decodes both. `std/cli` has already

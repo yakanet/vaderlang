@@ -19,11 +19,11 @@
   expr 21:11    AwaitExpr      :: i32[]!
   expr 21:17    CallExpr       :: Async<i32[]!>
   expr 21:17    IdentExpr      :: fn(Async<T>[]) -> Async<T[]!>
-  expr 21:21    SeqLitExpr     :: Async<i32>[]
-  expr 21:22    CallExpr       :: Async<i32>
-  expr 21:22    IdentExpr      :: fn(i32, i32) -> Async<i32>
-  expr 21:37    CallExpr       :: Async<i32>
-  expr 21:37    IdentExpr      :: fn(i32, i32) -> Async<i32>
+  expr 21:26    SeqLitExpr     :: Async<i32>[]
+  expr 21:27    CallExpr       :: Async<i32>
+  expr 21:27    IdentExpr      :: fn(i32, i32) -> Async<i32>
+  expr 21:42    CallExpr       :: Async<i32>
+  expr 21:42    IdentExpr      :: fn(i32, i32) -> Async<i32>
   expr 22:14    IdentExpr      :: i32[]!
   expr 22:19    CallExpr       :: void
   expr 22:19    IdentExpr      :: fn(T) -> void

@@ -562,7 +562,7 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 // so they stay SAFE. The matches are EXHAUSTIVE, so a new Lowered node can't
 // silently pass as "safe" (T3013). Over-approximate : a call/alloc that never
 // touches THIS array still bails — refining is a later tier.
-// `guard_sym` (or `-1` for none) : a symbol whose REBIND (`guard_sym = <expr>`)
+// `guard_sym` (or `null` for none) : a symbol whose REBIND (`guard_sym = <expr>`)
 // also makes the body unsafe — a length proven for one array says nothing about
 // the array rebound in its place. Rebinding is an assignment (a statement), but a
 // statement can nest inside an `if` / block expr, so the guard rides the same
@@ -574,7 +574,7 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 // fusion body still calls the pure `square`) qualify, generally, for ANY pure
 // callback — no combinator is named. Indirect callees, virtual calls, intrinsics
 // and impure/unknown fns still bail. `pctx` carries the project-wide purity memo.
-bce_call_unsafe :: fn(x: LoweredCall, guard_sym: i32, pctx: BcePurityCtx!) -> bool {
+bce_call_unsafe :: fn(x: LoweredCall, guard_sym: i32 | null, pctx: BcePurityCtx!) -> bool {
     if x.callee is LoweredIdent as cid {
         if cid.symbol.kind == .Fn {
             fd :: bce_resolve_fn(pctx, cid.symbol.name, cid.symbol.id)
@@ -588,7 +588,9 @@ bce_call_unsafe :: fn(x: LoweredCall, guard_sym: i32, pctx: BcePurityCtx!) -> bo
     return true
 }
 
-bce_any_expr_unsafe :: fn(exprs: LoweredExpr[], guard_sym: i32, pctx: BcePurityCtx!) -> bool {
+bce_any_expr_unsafe :: fn(
+    exprs: LoweredExpr[], guard_sym: i32 | null, pctx: BcePurityCtx!,
+) -> bool {
     for e in exprs {
         if bce_expr_unsafe(e, guard_sym, pctx) {
             return true
@@ -597,7 +599,7 @@ bce_any_expr_unsafe :: fn(exprs: LoweredExpr[], guard_sym: i32, pctx: BcePurityC
     return false
 }
 
-bce_block_unsafe :: fn(b: LoweredBlock, guard_sym: i32, pctx: BcePurityCtx!) -> bool {
+bce_block_unsafe :: fn(b: LoweredBlock, guard_sym: i32 | null, pctx: BcePurityCtx!) -> bool {
     for st in b.stmts {
         if bce_stmt_unsafe(st, guard_sym, pctx) {
             return true
@@ -610,21 +612,21 @@ bce_block_unsafe :: fn(b: LoweredBlock, guard_sym: i32, pctx: BcePurityCtx!) -> 
     return false
 }
 
-bce_opt_expr_unsafe :: fn(e: LoweredExpr | null, guard_sym: i32, pctx: BcePurityCtx!) -> bool {
+bce_opt_expr_unsafe :: fn(
+    e: LoweredExpr | null, guard_sym: i32 | null, pctx: BcePurityCtx!,
+) -> bool {
     if e == null {
         return false
     }
     return bce_expr_unsafe(e, guard_sym, pctx)
 }
 
-bce_is_reassign :: fn(target: LoweredExpr, guard_sym: i32) -> bool {
-    if target is LoweredIdent {
-        return target.symbol.id == guard_sym
-    }
-    return false
-}
+bce_is_reassign :: fn(target: LoweredExpr, guard_sym: i32 | null) -> bool =
+    target is LoweredIdent && guard_sym != null && target.symbol.id == guard_sym
 
-bce_stmt_unsafe :: fn(s: LoweredStmt, guard_sym: i32, pctx: BcePurityCtx!) -> bool = match s {
+bce_stmt_unsafe :: fn(
+    s: LoweredStmt, guard_sym: i32 | null, pctx: BcePurityCtx!,
+) -> bool = match s {
     is LoweredLet          -> bce_expr_unsafe(s.value, guard_sym, pctx)
     is LoweredAssign       -> bce_is_reassign(s.target, guard_sym) || bce_expr_unsafe(s.target, guard_sym, pctx) || bce_expr_unsafe(s.value, guard_sym, pctx)
     is LoweredCellSet      -> bce_expr_unsafe(s.target, guard_sym, pctx) || bce_expr_unsafe(s.value, guard_sym, pctx)
@@ -639,7 +641,9 @@ bce_stmt_unsafe :: fn(s: LoweredStmt, guard_sym: i32, pctx: BcePurityCtx!) -> bo
     is LoweredDeferPopExec -> true
 }
 
-bce_expr_unsafe :: fn(e: LoweredExpr, guard_sym: i32, pctx: BcePurityCtx!) -> bool = match e {
+bce_expr_unsafe :: fn(
+    e: LoweredExpr, guard_sym: i32 | null, pctx: BcePurityCtx!,
+) -> bool = match e {
     // A call to a proven-pure fn is safe (recurse into its args) ; everything else
     // callable bails.
     is LoweredCall                                    -> bce_call_unsafe(e, guard_sym, pctx)
@@ -661,7 +665,9 @@ bce_expr_unsafe :: fn(e: LoweredExpr, guard_sym: i32, pctx: BcePurityCtx!) -> bo
     is LoweredCellGet     -> bce_expr_unsafe(e.target, guard_sym, pctx)
 }
 
-bce_opt_block_unsafe :: fn(b: LoweredBlock | null, guard_sym: i32, pctx: BcePurityCtx!) -> bool {
+bce_opt_block_unsafe :: fn(
+    b: LoweredBlock | null, guard_sym: i32 | null, pctx: BcePurityCtx!,
+) -> bool {
     if b == null {
         return false
     }

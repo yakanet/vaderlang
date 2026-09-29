@@ -1,4 +1,4 @@
-// Two coroutines run concurrently under `all`, each capturing its own param
+// Two coroutines run concurrently under `join_all`, each capturing its own param
 // (`base`) and local (`acc`) across suspension. Their cells must stay distinct
 // under interleaved drives — this is the concurrent-capture corruption the
 // retired M5008 guard used to mask (two suspended frames alive at once).
@@ -18,7 +18,7 @@ worker :: fn(base: i32, naps: i32) -> Async<i32> {
 }
 
 main :: fn() -> i32 {
-    rs :: await all([worker(10, 3), worker(100, 2)])
+    rs :: await join_all([worker(10, 3), worker(100, 2)])
     for r in rs { println("${r}") }     // input order: 30, then 200
     return 0
 }

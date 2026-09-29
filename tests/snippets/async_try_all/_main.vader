@@ -1,8 +1,8 @@
-// `try_all(xs)`: concurrent join of FALLIBLE awaitables. Like `all`, every child
-// runs (no cancellation in v1) — but the result is scanned in INPUT order for
-// the first error. Here the "orders" service (index 1) is down, so `try_all`
-// surfaces that error even though the others succeeded. The second join, where
-// every fetch succeeds, comes back as the boxed `(i32 | Outage)[]` in input order.
+// `try_join_all(xs)`: concurrent join of FALLIBLE awaitables. Like `join_all`,
+// every child runs (no cancellation in v1) — but the result is scanned in INPUT
+// order for the first error. Here the "orders" service (index 1) is down, so
+// `try_join_all` surfaces that error even though the others succeeded. The second
+// join, where every fetch succeeds, comes back boxed as `(i32 | Outage)[]`, in input order.
 module "snippet"
 
 import "std/io"
@@ -19,7 +19,7 @@ fetch :: fn(service: string, ms: i64, up: bool) -> Async<i32 | Outage> {
 
 main :: fn() -> i32 {
     // one child fails → the first error, by input order, wins.
-    bad :: await try_all<i32, Outage>([
+    bad :: await try_join_all<i32, Outage>([
         fetch("users", 3, true),
         fetch("orders", 1, false),
         fetch("carts", 2, true),
@@ -27,7 +27,7 @@ main :: fn() -> i32 {
     if bad is Error as e { println("failed: ${e.message()}") }
 
     // every child succeeds → results in input order.
-    good :: await try_all<i32, Outage>([fetch("users", 3, true), fetch("orders", 1, true)])
+    good :: await try_join_all<i32, Outage>([fetch("users", 3, true), fetch("orders", 1, true)])
     if good is Error as e {
         println("unexpected: ${e.message()}")
     } else {

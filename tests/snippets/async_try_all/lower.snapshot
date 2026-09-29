@@ -708,7 +708,7 @@
                                                                           cast → Async<Any>
                                                                             call :Async<(i32 | Outage!)[] | Error>
                                                                               callee:
-                                                                                std_async$try_all__i32__Any :Async<(i32 | Outage!)[] | Error>
+                                                                                std_async$try_join_all__i32__Any :Async<(i32 | Outage!)[] | Error>
                                                                               arg0:
                                                                                 array :Async<i32 | Outage>[]
                                                                                   call :Async<i32 | Outage>
@@ -880,7 +880,7 @@
                                                                                               cast → Async<Any>
                                                                                                 call :Async<(i32 | Outage!)[] | Error>
                                                                                                   callee:
-                                                                                                    std_async$try_all__i32__Any :Async<(i32 | Outage!)[] | Error>
+                                                                                                    std_async$try_join_all__i32__Any :Async<(i32 | Outage!)[] | Error>
                                                                                                   arg0:
                                                                                                     array :Async<i32 | Outage>[]
                                                                                                       call :Async<i32 | Outage>

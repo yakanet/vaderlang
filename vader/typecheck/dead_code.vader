@@ -697,13 +697,8 @@ export dead_export_diag :: fn(e: DeadExport) = warning(
 /// `dead_export_diag`, used by both `vader lint` and the LSP.
 ///
 /// @param es  the dead exported fns to report.
-export dead_export_diags :: fn(es: DeadExport[]) -> Diagnostic[] {
-    out: Diagnostic[]!: []
-    for e in es {
-        out.push(dead_export_diag(e))
-    }
-    return out
-}
+export dead_export_diags :: fn(es: DeadExport[]) -> Diagnostic[] =
+    es.map(dead_export_diag).collect()
 
 // ---- tests ----------------------------------------------------------------
 

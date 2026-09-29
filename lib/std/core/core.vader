@@ -257,7 +257,7 @@ export Async :: trait<T> {
 
     /// Tear the awaitable down without completing it : run any pending `defer`s
     /// (LIFO), recursively cancel the child it is parked on, and retire it.
-    /// Called only on a not-yet-completed awaitable (a loser of `race` / `any` /
+    /// Called only on a not-yet-completed awaitable (a loser of `race` / `join_any` /
     /// `timeout`, or a subtree whose parent was cancelled) — internal to the
     /// runtime, never invoked by user code in v1.
     ///

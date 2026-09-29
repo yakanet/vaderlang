@@ -18,7 +18,7 @@ type 15 struct std_core$Buffer {  }
 type 16 primitive i64
 type 17 primitive u64
 type 18 array 13
-type 19 struct std_async$All__i32 { children:24,results:26 }
+type 19 struct std_async$JoinAll__i32 { children:24,results:26 }
 type 20 union 10,5
 type 21 ref Async
 type 22 struct std_async$Sleep { ms:16,deadline:16,armed:12 }
@@ -427,7 +427,7 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                     local.get 17   ; $call_70
                     local.get 18   ; $call_72
                     array.new 24 3   ; ref Async[][]
-                    call 21   ; std_async$all__i32
+                    call 21   ; std_async$join_all__i32
                     local.set 19   ; $cast_75
                     local.get 0   ; arg 0
                     local.get 19   ; $cast_75
@@ -723,7 +723,7 @@ fn 13 std_io$println__string (string) -> void
   return
 end
 
-fn 14 std_async$All$Async$resume__i32 (ref) -> any
+fn 14 std_async$JoinAll$Async$resume__i32 (ref) -> any
   local n usize
   local i usize
   local r any
@@ -824,7 +824,7 @@ fn 14 std_async$All$Async$resume__i32 (ref) -> any
   return
 end
 
-fn 15 std_async$All$Async$cancel__i32 (ref) -> void
+fn 15 std_async$JoinAll$Async$cancel__i32 (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
@@ -944,7 +944,7 @@ fn 20 std_async$block_on__i32 (any) -> i32
   return
 end
 
-fn 21 std_async$all__i32 (ref) -> any
+fn 21 std_async$join_all__i32 (ref) -> any
   local $arr_1 ref
   local $arr_2 ref
   local $arr_3 ref
@@ -964,7 +964,7 @@ fn 21 std_async$all__i32 (ref) -> any
   local.set 1   ; $arr_1
   local.get 0   ; arg 0
   local.get 1   ; $arr_1
-  struct.new 19   ; std_async$All__i32
+  struct.new 19   ; std_async$JoinAll__i32
   return
 end
 

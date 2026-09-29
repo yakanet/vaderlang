@@ -89,21 +89,21 @@ export block_on :: fn<T>(root: Async<T>) -> T {
     }
 }
 
-// ---- all ------------------------------------------------------------------
+// ---- join_all -------------------------------------------------------------
 
 /// Concurrent join of a group of awaitables (Model A : one awaitable that drives
 /// every child on each `resume`). Children make progress together — their timers
 /// all sit on the one scheduler heap and fire in deadline order — and their
 /// results are returned in INPUT order once every one completes. No cancellation
-/// in v1, so `all` waits for every child (failure latency = the slowest child).
-All :: struct<T> {
+/// in v1, so `join_all` waits for every child (failure latency = the slowest child).
+JoinAll :: struct<T> {
     children: Async<T>[]
     /// Completed results keyed by input index ; an index is present iff its
     /// child is done. `results.len() == children.len()` ⇒ all joined.
     results:  MutableMap<usize, T>
 }
 
-All<T> implements Async<T[]> {
+JoinAll<T> implements Async<T[]> {
     resume :: fn(self!) -> T[] | Suspended {
         n :: self.children.len()
         for i in 0..<n {
@@ -120,32 +120,35 @@ All<T> implements Async<T[]> {
         }
         return out
     }
-    // Tear down every child (a completed one is a no-op teardown). `all` owns its
-    // children, so cancelling the join cancels the whole fan-out.
+    // Tear down every child (a completed one is a no-op teardown). `join_all` owns
+    // its children, so cancelling the join cancels the whole fan-out.
     cancel :: fn(self) -> void {
         for c in self.children { c.cancel() }
     }
 }
 
 /// Await a group of awaitables concurrently, yielding their results in input
-/// order. `await all(xs)` completes when every element of `xs` has completed.
+/// order. `await join_all(xs)` completes when every element of `xs` has completed.
 ///
 /// @param xs  the awaitables to join.
 /// @return    an awaitable of the results, index-aligned with `xs`.
-export all :: fn<T>(xs: Async<T>[]) -> Async<T[]!> = All<T> { .children = xs, .results = MutableMap<usize, T> {} }
+export join_all :: fn<T>(xs: Async<T>[]) -> Async<T[]!> = JoinAll<T> {
+    .children = xs,
+    .results = MutableMap<usize, T> {},
+}
 
-// ---- try_all (fallible join, first-error) ---------------------------------
+// ---- try_join_all (fallible join, first-error) ----------------------------
 
-/// The awaitable backing `try_all` — a hand-written driver (NOT a coroutine :
-/// generic async coroutines are out of v1 scope). Wraps an `All<U | E>` to do
+/// The awaitable backing `try_join_all` — a hand-written driver (NOT a coroutine :
+/// generic async coroutines are out of v1 scope). Wraps a `JoinAll<U | E>` to do
 /// the concurrent join, then scans the joined array in input order for the first
 /// error. Returns that array verbatim on success, so each element keeps its
 /// original boxed form (no `U[]` rebuild).
-TryAll :: struct<U, E> {
-    inner: All<U | E>
+TryJoinAll :: struct<U, E> {
+    inner: JoinAll<U | E>
 }
 
-TryAll<U, E> implements Async<(U | E)[] | Error> {
+TryJoinAll<U, E> implements Async<(U | E)[] | Error> {
     resume :: fn(self!) -> (U | E)[] | Error | Suspended {
         r :: self.inner.resume()
         if r is Suspended { return Suspended {} }
@@ -154,12 +157,12 @@ TryAll<U, E> implements Async<(U | E)[] | Error> {
         }
         return r
     }
-    // Delegate to the wrapped `All` — it owns the children.
+    // Delegate to the wrapped `JoinAll` — it owns the children.
     cancel :: fn(self) -> void = self.inner.cancel()
 }
 
 /// Concurrent join of FALLIBLE awaitables (children of type `U | E`). Runs every
-/// child (like `all` — no cancellation in v1, so failure latency is the slowest
+/// child (like `join_all` — no cancellation in v1, so failure latency is the slowest
 /// child), then — scanning in input order — completes with the FIRST error, or
 /// the full results if none failed.
 ///
@@ -168,8 +171,10 @@ TryAll<U, E> implements Async<(U | E)[] | Error> {
 ///
 /// @param xs  the fallible awaitables to join.
 /// @return    the results in input order, or the first `Error`.
-export try_all :: fn<U, E>(xs: Async<U | E>[]) -> Async<(U | E)[] | Error> =
-    TryAll<U, E> { .inner = All<U | E> { .children = xs, .results = MutableMap<usize, U | E> {} } }
+export try_join_all :: fn<U, E>(xs: Async<U | E>[]) -> Async<(U | E)[] | Error> =
+    TryJoinAll<U, E> {
+        .inner = JoinAll<U | E> { .children = xs, .results = MutableMap<usize, U | E> {} },
+    }
 
 // ---- race -----------------------------------------------------------------
 
@@ -200,19 +205,19 @@ Race<T> implements Async<T> {
 }
 
 /// Race a group of awaitables : complete with the FIRST to settle (value or
-/// error), cancelling the losers so they leave no orphaned work. Unlike `all`,
-/// the return type is a single `T` — the winner's result.
+/// error), cancelling the losers so they leave no orphaned work. Unlike
+/// `join_all`, the return type is a single `T` — the winner's result.
 ///
 /// @param xs  the awaitables to race.
 /// @return    an awaitable of the first to settle.
 export race :: fn<T>(xs: Async<T>[]) -> Async<T> = Race<T> { .children = xs }
 
-// ---- any ------------------------------------------------------------------
+// ---- join_any -------------------------------------------------------------
 
-/// The awaitable backing `any` : like `race`, but a settled ERROR is not a win —
+/// The awaitable backing `join_any` : like `race`, but a settled ERROR is not a win —
 /// the child is retired and the others keep running. Completes with the FIRST
 /// SUCCESS (cancelling the losers), or — if every child fails — the last error.
-Any :: struct<U, E> {
+JoinAny :: struct<U, E> {
     children: Async<U | E>[]
     /// Indices whose child has already settled as an error (skipped on re-drive).
     /// A pure set — the error value itself is kept in `last`.
@@ -221,7 +226,7 @@ Any :: struct<U, E> {
     last:     (U | E) | null
 }
 
-Any<U, E> implements Async<U | E> {
+JoinAny<U, E> implements Async<U | E> {
     resume :: fn(self!) -> (U | E) | Suspended {
         n :: self.children.len()
         for i in 0..<n {
@@ -251,13 +256,13 @@ Any<U, E> implements Async<U | E> {
 
 /// Await a group of FALLIBLE awaitables (children of type `U | E`), completing
 /// with the FIRST success and cancelling the rest. If every child fails,
-/// completes with the last error. The dual of `try_all` (first success vs first
+/// completes with the last error. The dual of `try_join_all` (first success vs first
 /// error).
 ///
 /// @param xs  the fallible awaitables to race for a success.
 /// @return    the first successful result, or the last error if all fail.
-export any :: fn<U, E>(xs: Async<U | E>[]) -> Async<U | E> =
-    Any<U, E> { .children = xs, .errors = MutableSet<usize> {}, .last = null }
+export join_any :: fn<U, E>(xs: Async<U | E>[]) -> Async<U | E> =
+    JoinAny<U, E> { .children = xs, .errors = MutableSet<usize> {}, .last = null }
 
 // ---- timeout --------------------------------------------------------------
 

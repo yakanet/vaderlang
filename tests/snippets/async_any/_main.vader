@@ -1,6 +1,6 @@
-// `any` completes with the first SUCCESS, cancelling the losers — a settled error
+// `join_any` completes with the first SUCCESS, cancelling the losers — a settled error
 // is NOT a win. Here the first child fails fast and the second succeeds slower,
-// so `any` waits past the failure for the success. (If every child failed, it
+// so `join_any` waits past the failure for the success. (If every child failed, it
 // would complete with the last error instead.)
 module "snippet"
 
@@ -25,8 +25,8 @@ win_slow :: fn() -> Async<string | Boom> {
 
 main :: fn() -> i32 {
     // Explicit type args : `U | E` can't be inferred from the union (which side
-    // is which is ambiguous), same as `try_all`.
-    r :: await any<string, Boom>([fail_fast(), win_slow()])
+    // is which is ambiguous), same as `try_join_all`.
+    r :: await join_any<string, Boom>([fail_fast(), win_slow()])
     if r is Error as e {
         println("all failed: ${e.message()}")
     } else {

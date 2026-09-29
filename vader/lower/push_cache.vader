@@ -233,8 +233,8 @@ pc_collect_in_expr :: fn(e: LoweredExpr!, out: LoweredArrayPush![]!) -> void {
 
 // The symbol id every push targets, or null when there is no push, when they
 // disagree, or when a target is not a plain local. A captured local arrives as a
-// cell, not an ident, so it is out. A synthetic local (a fused `collect`'s
-// accumulator) has a negative id, so no id can serve as the "none" answer.
+// cell, not an ident, so it is out. "None" is null rather than `-1`: that is
+// the id of the first synthetic local lower mints (a fused `collect`'s accumulator).
 pc_single_target :: fn(pushes: LoweredArrayPush[]) -> i32 | null {
     id: i32 | null = null
     for p in pushes {

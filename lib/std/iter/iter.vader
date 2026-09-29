@@ -3,14 +3,14 @@
 //   - **Combinators** `map` / `filter` / `take` / `skip` / `enumerate` /
 //     `flat_map` / `chain` / `zip` are `generator`s (bottom of this file).
 //     `arr.map(f)` / `it.enumerate()` read like a pipeline and dispatch via UFCS ;
-//     consumed by a `for` loop or a terminal (`collect` / `count` / `any` / …),
+//     consumed by a `for` loop or a terminal (`collect` / `count` / `any_match` / …),
 //     the chain fuses to a single flat loop — no intermediate arrays, no iterator
 //     struct, no `next()` dispatch (`vader/lower/lower_iter_fusion.vader`).
 //     `enumerate` is a 0-arg combinator ; `chain` fuses two source loops ; `zip`
 //     stays `T[]`/`U[]` (its lockstep pull needs indexed access, unlike the
 //     source-driven combinators). Their tuple elements destructure in `for [x, y]
 //     in`. The generator's state machine only materialises when the value escapes.
-//   - **Terminals** `collect` / `fold` / `sum` / `any` / `all` / `find` /
+//   - **Terminals** `collect` / `fold` / `sum` / `any_match` / `all_match` / `find` /
 //     `find_map` take an `Iterator<T>` and consume it (a raw array auto-coerces
 //     at the call site). `count` / `is_empty` / `last` are the `Iterator` trait's
 //     own default methods (`std/core`).
@@ -179,14 +179,14 @@ export flat_map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[]) -> Iterator<U> {
 //
 // Each combinator takes an `Iterator<T>`. Raw arrays are accepted at the
 // call site via the blanket `T[] implements<T> Into<Iterator<T>>` impl in
-// `std/core` — both direct (`any(arr, p)`) and UFCS (`arr.any(p)`) forms
+// `std/core` — both direct (`any_match(arr, p)`) and UFCS (`arr.any_match(p)`) forms
 // auto-coerce.
 
 /// `true` as soon as any element satisfies `pred` ; `false` if none do.
 /// Short-circuits — `pred` is not invoked past the first match.
 /// @param it    source array or iterator.
 /// @param pred  predicate invoked on each element until one returns `true`.
-export any :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
+export any_match :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
     for x in it {
         if pred(x) {
             return true
@@ -199,7 +199,7 @@ export any :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
 /// first `false`. Returns `true` on an empty source (vacuous truth).
 /// @param it    source array or iterator.
 /// @param pred  predicate invoked on each element until one returns `false`.
-export all :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
+export all_match :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
     for x in it {
         if !pred(x) {
             return false
@@ -386,18 +386,18 @@ import "std/testing"
     assert_eq(vals[2], "c")
 }
 
-@test test_any :: fn() -> void {
-    assert([1, 2, 3].any((x: i32) -> x == 2), "should find 2")
-    assert(![1, 2, 3].any((x: i32) -> x == 9), "should not find 9")
+@test test_any_match :: fn() -> void {
+    assert([1, 2, 3].any_match((x: i32) -> x == 2), "should find 2")
+    assert(![1, 2, 3].any_match((x: i32) -> x == 9), "should not find 9")
     empty: i32[]: []
-    assert(!empty.any((x: i32) -> true), "empty array is never any")
+    assert(!empty.any_match((x: i32) -> true), "an empty array never matches")
 }
 
-@test test_all :: fn() -> void {
-    assert([2, 4, 6].all((x: i32) -> x % 2 == 0), "all even")
-    assert(![2, 3, 6].all((x: i32) -> x % 2 == 0), "3 is odd")
+@test test_all_match :: fn() -> void {
+    assert([2, 4, 6].all_match((x: i32) -> x % 2 == 0), "all even")
+    assert(![2, 3, 6].all_match((x: i32) -> x % 2 == 0), "3 is odd")
     empty: i32[]: []
-    assert(empty.all((x: i32) -> false), "empty array satisfies all (vacuous)")
+    assert(empty.all_match((x: i32) -> false), "an empty array always matches (vacuous)")
 }
 
 @test test_find :: fn() -> void {

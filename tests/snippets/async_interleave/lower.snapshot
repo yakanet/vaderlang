@@ -385,7 +385,7 @@
                               cast → Async<Any>
                                 call :Async<i32[]!>
                                   callee:
-                                    std_async$all__i32 :Async<i32[]!>
+                                    std_async$join_all__i32 :Async<i32[]!>
                                   arg0:
                                     array :Async<i32>[]
                                       call :Async<i32>

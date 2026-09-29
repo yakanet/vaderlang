@@ -21,11 +21,11 @@
   expr 29:16    CallExpr       :: Async<Boom! | string>
   expr 29:16    GenericInstExpr :: fn(Async<E | U>[]) -> Async<E | U>
   expr 29:16    IdentExpr      :: fn(Async<E | U>[]) -> Async<E | U>
-  expr 29:34    SeqLitExpr     :: Async<Boom | string>[]
-  expr 29:35    CallExpr       :: Async<Boom | string>
-  expr 29:35    IdentExpr      :: fn() -> Async<Boom | string>
-  expr 29:48    CallExpr       :: Async<Boom | string>
-  expr 29:48    IdentExpr      :: fn() -> Async<Boom | string>
+  expr 29:39    SeqLitExpr     :: Async<Boom | string>[]
+  expr 29:40    CallExpr       :: Async<Boom | string>
+  expr 29:40    IdentExpr      :: fn() -> Async<Boom | string>
+  expr 29:53    CallExpr       :: Async<Boom | string>
+  expr 29:53    IdentExpr      :: fn() -> Async<Boom | string>
   expr 30:13    IdentExpr      :: Error
   expr 30:5     IfExpr         :: void
   expr 30:8     BinaryExpr     :: bool

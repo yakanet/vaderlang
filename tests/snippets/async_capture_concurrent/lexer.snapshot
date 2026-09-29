@@ -89,24 +89,24 @@
 [21:5-21:7  ] ident          "rs"
 [21:8-21:10 ] decl_const     "::"
 [21:11-21:16] kw_await       "await"
-[21:17-21:20] ident          "all"
-[21:20-21:21] lparen         "("
-[21:21-21:22] lbracket       "["
-[21:22-21:28] ident          "worker"
-[21:28-21:29] lparen         "("
-[21:29-21:31] int_literal    "10" =10n
-[21:31-21:32] comma          ","
-[21:33-21:34] int_literal    "3" =3n
-[21:34-21:35] rparen         ")"
-[21:35-21:36] comma          ","
-[21:37-21:43] ident          "worker"
-[21:43-21:44] lparen         "("
-[21:44-21:47] int_literal    "100" =100n
-[21:47-21:48] comma          ","
-[21:49-21:50] int_literal    "2" =2n
-[21:50-21:51] rparen         ")"
-[21:51-21:52] rbracket       "]"
-[21:52-21:53] rparen         ")"
+[21:17-21:25] ident          "join_all"
+[21:25-21:26] lparen         "("
+[21:26-21:27] lbracket       "["
+[21:27-21:33] ident          "worker"
+[21:33-21:34] lparen         "("
+[21:34-21:36] int_literal    "10" =10n
+[21:36-21:37] comma          ","
+[21:38-21:39] int_literal    "3" =3n
+[21:39-21:40] rparen         ")"
+[21:40-21:41] comma          ","
+[21:42-21:48] ident          "worker"
+[21:48-21:49] lparen         "("
+[21:49-21:52] int_literal    "100" =100n
+[21:52-21:53] comma          ","
+[21:54-21:55] int_literal    "2" =2n
+[21:55-21:56] rparen         ")"
+[21:56-21:57] rbracket       "]"
+[21:57-21:58] rparen         ")"
 [22:1-22:1  ] newline        "\n"
 [22:5-22:8  ] kw_for         "for"
 [22:9-22:10 ] ident          "r"

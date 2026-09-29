@@ -5,7 +5,7 @@
 // it to completion on the cooperative scheduler (`spawn_poll`, re-arming a
 // short timer between polls — the same timer-driven suspension `std/async`'s
 // `sleep` uses), then interns the captured pipes (`spawn_take_stdout/_stderr`).
-// Launching N children and joining them with `std/async::all` runs them
+// Launching N children and joining them with `std/async::join_all` runs them
 // concurrently — the OS schedules the child processes across cores.
 //
 // Blocking `spawn` is `block_on(spawn_async(...))`: one mechanism, cross-
@@ -682,7 +682,7 @@ SpawnAsync implements Async<ProcessResult | ProcessError> {
             return Suspended {}
         }
         // Poll at most once per POLL_MS. Without this gate, a driver that
-        // re-resumes every child each tick (`all([...])`) would arm a fresh
+        // re-resumes every child each tick (`join_all([...])`) would arm a fresh
         // timer per drive — piling up duplicates the single-pop `sched_park`
         // never drains. Mirrors `Sleep`: stay parked until our timer fires.
         if sched_now() < self.deadline { return Suspended {} }
@@ -705,7 +705,7 @@ SpawnAsync implements Async<ProcessResult | ProcessError> {
 
 /// Run `argv[0]` with `argv[1..]` as an awaitable — launches immediately, then
 /// completes once the child exits, WITHOUT blocking the scheduler. Fan several
-/// out and `await all([...])` to run them concurrently (the OS parallelises the
+/// out and `await join_all([...])` to run them concurrently (the OS parallelises the
 /// child processes). `--target=wasm` has no subprocess support (unbound).
 ///
 /// @param argv   the command line ; `argv[0]` is the program. Empty is an error.

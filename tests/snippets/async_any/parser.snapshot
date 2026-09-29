@@ -273,7 +273,7 @@
                   "kind": "GenericInstExpr",
                   "callee": {
                     "kind": "IdentExpr",
-                    "name": "any"
+                    "name": "join_any"
                   },
                   "typeArgs": [
                     {

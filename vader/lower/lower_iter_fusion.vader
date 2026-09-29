@@ -165,7 +165,7 @@ BodyTemplate :: struct {
 // `lower_call`; `null` falls through to the trait default-method / free-fn call.
 //
 // Increments 1 + 1b: `count` (→ usize) + `collect` (→ element[]). `fold`/`sum` and
-// the early-exit terminals (any/all/find) land later. (`collect`'s element is now
+// the early-exit terminals (any_match/all_match/find) land later. (`collect`'s element is now
 // concrete — the UFCS receiver type-param concretization in `call.vader` binds the
 // chain's source `T` from the receiver, so the fused raw push matches the slot.)
 
@@ -201,13 +201,13 @@ export try_lower_terminal_fusion :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, typ
         chain :: top_level_chain(ctx, collect_arg) ?? return null
         return emit_collect_fusion(ctx, chain, type, call.span)
     }
-    // Early-exit predicate terminals — any / all / find.
-    any_call :: terminal_pred_arg(call, "any")
+    // Early-exit predicate terminals — any_match / all_match / find.
+    any_call :: terminal_pred_arg(call, "any_match")
     if any_call != null {
         chain :: top_level_chain(ctx, any_call.chain_arg) ?? return null
         return emit_bool_terminal(ctx, chain, any_call.pred, call.span, false, true, false)
     }
-    all_call :: terminal_pred_arg(call, "all")
+    all_call :: terminal_pred_arg(call, "all_match")
     if all_call != null {
         chain :: top_level_chain(ctx, all_call.chain_arg) ?? return null
         return emit_bool_terminal(ctx, chain, all_call.pred, call.span, true, false, true)
@@ -252,8 +252,9 @@ emit_pred_call :: fn(ctx: FnLowerCtx!, pred: AST.Expr, elem_sym: Symbol, elem_ty
         .args = [read_local_cell_aware(ctx, elem_sym, elem_ty, span)],
     }
 
-// `any` / `all`: `{ let r = init; <flat loop> if [!]pred(v) { r = hit; break }; r }`.
-// any → (init=false, hit=true, negate=false) ; all → (init=true, hit=false, negate=true).
+// `any_match` / `all_match`: `{ let r = init; <flat loop> if [!]pred(v) { r = hit; break }; r }`.
+// any_match → (init=false, hit=true, negate=false) ;
+// all_match → (init=true, hit=false, negate=true).
 emit_bool_terminal :: fn(
     ctx: FnLowerCtx!, chain: IterChain, pred: AST.Expr, span: Span,
     init: bool, hit: bool, negate: bool,
@@ -717,8 +718,9 @@ emit_fused_chain :: fn(
 // over the `Iterator`-typed receiver, structurally the un-fused for-in shape
 // (`lower_for_in`) but driven by the terminal's accumulator template instead of
 // a user body. The genstate is erased to `Iterator<E>` so `next()` dispatches
-// through the vtable. `break` inside the template (any / all / find) exits the
-// loop ; `continue` is naturally step-safe (the next iteration re-pulls `next()`).
+// through the vtable. `break` inside the template (any_match / all_match / find)
+// exits the loop ; `continue` is naturally step-safe (the next iteration re-pulls
+// `next()`).
 emit_fused_opaque_iter :: fn(
     ctx: FnLowerCtx!, chain: IterChain, loop_label: string | null, outer_span: Span,
     template: BodyTemplate,

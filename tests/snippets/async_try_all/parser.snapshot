@@ -281,7 +281,7 @@
                   "kind": "GenericInstExpr",
                   "callee": {
                     "kind": "IdentExpr",
-                    "name": "try_all"
+                    "name": "try_join_all"
                   },
                   "typeArgs": [
                     {
@@ -499,7 +499,7 @@
                   "kind": "GenericInstExpr",
                   "callee": {
                     "kind": "IdentExpr",
-                    "name": "try_all"
+                    "name": "try_join_all"
                   },
                   "typeArgs": [
                     {

@@ -10,6 +10,7 @@
 module "vader/cli"
 
 import "std/io"
+import "std/iter"
 import "std/path"
 import "std/string"
 import "std/collections"
@@ -76,8 +77,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         }
         files_with_tests += 1
         println(rep)
-        mangles: string[]!: []
-        for t in fresh { mangles.push(t.mangled) }
+        mangles :: fresh.map((t) -> t.mangled).collect()
         module :: cfg_to_bytecode(
             pruned, module_name_from_file(rep),
             // `vader test` runs bytecode in the VM, which never reads `debug`.
@@ -226,7 +226,7 @@ pick_module_representatives :: fn(files: Path[]) -> Path[] {
         if group.len() <= 1 {
             out.push(group[0])
         } else {
-            facts :: group_facts(group)
+            facts :: group.map(file_facts).collect()
             if is_folder_module(facts) {
                 out.push(d.to_path())
             } else {
@@ -250,15 +250,6 @@ pick_module_representatives :: fn(files: Path[]) -> Path[] {
 FileFacts :: struct {
     declared: string
     imports:  string[]
-}
-
-// The declared module + imported module paths of every file in `group`, in order.
-group_facts :: fn(group: Path[]) -> FileFacts[] {
-    out: FileFacts[]!: []
-    for f in group {
-        out.push(file_facts(f))
-    }
-    return out
 }
 
 // `declared` is "" for a file that declares no module (R2020 territory) or cannot

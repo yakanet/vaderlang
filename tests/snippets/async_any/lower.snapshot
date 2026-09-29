@@ -640,7 +640,7 @@
                                           cast → Async<Any>
                                             call :Async<Boom! | string>
                                               callee:
-                                                std_async$any__string__Any :Async<Boom! | string>
+                                                std_async$join_any__string__Any :Async<Boom! | string>
                                               arg0:
                                                 array :Async<Boom | string>[]
                                                   call :Async<Boom | string>

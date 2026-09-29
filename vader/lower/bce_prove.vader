@@ -66,7 +66,7 @@ bce_fn_pure :: fn(pctx: BcePurityCtx!, fd: LoweredFnDecl) -> bool {
     // gets `false` — a cycle can't be proven pure. The real verdict overwrites it
     // below, so no non-cyclic caller ever reads the sentinel.
     pctx.memo[key] = false
-    result :: !bce_block_unsafe(body, -1, pctx)
+    result :: !bce_block_unsafe(body, null, pctx)
     pctx.memo[key] = result
     return result
 }
@@ -338,12 +338,10 @@ bp_try_prove :: fn(the_len: LoweredArrayLen!, the_loop: LoweredLoop!, pctx: BceP
     bp_mark_idx_block(the_loop.body)
 }
 
-bp_guard_sym :: fn(al: LoweredArrayLen) -> i32 {
-    if al.target is LoweredIdent as id {
-        return id.symbol.id
-    }
-    return -1
-}
+// The symbol the length was read through, or null when the target is not a
+// plain local. Not `-1`: that is the id of the first synthetic local lower mints.
+bp_guard_sym :: fn(al: LoweredArrayLen) -> i32 | null =
+    if al.target is LoweredIdent as id { id.symbol.id } else { null }
 
 // ---- mark synthesized `arr[idx]` accesses bounds-safe (this loop only) --------
 // Walks the loop body setting `bounds_safe` on every `bce_recheck` LoweredIndex,

@@ -68,8 +68,8 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
         if !(free is null) {
             if free is UfcsMember {
                 // Prepare the receiver AND every argument against the free fn's
-                // declared params, so `a.any(p)` lowers exactly like the free call
-                // `any(a, p)` — a raw array reaching an `Iterator<T>` slot wraps
+                // declared params, so `a.any_match(p)` lowers exactly like the free
+                // call `any_match(a, p)` — a raw array reaching an `Iterator<T>` slot wraps
                 // through `into` (→ the `array_iter` generator) on either form.
                 free_params :: ufcs_param_types(ctx, free.symbol)
                 args :: build_ufcs_args(ctx, receiver, call, free_params, 1)
@@ -288,7 +288,7 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
             // `.into()` at the call site (see `try_lower_ufcs_call`). Mirrors
             // the typer's `receiver_fits_first_param`, which already accepts
             // this ; without it the typer/lowerer disagree (typer curries the
-            // UFCS call, lowerer can't resolve it → `a.any(p)` mis-lowered to a
+            // UFCS call, lowerer can't resolve it → `a.any_match(p)` mis-lowered to a
             // field-access on a primitive). Use the same predicate the typer
             // does so the two passes can't drift again.
             return try_array_to_iter(recv_type, first)

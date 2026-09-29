@@ -137,7 +137,7 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "all"
+                  "name": "join_all"
                 },
                 "args": [
                   {

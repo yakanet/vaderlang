@@ -1,8 +1,8 @@
-// Terminal fusion (B-terminals, Increment 2): the early-exit terminals `any` /
-// `all` / `find` over a fusible lazy chain fuse to a flat loop with an accumulator
-// + a `break` — no MappedIterator/FilterIterator struct, no Iterator.next()
-// dispatch (see the lower snapshot). The predicate is applied inline to each fused
-// element; the loop breaks as soon as the answer is known.
+// Terminal fusion (B-terminals, Increment 2): the early-exit terminals
+// `any_match` / `all_match` / `find` over a fusible lazy chain fuse to a flat
+// loop with an accumulator + a `break` — no MappedIterator/FilterIterator
+// struct, no Iterator.next() dispatch (see the lower snapshot). The predicate is
+// applied inline to each fused element; the loop breaks as soon as the answer is known.
 module "snippet"
 
 import "std/io"
@@ -11,11 +11,11 @@ import "std/iter"
 main :: fn() -> i32 {
     xs :: [1, 2, 3, 4, 5, 6]
 
-    // any: stops at the first match.
-    a :: xs.map((x: i32) -> x * 2).any((x: i32) -> x > 8)       // 12 > 8 → true
-    // all: stops at the first failure.
-    b :: xs.filter((x: i32) -> x > 0).all((x: i32) -> x < 4)    // 4 !< 4 → false
-    c :: xs.map((x: i32) -> x * 2).all((x: i32) -> x % 2 == 0)  // all even → true
+    // any_match: stops at the first match.
+    a :: xs.map((x: i32) -> x * 2).any_match((x: i32) -> x > 8)       // 12 > 8 → true
+    // all_match: stops at the first failure.
+    b :: xs.filter((x: i32) -> x > 0).all_match((x: i32) -> x < 4)    // 4 !< 4 → false
+    c :: xs.map((x: i32) -> x * 2).all_match((x: i32) -> x % 2 == 0)  // all even → true
     println("any ${a} all ${b} all2 ${c}")
 
     // find: returns the first match (element | null), or null when none.
