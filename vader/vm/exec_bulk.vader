@@ -1,15 +1,10 @@
 // vader/vm/exec_bulk — the bulk array / string / buffer opcodes.
 //
-// Moved out of `exec_entry`'s dispatch, whose correctness rests on per-frame
-// state hoisted into its locals. Touching none of that is a PRECONDITION for
-// living here, not the reason: most arms that stayed satisfy it too. What
-// qualifies an arm is being bulky and cold — an O(N) body, or one that already
-// allocates. An O(1) arm must stay in the dispatch: returning `Trap` puts a fn
-// in `may_alloc`, and the emitter then gives it a full GC shadow-stack prologue
-// and address-takes `frame`. Measurements: `docs/adr/0020`.
+// Each runs one op of `apply_boxed` (`exec.vader`) on the operand stack of its
+// frame — bulky and cold: an O(N) body, or one that already allocates.
 //
 // Contract: return a `Trap` on a stack or range error, `null` on success, and
-// advance `frame.sp` / `frame.pc` before returning `null` — the dispatch does
+// advance `frame.sp` / `frame.pc` before returning `null` — `apply_boxed` does
 // neither for these.
 
 module "vader/vm"

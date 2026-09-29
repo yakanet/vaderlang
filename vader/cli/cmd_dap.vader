@@ -49,7 +49,7 @@ compile_for_dap :: fn(program: string) -> DapProgram {
     }
     pruned :: prune_unreachable_fns(le.lowered, false)
     module :: cfg_to_bytecode(pruned, module_name_from_file(path), EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = true })
-    state :: prepare(module)
+    state :: prepare_debug(module)
     if state is VerifyError {
         return DapProgram { .state = null, .entry_index = -1, .error = display_verify_error(state) }
     }

@@ -12,10 +12,10 @@
 // `end`) moves nothing, and a jump must land at the depth it left. The analysis is
 // the classic forward dataflow over pcs, one depth per pc, merged at jump targets.
 //
-// The ORIGINAL bodies are verified — the ones a debugger dispatches, and the input
-// `fuse.vader` rewrites without changing any depth. Operand tags are checked by the
-// sibling pass `tags.vader`. What depends on a VALUE stays a run-time check in
-// `exec`: `call.indirect` / `virtual.call` targets, array bounds.
+// The shipped bodies are verified — the input `reg_translate.vader` turns into
+// register code. Operand tags are checked by the sibling pass `tags.vader`. What
+// depends on a VALUE stays a run-time check: `call.indirect` / `virtual.call`
+// targets, array bounds.
 
 module "vader/vm"
 

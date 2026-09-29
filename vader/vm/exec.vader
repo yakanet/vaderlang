@@ -1,32 +1,20 @@
-// vader/vm/exec — stack-machine interpreter for the .virt bytecode.
+// vader/vm/exec — the VM's entry points and the ops it runs on boxed values.
 //
-// Reads a `VmState` wrapping a `vader/bytecode::BytecodeModule` (see
-// `module.vader` / `virt_reader_bc.vader`) and runs its `main` function. The
-// op set grows sprint by sprint (docs/SELFHOST_VM.md) ;
-// the value stack is `Value[]` (tagged union), promoted from the raw
-// `i32[]` of sprints 1-2 so strings and host calls can flow through.
+// `exec_entry` (and `exec` / `exec_fn` / `exec_fn_value` / `run_virt` over it)
+// hands a `VmState` to the register engine (`reg_exec.vader`). The engine runs
+// the ops it has no register form for through `apply_boxed`, on a scratch
+// `Frame` holding their operands as a small operand stack — the SoA columns and
+// the `push_val` / `peek_val` helpers below.
 //
-// Sprint 4 introduces explicit `Frame` records and a frame stack —
-// each Vader-side `call N` pushes a callee frame, `return` pops it
-// and pushes the return value onto the caller's stack. Locals live
-// in the frame's `slots` array (params at the bottom, then declared
-// locals) ; the value stack is per-frame.
+// Also here: the debugger's view of a paused frame (`pause_frame`), the narrow
+// store truncation, and the trap builders both halves share.
 //
-// VM-level errors (stack underflow, malformed bytecode, unsupported
-// op, host-import dispatch miss) come back as a `Trap` variant of
-// `VmResult` with a labelled message — the runtime's generic
-// "array index out of bounds" would otherwise mask compiler / parser
-// bugs.
+// VM-level errors (malformed bytecode, a bad operand, a host-import miss) come
+// back as a `Trap` with a labelled message — the runtime's generic "array index
+// out of bounds" would otherwise mask compiler / parser bugs.
 //
-// Split into siblings (2026-05-14) :
-//   - `value.vader` — Value projections (`read_*`, `describe_value_tag`)
-//     and type-matching (`type_matches`, `ref_type_matches`, vtable
-//     lookup) shared with the host dispatcher.
-//   - `host.vader`  — `dispatch_import` + every per-host arm.
-//   - `exec_bulk.vader` — the bulk array / string / buffer op bodies; what
-//     qualifies an arm to live there is in its header.
-//   This file keeps the frame stack, apply-op helpers, the main `exec`
-//   loop, and the `run_virt` entry point.
+// Siblings: `value.vader` (Value projections, type matching, vtable lookup),
+// `host.vader` (`dispatch_import`), `exec_bulk.vader` (the bulk op bodies).
 
 module "vader/vm"
 
@@ -34,24 +22,6 @@ bc :: import "vader/bytecode"
 
 import "std/io"
 import "std/string"
-
-// IEEE 754 bit reinterpret uses the stdlib intrinsics (`f64.to_bits()` /
-// `u64.from_bits()`, `std/core`'s FloatBits / BitsFloat) directly. They lower to
-// the F64ToBits / BitsToF64 opcodes, which emit_c turns into an inline `union`
-// cast — no runtime symbol, no C call. This file used to bind the runtime's
-// `vader_*_to_bits` helpers via `@extern` because the bootstrap seed predated
-// those opcodes and emitted them as unbound imports ; the seed has long since
-// been regenerated, so that detour is obsolete. Dropping it also removes four
-// `@extern` from the compiler tree — an `@extern` is exempt from the emit-time
-// wiring check and therefore invisible to the VM's own host dispatcher, so the
-// fewer the compiler declares, the less of it is unrunnable on its own bytecode.
-
-// Mangled host-import names. Lifted to module-scope so the dispatch
-// chain reads as identifier comparisons rather than raw-string
-// literals — also avoids re-allocating the strings per op execution.
-// Raw form (`r"..."`) bypasses Vader's `$<ident>` interpolation
-// syntax, which would otherwise try to resolve `println` etc. as
-// inline expressions.
 
 // Maximum frame depth — guards against runaway recursion (the
 // callee-frame allocation could otherwise grow unbounded). Picked
@@ -70,56 +40,25 @@ COMPTIME_STEP_BUDGET: i64: 100_000_000
 /// reach it), so both paths share one guard shape.
 STEP_BUDGET_UNREACHABLE: i64: 1 << 62
 
-/// A single call frame on the VM's frame stack. `slots[0..parameter_count]`
-/// hold the params bound at `Call` time, followed by `local_count` zero-
-/// initialised locals. `stack` is per-frame ; `sp` is the logical top
-/// cursor (the array is grow-only, see `push_value`). `pc` indexes into
-/// the function's `ops` array.
+/// The operand stack `apply_boxed` runs an op on: the register engine copies the
+/// op's operands in, and its results out (`reg_exec.vader::run_boxed`). `sp` is
+/// the logical top ; `pc` is the op's original pc, for trap messages.
 Frame :: struct {
-    function_index: i32
-    // `!` on the ELEMENT here reads as storage, not as mutation: nothing rewrites a
-    // `Value` in place. It is what lets a slot be re-lent through `stack`, which
-    // hands out writable `ArrayVal`s (`peek_array_mut`). Same for `slot_set`'s
-    // `value`, `build_main_args`, `build_entry_frame` and the `env` chain.
-    slots:          Value![]!
     /// Live handles, not copies: an `ArrayVal` here is the object `array.push`
     /// grows in place, so the ELEMENT carries the marker too.
     stack:          Value![]!
     payload:        i64[]!
     tag:            StackTag[]!
-    slot_payload:   i64[]!
-    slot_tag:       StackTag[]!
     sp:             usize
     pc:             i32
-    /// Defer-stack — closures pushed via `DeferPush` op, drained LIFO by
-    /// `DeferPopExec` on structured exits, or by the panic-unwind handler at
-    /// the top of `exec_entry`'s loop when a user-reachable op traps (which
-    /// runs each thunk as a normal frame above the one being torn down).
-    /// Grow-only ; the live region is `defers[0..defer_count]`.
-    defers:         Value[]!
-    defer_count:    usize
 }
 
-/// Push `value` at the cursor position, growing the backing array
-/// when needed (Vader has `push` but not capacity-managed insert).
-///
-/// @param stack   the grow-only value stack (mutated in place).
-/// @param cursor  logical top index — `cursor == stack.len()` means a
-///                fresh slot is needed, otherwise an existing one is
-///                overwritten (cheaper than `push`).
-/// @param value   the value to write.
-push_value :: fn(stack: Value[]!, cursor: usize, value: Value) -> void {
-    if cursor == stack.len() { stack.push(value) }
-    else                     { stack[cursor] = value }
-}
-
-// ---- SoA value stack (lever A) --------------------------------------------
-// The operand stack and locals are stored column-major: scalar bits live in
-// the `payload` (i64) column, the variant discriminant in `tag`, and only heap
-// values in the `stack` / `slots` (refs) column. A scalar write leaves the refs
-// slot as a stale-but-valid `Value` (GC-safe, retention bounded by stack depth)
-// and only a ref write updates it. `push_val` / `peek_val` bridge to a boxed
-// `Value` at the boundaries (host calls, heap-object contents, comptime).
+// ---- SoA operand stack ----------------------------------------------------
+// A `Frame`'s operand stack is stored column-major: scalar bits live in the
+// `payload` (i64) column, the variant discriminant in `tag`, and only heap values
+// in the `stack` (refs) column. A scalar write leaves the refs slot as a
+// stale-but-valid `Value` (GC-safe, retention bounded by the stack's depth) and
+// only a ref write updates it. `push_val` / `peek_val` bridge to a boxed `Value`.
 
 /// Discriminant column for the SoA stack / slots. `enum(u8)` so a `tag[]`
 /// packs one byte per entry ; scalar tags carry their bits in `payload`, `Ref`
@@ -136,24 +75,6 @@ NULL_VALUE :: NullVal {}
 /// Mirrors `read_i32`'s @partial match EXACTLY — a stricter test would reject
 /// bytecode the boxed path accepted.
 is_i32_tag :: fn(t: StackTag) = t == .I32 || t == .Char || t == .I64
-
-/// True when `t` marks a value `read_i64` accepts (i64 / i32 carriers).
-is_i64_tag :: fn(t: StackTag) = t == .I64 || t == .I32
-
-/// True when `t` marks a value `read_f64` accepts. `read_f64` is STRICT (it does
-/// not coerce integers), so this is an exact tag test.
-is_f64_tag :: fn(t: StackTag) = t == .F64
-
-/// Cold path for an arithmetic arm whose operand carries an unexpected tag.
-/// The fast arms read `payload` directly, which for a `Ref` / `Null` slot holds
-/// STALE bits — so without this the VM would compute a plausible wrong number
-/// instead of naming the bad bytecode. It is the differential oracle for the
-/// native backend : silently-wrong is the one outcome it must
-/// never produce.
-arith_tag_trap :: fn(frame: Frame, back: usize, op_label: string) -> Trap {
-    v :: peek_val(frame, frame.sp - back)
-    return Trap { .message = "${op_label} at pc=${frame.pc}: expected numeric operand, got ${describe_value_tag(v)}" }
-}
 
 /// Integer→integer `convert`, straight on the stack columns. True when it applied.
 ///
@@ -199,18 +120,15 @@ convert_int_fast :: fn(frame: Frame!, target: ConvertTarget, from_name: string) 
     return true
 }
 
-/// Grow the three stack columns by one slot. Only `reserve_stack` calls it, when
-/// a frame becomes active — never a push op.
+/// Grow the three stack columns by one slot. Only `reserve_stack` calls it.
 stack_grow :: fn(frame: Frame!) -> void {
     frame.payload.push(0)
     frame.tag.push(.Null)
     frame.stack.push(NullVal {})
 }
 
-/// Size `frame`'s three stack columns to at least `depth` — the verified deepest
-/// point of the function it runs (`VmState.max_depth`). Called when a frame becomes
-/// active, so a push inside it never checks capacity. The columns are grow-only,
-/// so a pooled frame that already ran a deeper callee does nothing here.
+/// Size `frame`'s three stack columns to at least `depth`, so a push inside the op
+/// it runs never checks capacity. The columns are grow-only.
 reserve_stack :: fn(frame: Frame!, depth: usize) -> void {
     for frame.payload.len() < depth {
         stack_grow(frame)
@@ -218,9 +136,9 @@ reserve_stack :: fn(frame: Frame!, depth: usize) -> void {
 }
 
 
-/// Write `value` into the stack columns at `cursor` — sized by `reserve_stack`.
-/// Mirrors `push_value` (caller bumps `sp`). Scalars land in payload + tag,
-/// heap values in the refs column.
+/// Write `value` into the stack columns at `cursor` — sized by `reserve_stack`
+/// (the caller bumps `sp`). Scalars land in payload + tag, heap values in the refs
+/// column.
 push_val :: fn(frame: Frame!, cursor: usize, value: Value!) -> void {
     match value {
         is I32Val -> {
@@ -290,115 +208,29 @@ peek_array_mut :: fn(frame: Frame!, idx: usize, at_pc: i32, label: string) -> Ar
     }
 }
 
-/// Materialise a local slot value as a boxed `Value`.
-slot_val :: fn(frame: Frame, slot: usize) -> Value {
-    match frame.slot_tag[slot] {
-        .Ref  -> { return frame.slots[slot] }
-        .I32  -> { return I32Val  { .value = i32(frame.slot_payload[slot]) } }
-        .I64  -> { return I64Val  { .value = frame.slot_payload[slot] } }
-        .F64  -> { return F64Val  { .value = (u64(frame.slot_payload[slot])).from_bits() } }
-        .Bool -> { return BoolVal { .value = frame.slot_payload[slot] != 0 } }
-        .Char -> { return CharVal { .value = char(u32(frame.slot_payload[slot])) } }
-        .Null -> { return NULL_VALUE }
-    }
-}
 
-/// Write a boxed `Value` into local slot `slot` (slot always exists).
-slot_set :: fn(frame: Frame!, slot: usize, value: Value!) -> void = match value {
-    is I32Val -> {
-        frame.slot_payload[slot] = i64(value.value)
-        frame.slot_tag[slot] = .I32
-    }
-    is I64Val -> {
-        frame.slot_payload[slot] = value.value
-        frame.slot_tag[slot] = .I64
-    }
-    is F64Val -> {
-        frame.slot_payload[slot] = i64((value.value).to_bits())
-        frame.slot_tag[slot] = .F64
-    }
-    is BoolVal -> {
-        frame.slot_payload[slot] = if value.value { 1 } else { 0 }
-        frame.slot_tag[slot] = .Bool
-    }
-    is CharVal -> {
-        frame.slot_payload[slot] = i64(u32(value.value))
-        frame.slot_tag[slot] = .Char
-    }
-    is NullVal -> { frame.slot_tag[slot] = .Null }
-    _ -> {
-        frame.slots[slot] = value
-        frame.slot_tag[slot] = .Ref
-    }
-}
-
-/// Materialise stack values `[start, endx)` as a boxed `Value[]` for the call /
-/// host boundaries (`build_callee_frame`, `dispatch_import`).
-peek_range :: fn(frame: Frame, start: usize, endx: usize) -> Value[] {
-    out: Value[]!: [] * (endx - start)
-    for i in start..<endx { out.push(peek_val(frame, i)) }
-    return out
-}
-
-
-/// Append `new_frame` at `cursor[0]`, growing `frames` if needed. The
-/// `frames` array is grow-only — `pop_frame` only decrements the cursor,
-/// the underlying slot is reused on the next push. Same cursor pattern
-/// used elsewhere in the VM (scope stack, pending branches).
+/// One frame of the paused call stack, as the debugger's `on_pause` reads it.
 ///
-/// @param frames     the grow-only frame stack (mutated in place).
-/// @param cursor     1-element box — `[0]` is the logical top index.
-/// @param new_frame  the callee frame to push.
-push_frame :: fn(frames: Frame![]!, cursor: usize[]!, new_frame: Frame!) -> void {
-    if cursor[0] == frames.len() { frames.push(new_frame) }
-    else                         { frames[cursor[0]] = new_frame }
-    cursor[0] += 1
-}
-
-/// Decrement the frame cursor by 1. The released slot stays in
-/// `frames` (carrying its now-unreferenced `slots` / `stack` arrays
-/// until the next push overwrites it).
-///
-/// @param cursor  1-element box — `[0]` is the logical top index.
-pop_frame :: fn(cursor: usize[]!) -> void {
-    cursor[0] -= 1
-}
-
-/// Project the live frame stack into plain `PauseFrame` data for the debugger's
-/// `on_pause` callback — so the DAP layer answers `stackTrace` without touching
-/// the VM's internal `Frame` / value stack. Innermost frame first. A caller
-/// frame's `pc` is its return address (the op after the call), so its line is
-/// the call site's — a one-line approximation that's fine for a call stack.
-///
-/// @param reason  DAP stop reason (`"breakpoint"`).
-/// @param frames  the live frame stack.
-/// @param count   number of live frames (`frame_count[0]`).
-/// @param bc_mod  the running module — for fn names + the per-op `debug` table.
-/// @return        a `PauseCtx` snapshot safe to hand across the module boundary.
-build_pause_ctx :: fn(reason: string, frames: Frame[], count: usize, bc_mod: bc.BytecodeModule) -> PauseCtx {
-    projected: PauseFrame[]!: []
-    i: i64 = i64(count) - 1
-    for i >= 0 {
-        f :: frames[usize(i)]
-        fn_body :: bc_mod.functions[usize(f.function_index)]
-        file := ""
-        line := 0
-        if usize(f.pc) < fn_body.debug.len() {
-            dbg :: fn_body.debug[usize(f.pc)]
-            if dbg != null {
-                file = dbg.file
-                line = dbg.line
-            }
+/// @param bc_mod   the running module, for the Variables projection.
+/// @param fn_body  the frame's function.
+/// @param slots    its parameters then locals, in slot order.
+/// @param at_pc    the op it stands at, in `fn_body.body`'s pc space.
+pause_frame :: fn(bc_mod: bc.BytecodeModule, fn_body: bc.BcFunction, slots: Value[], at_pc: i32) -> PauseFrame {
+    file := ""
+    line := 0
+    if at_pc >= 0 && usize(at_pc) < fn_body.debug.len() {
+        dbg :: fn_body.debug[usize(at_pc)]
+        if dbg != null {
+            file = dbg.file
+            line = dbg.line
         }
-        projected.push(PauseFrame {
-            .function_name = fn_body.name,
-            .file          = file,
-            .line          = line,
-            .locals        = project_locals(f, fn_body, bc_mod),
-        })
-        i = i - 1
     }
-    return PauseCtx { .reason = reason, .frames = projected }
+    return PauseFrame {
+        .function_name = fn_body.name,
+        .file          = file,
+        .line          = line,
+        .locals        = project_locals(slots, at_pc, fn_body, bc_mod),
+    }
 }
 
 // Max nesting the Variables projection descends (also the cycle guard) and max
@@ -410,7 +242,7 @@ DEBUG_MAX_ELEMS: usize: 64
 // `[0..params)` are params (no source names in `BcSignature` → `arg0`, `arg1`,
 // …) ; `locals[k]` lives at slot `params + k`. Accurate when the target is
 // compiled `optimize = false` (no slot coalescing) — the DAP compile's mode.
-project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule) -> PauseVar[]! {
+project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule) -> PauseVar[]! {
     param_count :: fn_body.signature.params.len()
     total_slots :: param_count + fn_body.locals.len()
     // Per-slot [first, last] touch pc — a slot's live window. A local shows only
@@ -431,8 +263,8 @@ project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule
     // Params live the whole frame — always shown, named from the signature
     // (`param_names`, empty on name-less paths → `arg<i>`).
     for p in 0..<param_count {
-        if p < f.slots.len() {
-            out.push(project_var(param_display_name(fn_body.signature, p), slot_val(f, p), bc_mod, 0))
+        if p < slots.len() {
+            out.push(project_var(param_display_name(fn_body.signature, p), slots[p], bc_mod, 0))
         }
     }
     for k in 0..<fn_body.locals.len() {
@@ -440,8 +272,8 @@ project_locals :: fn(f: Frame, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule
         slot :: param_count + k
         // Hide compiler-synthesised temps (`$…` / `__…` / `if_res`) and locals
         // outside their live window at the current pc.
-        if slot < f.slots.len() && is_source_local(name) && slot_in_scope(first, last, slot, f.pc) {
-            out.push(project_var(name, slot_val(f, slot), bc_mod, 0))
+        if slot < slots.len() && is_source_local(name) && slot_in_scope(first, last, slot, at_pc) {
+            out.push(project_var(name, slots[slot], bc_mod, 0))
         }
     }
     return out
@@ -533,302 +365,6 @@ is_fn_index_out_of_range :: fn(function_index: i32, functions: bc.BcFunction[]) 
 
 fn_index_trap :: fn(function_index: i32, at_pc: i32, op_label: string) = Trap {
     .message = "${op_label} function ${function_index} out of range at pc=${at_pc}",
-}
-
-/// Final stage of a direct or indirect call : build the callee frame,
-/// advance the caller's pc / sp, push the new frame, and trap if the
-/// frame stack overflows. Shared by `Call` (`env = null`) and
-/// `CallIndirect` (`env` from the popped `FnVal`).
-///
-/// @param frame           current top frame, mutated in place (sp / pc advanced).
-/// @param frames          the frame stack (the callee frame is pushed here).
-/// @param frame_count     1-element cursor — `[0]` is the logical top.
-/// @param callee          the callee's `BcFunction`.
-/// @param function_index  module-level index of the callee.
-/// @param arg_base        caller-stack offset of the first arg.
-/// @param env             closure env for the callee, or `null`.
-/// @return                `null` on success ; `Trap` on frame-stack overflow.
-/// @error                 `frame_count[0] > MAX_FRAME_DEPTH` after push.
-dispatch_call_into :: fn(frame: Frame!, frames: Frame![]!, frame_count: usize[]!, callee: bc.BcFunction, function_index: i32, arg_base: usize, env: Value! | null) -> Trap | null {
-    frame.sp = arg_base
-    frame.pc = frame.pc + 1
-    push_callee_frame(frames, frame_count, function_index, callee, frame, arg_base, env)
-    if frame_count[0] > usize(MAX_FRAME_DEPTH) {
-        return overflow_trap(callee.name)
-    }
-    return null
-}
-
-/// Push a callee frame, REUSING the arrays of the frame parked at `cursor`
-/// when there is one (`frames` is grow-only : `pop_frame` only decrements, so
-/// the slot's six columns survive and can be refilled in place). This keeps a
-/// call from allocating six fresh arrays ; only a callee needing more slots
-/// than the parked frame grows them. Locals are re-zeroed explicitly (the
-/// parked frame's tail is stale) ; the stack columns are logically emptied by
-/// `sp = 0` and overwritten on push.
-push_callee_frame :: fn(frames: Frame![]!, cursor: usize[]!, function_index: i32, callee: bc.BcFunction, caller: Frame, arg_base: usize, env: Value! | null) -> void {
-    if cursor[0] == frames.len() {
-        frames.push(build_callee_frame(function_index, callee, caller, arg_base, env))
-        cursor[0] = cursor[0] + 1
-        return
-    }
-    param_count :: callee.signature.params.len()
-    total :: param_count + callee.locals.len()
-    f :: frames[cursor[0]]
-    f.function_index = function_index
-    f.sp = 0
-    f.pc = 0
-    f.defer_count = 0
-    if f.slot_payload.len() < total {
-        filler :: NullVal {}
-        for _ in f.slot_payload.len()..<total {
-            f.slots.push(filler)
-            f.slot_payload.push(0)
-            f.slot_tag.push(.Null)
-        }
-    }
-    env_off: usize = 0
-    if !(env is null) {
-        slot_set(f, 0, env)
-        env_off = 1
-    }
-    for i in 0..<(param_count - env_off) {
-        f.slot_payload[env_off + i] = caller.payload[arg_base + i]
-        f.slot_tag[env_off + i]     = caller.tag[arg_base + i]
-        f.slots[env_off + i]        = caller.stack[arg_base + i]
-    }
-    for i in param_count..<total {
-        f.slot_payload[i] = 0
-        // `slots[i]` is left as is: every read of a slot goes through its tag,
-        // and a `.Null` tag never reads the refs column.
-        f.slot_tag[i] = .Null
-    }
-    // Release every ref the pool would otherwise PIN. The columns are grow-only
-    // and sized to the widest callee ever seen at this depth, so without this a
-    // narrow frame reusing the slot keeps the wide one's object graph alive for
-    // the rest of the run (the "retention bounded by stack depth" note at the
-    // top of the file was written before pooling — pooling extends the lifetime
-    // to `exec_entry`'s return). Slots above the live region, the whole operand
-    // stack (sp = 0 here, so none of it is live), and the drained defers.
-    // NOT swept: the pooled frame keeps stale refs above the live region, and
-    // the GC scans the refs columns, so those objects stay reachable until a
-    // later callee at this depth overwrites the slot. That IS a retention leak
-    // (bounded by frame depth x column capacity) — it is deliberately accepted,
-    // on measurement rather than taste:
-    //
-    //   self-host (compiler on its own bytecode), sweep vs no sweep:
-    //     time  32.4s -> 35.1s   (+8%)
-    //     peak  1.145 GB -> 1.140 GB   (-4.6 MB, 0.4%)
-    //
-    // i.e. sweeping costs 8% on the call-heavy path — the primary VM workload —
-    // to reclaim 0.4% of peak. The sweep is O(column capacity) PER CALL, which is
-    // why: it scales with the widest callee ever seen at this depth, not with the
-    // work this call does. If a future workload shows real retention, the fix is
-    // a LAZY clear (drop the ref when a scalar overwrites a Ref-tagged slot,
-    // O(1) per write) — not a per-call sweep.
-    cursor[0] = cursor[0] + 1
-}
-
-/// Build a fresh `Frame` for a callee. User args are copied out of the CALLER's
-/// stack starting at `arg_base` into `slots`. When `env` is non-`null` (closures
-/// from `make_closure`), it is bound to `slot 0` *before* the user args, so the
-/// lifted-closure body sees its extra leading `env` parameter in the expected
-/// position. Locals follow, zero-initialised. `env` is mandatory — pass `null`
-/// explicitly for direct calls and plain `fn.ref` calls.
-///
-/// Allocates the frame's arrays, so the hot path is `push_callee_frame`, which
-/// refills a parked frame in place and only falls back here when there is none.
-///
-/// @param function_index  module-level index of the callee (recorded on the
-///                        frame so the executor can look up the body).
-/// @param callee          the callee's `BcFunction` (read for the slot counts).
-/// @param caller          the calling frame — the args are read off its stack.
-/// @param arg_base        index in the caller's stack where the args start.
-/// @param env             closure env — bound to `slot 0` when non-`null` ;
-///                        `null` for direct / plain `fn.ref` calls.
-/// @return                a fresh `Frame` ready to be pushed.
-build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, caller: Frame, arg_base: usize, env: Value! | null) -> Frame {
-    // Copy the caller's SoA stack columns straight into the callee's slot
-    // columns : no boxing, no materialisation, no per-slot decompose. Args
-    // occupy `caller[arg_base ..]` ; `env` (closures) takes slot 0 ahead of them.
-    total :: callee.signature.params.len() + callee.locals.len()
-    slots: Value![]!: []
-    slot_payload: i64[]!: []
-    slot_tag: StackTag[]!: []
-    filler :: NullVal {}
-    for _ in 0..<total {
-        slots.push(filler)
-        slot_payload.push(0)
-        slot_tag.push(.Null)
-    }
-    result :: Frame {
-        .function_index = function_index,
-        .slots          = slots,
-        .stack          = [],
-        .payload        = [],
-        .tag            = [],
-        .slot_payload   = slot_payload,
-        .slot_tag       = slot_tag,
-        .sp             = 0,
-        .pc             = 0,
-        .defers         = [],
-        .defer_count    = 0,
-    }
-    env_off: usize = 0
-    if !(env is null) {
-        slot_set(result, 0, env)
-        env_off = 1
-    }
-    user_arg_count :: callee.signature.params.len() - env_off
-    for i in 0..<user_arg_count {
-        src :: arg_base + i
-        dst :: env_off + i
-        slot_payload[dst] = caller.payload[src]
-        slot_tag[dst]     = caller.tag[src]
-        slots[dst]        = caller.stack[src]
-    }
-    return result
-}
-
-/// Entry frame : args come from a host-built `Value[]` (argv), not a caller
-/// stack, so they are decomposed one-off through `slot_set`.
-build_entry_frame :: fn(function_index: i32, callee: bc.BcFunction, args: Value![]) -> Frame {
-    total :: callee.signature.params.len() + callee.locals.len()
-    slots: Value![]!: [NullVal {}] * total
-    slot_payload: i64[]!: [0] * total
-    slot_tag: StackTag[]!: [.Null] * total
-    result :: Frame {
-        .function_index = function_index,
-        .slots          = slots,
-        .stack          = [],
-        .payload        = [],
-        .tag            = [],
-        .slot_payload   = slot_payload,
-        .slot_tag       = slot_tag,
-        .sp             = 0,
-        .pc             = 0,
-        .defers         = [],
-        .defer_count    = 0,
-    }
-    for i in 0..<callee.signature.params.len() {
-        slot_set(result, i, args[i])
-    }
-    return result
-}
-
-/// Materialise a `ConstOp` carried inside a fused op (e.g. `ReturnLit`)
-/// as a runtime `Value`. `StringConst` looks the index up in
-/// `strings` ; other variants are pure value lifts.
-///
-/// @param c        the literal-producing op to materialise.
-/// @param strings  the running module's string pool.
-/// @param pc       pc of the carrier op (recorded in the Trap message).
-/// @return         a freshly-built `Value` on success, or a `Trap`.
-/// @error          `StringConst` index out of range.
-const_op_value :: fn(c: bc.ConstOp, strings: string[], pc: i32) -> Value | Trap {
-    match c {
-        is bc.I32Const    -> { return I32Val { .value = c.value } }
-        is bc.I64Const    -> { return I64Val { .value = c.value } }
-        is bc.F64Const    -> { return F64Val { .value = c.value } }
-        is bc.BoolConst   -> { return BoolVal { .value = c.value } }
-        is bc.CharConst   -> { return CharVal { .value = c.value } }
-        is bc.NullConst   -> { return NullVal {} }
-        is bc.StringConst -> {
-            if c.index < 0 || usize(c.index) >= strings.len() {
-                return Trap { .message = "return.lit string.const index ${c.index} out of range at pc=${pc}" }
-            }
-            return StringVal { .value = strings[c.index] }
-        }
-    }
-}
-
-/// Tail logic shared by `Return` and `ReturnLit` : pop the current
-/// frame and either surface an i32 result to the host (when the popped
-/// frame was main) or push the return value onto the caller's stack.
-///
-/// @param return_value  the value to publish (ignored when `has_value`
-///                      is false).
-/// @param has_value     whether the callee has a value to return — `false`
-///                      collapses the main case to "exit with 0" and
-///                      skips the caller push.
-/// @param at_pc         pc of the return op (recorded in the Trap when
-///                      the main-result isn't an i32).
-/// @param frames        the frame stack ; mutated via the caller's slot.
-/// @param frame_count   1-element cursor — `[0]` is the logical top.
-/// @param main_label    short label used in the i32-unwrap Trap (e.g.
-///                      `"return from main"`, `"return.lit from main"`).
-/// @param capture       when non-null, a 1-cell box the entry frame's raw
-///                      return `Value` is published into (the i32 coercion is
-///                      then skipped). Used by `exec_fn_value` for the comptime
-///                      VM fallback ; `null` for the ordinary main / test path.
-/// @return              `Ok` / `Trap` when the callee was main and the
-///                      executor should stop ; `null` when execution
-///                      should continue with the caller frame.
-/// @error               main returned a non-i32 value.
-// Hand `arity` values from the returning frame to its caller, in the order the
-// caller receives them.
-//
-// Separate from `finalise_return` rather than a widening of it: that one also
-// owns the OUTERMOST frame, where a return becomes the process exit code or the
-// comptime capture — and neither takes several values. A function returning a
-// pair is never the entry point, so the case cannot arise, and folding it in
-// would mean inventing an answer for it.
-finalise_multi_return :: fn(
-    frame: Frame!, frames: Frame![]!, frame_count: usize[]!, signature: bc.BcSignature,
-) -> VmResult | null {
-    arity :: bc.bc_result_arity(signature)
-    base :: frame.sp - arity
-    values: Value[]!: []
-    for i in 0..<arity {
-        // Narrowed per value: each carries its own type, so a `u8` beside an
-        // `i64` truncates on its own terms.
-        values.push(narrow_mask(peek_val(frame, base + i), signature.results[i]))
-    }
-    pop_frame(frame_count)
-    if frame_count[0] == 0 {
-        return Trap {
-            .message = "return: a multi-value return reached the outermost frame",
-        }
-    }
-    caller :: frames[frame_count[0] - 1]
-    for v in values {
-        push_val(caller, caller.sp, v)
-        caller.sp = caller.sp + 1
-    }
-    return null
-}
-
-// Whether the callee's lone result needs the width truncation a narrow C return
-// would apply. Multi-value answers false: each value carries its own type and
-// the narrowing is applied per value, not once for the frame.
-is_single_narrow_result :: fn(sig: bc.BcSignature) -> bool =
-    bc.bc_result_arity(sig) == 1 && is_narrow_valtype(sig.results[0])
-
-finalise_return :: fn(return_value: Value!, has_value: bool, at_pc: i32, frames: Frame![]!, frame_count: usize[]!, main_label: string, capture: Value[]! | null) -> VmResult | null {
-    pop_frame(frame_count)
-    if frame_count[0] == 0 {
-        // Value-capturing entry (`exec_fn_value`, comptime VM fallback) : publish
-        // the raw return `Value` and skip the i32 coercion the main / exit-code
-        // path requires — a comptime fn typically returns a non-i32 (array, …),
-        // which `read_i32` would Trap on.
-        if capture != null {
-            if has_value { capture[0] = return_value }
-            return Ok { .value = 0 }
-        }
-        if has_value {
-            unwrapped :: read_i32(return_value, at_pc, main_label)
-            if unwrapped is Trap { return unwrapped }
-            return Ok { .value = unwrapped.value }
-        }
-        return Ok { .value = 0 }
-    }
-    if has_value {
-        new_top :: frame_count[0] - 1
-        caller :: frames[new_top]
-        push_val(caller, caller.sp, return_value)
-        caller.sp = caller.sp + 1
-    }
-    return null
 }
 
 /// `==` / `!=` (`negate` true). The emitter routes `ref` / `any` / `null`
@@ -937,21 +473,12 @@ build_main_args :: fn(
     return out
 }
 
-/// Stack-machine interpreter, frame-based to support direct Vader-side
-/// calls. One outer-loop iteration dispatches one op on the top frame ;
-/// the op's effect mutates the top frame's stack / slots / sp / pc and
-/// (for `Call` / `Return`) pushes or pops the frame stack itself.
-///
-/// @param state   the runtime state wrapping a parsed `BytecodeModule` —
-///                `main_index` must point at a valid entry in `bc.functions`.
-/// @return        `Ok(value)` when `main` returns an i32 ; `Trap(message)`
-///                on any VM-level error (malformed bytecode, type
-///                mismatch, division by zero, call-stack overflow, etc).
-/// @error         missing or out-of-range `main_index` ; type mismatch
-///                in any op ; div / mod by zero ; unknown host import ;
-///                call to a non-existent function index ; call stack
-///                deeper than `MAX_FRAME_DEPTH`.
 /// Run `main`. Thin wrapper over `exec_entry`.
+///
+/// @param state      the prepared VM state.
+/// @param host_argv  forwarded CLI argv for a one-parameter `main`.
+/// @return           `Ok(value)` when `main` returns ; the `Trap` of any VM-level
+///                   error otherwise.
 export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(state, state.main_index, host_argv, null, false, null)
 
 /// Run the fn named `mangled` as the entry — used by `vader test` to run each
@@ -973,8 +500,8 @@ export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
 /// Run the no-arg fn named `mangled` and return its full `Value` — the
 /// primitive the VM-backed comptime fallback needs (the callee typically
 /// returns an array / struct / wide int, which `exec_fn`'s i32 `VmResult`
-/// cannot carry). Threads a 1-cell capture box through `exec_entry` ;
-/// `finalise_return` publishes the entry frame's raw return value into it.
+/// cannot carry). Threads a 1-cell capture box through `exec_entry`, into which
+/// the entry's raw return value is published.
 ///
 /// The capture box is a live local across the run, so it (and the captured
 /// value once written) stays a GC root through any collection inside the loop.
@@ -1000,11 +527,11 @@ export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
 // stores every integer as a wide `I32Val` / `I64Val` with no width tag, and the
 // bytecode's arith ops are width-aliased to the I32/I64 family (`op_select.vader`),
 // so a sub-32-bit result (`u8 200 + 100` → 300) keeps the wide value. Native
-// truncates for free via the C `uint8_t` local / field / return type ; this is
-// the VM's equivalent, applied at the store boundaries (`local.set` / `Return` /
-// slot store). Non-narrow ValTypes return `v` unchanged — `i32` / `i64` (and the
-// unsigned `u32` / `u64`, read back through the unsigned view) already wrap at
-// their width via native `i32` / `i64` overflow.
+// truncates for free via the C `uint8_t` field type ; this is the VM's
+// equivalent for a struct literal's fields (`build_struct`) — the register engine
+// truncates slots and returns itself (`Narrow`). Non-narrow ValTypes return `v`
+// unchanged — `i32` / `i64` (and the unsigned `u32` / `u64`, read back through the
+// unsigned view) already wrap at their width via native `i32` / `i64` overflow.
 narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
     // Only the sub-32-bit widths need masking ; i32/i64 (and the unsigned u32/u64
     // read back through the unsigned view) already wrap at their width.
@@ -1032,7 +559,7 @@ truncate_to_width :: fn(raw: i64, bits: i64, signed: bool) -> i32 {
 
 // Declared ValType of a local slot. Params occupy the low slots
 // (`signature.params`), then the fn body's additional locals (`BcFunction` doc :
-// slot of `locals[i]` is `params.len() + i`). Backs the `local.set` narrow-mask.
+// slot of `locals[i]` is `params.len() + i`). Decides a `local.set`'s truncation.
 slot_valtype :: fn(body: bc.BcFunction, slot: i32) -> bc.ValType {
     np :: body.signature.params.len()
     s :: usize(slot)
@@ -1043,23 +570,8 @@ slot_valtype :: fn(body: bc.BcFunction, slot: i32) -> bc.ValType {
 }
 
 // True when `vt` is a sub-32-bit width whose stored VM value must be truncated
-// to that width (`narrow_mask`). Single source of truth for "narrow" : both
-// `narrow_mask`'s fast-out and the per-frame `cur_has_narrow` gate consult it.
+// to that width (`narrow_mask`).
 is_narrow_valtype :: fn(vt: bc.ValType) = vt == .U8 || vt == .I8 || vt == .U16 || vt == .I16
-
-// True when any of `body`'s param / local slots is a narrow width. Computed once
-// per frame entry (on the interpreter loop's body reload) and cached in
-// `cur_has_narrow`, so the hot `local.set` / `local.tee` path skips
-// `slot_valtype` + `narrow_mask` entirely for the common all-wide function.
-fn_has_narrow_slot :: fn(body: bc.BcFunction) -> bool {
-    for pvt in body.signature.params {
-        if is_narrow_valtype(pvt) { return true }
-    }
-    for lo in body.locals {
-        if is_narrow_valtype(lo.val) { return true }
-    }
-    return false
-}
 
 // ValType of a struct field's declared type (`BcField.type_index` → type table).
 // A non-primitive field returns `Ref` (never narrow), so `narrow_mask` no-ops.
@@ -1075,16 +587,14 @@ field_valtype :: fn(types: bc.BcType[], type_index: i32) -> bc.ValType {
 /// Run the module from `entry_index`. `exec` / `exec_fn` pick the entry (main vs a
 /// named `@test`).
 ///
-/// A function the register engine translated runs there (`reg_exec.vader`) ; the
-/// rest, and every run a debugger drives, run on `exec_legacy`.
-///
 /// @param state        the prepared module.
 /// @param entry_index  the function to start.
 /// @param host_argv    forwarded CLI argv for a one-parameter entry.
 /// @param capture      a 1-cell box the entry's return value is published into,
 ///                     or `null` for an exit code.
 /// @param is_comptime  true for a comptime evaluation, which has a step budget.
-/// @param debug        the debugger driving the run, or `null`.
+/// @param debug        the debugger driving the run, or `null` ; with one, `state`
+///                     comes from `prepare_debug`.
 /// @return             the exit code, or the trap that stopped the run.
 export exec_entry :: fn(
     state: VmState, entry_index: i32, host_argv: string[], capture: Value[]! | null, is_comptime: bool,
@@ -1093,1578 +603,10 @@ export exec_entry :: fn(
     if entry_index < 0 || usize(entry_index) >= state.bc.functions.len() {
         return Trap { .message = "no entry function (index=${entry_index})" }
     }
-    code :: state.reg
-    if debug == null && code != null && code.functions[usize(entry_index)] != null {
-        return reg_run(state, code, entry_index, host_argv, capture, is_comptime)
+    if debug != null && !state.debuggable {
+        return Trap { .message = "a debugged run needs a state from `prepare_debug`" }
     }
-    return exec_legacy(state, entry_index, host_argv, null, capture, is_comptime, debug, null)
-}
-
-/// Run function `index` on `exec_legacy` with `args` — how the register engine
-/// calls a function it did not translate.
-///
-/// @param state        the prepared module.
-/// @param run          the host state of the run the call belongs to.
-/// @param index        the callee.
-/// @param args         its arguments.
-/// @param is_comptime  whether the caller runs a comptime evaluation.
-/// @return             the callee's result, or `null` when it leaves none.
-/// @error              the trap that stopped the callee.
-legacy_call :: fn(
-    state: VmState, run: RunHost!, index: i32, args: Value![], is_comptime: bool,
-) -> Value | Trap | null {
-    capture: Value[]!: [zero_value()]
-    outcome :: exec_legacy(state, index, [], args, capture, is_comptime, null, run)
-    if outcome is Trap {
-        return outcome
-    }
-    return if state.bc.functions[usize(index)].signature.results[0] == .Void { null } else { capture[0] }
-}
-
-/// Core interpreter loop, entered at `entry_index` ; `entry_args`, when given,
-/// replace the ones `build_main_args` makes from `host_argv`.
-exec_legacy :: fn(
-    state: VmState, entry_index: i32, host_argv: string[], entry_args: Value![] | null,
-    capture: Value[]! | null, is_comptime: bool, debug: DebugController | null, host: RunHost! | null,
-) -> VmResult {
-
-    frames: Frame![]!: []
-    frame_count: usize[]!: [0]
-    // 1-element box for the GC-collection counter — the Vader VM has no
-    // arena, but `std/runtime.collect` / `collections` snippet tests just
-    // need the counter to be present + monotonic. `dispatch_import`
-    // bumps it on every `collect` call and reads it on every `collections`
-    // query. Boxed because Vader has no module-level mutables.
-    // A nested run (`legacy_call`) shares its caller's `host`, so the counter
-    // is monotonic across one whole run. Snippet tests check
-    // `after - before == N` within one run.
-    run :: host ?? new_run_host()
-    gc_state :: run.gc_state
-
-    // Async scheduler state, mirroring the C runtime's (invisible to the VM).
-    // Index 0 = the virtual clock `now` ; indices 1.. = pending wake deadlines.
-    // `dispatch_import` arms `sched_arm` (push) / `sched_park` (pop nearest +
-    // advance now). Boxed and shared like `gc_state`.
-    sched_state :: run.sched_state
-
-    // The `string[]` ArrayType index — stamped onto every host-produced
-    // string array (argv, `read_dir`, `split`) so `is string[]` narrows
-    // (type_matches does exact-type_id equality on arrays). Computed once;
-    // the scan is linear in the type table.
-    string_array_type_id :: state.string_array_type_id
-    // The `u8[]` ArrayType index — stamped onto the array `bytes` materialises
-    // (the VM's copy fallback for the native zero-copy view). Same rationale.
-    u8_array_type_id :: state.u8_array_type_id
-    // The `std/io$IOError` struct index — stamped onto host io error values
-    // so they carry a real type identity (narrowing + vtable dispatch).
-    io_error_type_id :: state.io_error_type_id
-
-    main_function :: state.bc.functions[usize(entry_index)]
-    // If `main` is declared `fn(argv: string[]) -> i32`, supply its argv.
-    // Built in a helper because inlining it pushed `exec` (the giant op-
-    // dispatch fn) past the bytecode emitter's per-function buffer limit —
-    // a latent emit bug (array-index-OOB in emit at scale). The split is also
-    // cleaner; the underlying limit still needs a real fix.
-    main_args :: if entry_args != null { entry_args } else { build_main_args(main_function, host_argv, string_array_type_id) }
-    if main_args is Trap {
-        return main_args
-    }
-    main_frame :: build_entry_frame(entry_index, main_function, main_args)
-    push_frame(frames, frame_count, main_frame)
-
-    // Hoist the per-frame fetches out of the per-op hot path. `frame` / `body`
-    // / `op_count` change only when the active frame changes — i.e. on a call
-    // (push, top grows) or a return / fall-off (pop, top shrinks). The loop
-    // reloads them solely when `top` differs from the last-loaded `cur_top`,
-    // saving the `frames[top]` / `state.bc.functions[…]` / dispatch-table reads
-    // on every other op. `frame` stays a tracked GC root
-    // across iterations, so a collection that relocates the Frame keeps the
-    // cached reference valid (the `frames` slot is updated in lock-step).
-    //
-    // INVARIANT this caching depends on: an op arm must NEVER replace
-    // `frames[top]` with a fresh Frame object while `top` is unchanged —
-    // doing so would leave the cached `frame` aliasing the old object. Every
-    // arm therefore mutates `frame` IN PLACE (`frame.sp` / `frame.pc` / …)
-    // rather than rebuilding-and-storing. Reassigning the frame stack is only
-    // legal via `push_frame` / `pop_frame` (which change `top` → trigger a
-    // reload here).
-    init_top :: frame_count[0] - 1
-    frame := frames[init_top]
-    body := state.bc.functions[usize(frame.function_index)]
-    // The ops actually dispatched, and their jump table. Fused unless a debugger
-    // is attached — see the reload below.
-    cur_ops: VmOp[] = body.body
-    cur_jump: i32[] = body.jump_table
-    if debug == null {
-        fb :: state.fused[usize(frame.function_index)]
-        cur_ops = fb.ops
-        cur_jump = fb.jump_table
-    }
-    op_count := cur_ops.len()
-    if frame.payload.len() < state.max_depth[usize(frame.function_index)] {
-        reserve_stack(frame, state.max_depth[usize(frame.function_index)])
-    }
-    cur_top := init_top
-    // Narrow-mask fast path : most functions have only wide (i32/i64/ref) slots,
-    // so `local.set` / `local.tee` can skip `slot_valtype` + `narrow_mask`
-    // altogether. Recomputed alongside `body` whenever the active frame changes.
-    fn_narrow_tbl :: state.fn_narrow
-    cur_has_narrow := fn_narrow_tbl[usize(frame.function_index)]
-    // Whether `return` has to truncate its value. A per-FUNCTION fact, cached
-    // beside `cur_has_narrow` rather than recomputed on every `return`.
-    cur_narrow_result := is_single_narrow_result(body.signature)
-    // Whether `return` moves several values — per-function, cached likewise.
-    cur_multi_result := bc.bc_result_arity(body.signature) > 1
-
-    // Comptime runs are step-bounded so a non-terminating `@comptime` loop errors
-    // instead of hanging the build ; a normal run gets a budget it cannot reach.
-    //
-    // CONSTRAINT: keep this guard's body a `return`. Gating it as
-    // `if is_comptime { … }` makes the rest of the loop reachable from two edges,
-    // and the emitter then tail-duplicates the ENTIRE dispatch into both.
-    // Record: docs/adr/0014.
-    steps: i64 = 0
-    step_budget :: if is_comptime { COMPTIME_STEP_BUDGET } else { STEP_BUDGET_UNREACHABLE }
-
-    // Debugger stepping state — only touched when `debug != null`.
-    //   last_line       : the "fire once per line" gate (stop at the FIRST op of
-    //                     a line, not every op) ; `-1` = no line seen yet.
-    //   step_mode       : how to resume after the last stop (Continue = only
-    //                     breakpoints ; Step* also stop at the next line).
-    //   step_base_depth : frame depth when the current step began — Over/Out
-    //                     compare against it.
-    last_line: i32 = -1
-    step_mode: StepMode = .Continue
-    step_base_depth: i32 = 0
-
-    // Panic-unwind (mirror of the C runtime's defer-on-trap) — on a trap, the
-    // op captures it in `pending` (non-null ⇒ unwinding) + points
-    // `unwind_target` at the frame where it fired, then `continue`s. The
-    // loop-top handler drains that frame's defers (as thunks that run normally
-    // above it), pops it, walks down to the caller, and surfaces `pending` once
-    // the stack empties. A trap during a thunk (double-panic) short-circuits
-    // back out with the original `pending`.
-    //
-    // Only traps that surface INLINE in this loop drain here: `panic()`
-    // (call.import), `unreachable`, and array get/set bounds. A trap returned
-    // from a helper (e.g. div/mod-by-zero) aborts without draining on the VM —
-    // the native C backend drains those too (it walks its global defer stack),
-    // so that gap is a VM-only residual.
-    pending: Trap | null = null
-    unwind_target: usize = 0
-
-    for frame_count[0] > 0 {
-        top :: frame_count[0] - 1
-        steps += 1
-        if steps > step_budget {
-            return budget_trap(step_budget)
-        }
-        if top != cur_top {
-            frame = frames[top]
-            body = state.bc.functions[usize(frame.function_index)]
-            // Fused bodies renumber the pc space, and `body.debug` is indexed by the
-            // ORIGINAL one — so a debugged run dispatches the shipped ops. Decided
-            // here, on a frame change, not per op.
-            if debug == null {
-                fb :: state.fused[usize(frame.function_index)]
-                cur_ops = fb.ops
-                cur_jump = fb.jump_table
-            } else {
-                cur_ops = body.body
-                cur_jump = body.jump_table
-            }
-            op_count = cur_ops.len()
-            // Tested here, the grow called only when needed: `reserve_stack` may
-            // allocate, so calling it at every frame change pays its GC frame.
-            depth :: state.max_depth[usize(frame.function_index)]
-            if frame.payload.len() < depth {
-                reserve_stack(frame, depth)
-            }
-            cur_has_narrow = fn_narrow_tbl[usize(frame.function_index)]
-            cur_narrow_result = is_single_narrow_result(body.signature)
-            cur_multi_result = bc.bc_result_arity(body.signature) > 1
-            cur_top = top
-        }
-
-        // Panic unwind : while the top frame is the one being torn down, run
-        // its remaining defers (each pushed as a thunk frame that executes
-        // normally above it — `top > unwind_target` falls through to dispatch),
-        // then pop it and drop the watermark to the caller. When the stack
-        // empties, the captured trap escapes.
-        if pending != null && top == unwind_target {
-            if frame.defer_count > 0 {
-                idx :: frame.defer_count - 1
-                closure_val :: frame.defers[idx]
-                frame.defer_count = idx
-                thunk :: read_fn(closure_val, frame.pc, "panic unwind defer")
-                if thunk is Trap { return pending }
-                thunk_check :: validate_fn_index(thunk.function_index, state.bc.functions, frame.pc, "panic unwind defer")
-                if thunk_check is Trap { return pending }
-                thunk_fn :: state.bc.functions[usize(thunk.function_index)]
-                if thunk_fn.signature.params.len() != 1 { return pending }
-                push_frame(frames, frame_count, build_callee_frame(thunk.function_index, thunk_fn, frame, frame.sp, thunk.env))
-                if frame_count[0] > usize(MAX_FRAME_DEPTH) { return pending }
-            } else {
-                pop_frame(frame_count)
-                if frame_count[0] == 0 { return pending }
-                unwind_target = frame_count[0] - 1
-            }
-            continue
-        }
-
-        // Fell off the end of the body without an explicit `return`.
-        // Treat like `return` with no value on the stack — pops the
-        // frame and surfaces 0 to the caller (or to the host if main).
-        if frame.pc >= i32(op_count) {
-            pop_frame(frame_count)
-            if frame_count[0] == 0 { return Ok { .value = 0 } }
-            continue
-        }
-
-        // Debugger stop check — gated on `debug != null` so normal runs pay one
-        // pointer compare per op (like `is_comptime`). On the FIRST op of a new
-        // source line (`last_line` gate), stop if a breakpoint sits there OR the
-        // active step's condition is met ; hand the paused call stack to
-        // `on_pause` (which drives the DAP conversation) and apply the returned
-        // `StepMode` for the next stop.
-        if debug != null {
-            dbg :: body.debug[usize(frame.pc)]
-            if dbg != null {
-                cur_file :: dbg.file
-                cur_line :: dbg.line
-                if cur_line != last_line {
-                    last_line = cur_line
-                    depth :: i32(frame_count[0])
-                    hit_bp :: line_has_breakpoint(debug, cur_file, cur_line)
-                    hit_step :: step_should_stop(step_mode, step_base_depth, depth)
-                    if hit_bp || hit_step {
-                        reason :: if hit_bp { "breakpoint" } else { "step" }
-                        pause_ctx :: build_pause_ctx(reason, frames, frame_count[0], state.bc)
-                        step_mode = debug.on_pause(pause_ctx)
-                        step_base_depth = depth
-                    }
-                }
-            }
-        }
-
-        instr :: cur_ops[frame.pc]
-        match instr {
-            is bc.I32Const -> {
-                frame.payload[frame.sp] = i64(instr.value)
-                frame.tag[frame.sp] = .I32
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            // Two `local.get`s in one turn. Identical to running the two arms back
-            // to back; kept beside them so a change to one is visibly a change to
-            // both, and spelled with their `sidx` / `st` names for that reason.
-            is Get2 -> {
-                sidx_a :: usize(instr.slot_a)
-                st_a :: frame.slot_tag[sidx_a]
-                frame.payload[frame.sp] = frame.slot_payload[sidx_a]
-                frame.tag[frame.sp] = st_a
-                if st_a == .Ref { frame.stack[frame.sp] = frame.slots[sidx_a] }
-                sidx_b :: usize(instr.slot_b)
-                st_b :: frame.slot_tag[sidx_b]
-                frame.payload[frame.sp + 1] = frame.slot_payload[sidx_b]
-                frame.tag[frame.sp + 1] = st_b
-                if st_b == .Ref { frame.stack[frame.sp + 1] = frame.slots[sidx_b] }
-                frame.sp = frame.sp + 2
-                frame.pc = frame.pc + 1
-            }
-            // `local.set A ; local.get B`. Only ever built for a fn with no narrow
-            // slot, so the mask branch cannot apply.
-            is SetGet -> {
-                sidx_set :: usize(instr.set_slot)
-                st_set :: frame.tag[frame.sp - 1]
-                frame.slot_payload[sidx_set] = frame.payload[frame.sp - 1]
-                frame.slot_tag[sidx_set] = st_set
-                if st_set == .Ref { frame.slots[sidx_set] = frame.stack[frame.sp - 1] }
-                sidx_get :: usize(instr.get_slot)
-                st_get :: frame.slot_tag[sidx_get]
-                frame.payload[frame.sp - 1] = frame.slot_payload[sidx_get]
-                frame.tag[frame.sp - 1] = st_get
-                if st_get == .Ref { frame.stack[frame.sp - 1] = frame.slots[sidx_get] }
-                frame.pc = frame.pc + 1
-            }
-            // `local.get A ; <int>.const V`.
-            is GetConst -> {
-                sidx :: usize(instr.slot)
-                st :: frame.slot_tag[sidx]
-                frame.payload[frame.sp] = frame.slot_payload[sidx]
-                frame.tag[frame.sp] = st
-                if st == .Ref { frame.stack[frame.sp] = frame.slots[sidx] }
-                frame.payload[frame.sp + 1] = instr.value
-                frame.tag[frame.sp + 1] = instr.tag
-                frame.sp = frame.sp + 2
-                frame.pc = frame.pc + 1
-            }
-            is bc.LocalGet -> {
-                sidx :: usize(instr.slot)
-                st :: frame.slot_tag[sidx]
-                frame.payload[frame.sp] = frame.slot_payload[sidx]
-                frame.tag[frame.sp] = st
-                if st == .Ref { frame.stack[frame.sp] = frame.slots[sidx] }
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.LocalSet -> {
-                sidx :: usize(instr.slot)
-                if cur_has_narrow && is_narrow_valtype(slot_valtype(body, instr.slot)) {
-                    slot_set(frame, sidx, narrow_mask(peek_val(frame, frame.sp - 1), slot_valtype(body, instr.slot)))
-                } else {
-                    st :: frame.tag[frame.sp - 1]
-                    frame.slot_payload[sidx] = frame.payload[frame.sp - 1]
-                    frame.slot_tag[sidx] = st
-                    if st == .Ref { frame.slots[sidx] = frame.stack[frame.sp - 1] }
-                }
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.LocalTee -> {
-                // Tee stores AND leaves the value on the stack ; when the slot is
-                // narrow the expression value is the truncated one, so mask both.
-                // A wide slot takes the unboxed path even in a function that has
-                // narrow ones: `narrow_mask` is the identity on it.
-                sidx :: usize(instr.slot)
-                if cur_has_narrow && is_narrow_valtype(slot_valtype(body, instr.slot)) {
-                    masked_tee :: narrow_mask(peek_val(frame, frame.sp - 1), slot_valtype(body, instr.slot))
-                    push_val(frame, frame.sp - 1, masked_tee)
-                    slot_set(frame, sidx, masked_tee)
-                } else {
-                    st :: frame.tag[frame.sp - 1]
-                    frame.slot_payload[sidx] = frame.payload[frame.sp - 1]
-                    frame.slot_tag[sidx] = st
-                    if st == .Ref { frame.slots[sidx] = frame.stack[frame.sp - 1] }
-                }
-                frame.pc = frame.pc + 1
-            }
-            is bc.StringConst -> {
-                push_val(frame, frame.sp, StringVal { .value = state.bc.strings[instr.index] })
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.CallImport -> {
-                info :: state.bc.imports[instr.index]
-                arg_count :: info.signature.params.len()
-                arg_base :: frame.sp - arg_count
-                dispatch_outcome :: dispatch_import(info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, state.bc.types, is_comptime, debug, state.import_ids[instr.index])
-                if dispatch_outcome is Trap {
-                    // User-reachable (e.g. `panic()`) — run pending defers first.
-                    if pending != null { return pending }
-                    pending = dispatch_outcome
-                    unwind_target = frame_count[0] - 1
-                    continue
-                }
-                new_sp := arg_base
-                if bc_single_result(info.signature) != .Void {
-                    push_val(frame, new_sp, dispatch_outcome.value)
-                    new_sp += 1
-                }
-                frame.sp = new_sp
-                frame.pc = frame.pc + 1
-            }
-            is bc.Call -> {
-                callee :: state.bc.functions[usize(instr.function_index)]
-                callee_arity :: callee.signature.params.len()
-                arg_base :: frame.sp - callee_arity
-                dispatched :: dispatch_call_into(frame, frames, frame_count, callee, instr.function_index, arg_base, null)
-                if dispatched is Trap { return dispatched }
-            }
-            is bc.FnRef -> {
-                push_val(frame, frame.sp, FnVal { .function_index = instr.function_index, .env = null })
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.FnAddr -> {
-                // See `bytecode/op::FnAddr` — no compiled code to address here.
-                return Trap {
-                    .message = "fn.addr at pc=${frame.pc}: the interpreter has no address for a Vader function",
-                }
-            }
-            is bc.MakeClosure -> {
-                env_value :: peek_val(frame, frame.sp - 1)
-                push_val(frame, frame.sp - 1, FnVal { .function_index = instr.function_index, .env = env_value })
-                frame.pc = frame.pc + 1
-            }
-            is bc.VirtualCall -> {
-                // UFCS layout: receiver is on TOP of the stack, explicit
-                // args sit below it in source order. To match the callee's
-                // `(self, ...args)` signature we move the receiver to the
-                // bottom of the args region by shifting the explicit args
-                // up one slot.
-                receiver_top :: frame.sp - 1
-                arg_base :: frame.sp - usize(instr.parameter_count)
-                receiver :: peek_val(frame, receiver_top)
-                receiver_type_id :: receiver_type_id_of(state, receiver)
-                if receiver_type_id < 0 {
-                    return Trap { .message = "virtual.call '${instr.vtable_key}' : receiver tag ${describe_value_tag(receiver)} has no type id at pc=${frame.pc}" }
-                }
-                callee_fn :: lookup_vtable(state.bc.vtables, instr.vtable_key, receiver_type_id)
-                if callee_fn < 0 {
-                    // Intrinsic primitive impl fallback : an `@intrinsic`
-                    // impl member on a primitive (e.g. `string implements
-                    // Hash`) is host-provided and may carry no vtable row in
-                    // a Vader-emitted module (the lowerer surfaces it as an
-                    // import only when a DIRECT call references it ; virtual
-                    // dispatch doesn't). Reconstruct the host mangle
-                    // `std_core$<kind>$<Trait>$<method>` from the receiver's
-                    // primitive kind + the vtable key and route through the
-                    // host dispatcher, which already implements these.
-                    recv_kind :: primitive_kind_at(state.bc.types, receiver_type_id)
-                    host_mangle :: intrinsic_host_mangle(recv_kind, instr.vtable_key)
-                    if recv_kind != "" && host_mangle != "" {
-                        shift2 := receiver_top
-                        for shift2 > arg_base {
-                            push_val(frame, shift2, peek_val(frame, shift2 - 1))
-                            shift2 -= 1
-                        }
-                        push_val(frame, arg_base, receiver)
-                        synth_info :: primitive_impl_import(host_mangle, usize(instr.parameter_count))
-                        host_outcome :: dispatch_import(synth_info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, state.bc.types, is_comptime, debug, bc.intrinsic_id_for(host_mangle))
-                        if host_outcome is Trap { return host_outcome }
-                        if host_outcome is HostOk {
-                            push_val(frame, arg_base, host_outcome.value)
-                            frame.sp = arg_base + 1
-                            frame.pc = frame.pc + 1
-                            continue
-                        }
-                    }
-                    return Trap { .message = "virtual.call '${instr.vtable_key}' : no impl for type ${receiver_type_id} at pc=${frame.pc}" }
-                }
-                if is_fn_index_out_of_range(callee_fn, state.bc.functions) {
-                    return fn_index_trap(callee_fn, frame.pc, "virtual.call '${instr.vtable_key}'")
-                }
-                callee :: state.bc.functions[usize(callee_fn)]
-                // The callee's signature has `(receiver, …user args)` so its
-                // param count should equal the instr's parameter_count.
-                callee_arity :: callee.signature.params.len()
-                if callee_arity != usize(instr.parameter_count) {
-                    return Trap { .message = "virtual.call '${instr.vtable_key}' : impl '${callee.name}' expects ${callee_arity} param(s) but call site supplied ${instr.parameter_count} at pc=${frame.pc}" }
-                }
-                shift_index := receiver_top
-                for shift_index > arg_base {
-                    push_val(frame, shift_index, peek_val(frame, shift_index - 1))
-                    shift_index -= 1
-                }
-                push_val(frame, arg_base, receiver)
-                dispatched :: dispatch_call_into(frame, frames, frame_count, callee, callee_fn, arg_base, null)
-                if dispatched is Trap { return dispatched }
-            }
-            is bc.CallIndirect -> {
-                // Resolve user-visible param count via the FnType in the
-                // type table. When the popped FnVal carries an env, the
-                // lifted fn's first slot is bound to `env` and the user
-                // args fill `slot 1..N+1` ; otherwise the user args fill
-                // `slot 0..N`.
-                fn_type_decl :: state.bc.types[usize(instr.type_id)]
-                if !(fn_type_decl is bc.BcFn) {
-                    return Trap { .message = "call.indirect type ${instr.type_id} is not a fn type at pc=${frame.pc}" }
-                }
-                indirect_arity :: fn_type_decl.params.len()
-                fn_unwrap :: read_fn(peek_val(frame, frame.sp - 1), frame.pc, "call.indirect receiver")
-                if fn_unwrap is Trap { return fn_unwrap }
-                callee_index_check :: validate_fn_index(fn_unwrap.function_index, state.bc.functions, frame.pc, "call.indirect")
-                if callee_index_check is Trap { return callee_index_check }
-                callee :: state.bc.functions[usize(fn_unwrap.function_index)]
-                env_present :: !(fn_unwrap.env is null)
-                expected_callee_arity :: if env_present { indirect_arity + 1 } else { indirect_arity }
-                callee_arity :: callee.signature.params.len()
-                if callee_arity != expected_callee_arity {
-                    return Trap { .message = "call.indirect arity mismatch at pc=${frame.pc}: caller supplied ${expected_callee_arity}${if env_present { " (incl. env)" } else { "" }} but '${callee.name}' declares ${callee_arity} param(s)" }
-                }
-                arg_base :: frame.sp - 1 - indirect_arity
-                dispatched :: dispatch_call_into(frame, frames, frame_count, callee, fn_unwrap.function_index, arg_base, fn_unwrap.env)
-                if dispatched is Trap { return dispatched }
-            }
-            is bc.StructNew -> {
-                outcome :: build_struct(state.bc.types, instr.type_id, frame)
-                if outcome is Trap { return outcome }
-            }
-            is bc.StructGet -> {
-                field_value :: read_struct_field(peek_val(frame, frame.sp - 1), instr.field_index, frame.pc, "struct.get")
-                if field_value is Trap { return field_value }
-                push_val(frame, frame.sp - 1, field_value)
-                frame.pc = frame.pc + 1
-            }
-            is bc.StructSet -> {
-                struct_unwrap :: read_struct(peek_val(frame, frame.sp - 2), frame.pc, "struct.set receiver")
-                if struct_unwrap is Trap { return struct_unwrap }
-                if instr.field_index < 0 || usize(instr.field_index) >= struct_unwrap.fields.len() {
-                    return Trap { .message = "struct.set field ${instr.field_index} out of range (struct has ${struct_unwrap.fields.len()} fields) at pc=${frame.pc}" }
-                }
-                struct_unwrap.fields[usize(instr.field_index)] = peek_val(frame, frame.sp - 1)
-                frame.sp = frame.sp - 2
-                frame.pc = frame.pc + 1
-            }
-            is bc.LocalField -> {
-                field_value :: read_struct_field(slot_val(frame, usize(instr.slot)), instr.field_index, frame.pc, "local.field")
-                if field_value is Trap { return field_value }
-                push_val(frame, frame.sp, field_value)
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.ArrayNew -> {
-                outcome :: build_array(instr.type_id, instr.length, frame)
-                if outcome is Trap { return outcome }
-            }
-            is bc.ArrayPush -> {
-                array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.push receiver")
-                if array_unwrap is Trap { return array_unwrap }
-                detach_array_view(array_unwrap)
-                array_unwrap.elements.push(peek_val(frame, frame.sp - 1))
-                array_unwrap.length = array_unwrap.length + 1
-                frame.sp = frame.sp - 2
-                frame.pc = frame.pc + 1
-            }
-            is bc.ArrayGet -> {
-                // Tag test then a raw `payload` read, the same shape the arithmetic
-                // arms use.
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "array.get index") }
-                index :: i32(frame.payload[frame.sp - 1])
-                array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.get receiver")
-                if array_unwrap is Trap { return array_unwrap }
-                if index < 0 || usize(index) >= array_unwrap.length {
-                    if pending != null { return pending }
-                    pending = Trap { .message = "array.get index ${index} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
-                    unwind_target = frame_count[0] - 1
-                    continue
-                }
-                push_val(frame, frame.sp - 2, array_unwrap.elements[array_unwrap.offset + usize(index)])
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.ArraySet -> {
-                // Index read direct off `payload`, as in `array.get`. The VALUE
-                // peek below stays boxed: it lands in a `Value[]` elements column,
-                // so that box is the storage, not a detour.
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "array.set index") }
-                index :: i32(frame.payload[frame.sp - 2])
-                array_unwrap :: peek_array_mut(frame, frame.sp - 3, frame.pc, "array.set receiver")
-                if array_unwrap is Trap { return array_unwrap }
-                if index < 0 || usize(index) >= array_unwrap.length {
-                    if pending != null { return pending }
-                    pending = Trap { .message = "array.set index ${index} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
-                    unwind_target = frame_count[0] - 1
-                    continue
-                }
-                // A7 deliberate aliasing : writes through a view alias the
-                // parent's backing buffer (Go-style). Users opt out by
-                // materializing a fresh array (via push-detach today ;
-                // `arr[r].clone()` once T[] Clone lands).
-                array_unwrap.elements[array_unwrap.offset + usize(index)] = peek_val(frame, frame.sp - 1)
-                frame.sp = frame.sp - 3
-                frame.pc = frame.pc + 1
-            }
-            is bc.ArrayLen -> {
-                array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.len receiver")
-                if array_unwrap is Trap { return array_unwrap }
-                frame.payload[frame.sp - 1] = i64(i32(array_unwrap.length))
-                frame.tag[frame.sp - 1] = .I32
-                frame.pc = frame.pc + 1
-            }
-            is bc.ArraySlice -> {
-                outcome :: exec_array_slice(frame, instr)
-                if outcome is Trap { return outcome }
-            }
-            is bc.ArrayRepeat -> {
-                outcome :: exec_array_repeat(frame)
-                if outcome is Trap { return outcome }
-            }
-            is bc.ArrayPushAll -> {
-                outcome :: exec_array_push_all(frame)
-                if outcome is Trap { return outcome }
-            }
-            is bc.ArrayCopy -> {
-                outcome :: exec_array_copy(frame)
-                if outcome is Trap { return outcome }
-            }
-            is bc.ArrayRemoveLast -> {
-                array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.remove_last receiver")
-                if array_unwrap is Trap { return array_unwrap }
-                if array_unwrap.length == 0 {
-                    frame.tag[frame.sp - 1] = .Null
-                } else {
-                    last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
-                    // Shrink the SHARED backing when this array owns the tail —
-                    // same rule as `array.clear` below, and as the native
-                    // `vader_array_remove_last`. `data.const` hands out a fresh
-                    // header over the pool entry's `elements`, so a length
-                    // written only on the header is lost for a module-level
-                    // array: the next read rebuilds it from `elements.len()`.
-                    if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
-                        array_unwrap.elements.remove_last()
-                    }
-                    array_unwrap.length = array_unwrap.length - 1
-                    push_val(frame, frame.sp - 1, last)
-                }
-                frame.pc = frame.pc + 1
-            }
-            is bc.ArrayClear -> {
-                array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.clear receiver")
-                if array_unwrap is Trap { return array_unwrap }
-                // Clear the SHARED backing when this array owns it, the way the
-                // native runtime shrinks `buf->length` in `vader_array_clear`.
-                // `data.const` hands out a FRESH header over the pool entry's
-                // `elements`, which is how a module-level array is reached, so
-                // rebinding the field here would leave that array untouched —
-                // `push` mutates the shared backing and would still see three
-                // elements after a `clear`. Emptying it in place keeps
-                // `elements.len()` as the logical length, so nothing resurfaces
-                // on the next push. A genuine slice view (offset != 0, or a
-                // shorter prefix) detaches instead and keeps its isolation.
-                if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
-                    array_unwrap.elements.clear()
-                } else {
-                    array_unwrap.elements = []
-                }
-                array_unwrap.offset = 0
-                array_unwrap.length = 0
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.DataConst -> {
-                shared :: state.data_pool[usize(instr.pool_index)]
-                if shared.type_id == instr.type_id {
-                    push_val(frame, frame.sp, shared)
-                } else {
-                    // A writable entry (or a site at another type_id) : a fresh
-                    // header over the same `elements`, as `.rodata` is shared
-                    // natively.
-                    push_val(frame, frame.sp, ArrayVal {
-                        .type_id  = instr.type_id,
-                        .elements = shared.elements,
-                        .offset   = 0,
-                        .length   = shared.elements.len(),
-                    })
-                }
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.RefCast -> {
-                frame.pc = frame.pc + 1
-            }
-            is bc.Box -> {
-                // No-op : VM values carry coarse tags (`I64Val` matches any
-                // `is`-of-an-I64-width type), so the box-tag refinement the
-                // C-emit needs is irrelevant here — just bump pc, like RefCast.
-                frame.pc = frame.pc + 1
-            }
-            is bc.Unreachable -> {
-                if pending != null { return pending }
-                pending = Trap { .message = "reached unreachable: ${instr.reason}" }
-                unwind_target = frame_count[0] - 1
-                continue
-            }
-            is bc.Convert -> {
-                if !convert_int_fast(frame, instr.target, instr.from_name) {
-                    v :: peek_val(frame, frame.sp - 1)
-                    converted :: convert_value(v, instr.target, instr.from_name, frame.pc)
-                    if converted is Trap {
-                        return Trap { .message = "${converted.message} (got ${describe_value_tag(v)}) in '${body.name}'" }
-                    }
-                    push_val(frame, frame.sp - 1, converted)
-                }
-                frame.pc = frame.pc + 1
-            }
-            is bc.SizeOfType -> {
-                top_val :: peek_val(frame, frame.sp - 1)
-                if !(top_val is TypeVal) {
-                    return Trap { .message = "intrinsic size_of.type: expected type value, got ${describe_value_tag(top_val)} at pc=${frame.pc}" }
-                }
-                type_id :: top_val.type_id
-                if type_id < 0 || usize(type_id) >= state.bc.types.len() {
-                    return Trap { .message = "intrinsic size_of.type: type ${type_id} out of range at pc=${frame.pc}" }
-                }
-                size :: bc.size_of_bc_type(state.bc.types[usize(type_id)])
-                frame.payload[frame.sp - 1] = i64(size)
-                frame.tag[frame.sp - 1] = .I64
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Add -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.add") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.add") }
-                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) + i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Sub -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.sub") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.sub") }
-                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) - i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Mul -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.mul") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.mul") }
-                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) * i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Div -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.div") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.div") }
-                if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "i32.div by zero at pc=${frame.pc}" } }
-                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) / i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Mod -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.mod") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.mod") }
-                if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "i32.mod by zero at pc=${frame.pc}" } }
-                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) % i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Eq -> {
-                outcome :: apply_eq_binop(frame, "i32.eq", false)
-                if outcome is Trap { return outcome }
-            }
-            is bc.I32Ne -> {
-                outcome :: apply_eq_binop(frame, "i32.ne", true)
-                if outcome is Trap { return outcome }
-            }
-            is bc.I32Lt -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.lt") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.lt") }
-                frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) < i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Le -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.le") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.le") }
-                frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) <= i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Gt -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.gt") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.gt") }
-                frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) > i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Ge -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.ge") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.ge") }
-                frame.payload[frame.sp - 2] = if i32(frame.payload[frame.sp - 2]) >= i32(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Neg -> {
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.neg") }
-                frame.payload[frame.sp - 1] = i64(-i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 1] = .I32
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32BitNot -> {
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitnot") }
-                frame.payload[frame.sp - 1] = i64(~i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 1] = .I32
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32BitAnd -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.bitand") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitand") }
-                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) & i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32BitOr -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.bitor") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitor") }
-                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) | i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32BitXor -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.bitxor") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.bitxor") }
-                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) ^ i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Shl -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.shl") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.shl") }
-                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) << i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32Shr -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.shr") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.shr") }
-                frame.payload[frame.sp - 2] = i64(i32(frame.payload[frame.sp - 2]) >> i32(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I32ShrU -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i32.shru") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i32.shru") }
-                // Logical shift : reinterpret the i32 as u32 before the
-                // shift so the sign bit isn't replicated, then reinterpret
-                // the result back as i32. Mirrors `>>>` in JS / `>>` on
-                // unsigned C types.
-                frame.payload[frame.sp - 2] = i64(i32(u32(i32(frame.payload[frame.sp - 2])) >> u32(i32(frame.payload[frame.sp - 1]))))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            // Unsigned 32-bit divide / modulo / compare. The i32-tagged
-            // operands carry a u32 bit pattern ; reinterpret via `u32(...)`
-            // so the result respects unsigned semantics (zero-fill, no
-            // sign-extension) before re-tagging back to i32.
-            is bc.U32Div -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.div") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.div") }
-                if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "u32.div by zero at pc=${frame.pc}" } }
-                frame.payload[frame.sp - 2] = i64(i32(u32(i32(frame.payload[frame.sp - 2])) / u32(i32(frame.payload[frame.sp - 1]))))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.U32Mod -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.mod") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.mod") }
-                if i32(frame.payload[frame.sp - 1]) == 0 { return Trap { .message = "u32.rem by zero at pc=${frame.pc}" } }
-                frame.payload[frame.sp - 2] = i64(i32(u32(i32(frame.payload[frame.sp - 2])) % u32(i32(frame.payload[frame.sp - 1]))))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.U32Lt -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.lt") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.lt") }
-                frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) < u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.U32Le -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.le") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.le") }
-                frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) <= u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.U32Gt -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.gt") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.gt") }
-                frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) > u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.U32Ge -> {
-                if !is_i32_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u32.ge") }
-                if !is_i32_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u32.ge") }
-                frame.payload[frame.sp - 2] = if u32(i32(frame.payload[frame.sp - 2])) >= u32(i32(frame.payload[frame.sp - 1])) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Const -> {
-                frame.payload[frame.sp] = i64((instr.value).to_bits())
-                frame.tag[frame.sp] = .F64
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Const -> {
-                frame.payload[frame.sp] = instr.value
-                frame.tag[frame.sp] = .I64
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Add -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.add") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.add") }
-                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] + frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Sub -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.sub") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.sub") }
-                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] - frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Mul -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.mul") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.mul") }
-                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] * frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Div -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.div") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.div") }
-                if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "i64.div by zero at pc=${frame.pc}" } }
-                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] / frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Mod -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.mod") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.mod") }
-                if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "i64.rem by zero at pc=${frame.pc}" } }
-                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] % frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Neg -> {
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.neg") }
-                frame.payload[frame.sp - 1] = -frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 1] = .I64
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Eq -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.eq") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.eq") }
-                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] == frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Ne -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.ne") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.ne") }
-                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] != frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Lt -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.lt") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.lt") }
-                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] < frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Le -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.le") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.le") }
-                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] <= frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Gt -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.gt") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.gt") }
-                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] > frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Ge -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.ge") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.ge") }
-                frame.payload[frame.sp - 2] = if frame.payload[frame.sp - 2] >= frame.payload[frame.sp - 1] { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            // Unsigned 64-bit divide / modulo / compare. Same pattern as
-            // the U32* family but for `I64Val`-tagged operands carrying
-            // a u64 bit pattern.
-            is bc.U64Div -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.div") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.div") }
-                if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "u64.div by zero at pc=${frame.pc}" } }
-                frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) / u64(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.U64Mod -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.mod") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.mod") }
-                if frame.payload[frame.sp - 1] == 0 { return Trap { .message = "u64.rem by zero at pc=${frame.pc}" } }
-                frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) % u64(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.U64Lt -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.lt") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.lt") }
-                frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) < u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.U64Le -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.le") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.le") }
-                frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) <= u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.U64Gt -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.gt") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.gt") }
-                frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) > u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.U64Ge -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "u64.ge") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "u64.ge") }
-                frame.payload[frame.sp - 2] = if u64(frame.payload[frame.sp - 2]) >= u64(frame.payload[frame.sp - 1]) { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            // 64-bit bitwise / shift. The apply closure stays i64-typed so
-            // wide operands keep their high bits.
-            is bc.I64BitAnd -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.bitand") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitand") }
-                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] & frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64BitOr -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.bitor") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitor") }
-                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] | frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64BitXor -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.bitxor") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitxor") }
-                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] ^ frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64BitNot -> {
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.bitnot") }
-                frame.payload[frame.sp - 1] = ~frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 1] = .I64
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Shl -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.shl") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.shl") }
-                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] << frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64Shr -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.shr") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.shr") }
-                frame.payload[frame.sp - 2] = frame.payload[frame.sp - 2] >> frame.payload[frame.sp - 1]
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.I64ShrU -> {
-                if !is_i64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "i64.shru") }
-                if !is_i64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "i64.shru") }
-                frame.payload[frame.sp - 2] = i64(u64(frame.payload[frame.sp - 2]) >> u64(frame.payload[frame.sp - 1]))
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Add -> {
-                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.add") }
-                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.add") }
-                frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() + (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
-                frame.tag[frame.sp - 2] = .F64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Sub -> {
-                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.sub") }
-                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.sub") }
-                frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() - (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
-                frame.tag[frame.sp - 2] = .F64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Mul -> {
-                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.mul") }
-                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.mul") }
-                frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() * (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
-                frame.tag[frame.sp - 2] = .F64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Div -> {
-                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.div") }
-                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.div") }
-                frame.payload[frame.sp - 2] = i64(((u64(frame.payload[frame.sp - 2])).from_bits() / (u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
-                frame.tag[frame.sp - 2] = .F64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Neg -> {
-                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.neg") }
-                frame.payload[frame.sp - 1] = i64((-(u64(frame.payload[frame.sp - 1])).from_bits()).to_bits())
-                frame.tag[frame.sp - 1] = .F64
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Eq -> {
-                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.eq") }
-                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.eq") }
-                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() == (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Ne -> {
-                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.ne") }
-                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.ne") }
-                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() != (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Lt -> {
-                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.lt") }
-                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.lt") }
-                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() < (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Le -> {
-                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.le") }
-                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.le") }
-                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() <= (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Gt -> {
-                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.gt") }
-                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.gt") }
-                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() > (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.F64Ge -> {
-                if !is_f64_tag(frame.tag[frame.sp - 2]) { return arith_tag_trap(frame, 2, "f64.ge") }
-                if !is_f64_tag(frame.tag[frame.sp - 1]) { return arith_tag_trap(frame, 1, "f64.ge") }
-                frame.payload[frame.sp - 2] = if (u64(frame.payload[frame.sp - 2])).from_bits() >= (u64(frame.payload[frame.sp - 1])).from_bits() { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.NullConst -> {
-                frame.tag[frame.sp] = .Null
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.BoolConst -> {
-                frame.payload[frame.sp] = if instr.value { 1 } else { 0 }
-                frame.tag[frame.sp] = .Bool
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.CharConst -> {
-                frame.payload[frame.sp] = i64(u32(instr.value))
-                frame.tag[frame.sp] = .Char
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.BoolEq -> {
-                left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.eq")
-                if left  is Trap { return left  }
-                right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.eq")
-                if right is Trap { return right }
-                frame.payload[frame.sp - 2] = if left.value == right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.BoolNe -> {
-                left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.ne")
-                if left  is Trap { return left  }
-                right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.ne")
-                if right is Trap { return right }
-                frame.payload[frame.sp - 2] = if left.value != right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.BoolAnd -> {
-                left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.and")
-                if left  is Trap { return left  }
-                right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.and")
-                if right is Trap { return right }
-                frame.payload[frame.sp - 2] = if left.value && right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.BoolOr -> {
-                left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.or")
-                if left  is Trap { return left  }
-                right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.or")
-                if right is Trap { return right }
-                frame.payload[frame.sp - 2] = if left.value || right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.BoolNot -> {
-                operand :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.not")
-                if operand is Trap { return operand }
-                frame.payload[frame.sp - 1] = if !operand.value { 1 } else { 0 }
-                frame.tag[frame.sp - 1] = .Bool
-                frame.pc = frame.pc + 1
-            }
-            is bc.StringEq -> {
-                left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.eq")
-                if left  is Trap { return left  }
-                right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.eq")
-                if right is Trap { return right }
-                frame.payload[frame.sp - 2] = if left.value == right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.StringNe -> {
-                left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.ne")
-                if left  is Trap { return left  }
-                right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.ne")
-                if right is Trap { return right }
-                frame.payload[frame.sp - 2] = if left.value != right.value { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.StringSliceCodepoints -> {
-                outcome :: exec_string_slice_codepoints(frame)
-                if outcome is Trap { return outcome }
-            }
-            is bc.RefEq -> {
-                outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1))
-                frame.payload[frame.sp - 2] = if outcome { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.RefNe -> {
-                outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1))
-                frame.payload[frame.sp - 2] = if !outcome { 1 } else { 0 }
-                frame.tag[frame.sp - 2] = .Bool
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.Drop -> {
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.TypeCheck -> {
-                matched :: type_matches(state, peek_val(frame, frame.sp - 1), instr.type_id)
-                frame.payload[frame.sp - 1] = if matched { 1 } else { 0 }
-                frame.tag[frame.sp - 1] = .Bool
-                frame.pc = frame.pc + 1
-            }
-            is bc.TypeConst -> {
-                push_val(frame, frame.sp, TypeVal { .type_id = instr.type_id })
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.DeferPush -> {
-                closure :: peek_val(frame, frame.sp - 1)
-                push_value(frame.defers, frame.defer_count, closure)
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-                frame.defer_count = frame.defer_count + 1
-            }
-            is bc.DeferPopExec -> {
-                if instr.count <= 0 {
-                    frame.pc = frame.pc + 1
-                    continue
-                }
-                pop_n :: usize(instr.count)
-                if frame.defer_count < pop_n {
-                    return Trap { .message = "defer.pop_exec underflow (count=${instr.count}, have=${frame.defer_count}) at pc=${frame.pc}" }
-                }
-                old_defer_count :: frame.defer_count
-                new_defer_count :: old_defer_count - pop_n
-                // Shrink the caller's defer-list in place now ; its pc is
-                // advanced AFTER the drain (below) so trap messages still
-                // report the defer.pop_exec pc. The dispatch loop runs the
-                // pushed callees in LIFO and then resumes the caller at pc+1.
-                frame.defer_count = new_defer_count
-                // Push N callee frames in oldest-first order so the most
-                // recently pushed defer (top of frame stack) executes first.
-                // Bound on the captured `old_defer_count` — `frame.defer_count`
-                // has already been shrunk to `new_defer_count` above.
-                for drain_index in new_defer_count..<old_defer_count {
-                    closure_val :: frame.defers[drain_index]
-                    fn_unwrap :: read_fn(closure_val, frame.pc, "defer.pop_exec entry")
-                    if fn_unwrap is Trap { return fn_unwrap }
-                    callee_index_check :: validate_fn_index(fn_unwrap.function_index, state.bc.functions, frame.pc, "defer.pop_exec")
-                    if callee_index_check is Trap { return callee_index_check }
-                    callee :: state.bc.functions[usize(fn_unwrap.function_index)]
-                    if callee.signature.params.len() != 1 {
-                        return Trap { .message = "defer thunk '${callee.name}' must take exactly one env param at pc=${frame.pc}" }
-                    }
-                    callee_frame :: build_callee_frame(fn_unwrap.function_index, callee, frame, frame.sp, fn_unwrap.env)
-                    push_frame(frames, frame_count, callee_frame)
-                    if frame_count[0] > usize(MAX_FRAME_DEPTH) {
-                        return Trap { .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${callee.name}' during defer drain" }
-                    }
-                }
-                frame.pc = frame.pc + 1
-            }
-            is bc.Block -> { frame.pc = frame.pc + 1 }
-            is bc.Loop  -> { frame.pc = frame.pc + 1 }
-            is bc.If -> {
-                cond :: frame.payload[frame.sp - 1] != 0
-                new_sp :: frame.sp - 1
-                if cond {
-                    frame.sp = new_sp
-                    frame.pc = frame.pc + 1
-                } else {
-                    target :: cur_jump[frame.pc]
-                    frame.sp = new_sp
-                    frame.pc = target
-                }
-            }
-            is bc.Else -> {
-                target :: cur_jump[frame.pc]
-                frame.pc = target
-            }
-            is bc.End -> { frame.pc = frame.pc + 1 }
-            is bc.Branch -> {
-                target :: cur_jump[frame.pc]
-                frame.pc = target
-            }
-            is bc.BranchIf -> {
-                cond :: frame.payload[frame.sp - 1] != 0
-                new_sp :: frame.sp - 1
-                if cond {
-                    target :: cur_jump[frame.pc]
-                    frame.sp = new_sp
-                    frame.pc = target
-                } else {
-                    frame.sp = new_sp
-                    frame.pc = frame.pc + 1
-                }
-            }
-            is bc.Return -> {
-                // Several values take their own route: the frame's top `arity`
-                // slots move to the caller in the order it receives them. The
-                // single-value path below stays exactly as it was — it owns the
-                // outermost frame, where a return becomes the exit code.
-                if cur_multi_result {
-                    outcome :: finalise_multi_return(frame, frames, frame_count, body.signature)
-                    if !(outcome is null) {
-                        return outcome
-                    }
-                } else if frame.sp > 0 && frame_count[0] > 1 && !cur_narrow_result {
-                    // Fast path: the value moves from this frame's top slot to the
-                    // caller's, and both are payload+tag columns — no `Value` in
-                    // between.
-                    //
-                    // Deliberately NOT taken for a narrow result (it truncates, so
-                    // it goes through `narrow_mask`) nor for the outermost frame,
-                    // which is where `finalise_return` coerces the exit code or
-                    // publishes `capture`. Those two keep the boxed route and its
-                    // one implementation.
-                    src :: frame.sp - 1
-                    st  :: frame.tag[src]
-                    pay :: frame.payload[src]
-                    pop_frame(frame_count)
-                    caller :: frames[frame_count[0] - 1]
-                    caller.payload[caller.sp] = pay
-                    caller.tag[caller.sp] = st
-                    if st == .Ref {
-                        caller.stack[caller.sp] = frame.stack[src]
-                    }
-                    caller.sp = caller.sp + 1
-                } else {
-                    has_value :: frame.sp > 0
-                    return_value: Value = I32Val { .value = 0 }
-                    // Narrow return type ⇒ truncate to width, like a C `uint8_t` return.
-                    if has_value { return_value = narrow_mask(peek_val(frame, frame.sp - 1), bc_single_result(body.signature)) }
-                    outcome :: finalise_return(return_value, has_value, frame.pc, frames, frame_count, "return from main", capture)
-                    if !(outcome is null) { return outcome }
-                }
-            }
-            is bc.ReturnLit -> {
-                raw_ret :: const_op_value(instr.value, state.bc.strings, frame.pc)
-                if raw_ret is Trap { return raw_ret }
-                return_value :: narrow_mask(raw_ret, bc_single_result(body.signature))
-                outcome :: finalise_return(return_value, true, frame.pc, frames, frame_count, "return.lit from main", capture)
-                if !(outcome is null) { return outcome }
-            }
-            // ---- memory opcodes (Target ABI) — inert until S3 -----------
-            is bc.BufferNew -> {
-                outcome :: build_buffer(frame, run.obj_handles)
-                if outcome is Trap { return outcome }
-            }
-            is bc.LoadU8 -> {
-                raw :: load_bytes_op(frame, 1, "load_u8")
-                if raw is Trap { return raw }
-                frame.payload[frame.sp - 2] = i64(i32(raw))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.LoadI32 -> {
-                raw :: load_bytes_op(frame, 4, "load_i32")
-                if raw is Trap { return raw }
-                frame.payload[frame.sp - 2] = i64(i32(raw))
-                frame.tag[frame.sp - 2] = .I32
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.LoadI64 -> {
-                raw :: load_bytes_op(frame, 8, "load_i64")
-                if raw is Trap { return raw }
-                frame.payload[frame.sp - 2] = i64(raw)
-                frame.tag[frame.sp - 2] = .I64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.LoadF64 -> {
-                raw :: load_bytes_op(frame, 8, "load_f64")
-                if raw is Trap { return raw }
-                frame.payload[frame.sp - 2] = i64(((u64(raw)).from_bits()).to_bits())
-                frame.tag[frame.sp - 2] = .F64
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.StoreU8 -> {
-                val_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "store_u8 value")
-                if val_unwrap is Trap { return val_unwrap }
-                outcome :: store_bytes_op(frame, 1, u64(u8(val_unwrap.value)), "store_u8")
-                if outcome is Trap { return outcome }
-            }
-            is bc.StoreI32 -> {
-                val_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "store_i32 value")
-                if val_unwrap is Trap { return val_unwrap }
-                outcome :: store_bytes_op(frame, 4, u64(u32(val_unwrap.value)), "store_i32")
-                if outcome is Trap { return outcome }
-            }
-            is bc.StoreI64 -> {
-                val_unwrap :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "store_i64 value")
-                if val_unwrap is Trap { return val_unwrap }
-                outcome :: store_bytes_op(frame, 8, u64(val_unwrap.value), "store_i64")
-                if outcome is Trap { return outcome }
-            }
-            is bc.StoreF64 -> {
-                val_unwrap :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "store_f64 value")
-                if val_unwrap is Trap { return val_unwrap }
-                outcome :: store_bytes_op(frame, 8, (val_unwrap.value).to_bits(), "store_f64")
-                if outcome is Trap { return outcome }
-            }
-            // Slot ops — the VM stores every element as a uniform `Value` in
-            // `slots` (no byte packing), so the native width-typed primitive
-            // slot ops (`load_slot_*` / `store_slot_*`) and the boxed
-            // `load_slot` / `store_slot` all route through the same logic ; the
-            // `…U8` / `…I32` / `…I64` / `…F64` width distinction is a native-only
-            // (byte-layout) concern the boxed-Value VM doesn't model.
-            is bc.LoadSlotI32  -> { if do_load_slot(frame)  is Trap as t { return t } }
-            is bc.LoadSlotI64  -> { if do_load_slot(frame)  is Trap as t { return t } }
-            is bc.LoadSlotF64  -> { if do_load_slot(frame)  is Trap as t { return t } }
-            is bc.StoreSlotI32 -> { if do_store_slot(frame) is Trap as t { return t } }
-            is bc.StoreSlotI64 -> { if do_store_slot(frame) is Trap as t { return t } }
-            is bc.StoreSlotF64 -> { if do_store_slot(frame) is Trap as t { return t } }
-            is bc.MemoryCopy -> {
-                outcome :: do_memory_copy(frame)
-                if outcome is Trap { return outcome }
-            }
-            is bc.BufferToString -> {
-                // Pop buffer + len ; intern the leading `len` bytes verbatim as a
-                // string (same semantics as `bytes_to_string` over a `u8[]`).
-                len_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "buffer_to_string len")
-                if len_unwrap is Trap { return len_unwrap }
-                obj_unwrap :: read_obj(peek_val(frame, frame.sp - 2), frame.pc, "buffer_to_string receiver")
-                if obj_unwrap is Trap { return obj_unwrap }
-                // width 0 ⇒ checks `0 <= len <= bytes_len`, returns the usize len.
-                n :: check_byte_range(len_unwrap.value, 0, obj_unwrap.bytes.len(), "buffer_to_string", frame.pc)
-                if n is Trap { return n }
-                push_val(frame, frame.sp - 2, StringVal { .value = obj_unwrap.bytes[0..<n].bytes_to_string() })
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.BufferWriteString -> {
-                outcome :: exec_buffer_write_string(frame)
-                if outcome is Trap { return outcome }
-            }
-            is bc.F64ToBits -> {
-                // Bit-reinterpret the TOS f64 as its raw u64 bits (held in an
-                // I64Val — same 64 bits) via the runtime `@extern` (see the
-                // module-top note : the VM can't use the intrinsic itself).
-                fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f64_to_bits")
-                if fv is Trap { return fv }
-                frame.payload[frame.sp - 1] = i64((fv.value).to_bits())
-                frame.tag[frame.sp - 1] = .I64
-                frame.pc = frame.pc + 1
-            }
-            is bc.BitsToF64 -> {
-                // Inverse : reinterpret the TOS u64 bit pattern (in an I64Val) as
-                // an f64, via the runtime `@extern`.
-                iv :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f64")
-                if iv is Trap { return iv }
-                frame.payload[frame.sp - 1] = i64(((u64(iv.value)).from_bits()).to_bits())
-                frame.tag[frame.sp - 1] = .F64
-                frame.pc = frame.pc + 1
-            }
-            is bc.F32ToBits -> {
-                // f32→u32 bits. The VM holds f32 in an F64Val (exact, since f32
-                // widens losslessly), so narrow back to f32 before the cast; the
-                // u32 result rides in an I32Val.
-                fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f32_to_bits")
-                if fv is Trap { return fv }
-                frame.payload[frame.sp - 1] = i64(i32((f32(fv.value)).to_bits()))
-                frame.tag[frame.sp - 1] = .I32
-                frame.pc = frame.pc + 1
-            }
-            is bc.BitsToF32 -> {
-                // Inverse : reinterpret the TOS u32 bit pattern (in an I32Val) as
-                // an f32, widened back into an F64Val for VM storage.
-                iv :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f32")
-                if iv is Trap { return iv }
-                frame.payload[frame.sp - 1] = i64((f64((u32(iv.value)).from_bits())).to_bits())
-                frame.tag[frame.sp - 1] = .F64
-                frame.pc = frame.pc + 1
-            }
-        }
-    }
-    // Frame stack drained without an explicit main-return — surface 0.
-    return Ok { .value = 0 }
+    return reg_run(state, state.reg, entry_index, host_argv, capture, is_comptime, debug)
 }
 
 /// Build an `ArrayVal` of `type_id` with `length` initial elements
@@ -2732,13 +674,10 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame!) -> Trap | nu
 
 // ---- memory opcodes (Target ABI) — VM byte-heap helpers (decision D8) ----
 //
-// Inert until S3 (nothing emits these yet). The VM backs a REAL byte-
-// addressed heap : `ObjVal.bytes` is the raw inline payload (byte offsets),
-// `ObjVal.slots` the boxed reference fields (slot indices). Each accessor
-// re-derives from the obj on the stack — no base cached across an op (G1,
-// trivially held here since every access hits `obj.bytes` / `obj.slots`
-// fresh). The C backend's emitted arms carry the real G1/G2 discipline ; S2b
-// proves it on a bespoke fixture.
+// The VM backs a REAL byte-addressed heap : `ObjVal.bytes` is the raw inline
+// payload (byte offsets), `ObjVal.slots` the boxed reference fields (slot
+// indices). Each accessor re-derives from the obj on the stack — no base cached
+// across an op, since every access hits `obj.bytes` / `obj.slots` fresh.
 
 /// Body of the `buffer.new` arm. Pops `size` (usize) and pushes a zero-filled
 /// `ObjVal` of that byte length. `type_id` is the inline immediate (D2).
@@ -2842,59 +781,6 @@ store_bytes_op :: fn(frame: Frame!, width: usize, value: u64, label: string) -> 
     return null
 }
 
-/// Body of the `load_slot` family. Pops `arr, index` and pushes the element at
-/// `arr.offset + index`. `arr` is a `T[]` (`ArrayVal`) — the slot `@intrinsic`s
-/// are impl'd on `T[]`, so the operand is the array, mirroring native (which
-/// derefs `->buf` + `->offset`). The VM stores every element as a uniform
-/// `Value`, so this serves the boxed `load_slot` and each width-typed primitive
-/// `load_slot_*` alike (the native byte-width distinction is native-only).
-/// @param frame  current top frame, mutated in place (1 operand dropped).
-/// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
-do_load_slot :: fn(frame: Frame!) -> Trap | null {
-    // Read the index straight off the columns: `read_i32(peek_val(…))` would box
-    // it first, one allocation per indexing.
-    if !is_i32_tag(frame.tag[frame.sp - 1]) {
-        return arith_tag_trap(frame, 1, "load_slot index")
-    }
-    index :: i32(frame.payload[frame.sp - 1])
-    arr :: peek_array_mut(frame, frame.sp - 2, frame.pc, "load_slot receiver")
-    if arr is Trap { return arr }
-    if index < 0 || usize(index) >= arr.length {
-        return Trap { .message = "load_slot index ${index} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
-    }
-    push_val(frame, frame.sp - 2, arr.elements[arr.offset + usize(index)])
-    frame.sp = frame.sp - 1
-    frame.pc = frame.pc + 1
-    return null
-}
-
-/// Body of the `store_slot` family. Pops `arr, index, value` and writes `value`
-/// at `arr.offset + index` (bounds-checked against `length` — the array.vader
-/// impl checks before calling, this is the oracle's defensive mirror). `arr` is
-/// a `T[]` (`ArrayVal`). Serves the boxed `store_slot` and each primitive
-/// `store_slot_*`. In the C backend the boxed `store_slot` fires
-/// `VADER_WRITE_BARRIER(arr->buf)` (G2) ; in the VM the host GC traces
-/// `elements` directly so the barrier is implicit. (`push`'s grow-append is a
-/// separate path — S5 inc 3.)
-/// @param frame  current top frame, mutated in place (3 operands dropped).
-/// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
-do_store_slot :: fn(frame: Frame!) -> Trap | null {
-    value :: peek_val(frame, frame.sp - 1)
-    if !is_i32_tag(frame.tag[frame.sp - 2]) {
-        return arith_tag_trap(frame, 2, "store_slot index")
-    }
-    index :: i32(frame.payload[frame.sp - 2])
-    arr :: peek_array_mut(frame, frame.sp - 3, frame.pc, "store_slot receiver")
-    if arr is Trap { return arr }
-    if index < 0 || usize(index) >= arr.length {
-        return Trap { .message = "store_slot index ${index} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
-    }
-    arr.elements[arr.offset + usize(index)] = value
-    frame.sp = frame.sp - 3
-    frame.pc = frame.pc + 1
-    return null
-}
-
 /// Body of the `memory_copy` arm. Pops `dst, dst_off, src, src_off, n` and
 /// copies `n` bytes src→dst (raw byte regions). Bounds-checks both ends and
 /// copies through a snapshot, so an overlapping self-copy stays well-defined
@@ -2940,7 +826,7 @@ do_memory_copy :: fn(frame: Frame!) -> Trap | null {
     return null
 }
 
-// ---- register-engine support ---------------------------------------------
+// ---- boxed ops ------------------------------------------------------------
 
 /// Host state one run shares with every nested run it starts: the GC counter
 /// `std/runtime` reads, the async scheduler's virtual clock and wake deadlines
@@ -2980,14 +866,9 @@ primitive_impl_import :: fn(mangle: string, arity: usize) = bc.BcImport {
     .is_extern    = false,
 }
 
-/// An op that trapped where the trap runs the pending defers of every frame, as a
-/// `panic` does — an out-of-bounds index.
-BoxedUnwind :: struct { trap: Trap }
-
 /// Run one op that reads and writes the operand stack of `frame` as boxed values,
 /// and advance `frame.pc` — the register engine's path for the ops it does not
-/// run itself, on a scratch frame holding the op's operands. The arms are copies of
-/// `exec_legacy`'s: keep the two in step.
+/// run itself, on a scratch frame holding the op's operands.
 ///
 /// @param state    the prepared module.
 /// @param run      the run's host state.
@@ -2995,11 +876,10 @@ BoxedUnwind :: struct { trap: Trap }
 /// @param frame    the frame whose stack holds the operands.
 /// @param fn_name  the running function, for trap messages.
 /// @return         `null` when the op ran.
-/// @error          a `Trap` that stops the run, or a `BoxedUnwind` that runs the
-///                 pending defers first.
+/// @error          the `Trap` that stops the run.
 apply_boxed :: fn(
     state: VmState, run: RunHost!, instr: bc.Op, frame: Frame!, fn_name: string,
-) -> Trap | BoxedUnwind | null {
+) -> Trap | null {
     // @partial: the ops the register engine runs itself.
     @partial match instr {
         is bc.FnRef -> {
@@ -3311,8 +1191,7 @@ apply_boxed :: fn(
         }
         is bc.F64ToBits -> {
             // Bit-reinterpret the TOS f64 as its raw u64 bits (held in an
-            // I64Val — same 64 bits) via the runtime `@extern` (see the
-            // module-top note : the VM can't use the intrinsic itself).
+            // I64Val — same 64 bits).
             fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f64_to_bits")
             if fv is Trap { return fv }
             frame.payload[frame.sp - 1] = i64((fv.value).to_bits())
@@ -3321,7 +1200,7 @@ apply_boxed :: fn(
         }
         is bc.BitsToF64 -> {
             // Inverse : reinterpret the TOS u64 bit pattern (in an I64Val) as
-            // an f64, via the runtime `@extern`.
+            // an f64.
             iv :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f64")
             if iv is Trap { return iv }
             frame.payload[frame.sp - 1] = i64(((u64(iv.value)).from_bits()).to_bits())

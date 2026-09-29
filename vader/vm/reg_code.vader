@@ -153,11 +153,20 @@ RegOp :: enum(i32) {
     CallImport
     // Stop the run with texts[a].
     Trap
+    // Push the closure in r[a] on the run's defer stack.
+    DeferPush
+    // Pop the last `a` deferred closures and run them, the last pushed first.
+    DeferRun
+    // An original op begins (`origin` names it): where a debugger may stop.
+    // Emitted only in a translation for one (`prepare_debug`).
+    Line
 }
 
 // One function, translated.
 RegFunction :: struct {
     name:      string
+    /// Its index in `BytecodeModule.functions`.
+    index:     i32
     /// The ops ; op `k`'s operands are packed in `words[k]` (`pack_operands`).
     /// Flat columns, so fetching an op follows no pointer.
     ops:       RegOp[]!
@@ -182,15 +191,11 @@ RegFunction :: struct {
     params:    usize
     /// Parameters plus locals: the registers a call resets.
     slots:     usize
-    /// The functions it calls that return several values: it runs here only if
-    /// they do too, since `exec_legacy` hands back one value.
-    multi_calls: i32[]!
 }
 
-// The translated module: one entry per function, `null` for a function the
-// register engine does not run — it runs on `exec_legacy`.
+// The translated module, index-aligned with `BytecodeModule.functions`.
 RegModule :: struct {
-    functions: (RegFunction | null)[]
+    functions: RegFunction[]
 }
 
 // The widths `pack_operands` gives `a` and each of `b` / `c`, sign included.

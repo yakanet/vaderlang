@@ -486,11 +486,6 @@ export primitive_type_id :: fn(state: VmState, v: Value) -> i32 {
     return -1
 }
 
-/// Look up the function index in the vtable for `key` by receiver
-/// `type_id`. Returns `-1` when either the key or the type_id is missing.
-export lookup_vtable :: fn(vtables: bc.VtableRow[], key: string, type_id: i32) -> i32 =
-    lookup_vtable_row(vtables, vtable_row_of(vtables, key), type_id)
-
 /// The index of the vtable row for `key`, or `-1` when none has it.
 ///
 /// @param vtables  the module's vtable rows.

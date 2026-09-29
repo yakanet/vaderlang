@@ -4,6 +4,9 @@
 
 Accepted (2026-09-05). Investigation only — no code changed.
 
+**Superseded by [0024](0024-the-vm-runs-register-code-translated-at-load.md)
+(2026-09-29)**: the interpreter loop it measures is gone.
+
 **Superseded in part by
 [0016](0016-a-guards-continuation-is-duplicated-by-the-structurer.md) (2026-09-06)**:
 the "duplication is a specialisation that pays" conclusion below is WITHDRAWN, and the

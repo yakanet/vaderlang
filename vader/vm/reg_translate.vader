@@ -9,9 +9,6 @@
 // Everything pending is written to its canonical register wherever control can
 // arrive from elsewhere — at a jump target, before a jump, before a call — so
 // every path into a pc finds the stack in the same registers.
-//
-// A function using an op this file does not translate stays on `exec_legacy`
-// (`translate_function` answers `null`); calls into it go through there.
 
 module "vader/vm"
 
@@ -44,40 +41,33 @@ Translation :: struct {
     jumps: i64[]!
 }
 
-/// Translate every function of `module` that the register engine runs.
+/// Translate every function of `module`.
 ///
 /// @param module  a module `prepare` accepted.
 /// @param facts   its inferred tags, index-aligned with `module.functions`.
-translate_module :: fn(module: bc.BytecodeModule, facts: FunctionTags[]) -> RegModule {
-    functions: (RegFunction | null)[]!: [] * module.functions.len()
+/// @param debug   whether a debugger drives the run: each source position gets a
+///                `Line` op, where the debugger may stop.
+/// @return        one `RegFunction` per function.
+/// @error         a `VerifyError` for a function the register engine cannot run:
+///                an op with no register form, or an operand past its encoding
+///                (`pack_operands`).
+translate_module :: fn(module: bc.BytecodeModule, facts: FunctionTags[], debug: bool) -> RegModule | VerifyError {
+    functions: RegFunction[]!: [] * module.functions.len()
     for i in 0..<module.functions.len() {
-        functions.push(translate_function(module, module.functions[i], facts[i]))
-    }
-    // A caller of a function that stays on `exec_legacy` and returns several values
-    // stays there too ; dropping it may strand its own callers, hence the loop.
-    changed := true
-    for changed {
-        changed = false
-        for i in 0..<functions.len() {
-            code :: functions[i]
-            if code == null {
-                continue
-            }
-            for callee in code.multi_calls {
-                if functions[usize(callee)] == null {
-                    functions[i] = null
-                    changed = true
-                    break
-                }
-            }
+        code :: translate_function(module, i32(i), facts[i], debug)
+        if code is VerifyError {
+            return code
         }
+        functions.push(code)
     }
     return RegModule { .functions = functions }
 }
 
-// The function translated, or `null` when it uses an op this file leaves to
-// `exec_legacy`.
-translate_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags) -> RegFunction | null {
+// The function translated.
+translate_function :: fn(
+    module: bc.BytecodeModule, index: i32, ft: FunctionTags, debug: bool,
+) -> RegFunction | VerifyError {
+    f :: module.functions[usize(index)]
     n :: f.body.len()
     slots :: f.signature.params.len() + f.locals.len()
     consts: i64[]!: []
@@ -87,6 +77,7 @@ translate_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: Functi
     t :: Translation {
         .code = RegFunction {
             .name      = f.name,
+            .index     = index,
             .ops       = [],
             .words     = [],
             .origin    = [],
@@ -102,7 +93,6 @@ translate_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: Functi
             .registers = stack_base + ft.deepest + 1,
             .params    = f.signature.params.len(),
             .slots     = slots,
-            .multi_calls = [],
         },
         .operands = [],
         .stack    = [],
@@ -123,8 +113,11 @@ translate_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: Functi
         if leader[pc] {
             reset_stack(t, usize(ft.depth[pc]))
         }
+        if debug && pc < f.debug.len() && f.debug[pc] != null {
+            emit(t, pc, .Line, 0, 0, 0)
+        }
         if !translate_op(module, f, ft, t, pc) {
-            return null
+            return VerifyError { .function = f.name, .pc = i32(pc), .message = "no register form for this op" }
         }
     }
     start[n] = i64(t.code.ops.len())
@@ -134,7 +127,11 @@ translate_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: Functi
         t.operands[3 * at] = i32(start[usize(t.jumps[2 * i + 1])])
     }
     for k in 0..<t.code.ops.len() {
-        word :: pack_operands(operand_of(t, k, 0), operand_of(t, k, 1), operand_of(t, k, 2)) ?? return null
+        word :: pack_operands(operand_of(t, k, 0), operand_of(t, k, 1), operand_of(t, k, 2))
+        if word == null {
+            message :: "an operand is past the register engine's encoding"
+            return VerifyError { .function = f.name, .pc = t.code.origin[k], .message = message }
+        }
         t.code.words.push(word)
     }
     return t.code
@@ -166,8 +163,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         t.retarget = i64(t.code.ops.len() - 1)
         return true
     }
-    // @partial: an op without an arm is one the register engine leaves to
-    // `exec_legacy`.
+    // @partial: the ops without an arm run on `apply_boxed` (`is_boxed`).
     @partial match op {
         is bc.LocalGet -> {
             t.stack.push(Pending { .kind = .Slot, .register = op.slot })
@@ -253,9 +249,6 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         is bc.Call -> {
             callee :: module.functions[usize(op.function_index)].signature
             results :: bc.bc_result_arity(callee)
-            if results > 1 {
-                t.code.multi_calls.push(op.function_index)
-            }
             flush(t, pc)
             base :: pop_to(t, callee.params.len())
             emit(t, pc, .Call, op.function_index, base, 0)
@@ -280,6 +273,22 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             if bc.bc_single_result(signature) != .Void {
                 push_register(t, base)
             }
+        }
+        is bc.DeferPush -> {
+            closure :: operand(t, 1)
+            t.stack.remove_last()
+            emit(t, pc, .DeferPush, closure, 0, 0)
+        }
+        is bc.DeferPopExec -> {
+            flush(t, pc)
+            emit(t, pc, .DeferRun, op.count, 0, 0)
+        }
+        is bc.FnAddr -> {
+            // The interpreter holds a function as an index: there is no machine
+            // code to address.
+            t.code.texts.push("fn.addr at pc=${pc}: the interpreter has no address for a Vader function")
+            emit(t, pc, .Trap, i32(t.code.texts.len() - 1), 0, 0)
+            push_register(t, canonical(t, t.stack.len()))
         }
         is bc.Unreachable -> {
             t.code.texts.push("reached unreachable: ${op.reason}")

@@ -5,6 +5,9 @@
 Accepted (2026-09-06). Amends [0014](0014-the-interpreters-cost-is-the-buffer-resolve.md) —
 its measurements, not its decision. Investigation only ; no code changed.
 
+**Superseded by [0024](0024-the-vm-runs-register-code-translated-at-load.md)
+(2026-09-29)**: the interpreter loop it measures is gone.
+
 **Superseded in part by
 [0016](0016-a-guards-continuation-is-duplicated-by-the-structurer.md) (2026-09-06)**: the
 doubling described below is real but is NOT the C emitter's — it is already in the

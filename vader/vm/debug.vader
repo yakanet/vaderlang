@@ -2,9 +2,10 @@
 //
 // A `DebugController` is threaded into `exec_entry` (and down to the host-op
 // dispatcher) when a program runs under the step-debugger. It is `null` for
-// every normal run / comptime evaluation / test, so those paths keep the VM's
-// default behaviour and pay nothing (one pointer compare per op, like the
-// `is_comptime` budget check).
+// every normal run / comptime evaluation / test. A debugged run is translated
+// with a `Line` op at each source position (`reg_translate.vader`), where the
+// engine asks the controller whether to stop ; a normal run has none, and pays
+// nothing.
 //
 // The record is deliberately data + callbacks (no `vader/dap` import) so the
 // VM never depends on the DAP layer — the closures that mutate DAP state live
@@ -59,7 +60,7 @@ export PauseFrame :: struct {
 
 /// Everything the `on_pause` callback needs to answer a `stackTrace` /
 /// `variables` request without reaching into VM internals. Built by
-/// `build_pause_ctx` at the stop.
+/// `pause_context` (`reg_exec.vader`) at the stop.
 export PauseCtx :: struct {
     /// DAP `stopped` reason — `"breakpoint"` or `"step"`.
     reason: string
@@ -88,8 +89,8 @@ export DebugController :: struct {
 }
 
 /// True when `line` in `file` carries a breakpoint. Pure — the "fire once per
-/// line" gate lives in the exec loop (a `last_line` local), so this only asks
-/// "is this line breakpointed".
+/// line" gate is the engine's (`DebugSession.last_line`), so this only asks "is
+/// this line breakpointed".
 ///
 /// @param controller  the active debug controller.
 /// @param file        the op's source file (absolute path).

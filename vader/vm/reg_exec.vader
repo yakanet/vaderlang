@@ -1,16 +1,18 @@
 // vader/vm/reg_exec — the register engine: runs the `RegFunction`s
 // `reg_translate.vader` produced.
 //
-// One register file serves the whole run, in the three columns the operand stack
-// used (`exec.vader`): raw bits, a `StackTag`, and the boxed `Value` a `.Ref`
-// register holds. A frame is a window of it; the frame stack is three parallel
+// One register file serves the whole run, in three columns: raw bits, a
+// `StackTag`, and the boxed `Value` a `.Ref` register holds. A frame is a window of it; the frame stack is three parallel
 // arrays. `pc`, `base` and the running function's code are locals of the loop,
 // reloaded only by a call or a return.
 //
 // Operand tags are not tested: `prepare` proved every one an arm relies on
 // (`tags.vader`). What depends on a value stays checked here — a zero divisor,
-// the call depth, the comptime step budget — with the messages `exec_legacy`
-// gives, quoting the original pc.
+// the call depth, the comptime step budget — and a trap message quotes the
+// original pc.
+//
+// A trap runs every pending `defer` before it surfaces, the last pushed first, as
+// the native runtime does ; a `defer` that traps in turn ends the unwind.
 
 module "vader/vm"
 
@@ -29,6 +31,22 @@ RegMachine :: struct {
     frame_code:   RegFunction[]!
     frame_base:   usize[]!
     frame_return: usize[]!
+    /// The closures `defer` pushed, for the whole run ; the live ones are
+    /// `defers[0 ..< defer_count]`.
+    defers:      Value[]!
+    defer_count: usize
+    /// The debugger driving the run, or `null`.
+    debug: DebugSession! | null
+}
+
+// A debugger's state across the stops of one run.
+DebugSession :: struct {
+    controller: DebugController
+    /// The line of the last `Line` op, so a line stops once, at its first op.
+    last_line: i32
+    /// How to resume after the last stop, and the frame depth it was taken at.
+    step_mode:  StepMode
+    step_depth: i32
 }
 
 // Grow the register file to at least `count` registers.
@@ -87,55 +105,63 @@ move_register :: fn(m: RegMachine!, to: usize, from: usize) -> void {
     m.refs[to] = m.refs[from]
 }
 
-// Call a function the register engine did not translate, with the arguments in
-// registers `[at, at + arity)` ; its result lands in `at`.
-call_untranslated :: fn(state: VmState, m: RegMachine!, index: i32, at: usize, is_comptime: bool) -> Trap | null {
-    callee :: state.bc.functions[usize(index)]
-    args: Value![]!: []
-    for i in 0..<callee.signature.params.len() {
-        args.push(register_value(m, at + i))
-    }
-    result :: legacy_call(state, m.run, index, args, is_comptime)
-    if result is Trap {
-        return result
-    }
-    if result != null {
-        set_register(m, at, result)
-    }
-    return null
-}
-
-/// Run `code.functions[entry_index]`, which must be translated ; see
-/// `exec_entry` for the parameters.
+/// Run `code.functions[entry_index]` ; see `exec_entry` for the parameters.
 reg_run :: fn(
     state: VmState, code: RegModule, entry_index: i32, host_argv: string[], capture: Value[]! | null,
-    is_comptime: bool,
+    is_comptime: bool, debug: DebugController | null,
 ) -> VmResult {
     entry_function :: state.bc.functions[usize(entry_index)]
     args :: build_main_args(entry_function, host_argv, state.string_array_type_id)
     if args is Trap {
         return args
     }
-    f := code.functions[usize(entry_index)] ?? return Trap { .message = "reg_run: untranslated entry" }
+    session: DebugSession! | null: if debug != null {
+        DebugSession { .controller = debug, .last_line = -1, .step_mode = .Continue, .step_depth = 0 }
+    } else {
+        null
+    }
     m :: RegMachine {
         .bits         = [],
         .tags         = [],
         .refs         = [],
         .run          = new_run_host(),
         .scratch      = scratch_frame(),
-        .frame_code   = [f],
-        .frame_base   = [0],
-        .frame_return = [0],
+        .frame_code   = [],
+        .frame_base   = [],
+        .frame_return = [],
+        .defers       = [],
+        .defer_count  = 0,
+        .debug        = session,
     }
-    reserve_registers(m, f.registers)
+    reserve_registers(m, code.functions[usize(entry_index)].registers)
     for i in 0..<args.len() {
         set_register(m, i, args[i])
     }
-    load_constants(m, f, 0)
+    outcome :: reg_call(state, code, m, entry_index, 0, 0, 0, is_comptime)
+    if outcome is Trap {
+        unwind(state, code, m, is_comptime)
+        return outcome
+    }
+    return finish_run(m, bc.bc_result_arity(entry_function.signature) == 1, capture)
+}
+
+// Run function `entry`, its arguments in the registers from `window`, as the frame
+// at `depth0`, until it returns ; its results land from `window`. `resume` is the pc
+// the frame below continues at, for the debugger's call stack.
+reg_call :: fn(
+    state: VmState, code: RegModule, m: RegMachine!, entry: i32, window: usize, depth0: usize, resume: usize,
+    is_comptime: bool,
+) -> Trap | null {
+    f := code.functions[usize(entry)]
+    if depth0 >= usize(MAX_FRAME_DEPTH) {
+        return overflow_trap(f.name)
+    }
+    enter_frame(m, f, window)
+    push_frame_record(m, depth0, f, window, resume)
     step_budget :: if is_comptime { COMPTIME_STEP_BUDGET } else { STEP_BUDGET_UNREACHABLE }
     steps: i64 = 0
-    depth: usize = 1
-    base: usize = 0
+    depth: usize = depth0 + 1
+    base: usize = window
     pc: usize = 0
     ops := f.ops
     words := f.words
@@ -400,6 +426,27 @@ reg_run :: fn(
                 }
             }
             .Trap -> { return Trap { .message = f.texts[usize(operand_a(w))] } }
+            .DeferPush -> {
+                closure :: register_value(m, base + usize(operand_a(w)))
+                if m.defer_count < m.defers.len() {
+                    m.defers[m.defer_count] = closure
+                } else {
+                    m.defers.push(closure)
+                }
+                m.defer_count += 1
+            }
+            .DeferRun -> {
+                failed :: run_defers(state, code, m, f, pc, base + f.registers, depth, is_comptime)
+                if failed != null {
+                    return failed
+                }
+            }
+            .Line -> {
+                session :: m.debug
+                if session != null {
+                    stop_at_line(state, m, session, f, pc, depth)
+                }
+            }
             .ConstRef -> {
                 to :: base + usize(operand_a(w))
                 refs[to] = f.values[usize(operand_b(w))]
@@ -466,30 +513,19 @@ reg_run :: fn(
                 // A negative index: a host primitive impl served the call.
                 if index >= 0 {
                     callee :: code.functions[usize(index)]
-                    if callee == null {
-                        failed :: call_untranslated(state, m, index, at, is_comptime)
-                        if failed != null {
-                            return failed
-                        }
-                    } else {
-                        steps += 1
-                        if depth >= usize(MAX_FRAME_DEPTH) {
-                            return overflow_trap(callee.name)
-                        }
-                        reserve_registers(m, at + callee.registers)
-                        for r in at + callee.params..<at + callee.slots {
-                            tags[r] = .Null
-                        }
-                        load_constants(m, callee, at)
-                        push_frame_record(m, depth, callee, at, pc + 1)
-                        depth += 1
-                        base = at
-                        f = callee
-                        ops = f.ops
-                        words = f.words
-                        pc = 0
-                        continue
+                    steps += 1
+                    if depth >= usize(MAX_FRAME_DEPTH) {
+                        return overflow_trap(callee.name)
                     }
+                    enter_frame(m, callee, at)
+                    push_frame_record(m, depth, callee, at, pc + 1)
+                    depth += 1
+                    base = at
+                    f = callee
+                    ops = f.ops
+                    words = f.words
+                    pc = 0
+                    continue
                 }
             }
             .Return | .ReturnMany -> {
@@ -503,11 +539,11 @@ reg_run :: fn(
                     move_register(m, base, base + usize(result))
                 }
                 depth -= 1
-                if depth == 0 {
-                    if many {
+                if depth == depth0 {
+                    if many && depth0 == 0 {
                         return Trap { .message = "return: a multi-value return reached the outermost frame" }
                     }
-                    return finish_run(m, result >= 0, capture)
+                    return null
                 }
                 pc = m.frame_return[depth]
                 base = m.frame_base[depth - 1]
@@ -683,7 +719,7 @@ resolve_virtual :: fn(
     }
     outcome :: dispatch_import(
         info, args, 0, m.run.gc_state, m.run.sched_state, origin, state.string_array_type_id,
-        state.u8_array_type_id, state.io_error_type_id, state.bc.types, is_comptime, null,
+        state.u8_array_type_id, state.io_error_type_id, state.bc.types, is_comptime, debug_controller(m),
         bc.intrinsic_id_for(mangle),
     )
     if outcome is Trap {
@@ -697,17 +733,11 @@ resolve_virtual :: fn(
 scratch_frame :: fn() -> Frame! {
     width: usize: 8
     return Frame {
-        .function_index = 0,
-        .slots          = [],
-        .stack          = width.filled(() -> NullVal {}),
-        .payload        = [0] * width,
-        .tag            = [.Null] * width,
-        .slot_payload   = [],
-        .slot_tag       = [],
-        .sp             = 0,
-        .pc             = 0,
-        .defers         = [],
-        .defer_count    = 0,
+        .stack   = width.filled(() -> NullVal {}),
+        .payload = [0] * width,
+        .tag     = [.Null] * width,
+        .sp      = 0,
+        .pc      = 0,
     }
 }
 
@@ -729,9 +759,6 @@ run_boxed :: fn(state: VmState, m: RegMachine!, f: RegFunction, pc: usize, base:
     frame.sp = pops
     frame.pc = f.origin[pc]
     outcome :: apply_boxed(state, m.run, f.boxed[usize(operand_a(w))], frame, f.name)
-    if outcome is BoxedUnwind {
-        return outcome.trap
-    }
     if outcome is Trap {
         return outcome
     }
@@ -753,7 +780,7 @@ call_import :: fn(state: VmState, m: RegMachine!, index: i32, at: usize, origin:
     }
     outcome :: dispatch_import(
         info, args, 0, m.run.gc_state, m.run.sched_state, origin, state.string_array_type_id,
-        state.u8_array_type_id, state.io_error_type_id, state.bc.types, is_comptime, null,
+        state.u8_array_type_id, state.io_error_type_id, state.bc.types, is_comptime, debug_controller(m),
         state.import_ids[usize(index)],
     )
     if outcome is Trap {
@@ -763,6 +790,140 @@ call_import :: fn(state: VmState, m: RegMachine!, index: i32, at: usize, origin:
         set_register(m, at, outcome.value)
     }
     return null
+}
+
+// The debugger driving the run, for the host's output hook.
+debug_controller :: fn(m: RegMachine) -> DebugController | null {
+    session :: m.debug
+    return if session != null { session.controller } else { null }
+}
+
+// Make `f`'s frame at `base`: room for its registers, its locals cleared, its
+// constants loaded.
+enter_frame :: fn(m: RegMachine!, f: RegFunction, base: usize) -> void {
+    reserve_registers(m, base + f.registers)
+    for r in base + f.params..<base + f.slots {
+        m.tags[r] = .Null
+    }
+    load_constants(m, f, base)
+}
+
+// `defer.pop_exec`: pop the last `count` deferred closures and run them, the last
+// pushed first, from register `at` — above the frame running them, at `depth`.
+run_defers :: fn(
+    state: VmState, code: RegModule, m: RegMachine!, f: RegFunction, pc: usize, at: usize, depth: usize,
+    is_comptime: bool,
+) -> Trap | null {
+    count :: operand_a(f.words[pc])
+    if count <= 0 {
+        return null
+    }
+    origin :: f.origin[pc]
+    if m.defer_count < usize(count) {
+        return Trap { .message = "defer.pop_exec underflow (count=${count}, have=${m.defer_count}) at pc=${origin}" }
+    }
+    first :: m.defer_count - usize(count)
+    // Copied out: a thunk's own `defer`s reuse the slots above `first`.
+    batch: FnVal![]!: []
+    for k in first..<m.defer_count {
+        thunk :: defer_thunk(state, m.defers[k], origin, "defer.pop_exec")
+        if thunk is Trap {
+            return thunk
+        }
+        batch.push(thunk)
+    }
+    m.defer_count = first
+    k := batch.len()
+    for k > 0 {
+        k -= 1
+        failed :: run_thunk(state, code, m, batch[k], at, depth, pc + 1, is_comptime)
+        if failed != null {
+            return failed
+        }
+    }
+    return null
+}
+
+// The fn value a deferred closure holds, checked to take exactly its environment.
+defer_thunk :: fn(state: VmState, closure: Value, origin: i32, label: string) -> FnVal | Trap {
+    thunk :: read_fn(closure, origin, "${label} entry")
+    if thunk is Trap {
+        return thunk
+    }
+    checked :: validate_fn_index(thunk.function_index, state.bc.functions, origin, label)
+    if checked is Trap {
+        return checked
+    }
+    callee :: state.bc.functions[usize(thunk.function_index)]
+    if callee.signature.params.len() != 1 {
+        return Trap { .message = "defer thunk '${callee.name}' must take exactly one env param at pc=${origin}" }
+    }
+    return thunk
+}
+
+// Run a deferred closure, its environment in register `at`.
+run_thunk :: fn(
+    state: VmState, code: RegModule, m: RegMachine!, thunk: FnVal!, at: usize, depth: usize, resume: usize,
+    is_comptime: bool,
+) -> Trap | null {
+    reserve_registers(m, at + 1)
+    if thunk.env != null {
+        set_register(m, at, thunk.env)
+    } else {
+        m.tags[at] = .Null
+    }
+    return reg_call(state, code, m, thunk.function_index, at, depth, resume, is_comptime)
+}
+
+// A trap ended the run: run every pending `defer`, the last pushed first. One that
+// traps in turn ends the unwind — its own trap is dropped for the first.
+unwind :: fn(state: VmState, code: RegModule, m: RegMachine!, is_comptime: bool) -> void {
+    for m.defer_count > 0 {
+        m.defer_count -= 1
+        thunk :: defer_thunk(state, m.defers[m.defer_count], 0, "panic unwind defer")
+        if thunk is Trap {
+            return
+        }
+        if run_thunk(state, code, m, thunk, 0, 0, 0, is_comptime) != null {
+            return
+        }
+    }
+}
+
+// The `Line` op at `pc`: stop when its source line carries a breakpoint or ends
+// the step in progress — at the line's first op only.
+stop_at_line :: fn(state: VmState, m: RegMachine, session: DebugSession!, f: RegFunction, pc: usize, depth: usize) -> void {
+    position :: state.bc.functions[usize(f.index)].debug[usize(f.origin[pc])] ?? return
+    if position.line == session.last_line {
+        return
+    }
+    session.last_line = position.line
+    here :: i32(depth)
+    breakpoint :: line_has_breakpoint(session.controller, position.file, position.line)
+    if !breakpoint && !step_should_stop(session.step_mode, session.step_depth, here) {
+        return
+    }
+    reason :: if breakpoint { "breakpoint" } else { "step" }
+    session.step_mode = session.controller.on_pause(pause_context(state, m, reason, pc, depth))
+    session.step_depth = here
+}
+
+// The paused call stack, innermost frame first. A caller's pc is the op after its
+// call, so its line is the call site's.
+pause_context :: fn(state: VmState, m: RegMachine, reason: string, pc: usize, depth: usize) -> PauseCtx {
+    frames: PauseFrame[]!: []
+    k := depth
+    for k > 0 {
+        k -= 1
+        code :: m.frame_code[k]
+        at :: if k == depth - 1 { pc } else { m.frame_return[k + 1] }
+        slots: Value[]!: []
+        for s in 0..<code.slots {
+            slots.push(register_value(m, m.frame_base[k] + s))
+        }
+        frames.push(pause_frame(state.bc, state.bc.functions[usize(code.index)], slots, code.origin[at]))
+    }
+    return PauseCtx { .reason = reason, .frames = frames }
 }
 
 // Load `f`'s constants into their registers, for a frame starting at `base`.

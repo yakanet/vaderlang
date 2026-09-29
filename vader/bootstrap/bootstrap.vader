@@ -18,10 +18,9 @@
 // below) embeds the VM to bake loop-bearing `@comptime` decls, and `std/core`
 // (the implicit prelude, hence always loaded) has nine of them in
 // `dtoa_tables.vader` / `parse_float_tables.vader`. That is load-bearing, not an
-// oversight, but it is not free : `vader/vm` is ~17 % of the emitted seed, of
-// which `exec_entry` alone is ~14 %. Dropping it would mean freezing those
-// tables as literals — a deliberate reversal of the dtoa chantier, not a
-// cleanup.
+// oversight, but it is not free : the whole VM ships in every seed. Dropping
+// it would mean freezing those tables as literals — a deliberate reversal of
+// the dtoa chantier, not a cleanup.
 //
 // The pipeline-driver helpers below are duplicated from `vader/cli/main.vader`
 // (deliberate trade-off : no shared `driver` module, see docs/BOOTSTRAP.md).

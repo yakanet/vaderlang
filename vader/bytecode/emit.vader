@@ -110,7 +110,7 @@ export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) 
 /// Bitmap over body PCs : `true` at every PC that is a jump TARGET (a
 /// non-negative `jump_table` entry). A peephole must never fold an op that a
 /// branch lands on. Shared by `run_bc_peephole`, `strip_self_copies` and the
-/// interpreter's load-time fuse pass (`vader/vm/fuse.vader`).
+/// VM's translation to register code (`vader/vm/reg_translate.vader`).
 ///
 /// @param jump_table  the function's PC→target table.
 /// @param n           body length (bitmap size).

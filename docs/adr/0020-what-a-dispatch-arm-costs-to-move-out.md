@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted, 2026-09-21.
+Accepted, 2026-09-21. **Superseded by
+[0024](0024-the-vm-runs-register-code-translated-at-load.md) (2026-09-29)**: the
+dispatch loop it measures is gone.
 
 ## Context
 

@@ -4,9 +4,7 @@
 // arms unwrap the args from the caller stack, invoke the corresponding
 // native stdlib intrinsic, and wrap the result back into an `Value`.
 // The shape is a flat mangled-name cascade with trap-on-miss
-// semantics. Lives in its own file (split out of
-// `vader/vm/exec.vader` 2026-05-14) so the executor stays focused on
-// the dispatch loop.
+// semantics.
 
 module "vader/vm"
 
