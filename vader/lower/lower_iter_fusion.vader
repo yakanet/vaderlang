@@ -169,10 +169,16 @@ BodyTemplate :: struct {
 // concrete — the UFCS receiver type-param concretization in `call.vader` binds the
 // chain's source `T` from the receiver, so the fused raw push matches the slot.)
 
-/// The iterator argument of a terminal call named `name`, or null. Recognises
-/// the UFCS form `<chain>.name()` (FieldExpr callee, no extra args) and the
-/// free-fn form `name(<chain>)` (IdentExpr callee, one arg).
-terminal_arg :: fn(call: AST.CallExpr, name: string) -> AST.Expr | null {
+/// The iterator argument of a call to std's terminal `name`, or null.
+terminal_arg :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, name: string) -> AST.Expr | null {
+    chain :: terminal_arg_shape(call, name) ?? return null
+    return if reaches_std_terminal(ctx, call, chain, name) { chain } else { null }
+}
+
+// The iterator argument of a call named `name`, or null. Recognises the UFCS form
+// `<chain>.name()` (FieldExpr callee, no extra args) and the free-fn form
+// `name(<chain>)` (IdentExpr callee, one arg).
+terminal_arg_shape :: fn(call: AST.CallExpr, name: string) -> AST.Expr | null {
     if call.callee is AST.FieldExpr as fe {
         if fe.field == name && call.args.len() == 0 { return fe.target }
     }
@@ -185,34 +191,35 @@ terminal_arg :: fn(call: AST.CallExpr, name: string) -> AST.Expr | null {
 /// Fuse a `count` / `collect` terminal over a fusible chain into a flat
 /// accumulator loop, or null when the call isn't such a terminal-over-chain (a
 /// terminal over a non-chain — e.g. the eager `count(arr)` array overload —
-/// declines here and lowers normally).
+/// declines here and lowers normally), or when it reaches another fn of the
+/// terminal's name.
 ///
 /// @param call  the terminal call expression.
 /// @param type  the call's result type from typecheck (`usize` / `element[]`).
 /// @return      a block-expression evaluating to the accumulated result, or null.
 export try_lower_terminal_fusion :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
-    count_arg :: terminal_arg(call, "count")
+    count_arg :: terminal_arg(ctx, call, "count")
     if count_arg != null {
         chain :: top_level_chain(ctx, count_arg) ?? return null
         return emit_count_fusion(ctx, chain, call.span)
     }
-    collect_arg :: terminal_arg(call, "collect")
+    collect_arg :: terminal_arg(ctx, call, "collect")
     if collect_arg != null {
         chain :: top_level_chain(ctx, collect_arg) ?? return null
         return emit_collect_fusion(ctx, chain, type, call.span)
     }
     // Early-exit predicate terminals — any_match / all_match / find.
-    any_call :: terminal_pred_arg(call, "any_match")
+    any_call :: terminal_pred_arg(ctx, call, "any_match")
     if any_call != null {
         chain :: top_level_chain(ctx, any_call.chain_arg) ?? return null
         return emit_bool_terminal(ctx, chain, any_call.pred, call.span, false, true, false)
     }
-    all_call :: terminal_pred_arg(call, "all_match")
+    all_call :: terminal_pred_arg(ctx, call, "all_match")
     if all_call != null {
         chain :: top_level_chain(ctx, all_call.chain_arg) ?? return null
         return emit_bool_terminal(ctx, chain, all_call.pred, call.span, true, false, true)
     }
-    find_call :: terminal_pred_arg(call, "find")
+    find_call :: terminal_pred_arg(ctx, call, "find")
     if find_call != null {
         chain :: top_level_chain(ctx, find_call.chain_arg) ?? return null
         return emit_find_terminal(ctx, chain, find_call.pred, call.span)
@@ -220,12 +227,36 @@ export try_lower_terminal_fusion :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, typ
     return null
 }
 
-// A terminal taking a predicate — its `(chain, pred)` args, or null. Recognises
-// the UFCS form `<chain>.name(pred)` (FieldExpr callee, one arg) and the free-fn
-// form `name(<chain>, pred)` (IdentExpr callee, two args).
+// Whether `call` reaches std's own terminal `name`. The terminals are recognised
+// by name, so without this a fn of that name declared elsewhere — a local `find`,
+// or one imported while std/iter's is excluded — would lower with std's
+// semantics. `count` is not a std/iter fn but the `Iterator` trait's default
+// method (std/core): std's own is then the call no free fn takes.
+reaches_std_terminal :: fn(
+    ctx: FnLowerCtx!, call: AST.CallExpr, chain_arg: AST.Expr, name: string,
+) -> bool {
+    callee :: combinator_callee_sym(ctx, call, chain_arg)
+    if name == "count" {
+        return callee == null
+    }
+    std_fn :: module_export(ctx.project, "std/iter", name) ?? return false
+    return callee != null && callee.id == std_fn.id
+}
+
+// A terminal taking a predicate — its `(chain, pred)` args, or null.
 TerminalPredCall :: struct { chain_arg: AST.Expr, pred: AST.Expr }
 
-terminal_pred_arg :: fn(call: AST.CallExpr, name: string) -> TerminalPredCall | null {
+terminal_pred_arg :: fn(
+    ctx: FnLowerCtx!, call: AST.CallExpr, name: string,
+) -> TerminalPredCall | null {
+    found :: terminal_pred_shape(call, name) ?? return null
+    return if reaches_std_terminal(ctx, call, found.chain_arg, name) { found } else { null }
+}
+
+// The `(chain, pred)` args of a call named `name`, or null. Recognises the UFCS
+// form `<chain>.name(pred)` (FieldExpr callee, one arg) and the free-fn form
+// `name(<chain>, pred)` (IdentExpr callee, two args).
+terminal_pred_shape :: fn(call: AST.CallExpr, name: string) -> TerminalPredCall | null {
     if call.callee is AST.FieldExpr as fe {
         if fe.field == name && call.args.len() == 1 {
             return TerminalPredCall { .chain_arg = fe.target, .pred = call.args[0].value }

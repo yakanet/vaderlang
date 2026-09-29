@@ -1,0 +1,24 @@
+// A module's own `find` / `any_match` / `collect` / `count` over a fusible chain
+// is called as written. Terminal fusion replaces a call with std's accumulator
+// loop, so it must only fire on std's own terminals: each local fn here answers a
+// sentinel std's would never give (std: 4, 4, true, 4, 4).
+module "snippet"
+
+import "std/io"
+import "std/iter" { find as _, any_match as _, collect as _ }
+
+find :: fn(it: Iterator<i32>, pred: fn(i32) -> bool) -> i32 = -1
+any_match :: fn(it: Iterator<i32>, pred: fn(i32) -> bool) -> bool = false
+collect :: fn(it: Iterator<i32>) -> i32[] = [0]
+// A free fn takes `.count()` over the trait's default method.
+count :: fn(it: Iterator<i32>) -> usize = 99
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3, 4]
+    println("${xs.map((x: i32) -> x * 2).find((x: i32) -> x > 2)}")        // -1
+    println("${find(xs.map((x: i32) -> x * 2), (x: i32) -> x > 2)}")       // -1
+    println("${xs.map((x: i32) -> x * 2).any_match((x: i32) -> x > 0)}")   // false
+    println("${xs.map((x: i32) -> x * 2).collect().len()}")                // 1
+    println("${xs.map((x: i32) -> x + 1).count()}")                        // 99
+    return 0
+}

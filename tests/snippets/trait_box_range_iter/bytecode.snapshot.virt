@@ -42,33 +42,15 @@ end
 
 fn 2 snippet$main () -> i32
   local a i32
-  local __count_0 usize
   local b i32
   local c i32
   local d i32
-  i64.const 0
-  local.set 1   ; __count_0
   i32.const 0
-  local.set 0   ; a
-  block $L0 void
-    loop $L1 void
-      local.get 0   ; a
-      i32.const 5
-      i32.lt
-      if $L2 void
-        local.get 1   ; __count_0
-        i64.const 1
-        i64.add
-        local.set 1   ; __count_0
-        local.get 0   ; a
-        i32.const 1
-        i32.add
-        local.set 0   ; a
-        br $L1
-      end $L2
-    end $L1
-  end $L0
-  local.get 1   ; __count_0
+  i32.const 5
+  bool.const false
+  i32.const 0
+  struct.new 6   ; std_core$Range__i32
+  call 3   ; snippet$count__i32
   local.set 0   ; a
   i32.const 10
   i32.const 20
@@ -76,19 +58,19 @@ fn 2 snippet$main () -> i32
   array.new 13 3   ; i32[][]
   call 11   ; std_core$[]$Into$into__i32
   call 3   ; snippet$count__i32
-  local.set 2   ; b
+  local.set 1   ; b
   struct.new 1   ; snippet$Hello
   call 4   ; snippet$invoke__i32
-  local.set 3   ; c
+  local.set 2   ; c
   i32.const 7
   call 5   ; snippet$twice__i32
-  local.set 4   ; d
+  local.set 3   ; d
   local.get 0   ; a
-  local.get 2   ; b
+  local.get 1   ; b
   i32.add
-  local.get 3   ; c
+  local.get 2   ; c
   i32.add
-  local.get 4   ; d
+  local.get 3   ; d
   i32.add
   return
 end

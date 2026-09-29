@@ -3411,7 +3411,7 @@ zip       :: fn<T, U>(self: T[], other: U[])                 -> Iterator<[T, U]>
 collect  :: fn<T>(it: Iterator<T>) -> T[]                    // the way to get a T[] back
 fold     :: fn<T, U>(it: Iterator<T>, init: U, f: fn(U, T) -> U) -> U
 sum / count / is_empty                                       // whole-stream reductions
-any / all / find / find_map                                 // stop on the first match
+any_match / all_match / find / find_map                      // stop on the first match
 ```
 
 The blanket `T[] implements<T> Into<Iterator<T>>` makes a raw array drop into any `Iterator<T>` slot, so the combinators resolve **directly on a bare array** — no cursor, no explicit wrap:
