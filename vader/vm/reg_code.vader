@@ -1,0 +1,177 @@
+// vader/vm/reg_code — the private code the register engine runs.
+//
+// `reg_translate.vader` turns each verified function into a `RegFunction` once, at
+// `prepare`; `reg_exec.vader` runs it. A function's registers are a window of one
+// register file shared by the whole execution: its parameters, its locals, its
+// constants, then one register per operand-stack depth. A callee's window starts at the register
+// holding its first argument, so arguments are never copied and its result lands
+// where the caller expects it.
+//
+// A register operand is an offset from the frame's base.
+
+module "vader/vm"
+
+bc :: import "vader/bytecode"
+
+// One register op. `a` / `b` / `c` name its operands; the comment gives their
+// meaning, registers written `r`.
+RegOp :: enum {
+    // r[a] <- r[b], all three columns.
+    Move
+    // r[a] <- r[b], bits and tag only: `b` is proven never to hold a reference.
+    MoveScalar
+    // Integer and float arithmetic: r[a] <- r[b] op r[c] ; unary ops read r[b].
+    AddI32
+    SubI32
+    MulI32
+    DivI32
+    ModI32
+    AndI32
+    OrI32
+    XorI32
+    ShlI32
+    ShrI32
+    ShrUI32
+    NegI32
+    NotI32
+    DivU32
+    ModU32
+    EqI32
+    NeI32
+    LtI32
+    LeI32
+    GtI32
+    GeI32
+    LtU32
+    LeU32
+    GtU32
+    GeU32
+    AddI64
+    SubI64
+    MulI64
+    DivI64
+    ModI64
+    AndI64
+    OrI64
+    XorI64
+    ShlI64
+    ShrI64
+    ShrUI64
+    NegI64
+    NotI64
+    DivU64
+    ModU64
+    EqI64
+    NeI64
+    LtI64
+    LeI64
+    GtI64
+    GeI64
+    LtU64
+    LeU64
+    GtU64
+    GeU64
+    AddF64
+    SubF64
+    MulF64
+    DivF64
+    NegF64
+    EqF64
+    NeF64
+    LtF64
+    LeF64
+    GtF64
+    GeF64
+    EqBool
+    NeBool
+    AndBool
+    OrBool
+    NotBool
+    // r[a] <- r[b] as an i32 ; as an i64, sign- or zero-extended (`ToI64U`).
+    ToI32
+    ToI64
+    ToI64U
+    // pc <- a.
+    Jump
+    // pc <- a, a back edge: `b` original ops ran since the target (the comptime
+    // step budget).
+    JumpBack
+    // pc <- a when r[b] is false / true.
+    JumpIfFalse
+    JumpIfTrue
+    // Call function `a` with its arguments from r[b] ; its results land from r[b].
+    Call
+    // Call the function value on top of `c` arguments from r[b] ; `a` is its fn type.
+    CallIndirect
+    // Dispatch virtuals[a] on the receiver above its arguments from r[b].
+    VirtualCall
+    // Truncate r[a] to width `b`: 0 `u8`, 1 `i8`, 2 `u16`, 3 `i16` (`narrow_mask`).
+    Narrow
+    // Return r[a], or nothing when `a` is negative.
+    Return
+    // Return the `b` values from r[a].
+    ReturnMany
+    // The comptime step budget, counted on a back edge: `b` original ops ran since
+    // the jump target.
+    Budget
+    // r[a] <- values[b], a reference built once.
+    ConstRef
+    // r[a] <- field `c` of the struct in r[b] ; field `c` of the struct in r[a] <- r[b].
+    GetField
+    SetField
+    // r[a] <- element r[c] of the array in r[b] ; element r[b] of the array in r[a]
+    // <- r[c] ; r[a] <- the length of the array in r[b] ; append r[b] to the array
+    // in r[a].
+    GetElement
+    SetElement
+    Length
+    Append
+    // Run boxed[a] on its operands from r[b] (`apply_boxed`) ; `c` packs the
+    // values it pops, then eight bits up the values it pushes.
+    Boxed
+    // Call host import `a` with its arguments from r[b] ; its result lands in r[b].
+    CallImport
+    // Stop the run with texts[a].
+    Trap
+}
+
+// One op and its operands ; one object, so fetching an op reads one element.
+RegInstr :: struct {
+    op: RegOp
+    a:  i32
+    b:  i32
+    c:  i32
+}
+
+// One function, translated.
+RegFunction :: struct {
+    name:      string
+    code:      RegInstr![]!
+    /// Original pc of each op, for trap messages.
+    origin:    i32[]!
+    /// The function's scalar constants, loaded into the registers from `slots`
+    /// when a frame starts.
+    consts:    i64[]!
+    const_tags: StackTag[]!
+    /// The references `ConstRef` loads.
+    values:    Value![]!
+    /// The ops `Boxed` runs.
+    boxed:     bc.Op[]!
+    /// The calls `VirtualCall` dispatches.
+    virtuals:  bc.VirtualCall[]!
+    texts:     string[]!
+    /// Parameters, locals, then one register per operand-stack depth.
+    registers: usize
+    params:    usize
+    /// Parameters plus locals: the registers a call resets.
+    slots:     usize
+    /// The functions it calls that return several values: it runs here only if
+    /// they do too, since `exec_legacy` hands back one value.
+    multi_calls: i32[]!
+}
+
+// The translated module: one entry per function, `null` for a function the
+// register engine does not run — it runs on `exec_legacy`.
+RegModule :: struct {
+    functions: (RegFunction | null)[]
+}

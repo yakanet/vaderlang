@@ -13,6 +13,7 @@
 module "vader/vm"
 
 import "std/collections"
+import "std/env"
 bc :: import "vader/bytecode"
 
 /// Runtime state the executor threads through its call chain. `bc` is the
@@ -65,6 +66,10 @@ export VmState :: struct {
     /// the frame becomes active, so no push checks capacity.
     @internal
     max_depth: usize[]
+    /// The functions the register engine runs (`reg_translate.vader`), or `null`
+    /// when it is off.
+    @internal
+    reg: RegModule | null = null
 }
 
 /// Verify a `BytecodeModule` and wrap it in the runtime `VmState` `exec`
@@ -81,10 +86,13 @@ export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState | VerifyError {
     if depths is VerifyError {
         return depths
     }
-    mistyped :: check_module_tags(bc_mod, infer_module_tags(bc_mod, depths))
+    facts :: infer_module_tags(bc_mod, depths)
+    mistyped :: check_module_tags(bc_mod, facts)
     if mistyped != null {
         return mistyped
     }
+    switch :: get_env("VADER_VM_REG") ?? ""
+    reg: RegModule | null: if switch == "1" { translate_module(bc_mod, facts) } else { null }
     narrow: bool[]!: [] * bc_mod.functions.len()
     for f in bc_mod.functions {
         narrow.push(fn_has_narrow_slot(f))
@@ -114,5 +122,6 @@ export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState | VerifyError {
         .fused                = fuse_module(bc_mod),
         .import_ids           = import_ids,
         .max_depth            = depths,
+        .reg                  = reg,
     }
 }

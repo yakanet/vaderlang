@@ -554,7 +554,7 @@ dispatch_call_into :: fn(frame: Frame!, frames: Frame![]!, frame_count: usize[]!
     frame.pc = frame.pc + 1
     push_callee_frame(frames, frame_count, function_index, callee, frame, arg_base, env)
     if frame_count[0] > usize(MAX_FRAME_DEPTH) {
-        return Trap { .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${callee.name}'" }
+        return overflow_trap(callee.name)
     }
     return null
 }
@@ -907,7 +907,9 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
 /// @error                        a `Trap` when the entry takes more than one
 ///                               parameter, or one that cannot hold a `string[]`.
 build_main_args :: fn(
-    entry: bc.BcFunction, host_argv: string[], string_array_type_id: i32,
+    entry: bc.BcFunction,
+    host_argv: string[],
+    string_array_type_id: i32,
 ) -> Value![] | Trap {
     out: Value![]!: []
     params :: entry.signature.params
@@ -1017,14 +1019,15 @@ narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
     } else {
         return v
     }
-    m :: raw & ((i64(1) << bits) - i64(1))
-    signed :: vt == .I8 || vt == .I16
-    out: i64 = m
-    if signed && (m & (i64(1) << (bits - i64(1)))) != i64(0) {
-        // top bit set ⇒ sign-extend
-        out = m - (i64(1) << bits)
-    }
-    return I32Val { .value = i32(out) }
+    return I32Val { .value = truncate_to_width(raw, bits, vt == .I8 || vt == .I16) }
+}
+
+// `raw` cut to its low `bits` bits, sign-extended when `signed`.
+truncate_to_width :: fn(raw: i64, bits: i64, signed: bool) -> i32 {
+    masked :: raw & ((1 << bits) - 1)
+    // Top bit set ⇒ sign-extend.
+    out :: if signed && masked & (1 << (bits - 1)) != 0 { masked - (1 << bits) } else { masked }
+    return i32(out)
 }
 
 // Declared ValType of a local slot. Params occupy the low slots
@@ -1069,12 +1072,61 @@ field_valtype :: fn(types: bc.BcType[], type_index: i32) -> bc.ValType {
     return .Ref
 }
 
-/// Core interpreter loop, entered at `entry_index`. `exec` / `exec_fn` pick the
-/// entry (main vs a named `@test`).
-export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], capture: Value[]! | null, is_comptime: bool, debug: DebugController | null) -> VmResult {
+/// Run the module from `entry_index`. `exec` / `exec_fn` pick the entry (main vs a
+/// named `@test`).
+///
+/// A function the register engine translated runs there (`reg_exec.vader`) ; the
+/// rest, and every run a debugger drives, run on `exec_legacy`.
+///
+/// @param state        the prepared module.
+/// @param entry_index  the function to start.
+/// @param host_argv    forwarded CLI argv for a one-parameter entry.
+/// @param capture      a 1-cell box the entry's return value is published into,
+///                     or `null` for an exit code.
+/// @param is_comptime  true for a comptime evaluation, which has a step budget.
+/// @param debug        the debugger driving the run, or `null`.
+/// @return             the exit code, or the trap that stopped the run.
+export exec_entry :: fn(
+    state: VmState, entry_index: i32, host_argv: string[], capture: Value[]! | null, is_comptime: bool,
+    debug: DebugController | null,
+) -> VmResult {
     if entry_index < 0 || usize(entry_index) >= state.bc.functions.len() {
         return Trap { .message = "no entry function (index=${entry_index})" }
     }
+    code :: state.reg
+    if debug == null && code != null && code.functions[usize(entry_index)] != null {
+        return reg_run(state, code, entry_index, host_argv, capture, is_comptime)
+    }
+    return exec_legacy(state, entry_index, host_argv, null, capture, is_comptime, debug, null)
+}
+
+/// Run function `index` on `exec_legacy` with `args` — how the register engine
+/// calls a function it did not translate.
+///
+/// @param state        the prepared module.
+/// @param run          the host state of the run the call belongs to.
+/// @param index        the callee.
+/// @param args         its arguments.
+/// @param is_comptime  whether the caller runs a comptime evaluation.
+/// @return             the callee's result, or `null` when it leaves none.
+/// @error              the trap that stopped the callee.
+legacy_call :: fn(
+    state: VmState, run: RunHost!, index: i32, args: Value![], is_comptime: bool,
+) -> Value | Trap | null {
+    capture: Value[]!: [zero_value()]
+    outcome :: exec_legacy(state, index, [], args, capture, is_comptime, null, run)
+    if outcome is Trap {
+        return outcome
+    }
+    return if state.bc.functions[usize(index)].signature.results[0] == .Void { null } else { capture[0] }
+}
+
+/// Core interpreter loop, entered at `entry_index` ; `entry_args`, when given,
+/// replace the ones `build_main_args` makes from `host_argv`.
+exec_legacy :: fn(
+    state: VmState, entry_index: i32, host_argv: string[], entry_args: Value![] | null,
+    capture: Value[]! | null, is_comptime: bool, debug: DebugController | null, host: RunHost! | null,
+) -> VmResult {
 
     frames: Frame![]!: []
     frame_count: usize[]!: [0]
@@ -1083,16 +1135,17 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // need the counter to be present + monotonic. `dispatch_import`
     // bumps it on every `collect` call and reads it on every `collections`
     // query. Boxed because Vader has no module-level mutables.
-    // Increments monotonically within this invocation only — the box is
-    // discarded when `exec` returns, so cross-call persistence is not
-    // implied. Snippet tests check `after - before == N` within one run.
-    gc_state: usize[]!: [0]
+    // A nested run (`legacy_call`) shares its caller's `host`, so the counter
+    // is monotonic across one whole run. Snippet tests check
+    // `after - before == N` within one run.
+    run :: host ?? new_run_host()
+    gc_state :: run.gc_state
 
     // Async scheduler state, mirroring the C runtime's (invisible to the VM).
     // Index 0 = the virtual clock `now` ; indices 1.. = pending wake deadlines.
     // `dispatch_import` arms `sched_arm` (push) / `sched_park` (pop nearest +
-    // advance now). Boxed for the same reason as `gc_state` ; per-invocation.
-    sched_state: usize[]!: [0]
+    // advance now). Boxed and shared like `gc_state`.
+    sched_state :: run.sched_state
 
     // The `string[]` ArrayType index — stamped onto every host-produced
     // string array (argv, `read_dir`, `split`) so `is string[]` narrows
@@ -1112,7 +1165,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     // dispatch fn) past the bytecode emitter's per-function buffer limit —
     // a latent emit bug (array-index-OOB in emit at scale). The split is also
     // cleaner; the underlying limit still needs a real fix.
-    main_args :: build_main_args(main_function, host_argv, string_array_type_id)
+    main_args :: if entry_args != null { entry_args } else { build_main_args(main_function, host_argv, string_array_type_id) }
     if main_args is Trap {
         return main_args
     }
@@ -1162,10 +1215,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
     cur_narrow_result := is_single_narrow_result(body.signature)
     // Whether `return` moves several values — per-function, cached likewise.
     cur_multi_result := bc.bc_result_arity(body.signature) > 1
-    // Monotonic synthetic object-handle source for `buffer.new` (diagnostics
-    // only — object identity is the `ObjVal` reference itself, never a machine
-    // address). A 1-cell array so element mutation survives the `::` binding.
-    obj_handles :: [0]
 
     // Comptime runs are step-bounded so a non-terminating `@comptime` loop errors
     // instead of hanging the build ; a normal run gets a budget it cannot reach.
@@ -1208,9 +1257,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
         top :: frame_count[0] - 1
         steps += 1
         if steps > step_budget {
-            budget_msg :: ("comptime evaluation exceeded ${step_budget} steps "
-                + "(non-terminating @comptime?)")
-            return Trap { .message = budget_msg }
+            return budget_trap(step_budget)
         }
         if top != cur_top {
             frame = frames[top]
@@ -1473,25 +1520,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                             shift2 -= 1
                         }
                         push_val(frame, arg_base, receiver)
-                        // Synthesise a minimal `BcImport` so `dispatch_import`'s
-                        // host arms (which key on `mangled_name` + read the
-                        // signature's arity / non-Void result) fire as they do
-                        // for a real `call.import`. `params` carries one `Any`
-                        // slot per arg purely for the arity read ; `result` is a
-                        // non-Void placeholder so the result gets pushed back.
-                        synth_params: bc.ValType[]: [.Any] * usize(instr.parameter_count)
-                        synth_info :: bc.BcImport {
-                            .extern_name  = "",
-                            .mangled_name = host_mangle,
-                            .signature    = bc.BcSignature {
-                                .params      = synth_params,
-                                .results     = [.Any],
-                                .param_types = [],
-                                .result_types = [0],
-                                .param_names = [],
-                            },
-                            .is_extern    = false,
-                        }
+                        synth_info :: primitive_impl_import(host_mangle, usize(instr.parameter_count))
                         host_outcome :: dispatch_import(synth_info, peek_range(frame, arg_base, frame.sp), 0, gc_state, sched_state, frame.pc, string_array_type_id, u8_array_type_id, io_error_type_id, state.bc.types, is_comptime, debug, bc.intrinsic_id_for(host_mangle))
                         if host_outcome is Trap { return host_outcome }
                         if host_outcome is HostOk {
@@ -2501,7 +2530,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
             }
             // ---- memory opcodes (Target ABI) — inert until S3 -----------
             is bc.BufferNew -> {
-                outcome :: build_buffer(frame, obj_handles)
+                outcome :: build_buffer(frame, run.obj_handles)
                 if outcome is Trap { return outcome }
             }
             is bc.LoadU8 -> {
@@ -2908,6 +2937,433 @@ do_memory_copy :: fn(frame: Frame!) -> Trap | null {
     }
     frame.sp = frame.sp - 5
     frame.pc = frame.pc + 1
+    return null
+}
+
+// ---- register-engine support ---------------------------------------------
+
+/// Host state one run shares with every nested run it starts: the GC counter
+/// `std/runtime` reads, the async scheduler's virtual clock and wake deadlines
+/// (index 0 is `now`), and the handle source of `buffer.new`. Boxed cells, since
+/// `dispatch_import` and `build_buffer` update them in place.
+RunHost :: struct {
+    gc_state:    usize[]!
+    sched_state: usize[]!
+    obj_handles: i32[]!
+}
+
+new_run_host :: fn() -> RunHost! = RunHost { .gc_state = [0], .sched_state = [0], .obj_handles = [0] }
+
+// The trap of a comptime run past its step budget.
+budget_trap :: fn(budget: i64) = Trap {
+    .message = "comptime evaluation exceeded ${budget} steps (non-terminating @comptime?)",
+}
+
+// The trap of a call past `MAX_FRAME_DEPTH`.
+overflow_trap :: fn(name: string) = Trap {
+    .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${name}'",
+}
+
+// The import `dispatch_import` serves a host-provided impl on a primitive through
+// (`string implements Hash`) — it has no vtable row. Only the name, the arity and
+// a non-void result are read.
+primitive_impl_import :: fn(mangle: string, arity: usize) = bc.BcImport {
+    .extern_name  = "",
+    .mangled_name = mangle,
+    .signature    = bc.BcSignature {
+        .params       = [.Any] * arity,
+        .results      = [.Any],
+        .param_types  = [],
+        .result_types = [0],
+        .param_names  = [],
+    },
+    .is_extern    = false,
+}
+
+/// An op that trapped where the trap runs the pending defers of every frame, as a
+/// `panic` does — an out-of-bounds index.
+BoxedUnwind :: struct { trap: Trap }
+
+/// Run one op that reads and writes the operand stack of `frame` as boxed values,
+/// and advance `frame.pc` — the register engine's path for the ops it does not
+/// run itself, on a scratch frame holding the op's operands. The arms are copies of
+/// `exec_legacy`'s: keep the two in step.
+///
+/// @param state    the prepared module.
+/// @param run      the run's host state.
+/// @param instr    the op.
+/// @param frame    the frame whose stack holds the operands.
+/// @param fn_name  the running function, for trap messages.
+/// @return         `null` when the op ran.
+/// @error          a `Trap` that stops the run, or a `BoxedUnwind` that runs the
+///                 pending defers first.
+apply_boxed :: fn(
+    state: VmState, run: RunHost!, instr: bc.Op, frame: Frame!, fn_name: string,
+) -> Trap | BoxedUnwind | null {
+    // @partial: the ops the register engine runs itself.
+    @partial match instr {
+        is bc.FnRef -> {
+            push_val(frame, frame.sp, FnVal { .function_index = instr.function_index, .env = null })
+            frame.sp = frame.sp + 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.MakeClosure -> {
+            env_value :: peek_val(frame, frame.sp - 1)
+            push_val(frame, frame.sp - 1, FnVal { .function_index = instr.function_index, .env = env_value })
+            frame.pc = frame.pc + 1
+        }
+        is bc.StructNew -> {
+            outcome :: build_struct(state.bc.types, instr.type_id, frame)
+            if outcome is Trap { return outcome }
+        }
+        is bc.ArrayNew -> {
+            outcome :: build_array(instr.type_id, instr.length, frame)
+            if outcome is Trap { return outcome }
+        }
+        is bc.ArraySlice -> {
+            outcome :: exec_array_slice(frame, instr)
+            if outcome is Trap { return outcome }
+        }
+        is bc.ArrayRepeat -> {
+            outcome :: exec_array_repeat(frame)
+            if outcome is Trap { return outcome }
+        }
+        is bc.ArrayPushAll -> {
+            outcome :: exec_array_push_all(frame)
+            if outcome is Trap { return outcome }
+        }
+        is bc.ArrayCopy -> {
+            outcome :: exec_array_copy(frame)
+            if outcome is Trap { return outcome }
+        }
+        is bc.ArrayRemoveLast -> {
+            array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.remove_last receiver")
+            if array_unwrap is Trap { return array_unwrap }
+            if array_unwrap.length == 0 {
+                frame.tag[frame.sp - 1] = .Null
+            } else {
+                last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
+                // Shrink the SHARED backing when this array owns the tail —
+                // same rule as `array.clear` below, and as the native
+                // `vader_array_remove_last`. `data.const` hands out a fresh
+                // header over the pool entry's `elements`, so a length
+                // written only on the header is lost for a module-level
+                // array: the next read rebuilds it from `elements.len()`.
+                if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
+                    array_unwrap.elements.remove_last()
+                }
+                array_unwrap.length = array_unwrap.length - 1
+                push_val(frame, frame.sp - 1, last)
+            }
+            frame.pc = frame.pc + 1
+        }
+        is bc.ArrayClear -> {
+            array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.clear receiver")
+            if array_unwrap is Trap { return array_unwrap }
+            // Clear the SHARED backing when this array owns it, the way the
+            // native runtime shrinks `buf->length` in `vader_array_clear`.
+            // `data.const` hands out a FRESH header over the pool entry's
+            // `elements`, which is how a module-level array is reached, so
+            // rebinding the field here would leave that array untouched —
+            // `push` mutates the shared backing and would still see three
+            // elements after a `clear`. Emptying it in place keeps
+            // `elements.len()` as the logical length, so nothing resurfaces
+            // on the next push. A genuine slice view (offset != 0, or a
+            // shorter prefix) detaches instead and keeps its isolation.
+            if array_unwrap.offset == 0 && array_unwrap.length == array_unwrap.elements.len() {
+                array_unwrap.elements.clear()
+            } else {
+                array_unwrap.elements = []
+            }
+            array_unwrap.offset = 0
+            array_unwrap.length = 0
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.DataConst -> {
+            shared :: state.data_pool[usize(instr.pool_index)]
+            if shared.type_id == instr.type_id {
+                push_val(frame, frame.sp, shared)
+            } else {
+                // A writable entry (or a site at another type_id) : a fresh
+                // header over the same `elements`, as `.rodata` is shared
+                // natively.
+                push_val(frame, frame.sp, ArrayVal {
+                    .type_id  = instr.type_id,
+                    .elements = shared.elements,
+                    .offset   = 0,
+                    .length   = shared.elements.len(),
+                })
+            }
+            frame.sp = frame.sp + 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.RefCast -> {
+            frame.pc = frame.pc + 1
+        }
+        is bc.Box -> {
+            // No-op : VM values carry coarse tags (`I64Val` matches any
+            // `is`-of-an-I64-width type), so the box-tag refinement the
+            // C-emit needs is irrelevant here — just bump pc, like RefCast.
+            frame.pc = frame.pc + 1
+        }
+        is bc.Convert -> {
+            if !convert_int_fast(frame, instr.target, instr.from_name) {
+                v :: peek_val(frame, frame.sp - 1)
+                converted :: convert_value(v, instr.target, instr.from_name, frame.pc)
+                if converted is Trap {
+                    return Trap { .message = "${converted.message} (got ${describe_value_tag(v)}) in '${fn_name}'" }
+                }
+                push_val(frame, frame.sp - 1, converted)
+            }
+            frame.pc = frame.pc + 1
+        }
+        is bc.SizeOfType -> {
+            top_val :: peek_val(frame, frame.sp - 1)
+            if !(top_val is TypeVal) {
+                return Trap { .message = "intrinsic size_of.type: expected type value, got ${describe_value_tag(top_val)} at pc=${frame.pc}" }
+            }
+            type_id :: top_val.type_id
+            if type_id < 0 || usize(type_id) >= state.bc.types.len() {
+                return Trap { .message = "intrinsic size_of.type: type ${type_id} out of range at pc=${frame.pc}" }
+            }
+            size :: bc.size_of_bc_type(state.bc.types[usize(type_id)])
+            frame.payload[frame.sp - 1] = i64(size)
+            frame.tag[frame.sp - 1] = .I64
+            frame.pc = frame.pc + 1
+        }
+        is bc.I32Eq -> {
+            outcome :: apply_eq_binop(frame, "i32.eq", false)
+            if outcome is Trap { return outcome }
+        }
+        is bc.I32Ne -> {
+            outcome :: apply_eq_binop(frame, "i32.ne", true)
+            if outcome is Trap { return outcome }
+        }
+        is bc.BoolEq -> {
+            left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.eq")
+            if left  is Trap { return left  }
+            right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.eq")
+            if right is Trap { return right }
+            frame.payload[frame.sp - 2] = if left.value == right.value { 1 } else { 0 }
+            frame.tag[frame.sp - 2] = .Bool
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.BoolNe -> {
+            left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.ne")
+            if left  is Trap { return left  }
+            right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.ne")
+            if right is Trap { return right }
+            frame.payload[frame.sp - 2] = if left.value != right.value { 1 } else { 0 }
+            frame.tag[frame.sp - 2] = .Bool
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.BoolAnd -> {
+            left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.and")
+            if left  is Trap { return left  }
+            right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.and")
+            if right is Trap { return right }
+            frame.payload[frame.sp - 2] = if left.value && right.value { 1 } else { 0 }
+            frame.tag[frame.sp - 2] = .Bool
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.BoolOr -> {
+            left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.or")
+            if left  is Trap { return left  }
+            right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.or")
+            if right is Trap { return right }
+            frame.payload[frame.sp - 2] = if left.value || right.value { 1 } else { 0 }
+            frame.tag[frame.sp - 2] = .Bool
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.BoolNot -> {
+            operand :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.not")
+            if operand is Trap { return operand }
+            frame.payload[frame.sp - 1] = if !operand.value { 1 } else { 0 }
+            frame.tag[frame.sp - 1] = .Bool
+            frame.pc = frame.pc + 1
+        }
+        is bc.StringEq -> {
+            left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.eq")
+            if left  is Trap { return left  }
+            right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.eq")
+            if right is Trap { return right }
+            frame.payload[frame.sp - 2] = if left.value == right.value { 1 } else { 0 }
+            frame.tag[frame.sp - 2] = .Bool
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.StringNe -> {
+            left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.ne")
+            if left  is Trap { return left  }
+            right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.ne")
+            if right is Trap { return right }
+            frame.payload[frame.sp - 2] = if left.value != right.value { 1 } else { 0 }
+            frame.tag[frame.sp - 2] = .Bool
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.StringSliceCodepoints -> {
+            outcome :: exec_string_slice_codepoints(frame)
+            if outcome is Trap { return outcome }
+        }
+        is bc.RefEq -> {
+            outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1))
+            frame.payload[frame.sp - 2] = if outcome { 1 } else { 0 }
+            frame.tag[frame.sp - 2] = .Bool
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.RefNe -> {
+            outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1))
+            frame.payload[frame.sp - 2] = if !outcome { 1 } else { 0 }
+            frame.tag[frame.sp - 2] = .Bool
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.TypeCheck -> {
+            matched :: type_matches(state, peek_val(frame, frame.sp - 1), instr.type_id)
+            frame.payload[frame.sp - 1] = if matched { 1 } else { 0 }
+            frame.tag[frame.sp - 1] = .Bool
+            frame.pc = frame.pc + 1
+        }
+        is bc.TypeConst -> {
+            push_val(frame, frame.sp, TypeVal { .type_id = instr.type_id })
+            frame.sp = frame.sp + 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.BufferNew -> {
+            outcome :: build_buffer(frame, run.obj_handles)
+            if outcome is Trap { return outcome }
+        }
+        is bc.LoadU8 -> {
+            raw :: load_bytes_op(frame, 1, "load_u8")
+            if raw is Trap { return raw }
+            frame.payload[frame.sp - 2] = i64(i32(raw))
+            frame.tag[frame.sp - 2] = .I32
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.LoadI32 -> {
+            raw :: load_bytes_op(frame, 4, "load_i32")
+            if raw is Trap { return raw }
+            frame.payload[frame.sp - 2] = i64(i32(raw))
+            frame.tag[frame.sp - 2] = .I32
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.LoadI64 -> {
+            raw :: load_bytes_op(frame, 8, "load_i64")
+            if raw is Trap { return raw }
+            frame.payload[frame.sp - 2] = i64(raw)
+            frame.tag[frame.sp - 2] = .I64
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.LoadF64 -> {
+            raw :: load_bytes_op(frame, 8, "load_f64")
+            if raw is Trap { return raw }
+            frame.payload[frame.sp - 2] = i64(((u64(raw)).from_bits()).to_bits())
+            frame.tag[frame.sp - 2] = .F64
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.StoreU8 -> {
+            val_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "store_u8 value")
+            if val_unwrap is Trap { return val_unwrap }
+            outcome :: store_bytes_op(frame, 1, u64(u8(val_unwrap.value)), "store_u8")
+            if outcome is Trap { return outcome }
+        }
+        is bc.StoreI32 -> {
+            val_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "store_i32 value")
+            if val_unwrap is Trap { return val_unwrap }
+            outcome :: store_bytes_op(frame, 4, u64(u32(val_unwrap.value)), "store_i32")
+            if outcome is Trap { return outcome }
+        }
+        is bc.StoreI64 -> {
+            val_unwrap :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "store_i64 value")
+            if val_unwrap is Trap { return val_unwrap }
+            outcome :: store_bytes_op(frame, 8, u64(val_unwrap.value), "store_i64")
+            if outcome is Trap { return outcome }
+        }
+        is bc.StoreF64 -> {
+            val_unwrap :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "store_f64 value")
+            if val_unwrap is Trap { return val_unwrap }
+            outcome :: store_bytes_op(frame, 8, (val_unwrap.value).to_bits(), "store_f64")
+            if outcome is Trap { return outcome }
+        }
+        is bc.LoadSlotI32  -> { if do_load_slot(frame)  is Trap as t { return t } }
+        is bc.LoadSlotI64  -> { if do_load_slot(frame)  is Trap as t { return t } }
+        is bc.LoadSlotF64  -> { if do_load_slot(frame)  is Trap as t { return t } }
+        is bc.StoreSlotI32 -> { if do_store_slot(frame) is Trap as t { return t } }
+        is bc.StoreSlotI64 -> { if do_store_slot(frame) is Trap as t { return t } }
+        is bc.StoreSlotF64 -> { if do_store_slot(frame) is Trap as t { return t } }
+        is bc.MemoryCopy -> {
+            outcome :: do_memory_copy(frame)
+            if outcome is Trap { return outcome }
+        }
+        is bc.BufferToString -> {
+            // Pop buffer + len ; intern the leading `len` bytes verbatim as a
+            // string (same semantics as `bytes_to_string` over a `u8[]`).
+            len_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "buffer_to_string len")
+            if len_unwrap is Trap { return len_unwrap }
+            obj_unwrap :: read_obj(peek_val(frame, frame.sp - 2), frame.pc, "buffer_to_string receiver")
+            if obj_unwrap is Trap { return obj_unwrap }
+            // width 0 ⇒ checks `0 <= len <= bytes_len`, returns the usize len.
+            n :: check_byte_range(len_unwrap.value, 0, obj_unwrap.bytes.len(), "buffer_to_string", frame.pc)
+            if n is Trap { return n }
+            push_val(frame, frame.sp - 2, StringVal { .value = obj_unwrap.bytes[0..<n].bytes_to_string() })
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.BufferWriteString -> {
+            outcome :: exec_buffer_write_string(frame)
+            if outcome is Trap { return outcome }
+        }
+        is bc.F64ToBits -> {
+            // Bit-reinterpret the TOS f64 as its raw u64 bits (held in an
+            // I64Val — same 64 bits) via the runtime `@extern` (see the
+            // module-top note : the VM can't use the intrinsic itself).
+            fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f64_to_bits")
+            if fv is Trap { return fv }
+            frame.payload[frame.sp - 1] = i64((fv.value).to_bits())
+            frame.tag[frame.sp - 1] = .I64
+            frame.pc = frame.pc + 1
+        }
+        is bc.BitsToF64 -> {
+            // Inverse : reinterpret the TOS u64 bit pattern (in an I64Val) as
+            // an f64, via the runtime `@extern`.
+            iv :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f64")
+            if iv is Trap { return iv }
+            frame.payload[frame.sp - 1] = i64(((u64(iv.value)).from_bits()).to_bits())
+            frame.tag[frame.sp - 1] = .F64
+            frame.pc = frame.pc + 1
+        }
+        is bc.F32ToBits -> {
+            // f32→u32 bits. The VM holds f32 in an F64Val (exact, since f32
+            // widens losslessly), so narrow back to f32 before the cast; the
+            // u32 result rides in an I32Val.
+            fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f32_to_bits")
+            if fv is Trap { return fv }
+            frame.payload[frame.sp - 1] = i64(i32((f32(fv.value)).to_bits()))
+            frame.tag[frame.sp - 1] = .I32
+            frame.pc = frame.pc + 1
+        }
+        is bc.BitsToF32 -> {
+            // Inverse : reinterpret the TOS u32 bit pattern (in an I32Val) as
+            // an f32, widened back into an F64Val for VM storage.
+            iv :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f32")
+            if iv is Trap { return iv }
+            frame.payload[frame.sp - 1] = i64((f64((u32(iv.value)).from_bits())).to_bits())
+            frame.tag[frame.sp - 1] = .F64
+            frame.pc = frame.pc + 1
+        }
+        _ -> {}
+    }
     return null
 }
 

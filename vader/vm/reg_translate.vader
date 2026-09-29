@@ -1,0 +1,621 @@
+// vader/vm/reg_translate — verified bytecode → `RegFunction`.
+//
+// The operand stack becomes registers: the value at depth `d` lives in register
+// `slots + d`. Most stack traffic disappears on the way. A `local.get` or a
+// constant emits nothing; it records where its value already is, and the op that
+// consumes it reads the slot, or materialises the constant, there. A `local.set`
+// right after the op that computed its value retargets that op onto the slot.
+//
+// Everything pending is written to its canonical register wherever control can
+// arrive from elsewhere — at a jump target, before a jump, before a call — so
+// every path into a pc finds the stack in the same registers.
+//
+// A function using an op this file does not translate stays on `exec_legacy`
+// (`translate_function` answers `null`); calls into it go through there.
+
+module "vader/vm"
+
+import "std/abort"
+bc :: import "vader/bytecode"
+
+// Where a pending stack value is.
+PendingKind :: enum { Register, Slot, Constant }
+
+// One operand-stack cell during translation.
+Pending :: struct {
+    kind:     PendingKind
+    /// The register the value is in — for a `Constant`, its constant register.
+    register: i32
+}
+
+// The translation of one function in progress.
+Translation :: struct {
+    code:  RegFunction!
+    stack: Pending[]!
+    /// First register of the operand stack: after the slots and the constants.
+    stack_base: usize
+    /// Index of the last op when a `local.set` may retarget it, `-1` otherwise.
+    retarget: i64
+    /// Jumps to patch: the op index, then the original target pc.
+    jumps: i64[]!
+}
+
+/// Translate every function of `module` that the register engine runs.
+///
+/// @param module  a module `prepare` accepted.
+/// @param facts   its inferred tags, index-aligned with `module.functions`.
+translate_module :: fn(module: bc.BytecodeModule, facts: FunctionTags[]) -> RegModule {
+    functions: (RegFunction | null)[]!: [] * module.functions.len()
+    for i in 0..<module.functions.len() {
+        functions.push(translate_function(module, module.functions[i], facts[i]))
+    }
+    // A caller of a function that stays on `exec_legacy` and returns several values
+    // stays there too ; dropping it may strand its own callers, hence the loop.
+    changed := true
+    for changed {
+        changed = false
+        for i in 0..<functions.len() {
+            code :: functions[i]
+            if code == null {
+                continue
+            }
+            for callee in code.multi_calls {
+                if functions[usize(callee)] == null {
+                    functions[i] = null
+                    changed = true
+                    break
+                }
+            }
+        }
+    }
+    return RegModule { .functions = functions }
+}
+
+// The function translated, or `null` when it uses an op this file leaves to
+// `exec_legacy`.
+translate_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags) -> RegFunction | null {
+    n :: f.body.len()
+    slots :: f.signature.params.len() + f.locals.len()
+    consts: i64[]!: []
+    const_tags: StackTag[]!: []
+    collect_constants(f, consts, const_tags)
+    stack_base :: slots + consts.len()
+    t :: Translation {
+        .code = RegFunction {
+            .name      = f.name,
+            .code      = [],
+            .origin    = [],
+            .consts    = consts,
+            .const_tags = const_tags,
+            .values    = [],
+            .boxed     = [],
+            .virtuals  = [],
+            .texts     = [],
+            // One past the deepest stack: `return.lit` materialises its constant
+            // above whatever the verifier counted.
+            .registers = stack_base + ft.deepest + 1,
+            .params    = f.signature.params.len(),
+            .slots     = slots,
+            .multi_calls = [],
+        },
+        .stack    = [],
+        .stack_base = stack_base,
+        .retarget = -1,
+        .jumps    = [],
+    }
+    leader :: bc.mark_jump_targets(f.jump_table, n)
+    start: i64[]!: [0] * (n + 1)
+    for pc in 0..<n {
+        if leader[pc] {
+            flush(t, pc)
+        }
+        start[pc] = i64(t.code.code.len())
+        if ft.depth[pc] < 0 {
+            continue
+        }
+        if leader[pc] {
+            reset_stack(t, usize(ft.depth[pc]))
+        }
+        if !translate_op(module, f, ft, t, pc) {
+            return null
+        }
+    }
+    start[n] = i64(t.code.code.len())
+    emit(t, n, .Return, -1, 0, 0)
+    for i in 0..<t.jumps.len() / 2 {
+        at :: usize(t.jumps[2 * i])
+        t.code.code[at].a = i32(start[usize(t.jumps[2 * i + 1])])
+    }
+    return t.code
+}
+
+// Translate the op at `pc` ; false when it is not one the register engine runs.
+translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags, t: Translation!, pc: usize) -> bool {
+    op :: f.body[pc]
+    // Only the op an arm emits next may be retargeted ; a `local.set` reads the
+    // previous one.
+    previous :: t.retarget
+    t.retarget = -1
+    binary :: binary_op(op, ft, pc)
+    if binary != null {
+        rhs :: operand(t, 1)
+        lhs :: operand(t, 2)
+        dst :: pop_to(t, 2)
+        emit(t, pc, binary, dst, lhs, rhs)
+        push_register(t, dst)
+        t.retarget = i64(t.code.code.len() - 1)
+        return true
+    }
+    unary :: unary_op(op, ft, pc)
+    if unary != null {
+        src :: operand(t, 1)
+        dst :: pop_to(t, 1)
+        emit(t, pc, unary, dst, src, 0)
+        push_register(t, dst)
+        t.retarget = i64(t.code.code.len() - 1)
+        return true
+    }
+    // @partial: an op without an arm is one the register engine leaves to
+    // `exec_legacy`.
+    @partial match op {
+        is bc.LocalGet -> {
+            t.stack.push(Pending { .kind = .Slot, .register = op.slot })
+        }
+        is bc.LocalSet -> { store_slot(t, f, pc, op.slot, false, previous) }
+        is bc.LocalTee -> { store_slot(t, f, pc, op.slot, true, previous) }
+        is bc.I32Const | bc.I64Const | bc.F64Const | bc.BoolConst | bc.CharConst | bc.NullConst -> {
+            push_constant(t, op)
+        }
+        is bc.Drop -> { t.stack.remove_last() }
+        is bc.Block | bc.Loop | bc.End -> {}
+        is bc.Else | bc.Branch -> {
+            flush(t, pc)
+            jump(t, pc, .Jump, 0, f.jump_table[pc])
+        }
+        is bc.If | bc.BranchIf -> {
+            cond :: operand(t, 1)
+            t.stack.remove_last()
+            flush(t, pc)
+            kind: RegOp: if op is bc.If { .JumpIfFalse } else { .JumpIfTrue }
+            jump(t, pc, kind, cond, f.jump_table[pc])
+        }
+        is bc.Return -> {
+            result :: f.signature.results[0]
+            if bc.bc_result_arity(f.signature) > 1 {
+                return_many(t, pc, f.signature.results)
+            } else if result == .Void {
+                emit(t, pc, .Return, -1, 0, 0)
+            } else if narrow_code(result) >= 0 {
+                // The caller receives a truncated copy ; the slot it came from keeps
+                // its bits.
+                flush(t, pc)
+                src :: canonical(t, t.stack.len() - 1)
+                emit(t, pc, .Narrow, src, narrow_code(result), 0)
+                emit(t, pc, .Return, src, 0, 0)
+            } else {
+                emit(t, pc, .Return, operand(t, 1), 0, 0)
+            }
+        }
+        is bc.CallIndirect -> {
+            t_fn :: fn_type_of(module, op.type_id) ?? return false
+            count :: t_fn.params.len()
+            flush(t, pc)
+            base :: pop_to(t, count + 1)
+            emit(t, pc, .CallIndirect, op.type_id, base, i32(count))
+            if !returns_void(module, t_fn.return_type) {
+                push_register(t, base)
+            }
+        }
+        is bc.VirtualCall -> {
+            results :: virtual_result_arity(module, op.vtable_key)
+            if results > 1 {
+                return false
+            }
+            flush(t, pc)
+            base :: pop_to(t, usize(op.parameter_count))
+            t.code.virtuals.push(op)
+            emit(t, pc, .VirtualCall, i32(t.code.virtuals.len() - 1), base, 0)
+            if results == 1 {
+                push_register(t, base)
+            }
+        }
+        is bc.Call -> {
+            callee :: module.functions[usize(op.function_index)].signature
+            results :: bc.bc_result_arity(callee)
+            if results > 1 {
+                t.code.multi_calls.push(op.function_index)
+            }
+            flush(t, pc)
+            base :: pop_to(t, callee.params.len())
+            emit(t, pc, .Call, op.function_index, base, 0)
+            for k in 0..<results {
+                push_register(t, base + i32(k))
+            }
+        }
+        is bc.ReturnLit -> {
+            c :: op.value
+            if c is bc.StringConst {
+                string_constant(module, t, pc, c)
+            } else {
+                push_constant(t, c)
+            }
+            emit(t, pc, .Return, operand(t, 1), 0, 0)
+        }
+        is bc.CallImport -> {
+            signature :: module.imports[usize(op.index)].signature
+            flush(t, pc)
+            base :: pop_to(t, signature.params.len())
+            emit(t, pc, .CallImport, op.index, base, 0)
+            if bc.bc_single_result(signature) != .Void {
+                push_register(t, base)
+            }
+        }
+        is bc.Unreachable -> {
+            t.code.texts.push("reached unreachable: ${op.reason}")
+            emit(t, pc, .Trap, i32(t.code.texts.len() - 1), 0, 0)
+        }
+        is bc.LocalField -> {
+            dst :: canonical(t, t.stack.len())
+            emit(t, pc, .GetField, dst, op.slot, op.field_index)
+            push_register(t, dst)
+        }
+        is bc.StructGet -> {
+            obj :: operand(t, 1)
+            dst :: pop_to(t, 1)
+            emit(t, pc, .GetField, dst, obj, op.field_index)
+            push_register(t, dst)
+        }
+        is bc.StructSet -> {
+            value :: operand(t, 1)
+            obj :: operand(t, 2)
+            pop_to(t, 2)
+            emit(t, pc, .SetField, obj, value, op.field_index)
+        }
+        is bc.ArrayGet -> {
+            index :: operand(t, 1)
+            array :: operand(t, 2)
+            dst :: pop_to(t, 2)
+            emit(t, pc, .GetElement, dst, array, index)
+            push_register(t, dst)
+        }
+        is bc.ArraySet -> {
+            value :: operand(t, 1)
+            index :: operand(t, 2)
+            array :: operand(t, 3)
+            pop_to(t, 3)
+            emit(t, pc, .SetElement, array, index, value)
+        }
+        is bc.ArrayLen -> {
+            array :: operand(t, 1)
+            dst :: pop_to(t, 1)
+            emit(t, pc, .Length, dst, array, 0)
+            push_register(t, dst)
+        }
+        is bc.ArrayPush -> {
+            value :: operand(t, 1)
+            array :: operand(t, 2)
+            pop_to(t, 2)
+            emit(t, pc, .Append, array, value, 0)
+        }
+        is bc.StringConst -> { string_constant(module, t, pc, op) }
+        _ -> {
+            if !is_boxed(op) {
+                return false
+            }
+            e :: effect_of(module, f, op) ?? return false
+            boxed(t, pc, op, e.pops, e.pushes)
+        }
+    }
+    return true
+}
+
+// Emit `op` as a `Boxed` op over the top `pops` cells, which it replaces with
+// `pushes` values.
+boxed :: fn(t: Translation!, pc: usize, op: bc.Op, pops: usize, pushes: usize) -> void {
+    flush(t, pc)
+    base :: pop_to(t, pops)
+    t.code.boxed.push(op)
+    emit(t, pc, .Boxed, i32(t.code.boxed.len() - 1), base, i32(pops | (pushes << 8)))
+    for i in 0..<pushes {
+        push_register(t, base + i32(i))
+    }
+}
+
+// Push the string `op` names, built once.
+string_constant :: fn(module: bc.BytecodeModule, t: Translation!, pc: usize, op: bc.StringConst) -> void {
+    dst :: canonical(t, t.stack.len())
+    t.code.values.push(StringVal { .value = module.strings[usize(op.index)] })
+    emit(t, pc, .ConstRef, dst, i32(t.code.values.len() - 1), 0)
+    push_register(t, dst)
+}
+
+// The ops `apply_boxed` runs.
+is_boxed :: fn(op: bc.Op) = op is bc.FnRef | bc.MakeClosure | bc.StructNew | bc.ArrayNew | bc.ArraySlice
+    | bc.ArrayRepeat | bc.ArrayPushAll | bc.ArrayCopy | bc.ArrayRemoveLast | bc.ArrayClear | bc.DataConst
+    | bc.RefCast | bc.Box | bc.Convert | bc.SizeOfType | bc.I32Eq | bc.I32Ne | bc.BoolEq | bc.BoolNe
+    | bc.BoolAnd | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.StringSliceCodepoints | bc.RefEq
+    | bc.RefNe | bc.TypeCheck | bc.TypeConst | bc.BufferNew | bc.LoadU8 | bc.LoadI32 | bc.LoadI64
+    | bc.LoadF64 | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.LoadSlotI32 | bc.LoadSlotI64
+    | bc.LoadSlotF64 | bc.StoreSlotI32 | bc.StoreSlotI64 | bc.StoreSlotF64 | bc.MemoryCopy
+    | bc.BufferToString | bc.BufferWriteString | bc.F64ToBits | bc.BitsToF64 | bc.F32ToBits | bc.BitsToF32
+
+// The register op of a binary bytecode op, or `null`. Equality and the bool ops
+// are translated only where their operands are proven: their arms also accept a
+// `.Null` or read a box, which the register engine does not reproduce.
+binary_op :: fn(op: bc.Op, ft: FunctionTags, pc: usize) -> RegOp | null {
+    // @partial: every other op is not a binary scalar op.
+    return @partial match op {
+        is bc.I32Add -> .AddI32
+        is bc.I32Sub -> .SubI32
+        is bc.I32Mul -> .MulI32
+        is bc.I32Div -> .DivI32
+        is bc.I32Mod -> .ModI32
+        is bc.I32BitAnd -> .AndI32
+        is bc.I32BitOr -> .OrI32
+        is bc.I32BitXor -> .XorI32
+        is bc.I32Shl -> .ShlI32
+        is bc.I32Shr -> .ShrI32
+        is bc.I32ShrU -> .ShrUI32
+        is bc.U32Div -> .DivU32
+        is bc.U32Mod -> .ModU32
+        is bc.I32Eq -> if operands_within(ft, pc, TAGS_I32_OPERAND) { .EqI32 } else { null }
+        is bc.I32Ne -> if operands_within(ft, pc, TAGS_I32_OPERAND) { .NeI32 } else { null }
+        is bc.I32Lt -> .LtI32
+        is bc.I32Le -> .LeI32
+        is bc.I32Gt -> .GtI32
+        is bc.I32Ge -> .GeI32
+        is bc.U32Lt -> .LtU32
+        is bc.U32Le -> .LeU32
+        is bc.U32Gt -> .GtU32
+        is bc.U32Ge -> .GeU32
+        is bc.I64Add -> .AddI64
+        is bc.I64Sub -> .SubI64
+        is bc.I64Mul -> .MulI64
+        is bc.I64Div -> .DivI64
+        is bc.I64Mod -> .ModI64
+        is bc.I64BitAnd -> .AndI64
+        is bc.I64BitOr -> .OrI64
+        is bc.I64BitXor -> .XorI64
+        is bc.I64Shl -> .ShlI64
+        is bc.I64Shr -> .ShrI64
+        is bc.I64ShrU -> .ShrUI64
+        is bc.U64Div -> .DivU64
+        is bc.U64Mod -> .ModU64
+        is bc.I64Eq -> .EqI64
+        is bc.I64Ne -> .NeI64
+        is bc.I64Lt -> .LtI64
+        is bc.I64Le -> .LeI64
+        is bc.I64Gt -> .GtI64
+        is bc.I64Ge -> .GeI64
+        is bc.U64Lt -> .LtU64
+        is bc.U64Le -> .LeU64
+        is bc.U64Gt -> .GtU64
+        is bc.U64Ge -> .GeU64
+        is bc.F64Add -> .AddF64
+        is bc.F64Sub -> .SubF64
+        is bc.F64Mul -> .MulF64
+        is bc.F64Div -> .DivF64
+        is bc.F64Eq -> .EqF64
+        is bc.F64Ne -> .NeF64
+        is bc.F64Lt -> .LtF64
+        is bc.F64Le -> .LeF64
+        is bc.F64Gt -> .GtF64
+        is bc.F64Ge -> .GeF64
+        is bc.BoolEq -> if operands_within(ft, pc, TAGS_BOOL) { .EqBool } else { null }
+        is bc.BoolNe -> if operands_within(ft, pc, TAGS_BOOL) { .NeBool } else { null }
+        is bc.BoolAnd -> if operands_within(ft, pc, TAGS_BOOL) { .AndBool } else { null }
+        is bc.BoolOr -> if operands_within(ft, pc, TAGS_BOOL) { .OrBool } else { null }
+        _ -> null
+    }
+}
+
+// The register op of a unary bytecode op, or `null`.
+unary_op :: fn(op: bc.Op, ft: FunctionTags, pc: usize) -> RegOp | null {
+    integral :: TAGS_I32 | TAGS_I64 | TAGS_CHAR | TAGS_BOOL
+    // @partial: every other op is not a unary scalar op.
+    return @partial match op {
+        is bc.I32Neg -> .NegI32
+        is bc.I32BitNot -> .NotI32
+        is bc.I64Neg -> .NegI64
+        is bc.I64BitNot -> .NotI64
+        is bc.F64Neg -> .NegF64
+        is bc.BoolNot -> if tags_within(stack_tags(ft, pc, 1), TAGS_BOOL) { .NotBool } else { null }
+        is bc.Convert -> {
+            if !tags_within(stack_tags(ft, pc, 1), integral) {
+                null
+            } else if op.target == .I32 {
+                .ToI32
+            } else if op.target == .I64 {
+                if op.from_name.byte_len() > 0 && op.from_name.byte_at(0) == 'u' { .ToI64U } else { .ToI64 }
+            } else {
+                null
+            }
+        }
+        _ -> null
+    }
+}
+
+operands_within :: fn(ft: FunctionTags, pc: usize, allowed: u8) =
+    tags_within(stack_tags(ft, pc, 1), allowed) && tags_within(stack_tags(ft, pc, 2), allowed)
+
+emit :: fn(t: Translation!, pc: usize, op: RegOp, a: i32, b: i32, c: i32) -> void {
+    t.code.code.push(RegInstr { .op = op, .a = a, .b = b, .c = c })
+    t.code.origin.push(i32(pc))
+}
+
+// Emit a jump whose `a` is patched to the op translating `target`.
+jump :: fn(t: Translation!, pc: usize, op: RegOp, b: i32, target: i32) -> void {
+    back :: target >= 0 && target < i32(pc)
+    span :: i32(pc) - target + 1
+    kind := op
+    operand := b
+    if back && op == .Jump {
+        kind = .JumpBack
+        operand = span
+    } else if back {
+        emit(t, pc, .Budget, 0, span, 0)
+    }
+    t.jumps.push(i64(t.code.code.len()))
+    t.jumps.push(i64(target))
+    emit(t, pc, kind, 0, operand, 0)
+}
+
+// Push a scalar constant ; `collect_constants` gave it a register.
+push_constant :: fn(t: Translation!, c: bc.ConstOp) -> void {
+    scalar :: scalar_of(c) ?? panic("reg_translate: a string has no constant register")
+    k :: constant_index(t.code.consts, t.code.const_tags, scalar)
+    if k < 0 {
+        panic("reg_translate: constant missing from the prepass")
+    }
+    t.stack.push(Pending { .kind = .Constant, .register = i32(t.code.slots + usize(k)) })
+}
+
+// A scalar constant's register contents.
+Scalar :: struct {
+    bits: i64
+    tag:  StackTag
+}
+
+// The register contents of `c`, or `null` for a string.
+scalar_of :: fn(c: bc.ConstOp) -> Scalar | null = match c {
+    is bc.I32Const    -> Scalar { .bits = i64(c.value), .tag = .I32 }
+    is bc.I64Const    -> Scalar { .bits = c.value, .tag = .I64 }
+    is bc.F64Const    -> Scalar { .bits = i64(c.value.to_bits()), .tag = .F64 }
+    is bc.BoolConst   -> Scalar { .bits = if c.value { 1 } else { 0 }, .tag = .Bool }
+    is bc.CharConst   -> Scalar { .bits = i64(u32(c.value)), .tag = .Char }
+    is bc.NullConst   -> Scalar { .bits = 0, .tag = .Null }
+    is bc.StringConst -> null
+}
+
+// Where `scalar` sits in `consts` / `tags`, or `-1`.
+constant_index :: fn(consts: i64[], tags: StackTag[], scalar: Scalar) -> i64 {
+    for k in 0..<consts.len() {
+        if consts[k] == scalar.bits && tags[k] == scalar.tag {
+            return i64(k)
+        }
+    }
+    return -1
+}
+
+// Every distinct scalar constant `f` uses, into `consts` / `tags`.
+collect_constants :: fn(f: bc.BcFunction, consts: i64[]!, tags: StackTag[]!) -> void {
+    for op in f.body {
+        if op is bc.ReturnLit {
+            add_constant(op.value, consts, tags)
+        } else if op is bc.I32Const | bc.I64Const | bc.F64Const | bc.BoolConst | bc.CharConst | bc.NullConst {
+            add_constant(op, consts, tags)
+        }
+    }
+}
+
+add_constant :: fn(c: bc.ConstOp, consts: i64[]!, tags: StackTag[]!) -> void {
+    scalar :: scalar_of(c)
+    if scalar != null && constant_index(consts, tags, scalar) < 0 {
+        consts.push(scalar.bits)
+        tags.push(scalar.tag)
+    }
+}
+
+push_register :: fn(t: Translation!, register: i32) -> void {
+    t.stack.push(Pending { .kind = .Register, .register = register })
+}
+
+// The canonical register of stack position `at`.
+canonical :: fn(t: Translation, at: usize) -> i32 = i32(t.stack_base + at)
+
+// The register holding the cell `back` below the top.
+operand :: fn(t: Translation, back: usize) -> i32 = t.stack[t.stack.len() - back].register
+
+// Pop `count` cells ; the register the result of their op goes to.
+pop_to :: fn(t: Translation!, count: usize) -> i32 {
+    for 0..<count {
+        t.stack.remove_last()
+    }
+    return canonical(t, t.stack.len())
+}
+
+// Write the cell at `at` to its canonical register.
+materialise :: fn(t: Translation!, pc: usize, at: usize) -> void {
+    cell :: t.stack[at]
+    target :: canonical(t, at)
+    if cell.kind == .Constant {
+        emit(t, pc, .MoveScalar, target, cell.register, 0)
+    } else if cell.register != target {
+        emit(t, pc, .Move, target, cell.register, 0)
+    }
+    t.stack[at] = Pending { .kind = .Register, .register = target }
+}
+
+// Every pending cell to its canonical register.
+flush :: fn(t: Translation!, pc: usize) -> void {
+    for at in 0..<t.stack.len() {
+        materialise(t, pc, at)
+    }
+    // Its moves come after the op a `local.set` could have retargeted.
+    t.retarget = -1
+}
+
+// Start a block with `depth` cells, each in its canonical register.
+reset_stack :: fn(t: Translation!, depth: usize) -> void {
+    t.stack.clear()
+    for at in 0..<depth {
+        push_register(t, canonical(t, at))
+    }
+}
+
+// Return the values on top of the stack, each truncated to its own class.
+return_many :: fn(t: Translation!, pc: usize, results: bc.ValType[]) -> void {
+    flush(t, pc)
+    count :: results.len()
+    first :: t.stack.len() - count
+    for k in 0..<count {
+        width :: narrow_code(results[k])
+        if width >= 0 {
+            emit(t, pc, .Narrow, canonical(t, first + k), width, 0)
+        }
+    }
+    emit(t, pc, .ReturnMany, canonical(t, first), i32(count), 0)
+}
+
+// The `Narrow` width of a class, or `-1` for one that needs no truncation.
+narrow_code :: fn(v: bc.ValType) -> i32 = match v {
+    .U8  -> 0
+    .I8  -> 1
+    .U16 -> 2
+    .I16 -> 3
+    .I32 | .I64 | .Isize | .U32 | .U64 | .Usize | .F32 | .F64 | .Bool | .Char | .String | .Null
+     | .Void | .Pointer | .Ref | .Any -> -1
+}
+
+// `local.set slot` — or `local.tee`, which leaves the value on the stack. A slot of
+// a narrow class is truncated to its width after the store. `previous` is the op
+// that may be retargeted onto the slot, or `-1`.
+store_slot :: fn(t: Translation!, f: bc.BcFunction, pc: usize, slot: i32, keep: bool, previous: i64) -> void {
+    top :: t.stack.len() - 1
+    narrow :: narrow_code(slot_valtype(f, slot))
+    // A cell still reading the slot must be read before the slot changes — and
+    // then the op that computed the value can no longer write the slot itself,
+    // since that copy comes after it.
+    retarget := previous
+    for at in 0..<top {
+        if t.stack[at].kind == .Slot && t.stack[at].register == slot {
+            materialise(t, pc, at)
+            retarget = -1
+        }
+    }
+    cell :: t.stack[top]
+    if cell.kind == .Register && retarget >= 0 && t.code.code[usize(retarget)].a == cell.register {
+        t.code.code[usize(retarget)].a = slot
+    } else if cell.kind == .Constant {
+        emit(t, pc, .MoveScalar, slot, cell.register, 0)
+    } else if cell.register != slot {
+        emit(t, pc, .Move, slot, cell.register, 0)
+    }
+    if narrow >= 0 {
+        emit(t, pc, .Narrow, slot, narrow, 0)
+    }
+    t.stack.remove_last()
+    if keep {
+        t.stack.push(Pending { .kind = .Slot, .register = slot })
+    }
+}
