@@ -322,11 +322,9 @@ fn 2 snippet$main () -> i32
   local.get 3   ; __off_1
   call 5   ; std_core$finish_buffer
   call 11   ; std_io$println__string
-  i32.const 20
-  i32.to_i64
+  i64.const 20
   local.set 8   ; a
-  i32.const 5
-  i32.to_i64
+  i64.const 5
   local.set 9   ; b
   i64.const 41
   call 4   ; std_core$new_byte_buffer

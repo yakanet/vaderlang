@@ -1,0 +1,127 @@
+# Lower
+
+## snippet
+  fn snippet$describe(r: Celsius | Label) -> string
+    ~>
+      block :string
+        ~>
+          if :string
+            cond:
+              is Celsius :bool
+                r :Celsius | Label
+            then:
+              ~>
+                call :string
+                  callee:
+                    concat_2 :string
+                  arg0:
+                    call :string
+                      callee:
+                        std_core$f64$Display$to_string :string
+                      arg0:
+                        cast → f64
+                          cast → Celsius
+                            r :Celsius | Label
+                  arg1:
+                    " C" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    is Label :bool
+                      r :Celsius | Label
+                  then:
+                    ~>
+                      cast → string
+                        cast → Label
+                          r :Celsius | Label
+                  else:
+                    ~>
+                      unreachable("non-exhaustive match (T3013 should have caught this)") :string
+  fn snippet$main() -> i32
+    let readings: (Celsius | Label)[] =
+      array :(Celsius | Label)[]
+        cast → Celsius
+          float(21.5) :f64
+        cast → Label
+          "offline" :string
+    block :void
+      let __for_arr_0: (Celsius | Label)[] = readings :(Celsius | Label)[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let r: Celsius | Label =
+          index :Celsius | Label
+            on:
+              __for_arr_0 :(Celsius | Label)[]
+            ix:
+              __for_i_2 :usize
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            call :string
+              callee:
+                describe :fn(Celsius | Label) -> string
+              arg0:
+                r :Celsius | Label
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return int(0) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

@@ -31,14 +31,14 @@ fn 0 snippet$main () -> i32
   array.new 12 0   ; union[][]
   local.tee 0   ; arr
   null.const
-  array.push 0   ; null[]
+  array.push 4   ; union[]
   i32.const 42
   null.const
   struct.new 3   ; snippet$Node__i32
   local.set 1   ; $struct_5
   local.get 0   ; arr
   local.get 1   ; $struct_5
-  array.push 3   ; snippet$Node__i32[]
+  array.push 4   ; union[]
   i64.const 26
   call 2   ; std_core$new_byte_buffer
   local.set 1   ; $struct_5

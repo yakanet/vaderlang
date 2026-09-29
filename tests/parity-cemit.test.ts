@@ -118,6 +118,11 @@ const C_PARITY = new Set<string>([
   // three exercise a union match where every arm returns.
   "array_of_union",
   "alias_union_in_array",
+  // A primitive written into a union-element array (literal, `a[i] =`, push)
+  // boxes with its OWN tag — the VM always did, the emitted C stamped the union.
+  "union_primitive_in_array",
+  "union_of_distincts_sibling_file",
+  "distinct_wide_literal",
   "narrow_imported_map",
   // §9 C-emit audit (the walker now emits C for the whole compiler) :
   //   for_loop      — `break` out of an infinite `for {}` (a Loop) + `continue`

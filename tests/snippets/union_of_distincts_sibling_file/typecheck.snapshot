@@ -1,0 +1,29 @@
+# Typecheck
+
+## tests/snippets/union_of_distincts_sibling_file
+  ConstDecl      Celsius              :: type
+  FnDecl         describe             :: fn(Celsius | Label) -> string
+  ConstDecl      Label                :: type
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Reading              :: type
+  expr 11:40    MatchExpr      :: string
+  expr 11:46    IdentExpr      :: Celsius | Label
+  expr 12:19    StringLitExpr  :: string
+  expr 12:22    CallExpr       :: f64
+  expr 12:22    IdentExpr      :: type
+  expr 12:26    IdentExpr      :: Celsius
+  expr 13:19    CallExpr       :: string
+  expr 13:19    IdentExpr      :: type
+  expr 13:26    IdentExpr      :: Label
+  expr 17:26    SeqLitExpr     :: (Celsius | Label)[]
+  expr 17:27    CallExpr       :: Celsius
+  expr 17:27    IdentExpr      :: type
+  expr 17:42    CallExpr       :: Label
+  expr 17:42    IdentExpr      :: type
+  expr 17:48    StringLitExpr  :: string
+  expr 18:14    IdentExpr      :: (Celsius | Label)[]
+  expr 19:17    CallExpr       :: string
+  expr 19:17    IdentExpr      :: fn(Celsius | Label) -> string
+  expr 19:26    IdentExpr      :: Celsius | Label
+  expr 19:9     CallExpr       :: void
+  expr 19:9     IdentExpr      :: fn(T) -> void

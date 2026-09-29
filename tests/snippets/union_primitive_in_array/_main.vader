@@ -1,0 +1,23 @@
+// A primitive stored into an array whose element type is a union keeps its own
+// tag. Every array write boxes it — the literal, `a[i] = v` and `push` — and
+// each must stamp the value's type (`i32`), never the element's (the union), or
+// `is i32` misses on the read and the payload is reinterpreted as the other arm.
+
+module "snippet"
+
+import "std/io"
+
+Cell :: i32 | string
+
+show :: fn(c: Cell) -> string = if c is i32 { "int ${c}" } else { "text ${c}" }
+
+main :: fn() -> i32 {
+    cells: Cell[]!: [4, "four"]
+    cells[1] = 6
+    cells.push(5)
+    cells.push("five")
+    for c in cells {
+        println(show(c))
+    }
+    return 0
+}

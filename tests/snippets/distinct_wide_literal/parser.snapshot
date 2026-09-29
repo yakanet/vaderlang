@@ -1,0 +1,188 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "wildcard"
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "Wide",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "IdentExpr",
+        "name": "i64"
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "w"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Wide"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "4000000000n"
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "i64"
+                          },
+                          "args": [
+                            {
+                              "name": null,
+                              "value": {
+                                "kind": "IdentExpr",
+                                "name": "w"
+                              },
+                              "spread": false
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "bits"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Wide"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "4609434218613702656n"
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "i64"
+                          },
+                          "args": [
+                            {
+                              "name": null,
+                              "value": {
+                                "kind": "IdentExpr",
+                                "name": "bits"
+                              },
+                              "spread": false
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

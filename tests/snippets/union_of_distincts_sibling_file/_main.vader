@@ -1,0 +1,22 @@
+// A union over distinct newtypes, used from a sibling file of its module that
+// is typed first. `Reading :: Celsius | Label` only names a type once the two
+// distincts are registered, and `values.vader` declares them after the union :
+// the alias pass must retry until nothing new registers, or `Reading` in this
+// file's signatures is "not a type".
+
+module "snippet"
+
+import "std/io"
+
+describe :: fn(r: Reading) -> string = match r {
+    is Celsius -> "${f64(r)} C"
+    is Label   -> string(r)
+}
+
+main :: fn() -> i32 {
+    readings: Reading[]: [Celsius(21.5), Label("offline")]
+    for r in readings {
+        println(describe(r))
+    }
+    return 0
+}

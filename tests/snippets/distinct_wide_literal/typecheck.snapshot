@@ -1,0 +1,21 @@
+# Typecheck
+
+## tests/snippets/distinct_wide_literal
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Wide                 :: type
+  expr 12:10    CallExpr       :: Wide
+  expr 12:10    IdentExpr      :: type
+  expr 13:13    StringLitExpr  :: string
+  expr 13:16    CallExpr       :: i64
+  expr 13:16    IdentExpr      :: type
+  expr 13:20    IdentExpr      :: Wide
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(T) -> void
+  expr 14:13    CallExpr       :: Wide
+  expr 14:13    IdentExpr      :: type
+  expr 15:13    StringLitExpr  :: string
+  expr 15:16    CallExpr       :: i64
+  expr 15:16    IdentExpr      :: type
+  expr 15:20    IdentExpr      :: Wide
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void

@@ -2547,7 +2547,9 @@ emit_array_new :: fn(s: FnState!, op: vm.ArrayNew) -> void {
             // raw object pointer — no runtime dispatch, no box.
             assign(s, typed_slot("void*", arr_buf, fresh_slot(arr_buf, slot)), coerced_as(s, v, .Ref))
         } else {
-            assign(s, box_slot(arr_buf, fresh_slot(arr_buf, slot)), box_expr(expression_of(v), val_of(v), elem_tag))
+            // The box takes the VALUE's tag, not `elem_tag` : an `i32` stored into
+            // an `(i32 | string)[]` must read back as `is i32`, not as the union.
+            assign(s, box_slot(arr_buf, fresh_slot(arr_buf, slot)), coerced_as(s, v, .Any))
         }
     }
     push_object(s, verbatim(arr_buf))
@@ -2655,11 +2657,7 @@ emit_array_set :: fn(s: FnState!, op: vm.ArraySet) -> void {
         return
     }
     if fill == null {
-        assign(
-            s,
-            box_slot(a, slot_index(a, idx)),
-            box_expr(expression_of(value), val_of(value), elem_tag),
-        )
+        assign(s, box_slot(a, slot_index(a, idx)), coerced_as(s, value, .Any))
         write_barrier(s, verbatim("${a}->buf"))
     } else {
         emit_typed_slot_write(s, a, idx, value, fill.cty, fill.val)
@@ -2672,7 +2670,8 @@ emit_array_set :: fn(s: FnState!, op: vm.ArraySet) -> void {
 /// helper — no box, no runtime kind dispatch, no write barrier. Sub-word / boxed
 /// / ref elements keep the generic boxed `vader_array_push`. The typed helpers
 /// delegate their grow / view / borrowed slow path back to `vader_array_push`,
-/// so GC-rooting is unchanged ; `op.type_id` is threaded as the fallback box tag.
+/// so GC-rooting is unchanged. A boxed push tags the value with its own type,
+/// never `op.type_id` : that is the union for an `(i32 | string)[]`.
 emit_array_push :: fn(s: FnState!, op: vm.ArrayPush) -> void {
     value :: pop(s)
     arr :: pop(s)
@@ -2704,7 +2703,7 @@ emit_array_push :: fn(s: FnState!, op: vm.ArrayPush) -> void {
             s,
             call(
                 "vader_array_push",
-                [array_pointer(obj), box_expr(expression_of(value), val_of(value), op.type_id)],
+                [array_pointer(obj), coerced_as(s, value, .Any)],
             ),
         )
         return

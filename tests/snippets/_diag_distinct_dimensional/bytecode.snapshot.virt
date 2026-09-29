@@ -45,11 +45,9 @@ fn 2 snippet$main () -> i32
   local t0 i64
   local t1 i64
   local d i64
-  i32.const 100
-  i32.to_i64
+  i64.const 100
   local.set 0   ; t0
-  i32.const 250
-  i32.to_i64
+  i64.const 250
   local.tee 1   ; t1
   local.get 0   ; t0
   call 0   ; snippet$Instant$Sub$sub

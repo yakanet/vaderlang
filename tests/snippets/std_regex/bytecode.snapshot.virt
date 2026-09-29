@@ -42,7 +42,6 @@ type 39 struct regex$WorkItem { pc:8,groups:22 }
 type 40 primitive isize
 type 41 array 39
 type 42 union 29,30,24,32
-type 43 union 27,28,29,30,24,32,33
 string 0 "="
 string 1 ".."
 string 2 ":"
@@ -1175,7 +1174,7 @@ fn 17 regex$compile (string) -> any
   local.set 3   ; $struct_10
   local.get 2   ; $arr_3
   local.get 3   ; $struct_10
-  array.push 33   ; regex$InstSave[]
+  array.push 26   ; union[]
   local.get 1   ; $call_1
   call 23   ; regex$parse_alternation
   local.tee 4   ; parse_outcome
@@ -1225,14 +1224,14 @@ fn 17 regex$compile (string) -> any
   local.set 3   ; $struct_10
   local.get 2   ; $arr_3
   local.get 3   ; $struct_10
-  array.push 33   ; regex$InstSave[]
+  array.push 26   ; union[]
   local.field 1 17 2   ; $call_1.insts
   local.set 2   ; $arr_3
   struct.new 32   ; regex$InstMatch
   local.set 3   ; $struct_10
   local.get 2   ; $arr_3
   local.get 3   ; $struct_10
-  array.push 32   ; regex$InstMatch[]
+  array.push 26   ; union[]
   local.field 1 17 2   ; $call_1.insts
   local.set 2   ; $arr_3
   local.field 1 17 3   ; $call_1.next_group_id
@@ -2109,7 +2108,7 @@ fn 23 regex$parse_alternation (ref) -> any
             local.set 23   ; $struct_78
             local.get 22   ; $field_75
             local.get 23   ; $struct_78
-            array.push 34   ; regex$InstSplit[]
+            array.push 26   ; union[]
             local.field 0 17 2   ; arg 0.insts
             array.len
             local.set 24   ; body_pos
@@ -2143,7 +2142,7 @@ fn 23 regex$parse_alternation (ref) -> any
             local.set 31   ; $struct_92
             local.get 30   ; $field_90
             local.get 31   ; $struct_92
-            array.push 31   ; regex$InstJump[]
+            array.push 26   ; union[]
             local.get 18   ; end_jumps
             local.get 29   ; jump_pos
             array.push 8   ; usize[]
@@ -2891,7 +2890,7 @@ fn 33 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
           local.set 10   ; $struct_19
           local.get 0   ; arg 0
           local.get 10   ; $struct_19
-          array.push 34   ; regex$InstSplit[]
+          array.push 26   ; union[]
         else
           local.get 7   ; inst
           type_check 31   ; regex$InstJump
@@ -2906,13 +2905,13 @@ fn 33 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
             local.set 11   ; $struct_24
             local.get 0   ; arg 0
             local.get 11   ; $struct_24
-            array.push 31   ; regex$InstJump[]
+            array.push 26   ; union[]
           else
             local.get 7   ; inst
             local.set 12   ; $cast_25
             local.get 0   ; arg 0
             local.get 12   ; $cast_25
-            array.push 43   ; union[]
+            array.push 26   ; union[]
           end $L4
         end $L3
         local.get 6   ; i
@@ -3158,7 +3157,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.set 7   ; $struct_46
     local.get 3   ; $field_8
     local.get 7   ; $struct_46
-    array.push 33   ; regex$InstSave[]
+    array.push 26   ; union[]
     local.get 0   ; arg 0
     call 23   ; regex$parse_alternation
     local.tee 8   ; err
@@ -3231,7 +3230,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.set 7   ; $struct_46
     local.get 3   ; $field_8
     local.get 7   ; $struct_46
-    array.push 33   ; regex$InstSave[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -3254,7 +3253,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.set 7   ; $struct_46
     local.get 3   ; $field_8
     local.get 7   ; $struct_46
-    array.push 29   ; regex$InstAny[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -3277,7 +3276,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.set 7   ; $struct_46
     local.get 3   ; $field_8
     local.get 7   ; $struct_46
-    array.push 28   ; regex$InstAnchorStart[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -3300,7 +3299,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.set 7   ; $struct_46
     local.get 3   ; $field_8
     local.get 7   ; $struct_46
-    array.push 27   ; regex$InstAnchorEnd[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -3348,7 +3347,7 @@ fn 35 regex$parse_atom (ref) -> any
   local.set 7   ; $struct_46
   local.get 3   ; $field_8
   local.get 7   ; $struct_46
-  array.push 30   ; regex$InstChar[]
+  array.push 26   ; union[]
   null.const
   box 0   ; -> null
   return
@@ -3389,7 +3388,7 @@ fn 36 regex$apply_star (ref,usize) -> void
   local.set 5   ; $struct_15
   local.get 4   ; $call_8
   local.get 5   ; $struct_15
-  array.push 34   ; regex$InstSplit[]
+  array.push 26   ; union[]
   local.field 0 17 2   ; arg 0.insts
   array.len
   local.set 6   ; body_start
@@ -3404,7 +3403,7 @@ fn 36 regex$apply_star (ref,usize) -> void
   local.set 4   ; $call_8
   local.get 2   ; $field_2
   local.get 4   ; $call_8
-  array.push 31   ; regex$InstJump[]
+  array.push 26   ; union[]
   local.field 0 17 2   ; arg 0.insts
   array.len
   local.set 7   ; after
@@ -3437,7 +3436,7 @@ fn 37 regex$apply_plus (ref,usize) -> void
   local.set 4   ; $struct_8
   local.get 3   ; $field_5
   local.get 4   ; $struct_8
-  array.push 34   ; regex$InstSplit[]
+  array.push 26   ; union[]
   local.field 0 17 2   ; arg 0.insts
   array.len
   local.set 5   ; after
@@ -3487,7 +3486,7 @@ fn 38 regex$apply_optional (ref,usize) -> void
   local.set 5   ; $struct_13
   local.get 4   ; $call_8
   local.get 5   ; $struct_13
-  array.push 34   ; regex$InstSplit[]
+  array.push 26   ; union[]
   local.field 0 17 2   ; arg 0.insts
   local.get 2   ; $field_2
   local.get 1   ; arg 1
@@ -3817,7 +3816,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
           local.set 15   ; $struct_121
           local.get 14   ; $field_118
           local.get 15   ; $struct_121
-          array.push 34   ; regex$InstSplit[]
+          array.push 26   ; union[]
           local.field 0 17 2   ; arg 0.insts
           local.get 2   ; $field_2
           local.get 1   ; arg 1
@@ -3882,7 +3881,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
       local.set 14   ; $field_118
       local.get 13   ; $call_101
       local.get 14   ; $field_118
-      array.push 34   ; regex$InstSplit[]
+      array.push 26   ; union[]
       local.field 0 17 2   ; arg 0.insts
       array.len
       local.set 6   ; m
@@ -3897,7 +3896,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
       local.set 13   ; $call_101
       local.get 2   ; $field_2
       local.get 13   ; $call_101
-      array.push 31   ; regex$InstJump[]
+      array.push 26   ; union[]
       local.field 0 17 2   ; arg 0.insts
       array.len
       local.set 9   ; $field_24
@@ -4224,7 +4223,7 @@ fn 40 regex$parse_char_class (ref) -> any
       local.set 33   ; $struct_91
       local.get 32   ; $field_90
       local.get 33   ; $struct_91
-      array.push 24   ; regex$InstClass[]
+      array.push 26   ; union[]
       null.const
       box 0   ; -> null
       return
@@ -4296,7 +4295,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.set 5   ; $struct_22
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
-    array.push 30   ; regex$InstChar[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -4312,7 +4311,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.set 5   ; $struct_22
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
-    array.push 30   ; regex$InstChar[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -4328,7 +4327,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.set 5   ; $struct_22
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
-    array.push 30   ; regex$InstChar[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -4348,7 +4347,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.set 5   ; $struct_22
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
-    array.push 24   ; regex$InstClass[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -4368,7 +4367,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.set 5   ; $struct_22
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
-    array.push 24   ; regex$InstClass[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -4385,7 +4384,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.set 5   ; $struct_22
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
-    array.push 24   ; regex$InstClass[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -4402,7 +4401,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.set 5   ; $struct_22
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
-    array.push 24   ; regex$InstClass[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -4419,7 +4418,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.set 5   ; $struct_22
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
-    array.push 24   ; regex$InstClass[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -4436,7 +4435,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.set 5   ; $struct_22
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
-    array.push 24   ; regex$InstClass[]
+    array.push 26   ; union[]
     null.const
     box 0   ; -> null
     return
@@ -4450,7 +4449,7 @@ fn 41 regex$parse_escape (ref) -> any
   local.set 5   ; $struct_22
   local.get 3   ; $field_11
   local.get 5   ; $struct_22
-  array.push 30   ; regex$InstChar[]
+  array.push 26   ; union[]
   null.const
   box 0   ; -> null
   return

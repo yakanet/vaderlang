@@ -39,7 +39,7 @@ fn 0 snippet$main () -> i32
   array.new 11 3   ; union[][]
   local.tee 0   ; xs
   string.const 0   ; "hi"
-  array.push 2   ; string[]
+  array.push 12   ; union[]
   local.get 0   ; xs
   array.len
   local.set 1   ; __for_len_1

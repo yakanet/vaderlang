@@ -159,7 +159,7 @@
                 backed_int :fn(Count) -> string
               arg0:
                 cast → Count
-                  int(42) :i32
+                  int(42) :i64
     call :void
       callee:
         std_io$println__string :void

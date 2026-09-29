@@ -28,10 +28,8 @@ fn 0 snippet$main () -> i32
   local $gt_38 bool
   local __buf_12 ref
   i32.const 6
-  i32.to_i32
   local.set 0   ; r
   i32.const 2
-  i32.to_i32
   local.set 1   ; w
   i64.const 20
   call 2   ; std_core$new_byte_buffer

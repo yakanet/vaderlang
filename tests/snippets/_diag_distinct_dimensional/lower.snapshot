@@ -104,10 +104,10 @@
   fn snippet$main() -> i32
     let t0: Instant =
       cast → Instant
-        int(100) :i32
+        int(100) :i64
     let t1: Instant =
       cast → Instant
-        int(250) :i32
+        int(250) :i64
     let d: Duration =
       call :Duration
         callee:

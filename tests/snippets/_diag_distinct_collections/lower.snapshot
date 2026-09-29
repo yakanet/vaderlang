@@ -52,16 +52,16 @@
     let ids: UserId[] =
       array :UserId[]
         cast → UserId
-          int(10) :i32
+          int(10) :i64
         cast → UserId
-          int(20) :i32
+          int(20) :i64
     let present: i32 =
       call :i32
         callee:
           unwrap_or :fn(null | UserId, i32) -> i32
         arg0:
           cast → UserId
-            int(12) :i32
+            int(12) :i64
         arg1:
           neg :i32
             int(1) :i32

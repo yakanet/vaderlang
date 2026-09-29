@@ -1,0 +1,10 @@
+// Declares the union before the distincts it names — the order that needs the
+// alias pass to converge (see `_main.vader`).
+
+module "snippet"
+
+Reading :: Celsius | Label
+
+Celsius :: f64
+
+Label :: string

@@ -10,7 +10,7 @@
           int(100) :i64
     let b: Instant =
       cast → Instant
-        int(250) :i32
+        int(250) :i64
     return
       cast → i32
         call :i64

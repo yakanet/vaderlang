@@ -26,10 +26,28 @@ export infer_cast :: fn(
     target :: type_from_expr(e.target, typed.resolved, diags)
     // Cast target flows as expected to the value so `i64(-250)`'s
     // operand narrows to i64 instead of staying FreeInt.
-    src :: check_expr_fn(e.value, target, typed, diags)
+    src :: check_expr_fn(e.value, cast_operand_expected(target), typed, diags)
     if !cast_allowed(src, target, typed) {
         diags.push(typecheck_error(.InvalidCast, e.span,
             "cannot cast ${display_type(src)} to ${display_type(target)}"))
+    }
+    return target
+}
+
+/// The type a cast `T(x)` hands its operand as expected : the target, or the
+/// primitive under a primitive-backed distinct, unwrapped through every level.
+/// `Wide(4000000000)` with `Wide :: i64` must see an `i64` slot — a distinct is
+/// no slot for a free literal, which would then default to `i32` and wrap before
+/// the conversion. A composite-backed distinct stays : it already forwards its
+/// literal coercion (`Pair([1, 2])`).
+///
+/// @param target  the cast's target type.
+cast_operand_expected :: fn(target: Type) -> Type {
+    if target is DistinctType {
+        backing :: cast_operand_expected(target.backing)
+        if backing is PrimitiveType {
+            return backing
+        }
     }
     return target
 }

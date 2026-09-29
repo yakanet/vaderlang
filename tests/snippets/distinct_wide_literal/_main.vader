@@ -1,0 +1,17 @@
+// A free literal handed to a distinct's constructor takes the distinct's backing
+// width : `Wide(4000000000)` with `Wide :: i64` is an `i64` literal, not an `i32`
+// that wraps to -294967296 before the conversion.
+
+module "snippet"
+
+import "std/io"
+
+Wide :: i64
+
+main :: fn() -> i32 {
+    w :: Wide(4000000000)
+    println("${i64(w)}")
+    bits :: Wide(4609434218613702656)
+    println("${i64(bits)}")
+    return 0
+}

@@ -4,10 +4,10 @@
   fn snippet$main() -> i32
     let r: Permissions =
       cast → Permissions
-        int(6) :i32
+        int(6) :u32
     let w: Permissions =
       cast → Permissions
-        int(2) :i32
+        int(2) :u32
     call :void
       callee:
         std_io$println__string :void

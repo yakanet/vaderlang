@@ -404,10 +404,10 @@
                 __off_9 :usize
     let a: Celsius =
       cast → Celsius
-        int(20) :i32
+        int(20) :i64
     let b: Celsius =
       cast → Celsius
-        int(5) :i32
+        int(5) :i64
     call :void
       callee:
         std_io$println__string :void

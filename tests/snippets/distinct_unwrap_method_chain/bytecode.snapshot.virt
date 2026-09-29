@@ -131,8 +131,7 @@ fn 7 snippet$main () -> i32
   local.get 0   ; $call_3
   call 9   ; concat_2
   call 16   ; std_io$println__string
-  i32.const 42
-  i32.to_i64
+  i64.const 42
   call 5   ; snippet$backed_int
   local.set 0   ; $call_3
   string.const 11   ; "int="

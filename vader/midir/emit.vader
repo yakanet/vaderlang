@@ -1353,7 +1353,10 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrArrayPush {
-        value_type :: ctx.fn_.locals[usize(ins.value)].type
+        value_type :: pushed_element_type(
+            ctx.fn_.locals[usize(ins.target)].type,
+            ctx.fn_.locals[usize(ins.value)].type,
+        )
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.value, ins.span)
         // Resolve the array's local to its bytecode slot only when the lift was
@@ -1676,6 +1679,15 @@ emit_call_results :: fn(ctx: FnEmitCfg!, pos: i64, dsts: LocalId[], span: Span) 
 needs_ref_cast :: fn(t: Type) -> bool {
     if t !is PrimitiveType { return false }
     return t.name != "void"
+}
+
+// Type an `array.push` is emitted against : the array's own element, since the
+// buffer's kind was set from it at construction — an `i32` pushed into an
+// `(i32 | string)[]` or a `Display[]` is boxed, not packed. The value's type only
+// when the target is not visibly an array.
+pushed_element_type :: fn(target: Type, value: Type) -> Type {
+    array :: array_backing(target) ?? return value
+    return array.element
 }
 
 // Element value class of an array type, or `Any` for a non-array (which keeps

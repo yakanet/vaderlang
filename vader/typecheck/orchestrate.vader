@@ -1133,6 +1133,7 @@ reset_expr_tables :: fn(typed: TypedProgram!) -> void {
 // `declare_module` so cross-module aliases resolve at fn-signature
 // lowering time.
 register_aliases :: fn(typed: TypedProgram!, decls: AST.Decl[]) -> void {
+    pending: AST.ConstDecl[]! = []
     for decl in decls {
         match decl {
             is AST.TypeAliasDecl -> {
@@ -1145,10 +1146,28 @@ register_aliases :: fn(typed: TypedProgram!, decls: AST.Decl[]) -> void {
                 }
             }
             is AST.ConstDecl     -> {
-                if decl.ty is null && register_alias_const(decl, typed) {}
+                if decl.ty is null && !register_alias_const(decl, typed) {
+                    pending.push(decl)
+                }
             }
             _                          -> {}
         }
+    }
+    // `Value :: I32Val | StringVal` reads as a type only once the distincts it
+    // names are registered, and they may be declared further down. A sibling file
+    // lowers its signatures before `declare_const` reaches this one, so retry
+    // until a round registers nothing.
+    for pending.len() > 0 {
+        rest: AST.ConstDecl[]!: []
+        for cd in pending {
+            if !register_alias_const(cd, typed) {
+                rest.push(cd)
+            }
+        }
+        if rest.len() == pending.len() {
+            break
+        }
+        pending = rest
     }
 }
 
@@ -1248,9 +1267,10 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram!) -> bool {
 /// That last case is what lets a newtype be used as an alias RHS
 /// (`Distance :: Meters`) or a tuple-alias element (`Pair :: [Meters, i32]`) —
 /// such a decl is a plain `ConstDecl` (SymbolKind.Const), so it is invisible to
-/// the kind check but resolves to a type through `alias_types`. The three
-/// registration passes populate `alias_types` in sequence, so a one- or two-hop
-/// alias chain converges across them.
+/// the kind check but resolves to a type through `alias_types`, which
+/// `register_aliases` fills to a fixed point within a module — a chain of any
+/// depth, in any declaration order. A member imported from another module is only
+/// seen by the later writers, which walk in source order.
 export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.IdentExpr {
         if primitive_from_name(e.name) !is null {

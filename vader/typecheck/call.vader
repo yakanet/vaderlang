@@ -1001,8 +1001,9 @@ cast_call_target :: fn(
     // Pass the cast target as expected for each arg so a Free* literal
     // (or `-Free*` unary) narrows into the target's primitive shape —
     // `i64(-250)` types the `-250` as `i64`, not `{integer}`.
+    expected :: cast_operand_expected(target)
     for arg in c.args {
-        src :: check_expr_fn(arg.value, target, typed, diags)
+        src :: check_expr_fn(arg.value, expected, typed, diags)
         // Variant data is constant : reading it hands back a read-only value.
         data :: enum_data_of(src, target)
         if data != null {
