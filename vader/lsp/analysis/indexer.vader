@@ -443,12 +443,12 @@ collect_decl :: fn(
             // contained in fullRange" check and drops the WHOLE response. Still
             // walk the body so goto-def works on locals inside the block.
             if !d.name.starts_with("__comptime_") {
-                entries.push(top_entry(d.name, .Fn, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
+                entries.push(top_entry(d.name, .Fn, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
             }
             ix_walk_fn_body(d, source, entries)
         }
         is StructDecl -> {
-            entries.push(top_entry(d.name, .Struct, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .Struct, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
             // Fields too, for the same reason trait members are indexed just
             // below: `img.pixels` is a reference to one, and without an entry
             // goto-def has nothing to land on. Recorded at top level (no
@@ -458,28 +458,28 @@ collect_decl :: fn(
             // the jump lands on the field's line and the highlight covers the
             // whole declaration rather than just the name.
             for f in d.fields {
-                entries.push(top_entry(f.name, .Field, f.span, f.span, [], false, source, cmap, d.name))
+                entries.push(top_entry(f.name, .Field, f.span, f.span, format_field_head(source, f), [], false, source, cmap, d.name))
             }
         }
         is EnumDecl -> {
-            entries.push(top_entry(d.name, .Enum, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .Enum, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
             for v in d.variants {
-                entries.push(top_entry(v.name, .EnumVariant, v.span, v.span, [], false, source, cmap, d.name))
+                entries.push(top_entry(v.name, .EnumVariant, v.span, v.span, format_variant_head(source, v), [], false, source, cmap, d.name))
             }
         }
         is TraitDecl -> {
-            entries.push(top_entry(d.name, .Trait, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .Trait, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
             // Trait members are fn decls — index their names too so
             // goto-def on a method-name reference can land somewhere.
             for m in d.members {
-                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap, d.name))
+                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, format_decl_head(source, m), m.decorators, false, source, cmap, d.name))
             }
         }
         is TypeAliasDecl -> {
-            entries.push(top_entry(d.name, .TypeAlias, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .TypeAlias, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
         }
         is ConstDecl -> {
-            entries.push(top_entry(d.name, .Const, d.name_span, d.span, d.decorators, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .Const, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
         }
         is ImplDecl -> {
             // Impl members are fn decls on the target type. They
@@ -499,7 +499,7 @@ collect_decl :: fn(
                     // yields a name — a generic instantiation has no single one,
                     // and an empty owner degrades to the name-based lookup
                     // rather than pointing somewhere wrong.
-                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, false, source, cmap, impl_owner_name(d.for_type)))
+                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, format_decl_head(source, m), m.decorators, false, source, cmap, impl_owner_name(d.for_type)))
                 }
                 ix_walk_fn_body(m, source, entries)
             }
@@ -510,14 +510,13 @@ collect_decl :: fn(
 }
 
 top_entry :: fn(
-    name: string, kind: DeclKind, name_span: Span, full_span: Span,
+    name: string, kind: DeclKind, name_span: Span, full_span: Span, signature: string,
     decorators: Decorator[], exported: bool,
     source: string, cmap: CommentMap,
     // The declaring type, for a member. Empty for everything else — see
     // `DeclEntry.owner`.
     owner: string = "",
 ) -> DeclEntry {
-    sig :: head_signature(full_span, source)
     // `///` doc-comments sit above the decorators in the source. The
     // decl's `span.start` covers neither :
     //   - decorator stack (`@intrinsic`, `@deprecated`, …) sits on
@@ -536,7 +535,7 @@ top_entry :: fn(
         .kind       = kind,
         .name_span  = name_span,
         .full_span  = full_span,
-        .signature  = sig,
+        .signature  = signature,
         .doc        = doc,
         .scope_span = null,
         .owner      = owner,
@@ -898,25 +897,6 @@ collect_import :: fn(
 }
 
 // ---- signature helpers ---------------------------------------------------
-
-// Slice the source from a decl's start up to the first `{` or `=` (or
-// EOL for `Const :: <expr>` body-less forms), then trim.
-head_signature :: fn(span: Span, source: string) -> string {
-    sb    :: source.bytes()
-    start :: span.start.offset
-    end   :: span.end.offset
-    cap   :: sb.len()
-    upper :: if end > cap { cap } else { end }
-    cursor: usize = start
-    for cursor < upper {
-        b :: sb[cursor]
-        if b == '{' { break }
-        if b == '=' { break }
-        if b == '\n' { break }
-        cursor = cursor + 1
-    }
-    return sb[start..<cursor].bytes_to_string().trim()
-}
 
 // Slice up to the end of the current line — used for local-binding
 // signatures (`x :: expr` form). Caps at `upper` so we don't read past

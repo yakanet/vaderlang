@@ -293,6 +293,49 @@ test("lsp: goto-def + hover end-to-end", async () => {
   expect(def_loop.range.start).toEqual({ line: 20, character: 4 });
 }, { timeout: MEDIUM_BUILD });
 
+// A hover renders a declaration's head on one line, as `vader fmt` writes it: a
+// union alias continued on `|` lines, a parameter list wrapped across lines —
+// its comment and trailing comma dropped, a default value kept.
+const WRAPPED_SOURCE = `Circle :: struct {
+    r: i32
+}
+
+Square :: struct {
+    s: i32
+}
+
+Shape :: Circle
+       | Square
+
+area :: fn(
+    // the shape to measure
+    shape: Shape,
+    scale: i32 = 1,
+) -> i32 {
+    return scale
+}
+
+main :: fn() -> i32 {
+    s: Shape: Circle { .r = 1 }
+    return area(s)
+}
+`;
+
+test("lsp: hover joins a signature wrapped across lines", async () => {
+  const queries: Query[] = [
+    // 0: hover on the `Shape` declaration → the whole union
+    { method: "textDocument/hover", position: { line: 8, character: 0 } },
+    // 1: hover on the `area` call → the whole parameter list
+    { method: "textDocument/hover", position: { line: 21, character: 11 } },
+  ];
+  const results = await driveLsp(WRAPPED_SOURCE, queries);
+  expect(results).toHaveLength(queries.length);
+  expect((results[0]!.result as Hover).contents.value).toContain("```vader\nShape :: Circle | Square\n```");
+  expect((results[1]!.result as Hover).contents.value).toContain(
+    "```vader\narea :: fn(shape: Shape, scale: i32 = 1) -> i32\n```",
+  );
+}, { timeout: MEDIUM_BUILD });
+
 // Regression (audit LC1): the server maps an incoming `character` as a CODEPOINT
 // offset, matching the lexer's codepoint columns. Before the fix `lsp_to_offset`
 // added `character` as raw UTF-8 bytes, so on a line with a multi-byte char

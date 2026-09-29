@@ -1,0 +1,211 @@
+// vader/fmt/head — a declaration's head on one line, as `vader fmt` writes it.
+//
+// The LSP hover shows the signature of the declaration under the cursor. It is
+// rendered here from the parsed declaration, with the printer in `flat` mode : a
+// head the source wraps across lines (a long parameter list, a union continued
+// on `|` lines) reads on one line, and a string, a char or a comment inside it is
+// never taken for its end. Decorators, `export` and the body are left out.
+
+module "vader/fmt"
+
+import "std/string"
+p :: import "toolchain/ast"
+import "toolchain/span"
+
+/// Longest const, field or variant head shown before it is cut with ` …` : a
+/// table written over many lines is a value, not a signature. A union alias is
+/// never cut — its `|` chain IS the signature.
+HEAD_VALUE_MAX: usize: 120
+
+/// Render the head of a declaration on one line : `area :: fn(a: i32) -> i32`,
+/// `Point :: struct`, `Kind :: enum(u8)`, `Add :: trait<Rhs = Self>`,
+/// `Value :: I32Val | I64Val`, `MASK: u32: 0xFFFF`.
+///
+/// @param source  the document the declaration's spans index into — literals
+///                are sliced from it verbatim.
+/// @param d       the declaration ; an import, an impl or an `assert` has no head
+///                and renders as "".
+/// @return        the head, without decorators, `export` or body.
+export format_decl_head :: fn(source: string, d: p.Decl) -> string {
+    h :: head_printer(source)
+    match d {
+        is p.FnDecl -> {
+            h.write(d.name)
+            h.write(" :: fn")
+            h.emit_type_params(d.type_params)
+            h.emit_fn_params(d.params, false)
+            h.emit_type_expr_with_prefix(" -> ", d.return_type)
+        }
+        is p.StructDecl -> {
+            h.write(d.name)
+            h.write(" :: struct")
+            h.emit_type_params(d.type_params)
+        }
+        is p.EnumDecl -> {
+            h.write(d.name)
+            h.write(" :: enum")
+            if d.header.len() > 0 {
+                h.emit_comma_list(d.header, "(", ")", false, true, emit_type_expr_item)
+            }
+        }
+        is p.TraitDecl -> {
+            h.write(d.name)
+            h.write(" :: trait")
+            h.emit_type_params(d.type_params)
+            h.emit_type_expr_with_prefix(": ", d.requires)
+        }
+        is p.TypeAliasDecl -> {
+            h.write(d.name)
+            h.emit_type_params(d.type_params)
+            h.write(" :: ")
+            h.emit_type_expr(d.aliased)
+        }
+        is p.ConstDecl -> {
+            return const_head(h, d)
+        }
+        is p.ImportDecl | p.ImplDecl | p.AssertDecl -> {}
+    }
+    return h.finish()
+}
+
+/// Render a struct field's head on one line : `name: T`, `name: T = default`.
+///
+/// @param source  the document the field's spans index into.
+/// @param f       the field.
+/// @return        the head, cut past `HEAD_VALUE_MAX` bytes.
+export format_field_head :: fn(source: string, f: p.StructField) -> string {
+    h :: head_printer(source)
+    h.write(f.name)
+    h.write(": ")
+    h.emit_type_expr(f.ty)
+    h.emit_expr_with_prefix(" = ", f.default)
+    return cut_head(h.finish(), HEAD_VALUE_MAX)
+}
+
+/// Render an enum variant's head on one line : `Name`, `Name = 3`,
+/// `Name { .id = "T3009", .message = "…" }`.
+///
+/// @param source  the document the variant's spans index into.
+/// @param v       the variant.
+/// @return        the head, cut past `HEAD_VALUE_MAX` bytes.
+export format_variant_head :: fn(source: string, v: p.EnumVariant) -> string {
+    h :: head_printer(source)
+    h.write(v.name)
+    if v.data !is null {
+        h.write(" ")
+        h.emit_comma_list(v.data, "{", "}", true, true, emit_struct_lit_item)
+    }
+    if v.value_span is Span {
+        h.write(" = ")
+        h.write(h.source_slice(v.value_span))
+    }
+    return cut_head(h.finish(), HEAD_VALUE_MAX)
+}
+
+// A comment-free printer that keeps every construct on one line.
+head_printer :: fn(source: string) -> Printer! {
+    h :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    h.flat = true
+    return h
+}
+
+// `NAME :: value`, `NAME: T: value`, or their `@comptime` form — the operand the
+// parser kept, not the helper call it desugared the const into.
+const_head :: fn(h: Printer!, d: p.ConstDecl) -> string {
+    h.write(d.name)
+    if d.ty is null {
+        h.write(" :: ")
+    } else {
+        h.write(": ")
+        h.emit_type_expr(d.ty)
+        h.write(": ")
+    }
+    body :: d.comptime_body
+    value :: if body != null { body } else { d.value }
+    if body != null {
+        h.write("@comptime ")
+    }
+    h.emit_expr(value)
+    if is_bitor_chain(value) {
+        return h.finish()
+    }
+    return cut_head(h.finish(), HEAD_VALUE_MAX)
+}
+
+// `text` kept to its first line and to `limit` bytes, a cut marked ` …`. A block
+// value (a lambda body) still breaks lines in flat mode, hence the first line.
+// The cut backs off to a UTF-8 lead byte, so it never splits a character.
+cut_head :: fn(text: string, limit: usize) -> string {
+    bytes :: text.bytes()
+    end := bytes.len()
+    for i in 0..<bytes.len() {
+        if bytes[i] == '\n' {
+            end = i
+            break
+        }
+    }
+    if end == bytes.len() && end <= limit {
+        return text
+    }
+    if end > limit {
+        end = limit
+        for end > 0 && (bytes[end] & 0xC0) == 0x80 {
+            end -= 1
+        }
+    }
+    return bytes[0..<end].bytes_to_string().trim() + " …"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string_builder"
+import "std/testing"
+
+// The head of the only declaration in `decl`.
+head_of :: fn(decl: string) -> string {
+    source :: "module \"t\"\n${decl}\n"
+    decls :: parse_source(source, "t.vader").program.decls
+    return format_decl_head(source, decls[decls.len() - 1])
+}
+
+@test
+test_head_wrapped_parameter_list :: fn() -> void {
+    decl :: "area :: fn(\n    // the shape to measure\n    shape: Shape,\n    scale: i32 = 1,\n) -> i32 {\n    return scale\n}"
+    assert_eq(head_of(decl), "area :: fn(shape: Shape, scale: i32 = 1) -> i32")
+}
+
+@test
+test_head_union_on_continuation_lines :: fn() -> void {
+    assert_eq(head_of("Value :: I32Val\n       | I64Val\n       | F64Val"), "Value :: I32Val | I64Val | F64Val")
+}
+
+@test
+test_head_literals_are_not_its_end :: fn() -> void {
+    assert_eq(head_of("u :: fn(url: string = \"http://x(\") -> i32 = 1"), "u :: fn(url: string = \"http://x(\") -> i32")
+    assert_eq(head_of("BANNER :: \"// Generated\""), "BANNER :: \"// Generated\"")
+}
+
+@test
+test_head_trait_type_parameter_defaults :: fn() -> void {
+    decl :: "Add :: trait<Rhs = Self, Out = Self> {\n    add :: fn(self, other: Rhs) -> Out\n}"
+    assert_eq(head_of(decl), "Add :: trait<Rhs = Self, Out = Self>")
+}
+
+@test
+test_head_enum_and_struct_stop_before_the_body :: fn() -> void {
+    assert_eq(head_of("Kind :: enum(u8) {\n    A,\n    B,\n}"), "Kind :: enum(u8)")
+    assert_eq(head_of("Point :: struct {\n    x: i32\n}"), "Point :: struct")
+}
+
+@test
+test_head_long_value_is_cut :: fn() -> void {
+    table :: StringBuilder {}
+    table.append("TABLE :: [")
+    for _ in 0..<40 {
+        table.append("1000, ")
+    }
+    table.append("1000]")
+    head :: head_of(table.to_string())
+    assert(head.ends_with(" …"), "a long table value is cut")
+    assert(head.bytes().len() <= HEAD_VALUE_MAX + 4, "the cut keeps the limit")
+}
