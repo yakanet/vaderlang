@@ -734,6 +734,25 @@ check_byte_range :: fn(off: i32, width: usize, bytes_len: usize, label: string, 
     return o
 }
 
+// The i32 in stack cell `at`, straight off the columns as `read_i32` reads it ;
+// the label — `op`, then `what` — is built only when the read traps.
+stack_i32 :: fn(frame: Frame, at: usize, op: string, what: string) -> i32 | Trap {
+    if is_i32_tag(frame.tag[at]) {
+        return i32(frame.payload[at])
+    }
+    failed :: read_i32(peek_val(frame, at), frame.pc, "${op} ${what}")
+    return if failed is Trap { failed } else { failed.value }
+}
+
+// The object in stack cell `at` ; the label is built only when it is not one.
+stack_obj :: fn(frame: Frame, at: usize, op: string) -> ObjVal | Trap {
+    v :: peek_val(frame, at)
+    if v is ObjVal {
+        return v
+    }
+    return read_obj(v, frame.pc, "${op} receiver")
+}
+
 /// Shared front-half of the typed/byte loads (`load_u8` / `load_i32` /
 /// `load_i64`). Validates `obj, off` on the stack and bounds, then returns the
 /// `width` little-endian bytes at `off` as a zero-extended u64 — the caller
@@ -747,11 +766,11 @@ check_byte_range :: fn(off: i32, width: usize, bytes_len: usize, label: string, 
 /// @error        fewer than 2 stack slots ; non-object receiver ; negative or
 ///               out-of-range offset.
 load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
-    off_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "${label} offset")
+    off_unwrap :: stack_i32(frame, frame.sp - 1, label, "offset")
     if off_unwrap is Trap { return off_unwrap }
-    obj_unwrap :: read_obj(peek_val(frame, frame.sp - 2), frame.pc, "${label} receiver")
+    obj_unwrap :: stack_obj(frame, frame.sp - 2, label)
     if obj_unwrap is Trap { return obj_unwrap }
-    off :: check_byte_range(off_unwrap.value, width, obj_unwrap.bytes.len(), label, frame.pc)
+    off :: check_byte_range(off_unwrap, width, obj_unwrap.bytes.len(), label, frame.pc)
     if off is Trap { return off }
     return read_le(obj_unwrap.bytes, off, width)
 }
@@ -769,11 +788,11 @@ load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
 /// @return       `null` on success, or a `Trap` on bad obj / OOB offset.
 /// @error        non-object receiver ; negative or out-of-range offset.
 store_bytes_op :: fn(frame: Frame!, width: usize, value: u64, label: string) -> Trap | null {
-    off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "${label} offset")
+    off_unwrap :: stack_i32(frame, frame.sp - 2, label, "offset")
     if off_unwrap is Trap { return off_unwrap }
-    obj_unwrap :: read_obj(peek_val(frame, frame.sp - 3), frame.pc, "${label} receiver")
+    obj_unwrap :: stack_obj(frame, frame.sp - 3, label)
     if obj_unwrap is Trap { return obj_unwrap }
-    off :: check_byte_range(off_unwrap.value, width, obj_unwrap.bytes.len(), label, frame.pc)
+    off :: check_byte_range(off_unwrap, width, obj_unwrap.bytes.len(), label, frame.pc)
     if off is Trap { return off }
     write_le(obj_unwrap.bytes, off, width, value)
     frame.sp = frame.sp - 3
@@ -1144,15 +1163,15 @@ apply_boxed :: fn(
             frame.pc = frame.pc + 1
         }
         is bc.StoreU8 -> {
-            val_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "store_u8 value")
+            val_unwrap :: stack_i32(frame, frame.sp - 1, "store_u8", "value")
             if val_unwrap is Trap { return val_unwrap }
-            outcome :: store_bytes_op(frame, 1, u64(u8(val_unwrap.value)), "store_u8")
+            outcome :: store_bytes_op(frame, 1, u64(u8(val_unwrap)), "store_u8")
             if outcome is Trap { return outcome }
         }
         is bc.StoreI32 -> {
-            val_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "store_i32 value")
+            val_unwrap :: stack_i32(frame, frame.sp - 1, "store_i32", "value")
             if val_unwrap is Trap { return val_unwrap }
-            outcome :: store_bytes_op(frame, 4, u64(u32(val_unwrap.value)), "store_i32")
+            outcome :: store_bytes_op(frame, 4, u64(u32(val_unwrap)), "store_i32")
             if outcome is Trap { return outcome }
         }
         is bc.StoreI64 -> {

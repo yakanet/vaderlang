@@ -69,16 +69,16 @@ against the register engine at the end of this work, same machine:
 
 | bench | stack | registers | |
 |---|---|---|---|
-| `vm_loop` | 2 015 ms | 392 ms | ×5.1 |
-| `vm_fib` | 656 ms | 216 ms | ×3.0 |
-| `vm_arr` | 644 ms | 183 ms | ×3.5 |
+| `vm_loop` | 2 015 ms | 378 ms | ×5.3 |
+| `vm_fib` | 656 ms | 188 ms | ×3.5 |
+| `vm_arr` | 644 ms | 180 ms | ×3.6 |
 | `vm_field` | 809 ms | 242 ms | ×3.3 |
-| `vm_str` | 1 170 ms | 671 ms | ×1.7 |
-| `vm_map` | 391 ms | 139 ms | ×2.8 |
-| `vm_shapes` | 203 ms | 80 ms | ×2.5 |
+| `vm_str` | 1 170 ms | 513 ms | ×2.3 |
+| `vm_map` | 391 ms | 138 ms | ×2.8 |
+| `vm_shapes` | 203 ms | 81 ms | ×2.5 |
 
 The compiler running on its own bytecode (`vader run compiler.virt dump --stage=c
-vader/cli/main.vader`) went from 593 s to 166 s, its output byte-identical to the
+vader/cli/main.vader`) went from 593 s to 164 s, its output byte-identical to the
 native compiler's.
 
 `vm_map` measured 203 ms instead of 139 in one build of `build/vader` and 138 ms in
@@ -88,9 +88,16 @@ binary, not of the engine. Comparing two engines needs the same binary shape.
 Steps along the way, each measured on the seven benches: the translation alone
 (×1.1 to ×3.9), constants in registers, packed operands (fetch was a quarter of
 `vm_loop`), compare-and-branch fusion (`vm_loop` −25 %), `load_slot` / `ref.cast`
-out of the boxed path (`vm_arr` and `vm_field` roughly halved). Moving the old
-loop's arms into `apply_boxed` behind a call, rather than copying them, made the
-old loop 17 to 44 % slower while both engines coexisted.
+out of the boxed path (`vm_arr` and `vm_field` roughly halved), the call's fast
+path written into the loop (`vm_fib` −16 %: the frame helpers may grow an array,
+so they do not inline). Moving the old loop's arms into `apply_boxed` behind a
+call, rather than copying them, made the old loop 17 to 44 % slower while both
+engines coexisted.
+
+A trap label interpolated as an argument — `read_i32(v, pc, "${label} offset")` —
+is built and interned on every execution, not only when the read fails. It cost
+`vm_str` a fifth of its time in the byte ops, and `vm_arr` a quarter once
+reintroduced by accident. The label is built in the trap branch only.
 
 ## Consequences
 

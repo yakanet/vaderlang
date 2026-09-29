@@ -45,11 +45,31 @@ host_str_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
 /// it covers every integer width ; equality on the i64 bit pattern is correct
 /// for signed and unsigned alike.
 host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(i64, i64) -> bool) -> HostCallResult {
-    a :: read_i64(stack[arg_base    ], at_pc, "${label} receiver")
-    b :: read_i64(stack[arg_base + 1], at_pc, "${label} arg")
+    a :: int_arg(stack[arg_base], at_pc, label, "receiver")
+    b :: int_arg(stack[arg_base + 1], at_pc, label, "arg")
     if a is Trap { return a }
     if b is Trap { return b }
-    return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
+    return HostOk { .value = BoolVal { .value = apply(a, b) } }
+}
+
+// An extern's integer argument `i`, its label built only when it is not one.
+extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: usize) -> I64Val | Trap {
+    if v is I64Val {
+        return v
+    }
+    return read_i64(v, at_pc, "extern `${extern_name}` arg ${i}")
+}
+
+// `read_i64` of `v`, its label — `op`, then `what` — built only when it traps.
+int_arg :: fn(v: Value, at_pc: i32, op: string, what: string) -> i64 | Trap {
+    if v is I64Val {
+        return v.value
+    }
+    if v is I32Val {
+        return i64(v.value)
+    }
+    failed :: read_i64(v, at_pc, "${op} ${what}")
+    return if failed is Trap { failed } else { failed.value }
 }
 
 
@@ -552,7 +572,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             // `@c_pointer`: the callee takes the ADDRESS of a scalar. Spill it
             // into the frame's data area and hand over that offset — the mirror
             // of the stack temporary the native shim spills to.
-            w :: read_i64(v, at_pc, "extern `${info.extern_name}` arg ${i}")
+            w :: extern_word(v, at_pc, info.extern_name, i)
             if w is Trap { return w }
             width :: usize(size_of_val_type(params[i]))
             if width == 0 || width > 8 {
@@ -573,9 +593,13 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             slot_words.push(i64(data.len()))
             borrowed.push(LentArray { .target = v, .at = data.len(), .element = elem })
             for j in 0..<v.length {
-                b :: read_i64(v.elements[v.offset + j], at_pc, "extern `${info.extern_name}` element")
-                if b is Trap { return b }
-                push_little_endian(data, b.value, width)
+                cell :: v.elements[v.offset + j]
+                b :: if cell is I64Val { cell.value } else if cell is I32Val { i64(cell.value) } else {
+                    failed :: read_i64(cell, at_pc, "extern `${info.extern_name}` element")
+                    if failed is Trap { return failed }
+                    failed.value
+                }
+                push_little_endian(data, b, width)
             }
         } else if v is StringVal {
             // A `string` crosses as a NUL-terminated buffer in the frame's data
@@ -598,7 +622,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             desc.push(u8(FFI_WORD))
             slot_words.push(0)
         } else {
-            w :: read_i64(v, at_pc, "extern `${info.extern_name}` arg ${i}")
+            w :: extern_word(v, at_pc, info.extern_name, i)
             if w is Trap { return w }
             desc.push(u8(FFI_WORD))
             slot_words.push(w.value)
@@ -879,7 +903,12 @@ serialise_mirror :: fn(
         if width == null {
             continue
         }
-        cell :: read_scalar_word(sv.fields[j], at_pc, "extern `${extern_name}` field `${fields[j].name}`")
+        field :: sv.fields[j]
+        cell :: if field is I64Val || field is I32Val || field is BoolVal || field is CharVal {
+            read_scalar_word(field, at_pc, "")
+        } else {
+            read_scalar_word(field, at_pc, "extern `${extern_name}` field `${fields[j].name}`")
+        }
         if cell is Trap { return cell }
         write_little_endian(data, base + usize(layout.offsets[j]), cell.value, usize(width))
     }

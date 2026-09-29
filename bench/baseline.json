@@ -467,43 +467,43 @@
   },
   "vm_fib": {
     "vader-vm": {
-      "minMs": 221.7,
+      "minMs": 191.9,
       "checksum": "vm_fib 2178309"
     }
   },
   "vm_loop": {
     "vader-vm": {
-      "minMs": 384.2,
+      "minMs": 408.2,
       "checksum": "vm_loop 244416"
     }
   },
   "vm_arr": {
     "vader-vm": {
-      "minMs": 180.3,
+      "minMs": 184.1,
       "checksum": "vm_arr 15421440000"
     }
   },
   "vm_field": {
     "vader-vm": {
-      "minMs": 245.1,
+      "minMs": 246.9,
       "checksum": "vm_field 28064 5000001"
     }
   },
   "vm_str": {
     "vader-vm": {
-      "minMs": 658.4,
+      "minMs": 509.8,
       "checksum": "vm_str 1988890"
     }
   },
   "vm_map": {
     "vader-vm": {
-      "minMs": 145.2,
+      "minMs": 138.1,
       "checksum": "vm_map 50000 20005469208"
     }
   },
   "vm_shapes": {
     "vader-vm": {
-      "minMs": 80.6,
+      "minMs": 77.0,
       "checksum": "vm_shapes count=50000 passes=20 total=999199780020"
     }
   }

@@ -157,7 +157,13 @@ reg_call :: fn(
         return overflow_trap(f.name)
     }
     enter_frame(m, f, window)
-    push_frame_record(m, depth0, f, window, resume)
+    if depth0 < m.frame_code.len() {
+        m.frame_code[depth0] = f
+        m.frame_base[depth0] = window
+        m.frame_return[depth0] = resume
+    } else {
+        grow_frame_records(m, f, window, resume)
+    }
     step_budget :: if is_comptime { COMPTIME_STEP_BUDGET } else { STEP_BUDGET_UNREACHABLE }
     steps: i64 = 0
     depth: usize = depth0 + 1
@@ -517,8 +523,26 @@ reg_call :: fn(
                     if depth >= usize(MAX_FRAME_DEPTH) {
                         return overflow_trap(callee.name)
                     }
-                    enter_frame(m, callee, at)
-                    push_frame_record(m, depth, callee, at, pc + 1)
+                    // `enter_frame` spelled out: a call grows nothing once the run
+                    // is warm, and the helpers — which may — do not inline.
+                    if bits.len() < at + callee.registers {
+                        reserve_registers(m, at + callee.registers)
+                    }
+                    for r in at + callee.params..<at + callee.slots {
+                        tags[r] = .Null
+                    }
+                    constants :: at + callee.slots
+                    for k in 0..<callee.consts.len() {
+                        bits[constants + k] = callee.consts[k]
+                        tags[constants + k] = callee.const_tags[k]
+                    }
+                    if depth < m.frame_code.len() {
+                        m.frame_code[depth] = callee
+                        m.frame_base[depth] = at
+                        m.frame_return[depth] = pc + 1
+                    } else {
+                        grow_frame_records(m, callee, at, pc + 1)
+                    }
                     depth += 1
                     base = at
                     f = callee
@@ -805,7 +829,11 @@ enter_frame :: fn(m: RegMachine!, f: RegFunction, base: usize) -> void {
     for r in base + f.params..<base + f.slots {
         m.tags[r] = .Null
     }
-    load_constants(m, f, base)
+    at :: base + f.slots
+    for k in 0..<f.consts.len() {
+        m.bits[at + k] = f.consts[k]
+        m.tags[at + k] = f.const_tags[k]
+    }
 }
 
 // `defer.pop_exec`: pop the last `count` deferred closures and run them, the last
@@ -846,19 +874,19 @@ run_defers :: fn(
 
 // The fn value a deferred closure holds, checked to take exactly its environment.
 defer_thunk :: fn(state: VmState, closure: Value, origin: i32, label: string) -> FnVal | Trap {
-    thunk :: read_fn(closure, origin, "${label} entry")
-    if thunk is Trap {
-        return thunk
+    if closure !is FnVal {
+        // The label is built only for the trap.
+        return read_fn(closure, origin, "${label} entry")
     }
-    checked :: validate_fn_index(thunk.function_index, state.bc.functions, origin, label)
+    checked :: validate_fn_index(closure.function_index, state.bc.functions, origin, label)
     if checked is Trap {
         return checked
     }
-    callee :: state.bc.functions[usize(thunk.function_index)]
+    callee :: state.bc.functions[usize(closure.function_index)]
     if callee.signature.params.len() != 1 {
         return Trap { .message = "defer thunk '${callee.name}' must take exactly one env param at pc=${origin}" }
     }
-    return thunk
+    return closure
 }
 
 // Run a deferred closure, its environment in register `at`.
@@ -926,26 +954,12 @@ pause_context :: fn(state: VmState, m: RegMachine, reason: string, pc: usize, de
     return PauseCtx { .reason = reason, .frames = frames }
 }
 
-// Load `f`'s constants into their registers, for a frame starting at `base`.
-load_constants :: fn(m: RegMachine!, f: RegFunction, base: usize) -> void {
-    at :: base + f.slots
-    for k in 0..<f.consts.len() {
-        m.bits[at + k] = f.consts[k]
-        m.tags[at + k] = f.const_tags[k]
-    }
-}
-
-// Record the frame `depth` starts ; the arrays are grow-only.
-push_frame_record :: fn(m: RegMachine!, depth: usize, code: RegFunction, base: usize, resume: usize) -> void {
-    if depth < m.frame_code.len() {
-        m.frame_code[depth] = code
-        m.frame_base[depth] = base
-        m.frame_return[depth] = resume
-    } else {
-        m.frame_code.push(code)
-        m.frame_base.push(base)
-        m.frame_return.push(resume)
-    }
+// Record a frame one deeper than any so far ; the record arrays are grow-only,
+// and a shallower frame overwrites its slot in place.
+grow_frame_records :: fn(m: RegMachine!, code: RegFunction, base: usize, resume: usize) -> void {
+    m.frame_code.push(code)
+    m.frame_base.push(base)
+    m.frame_return.push(resume)
 }
 
 // The outermost frame returned, its value (if any) in register 0.
