@@ -189,9 +189,9 @@ export LocalTee :: struct { slot: i32 }
 export StringConst :: struct { index: i32 }
 /// Push the singleton `NullVal` (the runtime `null`). Sprint 5a addition.
 export NullConst :: struct {}
-/// Push a `BoolVal { value }`. Sprint 5a addition.
+/// Push a `BoolVal(value)`. Sprint 5a addition.
 export BoolConst :: struct { value: bool }
-/// Push a `CharVal { value }`. The codepoint is parsed from the .virt
+/// Push a `CharVal(value)`. The codepoint is parsed from the .virt
 /// as a base-10 integer (u32 range) and stored as a `char`. Sprint 5a.
 export CharConst :: struct { value: char }
 /// Invoke a host-side import (e.g. `println`) — `index` keys into `module.imports`.

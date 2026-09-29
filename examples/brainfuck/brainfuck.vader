@@ -254,7 +254,7 @@ bytes_of :: fn(output: ArrayVal) -> u8[] {
     for k in 0..<output.length {
         cell :: output.elements[output.offset + k]
         if cell is I32Val {
-            bytes.push(u8(cell.value & 0xFF))
+            bytes.push(u8(cell & 0xFF))
         }
     }
     return bytes

@@ -1058,7 +1058,7 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[], type_ids: 
         e :: entries[i]
         elements: Value[]!: []
         if e is bc.BcStrData {
-            for v in e.values { elements.push(StringVal { .value = v }) }
+            for v in e.values { elements.push(StringVal(v)) }
         } else if e is bc.BcPrimData {
             for item in e.items { elements.push(value_from_bits(e.kind, item)) }
         } else if e is bc.BcAggregateData {
@@ -1078,7 +1078,7 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[], type_ids: 
 // resolved from `symbol_id` against the module type table ; nested arrays carry
 // type_id 0 (the VM is loosely typed — field access reads positionally).
 bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value {
-    if v is bc.BcValStr { return StringVal { .value = v.value } }
+    if v is bc.BcValStr { return StringVal(v.value) }
     if v is bc.BcValPrim { return value_from_bits(v.kind, v.bits) }
     if v is bc.BcValStruct {
         fields: Value[]!: []
@@ -1090,7 +1090,7 @@ bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value {
         for e in v.elements { elems.push(bc_value_to_vm(e, types)) }
         return ArrayVal { .type_id = 0, .elements = elems, .offset = 0, .length = elems.len() }
     }
-    return I32Val { .value = 0 }
+    return I32Val(0)
 }
 
 // Type-table index of the `BcStruct` declared by `symbol_id`, or 0 when absent.
@@ -1111,25 +1111,25 @@ type_id_for_symbol :: fn(types: bc.BcType[], symbol_id: i32) -> i32 {
 // a hex byte slice. f32/f64 bit-cast the low bits (f32 held in an `F64Val`, as
 // elsewhere in the VM) ; `Boxed` never appears in a primitive data pool.
 value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
-    if kind == .U8   { return I32Val { .value = i32(bits & 0xff) } }
+    if kind == .U8   { return I32Val(i32(bits & 0xff)) }
     if kind == .I8   {
         b :: bits & 0xff
-        return I32Val { .value = if b >= 0x80 { i32(b) - 256 } else { i32(b) } }
+        return I32Val(if b >= 0x80 { i32(b) - 256 } else { i32(b) })
     }
-    if kind == .Bool { return BoolVal { .value = bits != 0 } }
-    if kind == .U16  { return I32Val { .value = i32(bits & 0xffff) } }
+    if kind == .Bool { return BoolVal(bits != 0) }
+    if kind == .U16  { return I32Val(i32(bits & 0xffff)) }
     if kind == .I16  {
         v :: bits & 0xffff
-        return I32Val { .value = if v >= 0x8000 { i32(v) - 65536 } else { i32(v) } }
+        return I32Val(if v >= 0x8000 { i32(v) - 65536 } else { i32(v) })
     }
-    if kind == .U32  { return I32Val { .value = i32(u32(bits)) } }
-    if kind == .I32  { return I32Val { .value = i32(u32(bits)) } }
-    if kind == .Char { return CharVal { .value = char(u32(bits)) } }
-    if kind == .U64  { return I64Val { .value = i64(bits) } }
-    if kind == .I64  { return I64Val { .value = i64(bits) } }
-    if kind == .F32  { return F64Val { .value = f64((u32(bits)).from_bits()) } }
-    if kind == .F64  { return F64Val { .value = (bits).from_bits() } }
-    return I32Val { .value = 0 }
+    if kind == .U32  { return I32Val(i32(u32(bits))) }
+    if kind == .I32  { return I32Val(i32(u32(bits))) }
+    if kind == .Char { return CharVal(char(u32(bits))) }
+    if kind == .U64  { return I64Val(i64(bits)) }
+    if kind == .I64  { return I64Val(i64(bits)) }
+    if kind == .F32  { return F64Val(f64(u32(bits).from_bits())) }
+    if kind == .F64  { return F64Val(bits.from_bits()) }
+    return I32Val(0)
 }
 
 // ---- tests ----------------------------------------------------------------

@@ -61,34 +61,34 @@ reserve_registers :: fn(m: RegMachine!, count: usize) -> void {
 // The value of register `at`, boxed.
 register_value :: fn(m: RegMachine, at: usize) -> Value = match m.tags[at] {
     .Ref  -> m.refs[at]
-    .I32  -> I32Val { .value = i32(m.bits[at]) }
-    .I64  -> I64Val { .value = m.bits[at] }
-    .F64  -> F64Val { .value = (u64(m.bits[at])).from_bits() }
-    .Bool -> BoolVal { .value = m.bits[at] != 0 }
-    .Char -> CharVal { .value = char(u32(m.bits[at])) }
-    .Null -> NullVal {}
+    .I32  -> I32Val(i32(m.bits[at]))
+    .I64  -> I64Val(m.bits[at])
+    .F64  -> F64Val(u64(m.bits[at]).from_bits())
+    .Bool -> BoolVal(m.bits[at] != 0)
+    .Char -> CharVal(char(u32(m.bits[at])))
+    .Null -> NULL_VALUE
 }
 
 // Write a boxed value into register `at`.
 set_register :: fn(m: RegMachine!, at: usize, value: Value!) -> void = match value {
     is I32Val -> {
-        m.bits[at] = i64(value.value)
+        m.bits[at] = i64(value)
         m.tags[at] = .I32
     }
     is I64Val -> {
-        m.bits[at] = value.value
+        m.bits[at] = i64(value)
         m.tags[at] = .I64
     }
     is F64Val -> {
-        m.bits[at] = i64((value.value).to_bits())
+        m.bits[at] = i64(f64(value).to_bits())
         m.tags[at] = .F64
     }
     is BoolVal -> {
-        m.bits[at] = if value.value { 1 } else { 0 }
+        m.bits[at] = if bool(value) { 1 } else { 0 }
         m.tags[at] = .Bool
     }
     is CharVal -> {
-        m.bits[at] = i64(u32(value.value))
+        m.bits[at] = i64(u32(value))
         m.tags[at] = .Char
     }
     is NullVal -> { m.tags[at] = .Null }
@@ -977,7 +977,7 @@ finish_run :: fn(m: RegMachine, has_value: bool, capture: Value[]! | null) -> Vm
     if code is Trap {
         return code
     }
-    return Ok { .value = code.value }
+    return Ok { .value = i32(code) }
 }
 
 bits_of :: fn(bits: i64[], base: usize, register: i32) = bits[base + usize(register)]

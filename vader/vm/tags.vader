@@ -73,15 +73,15 @@ tags_within :: fn(have: u8, allowed: u8) = have | allowed == allowed
 /// `is_i64_tag`): a `char` literal passed as a `u8` stays a `Char`, and a 64-bit
 /// count a host or `array.len` computes comes back as an `I32`.
 tags_of_val :: fn(v: bc.ValType) -> u8 = match v {
-    .I8 | .I16 | .I32 | .U8 | .U16 | .U32 -> TAGS_I32 | TAGS_CHAR
+    .I8 | .I16 | .I32 | .U8 | .U16 | .U32    -> TAGS_I32 | TAGS_CHAR
     .I64 | .Isize | .U64 | .Usize | .Pointer -> TAGS_I64 | TAGS_I32
-    .F32 | .F64 -> TAGS_F64
-    .Bool -> TAGS_BOOL
-    .Char -> TAGS_CHAR
-    .Null -> TAGS_NULL
-    .String | .Ref -> TAGS_REF
-    .Void -> 0
-    .Any -> TAGS_ANY
+    .F32 | .F64                              -> TAGS_F64
+    .Bool                                    -> TAGS_BOOL
+    .Char                                    -> TAGS_CHAR
+    .Null                                    -> TAGS_NULL
+    .String | .Ref                           -> TAGS_REF
+    .Void                                    -> 0
+    .Any                                     -> TAGS_ANY
 }
 
 // What the inference reads of a module, resolved once.

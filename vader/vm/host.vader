@@ -32,13 +32,13 @@ host_str_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
     b :: stack[arg_base + 1]
     // The labels are interpolated, so they are built only once a read fails.
     if a is StringVal && b is StringVal {
-        return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
+        return HostOk { .value = BoolVal(apply(string(a), string(b))) }
     }
     a_read :: read_string(a, at_pc, "${label} receiver")
     if a_read is Trap { return a_read }
     b_read :: read_string(b, at_pc, "${label} arg")
     if b_read is Trap { return b_read }
-    return HostOk { .value = BoolVal { .value = apply(a_read.value, b_read.value) } }
+    return HostOk { .value = BoolVal(apply(string(a_read), string(b_read))) }
 }
 
 /// Two integer args → bool. Reads both via `read_i64` (widening `I32Val`), so
@@ -49,7 +49,7 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
     b :: int_arg(stack[arg_base + 1], at_pc, label, "arg")
     if a is Trap { return a }
     if b is Trap { return b }
-    return HostOk { .value = BoolVal { .value = apply(a, b) } }
+    return HostOk { .value = BoolVal(apply(a, b)) }
 }
 
 // An extern's integer argument `i`, its label built only when it is not one.
@@ -63,13 +63,13 @@ extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: usize) -> I64Val
 // `read_i64` of `v`, its label — `op`, then `what` — built only when it traps.
 int_arg :: fn(v: Value, at_pc: i32, op: string, what: string) -> i64 | Trap {
     if v is I64Val {
-        return v.value
+        return i64(v)
     }
     if v is I32Val {
-        return i64(v.value)
+        return i64(v)
     }
     failed :: read_i64(v, at_pc, "${op} ${what}")
-    return if failed is Trap { failed } else { failed.value }
+    return if failed is Trap { failed } else { i64(failed) }
 }
 
 
@@ -162,7 +162,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // import. String-only (a `u8[]` uses `.len()` directly).
         s :: read_string(stack[arg_base], at_pc, "byte_len")
         if s is Trap { return s }
-        return HostOk { .value = I32Val { .value = i32(s.value.bytes().len()) } }
+        return HostOk { .value = I32Val(i32(string(s).bytes().len())) }
     }
     .ByteAt -> {
         // Header-free byte read — the fold target for a non-escaping `s.bytes()[i]`.
@@ -171,12 +171,12 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         i :: read_i32   (stack[arg_base + 1], at_pc, "byte_at index")
         if s is Trap { return s }
         if i is Trap { return i }
-        bs  :: s.value.bytes()
-        idx :: usize(i.value)
+        bs  :: string(s).bytes()
+        idx :: usize(i)
         if idx >= bs.len() {
             return Trap { .message = "byte index out of bounds" }
         }
-        return HostOk { .value = I32Val { .value = i32(bs[idx]) } }
+        return HostOk { .value = I32Val(i32(bs[idx])) }
     }
     .BytesToString -> {
         // bytes→string : the VM gathers the boxed u8 slots into a real `u8[]` and
@@ -188,16 +188,16 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         for i in 0..<arr.length {
             b :: read_i32(arr.elements[arr.offset + i], at_pc, "bytes_to_string byte")
             if b is Trap { return b }
-            raw.push(u8(b.value))
+            raw.push(u8(b))
         }
-        return HostOk { .value = StringVal { .value = raw.bytes_to_string() } }
+        return HostOk { .value = StringVal(raw.bytes_to_string()) }
     }
     .Bytes -> {
         // Native zero-copies a read-only `u8[]` view ; the VM materialises a copy
         // (boxed slots can't alias the interned bytes) — same values.
         s :: read_string(stack[arg_base], at_pc, "bytes receiver")
         if s is Trap { return s }
-        return HostOk { .value = bytes_to_value(s.value, u8_array_type_id) }
+        return HostOk { .value = bytes_to_value(string(s), u8_array_type_id) }
     }
     .StringHash -> {
         // String `Hash` reads the FNV-1a-64 cached on the interned atom. Calling
@@ -206,7 +206,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // native produce identical hashes for the same atom. u64 rides in I64Val.
         s :: read_string(stack[arg_base], at_pc, "hash receiver")
         if s is Trap { return s }
-        return HostOk { .value = I64Val { .value = i64(s.value.hash()) } }
+        return HostOk { .value = I64Val(i64(string(s).hash())) }
     }
     // `StringBuilder implements Display` moved to pure Vader in Target ABI S3 ;
     // the resolver materialises its body (a byte-Buffer read + `bytes_to_string`),
@@ -221,14 +221,14 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // native runtime (`vader_string_codepoint_at`, runtime/c/vader_runtime.c),
         // which raises the same message. Previously the VM baked U+0000, so an
         // OOB `s[i]` at comptime silently produced a NUL codepoint.
-        sb :: s.value.bytes()
-        target :: usize(i.value)
+        sb :: string(s).bytes()
+        target :: usize(i)
         cursor: usize = 0
         seen:   usize = 0
         n :: sb.len()
         for cursor < n {
             [cp, width] :: sb.utf8_decode_len(cursor)
-            if seen == target { return HostOk { .value = CharVal { .value = cp } } }
+            if seen == target { return HostOk { .value = CharVal(cp) } }
             cursor = cursor + width
             seen   = seen + 1
         }
@@ -272,8 +272,8 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
             v :: stack[arg_base]
             // @partial: integer carriers reinterpret as unsigned; other tags trap.
             return @partial match v {
-                is I64Val -> HostOk { .value = StringVal { .value = u64(v.value).to_string() } }
-                is I32Val -> HostOk { .value = StringVal { .value = u64(u32(v.value)).to_string() } }
+                is I64Val -> HostOk { .value = StringVal(u64(v).to_string()) }
+                is I32Val -> HostOk { .value = StringVal(u64(u32(v)).to_string()) }
                 // Any other Value tag means the lowerer routed a non-
                 // integer through `<u_width>$Display$to_string`. Trap
                 // loudly so the regression surfaces here instead of as a
@@ -281,7 +281,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
                 _ -> Trap { .message = "${info.mangled_name} at pc=${at_pc}: expected integer Value, got ${describe_value_tag(v)}" }
             }
         }
-        return HostOk { .value = StringVal { .value = display_value(stack[arg_base]) } }
+        return HostOk { .value = StringVal(display_value(stack[arg_base])) }
     }
     // ---- std/runtime collection counters ---------------------------------
     // The Vader VM has no GC arena ; the snippet tests just need the
@@ -292,30 +292,30 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         gc_state[0] = gc_state[0] + 1
         return HostOk { .value = NullVal {} }
     }
-    .RuntimeCollections -> { return HostOk { .value = I32Val { .value = i32(gc_state[0]) } } }
-    .RuntimeBytesUsed   -> { return HostOk { .value = I32Val { .value = 0 } } }
-    .RuntimeBytesCopied -> { return HostOk { .value = I32Val { .value = 0 } } }
+    .RuntimeCollections -> { return HostOk { .value = I32Val(i32(gc_state[0])) } }
+    .RuntimeBytesUsed   -> { return HostOk { .value = I32Val(0) } }
+    .RuntimeBytesCopied -> { return HostOk { .value = I32Val(0) } }
     // ---- std/runtime — cooperative async scheduler ----------------------
     // VM-side mirror of the C scheduler : `sched_state[0]` = now, `[1..]` =
     // pending deadlines. The VM always jumps the virtual clock (an interpreter
     // never real-sleeps) ; output depends only on deadline ordering, so it
     // matches native.
-    .SchedNow -> { return HostOk { .value = I64Val { .value = i64(sched_state[0]) } } }
+    .SchedNow -> { return HostOk { .value = I64Val(i64(sched_state[0])) } }
     .SchedArm -> {
         d :: read_i64(stack[arg_base], at_pc, "sched_arm deadline")
         if d is Trap { return d }
-        sched_state.push(usize(d.value))
+        sched_state.push(usize(d))
         return HostOk { .value = NullVal {} }
     }
     .SchedPark -> {
-        if sched_state.len() <= 1 { return HostOk { .value = I32Val { .value = 1 } } }  // deadlock
+        if sched_state.len() <= 1 { return HostOk { .value = I32Val(1) } }  // deadlock
         min_i: usize = 1
         for i in 2..<sched_state.len() { if sched_state[i] < sched_state[min_i] { min_i = i } }
         deadline :: sched_state[min_i]
         sched_state[min_i] = sched_state[sched_state.len() - 1]   // swap-remove
         sched_state.remove_last()
         if deadline > sched_state[0] { sched_state[0] = deadline }
-        return HostOk { .value = I32Val { .value = 0 } }
+        return HostOk { .value = I32Val(0) }
     }
     // ---- std/tty + std/env ----------------------------------------------
     // Raw mode from the VM is the same call the native binary makes: the VM is
@@ -328,14 +328,14 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     .FfiOpen -> {
         name :: read_string(stack[arg_base], at_pc, "ffi_open name")
         if name is Trap { return name }
-        return HostOk { .value = I64Val { .value = i64(ffi_open(name.value)) } }
+        return HostOk { .value = I64Val(i64(ffi_open(string(name)))) }
     }
     .FfiSymbol -> {
         lib :: read_i64(stack[arg_base], at_pc, "ffi_symbol lib")
         if lib is Trap { return lib }
         sym :: read_string(stack[arg_base + 1], at_pc, "ffi_symbol name")
         if sym is Trap { return sym }
-        return HostOk { .value = I64Val { .value = i64(ffi_symbol(usize(lib.value), sym.value)) } }
+        return HostOk { .value = I64Val(i64(ffi_symbol(usize(lib), string(sym)))) }
     }
     .FfiCall -> {
         ptr :: read_i64(stack[arg_base], at_pc, "ffi_call fn_ptr")
@@ -351,15 +351,15 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         for i in 0..<desc_arr.length {
             b :: read_i64(desc_arr.elements[desc_arr.offset + i], at_pc, "ffi_call desc byte")
             if b is Trap { return b }
-            desc.push(u8(b.value))
+            desc.push(u8(b))
         }
         frame: u8[]!: []
         for i in 0..<frame_arr.length {
             b :: read_i64(frame_arr.elements[frame_arr.offset + i], at_pc, "ffi_call frame byte")
             if b is Trap { return b }
-            frame.push(u8(b.value))
+            frame.push(u8(b))
         }
-        ffi_call(usize(ptr.value), desc, frame, -1)
+        ffi_call(usize(ptr), desc, frame, -1)
         // `frame` is a COPY, and it carries BOTH what the callee wrote into a
         // lent area and the result itself — so it has to travel back whole.
         for i in 0..<frame_arr.length {
@@ -369,16 +369,16 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = zero_value() }
     }
     .TargetCurrentOs -> {
-        return HostOk { .value = I32Val { .value = i32(current_os()) } }
+        return HostOk { .value = I32Val(i32(current_os())) }
     }
     .TargetCurrentArch -> {
-        return HostOk { .value = I32Val { .value = i32(current_arch()) } }
+        return HostOk { .value = I32Val(i32(current_arch())) }
     }
     // ---- std/abort -------------------------------------------------------
     .AbortPanic -> {
         message :: read_string(stack[arg_base], at_pc, "panic")
         if message is Trap { return message }
-        return Trap { .message = "vader: panic — ${message.value}" }
+        return Trap { .message = "vader: panic — ${string(message)}" }
     }
     // Non-intrinsics. Kept as an arm rather than a wildcard so a new
     // `IntrinsicId` variant still trips T3013 here.
@@ -436,21 +436,21 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
     if arr is Trap { return arr }
     count :: read_i64(stack[arg_base + 2], at_pc, "sys_write count")
     if count is Trap { return count }
-    if count.value < 0 || usize(count.value) > arr.length {
-        return Trap { .message = "sys_write at pc=${at_pc}: count ${count.value} exceeds the buffer" }
+    if count < 0 || usize(count) > arr.length {
+        return Trap { .message = "sys_write at pc=${at_pc}: count ${i64(count)} exceeds the buffer" }
     }
     bs: u8[]!: []
-    for i in 0..<usize(count.value) {
+    for i in 0..<usize(count) {
         b :: read_i64(arr.elements[arr.offset + i], at_pc, "sys_write byte")
         if b is Trap { return b }
-        bs.push(u8(b.value))
+        bs.push(u8(b))
     }
-    debug.output_sink(i32(fd.value) - 1, bytes_to_string(bs))
+    debug.output_sink(i32(fd) - 1, bytes_to_string(bs))
     // `WriteFile` answers a bool, `write` a byte count.
     if bc_single_result(info.signature) == .Bool {
-        return HostOk { .value = BoolVal { .value = true } }
+        return HostOk { .value = BoolVal(true) }
     }
-    return HostOk { .value = I64Val { .value = count.value } }
+    return HostOk { .value = I64Val(i64(count)) }
 }
 
 /// Serve an `@extern` the VM meets at a `call.import`, by resolving its symbol
@@ -491,7 +491,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     if debug != null && is_std_handle_symbol(info.extern_name) {
         which :: read_i64(stack[arg_base], at_pc, "GetStdHandle which")
         if which is Trap { return which }
-        return HostOk { .value = I64Val { .value = debug_std_descriptor(which.value) } }
+        return HostOk { .value = I64Val(debug_std_descriptor(i64(which))) }
     }
     if debug != null && is_write_symbol(info.extern_name) {
         return debug_write(info, stack, arg_base, at_pc, debug)
@@ -581,7 +581,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             desc.push(u8(FFI_ADDR))
             addr_slots.push(i64(slot_words.len()))
             slot_words.push(i64(data.len()))
-            push_little_endian(data, w.value, width)
+            push_little_endian(data, i64(w), width)
         } else if v is ArrayVal {
             elem :: lent_element_val_type(types, v.type_id)
             if elem == null {
@@ -594,10 +594,10 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             borrowed.push(LentArray { .target = v, .at = data.len(), .element = elem })
             for j in 0..<v.length {
                 cell :: v.elements[v.offset + j]
-                b :: if cell is I64Val { cell.value } else if cell is I32Val { i64(cell.value) } else {
+                b :: if cell is I64Val { i64(cell) } else if cell is I32Val { i64(cell) } else {
                     failed :: read_i64(cell, at_pc, "extern `${info.extern_name}` element")
                     if failed is Trap { return failed }
-                    failed.value
+                    i64(failed)
                 }
                 push_little_endian(data, b, width)
             }
@@ -608,14 +608,14 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             desc.push(u8(FFI_ADDR))
             addr_slots.push(i64(slot_words.len()))
             slot_words.push(i64(data.len()))
-            data.push_all(v.value.bytes())
+            data.push_all(string(v).bytes())
             data.push(0)
         } else if v is F64Val {
             desc.push(u8(FFI_F64))
-            slot_words.push(i64(v.value.to_bits()))
+            slot_words.push(i64(f64(v).to_bits()))
         } else if v is BoolVal {
             desc.push(u8(FFI_WORD))
-            slot_words.push(if v.value { 1 } else { 0 })
+            slot_words.push(if bool(v) { 1 } else { 0 })
         } else if v is NullVal {
             // `null` IS a pointer value — the null address — which is what the
             // native shim passes for a `CPointer | null`.
@@ -625,7 +625,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             w :: extern_word(v, at_pc, info.extern_name, i)
             if w is Trap { return w }
             desc.push(u8(FFI_WORD))
-            slot_words.push(w.value)
+            slot_words.push(i64(w))
         }
     }
 
@@ -691,7 +691,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         return HostOk { .value = zero_value() }
     }
     if result == .F64 {
-        return HostOk { .value = F64Val { .value = u64(read_little_endian(frame, 0, 8, false)).from_bits() } }
+        return HostOk { .value = F64Val(u64(read_little_endian(frame, 0, 8, false)).from_bits()) }
     }
     // A `string` result comes back as the call's RETURN value, not through the
     // frame: it is an atom, and only C can turn the callee's pointer into one.
@@ -699,10 +699,10 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
         if read_little_endian(frame, 0, 8, false) == 0 {
             return HostOk { .value = NullVal {} }
         }
-        return HostOk { .value = StringVal { .value = returned } }
+        return HostOk { .value = StringVal(returned) }
     }
     if result == .String {
-        return HostOk { .value = StringVal { .value = returned } }
+        return HostOk { .value = StringVal(returned) }
     }
     // `<pointer> | null`: NULL is C's "absent", and nothing downstream can tell
     // a null pointer from a pointer whose value is 0.
@@ -910,7 +910,7 @@ serialise_mirror :: fn(
             read_scalar_word(field, at_pc, "extern `${extern_name}` field `${fields[j].name}`")
         }
         if cell is Trap { return cell }
-        write_little_endian(data, base + usize(layout.offsets[j]), cell.value, usize(width))
+        write_little_endian(data, base + usize(layout.offsets[j]), i64(cell), usize(width))
     }
     return null
 }
@@ -1031,18 +1031,18 @@ push_little_endian :: fn(buf: u8[]!, value: i64, width: usize) -> void {
 /// @return     `n` wearing `old`'s variant.
 retyped_int :: fn(old: Value, n: i64) -> Value {
     if old is I64Val {
-        return I64Val { .value = n }
+        return I64Val(n)
     }
     // A mirror field may be `bool` or `char` — `typecheck/decl::validate_mirror_fields`
     // admits both. Handing back an `I32Val` would silently retype the field, so
     // it stops answering `is bool` after the call even though the byte is right.
     if old is BoolVal {
-        return BoolVal { .value = n != 0 }
+        return BoolVal(n != 0)
     }
     if old is CharVal {
-        return CharVal { .value = char(u32(n & 0xFFFF_FFFF)) }
+        return CharVal(char(u32(n & 0xFFFF_FFFF)))
     }
-    return I32Val { .value = i32(n) }
+    return I32Val(i32(n))
 }
 
 /// Read a mirror field as the machine word the block stores.
@@ -1057,10 +1057,10 @@ retyped_int :: fn(old: Value, n: i64) -> Value {
 /// @param label  names the field in that message.
 read_scalar_word :: fn(v: Value, at_pc: i32, label: string) -> I64Val | Trap {
     if v is BoolVal {
-        return I64Val { .value = if v.value { 1 } else { 0 } }
+        return I64Val(if bool(v) { 1 } else { 0 })
     }
     if v is CharVal {
-        return I64Val { .value = i64(u32(v.value)) }
+        return I64Val(i64(u32(v)))
     }
     return read_i64(v, at_pc, label)
 }
@@ -1088,7 +1088,7 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
         // half of RAX is not part of the value. Testing all 64 turns a `FALSE`
         // from `FindNextFileW` into `true`, and the caller is a `for {}` that
         // only that result breaks: an infinite loop, not a one-off wrong branch.
-        return HostOk { .value = BoolVal { .value = i32(raw & 0xFFFF_FFFF) != 0 } }
+        return HostOk { .value = BoolVal(i32(raw & 0xFFFF_FFFF) != 0) }
     }
     // A narrow integer keeps the carrier the VM uses for its width : `i32` and
     // below ride `I32Val`, everything wider rides `I64Val`.
@@ -1096,9 +1096,9 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
         || result == .I16 || result == .U16
         || result == .I8 || result == .U8
         || result == .Char {
-        return HostOk { .value = I32Val { .value = i32(raw) } }
+        return HostOk { .value = I32Val(i32(raw)) }
     }
-    return HostOk { .value = I64Val { .value = raw } }
+    return HostOk { .value = I64Val(raw) }
 }
 
 // ---- comptime impurity gate -----------------------------------------------

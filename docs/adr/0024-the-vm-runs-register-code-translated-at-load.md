@@ -101,9 +101,8 @@ reintroduced by accident. The label is built in the trap branch only.
 
 ## Consequences
 
-- The heap is still boxed: a `Value` is allocated for every scalar stored into a
-  struct field or an array element. That is now what bounds `vm_arr`, `vm_field`
-  and `vm_str`.
+- The heap stayed boxed here: a `Value` was allocated for every scalar stored into
+  a struct field or an array element. 0025 puts the scalar in the box instead.
 - The comptime step budget counts the original ops a back edge spans, and one per
   call, instead of every op dispatched. A non-terminating `@comptime` loop still
   trips it; the count at which it does is not the same.

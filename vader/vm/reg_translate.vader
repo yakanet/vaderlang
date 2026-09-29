@@ -364,7 +364,7 @@ boxed :: fn(t: Translation!, pc: usize, op: bc.Op, pops: usize, pushes: usize) -
 // Push the string `op` names, built once.
 string_constant :: fn(module: bc.BytecodeModule, t: Translation!, pc: usize, op: bc.StringConst) -> void {
     dst :: canonical(t, t.stack.len())
-    t.code.values.push(StringVal { .value = module.strings[usize(op.index)] })
+    t.code.values.push(StringVal(module.strings[usize(op.index)]))
     emit(t, pc, .ConstRef, dst, i32(t.code.values.len() - 1), 0)
     push_register(t, dst)
 }

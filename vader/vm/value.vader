@@ -36,7 +36,7 @@ export ValueResult :: ValueOk | Trap
 export ValueOk :: struct { value: Value }
 
 /// Default-zero `Value`, used to size each frame's locals at fn entry.
-export zero_value :: fn() -> Value { return I32Val { .value = 0 } }
+export zero_value :: fn() -> Value { return I32Val(0) }
 
 /// Box a `string[]` as an `ArrayVal` of `StringVal`.
 ///
@@ -53,7 +53,7 @@ export zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 /// @return         an `ArrayVal` whose elements are `StringVal`s of `items`.
 export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
     elements: Value[]!: []
-    for s in items { elements.push(StringVal { .value = s }) }
+    for s in items { elements.push(StringVal(s)) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
 
@@ -70,7 +70,7 @@ export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
 /// @return         an `ArrayVal` whose elements are the UTF-8 bytes of `s`.
 export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
     elements: Value[]!: []
-    for b in s.bytes() { elements.push(I32Val { .value = i32(b) }) }
+    for b in s.bytes() { elements.push(I32Val(i32(b))) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
 
@@ -83,7 +83,7 @@ export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
 /// @return         an `ArrayVal` whose elements are the bytes of `bs`.
 export u8_array_to_value :: fn(bs: u8[], type_id: i32) -> ArrayVal {
     elements: Value[]!: []
-    for b in bs { elements.push(I32Val { .value = i32(b) }) }
+    for b in bs { elements.push(I32Val(i32(b))) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
 
@@ -186,7 +186,7 @@ export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, a
     // (u8/u16 are always < 2^31, so this is a no-op for them ; only a u32 with
     // the high bit set actually differs.)
     nv :: if v is I32Val {
-        if from_name.starts_with("u") { I64Val { .value = i64(u32(v.value)) } } else { v }
+        if from_name.starts_with("u") { I64Val(i64(u32(v))) } else { v }
     } else {
         v
     }
@@ -194,34 +194,34 @@ export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, a
         if nv is I32Val { return nv }
         n :: read_numeric_as_i64(nv, at_pc)
         if n is Trap { return n }
-        return I32Val { .value = i32(n) }
+        return I32Val(i32(n))
     }
     if target == .I64 {
         if nv is I64Val { return nv }
         n :: read_numeric_as_i64(nv, at_pc)
         if n is Trap { return n }
-        return I64Val { .value = n }
+        return I64Val(n)
     }
     if target == .F64 {
         if nv is F64Val { return nv }
         n :: read_numeric_as_f64(nv, at_pc)
         if n is Trap { return n }
-        return F64Val { .value = n }
+        return F64Val(n)
     }
     if nv is CharVal { return nv }
     n :: read_numeric_as_i64(nv, at_pc)
     if n is Trap { return n }
-    return CharVal { .value = char(u32(n)) }
+    return CharVal(char(u32(n)))
 }
 
 read_numeric_as_i64 :: fn(v: Value, at_pc: i32) -> i64 | Trap {
     // @partial: numeric/bool values convert; every other Value variant traps.
     return @partial match v {
-        is I64Val -> v.value
-        is I32Val -> i64(v.value)
-        is F64Val -> i64(v.value)
-        is CharVal -> i64(u32(v.value))
-        is BoolVal -> if v.value { i64(1) } else { i64(0) }
+        is I64Val -> i64(v)
+        is I32Val -> i64(v)
+        is F64Val -> i64(v)
+        is CharVal -> i64(u32(v))
+        is BoolVal -> if bool(v) { i64(1) } else { i64(0) }
         _ -> Trap { .message = "convert at pc=${at_pc}: cannot read ${describe_value_tag(v)} as numeric" }
     }
 }
@@ -231,10 +231,10 @@ read_numeric_as_i64 :: fn(v: Value, at_pc: i32) -> i64 | Trap {
 read_numeric_as_f64 :: fn(v: Value, at_pc: i32) -> f64 | Trap {
     // @partial: numeric values convert; every other Value variant traps.
     return @partial match v {
-        is I32Val -> f64(v.value)
-        is I64Val -> f64(v.value)
-        is F64Val -> v.value
-        is CharVal -> f64(u32(v.value))
+        is I32Val -> f64(v)
+        is I64Val -> f64(v)
+        is F64Val -> f64(v)
+        is CharVal -> f64(u32(v))
         _ -> Trap { .message = "convert at pc=${at_pc}: cannot read ${describe_value_tag(v)} as f64" }
     }
 }
@@ -247,8 +247,8 @@ export read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
     // @partial: i32/char/i64 carriers unwrap; every other Value variant traps.
     return @partial match v {
         is I32Val -> v
-        is CharVal -> I32Val { .value = i32(u32(v.value)) }
-        is I64Val -> I32Val { .value = i32(v.value) }
+        is CharVal -> I32Val(i32(u32(v)))
+        is I64Val -> I32Val(i32(v))
         _ -> Trap { .message = "${label} at pc=${at_pc}: expected i32, got ${describe_value_tag(v)}" }
     }
 }
@@ -260,7 +260,7 @@ export read_i64 :: fn(v: Value, at_pc: i32, label: string) -> I64Val | Trap {
     // @partial: i64/i32 carriers unwrap; every other Value variant traps.
     return @partial match v {
         is I64Val -> v
-        is I32Val -> I64Val { .value = i64(v.value) }
+        is I32Val -> I64Val(i64(v))
         _         -> Trap { .message = "${label} at pc=${at_pc}: expected i64, got ${describe_value_tag(v)}" }
     }
 }
@@ -371,13 +371,13 @@ export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Tra
 /// shared object on both backends.
 export value_ref_eq :: fn(a: Value, b: Value) -> bool = match a {
     is NullVal   -> b is NullVal
-    is I32Val    -> if b is I32Val    as bi { a.value == bi.value } else { false }
-    is BoolVal   -> if b is BoolVal   as bb { a.value == bb.value } else { false }
-    is CharVal   -> if b is CharVal   as bc { a.value == bc.value } else { false }
-    is StringVal -> if b is StringVal as bx { a.value == bx.value } else { false }
-    is I64Val    -> if b is I64Val    as bl { a.value == bl.value } else { false }
+    is I32Val    -> b is I32Val && a == b
+    is BoolVal   -> b is BoolVal && a == b
+    is CharVal   -> b is CharVal && a == b
+    is StringVal -> b is StringVal && a == b
+    is I64Val    -> b is I64Val && a == b
     // A boxed float compares its bits, as the native payload compare does.
-    is F64Val    -> if b is F64Val    as bf { a.value.to_bits() == bf.value.to_bits() } else { false }
+    is F64Val    -> b is F64Val && f64(a).to_bits() == f64(b).to_bits()
     is StructVal | ArrayVal | FnVal | ErrorVal | TypeVal | ObjVal -> same_value(a, b)
 }
 
@@ -593,6 +593,36 @@ export union_matches :: fn(state: VmState, v: Value, variant_type_ids: i32[]) ->
 // module, so the `read_*` / `type_matches` helpers above reference these
 // variants directly.
 
+// The scalar variants precede `Value` : a compiler without the fixed point in
+// `register_aliases` — the committed bootstrap seed included — registers a union
+// alias only after the distincts it names.
+
+/// 32-bit integer payload.
+export I32Val :: i32
+
+/// 64-bit integer payload. Carries `i64.const` literals plus the results
+/// of the `I64*` arithmetic / comparison ops (and any `I32Val` widened
+/// by `read_i64`).
+export I64Val :: i64
+
+/// 64-bit float payload. Used for `f64` (and aliased `f32`) values
+/// flowing through `f64.const` and the `f64.*` arithmetic family.
+export F64Val :: f64
+
+/// String payload — the underlying buffer is borrowed from the
+/// module's `strings` pool, so the VM never has to allocate.
+export StringVal :: string
+
+/// Boolean payload. Sprint 5a addition — drives `if` / `br_if` once a
+/// snippet's comparison chain uses `bool.*` ops (legacy `i32.*` cmp
+/// arms still push `I32Val(0|1)` for back-compat with vm_if/vm_for).
+export BoolVal :: bool
+
+/// Unicode codepoint payload. Sprint 5a addition. The bytecode emits
+/// `char.const N` where N is the u32 codepoint ; equality and ordering
+/// use the underlying numeric.
+export CharVal :: char
+
 /// Tagged runtime value carried on the VM's value stack. Sprint 3
 /// widened the stack from raw `i32[]` to this union so strings flow
 /// through `string.const` / `call.import` alongside numerics ; Sprint
@@ -614,22 +644,6 @@ export Value :: I32Val
        | ErrorVal
        | TypeVal
        | ObjVal
-
-/// 32-bit integer payload.
-export I32Val :: struct { value: i32 }
-
-/// 64-bit integer payload. Carries `i64.const` literals plus the results
-/// of the `I64*` arithmetic / comparison ops (and any `I32Val` widened
-/// by `read_i64`).
-export I64Val :: struct { value: i64 }
-
-/// 64-bit float payload. Used for `f64` (and aliased `f32`) values
-/// flowing through `f64.const` and the `f64.*` arithmetic family.
-export F64Val :: struct { value: f64 }
-
-/// String payload — the underlying buffer is borrowed from the
-/// module's `strings` pool, so the VM never has to allocate.
-export StringVal :: struct { value: string }
 
 /// Heap-allocated struct payload. `type_id` indexes into `Module.types`
 /// (used for diagnostics + future `type_check` op) ; `fields[i]` carries
@@ -673,16 +687,6 @@ export FnVal :: struct {
 /// Singleton runtime `null`. Has no fields — `is NullVal` is the only
 /// way to discriminate. Sprint 5a addition.
 export NullVal :: struct {}
-
-/// Boolean payload. Sprint 5a addition — drives `if` / `br_if` once a
-/// snippet's comparison chain uses `bool.*` ops (legacy `i32.*` cmp
-/// arms still push `I32Val { 0|1 }` for back-compat with vm_if/vm_for).
-export BoolVal :: struct { value: bool }
-
-/// Unicode codepoint payload. Sprint 5a addition. The bytecode emits
-/// `char.const N` where N is the u32 codepoint ; equality and ordering
-/// use the underlying numeric.
-export CharVal :: struct { value: char }
 
 /// Error value — the Vader runtime sentinel for a failed fallible call.
 /// Carries a short diagnostic. Matches against any `is Error` pattern
@@ -728,19 +732,19 @@ export ObjVal :: struct {
 // directly.
 
 I32Val implements Display {
-    to_string :: fn(self) -> string = "${self.value}"
+    to_string :: fn(self) -> string = "${i32(self)}"
 }
 
 F64Val implements Display {
-    to_string :: fn(self) -> string = "${self.value}"
+    to_string :: fn(self) -> string = "${f64(self)}"
 }
 
 I64Val implements Display {
-    to_string :: fn(self) -> string = "${self.value}"
+    to_string :: fn(self) -> string = "${i64(self)}"
 }
 
 StringVal implements Display {
-    to_string :: fn(self) -> string = self.value
+    to_string :: fn(self) -> string = string(self)
 }
 
 FnVal implements Display {
@@ -752,11 +756,11 @@ NullVal implements Display {
 }
 
 BoolVal implements Display {
-    to_string :: fn(self) -> string = if self.value { "true" } else { "false" }
+    to_string :: fn(self) -> string = if bool(self) { "true" } else { "false" }
 }
 
 CharVal implements Display {
-    to_string :: fn(self) -> string = "${self.value}"
+    to_string :: fn(self) -> string = "${char(self)}"
 }
 
 ErrorVal implements Display {
