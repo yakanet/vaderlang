@@ -3098,15 +3098,6 @@ apply_boxed :: fn(
             frame.sp = frame.sp + 1
             frame.pc = frame.pc + 1
         }
-        is bc.RefCast -> {
-            frame.pc = frame.pc + 1
-        }
-        is bc.Box -> {
-            // No-op : VM values carry coarse tags (`I64Val` matches any
-            // `is`-of-an-I64-width type), so the box-tag refinement the
-            // C-emit needs is irrelevant here — just bump pc, like RefCast.
-            frame.pc = frame.pc + 1
-        }
         is bc.Convert -> {
             if !convert_int_fast(frame, instr.target, instr.from_name) {
                 v :: peek_val(frame, frame.sp - 1)
@@ -3296,12 +3287,6 @@ apply_boxed :: fn(
             outcome :: store_bytes_op(frame, 8, (val_unwrap.value).to_bits(), "store_f64")
             if outcome is Trap { return outcome }
         }
-        is bc.LoadSlotI32  -> { if do_load_slot(frame)  is Trap as t { return t } }
-        is bc.LoadSlotI64  -> { if do_load_slot(frame)  is Trap as t { return t } }
-        is bc.LoadSlotF64  -> { if do_load_slot(frame)  is Trap as t { return t } }
-        is bc.StoreSlotI32 -> { if do_store_slot(frame) is Trap as t { return t } }
-        is bc.StoreSlotI64 -> { if do_store_slot(frame) is Trap as t { return t } }
-        is bc.StoreSlotF64 -> { if do_store_slot(frame) is Trap as t { return t } }
         is bc.MemoryCopy -> {
             outcome :: do_memory_copy(frame)
             if outcome is Trap { return outcome }

@@ -137,177 +137,252 @@ reg_run :: fn(
     depth: usize = 1
     base: usize = 0
     pc: usize = 0
-    code_of := f.code
+    ops := f.ops
+    words := f.words
     bits :: m.bits
     tags :: m.tags
+    refs :: m.refs
     for {
-        ins :: code_of[pc]
-        match ins.op {
+        op :: ops[pc]
+        w :: words[pc]
+        match op {
             .Move -> {
-                to :: base + usize(ins.a)
-                from :: base + usize(ins.b)
+                to :: base + usize(operand_a(w))
+                from :: base + usize(operand_b(w))
                 bits[to] = bits[from]
                 tags[to] = tags[from]
-                m.refs[to] = m.refs[from]
+                refs[to] = refs[from]
             }
             .MoveScalar -> {
-                to :: base + usize(ins.a)
-                from :: base + usize(ins.b)
+                to :: base + usize(operand_a(w))
+                from :: base + usize(operand_b(w))
                 bits[to] = bits[from]
                 tags[to] = tags[from]
             }
-            .AddI32 -> { set_i32(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) + i32(bits_of(bits, base, ins.c))) }
-            .SubI32 -> { set_i32(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) - i32(bits_of(bits, base, ins.c))) }
-            .MulI32 -> { set_i32(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) * i32(bits_of(bits, base, ins.c))) }
+            .AddI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) + i32_of(bits, base, operand_c(w))) }
+            .SubI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) - i32_of(bits, base, operand_c(w))) }
+            .MulI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) * i32_of(bits, base, operand_c(w))) }
             .DivI32 -> {
-                d :: i32(bits_of(bits, base, ins.c))
+                d :: i32_of(bits, base, operand_c(w))
                 if d == 0 {
                     return Trap { .message = "i32.div by zero at pc=${f.origin[pc]}" }
                 }
-                set_i32(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) / d)
+                set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) / d)
             }
             .ModI32 -> {
-                d :: i32(bits_of(bits, base, ins.c))
+                d :: i32_of(bits, base, operand_c(w))
                 if d == 0 {
                     return Trap { .message = "i32.mod by zero at pc=${f.origin[pc]}" }
                 }
-                set_i32(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) % d)
+                set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) % d)
             }
-            .AndI32 -> { set_i32(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) & i32(bits_of(bits, base, ins.c))) }
-            .OrI32  -> { set_i32(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) | i32(bits_of(bits, base, ins.c))) }
-            .XorI32 -> { set_i32(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) ^ i32(bits_of(bits, base, ins.c))) }
-            .ShlI32 -> { set_i32(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) << i32(bits_of(bits, base, ins.c))) }
-            .ShrI32 -> { set_i32(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) >> i32(bits_of(bits, base, ins.c))) }
+            .AndI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) & i32_of(bits, base, operand_c(w))) }
+            .OrI32  -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) | i32_of(bits, base, operand_c(w))) }
+            .XorI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) ^ i32_of(bits, base, operand_c(w))) }
+            .ShlI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) << i32_of(bits, base, operand_c(w))) }
+            .ShrI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) >> i32_of(bits, base, operand_c(w))) }
             .ShrUI32 -> {
-                lhs :: u32(i32(bits_of(bits, base, ins.b)))
-                set_i32(bits, tags, base, ins.a, i32(lhs >> u32(i32(bits_of(bits, base, ins.c)))))
+                lhs :: u32(i32_of(bits, base, operand_b(w)))
+                set_i32(bits, tags, base, operand_a(w), i32(lhs >> u32(i32_of(bits, base, operand_c(w)))))
             }
-            .NegI32 -> { set_i32(bits, tags, base, ins.a, -i32(bits_of(bits, base, ins.b))) }
-            .NotI32 -> { set_i32(bits, tags, base, ins.a, ~i32(bits_of(bits, base, ins.b))) }
+            .NegI32 -> { set_i32(bits, tags, base, operand_a(w), -i32_of(bits, base, operand_b(w))) }
+            .NotI32 -> { set_i32(bits, tags, base, operand_a(w), ~i32_of(bits, base, operand_b(w))) }
             .DivU32 -> {
-                d :: i32(bits_of(bits, base, ins.c))
+                d :: i32_of(bits, base, operand_c(w))
                 if d == 0 {
                     return Trap { .message = "u32.div by zero at pc=${f.origin[pc]}" }
                 }
-                set_i32(bits, tags, base, ins.a, i32(u32(i32(bits_of(bits, base, ins.b))) / u32(d)))
+                set_i32(bits, tags, base, operand_a(w), i32(u32(i32_of(bits, base, operand_b(w))) / u32(d)))
             }
             .ModU32 -> {
-                d :: i32(bits_of(bits, base, ins.c))
+                d :: i32_of(bits, base, operand_c(w))
                 if d == 0 {
                     return Trap { .message = "u32.rem by zero at pc=${f.origin[pc]}" }
                 }
-                set_i32(bits, tags, base, ins.a, i32(u32(i32(bits_of(bits, base, ins.b))) % u32(d)))
+                set_i32(bits, tags, base, operand_a(w), i32(u32(i32_of(bits, base, operand_b(w))) % u32(d)))
             }
-            .EqI32 -> { set_bool(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) == i32(bits_of(bits, base, ins.c))) }
-            .NeI32 -> { set_bool(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) != i32(bits_of(bits, base, ins.c))) }
-            .LtI32 -> { set_bool(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) < i32(bits_of(bits, base, ins.c))) }
-            .LeI32 -> { set_bool(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) <= i32(bits_of(bits, base, ins.c))) }
-            .GtI32 -> { set_bool(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) > i32(bits_of(bits, base, ins.c))) }
-            .GeI32 -> { set_bool(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b)) >= i32(bits_of(bits, base, ins.c))) }
-            .LtU32 -> { set_bool(bits, tags, base, ins.a, u32_of(bits, base, ins.b) < u32_of(bits, base, ins.c)) }
-            .LeU32 -> { set_bool(bits, tags, base, ins.a, u32_of(bits, base, ins.b) <= u32_of(bits, base, ins.c)) }
-            .GtU32 -> { set_bool(bits, tags, base, ins.a, u32_of(bits, base, ins.b) > u32_of(bits, base, ins.c)) }
-            .GeU32 -> { set_bool(bits, tags, base, ins.a, u32_of(bits, base, ins.b) >= u32_of(bits, base, ins.c)) }
-            .AddI64 -> { set_i64(bits, tags, base, ins.a, bits_of(bits, base, ins.b) + bits_of(bits, base, ins.c)) }
-            .SubI64 -> { set_i64(bits, tags, base, ins.a, bits_of(bits, base, ins.b) - bits_of(bits, base, ins.c)) }
-            .MulI64 -> { set_i64(bits, tags, base, ins.a, bits_of(bits, base, ins.b) * bits_of(bits, base, ins.c)) }
+            .EqI32 -> { set_bool(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) == i32_of(bits, base, operand_c(w))) }
+            .NeI32 -> { set_bool(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) != i32_of(bits, base, operand_c(w))) }
+            .LtI32 -> { set_bool(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) < i32_of(bits, base, operand_c(w))) }
+            .LeI32 -> { set_bool(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) <= i32_of(bits, base, operand_c(w))) }
+            .GtI32 -> { set_bool(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) > i32_of(bits, base, operand_c(w))) }
+            .GeI32 -> { set_bool(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) >= i32_of(bits, base, operand_c(w))) }
+            .LtU32 -> { set_bool(bits, tags, base, operand_a(w), u32_of(bits, base, operand_b(w)) < u32_of(bits, base, operand_c(w))) }
+            .LeU32 -> { set_bool(bits, tags, base, operand_a(w), u32_of(bits, base, operand_b(w)) <= u32_of(bits, base, operand_c(w))) }
+            .GtU32 -> { set_bool(bits, tags, base, operand_a(w), u32_of(bits, base, operand_b(w)) > u32_of(bits, base, operand_c(w))) }
+            .GeU32 -> { set_bool(bits, tags, base, operand_a(w), u32_of(bits, base, operand_b(w)) >= u32_of(bits, base, operand_c(w))) }
+            .AddI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) + bits_of(bits, base, operand_c(w))) }
+            .SubI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) - bits_of(bits, base, operand_c(w))) }
+            .MulI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) * bits_of(bits, base, operand_c(w))) }
             .DivI64 -> {
-                d :: bits_of(bits, base, ins.c)
+                d :: bits_of(bits, base, operand_c(w))
                 if d == 0 {
                     return Trap { .message = "i64.div by zero at pc=${f.origin[pc]}" }
                 }
-                set_i64(bits, tags, base, ins.a, bits_of(bits, base, ins.b) / d)
+                set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) / d)
             }
             .ModI64 -> {
-                d :: bits_of(bits, base, ins.c)
+                d :: bits_of(bits, base, operand_c(w))
                 if d == 0 {
                     return Trap { .message = "i64.rem by zero at pc=${f.origin[pc]}" }
                 }
-                set_i64(bits, tags, base, ins.a, bits_of(bits, base, ins.b) % d)
+                set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) % d)
             }
-            .AndI64 -> { set_i64(bits, tags, base, ins.a, bits_of(bits, base, ins.b) & bits_of(bits, base, ins.c)) }
-            .OrI64  -> { set_i64(bits, tags, base, ins.a, bits_of(bits, base, ins.b) | bits_of(bits, base, ins.c)) }
-            .XorI64 -> { set_i64(bits, tags, base, ins.a, bits_of(bits, base, ins.b) ^ bits_of(bits, base, ins.c)) }
-            .ShlI64 -> { set_i64(bits, tags, base, ins.a, bits_of(bits, base, ins.b) << bits_of(bits, base, ins.c)) }
-            .ShrI64 -> { set_i64(bits, tags, base, ins.a, bits_of(bits, base, ins.b) >> bits_of(bits, base, ins.c)) }
+            .AndI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) & bits_of(bits, base, operand_c(w))) }
+            .OrI64  -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) | bits_of(bits, base, operand_c(w))) }
+            .XorI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) ^ bits_of(bits, base, operand_c(w))) }
+            .ShlI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) << bits_of(bits, base, operand_c(w))) }
+            .ShrI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) >> bits_of(bits, base, operand_c(w))) }
             .ShrUI64 -> {
-                set_i64(bits, tags, base, ins.a, i64(u64(bits_of(bits, base, ins.b)) >> u64(bits_of(bits, base, ins.c))))
+                set_i64(bits, tags, base, operand_a(w), i64(u64(bits_of(bits, base, operand_b(w))) >> u64(bits_of(bits, base, operand_c(w)))))
             }
-            .NegI64 -> { set_i64(bits, tags, base, ins.a, -bits_of(bits, base, ins.b)) }
-            .NotI64 -> { set_i64(bits, tags, base, ins.a, ~bits_of(bits, base, ins.b)) }
+            .NegI64 -> { set_i64(bits, tags, base, operand_a(w), -bits_of(bits, base, operand_b(w))) }
+            .NotI64 -> { set_i64(bits, tags, base, operand_a(w), ~bits_of(bits, base, operand_b(w))) }
             .DivU64 -> {
-                d :: bits_of(bits, base, ins.c)
+                d :: bits_of(bits, base, operand_c(w))
                 if d == 0 {
                     return Trap { .message = "u64.div by zero at pc=${f.origin[pc]}" }
                 }
-                set_i64(bits, tags, base, ins.a, i64(u64(bits_of(bits, base, ins.b)) / u64(d)))
+                set_i64(bits, tags, base, operand_a(w), i64(u64(bits_of(bits, base, operand_b(w))) / u64(d)))
             }
             .ModU64 -> {
-                d :: bits_of(bits, base, ins.c)
+                d :: bits_of(bits, base, operand_c(w))
                 if d == 0 {
                     return Trap { .message = "u64.rem by zero at pc=${f.origin[pc]}" }
                 }
-                set_i64(bits, tags, base, ins.a, i64(u64(bits_of(bits, base, ins.b)) % u64(d)))
+                set_i64(bits, tags, base, operand_a(w), i64(u64(bits_of(bits, base, operand_b(w))) % u64(d)))
             }
-            .EqI64 -> { set_bool(bits, tags, base, ins.a, bits_of(bits, base, ins.b) == bits_of(bits, base, ins.c)) }
-            .NeI64 -> { set_bool(bits, tags, base, ins.a, bits_of(bits, base, ins.b) != bits_of(bits, base, ins.c)) }
-            .LtI64 -> { set_bool(bits, tags, base, ins.a, bits_of(bits, base, ins.b) < bits_of(bits, base, ins.c)) }
-            .LeI64 -> { set_bool(bits, tags, base, ins.a, bits_of(bits, base, ins.b) <= bits_of(bits, base, ins.c)) }
-            .GtI64 -> { set_bool(bits, tags, base, ins.a, bits_of(bits, base, ins.b) > bits_of(bits, base, ins.c)) }
-            .GeI64 -> { set_bool(bits, tags, base, ins.a, bits_of(bits, base, ins.b) >= bits_of(bits, base, ins.c)) }
-            .LtU64 -> { set_bool(bits, tags, base, ins.a, u64(bits_of(bits, base, ins.b)) < u64(bits_of(bits, base, ins.c))) }
-            .LeU64 -> { set_bool(bits, tags, base, ins.a, u64(bits_of(bits, base, ins.b)) <= u64(bits_of(bits, base, ins.c))) }
-            .GtU64 -> { set_bool(bits, tags, base, ins.a, u64(bits_of(bits, base, ins.b)) > u64(bits_of(bits, base, ins.c))) }
-            .GeU64 -> { set_bool(bits, tags, base, ins.a, u64(bits_of(bits, base, ins.b)) >= u64(bits_of(bits, base, ins.c))) }
-            .AddF64 -> { set_f64(bits, tags, base, ins.a, f64_of(bits, base, ins.b) + f64_of(bits, base, ins.c)) }
-            .SubF64 -> { set_f64(bits, tags, base, ins.a, f64_of(bits, base, ins.b) - f64_of(bits, base, ins.c)) }
-            .MulF64 -> { set_f64(bits, tags, base, ins.a, f64_of(bits, base, ins.b) * f64_of(bits, base, ins.c)) }
-            .DivF64 -> { set_f64(bits, tags, base, ins.a, f64_of(bits, base, ins.b) / f64_of(bits, base, ins.c)) }
-            .NegF64 -> { set_f64(bits, tags, base, ins.a, -f64_of(bits, base, ins.b)) }
-            .EqF64 -> { set_bool(bits, tags, base, ins.a, f64_of(bits, base, ins.b) == f64_of(bits, base, ins.c)) }
-            .NeF64 -> { set_bool(bits, tags, base, ins.a, f64_of(bits, base, ins.b) != f64_of(bits, base, ins.c)) }
-            .LtF64 -> { set_bool(bits, tags, base, ins.a, f64_of(bits, base, ins.b) < f64_of(bits, base, ins.c)) }
-            .LeF64 -> { set_bool(bits, tags, base, ins.a, f64_of(bits, base, ins.b) <= f64_of(bits, base, ins.c)) }
-            .GtF64 -> { set_bool(bits, tags, base, ins.a, f64_of(bits, base, ins.b) > f64_of(bits, base, ins.c)) }
-            .GeF64 -> { set_bool(bits, tags, base, ins.a, f64_of(bits, base, ins.b) >= f64_of(bits, base, ins.c)) }
-            .EqBool  -> { set_bool(bits, tags, base, ins.a, (bits_of(bits, base, ins.b) != 0) == (bits_of(bits, base, ins.c) != 0)) }
-            .NeBool  -> { set_bool(bits, tags, base, ins.a, (bits_of(bits, base, ins.b) != 0) != (bits_of(bits, base, ins.c) != 0)) }
-            .AndBool -> { set_bool(bits, tags, base, ins.a, bits_of(bits, base, ins.b) != 0 && bits_of(bits, base, ins.c) != 0) }
-            .OrBool  -> { set_bool(bits, tags, base, ins.a, bits_of(bits, base, ins.b) != 0 || bits_of(bits, base, ins.c) != 0) }
-            .NotBool -> { set_bool(bits, tags, base, ins.a, bits_of(bits, base, ins.b) == 0) }
-            .ToI32 -> { set_i32(bits, tags, base, ins.a, i32(bits_of(bits, base, ins.b))) }
-            .ToI64 -> { set_i64(bits, tags, base, ins.a, bits_of(bits, base, ins.b)) }
+            .EqI64 -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) == bits_of(bits, base, operand_c(w))) }
+            .NeI64 -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) != bits_of(bits, base, operand_c(w))) }
+            .LtI64 -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) < bits_of(bits, base, operand_c(w))) }
+            .LeI64 -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) <= bits_of(bits, base, operand_c(w))) }
+            .GtI64 -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) > bits_of(bits, base, operand_c(w))) }
+            .GeI64 -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) >= bits_of(bits, base, operand_c(w))) }
+            .LtU64 -> { set_bool(bits, tags, base, operand_a(w), u64(bits_of(bits, base, operand_b(w))) < u64(bits_of(bits, base, operand_c(w)))) }
+            .LeU64 -> { set_bool(bits, tags, base, operand_a(w), u64(bits_of(bits, base, operand_b(w))) <= u64(bits_of(bits, base, operand_c(w)))) }
+            .GtU64 -> { set_bool(bits, tags, base, operand_a(w), u64(bits_of(bits, base, operand_b(w))) > u64(bits_of(bits, base, operand_c(w)))) }
+            .GeU64 -> { set_bool(bits, tags, base, operand_a(w), u64(bits_of(bits, base, operand_b(w))) >= u64(bits_of(bits, base, operand_c(w)))) }
+            .AddF64 -> { set_f64(bits, tags, base, operand_a(w), f64_of(bits, base, operand_b(w)) + f64_of(bits, base, operand_c(w))) }
+            .SubF64 -> { set_f64(bits, tags, base, operand_a(w), f64_of(bits, base, operand_b(w)) - f64_of(bits, base, operand_c(w))) }
+            .MulF64 -> { set_f64(bits, tags, base, operand_a(w), f64_of(bits, base, operand_b(w)) * f64_of(bits, base, operand_c(w))) }
+            .DivF64 -> { set_f64(bits, tags, base, operand_a(w), f64_of(bits, base, operand_b(w)) / f64_of(bits, base, operand_c(w))) }
+            .NegF64 -> { set_f64(bits, tags, base, operand_a(w), -f64_of(bits, base, operand_b(w))) }
+            .EqF64 -> { set_bool(bits, tags, base, operand_a(w), f64_of(bits, base, operand_b(w)) == f64_of(bits, base, operand_c(w))) }
+            .NeF64 -> { set_bool(bits, tags, base, operand_a(w), f64_of(bits, base, operand_b(w)) != f64_of(bits, base, operand_c(w))) }
+            .LtF64 -> { set_bool(bits, tags, base, operand_a(w), f64_of(bits, base, operand_b(w)) < f64_of(bits, base, operand_c(w))) }
+            .LeF64 -> { set_bool(bits, tags, base, operand_a(w), f64_of(bits, base, operand_b(w)) <= f64_of(bits, base, operand_c(w))) }
+            .GtF64 -> { set_bool(bits, tags, base, operand_a(w), f64_of(bits, base, operand_b(w)) > f64_of(bits, base, operand_c(w))) }
+            .GeF64 -> { set_bool(bits, tags, base, operand_a(w), f64_of(bits, base, operand_b(w)) >= f64_of(bits, base, operand_c(w))) }
+            .EqBool  -> { set_bool(bits, tags, base, operand_a(w), (bits_of(bits, base, operand_b(w)) != 0) == (bits_of(bits, base, operand_c(w)) != 0)) }
+            .NeBool  -> { set_bool(bits, tags, base, operand_a(w), (bits_of(bits, base, operand_b(w)) != 0) != (bits_of(bits, base, operand_c(w)) != 0)) }
+            .AndBool -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) != 0 && bits_of(bits, base, operand_c(w)) != 0) }
+            .OrBool  -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) != 0 || bits_of(bits, base, operand_c(w)) != 0) }
+            .NotBool -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) == 0) }
+            .ToI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w))) }
+            .ToI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w))) }
             .ToI64U -> {
-                from :: base + usize(ins.b)
+                from :: base + usize(operand_b(w))
                 n :: if tags[from] == .I32 { i64(u32(i32(bits[from]))) } else { bits[from] }
-                set_i64(bits, tags, base, ins.a, n)
+                set_i64(bits, tags, base, operand_a(w), n)
             }
             .Jump -> {
-                pc = usize(ins.a)
+                pc = usize(operand_a(w))
                 continue
             }
             .JumpBack -> {
-                steps += i64(ins.b)
+                steps += i64(operand_b(w))
                 if steps > step_budget {
                     return budget_trap(step_budget)
                 }
-                pc = usize(ins.a)
+                pc = usize(operand_a(w))
                 continue
             }
             .JumpIfFalse -> {
-                if bits_of(bits, base, ins.b) == 0 {
-                    pc = usize(ins.a)
+                if bits_of(bits, base, operand_b(w)) == 0 {
+                    pc = usize(operand_a(w))
                     continue
                 }
             }
             .JumpIfTrue -> {
-                if bits_of(bits, base, ins.b) != 0 {
-                    pc = usize(ins.a)
+                if bits_of(bits, base, operand_b(w)) != 0 {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpEqI32 -> {
+                if i32_of(bits, base, operand_b(w)) == i32_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpNeI32 -> {
+                if i32_of(bits, base, operand_b(w)) != i32_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpLtI32 -> {
+                if i32_of(bits, base, operand_b(w)) < i32_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpLeI32 -> {
+                if i32_of(bits, base, operand_b(w)) <= i32_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpEqI64 -> {
+                if bits_of(bits, base, operand_b(w)) == bits_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpNeI64 -> {
+                if bits_of(bits, base, operand_b(w)) != bits_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpLtI64 -> {
+                if bits_of(bits, base, operand_b(w)) < bits_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpLeI64 -> {
+                if bits_of(bits, base, operand_b(w)) <= bits_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpLtU32 -> {
+                if u32_of(bits, base, operand_b(w)) < u32_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpLeU32 -> {
+                if u32_of(bits, base, operand_b(w)) <= u32_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpLtU64 -> {
+                if u64_of(bits, base, operand_b(w)) < u64_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
+                    continue
+                }
+            }
+            .JumpLeU64 -> {
+                if u64_of(bits, base, operand_b(w)) <= u64_of(bits, base, operand_c(w)) {
+                    pc = usize(operand_a(w))
                     continue
                 }
             }
             .Budget -> {
-                steps += i64(ins.b)
+                steps += i64(operand_b(w))
                 if steps > step_budget {
                     return budget_trap(step_budget)
                 }
@@ -319,64 +394,70 @@ reg_run :: fn(
                 }
             }
             .CallImport -> {
-                failed :: call_import(state, m, ins.a, base + usize(ins.b), f.origin[pc], is_comptime)
+                failed :: call_import(state, m, operand_a(w), base + usize(operand_b(w)), f.origin[pc], is_comptime)
                 if failed != null {
                     return failed
                 }
             }
-            .Trap -> { return Trap { .message = f.texts[usize(ins.a)] } }
+            .Trap -> { return Trap { .message = f.texts[usize(operand_a(w))] } }
             .ConstRef -> {
-                to :: base + usize(ins.a)
-                m.refs[to] = f.values[usize(ins.b)]
-                m.tags[to] = .Ref
+                to :: base + usize(operand_a(w))
+                refs[to] = f.values[usize(operand_b(w))]
+                tags[to] = .Ref
             }
             .GetField -> {
-                field :: read_struct_field(m.refs[base + usize(ins.b)], ins.c, f.origin[pc], "struct.get")
-                if field is Trap {
-                    return field
+                target :: refs[base + usize(operand_b(w))]
+                field :: operand_c(w)
+                if target is StructVal && field >= 0 && usize(field) < target.fields.len() {
+                    set_register(m, base + usize(operand_a(w)), target.fields[usize(field)])
+                } else {
+                    // Not a struct, or no such field: the same test, trapping.
+                    failed :: read_struct_field(target, field, f.origin[pc], "struct.get")
+                    if failed is Trap {
+                        return failed
+                    }
                 }
-                set_register(m, base + usize(ins.a), field)
             }
             .SetField -> {
-                failed :: set_field(m, base, ins.a, ins.b, ins.c, f.origin[pc])
+                failed :: set_field(m, base, operand_a(w), operand_b(w), operand_c(w), f, pc)
                 if failed != null {
                     return failed
                 }
             }
-            .GetElement -> {
-                failed :: get_element(m, base, ins.a, ins.b, ins.c, f.origin[pc])
+            .GetElement | .LoadSlot -> {
+                failed :: get_element(m, base, operand_a(w), operand_b(w), operand_c(w), f, pc, op == .LoadSlot)
                 if failed != null {
                     return failed
                 }
             }
-            .SetElement -> {
-                failed :: set_element(m, base, ins.a, ins.b, ins.c, f.origin[pc])
+            .SetElement | .StoreSlot -> {
+                failed :: set_element(m, base, operand_a(w), operand_b(w), operand_c(w), f, pc, op == .StoreSlot)
                 if failed != null {
                     return failed
                 }
             }
             .Length -> {
-                array :: array_in(m, base + usize(ins.b), f.origin[pc], "array.len receiver")
+                array :: array_in(m, base + usize(operand_b(w)), f, pc, "array.len")
                 if array is Trap {
                     return array
                 }
-                set_i32(bits, tags, base, ins.a, i32(array.length))
+                set_i32(bits, tags, base, operand_a(w), i32(array.length))
             }
             .Append -> {
-                array :: array_in(m, base + usize(ins.a), f.origin[pc], "array.push receiver")
+                array :: array_in(m, base + usize(operand_a(w)), f, pc, "array.push")
                 if array is Trap {
                     return array
                 }
                 detach_array_view(array)
-                array.elements.push(register_value(m, base + usize(ins.b)))
+                array.elements.push(register_value(m, base + usize(operand_b(w))))
                 array.length = array.length + 1
             }
-            .Narrow -> { narrow_register(m, base + usize(ins.a), ins.b) }
+            .Narrow -> { narrow_register(m, base + usize(operand_a(w)), operand_b(w)) }
             .Call | .CallIndirect | .VirtualCall -> {
-                at :: base + usize(ins.b)
-                index: i32 = ins.a
-                if ins.op != .Call {
-                    resolved :: resolve_dynamic_call(state, m, f, pc, at, is_comptime)
+                at :: base + usize(operand_b(w))
+                index: i32 = operand_a(w)
+                if op != .Call {
+                    resolved :: resolve_dynamic_call(state, m, f, pc, op, w, at, is_comptime)
                     if resolved is Trap {
                         return resolved
                     }
@@ -404,17 +485,18 @@ reg_run :: fn(
                         depth += 1
                         base = at
                         f = callee
-                        code_of = f.code
+                        ops = f.ops
+                        words = f.words
                         pc = 0
                         continue
                     }
                 }
             }
             .Return | .ReturnMany -> {
-                many :: ins.op == .ReturnMany
-                result :: ins.a
+                many :: op == .ReturnMany
+                result :: operand_a(w)
                 if many {
-                    for k in 0..<usize(ins.b) {
+                    for k in 0..<usize(operand_b(w)) {
                         move_register(m, base + k, base + usize(result) + k)
                     }
                 } else if result >= 0 {
@@ -430,7 +512,8 @@ reg_run :: fn(
                 pc = m.frame_return[depth]
                 base = m.frame_base[depth - 1]
                 f = m.frame_code[depth - 1]
-                code_of = f.code
+                ops = f.ops
+                words = f.words
                 continue
             }
         }
@@ -440,50 +523,61 @@ reg_run :: fn(
 
 // The array register `at` holds, writable — the in-place ops grow or overwrite the
 // very object the register holds.
-array_in :: fn(m: RegMachine!, at: usize, origin: i32, label: string) -> ArrayVal! | Trap! {
+array_in :: fn(m: RegMachine!, at: usize, f: RegFunction, pc: usize, label: string) -> ArrayVal! | Trap! {
     if m.tags[at] == .Ref {
         v :: m.refs[at]
         if v is ArrayVal {
             return v
         }
     }
-    return Trap { .message = "${label} at pc=${origin}: expected array, got ${describe_value_tag(register_value(m, at))}" }
+    got :: describe_value_tag(register_value(m, at))
+    return Trap { .message = "${label} receiver at pc=${f.origin[pc]}: expected array, got ${got}" }
 }
 
-set_field :: fn(m: RegMachine!, base: usize, obj: i32, value: i32, field: i32, origin: i32) -> Trap | null {
-    target :: read_struct(m.refs[base + usize(obj)], origin, "struct.set receiver")
-    if target is Trap {
-        return target
+// The pc of a trap message is read only once the op traps: `f.origin[pc]`.
+set_field :: fn(m: RegMachine!, base: usize, obj: i32, value: i32, field: i32, f: RegFunction, pc: usize) -> Trap | null {
+    target :: m.refs[base + usize(obj)]
+    if target is StructVal {
+        if field < 0 || usize(field) >= target.fields.len() {
+            count :: target.fields.len()
+            return Trap { .message = "struct.set field ${field} out of range (struct has ${count} fields) at pc=${f.origin[pc]}" }
+        }
+        target.fields[usize(field)] = register_value(m, base + usize(value))
+        return null
     }
-    if field < 0 || usize(field) >= target.fields.len() {
-        count :: target.fields.len()
-        return Trap { .message = "struct.set field ${field} out of range (struct has ${count} fields) at pc=${origin}" }
-    }
-    target.fields[usize(field)] = register_value(m, base + usize(value))
-    return null
+    failed :: read_struct(target, f.origin[pc], "struct.set receiver")
+    return if failed is Trap { failed } else { null }
 }
 
-get_element :: fn(m: RegMachine!, base: usize, dst: i32, array_reg: i32, index_reg: i32, origin: i32) -> Trap | null {
+// `slot` for a `load_slot*`, which traps under its own name.
+get_element :: fn(
+    m: RegMachine!, base: usize, dst: i32, array_reg: i32, index_reg: i32, f: RegFunction, pc: usize, slot: bool,
+) -> Trap | null {
+    label :: if slot { "load_slot" } else { "array.get" }
     index :: i32(m.bits[base + usize(index_reg)])
-    array :: array_in(m, base + usize(array_reg), origin, "array.get receiver")
+    array :: array_in(m, base + usize(array_reg), f, pc, label)
     if array is Trap {
         return array
     }
     if index < 0 || usize(index) >= array.length {
-        return Trap { .message = "array.get index ${index} out of bounds (len=${array.length}) at pc=${origin}" }
+        return Trap { .message = "${label} index ${index} out of bounds (len=${array.length}) at pc=${f.origin[pc]}" }
     }
     set_register(m, base + usize(dst), array.elements[array.offset + usize(index)])
     return null
 }
 
-set_element :: fn(m: RegMachine!, base: usize, array_reg: i32, index_reg: i32, value: i32, origin: i32) -> Trap | null {
+// `slot` for a `store_slot*`, which traps under its own name.
+set_element :: fn(
+    m: RegMachine!, base: usize, array_reg: i32, index_reg: i32, value: i32, f: RegFunction, pc: usize, slot: bool,
+) -> Trap | null {
+    label :: if slot { "store_slot" } else { "array.set" }
     index :: i32(m.bits[base + usize(index_reg)])
-    array :: array_in(m, base + usize(array_reg), origin, "array.set receiver")
+    array :: array_in(m, base + usize(array_reg), f, pc, label)
     if array is Trap {
         return array
     }
     if index < 0 || usize(index) >= array.length {
-        return Trap { .message = "array.set index ${index} out of bounds (len=${array.length}) at pc=${origin}" }
+        return Trap { .message = "${label} index ${index} out of bounds (len=${array.length}) at pc=${f.origin[pc]}" }
     }
     array.elements[array.offset + usize(index)] = register_value(m, base + usize(value))
     return null
@@ -503,13 +597,15 @@ narrow_register :: fn(m: RegMachine!, at: usize, width: i32) -> void {
 // The function a `call.indirect` or `virtual.call` at `pc` reaches, its arguments
 // rearranged from register `at` the way that callee's parameters read them ; `-1`
 // when a host primitive impl served the call, its result already in `at`.
-resolve_dynamic_call :: fn(state: VmState, m: RegMachine!, f: RegFunction, pc: usize, at: usize, is_comptime: bool) -> i32 | Trap {
+resolve_dynamic_call :: fn(
+    state: VmState, m: RegMachine!, f: RegFunction, pc: usize, op: RegOp, w: i64, at: usize, is_comptime: bool,
+) -> i32 | Trap {
     origin :: f.origin[pc]
-    ins :: f.code[pc]
-    if ins.op == .CallIndirect {
-        return resolve_indirect(state, m, ins.a, at, usize(ins.c), origin)
+    if op == .CallIndirect {
+        return resolve_indirect(state, m, operand_a(w), at, usize(operand_c(w)), origin)
     }
-    return resolve_virtual(state, m, f.virtuals[usize(ins.a)], at, origin, is_comptime)
+    site :: usize(operand_a(w))
+    return resolve_virtual(state, m, f.virtuals[site], f.virtual_rows[site], at, origin, is_comptime)
 }
 
 // The fn value above `arity` arguments from `at` ; an environment it carries
@@ -544,7 +640,9 @@ resolve_indirect :: fn(state: VmState, m: RegMachine!, type_id: i32, at: usize, 
 
 // The impl behind a `virtual.call` for the receiver on top of its arguments,
 // moved to `at` ahead of them ; `-1` when a host primitive impl served it.
-resolve_virtual :: fn(state: VmState, m: RegMachine!, call: bc.VirtualCall, at: usize, origin: i32, is_comptime: bool) -> i32 | Trap {
+resolve_virtual :: fn(
+    state: VmState, m: RegMachine!, call: bc.VirtualCall, row: i32, at: usize, origin: i32, is_comptime: bool,
+) -> i32 | Trap {
     count :: usize(call.parameter_count)
     top :: at + count - 1
     receiver :: register_value(m, top)
@@ -553,7 +651,7 @@ resolve_virtual :: fn(state: VmState, m: RegMachine!, call: bc.VirtualCall, at: 
         tag :: describe_value_tag(receiver)
         return Trap { .message = "virtual.call '${call.vtable_key}' : receiver tag ${tag} has no type id at pc=${origin}" }
     }
-    target :: lookup_vtable(state.bc.vtables, call.vtable_key, type_id)
+    target :: lookup_vtable_row(state.bc.vtables, row, type_id)
     i := top
     for i > at {
         move_register(m, i, i - 1)
@@ -616,10 +714,10 @@ scratch_frame :: fn() -> Frame! {
 // Run the `Boxed` op at `pc` on the scratch frame, its operands and results in the
 // registers from r[b].
 run_boxed :: fn(state: VmState, m: RegMachine!, f: RegFunction, pc: usize, base: usize) -> Trap | null {
-    ins :: f.code[pc]
-    at :: base + usize(ins.b)
-    pops :: usize(ins.c & 255)
-    pushes :: usize(ins.c >> 8)
+    w :: f.words[pc]
+    at :: base + usize(operand_b(w))
+    pops :: usize(operand_c(w) & 255)
+    pushes :: usize(operand_c(w) >> 8)
     frame :: m.scratch
     // An `array.new` or `struct.new` pops one value per element or field.
     reserve_stack(frame, pops)
@@ -630,7 +728,7 @@ run_boxed :: fn(state: VmState, m: RegMachine!, f: RegFunction, pc: usize, base:
     }
     frame.sp = pops
     frame.pc = f.origin[pc]
-    outcome :: apply_boxed(state, m.run, f.boxed[usize(ins.a)], frame, f.name)
+    outcome :: apply_boxed(state, m.run, f.boxed[usize(operand_a(w))], frame, f.name)
     if outcome is BoxedUnwind {
         return outcome.trap
     }
@@ -708,6 +806,10 @@ finish_run :: fn(m: RegMachine, has_value: bool, capture: Value[]! | null) -> Vm
 }
 
 bits_of :: fn(bits: i64[], base: usize, register: i32) = bits[base + usize(register)]
+
+i32_of :: fn(bits: i64[], base: usize, register: i32) = i32(bits[base + usize(register)])
+
+u64_of :: fn(bits: i64[], base: usize, register: i32) = u64(bits[base + usize(register)])
 
 u32_of :: fn(bits: i64[], base: usize, register: i32) = u32(i32(bits[base + usize(register)]))
 

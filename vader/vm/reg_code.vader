@@ -13,9 +13,11 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-// One register op. `a` / `b` / `c` name its operands; the comment gives their
-// meaning, registers written `r`.
-RegOp :: enum {
+// One register op. `a` / `b` / `c` name its three operands (`RegFunction.words`);
+// the comment gives their meaning, registers written `r`. `i32`-wide: an array of
+// a narrower enum is a byte array, whose every read tests whether it views a
+// string's bytes.
+RegOp :: enum(i32) {
     // r[a] <- r[b], all three columns.
     Move
     // r[a] <- r[b], bits and tag only: `b` is proven never to hold a reference.
@@ -99,6 +101,20 @@ RegOp :: enum {
     // pc <- a when r[b] is false / true.
     JumpIfFalse
     JumpIfTrue
+    // pc <- a when r[b] op r[c] — a comparison fused with the branch reading it.
+    // `>` and `>=` swap their operands onto `<` and `<=`.
+    JumpEqI32
+    JumpNeI32
+    JumpLtI32
+    JumpLeI32
+    JumpLtU32
+    JumpLeU32
+    JumpEqI64
+    JumpNeI64
+    JumpLtI64
+    JumpLeI64
+    JumpLtU64
+    JumpLeU64
     // Call function `a` with its arguments from r[b] ; its results land from r[b].
     Call
     // Call the function value on top of `c` arguments from r[b] ; `a` is its fn type.
@@ -124,6 +140,10 @@ RegOp :: enum {
     // in r[a].
     GetElement
     SetElement
+    // `GetElement` / `SetElement` for `load_slot*` / `store_slot*`, which trap
+    // under their own name.
+    LoadSlot
+    StoreSlot
     Length
     Append
     // Run boxed[a] on its operands from r[b] (`apply_boxed`) ; `c` packs the
@@ -135,18 +155,13 @@ RegOp :: enum {
     Trap
 }
 
-// One op and its operands ; one object, so fetching an op reads one element.
-RegInstr :: struct {
-    op: RegOp
-    a:  i32
-    b:  i32
-    c:  i32
-}
-
 // One function, translated.
 RegFunction :: struct {
     name:      string
-    code:      RegInstr![]!
+    /// The ops ; op `k`'s operands are packed in `words[k]` (`pack_operands`).
+    /// Flat columns, so fetching an op follows no pointer.
+    ops:       RegOp[]!
+    words:     i64[]!
     /// Original pc of each op, for trap messages.
     origin:    i32[]!
     /// The function's scalar constants, loaded into the registers from `slots`
@@ -157,8 +172,10 @@ RegFunction :: struct {
     values:    Value![]!
     /// The ops `Boxed` runs.
     boxed:     bc.Op[]!
-    /// The calls `VirtualCall` dispatches.
+    /// The calls `VirtualCall` dispatches, and the vtable row of each (`-1` when
+    /// no row has its key).
     virtuals:  bc.VirtualCall[]!
+    virtual_rows: i32[]!
     texts:     string[]!
     /// Parameters, locals, then one register per operand-stack depth.
     registers: usize
@@ -174,4 +191,49 @@ RegFunction :: struct {
 // register engine does not run — it runs on `exec_legacy`.
 RegModule :: struct {
     functions: (RegFunction | null)[]
+}
+
+// The widths `pack_operands` gives `a` and each of `b` / `c`, sign included.
+OPERAND_A_BITS: i64: 22
+OPERAND_BC_BITS: i64: 21
+
+// `a`, `b`, `c` in one word — `a` in the low bits, then `b`, then `c` — or `null`
+// when one does not fit its width.
+pack_operands :: fn(a: i32, b: i32, c: i32) -> i64 | null {
+    fits :: fits_signed(a, OPERAND_A_BITS) && fits_signed(b, OPERAND_BC_BITS)
+        && fits_signed(c, OPERAND_BC_BITS)
+    if !fits {
+        return null
+    }
+    low :: i64(a) & ((1 << OPERAND_A_BITS) - 1)
+    middle :: (i64(b) & ((1 << OPERAND_BC_BITS) - 1)) << OPERAND_A_BITS
+    return low | middle | (i64(c) << (OPERAND_A_BITS + OPERAND_BC_BITS))
+}
+
+fits_signed :: fn(v: i32, bits: i64) = i64(v) >= -(1 << (bits - 1)) && i64(v) < 1 << (bits - 1)
+
+operand_a :: fn(w: i64) = i32((w << (64 - OPERAND_A_BITS)) >> (64 - OPERAND_A_BITS))
+
+operand_b :: fn(w: i64) = i32((w << OPERAND_BC_BITS) >> (64 - OPERAND_BC_BITS))
+
+operand_c :: fn(w: i64) = i32(w >> (OPERAND_A_BITS + OPERAND_BC_BITS))
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_pack_operands_round_trip :: fn() -> void {
+    for [a, b, c] in [[-1, 0, 7], [2_097_151, -1_048_576, 1_048_575], [-2_097_152, 5, -1]] {
+        w :: pack_operands(a, b, c) ?? 0
+        assert_eq(operand_a(w), a)
+        assert_eq(operand_b(w), b)
+        assert_eq(operand_c(w), c)
+    }
+}
+
+@test
+test_pack_operands_refuses_a_wide_operand :: fn() -> void {
+    assert(pack_operands(2_097_152, 0, 0) == null, "a past 22 bits")
+    assert(pack_operands(0, 1_048_576, 0) == null, "b past 21 bits")
 }

@@ -488,14 +488,35 @@ export primitive_type_id :: fn(state: VmState, v: Value) -> i32 {
 
 /// Look up the function index in the vtable for `key` by receiver
 /// `type_id`. Returns `-1` when either the key or the type_id is missing.
-export lookup_vtable :: fn(vtables: bc.VtableRow[], key: string, type_id: i32) -> i32 {
+export lookup_vtable :: fn(vtables: bc.VtableRow[], key: string, type_id: i32) -> i32 =
+    lookup_vtable_row(vtables, vtable_row_of(vtables, key), type_id)
+
+/// The index of the vtable row for `key`, or `-1` when none has it.
+///
+/// @param vtables  the module's vtable rows.
+/// @param key      a `"<Trait>.<method>"` key.
+vtable_row_of :: fn(vtables: bc.VtableRow[], key: string) -> i32 {
     for i in 0..<vtables.len() {
         if vtables[i].key == key {
-            for j in 0..<vtables[i].entries.len() {
-                entry :: vtables[i].entries[j]
-                if entry.receiver_type_index == type_id { return entry.fn_index }
-            }
-            return -1
+            return i32(i)
+        }
+    }
+    return -1
+}
+
+/// The function row `row` dispatches a receiver of `type_id` to, or `-1` when
+/// the row is `-1` or has no entry for the type.
+///
+/// @param vtables  the module's vtable rows.
+/// @param row      a row index from `vtable_row_of`, or `-1`.
+/// @param type_id  the receiver's type.
+lookup_vtable_row :: fn(vtables: bc.VtableRow[], row: i32, type_id: i32) -> i32 {
+    if row < 0 {
+        return -1
+    }
+    for entry in vtables[usize(row)].entries {
+        if entry.receiver_type_index == type_id {
+            return entry.fn_index
         }
     }
     return -1

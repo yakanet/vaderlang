@@ -31,10 +31,14 @@ Pending :: struct {
 // The translation of one function in progress.
 Translation :: struct {
     code:  RegFunction!
+    /// Each op's `a`, `b`, `c`, packed into `code.words` once the jumps are patched.
+    operands: i32[]!
     stack: Pending[]!
     /// First register of the operand stack: after the slots and the constants.
     stack_base: usize
-    /// Index of the last op when a `local.set` may retarget it, `-1` otherwise.
+    /// Index of the last op while nothing has come after it: a `local.set` may
+    /// retarget it onto the slot, an `if` / `br_if` fuse it with the branch.
+    /// `-1` otherwise.
     retarget: i64
     /// Jumps to patch: the op index, then the original target pc.
     jumps: i64[]!
@@ -83,13 +87,15 @@ translate_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: Functi
     t :: Translation {
         .code = RegFunction {
             .name      = f.name,
-            .code      = [],
+            .ops       = [],
+            .words     = [],
             .origin    = [],
             .consts    = consts,
             .const_tags = const_tags,
             .values    = [],
             .boxed     = [],
             .virtuals  = [],
+            .virtual_rows = [],
             .texts     = [],
             // One past the deepest stack: `return.lit` materialises its constant
             // above whatever the verifier counted.
@@ -98,6 +104,7 @@ translate_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: Functi
             .slots     = slots,
             .multi_calls = [],
         },
+        .operands = [],
         .stack    = [],
         .stack_base = stack_base,
         .retarget = -1,
@@ -109,7 +116,7 @@ translate_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: Functi
         if leader[pc] {
             flush(t, pc)
         }
-        start[pc] = i64(t.code.code.len())
+        start[pc] = i64(t.code.ops.len())
         if ft.depth[pc] < 0 {
             continue
         }
@@ -120,11 +127,15 @@ translate_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: Functi
             return null
         }
     }
-    start[n] = i64(t.code.code.len())
+    start[n] = i64(t.code.ops.len())
     emit(t, n, .Return, -1, 0, 0)
     for i in 0..<t.jumps.len() / 2 {
         at :: usize(t.jumps[2 * i])
-        t.code.code[at].a = i32(start[usize(t.jumps[2 * i + 1])])
+        t.operands[3 * at] = i32(start[usize(t.jumps[2 * i + 1])])
+    }
+    for k in 0..<t.code.ops.len() {
+        word :: pack_operands(operand_of(t, k, 0), operand_of(t, k, 1), operand_of(t, k, 2)) ?? return null
+        t.code.words.push(word)
     }
     return t.code
 }
@@ -132,8 +143,8 @@ translate_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: Functi
 // Translate the op at `pc` ; false when it is not one the register engine runs.
 translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags, t: Translation!, pc: usize) -> bool {
     op :: f.body[pc]
-    // Only the op an arm emits next may be retargeted ; a `local.set` reads the
-    // previous one.
+    // Only the op an arm emits next may be retargeted or fused ; `local.set`,
+    // `if` and `br_if` read the previous one.
     previous :: t.retarget
     t.retarget = -1
     binary :: binary_op(op, ft, pc)
@@ -143,7 +154,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         dst :: pop_to(t, 2)
         emit(t, pc, binary, dst, lhs, rhs)
         push_register(t, dst)
-        t.retarget = i64(t.code.code.len() - 1)
+        t.retarget = i64(t.code.ops.len() - 1)
         return true
     }
     unary :: unary_op(op, ft, pc)
@@ -152,7 +163,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         dst :: pop_to(t, 1)
         emit(t, pc, unary, dst, src, 0)
         push_register(t, dst)
-        t.retarget = i64(t.code.code.len() - 1)
+        t.retarget = i64(t.code.ops.len() - 1)
         return true
     }
     // @partial: an op without an arm is one the register engine leaves to
@@ -167,17 +178,36 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             push_constant(t, op)
         }
         is bc.Drop -> { t.stack.remove_last() }
-        is bc.Block | bc.Loop | bc.End -> {}
+        // Emit nothing, so the op before them stays retargetable: a VM value
+        // already carries its class, the casts only inform the C backend.
+        is bc.Block | bc.Loop | bc.End | bc.RefCast | bc.Box -> { t.retarget = previous }
         is bc.Else | bc.Branch -> {
             flush(t, pc)
-            jump(t, pc, .Jump, 0, f.jump_table[pc])
+            jump(t, pc, .Jump, 0, 0, f.jump_table[pc])
         }
         is bc.If | bc.BranchIf -> {
-            cond :: operand(t, 1)
+            cell :: t.stack[t.stack.len() - 1]
             t.stack.remove_last()
             flush(t, pc)
-            kind: RegOp: if op is bc.If { .JumpIfFalse } else { .JumpIfTrue }
-            jump(t, pc, kind, cond, f.jump_table[pc])
+            when_true :: op is bc.BranchIf
+            // The comparison that just computed the condition, when nothing came
+            // between them and nothing else reads its result.
+            fusable :: cell.kind == .Register && previous >= 0 && previous == i64(t.code.ops.len()) - 1
+                && operand_of(t, usize(previous), 0) == cell.register
+            compare :: if fusable { fused_branch(t.code.ops[usize(previous)], when_true) } else { null }
+            if compare != null {
+                lhs :: operand_of(t, usize(previous), 1)
+                rhs :: operand_of(t, usize(previous), 2)
+                drop_last_op(t)
+                if compare.swap {
+                    jump(t, pc, compare.op, rhs, lhs, f.jump_table[pc])
+                } else {
+                    jump(t, pc, compare.op, lhs, rhs, f.jump_table[pc])
+                }
+            } else {
+                kind: RegOp: if when_true { .JumpIfTrue } else { .JumpIfFalse }
+                jump(t, pc, kind, cell.register, 0, f.jump_table[pc])
+            }
         }
         is bc.Return -> {
             result :: f.signature.results[0]
@@ -214,6 +244,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             flush(t, pc)
             base :: pop_to(t, usize(op.parameter_count))
             t.code.virtuals.push(op)
+            t.code.virtual_rows.push(vtable_row_of(module.vtables, op.vtable_key))
             emit(t, pc, .VirtualCall, i32(t.code.virtuals.len() - 1), base, 0)
             if results == 1 {
                 push_register(t, base)
@@ -271,19 +302,19 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             pop_to(t, 2)
             emit(t, pc, .SetField, obj, value, op.field_index)
         }
-        is bc.ArrayGet -> {
+        is bc.ArrayGet | bc.LoadSlotI32 | bc.LoadSlotI64 | bc.LoadSlotF64 -> {
             index :: operand(t, 1)
             array :: operand(t, 2)
             dst :: pop_to(t, 2)
-            emit(t, pc, .GetElement, dst, array, index)
+            emit(t, pc, if op is bc.ArrayGet { .GetElement } else { .LoadSlot }, dst, array, index)
             push_register(t, dst)
         }
-        is bc.ArraySet -> {
+        is bc.ArraySet | bc.StoreSlotI32 | bc.StoreSlotI64 | bc.StoreSlotF64 -> {
             value :: operand(t, 1)
             index :: operand(t, 2)
             array :: operand(t, 3)
             pop_to(t, 3)
-            emit(t, pc, .SetElement, array, index, value)
+            emit(t, pc, if op is bc.ArraySet { .SetElement } else { .StoreSlot }, array, index, value)
         }
         is bc.ArrayLen -> {
             array :: operand(t, 1)
@@ -332,11 +363,10 @@ string_constant :: fn(module: bc.BytecodeModule, t: Translation!, pc: usize, op:
 // The ops `apply_boxed` runs.
 is_boxed :: fn(op: bc.Op) = op is bc.FnRef | bc.MakeClosure | bc.StructNew | bc.ArrayNew | bc.ArraySlice
     | bc.ArrayRepeat | bc.ArrayPushAll | bc.ArrayCopy | bc.ArrayRemoveLast | bc.ArrayClear | bc.DataConst
-    | bc.RefCast | bc.Box | bc.Convert | bc.SizeOfType | bc.I32Eq | bc.I32Ne | bc.BoolEq | bc.BoolNe
+    | bc.Convert | bc.SizeOfType | bc.I32Eq | bc.I32Ne | bc.BoolEq | bc.BoolNe
     | bc.BoolAnd | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.StringSliceCodepoints | bc.RefEq
     | bc.RefNe | bc.TypeCheck | bc.TypeConst | bc.BufferNew | bc.LoadU8 | bc.LoadI32 | bc.LoadI64
-    | bc.LoadF64 | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.LoadSlotI32 | bc.LoadSlotI64
-    | bc.LoadSlotF64 | bc.StoreSlotI32 | bc.StoreSlotI64 | bc.StoreSlotF64 | bc.MemoryCopy
+    | bc.LoadF64 | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.MemoryCopy
     | bc.BufferToString | bc.BufferWriteString | bc.F64ToBits | bc.BitsToF64 | bc.F32ToBits | bc.BitsToF32
 
 // The register op of a binary bytecode op, or `null`. Equality and the bool ops
@@ -439,12 +469,15 @@ operands_within :: fn(ft: FunctionTags, pc: usize, allowed: u8) =
     tags_within(stack_tags(ft, pc, 1), allowed) && tags_within(stack_tags(ft, pc, 2), allowed)
 
 emit :: fn(t: Translation!, pc: usize, op: RegOp, a: i32, b: i32, c: i32) -> void {
-    t.code.code.push(RegInstr { .op = op, .a = a, .b = b, .c = c })
+    t.code.ops.push(op)
+    t.operands.push(a)
+    t.operands.push(b)
+    t.operands.push(c)
     t.code.origin.push(i32(pc))
 }
 
 // Emit a jump whose `a` is patched to the op translating `target`.
-jump :: fn(t: Translation!, pc: usize, op: RegOp, b: i32, target: i32) -> void {
+jump :: fn(t: Translation!, pc: usize, op: RegOp, b: i32, c: i32, target: i32) -> void {
     back :: target >= 0 && target < i32(pc)
     span :: i32(pc) - target + 1
     kind := op
@@ -455,9 +488,63 @@ jump :: fn(t: Translation!, pc: usize, op: RegOp, b: i32, target: i32) -> void {
     } else if back {
         emit(t, pc, .Budget, 0, span, 0)
     }
-    t.jumps.push(i64(t.code.code.len()))
+    t.jumps.push(i64(t.code.ops.len()))
     t.jumps.push(i64(target))
-    emit(t, pc, kind, 0, operand, 0)
+    emit(t, pc, kind, 0, operand, c)
+}
+
+// The fused branch taken when `compare`'s result is `when_true`.
+FusedBranch :: struct {
+    op:   RegOp
+    /// Whether it reads the comparison's operands swapped: `a > b` is `b < a`.
+    swap: bool
+}
+
+// The branch taken when `compare`'s result is `when_true`, fused with it ; `null`
+// for an op that is not a fusable comparison.
+fused_branch :: fn(compare: RegOp, when_true: bool) -> FusedBranch | null {
+    // Each relation, then its negation: `!(a < b)` is `b <= a`.
+    // @partial: only the integer comparisons fuse ; a float's negation is not its
+    // opposite comparison (NaN).
+    return @partial match compare {
+        .EqI32 -> branch(when_true, .JumpEqI32, false, .JumpNeI32, false)
+        .NeI32 -> branch(when_true, .JumpNeI32, false, .JumpEqI32, false)
+        .LtI32 -> branch(when_true, .JumpLtI32, false, .JumpLeI32, true)
+        .LeI32 -> branch(when_true, .JumpLeI32, false, .JumpLtI32, true)
+        .GtI32 -> branch(when_true, .JumpLtI32, true, .JumpLeI32, false)
+        .GeI32 -> branch(when_true, .JumpLeI32, true, .JumpLtI32, false)
+        .LtU32 -> branch(when_true, .JumpLtU32, false, .JumpLeU32, true)
+        .LeU32 -> branch(when_true, .JumpLeU32, false, .JumpLtU32, true)
+        .GtU32 -> branch(when_true, .JumpLtU32, true, .JumpLeU32, false)
+        .GeU32 -> branch(when_true, .JumpLeU32, true, .JumpLtU32, false)
+        .EqI64 -> branch(when_true, .JumpEqI64, false, .JumpNeI64, false)
+        .NeI64 -> branch(when_true, .JumpNeI64, false, .JumpEqI64, false)
+        .LtI64 -> branch(when_true, .JumpLtI64, false, .JumpLeI64, true)
+        .LeI64 -> branch(when_true, .JumpLeI64, false, .JumpLtI64, true)
+        .GtI64 -> branch(when_true, .JumpLtI64, true, .JumpLeI64, false)
+        .GeI64 -> branch(when_true, .JumpLeI64, true, .JumpLtI64, false)
+        .LtU64 -> branch(when_true, .JumpLtU64, false, .JumpLeU64, true)
+        .LeU64 -> branch(when_true, .JumpLeU64, false, .JumpLtU64, true)
+        .GtU64 -> branch(when_true, .JumpLtU64, true, .JumpLeU64, false)
+        .GeU64 -> branch(when_true, .JumpLeU64, true, .JumpLtU64, false)
+        _ -> null
+    }
+}
+
+// The branch for `when_true`: the relation's, or its negation's.
+branch :: fn(when_true: bool, op: RegOp, swap: bool, negated: RegOp, negated_swap: bool) =
+    if when_true { FusedBranch { .op = op, .swap = swap } } else { FusedBranch { .op = negated, .swap = negated_swap } }
+
+// Operand `i` (0 for `a`, 1 for `b`, 2 for `c`) of op `k`.
+operand_of :: fn(t: Translation, k: usize, i: usize) -> i32 = t.operands[3 * k + i]
+
+// Remove the op emitted last.
+drop_last_op :: fn(t: Translation!) -> void {
+    t.code.ops.remove_last()
+    t.code.origin.remove_last()
+    for 0..<3 {
+        t.operands.remove_last()
+    }
 }
 
 // Push a scalar constant ; `collect_constants` gave it a register.
@@ -604,8 +691,8 @@ store_slot :: fn(t: Translation!, f: bc.BcFunction, pc: usize, slot: i32, keep: 
         }
     }
     cell :: t.stack[top]
-    if cell.kind == .Register && retarget >= 0 && t.code.code[usize(retarget)].a == cell.register {
-        t.code.code[usize(retarget)].a = slot
+    if cell.kind == .Register && retarget >= 0 && operand_of(t, usize(retarget), 0) == cell.register {
+        t.operands[3 * usize(retarget)] = slot
     } else if cell.kind == .Constant {
         emit(t, pc, .MoveScalar, slot, cell.register, 0)
     } else if cell.register != slot {
