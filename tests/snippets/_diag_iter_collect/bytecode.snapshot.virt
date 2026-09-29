@@ -50,7 +50,7 @@ fn 1 snippet$main () -> i32
           local.set 2   ; __elem_1
           local.get 0   ; kept
           local.get 2   ; __elem_1
-          array.push 1   ; i32[]
+          array.push 1 0   ; i32[]
         end $L3
         local.get 1   ; x
         i32.const 1

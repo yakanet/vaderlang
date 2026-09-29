@@ -1,0 +1,30 @@
+// bench/arr_collect — build an array from a fused iterator chain.
+//
+// `a.filter(is_odd).map(square).collect()` fuses to one loop over `a[i]` that
+// pushes into the result the lowering minted. That push runs with the array's
+// length / capacity / slots held in locals (`vader/lower/push_cache.vader`),
+// like a hand-written push loop. Sibling of arr_map (the same chain consumed by
+// a `for`, nothing built) and arr_push (the push loop written by hand).
+
+module "main"
+
+import "std/io"
+import "std/iter"
+
+is_odd :: fn(x: i32) -> bool = x % 2 == 1
+
+square :: fn(x: i32) -> i64 = i64(x) * i64(x)
+
+main :: fn() -> i32 {
+    a: i32[]!: []
+    for i in 0..<1024 {
+        a.push(i)
+    }
+    total: i64 = 0
+    for 0..<40000 {
+        out :: a.filter(is_odd).map(square).collect()
+        total = total + i64(out.len()) + out[out.len() - 1]
+    }
+    println("arr_collect ${total}")
+    return 0
+}

@@ -46,7 +46,7 @@
                 f :__lambda_env_snippet_1!
               arg1:
                 x :i32
-          LoweredArrayPush
+          LoweredArrayPush cached
           assign
             target:
               __fuse_i_5 :usize
@@ -97,7 +97,7 @@
                   x :i32
             then:
               let __elem_7: i32 = x :i32
-              LoweredArrayPush
+              LoweredArrayPush cached
           assign
             target:
               __fuse_i_11 :usize

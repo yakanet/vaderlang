@@ -12,5 +12,7 @@ len_after    5
 captured     36
 two_names    36
 rebound      8
+collected    45 n=6
+filtered     27 n=3
 # exit
 0

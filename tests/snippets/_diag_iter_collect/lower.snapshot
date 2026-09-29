@@ -25,7 +25,7 @@
                   x :i32
             then:
               let __elem_1: i32 = x :i32
-              LoweredArrayPush
+              LoweredArrayPush cached
           assign
             target:
               x :i32

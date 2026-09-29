@@ -99,7 +99,7 @@ fn 0 snippet$main () -> i32
         local.set 7   ; __elem_1
         local.get 1   ; __collect_0
         local.get 7   ; __elem_1
-        array.push 1   ; i32[]
+        array.push 1 1   ; i32[]
         local.get 5   ; __fuse_i_5
         i64.const 1
         i64.add
@@ -140,7 +140,7 @@ fn 0 snippet$main () -> i32
           local.set 8   ; __elem_7
           local.get 1   ; __collect_0
           local.get 8   ; __elem_7
-          array.push 1   ; i32[]
+          array.push 1 1   ; i32[]
         end $L6
         local.get 5   ; __fuse_i_5
         i64.const 1

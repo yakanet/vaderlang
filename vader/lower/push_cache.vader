@@ -154,13 +154,7 @@ pc_scan_expr :: fn(e: LoweredExpr!, live: i32[], pctx: BcePurityCtx!) -> void {
 pc_try_cache :: fn(lp: LoweredLoop!, live: i32[], pctx: BcePurityCtx!) -> void {
     pushes: LoweredArrayPush![]!: []
     pc_collect_pushes(lp.body, pushes)
-    if pushes.len() == 0 {
-        return
-    }
-    sym :: pc_single_target(pushes)
-    if sym < 0 {
-        return
-    }
+    sym :: pc_single_target(pushes) ?? return
     // An extra exit is an extra place the state must be written back. The first
     // cut writes back at the loop's one normal exit, so anything else is out.
     // `continue` is fine — it re-enters the body with the locals still live.
@@ -237,19 +231,21 @@ pc_collect_in_expr :: fn(e: LoweredExpr!, out: LoweredArrayPush![]!) -> void {
     }
 }
 
-// The symbol id every push targets, or -1 when they disagree or a target is not
-// a plain local. A captured local arrives as a cell, not an ident, so it is out.
-pc_single_target :: fn(pushes: LoweredArrayPush[]) -> i32 {
-    id := -1
+// The symbol id every push targets, or null when there is no push, when they
+// disagree, or when a target is not a plain local. A captured local arrives as a
+// cell, not an ident, so it is out. A synthetic local (a fused `collect`'s
+// accumulator) has a negative id, so no id can serve as the "none" answer.
+pc_single_target :: fn(pushes: LoweredArrayPush[]) -> i32 | null {
+    id: i32 | null = null
     for p in pushes {
         t :: p.target
         if t !is LoweredIdent {
-            return -1
+            return null
         }
-        if id < 0 {
+        if id == null {
             id = t.symbol.id
         } else if id != t.symbol.id {
-            return -1
+            return null
         }
     }
     return id

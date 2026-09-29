@@ -57,6 +57,7 @@ const WORKLOADS: readonly Workload[] = [
   { name: "arr_rw",         description: "1024-elt i32[] read-modify-write, 100k passes",   outputMatch: "arr_rw" },
   { name: "arr_set",        description: "arr_rw bounded by a.len()",                      outputMatch: "arr_set" },
   { name: "arr_map",        description: "Σ square(a[i]) via a.map(f) fused iter (BCE)",       outputMatch: "arr_map" },
+  { name: "arr_collect",    description: "a.filter(p).map(f).collect(), 40k passes", outputMatch: "arr_collect" },
   { name: "arr_push",       description: "20 M i32 pushes (200 × 100k), grow + GC churn",    outputMatch: "arr_push" },
   { name: "str_concat",     description: "300k × build a 13-byte string by repeated +",      outputMatch: "str_concat" },
   { name: "interp",         description: "200k × format 3 ints via ${} interpolation",       outputMatch: "interp" },

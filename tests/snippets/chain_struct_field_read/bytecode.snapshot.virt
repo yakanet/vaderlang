@@ -85,7 +85,7 @@ fn 0 snippet$main () -> i32
         local.set 6   ; __elem_1
         local.get 2   ; merged
         local.get 6   ; __elem_1
-        array.push 3   ; snippet$Rec[]
+        array.push 3 2   ; snippet$Rec[]
         local.get 5   ; __fuse_i_4
         i64.const 1
         i64.add
@@ -112,7 +112,7 @@ fn 0 snippet$main () -> i32
         local.set 6   ; __elem_1
         local.get 2   ; merged
         local.get 6   ; __elem_1
-        array.push 3   ; snippet$Rec[]
+        array.push 3 2   ; snippet$Rec[]
         local.get 5   ; __fuse_i_4
         i64.const 1
         i64.add
@@ -328,7 +328,7 @@ fn 0 snippet$main () -> i32
           local.set 13   ; x
           local.get 3   ; __fuse_arr_2
           local.get 13   ; x
-          array.push 3   ; snippet$Rec[]
+          array.push 3 3   ; snippet$Rec[]
         end $L18
         local.get 5   ; __fuse_i_4
         i64.const 1

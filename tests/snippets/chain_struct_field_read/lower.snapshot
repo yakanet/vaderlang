@@ -35,7 +35,7 @@
               ix:
                 __fuse_i_4 :usize
           let __elem_1: Rec! = x :Any
-          LoweredArrayPush
+          LoweredArrayPush cached
           assign
             target:
               __fuse_i_4 :usize
@@ -57,7 +57,7 @@
               ix:
                 __fuse_i_7 :usize
           let __elem_1: Rec! = y :Any
-          LoweredArrayPush
+          LoweredArrayPush cached
           assign
             target:
               __fuse_i_7 :usize
@@ -382,7 +382,7 @@
                   x :Any
             then:
               let __elem_29: Rec! = x :Any
-              LoweredArrayPush
+              LoweredArrayPush cached
           assign
             target:
               __fuse_i_33 :usize

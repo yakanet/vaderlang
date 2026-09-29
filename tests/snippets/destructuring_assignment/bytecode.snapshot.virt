@@ -466,7 +466,7 @@ fn 1 snippet$main () -> i32
         local.set 11   ; __destr_el_23
         local.get 9   ; __buf_19
         local.get 11   ; __destr_el_23
-        array.push 2   ; i32[]
+        array.push 2 9   ; i32[]
         local.get 3   ; __off_4
         i64.const 1
         i64.add
@@ -583,7 +583,7 @@ fn 1 snippet$main () -> i32
         local.set 11   ; __destr_el_23
         local.get 9   ; __buf_19
         local.get 11   ; __destr_el_23
-        array.push 2   ; i32[]
+        array.push 2 9   ; i32[]
         local.get 3   ; __off_4
         i64.const 1
         i64.add
@@ -623,7 +623,7 @@ fn 1 snippet$main () -> i32
         local.set 5   ; __destr_el_6
         local.get 16   ; __destr_rest_51
         local.get 5   ; __destr_el_6
-        array.push 2   ; i32[]
+        array.push 2 16   ; i32[]
         local.get 3   ; __off_4
         i64.const 1
         i64.add
