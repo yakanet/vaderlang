@@ -10,7 +10,7 @@
       cond:
         ok :bool
       then:
-        return int(20) :Error | i32
+        return int(20) :i32
     return
       Boom! {
       }

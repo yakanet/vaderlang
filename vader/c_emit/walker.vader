@@ -211,7 +211,7 @@ drop_bound_for_local :: fn(s: FnState!, slot: i32) -> void {
 op_allocates :: fn(op: vm.Op) -> bool = match op {
     is vm.StructNew -> !op.stack
     is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallImport | vm.CallIndirect | vm.VirtualCall | vm.FnAddr -> true
-    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Box | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
+    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Retag | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
 }
 
 /// One C function definition. Walks the bytecode body op by op into `s.root`,
@@ -565,7 +565,7 @@ emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {
         is vm.TypeConst             -> emit_type_const(s, op)
         is vm.TypeCheck             -> emit_type_check(s, op)
         is vm.RefCast               -> emit_ref_cast(s, op)
-        is vm.Box                   -> emit_box_op(s, op)
+        is vm.Retag                 -> emit_retag_op(s, op)
         is vm.Unreachable           -> unreachable(s, op.reason)
         is vm.Convert               -> emit_convert(s, convert_target_val(op.target), op.from_name)
         is vm.SizeOfType            -> emit_size_of_type(s)
@@ -2185,14 +2185,12 @@ emit_ref_cast :: fn(s: FnState!, op: vm.RefCast) -> void {
     push_into_temporary(s, coerced_as(s, v, target_val), target_val)
 }
 
-/// Box a concrete primitive on the stack into a `vader_box_t` tagged with the
-/// op's SEMANTIC `type_id`. Unlike the implicit return-coercion (which only has
-/// the coarse `ValType` and picks `primitive_tag_of`), this uses the precise
-/// type so a downstream `is usize` / `is i64` narrowing matches. A value that
-/// is already a ref (the erased-field case) is left as-is.
-emit_box_op :: fn(s: FnState!, op: vm.Box) -> void {
+/// Turn a concrete primitive on the stack into a `vader_box_t` — the 16-byte
+/// tag + payload value of a union, no allocation — tagged with the op's
+/// SEMANTIC `type_id` rather than the `primitive_tag_of` its coarse `ValType`
+/// would give. A value that is already a ref keeps its header's tag.
+emit_retag_op :: fn(s: FnState!, op: vm.Retag) -> void {
     v :: pop(s)
-    // `Box` produces an erased/dynamic value → always `.Any` (a `vader_box_t`).
     if val_of(v) == .Any {
         push_into_temporary(s, expression_of(v), .Any)
         return
@@ -2202,7 +2200,13 @@ emit_box_op :: fn(s: FnState!, op: vm.Box) -> void {
         push_into_temporary(s, ref_box(expression_of(v)), .Any)
         return
     }
-    push_into_temporary(s, box_expr(expression_of(v), val_of(v), op.type_id), .Any)
+    boxed :: box_expr(expression_of(v), val_of(v), op.type_id)
+    // A boxed literal holds no pointer : it needs no GC-rooted temporary.
+    if v is StackLit {
+        push_lit(s, .Any, boxed)
+        return
+    }
+    push_into_temporary(s, boxed, .Any)
 }
 
 // ---- arrays ---------------------------------------------------------------

@@ -441,9 +441,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
     call 15   ; std_io$last_io_error
     return
   end $L7
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 9 std_io$read_dir (string) -> any
@@ -663,9 +661,7 @@ fn 12 std_io$remove_file (string) -> any
     call 15   ; std_io$last_io_error
     return
   end $L0
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 13 std_io$write (u8,string) -> void

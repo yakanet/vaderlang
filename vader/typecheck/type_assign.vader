@@ -52,9 +52,7 @@ export is_assignable :: fn(from: Type, to: Type) -> bool {
         is ArrayType     -> is_assignable_array(from, from, to)
         is FnType        -> is_assignable_fn(from, from, to)
         is UnionType     -> is_assignable_union(from, from, to)
-        is FreeIntType   -> is_assignable_freeint(from, to)
-        is FreeCharType  -> is_assignable_freechar(from, to)
-        is FreeFloatType -> is_assignable_freefloat(from, to)
+        is FreeIntType | FreeCharType | FreeFloatType -> is_assignable_free_literal(from, to)
         _                -> check_common(from, to)
     }
 }
@@ -374,30 +372,11 @@ export is_assignable_union :: fn(from: Type, self: UnionType, to: Type) -> bool 
     return check_common(from, to)
 }
 
-/// `from is FreeIntType`. Widens to any integer primitive.
-export is_assignable_freeint :: fn(from: Type, to: Type) -> bool {
-    match to {
-        is PrimitiveType -> { if is_int_name(to.name) { return true } }
-        _ -> {}
-    }
-    return check_common(from, to)
-}
-
-/// `from is FreeCharType` (a char literal). Widens to any integer primitive
-/// (the codepoint, bounds-checked separately at the pin site) or to `char`.
-export is_assignable_freechar :: fn(from: Type, to: Type) -> bool {
-    match to {
-        is PrimitiveType -> { if is_int_name(to.name) || to.name == "char" { return true } }
-        _ -> {}
-    }
-    return check_common(from, to)
-}
-
-/// `from is FreeFloatType`. Widens to any float primitive.
-export is_assignable_freefloat :: fn(from: Type, to: Type) -> bool {
-    match to {
-        is PrimitiveType -> { if is_float_name(to.name) { return true } }
-        _ -> {}
+// `from` is a free literal : it widens to any primitive of its family
+// (`literal_family_holds`), or to a union holding one.
+is_assignable_free_literal :: fn(from: Type, to: Type) -> bool {
+    if to is PrimitiveType && literal_family_holds(from, to.name) {
+        return true
     }
     return check_common(from, to)
 }

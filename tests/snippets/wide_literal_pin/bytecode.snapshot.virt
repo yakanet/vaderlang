@@ -1283,9 +1283,7 @@ fn 27 std_collections$get__i32__i64 (ref,i32) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 9   ; std_core$i32$Hash$hash
@@ -1327,7 +1325,7 @@ fn 27 std_collections$get__i32__i64 (ref,i32) -> any
             local.field 0 12 1   ; arg 0.evals
             local.get 4   ; ei
             load_slot_i64
-            box 4   ; -> i64
+            retag 4   ; -> i64
             return
           end $L5
         end $L4
@@ -1346,9 +1344,7 @@ fn 27 std_collections$get__i32__i64 (ref,i32) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 28 std_collections$get__i64__i32 (ref,i64) -> any
@@ -1362,9 +1358,7 @@ fn 28 std_collections$get__i64__i32 (ref,i64) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 10   ; std_core$i64$Hash$hash
@@ -1406,7 +1400,7 @@ fn 28 std_collections$get__i64__i32 (ref,i64) -> any
             local.field 0 13 1   ; arg 0.evals
             local.get 4   ; ei
             load_slot_i32
-            box 2   ; -> i32
+            retag 2   ; -> i32
             return
           end $L5
         end $L4
@@ -1425,9 +1419,7 @@ fn 28 std_collections$get__i64__i32 (ref,i64) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 29 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref

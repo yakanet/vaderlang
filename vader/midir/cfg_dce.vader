@@ -50,7 +50,7 @@ fold_moves :: fn(f: CFGFunction) -> CFGFunction {
     for b in f.blocks {
         new_blocks.push(BasicBlock {
             .id           = b.id,
-            .instructions = fold_moves_in_block(b, use_count, param_locals),
+            .instructions = fold_moves_in_block(b, f.locals, use_count, param_locals),
             .terminator   = b.terminator,
             .span         = b.span,
         })
@@ -59,7 +59,8 @@ fold_moves :: fn(f: CFGFunction) -> CFGFunction {
 }
 
 fold_moves_in_block :: fn(
-    b: BasicBlock, use_count: MutableMap<LocalId, i32>, param_locals: MutableSet<LocalId>,
+    b: BasicBlock, locals: CFGLocal[], use_count: MutableMap<LocalId, i32>,
+    param_locals: MutableSet<LocalId>,
 ) -> Instruction[] {
     folded: Instruction[]!: []
     for i in 0..<b.instructions.len() {
@@ -69,7 +70,7 @@ fold_moves_in_block :: fn(
             if param_locals.contains(ins.src) { folded.push(ins)  continue }
             count_opt :: use_count[ins.src]
             count :: if count_opt is i32 as c { c } else { 0 }
-            if count != 1 { folded.push(ins)  continue }
+            if count != 1 || move_retags(locals, ins) { folded.push(ins)  continue }
             // Walk back through folded to find the producer of `m.src`.
             // Folding rewrites the producer to write `m.dst` at the
             // producer's (earlier) position, so any instruction BETWEEN the
@@ -255,7 +256,7 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
             .span = ins.span, .dst = remap_local_opt(m, ins.dst),
             .trait_name = ins.trait_name, .method = ins.method,
             .receiver = remap_local(m, ins.receiver), .args = remap_locals(m, ins.args),
-            .type = ins.type,
+            .type = ins.type, .param_types = ins.param_types,
         }
     }
     if ins is InstrFnRef {
@@ -485,8 +486,8 @@ import "toolchain/span"
 
 // `fold_moves_in_block` holds every decision the pass makes ; `fold_moves` is the
 // per-block plumbing around it. Testing the inner fn keeps the fixtures to the
-// three things it reads — a block, the use counts, and the param slots — instead
-// of a whole CFGFunction with its MonoEntry.
+// four things it reads — a block, the local types, the use counts, and the param
+// slots — instead of a whole CFGFunction with its MonoEntry.
 
 fm_i32 :: fn() -> Type = PrimitiveType { .name = "i32" }
 
@@ -530,12 +531,23 @@ fm_uses :: fn(pairs: [LocalId, i32][]) -> MutableMap<LocalId, i32> {
 
 fm_no_params :: fn() -> MutableSet<LocalId> = MutableSet<LocalId> {}
 
+/// Four `i32` locals, `t0` to `t3` — every fixture below stays within them.
+fm_locals :: fn() -> CFGLocal[] = fm_locals_typed(fm_i32(), fm_i32())
+
+/// `t0` and `t1` are `i32`, `t2` and `t3` take the given types.
+fm_locals_typed :: fn(t2: Type, t3: Type) -> CFGLocal[] = [
+    CFGLocal { .name = "t0", .type = fm_i32(), .symbol = null },
+    CFGLocal { .name = "t1", .type = fm_i32(), .symbol = null },
+    CFGLocal { .name = "t2", .type = t2, .symbol = null },
+    CFGLocal { .name = "t3", .type = t3, .symbol = null },
+]
+
 @test
 test_fold_moves_rewrites_single_use_producer :: fn() -> void {
     // `t2 = t0 + t1 ; Move t3 <- t2` folds to `t3 = t0 + t1`, Move dropped.
     out :: fold_moves_in_block(
         fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
-        fm_uses([[LocalId(2), 1]]), fm_no_params(),
+        fm_locals(), fm_uses([[LocalId(2), 1]]), fm_no_params(),
     )
     assert_eq(out.len(), usize(1))
     first :: out[0]
@@ -549,7 +561,7 @@ test_fold_moves_rewrites_single_use_producer :: fn() -> void {
 test_fold_moves_keeps_move_when_source_used_twice :: fn() -> void {
     out :: fold_moves_in_block(
         fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
-        fm_uses([[LocalId(2), 2]]), fm_no_params(),
+        fm_locals(), fm_uses([[LocalId(2), 2]]), fm_no_params(),
     )
     assert_eq(out.len(), usize(2))
 }
@@ -560,7 +572,7 @@ test_fold_moves_keeps_move_when_source_is_a_param :: fn() -> void {
     params.add(LocalId(2))
     out :: fold_moves_in_block(
         fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
-        fm_uses([[LocalId(2), 1]]), params,
+        fm_locals(), fm_uses([[LocalId(2), 1]]), params,
     )
     assert_eq(out.len(), usize(2))
 }
@@ -578,7 +590,7 @@ test_fold_moves_bails_on_intervening_read_of_destination :: fn() -> void {
             fm_binop(LocalId(0), LocalId(1), LocalId(1)),
             fm_move(LocalId(1), LocalId(2)),
         ]),
-        fm_uses([[LocalId(2), 1]]), fm_no_params(),
+        fm_locals(), fm_uses([[LocalId(2), 1]]), fm_no_params(),
     )
     assert_eq(out.len(), usize(3))
     last :: out[2]
@@ -595,7 +607,7 @@ test_fold_moves_bails_on_intervening_write_of_destination :: fn() -> void {
             fm_binop(LocalId(3), LocalId(0), LocalId(0)),
             fm_move(LocalId(3), LocalId(2)),
         ]),
-        fm_uses([[LocalId(2), 1]]), fm_no_params(),
+        fm_locals(), fm_uses([[LocalId(2), 1]]), fm_no_params(),
     )
     assert_eq(out.len(), usize(3))
 }
@@ -606,7 +618,20 @@ test_fold_moves_keeps_move_when_producer_has_a_side_effect :: fn() -> void {
     // would move where the effect's result lands without moving the effect.
     out :: fold_moves_in_block(
         fm_block([fm_call(LocalId(2), LocalId(0)), fm_move(LocalId(3), LocalId(2))]),
-        fm_uses([[LocalId(2), 1]]), fm_no_params(),
+        fm_locals(), fm_uses([[LocalId(2), 1]]), fm_no_params(),
+    )
+    assert_eq(out.len(), usize(2))
+}
+
+@test
+test_fold_moves_keeps_a_move_that_tags_a_scalar_into_a_union :: fn() -> void {
+    // `t2` is a `u8`, `t3` a `u8 | string` : the Move is where the scalar is told
+    // its type (`retag`), so the producer must not write `t3` directly.
+    byte :: PrimitiveType { .name = "u8" }
+    locals :: fm_locals_typed(byte, mk_union([byte, PrimitiveType { .name = "string" }]))
+    out :: fold_moves_in_block(
+        fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
+        locals, fm_uses([[LocalId(2), 1]]), fm_no_params(),
     )
     assert_eq(out.len(), usize(2))
 }
@@ -616,7 +641,7 @@ test_fold_moves_leaves_a_move_with_no_producer_alone :: fn() -> void {
     // Nothing in this block writes `t2`, so there is nothing to fold into.
     out :: fold_moves_in_block(
         fm_block([fm_move(LocalId(3), LocalId(2))]),
-        fm_uses([[LocalId(2), 1]]), fm_no_params(),
+        fm_locals(), fm_uses([[LocalId(2), 1]]), fm_no_params(),
     )
     assert_eq(out.len(), usize(1))
 }

@@ -132,7 +132,7 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         local.get 2   ; $field_9
         local.get 3   ; $k_10
         i32.mul
-        box 1   ; -> i32
+        retag 1   ; -> i32
         return
       end $L3
       local.field 0 3 3   ; arg 0.state
@@ -205,7 +205,7 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local.get 2   ; $field_9
   local.get 3   ; $k_10
   i32.mul
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 
@@ -266,7 +266,7 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         local.get 1   ; $k_8
         struct.set 7 7   ; __asyncstate_snippet_1.state
         i32.const 0
-        box 1   ; -> i32
+        retag 1   ; -> i32
         return
       end $L3
       local.field 0 7 7   ; arg 0.state
@@ -454,7 +454,7 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
   local.get 1   ; $k_8
   struct.set 7 7   ; __asyncstate_snippet_1.state
   i32.const 0
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 
@@ -904,9 +904,7 @@ fn 18 std_async$Sleep$Async$resume (ref) -> any
   local.get 2   ; $field_5
   i64.ge
   if $L1 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L1
   struct.new 5   ; std_core$Suspended
   return
@@ -1381,9 +1379,7 @@ fn 30 std_collections$get__usize__i32 (ref,usize) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 10   ; std_core$usize$Hash$hash
@@ -1425,7 +1421,7 @@ fn 30 std_collections$get__usize__i32 (ref,usize) -> any
             local.field 0 26 1   ; arg 0.evals
             local.get 4   ; ei
             load_slot_i32
-            box 1   ; -> i32
+            retag 1   ; -> i32
             return
           end $L5
         end $L4
@@ -1444,9 +1440,7 @@ fn 30 std_collections$get__usize__i32 (ref,usize) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 31 std_collections$contains_key__usize__i32 (ref,usize) -> bool

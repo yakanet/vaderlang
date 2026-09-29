@@ -209,7 +209,7 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
         is bc.TypeCheck  -> if in_range(op.type_id, module.types.len()) { effect(1, 1) } else { null }
         is bc.I32Const | bc.NullConst | bc.BoolConst | bc.CharConst | bc.F64Const
          | bc.I64Const -> effect(0, 1)
-        is bc.StructGet | bc.ArrayLen | bc.RefCast | bc.Box | bc.Convert
+        is bc.StructGet | bc.ArrayLen | bc.RefCast | bc.Retag | bc.Convert
          | bc.SizeOfType | bc.ArrayRemoveLast | bc.BufferNew | bc.I32Neg | bc.I32BitNot
          | bc.I64Neg | bc.I64BitNot | bc.F64Neg | bc.BoolNot | bc.F64ToBits | bc.BitsToF64
          | bc.F32ToBits | bc.BitsToF32 -> effect(1, 1)

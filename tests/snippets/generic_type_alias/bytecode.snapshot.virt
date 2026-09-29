@@ -31,6 +31,7 @@ fn 0 snippet$main () -> i32
   local $cast_15 i64
   local $cast_48 string
   i32.const 42
+  retag 1   ; -> i32
   local.set 0   ; x
   null.const
   local.set 1   ; y
@@ -107,6 +108,7 @@ fn 0 snippet$main () -> i32
     end $L3
   end $L2
   string.const 4   ; "hello"
+  retag 2   ; -> string
   local.tee 0   ; x
   type_check 1   ; i32
   if $L4 void

@@ -4,7 +4,7 @@
   FnDecl         describe             :: fn(i32 | string) -> string
   FnDecl         main                 :: fn() -> i32
   expr 10:31    IdentExpr      :: string
-  expr 15:14    UnaryExpr      :: {integer}
+  expr 15:14    UnaryExpr      :: i32
   expr 15:5     CallExpr       :: string
   expr 15:5     IdentExpr      :: fn(i32 | string) -> string
   expr 8:12     MatchExpr      :: string

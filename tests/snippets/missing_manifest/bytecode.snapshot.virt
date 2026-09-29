@@ -223,7 +223,7 @@ fn 5 std_io$read_file_string (string,usize) -> any
   local.get 2   ; r
   ref.cast 5   ; -> u8[]
   call.import 1   ; std_core$bytes_to_string
-  box 1   ; -> string
+  retag 1   ; -> string
   return
 end
 

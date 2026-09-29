@@ -345,7 +345,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     if head == "array.clear"       { return bc.ArrayClear {} }
     if head == "data.const"       { return parse_data_const(cleaned) }
     if head == "ref.cast"         { return parse_ref_cast(cleaned) }
-    if head == "box"              { return parse_box(cleaned) }
+    if head == "retag"            { return parse_retag(cleaned) }
     if head == "intrinsic" {
         if cleaned == "intrinsic size_of.type"            { return bc.SizeOfType {} }
         return null
@@ -733,9 +733,9 @@ parse_ref_cast :: fn(line: string) -> bc.Op | null {
     return bc.RefCast { .type_id = parsed }
 }
 
-parse_box :: fn(line: string) -> bc.Op | null {
-    parsed :: parse_int_after_prefix(line, "box ") ?? return null
-    return bc.Box { .type_id = parsed }
+parse_retag :: fn(line: string) -> bc.Op | null {
+    parsed :: parse_int_after_prefix(line, "retag ") ?? return null
+    return bc.Retag { .type_id = parsed }
 }
 
 parse_type_const :: fn(line: string) -> bc.Op | null {

@@ -212,9 +212,11 @@ fn 4 snippet$main () -> i32
   call 2   ; snippet$cascade
   call 12   ; std_io$println__string
   i32.const 42
+  retag 8   ; -> i32
   call 3   ; snippet$primitive_is
   call 12   ; std_io$println__string
   string.const 10   ; "hello"
+  retag 4   ; -> string
   call 3   ; snippet$primitive_is
   call 12   ; std_io$println__string
   return.lit i32.const 0

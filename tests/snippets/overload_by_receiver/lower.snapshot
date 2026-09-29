@@ -10,14 +10,14 @@
       cond:
         h :bool
       then:
-        return int(7) :i32 | null
+        return int(7) :i32
     return null
   fn snippet$risky(h: bool) -> Boom | i32
     if :void
       cond:
         h :bool
       then:
-        return int(42) :Boom | i32
+        return int(42) :i32
     return
       Boom! {
       }

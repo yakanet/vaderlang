@@ -37,7 +37,7 @@ fn 0 snippet$scale (u64) -> any
   i64.mul
   i64.const 2
   i64.add
-  box 1   ; -> u64
+  retag 1   ; -> u64
   return
 end
 

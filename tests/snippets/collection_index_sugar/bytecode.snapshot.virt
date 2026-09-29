@@ -1266,9 +1266,7 @@ fn 25 std_collections$get__string__i32 (ref,string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 33   ; std_core$string$Hash$hash_vt
@@ -1311,7 +1309,7 @@ fn 25 std_collections$get__string__i32 (ref,string) -> any
             local.field 0 13 1   ; arg 0.evals
             local.get 4   ; ei
             load_slot_i32
-            box 1   ; -> i32
+            retag 1   ; -> i32
             return
           end $L5
         end $L4
@@ -1330,9 +1328,7 @@ fn 25 std_collections$get__string__i32 (ref,string) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 26 std_collections$contains_key__i32__bool (ref,i32) -> bool

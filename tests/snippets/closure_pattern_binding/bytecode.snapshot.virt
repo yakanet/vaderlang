@@ -95,6 +95,7 @@ fn 1 snippet$main () -> i32
   struct.new 3   ; snippet$P
   call 0   ; snippet$greet
   i32.const 21
+  retag 2   ; -> i32
   call 0   ; snippet$greet
   return.lit i32.const 0
 end

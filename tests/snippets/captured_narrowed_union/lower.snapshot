@@ -58,7 +58,7 @@
                           callee:
                             scale :fn(i32 | Point) -> fn() -> i32
                           arg0:
-                            int(21) :i32 | Point
+                            int(21) :i32
           ~>
             call :string
               callee:
@@ -184,7 +184,7 @@
                           callee:
                             corner :fn(i32 | Point) -> fn() -> i32
                           arg0:
-                            int(9) :i32 | Point
+                            int(9) :i32
           ~>
             call :string
               callee:

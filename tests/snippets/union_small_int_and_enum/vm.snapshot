@@ -1,0 +1,25 @@
+# stdout
+u8 5
+u8 6
+u8 7
+u32 7
+u8 9
+u8 8
+u8 10
+u8 11
+seen 1
+alias u8 12
+u8 12
+u8 12
+u8 13
+text
+u8 14
+u8 15
+u8 16
+u8 17
+color 2
+color 0
+color 2
+color 1
+# exit
+0

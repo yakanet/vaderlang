@@ -568,6 +568,8 @@ A literal integer with no concrete context **infers to `i32`** (`x := 42` ⇒ `x
 
 When a literal **does** land in a concrete integer context, it is **bounds-checked against that type** at compile time — exactly like a char literal (§Char). An out-of-range magnitude (`x: i32 = 9000000000`, `x: u8 = 300`) and a negative literal in an unsigned slot (`z: u32 = -1`) are rejected with **T3066**; there is no silent truncation or wraparound. Widen the target or the literal explicitly (`x: i64 = 9000000000`).
 
+A literal landing in a **union** takes one of its members: the family's default (`i32` for an integer, `f64` for a float, `char` for a char literal) when the union has it, else the union's **only** member of that family — `5` passed to `u8 | string` is a `u8`, `2.5` into `f32 | string` an `f32`. With several candidates and no default among them (`5` into `u8 | i16 | string`) the literal is ambiguous and rejected with **T3089**; convert it explicitly (`u8(5)`). A literal UFCS receiver whose function takes a union first (`5.show()`) follows the same rule. The chosen member is then bounds-checked as above.
+
 ### Default float
 
 A literal float with no concrete context **infers to `f64`** (`x := 3.14` ⇒ `x: f64`).

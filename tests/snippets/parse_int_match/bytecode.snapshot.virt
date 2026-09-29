@@ -199,9 +199,7 @@ fn 3 std_core$parse_f64 (string) -> any
   local.tee 1   ; parts
   type_check 0   ; null
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; parts
   ref.cast 9   ; -> std_core$DecimalParts
@@ -250,7 +248,7 @@ fn 3 std_core$parse_f64 (string) -> any
       local.get 0   ; arg 0
       local.get 5   ; $field_23
       call 6   ; std_core$parse_f64_slow
-      box 7   ; -> f64
+      retag 7   ; -> f64
       return
     end $L2
   end $L1
@@ -284,7 +282,7 @@ fn 3 std_core$parse_f64 (string) -> any
   end $L3
   local.get 2   ; $field_8
   call 31   ; std_core$u64$BitsFloat$from_bits_vt
-  box 7   ; -> f64
+  retag 7   ; -> f64
   return
 end
 
@@ -308,9 +306,7 @@ fn 4 std_core$scan_decimal (string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   i64.const 0
   local.set 2   ; i
@@ -513,9 +509,7 @@ fn 4 std_core$scan_decimal (string) -> any
   local.get 8   ; saw_digit
   bool.not
   if $L19 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L19
   local.get 2   ; i
   local.get 1   ; n
@@ -612,9 +606,7 @@ fn 4 std_core$scan_decimal (string) -> any
     end $L27
     local.get 9   ; and_res
     if $L28 void
-      null.const
-      box 0   ; -> null
-      return
+      return.lit null.const
     end $L28
     i32.const 0
     local.set 5   ; sig
@@ -680,9 +672,7 @@ fn 4 std_core$scan_decimal (string) -> any
   local.get 1   ; n
   i64.ne
   if $L35 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L35
   local.get 4   ; w
   local.get 6   ; q
@@ -2696,12 +2686,12 @@ fn 26 std_string$parse_int (string) -> any
     local.get 4   ; acc
     i64.neg
     i64.to_i32
-    box 1   ; -> i32
+    retag 1   ; -> i32
     return
   end $L11
   local.get 4   ; acc
   i64.to_i32
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 
@@ -2721,7 +2711,7 @@ fn 27 std_string$parse_float (string) -> any
   end $L0
   local.get 1   ; r
   ref.cast 7   ; -> f64
-  box 7   ; -> f64
+  retag 7   ; -> f64
   return
 end
 

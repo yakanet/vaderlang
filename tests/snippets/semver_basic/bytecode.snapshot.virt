@@ -889,7 +889,7 @@ fn 9 semver$parse_numeric_id (string) -> any
   if $L4 void
     local.get 3   ; v
     ref.cast 1   ; -> i32
-    box 1   ; -> i32
+    retag 1   ; -> i32
     return
   end $L4
   local.get 2   ; __scrut_0
@@ -4090,12 +4090,12 @@ fn 46 std_string$parse_int (string) -> any
     local.get 4   ; acc
     i64.neg
     i64.to_i32
-    box 1   ; -> i32
+    retag 1   ; -> i32
     return
   end $L11
   local.get 4   ; acc
   i64.to_i32
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 

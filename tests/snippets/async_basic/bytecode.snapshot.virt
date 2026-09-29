@@ -109,7 +109,7 @@ fn 3 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         local.get 2   ; $field_9
         local.get 3   ; $k_10
         i32.add
-        box 1   ; -> i32
+        retag 1   ; -> i32
         return
       end $L3
       local.field 0 3 4   ; arg 0.state
@@ -187,7 +187,7 @@ fn 3 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local.get 2   ; $field_9
   local.get 3   ; $k_10
   i32.add
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 
@@ -223,7 +223,7 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         local.get 1   ; $k_8
         struct.set 6 3   ; __asyncstate_snippet_1.state
         i32.const 0
-        box 1   ; -> i32
+        retag 1   ; -> i32
         return
       end $L3
       local.field 0 6 3   ; arg 0.state
@@ -311,14 +311,14 @@ fn 4 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
   local.get 1   ; $k_8
   struct.set 6 3   ; __asyncstate_snippet_1.state
   i32.const 0
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 
 fn 5 snippet$Ready$Async$resume__i32 (ref) -> any
   local.field 0 7 0   ; arg 0.v
   ref.cast 1   ; -> i32
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 

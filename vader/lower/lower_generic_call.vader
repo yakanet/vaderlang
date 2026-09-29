@@ -149,8 +149,8 @@ emit_generic_fn_call :: fn(
     // take the mangle it settles on. Everything about the name is derived inside,
     // so this path and the UFCS harvest cannot disagree on it.
     mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args)
-    // Build args through the shared slot preparation (literal widening + `into`
-    // coercion), same as the non-generic path.
+    // Build args through the shared slot preparation (`into` coercion), same as
+    // the non-generic path.
     raw_args: LoweredExpr[]!: []
     arg_spans: Span[]!: []
     for call_arg in call.args {

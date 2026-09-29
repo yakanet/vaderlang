@@ -64,11 +64,8 @@ lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
     generic_form :: try_lower_generic_fn_call(ctx, call, type)
     if generic_form != null { return generic_form }
     raw_callee :: lower_expr(ctx, call.callee)
-    // Widen literal args to the matching param's union type so the dump
-    // shows `int(42) :i32 | null` for `describe(42)` against
-    // `describe(x: i32 | null)`. Widening reads the picked overload's
-    // fn-type, so take params off `raw_callee` before any result-type
-    // retype below.
+    // Slot preparation reads the picked overload's fn-type, so take params off
+    // `raw_callee` before any result-type retype below.
     param_types :: param_types_of(type_of(raw_callee))
     raw_args: LoweredExpr[]!: []
     arg_spans: Span[]!: []
@@ -161,7 +158,10 @@ match_overload_in_bucket :: fn(typed: TypedProgram, name: string, picked: FnType
     return null
 }
 
-param_types_of :: fn(callee_type: Type) -> Type[] {
+/// The parameter types of a callee's fn type.
+///
+/// @param callee_type  the callee's type ; anything but a fn type has none.
+export param_types_of :: fn(callee_type: Type) -> Type[] {
     // @partial: only a FnType carries param types; every other Type → no params.
     @partial match callee_type {
         is FnType -> { return callee_type.params }
@@ -200,6 +200,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
                 .span = call.span, .type = type,
                 .trait_name = tt.symbol.name, .method = callee_field.field,
                 .receiver = receiver, .args = args,
+                .param_types = param_types_of(ctx.types.expr_type(call.callee)),
             }
         }
         // TypeParam-bounded receiver erased to Any : typer recorded
@@ -218,6 +219,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
                     .span = call.span, .type = type,
                     .trait_name = trait_name, .method = callee_field.field,
                     .receiver = receiver, .args = args,
+                    .param_types = param_types_of(ctx.types.expr_type(call.callee)),
                 }
             }
         }

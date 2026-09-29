@@ -155,14 +155,16 @@ fn 3 snippet$main () -> i32
   local $call_1 string
   local $call_4 string
   local $call_7 string
-  local $k_9 any
   i32.const 250
+  retag 2   ; -> i32
   call 0   ; snippet$inspect
   local.set 0   ; $call_1
   i32.const 40
+  retag 2   ; -> i32
   call 0   ; snippet$inspect
   local.set 1   ; $call_4
   string.const 9   ; "sealed"
+  retag 3   ; -> string
   call 0   ; snippet$inspect
   local.set 2   ; $call_7
   local.get 0   ; $call_1
@@ -173,14 +175,12 @@ fn 3 snippet$main () -> i32
   call 4   ; concat_5
   call 9   ; std_io$println__string
   i32.const 40
-  local.set 3   ; $k_9
-  local.get 3   ; $k_9
+  retag 2   ; -> i32
   bool.const true
   call 1   ; snippet$wave_through
   local.set 0   ; $call_1
   i32.const 40
-  local.set 3   ; $k_9
-  local.get 3   ; $k_9
+  retag 2   ; -> i32
   bool.const false
   call 1   ; snippet$wave_through
   local.set 1   ; $call_4

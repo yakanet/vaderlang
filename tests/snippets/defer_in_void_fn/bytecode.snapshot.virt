@@ -26,9 +26,7 @@ impl 10 ByteAccess
 export main 3
 
 fn 0 snippet$fallible (i32) -> any
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 1 snippet$void_trailing () -> void

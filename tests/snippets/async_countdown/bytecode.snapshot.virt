@@ -50,7 +50,9 @@ fn 0 snippet$CountDown$Async$resume (ref) -> any
     struct.new 4   ; std_core$Suspended
     return
   end $L0
-  return.lit i32.const 42
+  i32.const 42
+  retag 3   ; -> i32
+  return
 end
 
 fn 1 snippet$waiter () -> any
@@ -178,7 +180,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         local.get 2   ; $field_9
         local.get 3   ; $k_10
         i32.add
-        box 3   ; -> i32
+        retag 3   ; -> i32
         return
       end $L3
       local.field 0 8 4   ; arg 0.state
@@ -270,7 +272,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local.get 2   ; $field_9
   local.get 3   ; $k_10
   i32.add
-  box 3   ; -> i32
+  retag 3   ; -> i32
   return
 end
 

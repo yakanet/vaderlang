@@ -275,6 +275,7 @@ fn 0 snippet$main () -> i32
         call.indirect 23   ; fn
         if $L16 void
           local.get 6   ; __elem_1
+          retag 1   ; -> i32
           local.set 12   ; f
         else
           local.get 5   ; __fuse_i_6
@@ -349,6 +350,7 @@ fn 0 snippet$main () -> i32
           call.indirect 23   ; fn
           if $L22 void
             local.get 9   ; __elem_8
+            retag 1   ; -> i32
             local.set 14   ; __find_32
           else
             i64.const 1

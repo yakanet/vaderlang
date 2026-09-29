@@ -59,10 +59,13 @@ fn 1 snippet$main () -> i32
   local y any
   local $cast_71 i32
   i32.const 1
+  retag 2   ; -> i32
   null.const
   i32.const 3
+  retag 2   ; -> i32
   null.const
   i32.const 5
+  retag 2   ; -> i32
   array.new 19 5   ; union[][]
   local.set 3   ; __for_arr_0
   i32.const 0
@@ -291,6 +294,7 @@ fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
     i32.const 0
     struct.set 3 0   ; __genstate_maybe.state
     i32.const 5
+    retag 2   ; -> i32
     i32.const 0
     struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
     return
@@ -317,6 +321,7 @@ fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
     i32.const 2
     struct.set 3 0   ; __genstate_maybe.state
     i32.const 3
+    retag 2   ; -> i32
     i32.const 0
     struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
     return
@@ -343,6 +348,7 @@ fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
     i32.const 4
     struct.set 3 0   ; __genstate_maybe.state
     i32.const 1
+    retag 2   ; -> i32
     i32.const 0
     struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
     return

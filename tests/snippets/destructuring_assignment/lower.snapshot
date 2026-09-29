@@ -581,17 +581,17 @@
         int(1) :i32
     let z: i32 = int(0) :i32
     block :void
-      let __destr_src_27: [{integer}, i32]! =
-        [{integer}, i32]! {
+      let __destr_src_27: [i32, i32]! =
+        [i32, i32]! {
           _0: int(30) :i32
           _1: int(40) :i32
         }
       let __destr_el_28: i32 | null =
         ._0 :i32 | null
-          __destr_src_27 :[{integer}, i32]!
+          __destr_src_27 :[i32, i32]!
       let __destr_el_29: i32 =
         ._1 :i32
-          __destr_src_27 :[{integer}, i32]!
+          __destr_src_27 :[i32, i32]!
       call :void
         callee:
           std_collections$MutableMap$IndexSet$set_at__string__i32 :void

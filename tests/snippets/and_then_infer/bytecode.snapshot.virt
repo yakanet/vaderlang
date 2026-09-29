@@ -28,7 +28,9 @@ export main 2
 fn 0 snippet$fetch (bool) -> any
   local.get 0   ; arg 0
   if $L0 void
-    return.lit i32.const 20
+    i32.const 20
+    retag 6   ; -> i32
+    return
   end $L0
   struct.new 1   ; snippet$Boom
   return
@@ -47,7 +49,7 @@ fn 1 snippet$halve (i32) -> any
   local.get 0   ; arg 0
   i32.const 2
   i32.div
-  box 6   ; -> i32
+  retag 6   ; -> i32
   return
 end
 

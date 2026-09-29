@@ -41,6 +41,7 @@ export main 0
 fn 0 snippet$main () -> i32
   local $call_2 string
   string.const 1   ; ""
+  retag 2   ; -> string
   call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 0   ; "sha256-empty="
@@ -48,6 +49,7 @@ fn 0 snippet$main () -> i32
   call 1   ; concat_2
   call 5   ; std_io$println__string
   string.const 3   ; "abc"
+  retag 2   ; -> string
   call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 2   ; "sha256-abc="
@@ -55,6 +57,7 @@ fn 0 snippet$main () -> i32
   call 1   ; concat_2
   call 5   ; std_io$println__string
   string.const 5   ; "The quick brown fox jumps over the lazy dog"
+  retag 2   ; -> string
   call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 4   ; "sha256-quick="
@@ -62,6 +65,7 @@ fn 0 snippet$main () -> i32
   call 1   ; concat_2
   call 5   ; std_io$println__string
   string.const 7   ; "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
+  retag 2   ; -> string
   call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 6   ; "sha256-long="

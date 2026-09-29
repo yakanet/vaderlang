@@ -80,7 +80,7 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         struct.set 2 3   ; __asyncstate_snippet_0.state
         local.field 0 2 1   ; arg 0.s1
         ref.cast 1   ; -> i32
-        box 1   ; -> i32
+        retag 1   ; -> i32
         return
       end $L3
       local.field 0 2 3   ; arg 0.state
@@ -169,14 +169,14 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   struct.set 2 3   ; __asyncstate_snippet_0.state
   local.field 0 2 1   ; arg 0.s1
   ref.cast 1   ; -> i32
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 
 fn 2 snippet$Box$Async$resume__i32 (ref) -> any
   local.field 0 5 0   ; arg 0.v
   ref.cast 1   ; -> i32
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 

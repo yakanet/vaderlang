@@ -141,9 +141,11 @@ fn 4 snippet$main () -> i32
   call 0   ; snippet$describe
   call 12   ; std_io$println__string
   i32.const 42
+  retag 6   ; -> i32
   call 1   ; snippet$stringify
   call 12   ; std_io$println__string
   string.const 6   ; "hello"
+  retag 4   ; -> string
   call 1   ; snippet$stringify
   call 12   ; std_io$println__string
   string.const 7   ; "garfield"

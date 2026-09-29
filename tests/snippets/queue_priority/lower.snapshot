@@ -40,7 +40,7 @@
       callee:
         describe :fn(i32 | string) -> string
       arg0:
-        neg :{integer}
+        neg :i32
           int(3) :i32
     return int(0) :i32
 

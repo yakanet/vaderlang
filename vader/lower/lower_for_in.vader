@@ -400,7 +400,7 @@ build_step_call :: fn(
                 return LoweredVirtualCall {
                     .span = span, .type = step_union,
                     .trait_name = TRAIT_ITERATOR, .method = METHOD_NEXT,
-                    .receiver = iter_ref, .args = args,
+                    .receiver = iter_ref, .args = args, .param_types = [],
                 }
             }
         }

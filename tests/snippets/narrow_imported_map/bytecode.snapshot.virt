@@ -765,9 +765,7 @@ fn 16 std_collections$get__i32__Any (ref,i32) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 5   ; std_core$i32$Hash$hash
@@ -827,9 +825,7 @@ fn 16 std_collections$get__i32__Any (ref,i32) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 17 snippet_lib$pick (ref,i32) -> (i32,i32)

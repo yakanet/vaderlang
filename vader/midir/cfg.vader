@@ -339,6 +339,8 @@ export InstrVirtualCall :: struct {
     receiver:   LocalId
     args:       LocalId[]
     type:       Type
+    /// `LoweredVirtualCall.param_types` — what each arg's slot declares.
+    param_types: Type[]
 }
 
 export InstrFieldGet :: struct {

@@ -293,7 +293,9 @@ fn 7 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
         local.get 0   ; arg 0
         local.get 1   ; $k_12
         struct.set 10 3   ; __asyncstate_snippet_3.state
-        return.lit string.const 2   ; "ok"
+        string.const 2   ; "ok"
+        retag 2   ; -> string
+        return
       end $L4
       local.field 0 10 3   ; arg 0.state
       ref.cast 4   ; -> i32
@@ -410,7 +412,9 @@ fn 7 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
   local.get 0   ; arg 0
   local.get 1   ; $k_12
   struct.set 10 3   ; __asyncstate_snippet_3.state
-  return.lit string.const 2   ; "ok"
+  string.const 2   ; "ok"
+  retag 2   ; -> string
+  return
 end
 
 fn 8 snippet$__asyncstate_snippet_3$Async$cancel (ref) -> void
@@ -503,7 +507,7 @@ fn 9 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
         local.get 1   ; $k_8
         struct.set 11 4   ; __asyncstate_snippet_4.state
         i32.const 0
-        box 4   ; -> i32
+        retag 4   ; -> i32
         return
       end $L3
       local.field 0 11 4   ; arg 0.state
@@ -634,7 +638,7 @@ fn 9 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
   local.get 1   ; $k_8
   struct.set 11 4   ; __asyncstate_snippet_4.state
   i32.const 0
-  box 4   ; -> i32
+  retag 4   ; -> i32
   return
 end
 
@@ -963,9 +967,7 @@ fn 20 std_async$Sleep$Async$resume (ref) -> any
   local.get 2   ; $field_5
   i64.ge
   if $L1 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L1
   struct.new 7   ; std_core$Suspended
   return

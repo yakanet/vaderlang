@@ -241,7 +241,7 @@ fn 9 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         local.get 2   ; $field_9
         local.get 3   ; $field_10
         call 13   ; concat_2
-        box 1   ; -> string
+        retag 1   ; -> string
         return
       end $L3
       local.field 0 4 5   ; arg 0.state
@@ -351,7 +351,7 @@ fn 9 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local.get 2   ; $field_9
   local.get 3   ; $field_10
   call 13   ; concat_2
-  box 1   ; -> string
+  retag 1   ; -> string
   return
 end
 
@@ -389,7 +389,7 @@ fn 11 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
         local.get 1   ; $k_8
         struct.set 8 2   ; __asyncstate_snippet_3.state
         i32.const 0
-        box 3   ; -> i32
+        retag 3   ; -> i32
         return
       end $L3
       local.field 0 8 2   ; arg 0.state
@@ -486,14 +486,14 @@ fn 11 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
   local.get 1   ; $k_8
   struct.set 8 2   ; __asyncstate_snippet_3.state
   i32.const 0
-  box 3   ; -> i32
+  retag 3   ; -> i32
   return
 end
 
 fn 12 snippet$Ready$Async$resume__string (ref) -> any
   local.field 0 10 0   ; arg 0.v
   ref.cast 1   ; -> string
-  box 1   ; -> string
+  retag 1   ; -> string
   return
 end
 

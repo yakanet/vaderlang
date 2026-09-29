@@ -1607,9 +1607,7 @@ fn 18 cli$find_spec (ref,string,bool) -> any
       end $L2
     end $L1
   end $L0
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 19 cli$record_str_flag (ref,string,string,ref,ref) -> void
@@ -2192,9 +2190,7 @@ fn 30 std_collections$get__string__string (ref,string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 45   ; std_core$string$Hash$hash_vt
@@ -2238,7 +2234,7 @@ fn 30 std_collections$get__string__string (ref,string) -> any
             local.get 4   ; ei
             array.get 10   ; string[][]
             ref.cast 2   ; -> string
-            box 2   ; -> string
+            retag 2   ; -> string
             return
           end $L5
         end $L4
@@ -2257,9 +2253,7 @@ fn 30 std_collections$get__string__string (ref,string) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 31 std_string$starts_with (string,string) -> bool
@@ -2480,12 +2474,12 @@ fn 33 std_string$parse_int (string) -> any
     local.get 4   ; acc
     i64.neg
     i64.to_i32
-    box 1   ; -> i32
+    retag 1   ; -> i32
     return
   end $L11
   local.get 4   ; acc
   i64.to_i32
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 

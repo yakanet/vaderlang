@@ -109,7 +109,7 @@
                       callee:
                         tag :fn(i32 | i64 | u8) -> i32
                       arg0:
-                        int(7) :i32 | i64 | u8
+                        int(7) :i32
           ~>
             call :string
               callee:

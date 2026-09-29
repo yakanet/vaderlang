@@ -130,6 +130,7 @@ fn 2 snippet$main () -> i32
   i64.const 0
   local.set 1   ; __off_1
   string.const 0   ; "closed"
+  retag 5   ; -> string
   call 0   ; snippet$classify
   i32.to_i64
   local.set 2   ; $cast_8
@@ -148,6 +149,7 @@ fn 2 snippet$main () -> i32
   i64.const 0
   local.set 1   ; __off_1
   string.const 0   ; "closed"
+  retag 5   ; -> string
   call 1   ; snippet$remainder
   i32.to_i64
   local.set 2   ; $cast_8

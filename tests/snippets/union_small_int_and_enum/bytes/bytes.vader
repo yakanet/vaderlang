@@ -1,0 +1,7 @@
+// Sub-module taking a union : `_main` reaches it through a namespace alias, the
+// call form T3078 makes mandatory for an aliased import.
+module "snippet/bytes"
+
+export Byte :: u8 | string
+
+export describe :: fn(v: Byte) -> string = if v is u8 { "alias u8 ${v}" } else { "alias text" }

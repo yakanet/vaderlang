@@ -72,17 +72,22 @@ fn 1 snippet$main () -> i32
   local __for_len_1 usize
   local __for_i_2 usize
   i32.const 4
+  retag 2   ; -> i32
   string.const 2   ; "four"
+  retag 3   ; -> string
   array.new 11 2   ; union[][]
   local.tee 0   ; cells
   i32.const 1
   i32.const 6
+  retag 2   ; -> i32
   array.set 11   ; union[][]
   local.get 0   ; cells
   i32.const 5
+  retag 2   ; -> i32
   array.push 1   ; union[]
   local.get 0   ; cells
   string.const 3   ; "five"
+  retag 3   ; -> string
   array.push 1   ; union[]
   local.get 0   ; cells
   array.len

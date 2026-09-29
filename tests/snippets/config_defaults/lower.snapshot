@@ -10,7 +10,7 @@
           r:
             "width" :string
       then:
-        return int(80) :i32 | null
+        return int(80) :i32
     if :void
       cond:
         eq :bool
@@ -19,7 +19,7 @@
           r:
             "height" :string
       then:
-        return int(25) :i32 | null
+        return int(25) :i32
     return null
   fn snippet$resolve(key: string) -> i32
     ~>

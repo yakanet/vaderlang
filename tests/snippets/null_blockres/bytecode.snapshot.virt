@@ -34,11 +34,11 @@ fn 0 snippet$pick (bool) -> any
   null.const
   ref.eq
   if $L1 void
-    return.lit string.const 0   ; "got null"
+    string.const 0   ; "got null"
+    retag 3   ; -> string
+    return
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 1 snippet$main () -> i32

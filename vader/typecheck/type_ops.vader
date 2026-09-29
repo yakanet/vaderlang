@@ -490,18 +490,67 @@ export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: Typed
 
 /// Bidirectional narrowing : when a Free* literal flows into a slot that
 /// wants a concrete numeric of the matching family, fold the literal to
-/// the concrete primitive. Used by every check_expr-style call site.
+/// the concrete primitive — into a union, to the member it settles on
+/// (`union_literal_member`). Used by every check_expr-style call site.
 export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
-    if expected is null { return got }
-    if !(expected is PrimitiveType) { return got }
-    if got is FreeIntType   && is_int_name(expected.name)   { return expected }
-    if got is FreeFloatType && is_float_name(expected.name) { return expected }
-    // A char LITERAL folds to an integer (codepoint, bounds-checked at the pin
-    // site) or stays `char`. Runtime `char` values are concrete and never hit
-    // this arm.
-    if got is FreeCharType  && is_int_name(expected.name)   { return expected }
-    if got is FreeCharType  && expected.name == "char"      { return expected }
+    if expected is UnionType {
+        member :: union_literal_member(got, expected) ?? return got
+        return member
+    }
+    if expected is PrimitiveType && literal_family_holds(got, expected.name) {
+        return expected
+    }
     return got
+}
+
+/// The member of `u` a free literal of kind `got` settles on : its family's
+/// default (`i32`, `f64`, `char`) when the union has it, else its only member of
+/// that family — `5` into `u8 | string` is a `u8`. `null` when `got` is not a
+/// free literal, or the union has none, or several with no default among them
+/// (T3089 at the literal).
+///
+/// @param got  the literal's free type.
+/// @param u    the union it flows into.
+union_literal_member :: fn(got: Type, u: UnionType) -> PrimitiveType | null {
+    if !is_free_numeric(got) {
+        return null
+    }
+    candidates :: union_literal_candidates(got, u)
+    preferred :: default_if_free(got)
+    for c in candidates {
+        if equals_type(c, preferred) {
+            return c
+        }
+    }
+    return if candidates.len() == 1 { candidates[0] } else { null }
+}
+
+/// The primitive members of `u` a free literal of kind `got` could take : the
+/// integer widths for `5`, the float widths for `2.5`, the integers and `char`
+/// for `'a'`. Empty when `got` is not a free literal.
+///
+/// @param got  the literal's free type.
+/// @param u    the union it flows into.
+union_literal_candidates :: fn(got: Type, u: UnionType) -> PrimitiveType[] {
+    out: PrimitiveType[]!: []
+    for v in u.variants {
+        if v is PrimitiveType && literal_family_holds(got, v.name) {
+            out.push(v)
+        }
+    }
+    return out
+}
+
+// A free literal of kind `got` can be a value of the primitive `name` : an
+// integer width for `5`, a float width for `2.5`, an integer width or `char` for
+// `'a'` (its codepoint, bounds-checked where it is pinned).
+literal_family_holds :: fn(got: Type, name: string) -> bool = match got {
+    is FreeIntType   -> is_int_name(name)
+    is FreeFloatType -> is_float_name(name)
+    is FreeCharType  -> is_int_name(name) || name == "char"
+    is PrimitiveType | EnumType | DistinctType | ArrayType | StructType | TraitType | UnionType
+     | TupleType | FnType | TypeParamType | TypeMetaType | SelfType | UnresolvedType | NeverType
+     | AnyType -> false
 }
 
 /// `t` with mutability erased at every level — the SHAPE of the type.
@@ -532,7 +581,7 @@ export strip_mutability :: fn(t: Type) -> Type = match t {
 }
 
 strip_mutability_each :: fn(ts: Type[]) -> Type[] {
-    out: Type[]!: []
+    out: Type[]!: [] * ts.len()
     for t in ts { out.push(strip_mutability(t)) }
     return out
 }

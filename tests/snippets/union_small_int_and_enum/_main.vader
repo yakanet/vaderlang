@@ -1,0 +1,99 @@
+// A small integer or an enum entering a union keeps its own type, so `is u8` /
+// `is Color` hold natively as on the VM. A constant, a conversion or a free
+// literal reaches the native backend as an `i32` : midir tags the union value
+// (`retag`) wherever it is stored — an argument (direct, through a namespace
+// alias, virtual, a UFCS receiver), a return, a field, a local, an `if` / `match`
+// join, an array element, a push, a closure capture, a tuple element, a `yield`.
+// A set of such values compares them through its erased instance, which reaches
+// `u8`'s `equals` by the tag.
+
+module "snippet"
+
+import "std/collections"
+import "std/io"
+B :: import "snippet/bytes"
+
+Byte :: u8 | string
+Word :: u32 | string
+Color :: enum { Red, Green, Blue }
+Cell :: Color | string
+
+show_byte :: fn(v: Byte) -> string = if v is u8 { "u8 ${v}" } else { "text" }
+show_word :: fn(v: Word) -> string = if v is u32 { "u32 ${v}" } else { "text" }
+show_cell :: fn(c: Cell) -> string = if c is Color { "color ${i32(c)}" } else { "text" }
+
+nine :: fn() -> Byte = 9
+
+pick :: fn(n: i32) -> Byte = match n {
+    0 -> 12
+    _ -> "other"
+}
+
+bytes :: fn() -> Iterator<Byte> {
+    yield 13
+    yield "s"
+}
+
+Holder :: struct {
+    b: Byte
+}
+
+Shower :: trait {
+    shown :: fn(self, v: Byte) -> string
+}
+
+Plain :: struct {
+    tag: i32
+}
+
+Plain implements Shower {
+    shown :: fn(self, v: Byte) -> string = show_byte(v)
+}
+
+main :: fn(argv: string[]) -> i32 {
+    println(show_byte(5))
+    b: u8: 6
+    println(show_byte(b))
+    n :: i32(argv.len()) + 6
+    println(show_byte(u8(n)))
+    println(show_word(7))
+    println(show_byte(nine()))
+    h :: Holder { .b = 8 }
+    println(show_byte(h.b))
+    h.b = 10
+    println(show_byte(h.b))
+    local: Byte = "s"
+    local = 11
+    println(show_byte(local))
+    seen :: MutableSet<Byte> {}
+    seen.add(local)
+    seen.add(local)
+    println("seen ${seen.len()}")
+    println(B.describe(12))
+    joined: Byte: if argv.len() > 0 { 12 } else { "s" }
+    println(show_byte(joined))
+    println(show_byte(pick(i32(argv.len()) - 1)))
+    for y in bytes() {
+        println(show_byte(y))
+    }
+    shower: Shower: Plain { .tag = 1 }
+    println(shower.shown(14))
+    captured: Byte = "x"
+    bump :: () -> {
+        captured = 15
+    }
+    bump()
+    println(show_byte(captured))
+    pair: [Byte, i32]: [16, 1]
+    [first, _] :: pair
+    println(show_byte(first))
+    println(17.show_byte())
+    println(show_cell(.Blue))
+    cells: Cell[]!: [.Red, "x"]
+    cells.push(.Green)
+    cells[1] = .Blue
+    for c in cells {
+        println(show_cell(c))
+    }
+    return 0
+}

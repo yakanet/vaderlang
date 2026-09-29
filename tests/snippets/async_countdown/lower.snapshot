@@ -26,7 +26,7 @@
         return
           Suspended! {
           }
-    return int(42) :i32 | Suspended!
+    return int(42) :i32
   fn snippet$CountDown$Async$cancel(self: CountDown!) -> void
   fn snippet$waiter() -> Async<i32>
     return

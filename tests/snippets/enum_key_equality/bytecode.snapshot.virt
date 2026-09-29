@@ -37,16 +37,8 @@ string 6 "false"
 string 7 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=16 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 equals std_core$i8$Equals$equals result_type=3 param_types=10,10 param_mutable=0,0 param_by_address= (i8,i8) -> bool
-import 3 equals std_core$i16$Equals$equals result_type=3 param_types=11,11 param_mutable=0,0 param_by_address= (i16,i16) -> bool
-import 4 equals std_core$isize$Equals$equals result_type=3 param_types=12,12 param_mutable=0,0 param_by_address= (isize,isize) -> bool
-import 5 equals std_core$u8$Equals$equals result_type=3 param_types=4,4 param_mutable=0,0 param_by_address= (u8,u8) -> bool
-import 6 equals std_core$u16$Equals$equals result_type=3 param_types=13,13 param_mutable=0,0 param_by_address= (u16,u16) -> bool
-import 7 equals std_core$u32$Equals$equals result_type=3 param_types=14,14 param_mutable=0,0 param_by_address= (u32,u32) -> bool
-import 8 equals std_core$u64$Equals$equals result_type=3 param_types=9,9 param_mutable=0,0 param_by_address= (u64,u64) -> bool
-import 9 equals std_core$usize$Equals$equals result_type=3 param_types=5,5 param_mutable=0,0 param_by_address= (usize,usize) -> bool
-import 10 hash std_core$string$Hash$hash result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> u64
-import 11 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,16,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 hash std_core$string$Hash$hash result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> u64
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,16,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 7 ByteAccess
 impl 21 Index
 impl 21 IndexSet
@@ -1487,9 +1479,7 @@ fn 32 std_collections$get__Any__i32 (ref,any) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   virtual.call 1 Hash.hash
@@ -1533,7 +1523,7 @@ fn 32 std_collections$get__Any__i32 (ref,any) -> any
             local.field 0 21 1   ; arg 0.evals
             local.get 4   ; ei
             load_slot_i32
-            box 1   ; -> i32
+            retag 1   ; -> i32
             return
           end $L5
         end $L4
@@ -1552,9 +1542,7 @@ fn 32 std_collections$get__Any__i32 (ref,any) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 33 std_collections$get__HttpStatus__string (ref,u8) -> any
@@ -1568,9 +1556,7 @@ fn 33 std_collections$get__HttpStatus__string (ref,u8) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 13   ; std_core$u8$Hash$hash
@@ -1613,7 +1599,7 @@ fn 33 std_collections$get__HttpStatus__string (ref,u8) -> any
             local.get 4   ; ei
             array.get 27   ; string[][]
             ref.cast 2   ; -> string
-            box 2   ; -> string
+            retag 2   ; -> string
             return
           end $L5
         end $L4
@@ -1632,9 +1618,7 @@ fn 33 std_collections$get__HttpStatus__string (ref,u8) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 34 std_collections$len__snippet_HttpStatus__string (ref) -> usize
@@ -1716,7 +1700,7 @@ fn 36 std_io$write_bytes (u8,ref,usize) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 11   ; system_posix$sys_write
+  call.import 3   ; system_posix$sys_write
   isize.to_i32
   return
 end
@@ -1765,14 +1749,14 @@ end
 fn 42 std_core$i8$Equals$equals_vt (i8,i8) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call.import 2   ; std_core$i8$Equals$equals
+  i32.eq
   return
 end
 
 fn 43 std_core$i16$Equals$equals_vt (i16,i16) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call.import 3   ; std_core$i16$Equals$equals
+  i32.eq
   return
 end
 
@@ -1793,42 +1777,42 @@ end
 fn 46 std_core$isize$Equals$equals_vt (isize,isize) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call.import 4   ; std_core$isize$Equals$equals
+  i64.eq
   return
 end
 
 fn 47 std_core$u8$Equals$equals_vt (u8,u8) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call.import 5   ; std_core$u8$Equals$equals
+  i32.eq
   return
 end
 
 fn 48 std_core$u16$Equals$equals_vt (u16,u16) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call.import 6   ; std_core$u16$Equals$equals
+  i32.eq
   return
 end
 
 fn 49 std_core$u32$Equals$equals_vt (u32,u32) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call.import 7   ; std_core$u32$Equals$equals
+  i32.eq
   return
 end
 
 fn 50 std_core$u64$Equals$equals_vt (u64,u64) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call.import 8   ; std_core$u64$Equals$equals
+  i64.eq
   return
 end
 
 fn 51 std_core$usize$Equals$equals_vt (usize,usize) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call.import 9   ; std_core$usize$Equals$equals
+  i64.eq
   return
 end
 
@@ -1869,6 +1853,6 @@ end
 
 fn 57 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0   ; arg 0
-  call.import 10   ; std_core$string$Hash$hash
+  call.import 2   ; std_core$string$Hash$hash
   return
 end

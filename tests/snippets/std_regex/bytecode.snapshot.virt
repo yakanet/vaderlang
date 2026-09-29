@@ -1126,9 +1126,7 @@ fn 16 regex$find (ref,string) -> any
         local.get 6   ; $len_12
         i64.eq
         if $L4 void
-          null.const
-          box 0   ; -> null
-          return
+          return.lit null.const
         end $L4
         local.get 2   ; ib
         local.get 3   ; start
@@ -1142,9 +1140,7 @@ fn 16 regex$find (ref,string) -> any
       end $L2
     end $L1
   end $L0
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 17 regex$compile (string) -> any
@@ -1965,9 +1961,7 @@ fn 23 regex$parse_alternation (ref) -> any
   end $L1
   local.get 5   ; or_res
   if $L2 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L2
   array.new 25 0   ; union[][]
   local.set 6   ; $field_14
@@ -2226,9 +2220,7 @@ fn 23 regex$parse_alternation (ref) -> any
           end $L13
         end $L12
       end $L11
-      null.const
-      box 0   ; -> null
-      return
+      return.lit null.const
     end $L4
   end $L3
   local.get 2   ; err1
@@ -2805,9 +2797,7 @@ fn 30 regex$parse_concat (ref) -> any
       end $L2
     end $L1
   end $L0
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 31 regex$extract_range (ref,usize,usize) -> ref
@@ -2954,9 +2944,7 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
   local.get 4   ; $len_10
   u64.ge
   if $L1 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L1
   local.field 0 17 0   ; arg 0.bytes
   local.set 5   ; $field_13
@@ -2982,9 +2970,7 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
     local.get 0   ; arg 0
     local.get 1   ; atom_start
     call 36   ; regex$apply_star
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L2
   local.get 6   ; q
   i32.const 43
@@ -3001,9 +2987,7 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
     local.get 0   ; arg 0
     local.get 1   ; atom_start
     call 37   ; regex$apply_plus
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L3
   local.get 6   ; q
   i32.const 63
@@ -3020,9 +3004,7 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
     local.get 0   ; arg 0
     local.get 1   ; atom_start
     call 38   ; regex$apply_optional
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L4
   local.get 6   ; q
   i32.const 123
@@ -3033,9 +3015,7 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
     call 39   ; regex$apply_counted
     return
   end $L5
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 35 regex$parse_atom (ref) -> any
@@ -3231,9 +3211,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.get 3   ; $field_8
     local.get 7   ; $struct_46
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L1
   local.get 4   ; b
   i32.const 46
@@ -3254,9 +3232,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.get 3   ; $field_8
     local.get 7   ; $struct_46
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L6
   local.get 4   ; b
   i32.const 94
@@ -3277,9 +3253,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.get 3   ; $field_8
     local.get 7   ; $struct_46
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L7
   local.get 4   ; b
   i32.const 36
@@ -3300,9 +3274,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.get 3   ; $field_8
     local.get 7   ; $struct_46
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L8
   local.get 4   ; b
   i32.const 91
@@ -3348,9 +3320,7 @@ fn 35 regex$parse_atom (ref) -> any
   local.get 3   ; $field_8
   local.get 7   ; $struct_46
   array.push 26   ; union[]
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 36 regex$apply_star (ref,usize) -> void
@@ -3538,9 +3508,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
   i32.const 123
   i32.ne
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.field 0 17 1   ; arg 0.cursor
   ref.cast 8   ; -> usize
@@ -3947,9 +3915,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
     struct.new 15   ; regex$RegexError
     return
   end $L24
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 40 regex$parse_char_class (ref) -> any
@@ -4224,9 +4190,7 @@ fn 40 regex$parse_char_class (ref) -> any
       local.get 32   ; $field_90
       local.get 33   ; $struct_91
       array.push 26   ; union[]
-      null.const
-      box 0   ; -> null
-      return
+      return.lit null.const
     end $L3
   end $L2
   local.get 9   ; lo_c
@@ -4296,9 +4260,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L1
   local.get 4   ; e
   i32.const 116
@@ -4312,9 +4274,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L2
   local.get 4   ; e
   i32.const 114
@@ -4328,9 +4288,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L3
   local.get 4   ; e
   i32.const 100
@@ -4348,9 +4306,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L4
   local.get 4   ; e
   i32.const 68
@@ -4368,9 +4324,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L5
   local.get 4   ; e
   i32.const 119
@@ -4385,9 +4339,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L6
   local.get 4   ; e
   i32.const 87
@@ -4402,9 +4354,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L7
   local.get 4   ; e
   i32.const 115
@@ -4419,9 +4369,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L8
   local.get 4   ; e
   i32.const 83
@@ -4436,9 +4384,7 @@ fn 41 regex$parse_escape (ref) -> any
     local.get 3   ; $field_11
     local.get 5   ; $struct_22
     array.push 26   ; union[]
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L9
   local.field 0 17 2   ; arg 0.insts
   local.set 3   ; $field_11
@@ -4450,9 +4396,7 @@ fn 41 regex$parse_escape (ref) -> any
   local.get 3   ; $field_11
   local.get 5   ; $struct_22
   array.push 26   ; union[]
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 42 regex$push_atom_rebased (ref,ref,usize) -> void
@@ -4622,7 +4566,7 @@ fn 43 regex$parse_decimal_usize (ref) -> any
     end $L4
   end $L3
   local.get 1   ; $field_1
-  box 8   ; -> usize
+  retag 8   ; -> usize
   return
 end
 
@@ -4710,24 +4654,30 @@ fn 44 regex$read_class_char (ref) -> any
     i32.const 110
     i32.eq
     if $L3 void
-      return.lit char.const 10
+      char.const 10
+      retag 5   ; -> char
+      return
     end $L3
     local.get 4   ; e
     i32.const 116
     i32.eq
     if $L4 void
-      return.lit char.const 9
+      char.const 9
+      retag 5   ; -> char
+      return
     end $L4
     local.get 4   ; e
     i32.const 114
     i32.eq
     if $L5 void
-      return.lit char.const 13
+      char.const 13
+      retag 5   ; -> char
+      return
     end $L5
     local.get 4   ; e
     u8.to_i32
     u32.to_char
-    box 5   ; -> char
+    retag 5   ; -> char
     return
   end $L1
   local.field 0 17 0   ; arg 0.bytes
@@ -4751,7 +4701,7 @@ fn 44 regex$read_class_char (ref) -> any
   local.get 1   ; $field_1
   struct.set 17 1   ; regex$Parser.cursor
   local.get 5   ; c
-  box 5   ; -> char
+  retag 5   ; -> char
   return
 end
 

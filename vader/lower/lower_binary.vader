@@ -304,7 +304,7 @@ lower_op_overload_via_vcall :: fn(
         .span = binary.span,
         .type = if oti.shape == .CompareCmp { mk_primitive("i32") } else { TY_BOOL },
         .trait_name = oti.trait_name, .method = oti.method_name,
-        .receiver = lowered_left, .args = args,
+        .receiver = lowered_left, .args = args, .param_types = [],
     }
     if oti.shape == .DirectCall {
         return call

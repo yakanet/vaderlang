@@ -1222,7 +1222,6 @@ static int32_t snippet_main(void) {
     t1 = (void*) &vader_data_3;
     vader_array_t* _a2_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-    VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT64_C(0))
     t1 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT64_C(0));
 #line 95 "tests/snippets/module_const_mutability/_main.vader"
     l6 = ((vader_struct_snippet_Spec_t*) t1)->f_name;

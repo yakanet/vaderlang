@@ -42,7 +42,7 @@
           callee:
             describe :fn(i32 | null | string) -> string
           arg0:
-            int(42) :i32 | null | string
+            int(42) :i32
     call :void
       callee:
         std_io$println__string :void

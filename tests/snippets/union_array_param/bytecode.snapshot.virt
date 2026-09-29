@@ -51,6 +51,7 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   string.const 0   ; "hi"
+  retag 2   ; -> string
   call 0   ; snippet$byte_count
   usize.to_i64
   local.set 3   ; $cast_13

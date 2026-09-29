@@ -983,9 +983,7 @@ fn 20 std_collections$get__HttpStatus__string (ref,u8) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 12   ; std_core$u8$Hash$hash
@@ -1028,7 +1026,7 @@ fn 20 std_collections$get__HttpStatus__string (ref,u8) -> any
             local.get 4   ; ei
             array.get 14   ; string[][]
             ref.cast 5   ; -> string
-            box 5   ; -> string
+            retag 5   ; -> string
             return
           end $L5
         end $L4
@@ -1047,9 +1045,7 @@ fn 20 std_collections$get__HttpStatus__string (ref,u8) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 21 std_collections$len__snippet_HttpStatus__string (ref) -> usize

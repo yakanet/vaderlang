@@ -7014,9 +7014,7 @@ fn 107 std_collections$get__string__bool (ref,string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 119   ; std_core$string$Hash$hash_vt
@@ -7060,7 +7058,7 @@ fn 107 std_collections$get__string__bool (ref,string) -> any
             local.get 4   ; ei
             array.get 39   ; bool[][]
             ref.cast 3   ; -> bool
-            box 3   ; -> bool
+            retag 3   ; -> bool
             return
           end $L5
         end $L4
@@ -7079,9 +7077,7 @@ fn 107 std_collections$get__string__bool (ref,string) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 108 std_collections$get__string__char (ref,string) -> any
@@ -7095,9 +7091,7 @@ fn 108 std_collections$get__string__char (ref,string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 119   ; std_core$string$Hash$hash_vt
@@ -7140,7 +7134,7 @@ fn 108 std_collections$get__string__char (ref,string) -> any
             local.field 0 24 1   ; arg 0.evals
             local.get 4   ; ei
             load_slot_i32
-            box 14   ; -> char
+            retag 14   ; -> char
             return
           end $L5
         end $L4
@@ -7159,9 +7153,7 @@ fn 108 std_collections$get__string__char (ref,string) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 109 std_collections$get__string__f32 (ref,string) -> any
@@ -7175,9 +7167,7 @@ fn 109 std_collections$get__string__f32 (ref,string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 119   ; std_core$string$Hash$hash_vt
@@ -7221,7 +7211,7 @@ fn 109 std_collections$get__string__f32 (ref,string) -> any
             local.get 4   ; ei
             array.get 42   ; f32[][]
             ref.cast 15   ; -> f32
-            box 15   ; -> f32
+            retag 15   ; -> f32
             return
           end $L5
         end $L4
@@ -7240,9 +7230,7 @@ fn 109 std_collections$get__string__f32 (ref,string) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 110 std_collections$get__string__f64 (ref,string) -> any
@@ -7256,9 +7244,7 @@ fn 110 std_collections$get__string__f64 (ref,string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 119   ; std_core$string$Hash$hash_vt
@@ -7301,7 +7287,7 @@ fn 110 std_collections$get__string__f64 (ref,string) -> any
             local.field 0 28 1   ; arg 0.evals
             local.get 4   ; ei
             load_slot_f64
-            box 16   ; -> f64
+            retag 16   ; -> f64
             return
           end $L5
         end $L4
@@ -7320,9 +7306,7 @@ fn 110 std_collections$get__string__f64 (ref,string) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 111 std_collections$get__string__i16 (ref,string) -> any
@@ -7336,9 +7320,7 @@ fn 111 std_collections$get__string__i16 (ref,string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 119   ; std_core$string$Hash$hash_vt
@@ -7382,7 +7364,7 @@ fn 111 std_collections$get__string__i16 (ref,string) -> any
             local.get 4   ; ei
             array.get 44   ; i16[][]
             ref.cast 10   ; -> i16
-            box 10   ; -> i16
+            retag 10   ; -> i16
             return
           end $L5
         end $L4
@@ -7401,9 +7383,7 @@ fn 111 std_collections$get__string__i16 (ref,string) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 112 std_collections$get__string__i64 (ref,string) -> any
@@ -7417,9 +7397,7 @@ fn 112 std_collections$get__string__i64 (ref,string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 119   ; std_core$string$Hash$hash_vt
@@ -7462,7 +7440,7 @@ fn 112 std_collections$get__string__i64 (ref,string) -> any
             local.field 0 32 1   ; arg 0.evals
             local.get 4   ; ei
             load_slot_i64
-            box 7   ; -> i64
+            retag 7   ; -> i64
             return
           end $L5
         end $L4
@@ -7481,9 +7459,7 @@ fn 112 std_collections$get__string__i64 (ref,string) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 113 std_collections$get__string__u16 (ref,string) -> any
@@ -7497,9 +7473,7 @@ fn 113 std_collections$get__string__u16 (ref,string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 119   ; std_core$string$Hash$hash_vt
@@ -7543,7 +7517,7 @@ fn 113 std_collections$get__string__u16 (ref,string) -> any
             local.get 4   ; ei
             array.get 46   ; u16[][]
             ref.cast 12   ; -> u16
-            box 12   ; -> u16
+            retag 12   ; -> u16
             return
           end $L5
         end $L4
@@ -7562,9 +7536,7 @@ fn 113 std_collections$get__string__u16 (ref,string) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 114 std_collections$get__string__u8 (ref,string) -> any
@@ -7578,9 +7550,7 @@ fn 114 std_collections$get__string__u8 (ref,string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 119   ; std_core$string$Hash$hash_vt
@@ -7624,7 +7594,7 @@ fn 114 std_collections$get__string__u8 (ref,string) -> any
             local.get 4   ; ei
             array.get 17   ; u8[][]
             ref.cast 4   ; -> u8
-            box 4   ; -> u8
+            retag 4   ; -> u8
             return
           end $L5
         end $L4
@@ -7643,9 +7613,7 @@ fn 114 std_collections$get__string__u8 (ref,string) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 115 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref

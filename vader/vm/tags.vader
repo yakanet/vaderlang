@@ -393,7 +393,7 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
      | bc.StructNew | bc.ArrayNew | bc.ArrayRepeat | bc.ArraySlice | bc.StringSliceCodepoints
      | bc.BufferNew | bc.BufferToString -> TAGS_REF
     is bc.LocalGet -> state[usize(op.slot)]
-    is bc.LocalTee | bc.Box -> top
+    is bc.LocalTee | bc.Retag -> top
     is bc.RefCast -> {
         narrowed :: top & tags_of_type(ctx, op.type_id)
         if narrowed != 0 { narrowed } else { top }
@@ -451,7 +451,7 @@ accepted_tags :: fn(op: bc.Op, back: usize) -> u8 | null = match op {
      | bc.NullConst | bc.BoolConst | bc.CharConst | bc.F64Const | bc.I64Const | bc.CallImport
      | bc.Call | bc.FnRef | bc.MakeClosure | bc.CallIndirect | bc.VirtualCall | bc.StructNew
      | bc.StructGet | bc.StructSet | bc.LocalField | bc.ArrayNew | bc.ArrayPush | bc.ArrayLen
-     | bc.ArraySlice | bc.DataConst | bc.RefCast | bc.Box | bc.Convert | bc.TypeCheck
+     | bc.ArraySlice | bc.DataConst | bc.RefCast | bc.Retag | bc.Convert | bc.TypeCheck
      | bc.TypeConst | bc.DeferPush | bc.DeferPopExec | bc.SizeOfType | bc.BoolEq | bc.BoolNe
      | bc.BoolAnd | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.StringSliceCodepoints
      | bc.RefEq | bc.RefNe | bc.Drop | bc.Block | bc.Loop | bc.If | bc.Else | bc.End | bc.Branch

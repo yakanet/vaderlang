@@ -1,0 +1,70 @@
+# Comptime
+
+## tests/snippets/union_small_int_and_enum
+
+## tests/snippets/union_small_int_and_enum/bytes
+
+## generic instances
+  __genstate_bytes<string | u8>
+  __genstate_array_iter<T>
+  ArrayOps<T>
+  MutableMap<i32, bool>
+  MutableMap<i32, i32>
+  MutableMap<string, i32>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<K, V>
+  MutableSet<string | u8>
+  MutableSet<i32>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<string | u8>
+  Iterator<[K, V]>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Async<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>

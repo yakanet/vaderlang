@@ -140,7 +140,7 @@
               callee:
                 inspect :fn(i32 | string) -> string
               arg0:
-                int(250) :i32 | string
+                int(250) :i32
           arg1:
             " " :string
           arg2:
@@ -148,7 +148,7 @@
               callee:
                 inspect :fn(i32 | string) -> string
               arg0:
-                int(40) :i32 | string
+                int(40) :i32
           arg3:
             " " :string
           arg4:
@@ -169,7 +169,7 @@
               callee:
                 wave_through :fn(i32 | string, bool) -> string
               arg0:
-                int(40) :i32 | string
+                int(40) :i32
               arg1:
                 true
           arg1:
@@ -179,7 +179,7 @@
               callee:
                 wave_through :fn(i32 | string, bool) -> string
               arg0:
-                int(40) :i32 | string
+                int(40) :i32
               arg1:
                 false
     call :void

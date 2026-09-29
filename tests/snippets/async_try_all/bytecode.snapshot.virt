@@ -198,7 +198,7 @@ fn 3 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         local.get 2   ; $cast_10
         local.get 3   ; $k_11
         i32.mul
-        box 6   ; -> i32
+        retag 6   ; -> i32
         return
       end $L3
       local.field 0 7 5   ; arg 0.state
@@ -313,7 +313,7 @@ fn 3 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local.get 2   ; $cast_10
   local.get 3   ; $k_11
   i32.mul
-  box 6   ; -> i32
+  retag 6   ; -> i32
   return
 end
 
@@ -384,7 +384,7 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
         local.get 1   ; $k_8
         struct.set 11 11   ; __asyncstate_snippet_1.state
         i32.const 0
-        box 6   ; -> i32
+        retag 6   ; -> i32
         return
       end $L3
       local.field 0 11 11   ; arg 0.state
@@ -789,7 +789,7 @@ fn 5 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
   local.get 1   ; $k_8
   struct.set 11 11   ; __asyncstate_snippet_1.state
   i32.const 0
-  box 6   ; -> i32
+  retag 6   ; -> i32
   return
 end
 
@@ -1307,9 +1307,7 @@ fn 22 std_async$Sleep$Async$resume (ref) -> any
   local.get 2   ; $field_5
   i64.ge
   if $L1 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L1
   struct.new 9   ; std_core$Suspended
   return
@@ -1785,9 +1783,7 @@ fn 34 std_collections$get__usize__Any (ref,usize) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 12   ; std_core$usize$Hash$hash
@@ -1847,9 +1843,7 @@ fn 34 std_collections$get__usize__Any (ref,usize) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 35 std_collections$contains_key__usize__Any (ref,usize) -> bool

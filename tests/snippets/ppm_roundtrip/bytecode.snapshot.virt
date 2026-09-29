@@ -587,9 +587,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
     call 12   ; std_io$last_io_error
     return
   end $L7
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 9 std_io$read_file_bytes (string,usize) -> any

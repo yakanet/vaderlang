@@ -418,28 +418,48 @@ export remap_type_indices :: fn(remap: i32[], indices: i32[]) -> i32[]! {
     return out
 }
 
-/// The type-bearing op variants. Returns -1 when the op carries no
-/// type index.
-export type_index_of :: fn(op: Op) -> i32 {
-    if op is StructNew    { return op.type_id }
-    if op is StructGet    { return op.type_id }
-    if op is StructSet    { return op.type_id }
-    if op is ArrayNew     { return op.type_id }
-    if op is ArrayGet     { return op.type_id }
-    if op is ArraySet     { return op.type_id }
-    if op is ArrayPush    { return op.type_id }
-    if op is TypeCheck    { return op.type_id }
-    if op is TypeConst    { return op.type_id }
-    if op is CallIndirect { return op.type_id }
-    if op is MakeClosure  { return op.env_type_id }
-    if op is FnRef        { return op.type_id }
-    if op is LocalField   { return op.type_id }
-    if op is ArraySlice   { return op.type_id }
-    if op is RefCast      { return op.type_id }
-    if op is Box          { return op.type_id }
-    if op is DataConst    { return op.type_id }
-    return -1
+/// The type-table index an op carries, or -1 when it carries none.
+///
+/// @param op  a bytecode op.
+export type_index_of :: fn(op: Op) -> i32 = match op {
+    is StructNew    -> op.type_id
+    is StructGet    -> op.type_id
+    is StructSet    -> op.type_id
+    is ArrayNew     -> op.type_id
+    is ArrayGet     -> op.type_id
+    is ArraySet     -> op.type_id
+    is ArrayPush    -> op.type_id
+    is TypeCheck    -> op.type_id
+    is TypeConst    -> op.type_id
+    is CallIndirect -> op.type_id
+    is MakeClosure  -> op.env_type_id
+    is FnRef        -> op.type_id
+    is LocalField   -> op.type_id
+    is ArraySlice   -> op.type_id
+    is RefCast      -> op.type_id
+    is Retag        -> op.type_id
+    is DataConst    -> op.type_id
+    is TypelessOp   -> -1
 }
+
+// Every `Op` that carries no type-table index — what `type_index_of` and
+// `remap_type_in_op` pass through. Spelled out so both match exhaustively : an
+// op added to `Op` must be placed here or given its own arm.
+TypelessOp :: Unreachable | I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst
+    | BoolConst | CharConst | F64Const | I64Const | CallImport | Call | VirtualCall | ArrayLen
+    | Convert | DeferPush | DeferPopExec | SizeOfType | I32Add | I32Sub | I32Mul | I32Div
+    | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | I32Neg | I32BitNot | I32BitAnd
+    | I32BitOr | I32BitXor | I32Shl | I32Shr | I32ShrU | U32Div | U32Mod | U32Lt | U32Le | U32Gt
+    | U32Ge | I64Add | I64Sub | I64Mul | I64Div | I64Mod | I64Neg | I64Eq | I64Ne | I64Lt
+    | I64Le | I64Gt | I64Ge | U64Div | U64Mod | U64Lt | U64Le | U64Gt | U64Ge | I64Shl | I64Shr
+    | I64ShrU | I64BitAnd | I64BitOr | I64BitXor | I64BitNot | F64Add | F64Sub | F64Mul | F64Div
+    | F64Neg | F64Eq | F64Ne | F64Lt | F64Le | F64Gt | F64Ge | BoolEq | BoolNe | BoolAnd
+    | BoolOr | BoolNot | StringEq | StringNe | StringSliceCodepoints | RefEq | RefNe | Drop
+    | Block | Loop | If | Else | End | Branch | BranchIf | Return | ReturnLit | BufferNew
+    | LoadU8 | LoadI32 | LoadI64 | LoadF64 | StoreU8 | StoreI32 | StoreI64 | StoreF64
+    | LoadSlotI32 | LoadSlotI64 | LoadSlotF64 | StoreSlotI32 | StoreSlotI64 | StoreSlotF64
+    | MemoryCopy | BufferToString | BufferWriteString | F64ToBits | BitsToF64 | F32ToBits
+    | BitsToF32 | ArrayRepeat | ArrayPushAll | ArrayCopy | ArrayRemoveLast | ArrayClear | FnAddr
 
 /// Recursive reachability walk on the type table. Composite types
 /// (struct / union / array / fn) extend the visit through their
@@ -464,24 +484,28 @@ visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet<i32>!) -> void
 }
 
 /// Rewrite an op's type-index operand through `remap`, returning the op as-is
-/// when it carries no type-id reference. Exported for the multi-target retype, which needs the same rewrite over a whole module.
-export remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op {
-    if op is StructNew    { return StructNew    { .type_id = remap_idx(remap, op.type_id), .stack = op.stack } }
-    if op is StructGet    { return StructGet    { .type_id = remap_idx(remap, op.type_id), .field_index = op.field_index } }
-    if op is StructSet    { return StructSet    { .type_id = remap_idx(remap, op.type_id), .field_index = op.field_index, .stack = op.stack } }
-    if op is ArrayNew     { return ArrayNew     { .type_id = remap_idx(remap, op.type_id), .length = op.length } }
-    if op is ArrayGet     { return ArrayGet     { .type_id = remap_idx(remap, op.type_id) } }
-    if op is ArraySet     { return ArraySet     { .type_id = remap_idx(remap, op.type_id) } }
-    if op is ArrayPush    { return ArrayPush    { .type_id = remap_idx(remap, op.type_id), .cache_slot = op.cache_slot } }
-    if op is TypeCheck    { return TypeCheck    { .type_id = remap_idx(remap, op.type_id) } }
-    if op is TypeConst    { return TypeConst    { .type_id = remap_idx(remap, op.type_id) } }
-    if op is CallIndirect { return CallIndirect { .type_id = remap_idx(remap, op.type_id) } }
-    if op is MakeClosure  { return MakeClosure  { .function_index = op.function_index, .env_type_id = remap_idx(remap, op.env_type_id) } }
-    if op is FnRef        { return FnRef        { .function_index = op.function_index, .type_id = remap_idx(remap, op.type_id) } }
-    if op is LocalField   { return LocalField   { .slot = op.slot, .type_id = remap_idx(remap, op.type_id), .field_index = op.field_index } }
-    if op is ArraySlice   { return ArraySlice   { .type_id = remap_idx(remap, op.type_id) } }
-    if op is RefCast      { return RefCast      { .type_id = remap_idx(remap, op.type_id) } }
-    if op is Box          { return Box          { .type_id = remap_idx(remap, op.type_id) } }
-    if op is DataConst    { return DataConst    { .pool_index = op.pool_index, .type_id = remap_idx(remap, op.type_id) } }
-    return op
+/// when it carries no type-id reference. Exported for the multi-target retype,
+/// which needs the same rewrite over a whole module.
+///
+/// @param op     a bytecode op.
+/// @param remap  old type index → new one (`-1` for a pruned slot).
+export remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op = match op {
+    is StructNew    -> StructNew    { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is StructGet    -> StructGet    { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is StructSet    -> StructSet    { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is ArrayNew     -> ArrayNew     { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is ArrayGet     -> ArrayGet     { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is ArraySet     -> ArraySet     { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is ArrayPush    -> ArrayPush    { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is TypeCheck    -> TypeCheck    { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is TypeConst    -> TypeConst    { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is CallIndirect -> CallIndirect { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is MakeClosure  -> MakeClosure  { ...op, .env_type_id = remap_idx(remap, op.env_type_id) }
+    is FnRef        -> FnRef        { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is LocalField   -> LocalField   { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is ArraySlice   -> ArraySlice   { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is RefCast      -> RefCast      { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is Retag        -> Retag        { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is DataConst    -> DataConst    { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is TypelessOp   -> op
 }

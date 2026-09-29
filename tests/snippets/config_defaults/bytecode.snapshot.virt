@@ -36,17 +36,19 @@ fn 0 snippet$setting (string) -> any
   string.const 0   ; "width"
   string.eq
   if $L0 void
-    return.lit i32.const 80
+    i32.const 80
+    retag 3   ; -> i32
+    return
   end $L0
   local.get 0   ; arg 0
   string.const 1   ; "height"
   string.eq
   if $L1 void
-    return.lit i32.const 25
+    i32.const 25
+    retag 3   ; -> i32
+    return
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 1 snippet$resolve (string) -> i32

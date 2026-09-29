@@ -23,6 +23,7 @@ module "vader/midir"
 
 import "std/collections"
 import "std/abort"
+import "std/iter"
 import "vader/diagnostics"
 import "vader/types"
 import "vader/lower"
@@ -63,7 +64,7 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx!) -> void {
 /// import referenced by a vtable entry, so `virtual.call` dispatch lands on a
 /// real fn index. The wrapper loads its params and forwards to the host import
 /// via `CallImport`. Registered under the member's mangle so
-/// `resolve_vtable_fn_index` (mangle-first) finds it.
+/// `resolve_fn_index` (mangle-first) finds it.
 synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx!) -> void {
     referenced :: MutableMap<string, bool> {}
     for e in cfg.vtable_entries { referenced[e.fn_symbol.name] = true }
@@ -342,7 +343,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // that a vtable entry references. A `virtual.call` dispatches through the
     // vtable to a real fn index, but an intrinsic impl member (e.g. `string
     // implements Hash`) is only surfaced as an import — without a wrapper,
-    // `resolve_vtable_fn_index` misses and the row is silently dropped, so the
+    // `resolve_fn_index` misses and the row is silently dropped, so the
     // VM traps "no impl for type N". The wrapper forwards to the host import
     // via `CallImport`.
     synthesise_cfg_intrinsic_wrappers(cfg, ctx)
@@ -465,7 +466,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             key_str :: type_intern_key(ve.struct_type)
             existing_t :: ctx.type_key[key_str]
             if existing_t is i32 { ctx.pinned_types.push(existing_t) }
-            root_idx :: resolve_vtable_fn_index(ve.fn_symbol, ctx)
+            root_idx :: resolve_fn_index(ve.fn_symbol, ctx)
             if root_idx >= 0 { vtable_roots.push(root_idx) }
         }
         prune_unused_functions(ctx, vtable_roots, opts.keep_mangles)
@@ -497,14 +498,15 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     }
 }
 
-/// Resolve a vtable entry's target fn symbol to its (post-prune) function
-/// index, or `-1` when it didn't survive. MANGLE-first : materialised
-/// impl-member entries carry a synthetic `fn_symbol.id = 0`, so the
-/// symbol-id path would collide on slot 0 — the mangle is the reliable key
-/// (and `prune_unused_functions` remaps `function_index_by_mangle`). A
-/// real-symbol entry's name isn't a registered mangle, so it falls through
-/// to the id path. Mirror of `emit_call`'s InstrCall resolution order.
-resolve_vtable_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 {
+/// Resolve a fn symbol — a direct call's callee, a vtable entry's target — to
+/// its function index, or `-1` when there is none (a vtable target that did not
+/// survive the prune). MANGLE-first : materialised impl-member entries and
+/// calls carry a synthetic `fn_symbol.id = 0`, so the symbol-id path would
+/// collide on slot 0 — the mangle is the reliable key (and
+/// `prune_unused_functions` remaps `function_index_by_mangle`). Generic-instance
+/// calls likewise carry the instance mangle. A real-symbol name isn't a
+/// registered mangle, so it falls through to the id path.
+resolve_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 {
     fi_mangle_opt :: ctx.function_index_by_mangle[fn_symbol.name]
     if fi_mangle_opt is i32 { return fi_mangle_opt }
     fi_opt :: ctx.function_index_by_symbol_id[fn_symbol.id]
@@ -532,7 +534,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
     for ve in entries {
         key :: "${ve.trait_name}.${ve.method_name}"
         if used_keys[key] !is bool { continue }
-        fn_idx :: resolve_vtable_fn_index(ve.fn_symbol, ctx)
+        fn_idx :: resolve_fn_index(ve.fn_symbol, ctx)
         if fn_idx < 0 { continue }
         receiver_key :: type_intern_key(ve.struct_type)
         receiver_slot :: ctx.type_key[receiver_key]
@@ -890,34 +892,97 @@ loop_exit_present :: fn(ctx: FnEmitCfg, b: BlockId) -> bool {
     return false
 }
 
-/// Emit one block's instructions and dispatch on its terminator.
-/// Returns the BlockId to continue from (linear fall-through), or `-1`
-/// when the terminator already left the current scope.
-// Box a CONCRETE primitive flowing into an ERASED `ref`/union return, tagging it
-// with its semantic type so a downstream `is T` matches. The C-emit's implicit
-// return-coercion only sees the coarse ValType (`I64`) and would box `usize` as
-// `i64` — breaking `is usize`. An already-ref value (erased field) keeps its tag,
-// so it is excluded.
-emit_return_boxing :: fn(ctx: FnEmitCfg!, value: LocalId, index: usize, span: Span) -> void {
-    rv_type :: ctx.fn_.locals[usize(value)].type
-    rv_val :: val_type_of_type(rv_type)
+// Tag a scalar returned into a union result (see `emit_retag_into`) : an
+// expression-bodied fn and a block tail hand their value back with no Move.
+emit_return_retag :: fn(ctx: FnEmitCfg!, value: LocalId, index: usize, span: Span) -> void {
     // A scalarised return hands back each value under ITS OWN declared type, so
-    // that is what decides whether it needs boxing. Judging by `return_type`
-    // there would see the composite — a `ref` — and box every concrete element
-    // into a slot the signature says is an `i32`.
+    // that is what decides whether it needs a retag. Judging by `return_type`
+    // there would see the composite and retag every concrete element into a slot
+    // the signature says is an `i32`.
     declared :: if ctx.fn_.scalarised_results.len() > index {
         ctx.fn_.scalarised_results[index]
     } else {
         ctx.fn_.return_type
     }
-    ret_val :: val_type_of_type(declared)
-    erased_return :: ret_val == .Ref || ret_val == .Any
-    concrete_prim :: !(rv_val == .Ref || rv_val == .Any || rv_val == .Void)
-    if erased_return && concrete_prim {
-        push_emit(ctx, Box { .type_id = intern_type(rv_type, ctx.project) }, span)
+    emit_retag_into(ctx, value, is_union_slot(declared), span)
+}
+
+// True when `m` is where a scalar is tagged entering a union : the producer of
+// its source is typed as the scalar, so it must not write the union slot itself.
+move_retags :: fn(locals: CFGLocal[], m: InstrMove) -> bool =
+    is_union_slot(locals[usize(m.dst)].type)
+        && is_scalar_class(val_type_of_type(locals[usize(m.src)].type))
+
+// Tag `value`, just pushed, when it enters a union slot. A scalar names its own
+// type there, which its class cannot — a `u8` constant is an `i32.const`, an enum
+// variant too — and `is` reads the tag. Every place a value is stored into a
+// slot calls this, whatever lowering path built the instruction. An erased
+// generic slot is left to the class tag.
+emit_retag_into :: fn(ctx: FnEmitCfg!, value: LocalId, union_slot: bool, span: Span) -> void {
+    if !union_slot {
+        return
+    }
+    t :: ctx.fn_.locals[usize(value)].type
+    if is_scalar_class(val_type_of_type(t)) {
+        push_emit(ctx, Retag { .type_id = intern_type(t, ctx.project) }, span)
     }
 }
 
+// A value of this class carries no tag of its own ; a ref's header does.
+is_scalar_class :: fn(v: ValType) -> bool = !(v == .Ref || v == .Any || v == .Void || v == .Null)
+
+// Push `operands` in order — the first through the scheduler's elision — each
+// tagged when its slot is a union (`union_slots[i]` ; none past its end).
+emit_operands_into :: fn(
+    ctx: FnEmitCfg!, pos: i64, operands: LocalId[], union_slots: bool[], span: Span,
+) -> void {
+    for i in 0..<operands.len() {
+        if i == 0 {
+            emit_first_get(ctx, pos, operands[i], span)
+        } else {
+            emit_get(ctx, operands[i], span)
+        }
+        emit_retag_into(ctx, operands[i], i < union_slots.len() && union_slots[i], span)
+    }
+}
+
+// A slot of type `t` holds a union value — through a distinct over one too.
+is_union_slot :: fn(t: Type) -> bool =
+    t is UnionType || (t is DistinctType && is_union_slot(t.backing))
+
+union_slots_of :: fn(types: Type[]) -> bool[] = types.map((t) -> is_union_slot(t)).collect()
+
+// The type-table row `type_index` is a union.
+is_union_row :: fn(ctx: EmitterCtx, type_index: i32) -> bool =
+    ctx.types[usize(type_index)] is BcUnion
+
+union_params_of :: fn(ctx: EmitterCtx, sig: BcSignature) -> bool[] =
+    sig.param_types.map((i) -> is_union_row(ctx, i)).collect()
+
+// Which of a `BcStruct` row's fields are union slots, in order ; none for another row.
+union_fields_of :: fn(ctx: EmitterCtx, type_index: i32) -> bool[] {
+    t :: ctx.types[usize(type_index)]
+    if t is BcStruct {
+        return t.fields.map((f) -> is_union_row(ctx, f.type_index)).collect()
+    }
+    return []
+}
+
+// Field `index` of the row `type_index` is a union slot.
+union_field :: fn(ctx: EmitterCtx, type_index: i32, index: usize) -> bool {
+    t :: ctx.types[usize(type_index)]
+    return t is BcStruct && is_union_row(ctx, t.fields[index].type_index)
+}
+
+// An element of the array (or array-backed distinct) `t` is a union slot.
+union_element :: fn(t: Type) -> bool {
+    array :: array_backing(t) ?? return false
+    return is_union_slot(array.element)
+}
+
+/// Emit one block's instructions and dispatch on its terminator.
+/// Returns the BlockId to continue from (linear fall-through), or `-1`
+/// when the terminator already left the current scope.
 emit_block_contents :: fn(ctx: FnEmitCfg!, block_id: BlockId, until: BlockId) -> BlockId {
     block :: ctx.fn_.blocks[usize(block_id)]
     for i in 0..<block.instructions.len() {
@@ -935,7 +1000,7 @@ emit_block_contents :: fn(ctx: FnEmitCfg!, block_id: BlockId, until: BlockId) ->
             if !(single != null && ctx.hints.skip_terminator_get.contains(block_id)) {
                 emit_get(ctx, v, t.span)
             }
-            emit_return_boxing(ctx, v, i, t.span)
+            emit_return_retag(ctx, v, i, t.span)
         }
         // Fuse `<const> + Return → ReturnLit X` post-emit. Only for a lone
         // value: `ReturnLit` carries ONE literal, so on a scalarised return it
@@ -1112,6 +1177,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrMove {
         emit_first_get(ctx, pos, ins.src, ins.span)
+        emit_retag_into(ctx, ins.src, is_union_slot(ctx.fn_.locals[usize(ins.dst)].type), ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
         return
     }
@@ -1138,51 +1204,10 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         for cdst in ins.dsts {
             pins.push(intern_type(ctx.fn_.locals[usize(cdst)].type, ctx.project))
         }
-        for ai in 0..<ins.args.len() {
-            if ai == 0 { emit_first_get(ctx, pos, ins.args[ai], ins.span) }
-            else { emit_get(ctx, ins.args[ai], ins.span) }
-        }
-        // Direct fn call → `Call` ; @extern/@intrinsic import → `CallImport`.
-        // Resolve the callee by mangle FIRST : impl-member calls carry the
-        // member's deterministic mangle as the callee name (set in
-        // `find_impl_member_for`) with a synthetic `id = 0`, so the
-        // symbol-id path would miss (or collide on slot 0). Generic-instance
-        // calls likewise carry the instance mangle. A bare-name free-fn
-        // callee never matches a module-prefixed mangle, so the mangle probe
-        // is safe to run unconditionally — mirror of `emit_call_to_symbol`.
-        // Without a resolution path the callee falls through to the defensive
-        // `Return` arm and the program silently loses the call.
-        mangle_idx_opt :: ctx.project.function_index_by_mangle[ins.callee.name]
-        if mangle_idx_opt is i32 {
-            push_emit(ctx, Call { .function_index = mangle_idx_opt }, ins.span)
-        } else {
-            fn_idx_opt :: ctx.project.function_index_by_symbol_id[ins.callee.id]
-            if fn_idx_opt is i32 {
-                push_emit(ctx, Call { .function_index = fn_idx_opt }, ins.span)
-            } else {
-                imp_idx_opt :: ctx.project.import_index_by_symbol_id[ins.callee.id]
-                if imp_idx_opt is i32 {
-                    push_emit(ctx, CallImport { .index = imp_idx_opt }, ins.span)
-                } else {
-                    // Intrinsic impl-member call : the callee carries the
-                    // member's mangle (synthetic id 0) and was surfaced as a
-                    // bodyless extern → import. Resolve by mangle → CallImport.
-                    imp_mangle_opt :: ctx.project.import_index_by_mangle[ins.callee.name]
-                    if imp_mangle_opt is i32 {
-                        push_emit(ctx, CallImport { .index = imp_mangle_opt }, ins.span)
-                    } else {
-                        panic("midir/emit: unresolved callee '${ins.callee.name}' (id=${ins.callee.id}) in '${ctx.fn_.mangled}' — impl-member/for-in materialisation gap (GATE B1)")
-                    }                    // No resolution path for the callee. Previously this
-                    // emitted a bare `Return` — which silently dropped the
-                    // call and returned whatever was on the stack (e.g. a
-                    // for-in over a cross-module Iterator impl returned the
-                    // iterator struct itself). Fail loudly instead: an
-                    // unresolved callee is a materialisation gap (GATE B1),
-                    // not something to paper over at runtime.
-
-                }
-            }
-        }
+        target :: resolve_direct_call(ctx, ins)
+        union_params :: union_params_of(ctx.project, target.signature)
+        emit_operands_into(ctx, pos, ins.args, union_params, ins.span)
+        push_emit(ctx, target.op, ins.span)
         emit_call_results(ctx, pos, ins.dsts, ins.span)
         return
     }
@@ -1194,10 +1219,8 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrCallIndirect {
-        for ai in 0..<ins.args.len() {
-            if ai == 0 { emit_first_get(ctx, pos, ins.args[ai], ins.span) }
-            else { emit_get(ctx, ins.args[ai], ins.span) }
-        }
+        union_params :: union_slots_of(param_types_of(ins.fn_type))
+        emit_operands_into(ctx, pos, ins.args, union_params, ins.span)
         if ins.args.len() == 0 {
             emit_first_get(ctx, pos, ins.callee, ins.span)
         } else {
@@ -1235,10 +1258,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrVirtualCall {
-        for ai in 0..<ins.args.len() {
-            if ai == 0 { emit_first_get(ctx, pos, ins.args[ai], ins.span) }
-            else { emit_get(ctx, ins.args[ai], ins.span) }
-        }
+        emit_operands_into(ctx, pos, ins.args, union_slots_of(ins.param_types), ins.span)
         if ins.args.len() == 0 {
             emit_first_get(ctx, pos, ins.receiver, ins.span)
         } else {
@@ -1294,12 +1314,13 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
     if ins is InstrFieldSet {
         target_type :: ctx.fn_.locals[usize(ins.target)].type
         type_index :: intern_type(target_type, ctx.project)
-        emit_first_get(ctx, pos, ins.target, ins.span)
-        emit_get(ctx, ins.value, ins.span)
         field_slot :: find_struct_field_index(ctx.project, type_index, ins.field)
         if field_slot == null {
             panic("midir/emit: no field `${ins.field}` on `${display_type(target_type)}` in '${ctx.fn_.mangled}' — field-set target isn't a real struct member ; upstream lowering bug")
         }
+        emit_first_get(ctx, pos, ins.target, ins.span)
+        emit_get(ctx, ins.value, ins.span)
+        emit_retag_into(ctx, ins.value, union_field(ctx.project, type_index, field_slot), ins.span)
         // Mirror the field-get guard : a field-set whose target isn't a real
         // struct member is an upstream lowering bug. The old code emitted a
         // silent `Drop ; Drop` and dropped the store on the floor. Fail loud.
@@ -1335,6 +1356,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.index, ins.span)
         emit_get(ctx, ins.value, ins.span)
+        emit_retag_into(ctx, ins.value, union_element(target_type), ins.span)
         // S5 access flip (Solution A) — symmetric with the get above : a
         // concrete-primitive element stores through the typed slot op (no box,
         // no element-kind switch, no write barrier — primitives hold no refs).
@@ -1359,6 +1381,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         )
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.value, ins.span)
+        emit_retag_into(ctx, ins.value, is_union_slot(value_type), ins.span)
         // Resolve the array's local to its bytecode slot only when the lift was
         // proven safe — that slot IS the hint the backend needs, and it cannot be
         // filled earlier: slots are assigned here, not in `lower`.
@@ -1385,20 +1408,15 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrStructNew {
         type_index :: intern_type(ins.type, ctx.project)
-        for fi in 0..<ins.fields.len() {
-            if fi == 0 { emit_first_get(ctx, pos, ins.fields[fi], ins.span) }
-            else { emit_get(ctx, ins.fields[fi], ins.span) }
-        }
+        emit_operands_into(ctx, pos, ins.fields, union_fields_of(ctx.project, type_index), ins.span)
         push_emit(ctx, StructNew { .type_id = type_index, .stack = ins.stack }, ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
         return
     }
     if ins is InstrArrayNew {
         type_index :: intern_type(ins.type, ctx.project)
-        for ei in 0..<ins.elements.len() {
-            if ei == 0 { emit_first_get(ctx, pos, ins.elements[ei], ins.span) }
-            else { emit_get(ctx, ins.elements[ei], ins.span) }
-        }
+        union_elements :: [union_element(ins.type)] * ins.elements.len()
+        emit_operands_into(ctx, pos, ins.elements, union_elements, ins.span)
         push_emit(ctx, ArrayNew { .type_id = type_index, .length = ins.length }, ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
         return
@@ -1428,7 +1446,9 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         from_type :: ctx.fn_.locals[usize(ins.value)].type
         from_val :: val_type_of_type(from_type)
         to_val :: val_type_of_type(ins.type)
-        if i32(from_val) != i32(to_val) {
+        if is_union_slot(ins.type) && is_scalar_class(from_val) {
+            push_emit(ctx, Retag { .type_id = intern_type(from_type, ctx.project) }, ins.span)
+        } else if from_val != to_val {
             // Numeric / char ↔ numeric / char routes through Convert,
             // carrying the source width as a string so the dump emits
             // `<from>.to_<to>` (e.g. `usize.to_i32`). Anything else
@@ -1448,6 +1468,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
     if ins is InstrCellNew {
         cell_type_idx :: intern_cell_type(ins.value_type, ctx.project)
         emit_first_get(ctx, pos, ins.value, ins.span)
+        emit_retag_into(ctx, ins.value, is_union_slot(ins.value_type), ins.span)
         push_emit(ctx, StructNew { .type_id = cell_type_idx, .stack = false }, ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
         return
@@ -1472,6 +1493,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         cell_type_idx :: intern_cell_type(ins.value_type, ctx.project)
         emit_first_get(ctx, pos, ins.cell, ins.span)
         emit_get(ctx, ins.value, ins.span)
+        emit_retag_into(ctx, ins.value, is_union_slot(ins.value_type), ins.span)
         push_emit(ctx, StructSet { .type_id = cell_type_idx, .field_index = 0, .stack = false }, ins.span)
         return
     }
@@ -1506,10 +1528,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         // Resolve the intrinsic name to its dedicated Op. Vader has no
         // generic Intrinsic Op — every name maps to one. Args push in
         // order ; the per-name Op handles its own stack discipline.
-        for ai in 0..<ins.args.len() {
-            if ai == 0 { emit_first_get(ctx, pos, ins.args[ai], ins.span) }
-            else { emit_get(ctx, ins.args[ai], ins.span) }
-        }
+        emit_operands_into(ctx, pos, ins.args, [], ins.span)
         op_opt :: intrinsic_op_for_name(ins.name)
         if op_opt == null {
             panic("midir/emit: unhandled intrinsic `${ins.name}` in '${ctx.fn_.mangled}' — no dedicated Op ; add a case to intrinsic_op_for_name")
@@ -1578,6 +1597,44 @@ intrinsic_op_for_name :: fn(name: string) -> Op | null {
     if name == "array.remove_last" { return ArrayRemoveLast {} }
     if name == "array.clear" { return ArrayClear {} }
     return null
+}
+
+// The op a direct call lowers to, and its callee's signature.
+DirectCallTarget :: struct {
+    op:        Op
+    signature: BcSignature
+}
+
+// Direct fn call → `Call` ; @extern/@intrinsic import → `CallImport`. A fn
+// resolves as a vtable target does (`resolve_fn_index`, mangle first). An
+// intrinsic impl-member call carries the member's mangle (synthetic id 0) and
+// was surfaced as a bodyless extern → import. An unresolved callee is a
+// materialisation gap (GATE B1) and fails loud : emitting anything else would
+// silently drop the call and return whatever the stack holds.
+resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
+    p :: ctx.project
+    fn_index :: resolve_fn_index(ins.callee, p)
+    if fn_index >= 0 {
+        return DirectCallTarget {
+            .op = Call { .function_index = fn_index },
+            .signature = p.functions[usize(fn_index)].signature,
+        }
+    }
+    by_symbol :: p.import_index_by_symbol_id[ins.callee.id]
+    if by_symbol is i32 {
+        return DirectCallTarget {
+            .op = CallImport { .index = by_symbol },
+            .signature = p.imports[usize(by_symbol)].signature,
+        }
+    }
+    by_mangle :: p.import_index_by_mangle[ins.callee.name]
+    if by_mangle is i32 {
+        return DirectCallTarget {
+            .op = CallImport { .index = by_mangle },
+            .signature = p.imports[usize(by_mangle)].signature,
+        }
+    }
+    panic("midir/emit: unresolved callee '${ins.callee.name}' (id=${ins.callee.id}) in '${ctx.fn_.mangled}' — impl-member/for-in materialisation gap (GATE B1)")
 }
 
 /// Look up a field index by name on a struct type. Returns `null` when

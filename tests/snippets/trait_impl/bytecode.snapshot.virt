@@ -174,6 +174,7 @@ fn 6 std_core$Range$Iterator$last__i32 (ref) -> any
       if $L2 void
       else
         local.get 2   ; v
+        retag 5   ; -> i32
         local.set 1   ; result
         br $L1
       end $L2
@@ -333,6 +334,7 @@ fn 12 std_core$Range$Iterator$last__usize (ref) -> any
       if $L2 void
       else
         local.get 2   ; v
+        retag 9   ; -> usize
         local.set 1   ; result
         br $L1
       end $L2

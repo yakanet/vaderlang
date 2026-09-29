@@ -259,7 +259,8 @@ async_main_driver :: fn(
         .span = span, .name = r_sym.name, .symbol = r_sym, .type = resume_ty,
         .value = LoweredVirtualCall {
             .span = span, .type = resume_ty, .trait_name = TRAIT_ASYNC, .method = METHOD_RESUME,
-            .receiver = LoweredCast { .span = span, .type = async_ty, .value = construct }, .args = [],
+            .receiver = LoweredCast { .span = span, .type = async_ty, .value = construct },
+            .args = [], .param_types = [],
         },
     }
     // if r is Suspended { trap }   — a parked root can't progress in Phase 2a.

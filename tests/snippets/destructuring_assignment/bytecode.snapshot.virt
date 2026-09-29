@@ -351,6 +351,7 @@ fn 1 snippet$main () -> i32
   i32.const 0
   local.set 5   ; __destr_el_6
   i32.const 30
+  retag 2   ; -> i32
   local.set 12   ; __destr_el_28
   i32.const 40
   local.set 5   ; __destr_el_6
@@ -1401,9 +1402,7 @@ fn 16 std_collections$get__string__i32 (ref,string) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 24   ; std_core$string$Hash$hash_vt
@@ -1446,7 +1445,7 @@ fn 16 std_collections$get__string__i32 (ref,string) -> any
             local.field 0 15 1   ; arg 0.evals
             local.get 4   ; ei
             load_slot_i32
-            box 2   ; -> i32
+            retag 2   ; -> i32
             return
           end $L5
         end $L4
@@ -1465,9 +1464,7 @@ fn 16 std_collections$get__string__i32 (ref,string) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 17 std_io$write (u8,string) -> void

@@ -115,7 +115,7 @@
         callee:
           deferred :fn(i32 | Point) -> fn() -> i32
         arg0:
-          int(21) :i32 | Point
+          int(21) :i32
     call :void
       callee:
         std_io$println__string :void
@@ -222,7 +222,7 @@
                       callee:
                         mixed :fn(i32 | Point) -> i32
                       arg0:
-                        int(5) :i32 | Point
+                        int(5) :i32
           ~>
             call :string
               callee:

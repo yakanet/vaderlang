@@ -230,9 +230,6 @@ build_struct_lit_fields :: fn(
     // drop. Lower defaults with the owning module's typed view.
     default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
     for field_decl in decl.fields {
-        // Resolve the field's declared type so a union-typed
-        // field widens literal initializers (e.g.
-        // `flag: int(42)` against `flag: i32 | null`).
         field_type :: resolve_pattern_type(ctx, field_decl.ty)
         user_value :: provided[field_decl.name]
         if user_value is null {
@@ -269,17 +266,10 @@ build_struct_lit_fields :: fn(
 }
 
 // Lower a struct-lit field value (provided or defaulted) against its
-// declared type : widen free literals to the field's union context,
-// then apply an `Into` coercion when the field type calls for one.
+// declared type : an `Into` coercion applies when the field type calls for one.
 lower_field_value :: fn(
     ctx: FnLowerCtx!, value: Expr, field_type: Type, span: Span,
-) -> LoweredExpr {
-    lowered :: lower_expr(ctx, value)
-    widened :: widen_literal_to_context(lowered, field_type)
-    coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), field_type, span)
-    if coerced == null { return widened }
-    return coerced
-}
+) -> LoweredExpr = prepare_value_for_slot(ctx, lower_expr(ctx, value), field_type, span)
 
 // Build a `LoweredStructLit` for a compiler-SYNTHESISED construction of a
 // stdlib/core struct (Range, Field, …), ordering the

@@ -50,7 +50,7 @@ export Op :: Unreachable
     | ArraySlice
     | DataConst
     | RefCast
-    | Box
+    | Retag
     | Convert
     | TypeCheck
     | TypeConst
@@ -343,16 +343,17 @@ export DataConst :: struct { pool_index: i32, type_id: i32 }
 /// (b2) addition.
 export RefCast :: struct { type_id: i32 }
 
-/// Box a concrete primitive value on the stack into an erased `vader_box_t`
-/// tagged with `type_id` (the value's SEMANTIC BcType). Inserted at an erasure
-/// boundary where a concrete primitive flows into an erased `ref`/union slot —
-/// e.g. a `MutableMap<K, V>::get` returning `evals[i] : usize` as `V | null`.
-/// Needed because the C-emit's implicit return-coercion only has the coarse
-/// `ValType` (`I64`) and would box with the wrong primitive tag (`i64` not
-/// `usize`), breaking a downstream `is usize`. The VM carries coarse value tags
-/// (`I64Val` matches any `is`-of-an-I64-width type) so it treats `Box` as a
-/// pc-bump no-op, mirroring `RefCast`.
-export Box :: struct { type_id: i32 }
+/// Name the type of the concrete primitive on the stack as it enters a union or
+/// an erased `ref` slot : `type_id` is the value's SEMANTIC BcType. Nothing is
+/// allocated — the native backend writes this tag into the 16-byte union value.
+/// Needed because a constant or a conversion carries only the coarse `ValType`
+/// (a `u8` constant is an `i32.const`, a `usize` an `i64` one), from which the
+/// tag would be wrong and a downstream `is u8` / `is usize` would miss. midir
+/// emits it wherever a primitive is stored into a union slot, and for one
+/// returned into an erased result. The VM's value tags are coarse (`I32Val`
+/// matches any `is`-of-a-32-bit-or-narrower integer), so it drops the op, like
+/// `RefCast`.
+export Retag :: struct { type_id: i32 }
 
 /// Numeric width conversion. The .virt format emits `<from>.to_<to>`
 /// at every cast site. `target` re-tags the stack value to the

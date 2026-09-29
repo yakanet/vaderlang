@@ -47,7 +47,7 @@
       Outer! {
         inner:
           Inner! {
-            flag: int(42) :i32 | null
+            flag: int(42) :i32
           }
       }
     let unset: Outer! =

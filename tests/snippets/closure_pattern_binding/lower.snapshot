@@ -126,7 +126,7 @@
       callee:
         greet :fn(i32 | P) -> void
       arg0:
-        int(21) :i32 | P
+        int(21) :i32
     return int(0) :i32
   struct __lambda_env_snippet_1 { cap_0: ? }
   fn __lambda_snippet_0(__env_1: __lambda_env_snippet_1!) -> i32

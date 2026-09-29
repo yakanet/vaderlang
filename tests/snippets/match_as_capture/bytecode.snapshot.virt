@@ -113,6 +113,7 @@ fn 2 snippet$main () -> i32
   call 9   ; std_core$finish_buffer
   call 13   ; std_io$println__string
   i32.const 21
+  retag 2   ; -> i32
   call 0   ; snippet$deferred
   local.set 0   ; g
   i64.const 20
@@ -159,6 +160,7 @@ fn 2 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   i32.const 5
+  retag 2   ; -> i32
   call 1   ; snippet$mixed
   i32.to_i64
   local.set 3   ; $cast_11

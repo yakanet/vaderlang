@@ -34,9 +34,7 @@ fn 0 snippet$lookup (string) -> any
     struct.new 3   ; __Tuple_i32_string_d0b3dcb6
     return
   end $L0
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 1 snippet$main () -> i32

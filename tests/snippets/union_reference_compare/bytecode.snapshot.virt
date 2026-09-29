@@ -52,12 +52,10 @@ fn 0 snippet$pick (i32) -> any
   i32.eq
   if $L2 void
     i64.const 7
-    box 4   ; -> i64
+    retag 4   ; -> i64
     return
   end $L2
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 1 snippet$main () -> i32

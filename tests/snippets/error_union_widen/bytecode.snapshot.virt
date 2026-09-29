@@ -118,6 +118,7 @@ fn 5 snippet$main () -> i32
   local e any
   local $vcall_7 string
   string.const 3   ; "hello"
+  retag 2   ; -> string
   call 2   ; snippet$widen
   local.tee 0   ; __scrut_0
   local.set 1   ; e
@@ -147,6 +148,7 @@ fn 5 snippet$main () -> i32
     end $L1
   end $L0
   string.const 6   ; "plain"
+  retag 2   ; -> string
   call 4   ; snippet$tail_string
   call 13   ; std_io$println__string
   return.lit i32.const 0

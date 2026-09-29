@@ -2,7 +2,7 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let x: i32 | null = int(42) :i32 | null
+    let x: i32 | null = int(42) :i32
     let y: i32 | null = null
     block :void
       ~>

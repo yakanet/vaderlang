@@ -242,7 +242,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         local.get 19   ; $field_29
         local.get 20   ; $field_30
         call 9   ; std_core$finish_buffer
-        box 6   ; -> string
+        retag 6   ; -> string
         return
       end $L3
       local.field 0 4 8   ; arg 0.state
@@ -446,21 +446,21 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local.get 19   ; $field_29
   local.get 20   ; $field_30
   call 9   ; std_core$finish_buffer
-  box 6   ; -> string
+  retag 6   ; -> string
   return
 end
 
 fn 5 snippet$Ready$Async$resume__i32 (ref) -> any
   local.field 0 8 0   ; arg 0.v
   ref.cast 3   ; -> i32
-  box 3   ; -> i32
+  retag 3   ; -> i32
   return
 end
 
 fn 6 snippet$Ready$Async$resume__string (ref) -> any
   local.field 0 11 0   ; arg 0.v
   ref.cast 6   ; -> string
-  box 6   ; -> string
+  retag 6   ; -> string
   return
 end
 

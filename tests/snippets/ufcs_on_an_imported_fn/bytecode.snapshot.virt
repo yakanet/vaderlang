@@ -402,7 +402,7 @@ fn 9 std_io$read_file_string (string,usize) -> any
   local.get 2   ; r
   ref.cast 7   ; -> u8[]
   call.import 2   ; std_core$bytes_to_string
-  box 2   ; -> string
+  retag 2   ; -> string
   return
 end
 
@@ -416,9 +416,7 @@ fn 10 std_io$remove_file (string) -> any
     call 15   ; std_io$last_io_error
     return
   end $L0
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 11 std_io$write (u8,string) -> void
@@ -596,9 +594,7 @@ fn 13 std_io$write_file_bytes (string,ref) -> any
     call 15   ; std_io$last_io_error
     return
   end $L7
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 14 std_io$read_file_bytes (string,usize) -> any

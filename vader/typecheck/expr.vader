@@ -19,6 +19,8 @@
 
 module "vader/typecheck"
 
+import "std/iter"
+import "std/string"
 import "vader/diagnostics"
 AST :: import "toolchain/ast"
 import "vader/types"
@@ -32,7 +34,13 @@ export check_expr :: fn(
     typed: TypedProgram!, diags: Diagnostic[]!,
 ) -> Type {
     got :: infer_expr(expr, expected, typed, diags)
-    final :: narrow_for_expected(got, expected)
+    narrowed :: narrow_for_expected(got, expected)
+    // Still free against a union : no member settled it alone.
+    final :: if expected is UnionType && is_free_numeric(narrowed) {
+        settle_ambiguous_literal(expr, got, expected, diags)
+    } else {
+        narrowed
+    }
     // A char literal that coerced to a concrete integer must fit it — `b == '💩'`
     // (u8) is rejected here, where both the codepoint and the pinned type are known.
     if expr is AST.CharLitExpr {
@@ -69,6 +77,23 @@ export check_expr :: fn(
     }
     record_expr(typed, expr, final)
     return final
+}
+
+// A free literal against a union with several candidate members and no default
+// among them is T3089. It recovers as the first candidate, so the error does not
+// cascade into a mismatch against the literal's `i32` default.
+settle_ambiguous_literal :: fn(
+    expr: AST.Expr, got: Type, u: UnionType, diags: Diagnostic[]!,
+) -> Type {
+    candidates :: union_literal_candidates(got, u)
+    if candidates.len() < 2 {
+        return got
+    }
+    names :: candidates.map((c) -> "`${c.name}`").collect()
+    example :: "`${candidates[0].name}(…)`"
+    diags.push(typecheck_error(.AmbiguousLiteralInUnion, expr.span,
+        "could be ${names.join(", ")} — convert it explicitly, e.g. ${example}"))
+    return candidates[0]
 }
 
 /// Write the final type of `expr` into `expr_types`, plus its kind + span

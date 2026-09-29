@@ -65,9 +65,7 @@ fn 0 snippet$find (string) -> any
       end $L2
     end $L1
   end $L0
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 1 snippet$describe (string) -> string

@@ -1,0 +1,11 @@
+module "snippet"
+
+// A free literal entering a union takes the union's only integer (or float)
+// member, or `i32` (`f64`) when the union has it. With two candidates and no
+// default among them the literal is ambiguous : the call needs `u8(5)`, and so
+// does a literal UFCS receiver.
+Small :: u8 | i16 | string
+
+show :: fn(v: Small) -> i32 = if v is u8 { 1 } else { 2 }
+
+main :: fn() -> i32 = show(5) + show(u8(5)) + 5.show()

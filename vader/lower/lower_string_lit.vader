@@ -375,12 +375,13 @@ build_display_to_string_call :: fn(ctx: FnLowerCtx!, value: LoweredExpr, span: S
     // the impl at runtime). See `virtually_dispatched_traits`.
     ctx.project.virtually_dispatched_traits.add(TRAIT_DISPLAY)
     return LoweredVirtualCall {
-        .span       = span,
-        .type       = string_type,
-        .trait_name = TRAIT_DISPLAY,
-        .method     = METHOD_TO_STRING,
-        .receiver   = value,
-        .args       = no_args,
+        .span        = span,
+        .type        = string_type,
+        .trait_name  = TRAIT_DISPLAY,
+        .method      = METHOD_TO_STRING,
+        .receiver    = value,
+        .args        = no_args,
+        .param_types = [],
     }
 }
 

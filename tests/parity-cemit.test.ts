@@ -123,6 +123,9 @@ const C_PARITY = new Set<string>([
   "union_primitive_in_array",
   "union_of_distincts_sibling_file",
   "distinct_wide_literal",
+  // A small integer or an enum entering a union is tagged with its own type
+  // natively (a constant reaches the C emitter as an `i32`).
+  "union_small_int_and_enum",
   "narrow_imported_map",
   // §9 C-emit audit (the walker now emits C for the whole compiler) :
   //   for_loop      — `break` out of an infinite `for {}` (a Loop) + `continue`

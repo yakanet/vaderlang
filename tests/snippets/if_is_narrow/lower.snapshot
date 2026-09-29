@@ -271,7 +271,7 @@
           callee:
             primitive_is :fn(i32 | string) -> string
           arg0:
-            int(42) :i32 | string
+            int(42) :i32
     call :void
       callee:
         std_io$println__string :void

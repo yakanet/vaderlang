@@ -176,7 +176,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         is bc.Drop -> { t.stack.remove_last() }
         // Emit nothing, so the op before them stays retargetable: a VM value
         // already carries its class, the casts only inform the C backend.
-        is bc.Block | bc.Loop | bc.End | bc.RefCast | bc.Box -> { t.retarget = previous }
+        is bc.Block | bc.Loop | bc.End | bc.RefCast | bc.Retag -> { t.retarget = previous }
         is bc.Else | bc.Branch -> {
             flush(t, pc)
             jump(t, pc, .Jump, 0, 0, f.jump_table[pc])

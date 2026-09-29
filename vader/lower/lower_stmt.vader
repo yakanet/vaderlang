@@ -270,14 +270,9 @@ lower_let_into :: fn(ctx: FnLowerCtx!, let_stmt: LetStmt, out: LoweredStmt[]!) -
             // `let t: type = …` is an in-fn type alias — no runtime
             // slot, the typer pre-resolved the type. Skip emit.
             if binding_type is TypeMetaType { return }
+            // Mirror of the typer's `try_into` hook at let-stmt's value-position.
             raw_value :: lower_expr(ctx, let_stmt.value)
-            widened :: widen_literal_to_context(raw_value, binding_type)
-            // Auto-Into coercion when the binding's declared type
-            // differs from the value's type AND an `Into[binding_type]`
-            // impl exists for the source. Mirror of the typer's
-            // `try_into` hook at let-stmt's value-position.
-            coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), binding_type, let_stmt.span)
-            value :: if coerced == null { widened } else { coerced }
+            value :: prepare_value_for_slot(ctx, raw_value, binding_type, let_stmt.span)
             init :: lower_cell_init(ctx, symbol, value, binding_type, let_stmt.span)
             out.push(LoweredLet {
                 .span = let_stmt.span, .name = simple.name,
@@ -397,17 +392,10 @@ lower_return :: fn(ctx: FnLowerCtx!, return_stmt: ReturnStmt) -> LoweredStmt {
         return LoweredReturn { .span = return_stmt.span, .value = null }
     }
     lowered :: lower_expr(ctx, return_stmt.value)
-    // Widen a literal-shaped return value to the fn's declared
-    // return type when the return type is a union and the literal
-    // currently carries its narrow inferred type. The typer in
-    // Vader doesn't propagate context types into literals ; this
-    // late widening records the wider expected type at the use site.
-    retyped :: widen_literal_to_context(lowered, ctx.return_type)
-    // Auto-Into coercion when the return type doesn't match the
-    // value's type AND an `Into[return_type]` impl exists.
-    coerced :: try_emit_into_coercion(ctx, retyped, type_of(retyped), ctx.return_type, return_stmt.span)
-    final :: if coerced == null { retyped } else { coerced }
-    return LoweredReturn { .span = return_stmt.span, .value = final }
+    return LoweredReturn {
+        .span = return_stmt.span,
+        .value = prepare_value_for_slot(ctx, lowered, ctx.return_type, return_stmt.span),
+    }
 }
 
 // True when `s` will exit its enclosing block (control flow never
@@ -458,35 +446,6 @@ drain_defers_to_loop :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]!) -> 
     if total > 0 {
         out.push(LoweredDeferPopExec { .span = span, .count = total })
     }
-}
-
-widen_literal_to_context :: fn(expr: LoweredExpr, context_type: Type) -> LoweredExpr {
-    if !(context_type is UnionType) { return expr }
-    // Only widen when the literal's narrow type appears as one of the
-    // union's variants. For enum-context returns / args, the literal's
-    // i32 / repr type is NOT a variant — leave it alone.
-    inner :: type_of(expr)
-    if !union_contains_variant(context_type, inner) { return expr }
-    // @partial: only scalar-literal nodes get retyped to the union context;
-    // every other LoweredExpr is returned unchanged.
-    @partial match expr {
-        is LoweredIntLit -> { return LoweredIntLit    { .span = expr.span, .type = context_type, .value = expr.value } }
-        is LoweredFloatLit -> { return LoweredFloatLit  { .span = expr.span, .type = context_type, .value = expr.value } }
-        is LoweredStringLit -> { return LoweredStringLit { .span = expr.span, .type = context_type, .value = expr.value } }
-        is LoweredCharLit -> { return LoweredCharLit   { .span = expr.span, .type = context_type, .value = expr.value } }
-        is LoweredBoolLit -> { return LoweredBoolLit   { .span = expr.span, .type = context_type, .value = expr.value } }
-        _ -> { return expr }
-    }
-}
-
-union_contains_variant :: fn(union: Type, variant: Type) -> bool {
-    if union is UnionType {
-        for v in union.variants {
-            if equals_type(v, variant) { return true }
-        }
-        return false
-    }
-    return false
 }
 
 // Dispatch by for-form : infinite-for and while-for lower here ; for-in

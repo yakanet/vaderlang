@@ -71,6 +71,7 @@ fn 2 snippet$main () -> i32
   i32.neg
   local.set 1   ; $unop_9
   i64.const 12
+  retag 2   ; -> i64
   local.get 1   ; $unop_9
   call 1   ; snippet$unwrap_or
   local.set 1   ; $unop_9

@@ -204,7 +204,7 @@ gb_drive_state :: fn(gb: GenBuild!, target_field: string, target_type: Type, con
         .value = LoweredVirtualCall {
             .span = gb.span, .type = gb.resume_erased_ty,
             .trait_name = TRAIT_ASYNC, .method = METHOD_RESUME,
-            .receiver = gb_awaited_field(gb), .args = [],
+            .receiver = gb_awaited_field(gb), .args = [], .param_types = [],
         },
     }
     // if r is Suspended { return Suspended } else { self.<field> = cast(r); state = cont }
@@ -570,7 +570,7 @@ gb_cancel_body :: fn(gb: GenBuild) -> LoweredBlock {
     child_cancel :: LoweredVirtualCall {
         .span = gb.span, .type = TY_VOID,
         .trait_name = TRAIT_ASYNC, .method = METHOD_CANCEL,
-        .receiver = gb_awaited_field(gb), .args = [],
+        .receiver = gb_awaited_field(gb), .args = [], .param_types = [],
     }
     guard :: LoweredIf {
         .span = gb.span, .type = TY_VOID,
@@ -724,7 +724,11 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
         is LoweredVirtualCall -> {
             new_args: LoweredExpr[]!: []
             for a in e.args { new_args.push(gb_route_expr(gb, a)) }
-            return LoweredVirtualCall { .span = e.span, .type = e.type, .trait_name = e.trait_name, .method = e.method, .receiver = gb_route_expr(gb, e.receiver), .args = new_args }
+            return LoweredVirtualCall {
+                .span = e.span, .type = e.type, .trait_name = e.trait_name, .method = e.method,
+                .receiver = gb_route_expr(gb, e.receiver), .args = new_args,
+                .param_types = e.param_types,
+            }
         }
         is LoweredFieldAccess -> LoweredFieldAccess { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .field = e.field }
         is LoweredIndex -> LoweredIndex { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .index = gb_route_expr(gb, e.index), .bounds_safe = e.bounds_safe, .bce_recheck = e.bce_recheck }

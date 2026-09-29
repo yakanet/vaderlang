@@ -916,6 +916,7 @@ build_virtual_call :: fn(fn_ctx: FnCtx!, e: LoweredVirtualCall) -> LocalId | nul
     emit(fn_ctx, InstrVirtualCall {
         .dst = dst, .trait_name = e.trait_name, .method = e.method,
         .receiver = receiver, .args = args, .type = e.type, .span = e.span,
+        .param_types = e.param_types,
     })
     return dst
 }

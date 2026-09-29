@@ -171,7 +171,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
         struct.set 5 7   ; __asyncstate_snippet_2.state
         local.field 0 5 2   ; arg 0.s2
         struct.get 32 0   ; $Cell_i32.value
-        box 1   ; -> i32
+        retag 1   ; -> i32
         return
       end $L3
       local.field 0 5 7   ; arg 0.state
@@ -332,7 +332,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
   struct.set 5 7   ; __asyncstate_snippet_2.state
   local.field 0 5 2   ; arg 0.s2
   struct.get 32 0   ; $Cell_i32.value
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 
@@ -392,7 +392,7 @@ fn 5 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
         local.get 1   ; $k_8
         struct.set 8 7   ; __asyncstate_snippet_3.state
         i32.const 0
-        box 1   ; -> i32
+        retag 1   ; -> i32
         return
       end $L3
       local.field 0 8 7   ; arg 0.state
@@ -578,7 +578,7 @@ fn 5 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
   local.get 1   ; $k_8
   struct.set 8 7   ; __asyncstate_snippet_3.state
   i32.const 0
-  box 1   ; -> i32
+  retag 1   ; -> i32
   return
 end
 
@@ -1028,9 +1028,7 @@ fn 19 std_async$Sleep$Async$resume (ref) -> any
   local.get 2   ; $field_5
   i64.ge
   if $L1 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L1
   struct.new 7   ; std_core$Suspended
   return
@@ -1505,9 +1503,7 @@ fn 31 std_collections$get__usize__i32 (ref,usize) -> any
   i64.const 0
   i64.eq
   if $L0 void
-    null.const
-    box 0   ; -> null
-    return
+    return.lit null.const
   end $L0
   local.get 1   ; arg 1
   call 11   ; std_core$usize$Hash$hash
@@ -1549,7 +1545,7 @@ fn 31 std_collections$get__usize__i32 (ref,usize) -> any
             local.field 0 29 1   ; arg 0.evals
             local.get 4   ; ei
             load_slot_i32
-            box 1   ; -> i32
+            retag 1   ; -> i32
             return
           end $L5
         end $L4
@@ -1568,9 +1564,7 @@ fn 31 std_collections$get__usize__i32 (ref,usize) -> any
       end $L3
     end $L2
   end $L1
-  null.const
-  box 0   ; -> null
-  return
+  return.lit null.const
 end
 
 fn 32 std_collections$contains_key__usize__i32 (ref,usize) -> bool

@@ -386,6 +386,10 @@ export LoweredVirtualCall :: struct {
     method:     string
     receiver:   LoweredExpr
     args:       LoweredExpr[]!
+    /// The method's declared parameter types, `self` excluded, parallel to
+    /// `args` — midir tags a scalar entering a union one. Empty on a synthesised
+    /// call, whose parameters are erased.
+    param_types: Type[]
 }
 
 export LoweredFieldAccess :: struct {

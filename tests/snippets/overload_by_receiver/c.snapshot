@@ -86,13 +86,11 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 static vader_box_t snippet_maybe(bool l0) {
-    vader_box_t t0;
 #line 19 "tests/snippets/overload_by_receiver/_main.vader"
     if (l0) {
         return vader_box_i32(5u, INT32_C(7));
     }
-    t0 = vader_box_obj(0u, NULL);
-    return t0;
+    return vader_box_obj(0u, NULL);
 }
 
 static vader_box_t snippet_risky(bool l0) {
@@ -102,7 +100,7 @@ static vader_box_t snippet_risky(bool l0) {
     vader_gc_top = &gc_frame;
 #line 20 "tests/snippets/overload_by_receiver/_main.vader"
     if (l0) {
-        { vader_gc_top = gc_frame.prev; return vader_box_i32(5u, INT32_C(42)); }
+        { vader_box_t __vret = vader_box_i32(5u, INT32_C(42)); vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_struct_snippet_Boom_t* _a0_obj = (vader_struct_snippet_Boom_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Boom_t));
     vader_obj_header_init(_a0_obj, 1u);

@@ -183,7 +183,7 @@ lower_index :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type) -> LoweredExpr 
             .span = expr.span, .type = type,
             .trait_name = bounded_trait, .method = METHOD_AT,
             .receiver = lower_expr(ctx, expr.target),
-            .args = [lower_expr(ctx, expr.index)],
+            .args = [lower_expr(ctx, expr.index)], .param_types = [],
         }
     }
     // Index trait routing : `s[i]` on a `string` / user struct with an
@@ -336,7 +336,7 @@ try_lower_index_set_assign :: fn(
                         .span = span, .type = TY_VOID,
                         .trait_name = bounded_trait, .method = METHOD_SET_AT,
                         .receiver = lower_expr(ctx, target.target),
-                        .args = [lower_expr(ctx, target.index), value],
+                        .args = [lower_expr(ctx, target.index), value], .param_types = [],
                     },
                 }
             }

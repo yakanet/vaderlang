@@ -2,7 +2,7 @@
 
 ## snippet
   fn snippet$after_guard() -> i32
-    let ticket: i32 | string = int(5) :i32 | string
+    let ticket: i32 | string = int(5) :i32
     if :void
       cond:
         is string :bool
@@ -21,7 +21,7 @@
         r:
           int(1) :i32
   fn snippet$inside_branch() -> i32
-    let ticket: i32 | string = int(5) :i32 | string
+    let ticket: i32 | string = int(5) :i32
     if :void
       cond:
         is i32 :bool
@@ -43,7 +43,7 @@
   fn snippet$on_field() -> i32
     let desk: Desk! =
       Desk! {
-        current: int(5) :i32 | string
+        current: int(5) :i32
       }
     if :void
       cond:
@@ -84,6 +84,6 @@
               on_field :fn() -> i32
 
 # Diagnostics
-[13:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
-[20:16] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
-[31:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
+[13:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and i32
+[20:16] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and i32
+[31:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and i32
