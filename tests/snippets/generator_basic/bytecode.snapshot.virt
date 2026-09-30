@@ -21,7 +21,7 @@ fn 0 snippet$main () -> i32
   local x i32
   local __buf_0 ref
   local __off_1 usize
-  local $cast_11 i64
+  local $cast_12 i64
   i32.const 0
   local.set 0   ; i
   block $L0 void
@@ -39,10 +39,10 @@ fn 0 snippet$main () -> i32
         local.set 3   ; __off_1
         local.get 1   ; x
         i32.to_i64
-        local.set 4   ; $cast_11
+        local.set 4   ; $cast_12
         local.get 2   ; __buf_0
         local.get 3   ; __off_1
-        local.get 4   ; $cast_11
+        local.get 4   ; $cast_12
         call 4   ; std_core$write_int
         local.set 3   ; __off_1
         local.get 2   ; __buf_0

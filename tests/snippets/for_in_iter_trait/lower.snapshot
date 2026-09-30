@@ -44,14 +44,14 @@
   fn snippet$count_ls(s: string) -> usize
     return
       block :usize
-        let __count_0: usize = int(0) :usize
-        let pred: fn(char) -> bool = is_l :fn(char) -> bool
         let __fuse_iter_2: StringChars =
           call :StringChars
             callee:
               chars :StringChars
             arg0:
               s :string
+        let pred: fn(char) -> bool = is_l :fn(char) -> bool
+        let __count_0: usize = int(0) :usize
         loop
           let __fuse_step_3: [char, Continuation]! =
             call :[char, Continuation]!

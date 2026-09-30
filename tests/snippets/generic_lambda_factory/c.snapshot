@@ -129,18 +129,18 @@ static void snippet_fill(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 30 "tests/snippets/generic_lambda_factory/_main.vader"
-    l1 = ((vader_array_t*) l0)->length;
-    l2 = (size_t) 0;
-    while ((l2 < l1)) {
+    l1 = (size_t) 0;
+    l2 = ((vader_array_t*) l0)->length;
+    while ((l1 < l2)) {
 #line 31 "tests/snippets/generic_lambda_factory/_main.vader"
         l3 = (size_t) 0;
         while ((l3 < INT64_C(9))) {
 #line 32 "tests/snippets/generic_lambda_factory/_main.vader"
             vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
             VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-            VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
-            l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l2);
-            l5 = (((int32_t) (size_t) l2) * INT32_C(100));
+            VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l1)
+            l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l1);
+            l5 = (((int32_t) (size_t) l1) * INT32_C(100));
             l6 = ((int32_t) (size_t) l3);
             l7 = (l5 + l6);
             vader_array_push_i32((vader_array_t*) l4, l7);
@@ -149,8 +149,8 @@ static void snippet_fill(void* l0) {
             l3 = (size_t) (int64_t) t0;
         }
 #line 30 "tests/snippets/generic_lambda_factory/_main.vader"
-        t0 = (l2 + INT64_C(1));
-        l2 = (size_t) (int64_t) t0;
+        t0 = (l1 + INT64_C(1));
+        l1 = (size_t) (int64_t) t0;
     }
 #line 29 "tests/snippets/generic_lambda_factory/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
@@ -165,22 +165,22 @@ static int32_t snippet_mismatches(void* l0) {
 #line 39 "tests/snippets/generic_lambda_factory/_main.vader"
     l1 = INT32_C(0);
 #line 40 "tests/snippets/generic_lambda_factory/_main.vader"
-    l2 = ((vader_array_t*) l0)->length;
-    l3 = (size_t) 0;
-    while ((l3 < l2)) {
+    l2 = (size_t) 0;
+    l3 = ((vader_array_t*) l0)->length;
+    while ((l2 < l3)) {
 #line 41 "tests/snippets/generic_lambda_factory/_main.vader"
         vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
-        l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l3);
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
+        l4 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l2);
 #line 42 "tests/snippets/generic_lambda_factory/_main.vader"
         t0 = ((vader_array_t*) l4)->length;
         if (t0 != INT64_C(9)) {
 #line 43 "tests/snippets/generic_lambda_factory/_main.vader"
             l1 = (l1 + INT32_C(1));
 #line 40 "tests/snippets/generic_lambda_factory/_main.vader"
-            t1 = (l3 + INT64_C(1));
-            l3 = (size_t) (int64_t) t1;
+            t1 = (l2 + INT64_C(1));
+            l2 = (size_t) (int64_t) t1;
 #line 44 "tests/snippets/generic_lambda_factory/_main.vader"
             continue;
 #line 42 "tests/snippets/generic_lambda_factory/_main.vader"
@@ -193,7 +193,7 @@ static int32_t snippet_mismatches(void* l0) {
             VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
             l6 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l5];
-            l7 = (((int32_t) (size_t) l3) * INT32_C(100));
+            l7 = (((int32_t) (size_t) l2) * INT32_C(100));
             l8 = ((int32_t) (size_t) l5);
             l9 = (l7 + l8);
             if (l6 != l9) {
@@ -206,8 +206,8 @@ static int32_t snippet_mismatches(void* l0) {
             l5 = (size_t) (int64_t) t1;
         }
 #line 40 "tests/snippets/generic_lambda_factory/_main.vader"
-        t1 = (l3 + INT64_C(1));
-        l3 = (size_t) (int64_t) t1;
+        t1 = (l2 + INT64_C(1));
+        l2 = (size_t) (int64_t) t1;
     }
 #line 52 "tests/snippets/generic_lambda_factory/_main.vader"
     return l1;
@@ -271,13 +271,13 @@ static void* __lambda_snippet_0(void) {
 
 static void* snippet_build__i32__(size_t l0, void* l1) {
     void* l2 = NULL;
-    void* l4 = NULL;
-    size_t l3;
+    void* l5 = NULL;
+    size_t l3, l4;
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
     int64_t t2;
     vader_box_t* gc_roots[1] = { &t1 };
-    void** gc_raw_roots[4] = { &l1, &l2, &l4, &t0 };
+    void** gc_raw_roots[4] = { &l1, &l2, &l5, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 13 "tests/snippets/generic_lambda_factory/_main.vader"
@@ -287,12 +287,13 @@ static void* snippet_build__i32__(size_t l0, void* l1) {
     l2 = (void*) _a1_arr;
 #line 14 "tests/snippets/generic_lambda_factory/_main.vader"
     l3 = (size_t) 0;
-    while ((l3 < l0)) {
+    l4 = l0;
+    while ((l3 < l4)) {
 #line 15 "tests/snippets/generic_lambda_factory/_main.vader"
         vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
         t1 = ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
-        l4 = t1.payload.obj;
-        vader_array_push((vader_array_t*) l2, vader_ref_box(l4));
+        l5 = t1.payload.obj;
+        vader_array_push((vader_array_t*) l2, vader_ref_box(l5));
 #line 14 "tests/snippets/generic_lambda_factory/_main.vader"
         t2 = (l3 + INT64_C(1));
         l3 = (size_t) (int64_t) t2;

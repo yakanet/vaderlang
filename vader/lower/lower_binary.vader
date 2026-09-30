@@ -52,32 +52,43 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
         // the char predicates (`c in 'a'..='z'`) — otherwise a fresh `Range` is
         // built per call just to bounds-check (2.3M+ allocs/self-compile). `x` is
         // re-lowered (not a shared IR node) so the ident loads twice ; restricting
-        // to IdentExpr keeps that duplication side-effect-free.
+        // to IdentExpr keeps that duplication side-effect-free. The bounds are
+        // evaluated once each, `lo` first, as the `Range` would be : an `hi` that
+        // does work is bound ahead — the `&&` may short-circuit past it — and
+        // `lo` then ahead of it.
         if binary.right is RangeExpr as range_lit {
             if binary.left is IdentExpr {
                 if ctx.types.expr_type(binary.left) is PrimitiveType {
-                    lo :: lower_expr(ctx, range_lit.lower)
-                    hi :: lower_expr(ctx, range_lit.upper)
+                    span :: binary.span
+                    lo_value :: lower_expr(ctx, range_lit.lower)
+                    hi_value :: lower_expr(ctx, range_lit.upper)
+                    bounds: LoweredStmt[]!: []
+                    hoist :: !is_effect_free_read(hi_value)
+                    lo :: if hoist {
+                        bind_unless_stable(ctx, lo_value, "in_lo", span, bounds)
+                    } else {
+                        lo_value
+                    }
+                    hi :: if hoist {
+                        bind_to_local(ctx, hi_value, type_of(hi_value), "in_hi", span, bounds)
+                    } else {
+                        hi_value
+                    }
                     cmp_lo :: LoweredBinary {
-                        .span = binary.span, .type = TY_BOOL, .op = .Lte,
+                        .span = span, .type = TY_BOOL, .op = .Lte,
                         .left = lo, .right = lower_expr(ctx, binary.left),
                     }
-                    hi_op :: if range_lit.inclusive { LoweredBinaryOp.Lte } else { LoweredBinaryOp.Lt }
                     cmp_hi :: LoweredBinary {
-                        .span = binary.span, .type = TY_BOOL, .op = hi_op,
+                        .span = span, .type = TY_BOOL,
+                        .op = cmp_op_for_inclusive(range_lit.inclusive),
                         .left = lower_expr(ctx, binary.left), .right = hi,
                     }
                     anded :: LoweredBinary {
-                        .span = binary.span, .type = TY_BOOL, .op = .And,
+                        .span = span, .type = TY_BOOL, .op = .And,
                         .left = cmp_lo, .right = cmp_hi,
                     }
-                    if binary.op == .NotIn {
-                        return LoweredUnary {
-                            .span = binary.span, .type = TY_BOOL,
-                            .op = .Not, .operand = anded,
-                        }
-                    }
-                    return anded
+                    test :: maybe_negate(anded, binary.op == .NotIn, span)
+                    return with_prelude(bounds, test, span)
                 }
             }
         }

@@ -578,8 +578,8 @@ end
 fn 15 std_io$without_trailing_sep (string) -> string
   local b ref
   local trailing usize
-  local __for_hi_0 usize
   local i usize
+  local __for_hi_0 usize
   local last usize
   local or_res bool
   local $sub_23 usize
@@ -588,22 +588,22 @@ fn 15 std_io$without_trailing_sep (string) -> string
   local.set 1   ; b
   i64.const 0
   local.set 2   ; trailing
+  i64.const 0
+  local.set 3   ; i
   local.get 1   ; b
   array.len
-  local.set 3   ; __for_hi_0
-  i64.const 0
-  local.set 4   ; i
+  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
-      local.get 4   ; i
-      local.get 3   ; __for_hi_0
+      local.get 3   ; i
+      local.get 4   ; __for_hi_0
       u64.lt
       if $L2 void
         local.get 1   ; b
         array.len
         i64.const 1
         i64.sub
-        local.get 4   ; i
+        local.get 3   ; i
         i64.sub
         local.tee 5   ; last
         i64.const 0
@@ -639,10 +639,10 @@ fn 15 std_io$without_trailing_sep (string) -> string
             i64.const 1
             i64.add
             local.set 2   ; trailing
-            local.get 4   ; i
+            local.get 3   ; i
             i64.const 1
             i64.add
-            local.set 4   ; i
+            local.set 3   ; i
             br $L1
           end $L5
         end $L4

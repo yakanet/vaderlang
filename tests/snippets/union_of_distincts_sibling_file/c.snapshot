@@ -1881,25 +1881,26 @@ static size_t std_core_write_digits(void* l0, size_t l1, uint64_t l2, int32_t l3
 }
 
 static size_t std_core_write_zeros(void* l0, size_t l1, int32_t l2) {
-    int32_t l3;
-    size_t l4, l5;
+    int32_t l3, l4;
+    size_t l5, l6;
     int64_t t0;
 #line 329 "lib/std/core/dtoa.vader"
     l3 = INT32_C(0);
-    while ((l3 < l2)) {
+    l4 = l2;
+    while ((l3 < l4)) {
 #line 330 "lib/std/core/dtoa.vader"
         t0 = ((int64_t) (int32_t) l3);
-        l4 = (size_t) (int64_t) t0;
-        t0 = (l1 + l4);
         l5 = (size_t) (int64_t) t0;
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l5, (uint8_t) 48);
+        t0 = (l1 + l5);
+        l6 = (size_t) (int64_t) t0;
+        std_core_Buffer_ByteAccess_store_u8_vt(l0, l6, (uint8_t) 48);
 #line 329 "lib/std/core/dtoa.vader"
         l3 = (l3 + INT32_C(1));
     }
 #line 332 "lib/std/core/dtoa.vader"
     t0 = ((int64_t) (int32_t) l2);
-    l4 = (size_t) (int64_t) t0;
-    return (size_t) (int64_t) (l1 + l4);
+    l5 = (size_t) (int64_t) t0;
+    return (size_t) (int64_t) (l1 + l5);
 }
 
 static size_t std_core_insert_point(void* l0, size_t l1, int32_t l2, int32_t l3) {

@@ -809,18 +809,20 @@ end
 fn 26 std_collections$rehash__Any__i32 (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
-  local e usize
-  local $field_15 usize
+  local __for_hi_1 usize
+  local __for_hi_2 usize
   local s usize
-  local $cast_30 i32
+  local $cast_32 i32
   array.new 26 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
+  local.get 1   ; arg 1
+  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 1   ; arg 1
+      local.get 4   ; __for_hi_1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -839,18 +841,18 @@ fn 26 std_collections$rehash__Any__i32 (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; e
+  local.set 4   ; __for_hi_1
+  local.field 0 21 4   ; arg 0.size
+  ref.cast 5   ; -> usize
+  local.set 5   ; __for_hi_2
   block $L3 void
     loop $L4 void
-      local.field 0 21 4   ; arg 0.size
-      ref.cast 5   ; -> usize
-      local.set 5   ; $field_15
-      local.get 4   ; e
-      local.get 5   ; $field_15
+      local.get 4   ; __for_hi_1
+      local.get 5   ; __for_hi_2
       u64.lt
       if $L5 void
         local.field 0 21 0   ; arg 0.ekeys
-        local.get 4   ; e
+        local.get 4   ; __for_hi_1
         array.get 25   ; ref[][]
         virtual.call 1 Hash.hash
         local.get 3   ; __for_discard_0
@@ -874,19 +876,19 @@ fn 26 std_collections$rehash__Any__i32 (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; e
+        local.get 4   ; __for_hi_1
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_30
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_30
+        local.get 7   ; $cast_32
         store_slot_i32
-        local.get 4   ; e
+        local.get 4   ; __for_hi_1
         i64.const 1
         i64.add
-        local.set 4   ; e
+        local.set 4   ; __for_hi_1
         br $L4
       end $L5
     end $L4
@@ -906,18 +908,20 @@ end
 fn 27 std_collections$rehash__HttpStatus__string (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
-  local e usize
-  local $field_15 usize
+  local __for_hi_1 usize
+  local __for_hi_2 usize
   local s usize
-  local $cast_30 i32
+  local $cast_32 i32
   array.new 26 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
+  local.get 1   ; arg 1
+  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 1   ; arg 1
+      local.get 4   ; __for_hi_1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -936,18 +940,18 @@ fn 27 std_collections$rehash__HttpStatus__string (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; e
+  local.set 4   ; __for_hi_1
+  local.field 0 22 4   ; arg 0.size
+  ref.cast 5   ; -> usize
+  local.set 5   ; __for_hi_2
   block $L3 void
     loop $L4 void
-      local.field 0 22 4   ; arg 0.size
-      ref.cast 5   ; -> usize
-      local.set 5   ; $field_15
-      local.get 4   ; e
-      local.get 5   ; $field_15
+      local.get 4   ; __for_hi_1
+      local.get 5   ; __for_hi_2
       u64.lt
       if $L5 void
         local.field 0 22 0   ; arg 0.ekeys
-        local.get 4   ; e
+        local.get 4   ; __for_hi_1
         array.get 16   ; u8[][]
         call 13   ; std_core$u8$Hash$hash
         local.get 3   ; __for_discard_0
@@ -971,19 +975,19 @@ fn 27 std_collections$rehash__HttpStatus__string (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; e
+        local.get 4   ; __for_hi_1
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_30
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_30
+        local.get 7   ; $cast_32
         store_slot_i32
-        local.get 4   ; e
+        local.get 4   ; __for_hi_1
         i64.const 1
         i64.add
-        local.set 4   ; e
+        local.set 4   ; __for_hi_1
         br $L4
       end $L5
     end $L4

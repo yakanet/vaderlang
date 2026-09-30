@@ -78,11 +78,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx!, lit: StructLitExpr, type: Type) -> Lowe
     // dispatch is preserved.
     box_type :: erase_generic_struct_tag(type)
     struct_lit :: LoweredStructLit { .span = lit.span, .type = box_type, .fields = fields }
-    if spread_stmts.len() == 0 { return struct_lit }
-    return LoweredBlock {
-        .span = lit.span, .type = box_type,
-        .stmts = spread_stmts, .trailing = struct_lit,
-    }
+    return with_prelude(spread_stmts, struct_lit, lit.span)
 }
 
 // Erase a generic struct instance's runtime TAG exactly as

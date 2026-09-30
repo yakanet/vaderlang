@@ -34,14 +34,14 @@ fn 0 snippet$main () -> i32
   local $struct_2 ref
   local $struct_5 ref
   local merged ref
-  local __fuse_arr_2 ref
-  local __fuse_len_3 usize
-  local __fuse_i_4 usize
+  local __fuse_arr_3 ref
+  local __collect_0 ref
+  local __fuse_len_4 usize
+  local __fuse_i_5 usize
   local __elem_1 ref
   local $cast_46 u64
   local __p_13 string
   local $call_60 usize
-  local __buf_14 ref
   local __off_15 usize
   local $cast_70 i64
   string.const 0   ; "a"
@@ -61,500 +61,445 @@ fn 0 snippet$main () -> i32
   struct.new 2   ; snippet$Rec
   array.new 14 1   ; snippet$Rec[][]
   local.set 1   ; $struct_5
-  array.new 14 0   ; snippet$Rec[][]
-  local.set 2   ; merged
   local.get 0   ; $struct_2
-  local.tee 3   ; __fuse_arr_2
+  local.set 2   ; merged
+  local.get 1   ; $struct_5
+  local.set 3   ; __fuse_arr_3
+  array.new 14 0   ; snippet$Rec[][]
+  local.set 4   ; __collect_0
+  local.get 2   ; merged
   array.len
-  local.set 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
   i64.const 0
-  local.set 5   ; __fuse_i_4
+  local.set 6   ; __fuse_i_5
   block $L0 void
     loop $L1 void
-      local.get 5   ; __fuse_i_4
-      local.get 4   ; __fuse_len_3
+      local.get 6   ; __fuse_i_5
+      local.get 5   ; __fuse_len_4
       u64.lt
       if $L2 void
-        local.get 3   ; __fuse_arr_2
-        local.get 5   ; __fuse_i_4
-        array.get 14   ; snippet$Rec[][]
-        local.set 6   ; __elem_1
         local.get 2   ; merged
-        local.get 6   ; __elem_1
-        array.push 2 2   ; snippet$Rec[]
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
+        array.get 14   ; snippet$Rec[][]
+        local.set 7   ; __elem_1
+        local.get 4   ; __collect_0
+        local.get 7   ; __elem_1
+        array.push 2 4   ; snippet$Rec[]
+        local.get 6   ; __fuse_i_5
         i64.const 1
         i64.add
-        local.set 5   ; __fuse_i_4
+        local.set 6   ; __fuse_i_5
         br $L1
       end $L2
     end $L1
   end $L0
-  local.get 1   ; $struct_5
-  local.tee 3   ; __fuse_arr_2
+  local.get 3   ; __fuse_arr_3
   array.len
-  local.set 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
   i64.const 0
-  local.set 5   ; __fuse_i_4
+  local.set 6   ; __fuse_i_5
   block $L3 void
     loop $L4 void
-      local.get 5   ; __fuse_i_4
-      local.get 4   ; __fuse_len_3
+      local.get 6   ; __fuse_i_5
+      local.get 5   ; __fuse_len_4
       u64.lt
       if $L5 void
-        local.get 3   ; __fuse_arr_2
-        local.get 5   ; __fuse_i_4
+        local.get 3   ; __fuse_arr_3
+        local.get 6   ; __fuse_i_5
         array.get 14   ; snippet$Rec[][]
-        local.set 6   ; __elem_1
-        local.get 2   ; merged
-        local.get 6   ; __elem_1
-        array.push 2 2   ; snippet$Rec[]
-        local.get 5   ; __fuse_i_4
+        local.set 7   ; __elem_1
+        local.get 4   ; __collect_0
+        local.get 7   ; __elem_1
+        array.push 2 4   ; snippet$Rec[]
+        local.get 6   ; __fuse_i_5
         i64.const 1
         i64.add
-        local.set 5   ; __fuse_i_4
+        local.set 6   ; __fuse_i_5
         br $L4
       end $L5
     end $L4
   end $L3
+  local.get 4   ; __collect_0
+  local.set 2   ; merged
   i64.const 24
   call 4   ; std_core$new_byte_buffer
-  local.set 3   ; __fuse_arr_2
+  local.set 3   ; __fuse_arr_3
   i64.const 0
-  local.set 4   ; __fuse_len_3
-  local.get 3   ; __fuse_arr_2
-  local.get 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
+  local.get 3   ; __fuse_arr_3
+  local.get 5   ; __fuse_len_4
   string.const 3   ; "len="
   call 6   ; std_core$write_string_at
-  local.set 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
   local.get 2   ; merged
   array.len
   usize.to_i64
-  local.set 7   ; $cast_46
-  local.get 3   ; __fuse_arr_2
-  local.get 4   ; __fuse_len_3
-  local.get 7   ; $cast_46
+  local.set 8   ; $cast_46
+  local.get 3   ; __fuse_arr_3
+  local.get 5   ; __fuse_len_4
+  local.get 8   ; $cast_46
   call 8   ; std_core$write_unsigned
-  local.set 4   ; __fuse_len_3
-  local.get 3   ; __fuse_arr_2
-  local.get 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
+  local.get 3   ; __fuse_arr_3
+  local.get 5   ; __fuse_len_4
   call 5   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   local.get 2   ; merged
-  local.tee 3   ; __fuse_arr_2
+  local.tee 3   ; __fuse_arr_3
   array.len
-  local.set 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
   i64.const 0
-  local.set 5   ; __fuse_i_4
+  local.set 6   ; __fuse_i_5
   block $L6 void
     loop $L7 void
-      local.get 5   ; __fuse_i_4
-      local.get 4   ; __fuse_len_3
+      local.get 6   ; __fuse_i_5
+      local.get 5   ; __fuse_len_4
       u64.lt
       if $L8 void
-        local.get 3   ; __fuse_arr_2
-        local.get 5   ; __fuse_i_4
+        local.get 3   ; __fuse_arr_3
+        local.get 6   ; __fuse_i_5
         array.get 14   ; snippet$Rec[][]
-        local.set 6   ; __elem_1
-        local.field 6 2 0   ; __elem_1.name
+        local.set 4   ; __collect_0
+        local.field 4 2 0   ; __collect_0.name
         ref.cast 4   ; -> string
-        local.tee 8   ; __p_13
+        local.tee 9   ; __p_13
         call.import 0   ; std_core$byte_len
-        local.set 9   ; $call_60
+        local.set 10   ; $call_60
         i64.const 21
-        local.get 9   ; $call_60
+        local.get 10   ; $call_60
         i64.add
         call 4   ; std_core$new_byte_buffer
-        local.set 10   ; __buf_14
+        local.set 7   ; __elem_1
         i64.const 0
         local.set 11   ; __off_15
-        local.get 10   ; __buf_14
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
-        local.get 8   ; __p_13
+        local.get 9   ; __p_13
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.get 10   ; __buf_14
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 6 2 1   ; __elem_1.value
+        local.field 4 2 1   ; __collect_0.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
-        local.get 10   ; __buf_14
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
         local.get 12   ; $cast_70
         call 7   ; std_core$write_int
         local.set 11   ; __off_15
-        local.get 10   ; __buf_14
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
         call 5   ; std_core$finish_buffer
         call 11   ; std_io$println__string
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
         i64.const 1
         i64.add
-        local.set 5   ; __fuse_i_4
+        local.set 6   ; __fuse_i_5
         br $L7
       end $L8
     end $L7
   end $L6
-  array.new 14 0   ; snippet$Rec[][]
-  local.set 3   ; __fuse_arr_2
   local.get 0   ; $struct_2
-  local.tee 6   ; __elem_1
+  local.set 3   ; __fuse_arr_3
+  array.new 14 0   ; snippet$Rec[][]
+  local.set 4   ; __collect_0
+  local.get 3   ; __fuse_arr_3
   array.len
-  local.set 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
   i64.const 0
-  local.set 5   ; __fuse_i_4
+  local.set 6   ; __fuse_i_5
   block $L9 void
     loop $L10 void
-      local.get 5   ; __fuse_i_4
-      local.get 4   ; __fuse_len_3
+      local.get 6   ; __fuse_i_5
+      local.get 5   ; __fuse_len_4
       u64.lt
       if $L11 void
-        local.get 6   ; __elem_1
-        local.get 5   ; __fuse_i_4
+        local.get 3   ; __fuse_arr_3
+        local.get 6   ; __fuse_i_5
         array.get 14   ; snippet$Rec[][]
         call 1   ; __lambda_snippet_0
-        local.set 10   ; __buf_14
-        local.get 3   ; __fuse_arr_2
-        local.get 10   ; __buf_14
+        local.set 7   ; __elem_1
+        local.get 4   ; __collect_0
+        local.get 7   ; __elem_1
         array.push 2   ; snippet$Rec[]
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
         i64.const 1
         i64.add
-        local.set 5   ; __fuse_i_4
+        local.set 6   ; __fuse_i_5
         br $L10
       end $L11
     end $L10
   end $L9
-  local.get 3   ; __fuse_arr_2
+  local.get 4   ; __collect_0
+  local.tee 3   ; __fuse_arr_3
   array.len
-  local.set 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
   i64.const 0
-  local.set 5   ; __fuse_i_4
+  local.set 6   ; __fuse_i_5
   block $L12 void
     loop $L13 void
-      local.get 5   ; __fuse_i_4
-      local.get 4   ; __fuse_len_3
+      local.get 6   ; __fuse_i_5
+      local.get 5   ; __fuse_len_4
       u64.lt
       if $L14 void
-        local.get 3   ; __fuse_arr_2
-        local.get 5   ; __fuse_i_4
+        local.get 3   ; __fuse_arr_3
+        local.get 6   ; __fuse_i_5
         array.get 14   ; snippet$Rec[][]
-        local.set 6   ; __elem_1
-        local.field 6 2 0   ; __elem_1.name
+        local.set 4   ; __collect_0
+        local.field 4 2 0   ; __collect_0.name
         ref.cast 4   ; -> string
-        local.tee 8   ; __p_13
+        local.tee 9   ; __p_13
         call.import 0   ; std_core$byte_len
-        local.set 9   ; $call_60
+        local.set 10   ; $call_60
         i64.const 24
-        local.get 9   ; $call_60
+        local.get 10   ; $call_60
         i64.add
         call 4   ; std_core$new_byte_buffer
-        local.set 10   ; __buf_14
+        local.set 7   ; __elem_1
         i64.const 0
         local.set 11   ; __off_15
-        local.get 10   ; __buf_14
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
         string.const 5   ; "x2 "
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.get 10   ; __buf_14
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
-        local.get 8   ; __p_13
+        local.get 9   ; __p_13
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.get 10   ; __buf_14
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 6 2 1   ; __elem_1.value
+        local.field 4 2 1   ; __collect_0.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
-        local.get 10   ; __buf_14
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
         local.get 12   ; $cast_70
         call 7   ; std_core$write_int
         local.set 11   ; __off_15
-        local.get 10   ; __buf_14
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
         call 5   ; std_core$finish_buffer
         call 11   ; std_io$println__string
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
         i64.const 1
         i64.add
-        local.set 5   ; __fuse_i_4
+        local.set 6   ; __fuse_i_5
         br $L13
       end $L14
     end $L13
   end $L12
   array.new 14 0   ; snippet$Rec[][]
-  local.set 3   ; __fuse_arr_2
+  local.set 3   ; __fuse_arr_3
   local.get 2   ; merged
   array.len
-  local.set 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
   i64.const 0
-  local.set 5   ; __fuse_i_4
+  local.set 6   ; __fuse_i_5
   block $L15 void
     loop $L16 void
-      local.get 5   ; __fuse_i_4
-      local.get 4   ; __fuse_len_3
+      local.get 6   ; __fuse_i_5
+      local.get 5   ; __fuse_len_4
       u64.lt
       if $L17 void
         local.get 2   ; merged
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
         array.get 14   ; snippet$Rec[][]
-        local.tee 6   ; __elem_1
+        local.tee 4   ; __collect_0
         call 2   ; __lambda_snippet_1
         if $L18 void
-          local.get 6   ; __elem_1
-          local.set 10   ; __buf_14
-          local.get 3   ; __fuse_arr_2
-          local.get 10   ; __buf_14
+          local.get 4   ; __collect_0
+          local.set 7   ; __elem_1
+          local.get 3   ; __fuse_arr_3
+          local.get 7   ; __elem_1
           array.push 2 3   ; snippet$Rec[]
         end $L18
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
         i64.const 1
         i64.add
-        local.set 5   ; __fuse_i_4
+        local.set 6   ; __fuse_i_5
         br $L16
       end $L17
     end $L16
   end $L15
-  local.get 3   ; __fuse_arr_2
+  local.get 3   ; __fuse_arr_3
   local.tee 2   ; merged
   array.len
-  local.set 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
   i64.const 0
-  local.set 5   ; __fuse_i_4
+  local.set 6   ; __fuse_i_5
   block $L19 void
     loop $L20 void
-      local.get 5   ; __fuse_i_4
-      local.get 4   ; __fuse_len_3
+      local.get 6   ; __fuse_i_5
+      local.get 5   ; __fuse_len_4
       u64.lt
       if $L21 void
         local.get 2   ; merged
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
         array.get 14   ; snippet$Rec[][]
-        local.set 3   ; __fuse_arr_2
-        local.field 3 2 0   ; __fuse_arr_2.name
+        local.set 3   ; __fuse_arr_3
+        local.field 3 2 0   ; __fuse_arr_3.name
         ref.cast 4   ; -> string
-        local.tee 8   ; __p_13
+        local.tee 9   ; __p_13
         call.import 0   ; std_core$byte_len
-        local.set 9   ; $call_60
+        local.set 10   ; $call_60
         i64.const 26
-        local.get 9   ; $call_60
+        local.get 10   ; $call_60
         i64.add
         call 4   ; std_core$new_byte_buffer
-        local.set 6   ; __elem_1
+        local.set 4   ; __collect_0
         i64.const 0
         local.set 11   ; __off_15
-        local.get 6   ; __elem_1
+        local.get 4   ; __collect_0
         local.get 11   ; __off_15
         string.const 6   ; "kept "
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.get 6   ; __elem_1
+        local.get 4   ; __collect_0
         local.get 11   ; __off_15
-        local.get 8   ; __p_13
+        local.get 9   ; __p_13
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.get 6   ; __elem_1
+        local.get 4   ; __collect_0
         local.get 11   ; __off_15
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 3 2 1   ; __fuse_arr_2.value
+        local.field 3 2 1   ; __fuse_arr_3.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
-        local.get 6   ; __elem_1
+        local.get 4   ; __collect_0
         local.get 11   ; __off_15
         local.get 12   ; $cast_70
         call 7   ; std_core$write_int
         local.set 11   ; __off_15
-        local.get 6   ; __elem_1
+        local.get 4   ; __collect_0
         local.get 11   ; __off_15
         call 5   ; std_core$finish_buffer
         call 11   ; std_io$println__string
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
         i64.const 1
         i64.add
-        local.set 5   ; __fuse_i_4
+        local.set 6   ; __fuse_i_5
         br $L20
       end $L21
     end $L20
   end $L19
   local.get 0   ; $struct_2
-  local.tee 2   ; merged
+  local.set 2   ; merged
+  local.get 1   ; $struct_5
+  local.set 3   ; __fuse_arr_3
+  local.get 2   ; merged
   array.len
-  local.set 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
   i64.const 0
-  local.set 5   ; __fuse_i_4
+  local.set 6   ; __fuse_i_5
   block $L22 void
     loop $L23 void
-      local.get 5   ; __fuse_i_4
-      local.get 4   ; __fuse_len_3
+      local.get 6   ; __fuse_i_5
+      local.get 5   ; __fuse_len_4
       u64.lt
       if $L24 void
         local.get 2   ; merged
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
         array.get 14   ; snippet$Rec[][]
-        local.set 3   ; __fuse_arr_2
-        local.field 3 2 0   ; __fuse_arr_2.name
+        local.set 4   ; __collect_0
+        local.field 4 2 0   ; __collect_0.name
         ref.cast 4   ; -> string
-        local.tee 8   ; __p_13
+        local.tee 9   ; __p_13
         call.import 0   ; std_core$byte_len
-        local.set 9   ; $call_60
+        local.set 10   ; $call_60
         i64.const 28
-        local.get 9   ; $call_60
+        local.get 10   ; $call_60
         i64.add
         call 4   ; std_core$new_byte_buffer
-        local.set 6   ; __elem_1
+        local.set 7   ; __elem_1
         i64.const 0
         local.set 11   ; __off_15
-        local.get 6   ; __elem_1
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
         string.const 7   ; "direct "
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.get 6   ; __elem_1
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
-        local.get 8   ; __p_13
+        local.get 9   ; __p_13
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.get 6   ; __elem_1
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 3 2 1   ; __fuse_arr_2.value
+        local.field 4 2 1   ; __collect_0.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
-        local.get 6   ; __elem_1
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
         local.get 12   ; $cast_70
         call 7   ; std_core$write_int
         local.set 11   ; __off_15
-        local.get 6   ; __elem_1
+        local.get 7   ; __elem_1
         local.get 11   ; __off_15
         call 5   ; std_core$finish_buffer
         call 11   ; std_io$println__string
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
         i64.const 1
         i64.add
-        local.set 5   ; __fuse_i_4
+        local.set 6   ; __fuse_i_5
         br $L23
       end $L24
     end $L23
   end $L22
-  local.get 1   ; $struct_5
-  local.tee 2   ; merged
+  local.get 3   ; __fuse_arr_3
   array.len
-  local.set 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
   i64.const 0
-  local.set 5   ; __fuse_i_4
+  local.set 6   ; __fuse_i_5
   block $L25 void
     loop $L26 void
-      local.get 5   ; __fuse_i_4
-      local.get 4   ; __fuse_len_3
+      local.get 6   ; __fuse_i_5
+      local.get 5   ; __fuse_len_4
       u64.lt
       if $L27 void
-        local.get 2   ; merged
-        local.get 5   ; __fuse_i_4
-        array.get 14   ; snippet$Rec[][]
-        local.set 3   ; __fuse_arr_2
-        local.field 3 2 0   ; __fuse_arr_2.name
-        ref.cast 4   ; -> string
-        local.tee 8   ; __p_13
-        call.import 0   ; std_core$byte_len
-        local.set 9   ; $call_60
-        i64.const 28
-        local.get 9   ; $call_60
-        i64.add
-        call 4   ; std_core$new_byte_buffer
-        local.set 6   ; __elem_1
-        i64.const 0
-        local.set 11   ; __off_15
-        local.get 6   ; __elem_1
-        local.get 11   ; __off_15
-        string.const 7   ; "direct "
-        call 6   ; std_core$write_string_at
-        local.set 11   ; __off_15
-        local.get 6   ; __elem_1
-        local.get 11   ; __off_15
-        local.get 8   ; __p_13
-        call 6   ; std_core$write_string_at
-        local.set 11   ; __off_15
-        local.get 6   ; __elem_1
-        local.get 11   ; __off_15
-        string.const 4   ; "="
-        call 6   ; std_core$write_string_at
-        local.set 11   ; __off_15
-        local.field 3 2 1   ; __fuse_arr_2.value
-        ref.cast 1   ; -> i32
-        i32.to_i64
-        local.set 12   ; $cast_70
-        local.get 6   ; __elem_1
-        local.get 11   ; __off_15
-        local.get 12   ; $cast_70
-        call 7   ; std_core$write_int
-        local.set 11   ; __off_15
-        local.get 6   ; __elem_1
-        local.get 11   ; __off_15
-        call 5   ; std_core$finish_buffer
-        call 11   ; std_io$println__string
-        local.get 5   ; __fuse_i_4
-        i64.const 1
-        i64.add
-        local.set 5   ; __fuse_i_4
-        br $L26
-      end $L27
-    end $L26
-  end $L25
-  local.get 0   ; $struct_2
-  array.len
-  local.set 4   ; __fuse_len_3
-  i64.const 0
-  local.set 5   ; __fuse_i_4
-  block $L28 void
-    loop $L29 void
-      local.get 5   ; __fuse_i_4
-      local.get 4   ; __fuse_len_3
-      u64.lt
-      if $L30 void
-        local.get 0   ; $struct_2
-        local.get 5   ; __fuse_i_4
+        local.get 3   ; __fuse_arr_3
+        local.get 6   ; __fuse_i_5
         array.get 14   ; snippet$Rec[][]
         local.set 2   ; merged
         local.field 2 2 0   ; merged.name
         ref.cast 4   ; -> string
-        local.tee 8   ; __p_13
+        local.tee 9   ; __p_13
         call.import 0   ; std_core$byte_len
-        local.set 9   ; $call_60
-        i64.const 30
-        local.get 9   ; $call_60
+        local.set 10   ; $call_60
+        i64.const 28
+        local.get 10   ; $call_60
         i64.add
         call 4   ; std_core$new_byte_buffer
-        local.set 3   ; __fuse_arr_2
+        local.set 4   ; __collect_0
         i64.const 0
         local.set 11   ; __off_15
-        local.get 3   ; __fuse_arr_2
+        local.get 4   ; __collect_0
         local.get 11   ; __off_15
-        string.const 8   ; "explicit "
+        string.const 7   ; "direct "
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.get 3   ; __fuse_arr_2
+        local.get 4   ; __collect_0
         local.get 11   ; __off_15
-        local.get 8   ; __p_13
+        local.get 9   ; __p_13
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.get 3   ; __fuse_arr_2
+        local.get 4   ; __collect_0
         local.get 11   ; __off_15
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
@@ -563,46 +508,108 @@ fn 0 snippet$main () -> i32
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
-        local.get 3   ; __fuse_arr_2
+        local.get 4   ; __collect_0
         local.get 11   ; __off_15
         local.get 12   ; $cast_70
         call 7   ; std_core$write_int
         local.set 11   ; __off_15
-        local.get 3   ; __fuse_arr_2
+        local.get 4   ; __collect_0
         local.get 11   ; __off_15
         call 5   ; std_core$finish_buffer
         call 11   ; std_io$println__string
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
         i64.const 1
         i64.add
-        local.set 5   ; __fuse_i_4
+        local.set 6   ; __fuse_i_5
+        br $L26
+      end $L27
+    end $L26
+  end $L25
+  local.get 0   ; $struct_2
+  array.len
+  local.set 5   ; __fuse_len_4
+  i64.const 0
+  local.set 6   ; __fuse_i_5
+  block $L28 void
+    loop $L29 void
+      local.get 6   ; __fuse_i_5
+      local.get 5   ; __fuse_len_4
+      u64.lt
+      if $L30 void
+        local.get 0   ; $struct_2
+        local.get 6   ; __fuse_i_5
+        array.get 14   ; snippet$Rec[][]
+        local.set 2   ; merged
+        local.field 2 2 0   ; merged.name
+        ref.cast 4   ; -> string
+        local.tee 9   ; __p_13
+        call.import 0   ; std_core$byte_len
+        local.set 10   ; $call_60
+        i64.const 30
+        local.get 10   ; $call_60
+        i64.add
+        call 4   ; std_core$new_byte_buffer
+        local.set 3   ; __fuse_arr_3
+        i64.const 0
+        local.set 11   ; __off_15
+        local.get 3   ; __fuse_arr_3
+        local.get 11   ; __off_15
+        string.const 8   ; "explicit "
+        call 6   ; std_core$write_string_at
+        local.set 11   ; __off_15
+        local.get 3   ; __fuse_arr_3
+        local.get 11   ; __off_15
+        local.get 9   ; __p_13
+        call 6   ; std_core$write_string_at
+        local.set 11   ; __off_15
+        local.get 3   ; __fuse_arr_3
+        local.get 11   ; __off_15
+        string.const 4   ; "="
+        call 6   ; std_core$write_string_at
+        local.set 11   ; __off_15
+        local.field 2 2 1   ; merged.value
+        ref.cast 1   ; -> i32
+        i32.to_i64
+        local.set 12   ; $cast_70
+        local.get 3   ; __fuse_arr_3
+        local.get 11   ; __off_15
+        local.get 12   ; $cast_70
+        call 7   ; std_core$write_int
+        local.set 11   ; __off_15
+        local.get 3   ; __fuse_arr_3
+        local.get 11   ; __off_15
+        call 5   ; std_core$finish_buffer
+        call 11   ; std_io$println__string
+        local.get 6   ; __fuse_i_5
+        i64.const 1
+        i64.add
+        local.set 6   ; __fuse_i_5
         br $L29
       end $L30
     end $L29
   end $L28
   local.get 1   ; $struct_5
-  local.tee 0   ; $struct_2
   array.len
-  local.set 4   ; __fuse_len_3
+  local.set 5   ; __fuse_len_4
   i64.const 0
-  local.set 5   ; __fuse_i_4
+  local.set 6   ; __fuse_i_5
   block $L31 void
     loop $L32 void
-      local.get 5   ; __fuse_i_4
-      local.get 4   ; __fuse_len_3
+      local.get 6   ; __fuse_i_5
+      local.get 5   ; __fuse_len_4
       u64.lt
       if $L33 void
-        local.get 0   ; $struct_2
-        local.get 5   ; __fuse_i_4
+        local.get 1   ; $struct_5
+        local.get 6   ; __fuse_i_5
         array.get 14   ; snippet$Rec[][]
-        local.set 1   ; $struct_5
-        local.field 1 2 0   ; $struct_5.name
+        local.set 0   ; $struct_2
+        local.field 0 2 0   ; $struct_2.name
         ref.cast 4   ; -> string
-        local.tee 8   ; __p_13
+        local.tee 9   ; __p_13
         call.import 0   ; std_core$byte_len
-        local.set 9   ; $call_60
+        local.set 10   ; $call_60
         i64.const 30
-        local.get 9   ; $call_60
+        local.get 10   ; $call_60
         i64.add
         call 4   ; std_core$new_byte_buffer
         local.set 2   ; merged
@@ -615,7 +622,7 @@ fn 0 snippet$main () -> i32
         local.set 11   ; __off_15
         local.get 2   ; merged
         local.get 11   ; __off_15
-        local.get 8   ; __p_13
+        local.get 9   ; __p_13
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
         local.get 2   ; merged
@@ -623,7 +630,7 @@ fn 0 snippet$main () -> i32
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 1 2 1   ; $struct_5.value
+        local.field 0 2 1   ; $struct_2.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
@@ -636,10 +643,10 @@ fn 0 snippet$main () -> i32
         local.get 11   ; __off_15
         call 5   ; std_core$finish_buffer
         call 11   ; std_io$println__string
-        local.get 5   ; __fuse_i_4
+        local.get 6   ; __fuse_i_5
         i64.const 1
         i64.add
-        local.set 5   ; __fuse_i_4
+        local.set 6   ; __fuse_i_5
         br $L32
       end $L33
     end $L32

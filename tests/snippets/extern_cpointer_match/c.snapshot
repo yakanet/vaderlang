@@ -662,13 +662,13 @@ static vader_string_t std_io_without_trailing_sep(vader_string_t l0) {
 #line 1001 "lib/std/io/io.vader"
     l2 = (size_t) 0;
 #line 1002 "lib/std/io/io.vader"
-    l3 = ((vader_array_t*) l1)->length;
-    l4 = (size_t) 0;
+    l3 = (size_t) 0;
+    l4 = ((vader_array_t*) l1)->length;
     for (;;) {
-        if ((l4 < l3)) {
+        if ((l3 < l4)) {
 #line 1003 "lib/std/io/io.vader"
             t0 = ((vader_array_t*) l1)->length;
-            t1 = ((t0 - INT64_C(1)) - l4);
+            t1 = ((t0 - INT64_C(1)) - l3);
             l5 = (size_t) (int64_t) t1;
 #line 1004 "lib/std/io/io.vader"
             if (l5 == INT64_C(0)) {
@@ -697,8 +697,8 @@ static vader_string_t std_io_without_trailing_sep(vader_string_t l0) {
                     t1 = (l2 + INT64_C(1));
                     l2 = (size_t) (int64_t) t1;
 #line 1002 "lib/std/io/io.vader"
-                    t1 = (l4 + INT64_C(1));
-                    l4 = (size_t) (int64_t) t1;
+                    t1 = (l3 + INT64_C(1));
+                    l3 = (size_t) (int64_t) t1;
                     continue;
 #line 1008 "lib/std/io/io.vader"
                 }

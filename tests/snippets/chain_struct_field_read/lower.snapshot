@@ -21,31 +21,31 @@
         }
     let merged: Rec![]! =
       block :Rec![]!
+        let __fuse_arr_2: Rec[] = a :Rec[]
+        let __fuse_arr_3: Rec[] = b :Rec[]
         let __collect_0: Rec![]! =
           array :Rec![]!
-        let __fuse_arr_2: Rec[] = a :Rec[]
-        let __fuse_len_3: usize =
+        let __fuse_len_4: usize =
           LoweredArrayLen
-        let __fuse_i_4: usize = int(0) :usize
+        let __fuse_i_5: usize = int(0) :usize
         loop while (<…>)
           let x: Rec =
             index :Rec
               on:
                 __fuse_arr_2 :Rec[]
               ix:
-                __fuse_i_4 :usize
+                __fuse_i_5 :usize
           let __elem_1: Rec! = x :Any
           LoweredArrayPush cached
           assign
             target:
-              __fuse_i_4 :usize
+              __fuse_i_5 :usize
             value:
               add :usize
                 l:
-                  __fuse_i_4 :usize
+                  __fuse_i_5 :usize
                 r:
                   int(1) :usize
-        let __fuse_arr_5: Rec[] = b :Rec[]
         let __fuse_len_6: usize =
           LoweredArrayLen
         let __fuse_i_7: usize = int(0) :usize
@@ -53,7 +53,7 @@
           let y: Rec =
             index :Rec
               on:
-                __fuse_arr_5 :Rec[]
+                __fuse_arr_3 :Rec[]
               ix:
                 __fuse_i_7 :usize
           let __elem_1: Rec! = y :Any
@@ -211,10 +211,10 @@
                 int(1) :usize
     let doubled: Rec![]! =
       block :Rec![]!
+        let __fuse_arr_18: Rec[] = a :Rec[]
+        let f: fn(Rec) -> Rec! = __lambda_snippet_0 :fn(Rec) -> Rec!
         let __collect_16: Rec![]! =
           array :Rec![]!
-        let f: fn(Rec) -> Rec! = __lambda_snippet_0 :fn(Rec) -> Rec!
-        let __fuse_arr_18: Rec[] = a :Rec[]
         let __fuse_len_19: usize =
           LoweredArrayLen
         let __fuse_i_20: usize = int(0) :usize
@@ -351,10 +351,10 @@
                 int(1) :usize
     let kept: Rec![]! =
       block :Rec![]!
+        let __fuse_arr_29: Rec![]! = merged :Rec![]!
+        let pred: fn(Rec) -> bool = __lambda_snippet_1 :fn(Rec) -> bool
         let __collect_27: Rec![]! =
           array :Rec![]!
-        let pred: fn(Rec) -> bool = __lambda_snippet_1 :fn(Rec) -> bool
-        let __fuse_arr_29: Rec![]! = merged :Rec![]!
         let __fuse_len_30: usize =
           LoweredArrayLen
         let __fuse_i_31: usize = int(0) :usize
@@ -494,16 +494,17 @@
                 int(1) :usize
     block :void
       let __fuse_arr_41: Rec[] = a :Rec[]
-      let __fuse_len_42: usize =
+      let __fuse_arr_42: Rec[] = b :Rec[]
+      let __fuse_len_43: usize =
         LoweredArrayLen
-      let __fuse_i_43: usize = int(0) :usize
+      let __fuse_i_44: usize = int(0) :usize
       loop while (<…>)
         let x: Rec =
           index :Rec
             on:
               __fuse_arr_41 :Rec[]
             ix:
-              __fuse_i_43 :usize
+              __fuse_i_44 :usize
         let m: Rec! = x :Any
         call :void
           callee:
@@ -592,14 +593,13 @@
                     __off_40 :usize
         assign
           target:
-            __fuse_i_43 :usize
+            __fuse_i_44 :usize
           value:
             add :usize
               l:
-                __fuse_i_43 :usize
+                __fuse_i_44 :usize
               r:
                 int(1) :usize
-      let __fuse_arr_44: Rec[] = b :Rec[]
       let __fuse_len_45: usize =
         LoweredArrayLen
       let __fuse_i_46: usize = int(0) :usize
@@ -607,7 +607,7 @@
         let y: Rec =
           index :Rec
             on:
-              __fuse_arr_44 :Rec[]
+              __fuse_arr_42 :Rec[]
             ix:
               __fuse_i_46 :usize
         let m: Rec! = y :Any
@@ -707,16 +707,17 @@
                 int(1) :usize
     block :void
       let __fuse_arr_50: Rec[] = a :Rec[]
-      let __fuse_len_51: usize =
+      let __fuse_arr_51: Rec[] = b :Rec[]
+      let __fuse_len_52: usize =
         LoweredArrayLen
-      let __fuse_i_52: usize = int(0) :usize
+      let __fuse_i_53: usize = int(0) :usize
       loop while (<…>)
         let x: Rec =
           index :Rec
             on:
               __fuse_arr_50 :Rec[]
             ix:
-              __fuse_i_52 :usize
+              __fuse_i_53 :usize
         let m: Rec! = x :Any
         call :void
           callee:
@@ -805,14 +806,13 @@
                     __off_49 :usize
         assign
           target:
-            __fuse_i_52 :usize
+            __fuse_i_53 :usize
           value:
             add :usize
               l:
-                __fuse_i_52 :usize
+                __fuse_i_53 :usize
               r:
                 int(1) :usize
-      let __fuse_arr_53: Rec[] = b :Rec[]
       let __fuse_len_54: usize =
         LoweredArrayLen
       let __fuse_i_55: usize = int(0) :usize
@@ -820,7 +820,7 @@
         let y: Rec =
           index :Rec
             on:
-              __fuse_arr_53 :Rec[]
+              __fuse_arr_51 :Rec[]
             ix:
               __fuse_i_55 :usize
         let m: Rec! = y :Any

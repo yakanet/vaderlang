@@ -1,0 +1,56 @@
+# stdout
+source xs
+adder 1
+above 100
+any_match = false
+source xs
+adder 1
+above 0
+all_match = true
+source xs
+adder 1
+above 3
+find = 4
+source empty
+adder 1
+above 0
+on empty = false
+source xs
+adder 1
+above 2
+count = 4
+source xs
+limit 2
+take = 2
+source xs
+above 3
+collect = 2
+source xs
+adder 10
+above 13
+for y = 14
+for y = 15
+bound lo
+bound hi
+adder 1
+range = 3
+source a
+source b
+chain z = 1
+chain z = 2
+chain z = 3
+bound lo
+bound hi
+range value i = 0
+range value i = 1
+bound lo
+bound hi
+plain i = 0
+plain i = 1
+rebound i = 0
+rebound i = 1
+bound lo
+bound hi
+in = false
+# exit
+0

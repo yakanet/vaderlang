@@ -3,8 +3,6 @@
 ## snippet
   fn snippet$main() -> i32
     block :void
-      let n: usize = int(3) :usize
-      let i: usize = int(0) :usize
       let __fuse_arr_2: i32[]! =
         array :i32[]!
           int(10) :i32
@@ -12,6 +10,8 @@
           int(30) :i32
           int(40) :i32
           int(50) :i32
+      let n: usize = int(3) :usize
+      let i: usize = int(0) :usize
       let __fuse_len_3: usize =
         LoweredArrayLen
       let __fuse_i_4: usize = int(0) :usize
@@ -98,8 +98,6 @@
               r:
                 int(1) :usize
     block :void
-      let n: usize = int(2) :usize
-      let i: usize = int(0) :usize
       let __fuse_arr_7: i32[]! =
         array :i32[]!
           int(10) :i32
@@ -107,6 +105,8 @@
           int(30) :i32
           int(40) :i32
           int(50) :i32
+      let n: usize = int(2) :usize
+      let i: usize = int(0) :usize
       let __fuse_len_8: usize =
         LoweredArrayLen
       let __fuse_i_9: usize = int(0) :usize
@@ -192,10 +192,6 @@
               r:
                 int(1) :usize
     block :void
-      let n: usize = int(2) :usize
-      let i: usize = int(0) :usize
-      let n: usize = int(1) :usize
-      let i: usize = int(0) :usize
       let __fuse_arr_12: i32[]! =
         array :i32[]!
           int(10) :i32
@@ -203,6 +199,10 @@
           int(30) :i32
           int(40) :i32
           int(50) :i32
+      let n: usize = int(1) :usize
+      let n: usize = int(2) :usize
+      let i: usize = int(0) :usize
+      let i: usize = int(0) :usize
       let __fuse_len_13: usize =
         LoweredArrayLen
       let __fuse_i_14: usize = int(0) :usize

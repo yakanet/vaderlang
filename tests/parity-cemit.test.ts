@@ -190,6 +190,10 @@ const C_PARITY = new Set<string>([
   // Couche 4: a generator COMBINATOR (first param = source iterator) fuses as a
   // chain layer — single UFCS combinator + nested direct-call chain.
   "fuse_generator_chain",
+  // A fused chain evaluates each operand once, in source order, before the first
+  // element — the predicate of a terminal, a range bound, a layer argument. Every
+  // operand logs its evaluation, so the native run pins the order and the count.
+  "iter_chain_operands",
   // `@extern` forwarding shim — string args marshalled atom → `const char*`
   // (`c_emit/host.vader::user_extern_shim`). The shim exists only in native C
   // output — the VM reaches a foreign symbol through `dlsym` instead, so it

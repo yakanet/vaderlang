@@ -449,8 +449,9 @@ gen_combo_subst :: fn(
 // Emit a `Generator` chain layer: each source loop binds its loop var to every
 // source element and runs the combinator's inner body, whose `yield e` routes (via
 // the shared gen-ctx sink) to the OUTER template's binding + body. The single non-
-// self DATA param (map's `f`, …) binds once ahead ; multi-source combinators
-// (`chain`) fuse each source loop in body order, all into the same sink.
+// self DATA param (map's `f`, …) is already bound, by `bind_layer_operands` ;
+// multi-source combinators (`chain`) fuse each source loop in body order, all
+// into the same sink.
 emit_fused_gen_combinator :: fn(
     ctx: FnLowerCtx!, chain: IterChain, loop_label: string | null, outer_span: Span,
     template: BodyTemplate,
@@ -470,17 +471,6 @@ emit_fused_gen_combinator :: fn(
     gen_ctx.gen_inline_sink = build_gen_sink(ctx, template.pattern, template.binding_symbol, template.binding_name, template.element_type, template.user_body, chain.span)
 
     out: LoweredStmt[]!: []
-    // Bind the combinator's single non-self DATA arg (map's `f`, take's `n`) once,
-    // ahead of the loops. A 0-arg / all-source combinator (enumerate / chain) has none.
-    arg_expr :: layer.arg_expr
-    arg_sym :: layer.arg_sym
-    if arg_expr != null && arg_sym != null {
-        arg_lowered :: recurse(ctx, arg_expr)
-        out.push(LoweredLet {
-            .span = chain.span, .name = arg_sym.name, .symbol = arg_sym,
-            .type = type_of(arg_lowered), .value = arg_lowered,
-        })
-    }
     // The primary `self` loop, then each extra source loop (chain's `other`), fused
     // in body order — all binding into the shared sink.
     primary_binding :: GenSourceBinding { .source = src, .loopvar = layer.loopvar, .inner = layer.inner, .prelude = layer.prelude }

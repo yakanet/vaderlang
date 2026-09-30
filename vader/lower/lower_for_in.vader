@@ -836,18 +836,14 @@ try_lower_for_in_int_range :: fn(
         prepend_stmts_to_block(bind_stmts, raw_user_body)
     }
 
-    // Hoist non-trivial upper bounds (calls, casts, …) into a `__for_hi_N`
-    // synthetic let so the loop condition reads a single slot per iteration.
-    // Cheap shapes (Ident / FieldAccess / IntLit / CharLit) skip the hoist.
+    // The range is built once, at loop entry : the condition reads the upper
+    // bound at every test, and the body may rebind what it names, so it gets a
+    // local of its own unless it is invariant.
     hoist_stmts: LoweredStmt[]!: []
-    hi: LoweredExpr = hi_raw
-    if !is_cheap_invariant(hi_raw) {
-        hi_sym :: fresh_synthetic_symbol(ctx, "for_hi")
-        hoist_stmts.push(LoweredLet {
-            .span = span, .name = hi_sym.name, .symbol = hi_sym,
-            .type = bound_type, .value = hi_raw,
-        })
-        hi = LoweredIdent { .span = span, .type = bound_type, .symbol = hi_sym }
+    hi :: if is_invariant_operand(ctx, hi_raw) {
+        hi_raw
+    } else {
+        bind_to_local(ctx, hi_raw, bound_type, "for_hi", span, hoist_stmts)
     }
 
     op :: cmp_op_for_inclusive(range.inclusive)
@@ -876,9 +872,10 @@ try_lower_for_in_int_range :: fn(
         },
     }
 
-    block_stmts: LoweredStmt[]!: []
-    for hs in hoist_stmts { block_stmts.push(hs) }
-    block_stmts.push(counter_init)
+    // The counter first : its initial value is the lower bound, which is
+    // evaluated before the upper one.
+    block_stmts: LoweredStmt[]!: [counter_init]
+    block_stmts.push_all(hoist_stmts)
     block_stmts.push(loop_stmt)
     return LoweredExprStmt {
         .span = span,
@@ -903,17 +900,6 @@ widen_int_lit :: fn(e: LoweredExpr, t: Type) -> LoweredExpr {
         return LoweredIntLit { .span = e.span, .type = t, .value = e.value }
     }
     return e
-}
-
-// True for expressions cheap enough to re-read every loop iteration —
-// the loop bound stays inline rather than getting hoisted into a
-// `__for_hi_N` synthetic let.
-is_cheap_invariant :: fn(e: LoweredExpr) -> bool {
-    if e is LoweredIdent       { return true }
-    if e is LoweredFieldAccess { return true }
-    if e is LoweredIntLit      { return true }
-    if e is LoweredCharLit     { return true }
-    return false
 }
 
 is_integer_type :: fn(t: Type) -> bool {

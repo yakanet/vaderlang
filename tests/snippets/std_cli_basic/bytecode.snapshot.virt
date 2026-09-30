@@ -1851,18 +1851,20 @@ end
 fn 27 std_collections$rehash__string__string (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
-  local e usize
-  local $field_15 usize
+  local __for_hi_1 usize
+  local __for_hi_2 usize
   local s usize
-  local $cast_30 i32
+  local $cast_32 i32
   array.new 20 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
+  local.get 1   ; arg 1
+  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 1   ; arg 1
+      local.get 4   ; __for_hi_1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -1881,18 +1883,18 @@ fn 27 std_collections$rehash__string__string (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; e
+  local.set 4   ; __for_hi_1
+  local.field 0 15 4   ; arg 0.size
+  ref.cast 5   ; -> usize
+  local.set 5   ; __for_hi_2
   block $L3 void
     loop $L4 void
-      local.field 0 15 4   ; arg 0.size
-      ref.cast 5   ; -> usize
-      local.set 5   ; $field_15
-      local.get 4   ; e
-      local.get 5   ; $field_15
+      local.get 4   ; __for_hi_1
+      local.get 5   ; __for_hi_2
       u64.lt
       if $L5 void
         local.field 0 15 0   ; arg 0.ekeys
-        local.get 4   ; e
+        local.get 4   ; __for_hi_1
         array.get 10   ; string[][]
         ref.cast 2   ; -> string
         call 45   ; std_core$string$Hash$hash_vt
@@ -1917,19 +1919,19 @@ fn 27 std_collections$rehash__string__string (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; e
+        local.get 4   ; __for_hi_1
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_30
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_30
+        local.get 7   ; $cast_32
         store_slot_i32
-        local.get 4   ; e
+        local.get 4   ; __for_hi_1
         i64.const 1
         i64.add
-        local.set 4   ; e
+        local.set 4   ; __for_hi_1
         br $L4
       end $L5
     end $L4
@@ -2733,24 +2735,24 @@ end
 
 fn 37 std_string$join (ref,string) -> string
   local sb ref
-  local __for_hi_0 usize
   local i usize
+  local __for_hi_0 usize
   local $idx_12 string
   array.new 10 0   ; string[][]
   struct.new 24   ; std_string_builder$StringBuilder
   local.set 2   ; sb
+  i64.const 0
+  local.set 3   ; i
   local.get 0   ; arg 0
   array.len
-  local.set 3   ; __for_hi_0
-  i64.const 0
-  local.set 4   ; i
+  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
-      local.get 4   ; i
-      local.get 3   ; __for_hi_0
+      local.get 3   ; i
+      local.get 4   ; __for_hi_0
       u64.lt
       if $L2 void
-        local.get 4   ; i
+        local.get 3   ; i
         i64.const 0
         u64.gt
         if $L3 void
@@ -2759,17 +2761,17 @@ fn 37 std_string$join (ref,string) -> string
           call 39   ; std_string_builder$append
         end $L3
         local.get 0   ; arg 0
-        local.get 4   ; i
+        local.get 3   ; i
         array.get 10   ; string[][]
         ref.cast 2   ; -> string
         local.set 5   ; $idx_12
         local.get 2   ; sb
         local.get 5   ; $idx_12
         call 39   ; std_string_builder$append
-        local.get 4   ; i
+        local.get 3   ; i
         i64.const 1
         i64.add
-        local.set 4   ; i
+        local.set 3   ; i
         br $L1
       end $L2
     end $L1

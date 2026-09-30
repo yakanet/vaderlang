@@ -285,12 +285,12 @@
                 __off_7 :usize
     let sh: i32 = int(0) :i32
     block :void
-      let __for_hi_8: i16 =
-        cast → i16
-          int(4) :i16
       let i: i16 =
         cast → i16
           int(1) :i16
+      let __for_hi_8: i16 =
+        cast → i16
+          int(4) :i16
       loop while (<…>)
         assign
           target:

@@ -172,9 +172,9 @@
               cast → usize
                 int(12) :usize
     block :void
+      let i: usize = int(0) :usize
       let __for_hi_0: usize =
         LoweredArrayLen
-      let i: usize = int(0) :usize
       loop while (<…>)
         if :void
           cond:

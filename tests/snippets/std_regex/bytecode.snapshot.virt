@@ -1347,8 +1347,8 @@ fn 19 regex$replace_all (ref,string,string) -> string
   local sb ref
   local cursor usize
   local matches_found ref
-  local __for_hi_0 usize
   local i usize
+  local __for_hi_0 usize
   local m ref
   local $field_21 usize
   local $call_23 string
@@ -1366,19 +1366,20 @@ fn 19 regex$replace_all (ref,string,string) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 18   ; regex$find_all
-  local.tee 7   ; matches_found
-  array.len
-  local.set 8   ; __for_hi_0
+  local.set 7   ; matches_found
   i64.const 0
-  local.set 9   ; i
+  local.set 8   ; i
+  local.get 7   ; matches_found
+  array.len
+  local.set 9   ; __for_hi_0
   block $L0 void
     loop $L1 void
-      local.get 9   ; i
-      local.get 8   ; __for_hi_0
+      local.get 8   ; i
+      local.get 9   ; __for_hi_0
       u64.lt
       if $L2 void
         local.get 7   ; matches_found
-        local.get 9   ; i
+        local.get 8   ; i
         array.get 16   ; regex$Match[][]
         local.set 10   ; m
         local.field 10 13 0   ; m.start
@@ -1400,27 +1401,27 @@ fn 19 regex$replace_all (ref,string,string) -> string
         local.field 10 13 1   ; m.end
         ref.cast 8   ; -> usize
         local.set 6   ; cursor
-        local.get 9   ; i
+        local.get 8   ; i
         i64.const 1
         i64.add
-        local.set 9   ; i
+        local.set 8   ; i
         br $L1
       end $L2
     end $L1
   end $L0
   local.get 3   ; ib
   array.len
-  local.set 8   ; __for_hi_0
+  local.set 8   ; i
   local.get 6   ; cursor
-  local.get 8   ; __for_hi_0
+  local.get 8   ; i
   u64.lt
   if $L3 void
     local.get 3   ; ib
     array.len
-    local.set 8   ; __for_hi_0
+    local.set 8   ; i
     local.get 3   ; ib
     local.get 6   ; cursor
-    local.get 8   ; __for_hi_0
+    local.get 8   ; i
     array.slice 11   ; u8[][]
     call.import 1   ; std_core$bytes_to_string
     local.set 12   ; $call_23
@@ -1894,8 +1895,8 @@ fn 23 regex$parse_alternation (ref) -> any
   local $call_59 ref
   local n usize
   local end_jumps ref
-  local __for_hi_0 usize
   local i usize
+  local __for_hi_0 usize
   local split_pos usize
   local $field_75 ref
   local $struct_78 ref
@@ -1916,8 +1917,8 @@ fn 23 regex$parse_alternation (ref) -> any
   local $add_106 usize
   local $idx_107 usize
   local end_pos usize
-  local __for_hi_1 usize
   local k usize
+  local __for_hi_1 usize
   local $field_116 ref
   local $idx_117 usize
   local $struct_118 ref
@@ -2079,16 +2080,16 @@ fn 23 regex$parse_alternation (ref) -> any
       local.set 17   ; n
       array.new 22 0   ; usize[][]
       local.set 18   ; end_jumps
+      i64.const 0
+      local.set 19   ; i
       local.get 17   ; n
       i64.const 1
       i64.sub
-      local.set 19   ; __for_hi_0
-      i64.const 0
-      local.set 20   ; i
+      local.set 20   ; __for_hi_0
       block $L8 void
         loop $L9 void
-          local.get 20   ; i
-          local.get 19   ; __for_hi_0
+          local.get 19   ; i
+          local.get 20   ; __for_hi_0
           u64.lt
           if $L10 void
             local.field 0 17 2   ; arg 0.insts
@@ -2109,10 +2110,10 @@ fn 23 regex$parse_alternation (ref) -> any
             local.field 0 17 2   ; arg 0.insts
             local.set 25   ; $field_82
             local.get 7   ; branch_offsets
-            local.get 20   ; i
+            local.get 19   ; i
             load_slot_i64
             local.set 26   ; $idx_83
-            local.get 20   ; i
+            local.get 19   ; i
             i64.const 1
             i64.add
             local.set 27   ; $add_85
@@ -2153,10 +2154,10 @@ fn 23 regex$parse_alternation (ref) -> any
             local.get 21   ; split_pos
             local.get 34   ; $struct_97
             array.set 25   ; union[][]
-            local.get 20   ; i
+            local.get 19   ; i
             i64.const 1
             i64.add
-            local.set 20   ; i
+            local.set 19   ; i
             br $L9
           end $L10
         end $L9
@@ -2188,21 +2189,21 @@ fn 23 regex$parse_alternation (ref) -> any
       local.field 0 17 2   ; arg 0.insts
       array.len
       local.set 40   ; end_pos
+      i64.const 0
+      local.set 41   ; k
       local.get 18   ; end_jumps
       array.len
-      local.set 41   ; __for_hi_1
-      i64.const 0
-      local.set 42   ; k
+      local.set 42   ; __for_hi_1
       block $L11 void
         loop $L12 void
-          local.get 42   ; k
-          local.get 41   ; __for_hi_1
+          local.get 41   ; k
+          local.get 42   ; __for_hi_1
           u64.lt
           if $L13 void
             local.field 0 17 2   ; arg 0.insts
             local.set 43   ; $field_116
             local.get 18   ; end_jumps
-            local.get 42   ; k
+            local.get 41   ; k
             load_slot_i64
             local.set 44   ; $idx_117
             local.get 40   ; end_pos
@@ -2212,10 +2213,10 @@ fn 23 regex$parse_alternation (ref) -> any
             local.get 44   ; $idx_117
             local.get 45   ; $struct_118
             array.set 25   ; union[][]
-            local.get 42   ; k
+            local.get 41   ; k
             i64.const 1
             i64.add
-            local.set 42   ; k
+            local.set 41   ; k
             br $L12
           end $L13
         end $L12
@@ -2650,23 +2651,26 @@ end
 fn 28 regex$truncate_threads (ref,usize) -> ref
   local out ref
   local i usize
-  local $idx_7 ref
+  local __for_hi_0 usize
+  local $idx_8 ref
   array.new 20 0   ; regex$Thread[][]
   local.set 2   ; out
   i64.const 0
   local.set 3   ; i
+  local.get 1   ; arg 1
+  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
       local.get 3   ; i
-      local.get 1   ; arg 1
+      local.get 4   ; __for_hi_0
       u64.lt
       if $L2 void
         local.get 0   ; arg 0
         local.get 3   ; i
         array.get 20   ; regex$Thread[][]
-        local.set 4   ; $idx_7
+        local.set 5   ; $idx_8
         local.get 2   ; out
-        local.get 4   ; $idx_7
+        local.get 5   ; $idx_8
         array.push 21 2   ; regex$Thread[]
         local.get 3   ; i
         i64.const 1
@@ -2835,12 +2839,13 @@ end
 fn 33 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
   local shift usize
   local i usize
+  local __for_hi_0 usize
   local inst any
-  local $add_15 usize
-  local $add_18 usize
-  local $struct_19 ref
-  local $struct_24 ref
-  local $cast_25 any
+  local $add_16 usize
+  local $add_19 usize
+  local $struct_20 ref
+  local $struct_25 ref
+  local $cast_26 any
   local.get 0   ; arg 0
   array.len
   local.get 4   ; arg 4
@@ -2848,59 +2853,61 @@ fn 33 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
   local.set 5   ; shift
   local.get 2   ; arg 2
   local.set 6   ; i
+  local.get 3   ; arg 3
+  local.set 7   ; __for_hi_0
   block $L0 void
     loop $L1 void
       local.get 6   ; i
-      local.get 3   ; arg 3
+      local.get 7   ; __for_hi_0
       u64.lt
       if $L2 void
         local.get 1   ; arg 1
         local.get 6   ; i
         array.get 25   ; union[][]
-        local.tee 7   ; inst
+        local.tee 8   ; inst
         type_check 34   ; regex$InstSplit
         if $L3 void
-          local.get 7   ; inst
+          local.get 8   ; inst
           ref.cast 34   ; -> regex$InstSplit
           struct.get 34 0   ; regex$InstSplit.a
           ref.cast 8   ; -> usize
           local.get 5   ; shift
           i64.add
-          local.set 8   ; $add_15
-          local.get 7   ; inst
+          local.set 9   ; $add_16
+          local.get 8   ; inst
           ref.cast 34   ; -> regex$InstSplit
           struct.get 34 1   ; regex$InstSplit.b
           ref.cast 8   ; -> usize
           local.get 5   ; shift
           i64.add
-          local.set 9   ; $add_18
-          local.get 8   ; $add_15
-          local.get 9   ; $add_18
+          local.set 10   ; $add_19
+          local.get 9   ; $add_16
+          local.get 10   ; $add_19
           struct.new 34   ; regex$InstSplit
-          local.set 10   ; $struct_19
+          local.set 11   ; $struct_20
           local.get 0   ; arg 0
-          local.get 10   ; $struct_19
+          local.get 11   ; $struct_20
           array.push 26   ; union[]
         else
-          local.get 7   ; inst
+          local.get 8   ; inst
           type_check 31   ; regex$InstJump
           if $L4 void
-            local.get 7   ; inst
+            local.get 8   ; inst
             ref.cast 31   ; -> regex$InstJump
             struct.get 31 0   ; regex$InstJump.target
             ref.cast 8   ; -> usize
             local.get 5   ; shift
             i64.add
             struct.new 31   ; regex$InstJump
-            local.set 11   ; $struct_24
+            local.set 12   ; $struct_25
             local.get 0   ; arg 0
-            local.get 11   ; $struct_24
+            local.get 12   ; $struct_25
             array.push 26   ; union[]
           else
-            local.get 7   ; inst
-            local.set 12   ; $cast_25
+            local.get 8   ; inst
+            local.set 13   ; $cast_26
             local.get 0   ; arg 0
-            local.get 12   ; $cast_25
+            local.get 13   ; $cast_26
             array.push 26   ; union[]
           end $L4
         end $L3
@@ -3800,19 +3807,19 @@ fn 39 regex$apply_counted (ref,usize) -> any
     local.field 0 17 2   ; arg 0.insts
     array.len
     local.set 4   ; $add_12
+    i64.const 0
+    local.set 6   ; m
     local.get 13   ; $call_101
     array.len
-    local.set 6   ; m
-    i64.const 0
     local.set 9   ; $field_24
     block $L20 void
       loop $L21 void
-        local.get 9   ; $field_24
         local.get 6   ; m
+        local.get 9   ; $field_24
         u64.lt
         if $L22 void
           local.get 13   ; $call_101
-          local.get 9   ; $field_24
+          local.get 6   ; m
           load_slot_i64
           local.set 10   ; $len_26
           local.field 0 17 2   ; arg 0.insts
@@ -3827,10 +3834,10 @@ fn 39 regex$apply_counted (ref,usize) -> any
           local.get 10   ; $len_26
           local.get 15   ; $struct_121
           array.set 25   ; union[][]
-          local.get 9   ; $field_24
+          local.get 6   ; m
           i64.const 1
           i64.add
-          local.set 9   ; $field_24
+          local.set 6   ; m
           br $L21
         end $L22
       end $L21

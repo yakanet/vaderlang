@@ -309,8 +309,8 @@ end
 fn 10 std_string$replace (string,string,string) -> string
   local parts ref
   local rest ref
-  local __for_hi_0 usize
   local i usize
+  local __for_hi_0 usize
   local $idx_15 string
   local $call_20 string
   local.get 0   ; arg 0
@@ -326,29 +326,29 @@ fn 10 std_string$replace (string,string,string) -> string
   end $L0
   array.new 10 0   ; string[][]
   local.set 4   ; rest
+  i64.const 1
+  local.set 5   ; i
   local.get 3   ; parts
   array.len
-  local.set 5   ; __for_hi_0
-  i64.const 1
-  local.set 6   ; i
+  local.set 6   ; __for_hi_0
   block $L1 void
     loop $L2 void
-      local.get 6   ; i
-      local.get 5   ; __for_hi_0
+      local.get 5   ; i
+      local.get 6   ; __for_hi_0
       u64.lt
       if $L3 void
         local.get 3   ; parts
-        local.get 6   ; i
+        local.get 5   ; i
         array.get 10   ; string[][]
         ref.cast 2   ; -> string
         local.set 7   ; $idx_15
         local.get 4   ; rest
         local.get 7   ; $idx_15
         array.push 2 4   ; string[]
-        local.get 6   ; i
+        local.get 5   ; i
         i64.const 1
         i64.add
-        local.set 6   ; i
+        local.set 5   ; i
         br $L2
       end $L3
     end $L2
@@ -381,15 +381,18 @@ end
 fn 12 std_string$repeat (string,usize) -> string
   local sb ref
   local _ usize
+  local __for_hi_0 usize
   array.new 10 0   ; string[][]
   struct.new 12   ; std_string_builder$StringBuilder
   local.set 2   ; sb
   i64.const 0
   local.set 3   ; _
+  local.get 1   ; arg 1
+  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
       local.get 3   ; _
-      local.get 1   ; arg 1
+      local.get 4   ; __for_hi_0
       u64.lt
       if $L2 void
         local.get 2   ; sb
@@ -525,24 +528,24 @@ end
 
 fn 15 std_string$join (ref,string) -> string
   local sb ref
-  local __for_hi_0 usize
   local i usize
+  local __for_hi_0 usize
   local $idx_12 string
   array.new 10 0   ; string[][]
   struct.new 12   ; std_string_builder$StringBuilder
   local.set 2   ; sb
+  i64.const 0
+  local.set 3   ; i
   local.get 0   ; arg 0
   array.len
-  local.set 3   ; __for_hi_0
-  i64.const 0
-  local.set 4   ; i
+  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
-      local.get 4   ; i
-      local.get 3   ; __for_hi_0
+      local.get 3   ; i
+      local.get 4   ; __for_hi_0
       u64.lt
       if $L2 void
-        local.get 4   ; i
+        local.get 3   ; i
         i64.const 0
         u64.gt
         if $L3 void
@@ -551,17 +554,17 @@ fn 15 std_string$join (ref,string) -> string
           call 23   ; std_string_builder$append
         end $L3
         local.get 0   ; arg 0
-        local.get 4   ; i
+        local.get 3   ; i
         array.get 10   ; string[][]
         ref.cast 2   ; -> string
         local.set 5   ; $idx_12
         local.get 2   ; sb
         local.get 5   ; $idx_12
         call 23   ; std_string_builder$append
-        local.get 4   ; i
+        local.get 3   ; i
         i64.const 1
         i64.add
-        local.set 4   ; i
+        local.set 3   ; i
         br $L1
       end $L2
     end $L1
@@ -703,33 +706,36 @@ end
 
 fn 19 std_string$bytes_match_at (ref,usize,ref,usize) -> bool
   local j usize
-  local $add_7 usize
-  local $idx_8 u8
+  local __for_hi_0 usize
+  local $add_8 usize
   local $idx_9 u8
+  local $idx_10 u8
   i64.const 0
   local.set 4   ; j
+  local.get 3   ; arg 3
+  local.set 5   ; __for_hi_0
   block $L0 void
     loop $L1 void
       local.get 4   ; j
-      local.get 3   ; arg 3
+      local.get 5   ; __for_hi_0
       u64.lt
       if $L2 void
         local.get 1   ; arg 1
         local.get 4   ; j
         i64.add
-        local.set 5   ; $add_7
+        local.set 6   ; $add_8
         local.get 0   ; arg 0
-        local.get 5   ; $add_7
+        local.get 6   ; $add_8
         array.get 7   ; u8[][]
         ref.cast 4   ; -> u8
-        local.set 6   ; $idx_8
+        local.set 7   ; $idx_9
         local.get 2   ; arg 2
         local.get 4   ; j
         array.get 7   ; u8[][]
         ref.cast 4   ; -> u8
-        local.set 7   ; $idx_9
-        local.get 6   ; $idx_8
+        local.set 8   ; $idx_10
         local.get 7   ; $idx_9
+        local.get 8   ; $idx_10
         i32.ne
         if $L3 void
           return.lit bool.const false

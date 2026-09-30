@@ -18,8 +18,8 @@ impl 6 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local ys ref
   local __fuse_arr_2 ref
+  local ys ref
   local __fuse_len_3 usize
   local __fuse_i_4 usize
   local x i32
@@ -31,15 +31,16 @@ fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $cast_31 i64
-  i32.const 10
-  i32.const 20
-  array.new 3 2   ; i32[][]
-  local.set 0   ; ys
   i32.const 1
   i32.const 2
   i32.const 3
   array.new 3 3   ; i32[][]
-  local.tee 1   ; __fuse_arr_2
+  local.set 0   ; __fuse_arr_2
+  i32.const 10
+  i32.const 20
+  array.new 3 2   ; i32[][]
+  local.set 1   ; ys
+  local.get 0   ; __fuse_arr_2
   array.len
   local.set 2   ; __fuse_len_3
   i64.const 0
@@ -50,11 +51,11 @@ fn 0 snippet$main () -> i32
       local.get 2   ; __fuse_len_3
       u64.lt
       if $L2 void
-        local.get 1   ; __fuse_arr_2
+        local.get 0   ; __fuse_arr_2
         local.get 3   ; __fuse_i_4
         load_slot_i32
         local.set 4   ; x
-        local.get 0   ; ys
+        local.get 1   ; ys
         local.tee 5   ; __for_arr_0
         array.len
         local.set 6   ; __for_len_1

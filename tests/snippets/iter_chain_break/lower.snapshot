@@ -360,16 +360,17 @@
     let kept: i32 = int(0) :i32
     block :void
       let __fuse_arr_12: i32[]! = a :i32[]!
-      let __fuse_len_13: usize =
+      let __fuse_arr_13: i32[]! = b :i32[]!
+      let __fuse_len_14: usize =
         LoweredArrayLen
-      let __fuse_i_14: usize = int(0) :usize
+      let __fuse_i_15: usize = int(0) :usize
       loop while (<…>)
         let x: i32 =
           index :i32
             on:
               __fuse_arr_12 :i32[]!
             ix:
-              __fuse_i_14 :usize
+              __fuse_i_15 :usize
         let x: i32 = x :i32
         if :void
           cond:
@@ -390,11 +391,11 @@
             block :void
               assign
                 target:
-                  __fuse_i_14 :usize
+                  __fuse_i_15 :usize
                 value:
                   add :usize
                     l:
-                      __fuse_i_14 :usize
+                      __fuse_i_15 :usize
                     r:
                       int(1) :usize
               continue
@@ -409,14 +410,13 @@
                 x :i32
         assign
           target:
-            __fuse_i_14 :usize
+            __fuse_i_15 :usize
           value:
             add :usize
               l:
-                __fuse_i_14 :usize
+                __fuse_i_15 :usize
               r:
                 int(1) :usize
-      let __fuse_arr_15: i32[]! = b :i32[]!
       let __fuse_len_16: usize =
         LoweredArrayLen
       let __fuse_i_17: usize = int(0) :usize
@@ -424,7 +424,7 @@
         let y: i32 =
           index :i32
             on:
-              __fuse_arr_15 :i32[]!
+              __fuse_arr_13 :i32[]!
             ix:
               __fuse_i_17 :usize
         let x: i32 = y :i32
@@ -536,16 +536,17 @@
     let whole: i32 = int(0) :i32
     block :void
       let __fuse_arr_20: i32[]! = a :i32[]!
-      let __fuse_len_21: usize =
+      let __fuse_arr_21: i32[]! = b :i32[]!
+      let __fuse_len_22: usize =
         LoweredArrayLen
-      let __fuse_i_22: usize = int(0) :usize
+      let __fuse_i_23: usize = int(0) :usize
       loop while (<…>)
         let x: i32 =
           index :i32
             on:
               __fuse_arr_20 :i32[]!
             ix:
-              __fuse_i_22 :usize
+              __fuse_i_23 :usize
         let x: i32 = x :i32
         assign
           target:
@@ -558,14 +559,13 @@
                 x :i32
         assign
           target:
-            __fuse_i_22 :usize
+            __fuse_i_23 :usize
           value:
             add :usize
               l:
-                __fuse_i_22 :usize
+                __fuse_i_23 :usize
               r:
                 int(1) :usize
-      let __fuse_arr_23: i32[]! = b :i32[]!
       let __fuse_len_24: usize =
         LoweredArrayLen
       let __fuse_i_25: usize = int(0) :usize
@@ -573,7 +573,7 @@
         let y: i32 =
           index :i32
             on:
-              __fuse_arr_23 :i32[]!
+              __fuse_arr_21 :i32[]!
             ix:
               __fuse_i_25 :usize
         let x: i32 = y :i32
@@ -657,8 +657,8 @@
                 __off_27 :usize
     let mapped: i32 = int(0) :i32
     block :void
-      let f: fn(i32) -> i32 = __lambda_snippet_0 :fn(i32) -> i32
       let __fuse_arr_28: i32[]! = a :i32[]!
+      let f: fn(i32) -> i32 = __lambda_snippet_0 :fn(i32) -> i32
       let __fuse_len_29: usize =
         LoweredArrayLen
       let __fuse_i_30: usize = int(0) :usize
@@ -765,16 +765,17 @@
     let nested: i32 = int(0) :i32
     block :void
       let __fuse_arr_36: i32[]! = a :i32[]!
-      let __fuse_len_37: usize =
+      let __fuse_arr_37: i32[]! = b :i32[]!
+      let __fuse_len_38: usize =
         LoweredArrayLen
-      let __fuse_i_38: usize = int(0) :usize
+      let __fuse_i_39: usize = int(0) :usize
       loop while (<…>)
         let x: i32 =
           index :i32
             on:
               __fuse_arr_36 :i32[]!
             ix:
-              __fuse_i_38 :usize
+              __fuse_i_39 :usize
         let x: i32 = x :i32
         block :void
           let __for_arr_33: i32[]! = a :i32[]!
@@ -817,14 +818,13 @@
                     int(1) :usize
         assign
           target:
-            __fuse_i_38 :usize
+            __fuse_i_39 :usize
           value:
             add :usize
               l:
-                __fuse_i_38 :usize
+                __fuse_i_39 :usize
               r:
                 int(1) :usize
-      let __fuse_arr_39: i32[]! = b :i32[]!
       let __fuse_len_40: usize =
         LoweredArrayLen
       let __fuse_i_41: usize = int(0) :usize
@@ -832,7 +832,7 @@
         let y: i32 =
           index :i32
             on:
-              __fuse_arr_39 :i32[]!
+              __fuse_arr_37 :i32[]!
             ix:
               __fuse_i_41 :usize
         let x: i32 = y :i32

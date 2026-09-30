@@ -24,16 +24,12 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local a usize
-  local pred ref
   local __fuse_arr_2 ref
+  local pred ref
   local __fuse_len_3 usize
   local __fuse_i_4 usize
   local $cast_37 u64
   local x i32
-  i64.const 0
-  local.set 0   ; a
-  fn.ref 1 12   ; __lambda_snippet_0
-  local.set 1   ; pred
   i32.const 1
   i32.const 2
   i32.const 3
@@ -41,7 +37,12 @@ fn 0 snippet$main () -> i32
   i32.const 5
   i32.const 6
   array.new 11 6   ; i32[][]
-  local.tee 2   ; __fuse_arr_2
+  local.set 1   ; __fuse_arr_2
+  fn.ref 2 12   ; __lambda_snippet_1
+  local.set 2   ; pred
+  i64.const 0
+  local.set 0   ; a
+  local.get 1   ; __fuse_arr_2
   array.len
   local.set 3   ; __fuse_len_3
   i64.const 0
@@ -52,11 +53,11 @@ fn 0 snippet$main () -> i32
       local.get 3   ; __fuse_len_3
       u64.lt
       if $L2 void
-        local.get 2   ; __fuse_arr_2
+        local.get 1   ; __fuse_arr_2
         local.get 4   ; __fuse_i_4
         load_slot_i32
-        call 2   ; __lambda_snippet_1
-        local.get 1   ; pred
+        call 1   ; __lambda_snippet_0
+        local.get 2   ; pred
         call.indirect 12   ; fn
         if $L3 void
           local.get 0   ; a
@@ -74,10 +75,10 @@ fn 0 snippet$main () -> i32
   end $L0
   i64.const 22
   call 5   ; std_core$new_byte_buffer
-  local.set 1   ; pred
+  local.set 1   ; __fuse_arr_2
   i64.const 0
   local.set 3   ; __fuse_len_3
-  local.get 1   ; pred
+  local.get 1   ; __fuse_arr_2
   local.get 3   ; __fuse_len_3
   string.const 0   ; "a "
   call 7   ; std_core$write_string_at
@@ -85,19 +86,19 @@ fn 0 snippet$main () -> i32
   local.get 0   ; a
   usize.to_i64
   local.set 5   ; $cast_37
-  local.get 1   ; pred
+  local.get 1   ; __fuse_arr_2
   local.get 3   ; __fuse_len_3
   local.get 5   ; $cast_37
   call 8   ; std_core$write_unsigned
   local.set 3   ; __fuse_len_3
-  local.get 1   ; pred
+  local.get 1   ; __fuse_arr_2
   local.get 3   ; __fuse_len_3
   call 6   ; std_core$finish_buffer
   call 11   ; std_io$println__string
+  fn.ref 3 12   ; __lambda_snippet_2
+  local.set 1   ; __fuse_arr_2
   i64.const 0
   local.set 3   ; __fuse_len_3
-  fn.ref 3 12   ; __lambda_snippet_2
-  local.set 1   ; pred
   i32.const 0
   local.set 6   ; x
   block $L4 void
@@ -107,7 +108,7 @@ fn 0 snippet$main () -> i32
       i32.lt
       if $L6 void
         local.get 6   ; x
-        local.get 1   ; pred
+        local.get 1   ; __fuse_arr_2
         call.indirect 12   ; fn
         if $L7 void
           local.get 3   ; __fuse_len_3
@@ -127,10 +128,10 @@ fn 0 snippet$main () -> i32
   local.set 0   ; a
   i64.const 22
   call 5   ; std_core$new_byte_buffer
-  local.set 1   ; pred
+  local.set 1   ; __fuse_arr_2
   i64.const 0
   local.set 3   ; __fuse_len_3
-  local.get 1   ; pred
+  local.get 1   ; __fuse_arr_2
   local.get 3   ; __fuse_len_3
   string.const 1   ; "b "
   call 7   ; std_core$write_string_at
@@ -138,12 +139,12 @@ fn 0 snippet$main () -> i32
   local.get 0   ; a
   usize.to_i64
   local.set 5   ; $cast_37
-  local.get 1   ; pred
+  local.get 1   ; __fuse_arr_2
   local.get 3   ; __fuse_len_3
   local.get 5   ; $cast_37
   call 8   ; std_core$write_unsigned
   local.set 3   ; __fuse_len_3
-  local.get 1   ; pred
+  local.get 1   ; __fuse_arr_2
   local.get 3   ; __fuse_len_3
   call 6   ; std_core$finish_buffer
   call 11   ; std_io$println__string
@@ -155,10 +156,10 @@ fn 0 snippet$main () -> i32
   local.set 0   ; a
   i64.const 22
   call 5   ; std_core$new_byte_buffer
-  local.set 1   ; pred
+  local.set 1   ; __fuse_arr_2
   i64.const 0
   local.set 3   ; __fuse_len_3
-  local.get 1   ; pred
+  local.get 1   ; __fuse_arr_2
   local.get 3   ; __fuse_len_3
   string.const 2   ; "c "
   call 7   ; std_core$write_string_at
@@ -166,29 +167,29 @@ fn 0 snippet$main () -> i32
   local.get 0   ; a
   usize.to_i64
   local.set 5   ; $cast_37
-  local.get 1   ; pred
+  local.get 1   ; __fuse_arr_2
   local.get 3   ; __fuse_len_3
   local.get 5   ; $cast_37
   call 8   ; std_core$write_unsigned
   local.set 3   ; __fuse_len_3
-  local.get 1   ; pred
+  local.get 1   ; __fuse_arr_2
   local.get 3   ; __fuse_len_3
   call 6   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   return.lit i32.const 0
 end
 
-fn 1 __lambda_snippet_0 (i32) -> bool
-  local.get 0   ; arg 0
-  i32.const 6
-  i32.gt
-  return
-end
-
-fn 2 __lambda_snippet_1 (i32) -> i32
+fn 1 __lambda_snippet_0 (i32) -> i32
   local.get 0   ; arg 0
   i32.const 2
   i32.mul
+  return
+end
+
+fn 2 __lambda_snippet_1 (i32) -> bool
+  local.get 0   ; arg 0
+  i32.const 6
+  i32.gt
   return
 end
 

@@ -25,24 +25,24 @@ export main 2
 
 fn 0 snippet$Histogram$Mul$mul (ref,u32) -> ref
   local out ref
-  local __for_hi_0 usize
   local i usize
+  local __for_hi_0 usize
   local $mul_10 u32
   array.new 1 0   ; u32[][]
   local.set 2   ; out
+  i64.const 0
+  local.set 3   ; i
   local.get 0   ; arg 0
   array.len
-  local.set 3   ; __for_hi_0
-  i64.const 0
-  local.set 4   ; i
+  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
-      local.get 4   ; i
-      local.get 3   ; __for_hi_0
+      local.get 3   ; i
+      local.get 4   ; __for_hi_0
       u64.lt
       if $L2 void
         local.get 0   ; arg 0
-        local.get 4   ; i
+        local.get 3   ; i
         array.get 1   ; u32[][]
         ref.cast 2   ; -> u32
         local.get 1   ; arg 1
@@ -51,10 +51,10 @@ fn 0 snippet$Histogram$Mul$mul (ref,u32) -> ref
         local.get 2   ; out
         local.get 5   ; $mul_10
         array.push 2 2   ; u32[]
-        local.get 4   ; i
+        local.get 3   ; i
         i64.const 1
         i64.add
-        local.set 4   ; i
+        local.set 3   ; i
         br $L1
       end $L2
     end $L1
@@ -65,24 +65,24 @@ end
 
 fn 1 snippet$Histogram$Div$div (ref,u32) -> ref
   local out ref
-  local __for_hi_0 usize
   local i usize
+  local __for_hi_0 usize
   local $div_10 u32
   array.new 1 0   ; u32[][]
   local.set 2   ; out
+  i64.const 0
+  local.set 3   ; i
   local.get 0   ; arg 0
   array.len
-  local.set 3   ; __for_hi_0
-  i64.const 0
-  local.set 4   ; i
+  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
-      local.get 4   ; i
-      local.get 3   ; __for_hi_0
+      local.get 3   ; i
+      local.get 4   ; __for_hi_0
       u64.lt
       if $L2 void
         local.get 0   ; arg 0
-        local.get 4   ; i
+        local.get 3   ; i
         array.get 1   ; u32[][]
         ref.cast 2   ; -> u32
         local.get 1   ; arg 1
@@ -91,10 +91,10 @@ fn 1 snippet$Histogram$Div$div (ref,u32) -> ref
         local.get 2   ; out
         local.get 5   ; $div_10
         array.push 2 2   ; u32[]
-        local.get 4   ; i
+        local.get 3   ; i
         i64.const 1
         i64.add
-        local.set 4   ; i
+        local.set 3   ; i
         br $L1
       end $L2
     end $L1

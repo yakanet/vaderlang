@@ -258,6 +258,88 @@ export prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) 
     }
 }
 
+// ---- operands --------------------------------------------------------------
+//
+// An operand evaluated once but read later — by a loop at every step, or twice
+// in one expression — is bound to a fresh local first, unless the later read
+// provably yields the same value. What may run in between decides which rule
+// answers that : `is_invariant_operand` when a loop body may, `is_stable_operand`
+// when only other operands may. `is_effect_free_read` answers the question an
+// operand that may be skipped or moved raises instead : whether it does any work.
+
+// A fresh local bound to `value` in `out`, and the ident that reads it.
+bind_to_local :: fn(
+    ctx: FnLowerCtx!, value: LoweredExpr, type: Type, name: string, span: Span, out: LoweredStmt[]!,
+) -> LoweredExpr {
+    symbol :: fresh_synthetic_symbol(ctx, name)
+    out.push(LoweredLet {
+        .span = span, .name = symbol.name, .symbol = symbol, .type = type, .value = value,
+    })
+    return LoweredIdent { .span = span, .type = type, .symbol = symbol }
+}
+
+// `value` itself when it is invariant, else a local bound to it in `out`.
+bind_unless_invariant :: fn(
+    ctx: FnLowerCtx!, value: LoweredExpr, name: string, span: Span, out: LoweredStmt[]!,
+) -> LoweredExpr = if is_invariant_operand(ctx, value) {
+    value
+} else {
+    bind_to_local(ctx, value, type_of(value), name, span, out)
+}
+
+// `value` itself when it is stable, else a local bound to it in `out`.
+bind_unless_stable :: fn(
+    ctx: FnLowerCtx!, value: LoweredExpr, name: string, span: Span, out: LoweredStmt[]!,
+) -> LoweredExpr = if is_stable_operand(value) {
+    value
+} else {
+    bind_to_local(ctx, value, type_of(value), name, span, out)
+}
+
+// Whether `value` reads the same however much code runs before the read — a loop
+// body included : a literal, or a name nothing rebinds — a fn, a const, a `::`
+// local. A parameter can be reassigned, so it is not one.
+// @partial: every other expression may do work or read a different value.
+is_invariant_operand :: fn(ctx: FnLowerCtx, value: LoweredExpr) -> bool = @partial match value {
+    is LoweredIdent -> value.symbol.kind == .Fn || value.symbol.kind == .Const
+        || ctx.typed.resolved.immutable_locals[value.symbol.id] != null
+    _ -> is_literal(value)
+}
+
+// Whether `value` reads the same when only other operands run before the read —
+// calls, but no statement of the enclosing fn : a literal, or a local read
+// directly. A call cannot rebind a local it does not capture, and a captured one
+// is read through its cell, not as an ident.
+is_stable_operand :: fn(value: LoweredExpr) -> bool = value is LoweredIdent || is_literal(value)
+
+// Whether evaluating `value` does nothing but read — a stable operand, or a field,
+// a cell or an array length reached from one — so skipping it, or moving it,
+// loses no effect.
+// @partial: every other expression may do work.
+is_effect_free_read :: fn(value: LoweredExpr) -> bool = @partial match value {
+    is LoweredFieldAccess -> is_effect_free_read(value.target)
+    is LoweredCellGet     -> is_effect_free_read(value.target)
+    is LoweredArrayLen    -> is_effect_free_read(value.target)
+    _                     -> is_stable_operand(value)
+}
+
+// @partial: only the literal nodes are literals.
+is_literal :: fn(value: LoweredExpr) -> bool = @partial match value {
+    is LoweredIntLit | LoweredCharLit | LoweredBoolLit -> true
+    is LoweredFloatLit | LoweredStringLit | LoweredNullLit -> true
+    _ -> false
+}
+
+// `value` alone when `prelude` is empty, else a block running `prelude` first.
+with_prelude :: fn(prelude: LoweredStmt[], value: LoweredExpr, span: Span) -> LoweredExpr {
+    if prelude.len() == 0 {
+        return value
+    }
+    return LoweredBlock {
+        .span = span, .type = type_of(value), .stmts = prelude, .trailing = value,
+    }
+}
+
 // ---- internal helpers -----------------------------------------------------
 
 // Union types in Vader auto-promote a field when every variant carries one with

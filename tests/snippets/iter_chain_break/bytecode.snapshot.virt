@@ -93,15 +93,15 @@ fn 0 snippet$main () -> i32
   local $k_91 string
   local kept i32
   local __fuse_arr_12 ref
-  local __fuse_len_13 usize
-  local __fuse_i_14 usize
+  local __fuse_arr_13 ref
+  local __fuse_len_14 usize
+  local __fuse_i_15 usize
   local x i32
-  local $k_105 i32
+  local $k_106 i32
   local or_res bool
-  local $k_109 i32
-  local $k_111 usize
-  local $k_114 usize
-  local __fuse_arr_15 ref
+  local $k_110 i32
+  local $k_112 usize
+  local $k_115 usize
   local __fuse_len_16 usize
   local __fuse_i_17 usize
   local x i32
@@ -117,11 +117,11 @@ fn 0 snippet$main () -> i32
   local $k_145 string
   local whole i32
   local __fuse_arr_20 ref
-  local __fuse_len_21 usize
-  local __fuse_i_22 usize
+  local __fuse_arr_21 ref
+  local __fuse_len_22 usize
+  local __fuse_i_23 usize
   local x i32
-  local $k_160 usize
-  local __fuse_arr_23 ref
+  local $k_161 usize
   local __fuse_len_24 usize
   local __fuse_i_25 usize
   local x i32
@@ -144,15 +144,17 @@ fn 0 snippet$main () -> i32
   local $cast_212 i64
   local $k_214 string
   local nested i32
-  local __fuse_len_37 usize
-  local __fuse_i_38 usize
+  local __fuse_arr_36 ref
+  local __fuse_arr_37 ref
+  local __fuse_len_38 usize
+  local __fuse_i_39 usize
   local __for_arr_33 ref
   local __for_len_34 usize
   local __for_i_35 usize
   local y i32
-  local $k_236 i32
-  local $k_239 usize
-  local $k_241 usize
+  local $k_237 i32
+  local $k_240 usize
+  local $k_242 usize
   local __fuse_len_40 usize
   local __fuse_i_41 usize
   local __for_arr_33 ref
@@ -395,63 +397,65 @@ fn 0 snippet$main () -> i32
               i32.const 0
               local.set 39   ; kept
               local.get 0   ; a
-              local.tee 40   ; __fuse_arr_12
+              local.set 40   ; __fuse_arr_12
+              local.get 1   ; b
+              local.set 41   ; __fuse_arr_13
+              local.get 40   ; __fuse_arr_12
               array.len
-              local.set 41   ; __fuse_len_13
+              local.set 42   ; __fuse_len_14
               i64.const 0
-              local.set 42   ; __fuse_i_14
+              local.set 43   ; __fuse_i_15
               block $L12 void
                 loop $L13 void
-                  local.get 42   ; __fuse_i_14
-                  local.get 41   ; __fuse_len_13
+                  local.get 43   ; __fuse_i_15
+                  local.get 42   ; __fuse_len_14
                   u64.lt
                   if $L14 void
                     local.get 40   ; __fuse_arr_12
-                    local.get 42   ; __fuse_i_14
+                    local.get 43   ; __fuse_i_15
                     load_slot_i32
-                    local.set 43   ; x
+                    local.set 44   ; x
                     i32.const 2
-                    local.set 44   ; $k_105
-                    local.get 43   ; x
-                    local.get 44   ; $k_105
+                    local.set 45   ; $k_106
+                    local.get 44   ; x
+                    local.get 45   ; $k_106
                     i32.eq
                     if $L15 void
                       bool.const true
-                      local.set 45   ; or_res
+                      local.set 46   ; or_res
                     else
                       i32.const 20
-                      local.set 46   ; $k_109
-                      local.get 43   ; x
-                      local.get 46   ; $k_109
+                      local.set 47   ; $k_110
+                      local.get 44   ; x
+                      local.get 47   ; $k_110
                       i32.eq
-                      local.set 45   ; or_res
+                      local.set 46   ; or_res
                     end $L15
-                    local.get 45   ; or_res
+                    local.get 46   ; or_res
                     if $L16 void
                       i64.const 1
-                      local.set 47   ; $k_111
-                      local.get 42   ; __fuse_i_14
-                      local.get 47   ; $k_111
+                      local.set 48   ; $k_112
+                      local.get 43   ; __fuse_i_15
+                      local.get 48   ; $k_112
                       i64.add
-                      local.set 42   ; __fuse_i_14
+                      local.set 43   ; __fuse_i_15
                       br $L13
                     end $L16
                     local.get 39   ; kept
-                    local.get 43   ; x
+                    local.get 44   ; x
                     i32.add
                     local.set 39   ; kept
                     i64.const 1
-                    local.set 48   ; $k_114
-                    local.get 42   ; __fuse_i_14
-                    local.get 48   ; $k_114
+                    local.set 49   ; $k_115
+                    local.get 43   ; __fuse_i_15
+                    local.get 49   ; $k_115
                     i64.add
-                    local.set 42   ; __fuse_i_14
+                    local.set 43   ; __fuse_i_15
                     br $L13
                   end $L14
                 end $L13
               end $L12
-              local.get 1   ; b
-              local.tee 49   ; __fuse_arr_15
+              local.get 41   ; __fuse_arr_13
               array.len
               local.set 50   ; __fuse_len_16
               i64.const 0
@@ -462,7 +466,7 @@ fn 0 snippet$main () -> i32
                   local.get 50   ; __fuse_len_16
                   u64.lt
                   if $L19 void
-                    local.get 49   ; __fuse_arr_15
+                    local.get 41   ; __fuse_arr_13
                     local.get 51   ; __fuse_i_17
                     load_slot_i32
                     local.set 52   ; x
@@ -540,37 +544,39 @@ fn 0 snippet$main () -> i32
               i32.const 0
               local.set 63   ; whole
               local.get 0   ; a
-              local.tee 64   ; __fuse_arr_20
+              local.set 64   ; __fuse_arr_20
+              local.get 1   ; b
+              local.set 65   ; __fuse_arr_21
+              local.get 64   ; __fuse_arr_20
               array.len
-              local.set 65   ; __fuse_len_21
+              local.set 66   ; __fuse_len_22
               i64.const 0
-              local.set 66   ; __fuse_i_22
+              local.set 67   ; __fuse_i_23
               block $L22 void
                 loop $L23 void
-                  local.get 66   ; __fuse_i_22
-                  local.get 65   ; __fuse_len_21
+                  local.get 67   ; __fuse_i_23
+                  local.get 66   ; __fuse_len_22
                   u64.lt
                   if $L24 void
                     local.get 64   ; __fuse_arr_20
-                    local.get 66   ; __fuse_i_22
+                    local.get 67   ; __fuse_i_23
                     load_slot_i32
-                    local.set 67   ; x
+                    local.set 68   ; x
                     local.get 63   ; whole
-                    local.get 67   ; x
+                    local.get 68   ; x
                     i32.add
                     local.set 63   ; whole
                     i64.const 1
-                    local.set 68   ; $k_160
-                    local.get 66   ; __fuse_i_22
-                    local.get 68   ; $k_160
+                    local.set 69   ; $k_161
+                    local.get 67   ; __fuse_i_23
+                    local.get 69   ; $k_161
                     i64.add
-                    local.set 66   ; __fuse_i_22
+                    local.set 67   ; __fuse_i_23
                     br $L23
                   end $L24
                 end $L23
               end $L22
-              local.get 1   ; b
-              local.tee 69   ; __fuse_arr_23
+              local.get 65   ; __fuse_arr_21
               array.len
               local.set 70   ; __fuse_len_24
               i64.const 0
@@ -581,7 +587,7 @@ fn 0 snippet$main () -> i32
                   local.get 70   ; __fuse_len_24
                   u64.lt
                   if $L27 void
-                    local.get 69   ; __fuse_arr_23
+                    local.get 65   ; __fuse_arr_21
                     local.get 71   ; __fuse_i_25
                     load_slot_i32
                     local.set 72   ; x
@@ -705,152 +711,156 @@ fn 0 snippet$main () -> i32
               i32.const 0
               local.set 91   ; nested
               local.get 0   ; a
+              local.set 92   ; __fuse_arr_36
+              local.get 1   ; b
+              local.set 93   ; __fuse_arr_37
+              local.get 92   ; __fuse_arr_36
               array.len
-              local.set 92   ; __fuse_len_37
+              local.set 94   ; __fuse_len_38
               i64.const 0
-              local.set 93   ; __fuse_i_38
+              local.set 95   ; __fuse_i_39
               block $L32 void
                 loop $L33 void
-                  local.get 93   ; __fuse_i_38
-                  local.get 92   ; __fuse_len_37
+                  local.get 95   ; __fuse_i_39
+                  local.get 94   ; __fuse_len_38
                   u64.lt
                   if $L34 void
                     local.get 0   ; a
-                    local.tee 94   ; __for_arr_33
+                    local.tee 96   ; __for_arr_33
                     array.len
-                    local.set 95   ; __for_len_34
+                    local.set 97   ; __for_len_34
                     i64.const 0
-                    local.set 96   ; __for_i_35
+                    local.set 98   ; __for_i_35
                     block $L35 void
                       loop $L36 void
-                        local.get 96   ; __for_i_35
-                        local.get 95   ; __for_len_34
+                        local.get 98   ; __for_i_35
+                        local.get 97   ; __for_len_34
                         u64.lt
                         if $L37 void
-                          local.get 94   ; __for_arr_33
-                          local.get 96   ; __for_i_35
+                          local.get 96   ; __for_arr_33
+                          local.get 98   ; __for_i_35
                           load_slot_i32
-                          local.set 97   ; y
+                          local.set 99   ; y
                           i32.const 2
-                          local.set 98   ; $k_236
-                          local.get 97   ; y
-                          local.get 98   ; $k_236
+                          local.set 100   ; $k_237
+                          local.get 99   ; y
+                          local.get 100   ; $k_237
                           i32.eq
                           if $L38 void
                           else
                             local.get 91   ; nested
-                            local.get 97   ; y
+                            local.get 99   ; y
                             i32.add
                             local.set 91   ; nested
                             i64.const 1
-                            local.set 99   ; $k_239
-                            local.get 96   ; __for_i_35
-                            local.get 99   ; $k_239
+                            local.set 101   ; $k_240
+                            local.get 98   ; __for_i_35
+                            local.get 101   ; $k_240
                             i64.add
-                            local.set 96   ; __for_i_35
+                            local.set 98   ; __for_i_35
                             br $L36
                           end $L38
                         end $L37
                       end $L36
                     end $L35
                     i64.const 1
-                    local.set 100   ; $k_241
-                    local.get 93   ; __fuse_i_38
-                    local.get 100   ; $k_241
+                    local.set 102   ; $k_242
+                    local.get 95   ; __fuse_i_39
+                    local.get 102   ; $k_242
                     i64.add
-                    local.set 93   ; __fuse_i_38
+                    local.set 95   ; __fuse_i_39
                     br $L33
                   end $L34
                 end $L33
               end $L32
-              local.get 1   ; b
+              local.get 93   ; __fuse_arr_37
               array.len
-              local.set 101   ; __fuse_len_40
+              local.set 103   ; __fuse_len_40
               i64.const 0
-              local.set 102   ; __fuse_i_41
+              local.set 104   ; __fuse_i_41
               block $L39 void
                 loop $L40 void
-                  local.get 102   ; __fuse_i_41
-                  local.get 101   ; __fuse_len_40
+                  local.get 104   ; __fuse_i_41
+                  local.get 103   ; __fuse_len_40
                   u64.lt
                   if $L41 void
                     local.get 0   ; a
-                    local.tee 103   ; __for_arr_33
+                    local.tee 105   ; __for_arr_33
                     array.len
-                    local.set 104   ; __for_len_34
+                    local.set 106   ; __for_len_34
                     i64.const 0
-                    local.set 105   ; __for_i_35
+                    local.set 107   ; __for_i_35
                     block $L42 void
                       loop $L43 void
-                        local.get 105   ; __for_i_35
-                        local.get 104   ; __for_len_34
+                        local.get 107   ; __for_i_35
+                        local.get 106   ; __for_len_34
                         u64.lt
                         if $L44 void
-                          local.get 103   ; __for_arr_33
-                          local.get 105   ; __for_i_35
+                          local.get 105   ; __for_arr_33
+                          local.get 107   ; __for_i_35
                           load_slot_i32
-                          local.set 106   ; y
+                          local.set 108   ; y
                           i32.const 2
-                          local.set 107   ; $k_260
-                          local.get 106   ; y
-                          local.get 107   ; $k_260
+                          local.set 109   ; $k_260
+                          local.get 108   ; y
+                          local.get 109   ; $k_260
                           i32.eq
                           if $L45 void
                           else
                             local.get 91   ; nested
-                            local.get 106   ; y
+                            local.get 108   ; y
                             i32.add
                             local.set 91   ; nested
                             i64.const 1
-                            local.set 108   ; $k_263
-                            local.get 105   ; __for_i_35
-                            local.get 108   ; $k_263
+                            local.set 110   ; $k_263
+                            local.get 107   ; __for_i_35
+                            local.get 110   ; $k_263
                             i64.add
-                            local.set 105   ; __for_i_35
+                            local.set 107   ; __for_i_35
                             br $L43
                           end $L45
                         end $L44
                       end $L43
                     end $L42
                     i64.const 1
-                    local.set 109   ; $k_265
-                    local.get 102   ; __fuse_i_41
-                    local.get 109   ; $k_265
+                    local.set 111   ; $k_265
+                    local.get 104   ; __fuse_i_41
+                    local.get 111   ; $k_265
                     i64.add
-                    local.set 102   ; __fuse_i_41
+                    local.set 104   ; __fuse_i_41
                     br $L40
                   end $L41
                 end $L40
               end $L39
               i64.const 40
               call 7   ; std_core$new_byte_buffer
-              local.set 110   ; __buf_42
+              local.set 112   ; __buf_42
               i64.const 0
-              local.set 111   ; __off_43
+              local.set 113   ; __off_43
               string.const 11   ; "nested break="
-              local.set 112   ; $k_272
-              local.get 110   ; __buf_42
-              local.get 111   ; __off_43
-              local.get 112   ; $k_272
+              local.set 114   ; $k_272
+              local.get 112   ; __buf_42
+              local.get 113   ; __off_43
+              local.get 114   ; $k_272
               call 9   ; std_core$write_string_at
-              local.set 111   ; __off_43
+              local.set 113   ; __off_43
               local.get 91   ; nested
               i32.to_i64
-              local.set 113   ; $cast_274
-              local.get 110   ; __buf_42
-              local.get 111   ; __off_43
-              local.get 113   ; $cast_274
+              local.set 115   ; $cast_274
+              local.get 112   ; __buf_42
+              local.get 113   ; __off_43
+              local.get 115   ; $cast_274
               call 10   ; std_core$write_int
-              local.set 111   ; __off_43
+              local.set 113   ; __off_43
               string.const 12   ; " want=6"
-              local.set 114   ; $k_276
-              local.get 110   ; __buf_42
-              local.get 111   ; __off_43
-              local.get 114   ; $k_276
+              local.set 116   ; $k_276
+              local.get 112   ; __buf_42
+              local.get 113   ; __off_43
+              local.get 116   ; $k_276
               call 9   ; std_core$write_string_at
-              local.set 111   ; __off_43
-              local.get 110   ; __buf_42
-              local.get 111   ; __off_43
+              local.set 113   ; __off_43
+              local.get 112   ; __buf_42
+              local.get 113   ; __off_43
               call 8   ; std_core$finish_buffer
               call 25   ; std_io$println__string
               return.lit i32.const 0
@@ -890,63 +900,65 @@ fn 0 snippet$main () -> i32
           i32.const 0
           local.set 39   ; kept
           local.get 0   ; a
-          local.tee 40   ; __fuse_arr_12
+          local.set 40   ; __fuse_arr_12
+          local.get 1   ; b
+          local.set 41   ; __fuse_arr_13
+          local.get 40   ; __fuse_arr_12
           array.len
-          local.set 41   ; __fuse_len_13
+          local.set 42   ; __fuse_len_14
           i64.const 0
-          local.set 42   ; __fuse_i_14
+          local.set 43   ; __fuse_i_15
           block $L46 void
             loop $L47 void
-              local.get 42   ; __fuse_i_14
-              local.get 41   ; __fuse_len_13
+              local.get 43   ; __fuse_i_15
+              local.get 42   ; __fuse_len_14
               u64.lt
               if $L48 void
                 local.get 40   ; __fuse_arr_12
-                local.get 42   ; __fuse_i_14
+                local.get 43   ; __fuse_i_15
                 load_slot_i32
-                local.set 43   ; x
+                local.set 44   ; x
                 i32.const 2
-                local.set 44   ; $k_105
-                local.get 43   ; x
-                local.get 44   ; $k_105
+                local.set 45   ; $k_106
+                local.get 44   ; x
+                local.get 45   ; $k_106
                 i32.eq
                 if $L49 void
                   bool.const true
-                  local.set 45   ; or_res
+                  local.set 46   ; or_res
                 else
                   i32.const 20
-                  local.set 46   ; $k_109
-                  local.get 43   ; x
-                  local.get 46   ; $k_109
+                  local.set 47   ; $k_110
+                  local.get 44   ; x
+                  local.get 47   ; $k_110
                   i32.eq
-                  local.set 45   ; or_res
+                  local.set 46   ; or_res
                 end $L49
-                local.get 45   ; or_res
+                local.get 46   ; or_res
                 if $L50 void
                   i64.const 1
-                  local.set 47   ; $k_111
-                  local.get 42   ; __fuse_i_14
-                  local.get 47   ; $k_111
+                  local.set 48   ; $k_112
+                  local.get 43   ; __fuse_i_15
+                  local.get 48   ; $k_112
                   i64.add
-                  local.set 42   ; __fuse_i_14
+                  local.set 43   ; __fuse_i_15
                   br $L47
                 end $L50
                 local.get 39   ; kept
-                local.get 43   ; x
+                local.get 44   ; x
                 i32.add
                 local.set 39   ; kept
                 i64.const 1
-                local.set 48   ; $k_114
-                local.get 42   ; __fuse_i_14
-                local.get 48   ; $k_114
+                local.set 49   ; $k_115
+                local.get 43   ; __fuse_i_15
+                local.get 49   ; $k_115
                 i64.add
-                local.set 42   ; __fuse_i_14
+                local.set 43   ; __fuse_i_15
                 br $L47
               end $L48
             end $L47
           end $L46
-          local.get 1   ; b
-          local.tee 49   ; __fuse_arr_15
+          local.get 41   ; __fuse_arr_13
           array.len
           local.set 50   ; __fuse_len_16
           i64.const 0
@@ -957,7 +969,7 @@ fn 0 snippet$main () -> i32
               local.get 50   ; __fuse_len_16
               u64.lt
               if $L53 void
-                local.get 49   ; __fuse_arr_15
+                local.get 41   ; __fuse_arr_13
                 local.get 51   ; __fuse_i_17
                 load_slot_i32
                 local.set 52   ; x
@@ -1035,37 +1047,39 @@ fn 0 snippet$main () -> i32
           i32.const 0
           local.set 63   ; whole
           local.get 0   ; a
-          local.tee 64   ; __fuse_arr_20
+          local.set 64   ; __fuse_arr_20
+          local.get 1   ; b
+          local.set 65   ; __fuse_arr_21
+          local.get 64   ; __fuse_arr_20
           array.len
-          local.set 65   ; __fuse_len_21
+          local.set 66   ; __fuse_len_22
           i64.const 0
-          local.set 66   ; __fuse_i_22
+          local.set 67   ; __fuse_i_23
           block $L56 void
             loop $L57 void
-              local.get 66   ; __fuse_i_22
-              local.get 65   ; __fuse_len_21
+              local.get 67   ; __fuse_i_23
+              local.get 66   ; __fuse_len_22
               u64.lt
               if $L58 void
                 local.get 64   ; __fuse_arr_20
-                local.get 66   ; __fuse_i_22
+                local.get 67   ; __fuse_i_23
                 load_slot_i32
-                local.set 67   ; x
+                local.set 68   ; x
                 local.get 63   ; whole
-                local.get 67   ; x
+                local.get 68   ; x
                 i32.add
                 local.set 63   ; whole
                 i64.const 1
-                local.set 68   ; $k_160
-                local.get 66   ; __fuse_i_22
-                local.get 68   ; $k_160
+                local.set 69   ; $k_161
+                local.get 67   ; __fuse_i_23
+                local.get 69   ; $k_161
                 i64.add
-                local.set 66   ; __fuse_i_22
+                local.set 67   ; __fuse_i_23
                 br $L57
               end $L58
             end $L57
           end $L56
-          local.get 1   ; b
-          local.tee 69   ; __fuse_arr_23
+          local.get 65   ; __fuse_arr_21
           array.len
           local.set 70   ; __fuse_len_24
           i64.const 0
@@ -1076,7 +1090,7 @@ fn 0 snippet$main () -> i32
               local.get 70   ; __fuse_len_24
               u64.lt
               if $L61 void
-                local.get 69   ; __fuse_arr_23
+                local.get 65   ; __fuse_arr_21
                 local.get 71   ; __fuse_i_25
                 load_slot_i32
                 local.set 72   ; x
@@ -1200,152 +1214,156 @@ fn 0 snippet$main () -> i32
           i32.const 0
           local.set 91   ; nested
           local.get 0   ; a
+          local.set 92   ; __fuse_arr_36
+          local.get 1   ; b
+          local.set 93   ; __fuse_arr_37
+          local.get 92   ; __fuse_arr_36
           array.len
-          local.set 92   ; __fuse_len_37
+          local.set 94   ; __fuse_len_38
           i64.const 0
-          local.set 93   ; __fuse_i_38
+          local.set 95   ; __fuse_i_39
           block $L66 void
             loop $L67 void
-              local.get 93   ; __fuse_i_38
-              local.get 92   ; __fuse_len_37
+              local.get 95   ; __fuse_i_39
+              local.get 94   ; __fuse_len_38
               u64.lt
               if $L68 void
                 local.get 0   ; a
-                local.tee 94   ; __for_arr_33
+                local.tee 96   ; __for_arr_33
                 array.len
-                local.set 95   ; __for_len_34
+                local.set 97   ; __for_len_34
                 i64.const 0
-                local.set 96   ; __for_i_35
+                local.set 98   ; __for_i_35
                 block $L69 void
                   loop $L70 void
-                    local.get 96   ; __for_i_35
-                    local.get 95   ; __for_len_34
+                    local.get 98   ; __for_i_35
+                    local.get 97   ; __for_len_34
                     u64.lt
                     if $L71 void
-                      local.get 94   ; __for_arr_33
-                      local.get 96   ; __for_i_35
+                      local.get 96   ; __for_arr_33
+                      local.get 98   ; __for_i_35
                       load_slot_i32
-                      local.set 97   ; y
+                      local.set 99   ; y
                       i32.const 2
-                      local.set 98   ; $k_236
-                      local.get 97   ; y
-                      local.get 98   ; $k_236
+                      local.set 100   ; $k_237
+                      local.get 99   ; y
+                      local.get 100   ; $k_237
                       i32.eq
                       if $L72 void
                       else
                         local.get 91   ; nested
-                        local.get 97   ; y
+                        local.get 99   ; y
                         i32.add
                         local.set 91   ; nested
                         i64.const 1
-                        local.set 99   ; $k_239
-                        local.get 96   ; __for_i_35
-                        local.get 99   ; $k_239
+                        local.set 101   ; $k_240
+                        local.get 98   ; __for_i_35
+                        local.get 101   ; $k_240
                         i64.add
-                        local.set 96   ; __for_i_35
+                        local.set 98   ; __for_i_35
                         br $L70
                       end $L72
                     end $L71
                   end $L70
                 end $L69
                 i64.const 1
-                local.set 100   ; $k_241
-                local.get 93   ; __fuse_i_38
-                local.get 100   ; $k_241
+                local.set 102   ; $k_242
+                local.get 95   ; __fuse_i_39
+                local.get 102   ; $k_242
                 i64.add
-                local.set 93   ; __fuse_i_38
+                local.set 95   ; __fuse_i_39
                 br $L67
               end $L68
             end $L67
           end $L66
-          local.get 1   ; b
+          local.get 93   ; __fuse_arr_37
           array.len
-          local.set 101   ; __fuse_len_40
+          local.set 103   ; __fuse_len_40
           i64.const 0
-          local.set 102   ; __fuse_i_41
+          local.set 104   ; __fuse_i_41
           block $L73 void
             loop $L74 void
-              local.get 102   ; __fuse_i_41
-              local.get 101   ; __fuse_len_40
+              local.get 104   ; __fuse_i_41
+              local.get 103   ; __fuse_len_40
               u64.lt
               if $L75 void
                 local.get 0   ; a
-                local.tee 103   ; __for_arr_33
+                local.tee 105   ; __for_arr_33
                 array.len
-                local.set 104   ; __for_len_34
+                local.set 106   ; __for_len_34
                 i64.const 0
-                local.set 105   ; __for_i_35
+                local.set 107   ; __for_i_35
                 block $L76 void
                   loop $L77 void
-                    local.get 105   ; __for_i_35
-                    local.get 104   ; __for_len_34
+                    local.get 107   ; __for_i_35
+                    local.get 106   ; __for_len_34
                     u64.lt
                     if $L78 void
-                      local.get 103   ; __for_arr_33
-                      local.get 105   ; __for_i_35
+                      local.get 105   ; __for_arr_33
+                      local.get 107   ; __for_i_35
                       load_slot_i32
-                      local.set 106   ; y
+                      local.set 108   ; y
                       i32.const 2
-                      local.set 107   ; $k_260
-                      local.get 106   ; y
-                      local.get 107   ; $k_260
+                      local.set 109   ; $k_260
+                      local.get 108   ; y
+                      local.get 109   ; $k_260
                       i32.eq
                       if $L79 void
                       else
                         local.get 91   ; nested
-                        local.get 106   ; y
+                        local.get 108   ; y
                         i32.add
                         local.set 91   ; nested
                         i64.const 1
-                        local.set 108   ; $k_263
-                        local.get 105   ; __for_i_35
-                        local.get 108   ; $k_263
+                        local.set 110   ; $k_263
+                        local.get 107   ; __for_i_35
+                        local.get 110   ; $k_263
                         i64.add
-                        local.set 105   ; __for_i_35
+                        local.set 107   ; __for_i_35
                         br $L77
                       end $L79
                     end $L78
                   end $L77
                 end $L76
                 i64.const 1
-                local.set 109   ; $k_265
-                local.get 102   ; __fuse_i_41
-                local.get 109   ; $k_265
+                local.set 111   ; $k_265
+                local.get 104   ; __fuse_i_41
+                local.get 111   ; $k_265
                 i64.add
-                local.set 102   ; __fuse_i_41
+                local.set 104   ; __fuse_i_41
                 br $L74
               end $L75
             end $L74
           end $L73
           i64.const 40
           call 7   ; std_core$new_byte_buffer
-          local.set 110   ; __buf_42
+          local.set 112   ; __buf_42
           i64.const 0
-          local.set 111   ; __off_43
+          local.set 113   ; __off_43
           string.const 11   ; "nested break="
-          local.set 112   ; $k_272
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
-          local.get 112   ; $k_272
+          local.set 114   ; $k_272
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
+          local.get 114   ; $k_272
           call 9   ; std_core$write_string_at
-          local.set 111   ; __off_43
+          local.set 113   ; __off_43
           local.get 91   ; nested
           i32.to_i64
-          local.set 113   ; $cast_274
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
-          local.get 113   ; $cast_274
+          local.set 115   ; $cast_274
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
+          local.get 115   ; $cast_274
           call 10   ; std_core$write_int
-          local.set 111   ; __off_43
+          local.set 113   ; __off_43
           string.const 12   ; " want=6"
-          local.set 114   ; $k_276
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
-          local.get 114   ; $k_276
+          local.set 116   ; $k_276
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
+          local.get 116   ; $k_276
           call 9   ; std_core$write_string_at
-          local.set 111   ; __off_43
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
+          local.set 113   ; __off_43
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
           call 8   ; std_core$finish_buffer
           call 25   ; std_io$println__string
           return.lit i32.const 0
@@ -1459,63 +1477,65 @@ fn 0 snippet$main () -> i32
           i32.const 0
           local.set 39   ; kept
           local.get 0   ; a
-          local.tee 40   ; __fuse_arr_12
+          local.set 40   ; __fuse_arr_12
+          local.get 1   ; b
+          local.set 41   ; __fuse_arr_13
+          local.get 40   ; __fuse_arr_12
           array.len
-          local.set 41   ; __fuse_len_13
+          local.set 42   ; __fuse_len_14
           i64.const 0
-          local.set 42   ; __fuse_i_14
+          local.set 43   ; __fuse_i_15
           block $L84 void
             loop $L85 void
-              local.get 42   ; __fuse_i_14
-              local.get 41   ; __fuse_len_13
+              local.get 43   ; __fuse_i_15
+              local.get 42   ; __fuse_len_14
               u64.lt
               if $L86 void
                 local.get 40   ; __fuse_arr_12
-                local.get 42   ; __fuse_i_14
+                local.get 43   ; __fuse_i_15
                 load_slot_i32
-                local.set 43   ; x
+                local.set 44   ; x
                 i32.const 2
-                local.set 44   ; $k_105
-                local.get 43   ; x
-                local.get 44   ; $k_105
+                local.set 45   ; $k_106
+                local.get 44   ; x
+                local.get 45   ; $k_106
                 i32.eq
                 if $L87 void
                   bool.const true
-                  local.set 45   ; or_res
+                  local.set 46   ; or_res
                 else
                   i32.const 20
-                  local.set 46   ; $k_109
-                  local.get 43   ; x
-                  local.get 46   ; $k_109
+                  local.set 47   ; $k_110
+                  local.get 44   ; x
+                  local.get 47   ; $k_110
                   i32.eq
-                  local.set 45   ; or_res
+                  local.set 46   ; or_res
                 end $L87
-                local.get 45   ; or_res
+                local.get 46   ; or_res
                 if $L88 void
                   i64.const 1
-                  local.set 47   ; $k_111
-                  local.get 42   ; __fuse_i_14
-                  local.get 47   ; $k_111
+                  local.set 48   ; $k_112
+                  local.get 43   ; __fuse_i_15
+                  local.get 48   ; $k_112
                   i64.add
-                  local.set 42   ; __fuse_i_14
+                  local.set 43   ; __fuse_i_15
                   br $L85
                 end $L88
                 local.get 39   ; kept
-                local.get 43   ; x
+                local.get 44   ; x
                 i32.add
                 local.set 39   ; kept
                 i64.const 1
-                local.set 48   ; $k_114
-                local.get 42   ; __fuse_i_14
-                local.get 48   ; $k_114
+                local.set 49   ; $k_115
+                local.get 43   ; __fuse_i_15
+                local.get 49   ; $k_115
                 i64.add
-                local.set 42   ; __fuse_i_14
+                local.set 43   ; __fuse_i_15
                 br $L85
               end $L86
             end $L85
           end $L84
-          local.get 1   ; b
-          local.tee 49   ; __fuse_arr_15
+          local.get 41   ; __fuse_arr_13
           array.len
           local.set 50   ; __fuse_len_16
           i64.const 0
@@ -1526,7 +1546,7 @@ fn 0 snippet$main () -> i32
               local.get 50   ; __fuse_len_16
               u64.lt
               if $L91 void
-                local.get 49   ; __fuse_arr_15
+                local.get 41   ; __fuse_arr_13
                 local.get 51   ; __fuse_i_17
                 load_slot_i32
                 local.set 52   ; x
@@ -1604,37 +1624,39 @@ fn 0 snippet$main () -> i32
           i32.const 0
           local.set 63   ; whole
           local.get 0   ; a
-          local.tee 64   ; __fuse_arr_20
+          local.set 64   ; __fuse_arr_20
+          local.get 1   ; b
+          local.set 65   ; __fuse_arr_21
+          local.get 64   ; __fuse_arr_20
           array.len
-          local.set 65   ; __fuse_len_21
+          local.set 66   ; __fuse_len_22
           i64.const 0
-          local.set 66   ; __fuse_i_22
+          local.set 67   ; __fuse_i_23
           block $L94 void
             loop $L95 void
-              local.get 66   ; __fuse_i_22
-              local.get 65   ; __fuse_len_21
+              local.get 67   ; __fuse_i_23
+              local.get 66   ; __fuse_len_22
               u64.lt
               if $L96 void
                 local.get 64   ; __fuse_arr_20
-                local.get 66   ; __fuse_i_22
+                local.get 67   ; __fuse_i_23
                 load_slot_i32
-                local.set 67   ; x
+                local.set 68   ; x
                 local.get 63   ; whole
-                local.get 67   ; x
+                local.get 68   ; x
                 i32.add
                 local.set 63   ; whole
                 i64.const 1
-                local.set 68   ; $k_160
-                local.get 66   ; __fuse_i_22
-                local.get 68   ; $k_160
+                local.set 69   ; $k_161
+                local.get 67   ; __fuse_i_23
+                local.get 69   ; $k_161
                 i64.add
-                local.set 66   ; __fuse_i_22
+                local.set 67   ; __fuse_i_23
                 br $L95
               end $L96
             end $L95
           end $L94
-          local.get 1   ; b
-          local.tee 69   ; __fuse_arr_23
+          local.get 65   ; __fuse_arr_21
           array.len
           local.set 70   ; __fuse_len_24
           i64.const 0
@@ -1645,7 +1667,7 @@ fn 0 snippet$main () -> i32
               local.get 70   ; __fuse_len_24
               u64.lt
               if $L99 void
-                local.get 69   ; __fuse_arr_23
+                local.get 65   ; __fuse_arr_21
                 local.get 71   ; __fuse_i_25
                 load_slot_i32
                 local.set 72   ; x
@@ -1769,152 +1791,156 @@ fn 0 snippet$main () -> i32
           i32.const 0
           local.set 91   ; nested
           local.get 0   ; a
+          local.set 92   ; __fuse_arr_36
+          local.get 1   ; b
+          local.set 93   ; __fuse_arr_37
+          local.get 92   ; __fuse_arr_36
           array.len
-          local.set 92   ; __fuse_len_37
+          local.set 94   ; __fuse_len_38
           i64.const 0
-          local.set 93   ; __fuse_i_38
+          local.set 95   ; __fuse_i_39
           block $L104 void
             loop $L105 void
-              local.get 93   ; __fuse_i_38
-              local.get 92   ; __fuse_len_37
+              local.get 95   ; __fuse_i_39
+              local.get 94   ; __fuse_len_38
               u64.lt
               if $L106 void
                 local.get 0   ; a
-                local.tee 94   ; __for_arr_33
+                local.tee 96   ; __for_arr_33
                 array.len
-                local.set 95   ; __for_len_34
+                local.set 97   ; __for_len_34
                 i64.const 0
-                local.set 96   ; __for_i_35
+                local.set 98   ; __for_i_35
                 block $L107 void
                   loop $L108 void
-                    local.get 96   ; __for_i_35
-                    local.get 95   ; __for_len_34
+                    local.get 98   ; __for_i_35
+                    local.get 97   ; __for_len_34
                     u64.lt
                     if $L109 void
-                      local.get 94   ; __for_arr_33
-                      local.get 96   ; __for_i_35
+                      local.get 96   ; __for_arr_33
+                      local.get 98   ; __for_i_35
                       load_slot_i32
-                      local.set 97   ; y
+                      local.set 99   ; y
                       i32.const 2
-                      local.set 98   ; $k_236
-                      local.get 97   ; y
-                      local.get 98   ; $k_236
+                      local.set 100   ; $k_237
+                      local.get 99   ; y
+                      local.get 100   ; $k_237
                       i32.eq
                       if $L110 void
                       else
                         local.get 91   ; nested
-                        local.get 97   ; y
+                        local.get 99   ; y
                         i32.add
                         local.set 91   ; nested
                         i64.const 1
-                        local.set 99   ; $k_239
-                        local.get 96   ; __for_i_35
-                        local.get 99   ; $k_239
+                        local.set 101   ; $k_240
+                        local.get 98   ; __for_i_35
+                        local.get 101   ; $k_240
                         i64.add
-                        local.set 96   ; __for_i_35
+                        local.set 98   ; __for_i_35
                         br $L108
                       end $L110
                     end $L109
                   end $L108
                 end $L107
                 i64.const 1
-                local.set 100   ; $k_241
-                local.get 93   ; __fuse_i_38
-                local.get 100   ; $k_241
+                local.set 102   ; $k_242
+                local.get 95   ; __fuse_i_39
+                local.get 102   ; $k_242
                 i64.add
-                local.set 93   ; __fuse_i_38
+                local.set 95   ; __fuse_i_39
                 br $L105
               end $L106
             end $L105
           end $L104
-          local.get 1   ; b
+          local.get 93   ; __fuse_arr_37
           array.len
-          local.set 101   ; __fuse_len_40
+          local.set 103   ; __fuse_len_40
           i64.const 0
-          local.set 102   ; __fuse_i_41
+          local.set 104   ; __fuse_i_41
           block $L111 void
             loop $L112 void
-              local.get 102   ; __fuse_i_41
-              local.get 101   ; __fuse_len_40
+              local.get 104   ; __fuse_i_41
+              local.get 103   ; __fuse_len_40
               u64.lt
               if $L113 void
                 local.get 0   ; a
-                local.tee 103   ; __for_arr_33
+                local.tee 105   ; __for_arr_33
                 array.len
-                local.set 104   ; __for_len_34
+                local.set 106   ; __for_len_34
                 i64.const 0
-                local.set 105   ; __for_i_35
+                local.set 107   ; __for_i_35
                 block $L114 void
                   loop $L115 void
-                    local.get 105   ; __for_i_35
-                    local.get 104   ; __for_len_34
+                    local.get 107   ; __for_i_35
+                    local.get 106   ; __for_len_34
                     u64.lt
                     if $L116 void
-                      local.get 103   ; __for_arr_33
-                      local.get 105   ; __for_i_35
+                      local.get 105   ; __for_arr_33
+                      local.get 107   ; __for_i_35
                       load_slot_i32
-                      local.set 106   ; y
+                      local.set 108   ; y
                       i32.const 2
-                      local.set 107   ; $k_260
-                      local.get 106   ; y
-                      local.get 107   ; $k_260
+                      local.set 109   ; $k_260
+                      local.get 108   ; y
+                      local.get 109   ; $k_260
                       i32.eq
                       if $L117 void
                       else
                         local.get 91   ; nested
-                        local.get 106   ; y
+                        local.get 108   ; y
                         i32.add
                         local.set 91   ; nested
                         i64.const 1
-                        local.set 108   ; $k_263
-                        local.get 105   ; __for_i_35
-                        local.get 108   ; $k_263
+                        local.set 110   ; $k_263
+                        local.get 107   ; __for_i_35
+                        local.get 110   ; $k_263
                         i64.add
-                        local.set 105   ; __for_i_35
+                        local.set 107   ; __for_i_35
                         br $L115
                       end $L117
                     end $L116
                   end $L115
                 end $L114
                 i64.const 1
-                local.set 109   ; $k_265
-                local.get 102   ; __fuse_i_41
-                local.get 109   ; $k_265
+                local.set 111   ; $k_265
+                local.get 104   ; __fuse_i_41
+                local.get 111   ; $k_265
                 i64.add
-                local.set 102   ; __fuse_i_41
+                local.set 104   ; __fuse_i_41
                 br $L112
               end $L113
             end $L112
           end $L111
           i64.const 40
           call 7   ; std_core$new_byte_buffer
-          local.set 110   ; __buf_42
+          local.set 112   ; __buf_42
           i64.const 0
-          local.set 111   ; __off_43
+          local.set 113   ; __off_43
           string.const 11   ; "nested break="
-          local.set 112   ; $k_272
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
-          local.get 112   ; $k_272
+          local.set 114   ; $k_272
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
+          local.get 114   ; $k_272
           call 9   ; std_core$write_string_at
-          local.set 111   ; __off_43
+          local.set 113   ; __off_43
           local.get 91   ; nested
           i32.to_i64
-          local.set 113   ; $cast_274
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
-          local.get 113   ; $cast_274
+          local.set 115   ; $cast_274
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
+          local.get 115   ; $cast_274
           call 10   ; std_core$write_int
-          local.set 111   ; __off_43
+          local.set 113   ; __off_43
           string.const 12   ; " want=6"
-          local.set 114   ; $k_276
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
-          local.get 114   ; $k_276
+          local.set 116   ; $k_276
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
+          local.get 116   ; $k_276
           call 9   ; std_core$write_string_at
-          local.set 111   ; __off_43
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
+          local.set 113   ; __off_43
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
           call 8   ; std_core$finish_buffer
           call 25   ; std_io$println__string
           return.lit i32.const 0
@@ -1954,63 +1980,65 @@ fn 0 snippet$main () -> i32
       i32.const 0
       local.set 39   ; kept
       local.get 0   ; a
-      local.tee 40   ; __fuse_arr_12
+      local.set 40   ; __fuse_arr_12
+      local.get 1   ; b
+      local.set 41   ; __fuse_arr_13
+      local.get 40   ; __fuse_arr_12
       array.len
-      local.set 41   ; __fuse_len_13
+      local.set 42   ; __fuse_len_14
       i64.const 0
-      local.set 42   ; __fuse_i_14
+      local.set 43   ; __fuse_i_15
       block $L118 void
         loop $L119 void
-          local.get 42   ; __fuse_i_14
-          local.get 41   ; __fuse_len_13
+          local.get 43   ; __fuse_i_15
+          local.get 42   ; __fuse_len_14
           u64.lt
           if $L120 void
             local.get 40   ; __fuse_arr_12
-            local.get 42   ; __fuse_i_14
+            local.get 43   ; __fuse_i_15
             load_slot_i32
-            local.set 43   ; x
+            local.set 44   ; x
             i32.const 2
-            local.set 44   ; $k_105
-            local.get 43   ; x
-            local.get 44   ; $k_105
+            local.set 45   ; $k_106
+            local.get 44   ; x
+            local.get 45   ; $k_106
             i32.eq
             if $L121 void
               bool.const true
-              local.set 45   ; or_res
+              local.set 46   ; or_res
             else
               i32.const 20
-              local.set 46   ; $k_109
-              local.get 43   ; x
-              local.get 46   ; $k_109
+              local.set 47   ; $k_110
+              local.get 44   ; x
+              local.get 47   ; $k_110
               i32.eq
-              local.set 45   ; or_res
+              local.set 46   ; or_res
             end $L121
-            local.get 45   ; or_res
+            local.get 46   ; or_res
             if $L122 void
               i64.const 1
-              local.set 47   ; $k_111
-              local.get 42   ; __fuse_i_14
-              local.get 47   ; $k_111
+              local.set 48   ; $k_112
+              local.get 43   ; __fuse_i_15
+              local.get 48   ; $k_112
               i64.add
-              local.set 42   ; __fuse_i_14
+              local.set 43   ; __fuse_i_15
               br $L119
             end $L122
             local.get 39   ; kept
-            local.get 43   ; x
+            local.get 44   ; x
             i32.add
             local.set 39   ; kept
             i64.const 1
-            local.set 48   ; $k_114
-            local.get 42   ; __fuse_i_14
-            local.get 48   ; $k_114
+            local.set 49   ; $k_115
+            local.get 43   ; __fuse_i_15
+            local.get 49   ; $k_115
             i64.add
-            local.set 42   ; __fuse_i_14
+            local.set 43   ; __fuse_i_15
             br $L119
           end $L120
         end $L119
       end $L118
-      local.get 1   ; b
-      local.tee 49   ; __fuse_arr_15
+      local.get 41   ; __fuse_arr_13
       array.len
       local.set 50   ; __fuse_len_16
       i64.const 0
@@ -2021,7 +2049,7 @@ fn 0 snippet$main () -> i32
           local.get 50   ; __fuse_len_16
           u64.lt
           if $L125 void
-            local.get 49   ; __fuse_arr_15
+            local.get 41   ; __fuse_arr_13
             local.get 51   ; __fuse_i_17
             load_slot_i32
             local.set 52   ; x
@@ -2099,37 +2127,39 @@ fn 0 snippet$main () -> i32
       i32.const 0
       local.set 63   ; whole
       local.get 0   ; a
-      local.tee 64   ; __fuse_arr_20
+      local.set 64   ; __fuse_arr_20
+      local.get 1   ; b
+      local.set 65   ; __fuse_arr_21
+      local.get 64   ; __fuse_arr_20
       array.len
-      local.set 65   ; __fuse_len_21
+      local.set 66   ; __fuse_len_22
       i64.const 0
-      local.set 66   ; __fuse_i_22
+      local.set 67   ; __fuse_i_23
       block $L128 void
         loop $L129 void
-          local.get 66   ; __fuse_i_22
-          local.get 65   ; __fuse_len_21
+          local.get 67   ; __fuse_i_23
+          local.get 66   ; __fuse_len_22
           u64.lt
           if $L130 void
             local.get 64   ; __fuse_arr_20
-            local.get 66   ; __fuse_i_22
+            local.get 67   ; __fuse_i_23
             load_slot_i32
-            local.set 67   ; x
+            local.set 68   ; x
             local.get 63   ; whole
-            local.get 67   ; x
+            local.get 68   ; x
             i32.add
             local.set 63   ; whole
             i64.const 1
-            local.set 68   ; $k_160
-            local.get 66   ; __fuse_i_22
-            local.get 68   ; $k_160
+            local.set 69   ; $k_161
+            local.get 67   ; __fuse_i_23
+            local.get 69   ; $k_161
             i64.add
-            local.set 66   ; __fuse_i_22
+            local.set 67   ; __fuse_i_23
             br $L129
           end $L130
         end $L129
       end $L128
-      local.get 1   ; b
-      local.tee 69   ; __fuse_arr_23
+      local.get 65   ; __fuse_arr_21
       array.len
       local.set 70   ; __fuse_len_24
       i64.const 0
@@ -2140,7 +2170,7 @@ fn 0 snippet$main () -> i32
           local.get 70   ; __fuse_len_24
           u64.lt
           if $L133 void
-            local.get 69   ; __fuse_arr_23
+            local.get 65   ; __fuse_arr_21
             local.get 71   ; __fuse_i_25
             load_slot_i32
             local.set 72   ; x
@@ -2264,152 +2294,156 @@ fn 0 snippet$main () -> i32
       i32.const 0
       local.set 91   ; nested
       local.get 0   ; a
+      local.set 92   ; __fuse_arr_36
+      local.get 1   ; b
+      local.set 93   ; __fuse_arr_37
+      local.get 92   ; __fuse_arr_36
       array.len
-      local.set 92   ; __fuse_len_37
+      local.set 94   ; __fuse_len_38
       i64.const 0
-      local.set 93   ; __fuse_i_38
+      local.set 95   ; __fuse_i_39
       block $L138 void
         loop $L139 void
-          local.get 93   ; __fuse_i_38
-          local.get 92   ; __fuse_len_37
+          local.get 95   ; __fuse_i_39
+          local.get 94   ; __fuse_len_38
           u64.lt
           if $L140 void
             local.get 0   ; a
-            local.tee 94   ; __for_arr_33
+            local.tee 96   ; __for_arr_33
             array.len
-            local.set 95   ; __for_len_34
+            local.set 97   ; __for_len_34
             i64.const 0
-            local.set 96   ; __for_i_35
+            local.set 98   ; __for_i_35
             block $L141 void
               loop $L142 void
-                local.get 96   ; __for_i_35
-                local.get 95   ; __for_len_34
+                local.get 98   ; __for_i_35
+                local.get 97   ; __for_len_34
                 u64.lt
                 if $L143 void
-                  local.get 94   ; __for_arr_33
-                  local.get 96   ; __for_i_35
+                  local.get 96   ; __for_arr_33
+                  local.get 98   ; __for_i_35
                   load_slot_i32
-                  local.set 97   ; y
+                  local.set 99   ; y
                   i32.const 2
-                  local.set 98   ; $k_236
-                  local.get 97   ; y
-                  local.get 98   ; $k_236
+                  local.set 100   ; $k_237
+                  local.get 99   ; y
+                  local.get 100   ; $k_237
                   i32.eq
                   if $L144 void
                   else
                     local.get 91   ; nested
-                    local.get 97   ; y
+                    local.get 99   ; y
                     i32.add
                     local.set 91   ; nested
                     i64.const 1
-                    local.set 99   ; $k_239
-                    local.get 96   ; __for_i_35
-                    local.get 99   ; $k_239
+                    local.set 101   ; $k_240
+                    local.get 98   ; __for_i_35
+                    local.get 101   ; $k_240
                     i64.add
-                    local.set 96   ; __for_i_35
+                    local.set 98   ; __for_i_35
                     br $L142
                   end $L144
                 end $L143
               end $L142
             end $L141
             i64.const 1
-            local.set 100   ; $k_241
-            local.get 93   ; __fuse_i_38
-            local.get 100   ; $k_241
+            local.set 102   ; $k_242
+            local.get 95   ; __fuse_i_39
+            local.get 102   ; $k_242
             i64.add
-            local.set 93   ; __fuse_i_38
+            local.set 95   ; __fuse_i_39
             br $L139
           end $L140
         end $L139
       end $L138
-      local.get 1   ; b
+      local.get 93   ; __fuse_arr_37
       array.len
-      local.set 101   ; __fuse_len_40
+      local.set 103   ; __fuse_len_40
       i64.const 0
-      local.set 102   ; __fuse_i_41
+      local.set 104   ; __fuse_i_41
       block $L145 void
         loop $L146 void
-          local.get 102   ; __fuse_i_41
-          local.get 101   ; __fuse_len_40
+          local.get 104   ; __fuse_i_41
+          local.get 103   ; __fuse_len_40
           u64.lt
           if $L147 void
             local.get 0   ; a
-            local.tee 103   ; __for_arr_33
+            local.tee 105   ; __for_arr_33
             array.len
-            local.set 104   ; __for_len_34
+            local.set 106   ; __for_len_34
             i64.const 0
-            local.set 105   ; __for_i_35
+            local.set 107   ; __for_i_35
             block $L148 void
               loop $L149 void
-                local.get 105   ; __for_i_35
-                local.get 104   ; __for_len_34
+                local.get 107   ; __for_i_35
+                local.get 106   ; __for_len_34
                 u64.lt
                 if $L150 void
-                  local.get 103   ; __for_arr_33
-                  local.get 105   ; __for_i_35
+                  local.get 105   ; __for_arr_33
+                  local.get 107   ; __for_i_35
                   load_slot_i32
-                  local.set 106   ; y
+                  local.set 108   ; y
                   i32.const 2
-                  local.set 107   ; $k_260
-                  local.get 106   ; y
-                  local.get 107   ; $k_260
+                  local.set 109   ; $k_260
+                  local.get 108   ; y
+                  local.get 109   ; $k_260
                   i32.eq
                   if $L151 void
                   else
                     local.get 91   ; nested
-                    local.get 106   ; y
+                    local.get 108   ; y
                     i32.add
                     local.set 91   ; nested
                     i64.const 1
-                    local.set 108   ; $k_263
-                    local.get 105   ; __for_i_35
-                    local.get 108   ; $k_263
+                    local.set 110   ; $k_263
+                    local.get 107   ; __for_i_35
+                    local.get 110   ; $k_263
                     i64.add
-                    local.set 105   ; __for_i_35
+                    local.set 107   ; __for_i_35
                     br $L149
                   end $L151
                 end $L150
               end $L149
             end $L148
             i64.const 1
-            local.set 109   ; $k_265
-            local.get 102   ; __fuse_i_41
-            local.get 109   ; $k_265
+            local.set 111   ; $k_265
+            local.get 104   ; __fuse_i_41
+            local.get 111   ; $k_265
             i64.add
-            local.set 102   ; __fuse_i_41
+            local.set 104   ; __fuse_i_41
             br $L146
           end $L147
         end $L146
       end $L145
       i64.const 40
       call 7   ; std_core$new_byte_buffer
-      local.set 110   ; __buf_42
+      local.set 112   ; __buf_42
       i64.const 0
-      local.set 111   ; __off_43
+      local.set 113   ; __off_43
       string.const 11   ; "nested break="
-      local.set 112   ; $k_272
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
-      local.get 112   ; $k_272
+      local.set 114   ; $k_272
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
+      local.get 114   ; $k_272
       call 9   ; std_core$write_string_at
-      local.set 111   ; __off_43
+      local.set 113   ; __off_43
       local.get 91   ; nested
       i32.to_i64
-      local.set 113   ; $cast_274
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
-      local.get 113   ; $cast_274
+      local.set 115   ; $cast_274
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
+      local.get 115   ; $cast_274
       call 10   ; std_core$write_int
-      local.set 111   ; __off_43
+      local.set 113   ; __off_43
       string.const 12   ; " want=6"
-      local.set 114   ; $k_276
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
-      local.get 114   ; $k_276
+      local.set 116   ; $k_276
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
+      local.get 116   ; $k_276
       call 9   ; std_core$write_string_at
-      local.set 111   ; __off_43
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
+      local.set 113   ; __off_43
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
       call 8   ; std_core$finish_buffer
       call 25   ; std_io$println__string
       return.lit i32.const 0
@@ -2597,63 +2631,65 @@ fn 0 snippet$main () -> i32
           i32.const 0
           local.set 39   ; kept
           local.get 0   ; a
-          local.tee 40   ; __fuse_arr_12
+          local.set 40   ; __fuse_arr_12
+          local.get 1   ; b
+          local.set 41   ; __fuse_arr_13
+          local.get 40   ; __fuse_arr_12
           array.len
-          local.set 41   ; __fuse_len_13
+          local.set 42   ; __fuse_len_14
           i64.const 0
-          local.set 42   ; __fuse_i_14
+          local.set 43   ; __fuse_i_15
           block $L160 void
             loop $L161 void
-              local.get 42   ; __fuse_i_14
-              local.get 41   ; __fuse_len_13
+              local.get 43   ; __fuse_i_15
+              local.get 42   ; __fuse_len_14
               u64.lt
               if $L162 void
                 local.get 40   ; __fuse_arr_12
-                local.get 42   ; __fuse_i_14
+                local.get 43   ; __fuse_i_15
                 load_slot_i32
-                local.set 43   ; x
+                local.set 44   ; x
                 i32.const 2
-                local.set 44   ; $k_105
-                local.get 43   ; x
-                local.get 44   ; $k_105
+                local.set 45   ; $k_106
+                local.get 44   ; x
+                local.get 45   ; $k_106
                 i32.eq
                 if $L163 void
                   bool.const true
-                  local.set 45   ; or_res
+                  local.set 46   ; or_res
                 else
                   i32.const 20
-                  local.set 46   ; $k_109
-                  local.get 43   ; x
-                  local.get 46   ; $k_109
+                  local.set 47   ; $k_110
+                  local.get 44   ; x
+                  local.get 47   ; $k_110
                   i32.eq
-                  local.set 45   ; or_res
+                  local.set 46   ; or_res
                 end $L163
-                local.get 45   ; or_res
+                local.get 46   ; or_res
                 if $L164 void
                   i64.const 1
-                  local.set 47   ; $k_111
-                  local.get 42   ; __fuse_i_14
-                  local.get 47   ; $k_111
+                  local.set 48   ; $k_112
+                  local.get 43   ; __fuse_i_15
+                  local.get 48   ; $k_112
                   i64.add
-                  local.set 42   ; __fuse_i_14
+                  local.set 43   ; __fuse_i_15
                   br $L161
                 end $L164
                 local.get 39   ; kept
-                local.get 43   ; x
+                local.get 44   ; x
                 i32.add
                 local.set 39   ; kept
                 i64.const 1
-                local.set 48   ; $k_114
-                local.get 42   ; __fuse_i_14
-                local.get 48   ; $k_114
+                local.set 49   ; $k_115
+                local.get 43   ; __fuse_i_15
+                local.get 49   ; $k_115
                 i64.add
-                local.set 42   ; __fuse_i_14
+                local.set 43   ; __fuse_i_15
                 br $L161
               end $L162
             end $L161
           end $L160
-          local.get 1   ; b
-          local.tee 49   ; __fuse_arr_15
+          local.get 41   ; __fuse_arr_13
           array.len
           local.set 50   ; __fuse_len_16
           i64.const 0
@@ -2664,7 +2700,7 @@ fn 0 snippet$main () -> i32
               local.get 50   ; __fuse_len_16
               u64.lt
               if $L167 void
-                local.get 49   ; __fuse_arr_15
+                local.get 41   ; __fuse_arr_13
                 local.get 51   ; __fuse_i_17
                 load_slot_i32
                 local.set 52   ; x
@@ -2742,37 +2778,39 @@ fn 0 snippet$main () -> i32
           i32.const 0
           local.set 63   ; whole
           local.get 0   ; a
-          local.tee 64   ; __fuse_arr_20
+          local.set 64   ; __fuse_arr_20
+          local.get 1   ; b
+          local.set 65   ; __fuse_arr_21
+          local.get 64   ; __fuse_arr_20
           array.len
-          local.set 65   ; __fuse_len_21
+          local.set 66   ; __fuse_len_22
           i64.const 0
-          local.set 66   ; __fuse_i_22
+          local.set 67   ; __fuse_i_23
           block $L170 void
             loop $L171 void
-              local.get 66   ; __fuse_i_22
-              local.get 65   ; __fuse_len_21
+              local.get 67   ; __fuse_i_23
+              local.get 66   ; __fuse_len_22
               u64.lt
               if $L172 void
                 local.get 64   ; __fuse_arr_20
-                local.get 66   ; __fuse_i_22
+                local.get 67   ; __fuse_i_23
                 load_slot_i32
-                local.set 67   ; x
+                local.set 68   ; x
                 local.get 63   ; whole
-                local.get 67   ; x
+                local.get 68   ; x
                 i32.add
                 local.set 63   ; whole
                 i64.const 1
-                local.set 68   ; $k_160
-                local.get 66   ; __fuse_i_22
-                local.get 68   ; $k_160
+                local.set 69   ; $k_161
+                local.get 67   ; __fuse_i_23
+                local.get 69   ; $k_161
                 i64.add
-                local.set 66   ; __fuse_i_22
+                local.set 67   ; __fuse_i_23
                 br $L171
               end $L172
             end $L171
           end $L170
-          local.get 1   ; b
-          local.tee 69   ; __fuse_arr_23
+          local.get 65   ; __fuse_arr_21
           array.len
           local.set 70   ; __fuse_len_24
           i64.const 0
@@ -2783,7 +2821,7 @@ fn 0 snippet$main () -> i32
               local.get 70   ; __fuse_len_24
               u64.lt
               if $L175 void
-                local.get 69   ; __fuse_arr_23
+                local.get 65   ; __fuse_arr_21
                 local.get 71   ; __fuse_i_25
                 load_slot_i32
                 local.set 72   ; x
@@ -2907,152 +2945,156 @@ fn 0 snippet$main () -> i32
           i32.const 0
           local.set 91   ; nested
           local.get 0   ; a
+          local.set 92   ; __fuse_arr_36
+          local.get 1   ; b
+          local.set 93   ; __fuse_arr_37
+          local.get 92   ; __fuse_arr_36
           array.len
-          local.set 92   ; __fuse_len_37
+          local.set 94   ; __fuse_len_38
           i64.const 0
-          local.set 93   ; __fuse_i_38
+          local.set 95   ; __fuse_i_39
           block $L180 void
             loop $L181 void
-              local.get 93   ; __fuse_i_38
-              local.get 92   ; __fuse_len_37
+              local.get 95   ; __fuse_i_39
+              local.get 94   ; __fuse_len_38
               u64.lt
               if $L182 void
                 local.get 0   ; a
-                local.tee 94   ; __for_arr_33
+                local.tee 96   ; __for_arr_33
                 array.len
-                local.set 95   ; __for_len_34
+                local.set 97   ; __for_len_34
                 i64.const 0
-                local.set 96   ; __for_i_35
+                local.set 98   ; __for_i_35
                 block $L183 void
                   loop $L184 void
-                    local.get 96   ; __for_i_35
-                    local.get 95   ; __for_len_34
+                    local.get 98   ; __for_i_35
+                    local.get 97   ; __for_len_34
                     u64.lt
                     if $L185 void
-                      local.get 94   ; __for_arr_33
-                      local.get 96   ; __for_i_35
+                      local.get 96   ; __for_arr_33
+                      local.get 98   ; __for_i_35
                       load_slot_i32
-                      local.set 97   ; y
+                      local.set 99   ; y
                       i32.const 2
-                      local.set 98   ; $k_236
-                      local.get 97   ; y
-                      local.get 98   ; $k_236
+                      local.set 100   ; $k_237
+                      local.get 99   ; y
+                      local.get 100   ; $k_237
                       i32.eq
                       if $L186 void
                       else
                         local.get 91   ; nested
-                        local.get 97   ; y
+                        local.get 99   ; y
                         i32.add
                         local.set 91   ; nested
                         i64.const 1
-                        local.set 99   ; $k_239
-                        local.get 96   ; __for_i_35
-                        local.get 99   ; $k_239
+                        local.set 101   ; $k_240
+                        local.get 98   ; __for_i_35
+                        local.get 101   ; $k_240
                         i64.add
-                        local.set 96   ; __for_i_35
+                        local.set 98   ; __for_i_35
                         br $L184
                       end $L186
                     end $L185
                   end $L184
                 end $L183
                 i64.const 1
-                local.set 100   ; $k_241
-                local.get 93   ; __fuse_i_38
-                local.get 100   ; $k_241
+                local.set 102   ; $k_242
+                local.get 95   ; __fuse_i_39
+                local.get 102   ; $k_242
                 i64.add
-                local.set 93   ; __fuse_i_38
+                local.set 95   ; __fuse_i_39
                 br $L181
               end $L182
             end $L181
           end $L180
-          local.get 1   ; b
+          local.get 93   ; __fuse_arr_37
           array.len
-          local.set 101   ; __fuse_len_40
+          local.set 103   ; __fuse_len_40
           i64.const 0
-          local.set 102   ; __fuse_i_41
+          local.set 104   ; __fuse_i_41
           block $L187 void
             loop $L188 void
-              local.get 102   ; __fuse_i_41
-              local.get 101   ; __fuse_len_40
+              local.get 104   ; __fuse_i_41
+              local.get 103   ; __fuse_len_40
               u64.lt
               if $L189 void
                 local.get 0   ; a
-                local.tee 103   ; __for_arr_33
+                local.tee 105   ; __for_arr_33
                 array.len
-                local.set 104   ; __for_len_34
+                local.set 106   ; __for_len_34
                 i64.const 0
-                local.set 105   ; __for_i_35
+                local.set 107   ; __for_i_35
                 block $L190 void
                   loop $L191 void
-                    local.get 105   ; __for_i_35
-                    local.get 104   ; __for_len_34
+                    local.get 107   ; __for_i_35
+                    local.get 106   ; __for_len_34
                     u64.lt
                     if $L192 void
-                      local.get 103   ; __for_arr_33
-                      local.get 105   ; __for_i_35
+                      local.get 105   ; __for_arr_33
+                      local.get 107   ; __for_i_35
                       load_slot_i32
-                      local.set 106   ; y
+                      local.set 108   ; y
                       i32.const 2
-                      local.set 107   ; $k_260
-                      local.get 106   ; y
-                      local.get 107   ; $k_260
+                      local.set 109   ; $k_260
+                      local.get 108   ; y
+                      local.get 109   ; $k_260
                       i32.eq
                       if $L193 void
                       else
                         local.get 91   ; nested
-                        local.get 106   ; y
+                        local.get 108   ; y
                         i32.add
                         local.set 91   ; nested
                         i64.const 1
-                        local.set 108   ; $k_263
-                        local.get 105   ; __for_i_35
-                        local.get 108   ; $k_263
+                        local.set 110   ; $k_263
+                        local.get 107   ; __for_i_35
+                        local.get 110   ; $k_263
                         i64.add
-                        local.set 105   ; __for_i_35
+                        local.set 107   ; __for_i_35
                         br $L191
                       end $L193
                     end $L192
                   end $L191
                 end $L190
                 i64.const 1
-                local.set 109   ; $k_265
-                local.get 102   ; __fuse_i_41
-                local.get 109   ; $k_265
+                local.set 111   ; $k_265
+                local.get 104   ; __fuse_i_41
+                local.get 111   ; $k_265
                 i64.add
-                local.set 102   ; __fuse_i_41
+                local.set 104   ; __fuse_i_41
                 br $L188
               end $L189
             end $L188
           end $L187
           i64.const 40
           call 7   ; std_core$new_byte_buffer
-          local.set 110   ; __buf_42
+          local.set 112   ; __buf_42
           i64.const 0
-          local.set 111   ; __off_43
+          local.set 113   ; __off_43
           string.const 11   ; "nested break="
-          local.set 112   ; $k_272
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
-          local.get 112   ; $k_272
+          local.set 114   ; $k_272
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
+          local.get 114   ; $k_272
           call 9   ; std_core$write_string_at
-          local.set 111   ; __off_43
+          local.set 113   ; __off_43
           local.get 91   ; nested
           i32.to_i64
-          local.set 113   ; $cast_274
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
-          local.get 113   ; $cast_274
+          local.set 115   ; $cast_274
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
+          local.get 115   ; $cast_274
           call 10   ; std_core$write_int
-          local.set 111   ; __off_43
+          local.set 113   ; __off_43
           string.const 12   ; " want=6"
-          local.set 114   ; $k_276
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
-          local.get 114   ; $k_276
+          local.set 116   ; $k_276
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
+          local.get 116   ; $k_276
           call 9   ; std_core$write_string_at
-          local.set 111   ; __off_43
-          local.get 110   ; __buf_42
-          local.get 111   ; __off_43
+          local.set 113   ; __off_43
+          local.get 112   ; __buf_42
+          local.get 113   ; __off_43
           call 8   ; std_core$finish_buffer
           call 25   ; std_io$println__string
           return.lit i32.const 0
@@ -3092,63 +3134,65 @@ fn 0 snippet$main () -> i32
       i32.const 0
       local.set 39   ; kept
       local.get 0   ; a
-      local.tee 40   ; __fuse_arr_12
+      local.set 40   ; __fuse_arr_12
+      local.get 1   ; b
+      local.set 41   ; __fuse_arr_13
+      local.get 40   ; __fuse_arr_12
       array.len
-      local.set 41   ; __fuse_len_13
+      local.set 42   ; __fuse_len_14
       i64.const 0
-      local.set 42   ; __fuse_i_14
+      local.set 43   ; __fuse_i_15
       block $L194 void
         loop $L195 void
-          local.get 42   ; __fuse_i_14
-          local.get 41   ; __fuse_len_13
+          local.get 43   ; __fuse_i_15
+          local.get 42   ; __fuse_len_14
           u64.lt
           if $L196 void
             local.get 40   ; __fuse_arr_12
-            local.get 42   ; __fuse_i_14
+            local.get 43   ; __fuse_i_15
             load_slot_i32
-            local.set 43   ; x
+            local.set 44   ; x
             i32.const 2
-            local.set 44   ; $k_105
-            local.get 43   ; x
-            local.get 44   ; $k_105
+            local.set 45   ; $k_106
+            local.get 44   ; x
+            local.get 45   ; $k_106
             i32.eq
             if $L197 void
               bool.const true
-              local.set 45   ; or_res
+              local.set 46   ; or_res
             else
               i32.const 20
-              local.set 46   ; $k_109
-              local.get 43   ; x
-              local.get 46   ; $k_109
+              local.set 47   ; $k_110
+              local.get 44   ; x
+              local.get 47   ; $k_110
               i32.eq
-              local.set 45   ; or_res
+              local.set 46   ; or_res
             end $L197
-            local.get 45   ; or_res
+            local.get 46   ; or_res
             if $L198 void
               i64.const 1
-              local.set 47   ; $k_111
-              local.get 42   ; __fuse_i_14
-              local.get 47   ; $k_111
+              local.set 48   ; $k_112
+              local.get 43   ; __fuse_i_15
+              local.get 48   ; $k_112
               i64.add
-              local.set 42   ; __fuse_i_14
+              local.set 43   ; __fuse_i_15
               br $L195
             end $L198
             local.get 39   ; kept
-            local.get 43   ; x
+            local.get 44   ; x
             i32.add
             local.set 39   ; kept
             i64.const 1
-            local.set 48   ; $k_114
-            local.get 42   ; __fuse_i_14
-            local.get 48   ; $k_114
+            local.set 49   ; $k_115
+            local.get 43   ; __fuse_i_15
+            local.get 49   ; $k_115
             i64.add
-            local.set 42   ; __fuse_i_14
+            local.set 43   ; __fuse_i_15
             br $L195
           end $L196
         end $L195
       end $L194
-      local.get 1   ; b
-      local.tee 49   ; __fuse_arr_15
+      local.get 41   ; __fuse_arr_13
       array.len
       local.set 50   ; __fuse_len_16
       i64.const 0
@@ -3159,7 +3203,7 @@ fn 0 snippet$main () -> i32
           local.get 50   ; __fuse_len_16
           u64.lt
           if $L201 void
-            local.get 49   ; __fuse_arr_15
+            local.get 41   ; __fuse_arr_13
             local.get 51   ; __fuse_i_17
             load_slot_i32
             local.set 52   ; x
@@ -3237,37 +3281,39 @@ fn 0 snippet$main () -> i32
       i32.const 0
       local.set 63   ; whole
       local.get 0   ; a
-      local.tee 64   ; __fuse_arr_20
+      local.set 64   ; __fuse_arr_20
+      local.get 1   ; b
+      local.set 65   ; __fuse_arr_21
+      local.get 64   ; __fuse_arr_20
       array.len
-      local.set 65   ; __fuse_len_21
+      local.set 66   ; __fuse_len_22
       i64.const 0
-      local.set 66   ; __fuse_i_22
+      local.set 67   ; __fuse_i_23
       block $L204 void
         loop $L205 void
-          local.get 66   ; __fuse_i_22
-          local.get 65   ; __fuse_len_21
+          local.get 67   ; __fuse_i_23
+          local.get 66   ; __fuse_len_22
           u64.lt
           if $L206 void
             local.get 64   ; __fuse_arr_20
-            local.get 66   ; __fuse_i_22
+            local.get 67   ; __fuse_i_23
             load_slot_i32
-            local.set 67   ; x
+            local.set 68   ; x
             local.get 63   ; whole
-            local.get 67   ; x
+            local.get 68   ; x
             i32.add
             local.set 63   ; whole
             i64.const 1
-            local.set 68   ; $k_160
-            local.get 66   ; __fuse_i_22
-            local.get 68   ; $k_160
+            local.set 69   ; $k_161
+            local.get 67   ; __fuse_i_23
+            local.get 69   ; $k_161
             i64.add
-            local.set 66   ; __fuse_i_22
+            local.set 67   ; __fuse_i_23
             br $L205
           end $L206
         end $L205
       end $L204
-      local.get 1   ; b
-      local.tee 69   ; __fuse_arr_23
+      local.get 65   ; __fuse_arr_21
       array.len
       local.set 70   ; __fuse_len_24
       i64.const 0
@@ -3278,7 +3324,7 @@ fn 0 snippet$main () -> i32
           local.get 70   ; __fuse_len_24
           u64.lt
           if $L209 void
-            local.get 69   ; __fuse_arr_23
+            local.get 65   ; __fuse_arr_21
             local.get 71   ; __fuse_i_25
             load_slot_i32
             local.set 72   ; x
@@ -3402,152 +3448,156 @@ fn 0 snippet$main () -> i32
       i32.const 0
       local.set 91   ; nested
       local.get 0   ; a
+      local.set 92   ; __fuse_arr_36
+      local.get 1   ; b
+      local.set 93   ; __fuse_arr_37
+      local.get 92   ; __fuse_arr_36
       array.len
-      local.set 92   ; __fuse_len_37
+      local.set 94   ; __fuse_len_38
       i64.const 0
-      local.set 93   ; __fuse_i_38
+      local.set 95   ; __fuse_i_39
       block $L214 void
         loop $L215 void
-          local.get 93   ; __fuse_i_38
-          local.get 92   ; __fuse_len_37
+          local.get 95   ; __fuse_i_39
+          local.get 94   ; __fuse_len_38
           u64.lt
           if $L216 void
             local.get 0   ; a
-            local.tee 94   ; __for_arr_33
+            local.tee 96   ; __for_arr_33
             array.len
-            local.set 95   ; __for_len_34
+            local.set 97   ; __for_len_34
             i64.const 0
-            local.set 96   ; __for_i_35
+            local.set 98   ; __for_i_35
             block $L217 void
               loop $L218 void
-                local.get 96   ; __for_i_35
-                local.get 95   ; __for_len_34
+                local.get 98   ; __for_i_35
+                local.get 97   ; __for_len_34
                 u64.lt
                 if $L219 void
-                  local.get 94   ; __for_arr_33
-                  local.get 96   ; __for_i_35
+                  local.get 96   ; __for_arr_33
+                  local.get 98   ; __for_i_35
                   load_slot_i32
-                  local.set 97   ; y
+                  local.set 99   ; y
                   i32.const 2
-                  local.set 98   ; $k_236
-                  local.get 97   ; y
-                  local.get 98   ; $k_236
+                  local.set 100   ; $k_237
+                  local.get 99   ; y
+                  local.get 100   ; $k_237
                   i32.eq
                   if $L220 void
                   else
                     local.get 91   ; nested
-                    local.get 97   ; y
+                    local.get 99   ; y
                     i32.add
                     local.set 91   ; nested
                     i64.const 1
-                    local.set 99   ; $k_239
-                    local.get 96   ; __for_i_35
-                    local.get 99   ; $k_239
+                    local.set 101   ; $k_240
+                    local.get 98   ; __for_i_35
+                    local.get 101   ; $k_240
                     i64.add
-                    local.set 96   ; __for_i_35
+                    local.set 98   ; __for_i_35
                     br $L218
                   end $L220
                 end $L219
               end $L218
             end $L217
             i64.const 1
-            local.set 100   ; $k_241
-            local.get 93   ; __fuse_i_38
-            local.get 100   ; $k_241
+            local.set 102   ; $k_242
+            local.get 95   ; __fuse_i_39
+            local.get 102   ; $k_242
             i64.add
-            local.set 93   ; __fuse_i_38
+            local.set 95   ; __fuse_i_39
             br $L215
           end $L216
         end $L215
       end $L214
-      local.get 1   ; b
+      local.get 93   ; __fuse_arr_37
       array.len
-      local.set 101   ; __fuse_len_40
+      local.set 103   ; __fuse_len_40
       i64.const 0
-      local.set 102   ; __fuse_i_41
+      local.set 104   ; __fuse_i_41
       block $L221 void
         loop $L222 void
-          local.get 102   ; __fuse_i_41
-          local.get 101   ; __fuse_len_40
+          local.get 104   ; __fuse_i_41
+          local.get 103   ; __fuse_len_40
           u64.lt
           if $L223 void
             local.get 0   ; a
-            local.tee 103   ; __for_arr_33
+            local.tee 105   ; __for_arr_33
             array.len
-            local.set 104   ; __for_len_34
+            local.set 106   ; __for_len_34
             i64.const 0
-            local.set 105   ; __for_i_35
+            local.set 107   ; __for_i_35
             block $L224 void
               loop $L225 void
-                local.get 105   ; __for_i_35
-                local.get 104   ; __for_len_34
+                local.get 107   ; __for_i_35
+                local.get 106   ; __for_len_34
                 u64.lt
                 if $L226 void
-                  local.get 103   ; __for_arr_33
-                  local.get 105   ; __for_i_35
+                  local.get 105   ; __for_arr_33
+                  local.get 107   ; __for_i_35
                   load_slot_i32
-                  local.set 106   ; y
+                  local.set 108   ; y
                   i32.const 2
-                  local.set 107   ; $k_260
-                  local.get 106   ; y
-                  local.get 107   ; $k_260
+                  local.set 109   ; $k_260
+                  local.get 108   ; y
+                  local.get 109   ; $k_260
                   i32.eq
                   if $L227 void
                   else
                     local.get 91   ; nested
-                    local.get 106   ; y
+                    local.get 108   ; y
                     i32.add
                     local.set 91   ; nested
                     i64.const 1
-                    local.set 108   ; $k_263
-                    local.get 105   ; __for_i_35
-                    local.get 108   ; $k_263
+                    local.set 110   ; $k_263
+                    local.get 107   ; __for_i_35
+                    local.get 110   ; $k_263
                     i64.add
-                    local.set 105   ; __for_i_35
+                    local.set 107   ; __for_i_35
                     br $L225
                   end $L227
                 end $L226
               end $L225
             end $L224
             i64.const 1
-            local.set 109   ; $k_265
-            local.get 102   ; __fuse_i_41
-            local.get 109   ; $k_265
+            local.set 111   ; $k_265
+            local.get 104   ; __fuse_i_41
+            local.get 111   ; $k_265
             i64.add
-            local.set 102   ; __fuse_i_41
+            local.set 104   ; __fuse_i_41
             br $L222
           end $L223
         end $L222
       end $L221
       i64.const 40
       call 7   ; std_core$new_byte_buffer
-      local.set 110   ; __buf_42
+      local.set 112   ; __buf_42
       i64.const 0
-      local.set 111   ; __off_43
+      local.set 113   ; __off_43
       string.const 11   ; "nested break="
-      local.set 112   ; $k_272
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
-      local.get 112   ; $k_272
+      local.set 114   ; $k_272
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
+      local.get 114   ; $k_272
       call 9   ; std_core$write_string_at
-      local.set 111   ; __off_43
+      local.set 113   ; __off_43
       local.get 91   ; nested
       i32.to_i64
-      local.set 113   ; $cast_274
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
-      local.get 113   ; $cast_274
+      local.set 115   ; $cast_274
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
+      local.get 115   ; $cast_274
       call 10   ; std_core$write_int
-      local.set 111   ; __off_43
+      local.set 113   ; __off_43
       string.const 12   ; " want=6"
-      local.set 114   ; $k_276
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
-      local.get 114   ; $k_276
+      local.set 116   ; $k_276
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
+      local.get 116   ; $k_276
       call 9   ; std_core$write_string_at
-      local.set 111   ; __off_43
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
+      local.set 113   ; __off_43
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
       call 8   ; std_core$finish_buffer
       call 25   ; std_io$println__string
       return.lit i32.const 0
@@ -3661,63 +3711,65 @@ fn 0 snippet$main () -> i32
       i32.const 0
       local.set 39   ; kept
       local.get 0   ; a
-      local.tee 40   ; __fuse_arr_12
+      local.set 40   ; __fuse_arr_12
+      local.get 1   ; b
+      local.set 41   ; __fuse_arr_13
+      local.get 40   ; __fuse_arr_12
       array.len
-      local.set 41   ; __fuse_len_13
+      local.set 42   ; __fuse_len_14
       i64.const 0
-      local.set 42   ; __fuse_i_14
+      local.set 43   ; __fuse_i_15
       block $L232 void
         loop $L233 void
-          local.get 42   ; __fuse_i_14
-          local.get 41   ; __fuse_len_13
+          local.get 43   ; __fuse_i_15
+          local.get 42   ; __fuse_len_14
           u64.lt
           if $L234 void
             local.get 40   ; __fuse_arr_12
-            local.get 42   ; __fuse_i_14
+            local.get 43   ; __fuse_i_15
             load_slot_i32
-            local.set 43   ; x
+            local.set 44   ; x
             i32.const 2
-            local.set 44   ; $k_105
-            local.get 43   ; x
-            local.get 44   ; $k_105
+            local.set 45   ; $k_106
+            local.get 44   ; x
+            local.get 45   ; $k_106
             i32.eq
             if $L235 void
               bool.const true
-              local.set 45   ; or_res
+              local.set 46   ; or_res
             else
               i32.const 20
-              local.set 46   ; $k_109
-              local.get 43   ; x
-              local.get 46   ; $k_109
+              local.set 47   ; $k_110
+              local.get 44   ; x
+              local.get 47   ; $k_110
               i32.eq
-              local.set 45   ; or_res
+              local.set 46   ; or_res
             end $L235
-            local.get 45   ; or_res
+            local.get 46   ; or_res
             if $L236 void
               i64.const 1
-              local.set 47   ; $k_111
-              local.get 42   ; __fuse_i_14
-              local.get 47   ; $k_111
+              local.set 48   ; $k_112
+              local.get 43   ; __fuse_i_15
+              local.get 48   ; $k_112
               i64.add
-              local.set 42   ; __fuse_i_14
+              local.set 43   ; __fuse_i_15
               br $L233
             end $L236
             local.get 39   ; kept
-            local.get 43   ; x
+            local.get 44   ; x
             i32.add
             local.set 39   ; kept
             i64.const 1
-            local.set 48   ; $k_114
-            local.get 42   ; __fuse_i_14
-            local.get 48   ; $k_114
+            local.set 49   ; $k_115
+            local.get 43   ; __fuse_i_15
+            local.get 49   ; $k_115
             i64.add
-            local.set 42   ; __fuse_i_14
+            local.set 43   ; __fuse_i_15
             br $L233
           end $L234
         end $L233
       end $L232
-      local.get 1   ; b
-      local.tee 49   ; __fuse_arr_15
+      local.get 41   ; __fuse_arr_13
       array.len
       local.set 50   ; __fuse_len_16
       i64.const 0
@@ -3728,7 +3780,7 @@ fn 0 snippet$main () -> i32
           local.get 50   ; __fuse_len_16
           u64.lt
           if $L239 void
-            local.get 49   ; __fuse_arr_15
+            local.get 41   ; __fuse_arr_13
             local.get 51   ; __fuse_i_17
             load_slot_i32
             local.set 52   ; x
@@ -3806,37 +3858,39 @@ fn 0 snippet$main () -> i32
       i32.const 0
       local.set 63   ; whole
       local.get 0   ; a
-      local.tee 64   ; __fuse_arr_20
+      local.set 64   ; __fuse_arr_20
+      local.get 1   ; b
+      local.set 65   ; __fuse_arr_21
+      local.get 64   ; __fuse_arr_20
       array.len
-      local.set 65   ; __fuse_len_21
+      local.set 66   ; __fuse_len_22
       i64.const 0
-      local.set 66   ; __fuse_i_22
+      local.set 67   ; __fuse_i_23
       block $L242 void
         loop $L243 void
-          local.get 66   ; __fuse_i_22
-          local.get 65   ; __fuse_len_21
+          local.get 67   ; __fuse_i_23
+          local.get 66   ; __fuse_len_22
           u64.lt
           if $L244 void
             local.get 64   ; __fuse_arr_20
-            local.get 66   ; __fuse_i_22
+            local.get 67   ; __fuse_i_23
             load_slot_i32
-            local.set 67   ; x
+            local.set 68   ; x
             local.get 63   ; whole
-            local.get 67   ; x
+            local.get 68   ; x
             i32.add
             local.set 63   ; whole
             i64.const 1
-            local.set 68   ; $k_160
-            local.get 66   ; __fuse_i_22
-            local.get 68   ; $k_160
+            local.set 69   ; $k_161
+            local.get 67   ; __fuse_i_23
+            local.get 69   ; $k_161
             i64.add
-            local.set 66   ; __fuse_i_22
+            local.set 67   ; __fuse_i_23
             br $L243
           end $L244
         end $L243
       end $L242
-      local.get 1   ; b
-      local.tee 69   ; __fuse_arr_23
+      local.get 65   ; __fuse_arr_21
       array.len
       local.set 70   ; __fuse_len_24
       i64.const 0
@@ -3847,7 +3901,7 @@ fn 0 snippet$main () -> i32
           local.get 70   ; __fuse_len_24
           u64.lt
           if $L247 void
-            local.get 69   ; __fuse_arr_23
+            local.get 65   ; __fuse_arr_21
             local.get 71   ; __fuse_i_25
             load_slot_i32
             local.set 72   ; x
@@ -3971,152 +4025,156 @@ fn 0 snippet$main () -> i32
       i32.const 0
       local.set 91   ; nested
       local.get 0   ; a
+      local.set 92   ; __fuse_arr_36
+      local.get 1   ; b
+      local.set 93   ; __fuse_arr_37
+      local.get 92   ; __fuse_arr_36
       array.len
-      local.set 92   ; __fuse_len_37
+      local.set 94   ; __fuse_len_38
       i64.const 0
-      local.set 93   ; __fuse_i_38
+      local.set 95   ; __fuse_i_39
       block $L252 void
         loop $L253 void
-          local.get 93   ; __fuse_i_38
-          local.get 92   ; __fuse_len_37
+          local.get 95   ; __fuse_i_39
+          local.get 94   ; __fuse_len_38
           u64.lt
           if $L254 void
             local.get 0   ; a
-            local.tee 94   ; __for_arr_33
+            local.tee 96   ; __for_arr_33
             array.len
-            local.set 95   ; __for_len_34
+            local.set 97   ; __for_len_34
             i64.const 0
-            local.set 96   ; __for_i_35
+            local.set 98   ; __for_i_35
             block $L255 void
               loop $L256 void
-                local.get 96   ; __for_i_35
-                local.get 95   ; __for_len_34
+                local.get 98   ; __for_i_35
+                local.get 97   ; __for_len_34
                 u64.lt
                 if $L257 void
-                  local.get 94   ; __for_arr_33
-                  local.get 96   ; __for_i_35
+                  local.get 96   ; __for_arr_33
+                  local.get 98   ; __for_i_35
                   load_slot_i32
-                  local.set 97   ; y
+                  local.set 99   ; y
                   i32.const 2
-                  local.set 98   ; $k_236
-                  local.get 97   ; y
-                  local.get 98   ; $k_236
+                  local.set 100   ; $k_237
+                  local.get 99   ; y
+                  local.get 100   ; $k_237
                   i32.eq
                   if $L258 void
                   else
                     local.get 91   ; nested
-                    local.get 97   ; y
+                    local.get 99   ; y
                     i32.add
                     local.set 91   ; nested
                     i64.const 1
-                    local.set 99   ; $k_239
-                    local.get 96   ; __for_i_35
-                    local.get 99   ; $k_239
+                    local.set 101   ; $k_240
+                    local.get 98   ; __for_i_35
+                    local.get 101   ; $k_240
                     i64.add
-                    local.set 96   ; __for_i_35
+                    local.set 98   ; __for_i_35
                     br $L256
                   end $L258
                 end $L257
               end $L256
             end $L255
             i64.const 1
-            local.set 100   ; $k_241
-            local.get 93   ; __fuse_i_38
-            local.get 100   ; $k_241
+            local.set 102   ; $k_242
+            local.get 95   ; __fuse_i_39
+            local.get 102   ; $k_242
             i64.add
-            local.set 93   ; __fuse_i_38
+            local.set 95   ; __fuse_i_39
             br $L253
           end $L254
         end $L253
       end $L252
-      local.get 1   ; b
+      local.get 93   ; __fuse_arr_37
       array.len
-      local.set 101   ; __fuse_len_40
+      local.set 103   ; __fuse_len_40
       i64.const 0
-      local.set 102   ; __fuse_i_41
+      local.set 104   ; __fuse_i_41
       block $L259 void
         loop $L260 void
-          local.get 102   ; __fuse_i_41
-          local.get 101   ; __fuse_len_40
+          local.get 104   ; __fuse_i_41
+          local.get 103   ; __fuse_len_40
           u64.lt
           if $L261 void
             local.get 0   ; a
-            local.tee 103   ; __for_arr_33
+            local.tee 105   ; __for_arr_33
             array.len
-            local.set 104   ; __for_len_34
+            local.set 106   ; __for_len_34
             i64.const 0
-            local.set 105   ; __for_i_35
+            local.set 107   ; __for_i_35
             block $L262 void
               loop $L263 void
-                local.get 105   ; __for_i_35
-                local.get 104   ; __for_len_34
+                local.get 107   ; __for_i_35
+                local.get 106   ; __for_len_34
                 u64.lt
                 if $L264 void
-                  local.get 103   ; __for_arr_33
-                  local.get 105   ; __for_i_35
+                  local.get 105   ; __for_arr_33
+                  local.get 107   ; __for_i_35
                   load_slot_i32
-                  local.set 106   ; y
+                  local.set 108   ; y
                   i32.const 2
-                  local.set 107   ; $k_260
-                  local.get 106   ; y
-                  local.get 107   ; $k_260
+                  local.set 109   ; $k_260
+                  local.get 108   ; y
+                  local.get 109   ; $k_260
                   i32.eq
                   if $L265 void
                   else
                     local.get 91   ; nested
-                    local.get 106   ; y
+                    local.get 108   ; y
                     i32.add
                     local.set 91   ; nested
                     i64.const 1
-                    local.set 108   ; $k_263
-                    local.get 105   ; __for_i_35
-                    local.get 108   ; $k_263
+                    local.set 110   ; $k_263
+                    local.get 107   ; __for_i_35
+                    local.get 110   ; $k_263
                     i64.add
-                    local.set 105   ; __for_i_35
+                    local.set 107   ; __for_i_35
                     br $L263
                   end $L265
                 end $L264
               end $L263
             end $L262
             i64.const 1
-            local.set 109   ; $k_265
-            local.get 102   ; __fuse_i_41
-            local.get 109   ; $k_265
+            local.set 111   ; $k_265
+            local.get 104   ; __fuse_i_41
+            local.get 111   ; $k_265
             i64.add
-            local.set 102   ; __fuse_i_41
+            local.set 104   ; __fuse_i_41
             br $L260
           end $L261
         end $L260
       end $L259
       i64.const 40
       call 7   ; std_core$new_byte_buffer
-      local.set 110   ; __buf_42
+      local.set 112   ; __buf_42
       i64.const 0
-      local.set 111   ; __off_43
+      local.set 113   ; __off_43
       string.const 11   ; "nested break="
-      local.set 112   ; $k_272
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
-      local.get 112   ; $k_272
+      local.set 114   ; $k_272
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
+      local.get 114   ; $k_272
       call 9   ; std_core$write_string_at
-      local.set 111   ; __off_43
+      local.set 113   ; __off_43
       local.get 91   ; nested
       i32.to_i64
-      local.set 113   ; $cast_274
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
-      local.get 113   ; $cast_274
+      local.set 115   ; $cast_274
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
+      local.get 115   ; $cast_274
       call 10   ; std_core$write_int
-      local.set 111   ; __off_43
+      local.set 113   ; __off_43
       string.const 12   ; " want=6"
-      local.set 114   ; $k_276
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
-      local.get 114   ; $k_276
+      local.set 116   ; $k_276
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
+      local.get 116   ; $k_276
       call 9   ; std_core$write_string_at
-      local.set 111   ; __off_43
-      local.get 110   ; __buf_42
-      local.get 111   ; __off_43
+      local.set 113   ; __off_43
+      local.get 112   ; __buf_42
+      local.get 113   ; __off_43
       call 8   ; std_core$finish_buffer
       call 25   ; std_io$println__string
       return.lit i32.const 0
@@ -4156,63 +4214,65 @@ fn 0 snippet$main () -> i32
   i32.const 0
   local.set 39   ; kept
   local.get 0   ; a
-  local.tee 40   ; __fuse_arr_12
+  local.set 40   ; __fuse_arr_12
+  local.get 1   ; b
+  local.set 41   ; __fuse_arr_13
+  local.get 40   ; __fuse_arr_12
   array.len
-  local.set 41   ; __fuse_len_13
+  local.set 42   ; __fuse_len_14
   i64.const 0
-  local.set 42   ; __fuse_i_14
+  local.set 43   ; __fuse_i_15
   block $L266 void
     loop $L267 void
-      local.get 42   ; __fuse_i_14
-      local.get 41   ; __fuse_len_13
+      local.get 43   ; __fuse_i_15
+      local.get 42   ; __fuse_len_14
       u64.lt
       if $L268 void
         local.get 40   ; __fuse_arr_12
-        local.get 42   ; __fuse_i_14
+        local.get 43   ; __fuse_i_15
         load_slot_i32
-        local.set 43   ; x
+        local.set 44   ; x
         i32.const 2
-        local.set 44   ; $k_105
-        local.get 43   ; x
-        local.get 44   ; $k_105
+        local.set 45   ; $k_106
+        local.get 44   ; x
+        local.get 45   ; $k_106
         i32.eq
         if $L269 void
           bool.const true
-          local.set 45   ; or_res
+          local.set 46   ; or_res
         else
           i32.const 20
-          local.set 46   ; $k_109
-          local.get 43   ; x
-          local.get 46   ; $k_109
+          local.set 47   ; $k_110
+          local.get 44   ; x
+          local.get 47   ; $k_110
           i32.eq
-          local.set 45   ; or_res
+          local.set 46   ; or_res
         end $L269
-        local.get 45   ; or_res
+        local.get 46   ; or_res
         if $L270 void
           i64.const 1
-          local.set 47   ; $k_111
-          local.get 42   ; __fuse_i_14
-          local.get 47   ; $k_111
+          local.set 48   ; $k_112
+          local.get 43   ; __fuse_i_15
+          local.get 48   ; $k_112
           i64.add
-          local.set 42   ; __fuse_i_14
+          local.set 43   ; __fuse_i_15
           br $L267
         end $L270
         local.get 39   ; kept
-        local.get 43   ; x
+        local.get 44   ; x
         i32.add
         local.set 39   ; kept
         i64.const 1
-        local.set 48   ; $k_114
-        local.get 42   ; __fuse_i_14
-        local.get 48   ; $k_114
+        local.set 49   ; $k_115
+        local.get 43   ; __fuse_i_15
+        local.get 49   ; $k_115
         i64.add
-        local.set 42   ; __fuse_i_14
+        local.set 43   ; __fuse_i_15
         br $L267
       end $L268
     end $L267
   end $L266
-  local.get 1   ; b
-  local.tee 49   ; __fuse_arr_15
+  local.get 41   ; __fuse_arr_13
   array.len
   local.set 50   ; __fuse_len_16
   i64.const 0
@@ -4223,7 +4283,7 @@ fn 0 snippet$main () -> i32
       local.get 50   ; __fuse_len_16
       u64.lt
       if $L273 void
-        local.get 49   ; __fuse_arr_15
+        local.get 41   ; __fuse_arr_13
         local.get 51   ; __fuse_i_17
         load_slot_i32
         local.set 52   ; x
@@ -4301,37 +4361,39 @@ fn 0 snippet$main () -> i32
   i32.const 0
   local.set 63   ; whole
   local.get 0   ; a
-  local.tee 64   ; __fuse_arr_20
+  local.set 64   ; __fuse_arr_20
+  local.get 1   ; b
+  local.set 65   ; __fuse_arr_21
+  local.get 64   ; __fuse_arr_20
   array.len
-  local.set 65   ; __fuse_len_21
+  local.set 66   ; __fuse_len_22
   i64.const 0
-  local.set 66   ; __fuse_i_22
+  local.set 67   ; __fuse_i_23
   block $L276 void
     loop $L277 void
-      local.get 66   ; __fuse_i_22
-      local.get 65   ; __fuse_len_21
+      local.get 67   ; __fuse_i_23
+      local.get 66   ; __fuse_len_22
       u64.lt
       if $L278 void
         local.get 64   ; __fuse_arr_20
-        local.get 66   ; __fuse_i_22
+        local.get 67   ; __fuse_i_23
         load_slot_i32
-        local.set 67   ; x
+        local.set 68   ; x
         local.get 63   ; whole
-        local.get 67   ; x
+        local.get 68   ; x
         i32.add
         local.set 63   ; whole
         i64.const 1
-        local.set 68   ; $k_160
-        local.get 66   ; __fuse_i_22
-        local.get 68   ; $k_160
+        local.set 69   ; $k_161
+        local.get 67   ; __fuse_i_23
+        local.get 69   ; $k_161
         i64.add
-        local.set 66   ; __fuse_i_22
+        local.set 67   ; __fuse_i_23
         br $L277
       end $L278
     end $L277
   end $L276
-  local.get 1   ; b
-  local.tee 69   ; __fuse_arr_23
+  local.get 65   ; __fuse_arr_21
   array.len
   local.set 70   ; __fuse_len_24
   i64.const 0
@@ -4342,7 +4404,7 @@ fn 0 snippet$main () -> i32
       local.get 70   ; __fuse_len_24
       u64.lt
       if $L281 void
-        local.get 69   ; __fuse_arr_23
+        local.get 65   ; __fuse_arr_21
         local.get 71   ; __fuse_i_25
         load_slot_i32
         local.set 72   ; x
@@ -4466,152 +4528,156 @@ fn 0 snippet$main () -> i32
   i32.const 0
   local.set 91   ; nested
   local.get 0   ; a
+  local.set 92   ; __fuse_arr_36
+  local.get 1   ; b
+  local.set 93   ; __fuse_arr_37
+  local.get 92   ; __fuse_arr_36
   array.len
-  local.set 92   ; __fuse_len_37
+  local.set 94   ; __fuse_len_38
   i64.const 0
-  local.set 93   ; __fuse_i_38
+  local.set 95   ; __fuse_i_39
   block $L286 void
     loop $L287 void
-      local.get 93   ; __fuse_i_38
-      local.get 92   ; __fuse_len_37
+      local.get 95   ; __fuse_i_39
+      local.get 94   ; __fuse_len_38
       u64.lt
       if $L288 void
         local.get 0   ; a
-        local.tee 94   ; __for_arr_33
+        local.tee 96   ; __for_arr_33
         array.len
-        local.set 95   ; __for_len_34
+        local.set 97   ; __for_len_34
         i64.const 0
-        local.set 96   ; __for_i_35
+        local.set 98   ; __for_i_35
         block $L289 void
           loop $L290 void
-            local.get 96   ; __for_i_35
-            local.get 95   ; __for_len_34
+            local.get 98   ; __for_i_35
+            local.get 97   ; __for_len_34
             u64.lt
             if $L291 void
-              local.get 94   ; __for_arr_33
-              local.get 96   ; __for_i_35
+              local.get 96   ; __for_arr_33
+              local.get 98   ; __for_i_35
               load_slot_i32
-              local.set 97   ; y
+              local.set 99   ; y
               i32.const 2
-              local.set 98   ; $k_236
-              local.get 97   ; y
-              local.get 98   ; $k_236
+              local.set 100   ; $k_237
+              local.get 99   ; y
+              local.get 100   ; $k_237
               i32.eq
               if $L292 void
               else
                 local.get 91   ; nested
-                local.get 97   ; y
+                local.get 99   ; y
                 i32.add
                 local.set 91   ; nested
                 i64.const 1
-                local.set 99   ; $k_239
-                local.get 96   ; __for_i_35
-                local.get 99   ; $k_239
+                local.set 101   ; $k_240
+                local.get 98   ; __for_i_35
+                local.get 101   ; $k_240
                 i64.add
-                local.set 96   ; __for_i_35
+                local.set 98   ; __for_i_35
                 br $L290
               end $L292
             end $L291
           end $L290
         end $L289
         i64.const 1
-        local.set 100   ; $k_241
-        local.get 93   ; __fuse_i_38
-        local.get 100   ; $k_241
+        local.set 102   ; $k_242
+        local.get 95   ; __fuse_i_39
+        local.get 102   ; $k_242
         i64.add
-        local.set 93   ; __fuse_i_38
+        local.set 95   ; __fuse_i_39
         br $L287
       end $L288
     end $L287
   end $L286
-  local.get 1   ; b
+  local.get 93   ; __fuse_arr_37
   array.len
-  local.set 101   ; __fuse_len_40
+  local.set 103   ; __fuse_len_40
   i64.const 0
-  local.set 102   ; __fuse_i_41
+  local.set 104   ; __fuse_i_41
   block $L293 void
     loop $L294 void
-      local.get 102   ; __fuse_i_41
-      local.get 101   ; __fuse_len_40
+      local.get 104   ; __fuse_i_41
+      local.get 103   ; __fuse_len_40
       u64.lt
       if $L295 void
         local.get 0   ; a
-        local.tee 103   ; __for_arr_33
+        local.tee 105   ; __for_arr_33
         array.len
-        local.set 104   ; __for_len_34
+        local.set 106   ; __for_len_34
         i64.const 0
-        local.set 105   ; __for_i_35
+        local.set 107   ; __for_i_35
         block $L296 void
           loop $L297 void
-            local.get 105   ; __for_i_35
-            local.get 104   ; __for_len_34
+            local.get 107   ; __for_i_35
+            local.get 106   ; __for_len_34
             u64.lt
             if $L298 void
-              local.get 103   ; __for_arr_33
-              local.get 105   ; __for_i_35
+              local.get 105   ; __for_arr_33
+              local.get 107   ; __for_i_35
               load_slot_i32
-              local.set 106   ; y
+              local.set 108   ; y
               i32.const 2
-              local.set 107   ; $k_260
-              local.get 106   ; y
-              local.get 107   ; $k_260
+              local.set 109   ; $k_260
+              local.get 108   ; y
+              local.get 109   ; $k_260
               i32.eq
               if $L299 void
               else
                 local.get 91   ; nested
-                local.get 106   ; y
+                local.get 108   ; y
                 i32.add
                 local.set 91   ; nested
                 i64.const 1
-                local.set 108   ; $k_263
-                local.get 105   ; __for_i_35
-                local.get 108   ; $k_263
+                local.set 110   ; $k_263
+                local.get 107   ; __for_i_35
+                local.get 110   ; $k_263
                 i64.add
-                local.set 105   ; __for_i_35
+                local.set 107   ; __for_i_35
                 br $L297
               end $L299
             end $L298
           end $L297
         end $L296
         i64.const 1
-        local.set 109   ; $k_265
-        local.get 102   ; __fuse_i_41
-        local.get 109   ; $k_265
+        local.set 111   ; $k_265
+        local.get 104   ; __fuse_i_41
+        local.get 111   ; $k_265
         i64.add
-        local.set 102   ; __fuse_i_41
+        local.set 104   ; __fuse_i_41
         br $L294
       end $L295
     end $L294
   end $L293
   i64.const 40
   call 7   ; std_core$new_byte_buffer
-  local.set 110   ; __buf_42
+  local.set 112   ; __buf_42
   i64.const 0
-  local.set 111   ; __off_43
+  local.set 113   ; __off_43
   string.const 11   ; "nested break="
-  local.set 112   ; $k_272
-  local.get 110   ; __buf_42
-  local.get 111   ; __off_43
-  local.get 112   ; $k_272
+  local.set 114   ; $k_272
+  local.get 112   ; __buf_42
+  local.get 113   ; __off_43
+  local.get 114   ; $k_272
   call 9   ; std_core$write_string_at
-  local.set 111   ; __off_43
+  local.set 113   ; __off_43
   local.get 91   ; nested
   i32.to_i64
-  local.set 113   ; $cast_274
-  local.get 110   ; __buf_42
-  local.get 111   ; __off_43
-  local.get 113   ; $cast_274
+  local.set 115   ; $cast_274
+  local.get 112   ; __buf_42
+  local.get 113   ; __off_43
+  local.get 115   ; $cast_274
   call 10   ; std_core$write_int
-  local.set 111   ; __off_43
+  local.set 113   ; __off_43
   string.const 12   ; " want=6"
-  local.set 114   ; $k_276
-  local.get 110   ; __buf_42
-  local.get 111   ; __off_43
-  local.get 114   ; $k_276
+  local.set 116   ; $k_276
+  local.get 112   ; __buf_42
+  local.get 113   ; __off_43
+  local.get 116   ; $k_276
   call 9   ; std_core$write_string_at
-  local.set 111   ; __off_43
-  local.get 110   ; __buf_42
-  local.get 111   ; __off_43
+  local.set 113   ; __off_43
+  local.get 112   ; __buf_42
+  local.get 113   ; __off_43
   call 8   ; std_core$finish_buffer
   call 25   ; std_io$println__string
   return.lit i32.const 0
@@ -5101,7 +5167,7 @@ fn 22 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
   local $field_29 usize
   local $idx_30 i32
   local $k_31 u8
-  local $len_37 usize
+  local $len_38 usize
   block $L0 void
     loop $L1 void
       local.field 0 14 3   ; arg 0.state
@@ -5129,10 +5195,10 @@ fn 22 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
       i32.const 2
       i32.eq
       if $L4 void
-        local.field 0 14 2   ; arg 0.s2
+        local.field 0 14 1   ; arg 0.s1
         ref.cast 7   ; -> usize
         local.set 1   ; $field_12
-        local.field 0 14 1   ; arg 0.s1
+        local.field 0 14 2   ; arg 0.s2
         ref.cast 7   ; -> usize
         local.set 2   ; $field_13
         local.get 1   ; $field_12
@@ -5154,14 +5220,14 @@ fn 22 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
       i32.const 3
       i32.eq
       if $L6 void
-        local.field 0 14 2   ; arg 0.s2
+        local.field 0 14 1   ; arg 0.s1
         ref.cast 7   ; -> usize
         i64.const 1
         i64.add
         local.set 3   ; $add_22
         local.get 0   ; arg 0
         local.get 3   ; $add_22
-        struct.set 14 2   ; __gen_state_std_core_0.s2
+        struct.set 14 1   ; __gen_state_std_core_0.s1
         local.get 0   ; arg 0
         i32.const 2
         struct.set 14 3   ; __gen_state_std_core_0.state
@@ -5179,7 +5245,7 @@ fn 22 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
         struct.set 14 3   ; __gen_state_std_core_0.state
         local.field 0 14 0   ; arg 0.s0
         local.set 5   ; $field_28
-        local.field 0 14 2   ; arg 0.s2
+        local.field 0 14 1   ; arg 0.s1
         ref.cast 7   ; -> usize
         local.set 6   ; $field_29
         local.get 5   ; $field_28
@@ -5198,14 +5264,14 @@ fn 22 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
       i32.const 5
       i32.eq
       if $L8 void
-        local.field 0 14 0   ; arg 0.s0
-        array.len
-        local.set 9   ; $len_37
-        local.get 0   ; arg 0
-        local.get 9   ; $len_37
-        struct.set 14 1   ; __gen_state_std_core_0.s1
         local.get 0   ; arg 0
         i64.const 0
+        struct.set 14 1   ; __gen_state_std_core_0.s1
+        local.field 0 14 0   ; arg 0.s0
+        array.len
+        local.set 9   ; $len_38
+        local.get 0   ; arg 0
+        local.get 9   ; $len_38
         struct.set 14 2   ; __gen_state_std_core_0.s2
         local.get 0   ; arg 0
         i32.const 2
@@ -5226,7 +5292,7 @@ fn 22 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
   struct.set 14 3   ; __gen_state_std_core_0.state
   local.field 0 14 0   ; arg 0.s0
   local.set 5   ; $field_28
-  local.field 0 14 2   ; arg 0.s2
+  local.field 0 14 1   ; arg 0.s1
   ref.cast 7   ; -> usize
   local.set 6   ; $field_29
   local.get 5   ; $field_28

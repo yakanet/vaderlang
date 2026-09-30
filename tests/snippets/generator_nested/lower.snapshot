@@ -18,15 +18,15 @@
       }
   fn snippet$main() -> i32
     block :void
-      let ys: i32[] =
-        array :i32[]
-          int(10) :i32
-          int(20) :i32
       let __fuse_arr_2: i32[] =
         array :i32[]
           int(1) :i32
           int(2) :i32
           int(3) :i32
+      let ys: i32[] =
+        array :i32[]
+          int(10) :i32
+          int(20) :i32
       let __fuse_len_3: usize =
         LoweredArrayLen
       let __fuse_i_4: usize = int(0) :usize

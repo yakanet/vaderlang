@@ -252,16 +252,17 @@
         int(5) :i32
     block :void
       let __fuse_arr_11: i32[]! = head :i32[]!
-      let __fuse_len_12: usize =
+      let __fuse_arr_12: i32[]! = tail :i32[]!
+      let __fuse_len_13: usize =
         LoweredArrayLen
-      let __fuse_i_13: usize = int(0) :usize
+      let __fuse_i_14: usize = int(0) :usize
       loop while (<…>)
         let x: i32 =
           index :i32
             on:
               __fuse_arr_11 :i32[]!
             ix:
-              __fuse_i_13 :usize
+              __fuse_i_14 :usize
         let x: i32 = x :i32
         call :void
           callee:
@@ -312,14 +313,13 @@
                     __off_10 :usize
         assign
           target:
-            __fuse_i_13 :usize
+            __fuse_i_14 :usize
           value:
             add :usize
               l:
-                __fuse_i_13 :usize
+                __fuse_i_14 :usize
               r:
                 int(1) :usize
-      let __fuse_arr_14: i32[]! = tail :i32[]!
       let __fuse_len_15: usize =
         LoweredArrayLen
       let __fuse_i_16: usize = int(0) :usize
@@ -327,7 +327,7 @@
         let y: i32 =
           index :i32
             on:
-              __fuse_arr_14 :i32[]!
+              __fuse_arr_12 :i32[]!
             ix:
               __fuse_i_16 :usize
         let x: i32 = y :i32
@@ -393,8 +393,8 @@
         "banana" :string
         "cherry" :string
     block :void
+      let __fuse_arr_21: string[]! = fruits :string[]!
       let i: usize = int(0) :usize
-      let __fuse_arr_22: string[]! = fruits :string[]!
       let __fuse_len_23: usize =
         LoweredArrayLen
       let __fuse_i_24: usize = int(0) :usize
@@ -402,20 +402,20 @@
         let x: string =
           index :string
             on:
-              __fuse_arr_22 :string[]!
+              __fuse_arr_21 :string[]!
             ix:
               __fuse_i_24 :usize
-        let __gen_elem_21: [usize, string] =
+        let __gen_elem_22: [usize, string] =
           [usize, string]! {
             _0: i :usize
             _1: x :string
           }
         let i: usize =
           ._0 :usize
-            __gen_elem_21 :[usize, string]
+            __gen_elem_22 :[usize, string]
         let f: string =
           ._1 :string
-            __gen_elem_21 :[usize, string]
+            __gen_elem_22 :[usize, string]
         call :void
           callee:
             std_io$println__string :void

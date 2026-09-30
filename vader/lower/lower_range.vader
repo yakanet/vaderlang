@@ -53,20 +53,18 @@ build_range_lit :: fn(
     ctx: FnLowerCtx!,
 ) -> LoweredExpr {
     span :: expr.span
-    lower_bound :: recurse(ctx, expr.lower)
+    // `start` and `cursor` both take the lower bound, which is evaluated once.
+    stmts: LoweredStmt[]!: []
+    lower_bound :: bind_unless_stable(ctx, recurse(ctx, expr.lower), "range_lo", span, stmts)
     upper_bound :: recurse(ctx, expr.upper)
     inclusive :: LoweredBoolLit { .span = span, .type = TY_BOOL, .value = expr.inclusive }
-    // Re-lower `expr.lower` so the cursor reads independently from the
-    // `start` field — when the bound is a free ident, each emits its
-    // own slot read.
-    cursor :: recurse(ctx, expr.lower)
     fields :: [
         LoweredStructLitField { .name = "start",     .value = lower_bound },
         LoweredStructLitField { .name = "end",       .value = upper_bound },
         LoweredStructLitField { .name = "inclusive", .value = inclusive },
-        LoweredStructLitField { .name = "cursor",    .value = cursor },
+        LoweredStructLitField { .name = "cursor",    .value = lower_bound },
     ]
-    return build_core_struct_lit(ctx, result_type, fields, span)
+    return with_prelude(stmts, build_core_struct_lit(ctx, result_type, fields, span), span)
 }
 
 // End-to-end tests for `lower_range_expr` need a wired-up

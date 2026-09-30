@@ -10,9 +10,9 @@
     int(9) :usize
   fn snippet$fill(rows: i32[]![]!) -> void
     block :void
+      let i: usize = int(0) :usize
       let __for_hi_0: usize =
         LoweredArrayLen
-      let i: usize = int(0) :usize
       loop while (<…>)
         block :void
           let j: usize = int(0) :usize
@@ -39,9 +39,9 @@
   fn snippet$mismatches(rows: i32[]![]) -> i32
     let bad: i32 = int(0) :i32
     block :void
+      let i: usize = int(0) :usize
       let __for_hi_0: usize =
         LoweredArrayLen
-      let i: usize = int(0) :usize
       loop while (<…>)
         let row: i32[]! =
           index :i32[]!
@@ -270,6 +270,7 @@
         n :usize
     block :void
       let __for_discard_0: usize = int(0) :usize
+      let __for_hi_1: usize = n :usize
       loop while (<…>)
         LoweredArrayPush
         assign

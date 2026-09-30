@@ -1,0 +1,76 @@
+// A fused iterator chain evaluates its operands as the lazy chain does when it
+// is built : each once, in source order — the source, each combinator's
+// argument, then the terminal's predicate — before the first element, and on an
+// empty source too. Every operand logs its evaluation, so a predicate evaluated
+// per element, a range bound read at every test, or an argument evaluated ahead
+// of its source shows in the output.
+//
+// The tail is the unfused reference, which a range also takes : a range value,
+// the plain counted `for` — whose body rebinding the bound does not extend it —
+// and the `x in lo..<hi` test, whose `hi` is evaluated even when `x` is below
+// `lo`.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+source :: fn(name: string, xs: i32[]) -> i32[] {
+    println("source ${name}")
+    return xs
+}
+
+bound :: fn(name: string, v: i32) -> i32 {
+    println("bound ${name}")
+    return v
+}
+
+limit :: fn(n: usize) -> usize {
+    println("limit ${n}")
+    return n
+}
+
+adder :: fn(k: i32) -> fn(i32) -> i32 {
+    println("adder ${k}")
+    return (x) -> x + k
+}
+
+above :: fn(k: i32) -> fn(i32) -> bool {
+    println("above ${k}")
+    return (x) -> x > k
+}
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3, 4, 5]
+    empty: i32[]: []
+
+    println("any_match = ${source("xs", xs).map(adder(1)).any_match(above(100))}")
+    println("all_match = ${source("xs", xs).map(adder(1)).all_match(above(0))}")
+    println("find = ${source("xs", xs).map(adder(1)).find(above(3)) ?? 0}")
+    println("on empty = ${source("empty", empty).map(adder(1)).any_match(above(0))}")
+    println("count = ${source("xs", xs).map(adder(1)).filter(above(2)).count()}")
+    println("take = ${source("xs", xs).take(limit(2)).count()}")
+    println("collect = ${source("xs", xs).filter(above(3)).collect().len()}")
+    for y in source("xs", xs).map(adder(10)).filter(above(13)) {
+        println("for y = ${y}")
+    }
+    println("range = ${(bound("lo", 0)..<bound("hi", 3)).map(adder(1)).count()}")
+    for z in source("a", [1, 2]).chain(source("b", [3])) {
+        println("chain z = ${z}")
+    }
+
+    r :: bound("lo", 0)..<bound("hi", 2)
+    for i in r {
+        println("range value i = ${i}")
+    }
+    for i in bound("lo", 0)..<bound("hi", 2) {
+        println("plain i = ${i}")
+    }
+    n := 2
+    for i in 0..<n {
+        n = 5
+        println("rebound i = ${i}")
+    }
+    below :: -1
+    println("in = ${below in bound("lo", 0)..<bound("hi", 3)}")
+    return 0
+}

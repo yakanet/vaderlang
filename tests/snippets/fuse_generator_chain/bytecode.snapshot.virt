@@ -24,8 +24,8 @@ impl 6 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local f ref
   local __fuse_arr_2 ref
+  local f ref
   local __fuse_len_3 usize
   local __fuse_i_4 usize
   local v i32
@@ -34,15 +34,16 @@ fn 0 snippet$main () -> i32
   local $cast_25 i64
   local v i32
   local __buf_10 ref
-  fn.ref 1 12   ; __lambda_snippet_0
-  local.set 0   ; f
   i32.const 1
   i32.const 2
   i32.const 3
   i32.const 4
   i32.const 5
   array.new 11 5   ; i32[][]
-  local.tee 1   ; __fuse_arr_2
+  local.set 0   ; __fuse_arr_2
+  fn.ref 1 12   ; __lambda_snippet_0
+  local.set 1   ; f
+  local.get 0   ; __fuse_arr_2
   array.len
   local.set 2   ; __fuse_len_3
   i64.const 0
@@ -53,10 +54,10 @@ fn 0 snippet$main () -> i32
       local.get 2   ; __fuse_len_3
       u64.lt
       if $L2 void
-        local.get 1   ; __fuse_arr_2
+        local.get 0   ; __fuse_arr_2
         local.get 3   ; __fuse_i_4
         load_slot_i32
-        local.get 0   ; f
+        local.get 1   ; f
         call.indirect 12   ; fn
         local.set 4   ; v
         i64.const 22
@@ -89,15 +90,16 @@ fn 0 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  fn.ref 2 13   ; __lambda_snippet_1
-  local.set 0   ; f
   i32.const 1
   i32.const 2
   i32.const 3
   i32.const 4
   i32.const 5
   array.new 11 5   ; i32[][]
-  local.tee 1   ; __fuse_arr_2
+  local.set 0   ; __fuse_arr_2
+  fn.ref 2 13   ; __lambda_snippet_1
+  local.set 1   ; f
+  local.get 0   ; __fuse_arr_2
   array.len
   local.set 2   ; __fuse_len_3
   i64.const 0
@@ -108,11 +110,11 @@ fn 0 snippet$main () -> i32
       local.get 2   ; __fuse_len_3
       u64.lt
       if $L5 void
-        local.get 1   ; __fuse_arr_2
+        local.get 0   ; __fuse_arr_2
         local.get 3   ; __fuse_i_4
         load_slot_i32
         local.tee 4   ; v
-        local.get 0   ; f
+        local.get 1   ; f
         call.indirect 13   ; fn
         if $L6 void
           local.get 4   ; v
@@ -148,10 +150,6 @@ fn 0 snippet$main () -> i32
       end $L5
     end $L4
   end $L3
-  fn.ref 3 13   ; __lambda_snippet_2
-  local.set 0   ; f
-  fn.ref 4 12   ; __lambda_snippet_3
-  local.set 1   ; __fuse_arr_2
   i32.const 1
   i32.const 2
   i32.const 3
@@ -159,7 +157,12 @@ fn 0 snippet$main () -> i32
   i32.const 5
   i32.const 6
   array.new 11 6   ; i32[][]
-  local.tee 5   ; __buf_0
+  local.set 0   ; __fuse_arr_2
+  fn.ref 3 12   ; __lambda_snippet_2
+  local.set 1   ; f
+  fn.ref 4 13   ; __lambda_snippet_3
+  local.set 5   ; __buf_0
+  local.get 0   ; __fuse_arr_2
   array.len
   local.set 2   ; __fuse_len_3
   i64.const 0
@@ -170,13 +173,13 @@ fn 0 snippet$main () -> i32
       local.get 2   ; __fuse_len_3
       u64.lt
       if $L9 void
-        local.get 5   ; __buf_0
+        local.get 0   ; __fuse_arr_2
         local.get 3   ; __fuse_i_4
         load_slot_i32
-        local.get 1   ; __fuse_arr_2
+        local.get 1   ; f
         call.indirect 12   ; fn
         local.tee 4   ; v
-        local.get 0   ; f
+        local.get 5   ; __buf_0
         call.indirect 13   ; fn
         if $L10 void
           local.get 4   ; v
@@ -231,19 +234,19 @@ fn 2 __lambda_snippet_1 (i32) -> bool
   return
 end
 
-fn 3 __lambda_snippet_2 (i32) -> bool
+fn 3 __lambda_snippet_2 (i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.add
+  return
+end
+
+fn 4 __lambda_snippet_3 (i32) -> bool
   local.get 0   ; arg 0
   i32.const 2
   i32.rem
   i32.const 0
   i32.eq
-  return
-end
-
-fn 4 __lambda_snippet_3 (i32) -> i32
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.add
   return
 end
 

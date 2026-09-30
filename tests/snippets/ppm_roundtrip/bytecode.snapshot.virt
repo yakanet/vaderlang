@@ -104,8 +104,8 @@ fn 0 snippet$main () -> i32
   local $vcall_34 string
   local ok bool
   local and_res bool
-  local __for_hi_0 usize
   local i usize
+  local __for_hi_0 usize
   local $idx_90 u8
   local $idx_91 u8
   call 7   ; std_io$temp_dir
@@ -229,28 +229,28 @@ fn 0 snippet$main () -> i32
     bool.const false
     local.set 5   ; ok
   end $L6
+  i64.const 0
+  local.set 7   ; i
   local.get 2   ; enc
   ref.cast 14   ; -> images_ppm$Ppm
   struct.get 14 3   ; images_ppm$Ppm.pixels
   array.len
-  local.set 7   ; __for_hi_0
-  i64.const 0
-  local.set 8   ; i
+  local.set 8   ; __for_hi_0
   block $L7 void
     loop $L8 void
-      local.get 8   ; i
-      local.get 7   ; __for_hi_0
+      local.get 7   ; i
+      local.get 8   ; __for_hi_0
       u64.lt
       if $L9 void
         local.get 2   ; enc
         ref.cast 14   ; -> images_ppm$Ppm
         struct.get 14 3   ; images_ppm$Ppm.pixels
-        local.get 8   ; i
+        local.get 7   ; i
         array.get 8   ; u8[][]
         ref.cast 4   ; -> u8
         local.set 9   ; $idx_90
         local.get 1   ; px
-        local.get 8   ; i
+        local.get 7   ; i
         array.get 8   ; u8[][]
         ref.cast 4   ; -> u8
         local.set 10   ; $idx_91
@@ -261,10 +261,10 @@ fn 0 snippet$main () -> i32
           bool.const false
           local.set 5   ; ok
         end $L10
-        local.get 8   ; i
+        local.get 7   ; i
         i64.const 1
         i64.add
-        local.set 8   ; i
+        local.set 7   ; i
         br $L8
       end $L9
     end $L8
@@ -968,8 +968,8 @@ end
 fn 14 std_io$without_trailing_sep (string) -> string
   local b ref
   local trailing usize
-  local __for_hi_0 usize
   local i usize
+  local __for_hi_0 usize
   local last usize
   local or_res bool
   local $sub_23 usize
@@ -978,22 +978,22 @@ fn 14 std_io$without_trailing_sep (string) -> string
   local.set 1   ; b
   i64.const 0
   local.set 2   ; trailing
+  i64.const 0
+  local.set 3   ; i
   local.get 1   ; b
   array.len
-  local.set 3   ; __for_hi_0
-  i64.const 0
-  local.set 4   ; i
+  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
-      local.get 4   ; i
-      local.get 3   ; __for_hi_0
+      local.get 3   ; i
+      local.get 4   ; __for_hi_0
       u64.lt
       if $L2 void
         local.get 1   ; b
         array.len
         i64.const 1
         i64.sub
-        local.get 4   ; i
+        local.get 3   ; i
         i64.sub
         local.tee 5   ; last
         i64.const 0
@@ -1029,10 +1029,10 @@ fn 14 std_io$without_trailing_sep (string) -> string
             i64.const 1
             i64.add
             local.set 2   ; trailing
-            local.get 4   ; i
+            local.get 3   ; i
             i64.const 1
             i64.add
-            local.set 4   ; i
+            local.set 3   ; i
             br $L1
           end $L5
         end $L4

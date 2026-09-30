@@ -5,9 +5,9 @@
     let out: Histogram =
       array :Histogram
     block :void
+      let i: usize = int(0) :usize
       let __for_hi_0: usize =
         LoweredArrayLen
-      let i: usize = int(0) :usize
       loop while (<…>)
         LoweredArrayPush cached
         assign
@@ -24,9 +24,9 @@
     let out: Histogram =
       array :Histogram
     block :void
+      let i: usize = int(0) :usize
       let __for_hi_0: usize =
         LoweredArrayLen
-      let i: usize = int(0) :usize
       loop while (<…>)
         LoweredArrayPush cached
         assign

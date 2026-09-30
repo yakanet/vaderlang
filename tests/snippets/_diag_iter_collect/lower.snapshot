@@ -11,9 +11,9 @@
   fn snippet$main() -> i32
     let kept: i32[]! =
       block :i32[]!
+        let pred: fn(i32) -> bool = keep :fn(i32) -> bool
         let __collect_0: i32[]! =
           array :i32[]!
-        let pred: fn(i32) -> bool = keep :fn(i32) -> bool
         let x: i32 = int(0) :i32
         loop while (<…>)
           if :void

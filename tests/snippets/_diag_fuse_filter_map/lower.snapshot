@@ -24,8 +24,8 @@
   fn main$main() -> i32
     let total: i64 = int(0) :i64
     block :void
-      let f: fn(i32) -> i64 = square_i64 :fn(i32) -> i64
       let pred: fn(i32) -> bool = is_even :fn(i32) -> bool
+      let f: fn(i32) -> i64 = square_i64 :fn(i32) -> i64
       let x: i32 = int(0) :i32
       loop while (<…>)
         if :void

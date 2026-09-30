@@ -2158,6 +2158,8 @@ The single-expression form `for <expr> { body }` is dispatched by the type of `<
 
 `T3019` fires when the expression is neither — the diagnostic catches a misplaced struct cond as well as a non-`Iterator` user type.
 
+**What a loop iterates is evaluated once, before the first element.** A range `lo..<hi` evaluates `lo`, then `hi`, once each, when it is built — at loop entry for `for i in lo..<hi` — so `for i in 0..<n { n = 5 }` runs as many times as `n` held on entry. A lazy chain does the same, source first, then each combinator's argument, then a terminal's: `xs.map(f()).filter(p()).any_match(q())` evaluates `xs`, `f()`, `p()` and `q()` once each, in that order, before the first element — and on an empty `xs` too. The compiler fusing the chain into one loop does not change this.
+
 The iteration form `for x in expr` accepts three shapes for `expr`:
 1. A built-in array `T[]` — auto-wrapped through `array_iter`.
 2. A value of type `Iterator<T>` — used directly. Two dispatch flavours:

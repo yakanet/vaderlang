@@ -1772,25 +1772,28 @@ end
 
 fn 22 std_core$write_zeros (ref,usize,i32) -> usize
   local i i32
-  local $cast_6 usize
-  local $add_7 usize
+  local __for_hi_0 i32
+  local $cast_7 usize
+  local $add_8 usize
   i32.const 0
   local.set 3   ; i
+  local.get 2   ; arg 2
+  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
       local.get 3   ; i
-      local.get 2   ; arg 2
+      local.get 4   ; __for_hi_0
       i32.lt
       if $L2 void
         local.get 3   ; i
         i32.to_i64
-        local.set 4   ; $cast_6
+        local.set 5   ; $cast_7
         local.get 1   ; arg 1
-        local.get 4   ; $cast_6
+        local.get 5   ; $cast_7
         i64.add
-        local.set 5   ; $add_7
+        local.set 6   ; $add_8
         local.get 0   ; arg 0
-        local.get 5   ; $add_7
+        local.get 6   ; $add_8
         i32.const 48
         call 31   ; std_core$Buffer$ByteAccess$store_u8_vt
         local.get 3   ; i
@@ -1803,9 +1806,9 @@ fn 22 std_core$write_zeros (ref,usize,i32) -> usize
   end $L0
   local.get 2   ; arg 2
   i32.to_i64
-  local.set 4   ; $cast_6
+  local.set 5   ; $cast_7
   local.get 1   ; arg 1
-  local.get 4   ; $cast_6
+  local.get 5   ; $cast_7
   i64.add
   return
 end

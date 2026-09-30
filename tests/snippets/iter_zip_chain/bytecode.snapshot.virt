@@ -220,12 +220,12 @@ fn 0 snippet$main () -> i32
   i32.const 2
   i32.const 3
   array.new 2 3   ; i32[][]
-  local.set 1   ; __buf_0
+  local.set 0   ; nums
   i32.const 4
   i32.const 5
   array.new 2 2   ; i32[][]
-  local.set 0   ; nums
-  local.get 1   ; __buf_0
+  local.set 1   ; __buf_0
+  local.get 0   ; nums
   array.len
   local.set 2   ; __off_1
   i64.const 0
@@ -236,7 +236,7 @@ fn 0 snippet$main () -> i32
       local.get 2   ; __off_1
       u64.lt
       if $L6 void
-        local.get 1   ; __buf_0
+        local.get 0   ; nums
         local.get 5   ; $len_44
         load_slot_i32
         local.set 8   ; $idx_53
@@ -270,7 +270,7 @@ fn 0 snippet$main () -> i32
       end $L6
     end $L5
   end $L4
-  local.get 0   ; nums
+  local.get 1   ; __buf_0
   array.len
   local.set 2   ; __off_1
   i64.const 0
@@ -281,16 +281,16 @@ fn 0 snippet$main () -> i32
       local.get 2   ; __off_1
       u64.lt
       if $L9 void
-        local.get 0   ; nums
+        local.get 1   ; __buf_0
         local.get 5   ; $len_44
         load_slot_i32
         local.set 8   ; $idx_53
         i64.const 22
         call 7   ; std_core$new_byte_buffer
-        local.set 1   ; __buf_0
+        local.set 0   ; nums
         i64.const 0
         local.set 6   ; $len_45
-        local.get 1   ; __buf_0
+        local.get 0   ; nums
         local.get 6   ; $len_45
         string.const 7   ; "j="
         call 9   ; std_core$write_string_at
@@ -298,12 +298,12 @@ fn 0 snippet$main () -> i32
         local.get 8   ; $idx_53
         i32.to_i64
         local.set 4   ; $cast_27
-        local.get 1   ; __buf_0
+        local.get 0   ; nums
         local.get 6   ; $len_45
         local.get 4   ; $cast_27
         call 10   ; std_core$write_int
         local.set 6   ; $len_45
-        local.get 1   ; __buf_0
+        local.get 0   ; nums
         local.get 6   ; $len_45
         call 8   ; std_core$finish_buffer
         call 26   ; std_io$println__string
@@ -1010,7 +1010,7 @@ fn 23 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
   local $field_29 usize
   local $idx_30 i32
   local $k_31 u8
-  local $len_37 usize
+  local $len_38 usize
   block $L0 void
     loop $L1 void
       local.field 0 15 3   ; arg 0.state
@@ -1038,10 +1038,10 @@ fn 23 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
       i32.const 2
       i32.eq
       if $L4 void
-        local.field 0 15 2   ; arg 0.s2
+        local.field 0 15 1   ; arg 0.s1
         ref.cast 8   ; -> usize
         local.set 1   ; $field_12
-        local.field 0 15 1   ; arg 0.s1
+        local.field 0 15 2   ; arg 0.s2
         ref.cast 8   ; -> usize
         local.set 2   ; $field_13
         local.get 1   ; $field_12
@@ -1063,14 +1063,14 @@ fn 23 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
       i32.const 3
       i32.eq
       if $L6 void
-        local.field 0 15 2   ; arg 0.s2
+        local.field 0 15 1   ; arg 0.s1
         ref.cast 8   ; -> usize
         i64.const 1
         i64.add
         local.set 3   ; $add_22
         local.get 0   ; arg 0
         local.get 3   ; $add_22
-        struct.set 15 2   ; __gen_state_std_core_0.s2
+        struct.set 15 1   ; __gen_state_std_core_0.s1
         local.get 0   ; arg 0
         i32.const 2
         struct.set 15 3   ; __gen_state_std_core_0.state
@@ -1088,7 +1088,7 @@ fn 23 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
         struct.set 15 3   ; __gen_state_std_core_0.state
         local.field 0 15 0   ; arg 0.s0
         local.set 5   ; $field_28
-        local.field 0 15 2   ; arg 0.s2
+        local.field 0 15 1   ; arg 0.s1
         ref.cast 8   ; -> usize
         local.set 6   ; $field_29
         local.get 5   ; $field_28
@@ -1107,14 +1107,14 @@ fn 23 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
       i32.const 5
       i32.eq
       if $L8 void
-        local.field 0 15 0   ; arg 0.s0
-        array.len
-        local.set 9   ; $len_37
-        local.get 0   ; arg 0
-        local.get 9   ; $len_37
-        struct.set 15 1   ; __gen_state_std_core_0.s1
         local.get 0   ; arg 0
         i64.const 0
+        struct.set 15 1   ; __gen_state_std_core_0.s1
+        local.field 0 15 0   ; arg 0.s0
+        array.len
+        local.set 9   ; $len_38
+        local.get 0   ; arg 0
+        local.get 9   ; $len_38
         struct.set 15 2   ; __gen_state_std_core_0.s2
         local.get 0   ; arg 0
         i32.const 2
@@ -1135,7 +1135,7 @@ fn 23 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
   struct.set 15 3   ; __gen_state_std_core_0.state
   local.field 0 15 0   ; arg 0.s0
   local.set 5   ; $field_28
-  local.field 0 15 2   ; arg 0.s2
+  local.field 0 15 1   ; arg 0.s1
   ref.cast 8   ; -> usize
   local.set 6   ; $field_29
   local.get 5   ; $field_28
