@@ -12,6 +12,8 @@ fused range 5
 outer 0,0
 outer 1,0
 outer 2,0
+labelled 0,0
+labelled 1,0
 body 0
 defer 0
 defer 1

@@ -207,6 +207,10 @@ const C_PARITY = new Set<string>([
   // a yielded `x ?? continue`, `?? break`, `?? return`) takes its transition in
   // the state machine instead of re-running its state or leaving `next()`.
   "coroutine_nested_jumps",
+  // A `break` / `continue` in a `for` over a generator call reaches that `for`:
+  // the generator's body is not fused into it, so no loop of the generator can
+  // catch the jump instead.
+  "generator_consumer_jumps",
   // `@extern` forwarding shim — string args marshalled atom → `const char*`
   // (`c_emit/host.vader::user_extern_shim`). The shim exists only in native C
   // output — the VM reaches a foreign symbol through `dlsym` instead, so it

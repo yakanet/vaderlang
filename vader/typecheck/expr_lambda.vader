@@ -39,7 +39,11 @@ export infer_lambda :: fn(
     // against the lambda's return type instead of the enclosing fn's.
     prev_ctx :: typed.current_fn_ctx
     typed.current_fn_ctx = ctx
+    // A lambda is a fn of its own: no enclosing loop is one its jumps can reach.
+    prev_loops :: typed.loop_stack
+    typed.loop_stack = []
     body :: check_block(e.body, expected_ret, typed, diags, ctx, check_expr_fn)
+    typed.loop_stack = prev_loops
     typed.current_fn_ctx = prev_ctx
     // T3083 — the same obligation `check_fn_body` puts on a named fn. A body with
     // no trailing expression that does not diverge reaches its closing brace with

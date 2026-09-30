@@ -1,0 +1,10 @@
+// `break` in a `defer` inside a loop — T3015: the deferred body runs at scope exit,
+// as a fn of its own, so the loop around it is not one its jumps can reach.
+module "snippet"
+
+main :: fn() -> i32 {
+    for x in [1, 2, 3] {
+        defer break
+    }
+    return 0
+}

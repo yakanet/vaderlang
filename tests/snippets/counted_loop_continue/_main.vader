@@ -119,6 +119,21 @@ continue_outer :: fn() -> void {
     }
 }
 
+// A labelled loop reached both by its label and by its variable.
+labelled_and_named :: fn() -> void {
+    outer: for r in [0, 1, 2] {
+        for c in [0, 1, 2] {
+            if c == 1 {
+                continue outer
+            }
+            if r == 2 {
+                continue r
+            }
+            println("labelled ${r},${c}")
+        }
+    }
+}
+
 // A deferred call still runs once per round when the round ends in `continue`.
 continue_with_defer :: fn() -> void {
     for i in 0..<3 {
@@ -154,6 +169,7 @@ main :: fn() -> i32 {
     continue_in_match()
     fused_range_continue()
     continue_outer()
+    labelled_and_named()
     continue_with_defer()
     generator_continue()
     return 0

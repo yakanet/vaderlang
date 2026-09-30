@@ -491,6 +491,15 @@ export TypedProgram :: struct {
     /// — untargeted loops keep their pristine `ForStmt.label`). Written
     /// idempotently, so it survives the two-pass / multi-module walks.
     loop_target_labels: MutableMap<usize, string>
+
+    /// A jump that names a labelled loop by its iteration variable: jump id → the
+    /// loop's label, which it is lowered under.
+    jump_labels: MutableMap<usize, string>
+
+    /// `ForStmt.id` of every loop some `break` / `continue` targets, in any form.
+    /// The generator fusion reads it: it splices the consumer body where no loop
+    /// of the consumer's own remains.
+    jumped_loops: MutableSet<usize>
 }
 
 /// One enclosing loop as seen by the loop-jump resolver. `binding` is the
@@ -519,6 +528,8 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .resolved        = resolved,
     .expr_types      = MutableMap<usize, Type> {},
     .loop_target_labels = MutableMap<usize, string> {},
+    .jumped_loops    = MutableSet<usize> {},
+    .jump_labels     = MutableMap<usize, string> {},
     .into_coercions  = MutableMap<usize, Type> {},
     .local_types     = MutableMap<u64, Type> {},
     .empty_array_inits = MutableMap<u64, usize> {},

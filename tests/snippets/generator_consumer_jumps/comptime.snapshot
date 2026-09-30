@@ -1,10 +1,13 @@
 # Comptime
 
-## tests/snippets/counted_loop_continue
-  @comptime  GUARD                = 20_i32
+## tests/snippets/generator_consumer_jumps
 
 ## generic instances
-  __genstate_evens<i32>
+  __genstate_three<i32>
+  __genstate_upto<i32>
+  __genstate_by_twos<i32>
+  __genstate_pairs<i32>
+  __genstate_with_header<i32>
   __genstate_array_iter<T>
   __genstate_window<i32[]>
   __genstate_chain<i32>
@@ -51,6 +54,3 @@
   Range<T>
   Range<T>
   Range<T>
-
-# Diagnostics
-[124:12] warning[W0010] prefer targeting this loop by its iteration variable over a label ; a label is only needed for a `while` / infinite loop that has no variable: target this loop by its variable `r` instead of a label

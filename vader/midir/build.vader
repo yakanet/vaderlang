@@ -598,12 +598,11 @@ build_stmt :: fn(fn_ctx: FnCtx!, s: LoweredStmt) -> void {
         }
         is LoweredLoop -> { build_loop(fn_ctx, s) }
         is LoweredBreak -> {
-            frame :: resolve_loop_frame(fn_ctx, s.label) ?? return
+            frame :: resolve_loop_frame(fn_ctx, s.label)
             terminate(fn_ctx, TermBranch { .target = frame.exit_id, .span = s.span })
         }
         is LoweredContinue -> {
-            frame :: resolve_loop_frame(fn_ctx, s.label) ?? return
-            build_back_edge(fn_ctx, frame, s.span)
+            build_back_edge(fn_ctx, resolve_loop_frame(fn_ctx, s.label), s.span)
         }
         is LoweredYield | LoweredAwait -> {
             // Transient coroutine-suspension markers. `lower_coroutine` rewrites
@@ -709,9 +708,14 @@ build_back_edge :: fn(fn_ctx: FnCtx!, frame: LoopFrame, span: Span) -> void {
     }
 }
 
-resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame | null {
+// The loop a `break` / `continue` targets. The typechecker refuses a jump with no
+// loop to reach (T3015, T3067), so one that finds none here is a lowering bug —
+// dropping it would compile the jump as falling through.
+resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame {
     if label is null {
-        if fn_ctx.loop_stack.len() == 0 { return null }
+        if fn_ctx.loop_stack.len() == 0 {
+            panic("midir/build: `${fn_ctx.mangled}` has a `break` / `continue` outside any loop")
+        }
         return fn_ctx.loop_stack[fn_ctx.loop_stack.len() - 1]
     }
     // Extract the non-null label once — the c-emit's `string | null`
@@ -726,7 +730,8 @@ resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame | nul
         }
         i -= 1
     }
-    return null
+    panic("midir/build: `${fn_ctx.mangled}` jumps to a loop labelled `${needle}` "
+        + "that no enclosing loop carries")
 }
 
 // ============================================================================

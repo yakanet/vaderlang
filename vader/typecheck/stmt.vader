@@ -116,10 +116,10 @@ export check_stmt :: fn(
         is AST.YieldStmt             -> { check_yield(stmt, typed, diags, ctx, check_expr_fn) }
         is AST.ForStmt               -> { check_for(stmt, typed, diags, ctx, check_expr_fn) }
         is AST.BreakStmt             -> {
-            check_loop_jump(stmt.span, stmt.label, typed, ctx, diags)
+            check_loop_jump(stmt.span, stmt.id, stmt.label, typed, ctx, diags)
         }
         is AST.ContinueStmt          -> {
-            check_loop_jump(stmt.span, stmt.label, typed, ctx, diags)
+            check_loop_jump(stmt.span, stmt.id, stmt.label, typed, ctx, diags)
         }
         is AST.DeferStmt             -> { check_defer(stmt, typed, diags, ctx, check_expr_fn) }
     }
@@ -302,7 +302,11 @@ block_has_yield :: fn(block: AST.BlockExpr) -> bool {
     return false
 }
 
-stmt_has_yield :: fn(s: AST.Stmt) -> bool = match s {
+/// True when `s` is, or holds, a `yield` — through nested blocks, loops, ifs,
+/// matches and defers, not lambdas.
+///
+/// @param s  the statement to scan.
+export stmt_has_yield :: fn(s: AST.Stmt) -> bool = match s {
     is AST.YieldStmt             -> { return true }
     is AST.ForStmt               -> { return block_has_yield(s.body) }
     is AST.DeferStmt             -> {
@@ -1798,6 +1802,7 @@ check_for :: fn(
 
 check_loop_jump :: fn(
     span: Span,
+    jump_id: usize,
     label: string | null,
     typed: TypedProgram!,
     ctx: FnContext! | null,
@@ -1807,7 +1812,11 @@ check_loop_jump :: fn(
     // clarity is served by the LSP go-to-loop). A `break <name>` must resolve to an
     // enclosing loop by its iteration variable (preferred) or its label ; the walk-
     // global `loop_stack` survives `if`/`match` nesting, mirroring `loop_depth`.
-    if label != null {
+    if label == null {
+        if typed.loop_stack.len() > 0 {
+            typed.jumped_loops.add(typed.loop_stack[typed.loop_stack.len() - 1].for_id)
+        }
+    } else {
         name :: label
         target :: resolve_loop_target(typed.loop_stack, name)
         if target == null {
@@ -1821,18 +1830,36 @@ check_loop_jump :: fn(
                 ),
             )
         } else {
-            // A VARIABLE match records the resolution for the lowerer (it stamps
-            // that loop's `LoweredLoop.label`) ; a label match already carries its
-            // own label, so nothing to record.
+            typed.jumped_loops.add(target.for_id)
+            // A VARIABLE match records the resolution for the lowerer: an unlabelled
+            // loop is lowered under the variable's name (`LoweredLoop.label`), a
+            // labelled one keeps its label and the jump takes it instead. A label
+            // match already carries the name its loop is lowered under.
             tb :: target.binding
             if tb != null && tb == name {
-                typed.loop_target_labels[target.for_id] = name
+                target_label :: target.label
+                if target_label == null {
+                    typed.loop_target_labels[target.for_id] = name
+                } else {
+                    typed.jump_labels[jump_id] = target_label
+                }
             }
         }
     }
-    // T3015 — `break`/`continue` outside any loop. Kept on `ctx.loop_depth` ; null
-    // ctx means an expression-nested block where ctx isn't threaded — defer.
+    // T3015 — `break`/`continue` outside any loop. Kept on `ctx.loop_depth`. A null
+    // ctx is an expression-nested block (`x ?? break`), where the walk-global loop
+    // stack answers instead ; lambdas do not reset that stack, so it can miss a
+    // jump written in a lambda inside a loop.
     if ctx is null {
+        if label == null && typed.loop_stack.len() == 0 {
+            diags.push(
+                typecheck_error(
+                    .BreakContinueOutsideLoop,
+                    span,
+                    "`break` / `continue` only allowed inside a loop",
+                ),
+            )
+        }
         return
     }
     if ctx.loop_depth == 0 {
@@ -1883,11 +1910,24 @@ check_defer :: fn(
     if effective != null && effective.is_generator {
         diags.push(typecheck_error(.DeferInGenerator, s.span, ""))
     }
+    // The body runs at scope exit, lowered as a fn of its own: no enclosing loop
+    // is one its jumps can reach.
+    body_ctx :: outside_loops(ctx)
+    prev_loops :: typed.loop_stack
+    typed.loop_stack = []
     match s.body as b {
-        is AST.DeferStmtBody  -> { check_stmt(b.stmt, typed, diags, ctx, check_expr_fn) }
-        is AST.DeferBlockBody -> { check_block(b.block, null, typed, diags, ctx, check_expr_fn) }
+        is AST.DeferStmtBody  -> { check_stmt(b.stmt, typed, diags, body_ctx, check_expr_fn) }
+        is AST.DeferBlockBody -> { check_block(b.block, null, typed, diags, body_ctx, check_expr_fn) }
     }
+    typed.loop_stack = prev_loops
     return
+}
+
+outside_loops :: fn(ctx: FnContext! | null) -> FnContext | null {
+    if ctx is null {
+        return null
+    }
+    return FnContext { ...ctx, .loop_depth = 0 }
 }
 
 // ---- support --------------------------------------------------------------

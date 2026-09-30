@@ -1,0 +1,20 @@
+# stdout
+skip 1
+skip 3
+stop 1
+stop done
+small 4
+small 6
+pair 0
+pair 1
+pair 2
+pair 10
+headed 2
+headed 3
+headed 4
+found 0
+cell 0,0
+cell 1,0
+cell 2,0
+# exit
+0

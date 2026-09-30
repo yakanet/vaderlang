@@ -215,7 +215,9 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
         is BreakStmt             -> {
             drain: LoweredStmt[]!: []
             drain_defers_to_loop(ctx, stmt.span, drain)
-            exit :: LoweredBreak { .span = stmt.span, .label = stmt.label }
+            exit :: LoweredBreak {
+                .span = stmt.span, .label = lowered_jump_label(ctx, stmt.id, stmt.label),
+            }
             if drain.len() > 0 {
                 drain.push(exit)
                 out.push(wrap_stmts(stmt.span, drain))
@@ -226,7 +228,9 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
         is ContinueStmt          -> {
             drain: LoweredStmt[]!: []
             drain_defers_to_loop(ctx, stmt.span, drain)
-            exit :: LoweredContinue { .span = stmt.span, .label = stmt.label }
+            exit :: LoweredContinue {
+                .span = stmt.span, .label = lowered_jump_label(ctx, stmt.id, stmt.label),
+            }
             if drain.len() > 0 {
                 drain.push(exit)
                 out.push(wrap_stmts(stmt.span, drain))
@@ -434,6 +438,16 @@ drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]!) -> void
 // Sum defers from the innermost block up to (but not including) the
 // nearest enclosing loop body — break/continue exit only the loop
 // scope, not the fn.
+// The label a jump is lowered under: the one it wrote, unless it names a labelled
+// loop by its iteration variable — that loop is lowered under its label.
+lowered_jump_label :: fn(ctx: FnLowerCtx, jump_id: usize, written: string | null) -> string | null {
+    renamed :: ctx.typed.jump_labels[jump_id]
+    if renamed != null {
+        return renamed
+    }
+    return written
+}
+
 drain_defers_to_loop :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]!) -> void {
     total: i32 = 0
     i := i64(ctx.blocks.len()) - 1

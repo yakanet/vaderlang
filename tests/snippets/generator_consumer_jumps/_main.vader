@@ -1,0 +1,126 @@
+// A `break` / `continue` in the body of a `for` over a generator call reaches
+// that `for`, whatever the generator's body looks like around its `yield`: no loop
+// at all, code after the `yield`, nested loops, a `for` targeted from an inner
+// loop. Every loop is bounded, so a jump that misses prints `runaway`.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+three :: fn() -> Iterator<i32> {
+    yield 1
+    yield 2
+    yield 3
+}
+
+upto :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        yield i
+    }
+}
+
+skip_two :: fn() -> void {
+    for x in three() {
+        if x == 2 {
+            continue
+        }
+        println("skip ${x}")
+    }
+}
+
+stop_at_two :: fn() -> void {
+    for x in three() {
+        if x == 2 {
+            break
+        }
+        println("stop ${x}")
+    }
+    println("stop done")
+}
+
+// The step after the `yield` still runs when the consumer `continue`s.
+by_twos :: fn(n: i32) -> Iterator<i32> {
+    i := 0
+    for i < n {
+        yield i
+        i += 2
+    }
+}
+
+skip_small :: fn() -> void {
+    rounds := 0
+    for x in by_twos(8) {
+        rounds += 1
+        if rounds > 20 {
+            println("skip small: runaway")
+            break
+        }
+        if x < 4 {
+            continue
+        }
+        println("small ${x}")
+    }
+}
+
+// `break` leaves the whole generator, not its inner loop.
+pairs :: fn() -> Iterator<i32> {
+    for a in 0..<3 {
+        for b in 0..<3 {
+            yield a * 10 + b
+        }
+    }
+}
+
+until_eleven :: fn() -> void {
+    for p in pairs() {
+        if p == 11 {
+            break
+        }
+        println("pair ${p}")
+    }
+}
+
+// A combinator that yields ahead of its source loop: the consumer's `continue`
+// and a `find`'s own exit reach the loop over the chain.
+with_header :: fn(xs: i32[]) -> Iterator<i32> {
+    yield 0
+    for x in xs {
+        yield x
+    }
+}
+
+bump :: fn(x: i32) -> i32 = x + 1
+
+below_five :: fn(x: i32) -> bool = x < 5
+
+headed :: fn() -> void {
+    for v in with_header([1, 2, 3]).map(bump) {
+        if v == 1 {
+            continue
+        }
+        println("headed ${v}")
+    }
+    println("found ${with_header([1, 2, 3]).find(below_five)}")
+}
+
+// `continue r` from the inner loop moves on to the next row.
+first_column :: fn() -> void {
+    for r in upto(3) {
+        for c in 0..<3 {
+            if c == 1 {
+                continue r
+            }
+            println("cell ${r},${c}")
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    skip_two()
+    stop_at_two()
+    skip_small()
+    until_eleven()
+    headed()
+    first_column()
+    return 0
+}
