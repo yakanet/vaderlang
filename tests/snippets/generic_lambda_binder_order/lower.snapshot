@@ -7,80 +7,80 @@
         callee:
           snippet$zip_with__string :usize
         arg0:
-          LoweredMakeClosure
+          __lambda_snippet_0 :fn() -> string[]
         arg1:
-          LoweredMakeClosure
+          __lambda_snippet_1 :fn(string) -> usize
     let filled_in: usize =
       call :usize
         callee:
           snippet$zip_with__string :usize
         arg0:
-          LoweredMakeClosure
+          __lambda_snippet_2 :fn() -> string[]
         arg1:
-          LoweredMakeClosure
+          __lambda_snippet_3 :fn(string) -> usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_4: Buffer =
+          let __buf_0: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(54) :usize
-          let __off_5: usize = int(0) :usize
+          let __off_1: usize = int(0) :usize
           assign
             target:
-              __off_5 :usize
+              __off_1 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_4 :Buffer
+                  __buf_0 :Buffer
                 arg1:
-                  __off_5 :usize
+                  __off_1 :usize
                 arg2:
                   "empty=" :string
           assign
             target:
-              __off_5 :usize
+              __off_1 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_4 :Buffer
+                  __buf_0 :Buffer
                 arg1:
-                  __off_5 :usize
+                  __off_1 :usize
                 arg2:
                   cast → u64
                     empty :usize
           assign
             target:
-              __off_5 :usize
+              __off_1 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_4 :Buffer
+                  __buf_0 :Buffer
                 arg1:
-                  __off_5 :usize
+                  __off_1 :usize
                 arg2:
                   " filled=" :string
           assign
             target:
-              __off_5 :usize
+              __off_1 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_4 :Buffer
+                  __buf_0 :Buffer
                 arg1:
-                  __off_5 :usize
+                  __off_1 :usize
                 arg2:
                   cast → u64
                     filled_in :usize
@@ -89,30 +89,26 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_4 :Buffer
+                __buf_0 :Buffer
               arg1:
-                __off_5 :usize
+                __off_1 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 {  }
-  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> string[]
+  fn __lambda_snippet_0() -> string[]
     ~>
       array :string[]
-  struct __lambda_env_snippet_3 {  }
-  fn __lambda_snippet_2(__env_1: __lambda_env_snippet_3!, s: string) -> usize
+  fn __lambda_snippet_1(s: string) -> usize
     ~>
       call :usize
         callee:
           len :usize
         arg0:
           s :string
-  struct __lambda_env_snippet_5 {  }
-  fn __lambda_snippet_4(__env_2: __lambda_env_snippet_5!) -> string[]
+  fn __lambda_snippet_2() -> string[]
     ~>
       array :string[]
         "ab" :string
         "cde" :string
-  struct __lambda_env_snippet_7 {  }
-  fn __lambda_snippet_6(__env_3: __lambda_env_snippet_7!, s: string) -> usize
+  fn __lambda_snippet_3(s: string) -> usize
     ~>
       call :usize
         callee:

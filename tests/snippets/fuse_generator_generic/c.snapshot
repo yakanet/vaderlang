@@ -4,16 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct___lambda_env_snippet_1_t vader_struct___lambda_env_snippet_1_t;
-typedef struct vader_struct___lambda_env_snippet_3_t vader_struct___lambda_env_snippet_3_t;
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 
-struct vader_struct___lambda_env_snippet_1_t {
-    vader_obj_header_t header;
-};
-struct vader_struct___lambda_env_snippet_3_t {
-    vader_obj_header_t header;
-};
 struct vader_struct_std_core_Buffer_t {
     vader_obj_header_t header;
 };
@@ -30,8 +22,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 #define VADER_COMPTIME_ATOM_COUNT 3u
 
 static int32_t snippet_main(void);
-static int32_t __lambda_snippet_0(void* l0, int32_t l1);
-static bool __lambda_snippet_2(void* l0, int32_t l1);
+static int32_t __lambda_snippet_0(int32_t l0);
+static bool __lambda_snippet_1(int32_t l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
@@ -49,36 +41,28 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[14] = {
+const vader_type_info_t vader_type_info_table[12] = {
     [1] = { .slot_size = 4 },
-    [2] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_1_t),
-        .slot_size = 8,
-    },
-    [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_3_t),
-        .slot_size = 8,
-    },
+    [2] = { .slot_size = 1 },
+    [3] = { .slot_size = 16 },
     [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 16 },
-    [6] = { .slot_size = 1 },
-    [7] = { .slot_size = 8 },
-    [8] = {
+    [5] = { .slot_size = 8 },
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [9] = { .slot_size = 8 },
-    [10] = {
+    [7] = { .slot_size = 8 },
+    [8] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [12] = { .slot_size = 8 },
-    [13] = {
+    [10] = { .slot_size = 8 },
+    [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
 };
-const size_t vader_type_info_count = 14;
+const size_t vader_type_info_count = 12;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -88,7 +72,7 @@ static size_t vader_host_std_core_byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 10u, 6u);
+    return (void*) vader_string_bytes_view(a0, 8u, 4u);
 }
 
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) {
@@ -98,98 +82,92 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 
 static int32_t snippet_main(void) {
     void* l0 = NULL;
-    void* l1 = NULL;
-    void* l6 = NULL;
-    size_t l2, l3, l7;
-    int32_t l4, l5;
-    int64_t l8;
-    vader_string_t t0 = 0;
-    int64_t t1;
-    bool t2;
-    void** gc_raw_roots[3] = { &l0, &l1, &l6 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
+    void* l4 = NULL;
+    size_t l1, l2, l5;
+    int32_t l3, l7;
+    int64_t l6;
+    int32_t t0;
+    vader_string_t t1 = 0;
+    int64_t t2;
+    bool t3;
+    void** gc_raw_roots[2] = { &l0, &l4 };
+    vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 21 "tests/snippets/fuse_generator_generic/_main.vader"
-    vader_struct___lambda_env_snippet_1_t* _a0_obj = (vader_struct___lambda_env_snippet_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_1_t));
-    vader_obj_header_init(_a0_obj, 2u);
-    l0 = (void*) _a0_obj;
-    vader_array_t* _a1_arr = vader_array_new(13u, 3u, 7u, 1u);
-    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 2u] = (int32_t) INT32_C(3);
-    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int32_t) INT32_C(2);
-    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int32_t) INT32_C(1);
-    l1 = (void*) _a1_arr;
-    l2 = ((vader_array_t*) l1)->length;
-    l3 = (size_t) 0;
-    while ((l3 < l2)) {
-        vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
-        VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l3)
-        l4 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l3];
+    vader_array_t* _a0_arr = vader_array_new(11u, 3u, 7u, 1u);
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(3);
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(2);
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
+    l0 = (void*) _a0_arr;
+    l1 = ((vader_array_t*) l0)->length;
+    l2 = (size_t) 0;
+    while ((l2 < l1)) {
+        vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
+        VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l2)
+        t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
 #line 12 "tests/snippets/fuse_generator_generic/_main.vader"
-        l5 = __lambda_snippet_0(l0, l4);
+        l3 = __lambda_snippet_0(t0);
 #line 21 "tests/snippets/fuse_generator_generic/_main.vader"
-        l6 = std_core_new_byte_buffer((size_t) 22);
-        l7 = (size_t) 0;
-        l7 = std_core_write_string_at(l6, l7, 1u);
-        l8 = ((int64_t) (int32_t) l5);
-        l7 = std_core_write_int(l6, l7, l8);
-        t0 = std_core_finish_buffer(l6, l7);
-        std_io_println__string(t0);
-        t1 = (l3 + INT64_C(1));
-        l3 = (size_t) (int64_t) t1;
+        l4 = std_core_new_byte_buffer((size_t) 22);
+        l5 = (size_t) 0;
+        l5 = std_core_write_string_at(l4, l5, 1u);
+        l6 = ((int64_t) (int32_t) l3);
+        l5 = std_core_write_int(l4, l5, l6);
+        t1 = std_core_finish_buffer(l4, l5);
+        std_io_println__string(t1);
+        t2 = (l2 + INT64_C(1));
+        l2 = (size_t) (int64_t) t2;
     }
 #line 22 "tests/snippets/fuse_generator_generic/_main.vader"
-    vader_struct___lambda_env_snippet_3_t* _a3_obj = (vader_struct___lambda_env_snippet_3_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_3_t));
-    vader_obj_header_init(_a3_obj, 3u);
-    l0 = (void*) _a3_obj;
-    vader_array_t* _a4_arr = vader_array_new(13u, 5u, 7u, 1u);
-    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 4u] = (int32_t) INT32_C(5);
-    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 3u] = (int32_t) INT32_C(4);
-    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 2u] = (int32_t) INT32_C(3);
-    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 1u] = (int32_t) INT32_C(2);
-    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (int32_t) INT32_C(1);
-    l1 = (void*) _a4_arr;
-    l2 = ((vader_array_t*) l1)->length;
-    l3 = (size_t) 0;
-    while ((l3 < l2)) {
-        vader_array_t* _a5_slotarr = ((vader_array_t*) l1);
-        VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l3)
-        l4 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l3];
+    vader_array_t* _a2_arr = vader_array_new(11u, 5u, 7u, 1u);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 4u] = (int32_t) INT32_C(5);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 3u] = (int32_t) INT32_C(4);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 2u] = (int32_t) INT32_C(3);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (int32_t) INT32_C(2);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int32_t) INT32_C(1);
+    l0 = (void*) _a2_arr;
+    l1 = ((vader_array_t*) l0)->length;
+    l2 = (size_t) 0;
+    while ((l2 < l1)) {
+        vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
+        VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l2)
+        l3 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l2];
 #line 17 "tests/snippets/fuse_generator_generic/_main.vader"
-        t2 = __lambda_snippet_2(l0, l4);
-        if (t2) {
-            l5 = l4;
+        t3 = __lambda_snippet_1(l3);
+        if (t3) {
+            l7 = l3;
 #line 22 "tests/snippets/fuse_generator_generic/_main.vader"
-            l6 = std_core_new_byte_buffer((size_t) 22);
-            l7 = (size_t) 0;
-            l7 = std_core_write_string_at(l6, l7, 2u);
-            l8 = ((int64_t) (int32_t) l5);
-            l7 = std_core_write_int(l6, l7, l8);
-            t0 = std_core_finish_buffer(l6, l7);
-            std_io_println__string(t0);
+            l4 = std_core_new_byte_buffer((size_t) 22);
+            l5 = (size_t) 0;
+            l5 = std_core_write_string_at(l4, l5, 2u);
+            l6 = ((int64_t) (int32_t) l7);
+            l5 = std_core_write_int(l4, l5, l6);
+            t1 = std_core_finish_buffer(l4, l5);
+            std_io_println__string(t1);
 #line 17 "tests/snippets/fuse_generator_generic/_main.vader"
         }
 #line 22 "tests/snippets/fuse_generator_generic/_main.vader"
-        t1 = (l3 + INT64_C(1));
-        l3 = (size_t) (int64_t) t1;
+        t2 = (l2 + INT64_C(1));
+        l2 = (size_t) (int64_t) t2;
     }
 #line 23 "tests/snippets/fuse_generator_generic/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static int32_t __lambda_snippet_0(void* l0, int32_t l1) {
+static int32_t __lambda_snippet_0(int32_t l0) {
 #line 21 "tests/snippets/fuse_generator_generic/_main.vader"
-    return (l1 * INT32_C(10));
+    return (l0 * INT32_C(10));
 }
 
-static bool __lambda_snippet_2(void* l0, int32_t l1) {
+static bool __lambda_snippet_1(int32_t l0) {
     int32_t t0;
 #line 22 "tests/snippets/fuse_generator_generic/_main.vader"
-    t0 = vader_mod_i32(l1, INT32_C(2));
+    t0 = vader_mod_i32(l0, INT32_C(2));
     return t0 == INT32_C(1);
 }
 

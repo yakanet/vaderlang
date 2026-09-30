@@ -1,21 +1,19 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __lambda_env_snippet_1 {  }
-type 3 struct snippet$Rec { name:6,value:1 }
-type 4 struct __lambda_env_snippet_3 {  }
-type 5 primitive bool
-type 6 primitive string
-type 7 primitive u8
-type 8 primitive usize
-type 9 struct std_core$Buffer {  }
-type 10 primitive i64
-type 11 primitive u64
-type 12 array 7
-type 13 primitive void
-type 14 ref _
-type 15 primitive isize
-type 16 array 3
+type 2 struct snippet$Rec { name:4,value:1 }
+type 3 primitive bool
+type 4 primitive string
+type 5 primitive u8
+type 6 primitive usize
+type 7 struct std_core$Buffer {  }
+type 8 primitive i64
+type 9 primitive u64
+type 10 array 5
+type 11 primitive void
+type 12 ref _
+type 13 primitive isize
+type 14 array 2
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -26,10 +24,10 @@ string 6 "kept "
 string 7 "direct "
 string 8 "explicit "
 string 9 "\n"
-import 0 byte_len std_core$byte_len result_type=8 param_types=6 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=12 param_types=6 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,12,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 9 ByteAccess
+import 0 byte_len std_core$byte_len result_type=6 param_types=4 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=10 param_types=4 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,10,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 7 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -46,26 +44,24 @@ fn 0 snippet$main () -> i32
   local __buf_14 ref
   local __off_15 usize
   local $cast_70 i64
-  local x ref
-  local __elem_17 ref
   string.const 0   ; "a"
   i32.const 1
-  struct.new 3   ; snippet$Rec
+  struct.new 2   ; snippet$Rec
   local.set 0   ; $struct_2
   string.const 1   ; "b"
   i32.const 2
-  struct.new 3   ; snippet$Rec
+  struct.new 2   ; snippet$Rec
   local.set 1   ; $struct_5
   local.get 0   ; $struct_2
   local.get 1   ; $struct_5
-  array.new 16 2   ; snippet$Rec[][]
+  array.new 14 2   ; snippet$Rec[][]
   local.set 0   ; $struct_2
   string.const 2   ; "c"
   i32.const 3
-  struct.new 3   ; snippet$Rec
-  array.new 16 1   ; snippet$Rec[][]
+  struct.new 2   ; snippet$Rec
+  array.new 14 1   ; snippet$Rec[][]
   local.set 1   ; $struct_5
-  array.new 16 0   ; snippet$Rec[][]
+  array.new 14 0   ; snippet$Rec[][]
   local.set 2   ; merged
   local.get 0   ; $struct_2
   local.tee 3   ; __fuse_arr_2
@@ -81,11 +77,11 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 3   ; __fuse_arr_2
         local.get 5   ; __fuse_i_4
-        array.get 16   ; snippet$Rec[][]
+        array.get 14   ; snippet$Rec[][]
         local.set 6   ; __elem_1
         local.get 2   ; merged
         local.get 6   ; __elem_1
-        array.push 3 2   ; snippet$Rec[]
+        array.push 2 2   ; snippet$Rec[]
         local.get 5   ; __fuse_i_4
         i64.const 1
         i64.add
@@ -108,11 +104,11 @@ fn 0 snippet$main () -> i32
       if $L5 void
         local.get 3   ; __fuse_arr_2
         local.get 5   ; __fuse_i_4
-        array.get 16   ; snippet$Rec[][]
+        array.get 14   ; snippet$Rec[][]
         local.set 6   ; __elem_1
         local.get 2   ; merged
         local.get 6   ; __elem_1
-        array.push 3 2   ; snippet$Rec[]
+        array.push 2 2   ; snippet$Rec[]
         local.get 5   ; __fuse_i_4
         i64.const 1
         i64.add
@@ -158,10 +154,10 @@ fn 0 snippet$main () -> i32
       if $L8 void
         local.get 3   ; __fuse_arr_2
         local.get 5   ; __fuse_i_4
-        array.get 16   ; snippet$Rec[][]
+        array.get 14   ; snippet$Rec[][]
         local.set 6   ; __elem_1
-        local.field 6 3 0   ; __elem_1.name
-        ref.cast 6   ; -> string
+        local.field 6 2 0   ; __elem_1.name
+        ref.cast 4   ; -> string
         local.tee 8   ; __p_13
         call.import 0   ; std_core$byte_len
         local.set 9   ; $call_60
@@ -182,7 +178,7 @@ fn 0 snippet$main () -> i32
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 6 3 1   ; __elem_1.value
+        local.field 6 2 1   ; __elem_1.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
@@ -203,12 +199,10 @@ fn 0 snippet$main () -> i32
       end $L8
     end $L7
   end $L6
-  array.new 16 0   ; snippet$Rec[][]
+  array.new 14 0   ; snippet$Rec[][]
   local.set 3   ; __fuse_arr_2
-  struct.new 2   ; __lambda_env_snippet_1
-  local.set 6   ; __elem_1
   local.get 0   ; $struct_2
-  local.tee 10   ; __buf_14
+  local.tee 6   ; __elem_1
   array.len
   local.set 4   ; __fuse_len_3
   i64.const 0
@@ -219,17 +213,14 @@ fn 0 snippet$main () -> i32
       local.get 4   ; __fuse_len_3
       u64.lt
       if $L11 void
-        local.get 10   ; __buf_14
-        local.get 5   ; __fuse_i_4
-        array.get 16   ; snippet$Rec[][]
-        local.set 13   ; x
         local.get 6   ; __elem_1
-        local.get 13   ; x
+        local.get 5   ; __fuse_i_4
+        array.get 14   ; snippet$Rec[][]
         call 1   ; __lambda_snippet_0
-        local.set 14   ; __elem_17
+        local.set 10   ; __buf_14
         local.get 3   ; __fuse_arr_2
-        local.get 14   ; __elem_17
-        array.push 3   ; snippet$Rec[]
+        local.get 10   ; __buf_14
+        array.push 2   ; snippet$Rec[]
         local.get 5   ; __fuse_i_4
         i64.const 1
         i64.add
@@ -251,10 +242,10 @@ fn 0 snippet$main () -> i32
       if $L14 void
         local.get 3   ; __fuse_arr_2
         local.get 5   ; __fuse_i_4
-        array.get 16   ; snippet$Rec[][]
+        array.get 14   ; snippet$Rec[][]
         local.set 6   ; __elem_1
-        local.field 6 3 0   ; __elem_1.name
-        ref.cast 6   ; -> string
+        local.field 6 2 0   ; __elem_1.name
+        ref.cast 4   ; -> string
         local.tee 8   ; __p_13
         call.import 0   ; std_core$byte_len
         local.set 9   ; $call_60
@@ -280,7 +271,7 @@ fn 0 snippet$main () -> i32
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 6 3 1   ; __elem_1.value
+        local.field 6 2 1   ; __elem_1.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
@@ -301,10 +292,8 @@ fn 0 snippet$main () -> i32
       end $L14
     end $L13
   end $L12
-  array.new 16 0   ; snippet$Rec[][]
+  array.new 14 0   ; snippet$Rec[][]
   local.set 3   ; __fuse_arr_2
-  struct.new 4   ; __lambda_env_snippet_3
-  local.set 6   ; __elem_1
   local.get 2   ; merged
   array.len
   local.set 4   ; __fuse_len_3
@@ -318,17 +307,15 @@ fn 0 snippet$main () -> i32
       if $L17 void
         local.get 2   ; merged
         local.get 5   ; __fuse_i_4
-        array.get 16   ; snippet$Rec[][]
-        local.set 10   ; __buf_14
-        local.get 6   ; __elem_1
-        local.get 10   ; __buf_14
-        call 2   ; __lambda_snippet_2
+        array.get 14   ; snippet$Rec[][]
+        local.tee 6   ; __elem_1
+        call 2   ; __lambda_snippet_1
         if $L18 void
-          local.get 10   ; __buf_14
-          local.set 13   ; x
+          local.get 6   ; __elem_1
+          local.set 10   ; __buf_14
           local.get 3   ; __fuse_arr_2
-          local.get 13   ; x
-          array.push 3 3   ; snippet$Rec[]
+          local.get 10   ; __buf_14
+          array.push 2 3   ; snippet$Rec[]
         end $L18
         local.get 5   ; __fuse_i_4
         i64.const 1
@@ -352,10 +339,10 @@ fn 0 snippet$main () -> i32
       if $L21 void
         local.get 2   ; merged
         local.get 5   ; __fuse_i_4
-        array.get 16   ; snippet$Rec[][]
+        array.get 14   ; snippet$Rec[][]
         local.set 3   ; __fuse_arr_2
-        local.field 3 3 0   ; __fuse_arr_2.name
-        ref.cast 6   ; -> string
+        local.field 3 2 0   ; __fuse_arr_2.name
+        ref.cast 4   ; -> string
         local.tee 8   ; __p_13
         call.import 0   ; std_core$byte_len
         local.set 9   ; $call_60
@@ -381,7 +368,7 @@ fn 0 snippet$main () -> i32
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 3 3 1   ; __fuse_arr_2.value
+        local.field 3 2 1   ; __fuse_arr_2.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
@@ -416,10 +403,10 @@ fn 0 snippet$main () -> i32
       if $L24 void
         local.get 2   ; merged
         local.get 5   ; __fuse_i_4
-        array.get 16   ; snippet$Rec[][]
+        array.get 14   ; snippet$Rec[][]
         local.set 3   ; __fuse_arr_2
-        local.field 3 3 0   ; __fuse_arr_2.name
-        ref.cast 6   ; -> string
+        local.field 3 2 0   ; __fuse_arr_2.name
+        ref.cast 4   ; -> string
         local.tee 8   ; __p_13
         call.import 0   ; std_core$byte_len
         local.set 9   ; $call_60
@@ -445,7 +432,7 @@ fn 0 snippet$main () -> i32
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 3 3 1   ; __fuse_arr_2.value
+        local.field 3 2 1   ; __fuse_arr_2.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
@@ -480,10 +467,10 @@ fn 0 snippet$main () -> i32
       if $L27 void
         local.get 2   ; merged
         local.get 5   ; __fuse_i_4
-        array.get 16   ; snippet$Rec[][]
+        array.get 14   ; snippet$Rec[][]
         local.set 3   ; __fuse_arr_2
-        local.field 3 3 0   ; __fuse_arr_2.name
-        ref.cast 6   ; -> string
+        local.field 3 2 0   ; __fuse_arr_2.name
+        ref.cast 4   ; -> string
         local.tee 8   ; __p_13
         call.import 0   ; std_core$byte_len
         local.set 9   ; $call_60
@@ -509,7 +496,7 @@ fn 0 snippet$main () -> i32
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 3 3 1   ; __fuse_arr_2.value
+        local.field 3 2 1   ; __fuse_arr_2.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
@@ -543,10 +530,10 @@ fn 0 snippet$main () -> i32
       if $L30 void
         local.get 0   ; $struct_2
         local.get 5   ; __fuse_i_4
-        array.get 16   ; snippet$Rec[][]
+        array.get 14   ; snippet$Rec[][]
         local.set 2   ; merged
-        local.field 2 3 0   ; merged.name
-        ref.cast 6   ; -> string
+        local.field 2 2 0   ; merged.name
+        ref.cast 4   ; -> string
         local.tee 8   ; __p_13
         call.import 0   ; std_core$byte_len
         local.set 9   ; $call_60
@@ -572,7 +559,7 @@ fn 0 snippet$main () -> i32
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 2 3 1   ; merged.value
+        local.field 2 2 1   ; merged.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
@@ -607,10 +594,10 @@ fn 0 snippet$main () -> i32
       if $L33 void
         local.get 0   ; $struct_2
         local.get 5   ; __fuse_i_4
-        array.get 16   ; snippet$Rec[][]
+        array.get 14   ; snippet$Rec[][]
         local.set 1   ; $struct_5
-        local.field 1 3 0   ; $struct_5.name
-        ref.cast 6   ; -> string
+        local.field 1 2 0   ; $struct_5.name
+        ref.cast 4   ; -> string
         local.tee 8   ; __p_13
         call.import 0   ; std_core$byte_len
         local.set 9   ; $call_60
@@ -636,7 +623,7 @@ fn 0 snippet$main () -> i32
         string.const 4   ; "="
         call 6   ; std_core$write_string_at
         local.set 11   ; __off_15
-        local.field 1 3 1   ; $struct_5.value
+        local.field 1 2 1   ; $struct_5.value
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_70
@@ -660,25 +647,25 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 __lambda_snippet_0 (ref,ref) -> ref
-  local $field_2 string
-  local $mul_5 i32
-  local.field 1 3 0   ; arg 1.name
-  ref.cast 6   ; -> string
-  local.set 2   ; $field_2
-  local.field 1 3 1   ; arg 1.value
+fn 1 __lambda_snippet_0 (ref) -> ref
+  local $field_1 string
+  local $mul_4 i32
+  local.field 0 2 0   ; arg 0.name
+  ref.cast 4   ; -> string
+  local.set 1   ; $field_1
+  local.field 0 2 1   ; arg 0.value
   ref.cast 1   ; -> i32
   i32.const 2
   i32.mul
-  local.set 3   ; $mul_5
-  local.get 2   ; $field_2
-  local.get 3   ; $mul_5
-  struct.new 3   ; snippet$Rec
+  local.set 2   ; $mul_4
+  local.get 1   ; $field_1
+  local.get 2   ; $mul_4
+  struct.new 2   ; snippet$Rec
   return
 end
 
-fn 2 __lambda_snippet_2 (ref,ref) -> bool
-  local.field 1 3 1   ; arg 1.value
+fn 2 __lambda_snippet_1 (ref) -> bool
+  local.field 0 2 1   ; arg 0.value
   ref.cast 1   ; -> i32
   i32.const 2
   i32.ge
@@ -968,7 +955,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 12   ; u8[][]
+      array.slice 10   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

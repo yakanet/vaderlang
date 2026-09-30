@@ -9,12 +9,12 @@
 //
 // TWO alias shapes are devirtualized:
 //   1. NAMED fn — `let f = square_i64` (RHS a bare `LoweredIdent`, `kind == Fn`).
-//      `f(x)` -> `square_i64(x)`.
-//   2. LAMBDA / closure — `let f = LoweredMakeClosure { fn_symbol: L, env: E }`.
-//      The lifted fn `L` takes the env as its FIRST param (`L(env, args…)`), so we
-//      hoist the env (retype `let f = E`, `f` now holds the env value) and rewrite
-//      `f(x)` -> `L(f, x)`. Covers capture-less (`x -> x*2`) and capturing
-//      (`x -> x*k`) lambdas alike.
+//      `f(x)` -> `square_i64(x)`. A capture-free lambda (`x -> x*2`) lowers to
+//      exactly this shape: an ident of its lifted fn.
+//   2. CLOSURE — `let f = LoweredMakeClosure { fn_symbol: L, env: E }`, a lambda
+//      that captures (`x -> x*k`). The lifted fn `L` takes the env as its FIRST
+//      param (`L(env, args…)`), so we hoist the env (retype `let f = E`, `f` now
+//      holds the env value) and rewrite `f(x)` -> `L(f, x)`.
 //
 // `vader/midir/build.vader::build_call` switches on `callee.symbol.kind == Fn`: a
 // fn-symbol callee lowers via the fn-table with the NATIVE typed signature (no box,
@@ -24,10 +24,8 @@
 //
 // SCOPE: local to one fn body ; conservative escape check — any use of `f` other
 // than as a call callee (an argument, a struct field, a return, an assign target,
-// …) disqualifies it, as does a symbol bound more than once (`bound`). A capture-
-// less lambda still allocs its (empty) env once, hoisted out of the loop —
-// negligible ; a later refinement can pass a null env instead. The dead named-fn
-// `let f` is left for DCE.
+// …) disqualifies it, as does a symbol bound more than once (`bound`). The dead
+// named-fn `let f` is left for DCE.
 
 module "vader/lower"
 
@@ -244,8 +242,8 @@ rewrite_expr :: fn(e: LoweredExpr!, ctx: AnalyzeCtx) -> void {
                 } else if clo != null && devirtable {
                     // Lambda : direct call to the lifted fn with the env (now held by
                     // the retyped local) prepended as the FIRST arg — matches the
-                    // lifted-fn ABI (`lower_lambda.vader::build_lifted_params` pushes
-                    // the env as param 0).
+                    // lifted-fn ABI (`lower_lambda.vader::lower_lambda` gives a
+                    // capturing lambda's lifted fn the env as param 0).
                     env_arg: LoweredExpr: LoweredIdent { .span = old.span, .type = clo.env_type, .symbol = old.symbol }
                     new_args: LoweredExpr[]!: [env_arg]
                     new_args.push_all(e.args)

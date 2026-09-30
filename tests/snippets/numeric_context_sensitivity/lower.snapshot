@@ -713,63 +713,58 @@
                 __buf_8 :Buffer
               arg1:
                 __off_9 :usize
-    let forty_two: __lambda_env_snippet_1! =
-      __lambda_env_snippet_1! {
-      }
+    let forty_two: fn() -> usize = __lambda_snippet_0 :fn() -> usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_11: Buffer =
+          let __buf_10: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(30) :usize
-          let __off_12: usize = int(0) :usize
+          let __off_11: usize = int(0) :usize
           assign
             target:
-              __off_12 :usize
+              __off_11 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_11 :Buffer
+                  __buf_10 :Buffer
                 arg1:
-                  __off_12 :usize
+                  __off_11 :usize
                 arg2:
                   "returned: " :string
           assign
             target:
-              __off_12 :usize
+              __off_11 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_11 :Buffer
+                  __buf_10 :Buffer
                 arg1:
-                  __off_12 :usize
+                  __off_11 :usize
                 arg2:
                   cast → u64
                     call :usize
                       callee:
                         __lambda_snippet_0 :fn() -> usize
-                      arg0:
-                        forty_two :__lambda_env_snippet_1!
           ~>
             call :string
               callee:
                 finish_buffer :string
               arg0:
-                __buf_11 :Buffer
+                __buf_10 :Buffer
               arg1:
-                __off_12 :usize
+                __off_11 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 {  }
-  fn __lambda_snippet_0(__env_10: __lambda_env_snippet_1!) -> usize
+  fn __lambda_snippet_0() -> usize
     return int(42) :usize
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

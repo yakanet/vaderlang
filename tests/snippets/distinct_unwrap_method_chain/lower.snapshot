@@ -19,7 +19,7 @@
             cast → string
               n :Name
           arg1:
-            LoweredMakeClosure
+            __lambda_snippet_0 :fn(char) -> bool
           arg2:
             "A" :string
   fn snippet$bound(n: Name) -> string
@@ -177,8 +177,7 @@
                 cast → Flag
                   true
     return int(0) :i32
-  struct __lambda_env_snippet_1 {  }
-  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, c: char) -> bool
+  fn __lambda_snippet_0(c: char) -> bool
     ~>
       eq :bool
         l:

@@ -20,11 +20,10 @@
       arg0:
         t :Leaf | Pair
       arg1:
-        LoweredMakeClosure
+        __lambda_snippet_0 :fn(Leaf | Pair) -> void
     return int(1) :i32
   fn snippet$match_form(t: Leaf | Pair) -> i32
-    let cb: fn(Leaf | Pair) -> void =
-      LoweredMakeClosure
+    let cb: fn(Leaf | Pair) -> void = __lambda_snippet_1 :fn(Leaf | Pair) -> void
     call :void
       callee:
         apply :fn(Leaf | Pair, fn(Leaf | Pair) -> void) -> void
@@ -202,8 +201,7 @@
               arg1:
                 __off_5 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 {  }
-  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, x: Leaf | Pair) -> void
+  fn __lambda_snippet_0(x: Leaf | Pair) -> void
     ~>
       if :void
         cond:
@@ -269,8 +267,7 @@
                       __buf_0 :Buffer
                     arg1:
                       __off_1 :usize
-  struct __lambda_env_snippet_3 {  }
-  fn __lambda_snippet_2(__env_0: __lambda_env_snippet_3!, x: Leaf | Pair) -> void
+  fn __lambda_snippet_1(x: Leaf | Pair) -> void
     ~>
       block :void
         let __scrut_0: Leaf | Pair =
@@ -400,8 +397,8 @@
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void
-  struct __defer_env_snippet_5 { cap_0: ? }
-  fn __defer_snippet_4(__env_0: __defer_env_snippet_5!) -> void
+  struct __defer_env_snippet_3 { cap_0: ? }
+  fn __defer_snippet_2(__env_0: __defer_env_snippet_3!) -> void
     ~>
       if :void
         cond:

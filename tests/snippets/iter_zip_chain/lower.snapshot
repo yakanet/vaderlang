@@ -517,20 +517,20 @@
                 int(2) :i32
                 int(3) :i32
         arg1:
-          LoweredMakeClosure
+          __lambda_snippet_0 :fn(i32) -> i32[]
     block :void
-      let __iter_26: Iterator<i32> = bursts :__genstate_flat_map<i32>!
+      let __iter_25: Iterator<i32> = bursts :__genstate_flat_map<i32>!
       loop
-        let __step_27: [i32, Continuation]! =
+        let __step_26: [i32, Continuation]! =
           vcall Iterator.next :[i32, Continuation]!
             recv:
-              __iter_26 :Iterator<i32>
+              __iter_25 :Iterator<i32>
         if :void
           cond:
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_27 :[i32, Continuation]!
+                  __step_26 :[i32, Continuation]!
               r:
                 int(1) :u8
           then:
@@ -538,43 +538,43 @@
           else:
             let n: i32 =
               ._0 :i32
-                __step_27 :[i32, Continuation]!
+                __step_26 :[i32, Continuation]!
             call :void
               callee:
                 std_io$println__string :void
               arg0:
                 block :string
-                  let __buf_28: Buffer =
+                  let __buf_27: Buffer =
                     call :Buffer
                       callee:
                         new_byte_buffer :Buffer
                       arg0:
                         int(22) :usize
-                  let __off_29: usize = int(0) :usize
+                  let __off_28: usize = int(0) :usize
                   assign
                     target:
-                      __off_29 :usize
+                      __off_28 :usize
                     value:
                       call :usize
                         callee:
                           write_string_at :usize
                         arg0:
-                          __buf_28 :Buffer
+                          __buf_27 :Buffer
                         arg1:
-                          __off_29 :usize
+                          __off_28 :usize
                         arg2:
                           "b=" :string
                   assign
                     target:
-                      __off_29 :usize
+                      __off_28 :usize
                     value:
                       call :usize
                         callee:
                           write_int :usize
                         arg0:
-                          __buf_28 :Buffer
+                          __buf_27 :Buffer
                         arg1:
-                          __off_29 :usize
+                          __off_28 :usize
                         arg2:
                           cast → i64
                             n :i32
@@ -583,12 +583,11 @@
                       callee:
                         finish_buffer :string
                       arg0:
-                        __buf_28 :Buffer
+                        __buf_27 :Buffer
                       arg1:
-                        __off_29 :usize
+                        __off_28 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 {  }
-  fn __lambda_snippet_0(__env_25: __lambda_env_snippet_1!, x: i32) -> i32[]
+  fn __lambda_snippet_0(x: i32) -> i32[]
     ~>
       array :i32[]
         x :i32

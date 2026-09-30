@@ -3,24 +3,23 @@ type 0 primitive null
 type 1 primitive i32
 type 2 fn (1) -> 1
 type 3 primitive string
-type 4 struct __lambda_env_snippet_1 {  }
-type 5 primitive u8
-type 6 primitive usize
-type 7 struct std_core$Buffer {  }
-type 8 primitive i64
-type 9 array 5
-type 10 primitive void
-type 11 primitive isize
+type 4 primitive u8
+type 5 primitive usize
+type 6 struct std_core$Buffer {  }
+type 7 primitive i64
+type 8 array 4
+type 9 primitive void
+type 10 primitive isize
 string 0 "forwarded: "
 string 1 "defaulted: "
 string 2 "n="
 string 3 "explicit:  "
 string 4 "v="
 string 5 "\n"
-import 0 byte_len std_core$byte_len result_type=6 param_types=3 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=9 param_types=3 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=1,9,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 7 ByteAccess
+import 0 byte_len std_core$byte_len result_type=5 param_types=3 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=8 param_types=3 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 6 ByteAccess
 export main 3
 
 fn 0 snippet$apply (i32,ref) -> i32
@@ -73,55 +72,54 @@ fn 2 snippet$labelled (i32,string) -> string
 end
 
 fn 3 snippet$main () -> i32
-  local __buf_1 ref
-  local __off_2 usize
-  local $cast_10 i64
-  local $call_16 string
+  local __buf_0 ref
+  local __off_1 usize
+  local $cast_9 i64
+  local $call_15 string
   i64.const 31
   call 6   ; std_core$new_byte_buffer
-  local.set 0   ; __buf_1
+  local.set 0   ; __buf_0
   i64.const 0
-  local.set 1   ; __off_2
-  local.get 0   ; __buf_1
-  local.get 1   ; __off_2
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
   string.const 0   ; "forwarded: "
   call 8   ; std_core$write_string_at
-  local.set 1   ; __off_2
-  struct.new 4   ; __lambda_env_snippet_1
-  make_closure 4 2   ; __lambda_snippet_0
+  local.set 1   ; __off_1
+  fn.ref 4 2   ; __lambda_snippet_0
   call 1   ; snippet$forwards
   i32.to_i64
-  local.set 2   ; $cast_10
-  local.get 0   ; __buf_1
-  local.get 1   ; __off_2
-  local.get 2   ; $cast_10
+  local.set 2   ; $cast_9
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  local.get 2   ; $cast_9
   call 9   ; std_core$write_int
-  local.set 1   ; __off_2
-  local.get 0   ; __buf_1
-  local.get 1   ; __off_2
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
   call 7   ; std_core$finish_buffer
   call 12   ; std_io$println__string
   i32.const 7
   string.const 2   ; "n="
   call 2   ; snippet$labelled
-  local.set 3   ; $call_16
+  local.set 3   ; $call_15
   string.const 1   ; "defaulted: "
-  local.get 3   ; $call_16
+  local.get 3   ; $call_15
   call 5   ; concat_2
   call 12   ; std_io$println__string
   i32.const 7
   string.const 4   ; "v="
   call 2   ; snippet$labelled
-  local.set 3   ; $call_16
+  local.set 3   ; $call_15
   string.const 3   ; "explicit:  "
-  local.get 3   ; $call_16
+  local.get 3   ; $call_15
   call 5   ; concat_2
   call 12   ; std_io$println__string
   return.lit i32.const 0
 end
 
-fn 4 __lambda_snippet_0 (ref,i32) -> i32
-  local.get 1   ; arg 1
+fn 4 __lambda_snippet_0 (i32) -> i32
+  local.get 0   ; arg 0
   i32.const 2
   i32.mul
   return
@@ -328,7 +326,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 8   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

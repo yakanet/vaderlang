@@ -201,22 +201,16 @@
                 x :i32
               r:
                 int(1) :i32
-    let apply: __lambda_env_snippet_9! =
-      __lambda_env_snippet_9! {
-      }
+    let apply: fn(i64) -> void = __lambda_snippet_8 :fn(i64) -> void
     call :void
       callee:
         __lambda_snippet_8 :fn(i64) -> void
       arg0:
-        apply :__lambda_env_snippet_9!
-      arg1:
         int(7) :i64
     call :void
       callee:
         __lambda_snippet_8 :fn(i64) -> void
       arg0:
-        apply :__lambda_env_snippet_9!
-      arg1:
         int(8) :i64
     return int(0) :i32
   struct __lambda_env_snippet_1 { cap_0: ? }
@@ -383,8 +377,8 @@
                   __buf_0 :Buffer
                 arg1:
                   __off_1 :usize
-  struct __lambda_env_snippet_11 { cap_0: ? }
-  fn __lambda_snippet_10(__env_0: __lambda_env_snippet_11!) -> void
+  struct __lambda_env_snippet_10 { cap_0: ? }
+  fn __lambda_snippet_9(__env_0: __lambda_env_snippet_10!) -> void
     ~>
       call :void
         callee:
@@ -432,20 +426,19 @@
                   __buf_0 :Buffer
                 arg1:
                   __off_1 :usize
-  struct __lambda_env_snippet_9 {  }
-  fn __lambda_snippet_8(__env_16: __lambda_env_snippet_9!, n: i64) -> void
+  fn __lambda_snippet_8(n: i64) -> void
     let n: ? =
       LoweredCellNew
-    let twice: __lambda_env_snippet_11! =
-      __lambda_env_snippet_11! {
+    let twice: __lambda_env_snippet_10! =
+      __lambda_env_snippet_10! {
         cap_0: n :i64
       }
     ~>
       call :void
         callee:
-          __lambda_snippet_10 :fn() -> void
+          __lambda_snippet_9 :fn() -> void
         arg0:
-          twice :__lambda_env_snippet_11!
+          twice :__lambda_env_snippet_10!
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

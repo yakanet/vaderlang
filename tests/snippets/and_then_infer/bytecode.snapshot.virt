@@ -6,23 +6,21 @@ type 3 primitive bool
 type 4 union 5,6
 type 5 ref Error
 type 6 primitive i32
-type 7 struct __lambda_env_snippet_1 {  }
-type 8 struct __lambda_env_snippet_3 {  }
-type 9 primitive u8
-type 10 primitive usize
-type 11 struct std_core$Buffer {  }
-type 12 primitive i64
-type 13 array 9
-type 14 primitive void
-type 15 fn (6) -> 4
-type 16 primitive isize
+type 7 primitive u8
+type 8 primitive usize
+type 9 struct std_core$Buffer {  }
+type 10 primitive i64
+type 11 array 7
+type 12 primitive void
+type 13 fn (6) -> 4
+type 14 primitive isize
 string 0 "boom"
 string 1 "\n"
-import 0 byte_len std_core$byte_len result_type=10 param_types=2 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=13 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=6,13,10 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=11 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=6,11,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 1 Error
-impl 11 ByteAccess
+impl 9 ByteAccess
 export main 2
 
 fn 0 snippet$fetch (bool) -> any
@@ -55,85 +53,83 @@ end
 
 fn 2 snippet$main () -> i32
   local $call_1 any
-  local $closure_3 ref
-  local __off_2 usize
-  local $unop_12 i32
-  local $cast_14 i64
+  local $fn_ref_2 ref
+  local __off_1 usize
+  local $unop_11 i32
+  local $cast_13 i64
   bool.const true
   call 0   ; snippet$fetch
   local.set 0   ; $call_1
-  struct.new 7   ; __lambda_env_snippet_1
-  make_closure 3 15   ; __lambda_snippet_0
-  local.set 1   ; $closure_3
+  fn.ref 3 13   ; __lambda_snippet_0
+  local.set 1   ; $fn_ref_2
   local.get 0   ; $call_1
-  local.get 1   ; $closure_3
+  local.get 1   ; $fn_ref_2
   call 13   ; std_option$and_then__i32__i32
   local.set 0   ; $call_1
   i64.const 20
   call 6   ; std_core$new_byte_buffer
-  local.set 1   ; $closure_3
+  local.set 1   ; $fn_ref_2
   i64.const 0
-  local.set 2   ; __off_2
+  local.set 2   ; __off_1
   i32.const 1
   i32.neg
-  local.set 3   ; $unop_12
+  local.set 3   ; $unop_11
   local.get 0   ; $call_1
-  local.get 3   ; $unop_12
+  local.get 3   ; $unop_11
   call 12   ; std_option$or__i32
   i32.to_i64
-  local.set 4   ; $cast_14
-  local.get 1   ; $closure_3
-  local.get 2   ; __off_2
-  local.get 4   ; $cast_14
+  local.set 4   ; $cast_13
+  local.get 1   ; $fn_ref_2
+  local.get 2   ; __off_1
+  local.get 4   ; $cast_13
   call 8   ; std_core$write_int
-  local.set 2   ; __off_2
-  local.get 1   ; $closure_3
-  local.get 2   ; __off_2
+  local.set 2   ; __off_1
+  local.get 1   ; $fn_ref_2
+  local.get 2   ; __off_1
   call 7   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   bool.const false
   call 0   ; snippet$fetch
   local.set 0   ; $call_1
-  struct.new 8   ; __lambda_env_snippet_3
-  make_closure 4 15   ; __lambda_snippet_2
-  local.set 1   ; $closure_3
+  fn.ref 4 13   ; __lambda_snippet_1
+  local.set 1   ; $fn_ref_2
   local.get 0   ; $call_1
-  local.get 1   ; $closure_3
+  local.get 1   ; $fn_ref_2
   call 13   ; std_option$and_then__i32__i32
   local.set 0   ; $call_1
   i64.const 20
   call 6   ; std_core$new_byte_buffer
-  local.set 1   ; $closure_3
+  local.set 1   ; $fn_ref_2
   i64.const 0
-  local.set 2   ; __off_2
+  local.set 2   ; __off_1
   i32.const 1
   i32.neg
-  local.set 3   ; $unop_12
+  local.set 3   ; $unop_11
   local.get 0   ; $call_1
-  local.get 3   ; $unop_12
+  local.get 3   ; $unop_11
   call 12   ; std_option$or__i32
   i32.to_i64
-  local.set 4   ; $cast_14
-  local.get 1   ; $closure_3
-  local.get 2   ; __off_2
-  local.get 4   ; $cast_14
+  local.set 4   ; $cast_13
+  local.get 1   ; $fn_ref_2
+  local.get 2   ; __off_1
+  local.get 4   ; $cast_13
   call 8   ; std_core$write_int
-  local.set 2   ; __off_2
-  local.get 1   ; $closure_3
-  local.get 2   ; __off_2
+  local.set 2   ; __off_1
+  local.get 1   ; $fn_ref_2
+  local.get 2   ; __off_1
   call 7   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   return.lit i32.const 0
 end
 
-fn 3 __lambda_snippet_0 (ref,i32) -> any
-  local.get 1   ; arg 1
+fn 3 __lambda_snippet_0 (i32) -> any
+  local.get 0   ; arg 0
   call 1   ; snippet$halve
   return
 end
 
-fn 4 __lambda_snippet_2 (ref,i32) -> any
-  local.get 1   ; arg 1
+fn 4 __lambda_snippet_1 (i32) -> any
+  local.get 0   ; arg 0
   call 1   ; snippet$halve
   return
 end
@@ -324,7 +320,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 13   ; u8[][]
+      array.slice 11   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -405,7 +401,7 @@ fn 13 std_option$and_then__i32__i32 (any,ref) -> any
   local.get 0   ; arg 0
   ref.cast 6   ; -> i32
   local.get 1   ; arg 1
-  call.indirect 15   ; fn
+  call.indirect 13   ; fn
   return
 end
 
