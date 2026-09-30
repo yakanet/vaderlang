@@ -10,7 +10,9 @@
 // Symbol resolution is NOT checked here: it is a property of the CFG boundary
 // and lives in `vader/midir/verify.vader`. Do not replay it here.
 //
-// Pure read over the IR — no mutation, no IO — wired behind `--verify`.
+// Pure read over the IR — no mutation, no IO. `verify_lowered` is wired behind
+// `--verify`; `verify_captured_cells` runs on every build, because the defect
+// it looks for is otherwise silent.
 
 module "vader/lower"
 
@@ -61,6 +63,45 @@ verify_no_coroutine_markers :: fn(
     }
 }
 
+// ---- captured bindings ----------------------------------------------------
+
+/// Report every `let` that binds a closure-captured symbol to its bare value.
+///
+/// A closure reads its captures through `CellGet`, so a slot left holding the
+/// bare value is read as a cell — garbage under the VM, a crash natively — and
+/// nothing downstream notices. The `let`s a coroutine spills into its frame are gone by the time this runs;
+/// `gb_collect_stmt` checks those as it spills them.
+///
+/// @param project   the lowered IR. Read only.
+/// @param captured  symbol ids of every binding a closure captures.
+/// @param diags     accumulator ; one `I7011` per bare binding.
+verify_captured_cells :: fn(
+    project: LoweredProject, captured: MutableSet<i32>, diags: Diagnostic[]!,
+) -> void {
+    if captured.len() == 0 {
+        return
+    }
+    for [_module_id, m] in project.modules {
+        for d in m.decls {
+            owner :: decl_mangle(d)
+            for_each_lowered_stmt_node(d, (s: LoweredStmt) -> {
+                if s is LoweredLet && binds_bare_capture(captured, s) {
+                    diags.push(bare_capture_error(s, owner))
+                }
+            })
+        }
+    }
+}
+
+// True when `s` binds a captured symbol to anything but a fresh cell.
+binds_bare_capture :: fn(captured: MutableSet<i32>, s: LoweredLet) =
+    s.symbol.id in captured && !(s.value is LoweredCellNew)
+
+bare_capture_error :: fn(s: LoweredLet, owner: string) = internal_error(
+    .CapturedBindingNotInCell, s.span,
+    "`${s.name}` in `${owner}` holds its bare value, but a closure reads it through a cell",
+)
+
 // ---- helpers --------------------------------------------------------------
 
 // The mangle of any lowered decl, for the detail line.
@@ -68,4 +109,57 @@ decl_mangle :: fn(d: LoweredDecl) -> string = match d {
     is LoweredFnDecl     -> d.mangled
     is LoweredStructDecl -> d.mangled
     is LoweredConstDecl  -> d.mangled
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/span"
+import "vader/types"
+
+// A project holding `f :: fn() { x :: <value> }`, `x` being symbol 1.
+captured_let_project :: fn(value: LoweredExpr) -> LoweredProject {
+    binding :: LoweredLet {
+        .span = empty_span(), .name = "x", .symbol = bce_test_sym(1, "x"), .type = TY_BOOL,
+        .value = value,
+    }
+    project :: new_lowered_project()
+    project.modules["m"] = LoweredModule {
+        .module_id = "m", .display_path = "m",
+        .decls = [bce_test_fn(bce_test_sym(2, "f"), bce_test_block([binding]))],
+    }
+    return project
+}
+
+captured_one :: fn() -> MutableSet<i32> {
+    captured :: MutableSet<i32> {}
+    captured.add(1)
+    return captured
+}
+
+bare :: fn() -> LoweredExpr = LoweredBoolLit { .span = empty_span(), .type = TY_BOOL, .value = true }
+
+@test
+test_verify_captured_cells_bare_value :: fn() -> void {
+    diags: Diagnostic[]!: []
+    verify_captured_cells(captured_let_project(bare()), captured_one(), diags)
+    assert_eq(diags.len(), 1)
+    assert_eq(diags[0].code.id, "I7011")
+}
+
+@test
+test_verify_captured_cells_cell :: fn() -> void {
+    cell :: LoweredCellNew {
+        .span = empty_span(), .type = TY_UNRESOLVED, .value = bare(), .value_type = TY_BOOL,
+    }
+    diags: Diagnostic[]!: []
+    verify_captured_cells(captured_let_project(cell), captured_one(), diags)
+    assert_eq(diags.len(), 0)
+}
+
+@test
+test_verify_captured_cells_uncaptured :: fn() -> void {
+    diags: Diagnostic[]!: []
+    verify_captured_cells(captured_let_project(bare()), MutableSet<i32> {}, diags)
+    assert_eq(diags.len(), 0)
 }

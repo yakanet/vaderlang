@@ -302,4 +302,5 @@ export InternalCode :: enum(CodeInfo) {
     EntryBlockNotZero        { .id = "I7008", .message = "entry block is not block 0" },
     NonPrimitiveDataPoolLeaf { .id = "I7009", .message = "pooled constant holds a non-primitive leaf" },
     ReturnArityMismatch      { .id = "I7010", .message = "a return hands back a different number of values than the function declares" },
+    CapturedBindingNotInCell { .id = "I7011", .message = "a binding a closure captures is not held in a cell" },
 }

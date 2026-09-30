@@ -477,7 +477,7 @@ bce_test_sym :: fn(id: i32, name: string) -> Symbol = Symbol {
     .defined_at = null,
 }
 
-bce_test_fn :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl {
+bce_test_fn :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl! {
     // MonoEntry shape mirrors `synth_mono_entry` (lower_lambda.vader) — kept inline
     // because that helper needs a FnLowerCtx the fixture deliberately doesn't build.
     return LoweredFnDecl {

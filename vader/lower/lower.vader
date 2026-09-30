@@ -289,6 +289,8 @@ lower_project_impl :: fn(
         emit_opt_report(render_opt_report(project_ctx))
         emit_opt_report(render_value_abi_report(project_ctx, project, typed))
     }
+    // Last, so the passes above that rewrite a `let`'s value in place are checked too.
+    verify_captured_cells(project, project_ctx.closures.captured_symbols, diags)
     return project
 }
 

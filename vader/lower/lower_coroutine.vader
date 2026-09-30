@@ -597,6 +597,10 @@ gb_collect_block :: fn(gb: GenBuild!, block: LoweredBlock) -> void {
 gb_collect_stmt :: fn(gb: GenBuild!, s: LoweredStmt) -> void {
     match s {
         is LoweredLet -> {
+            // Once spilled the `let` is a field store, out of `verify_captured_cells`' sight.
+            if binds_bare_capture(gb.fn_ctx.project.closures.captured_symbols, s) {
+                gb.fn_ctx.project.diags.push(bare_capture_error(s, gb.fn_ctx.entry.mangled))
+            }
             gb_add_field(gb, s.symbol, s.type)
             gb_collect_expr(gb, s.value)
         }
