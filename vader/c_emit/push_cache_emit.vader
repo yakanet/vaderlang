@@ -2,11 +2,14 @@
 //
 // `push_cache_tag` (`vader/lower`) proved which pushes sit in a loop that can
 // keep the array's `length` / `capacity` / slots out of memory, and passed the
-// array's bytecode slot along on `ArrayPush.cache_slot`. That is the whole
-// backend-independent part. What is left is a C question — where the lifted
-// state lives — and this file answers it: four C locals in the block that
-// encloses the loop, a fast arm that touches only them, and a slow arm that
-// writes them back, calls the ordinary push, and reloads.
+// array's bytecode slot along on `ArrayPush.cache_slot`. The region a C loop
+// covers exists only on the op stream, though — a loop with no back edge has no
+// `Loop` of its own, and its pushes land in the enclosing one — so the tag
+// vouches for the array being fresh, and `pc_plan_for_loop` proves the region:
+// no safepoint, no exit past its end, no other use of the slot. The rest is a C
+// question — where the lifted state lives — and this file answers it: four C
+// locals in the block that encloses the loop, a fast arm that touches only them,
+// and a slow arm that writes them back, calls the ordinary push, and reloads.
 //
 // The ordinary fast path is 18 instructions and 6 loads for one 4-byte store,
 // because every one of those fields round-trips through memory: the stores may
@@ -36,10 +39,9 @@ PushCache :: struct {
 
 /// Decide whether the loop opening at `pc` can lift its array state.
 ///
-/// Scans the loop's own region — stepping OVER a nested loop, whose pushes
-/// belong to it and whose array may not even exist yet outside it. Returns a
-/// plan when the region's cached pushes all name one slot and one packed
-/// element kind, `null` otherwise.
+/// Scans the loop's own region, and refuses one that holds a nested loop.
+/// Returns a plan when the region's cached pushes all name one slot and one
+/// packed element kind, `null` otherwise.
 ///
 /// @param s   the fn emit state ; reads `function.body` and `scopes`.
 /// @param pc  the `Loop` opener's pc.
@@ -48,6 +50,7 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
     sc :: scope_ending_for_opener(s.scopes, pc) ?? return null
     slot := -1
     kind := ArrayKind.I32
+    pushes := 0
     i: i32 = pc + 1
     for i < sc.end_pc {
         op :: s.function.body[usize(i)]
@@ -73,6 +76,7 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
             }
             slot = op.cache_slot
             kind = k
+            pushes += 1
             i += 1
             continue
         }
@@ -120,13 +124,19 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
             return null
         }
     }
-    // The preheader reads the slot BEFORE the loop, so the array has to already
-    // be in it. A module const does not qualify: `midir` materialises its read
-    // into the slot inside the body, once per iteration, and before the first
-    // one that slot can hold anything at all — a `Buffer` from the `${}` just
-    // above, in the case that found this. Only the op stream shows that; the
-    // lowered AST has a plain ident whose symbol nothing assigns.
-    if pc_slot_written_in(s, pc, sc.end_pc, slot) {
+    // Only the cached pushes may touch the slot inside the region.
+    //
+    // A write: the preheader reads the slot BEFORE the loop, so the array has to
+    // already be in it. A module const does not qualify — `midir` materialises
+    // its read into the slot inside the body, once per iteration, and before the
+    // first one that slot can hold anything at all, a `Buffer` from a `${}` just
+    // above, say. The lowered AST has a plain ident whose symbol nothing assigns.
+    //
+    // A read: the write-back happens at the loop's `End` alone, so any other read
+    // sees a `length` not yet written back. A loop with no back edge
+    // (`for { out.push(x) ; break }`) is how one gets there: the tag's proof covered
+    // that loop, and its push lands in this one.
+    if pc_slot_used_outside_push(s, pc, sc.end_pc, slot, pushes) {
         return null
     }
     return PushCache { .opener_pc = pc, .slot = slot, .kind = kind }
@@ -246,23 +256,22 @@ pc_helper_of :: fn(k: ArrayKind) -> string = push_helper_for(k) ?? "vader_array_
 
 // ---- region state ---------------------------------------------------------
 
-/// Does anything in `[from, to)` write `slot`? Nested regions INCLUDED — a write
-/// anywhere under the loop invalidates the lifted copy just the same.
-pc_slot_written_in :: fn(s: FnState, from: i32, to: i32, slot: i32) -> bool {
+// True when `[from, to)` writes `slot`, or reads it other than as the array
+// operand of its `pushes` cached pushes. Each of those reads the slot exactly
+// once, so the counts must match both ways: more reads is a use outside a push,
+// fewer is a cached push whose array came from elsewhere, which the emitter
+// then runs as an ordinary push under a live plan. That holds while every pass
+// renumbering slots carries `ArrayPush.cache_slot` along with them.
+pc_slot_used_outside_push :: fn(s: FnState, from: i32, to: i32, slot: i32, pushes: i32) -> bool {
+    reads := 0
     for i in from..<to {
         op :: s.function.body[usize(i)]
-        if op is vm.LocalSet {
-            if op.slot == slot {
-                return true
-            }
-        }
-        if op is vm.LocalTee {
-            if op.slot == slot {
-                return true
-            }
-        }
+        if op is vm.LocalSet && op.slot == slot   { return true }
+        if op is vm.LocalTee && op.slot == slot   { return true }
+        if op is vm.LocalGet && op.slot == slot   { reads += 1 }
+        if op is vm.LocalField && op.slot == slot { reads += 1 }
     }
-    return false
+    return reads != pushes
 }
 
 /// Hand the lifted state back when the loop this plan belongs to closes.

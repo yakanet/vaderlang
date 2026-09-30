@@ -247,6 +247,21 @@ len_after :: fn(n: i32) -> i32 {
     return i32(out.len())
 }
 
+// A loop that runs once has no back edge, so it compiles to no loop of its own
+// and its push lands in the enclosing loop — whose body reads the length.
+one_shot :: fn(a: i32[]) -> i32 {
+    out: i32[]!: []
+    seen: usize = 0
+    for x in a {
+        for {
+            out.push(x)
+            break
+        }
+        seen += out.len()
+    }
+    return i32(seen)
+}
+
 // A fused `collect` pushes into a local the lowering minted, whose symbol id is
 // negative ; the lift takes it like any other local.
 triple :: fn(i: i32) -> i32 = i * 3
@@ -292,6 +307,7 @@ main :: fn() -> i32 {
     println("captured     ${captured(8)}")
     println("two_names    ${two_names(8)}")
     println("rebound      ${rebound(8)}")
+    println("one_shot     ${one_shot([1, 2, 3])}")
     println("collected    ${sum(collected(6))} n=${collected(6).len()}")
     println("filtered     ${sum(filtered([1, 2, 3, 5]))} n=${filtered([1, 2, 3, 5]).len()}")
     println("taken        ${sum(taken([1, 2, 3, 4, 5]))} n=${taken([1, 2, 3, 4, 5]).len()}")
