@@ -349,7 +349,7 @@
           nulls :i32
   struct __genstate_maybe { state: i32 }
   fn snippet$__genstate_maybe$Iterator$next(self: __genstate_maybe!) -> [i32 | null, Continuation]!
-    loop
+    loop :dispatch$
       if :void
         cond:
           eq :bool

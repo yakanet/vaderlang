@@ -203,6 +203,10 @@ const C_PARITY = new Set<string>([
   // targets, an inner loop's `continue <var>`. A guard ends a loop that stopped
   // advancing, so a regression prints rather than hangs.
   "counted_loop_continue",
+  // A jump inside an expression of a generator or async fn (`v :: x ?? continue`,
+  // a yielded `x ?? continue`, `?? break`, `?? return`) takes its transition in
+  // the state machine instead of re-running its state or leaving `next()`.
+  "coroutine_nested_jumps",
   // `@extern` forwarding shim — string args marshalled atom → `const char*`
   // (`c_emit/host.vader::user_extern_shim`). The shim exists only in native C
   // output — the VM reaches a foreign symbol through `dlsym` instead, so it

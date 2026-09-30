@@ -62,7 +62,7 @@
     return int(0) :i32
   struct __genstate_count_up { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_count_up$Iterator$next(self: __genstate_count_up!) -> [i32, Continuation]!
-    loop
+    loop :dispatch$
       if :void
         cond:
           eq :bool

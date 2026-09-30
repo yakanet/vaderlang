@@ -1,0 +1,118 @@
+// A jump written inside an expression of a generator or async fn — the fallback
+// of a `??`, a branch of an `if` expression — does what it does in a plain fn:
+// `continue` skips the rest of the body and runs the step, `break` leaves the
+// loop, `return` ends the stream or the async fn. A loop that lives inside the
+// expression keeps its own jumps, and a `continue <var>` from it reaches the
+// loop outside.
+module "snippet"
+
+import "std/async"
+import "std/io"
+
+even :: fn(i: i32) -> i32 | null = if i % 2 == 0 { i } else { null }
+
+below :: fn(i: i32, n: i32) -> i32 | null = if i < n { i } else { null }
+
+// `continue` in the initializer of a `let`.
+evens :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        v :: even(i) ?? continue
+        yield v
+    }
+}
+
+// `continue` in a yielded value: the statement after the `yield` is skipped too.
+evens_with_tail :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        yield even(i) ?? continue
+        println("tail ${i}")
+    }
+}
+
+// `break` leaves the loop and the body after it still runs.
+until_three :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        v :: below(i, 3) ?? break
+        yield v
+    }
+    yield 100
+}
+
+// `return` ends the stream.
+stop_at_three :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        v :: below(i, 3) ?? return
+        yield v
+    }
+    yield 100
+}
+
+// A loop inside an `if` expression keeps its `break`; its `continue i` skips `i`.
+first_odd_above :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        found :: if i > 0 {
+            hit := -1
+            for j in 0..<n {
+                if i == 2 {
+                    continue i
+                }
+                if j > i && j % 2 == 1 {
+                    hit = j
+                    break
+                }
+            }
+            hit
+        } else {
+            -1
+        }
+        yield found
+    }
+}
+
+total_of_evens :: fn(n: i32) -> Async<i32> {
+    total := 0
+    for i in 0..<n {
+        await sleep(0)
+        total += even(i) ?? continue
+    }
+    return total
+}
+
+first_above :: fn(xs: i32[], floor: i32) -> Async<i32> {
+    for x in xs {
+        await sleep(0)
+        v :: (if x > floor { x } else { null }) ?? continue
+        return v
+    }
+    return -1
+}
+
+// Each generator is bound to a local first, so it runs as a state machine rather
+// than being fused into the loop that consumes it.
+main :: fn() -> i32 {
+    a :: evens(6)
+    for x in a {
+        println("evens ${x}")
+    }
+    b :: evens_with_tail(4)
+    for x in b {
+        println("with tail ${x}")
+    }
+    c :: until_three(6)
+    for x in c {
+        println("until ${x}")
+    }
+    d :: stop_at_three(6)
+    for x in d {
+        println("stop ${x}")
+    }
+    e :: first_odd_above(5)
+    for x in e {
+        println("odd above ${x}")
+    }
+    total :: await total_of_evens(6)
+    println("async total ${total}")
+    first :: await first_above([1, 5, 2, 9], 4)
+    println("async first ${first}")
+    return 0
+}

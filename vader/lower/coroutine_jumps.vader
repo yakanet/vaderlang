@@ -1,0 +1,181 @@
+// vader/lower/coroutine_jumps — a jump through the coroutine block-split.
+//
+// `lower_coroutine.vader` dissolves a coroutine body into numbered states and
+// compiles a `break` / `continue` / `return` written as a statement into the
+// state transition it means. A jump can also sit inside an expression —
+// `v :: x ?? continue` lowers to a `let` whose value is a block holding the
+// `continue` — and such a statement runs whole inside one state, where the only
+// loop left around the jump is the dispatch loop. Retargeting replaces the jump
+// with its transition followed by a re-entry of that dispatch loop.
+
+module "vader/lower"
+
+/// Label of the dispatch loop of a coroutine's `next()` / `resume`. `$` is not an
+/// identifier character, so no source label can name it.
+DISPATCH_LABEL :: "dispatch$"
+
+// ---- transitions ----------------------------------------------------------
+//
+// What each jump means in the state machine, as the statements that end the
+// state. A jump written as a statement and a nested one both go through these.
+
+gb_continue_to :: fn(gb: GenBuild, frame: LoopFrame) -> LoweredStmt[]! {
+    out: LoweredStmt[]!: []
+    out.push_all(frame.step)
+    out.push(gb_set_state(gb, frame.header))
+    return out
+}
+
+gb_break_to :: fn(gb: GenBuild, frame: LoopFrame) -> LoweredStmt[]! = [gb_set_state(gb, frame.exit)]
+
+// A `return` completes the coroutine: a generator stops its stream, an async fn
+// hands back its value — the `null` done-marker for a bare `return`, so the
+// resume result stays `T | Suspended`.
+gb_complete :: fn(gb: GenBuild, value: LoweredExpr | null) -> LoweredStmt[]! {
+    done :: gb_set_state(gb, i64(DONE_STATE))
+    if !gb.is_async {
+        return [done, gb_done_return(gb)]
+    }
+    return [done, LoweredReturn { .span = gb.span, .value = value ?? gb_null_lit(gb) }]
+}
+
+// ---- retarget -------------------------------------------------------------
+//
+// Every statement and expression the block-split places in a state passes
+// through here; one without a jump comes back equal. A loop met on the way runs
+// within the state: it is pushed as a `local` frame for the time of its body, so
+// `gb_resolve_loop_frame` — the one resolution rule — tells a jump that stays
+// from one that leaves the state.
+
+gb_retarget_stmt :: fn(gb: GenBuild!, s: LoweredStmt) -> LoweredStmt = match s {
+    is LoweredBreak -> {
+        frame :: gb_resolve_loop_frame(gb, s.label)
+        if frame.local { s } else { gb_reenter(gb, gb_break_to(gb, frame)) }
+    }
+    is LoweredContinue -> {
+        frame :: gb_resolve_loop_frame(gb, s.label)
+        if frame.local { s } else { gb_reenter(gb, gb_continue_to(gb, frame)) }
+    }
+    // No loop holds a `return`: it leaves the coroutine from any depth.
+    is LoweredReturn -> wrap_stmts(s.span, gb_complete(gb, gb_retarget_opt(gb, s.value)))
+    is LoweredLet -> LoweredLet { ...s, .value = gb_retarget_expr(gb, s.value) }
+    is LoweredAssign -> LoweredAssign {
+        ...s,
+        .target = gb_retarget_expr(gb, s.target),
+        .value = gb_retarget_expr(gb, s.value),
+    }
+    is LoweredCellSet -> LoweredCellSet {
+        ...s,
+        .target = gb_retarget_expr(gb, s.target),
+        .value = gb_retarget_expr(gb, s.value),
+    }
+    is LoweredExprStmt -> LoweredExprStmt { ...s, .expr = gb_retarget_expr(gb, s.expr) }
+    is LoweredYield -> LoweredYield { ...s, .value = gb_retarget_expr(gb, s.value) }
+    is LoweredAwait -> LoweredAwait { ...s, .awaited = gb_retarget_expr(gb, s.awaited) }
+    // The condition runs before the loop's frame exists, as in midir; the step
+    // holds no jump.
+    is LoweredLoop -> {
+        cond :: gb_retarget_opt(gb, s.cond)
+        gb.loop_stack.push(LoopFrame {
+            .label = s.label, .header = -1, .exit = -1, .step = [], .local = true,
+        })
+        body :: gb_retarget_block(gb, s.body)
+        gb.loop_stack.remove_last()
+        LoweredLoop { ...s, .cond = cond, .body = body }
+    }
+    // Routing has already expanded both into plain statements; the arm is here for
+    // exhaustiveness.
+    is LoweredDeferPush | LoweredDeferPopExec -> s
+}
+
+// `transition`, then back to the dispatch loop, which runs the state it names.
+gb_reenter :: fn(gb: GenBuild, transition: LoweredStmt[]!) -> LoweredStmt {
+    transition.push(LoweredContinue { .span = gb.span, .label = DISPATCH_LABEL })
+    return wrap_stmts(gb.span, transition)
+}
+
+gb_retarget_block :: fn(gb: GenBuild!, b: LoweredBlock) -> LoweredBlock {
+    stmts: LoweredStmt[]!: []
+    for st in b.stmts {
+        stmts.push(gb_retarget_stmt(gb, st))
+    }
+    return LoweredBlock { ...b, .stmts = stmts, .trailing = gb_retarget_opt(gb, b.trailing) }
+}
+
+gb_retarget_opt :: fn(gb: GenBuild!, e: LoweredExpr | null) -> LoweredExpr | null =
+    if e == null { null } else { gb_retarget_expr(gb, e) }
+
+gb_retarget_exprs :: fn(gb: GenBuild!, es: LoweredExpr[]) -> LoweredExpr[]! {
+    out: LoweredExpr[]!: []
+    for e in es {
+        out.push(gb_retarget_expr(gb, e))
+    }
+    return out
+}
+
+gb_retarget_expr :: fn(gb: GenBuild!, e: LoweredExpr) -> LoweredExpr = match e {
+    is LoweredBlock -> gb_retarget_block(gb, e)
+    is LoweredIf -> LoweredIf {
+        ...e,
+        .cond = gb_retarget_expr(gb, e.cond),
+        .then_block = gb_retarget_block(gb, e.then_block),
+        .else_block = if e.else_block == null { null } else { gb_retarget_block(gb, e.else_block) },
+    }
+    is LoweredCall -> LoweredCall {
+        ...e,
+        .callee = gb_retarget_expr(gb, e.callee),
+        .args = gb_retarget_exprs(gb, e.args),
+    }
+    is LoweredVirtualCall -> LoweredVirtualCall {
+        ...e,
+        .receiver = gb_retarget_expr(gb, e.receiver),
+        .args = gb_retarget_exprs(gb, e.args),
+    }
+    is LoweredIntrinsicCall -> LoweredIntrinsicCall { ...e, .args = gb_retarget_exprs(gb, e.args) }
+    is LoweredFieldAccess -> LoweredFieldAccess { ...e, .target = gb_retarget_expr(gb, e.target) }
+    is LoweredIndex -> LoweredIndex {
+        ...e,
+        .target = gb_retarget_expr(gb, e.target),
+        .index = gb_retarget_expr(gb, e.index),
+    }
+    is LoweredUnary -> LoweredUnary { ...e, .operand = gb_retarget_expr(gb, e.operand) }
+    is LoweredBinary -> LoweredBinary {
+        ...e,
+        .left = gb_retarget_expr(gb, e.left),
+        .right = gb_retarget_expr(gb, e.right),
+    }
+    is LoweredStructLit -> {
+        fields: LoweredStructLitField![]!: []
+        for f in e.fields {
+            fields.push(LoweredStructLitField { ...f, .value = gb_retarget_expr(gb, f.value) })
+        }
+        LoweredStructLit { ...e, .fields = fields }
+    }
+    is LoweredArrayLit -> LoweredArrayLit { ...e, .elements = gb_retarget_exprs(gb, e.elements) }
+    is LoweredCast -> LoweredCast { ...e, .value = gb_retarget_expr(gb, e.value) }
+    is LoweredTypeCheck -> LoweredTypeCheck { ...e, .value = gb_retarget_expr(gb, e.value) }
+    is LoweredArrayLen -> LoweredArrayLen { ...e, .target = gb_retarget_expr(gb, e.target) }
+    is LoweredArrayPush -> LoweredArrayPush {
+        ...e,
+        .target = gb_retarget_expr(gb, e.target),
+        .value = gb_retarget_expr(gb, e.value),
+    }
+    is LoweredArraySlice -> LoweredArraySlice {
+        ...e,
+        .target = gb_retarget_expr(gb, e.target),
+        .lo = gb_retarget_expr(gb, e.lo),
+        .hi = gb_retarget_expr(gb, e.hi),
+    }
+    is LoweredStringSlice -> LoweredStringSlice {
+        ...e,
+        .target = gb_retarget_expr(gb, e.target),
+        .lo = gb_retarget_expr(gb, e.lo),
+        .hi = gb_retarget_expr(gb, e.hi),
+    }
+    is LoweredCellNew -> LoweredCellNew { ...e, .value = gb_retarget_expr(gb, e.value) }
+    is LoweredCellGet -> LoweredCellGet { ...e, .target = gb_retarget_expr(gb, e.target) }
+    is LoweredMakeClosure -> LoweredMakeClosure { ...e, .env = gb_retarget_expr(gb, e.env) }
+    is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit | LoweredCharLit -> e
+    is LoweredStringLit | LoweredIdent | LoweredDataConst | LoweredTypeConst -> e
+    is LoweredUnreachable -> e
+}

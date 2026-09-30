@@ -85,6 +85,10 @@ LoopFrame :: struct {
     /// Runs before every jump to `header`. Leaves only, so it joins the state
     /// that reaches the jump instead of costing a dispatch round of its own.
     step:   LoweredStmt[]
+    /// A loop inside the statement being retargeted (`coroutine_jumps.vader`): it
+    /// runs within one state, so a jump that resolves to it stays as written, and
+    /// `header` / `exit` / `step` are unused.
+    local:  bool = false
 }
 
 /// Resolve the target loop frame for a `break` / `continue`. A null label = the
@@ -273,7 +277,7 @@ gb_compile_seq :: fn(gb: GenBuild!, stmts: LoweredStmt[], cont: i64) -> i64 {
     leaves: LoweredStmt[]!: []
     i: usize = 0
     for i < stmts.len() && gb_is_leaf(stmts[i]) {
-        leaves.push(stmts[i])
+        leaves.push(gb_retarget_stmt(gb, stmts[i]))
         i = i + 1
     }
     if i >= stmts.len() {
@@ -300,7 +304,10 @@ gb_compile_block :: fn(gb: GenBuild!, block: LoweredBlock, cont: i64) -> i64 =
 gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
     if s is LoweredYield {
         // Reaching the yield: record the resume state (`cont`), emit the value.
-        return gb_new_state(gb, [gb_set_state(gb, cont), gb_yield_return(gb, s.value)])
+        return gb_new_state(gb, [
+            gb_set_state(gb, cont),
+            gb_yield_return(gb, gb_retarget_expr(gb, s.value)),
+        ])
     }
     if s is LoweredAwait {
         // Model A : store the child once, then hand off to a re-entrant drive
@@ -308,24 +315,15 @@ gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
         field :: gb.field_map[s.target.id]
         if field == null { panic("async block-split: await target not spilled") }
         drive :: gb_reserve(gb)
-        entry :: gb_new_state(gb, [gb_store_awaited(gb, s.awaited), gb_set_state(gb, drive)])
+        entry :: gb_new_state(gb, [
+            gb_store_awaited(gb, gb_retarget_expr(gb, s.awaited)),
+            gb_set_state(gb, drive),
+        ])
         gb_fill(gb, drive, gb_drive_state(gb, field, s.target_type, cont))
         return entry
     }
     if s is LoweredReturn {
-        if gb.is_async {
-            // Async completion : mark done, then return the value `T`. The routed
-            // `r.value` refs already point at `self.<field>`. A bare `return;`
-            // (void body) has no value — complete with the `null` done-marker so
-            // the resume return stays `null | Suspended`, never a valueless pop.
-            value :: if s.value == null { gb_null_lit(gb) } else { s.value }
-            return gb_new_state(gb, [
-                gb_set_state(gb, i64(DONE_STATE)),
-                LoweredReturn { .span = gb.span, .value = value },
-            ])
-        }
-        // A generator's bare `return` = stop the stream (exhausted forever).
-        return gb_new_state(gb, [gb_set_state(gb, i64(DONE_STATE)), gb_done_return(gb)])
+        return gb_new_state(gb, gb_complete(gb, gb_retarget_opt(gb, s.value)))
     }
     if s is LoweredExprStmt {
         if s.expr is LoweredIf as ie {
@@ -333,7 +331,7 @@ gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
             else_entry :: if ie.else_block == null { cont } else { gb_compile_block(gb, ie.else_block, cont) }
             // A dispatch state: `if cond { state = then } else { state = else }`.
             branch :: LoweredIf {
-                .span = gb.span, .type = TY_VOID, .cond = ie.cond,
+                .span = gb.span, .type = TY_VOID, .cond = gb_retarget_expr(gb, ie.cond),
                 .then_block = gb_block(gb, [gb_set_state(gb, then_entry)]),
                 .else_block = gb_block(gb, [gb_set_state(gb, else_entry)]),
             }
@@ -359,7 +357,7 @@ gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
         } else {
             // `while cond`: header tests the condition.
             hdr_if :: LoweredIf {
-                .span = gb.span, .type = TY_VOID, .cond = s.cond,
+                .span = gb.span, .type = TY_VOID, .cond = gb_retarget_expr(gb, s.cond),
                 .then_block = gb_block(gb, [gb_set_state(gb, body_entry)]),
                 .else_block = gb_block(gb, [gb_set_state(gb, cont)]),
             }
@@ -368,15 +366,10 @@ gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
         return header
     }
     if s is LoweredBreak {
-        frame :: gb_resolve_loop_frame(gb, s.label)
-        return gb_new_state(gb, [gb_set_state(gb, frame.exit)])
+        return gb_new_state(gb, gb_break_to(gb, gb_resolve_loop_frame(gb, s.label)))
     }
     if s is LoweredContinue {
-        frame :: gb_resolve_loop_frame(gb, s.label)
-        jump: LoweredStmt[]!: []
-        jump.push_all(frame.step)
-        jump.push(gb_set_state(gb, frame.header))
-        return gb_new_state(gb, jump)
+        return gb_new_state(gb, gb_continue_to(gb, gb_resolve_loop_frame(gb, s.label)))
     }
     // Unreachable: `gb_compile_ctrl` is only called on non-leaf stmts, and the
     // arms above cover exactly the `gb_is_leaf` false-set. A stray leaf here is
@@ -395,10 +388,7 @@ gb_build :: fn(gb: GenBuild!, body: LoweredBlock) -> i64 {
         // arm returns `Suspended`, valid for resume-after-done).
         completion :: gb_reserve(gb)
         entry :: gb_compile_block(gb, body, completion)
-        gb_fill(gb, completion, [
-            gb_set_state(gb, i64(DONE_STATE)),
-            LoweredReturn { .span = gb.span, .value = gb_null_lit(gb) },
-        ])
+        gb_fill(gb, completion, gb_complete(gb, null))
         return entry
     }
     return gb_compile_block(gb, body, i64(DONE_STATE))
@@ -439,7 +429,11 @@ gb_dispatch :: fn(gb: GenBuild, i: i64) -> LoweredExpr {
 gb_next_body :: fn(gb: GenBuild) -> LoweredBlock {
     dispatch :: gb_dispatch(gb, 0)
     loop :: LoweredLoop {
-        .span = gb.span, .label = null, .cond = null, .body = gb_wrap(gb, dispatch), .step = [],
+        .span = gb.span,
+        .label = DISPATCH_LABEL,
+        .cond = null,
+        .body = gb_wrap(gb, dispatch),
+        .step = [],
     }
     return gb_block(gb, [loop])
 }

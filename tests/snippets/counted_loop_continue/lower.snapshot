@@ -978,7 +978,7 @@
                 __off_1 :usize
   struct __genstate_evens { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_evens$Iterator$next(self: __genstate_evens!) -> [i32, Continuation]!
-    loop
+    loop :dispatch$
       if :void
         cond:
           eq :bool

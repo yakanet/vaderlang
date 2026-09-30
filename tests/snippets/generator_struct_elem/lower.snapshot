@@ -166,7 +166,7 @@
     return int(0) :i32
   struct __genstate_concat_decls { s0: FileMod[], s1: FileMod[], s2: usize, s3: usize, s4: FileMod, s5: Decl[], s6: usize, s7: usize, s8: Decl, state: i32 }
   fn snippet$__genstate_concat_decls$Iterator$next(self: __genstate_concat_decls!) -> [Decl, Continuation]!
-    loop
+    loop :dispatch$
       if :void
         cond:
           eq :bool

@@ -1,0 +1,23 @@
+# stdout
+evens 0
+evens 2
+evens 4
+with tail 0
+tail 0
+with tail 2
+tail 2
+until 0
+until 1
+until 2
+until 100
+stop 0
+stop 1
+stop 2
+odd above -1
+odd above 3
+odd above -1
+odd above -1
+async total 6
+async first 5
+# exit
+0

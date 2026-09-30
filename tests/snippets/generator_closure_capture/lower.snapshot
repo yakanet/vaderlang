@@ -93,7 +93,7 @@
           LoweredCellGet
   struct __genstate_gen { s0: i32, s1: ?, s2: fn(i32) -> i32, s3: i32, state: i32 }
   fn snippet$__genstate_gen$Iterator$next(self: __genstate_gen!) -> [i32, Continuation]!
-    loop
+    loop :dispatch$
       if :void
         cond:
           eq :bool

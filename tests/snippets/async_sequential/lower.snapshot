@@ -88,7 +88,7 @@
     return int(0) :i32
   struct __asyncstate_snippet_0 { s0: i32, s1: i32, s2: string, s3: string, s4: string, s5: Buffer, s6: usize, awaited: Async<Any>, state: i32 }
   fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> string | Suspended!
-    loop
+    loop :dispatch$
       if :void
         cond:
           eq :bool
