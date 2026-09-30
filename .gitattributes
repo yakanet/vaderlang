@@ -9,3 +9,6 @@
 
 # The committed C seed is generated.
 bootstrap/seed/** -diff -merge linguist-generated=true
+
+# A snippet's emitted-C golden is output, not source: keep it out of the language stats.
+*.snapshot.c linguist-detectable=false

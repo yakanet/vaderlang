@@ -14,7 +14,7 @@
 //     file (`vader dump --stage=lowered-ast <file>`). `@target` is multi-file by
 //     nature: a declaration in one file, a body in another. This is the exact
 //     argument that puts the `H6xxx` family in `hook_fixtures/`.
-//   - not `snippets/` — a snippet carries a `c.snapshot` and a `vm.snapshot` per
+//   - not `snippets/` — a snippet carries an `emit-c.snapshot.c` and a `vm.snapshot` per
 //     pipeline stage, and those would become target-dependent. The plan pins the
 //     invariant "no snippet in the corpus reaches a module that selects"; putting
 //     these here would break it on the first fixture.

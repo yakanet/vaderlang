@@ -18,7 +18,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 
-import { listSnippets, MAIN_FILE } from "./snapshot.ts";
+import { C_SNAPSHOT, listSnippets, MAIN_FILE } from "./snapshot.ts";
 
 let root: string;
 
@@ -44,6 +44,7 @@ beforeAll(() => {
   // What `vader build --split` — the DEFAULT — leaves behind.
   snippet("split_build", ["_main-_glue.c", "_main-_root.c", "_main-snippet.c", "_main.split.g.c"]);
   snippet("helper_and_split", ["helper.c", "_main-_root.c", "native.c"]);
+  snippet("helper_and_c_golden", ["helper.c", C_SNAPSHOT]);
 });
 
 afterAll(() => {
@@ -72,4 +73,10 @@ test("a real helper survives alongside build artefacts", () => {
   // The failure mode that matters in the other direction: over-filtering would
   // drop a genuine `@extern` helper and break the native run instead.
   expect(helpersOf("helper_and_split")).toEqual(["helper.c"]);
+});
+
+test("the committed emitted-C golden is not a helper", () => {
+  // Every C-parity snippet carries one, so counting it would skip the corpus's
+  // `vader-vm` parity tests AND link a second `main` into the native run.
+  expect(helpersOf("helper_and_c_golden")).toEqual(["helper.c"]);
 });

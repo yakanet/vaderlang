@@ -39,7 +39,7 @@ test("no feature snippet has a compiler-crash compile-stage snapshot", () => {
     if (s.name.startsWith("_diag_") || ALLOW.has(s.name)) continue;
     for (const f of readdirSync(s.dir)) {
       if (f === "vm.snapshot") continue; // run output — runtime panic may be the subject
-      if (!f.endsWith(".snapshot") && !f.endsWith(".snapshot.virt")) continue;
+      if (!f.includes(".snapshot")) continue;
       const content = readFileSync(join(s.dir, f), "utf8");
       if (CRASH_MARKERS.some((m) => m.test(content))) offenders.push(`${s.name}/${f}`);
     }
