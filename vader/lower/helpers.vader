@@ -199,6 +199,25 @@ export lower_cell_init :: fn(
     return CellInit { .value = cell, .slot_type = TY_UNRESOLVED }
 }
 
+/// `let <name> = <value>` for a user-visible binding, heap-promoted to a cell
+/// when an inner lambda captures it (`lower_cell_init`). Every binding a closure
+/// can capture goes through here: the closure reads its captures through
+/// `CellGet`, so a slot left holding the bare value reads garbage.
+///
+/// @param symbol      the binding's symbol.
+/// @param name        its display name.
+/// @param value       the initialiser.
+/// @param value_type  the statically-known slot type.
+/// @param span        span of the `let` and of the cell-new when emitted.
+export cell_aware_let :: fn(
+    ctx: FnLowerCtx, symbol: Symbol, name: string, value: LoweredExpr, value_type: Type, span: Span,
+) -> LoweredStmt {
+    init :: lower_cell_init(ctx, symbol, value, value_type, span)
+    return LoweredLet {
+        .span = span, .name = name, .symbol = symbol, .type = init.slot_type, .value = init.value,
+    }
+}
+
 /// The expression denoting `symbol`'s CELL inside the fn being lowered right
 /// now: `env.cap_N` when that fn is itself a lifted body that captured it, a
 /// plain ident otherwise.

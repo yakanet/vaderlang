@@ -80,11 +80,9 @@ export lower_match :: fn(
         read :: LoweredIdent {
             .span = alias_span, .type = scrut_type, .symbol = scrut_symbol,
         }
-        init :: lower_cell_init(ctx, alias_symbol, read, scrut_type, alias_span)
-        stmts.push(LoweredLet {
-            .span = alias_span, .name = alias_symbol.name, .symbol = alias_symbol,
-            .type = init.slot_type, .value = init.value,
-        })
+        stmts.push(
+            cell_aware_let(ctx, alias_symbol, alias_symbol.name, read, scrut_type, alias_span),
+        )
     }
 
     // `@unreachable` asserts the uncovered variants can't occur, so its
@@ -386,11 +384,9 @@ walk_pattern_bindings :: fn(
                             .target = target, .field = field.name,
                         }
                         symbol :: resolve_pattern_symbol(ctx, binding.span, binding.name)
-                        init :: lower_cell_init(ctx, symbol, field_access, field_type, field.span)
-                        out.push(LoweredLet {
-                            .span = field.span, .name = binding.name, .symbol = symbol,
-                            .type = init.slot_type, .value = init.value,
-                        })
+                        out.push(cell_aware_let(
+                            ctx, symbol, binding.name, field_access, field_type, field.span,
+                        ))
                     }
                     _                 -> {}
                 }

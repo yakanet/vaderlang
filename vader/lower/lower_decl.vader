@@ -354,13 +354,8 @@ export promote_captured_params :: fn(
         if !(sym.id in fn_ctx.project.closures.captured_symbols) { continue }
         param_type :: fn_ctx.types.param_type(ast_param)
         raw_read :: LoweredIdent { .span = ast_param.span, .type = param_type, .symbol = sym }
-        // `lower_cell_init` is the canonical cell-wrap (same path `let` locals
-        // take) ; the gate above means it always wraps here.
-        init :: lower_cell_init(fn_ctx, sym, raw_read, param_type, ast_param.span)
-        prologue.push(LoweredLet {
-            .span = ast_param.span, .name = sym.name, .symbol = sym,
-            .type = init.slot_type, .value = init.value,
-        })
+        // The gate above means it always wraps here.
+        prologue.push(cell_aware_let(fn_ctx, sym, sym.name, raw_read, param_type, ast_param.span))
     }
     return prepend_stmts_to_block(prologue, block)
 }

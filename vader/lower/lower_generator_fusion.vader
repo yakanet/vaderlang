@@ -128,10 +128,9 @@ inline_gen_ident_call :: fn(
         p :: fn_decl.params[i]
         p_sym :: lookup_local_symbol(ctx.project, owner_typed.resolved, p.span) ?? return null
         arg_lowered :: recurse(ctx, call.args[i].value)
-        param_lets.push(LoweredLet {
-            .span = p.span, .name = p.name, .symbol = p_sym,
-            .type = type_of(arg_lowered), .value = arg_lowered,
-        })
+        param_lets.push(
+            cell_aware_let(ctx, p_sym, p.name, arg_lowered, type_of(arg_lowered), p.span),
+        )
     }
 
     lb :: resolve_loop_binding(ctx, in_form.loop_var, for_stmt.span)

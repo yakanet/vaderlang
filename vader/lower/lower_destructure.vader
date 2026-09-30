@@ -161,11 +161,7 @@ emit_rest_loop :: fn(
     rest_sym :: lookup_local_symbol(ctx.project, ctx.typed.resolved, rest.span) ?? return
     array_type :: mk_array(elem_type, false)
     empty_arr :: LoweredArrayLit { .span = rest.span, .type = array_type, .elements = [] }
-    rest_init :: lower_cell_init(ctx, rest_sym, empty_arr, array_type, rest.span)
-    out.push(LoweredLet {
-        .span = rest.span, .name = rest.name, .symbol = rest_sym,
-        .type = rest_init.slot_type, .value = rest_init.value,
-    })
+    out.push(cell_aware_let(ctx, rest_sym, rest.name, empty_arr, array_type, rest.span))
     rest_ref :: read_local_cell_aware(ctx, rest_sym, array_type, span)
     emit_tail_copy(ctx, rest_ref, rest_index, target, elem_type, span, out)
 }
@@ -248,10 +244,7 @@ emit_let_leaf_array :: fn(
         is SimpleBinding -> {
             symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, leaf.name_span)
             if symbol is null { return }
-            out.push(LoweredLet {
-                .span = leaf.span, .name = leaf.name, .symbol = symbol,
-                .type = elem_type, .value = access,
-            })
+            out.push(cell_aware_let(ctx, symbol, leaf.name, access, elem_type, leaf.span))
         }
         is TupleBinding -> {
             emit_let_binding_leaves(ctx, leaf, access, elem_type, span, out)
@@ -285,10 +278,7 @@ emit_let_leaf :: fn(
             if symbol is null { return }
             elem_type :: tuple_or_array_element_type(target_type, index, ctx, leaf)
             access :: build_leaf_access(target, target_type, elem_type, leaf.span, index, field_names)
-            out.push(LoweredLet {
-                .span = leaf.span, .name = leaf.name, .symbol = symbol,
-                .type = elem_type, .value = access,
-            })
+            out.push(cell_aware_let(ctx, symbol, leaf.name, access, elem_type, leaf.span))
         }
         is TupleBinding -> {
             elem_type :: tuple_or_array_element_type(target_type, index, ctx, simple_placeholder(leaf))

@@ -248,11 +248,7 @@ bind_loop_var :: fn(
         out.push_all(emit_for_pattern_destructure(ctx, pattern, elem_sym, value_type, span))
         return out
     }
-    init :: lower_cell_init(ctx, binding_symbol, value, value_type, span)
-    out.push(LoweredLet {
-        .span = span, .name = name, .symbol = binding_symbol,
-        .type = init.slot_type, .value = init.value,
-    })
+    out.push(cell_aware_let(ctx, binding_symbol, name, value, value_type, span))
     return out
 }
 

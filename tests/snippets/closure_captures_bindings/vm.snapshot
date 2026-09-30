@@ -1,0 +1,13 @@
+# stdout
+array 73
+tuple four=4
+pairs 50
+fused 80
+lazy 80
+rest 32
+reassigned 52
+alias 6
+generator 33
+combinator 24
+# exit
+0

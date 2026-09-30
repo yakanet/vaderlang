@@ -277,12 +277,7 @@ lower_let_into :: fn(ctx: FnLowerCtx!, let_stmt: LetStmt, out: LoweredStmt[]!) -
             // Mirror of the typer's `try_into` hook at let-stmt's value-position.
             raw_value :: lower_expr(ctx, let_stmt.value)
             value :: prepare_value_for_slot(ctx, raw_value, binding_type, let_stmt.span)
-            init :: lower_cell_init(ctx, symbol, value, binding_type, let_stmt.span)
-            out.push(LoweredLet {
-                .span = let_stmt.span, .name = simple.name,
-                .symbol = symbol, .type = init.slot_type,
-                .value = init.value,
-            })
+            out.push(cell_aware_let(ctx, symbol, simple.name, value, binding_type, let_stmt.span))
         }
         is TupleBinding    -> {
             // Desugar `let [a, b] := value` into :

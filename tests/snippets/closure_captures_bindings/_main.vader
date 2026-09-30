@@ -1,0 +1,130 @@
+// A closure captures a name however it was bound — a destructuring leaf or its
+// `...rest`, an `if … is T as a` alias, a generator's parameter once the
+// generator is fused into its loop — and reads the value the binding gave it,
+// or the one written to it since.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+pair :: fn() -> [i32, string] = [4, "four"]
+
+Leaf :: struct {
+    v: i32
+}
+
+Pair :: struct {
+    l: i32
+}
+
+Tree :: Leaf | Pair
+
+pick :: fn(t: Tree) -> Tree = t
+
+from_array :: fn() -> i32 {
+    p :: [3, 7]
+    [i, x] :: p
+    f :: () -> x * 10 + i
+    return f()
+}
+
+from_tuple :: fn() -> string {
+    [n, name] :: pair()
+    f :: () -> "${name}=${n}"
+    return f()
+}
+
+over_pairs :: fn() -> i32 {
+    total := 0
+    for [i, x] in [[1, 10], [2, 20]] {
+        f :: () -> x * i
+        total += f()
+    }
+    return total
+}
+
+over_fused_enumerate :: fn() -> i32 {
+    total := 0
+    for [i, x] in [10, 20, 30].enumerate() {
+        f :: () -> x * i32(i)
+        total += f()
+    }
+    return total
+}
+
+with_rest :: fn() -> i32 {
+    [head, ...tail] :: [3, 7, 9]
+    f :: () -> head * 10 + i32(tail.len())
+    return f()
+}
+
+// The closure sees the write that follows its creation.
+reassigned :: fn() -> i32 {
+    [a, b] := [1, 2]
+    f :: () -> a * 10 + b
+    a = 5
+    return f()
+}
+
+from_alias :: fn(t: Tree) -> i32 {
+    if pick(t) is Leaf as lf {
+        f :: () -> lf.v
+        return f()
+    }
+    return 0
+}
+
+offset :: fn(k: i32) -> Iterator<i32> {
+    add :: (x: i32) -> x + k
+    for i in 0..<3 {
+        yield add(i)
+    }
+}
+
+over_fused_generator :: fn() -> i32 {
+    total := 0
+    for v in offset(10) {
+        total += v
+    }
+    return total
+}
+
+scaled :: fn(it: Iterator<i32>, k: i32) -> Iterator<i32> {
+    times :: (x: i32) -> x * k
+    for v in it {
+        yield times(v)
+    }
+}
+
+over_fused_combinator :: fn() -> i32 {
+    total := 0
+    for v in [1, 2, 3].scaled(4) {
+        total += v
+    }
+    return total
+}
+
+// Bound to a local first, so the enumerate runs as a state machine.
+over_lazy_enumerate :: fn() -> i32 {
+    total := 0
+    it :: [10, 20, 30].enumerate()
+    for [i, x] in it {
+        f :: () -> x * i32(i)
+        total += f()
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    println("array ${from_array()}")
+    println("tuple ${from_tuple()}")
+    println("pairs ${over_pairs()}")
+    println("fused ${over_fused_enumerate()}")
+    println("lazy ${over_lazy_enumerate()}")
+    println("rest ${with_rest()}")
+    println("reassigned ${reassigned()}")
+    println("alias ${from_alias(Leaf { .v = 6 })}")
+    println("generator ${over_fused_generator()}")
+    println("combinator ${over_fused_combinator()}")
+    return 0
+}

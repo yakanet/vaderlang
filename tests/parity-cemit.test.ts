@@ -211,6 +211,10 @@ const C_PARITY = new Set<string>([
   // the generator's body is not fused into it, so no loop of the generator can
   // catch the jump instead.
   "generator_consumer_jumps",
+  // A name a closure captures lives in a cell however it was bound: a
+  // destructuring leaf or its `...rest`, an `if … as` alias, a fused
+  // generator's or combinator's parameter.
+  "closure_captures_bindings",
   // `@extern` forwarding shim — string args marshalled atom → `const char*`
   // (`c_emit/host.vader::user_extern_shim`). The shim exists only in native C
   // output — the VM reaches a foreign symbol through `dlsym` instead, so it

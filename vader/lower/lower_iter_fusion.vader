@@ -844,10 +844,7 @@ bind_layer_operands :: fn(
     arg_sym :: layer.arg_sym
     if arg_expr != null && arg_sym != null {
         arg :: recurse(ctx, arg_expr)
-        out.push(LoweredLet {
-            .span = chain.span, .name = arg_sym.name, .symbol = arg_sym,
-            .type = type_of(arg), .value = arg,
-        })
+        out.push(cell_aware_let(ctx, arg_sym, arg_sym.name, arg, type_of(arg), chain.span))
     }
     return IterChain {
         ...chain,
