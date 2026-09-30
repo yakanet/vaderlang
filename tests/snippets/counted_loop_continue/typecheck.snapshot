@@ -39,51 +39,47 @@
   expr 117:21   StringLitExpr  :: string
   expr 117:30   IdentExpr      :: i32
   expr 117:35   IdentExpr      :: i32
-  expr 124:21   SeqLitExpr     :: i32[]!
-  expr 125:18   SeqLitExpr     :: i32[]!
-  expr 126:13   IfExpr         :: void
-  expr 126:16   BinaryExpr     :: bool
-  expr 126:16   IdentExpr      :: i32
-  expr 129:13   IfExpr         :: void
-  expr 129:16   BinaryExpr     :: bool
-  expr 129:16   IdentExpr      :: i32
-  expr 132:13   CallExpr       :: void
-  expr 132:13   IdentExpr      :: fn(T) -> void
-  expr 132:21   StringLitExpr  :: string
-  expr 132:33   IdentExpr      :: i32
-  expr 132:38   IdentExpr      :: i32
-  expr 139:14   RangeExpr      :: Range<i32>!
-  expr 140:15   CallExpr       :: void
-  expr 140:15   IdentExpr      :: fn(T) -> void
-  expr 140:23   StringLitExpr  :: string
-  expr 140:32   IdentExpr      :: i32
-  expr 141:12   BinaryExpr     :: bool
-  expr 141:12   IdentExpr      :: i32
-  expr 141:9    IfExpr         :: void
-  expr 144:17   StringLitExpr  :: string
-  expr 144:25   IdentExpr      :: i32
-  expr 144:9    CallExpr       :: void
-  expr 144:9    IdentExpr      :: fn(T) -> void
-  expr 150:14   RangeExpr      :: Range<i32>!
-  expr 150:18   IdentExpr      :: i32
-  expr 151:12   BinaryExpr     :: bool
-  expr 151:12   BinaryExpr     :: i32
-  expr 151:12   IdentExpr      :: i32
-  expr 151:9    IfExpr         :: void
-  expr 154:15   IdentExpr      :: i32
-  expr 159:11   CallExpr       :: __genstate_evens<i32>!
-  expr 159:11   IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 126:21   SeqLitExpr     :: i32[]!
+  expr 127:18   SeqLitExpr     :: i32[]!
+  expr 128:13   IfExpr         :: void
+  expr 128:16   BinaryExpr     :: bool
+  expr 128:16   IdentExpr      :: i32
+  expr 131:13   IfExpr         :: void
+  expr 131:16   BinaryExpr     :: bool
+  expr 131:16   IdentExpr      :: i32
+  expr 134:13   CallExpr       :: void
+  expr 134:13   IdentExpr      :: fn(T) -> void
+  expr 134:21   StringLitExpr  :: string
+  expr 134:33   IdentExpr      :: i32
+  expr 134:38   IdentExpr      :: i32
+  expr 141:14   RangeExpr      :: Range<i32>!
+  expr 142:15   CallExpr       :: void
+  expr 142:15   IdentExpr      :: fn(T) -> void
+  expr 142:23   StringLitExpr  :: string
+  expr 142:32   IdentExpr      :: i32
+  expr 143:12   BinaryExpr     :: bool
+  expr 143:12   IdentExpr      :: i32
+  expr 143:9    IfExpr         :: void
+  expr 146:17   StringLitExpr  :: string
+  expr 146:25   IdentExpr      :: i32
+  expr 146:9    CallExpr       :: void
+  expr 146:9    IdentExpr      :: fn(T) -> void
+  expr 152:14   RangeExpr      :: Range<i32>!
+  expr 152:18   IdentExpr      :: i32
+  expr 153:12   BinaryExpr     :: bool
+  expr 153:12   BinaryExpr     :: i32
+  expr 153:12   IdentExpr      :: i32
+  expr 153:9    IfExpr         :: void
+  expr 156:15   IdentExpr      :: i32
   expr 15:28    BinaryExpr     :: i32
   expr 15:28    IdentExpr      :: i32
-  expr 160:14   IdentExpr      :: __genstate_evens<i32>!
-  expr 161:17   StringLitExpr  :: string
-  expr 161:30   IdentExpr      :: i32
-  expr 161:9    CallExpr       :: void
-  expr 161:9    IdentExpr      :: fn(T) -> void
-  expr 166:5    CallExpr       :: void
-  expr 166:5    IdentExpr      :: fn() -> void
-  expr 167:5    CallExpr       :: void
-  expr 167:5    IdentExpr      :: fn() -> void
+  expr 161:11   CallExpr       :: __genstate_evens<i32>!
+  expr 161:11   IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 162:14   IdentExpr      :: __genstate_evens<i32>!
+  expr 163:17   StringLitExpr  :: string
+  expr 163:30   IdentExpr      :: i32
+  expr 163:9    CallExpr       :: void
+  expr 163:9    IdentExpr      :: fn(T) -> void
   expr 168:5    CallExpr       :: void
   expr 168:5    IdentExpr      :: fn() -> void
   expr 169:5    CallExpr       :: void
@@ -98,6 +94,10 @@
   expr 173:5    IdentExpr      :: fn() -> void
   expr 174:5    CallExpr       :: void
   expr 174:5    IdentExpr      :: fn() -> void
+  expr 175:5    CallExpr       :: void
+  expr 175:5    IdentExpr      :: fn() -> void
+  expr 176:5    CallExpr       :: void
+  expr 176:5    IdentExpr      :: fn() -> void
   expr 17:27    IdentExpr      :: i32
   expr 19:37    IfExpr         :: i32 | null
   expr 19:40    BinaryExpr     :: bool
@@ -205,4 +205,4 @@
   expr 97:9     IfExpr         :: void
 
 # Diagnostics
-[124:12] warning[W0010] prefer targeting this loop by its iteration variable over a label ; a label is only needed for a `while` / infinite loop that has no variable: target this loop by its variable `r` instead of a label
+[126:12] warning[W0010] prefer targeting this loop by its iteration variable over a label ; a label is only needed for a `while` / infinite loop that has no variable: target this loop by its variable `r` instead of a label

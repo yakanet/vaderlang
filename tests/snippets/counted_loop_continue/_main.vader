@@ -119,7 +119,9 @@ continue_outer :: fn() -> void {
     }
 }
 
-// A labelled loop reached both by its label and by its variable.
+// A labelled loop reached both by its label and by its variable. The shape W0010
+// warns about, on purpose: discouraged is not unsupported, and both jumps must
+// still reach the loop.
 labelled_and_named :: fn() -> void {
     outer: for r in [0, 1, 2] {
         for c in [0, 1, 2] {
