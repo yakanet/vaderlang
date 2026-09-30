@@ -98,9 +98,9 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
         // the region invalidates it. `push_cache_tag` proved that on the lowered
         // AST; this is the same question asked of the op stream that actually
         // ships, which is where `midir` and the bytecode passes have had their
-        // say. `op_allocates` reports a call as non-allocating on purpose — the
-        // callee's verdict lives in `may_alloc` — so both are consulted.
-        if op_allocates(op) {
+        // say. `op_may_collect` reports a call as non-allocating on purpose —
+        // the callee's verdict lives in `may_alloc` — so both are consulted.
+        if op_may_collect(op, s.ctx.import_may_collect) {
             return null
         }
         if op is vm.Call {

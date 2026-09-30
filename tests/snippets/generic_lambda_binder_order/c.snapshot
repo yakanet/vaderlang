@@ -227,15 +227,9 @@ static void* __lambda_snippet_0(void* l0) {
 
 static size_t __lambda_snippet_2(void* l0, vader_string_t l1) {
     size_t t0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
 #line 23 "tests/snippets/generic_lambda_binder_order/_main.vader"
     t0 = std_core_len(l1);
-    { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void* __lambda_snippet_4(void* l0) {
@@ -253,15 +247,9 @@ static void* __lambda_snippet_4(void* l0) {
 
 static size_t __lambda_snippet_6(void* l0, vader_string_t l1) {
     size_t t0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
 #line 26 "tests/snippets/generic_lambda_binder_order/_main.vader"
     t0 = std_core_len(l1);
-    { size_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static size_t snippet_zip_with__string(void* l0, void* l1) {
@@ -332,9 +320,6 @@ static size_t std_core_len(vader_string_t l0) {
     size_t l1, l2, l3;
     uint8_t t0;
     int64_t t1;
-    vader_string_t* gc_atom_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
 #line 226 "lib/std/core/primitives.vader"
     l1 = (size_t) 0;
 #line 227 "lib/std/core/primitives.vader"
@@ -350,7 +335,7 @@ static size_t std_core_len(vader_string_t l0) {
         l3 = (size_t) (int64_t) t1;
     }
 #line 228 "lib/std/core/primitives.vader"
-    { size_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
+    return l1;
 }
 
 static void* std_core_new_byte_buffer(size_t l0) {
@@ -378,17 +363,11 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &l2 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
 #line 121 "lib/std/core/primitives.vader"
     std_core_Buffer_ByteAccess_write_string_vt(l0, l1, l2);
 #line 122 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
-    { size_t __vret = (size_t) (int64_t) (l1 + l3); vader_gc_top = gc_frame.prev; return __vret; }
+    return (size_t) (int64_t) (l1 + l3);
 }
 
 static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2) {

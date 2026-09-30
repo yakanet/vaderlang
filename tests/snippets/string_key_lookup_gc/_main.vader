@@ -1,0 +1,35 @@
+// String-keyed lookups and byte reads under collector pressure. A lookup reads
+// the hash cached on the key's atom and a byte read goes straight to the atom's
+// bytes: neither host call collects, so the fns built on them run without a GC
+// frame. Every round allocates fresh strings and forces a collection between the
+// lookups, so a fn that lost its frame while still reaching a collection would
+// lose track of the refs it holds, and the totals below would drift.
+module "snippet"
+
+import "std/collections"
+import "std/io"
+import "std/runtime"
+
+main :: fn() -> i32 {
+    known :: MutableSet<string> {}
+    for i in 0..<50 {
+        known.add("k${i}")
+    }
+    counts :: MutableMap<string, i32> {}
+    total := 0
+    for round in 0..<40 {
+        words: string[]!: []
+        for i in 0..<100 {
+            words.push("k${(i * 7 + round) % 80}")
+        }
+        collect()
+        for w in words {
+            if w in known {
+                total += i32(w.byte_at(1))
+                counts[w] = (counts[w] ?? 0) + 1
+            }
+        }
+    }
+    println("total ${total} distinct ${counts.len()} collections>0 ${collections() > 0}")
+    return 0
+}

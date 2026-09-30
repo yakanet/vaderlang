@@ -13,6 +13,7 @@ module "vader/c_emit"
 
 import "std/abort"
 import "std/collections"
+import "std/iter"
 import "std/string"
 import "vader/bytecode"
 import "vader/c_emit/c_ast"
@@ -38,13 +39,17 @@ emit_functions :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
 /// skips the shadow-stack prologue (`inc(x) = x + 1`, accessors,
 /// predicates, stack-only struct builders). Direct allocators are the
 /// heap `struct.new`, array ops, string concat, the builder family,
-/// `make_closure`, and the conservative indirect callers (`call.import` /
-/// `call.indirect` / `virtual.call`) ; transitive via any direct `call` to
-/// a fn already in the set.
-compute_may_alloc :: fn(fns: BcFunction[]) -> i32[] {
+/// `make_closure`, the conservative indirect callers (`call.indirect` /
+/// `virtual.call`), and a `call.import` unless its host never collects ;
+/// transitive via any direct `call` to a fn already in the set.
+///
+/// @param fns                 the module's functions.
+/// @param import_may_collect  per import, whether calling it can collect
+///                            (`imports_may_collect`).
+compute_may_alloc :: fn(fns: BcFunction[], import_may_collect: bool[]) -> i32[] {
     may_alloc: i32[]!: []
     for fi in 0..<fns.len() {
-        if fn_has_direct_alloc(fns[fi]) {
+        if fn_has_direct_alloc(fns[fi], import_may_collect) {
             may_alloc.push(i32(fi))
         }
     }
@@ -68,7 +73,7 @@ compute_may_alloc :: fn(fns: BcFunction[]) -> i32[] {
 /// escape-proven `stack` flag). Such a storage is hoisted into the prologue and
 /// its address goes into `gc_stack_objs[]` so the collector traces its FIELDS;
 /// left unrooted, the heap refs it captured go stale across a safepoint. Kept
-/// separate from `op_allocates` — a stack `struct.new` does NOT allocate, and
+/// separate from `op_may_collect` — a stack `struct.new` does NOT allocate, and
 /// folding it in would wrongly mark its callers as collectors too.
 fn_builds_stack_object :: fn(fn_decl: BcFunction) -> bool {
     for i in 0..<fn_decl.body.len() {
@@ -82,15 +87,22 @@ fn_builds_stack_object :: fn(fn_decl: BcFunction) -> bool {
     return false
 }
 
-/// True when `fn_decl` contains an op that allocates on the GC heap.
-fn_has_direct_alloc :: fn(fn_decl: BcFunction) -> bool {
+/// True when `fn_decl` contains an op that can trigger a collection.
+fn_has_direct_alloc :: fn(fn_decl: BcFunction, import_may_collect: bool[]) -> bool {
     for i in 0..<fn_decl.body.len() {
-        if op_allocates(fn_decl.body[i]) {
+        if op_may_collect(fn_decl.body[i], import_may_collect) {
             return true
         }
     }
     return false
 }
+
+/// Per import, whether calling it can trigger a collection. An `@extern` or an
+/// unknown host is `NotIntrinsic`, which stays a safepoint.
+///
+/// @param imports  the module's imports, in `call.import` index order.
+imports_may_collect :: fn(imports: BcImport[]) -> bool[] =
+    imports.map((imp) -> intrinsic_may_collect(intrinsic_id_for(imp.mangled_name))).collect()
 
 /// True when `fn_decl` makes a direct `call` to a fn already known to
 /// may-alloc — the transitive propagation step.
@@ -200,17 +212,19 @@ drop_bound_for_local :: fn(s: FnState!, slot: i32) -> void {
     s.bound_arrays = kept
 }
 
-// Whether an op can allocate on the GC heap (may trigger a collection). Drives
-// `may_alloc` → whether the fn gets a shadow-stack frame and its ref params /
-// locals are rooted. A missing allocating op means a GC inside it moves live
-// refs the fn never re-roots → stale pointer (the `array.slice` CR-b bug). This
-// is an EXHAUSTIVE `match` over the closed `vm.Op` union precisely so a new op
-// can't be silently omitted : T3013 forces every future variant to be classified
-// here. Keep the two arms in sync with the runtime — an op belongs in the `true`
-// arm iff its emitted C reaches `vader_gc_alloc` (directly or transitively).
-op_allocates :: fn(op: vm.Op) -> bool = match op {
+// Whether an op can trigger a collection. Drives `may_alloc` → whether the fn
+// gets a shadow-stack frame and its ref params / locals are rooted. A missing
+// allocating op means a GC inside it moves live refs the fn never re-roots →
+// stale pointer (the `array.slice` CR-b bug). This is an EXHAUSTIVE `match` over
+// the closed `vm.Op` union precisely so a new op can't be silently omitted :
+// T3013 forces every future variant to be classified here. Keep the arms in sync
+// with the runtime — an op belongs in the `true` arm iff its emitted C reaches
+// `vader_gc_alloc` (directly or transitively). A host call answers for its host:
+// `import_may_collect` holds `intrinsic_may_collect` per import.
+op_may_collect :: fn(op: vm.Op, import_may_collect: bool[]) -> bool = match op {
     is vm.StructNew -> !op.stack
-    is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallImport | vm.CallIndirect | vm.VirtualCall | vm.FnAddr -> true
+    is vm.CallImport -> import_may_collect[usize(op.index)]
+    is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallIndirect | vm.VirtualCall | vm.FnAddr -> true
     is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Retag | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
 }
 
@@ -1432,7 +1446,7 @@ emit_fn_addr :: fn(s: FnState!, op: vm.FnAddr) -> void {
     // and anything lent to one can move under it. This is the ONLY way a Vader
     // address reaches C, which is what makes the flag exact rather than a guess:
     // a program that never reaches this line pays nothing for the lend guard in
-    // `vader_array_bytes`. The first escape collects, hence `op_allocates`.
+    // `vader_array_bytes`. The first escape collects, hence `op_may_collect`.
     evaluate(s, call("vader_ffi_callback_escape", []))
     push_temporary(s, temporary, .Pointer)
 }

@@ -322,17 +322,11 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &l2 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
 #line 121 "lib/std/core/primitives.vader"
     std_core_Buffer_ByteAccess_write_string_vt(l0, l1, l2);
 #line 122 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
-    { size_t __vret = (size_t) (int64_t) (l1 + l3); vader_gc_top = gc_frame.prev; return __vret; }
+    return (size_t) (int64_t) (l1 + l3);
 }
 
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {

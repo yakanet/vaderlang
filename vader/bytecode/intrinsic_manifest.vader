@@ -170,6 +170,34 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     return .NotIntrinsic
 }
 
+/// Whether a call to host `id` can trigger a collection — the question
+/// `c_emit`'s `compute_may_alloc` asks of every op to decide which fns need a
+/// GC frame. `false` is a promise that the native implementation never reaches
+/// `vader_gc_alloc`: a fn whose only safepoint would be this call skips its
+/// shadow-stack frame, so a wrong `false` leaves live refs unrooted across a
+/// collection.
+///
+/// Not the question `vm/host`'s `is_impure_host` answers, which is whether a
+/// comptime evaluation may call the host: `current_os` depends on the machine
+/// and never collects, `bytes` depends on nothing and allocates.
+///
+/// @param id  the host's classification, from `intrinsic_id_for`.
+export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
+    // Reads of the atom (`vader.h`, `vader_runtime.c`): its length, one byte,
+    // the hash cached at intern, a codepoint found by walking the bytes.
+    .ByteLen | .ByteAt | .StringHash | .StringIndexAt -> false
+    // Constants of the runtime's own build.
+    .TargetCurrentOs | .TargetCurrentArch -> false
+    // Allocate: a view header, an interned string, the rendered text.
+    .Bytes | .BytesToString | .PrimDisplayToString -> true
+    // Served by the VM only; natively these are Vader, never a host call.
+    .StringEquals | .StringNotEquals | .PrimIntEquals | .PrimIntNotEquals -> true
+    // Unclassified — conservatively a safepoint.
+    .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> true
+    .SchedNow | .SchedArm | .SchedPark | .AbortPanic -> true
+    .FfiOpen | .FfiSymbol | .FfiCall | .NotIntrinsic -> true
+}
+
 /// Fail loud when a bodyless `@intrinsic` host import is not wired into the
 /// manifest. Called per-import at emit (`midir/emit.vader::reserve_cfg_extern`).
 ///
@@ -228,6 +256,14 @@ import "vader/lower"
     assert_eq(is_display_to_string(r"std_core$char$Equals$equals"), false)
     assert_eq(is_unsigned_display(r"std_core$u64$Display$to_string"), true)
     assert_eq(is_unsigned_display(r"std_core$i64$Display$to_string"), false)
+}
+
+@test test_intrinsic_may_collect :: fn() -> void {
+    collects :: (mangled: string) -> intrinsic_may_collect(intrinsic_id_for(mangled))
+    assert(!collects(r"std_core$byte_at"), "a byte read never collects")
+    assert(!collects(r"std_core$string$Hash$hash"), "the hash is cached on the atom")
+    assert(collects(r"std_core$bytes"), "a view allocates its header")
+    assert(collects(r"user_mod$foo"), "an unknown host stays a safepoint")
 }
 
 @test test_intrinsic_id_for :: fn() -> void {

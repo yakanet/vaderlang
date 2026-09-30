@@ -1,0 +1,55 @@
+# Typecheck
+
+## tests/snippets/string_key_lookup_gc
+  FnDecl         main                 :: fn() -> i32
+  expr 14:14    StructLitExpr  :: MutableSet<string>!
+  expr 15:14    RangeExpr      :: Range<i32>!
+  expr 16:19    StringLitExpr  :: string
+  expr 16:23    IdentExpr      :: i32
+  expr 16:9     CallExpr       :: bool
+  expr 16:9     FieldExpr      :: fn(string) -> bool
+  expr 16:9     IdentExpr      :: MutableSet<string>!
+  expr 18:15    StructLitExpr  :: MutableMap<string, i32>!
+  expr 20:18    RangeExpr      :: Range<i32>!
+  expr 21:27    SeqLitExpr     :: string[]!
+  expr 22:18    RangeExpr      :: Range<i32>!
+  expr 23:13    CallExpr       :: void
+  expr 23:13    FieldExpr      :: fn(string) -> void
+  expr 23:13    IdentExpr      :: string[]!
+  expr 23:24    StringLitExpr  :: string
+  expr 23:29    BinaryExpr     :: i32
+  expr 23:29    BinaryExpr     :: i32
+  expr 23:29    BinaryExpr     :: i32
+  expr 23:29    IdentExpr      :: i32
+  expr 23:37    IdentExpr      :: i32
+  expr 25:9     CallExpr       :: void
+  expr 25:9     IdentExpr      :: fn() -> void
+  expr 26:18    IdentExpr      :: string[]!
+  expr 27:13    IfExpr         :: void
+  expr 27:16    BinaryExpr     :: bool
+  expr 27:16    IdentExpr      :: string
+  expr 27:21    IdentExpr      :: MutableSet<string>!
+  expr 28:17    BinaryExpr     :: i32
+  expr 28:17    IdentExpr      :: i32
+  expr 28:26    CallExpr       :: i32
+  expr 28:26    IdentExpr      :: type
+  expr 28:30    CallExpr       :: u8
+  expr 28:30    FieldExpr      :: fn(usize) -> u8
+  expr 28:30    IdentExpr      :: string
+  expr 29:17    IdentExpr      :: MutableMap<string, i32>!
+  expr 29:24    IdentExpr      :: string
+  expr 29:30    BinaryExpr     :: i32
+  expr 29:30    IdentExpr      :: MutableMap<string, i32>!
+  expr 29:30    IndexExpr      :: i32 | null
+  expr 29:30    NullCoalesceExpr :: i32
+  expr 29:37    IdentExpr      :: string
+  expr 33:13    StringLitExpr  :: string
+  expr 33:22    IdentExpr      :: i32
+  expr 33:40    CallExpr       :: usize
+  expr 33:40    FieldExpr      :: fn() -> usize
+  expr 33:40    IdentExpr      :: MutableMap<string, i32>!
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 33:70    BinaryExpr     :: bool
+  expr 33:70    CallExpr       :: i32
+  expr 33:70    IdentExpr      :: fn() -> i32

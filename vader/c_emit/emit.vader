@@ -107,6 +107,9 @@ export EmitCtx :: struct {
     /// allocation (transitively). A fn NOT in this set is `no_frame` — it
     /// skips the shadow-stack prologue. Computed by `compute_may_alloc`.
     may_alloc: i32[]
+    /// Per import of `module.imports`, whether calling it can trigger a
+    /// collection. Computed by `imports_may_collect`.
+    import_may_collect: bool[]
     release: bool
     /// External-linkage mode — drops `static` on every emitted def and adds
     /// closure forward decls, so the output can be split across TUs. Mirrors
@@ -132,6 +135,7 @@ new_ctx :: fn(
         }
     }
     string_tag :: string_primitive_tag(m.types)
+    import_may_collect :: imports_may_collect(m.imports)
     return EmitCtx {
         .module = m,
         .struct_c_names = names,
@@ -140,7 +144,8 @@ new_ctx :: fn(
         .null_tag = null_primitive_tag(m.types),
         .string_tag = string_tag,
         .string_array_tag = string_array_tag(m.types, string_tag),
-        .may_alloc = compute_may_alloc(m.functions),
+        .may_alloc = compute_may_alloc(m.functions, import_may_collect),
+        .import_may_collect = import_may_collect,
         .release = release,
         .split = split,
         .internal_fns = internal_fns,

@@ -319,6 +319,10 @@ const C_PARITY = new Set<string>([
   // writes them back at the loop's end. The VM has no such form, so a missed
   // write-back — a `break` compiled past it — only shows when the C runs.
   "array_push_cache",
+  // A fn whose only host calls never collect (`byte_at`, the cached string
+  // hash) is emitted without a GC frame. Only the native build drops frames,
+  // so only its run under forced collections says the classification holds.
+  "string_key_lookup_gc",
   // A generic instance keeps an enum with variant data concrete : its key
   // hashing and comparison in a map, and the module-qualified mangle that keeps
   // two same-named enums apart, only show what they emit when the C runs.
