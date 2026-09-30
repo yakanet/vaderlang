@@ -3,6 +3,9 @@ tight        30 n=6
 allocates    v0|v1|v2|
 reads_itself 8 n=7
 with_break   3 n=3
+break_mid    30 n=5
+early_return 3 -1
+break_outer  7
 boxed        x|x|x|x|
 into_view    353 n=5
 nested       20
@@ -14,5 +17,6 @@ two_names    36
 rebound      8
 collected    45 n=6
 filtered     27 n=3
+taken        18 n=3
 # exit
 0

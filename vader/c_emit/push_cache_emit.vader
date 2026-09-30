@@ -51,10 +51,10 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
     i: i32 = pc + 1
     for i < sc.end_pc {
         op :: s.function.body[usize(i)]
-        // A nested loop is refused outright by this first cut. Two loops that
-        // both push to the SAME array each get a plan, and the outer one's
-        // cached length then goes stale the moment the inner one runs — so
-        // rather than reason about which nestings are safe, none are.
+        // A nested loop is refused outright. Two loops that both push to the
+        // SAME array each get a plan, and the outer one's cached length then
+        // goes stale the moment the inner one runs — so rather than reason about
+        // which nestings are safe, none are.
         if op is vm.Loop {
             return null
         }
@@ -80,9 +80,10 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
         // the region must reach it. A `return` compiles in place and a branch
         // past `end_pc` jumps over it — either one leaves `length` behind while
         // `slots` already holds the pushed elements, and the array silently
-        // reports itself short. `push_cache_tag` proved the single exit on the
-        // lowered AST ; this asks the op stream, for the same reason the
-        // allocation proof is asked twice below.
+        // reports itself short. `push_cache_tag` refuses a `return` on the
+        // lowered AST but lets a `break` of the loop through, since midir
+        // compiles one as a fall-through to this `End` ; this is the check that
+        // holds the op stream to that.
         if op is vm.Return | vm.ReturnLit {
             return null
         }
@@ -227,7 +228,7 @@ pc_emit_push :: fn(s: FnState!, p: PushCache, obj: CExpression, value: CExpressi
     close_node(s, "")
 }
 
-/// Emit the write-back — the loop's single exit, and before the slow arm.
+/// Emit the write-back — at the loop's `End`, and before the slow arm.
 pc_emit_writeback :: fn(s: FnState!, n: i32) -> void {
     assign(s, pc_header(n, "length"), pc_local(n, "len"))
     open_if(s, binary(.Less, pc_header(n, "buf->length"), pc_local(n, "len")))
@@ -267,8 +268,8 @@ pc_slot_written_in :: fn(s: FnState, from: i32, to: i32, slot: i32) -> bool {
 /// Hand the lifted state back when the loop this plan belongs to closes.
 ///
 /// Called from `emit_end` with the closing scope's opener. A no-op unless that
-/// opener is the innermost active plan — the loop's one normal exit, which is
-/// the only one `push_cache_tag` lets a lifted region have.
+/// opener is the innermost active plan — the loop's `End`, where every exit
+/// `push_cache_tag` admits converges (a `break` of the loop falls through to it).
 ///
 /// @param s          the fn emit state.
 /// @param opener_pc  the closing scope's opener pc.

@@ -315,6 +315,10 @@ const C_PARITY = new Set<string>([
   // audit found it. Both are on the list now so one oracle covers the family.
   "array_push_all_const",
   "array_copy_to_const",
+  // The push cache lifts an array's length / capacity / slots into C locals and
+  // writes them back at the loop's end. The VM has no such form, so a missed
+  // write-back — a `break` compiled past it — only shows when the C runs.
+  "array_push_cache",
   // A generic instance keeps an enum with variant data concrete : its key
   // hashing and comparison in a map, and the module-qualified mangle that keeps
   // two same-named enums apart, only show what they emit when the C runs.

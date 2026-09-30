@@ -155,10 +155,9 @@ pc_try_cache :: fn(lp: LoweredLoop!, live: i32[], pctx: BcePurityCtx!) -> void {
     pushes: LoweredArrayPush![]!: []
     pc_collect_pushes(lp.body, pushes)
     sym :: pc_single_target(pushes) ?? return
-    // An extra exit is an extra place the state must be written back. The first
-    // cut writes back at the loop's one normal exit, so anything else is out.
-    // `continue` is fine — it re-enters the body with the locals still live.
-    if pc_has_extra_exit(lp.body, 0) {
+    // The state is written back once, at the loop's end, so every way out has
+    // to pass there.
+    if pc_has_extra_exit(lp.body) {
         return
     }
     // Anything else that names the array would read a `length` the lifted form
@@ -253,48 +252,28 @@ pc_single_target :: fn(pushes: LoweredArrayPush[]) -> i32 | null {
 
 // ---- the three conditions -------------------------------------------------
 
-// `break` and `return` leave the loop somewhere other than its normal exit, and
-// the first cut writes the state back at that one place. `continue` does not
-// leave — it re-enters the body with the locals still live. A nested loop's own
-// `break` targets that loop, so it is not an exit from this one; a LABELLED one
-// can be, and the label is not resolved here, so any labelled jump is refused.
-pc_has_extra_exit :: fn(b: LoweredBlock, depth: i32) -> bool {
-    for st in b.stmts {
-        if pc_stmt_exits(st, depth) {
-            return true
+// A `return` leaves the loop without passing its end, where the state is written
+// back. A `break` of this loop does pass it: midir compiles one as a fall-through
+// to the loop's end, and c_emit refuses the region if a branch past that end
+// shows up in the op stream (`pc_plan_for_loop`). `continue` does not leave — it
+// re-enters the body with the locals still live. A LABELLED jump can reach an
+// enclosing loop, and the label is not resolved here, so any labelled one is
+// refused.
+pc_has_extra_exit :: fn(b: LoweredBlock) -> bool {
+    found := false
+    stmt_node_block(b, (st: LoweredStmt) -> {
+        if pc_stmt_exits(st) {
+            found = true
         }
-    }
-    t :: b.trailing
-    return t != null && pc_expr_exits(t, depth)
+    })
+    return found
 }
 
-pc_stmt_exits :: fn(st: LoweredStmt, depth: i32) -> bool = match st {
+pc_stmt_exits :: fn(st: LoweredStmt) -> bool = match st {
     is LoweredReturn | LoweredYield | LoweredAwait | LoweredDeferPush | LoweredDeferPopExec -> true
-    is LoweredBreak -> st.label != null || depth == 0
-    is LoweredContinue -> st.label != null
-    is LoweredLoop -> pc_has_extra_exit(st.body, depth + 1)
-    is LoweredExprStmt -> pc_expr_exits(st.expr, depth)
-    is LoweredLet -> pc_expr_exits(st.value, depth)
-    is LoweredAssign | LoweredCellSet -> pc_expr_exits(st.target, depth) || pc_expr_exits(
-        st.value,
-        depth,
-    )
+    is LoweredBreak | LoweredContinue -> st.label != null
+    is LoweredLet | LoweredAssign | LoweredCellSet | LoweredExprStmt | LoweredLoop -> false
 }
-
-pc_expr_exits :: fn(e: LoweredExpr, depth: i32) -> bool = match e {
-    is LoweredBlock -> pc_has_extra_exit(e, depth)
-    is LoweredIf -> pc_has_extra_exit(e.then_block, depth) || pc_opt_block_exits(
-        e.else_block,
-        depth,
-    )
-    is LoweredArrayLen | LoweredFieldAccess | LoweredCellGet | LoweredCast | LoweredTypeCheck | LoweredCellNew | LoweredUnary | LoweredMakeClosure | LoweredIndex | LoweredBinary | LoweredArrayPush | LoweredArraySlice | LoweredStringSlice | LoweredCall | LoweredVirtualCall | LoweredIntrinsicCall | LoweredArrayLit | LoweredStructLit | LoweredIdent | LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit | LoweredCharLit | LoweredStringLit | LoweredDataConst | LoweredTypeConst | LoweredUnreachable -> false
-}
-// No other expression form carries a statement, so none of them can exit.
-
-pc_opt_block_exits :: fn(b: LoweredBlock | null, depth: i32) -> bool = b != null && pc_has_extra_exit(
-    b,
-    depth,
-)
 
 // Any mention of `sym` that is not a candidate push's own target — such a read
 // would see a `length` the lifted form is still holding in a local.
