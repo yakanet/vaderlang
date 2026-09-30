@@ -1,0 +1,26 @@
+// _diag_fusion_recursive_generator — a generator that consumes itself.
+//
+// THE COMMITTED OUTPUT IS WRONG: the compiler crashes. Consumed by a `for`, the
+// generator is inlined into its own body without end, until the lowering
+// overflows the stack. The lazy form would print `v=3 v=2 v=1 done`.
+
+module "snippet"
+
+import "std/io"
+
+countdown :: fn(n: i32) -> Iterator<i32> {
+    if n > 0 {
+        yield n
+        for x in countdown(n - 1) {
+            yield x
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    for v in countdown(3) {
+        println("v=${v}")
+    }
+    println("done")
+    return 0
+}

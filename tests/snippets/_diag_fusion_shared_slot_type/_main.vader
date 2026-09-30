@@ -1,0 +1,30 @@
+// _diag_fusion_shared_slot_type — two inlined `map`s of different element types
+// share one slot: `[1, 22, 333].map(to_text).map(text_len)`.
+//
+// THE COMMITTED OUTPUT IS WRONG. The lazy half, the reference, runs first. The fused half then reads a string slot as an i32:
+// the VM traps (`byte_len: expected string, got i32`), the native binary prints
+// `1 0 0` without a word.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+to_text :: fn(x: i32) -> string = "${x}"
+
+text_len :: fn(s: string) -> usize = s.byte_len()
+
+main :: fn() -> i32 {
+    lazy := ""
+    it :: [1, 22, 333].map(to_text).map(text_len)
+    for n in it {
+        lazy = lazy + " ${n}"
+    }
+    println("lazy:${lazy}")
+    fused := ""
+    for n in [1, 22, 333].map(to_text).map(text_len) {
+        fused = fused + " ${n}"
+    }
+    println("fused:${fused}")
+    return 0
+}

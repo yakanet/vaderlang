@@ -1,0 +1,36 @@
+// _diag_fusion_combinator_break — a user combinator whose own `break x` leaves its
+// `for x in self` loop.
+//
+// THE COMMITTED OUTPUT IS WRONG: the compiler panics. Fused, the combinator's
+// source loop is the consumer's array loop, which carries no label `x`, so the
+// `break x` has no loop to reach. The lazy half would print ` 10 11 12 20 21`.
+
+module "snippet"
+
+import "std/io"
+
+until_over :: fn(self: Iterator<i32>, limit: i32) -> Iterator<i32> {
+    for x in self {
+        for j in 0..<3 {
+            if x * 10 + j > limit {
+                break x
+            }
+            yield x * 10 + j
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    lazy := ""
+    it :: [1, 2, 3].until_over(21)
+    for v in it {
+        lazy = lazy + " ${v}"
+    }
+    println("lazy:${lazy}")
+    fused := ""
+    for v in [1, 2, 3].until_over(21) {
+        fused = fused + " ${v}"
+    }
+    println("fused:${fused}")
+    return 0
+}

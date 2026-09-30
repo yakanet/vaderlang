@@ -1,0 +1,37 @@
+// _diag_fusion_shared_generic_param — one generic generator inlined twice, at
+// `i32` then at `string`, nested: the instances share the parameter `last`.
+//
+// THE COMMITTED OUTPUT IS WRONG. The lazy half, the reference, runs first. In the fused half the outer instance's trailing
+// `yield last` reads the inner instance's string: the VM traps (`cannot read
+// string as numeric`), the native binary yields the stale `2` instead of `9`.
+
+module "snippet"
+
+import "std/io"
+
+each_then :: fn<T>(xs: T[], last: T) -> Iterator<T> {
+    for x in xs {
+        yield x
+    }
+    yield last
+}
+
+main :: fn() -> i32 {
+    lazy := ""
+    outer :: each_then([1, 2], 9)
+    for a in outer {
+        inner :: each_then(["p"], "zz")
+        for b in inner {
+            lazy = lazy + " ${a}${b}"
+        }
+    }
+    println("lazy:${lazy}")
+    fused := ""
+    for a in each_then([1, 2], 9) {
+        for b in each_then(["p"], "zz") {
+            fused = fused + " ${a}${b}"
+        }
+    }
+    println("fused:${fused}")
+    return 0
+}

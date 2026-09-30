@@ -1,0 +1,250 @@
+// _diag_fusion_shared_instances — two inlined instances of one generator share
+// its variables: `map.map`, `filter.filter`, `take.take`, `skip.skip`, a user
+// stage twice, a generator nested in itself, `@comptime` on a fused chain.
+//
+// THE COMMITTED OUTPUT IS WRONG. Each line prints the chain consumed where it is
+// written (fused), then the same chain bound to a local first (lazy: it runs as
+// a state machine and is the reference). The two halves should agree. A line
+// whose halves already agree pins a case a fix must not break.
+//
+// Every instance is inlined under the generator's own symbols, so the second
+// instance writes the first one's counters and parameters.
+//
+// A consumer loop that could spin ends through a guard that RETURNS: a `break`
+// would make the loop a jump target, and a jumped loop is not fused.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+import "std/string"
+
+GUARD :: 20
+
+inc :: fn(x: i32) -> i32 = x + 1
+
+twice :: fn(x: i32) -> i32 = x * 2
+
+odd :: fn(x: i32) -> bool = x % 2 == 1
+
+small :: fn(x: i32) -> bool = x < 6
+
+scale :: fn(self: Iterator<i32>, k: i32) -> Iterator<i32> {
+    for x in self {
+        yield x * k
+    }
+}
+
+upto :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        yield i
+    }
+}
+
+map_map :: fn() -> void {
+    fused := ""
+    for v in [1, 2, 3].map(inc).map(twice) {
+        fused = fused + " ${v}"
+    }
+    lazy := ""
+    it :: [1, 2, 3].map(inc).map(twice)
+    for v in it {
+        lazy = lazy + " ${v}"
+    }
+    println("map.map:${fused} |${lazy}")
+}
+
+// The lazy halves count by hand: `count()` on a generator's state machine is
+// not supported yet.
+filter_filter :: fn() -> void {
+    fused :: [1, 2, 3, 4, 5, 6, 7].filter(odd).filter(small).count()
+    lazy := 0
+    it :: [1, 2, 3, 4, 5, 6, 7].filter(odd).filter(small)
+    for _ in it {
+        lazy += 1
+    }
+    println("filter.filter.count: ${fused} | ${lazy}")
+}
+
+take_take :: fn() -> void {
+    fused :: [1, 2, 3, 4, 5, 6, 7].take(5).take(2).count()
+    lazy := 0
+    it :: [1, 2, 3, 4, 5, 6, 7].take(5).take(2)
+    for _ in it {
+        lazy += 1
+    }
+    println("take.take.count: ${fused} | ${lazy}")
+}
+
+skip_skip :: fn() -> void {
+    fused :: [1, 2, 3, 4, 5, 6, 7].skip(1).skip(2).count()
+    lazy := 0
+    it :: [1, 2, 3, 4, 5, 6, 7].skip(1).skip(2)
+    for _ in it {
+        lazy += 1
+    }
+    println("skip.skip.count: ${fused} | ${lazy}")
+}
+
+chain_of_maps :: fn() -> void {
+    a :: [1, 2, 3]
+    b :: [10, 20]
+    fused := 0
+    for v in a.map(inc).chain(b.map(twice)) {
+        fused += v
+    }
+    lazy := 0
+    it :: a.map(inc).chain(b.map(twice))
+    for v in it {
+        lazy += v
+    }
+    println("map.chain(map): ${fused} | ${lazy}")
+}
+
+user_stage_twice :: fn() -> void {
+    fused := ""
+    for v in [1, 2].scale(10).scale(3) {
+        fused = fused + " ${v}"
+    }
+    lazy := ""
+    it :: [1, 2].scale(10).scale(3)
+    for v in it {
+        lazy = lazy + " ${v}"
+    }
+    println("scale.scale:${fused} |${lazy}")
+}
+
+nested_same_generator :: fn() -> void {
+    fused := 0
+    for a in upto(3) {
+        for b in upto(2) {
+            fused += 1
+            if fused > GUARD {
+                println("upto in upto: runaway after ${GUARD} rounds")
+                return
+            }
+        }
+    }
+    lazy := 0
+    outer :: upto(3)
+    for a in outer {
+        inner :: upto(2)
+        for b in inner {
+            lazy += 1
+        }
+    }
+    println("upto in upto, rounds: ${fused} | ${lazy}")
+}
+
+nested_take :: fn() -> void {
+    fused := 0
+    for a in [1, 2, 3].take(2) {
+        for b in [4, 5, 6].take(1) {
+            fused += 1
+            if fused > GUARD {
+                println("take in take: runaway after ${GUARD} rounds")
+                return
+            }
+        }
+    }
+    lazy := 0
+    outer :: [1, 2, 3].take(2)
+    for a in outer {
+        inner :: [4, 5, 6].take(1)
+        for b in inner {
+            lazy += 1
+        }
+    }
+    println("take in take, rounds: ${fused} | ${lazy}")
+}
+
+chars_filter_filter :: fn() -> void {
+    s :: "hello, fused world"
+    fused :: s.chars().filter((c: char) -> c != ' ').filter((c: char) -> c != 'o').count()
+    lazy := 0
+    it :: s.chars().filter((c: char) -> c != ' ').filter((c: char) -> c != 'o')
+    for _ in it {
+        lazy += 1
+    }
+    println("chars.filter.filter.count: ${fused} | ${lazy}")
+}
+
+sum_map_map :: fn() -> i32 {
+    total := 0
+    for v in [1, 2, 3].map(inc).map(twice) {
+        total += v
+    }
+    return total
+}
+
+sum_map_map_lazy :: fn() -> i32 {
+    total := 0
+    it :: [1, 2, 3].map(inc).map(twice)
+    for v in it {
+        total += v
+    }
+    return total
+}
+
+COMPTIME_SUM :: @comptime sum_map_map()
+
+comptime_map_map :: fn() -> void {
+    println("comptime map.map sum: ${COMPTIME_SUM} | ${sum_map_map_lazy()}")
+}
+
+grid :: fn() -> Iterator<i32> {
+    for i in 0..<3 {
+        for j in 0..<3 {
+            yield i * 10 + j
+            if j == 2 {
+                break i
+            }
+        }
+    }
+}
+
+// The consumer's `break i` names ITS outer loop; the generator has a loop `i`
+// too, which its own `break i` makes a labelled one.
+break_outer_loop_named_like_generator_loop :: fn() -> void {
+    fused := ""
+    rounds := 0
+    for i in 0..<2 {
+        for v in grid() {
+            rounds += 1
+            if rounds > GUARD {
+                println("break i: runaway after ${GUARD} rounds")
+                return
+            }
+            fused = fused + " ${i}:${v}"
+            if v == 1 {
+                break i
+            }
+        }
+    }
+    lazy := ""
+    for i in 0..<2 {
+        it :: grid()
+        for v in it {
+            lazy = lazy + " ${i}:${v}"
+            if v == 1 {
+                break i
+            }
+        }
+    }
+    println("break i:${fused} |${lazy}")
+}
+
+main :: fn() -> i32 {
+    map_map()
+    filter_filter()
+    take_take()
+    skip_skip()
+    chain_of_maps()
+    user_stage_twice()
+    nested_same_generator()
+    nested_take()
+    chars_filter_filter()
+    comptime_map_map()
+    break_outer_loop_named_like_generator_loop()
+    return 0
+}

@@ -1,0 +1,5 @@
+# stdout
+lazy void consumer: 0 1, then after the loop
+lazy stage consumer: 1 2, then after the loop
+# exit
+0

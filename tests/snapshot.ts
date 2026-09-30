@@ -14,6 +14,8 @@ export const CONFIG_FILE = "_config.json";
 export const C_SNAPSHOT = "emit-c.snapshot.c";
 
 export const VM_ERROR_PREFIXES = ["# pipeline error", "# compile errors", "# no main function", "# runtime error"] as const;
+/** What a stage snapshot starts with when the CLI failed to produce that stage. */
+export const CLI_FAILED_PREFIX = "# vader CLI failed";
 
 type PhaseName = "lexer" | "parser" | "resolver" | "typecheck" | "comptime" | "lower" | "cfg" | "bytecode";
 
@@ -196,7 +198,7 @@ async function runVaderDump(stage: string, entryPath: string, modules?: readonly
   if (extra) args.push(...extra);
   args.push(entryPath);
   const { stdout, stderr, exit } = await runCli(args, envForSnippet(entryPath));
-  if (exit !== 0) return `# vader CLI failed (exit ${canonicalExit(exit, stderr)})\n${stderr}${stdout}`;
+  if (exit !== 0) return `${CLI_FAILED_PREFIX} (exit ${canonicalExit(exit, stderr)})\n${stderr}${stdout}`;
   return stdout;
 }
 

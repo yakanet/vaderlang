@@ -1,0 +1,2 @@
+# vader CLI failed (exit 134)
+vader: panic — midir/build: `snippet$main` jumps to a loop labelled `x` that no enclosing loop carries

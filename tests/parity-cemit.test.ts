@@ -359,6 +359,13 @@ const C_PARITY = new Set<string>([
   // the conversion back to the written value, inside a generic instance too.
   "enum_variant_data_written_values",
   "generic_enum_argument",
+  // The fusion defects, pinned wrong. Only those whose VM and native runs agree:
+  // where the VM traps, the native run goes its own way — a mistyped slot read,
+  // a crash — and that is no output to pin.
+  "_diag_fusion_shared_instances",
+  "_diag_fusion_break",
+  "_diag_fusion_continue",
+  "_diag_fusion_return",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

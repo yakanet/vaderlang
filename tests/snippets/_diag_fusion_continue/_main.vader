@@ -1,0 +1,189 @@
+// _diag_fusion_continue — a `continue` in the consumer must resume the inlined
+// generator after its `yield`: `enumerate`, `take`, a generator with two
+// `yield`s per round, a generator with no loop, `continue y` from an inner loop,
+// `chars().enumerate()`, and `enumerate` in an async fn across an `await`.
+//
+// THE COMMITTED OUTPUT IS WRONG. Each line prints the chain consumed where it is
+// written (fused), then the same chain bound to a local first (lazy: it runs as
+// a state machine and is the reference). The two halves should agree. A line
+// whose halves already agree pins a case a fix must not break.
+//
+// Where the consumer loop is itself a jump target, a user generator is not
+// inlined today: those lines compare the lazy form with itself, and pin what
+// the inlining has to keep once it handles jumps.
+
+module "snippet"
+
+import "std/async"
+import "std/io"
+import "std/iter"
+import "std/string"
+
+enumerate_continue :: fn() -> void {
+    fused := ""
+    for [i, x] in [10, 20, 30, 40].enumerate() {
+        if x == 20 {
+            continue
+        }
+        fused = fused + " ${i}"
+    }
+    lazy := ""
+    it :: [10, 20, 30, 40].enumerate()
+    for [i, x] in it {
+        if x == 20 {
+            continue
+        }
+        lazy = lazy + " ${i}"
+    }
+    println("enumerate + continue, indices:${fused} |${lazy}")
+}
+
+take_continue :: fn() -> void {
+    fused := 0
+    for x in [1, 2, 3, 4].take(2) {
+        fused += 1
+        if x == 1 {
+            continue
+        }
+    }
+    lazy := 0
+    it :: [1, 2, 3, 4].take(2)
+    for x in it {
+        lazy += 1
+        if x == 1 {
+            continue
+        }
+    }
+    println("take(2) + continue, visits: ${fused} | ${lazy}")
+}
+
+twice_per_round :: fn() -> Iterator<i32> {
+    for i in 1..=2 {
+        yield i
+        yield i + 1000
+    }
+}
+
+two_yields_continue :: fn() -> void {
+    fused := ""
+    for v in twice_per_round() {
+        if v == 1 {
+            continue
+        }
+        fused = fused + " ${v}"
+    }
+    lazy := ""
+    it :: twice_per_round()
+    for v in it {
+        if v == 1 {
+            continue
+        }
+        lazy = lazy + " ${v}"
+    }
+    println("two yields + continue:${fused} |${lazy}")
+}
+
+three :: fn() -> Iterator<i32> {
+    yield 1
+    yield 2
+    yield 3
+}
+
+loopless_generator_continue :: fn() -> void {
+    fused := ""
+    for k in 0..<2 {
+        for v in three() {
+            if v == 1 {
+                continue
+            }
+            fused = fused + " ${k}:${v}"
+        }
+    }
+    lazy := ""
+    for k in 0..<2 {
+        it :: three()
+        for v in it {
+            if v == 1 {
+                continue
+            }
+            lazy = lazy + " ${k}:${v}"
+        }
+    }
+    println("loopless generator + continue:${fused} |${lazy}")
+}
+
+take_continue_outer :: fn() -> void {
+    fused := 0
+    for y in [1, 2, 3, 4].take(2) {
+        for z in [7, 8] {
+            fused += 1
+            continue y
+        }
+    }
+    lazy := 0
+    it :: [1, 2, 3, 4].take(2)
+    for y in it {
+        for z in [7, 8] {
+            lazy += 1
+            continue y
+        }
+    }
+    println("take(2) + continue y from an inner loop: ${fused} | ${lazy}")
+}
+
+chars_enumerate_continue :: fn() -> void {
+    fused := 0
+    for [i, c] in "fused".chars().enumerate() {
+        if c == 'u' {
+            continue
+        }
+        fused += i32(i)
+    }
+    lazy := 0
+    it :: "fused".chars().enumerate()
+    for [i, c] in it {
+        if c == 'u' {
+            continue
+        }
+        lazy += i32(i)
+    }
+    println("chars.enumerate + continue, index sum: ${fused} | ${lazy}")
+}
+
+async_enumerate_continue :: fn(xs: i32[]) -> Async<i32> {
+    total := 0
+    for [i, x] in xs.enumerate() {
+        await sleep(1)
+        if x == 20 {
+            continue
+        }
+        total += i32(i)
+    }
+    return total
+}
+
+async_enumerate_continue_lazy :: fn(xs: i32[]) -> Async<i32> {
+    total := 0
+    pairs :: xs.enumerate()
+    for [i, x] in pairs {
+        await sleep(1)
+        if x == 20 {
+            continue
+        }
+        total += i32(i)
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    enumerate_continue()
+    take_continue()
+    two_yields_continue()
+    loopless_generator_continue()
+    take_continue_outer()
+    chars_enumerate_continue()
+    fused :: await async_enumerate_continue([10, 20, 30, 40])
+    lazy :: await async_enumerate_continue_lazy([10, 20, 30, 40])
+    println("async enumerate + continue, index sum: ${fused} | ${lazy}")
+    return 0
+}

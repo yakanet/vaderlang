@@ -1,0 +1,43 @@
+# Typecheck
+
+## tests/snippets/_diag_fusion_destructure_filtered
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         not_twenty           :: fn([usize, i32]) -> bool
+  expr 15:15    IdentExpr      :: [usize, i32]
+  expr 16:12    BinaryExpr     :: bool
+  expr 16:12    IdentExpr      :: i32
+  expr 20:13    StringLitExpr  :: string
+  expr 21:11    CallExpr       :: __genstate_enumerate<[usize, i32]>!
+  expr 21:11    CallExpr       :: __genstate_filter<[usize, i32]!>!
+  expr 21:11    FieldExpr      :: fn() -> Iterator<[usize, i32]>
+  expr 21:11    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
+  expr 21:11    SeqLitExpr     :: i32[]!
+  expr 21:43    IdentExpr      :: fn([usize, i32]) -> bool
+  expr 22:19    IdentExpr      :: __genstate_filter<[usize, i32]!>!
+  expr 23:16    BinaryExpr     :: string
+  expr 23:16    IdentExpr      :: string
+  expr 23:23    StringLitExpr  :: string
+  expr 23:27    IdentExpr      :: usize
+  expr 23:32    IdentExpr      :: i32
+  expr 23:9     IdentExpr      :: string
+  expr 25:13    StringLitExpr  :: string
+  expr 25:38    IdentExpr      :: string
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 26:14    StringLitExpr  :: string
+  expr 27:19    CallExpr       :: __genstate_enumerate<[usize, i32]>!
+  expr 27:19    CallExpr       :: __genstate_filter<[usize, i32]!>!
+  expr 27:19    FieldExpr      :: fn() -> Iterator<[usize, i32]>
+  expr 27:19    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
+  expr 27:19    SeqLitExpr     :: i32[]!
+  expr 27:51    IdentExpr      :: fn([usize, i32]) -> bool
+  expr 28:17    BinaryExpr     :: string
+  expr 28:17    IdentExpr      :: string
+  expr 28:25    StringLitExpr  :: string
+  expr 28:29    IdentExpr      :: usize
+  expr 28:34    IdentExpr      :: i32
+  expr 28:9     IdentExpr      :: string
+  expr 30:13    StringLitExpr  :: string
+  expr 30:39    IdentExpr      :: string
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void

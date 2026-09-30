@@ -1,0 +1,6 @@
+# stdout
+lazy enumerate.filter: 0:10 2:30
+# stderr
+vader vm: reached unreachable: 
+# exit
+1

@@ -1,0 +1,36 @@
+# Typecheck
+
+## tests/snippets/_diag_fusion_return_value
+  FnDecl         fused_value          :: fn() -> i32
+  FnDecl         lazy_value           :: fn() -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         upto_stop            :: fn(i32) -> Iterator<i32>
+  expr 13:14    RangeExpr      :: Range<i32>!
+  expr 14:12    BinaryExpr     :: bool
+  expr 14:12    IdentExpr      :: i32
+  expr 14:17    IdentExpr      :: i32
+  expr 14:9     IfExpr         :: void
+  expr 17:15    IdentExpr      :: i32
+  expr 23:11    CallExpr       :: __genstate_upto_stop<i32>!
+  expr 23:11    IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 24:14    IdentExpr      :: __genstate_upto_stop<i32>!
+  expr 25:18    IdentExpr      :: i32
+  expr 25:9     BinaryExpr     :: i32
+  expr 25:9     IdentExpr      :: i32
+  expr 27:12    IdentExpr      :: i32
+  expr 32:14    CallExpr       :: __genstate_upto_stop<i32>!
+  expr 32:14    IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 33:18    IdentExpr      :: i32
+  expr 33:9     BinaryExpr     :: i32
+  expr 33:9     IdentExpr      :: i32
+  expr 35:12    IdentExpr      :: i32
+  expr 39:13    StringLitExpr  :: string
+  expr 39:37    CallExpr       :: i32
+  expr 39:37    IdentExpr      :: fn() -> i32
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 40:13    StringLitExpr  :: string
+  expr 40:38    CallExpr       :: i32
+  expr 40:38    IdentExpr      :: fn() -> i32
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void

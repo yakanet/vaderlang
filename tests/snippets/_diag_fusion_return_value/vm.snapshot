@@ -1,0 +1,4 @@
+# stderr
+vader run: `return` returns 1 value(s) but the stack holds 0 at pc=14 in 'snippet$fused_value'
+# exit
+1

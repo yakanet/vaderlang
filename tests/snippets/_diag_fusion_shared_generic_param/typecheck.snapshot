@@ -1,0 +1,48 @@
+# Typecheck
+
+## tests/snippets/_diag_fusion_shared_generic_param
+  FnDecl         each_then            :: fn(T[], T) -> Iterator<T>
+  FnDecl         main                 :: fn() -> i32
+  expr 13:14    IdentExpr      :: T[]
+  expr 14:15    IdentExpr      :: T
+  expr 16:11    IdentExpr      :: T
+  expr 20:13    StringLitExpr  :: string
+  expr 21:14    CallExpr       :: __genstate_each_then<i32>!
+  expr 21:14    IdentExpr      :: fn(T[], T) -> Iterator<T>
+  expr 21:24    SeqLitExpr     :: i32[]
+  expr 22:14    IdentExpr      :: __genstate_each_then<i32>!
+  expr 23:18    CallExpr       :: __genstate_each_then<string>!
+  expr 23:18    IdentExpr      :: fn(T[], T) -> Iterator<T>
+  expr 23:28    SeqLitExpr     :: string[]
+  expr 23:29    StringLitExpr  :: string
+  expr 23:35    StringLitExpr  :: string
+  expr 24:18    IdentExpr      :: __genstate_each_then<string>!
+  expr 25:13    IdentExpr      :: string
+  expr 25:20    BinaryExpr     :: string
+  expr 25:20    IdentExpr      :: string
+  expr 25:27    StringLitExpr  :: string
+  expr 25:31    IdentExpr      :: i32
+  expr 25:35    IdentExpr      :: string
+  expr 28:13    StringLitExpr  :: string
+  expr 28:21    IdentExpr      :: string
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 29:14    StringLitExpr  :: string
+  expr 30:14    CallExpr       :: __genstate_each_then<i32>!
+  expr 30:14    IdentExpr      :: fn(T[], T) -> Iterator<T>
+  expr 30:24    SeqLitExpr     :: i32[]
+  expr 31:18    CallExpr       :: __genstate_each_then<string>!
+  expr 31:18    IdentExpr      :: fn(T[], T) -> Iterator<T>
+  expr 31:28    SeqLitExpr     :: string[]
+  expr 31:29    StringLitExpr  :: string
+  expr 31:35    StringLitExpr  :: string
+  expr 32:13    IdentExpr      :: string
+  expr 32:21    BinaryExpr     :: string
+  expr 32:21    IdentExpr      :: string
+  expr 32:29    StringLitExpr  :: string
+  expr 32:33    IdentExpr      :: i32
+  expr 32:37    IdentExpr      :: string
+  expr 35:13    StringLitExpr  :: string
+  expr 35:22    IdentExpr      :: string
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void

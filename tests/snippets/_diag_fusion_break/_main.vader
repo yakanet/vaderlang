@@ -1,0 +1,166 @@
+// _diag_fusion_break — a `break` in the consumer must abandon every inlined
+// instance: `flat_map` and `chain` under `find`, `flat_map` under `break` and
+// `take`, user generators with two `yield`s, a tail `yield`, a generator of a
+// generator.
+//
+// THE COMMITTED OUTPUT IS WRONG. Each line prints the chain consumed where it is
+// written (fused), then the same chain bound to a local first (lazy: it runs as
+// a state machine and is the reference). The two halves should agree. A line
+// whose halves already agree pins a case a fix must not break.
+//
+// Where the consumer loop is itself a jump target, a user generator is not
+// inlined today: those lines compare the lazy form with itself, and pin what
+// the inlining has to keep once it handles jumps.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+spread :: fn(x: i32) -> i32[] = [10 * x, 10 * x + 1]
+
+over_ten :: fn(v: i32) -> bool = v > 10
+
+above_one :: fn(v: i32) -> bool = v > 1
+
+flat_map_find :: fn() -> void {
+    fused :: [1, 2].flat_map(spread).find(over_ten) ?? -1
+    it :: [1, 2].flat_map(spread)
+    lazy :: it.find(over_ten) ?? -1
+    println("flat_map.find: ${fused} | ${lazy}")
+}
+
+chain_find :: fn() -> void {
+    fused :: [1, 2].chain([3, 4]).find(above_one) ?? -1
+    it :: [1, 2].chain([3, 4])
+    lazy :: it.find(above_one) ?? -1
+    println("chain.find: ${fused} | ${lazy}")
+}
+
+flat_map_break :: fn() -> void {
+    fused := 0
+    for v in [1, 2].flat_map(spread) {
+        fused += 1
+        if v > 10 {
+            break
+        }
+    }
+    lazy := 0
+    it :: [1, 2].flat_map(spread)
+    for v in it {
+        lazy += 1
+        if v > 10 {
+            break
+        }
+    }
+    println("flat_map + break, visits: ${fused} | ${lazy}")
+}
+
+flat_map_take_calls :: fn() -> void {
+    calls := 0
+    counted :: (x: i32) -> {
+        calls += 1
+        return spread(x)
+    }
+    for _ in [1, 2, 3].flat_map(counted).take(1) {
+    }
+    fused :: calls
+    calls = 0
+    it :: [1, 2, 3].flat_map(counted).take(1)
+    for _ in it {
+    }
+    println("flat_map.take(1), calls: ${fused} | ${calls}")
+}
+
+pairs :: fn(xs: i32[], ys: i32[]) -> Iterator<i32> {
+    for i in 0..<xs.len() {
+        yield xs[i]
+        yield ys[i]
+    }
+}
+
+two_yields_break :: fn() -> void {
+    fused := 0
+    for v in pairs([1, 2], [3, 4]) {
+        fused += 1
+        break
+    }
+    lazy := 0
+    it :: pairs([1, 2], [3, 4])
+    for v in it {
+        lazy += 1
+        break
+    }
+    println("two yields + break, visits: ${fused} | ${lazy}")
+}
+
+loop_then_tail :: fn() -> Iterator<i32> {
+    for i in 0..<3 {
+        yield i
+    }
+    yield 99
+}
+
+tail_yield_break :: fn() -> void {
+    fused := ""
+    for v in loop_then_tail() {
+        fused = fused + " ${v}"
+        break
+    }
+    lazy := ""
+    it :: loop_then_tail()
+    for v in it {
+        lazy = lazy + " ${v}"
+        break
+    }
+    println("loop then tail yield + break:${fused} |${lazy}")
+}
+
+inner_counts :: fn() -> Iterator<i32> {
+    for i in 0..<3 {
+        yield i
+        println("  inner resumed after ${i}")
+    }
+}
+
+outer_counts :: fn() -> Iterator<i32> {
+    for y in inner_counts() {
+        yield y * 10
+    }
+    yield 99
+}
+
+generator_of_generator :: fn() -> void {
+    println("generator of generator, fused:")
+    for v in outer_counts() {
+        if v == 0 {
+            continue
+        }
+        if v == 10 {
+            break
+        }
+        println("  v=${v}")
+    }
+    println("generator of generator, lazy:")
+    it :: outer_counts()
+    for v in it {
+        if v == 0 {
+            continue
+        }
+        if v == 10 {
+            break
+        }
+        println("  v=${v}")
+    }
+}
+
+main :: fn() -> i32 {
+    flat_map_find()
+    chain_find()
+    flat_map_break()
+    flat_map_take_calls()
+    two_yields_break()
+    tail_yield_break()
+    generator_of_generator()
+    return 0
+}

@@ -1,0 +1,3042 @@
+# Lower
+
+## snippet
+  fn snippet$enumerate_continue() -> void
+    let fused: string = "" :string
+    block :void
+      let __fuse_arr_3: i32[]! =
+        array :i32[]!
+          int(10) :i32
+          int(20) :i32
+          int(30) :i32
+          int(40) :i32
+      let i: usize = int(0) :usize
+      let __fuse_len_5: usize =
+        LoweredArrayLen
+      let __fuse_i_6: usize = int(0) :usize
+      loop while (<…>)
+        let x: i32 =
+          index :i32
+            on:
+              __fuse_arr_3 :i32[]!
+            ix:
+              __fuse_i_6 :usize
+        let __gen_elem_4: [usize, i32] =
+          [usize, i32]! {
+            _0: i :usize
+            _1: x :i32
+          }
+        let i: usize =
+          ._0 :usize
+            __gen_elem_4 :[usize, i32]
+        let x: i32 =
+          ._1 :i32
+            __gen_elem_4 :[usize, i32]
+        if :void
+          cond:
+            eq :bool
+              l:
+                x :i32
+              r:
+                int(20) :i32
+          then:
+            continue
+        assign
+          target:
+            fused :string
+          value:
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                fused :string
+              arg1:
+                block :string
+                  let __buf_1: Buffer =
+                    call :Buffer
+                      callee:
+                        new_byte_buffer :Buffer
+                      arg0:
+                        int(21) :usize
+                  let __off_2: usize = int(0) :usize
+                  assign
+                    target:
+                      __off_2 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_1 :Buffer
+                        arg1:
+                          __off_2 :usize
+                        arg2:
+                          " " :string
+                  assign
+                    target:
+                      __off_2 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_unsigned :usize
+                        arg0:
+                          __buf_1 :Buffer
+                        arg1:
+                          __off_2 :usize
+                        arg2:
+                          cast → u64
+                            i :usize
+                  ~>
+                    call :string
+                      callee:
+                        finish_buffer :string
+                      arg0:
+                        __buf_1 :Buffer
+                      arg1:
+                        __off_2 :usize
+        assign
+          target:
+            i :usize
+          value:
+            add :usize
+              l:
+                i :usize
+              r:
+                int(1) :usize
+      step
+        assign
+          target:
+            __fuse_i_6 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_6 :usize
+              r:
+                int(1) :usize
+    let lazy: string = "" :string
+    let it: __genstate_enumerate<[usize, i32]>! =
+      call :__genstate_enumerate<[usize, i32]>!
+        callee:
+          std_iter$enumerate__i32 :__genstate_enumerate<[usize, i32]>!
+        arg0:
+          call :Iterator<T>
+            callee:
+              std_core$[]$Into$into__i32 :Iterator<T>
+            arg0:
+              array :i32[]!
+                int(10) :i32
+                int(20) :i32
+                int(30) :i32
+                int(40) :i32
+    block :void
+      let __iter_8: Iterator<[usize, i32]> = it :__genstate_enumerate<[usize, i32]>!
+      loop
+        let __step_9: [[usize, i32], Continuation]! =
+          vcall Iterator.next :[[usize, i32], Continuation]!
+            recv:
+              __iter_8 :Iterator<[usize, i32]>
+        if :void
+          cond:
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_9 :[[usize, i32], Continuation]!
+              r:
+                int(1) :u8
+          then:
+            break
+          else:
+            let __for_elem_10: [usize, i32] =
+              ._0 :[usize, i32]
+                __step_9 :[[usize, i32], Continuation]!
+            let i: usize =
+              ._0 :usize
+                __for_elem_10 :[usize, i32]
+            let x: i32 =
+              ._1 :i32
+                __for_elem_10 :[usize, i32]
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    x :i32
+                  r:
+                    int(20) :i32
+              then:
+                continue
+            assign
+              target:
+                lazy :string
+              value:
+                call :string
+                  callee:
+                    concat_2 :string
+                  arg0:
+                    lazy :string
+                  arg1:
+                    block :string
+                      let __buf_11: Buffer =
+                        call :Buffer
+                          callee:
+                            new_byte_buffer :Buffer
+                          arg0:
+                            int(21) :usize
+                      let __off_12: usize = int(0) :usize
+                      assign
+                        target:
+                          __off_12 :usize
+                        value:
+                          call :usize
+                            callee:
+                              write_string_at :usize
+                            arg0:
+                              __buf_11 :Buffer
+                            arg1:
+                              __off_12 :usize
+                            arg2:
+                              " " :string
+                      assign
+                        target:
+                          __off_12 :usize
+                        value:
+                          call :usize
+                            callee:
+                              write_unsigned :usize
+                            arg0:
+                              __buf_11 :Buffer
+                            arg1:
+                              __off_12 :usize
+                            arg2:
+                              cast → u64
+                                i :usize
+                      ~>
+                        call :string
+                          callee:
+                            finish_buffer :string
+                          arg0:
+                            __buf_11 :Buffer
+                          arg1:
+                            __off_12 :usize
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat_4 :string
+            arg0:
+              "enumerate + continue, indices:" :string
+            arg1:
+              fused :string
+            arg2:
+              " |" :string
+            arg3:
+              lazy :string
+  fn snippet$take_continue() -> void
+    let fused: i32 = int(0) :i32
+    block :void
+      let __fuse_arr_0: i32[]! =
+        array :i32[]!
+          int(1) :i32
+          int(2) :i32
+          int(3) :i32
+          int(4) :i32
+      let n: usize = int(2) :usize
+      let i: usize = int(0) :usize
+      let __fuse_len_1: usize =
+        LoweredArrayLen
+      let __fuse_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let x: i32 =
+          index :i32
+            on:
+              __fuse_arr_0 :i32[]!
+            ix:
+              __fuse_i_2 :usize
+        if :void
+          cond:
+            gte :bool
+              l:
+                i :usize
+              r:
+                n :usize
+          then:
+            break
+        let x: i32 = x :i32
+        assign
+          target:
+            fused :i32
+          value:
+            add :i32
+              l:
+                fused :i32
+              r:
+                int(1) :i32
+        if :void
+          cond:
+            eq :bool
+              l:
+                x :i32
+              r:
+                int(1) :i32
+          then:
+            continue
+        assign
+          target:
+            i :usize
+          value:
+            add :usize
+              l:
+                i :usize
+              r:
+                int(1) :usize
+      step
+        assign
+          target:
+            __fuse_i_2 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_2 :usize
+              r:
+                int(1) :usize
+    let lazy: i32 = int(0) :i32
+    let it: __genstate_take<i32>! =
+      call :__genstate_take<i32>!
+        callee:
+          std_iter$take__i32 :__genstate_take<i32>!
+        arg0:
+          call :Iterator<T>
+            callee:
+              std_core$[]$Into$into__i32 :Iterator<T>
+            arg0:
+              array :i32[]!
+                int(1) :i32
+                int(2) :i32
+                int(3) :i32
+                int(4) :i32
+        arg1:
+          int(2) :usize
+    block :void
+      let __iter_3: Iterator<i32> = it :__genstate_take<i32>!
+      loop
+        let __step_4: [i32, Continuation]! =
+          vcall Iterator.next :[i32, Continuation]!
+            recv:
+              __iter_3 :Iterator<i32>
+        if :void
+          cond:
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_4 :[i32, Continuation]!
+              r:
+                int(1) :u8
+          then:
+            break
+          else:
+            let x: i32 =
+              ._0 :i32
+                __step_4 :[i32, Continuation]!
+            assign
+              target:
+                lazy :i32
+              value:
+                add :i32
+                  l:
+                    lazy :i32
+                  r:
+                    int(1) :i32
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    x :i32
+                  r:
+                    int(1) :i32
+              then:
+                continue
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          block :string
+            let __buf_5: Buffer =
+              call :Buffer
+                callee:
+                  new_byte_buffer :Buffer
+                arg0:
+                  int(71) :usize
+            let __off_6: usize = int(0) :usize
+            assign
+              target:
+                __off_6 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_5 :Buffer
+                  arg1:
+                    __off_6 :usize
+                  arg2:
+                    "take(2) + continue, visits: " :string
+            assign
+              target:
+                __off_6 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_5 :Buffer
+                  arg1:
+                    __off_6 :usize
+                  arg2:
+                    cast → i64
+                      fused :i32
+            assign
+              target:
+                __off_6 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_5 :Buffer
+                  arg1:
+                    __off_6 :usize
+                  arg2:
+                    " | " :string
+            assign
+              target:
+                __off_6 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_5 :Buffer
+                  arg1:
+                    __off_6 :usize
+                  arg2:
+                    cast → i64
+                      lazy :i32
+            ~>
+              call :string
+                callee:
+                  finish_buffer :string
+                arg0:
+                  __buf_5 :Buffer
+                arg1:
+                  __off_6 :usize
+  fn snippet$twice_per_round() -> Iterator<i32>
+    return
+      __genstate_twice_per_round! {
+        s0: int(0) :i32
+        state: int(6) :i32
+      }
+  fn snippet$two_yields_continue() -> void
+    let fused: string = "" :string
+    block :void
+      let __iter_0: Iterator<i32> =
+        call :__genstate_twice_per_round<i32>!
+          callee:
+            twice_per_round :fn() -> Iterator<i32>
+      loop
+        let __step_1: [i32, Continuation]! =
+          vcall Iterator.next :[i32, Continuation]!
+            recv:
+              __iter_0 :Iterator<i32>
+        if :void
+          cond:
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_1 :[i32, Continuation]!
+              r:
+                int(1) :u8
+          then:
+            break
+          else:
+            let v: i32 =
+              ._0 :i32
+                __step_1 :[i32, Continuation]!
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    v :i32
+                  r:
+                    int(1) :i32
+              then:
+                continue
+            assign
+              target:
+                fused :string
+              value:
+                call :string
+                  callee:
+                    concat_2 :string
+                  arg0:
+                    fused :string
+                  arg1:
+                    block :string
+                      let __buf_2: Buffer =
+                        call :Buffer
+                          callee:
+                            new_byte_buffer :Buffer
+                          arg0:
+                            int(21) :usize
+                      let __off_3: usize = int(0) :usize
+                      assign
+                        target:
+                          __off_3 :usize
+                        value:
+                          call :usize
+                            callee:
+                              write_string_at :usize
+                            arg0:
+                              __buf_2 :Buffer
+                            arg1:
+                              __off_3 :usize
+                            arg2:
+                              " " :string
+                      assign
+                        target:
+                          __off_3 :usize
+                        value:
+                          call :usize
+                            callee:
+                              write_int :usize
+                            arg0:
+                              __buf_2 :Buffer
+                            arg1:
+                              __off_3 :usize
+                            arg2:
+                              cast → i64
+                                v :i32
+                      ~>
+                        call :string
+                          callee:
+                            finish_buffer :string
+                          arg0:
+                            __buf_2 :Buffer
+                          arg1:
+                            __off_3 :usize
+    let lazy: string = "" :string
+    let it: __genstate_twice_per_round<i32>! =
+      call :__genstate_twice_per_round<i32>!
+        callee:
+          twice_per_round :fn() -> Iterator<i32>
+    block :void
+      let __iter_4: Iterator<i32> = it :__genstate_twice_per_round<i32>!
+      loop
+        let __step_5: [i32, Continuation]! =
+          vcall Iterator.next :[i32, Continuation]!
+            recv:
+              __iter_4 :Iterator<i32>
+        if :void
+          cond:
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_5 :[i32, Continuation]!
+              r:
+                int(1) :u8
+          then:
+            break
+          else:
+            let v: i32 =
+              ._0 :i32
+                __step_5 :[i32, Continuation]!
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    v :i32
+                  r:
+                    int(1) :i32
+              then:
+                continue
+            assign
+              target:
+                lazy :string
+              value:
+                call :string
+                  callee:
+                    concat_2 :string
+                  arg0:
+                    lazy :string
+                  arg1:
+                    block :string
+                      let __buf_6: Buffer =
+                        call :Buffer
+                          callee:
+                            new_byte_buffer :Buffer
+                          arg0:
+                            int(21) :usize
+                      let __off_7: usize = int(0) :usize
+                      assign
+                        target:
+                          __off_7 :usize
+                        value:
+                          call :usize
+                            callee:
+                              write_string_at :usize
+                            arg0:
+                              __buf_6 :Buffer
+                            arg1:
+                              __off_7 :usize
+                            arg2:
+                              " " :string
+                      assign
+                        target:
+                          __off_7 :usize
+                        value:
+                          call :usize
+                            callee:
+                              write_int :usize
+                            arg0:
+                              __buf_6 :Buffer
+                            arg1:
+                              __off_7 :usize
+                            arg2:
+                              cast → i64
+                                v :i32
+                      ~>
+                        call :string
+                          callee:
+                            finish_buffer :string
+                          arg0:
+                            __buf_6 :Buffer
+                          arg1:
+                            __off_7 :usize
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat_4 :string
+            arg0:
+              "two yields + continue:" :string
+            arg1:
+              fused :string
+            arg2:
+              " |" :string
+            arg3:
+              lazy :string
+  fn snippet$three() -> Iterator<i32>
+    return
+      __genstate_three! {
+        state: int(3) :i32
+      }
+  fn snippet$loopless_generator_continue() -> void
+    let fused: string = "" :string
+    block :void
+      let k: i32 = int(0) :i32
+      loop while (<…>)
+        block :void
+          let __iter_0: Iterator<i32> =
+            call :__genstate_three<i32>!
+              callee:
+                three :fn() -> Iterator<i32>
+          loop
+            let __step_1: [i32, Continuation]! =
+              vcall Iterator.next :[i32, Continuation]!
+                recv:
+                  __iter_0 :Iterator<i32>
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    ._1 :Continuation
+                      __step_1 :[i32, Continuation]!
+                  r:
+                    int(1) :u8
+              then:
+                break
+              else:
+                let v: i32 =
+                  ._0 :i32
+                    __step_1 :[i32, Continuation]!
+                if :void
+                  cond:
+                    eq :bool
+                      l:
+                        v :i32
+                      r:
+                        int(1) :i32
+                  then:
+                    continue
+                assign
+                  target:
+                    fused :string
+                  value:
+                    call :string
+                      callee:
+                        concat_2 :string
+                      arg0:
+                        fused :string
+                      arg1:
+                        block :string
+                          let __buf_2: Buffer =
+                            call :Buffer
+                              callee:
+                                new_byte_buffer :Buffer
+                              arg0:
+                                int(42) :usize
+                          let __off_3: usize = int(0) :usize
+                          assign
+                            target:
+                              __off_3 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_string_at :usize
+                                arg0:
+                                  __buf_2 :Buffer
+                                arg1:
+                                  __off_3 :usize
+                                arg2:
+                                  " " :string
+                          assign
+                            target:
+                              __off_3 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_int :usize
+                                arg0:
+                                  __buf_2 :Buffer
+                                arg1:
+                                  __off_3 :usize
+                                arg2:
+                                  cast → i64
+                                    k :i32
+                          assign
+                            target:
+                              __off_3 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_string_at :usize
+                                arg0:
+                                  __buf_2 :Buffer
+                                arg1:
+                                  __off_3 :usize
+                                arg2:
+                                  ":" :string
+                          assign
+                            target:
+                              __off_3 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_int :usize
+                                arg0:
+                                  __buf_2 :Buffer
+                                arg1:
+                                  __off_3 :usize
+                                arg2:
+                                  cast → i64
+                                    v :i32
+                          ~>
+                            call :string
+                              callee:
+                                finish_buffer :string
+                              arg0:
+                                __buf_2 :Buffer
+                              arg1:
+                                __off_3 :usize
+      step
+        assign
+          target:
+            k :i32
+          value:
+            add :i32
+              l:
+                k :i32
+              r:
+                int(1) :i32
+    let lazy: string = "" :string
+    block :void
+      let k: i32 = int(0) :i32
+      loop while (<…>)
+        let it: __genstate_three<i32>! =
+          call :__genstate_three<i32>!
+            callee:
+              three :fn() -> Iterator<i32>
+        block :void
+          let __iter_4: Iterator<i32> = it :__genstate_three<i32>!
+          loop
+            let __step_5: [i32, Continuation]! =
+              vcall Iterator.next :[i32, Continuation]!
+                recv:
+                  __iter_4 :Iterator<i32>
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    ._1 :Continuation
+                      __step_5 :[i32, Continuation]!
+                  r:
+                    int(1) :u8
+              then:
+                break
+              else:
+                let v: i32 =
+                  ._0 :i32
+                    __step_5 :[i32, Continuation]!
+                if :void
+                  cond:
+                    eq :bool
+                      l:
+                        v :i32
+                      r:
+                        int(1) :i32
+                  then:
+                    continue
+                assign
+                  target:
+                    lazy :string
+                  value:
+                    call :string
+                      callee:
+                        concat_2 :string
+                      arg0:
+                        lazy :string
+                      arg1:
+                        block :string
+                          let __buf_6: Buffer =
+                            call :Buffer
+                              callee:
+                                new_byte_buffer :Buffer
+                              arg0:
+                                int(42) :usize
+                          let __off_7: usize = int(0) :usize
+                          assign
+                            target:
+                              __off_7 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_string_at :usize
+                                arg0:
+                                  __buf_6 :Buffer
+                                arg1:
+                                  __off_7 :usize
+                                arg2:
+                                  " " :string
+                          assign
+                            target:
+                              __off_7 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_int :usize
+                                arg0:
+                                  __buf_6 :Buffer
+                                arg1:
+                                  __off_7 :usize
+                                arg2:
+                                  cast → i64
+                                    k :i32
+                          assign
+                            target:
+                              __off_7 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_string_at :usize
+                                arg0:
+                                  __buf_6 :Buffer
+                                arg1:
+                                  __off_7 :usize
+                                arg2:
+                                  ":" :string
+                          assign
+                            target:
+                              __off_7 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_int :usize
+                                arg0:
+                                  __buf_6 :Buffer
+                                arg1:
+                                  __off_7 :usize
+                                arg2:
+                                  cast → i64
+                                    v :i32
+                          ~>
+                            call :string
+                              callee:
+                                finish_buffer :string
+                              arg0:
+                                __buf_6 :Buffer
+                              arg1:
+                                __off_7 :usize
+      step
+        assign
+          target:
+            k :i32
+          value:
+            add :i32
+              l:
+                k :i32
+              r:
+                int(1) :i32
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat_4 :string
+            arg0:
+              "loopless generator + continue:" :string
+            arg1:
+              fused :string
+            arg2:
+              " |" :string
+            arg3:
+              lazy :string
+  fn snippet$take_continue_outer() -> void
+    let fused: i32 = int(0) :i32
+    block :void
+      let __fuse_arr_3: i32[]! =
+        array :i32[]!
+          int(1) :i32
+          int(2) :i32
+          int(3) :i32
+          int(4) :i32
+      let n: usize = int(2) :usize
+      let i: usize = int(0) :usize
+      let __fuse_len_4: usize =
+        LoweredArrayLen
+      let __fuse_i_5: usize = int(0) :usize
+      loop while (<…>) :y
+        let x: i32 =
+          index :i32
+            on:
+              __fuse_arr_3 :i32[]!
+            ix:
+              __fuse_i_5 :usize
+        if :void
+          cond:
+            gte :bool
+              l:
+                i :usize
+              r:
+                n :usize
+          then:
+            break
+        let y: i32 = x :i32
+        block :void
+          let __for_arr_0: i32[]! =
+            array :i32[]!
+              int(7) :i32
+              int(8) :i32
+          let __for_len_1: usize =
+            LoweredArrayLen
+          let __for_i_2: usize = int(0) :usize
+          loop while (<…>)
+            let z: i32 =
+              index :i32
+                on:
+                  __for_arr_0 :i32[]!
+                ix:
+                  __for_i_2 :usize
+            assign
+              target:
+                fused :i32
+              value:
+                add :i32
+                  l:
+                    fused :i32
+                  r:
+                    int(1) :i32
+            continue :y
+          step
+            assign
+              target:
+                __for_i_2 :usize
+              value:
+                add :usize
+                  l:
+                    __for_i_2 :usize
+                  r:
+                    int(1) :usize
+        assign
+          target:
+            i :usize
+          value:
+            add :usize
+              l:
+                i :usize
+              r:
+                int(1) :usize
+      step
+        assign
+          target:
+            __fuse_i_5 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_5 :usize
+              r:
+                int(1) :usize
+    let lazy: i32 = int(0) :i32
+    let it: __genstate_take<i32>! =
+      call :__genstate_take<i32>!
+        callee:
+          std_iter$take__i32 :__genstate_take<i32>!
+        arg0:
+          call :Iterator<T>
+            callee:
+              std_core$[]$Into$into__i32 :Iterator<T>
+            arg0:
+              array :i32[]!
+                int(1) :i32
+                int(2) :i32
+                int(3) :i32
+                int(4) :i32
+        arg1:
+          int(2) :usize
+    block :void
+      let __iter_6: Iterator<i32> = it :__genstate_take<i32>!
+      loop :y
+        let __step_7: [i32, Continuation]! =
+          vcall Iterator.next :[i32, Continuation]!
+            recv:
+              __iter_6 :Iterator<i32>
+        if :void
+          cond:
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_7 :[i32, Continuation]!
+              r:
+                int(1) :u8
+          then:
+            break
+          else:
+            let y: i32 =
+              ._0 :i32
+                __step_7 :[i32, Continuation]!
+            block :void
+              let __for_arr_8: i32[]! =
+                array :i32[]!
+                  int(7) :i32
+                  int(8) :i32
+              let __for_len_9: usize =
+                LoweredArrayLen
+              let __for_i_10: usize = int(0) :usize
+              loop while (<…>)
+                let z: i32 =
+                  index :i32
+                    on:
+                      __for_arr_8 :i32[]!
+                    ix:
+                      __for_i_10 :usize
+                assign
+                  target:
+                    lazy :i32
+                  value:
+                    add :i32
+                      l:
+                        lazy :i32
+                      r:
+                        int(1) :i32
+                continue :y
+              step
+                assign
+                  target:
+                    __for_i_10 :usize
+                  value:
+                    add :usize
+                      l:
+                        __for_i_10 :usize
+                      r:
+                        int(1) :usize
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          block :string
+            let __buf_11: Buffer =
+              call :Buffer
+                callee:
+                  new_byte_buffer :Buffer
+                arg0:
+                  int(84) :usize
+            let __off_12: usize = int(0) :usize
+            assign
+              target:
+                __off_12 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_11 :Buffer
+                  arg1:
+                    __off_12 :usize
+                  arg2:
+                    "take(2) + continue y from an inner loop: " :string
+            assign
+              target:
+                __off_12 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_11 :Buffer
+                  arg1:
+                    __off_12 :usize
+                  arg2:
+                    cast → i64
+                      fused :i32
+            assign
+              target:
+                __off_12 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_11 :Buffer
+                  arg1:
+                    __off_12 :usize
+                  arg2:
+                    " | " :string
+            assign
+              target:
+                __off_12 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_11 :Buffer
+                  arg1:
+                    __off_12 :usize
+                  arg2:
+                    cast → i64
+                      lazy :i32
+            ~>
+              call :string
+                callee:
+                  finish_buffer :string
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+  fn snippet$chars_enumerate_continue() -> void
+    let fused: i32 = int(0) :i32
+    block :void
+      let __fuse_iter_1: StringChars =
+        call :StringChars
+          callee:
+            chars :StringChars
+          arg0:
+            "fused" :string
+      let i: usize = int(0) :usize
+      loop
+        let __fuse_step_3: [char, Continuation]! =
+          call :[char, Continuation]!
+            callee:
+              std_string$StringChars$Iterator$next :?
+            arg0:
+              __fuse_iter_1 :StringChars
+        if :void
+          cond:
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __fuse_step_3 :[char, Continuation]!
+              r:
+                int(1) :u8
+          then:
+            break
+          else:
+            let x: char =
+              ._0 :char
+                __fuse_step_3 :[char, Continuation]!
+            let __gen_elem_2: [usize, char] =
+              [usize, char]! {
+                _0: i :usize
+                _1: x :char
+              }
+            let i: usize =
+              ._0 :usize
+                __gen_elem_2 :[usize, char]
+            let c: char =
+              ._1 :char
+                __gen_elem_2 :[usize, char]
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    c :char
+                  r:
+                    char(0x75)
+              then:
+                continue
+            assign
+              target:
+                fused :i32
+              value:
+                add :i32
+                  l:
+                    fused :i32
+                  r:
+                    cast → i32
+                      i :usize
+            assign
+              target:
+                i :usize
+              value:
+                add :usize
+                  l:
+                    i :usize
+                  r:
+                    int(1) :usize
+    let lazy: i32 = int(0) :i32
+    let it: __genstate_enumerate<[usize, char]>! =
+      call :__genstate_enumerate<[usize, char]>!
+        callee:
+          std_iter$enumerate__char :__genstate_enumerate<[usize, char]>!
+        arg0:
+          call :StringChars
+            callee:
+              chars :StringChars
+            arg0:
+              "fused" :string
+    block :void
+      let __iter_5: Iterator<[usize, char]> = it :__genstate_enumerate<[usize, char]>!
+      loop
+        let __step_6: [[usize, char], Continuation]! =
+          vcall Iterator.next :[[usize, char], Continuation]!
+            recv:
+              __iter_5 :Iterator<[usize, char]>
+        if :void
+          cond:
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_6 :[[usize, char], Continuation]!
+              r:
+                int(1) :u8
+          then:
+            break
+          else:
+            let __for_elem_7: [usize, char] =
+              ._0 :[usize, char]
+                __step_6 :[[usize, char], Continuation]!
+            let i: usize =
+              ._0 :usize
+                __for_elem_7 :[usize, char]
+            let c: char =
+              ._1 :char
+                __for_elem_7 :[usize, char]
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    c :char
+                  r:
+                    char(0x75)
+              then:
+                continue
+            assign
+              target:
+                lazy :i32
+              value:
+                add :i32
+                  l:
+                    lazy :i32
+                  r:
+                    cast → i32
+                      i :usize
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          block :string
+            let __buf_8: Buffer =
+              call :Buffer
+                callee:
+                  new_byte_buffer :Buffer
+                arg0:
+                  int(82) :usize
+            let __off_9: usize = int(0) :usize
+            assign
+              target:
+                __off_9 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_8 :Buffer
+                  arg1:
+                    __off_9 :usize
+                  arg2:
+                    "chars.enumerate + continue, index sum: " :string
+            assign
+              target:
+                __off_9 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_8 :Buffer
+                  arg1:
+                    __off_9 :usize
+                  arg2:
+                    cast → i64
+                      fused :i32
+            assign
+              target:
+                __off_9 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_8 :Buffer
+                  arg1:
+                    __off_9 :usize
+                  arg2:
+                    " | " :string
+            assign
+              target:
+                __off_9 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_8 :Buffer
+                  arg1:
+                    __off_9 :usize
+                  arg2:
+                    cast → i64
+                      lazy :i32
+            ~>
+              call :string
+                callee:
+                  finish_buffer :string
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
+                  __off_9 :usize
+  fn snippet$async_enumerate_continue(xs: i32[]) -> Async<i32>
+    return
+      __asyncstate_snippet_0! {
+        s0: xs :i32[]
+        s1: int(0) :i32
+        s2: null
+        s3: int(0) :usize
+        s4: int(0) :usize
+        s5: int(0) :usize
+        s6: int(0) :i32
+        s7: null
+        s8: int(0) :usize
+        s9: int(0) :i32
+        s10: null
+        awaited: null
+        state: int(13) :i32
+      }
+  fn snippet$async_enumerate_continue_lazy(xs: i32[]) -> Async<i32>
+    return
+      __asyncstate_snippet_1! {
+        s0: xs :i32[]
+        s1: int(0) :i32
+        s2: null
+        s3: null
+        s4: null
+        s5: null
+        s6: int(0) :usize
+        s7: int(0) :i32
+        s8: null
+        awaited: null
+        state: int(18) :i32
+      }
+  fn snippet$main() -> i32
+    return
+      call :i32
+        callee:
+          run_async_main :i32
+        arg0:
+          cast → Async<i32>
+            __asyncstate_snippet_2! {
+              s0: int(0) :i32
+              s1: int(0) :i32
+              s2: int(0) :i32
+              s3: int(0) :i32
+              awaited: null
+              state: int(8) :i32
+            }
+  struct __genstate_twice_per_round { s0: i32, state: i32 }
+  fn snippet$__genstate_twice_per_round$Iterator$next(self: __genstate_twice_per_round!) -> [i32, Continuation]!
+    loop :dispatch$
+      if :void
+        cond:
+          eq :bool
+            l:
+              .state :i32
+                __self_0 :__genstate_twice_per_round!
+            r:
+              int(0) :i32
+        then:
+          assign
+            target:
+              .state :i32
+                __self_0 :__genstate_twice_per_round!
+            value:
+              int(-1) :i32
+        else:
+          if :void
+            cond:
+              eq :bool
+                l:
+                  .state :i32
+                    __self_0 :__genstate_twice_per_round!
+                r:
+                  int(1) :i32
+            then:
+              assign
+                target:
+                  .state :i32
+                    __self_0 :__genstate_twice_per_round!
+                value:
+                  int(0) :i32
+            else:
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      .state :i32
+                        __self_0 :__genstate_twice_per_round!
+                    r:
+                      int(2) :i32
+                then:
+                  if :void
+                    cond:
+                      lte :bool
+                        l:
+                          .s0 :i32
+                            __self_0 :__genstate_twice_per_round!
+                        r:
+                          int(2) :i32
+                    then:
+                      assign
+                        target:
+                          .state :i32
+                            __self_0 :__genstate_twice_per_round!
+                        value:
+                          int(5) :i32
+                    else:
+                      assign
+                        target:
+                          .state :i32
+                            __self_0 :__genstate_twice_per_round!
+                        value:
+                          int(1) :i32
+                else:
+                  if :void
+                    cond:
+                      eq :bool
+                        l:
+                          .state :i32
+                            __self_0 :__genstate_twice_per_round!
+                        r:
+                          int(3) :i32
+                    then:
+                      assign
+                        target:
+                          .s0 :i32
+                            __self_0 :__genstate_twice_per_round!
+                        value:
+                          add :i32
+                            l:
+                              .s0 :i32
+                                __self_0 :__genstate_twice_per_round!
+                            r:
+                              int(1) :i32
+                      assign
+                        target:
+                          .state :i32
+                            __self_0 :__genstate_twice_per_round!
+                        value:
+                          int(2) :i32
+                    else:
+                      if :void
+                        cond:
+                          eq :bool
+                            l:
+                              .state :i32
+                                __self_0 :__genstate_twice_per_round!
+                            r:
+                              int(4) :i32
+                        then:
+                          assign
+                            target:
+                              .state :i32
+                                __self_0 :__genstate_twice_per_round!
+                            value:
+                              int(3) :i32
+                          return
+                            [i32, Continuation]! {
+                              _0:
+                                add :i32
+                                  l:
+                                    .s0 :i32
+                                      __self_0 :__genstate_twice_per_round!
+                                  r:
+                                    int(1000) :i32
+                              _1: int(0) :u8
+                            }
+                        else:
+                          if :void
+                            cond:
+                              eq :bool
+                                l:
+                                  .state :i32
+                                    __self_0 :__genstate_twice_per_round!
+                                r:
+                                  int(5) :i32
+                            then:
+                              assign
+                                target:
+                                  .state :i32
+                                    __self_0 :__genstate_twice_per_round!
+                                value:
+                                  int(4) :i32
+                              return
+                                [i32, Continuation]! {
+                                  _0:
+                                    .s0 :i32
+                                      __self_0 :__genstate_twice_per_round!
+                                  _1: int(0) :u8
+                                }
+                            else:
+                              if :void
+                                cond:
+                                  eq :bool
+                                    l:
+                                      .state :i32
+                                        __self_0 :__genstate_twice_per_round!
+                                    r:
+                                      int(6) :i32
+                                then:
+                                  assign
+                                    target:
+                                      .s0 :i32
+                                        __self_0 :__genstate_twice_per_round!
+                                    value:
+                                      int(1) :i32
+                                  assign
+                                    target:
+                                      .state :i32
+                                        __self_0 :__genstate_twice_per_round!
+                                    value:
+                                      int(2) :i32
+                                else:
+                                  return
+                                    [i32, Continuation]! {
+                                      _0: int(0) :i32
+                                      _1: int(1) :u8
+                                    }
+  struct __genstate_three { state: i32 }
+  fn snippet$__genstate_three$Iterator$next(self: __genstate_three!) -> [i32, Continuation]!
+    loop :dispatch$
+      if :void
+        cond:
+          eq :bool
+            l:
+              .state :i32
+                __self_0 :__genstate_three!
+            r:
+              int(0) :i32
+        then:
+          assign
+            target:
+              .state :i32
+                __self_0 :__genstate_three!
+            value:
+              int(-1) :i32
+        else:
+          if :void
+            cond:
+              eq :bool
+                l:
+                  .state :i32
+                    __self_0 :__genstate_three!
+                r:
+                  int(1) :i32
+            then:
+              assign
+                target:
+                  .state :i32
+                    __self_0 :__genstate_three!
+                value:
+                  int(0) :i32
+              return
+                [i32, Continuation]! {
+                  _0: int(3) :i32
+                  _1: int(0) :u8
+                }
+            else:
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      .state :i32
+                        __self_0 :__genstate_three!
+                    r:
+                      int(2) :i32
+                then:
+                  assign
+                    target:
+                      .state :i32
+                        __self_0 :__genstate_three!
+                    value:
+                      int(1) :i32
+                  return
+                    [i32, Continuation]! {
+                      _0: int(2) :i32
+                      _1: int(0) :u8
+                    }
+                else:
+                  if :void
+                    cond:
+                      eq :bool
+                        l:
+                          .state :i32
+                            __self_0 :__genstate_three!
+                        r:
+                          int(3) :i32
+                    then:
+                      assign
+                        target:
+                          .state :i32
+                            __self_0 :__genstate_three!
+                        value:
+                          int(2) :i32
+                      return
+                        [i32, Continuation]! {
+                          _0: int(1) :i32
+                          _1: int(0) :u8
+                        }
+                    else:
+                      return
+                        [i32, Continuation]! {
+                          _0: int(0) :i32
+                          _1: int(1) :u8
+                        }
+  struct __asyncstate_snippet_0 { s0: i32[], s1: i32, s2: i32[], s3: usize, s4: usize, s5: usize, s6: i32, s7: [usize, i32], s8: usize, s9: i32, s10: null, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> i32 | Suspended!
+    loop :dispatch$
+      if :void
+        cond:
+          eq :bool
+            l:
+              .state :i32
+                __self_6 :__asyncstate_snippet_0!
+            r:
+              int(0) :i32
+        then:
+          assign
+            target:
+              .state :i32
+                __self_6 :__asyncstate_snippet_0!
+            value:
+              int(-1) :i32
+        else:
+          if :void
+            cond:
+              eq :bool
+                l:
+                  .state :i32
+                    __self_6 :__asyncstate_snippet_0!
+                r:
+                  int(1) :i32
+            then:
+              assign
+                target:
+                  .state :i32
+                    __self_6 :__asyncstate_snippet_0!
+                value:
+                  int(-1) :i32
+              return
+                .s1 :i32
+                  __self_6 :__asyncstate_snippet_0!
+            else:
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      .state :i32
+                        __self_6 :__asyncstate_snippet_0!
+                    r:
+                      int(2) :i32
+                then:
+                  assign
+                    target:
+                      .state :i32
+                        __self_6 :__asyncstate_snippet_0!
+                    value:
+                      int(1) :i32
+                else:
+                  if :void
+                    cond:
+                      eq :bool
+                        l:
+                          .state :i32
+                            __self_6 :__asyncstate_snippet_0!
+                        r:
+                          int(3) :i32
+                    then:
+                      if :void
+                        cond:
+                          lt :bool
+                            l:
+                              .s5 :usize
+                                __self_6 :__asyncstate_snippet_0!
+                            r:
+                              .s4 :usize
+                                __self_6 :__asyncstate_snippet_0!
+                        then:
+                          assign
+                            target:
+                              .state :i32
+                                __self_6 :__asyncstate_snippet_0!
+                            value:
+                              int(11) :i32
+                        else:
+                          assign
+                            target:
+                              .state :i32
+                                __self_6 :__asyncstate_snippet_0!
+                            value:
+                              int(2) :i32
+                    else:
+                      if :void
+                        cond:
+                          eq :bool
+                            l:
+                              .state :i32
+                                __self_6 :__asyncstate_snippet_0!
+                            r:
+                              int(4) :i32
+                        then:
+                          assign
+                            target:
+                              .s1 :i32
+                                __self_6 :__asyncstate_snippet_0!
+                            value:
+                              add :i32
+                                l:
+                                  .s1 :i32
+                                    __self_6 :__asyncstate_snippet_0!
+                                r:
+                                  cast → i32
+                                    .s8 :usize
+                                      __self_6 :__asyncstate_snippet_0!
+                          assign
+                            target:
+                              .s3 :usize
+                                __self_6 :__asyncstate_snippet_0!
+                            value:
+                              add :usize
+                                l:
+                                  .s3 :usize
+                                    __self_6 :__asyncstate_snippet_0!
+                                r:
+                                  int(1) :usize
+                          assign
+                            target:
+                              .s5 :usize
+                                __self_6 :__asyncstate_snippet_0!
+                            value:
+                              add :usize
+                                l:
+                                  .s5 :usize
+                                    __self_6 :__asyncstate_snippet_0!
+                                r:
+                                  int(1) :usize
+                          assign
+                            target:
+                              .state :i32
+                                __self_6 :__asyncstate_snippet_0!
+                            value:
+                              int(3) :i32
+                        else:
+                          if :void
+                            cond:
+                              eq :bool
+                                l:
+                                  .state :i32
+                                    __self_6 :__asyncstate_snippet_0!
+                                r:
+                                  int(5) :i32
+                            then:
+                              assign
+                                target:
+                                  .state :i32
+                                    __self_6 :__asyncstate_snippet_0!
+                                value:
+                                  int(4) :i32
+                            else:
+                              if :void
+                                cond:
+                                  eq :bool
+                                    l:
+                                      .state :i32
+                                        __self_6 :__asyncstate_snippet_0!
+                                    r:
+                                      int(6) :i32
+                                then:
+                                  assign
+                                    target:
+                                      .s5 :usize
+                                        __self_6 :__asyncstate_snippet_0!
+                                    value:
+                                      add :usize
+                                        l:
+                                          .s5 :usize
+                                            __self_6 :__asyncstate_snippet_0!
+                                        r:
+                                          int(1) :usize
+                                  assign
+                                    target:
+                                      .state :i32
+                                        __self_6 :__asyncstate_snippet_0!
+                                    value:
+                                      int(3) :i32
+                                else:
+                                  if :void
+                                    cond:
+                                      eq :bool
+                                        l:
+                                          .state :i32
+                                            __self_6 :__asyncstate_snippet_0!
+                                        r:
+                                          int(7) :i32
+                                    then:
+                                      if :void
+                                        cond:
+                                          eq :bool
+                                            l:
+                                              .s9 :i32
+                                                __self_6 :__asyncstate_snippet_0!
+                                            r:
+                                              int(20) :i32
+                                        then:
+                                          assign
+                                            target:
+                                              .state :i32
+                                                __self_6 :__asyncstate_snippet_0!
+                                            value:
+                                              int(6) :i32
+                                        else:
+                                          assign
+                                            target:
+                                              .state :i32
+                                                __self_6 :__asyncstate_snippet_0!
+                                            value:
+                                              int(4) :i32
+                                    else:
+                                      if :void
+                                        cond:
+                                          eq :bool
+                                            l:
+                                              .state :i32
+                                                __self_6 :__asyncstate_snippet_0!
+                                            r:
+                                              int(8) :i32
+                                        then:
+                                          .s10 :null
+                                            __self_6 :__asyncstate_snippet_0!
+                                          assign
+                                            target:
+                                              .state :i32
+                                                __self_6 :__asyncstate_snippet_0!
+                                            value:
+                                              int(7) :i32
+                                        else:
+                                          if :void
+                                            cond:
+                                              eq :bool
+                                                l:
+                                                  .state :i32
+                                                    __self_6 :__asyncstate_snippet_0!
+                                                r:
+                                                  int(9) :i32
+                                            then:
+                                              let __resumed_7: Any | Suspended! =
+                                                vcall Async.resume :Any | Suspended!
+                                                  recv:
+                                                    .awaited :Async<Any>
+                                                      __self_6 :__asyncstate_snippet_0!
+                                              if :void
+                                                cond:
+                                                  is Suspended! :bool
+                                                    __resumed_7 :Any | Suspended!
+                                                then:
+                                                  return
+                                                    Suspended! {
+                                                    }
+                                                else:
+                                                  assign
+                                                    target:
+                                                      .s10 :null
+                                                        __self_6 :__asyncstate_snippet_0!
+                                                    value:
+                                                      cast → null
+                                                        __resumed_7 :Any | Suspended!
+                                                  assign
+                                                    target:
+                                                      .state :i32
+                                                        __self_6 :__asyncstate_snippet_0!
+                                                    value:
+                                                      int(8) :i32
+                                            else:
+                                              if :void
+                                                cond:
+                                                  eq :bool
+                                                    l:
+                                                      .state :i32
+                                                        __self_6 :__asyncstate_snippet_0!
+                                                    r:
+                                                      int(10) :i32
+                                                then:
+                                                  assign
+                                                    target:
+                                                      .awaited :Async<Any>
+                                                        __self_6 :__asyncstate_snippet_0!
+                                                    value:
+                                                      cast → Async<Any>
+                                                        call :Async<null>
+                                                          callee:
+                                                            sleep :fn(i64) -> Async<null>
+                                                          arg0:
+                                                            int(1) :i64
+                                                  assign
+                                                    target:
+                                                      .state :i32
+                                                        __self_6 :__asyncstate_snippet_0!
+                                                    value:
+                                                      int(9) :i32
+                                                else:
+                                                  if :void
+                                                    cond:
+                                                      eq :bool
+                                                        l:
+                                                          .state :i32
+                                                            __self_6 :__asyncstate_snippet_0!
+                                                        r:
+                                                          int(11) :i32
+                                                    then:
+                                                      assign
+                                                        target:
+                                                          .s6 :i32
+                                                            __self_6 :__asyncstate_snippet_0!
+                                                        value:
+                                                          index :i32
+                                                            on:
+                                                              .s2 :i32[]
+                                                                __self_6 :__asyncstate_snippet_0!
+                                                            ix:
+                                                              .s5 :usize
+                                                                __self_6 :__asyncstate_snippet_0!
+                                                      assign
+                                                        target:
+                                                          .s7 :[usize, i32]
+                                                            __self_6 :__asyncstate_snippet_0!
+                                                        value:
+                                                          [usize, i32]! {
+                                                            _0:
+                                                              .s3 :usize
+                                                                __self_6 :__asyncstate_snippet_0!
+                                                            _1:
+                                                              .s6 :i32
+                                                                __self_6 :__asyncstate_snippet_0!
+                                                          }
+                                                      assign
+                                                        target:
+                                                          .s8 :usize
+                                                            __self_6 :__asyncstate_snippet_0!
+                                                        value:
+                                                          ._0 :usize
+                                                            .s7 :[usize, i32]
+                                                              __self_6 :__asyncstate_snippet_0!
+                                                      assign
+                                                        target:
+                                                          .s9 :i32
+                                                            __self_6 :__asyncstate_snippet_0!
+                                                        value:
+                                                          ._1 :i32
+                                                            .s7 :[usize, i32]
+                                                              __self_6 :__asyncstate_snippet_0!
+                                                      assign
+                                                        target:
+                                                          .state :i32
+                                                            __self_6 :__asyncstate_snippet_0!
+                                                        value:
+                                                          int(10) :i32
+                                                    else:
+                                                      if :void
+                                                        cond:
+                                                          eq :bool
+                                                            l:
+                                                              .state :i32
+                                                                __self_6 :__asyncstate_snippet_0!
+                                                            r:
+                                                              int(12) :i32
+                                                        then:
+                                                          assign
+                                                            target:
+                                                              .s2 :i32[]
+                                                                __self_6 :__asyncstate_snippet_0!
+                                                            value:
+                                                              .s0 :i32[]
+                                                                __self_6 :__asyncstate_snippet_0!
+                                                          assign
+                                                            target:
+                                                              .s3 :usize
+                                                                __self_6 :__asyncstate_snippet_0!
+                                                            value:
+                                                              int(0) :usize
+                                                          assign
+                                                            target:
+                                                              .s4 :usize
+                                                                __self_6 :__asyncstate_snippet_0!
+                                                            value:
+                                                              LoweredArrayLen
+                                                          assign
+                                                            target:
+                                                              .s5 :usize
+                                                                __self_6 :__asyncstate_snippet_0!
+                                                            value:
+                                                              int(0) :usize
+                                                          assign
+                                                            target:
+                                                              .state :i32
+                                                                __self_6 :__asyncstate_snippet_0!
+                                                            value:
+                                                              int(3) :i32
+                                                        else:
+                                                          if :void
+                                                            cond:
+                                                              eq :bool
+                                                                l:
+                                                                  .state :i32
+                                                                    __self_6 :__asyncstate_snippet_0!
+                                                                r:
+                                                                  int(13) :i32
+                                                            then:
+                                                              assign
+                                                                target:
+                                                                  .s1 :i32
+                                                                    __self_6 :__asyncstate_snippet_0!
+                                                                value:
+                                                                  int(0) :i32
+                                                              assign
+                                                                target:
+                                                                  .state :i32
+                                                                    __self_6 :__asyncstate_snippet_0!
+                                                                value:
+                                                                  int(12) :i32
+                                                            else:
+                                                              return
+                                                                Suspended! {
+                                                                }
+  fn snippet$__asyncstate_snippet_0$Async$cancel(self: __asyncstate_snippet_0!) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_6 :__asyncstate_snippet_0!
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_6 :__asyncstate_snippet_0!
+    assign
+      target:
+        .state :i32
+          __self_6 :__asyncstate_snippet_0!
+      value:
+        int(-1) :i32
+  struct __asyncstate_snippet_1 { s0: i32[], s1: i32, s2: __genstate_enumerate<[usize, i32]>!, s3: Iterator<[usize, i32]>, s4: [[usize, i32], Continuation]!, s5: [usize, i32], s6: usize, s7: i32, s8: null, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_snippet_1$Async$resume(self: __asyncstate_snippet_1!) -> i32 | Suspended!
+    loop :dispatch$
+      if :void
+        cond:
+          eq :bool
+            l:
+              .state :i32
+                __self_5 :__asyncstate_snippet_1!
+            r:
+              int(0) :i32
+        then:
+          assign
+            target:
+              .state :i32
+                __self_5 :__asyncstate_snippet_1!
+            value:
+              int(-1) :i32
+        else:
+          if :void
+            cond:
+              eq :bool
+                l:
+                  .state :i32
+                    __self_5 :__asyncstate_snippet_1!
+                r:
+                  int(1) :i32
+            then:
+              assign
+                target:
+                  .state :i32
+                    __self_5 :__asyncstate_snippet_1!
+                value:
+                  int(-1) :i32
+              return
+                .s1 :i32
+                  __self_5 :__asyncstate_snippet_1!
+            else:
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      .state :i32
+                        __self_5 :__asyncstate_snippet_1!
+                    r:
+                      int(2) :i32
+                then:
+                  assign
+                    target:
+                      .state :i32
+                        __self_5 :__asyncstate_snippet_1!
+                    value:
+                      int(1) :i32
+                else:
+                  if :void
+                    cond:
+                      eq :bool
+                        l:
+                          .state :i32
+                            __self_5 :__asyncstate_snippet_1!
+                        r:
+                          int(3) :i32
+                    then:
+                      assign
+                        target:
+                          .state :i32
+                            __self_5 :__asyncstate_snippet_1!
+                        value:
+                          int(16) :i32
+                    else:
+                      if :void
+                        cond:
+                          eq :bool
+                            l:
+                              .state :i32
+                                __self_5 :__asyncstate_snippet_1!
+                            r:
+                              int(4) :i32
+                        then:
+                          assign
+                            target:
+                              .state :i32
+                                __self_5 :__asyncstate_snippet_1!
+                            value:
+                              int(3) :i32
+                        else:
+                          if :void
+                            cond:
+                              eq :bool
+                                l:
+                                  .state :i32
+                                    __self_5 :__asyncstate_snippet_1!
+                                r:
+                                  int(5) :i32
+                            then:
+                              assign
+                                target:
+                                  .state :i32
+                                    __self_5 :__asyncstate_snippet_1!
+                                value:
+                                  int(4) :i32
+                            else:
+                              if :void
+                                cond:
+                                  eq :bool
+                                    l:
+                                      .state :i32
+                                        __self_5 :__asyncstate_snippet_1!
+                                    r:
+                                      int(6) :i32
+                                then:
+                                  assign
+                                    target:
+                                      .state :i32
+                                        __self_5 :__asyncstate_snippet_1!
+                                    value:
+                                      int(2) :i32
+                                else:
+                                  if :void
+                                    cond:
+                                      eq :bool
+                                        l:
+                                          .state :i32
+                                            __self_5 :__asyncstate_snippet_1!
+                                        r:
+                                          int(7) :i32
+                                    then:
+                                      assign
+                                        target:
+                                          .s1 :i32
+                                            __self_5 :__asyncstate_snippet_1!
+                                        value:
+                                          add :i32
+                                            l:
+                                              .s1 :i32
+                                                __self_5 :__asyncstate_snippet_1!
+                                            r:
+                                              cast → i32
+                                                .s6 :usize
+                                                  __self_5 :__asyncstate_snippet_1!
+                                      assign
+                                        target:
+                                          .state :i32
+                                            __self_5 :__asyncstate_snippet_1!
+                                        value:
+                                          int(4) :i32
+                                    else:
+                                      if :void
+                                        cond:
+                                          eq :bool
+                                            l:
+                                              .state :i32
+                                                __self_5 :__asyncstate_snippet_1!
+                                            r:
+                                              int(8) :i32
+                                        then:
+                                          assign
+                                            target:
+                                              .state :i32
+                                                __self_5 :__asyncstate_snippet_1!
+                                            value:
+                                              int(7) :i32
+                                        else:
+                                          if :void
+                                            cond:
+                                              eq :bool
+                                                l:
+                                                  .state :i32
+                                                    __self_5 :__asyncstate_snippet_1!
+                                                r:
+                                                  int(9) :i32
+                                            then:
+                                              assign
+                                                target:
+                                                  .state :i32
+                                                    __self_5 :__asyncstate_snippet_1!
+                                                value:
+                                                  int(3) :i32
+                                            else:
+                                              if :void
+                                                cond:
+                                                  eq :bool
+                                                    l:
+                                                      .state :i32
+                                                        __self_5 :__asyncstate_snippet_1!
+                                                    r:
+                                                      int(10) :i32
+                                                then:
+                                                  if :void
+                                                    cond:
+                                                      eq :bool
+                                                        l:
+                                                          .s7 :i32
+                                                            __self_5 :__asyncstate_snippet_1!
+                                                        r:
+                                                          int(20) :i32
+                                                    then:
+                                                      assign
+                                                        target:
+                                                          .state :i32
+                                                            __self_5 :__asyncstate_snippet_1!
+                                                        value:
+                                                          int(9) :i32
+                                                    else:
+                                                      assign
+                                                        target:
+                                                          .state :i32
+                                                            __self_5 :__asyncstate_snippet_1!
+                                                        value:
+                                                          int(7) :i32
+                                                else:
+                                                  if :void
+                                                    cond:
+                                                      eq :bool
+                                                        l:
+                                                          .state :i32
+                                                            __self_5 :__asyncstate_snippet_1!
+                                                        r:
+                                                          int(11) :i32
+                                                    then:
+                                                      .s8 :null
+                                                        __self_5 :__asyncstate_snippet_1!
+                                                      assign
+                                                        target:
+                                                          .state :i32
+                                                            __self_5 :__asyncstate_snippet_1!
+                                                        value:
+                                                          int(10) :i32
+                                                    else:
+                                                      if :void
+                                                        cond:
+                                                          eq :bool
+                                                            l:
+                                                              .state :i32
+                                                                __self_5 :__asyncstate_snippet_1!
+                                                            r:
+                                                              int(12) :i32
+                                                        then:
+                                                          let __resumed_6: Any | Suspended! =
+                                                            vcall Async.resume :Any | Suspended!
+                                                              recv:
+                                                                .awaited :Async<Any>
+                                                                  __self_5 :__asyncstate_snippet_1!
+                                                          if :void
+                                                            cond:
+                                                              is Suspended! :bool
+                                                                __resumed_6 :Any | Suspended!
+                                                            then:
+                                                              return
+                                                                Suspended! {
+                                                                }
+                                                            else:
+                                                              assign
+                                                                target:
+                                                                  .s8 :null
+                                                                    __self_5 :__asyncstate_snippet_1!
+                                                                value:
+                                                                  cast → null
+                                                                    __resumed_6 :Any | Suspended!
+                                                              assign
+                                                                target:
+                                                                  .state :i32
+                                                                    __self_5 :__asyncstate_snippet_1!
+                                                                value:
+                                                                  int(11) :i32
+                                                        else:
+                                                          if :void
+                                                            cond:
+                                                              eq :bool
+                                                                l:
+                                                                  .state :i32
+                                                                    __self_5 :__asyncstate_snippet_1!
+                                                                r:
+                                                                  int(13) :i32
+                                                            then:
+                                                              assign
+                                                                target:
+                                                                  .awaited :Async<Any>
+                                                                    __self_5 :__asyncstate_snippet_1!
+                                                                value:
+                                                                  cast → Async<Any>
+                                                                    call :Async<null>
+                                                                      callee:
+                                                                        sleep :fn(i64) -> Async<null>
+                                                                      arg0:
+                                                                        int(1) :i64
+                                                              assign
+                                                                target:
+                                                                  .state :i32
+                                                                    __self_5 :__asyncstate_snippet_1!
+                                                                value:
+                                                                  int(12) :i32
+                                                            else:
+                                                              if :void
+                                                                cond:
+                                                                  eq :bool
+                                                                    l:
+                                                                      .state :i32
+                                                                        __self_5 :__asyncstate_snippet_1!
+                                                                    r:
+                                                                      int(14) :i32
+                                                                then:
+                                                                  assign
+                                                                    target:
+                                                                      .s5 :[usize, i32]
+                                                                        __self_5 :__asyncstate_snippet_1!
+                                                                    value:
+                                                                      ._0 :[usize, i32]
+                                                                        .s4 :[[usize, i32], Continuation]!
+                                                                          __self_5 :__asyncstate_snippet_1!
+                                                                  assign
+                                                                    target:
+                                                                      .s6 :usize
+                                                                        __self_5 :__asyncstate_snippet_1!
+                                                                    value:
+                                                                      ._0 :usize
+                                                                        .s5 :[usize, i32]
+                                                                          __self_5 :__asyncstate_snippet_1!
+                                                                  assign
+                                                                    target:
+                                                                      .s7 :i32
+                                                                        __self_5 :__asyncstate_snippet_1!
+                                                                    value:
+                                                                      ._1 :i32
+                                                                        .s5 :[usize, i32]
+                                                                          __self_5 :__asyncstate_snippet_1!
+                                                                  assign
+                                                                    target:
+                                                                      .state :i32
+                                                                        __self_5 :__asyncstate_snippet_1!
+                                                                    value:
+                                                                      int(13) :i32
+                                                                else:
+                                                                  if :void
+                                                                    cond:
+                                                                      eq :bool
+                                                                        l:
+                                                                          .state :i32
+                                                                            __self_5 :__asyncstate_snippet_1!
+                                                                        r:
+                                                                          int(15) :i32
+                                                                    then:
+                                                                      if :void
+                                                                        cond:
+                                                                          eq :bool
+                                                                            l:
+                                                                              ._1 :Continuation
+                                                                                .s4 :[[usize, i32], Continuation]!
+                                                                                  __self_5 :__asyncstate_snippet_1!
+                                                                            r:
+                                                                              int(1) :u8
+                                                                        then:
+                                                                          assign
+                                                                            target:
+                                                                              .state :i32
+                                                                                __self_5 :__asyncstate_snippet_1!
+                                                                            value:
+                                                                              int(6) :i32
+                                                                        else:
+                                                                          assign
+                                                                            target:
+                                                                              .state :i32
+                                                                                __self_5 :__asyncstate_snippet_1!
+                                                                            value:
+                                                                              int(14) :i32
+                                                                    else:
+                                                                      if :void
+                                                                        cond:
+                                                                          eq :bool
+                                                                            l:
+                                                                              .state :i32
+                                                                                __self_5 :__asyncstate_snippet_1!
+                                                                            r:
+                                                                              int(16) :i32
+                                                                        then:
+                                                                          assign
+                                                                            target:
+                                                                              .s4 :[[usize, i32], Continuation]!
+                                                                                __self_5 :__asyncstate_snippet_1!
+                                                                            value:
+                                                                              vcall Iterator.next :[[usize, i32], Continuation]!
+                                                                                recv:
+                                                                                  .s3 :Iterator<[usize, i32]>
+                                                                                    __self_5 :__asyncstate_snippet_1!
+                                                                          assign
+                                                                            target:
+                                                                              .state :i32
+                                                                                __self_5 :__asyncstate_snippet_1!
+                                                                            value:
+                                                                              int(15) :i32
+                                                                        else:
+                                                                          if :void
+                                                                            cond:
+                                                                              eq :bool
+                                                                                l:
+                                                                                  .state :i32
+                                                                                    __self_5 :__asyncstate_snippet_1!
+                                                                                r:
+                                                                                  int(17) :i32
+                                                                            then:
+                                                                              assign
+                                                                                target:
+                                                                                  .s3 :Iterator<[usize, i32]>
+                                                                                    __self_5 :__asyncstate_snippet_1!
+                                                                                value:
+                                                                                  .s2 :__genstate_enumerate<[usize, i32]>!
+                                                                                    __self_5 :__asyncstate_snippet_1!
+                                                                              assign
+                                                                                target:
+                                                                                  .state :i32
+                                                                                    __self_5 :__asyncstate_snippet_1!
+                                                                                value:
+                                                                                  int(3) :i32
+                                                                            else:
+                                                                              if :void
+                                                                                cond:
+                                                                                  eq :bool
+                                                                                    l:
+                                                                                      .state :i32
+                                                                                        __self_5 :__asyncstate_snippet_1!
+                                                                                    r:
+                                                                                      int(18) :i32
+                                                                                then:
+                                                                                  assign
+                                                                                    target:
+                                                                                      .s1 :i32
+                                                                                        __self_5 :__asyncstate_snippet_1!
+                                                                                    value:
+                                                                                      int(0) :i32
+                                                                                  assign
+                                                                                    target:
+                                                                                      .s2 :__genstate_enumerate<[usize, i32]>!
+                                                                                        __self_5 :__asyncstate_snippet_1!
+                                                                                    value:
+                                                                                      call :__genstate_enumerate<[usize, i32]>!
+                                                                                        callee:
+                                                                                          std_iter$enumerate__i32 :__genstate_enumerate<[usize, i32]>!
+                                                                                        arg0:
+                                                                                          call :Iterator<T>
+                                                                                            callee:
+                                                                                              std_core$[]$Into$into__i32 :Iterator<T>
+                                                                                            arg0:
+                                                                                              .s0 :i32[]
+                                                                                                __self_5 :__asyncstate_snippet_1!
+                                                                                  assign
+                                                                                    target:
+                                                                                      .state :i32
+                                                                                        __self_5 :__asyncstate_snippet_1!
+                                                                                    value:
+                                                                                      int(17) :i32
+                                                                                else:
+                                                                                  return
+                                                                                    Suspended! {
+                                                                                    }
+  fn snippet$__asyncstate_snippet_1$Async$cancel(self: __asyncstate_snippet_1!) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_5 :__asyncstate_snippet_1!
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_5 :__asyncstate_snippet_1!
+    assign
+      target:
+        .state :i32
+          __self_5 :__asyncstate_snippet_1!
+      value:
+        int(-1) :i32
+  struct __asyncstate_snippet_2 { s0: i32, s1: i32, s2: i32, s3: i32, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_snippet_2$Async$resume(self: __asyncstate_snippet_2!) -> i32 | Suspended!
+    loop :dispatch$
+      if :void
+        cond:
+          eq :bool
+            l:
+              .state :i32
+                __self_4 :__asyncstate_snippet_2!
+            r:
+              int(0) :i32
+        then:
+          assign
+            target:
+              .state :i32
+                __self_4 :__asyncstate_snippet_2!
+            value:
+              int(-1) :i32
+        else:
+          if :void
+            cond:
+              eq :bool
+                l:
+                  .state :i32
+                    __self_4 :__asyncstate_snippet_2!
+                r:
+                  int(1) :i32
+            then:
+              assign
+                target:
+                  .state :i32
+                    __self_4 :__asyncstate_snippet_2!
+                value:
+                  int(-1) :i32
+              return int(0) :i32
+            else:
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      .state :i32
+                        __self_4 :__asyncstate_snippet_2!
+                    r:
+                      int(2) :i32
+                then:
+                  assign
+                    target:
+                      .s3 :i32
+                        __self_4 :__asyncstate_snippet_2!
+                    value:
+                      .s2 :i32
+                        __self_4 :__asyncstate_snippet_2!
+                  call :void
+                    callee:
+                      std_io$println__string :void
+                    arg0:
+                      block :string
+                        let __buf_2: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              int(82) :usize
+                        let __off_3: usize = int(0) :usize
+                        assign
+                          target:
+                            __off_3 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_2 :Buffer
+                              arg1:
+                                __off_3 :usize
+                              arg2:
+                                "async enumerate + continue, index sum: " :string
+                        assign
+                          target:
+                            __off_3 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_2 :Buffer
+                              arg1:
+                                __off_3 :usize
+                              arg2:
+                                cast → i64
+                                  .s1 :i32
+                                    __self_4 :__asyncstate_snippet_2!
+                        assign
+                          target:
+                            __off_3 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_2 :Buffer
+                              arg1:
+                                __off_3 :usize
+                              arg2:
+                                " | " :string
+                        assign
+                          target:
+                            __off_3 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_2 :Buffer
+                              arg1:
+                                __off_3 :usize
+                              arg2:
+                                cast → i64
+                                  .s3 :i32
+                                    __self_4 :__asyncstate_snippet_2!
+                        ~>
+                          call :string
+                            callee:
+                              finish_buffer :string
+                            arg0:
+                              __buf_2 :Buffer
+                            arg1:
+                              __off_3 :usize
+                  assign
+                    target:
+                      .state :i32
+                        __self_4 :__asyncstate_snippet_2!
+                    value:
+                      int(1) :i32
+                else:
+                  if :void
+                    cond:
+                      eq :bool
+                        l:
+                          .state :i32
+                            __self_4 :__asyncstate_snippet_2!
+                        r:
+                          int(3) :i32
+                    then:
+                      let __resumed_5: Any | Suspended! =
+                        vcall Async.resume :Any | Suspended!
+                          recv:
+                            .awaited :Async<Any>
+                              __self_4 :__asyncstate_snippet_2!
+                      if :void
+                        cond:
+                          is Suspended! :bool
+                            __resumed_5 :Any | Suspended!
+                        then:
+                          return
+                            Suspended! {
+                            }
+                        else:
+                          assign
+                            target:
+                              .s2 :i32
+                                __self_4 :__asyncstate_snippet_2!
+                            value:
+                              cast → i32
+                                __resumed_5 :Any | Suspended!
+                          assign
+                            target:
+                              .state :i32
+                                __self_4 :__asyncstate_snippet_2!
+                            value:
+                              int(2) :i32
+                    else:
+                      if :void
+                        cond:
+                          eq :bool
+                            l:
+                              .state :i32
+                                __self_4 :__asyncstate_snippet_2!
+                            r:
+                              int(4) :i32
+                        then:
+                          assign
+                            target:
+                              .awaited :Async<Any>
+                                __self_4 :__asyncstate_snippet_2!
+                            value:
+                              cast → Async<Any>
+                                call :Async<i32>
+                                  callee:
+                                    async_enumerate_continue_lazy :fn(i32[]) -> Async<i32>
+                                  arg0:
+                                    array :i32[]
+                                      int(10) :i32
+                                      int(20) :i32
+                                      int(30) :i32
+                                      int(40) :i32
+                          assign
+                            target:
+                              .state :i32
+                                __self_4 :__asyncstate_snippet_2!
+                            value:
+                              int(3) :i32
+                        else:
+                          if :void
+                            cond:
+                              eq :bool
+                                l:
+                                  .state :i32
+                                    __self_4 :__asyncstate_snippet_2!
+                                r:
+                                  int(5) :i32
+                            then:
+                              assign
+                                target:
+                                  .s1 :i32
+                                    __self_4 :__asyncstate_snippet_2!
+                                value:
+                                  .s0 :i32
+                                    __self_4 :__asyncstate_snippet_2!
+                              assign
+                                target:
+                                  .state :i32
+                                    __self_4 :__asyncstate_snippet_2!
+                                value:
+                                  int(4) :i32
+                            else:
+                              if :void
+                                cond:
+                                  eq :bool
+                                    l:
+                                      .state :i32
+                                        __self_4 :__asyncstate_snippet_2!
+                                    r:
+                                      int(6) :i32
+                                then:
+                                  let __resumed_6: Any | Suspended! =
+                                    vcall Async.resume :Any | Suspended!
+                                      recv:
+                                        .awaited :Async<Any>
+                                          __self_4 :__asyncstate_snippet_2!
+                                  if :void
+                                    cond:
+                                      is Suspended! :bool
+                                        __resumed_6 :Any | Suspended!
+                                    then:
+                                      return
+                                        Suspended! {
+                                        }
+                                    else:
+                                      assign
+                                        target:
+                                          .s0 :i32
+                                            __self_4 :__asyncstate_snippet_2!
+                                        value:
+                                          cast → i32
+                                            __resumed_6 :Any | Suspended!
+                                      assign
+                                        target:
+                                          .state :i32
+                                            __self_4 :__asyncstate_snippet_2!
+                                        value:
+                                          int(5) :i32
+                                else:
+                                  if :void
+                                    cond:
+                                      eq :bool
+                                        l:
+                                          .state :i32
+                                            __self_4 :__asyncstate_snippet_2!
+                                        r:
+                                          int(7) :i32
+                                    then:
+                                      assign
+                                        target:
+                                          .awaited :Async<Any>
+                                            __self_4 :__asyncstate_snippet_2!
+                                        value:
+                                          cast → Async<Any>
+                                            call :Async<i32>
+                                              callee:
+                                                async_enumerate_continue :fn(i32[]) -> Async<i32>
+                                              arg0:
+                                                array :i32[]
+                                                  int(10) :i32
+                                                  int(20) :i32
+                                                  int(30) :i32
+                                                  int(40) :i32
+                                      assign
+                                        target:
+                                          .state :i32
+                                            __self_4 :__asyncstate_snippet_2!
+                                        value:
+                                          int(6) :i32
+                                    else:
+                                      if :void
+                                        cond:
+                                          eq :bool
+                                            l:
+                                              .state :i32
+                                                __self_4 :__asyncstate_snippet_2!
+                                            r:
+                                              int(8) :i32
+                                        then:
+                                          call :void
+                                            callee:
+                                              enumerate_continue :fn() -> void
+                                          call :void
+                                            callee:
+                                              take_continue :fn() -> void
+                                          call :void
+                                            callee:
+                                              two_yields_continue :fn() -> void
+                                          call :void
+                                            callee:
+                                              loopless_generator_continue :fn() -> void
+                                          call :void
+                                            callee:
+                                              take_continue_outer :fn() -> void
+                                          call :void
+                                            callee:
+                                              chars_enumerate_continue :fn() -> void
+                                          assign
+                                            target:
+                                              .state :i32
+                                                __self_4 :__asyncstate_snippet_2!
+                                            value:
+                                              int(7) :i32
+                                        else:
+                                          return
+                                            Suspended! {
+                                            }
+  fn snippet$__asyncstate_snippet_2$Async$cancel(self: __asyncstate_snippet_2!) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_4 :__asyncstate_snippet_2!
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_4 :__asyncstate_snippet_2!
+    assign
+      target:
+        .state :i32
+          __self_4 :__asyncstate_snippet_2!
+      value:
+        int(-1) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize
+  fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
+    let c3: usize =
+      add :usize
+        l:
+          c2 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p3 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c3 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c2 :usize
+      arg2:
+        p3 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c3 :usize
