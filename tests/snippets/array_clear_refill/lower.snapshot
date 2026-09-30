@@ -8,16 +8,18 @@
       let i: i32 = int(0) :i32
       loop while (<…>)
         LoweredArrayPush
-        if :void
-          cond:
-            gt :bool
-              l:
-                LoweredArrayLen
-              r:
-                int(4) :usize
-          then:
-            @array.clear :void
-              local :i32[]!
+        ~>
+          if :void
+            cond:
+              gt :bool
+                l:
+                  LoweredArrayLen
+                r:
+                  int(4) :usize
+            then:
+              @array.clear :void
+                local :i32[]!
+      step
         assign
           target:
             i :i32
@@ -78,16 +80,18 @@
       let i: i32 = int(0) :i32
       loop while (<…>)
         LoweredArrayPush
-        if :void
-          cond:
-            gt :bool
-              l:
-                LoweredArrayLen
-              r:
-                int(128) :usize
-          then:
-            @array.clear :void
-              SEEN :string[]!
+        ~>
+          if :void
+            cond:
+              gt :bool
+                l:
+                  LoweredArrayLen
+                r:
+                  int(128) :usize
+            then:
+              @array.clear :void
+                SEEN :string[]!
+      step
         assign
           target:
             i :i32

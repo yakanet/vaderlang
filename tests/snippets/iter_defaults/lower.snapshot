@@ -131,6 +131,7 @@
                     __count_0 :usize
                   r:
                     int(1) :usize
+          step
             assign
               target:
                 __elem_1 :i32

@@ -279,6 +279,7 @@
                             value:
                               true
                           break
+                    step
                       assign
                         target:
                           __fuse_i_5 :usize
@@ -388,6 +389,7 @@
                             value:
                               false
                           break
+                    step
                       assign
                         target:
                           __fuse_i_13 :usize
@@ -499,6 +501,7 @@
                                   value:
                                     __elem_20 :i32
                                 break
+                          step
                             assign
                               target:
                                 __fuse_i_22 :usize
@@ -619,6 +622,7 @@
                             value:
                               true
                           break
+                    step
                       assign
                         target:
                           __fuse_i_30 :usize
@@ -732,6 +736,7 @@
                                     __count_33 :usize
                                   r:
                                     int(1) :usize
+                      step
                         assign
                           target:
                             __fuse_i_37 :usize
@@ -844,6 +849,7 @@
                                 i :usize
                               r:
                                 int(1) :usize
+                      step
                         assign
                           target:
                             __fuse_i_44 :usize
@@ -1003,6 +1009,7 @@
                         __buf_54 :Buffer
                       arg1:
                         __off_55 :usize
+      step
         assign
           target:
             __fuse_i_58 :usize
@@ -1091,6 +1098,7 @@
                                 __count_59 :usize
                               r:
                                 int(1) :usize
+                      step
                         assign
                           target:
                             x :i32
@@ -1188,6 +1196,7 @@
                     __buf_65 :Buffer
                   arg1:
                     __off_66 :usize
+      step
         assign
           target:
             __fuse_i_70 :usize
@@ -1255,6 +1264,7 @@
                     __buf_65 :Buffer
                   arg1:
                     __off_66 :usize
+      step
         assign
           target:
             __fuse_i_72 :usize
@@ -1376,53 +1386,55 @@
           arg1:
             int(2) :i32
       loop while (<…>)
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_78: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(30) :usize
-              let __off_79: usize = int(0) :usize
-              assign
-                target:
-                  __off_79 :usize
-                value:
-                  call :usize
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_78: Buffer =
+                  call :Buffer
                     callee:
-                      write_string_at :usize
+                      new_byte_buffer :Buffer
                     arg0:
-                      __buf_78 :Buffer
-                    arg1:
-                      __off_79 :usize
-                    arg2:
-                      "plain i = " :string
-              assign
-                target:
-                  __off_79 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_78 :Buffer
-                    arg1:
-                      __off_79 :usize
-                    arg2:
-                      cast → i64
-                        i :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_78 :Buffer
-                  arg1:
+                      int(30) :usize
+                let __off_79: usize = int(0) :usize
+                assign
+                  target:
                     __off_79 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_78 :Buffer
+                      arg1:
+                        __off_79 :usize
+                      arg2:
+                        "plain i = " :string
+                assign
+                  target:
+                    __off_79 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_78 :Buffer
+                      arg1:
+                        __off_79 :usize
+                      arg2:
+                        cast → i64
+                          i :i32
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_78 :Buffer
+                    arg1:
+                      __off_79 :usize
+      step
         assign
           target:
             i :i32
@@ -1442,53 +1454,55 @@
             n :i32
           value:
             int(5) :i32
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_81: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(32) :usize
-              let __off_82: usize = int(0) :usize
-              assign
-                target:
-                  __off_82 :usize
-                value:
-                  call :usize
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_81: Buffer =
+                  call :Buffer
                     callee:
-                      write_string_at :usize
+                      new_byte_buffer :Buffer
                     arg0:
-                      __buf_81 :Buffer
-                    arg1:
-                      __off_82 :usize
-                    arg2:
-                      "rebound i = " :string
-              assign
-                target:
-                  __off_82 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_81 :Buffer
-                    arg1:
-                      __off_82 :usize
-                    arg2:
-                      cast → i64
-                        i :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_81 :Buffer
-                  arg1:
+                      int(32) :usize
+                let __off_82: usize = int(0) :usize
+                assign
+                  target:
                     __off_82 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_81 :Buffer
+                      arg1:
+                        __off_82 :usize
+                      arg2:
+                        "rebound i = " :string
+                assign
+                  target:
+                    __off_82 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_81 :Buffer
+                      arg1:
+                        __off_82 :usize
+                      arg2:
+                        cast → i64
+                          i :i32
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_81 :Buffer
+                    arg1:
+                      __off_82 :usize
+      step
         assign
           target:
             i :i32

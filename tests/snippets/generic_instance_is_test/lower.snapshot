@@ -170,15 +170,17 @@
                               s :Spec<bool> | Spec<string>
                         arg2:
                           " string" :string
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                describe :fn(Spec<bool> | Spec<string>) -> string
-              arg0:
-                s :Spec<bool> | Spec<string>
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              call :string
+                callee:
+                  describe :fn(Spec<bool> | Spec<string>) -> string
+                arg0:
+                  s :Spec<bool> | Spec<string>
+      step
         assign
           target:
             __for_i_2 :usize

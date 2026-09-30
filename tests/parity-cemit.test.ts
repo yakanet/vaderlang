@@ -198,6 +198,11 @@ const C_PARITY = new Set<string>([
   // receiver, nested place, `IndexSet` impl and bound, a default method's clone.
   // Every operand logs, so the native run pins the count.
   "compound_assign_operands",
+  // A `continue` in a counted loop still runs the loop's step — from a `match`
+  // arm, a `??` fallback in a call argument, a loop a `break <var>` also
+  // targets, an inner loop's `continue <var>`. A guard ends a loop that stopped
+  // advancing, so a regression prints rather than hangs.
+  "counted_loop_continue",
   // `@extern` forwarding shim — string args marshalled atom → `const char*`
   // (`c_emit/host.vader::user_extern_shim`). The shim exists only in native C
   // output — the VM reaches a foreign symbol through `dlsym` instead, so it

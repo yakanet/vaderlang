@@ -30,6 +30,7 @@
                 arr_total :i32
               r:
                 x :i32
+      step
         assign
           target:
             __for_i_2 :usize

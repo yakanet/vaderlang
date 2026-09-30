@@ -176,29 +176,31 @@
       let __for_hi_0: usize =
         LoweredArrayLen
       loop while (<…>)
-        if :void
-          cond:
-            neq :bool
-              l:
-                index :u8
-                  on:
-                    .pixels :u8[]
-                      cast → Ppm
-                        dec :Ppm | PpmError
-                  ix:
-                    i :usize
-              r:
-                index :u8
-                  on:
-                    px :u8[]
-                  ix:
-                    i :usize
-          then:
-            assign
-              target:
-                ok :bool
-              value:
-                false
+        ~>
+          if :void
+            cond:
+              neq :bool
+                l:
+                  index :u8
+                    on:
+                      .pixels :u8[]
+                        cast → Ppm
+                          dec :Ppm | PpmError
+                    ix:
+                      i :usize
+                r:
+                  index :u8
+                    on:
+                      px :u8[]
+                    ix:
+                      i :usize
+            then:
+              assign
+                target:
+                  ok :bool
+                value:
+                  false
+      step
         assign
           target:
             i :usize

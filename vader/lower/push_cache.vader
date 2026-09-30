@@ -107,6 +107,9 @@ pc_scan_stmt :: fn(st: LoweredStmt!, live: i32[], pctx: BcePurityCtx!) -> void {
         // Descend regardless : a nested loop is its own candidate, whether or
         // not the enclosing one qualified.
         pc_scan_block(st.body, inner, pctx)
+        for s in st.step {
+            pc_scan_stmt(s, inner, pctx)
+        }
         c :: st.cond
         if c != null {
             pc_scan_expr(c, inner, pctx)
@@ -154,6 +157,9 @@ pc_scan_expr :: fn(e: LoweredExpr!, live: i32[], pctx: BcePurityCtx!) -> void {
 pc_try_cache :: fn(lp: LoweredLoop!, live: i32[], pctx: BcePurityCtx!) -> void {
     pushes: LoweredArrayPush![]!: []
     pc_collect_pushes(lp.body, pushes)
+    for st in lp.step {
+        pc_collect_in_stmt(st, pushes)
+    }
     sym :: pc_single_target(pushes) ?? return
     // The state is written back once, at the loop's end, so every way out has
     // to pass there.
@@ -196,22 +202,26 @@ pc_try_cache :: fn(lp: LoweredLoop!, live: i32[], pctx: BcePurityCtx!) -> void {
 // descending into one would mark a push whose enclosing region is not this body.
 pc_collect_pushes :: fn(b: LoweredBlock!, out: LoweredArrayPush![]!) -> void {
     for st in b.stmts {
-        match st {
-            is LoweredExprStmt -> {
-                pc_collect_in_expr(st.expr, out)
-            }
-            is LoweredLet      -> {
-                pc_collect_in_expr(st.value, out)
-            }
-            is LoweredAssign   -> {
-                pc_collect_in_expr(st.value, out)
-            }
-            _                  -> {}
-        }
+        pc_collect_in_stmt(st, out)
     }
     t :: b.trailing
     if t != null {
         pc_collect_in_expr(t, out)
+    }
+}
+
+pc_collect_in_stmt :: fn(st: LoweredStmt!, out: LoweredArrayPush![]!) -> void {
+    match st {
+        is LoweredExprStmt -> {
+            pc_collect_in_expr(st.expr, out)
+        }
+        is LoweredLet      -> {
+            pc_collect_in_expr(st.value, out)
+        }
+        is LoweredAssign   -> {
+            pc_collect_in_expr(st.value, out)
+        }
+        _                  -> {}
     }
 }
 
@@ -312,6 +322,7 @@ pc_stmt_unsafe :: fn(st: LoweredStmt, sym: i32, pctx: BcePurityCtx!) -> bool {
     }
     if st is LoweredLoop {
         return bce_opt_expr_unsafe(st.cond, sym, pctx) || pc_body_unsafe(st.body, sym, pctx)
+            || pc_body_unsafe(loop_step_block(st), sym, pctx)
     }
     return bce_stmt_unsafe(st, sym, pctx)
 }

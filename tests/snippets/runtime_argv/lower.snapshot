@@ -66,22 +66,24 @@
               __for_arr_2 :string[]
             ix:
               __for_i_4 :usize
-        if :void
-          cond:
-            first :bool
-          then:
-            assign
-              target:
-                first :bool
-              value:
-                false
-          else:
-            ~>
-              call :void
-                callee:
-                  std_io$println__string :void
-                arg0:
-                  s :string
+        ~>
+          if :void
+            cond:
+              first :bool
+            then:
+              assign
+                target:
+                  first :bool
+                value:
+                  false
+            else:
+              ~>
+                call :void
+                  callee:
+                    std_io$println__string :void
+                  arg0:
+                    s :string
+      step
         assign
           target:
             __for_i_4 :usize

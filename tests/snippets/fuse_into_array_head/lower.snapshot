@@ -60,6 +60,7 @@
                     total :i32
                   r:
                     x :i32
+      step
         assign
           target:
             __fuse_i_2 :usize
@@ -95,6 +96,7 @@
               arg0:
                 x :i32
           LoweredArrayPush
+        step
           assign
             target:
               __fuse_i_7 :usize

@@ -217,6 +217,7 @@ emit_tail_copy :: fn(
             .right = LoweredArrayLen { .span = span, .type = mk_primitive("usize"), .target = target },
         },
         .body = loop_body,
+        .step = [],
     })
 }
 

@@ -31,6 +31,7 @@
                 i :i32
               r:
                 int(7) :i32
+      step
         assign
           target:
             i :i32
@@ -904,6 +905,7 @@
                 j :i32
               r:
                 int(1000) :i32
+      step
         assign
           target:
             j :i32

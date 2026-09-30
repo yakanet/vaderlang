@@ -35,7 +35,7 @@ export main 1
 fn 0 snippet$gen () -> any
   i32.const 0
   i32.const 0
-  i32.const 14
+  i32.const 12
   struct.new 3   ; __genstate_gen
   return
 end
@@ -96,7 +96,7 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> ref
   local $field_50 i32
   local $add_51 i32
   local $k_52 u8
-  local $add_71 i32
+  local $add_63 i32
   block $L0 void
     loop $L1 void
       local.field 0 3 2   ; arg 0.state
@@ -130,7 +130,7 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> ref
         i32.lt
         if $L5 void
           local.get 0   ; arg 0
-          i32.const 13
+          i32.const 11
           struct.set 3 2   ; __genstate_gen.state
         else
           local.get 0   ; arg 0
@@ -178,7 +178,7 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> ref
         i32.lt
         if $L9 void
           local.get 0   ; arg 0
-          i32.const 12
+          i32.const 10
           struct.set 3 2   ; __genstate_gen.state
         else
           local.get 0   ; arg 0
@@ -252,8 +252,16 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> ref
         i32.const 9
         i32.eq
         if $L13 void
+          local.field 0 3 0   ; arg 0.s0
+          ref.cast 2   ; -> i32
+          i32.const 1
+          i32.add
+          local.set 10   ; $add_63
           local.get 0   ; arg 0
-          i32.const 8
+          local.get 10   ; $add_63
+          struct.set 3 0   ; __genstate_gen.s0
+          local.get 0   ; arg 0
+          i32.const 2
           struct.set 3 2   ; __genstate_gen.state
         else
           local.field 0 3 2   ; arg 0.state
@@ -261,78 +269,50 @@ fn 2 snippet$__genstate_gen$Iterator$next (ref) -> ref
           i32.const 10
           i32.eq
           if $L14 void
-            local.get 0   ; arg 0
-            i32.const 2
-            struct.set 3 2   ; __genstate_gen.state
+            local.field 0 3 1   ; arg 0.s1
+            ref.cast 2   ; -> i32
+            i32.const 1
+            i32.eq
+            if $L15 void
+              local.get 0   ; arg 0
+              i32.const 9
+              struct.set 3 2   ; __genstate_gen.state
+            else
+              local.get 0   ; arg 0
+              i32.const 7
+              struct.set 3 2   ; __genstate_gen.state
+            end $L15
           else
             local.field 0 3 2   ; arg 0.state
             ref.cast 2   ; -> i32
             i32.const 11
             i32.eq
-            if $L15 void
-              local.field 0 3 0   ; arg 0.s0
-              ref.cast 2   ; -> i32
-              i32.const 1
-              i32.add
-              local.set 10   ; $add_71
+            if $L16 void
               local.get 0   ; arg 0
-              local.get 10   ; $add_71
-              struct.set 3 0   ; __genstate_gen.s0
+              i32.const 0
+              struct.set 3 1   ; __genstate_gen.s1
               local.get 0   ; arg 0
-              i32.const 10
+              i32.const 5
               struct.set 3 2   ; __genstate_gen.state
             else
               local.field 0 3 2   ; arg 0.state
               ref.cast 2   ; -> i32
               i32.const 12
               i32.eq
-              if $L16 void
-                local.field 0 3 1   ; arg 0.s1
-                ref.cast 2   ; -> i32
-                i32.const 1
-                i32.eq
-                if $L17 void
-                  local.get 0   ; arg 0
-                  i32.const 11
-                  struct.set 3 2   ; __genstate_gen.state
-                else
-                  local.get 0   ; arg 0
-                  i32.const 7
-                  struct.set 3 2   ; __genstate_gen.state
-                end $L17
+              if $L17 void
+                local.get 0   ; arg 0
+                i32.const 0
+                struct.set 3 0   ; __genstate_gen.s0
+                local.get 0   ; arg 0
+                i32.const 2
+                struct.set 3 2   ; __genstate_gen.state
               else
-                local.field 0 3 2   ; arg 0.state
-                ref.cast 2   ; -> i32
-                i32.const 13
-                i32.eq
-                if $L18 void
-                  local.get 0   ; arg 0
-                  i32.const 0
-                  struct.set 3 1   ; __genstate_gen.s1
-                  local.get 0   ; arg 0
-                  i32.const 5
-                  struct.set 3 2   ; __genstate_gen.state
-                else
-                  local.field 0 3 2   ; arg 0.state
-                  ref.cast 2   ; -> i32
-                  i32.const 14
-                  i32.eq
-                  if $L19 void
-                    local.get 0   ; arg 0
-                    i32.const 0
-                    struct.set 3 0   ; __genstate_gen.s0
-                    local.get 0   ; arg 0
-                    i32.const 2
-                    struct.set 3 2   ; __genstate_gen.state
-                  else
-                    i32.const 0
-                    i32.const 1
-                    struct.new 4   ; __Tuple_i32_u8_99ae0d29
-                    return
-                  end $L19
-                end $L18
-              end $L16
-            end $L15
+                i32.const 0
+                i32.const 1
+                struct.new 4   ; __Tuple_i32_u8_99ae0d29
+                return
+              end $L17
+            end $L16
           end $L14
         end $L13
       end $L12

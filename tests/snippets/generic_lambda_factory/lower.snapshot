@@ -17,7 +17,9 @@
         block :void
           let j: usize = int(0) :usize
           loop while (<…>)
-            LoweredArrayPush
+            ~>
+              LoweredArrayPush
+          step
             assign
               target:
                 j :usize
@@ -27,6 +29,7 @@
                     j :usize
                   r:
                     int(1) :usize
+      step
         assign
           target:
             i :usize
@@ -66,51 +69,43 @@
                     bad :i32
                   r:
                     int(1) :i32
-            block :void
-              assign
-                target:
-                  i :usize
-                value:
-                  add :usize
-                    l:
-                      i :usize
-                    r:
-                      int(1) :usize
-              continue
+            continue
         block :void
           let j: usize = int(0) :usize
           loop while (<…>)
-            if :void
-              cond:
-                neq :bool
-                  l:
-                    index :i32
-                      on:
-                        row :i32[]!
-                      ix:
-                        j :usize
-                  r:
-                    add :i32
-                      l:
-                        mul :i32
-                          l:
-                            cast → i32
-                              i :usize
-                          r:
-                            int(100) :i32
-                      r:
-                        cast → i32
+            ~>
+              if :void
+                cond:
+                  neq :bool
+                    l:
+                      index :i32
+                        on:
+                          row :i32[]!
+                        ix:
                           j :usize
-              then:
-                assign
-                  target:
-                    bad :i32
-                  value:
-                    add :i32
-                      l:
-                        bad :i32
-                      r:
-                        int(1) :i32
+                    r:
+                      add :i32
+                        l:
+                          mul :i32
+                            l:
+                              cast → i32
+                                i :usize
+                            r:
+                              int(100) :i32
+                        r:
+                          cast → i32
+                            j :usize
+                then:
+                  assign
+                    target:
+                      bad :i32
+                    value:
+                      add :i32
+                        l:
+                          bad :i32
+                        r:
+                          int(1) :i32
+          step
             assign
               target:
                 j :usize
@@ -120,6 +115,7 @@
                     j :usize
                   r:
                     int(1) :usize
+      step
         assign
           target:
             i :usize
@@ -271,7 +267,9 @@
     block :void
       let __for_discard_0: usize = int(0) :usize
       loop while (<…>)
-        LoweredArrayPush
+        ~>
+          LoweredArrayPush
+      step
         assign
           target:
             __for_discard_0 :usize

@@ -78,53 +78,55 @@
               __for_arr_2 :i32[]
             ix:
               __for_i_4 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_5: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(22) :usize
-              let __off_6: usize = int(0) :usize
-              assign
-                target:
-                  __off_6 :usize
-                value:
-                  call :usize
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_5: Buffer =
+                  call :Buffer
                     callee:
-                      write_string_at :usize
+                      new_byte_buffer :Buffer
                     arg0:
-                      __buf_5 :Buffer
-                    arg1:
-                      __off_6 :usize
-                    arg2:
-                      "  " :string
-              assign
-                target:
-                  __off_6 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_5 :Buffer
-                    arg1:
-                      __off_6 :usize
-                    arg2:
-                      cast → i64
-                        v :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_5 :Buffer
-                  arg1:
+                      int(22) :usize
+                let __off_6: usize = int(0) :usize
+                assign
+                  target:
                     __off_6 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_5 :Buffer
+                      arg1:
+                        __off_6 :usize
+                      arg2:
+                        "  " :string
+                assign
+                  target:
+                    __off_6 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_5 :Buffer
+                      arg1:
+                        __off_6 :usize
+                      arg2:
+                        cast → i64
+                          v :i32
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_5 :Buffer
+                    arg1:
+                      __off_6 :usize
+      step
         assign
           target:
             __for_i_4 :usize
@@ -207,53 +209,55 @@
               __for_arr_9 :i32[]
             ix:
               __for_i_11 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_12: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(22) :usize
-              let __off_13: usize = int(0) :usize
-              assign
-                target:
-                  __off_13 :usize
-                value:
-                  call :usize
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_12: Buffer =
+                  call :Buffer
                     callee:
-                      write_string_at :usize
+                      new_byte_buffer :Buffer
                     arg0:
-                      __buf_12 :Buffer
-                    arg1:
-                      __off_13 :usize
-                    arg2:
-                      "  " :string
-              assign
-                target:
-                  __off_13 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_12 :Buffer
-                    arg1:
-                      __off_13 :usize
-                    arg2:
-                      cast → i64
-                        v :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_12 :Buffer
-                  arg1:
+                      int(22) :usize
+                let __off_13: usize = int(0) :usize
+                assign
+                  target:
                     __off_13 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_12 :Buffer
+                      arg1:
+                        __off_13 :usize
+                      arg2:
+                        "  " :string
+                assign
+                  target:
+                    __off_13 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_12 :Buffer
+                      arg1:
+                        __off_13 :usize
+                      arg2:
+                        cast → i64
+                          v :i32
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_12 :Buffer
+                    arg1:
+                      __off_13 :usize
+      step
         assign
           target:
             __for_i_11 :usize
@@ -357,53 +361,55 @@
               __for_arr_17 :i32[]
             ix:
               __for_i_19 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_20: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(22) :usize
-              let __off_21: usize = int(0) :usize
-              assign
-                target:
-                  __off_21 :usize
-                value:
-                  call :usize
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_20: Buffer =
+                  call :Buffer
                     callee:
-                      write_string_at :usize
+                      new_byte_buffer :Buffer
                     arg0:
-                      __buf_20 :Buffer
-                    arg1:
-                      __off_21 :usize
-                    arg2:
-                      "  " :string
-              assign
-                target:
-                  __off_21 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_20 :Buffer
-                    arg1:
-                      __off_21 :usize
-                    arg2:
-                      cast → i64
-                        v :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_20 :Buffer
-                  arg1:
+                      int(22) :usize
+                let __off_21: usize = int(0) :usize
+                assign
+                  target:
                     __off_21 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_20 :Buffer
+                      arg1:
+                        __off_21 :usize
+                      arg2:
+                        "  " :string
+                assign
+                  target:
+                    __off_21 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_20 :Buffer
+                      arg1:
+                        __off_21 :usize
+                      arg2:
+                        cast → i64
+                          v :i32
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_20 :Buffer
+                    arg1:
+                      __off_21 :usize
+      step
         assign
           target:
             __for_i_19 :usize
@@ -481,53 +487,55 @@
               __for_arr_24 :i32[]
             ix:
               __for_i_26 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_27: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(22) :usize
-              let __off_28: usize = int(0) :usize
-              assign
-                target:
-                  __off_28 :usize
-                value:
-                  call :usize
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_27: Buffer =
+                  call :Buffer
                     callee:
-                      write_string_at :usize
+                      new_byte_buffer :Buffer
                     arg0:
-                      __buf_27 :Buffer
-                    arg1:
-                      __off_28 :usize
-                    arg2:
-                      "  " :string
-              assign
-                target:
-                  __off_28 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_27 :Buffer
-                    arg1:
-                      __off_28 :usize
-                    arg2:
-                      cast → i64
-                        v :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_27 :Buffer
-                  arg1:
+                      int(22) :usize
+                let __off_28: usize = int(0) :usize
+                assign
+                  target:
                     __off_28 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_27 :Buffer
+                      arg1:
+                        __off_28 :usize
+                      arg2:
+                        "  " :string
+                assign
+                  target:
+                    __off_28 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_27 :Buffer
+                      arg1:
+                        __off_28 :usize
+                      arg2:
+                        cast → i64
+                          v :i32
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_27 :Buffer
+                    arg1:
+                      __off_28 :usize
+      step
         assign
           target:
             __for_i_26 :usize

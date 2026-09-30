@@ -168,6 +168,12 @@ emit_stmt :: fn(lines: string[]!, stmt: LoweredStmt, indent: string) -> void {
             label_suffix :: render_label(stmt.label)
             lines.push("${indent}loop${cond_suffix}${label_suffix}")
             emit_block(lines, stmt.body, "${indent}  ")
+            if stmt.step.len() > 0 {
+                lines.push("${indent}step")
+                for s in stmt.step {
+                    emit_stmt(lines, s, "${indent}  ")
+                }
+            }
         }
         is LoweredBreak -> {
             lines.push("${indent}break${render_label(stmt.label)}")

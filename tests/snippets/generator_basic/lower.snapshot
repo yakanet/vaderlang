@@ -49,6 +49,7 @@
                       __buf_0 :Buffer
                     arg1:
                       __off_1 :usize
+        step
           assign
             target:
               i :i32

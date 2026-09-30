@@ -42,27 +42,29 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        if :void
-          cond:
-            neq :bool
-              l:
-                index :i32
-                  on:
-                    xs :i32[]!
-                  ix:
-                    i :i32
-              r:
-                add :i32
-                  l:
-                    int(1000) :i32
-                  r:
-                    i :i32
-          then:
-            assign
-              target:
-                ok :bool
-              value:
-                false
+        ~>
+          if :void
+            cond:
+              neq :bool
+                l:
+                  index :i32
+                    on:
+                      xs :i32[]!
+                    ix:
+                      i :i32
+                r:
+                  add :i32
+                    l:
+                      int(1000) :i32
+                    r:
+                      i :i32
+            then:
+              assign
+                target:
+                  ok :bool
+                value:
+                  false
+      step
         assign
           target:
             i :i32

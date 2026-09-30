@@ -550,17 +550,19 @@
               __for_arr_16 :string[]
             ix:
               __for_i_18 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "err=" :string
-              arg1:
-                e :string
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              call :string
+                callee:
+                  concat_2 :string
+                arg0:
+                  "err=" :string
+                arg1:
+                  e :string
+      step
         assign
           target:
             __for_i_18 :usize

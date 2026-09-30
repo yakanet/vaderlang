@@ -96,17 +96,7 @@
               r:
                 name :string
           then:
-            block :void
-              assign
-                target:
-                  __for_i_2 :usize
-                value:
-                  add :usize
-                    l:
-                      __for_i_2 :usize
-                    r:
-                      int(1) :usize
-              continue
+            continue
         assign
           target:
             listed :bool
@@ -135,6 +125,7 @@
                         e :string
                   arg1:
                     int(16777216) :usize
+      step
         assign
           target:
             __for_i_2 :usize

@@ -1,0 +1,1251 @@
+# Lower
+
+## snippet
+  const snippet$GUARD: i32 =
+    int(20) :i32
+  fn snippet$inc(x: i32) -> i32
+    ~>
+      add :i32
+        l:
+          x :i32
+        r:
+          int(1) :i32
+  fn snippet$id(x: i32) -> i32
+    ~>
+      x :i32
+  fn snippet$maybe(i: i32) -> i32 | null
+    ~>
+      if :i32 | null
+        cond:
+          eq :bool
+            l:
+              mod :i32
+                l:
+                  i :i32
+                r:
+                  int(2) :i32
+            r:
+              int(0) :i32
+        then:
+          ~>
+            i :i32
+        else:
+          ~>
+            null
+  fn snippet$range_continue_and_break() -> void
+    let rounds: i32 = int(0) :i32
+    block :void
+      let i: i32 = int(0) :i32
+      loop while (<…>) :i
+        assign
+          target:
+            rounds :i32
+          value:
+            add :i32
+              l:
+                rounds :i32
+              r:
+                int(1) :i32
+        if :void
+          cond:
+            gt :bool
+              l:
+                rounds :i32
+              r:
+                int(20) :i32
+          then:
+            call :void
+              callee:
+                std_io$println__string :void
+              arg0:
+                "range: runaway" :string
+            break
+        if :void
+          cond:
+            eq :bool
+              l:
+                i :i32
+              r:
+                int(1) :i32
+          then:
+            continue
+        if :void
+          cond:
+            eq :bool
+              l:
+                i :i32
+              r:
+                int(3) :i32
+          then:
+            break :i
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_0: Buffer =
+                  call :Buffer
+                    callee:
+                      new_byte_buffer :Buffer
+                    arg0:
+                      int(26) :usize
+                let __off_1: usize = int(0) :usize
+                assign
+                  target:
+                    __off_1 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_0 :Buffer
+                      arg1:
+                        __off_1 :usize
+                      arg2:
+                        "range " :string
+                assign
+                  target:
+                    __off_1 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_0 :Buffer
+                      arg1:
+                        __off_1 :usize
+                      arg2:
+                        cast → i64
+                          i :i32
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+      step
+        assign
+          target:
+            i :i32
+          value:
+            add :i32
+              l:
+                i :i32
+              r:
+                int(1) :i32
+  fn snippet$chain_continue_and_break() -> void
+    let rounds: i32 = int(0) :i32
+    block :void
+      let __fuse_arr_2: i32[]! =
+        array :i32[]!
+          int(0) :i32
+          int(1) :i32
+          int(2) :i32
+          int(3) :i32
+          int(4) :i32
+      let f: fn(i32) -> i32 = inc :fn(i32) -> i32
+      let __fuse_len_3: usize =
+        LoweredArrayLen
+      let __fuse_i_4: usize = int(0) :usize
+      loop while (<…>) :x
+        let x: i32 =
+          index :i32
+            on:
+              __fuse_arr_2 :i32[]!
+            ix:
+              __fuse_i_4 :usize
+        let x: i32 =
+          call :i32
+            callee:
+              inc :fn(i32) -> i32
+            arg0:
+              x :i32
+        assign
+          target:
+            rounds :i32
+          value:
+            add :i32
+              l:
+                rounds :i32
+              r:
+                int(1) :i32
+        if :void
+          cond:
+            gt :bool
+              l:
+                rounds :i32
+              r:
+                int(20) :i32
+          then:
+            call :void
+              callee:
+                std_io$println__string :void
+              arg0:
+                "chain: runaway" :string
+            break
+        if :void
+          cond:
+            eq :bool
+              l:
+                x :i32
+              r:
+                int(2) :i32
+          then:
+            continue
+        if :void
+          cond:
+            eq :bool
+              l:
+                x :i32
+              r:
+                int(4) :i32
+          then:
+            break :x
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            block :string
+              let __buf_0: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(26) :usize
+              let __off_1: usize = int(0) :usize
+              assign
+                target:
+                  __off_1 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      "chain " :string
+              assign
+                target:
+                  __off_1 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      cast → i64
+                        x :i32
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+      step
+        assign
+          target:
+            __fuse_i_4 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_4 :usize
+              r:
+                int(1) :usize
+  fn snippet$continue_in_argument() -> void
+    let total: i32 = int(0) :i32
+    let rounds: i32 = int(0) :i32
+    block :void
+      let i: i32 = int(0) :i32
+      loop while (<…>)
+        assign
+          target:
+            rounds :i32
+          value:
+            add :i32
+              l:
+                rounds :i32
+              r:
+                int(1) :i32
+        if :void
+          cond:
+            gt :bool
+              l:
+                rounds :i32
+              r:
+                int(20) :i32
+          then:
+            call :void
+              callee:
+                std_io$println__string :void
+              arg0:
+                "argument: runaway" :string
+            break
+        assign
+          target:
+            total :i32
+          value:
+            add :i32
+              l:
+                total :i32
+              r:
+                call :i32
+                  callee:
+                    id :fn(i32) -> i32
+                  arg0:
+                    block :i32
+                      let __coalesce_0: i32 | null =
+                        call :i32 | null
+                          callee:
+                            maybe :fn(i32) -> i32 | null
+                          arg0:
+                            i :i32
+                      ~>
+                        if :i32
+                          cond:
+                            is null :bool
+                              __coalesce_0 :i32 | null
+                          then:
+                            continue
+                            ~>
+                              unreachable("`??` fallback diverges") :i32
+                          else:
+                            ~>
+                              cast → i32
+                                __coalesce_0 :i32 | null
+      step
+        assign
+          target:
+            i :i32
+          value:
+            add :i32
+              l:
+                i :i32
+              r:
+                int(1) :i32
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          block :string
+            let __buf_1: Buffer =
+              call :Buffer
+                callee:
+                  new_byte_buffer :Buffer
+                arg0:
+                  int(35) :usize
+            let __off_2: usize = int(0) :usize
+            assign
+              target:
+                __off_2 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_1 :Buffer
+                  arg1:
+                    __off_2 :usize
+                  arg2:
+                    "argument total " :string
+            assign
+              target:
+                __off_2 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_1 :Buffer
+                  arg1:
+                    __off_2 :usize
+                  arg2:
+                    cast → i64
+                      total :i32
+            ~>
+              call :string
+                callee:
+                  finish_buffer :string
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+  fn snippet$continue_in_match() -> void
+    let rounds: i32 = int(0) :i32
+    block :void
+      let __for_arr_0: i32[]! =
+        array :i32[]!
+          int(10) :i32
+          int(11) :i32
+          int(12) :i32
+          int(13) :i32
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let x: i32 =
+          index :i32
+            on:
+              __for_arr_0 :i32[]!
+            ix:
+              __for_i_2 :usize
+        assign
+          target:
+            rounds :i32
+          value:
+            add :i32
+              l:
+                rounds :i32
+              r:
+                int(1) :i32
+        if :void
+          cond:
+            gt :bool
+              l:
+                rounds :i32
+              r:
+                int(20) :i32
+          then:
+            call :void
+              callee:
+                std_io$println__string :void
+              arg0:
+                "match: runaway" :string
+            break
+        block :void
+          let __scrut_3: i32 =
+            mod :i32
+              l:
+                x :i32
+              r:
+                int(3) :i32
+          ~>
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    __scrut_3 :i32
+                  r:
+                    int(1) :i32
+              then:
+                ~>
+                  block :void
+                    continue
+              else:
+                ~>
+                  block :void
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_4: Buffer =
+                  call :Buffer
+                    callee:
+                      new_byte_buffer :Buffer
+                    arg0:
+                      int(26) :usize
+                let __off_5: usize = int(0) :usize
+                assign
+                  target:
+                    __off_5 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_4 :Buffer
+                      arg1:
+                        __off_5 :usize
+                      arg2:
+                        "match " :string
+                assign
+                  target:
+                    __off_5 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_4 :Buffer
+                      arg1:
+                        __off_5 :usize
+                      arg2:
+                        cast → i64
+                          x :i32
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_4 :Buffer
+                    arg1:
+                      __off_5 :usize
+      step
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+  fn snippet$fused_range_continue() -> void
+    let rounds: i32 = int(0) :i32
+    block :void
+      let f: fn(i32) -> i32 = inc :fn(i32) -> i32
+      let x: i32 = int(0) :i32
+      loop while (<…>)
+        let x: i32 =
+          call :i32
+            callee:
+              inc :fn(i32) -> i32
+            arg0:
+              x :i32
+        assign
+          target:
+            rounds :i32
+          value:
+            add :i32
+              l:
+                rounds :i32
+              r:
+                int(1) :i32
+        if :void
+          cond:
+            gt :bool
+              l:
+                rounds :i32
+              r:
+                int(20) :i32
+          then:
+            call :void
+              callee:
+                std_io$println__string :void
+              arg0:
+                "fused range: runaway" :string
+            break
+        if :void
+          cond:
+            eq :bool
+              l:
+                mod :i32
+                  l:
+                    x :i32
+                  r:
+                    int(2) :i32
+              r:
+                int(0) :i32
+          then:
+            continue
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            block :string
+              let __buf_0: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(32) :usize
+              let __off_1: usize = int(0) :usize
+              assign
+                target:
+                  __off_1 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      "fused range " :string
+              assign
+                target:
+                  __off_1 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      cast → i64
+                        x :i32
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+      step
+        assign
+          target:
+            x :i32
+          value:
+            add :i32
+              l:
+                x :i32
+              r:
+                int(1) :i32
+  fn snippet$continue_outer() -> void
+    let rounds: i32 = int(0) :i32
+    block :void
+      let i: i32 = int(0) :i32
+      loop while (<…>) :i
+        block :void
+          let j: i32 = int(0) :i32
+          loop while (<…>)
+            assign
+              target:
+                rounds :i32
+              value:
+                add :i32
+                  l:
+                    rounds :i32
+                  r:
+                    int(1) :i32
+            if :void
+              cond:
+                gt :bool
+                  l:
+                    rounds :i32
+                  r:
+                    int(20) :i32
+              then:
+                call :void
+                  callee:
+                    std_io$println__string :void
+                  arg0:
+                    "outer: runaway" :string
+                break :i
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    j :i32
+                  r:
+                    int(1) :i32
+              then:
+                continue :i
+            ~>
+              call :void
+                callee:
+                  std_io$println__string :void
+                arg0:
+                  block :string
+                    let __buf_0: Buffer =
+                      call :Buffer
+                        callee:
+                          new_byte_buffer :Buffer
+                        arg0:
+                          int(47) :usize
+                    let __off_1: usize = int(0) :usize
+                    assign
+                      target:
+                        __off_1 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_string_at :usize
+                          arg0:
+                            __buf_0 :Buffer
+                          arg1:
+                            __off_1 :usize
+                          arg2:
+                            "outer " :string
+                    assign
+                      target:
+                        __off_1 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_int :usize
+                          arg0:
+                            __buf_0 :Buffer
+                          arg1:
+                            __off_1 :usize
+                          arg2:
+                            cast → i64
+                              i :i32
+                    assign
+                      target:
+                        __off_1 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_string_at :usize
+                          arg0:
+                            __buf_0 :Buffer
+                          arg1:
+                            __off_1 :usize
+                          arg2:
+                            "," :string
+                    assign
+                      target:
+                        __off_1 :usize
+                      value:
+                        call :usize
+                          callee:
+                            write_int :usize
+                          arg0:
+                            __buf_0 :Buffer
+                          arg1:
+                            __off_1 :usize
+                          arg2:
+                            cast → i64
+                              j :i32
+                    ~>
+                      call :string
+                        callee:
+                          finish_buffer :string
+                        arg0:
+                          __buf_0 :Buffer
+                        arg1:
+                          __off_1 :usize
+          step
+            assign
+              target:
+                j :i32
+              value:
+                add :i32
+                  l:
+                    j :i32
+                  r:
+                    int(1) :i32
+      step
+        assign
+          target:
+            i :i32
+          value:
+            add :i32
+              l:
+                i :i32
+              r:
+                int(1) :i32
+  fn snippet$continue_with_defer() -> void
+    block :void
+      let i: i32 = int(0) :i32
+      loop while (<…>)
+        let i: ? =
+          LoweredCellNew
+        defer.push
+          LoweredMakeClosure
+        if :void
+          cond:
+            eq :bool
+              l:
+                LoweredCellGet
+              r:
+                int(1) :i32
+          then:
+            block :void
+              defer.pop_exec 1
+              continue
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            block :string
+              let __buf_2: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(25) :usize
+              let __off_3: usize = int(0) :usize
+              assign
+                target:
+                  __off_3 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
+                      "body " :string
+              assign
+                target:
+                  __off_3 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
+                      cast → i64
+                        LoweredCellGet
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_2 :Buffer
+                  arg1:
+                    __off_3 :usize
+        defer.pop_exec 1
+      step
+        assign
+          target:
+            __i_0 :i32
+          value:
+            add :i32
+              l:
+                __i_0 :i32
+              r:
+                int(1) :i32
+  fn snippet$evens(n: i32) -> Iterator<i32>
+    return
+      __genstate_evens! {
+        s0: n :i32
+        s1: int(0) :i32
+        state: int(8) :i32
+      }
+  fn snippet$generator_continue() -> void
+    let it: __genstate_evens<i32>! =
+      call :__genstate_evens<i32>!
+        callee:
+          evens :fn(i32) -> Iterator<i32>
+        arg0:
+          int(6) :i32
+    block :void
+      let __iter_0: Iterator<i32> = it :__genstate_evens<i32>!
+      loop
+        let __step_1: [i32, Continuation]! =
+          vcall Iterator.next :[i32, Continuation]!
+            recv:
+              __iter_0 :Iterator<i32>
+        if :void
+          cond:
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_1 :[i32, Continuation]!
+              r:
+                int(1) :u8
+          then:
+            break
+          else:
+            let x: i32 =
+              ._0 :i32
+                __step_1 :[i32, Continuation]!
+            call :void
+              callee:
+                std_io$println__string :void
+              arg0:
+                block :string
+                  let __buf_2: Buffer =
+                    call :Buffer
+                      callee:
+                        new_byte_buffer :Buffer
+                      arg0:
+                        int(30) :usize
+                  let __off_3: usize = int(0) :usize
+                  assign
+                    target:
+                      __off_3 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_2 :Buffer
+                        arg1:
+                          __off_3 :usize
+                        arg2:
+                          "generator " :string
+                  assign
+                    target:
+                      __off_3 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_int :usize
+                        arg0:
+                          __buf_2 :Buffer
+                        arg1:
+                          __off_3 :usize
+                        arg2:
+                          cast → i64
+                            x :i32
+                  ~>
+                    call :string
+                      callee:
+                        finish_buffer :string
+                      arg0:
+                        __buf_2 :Buffer
+                      arg1:
+                        __off_3 :usize
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        range_continue_and_break :fn() -> void
+    call :void
+      callee:
+        chain_continue_and_break :fn() -> void
+    call :void
+      callee:
+        continue_in_argument :fn() -> void
+    call :void
+      callee:
+        continue_in_match :fn() -> void
+    call :void
+      callee:
+        fused_range_continue :fn() -> void
+    call :void
+      callee:
+        continue_outer :fn() -> void
+    call :void
+      callee:
+        continue_with_defer :fn() -> void
+    call :void
+      callee:
+        generator_continue :fn() -> void
+    return int(0) :i32
+  struct __defer_env_snippet_1 { cap_0: ? }
+  fn __defer_snippet_0(__env_1: __defer_env_snippet_1!) -> void
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(26) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "defer " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    LoweredCellGet
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+  struct __genstate_evens { s0: i32, s1: i32, state: i32 }
+  fn snippet$__genstate_evens$Iterator$next(self: __genstate_evens!) -> [i32, Continuation]!
+    loop
+      if :void
+        cond:
+          eq :bool
+            l:
+              .state :i32
+                __self_0 :__genstate_evens!
+            r:
+              int(0) :i32
+        then:
+          assign
+            target:
+              .state :i32
+                __self_0 :__genstate_evens!
+            value:
+              int(-1) :i32
+        else:
+          if :void
+            cond:
+              eq :bool
+                l:
+                  .state :i32
+                    __self_0 :__genstate_evens!
+                r:
+                  int(1) :i32
+            then:
+              assign
+                target:
+                  .state :i32
+                    __self_0 :__genstate_evens!
+                value:
+                  int(0) :i32
+            else:
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      .state :i32
+                        __self_0 :__genstate_evens!
+                    r:
+                      int(2) :i32
+                then:
+                  if :void
+                    cond:
+                      lt :bool
+                        l:
+                          .s1 :i32
+                            __self_0 :__genstate_evens!
+                        r:
+                          .s0 :i32
+                            __self_0 :__genstate_evens!
+                    then:
+                      assign
+                        target:
+                          .state :i32
+                            __self_0 :__genstate_evens!
+                        value:
+                          int(7) :i32
+                    else:
+                      assign
+                        target:
+                          .state :i32
+                            __self_0 :__genstate_evens!
+                        value:
+                          int(1) :i32
+                else:
+                  if :void
+                    cond:
+                      eq :bool
+                        l:
+                          .state :i32
+                            __self_0 :__genstate_evens!
+                        r:
+                          int(3) :i32
+                    then:
+                      assign
+                        target:
+                          .s1 :i32
+                            __self_0 :__genstate_evens!
+                        value:
+                          add :i32
+                            l:
+                              .s1 :i32
+                                __self_0 :__genstate_evens!
+                            r:
+                              int(1) :i32
+                      assign
+                        target:
+                          .state :i32
+                            __self_0 :__genstate_evens!
+                        value:
+                          int(2) :i32
+                    else:
+                      if :void
+                        cond:
+                          eq :bool
+                            l:
+                              .state :i32
+                                __self_0 :__genstate_evens!
+                            r:
+                              int(4) :i32
+                        then:
+                          assign
+                            target:
+                              .state :i32
+                                __self_0 :__genstate_evens!
+                            value:
+                              int(3) :i32
+                          return
+                            [i32, Continuation]! {
+                              _0:
+                                .s1 :i32
+                                  __self_0 :__genstate_evens!
+                              _1: int(0) :u8
+                            }
+                        else:
+                          if :void
+                            cond:
+                              eq :bool
+                                l:
+                                  .state :i32
+                                    __self_0 :__genstate_evens!
+                                r:
+                                  int(5) :i32
+                            then:
+                              assign
+                                target:
+                                  .state :i32
+                                    __self_0 :__genstate_evens!
+                                value:
+                                  int(4) :i32
+                            else:
+                              if :void
+                                cond:
+                                  eq :bool
+                                    l:
+                                      .state :i32
+                                        __self_0 :__genstate_evens!
+                                    r:
+                                      int(6) :i32
+                                then:
+                                  assign
+                                    target:
+                                      .s1 :i32
+                                        __self_0 :__genstate_evens!
+                                    value:
+                                      add :i32
+                                        l:
+                                          .s1 :i32
+                                            __self_0 :__genstate_evens!
+                                        r:
+                                          int(1) :i32
+                                  assign
+                                    target:
+                                      .state :i32
+                                        __self_0 :__genstate_evens!
+                                    value:
+                                      int(2) :i32
+                                else:
+                                  if :void
+                                    cond:
+                                      eq :bool
+                                        l:
+                                          .state :i32
+                                            __self_0 :__genstate_evens!
+                                        r:
+                                          int(7) :i32
+                                    then:
+                                      if :void
+                                        cond:
+                                          eq :bool
+                                            l:
+                                              mod :i32
+                                                l:
+                                                  .s1 :i32
+                                                    __self_0 :__genstate_evens!
+                                                r:
+                                                  int(2) :i32
+                                            r:
+                                              int(1) :i32
+                                        then:
+                                          assign
+                                            target:
+                                              .state :i32
+                                                __self_0 :__genstate_evens!
+                                            value:
+                                              int(6) :i32
+                                        else:
+                                          assign
+                                            target:
+                                              .state :i32
+                                                __self_0 :__genstate_evens!
+                                            value:
+                                              int(4) :i32
+                                    else:
+                                      if :void
+                                        cond:
+                                          eq :bool
+                                            l:
+                                              .state :i32
+                                                __self_0 :__genstate_evens!
+                                            r:
+                                              int(8) :i32
+                                        then:
+                                          assign
+                                            target:
+                                              .s1 :i32
+                                                __self_0 :__genstate_evens!
+                                            value:
+                                              int(0) :i32
+                                          assign
+                                            target:
+                                              .state :i32
+                                                __self_0 :__genstate_evens!
+                                            value:
+                                              int(2) :i32
+                                        else:
+                                          return
+                                            [i32, Continuation]! {
+                                              _0: int(0) :i32
+                                              _1: int(1) :u8
+                                            }
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

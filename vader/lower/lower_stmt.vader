@@ -465,7 +465,7 @@ lower_for :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt) -> LoweredStmt {
             body :: lower_block(ctx, for_stmt.body, false, true)
             return LoweredLoop {
                 .span = for_stmt.span, .label = for_stmt.label,
-                .cond = null, .body = body,
+                .cond = null, .body = body, .step = [],
             }
         }
         is WhileFor    -> {
@@ -489,7 +489,7 @@ lower_for :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt) -> LoweredStmt {
             body :: lower_block(ctx, for_stmt.body, false, true)
             return LoweredLoop {
                 .span = for_stmt.span, .label = for_stmt.label,
-                .cond = cond, .body = body,
+                .cond = cond, .body = body, .step = [],
             }
         }
         is InFor       -> {

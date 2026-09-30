@@ -16,6 +16,7 @@
                 su :u64
               r:
                 i :u64
+      step
         assign
           target:
             i :u64
@@ -85,6 +86,7 @@
                 si :i64
               r:
                 i :i64
+      step
         assign
           target:
             i :i64
@@ -154,6 +156,7 @@
                 sis :isize
               r:
                 i :isize
+      step
         assign
           target:
             i :isize
@@ -227,6 +230,7 @@
               r:
                 cast → u32
                   i :u8
+      step
         assign
           target:
             i :u8
@@ -302,6 +306,7 @@
               r:
                 cast → i32
                   i :i16
+      step
         assign
           target:
             i :i16

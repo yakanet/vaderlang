@@ -37,6 +37,7 @@
                 __fuse_i_5 :usize
           let __elem_1: Rec! = x :Any
           LoweredArrayPush cached
+        step
           assign
             target:
               __fuse_i_5 :usize
@@ -58,6 +59,7 @@
                 __fuse_i_7 :usize
           let __elem_1: Rec! = y :Any
           LoweredArrayPush cached
+        step
           assign
             target:
               __fuse_i_7 :usize
@@ -128,78 +130,80 @@
               __for_arr_10 :Rec![]!
             ix:
               __for_i_12 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __p_13: string =
-                .name :string
-                  r :Rec!
-              let __buf_14: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    add :usize
-                      l:
-                        int(21) :usize
-                      r:
-                        call :usize
-                          callee:
-                            byte_len :usize
-                          arg0:
-                            __p_13 :string
-              let __off_15: usize = int(0) :usize
-              assign
-                target:
-                  __off_15 :usize
-                value:
-                  call :usize
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __p_13: string =
+                  .name :string
+                    r :Rec!
+                let __buf_14: Buffer =
+                  call :Buffer
                     callee:
-                      write_string_at :usize
+                      new_byte_buffer :Buffer
                     arg0:
-                      __buf_14 :Buffer
-                    arg1:
-                      __off_15 :usize
-                    arg2:
-                      __p_13 :string
-              assign
-                target:
-                  __off_15 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_14 :Buffer
-                    arg1:
-                      __off_15 :usize
-                    arg2:
-                      "=" :string
-              assign
-                target:
-                  __off_15 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_14 :Buffer
-                    arg1:
-                      __off_15 :usize
-                    arg2:
-                      cast → i64
-                        .value :i32
-                          r :Rec!
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_14 :Buffer
-                  arg1:
+                      add :usize
+                        l:
+                          int(21) :usize
+                        r:
+                          call :usize
+                            callee:
+                              byte_len :usize
+                            arg0:
+                              __p_13 :string
+                let __off_15: usize = int(0) :usize
+                assign
+                  target:
                     __off_15 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_14 :Buffer
+                      arg1:
+                        __off_15 :usize
+                      arg2:
+                        __p_13 :string
+                assign
+                  target:
+                    __off_15 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_14 :Buffer
+                      arg1:
+                        __off_15 :usize
+                      arg2:
+                        "=" :string
+                assign
+                  target:
+                    __off_15 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_14 :Buffer
+                      arg1:
+                        __off_15 :usize
+                      arg2:
+                        cast → i64
+                          .value :i32
+                            r :Rec!
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_14 :Buffer
+                    arg1:
+                      __off_15 :usize
+      step
         assign
           target:
             __for_i_12 :usize
@@ -232,6 +236,7 @@
               arg0:
                 x :Any
           LoweredArrayPush
+        step
           assign
             target:
               __fuse_i_20 :usize
@@ -255,91 +260,93 @@
               __for_arr_21 :Rec![]!
             ix:
               __for_i_23 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __p_24: string =
-                .name :string
-                  r :Rec!
-              let __buf_25: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    add :usize
-                      l:
-                        int(24) :usize
-                      r:
-                        call :usize
-                          callee:
-                            byte_len :usize
-                          arg0:
-                            __p_24 :string
-              let __off_26: usize = int(0) :usize
-              assign
-                target:
-                  __off_26 :usize
-                value:
-                  call :usize
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __p_24: string =
+                  .name :string
+                    r :Rec!
+                let __buf_25: Buffer =
+                  call :Buffer
                     callee:
-                      write_string_at :usize
+                      new_byte_buffer :Buffer
                     arg0:
-                      __buf_25 :Buffer
-                    arg1:
-                      __off_26 :usize
-                    arg2:
-                      "x2 " :string
-              assign
-                target:
-                  __off_26 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_25 :Buffer
-                    arg1:
-                      __off_26 :usize
-                    arg2:
-                      __p_24 :string
-              assign
-                target:
-                  __off_26 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_25 :Buffer
-                    arg1:
-                      __off_26 :usize
-                    arg2:
-                      "=" :string
-              assign
-                target:
-                  __off_26 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_25 :Buffer
-                    arg1:
-                      __off_26 :usize
-                    arg2:
-                      cast → i64
-                        .value :i32
-                          r :Rec!
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_25 :Buffer
-                  arg1:
+                      add :usize
+                        l:
+                          int(24) :usize
+                        r:
+                          call :usize
+                            callee:
+                              byte_len :usize
+                            arg0:
+                              __p_24 :string
+                let __off_26: usize = int(0) :usize
+                assign
+                  target:
                     __off_26 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_25 :Buffer
+                      arg1:
+                        __off_26 :usize
+                      arg2:
+                        "x2 " :string
+                assign
+                  target:
+                    __off_26 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_25 :Buffer
+                      arg1:
+                        __off_26 :usize
+                      arg2:
+                        __p_24 :string
+                assign
+                  target:
+                    __off_26 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_25 :Buffer
+                      arg1:
+                        __off_26 :usize
+                      arg2:
+                        "=" :string
+                assign
+                  target:
+                    __off_26 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_25 :Buffer
+                      arg1:
+                        __off_26 :usize
+                      arg2:
+                        cast → i64
+                          .value :i32
+                            r :Rec!
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_25 :Buffer
+                    arg1:
+                      __off_26 :usize
+      step
         assign
           target:
             __for_i_23 :usize
@@ -365,16 +372,18 @@
                 __fuse_arr_29 :Rec![]!
               ix:
                 __fuse_i_31 :usize
-          if :void
-            cond:
-              call :bool
-                callee:
-                  __lambda_snippet_1 :fn(Any) -> bool
-                arg0:
-                  x :Any
-            then:
-              let __elem_28: Rec! = x :Any
-              LoweredArrayPush cached
+          ~>
+            if :void
+              cond:
+                call :bool
+                  callee:
+                    __lambda_snippet_1 :fn(Any) -> bool
+                  arg0:
+                    x :Any
+              then:
+                let __elem_28: Rec! = x :Any
+                LoweredArrayPush cached
+        step
           assign
             target:
               __fuse_i_31 :usize
@@ -398,91 +407,93 @@
               __for_arr_32 :Rec![]!
             ix:
               __for_i_34 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __p_35: string =
-                .name :string
-                  r :Rec!
-              let __buf_36: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    add :usize
-                      l:
-                        int(26) :usize
-                      r:
-                        call :usize
-                          callee:
-                            byte_len :usize
-                          arg0:
-                            __p_35 :string
-              let __off_37: usize = int(0) :usize
-              assign
-                target:
-                  __off_37 :usize
-                value:
-                  call :usize
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __p_35: string =
+                  .name :string
+                    r :Rec!
+                let __buf_36: Buffer =
+                  call :Buffer
                     callee:
-                      write_string_at :usize
+                      new_byte_buffer :Buffer
                     arg0:
-                      __buf_36 :Buffer
-                    arg1:
-                      __off_37 :usize
-                    arg2:
-                      "kept " :string
-              assign
-                target:
-                  __off_37 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_36 :Buffer
-                    arg1:
-                      __off_37 :usize
-                    arg2:
-                      __p_35 :string
-              assign
-                target:
-                  __off_37 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_36 :Buffer
-                    arg1:
-                      __off_37 :usize
-                    arg2:
-                      "=" :string
-              assign
-                target:
-                  __off_37 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_36 :Buffer
-                    arg1:
-                      __off_37 :usize
-                    arg2:
-                      cast → i64
-                        .value :i32
-                          r :Rec!
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_36 :Buffer
-                  arg1:
+                      add :usize
+                        l:
+                          int(26) :usize
+                        r:
+                          call :usize
+                            callee:
+                              byte_len :usize
+                            arg0:
+                              __p_35 :string
+                let __off_37: usize = int(0) :usize
+                assign
+                  target:
                     __off_37 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_36 :Buffer
+                      arg1:
+                        __off_37 :usize
+                      arg2:
+                        "kept " :string
+                assign
+                  target:
+                    __off_37 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_36 :Buffer
+                      arg1:
+                        __off_37 :usize
+                      arg2:
+                        __p_35 :string
+                assign
+                  target:
+                    __off_37 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_36 :Buffer
+                      arg1:
+                        __off_37 :usize
+                      arg2:
+                        "=" :string
+                assign
+                  target:
+                    __off_37 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_36 :Buffer
+                      arg1:
+                        __off_37 :usize
+                      arg2:
+                        cast → i64
+                          .value :i32
+                            r :Rec!
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_36 :Buffer
+                    arg1:
+                      __off_37 :usize
+      step
         assign
           target:
             __for_i_34 :usize
@@ -591,6 +602,7 @@
                     __buf_39 :Buffer
                   arg1:
                     __off_40 :usize
+      step
         assign
           target:
             __fuse_i_44 :usize
@@ -696,6 +708,7 @@
                     __buf_39 :Buffer
                   arg1:
                     __off_40 :usize
+      step
         assign
           target:
             __fuse_i_46 :usize
@@ -804,6 +817,7 @@
                     __buf_48 :Buffer
                   arg1:
                     __off_49 :usize
+      step
         assign
           target:
             __fuse_i_53 :usize
@@ -909,6 +923,7 @@
                     __buf_48 :Buffer
                   arg1:
                     __off_49 :usize
+      step
         assign
           target:
             __fuse_i_55 :usize

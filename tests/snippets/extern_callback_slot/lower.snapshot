@@ -35,6 +35,7 @@
                     bump :fn(i32) -> i32
                   arg2:
                     int(3) :i32
+      step
         assign
           target:
             _r :i32

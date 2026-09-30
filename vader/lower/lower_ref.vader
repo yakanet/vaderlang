@@ -54,6 +54,9 @@ for_each_lowered_stmt :: fn(s: LoweredStmt, visit: fn(Type) -> void) -> void {
             cond :: s.cond
             if cond != null { for_each_lowered_expr(cond, visit) }
             for_each_lowered_block(s.body, visit)
+            for st in s.step {
+                for_each_lowered_stmt(st, visit)
+            }
         }
         is LoweredBreak    -> {}
         is LoweredContinue -> {}
@@ -202,6 +205,9 @@ ref_stmt :: fn(s: LoweredStmt, visit_fn: fn(i32, string) -> void, visit_virtual:
             cond :: s.cond
             if cond != null { ref_expr(cond, visit_fn, visit_virtual) }
             ref_block(s.body, visit_fn, visit_virtual)
+            for st in s.step {
+                ref_stmt(st, visit_fn, visit_virtual)
+            }
         }
         is LoweredBreak    -> {}
         is LoweredContinue -> {}
@@ -336,6 +342,9 @@ stmt_node_stmt :: fn(s: LoweredStmt, visit: fn(LoweredStmt) -> void) -> void {
             cond :: s.cond
             if cond != null { stmt_node_expr(cond, visit) }
             stmt_node_block(s.body, visit)
+            for st in s.step {
+                stmt_node_stmt(st, visit)
+            }
         }
         is LoweredDeferPush    -> stmt_node_expr(s.thunk, visit)
         is LoweredBreak        -> {}

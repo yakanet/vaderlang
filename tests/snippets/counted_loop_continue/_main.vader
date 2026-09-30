@@ -1,0 +1,160 @@
+// A `continue` in a counted loop still advances the counter : the loop carries its
+// increment as a step that every `continue` reaches, wherever the `continue` sits
+// — a nested `if`, a `match` arm, the fallback of a `??` inside a call argument,
+// a loop that also has a `break <var>`, a `continue <var>` from an inner loop.
+// Each shape runs over a plain range, a raw array, and a fused chain on either
+// source. A loop that failed to advance would repeat its body with the same
+// counter ; the guard stops it after a few rounds and says so.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+GUARD :: 20
+
+inc :: fn(x: i32) -> i32 = x + 1
+
+id :: fn(x: i32) -> i32 = x
+
+maybe :: fn(i: i32) -> i32 | null = if i % 2 == 0 { i } else { null }
+
+// A bare `continue` in a loop that a `break i` also targets.
+range_continue_and_break :: fn() -> void {
+    rounds := 0
+    for i in 0..<5 {
+        rounds += 1
+        if rounds > GUARD {
+            println("range: runaway")
+            break
+        }
+        if i == 1 {
+            continue
+        }
+        if i == 3 {
+            break i
+        }
+        println("range ${i}")
+    }
+}
+
+chain_continue_and_break :: fn() -> void {
+    rounds := 0
+    for x in [0, 1, 2, 3, 4].map(inc) {
+        rounds += 1
+        if rounds > GUARD {
+            println("chain: runaway")
+            break
+        }
+        if x == 2 {
+            continue
+        }
+        if x == 4 {
+            break x
+        }
+        println("chain ${x}")
+    }
+}
+
+// The `continue` is a call argument's fallback.
+continue_in_argument :: fn() -> void {
+    total := 0
+    rounds := 0
+    for i in 0..<6 {
+        rounds += 1
+        if rounds > GUARD {
+            println("argument: runaway")
+            break
+        }
+        total += id(maybe(i) ?? continue)
+    }
+    println("argument total ${total}")
+}
+
+continue_in_match :: fn() -> void {
+    rounds := 0
+    for x in [10, 11, 12, 13] {
+        rounds += 1
+        if rounds > GUARD {
+            println("match: runaway")
+            break
+        }
+        match x % 3 {
+            1 -> { continue }
+            _ -> {}
+        }
+        println("match ${x}")
+    }
+}
+
+fused_range_continue :: fn() -> void {
+    rounds := 0
+    for x in (0..<5).map(inc) {
+        rounds += 1
+        if rounds > GUARD {
+            println("fused range: runaway")
+            break
+        }
+        if x % 2 == 0 {
+            continue
+        }
+        println("fused range ${x}")
+    }
+}
+
+// `continue i` leaves the inner loop and must still run the outer increment.
+continue_outer :: fn() -> void {
+    rounds := 0
+    for i in 0..<3 {
+        for j in 0..<3 {
+            rounds += 1
+            if rounds > GUARD {
+                println("outer: runaway")
+                break i
+            }
+            if j == 1 {
+                continue i
+            }
+            println("outer ${i},${j}")
+        }
+    }
+}
+
+// A deferred call still runs once per round when the round ends in `continue`.
+continue_with_defer :: fn() -> void {
+    for i in 0..<3 {
+        defer println("defer ${i}")
+        if i == 1 {
+            continue
+        }
+        println("body ${i}")
+    }
+}
+
+// The same counted loop inside a generator the consumer drives lazily.
+evens :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        if i % 2 == 1 {
+            continue
+        }
+        yield i
+    }
+}
+
+generator_continue :: fn() -> void {
+    it :: evens(6)
+    for x in it {
+        println("generator ${x}")
+    }
+}
+
+main :: fn() -> i32 {
+    range_continue_and_break()
+    chain_continue_and_break()
+    continue_in_argument()
+    continue_in_match()
+    fused_range_continue()
+    continue_outer()
+    continue_with_defer()
+    generator_continue()
+    return 0
+}

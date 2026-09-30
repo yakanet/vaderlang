@@ -9,7 +9,9 @@
       let __for_hi_0: usize =
         LoweredArrayLen
       loop while (<…>)
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             i :usize
@@ -28,7 +30,9 @@
       let __for_hi_0: usize =
         LoweredArrayLen
       loop while (<…>)
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             i :usize
@@ -359,6 +363,7 @@
                 total :u32
               r:
                 bin :u32
+      step
         assign
           target:
             __for_i_7 :usize

@@ -131,15 +131,17 @@
               __for_arr_0 :HttpStatus[]!
             ix:
               __for_i_2 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                describe :fn(HttpStatus) -> string
-              arg0:
-                s :HttpStatus
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              call :string
+                callee:
+                  describe :fn(HttpStatus) -> string
+                arg0:
+                  s :HttpStatus
+      step
         assign
           target:
             __for_i_2 :usize

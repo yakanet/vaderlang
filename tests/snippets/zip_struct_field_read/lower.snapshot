@@ -161,6 +161,7 @@
                       __buf_2 :Buffer
                     arg1:
                       __off_3 :usize
+        step
           assign
             target:
               i :usize

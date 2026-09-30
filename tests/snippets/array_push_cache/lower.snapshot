@@ -7,7 +7,9 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             i :i32
@@ -69,7 +71,9 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush
+        ~>
+          LoweredArrayPush
+      step
         assign
           target:
             i :i32
@@ -87,15 +91,17 @@
       let i: i32 = int(0) :i32
       loop while (<…>)
         LoweredArrayPush
-        if :void
-          cond:
-            gt :bool
-              l:
-                LoweredArrayLen
-              r:
-                int(3) :usize
-          then:
-            LoweredArrayPush
+        ~>
+          if :void
+            cond:
+              gt :bool
+                l:
+                  LoweredArrayLen
+                r:
+                  int(3) :usize
+            then:
+              LoweredArrayPush
+      step
         assign
           target:
             i :i32
@@ -121,7 +127,9 @@
                 int(3) :i32
           then:
             break
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             i :i32
@@ -157,7 +165,9 @@
                 int(0) :i32
           then:
             break
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             __for_i_2 :usize
@@ -194,7 +204,9 @@
             return
               neg :i32
                 int(1) :i32
-        LoweredArrayPush
+        ~>
+          LoweredArrayPush
+      step
         assign
           target:
             __for_i_2 :usize
@@ -233,7 +245,9 @@
                     int(7) :i32
               then:
                 break :i
-            LoweredArrayPush
+            ~>
+              LoweredArrayPush
+          step
             assign
               target:
                 j :i32
@@ -243,6 +257,7 @@
                     j :i32
                   r:
                     int(1) :i32
+      step
         assign
           target:
             i :i32
@@ -261,7 +276,9 @@
     block :void
       let _: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             _ :i32
@@ -293,7 +310,9 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush
+        ~>
+          LoweredArrayPush
+      step
         assign
           target:
             i :i32
@@ -316,7 +335,9 @@
         block :void
           let j: i32 = int(0) :i32
           loop while (<…>)
-            LoweredArrayPush cached
+            ~>
+              LoweredArrayPush cached
+          step
             assign
               target:
                 j :i32
@@ -337,6 +358,7 @@
               r:
                 cast → i32
                   LoweredArrayLen
+      step
         assign
           target:
             i :i32
@@ -359,7 +381,9 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             i :i32
@@ -374,7 +398,9 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             i :i32
@@ -389,7 +415,9 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             i :i32
@@ -422,6 +450,7 @@
               r:
                 cast → i32
                   b :u8
+      step
         assign
           target:
             __for_i_2 :usize
@@ -454,6 +483,7 @@
               r:
                 cast → i32
                   x :i16
+      step
         assign
           target:
             __for_i_5 :usize
@@ -485,6 +515,7 @@
                 ft :f32
               r:
                 f :f32
+      step
         assign
           target:
             __for_i_8 :usize
@@ -612,6 +643,7 @@
                     observed_length :fn(Holder) -> i32
                   arg0:
                     holder :Holder!
+      step
         assign
           target:
             index :i32
@@ -647,6 +679,7 @@
                     __lambda_snippet_0 :fn() -> i32
                   arg0:
                     observe :__lambda_env_snippet_1!
+      step
         assign
           target:
             i :i32
@@ -676,6 +709,7 @@
               r:
                 cast → i32
                   LoweredArrayLen
+      step
         assign
           target:
             i :i32
@@ -694,33 +728,35 @@
       let i: i32 = int(0) :i32
       loop while (<…>)
         LoweredArrayPush
-        if :void
-          cond:
-            eq :bool
-              l:
-                mod :i32
-                  l:
-                    i :i32
-                  r:
-                    int(3) :i32
-              r:
-                int(2) :i32
-          then:
-            assign
-              target:
-                total :i32
-              value:
-                add :i32
-                  l:
-                    total :i32
-                  r:
-                    cast → i32
-                      LoweredArrayLen
-            assign
-              target:
-                out :i32[]!
-              value:
-                array :i32[]!
+        ~>
+          if :void
+            cond:
+              eq :bool
+                l:
+                  mod :i32
+                    l:
+                      i :i32
+                    r:
+                      int(3) :i32
+                r:
+                  int(2) :i32
+            then:
+              assign
+                target:
+                  total :i32
+                value:
+                  add :i32
+                    l:
+                      total :i32
+                    r:
+                      cast → i32
+                        LoweredArrayLen
+              assign
+                target:
+                  out :i32[]!
+                value:
+                  array :i32[]!
+      step
         assign
           target:
             i :i32
@@ -743,7 +779,9 @@
     block :void
       let index: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             index :i32
@@ -789,6 +827,7 @@
               arg0:
                 x :i32
           LoweredArrayPush cached
+        step
           assign
             target:
               x :i32
@@ -818,22 +857,24 @@
                 __fuse_arr_2 :i32[]
               ix:
                 __fuse_i_4 :usize
-          if :void
-            cond:
-              call :bool
-                callee:
-                  is_odd :fn(i32) -> bool
-                arg0:
-                  x :i32
-            then:
-              let x: i32 = x :i32
-              let __elem_1: i32 =
-                call :i32
+          ~>
+            if :void
+              cond:
+                call :bool
                   callee:
-                    triple :fn(i32) -> i32
+                    is_odd :fn(i32) -> bool
                   arg0:
                     x :i32
-              LoweredArrayPush cached
+              then:
+                let x: i32 = x :i32
+                let __elem_1: i32 =
+                  call :i32
+                    callee:
+                      triple :fn(i32) -> i32
+                    arg0:
+                      x :i32
+                LoweredArrayPush cached
+        step
           assign
             target:
               __fuse_i_4 :usize
@@ -890,6 +931,7 @@
                   i :usize
                 r:
                   int(1) :usize
+        step
           assign
             target:
               __fuse_i_4 :usize
@@ -924,6 +966,7 @@
                 t :i32
               r:
                 x :i32
+      step
         assign
           target:
             __for_i_2 :usize
@@ -961,6 +1004,7 @@
                 x :string
               arg2:
                 "|" :string
+      step
         assign
           target:
             __for_i_2 :usize

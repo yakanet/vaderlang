@@ -243,117 +243,119 @@
                       bytes :u8[]
                     arg0:
                       s :string
-        if :void
-          cond:
-            is Base64Error! :bool
-              decoded :Base64Error | u8[]
-          then:
-            ~>
-              call :void
-                callee:
-                  std_io$println__string :void
-                arg0:
-                  call :string
-                    callee:
-                      concat_3 :string
-                    arg0:
-                      "roundtrip-" :string
-                    arg1:
-                      s :string
-                    arg2:
-                      "=ERR" :string
-          else:
-            ~>
-              call :void
-                callee:
-                  std_io$println__string :void
-                arg0:
-                  block :string
-                    let __p_3: string = s :string
-                    let __buf_4: Buffer =
-                      call :Buffer
-                        callee:
-                          new_byte_buffer :Buffer
-                        arg0:
-                          add :usize
-                            l:
-                              int(16) :usize
-                            r:
-                              call :usize
-                                callee:
-                                  byte_len :usize
-                                arg0:
-                                  __p_3 :string
-                    let __off_5: usize = int(0) :usize
-                    assign
-                      target:
-                        __off_5 :usize
-                      value:
-                        call :usize
+        ~>
+          if :void
+            cond:
+              is Base64Error! :bool
+                decoded :Base64Error | u8[]
+            then:
+              ~>
+                call :void
+                  callee:
+                    std_io$println__string :void
+                  arg0:
+                    call :string
+                      callee:
+                        concat_3 :string
+                      arg0:
+                        "roundtrip-" :string
+                      arg1:
+                        s :string
+                      arg2:
+                        "=ERR" :string
+            else:
+              ~>
+                call :void
+                  callee:
+                    std_io$println__string :void
+                  arg0:
+                    block :string
+                      let __p_3: string = s :string
+                      let __buf_4: Buffer =
+                        call :Buffer
                           callee:
-                            write_string_at :usize
+                            new_byte_buffer :Buffer
                           arg0:
-                            __buf_4 :Buffer
-                          arg1:
-                            __off_5 :usize
-                          arg2:
-                            "roundtrip-" :string
-                    assign
-                      target:
-                        __off_5 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_string_at :usize
-                          arg0:
-                            __buf_4 :Buffer
-                          arg1:
-                            __off_5 :usize
-                          arg2:
-                            __p_3 :string
-                    assign
-                      target:
-                        __off_5 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_string_at :usize
-                          arg0:
-                            __buf_4 :Buffer
-                          arg1:
-                            __off_5 :usize
-                          arg2:
-                            "=" :string
-                    assign
-                      target:
-                        __off_5 :usize
-                      value:
-                        call :usize
-                          callee:
-                            write_bool :usize
-                          arg0:
-                            __buf_4 :Buffer
-                          arg1:
-                            __off_5 :usize
-                          arg2:
-                            eq :bool
+                            add :usize
                               l:
-                                call :string
-                                  callee:
-                                    bytes_to_string :string
-                                  arg0:
-                                    cast → u8[]
-                                      decoded :Base64Error | u8[]
+                                int(16) :usize
                               r:
-                                s :string
-                    ~>
-                      call :string
-                        callee:
-                          finish_buffer :string
-                        arg0:
-                          __buf_4 :Buffer
-                        arg1:
+                                call :usize
+                                  callee:
+                                    byte_len :usize
+                                  arg0:
+                                    __p_3 :string
+                      let __off_5: usize = int(0) :usize
+                      assign
+                        target:
                           __off_5 :usize
+                        value:
+                          call :usize
+                            callee:
+                              write_string_at :usize
+                            arg0:
+                              __buf_4 :Buffer
+                            arg1:
+                              __off_5 :usize
+                            arg2:
+                              "roundtrip-" :string
+                      assign
+                        target:
+                          __off_5 :usize
+                        value:
+                          call :usize
+                            callee:
+                              write_string_at :usize
+                            arg0:
+                              __buf_4 :Buffer
+                            arg1:
+                              __off_5 :usize
+                            arg2:
+                              __p_3 :string
+                      assign
+                        target:
+                          __off_5 :usize
+                        value:
+                          call :usize
+                            callee:
+                              write_string_at :usize
+                            arg0:
+                              __buf_4 :Buffer
+                            arg1:
+                              __off_5 :usize
+                            arg2:
+                              "=" :string
+                      assign
+                        target:
+                          __off_5 :usize
+                        value:
+                          call :usize
+                            callee:
+                              write_bool :usize
+                            arg0:
+                              __buf_4 :Buffer
+                            arg1:
+                              __off_5 :usize
+                            arg2:
+                              eq :bool
+                                l:
+                                  call :string
+                                    callee:
+                                      bytes_to_string :string
+                                    arg0:
+                                      cast → u8[]
+                                        decoded :Base64Error | u8[]
+                                r:
+                                  s :string
+                      ~>
+                        call :string
+                          callee:
+                            finish_buffer :string
+                          arg0:
+                            __buf_4 :Buffer
+                          arg1:
+                            __off_5 :usize
+      step
         assign
           target:
             __for_i_2 :usize

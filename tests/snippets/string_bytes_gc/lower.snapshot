@@ -78,6 +78,7 @@
               r:
                 cast → u64
                   b :u8
+      step
         assign
           target:
             __for_i_2 :usize

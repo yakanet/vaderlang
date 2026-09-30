@@ -190,7 +190,9 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush
+        ~>
+          LoweredArrayPush
+      step
         assign
           target:
             i :i32

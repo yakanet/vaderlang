@@ -236,6 +236,9 @@ bve_analyze_stmt :: fn(s: LoweredStmt, ctx: BveCtx!) -> void {
                 bve_analyze_expr(c, ctx)
             }
             bve_analyze_block(s.body, ctx)
+            for st in s.step {
+                bve_analyze_stmt(st, ctx)
+            }
         }
         is LoweredBreak -> {}
         is LoweredContinue -> {}
@@ -405,6 +408,9 @@ bve_rewrite_stmt :: fn(s: LoweredStmt!, ctx: BveCtx) -> void {
                 s.cond = bve_rewrite_expr(c, ctx)
             }
             bve_rewrite_block(s.body, ctx)
+            for st in s.step {
+                bve_rewrite_stmt(st, ctx)
+            }
         }
         is LoweredBreak -> {}
         is LoweredContinue -> {}

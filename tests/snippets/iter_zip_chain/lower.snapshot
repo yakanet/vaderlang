@@ -232,6 +232,7 @@
                       __buf_6 :Buffer
                     arg1:
                       __off_7 :usize
+        step
           assign
             target:
               i :usize
@@ -311,6 +312,7 @@
                     __buf_9 :Buffer
                   arg1:
                     __off_10 :usize
+      step
         assign
           target:
             __fuse_i_14 :usize
@@ -378,6 +380,7 @@
                     __buf_9 :Buffer
                   arg1:
                     __off_10 :usize
+      step
         assign
           target:
             __fuse_i_16 :usize
@@ -494,6 +497,7 @@
                 i :usize
               r:
                 int(1) :usize
+      step
         assign
           target:
             __fuse_i_24 :usize

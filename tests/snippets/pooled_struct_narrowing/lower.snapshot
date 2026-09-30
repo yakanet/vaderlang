@@ -15,16 +15,18 @@
               __for_arr_0 :Spec[]
             ix:
               __for_i_2 :usize
-        if :void
-          cond:
-            eq :bool
-              l:
-                .name :string
-                  s :Spec
-              r:
-                name :string
-          then:
-            return s :Spec
+        ~>
+          if :void
+            cond:
+              eq :bool
+                l:
+                  .name :string
+                    s :Spec
+                r:
+                  name :string
+            then:
+              return s :Spec
+      step
         assign
           target:
             __for_i_2 :usize

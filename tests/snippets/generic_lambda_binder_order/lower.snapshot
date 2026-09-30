@@ -146,6 +146,7 @@
                     probe :fn(string) -> usize
                   arg0:
                     r :string
+      step
         assign
           target:
             __for_i_2 :usize

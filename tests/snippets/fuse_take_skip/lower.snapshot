@@ -88,6 +88,7 @@
                 i :usize
               r:
                 int(1) :usize
+      step
         assign
           target:
             __fuse_i_4 :usize
@@ -182,6 +183,7 @@
                 i :usize
               r:
                 int(1) :usize
+      step
         assign
           target:
             __fuse_i_9 :usize
@@ -297,6 +299,7 @@
                 i :usize
               r:
                 int(1) :usize
+      step
         assign
           target:
             __fuse_i_14 :usize

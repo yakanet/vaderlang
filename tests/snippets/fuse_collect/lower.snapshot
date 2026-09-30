@@ -42,6 +42,7 @@
             then:
               let __elem_1: i32 = x :i32
               LoweredArrayPush
+        step
           assign
             target:
               __fuse_i_4 :usize
@@ -200,16 +201,18 @@
           array :i32[]!
         let x: i32 = int(0) :i32
         loop while (<…>)
-          if :void
-            cond:
-              call :bool
-                callee:
-                  pred :fn(i32) -> bool
-                arg0:
-                  x :i32
-            then:
-              let __elem_8: i32 = x :i32
-              LoweredArrayPush
+          ~>
+            if :void
+              cond:
+                call :bool
+                  callee:
+                    pred :fn(i32) -> bool
+                  arg0:
+                    x :i32
+              then:
+                let __elem_8: i32 = x :i32
+                LoweredArrayPush
+        step
           assign
             target:
               x :i32

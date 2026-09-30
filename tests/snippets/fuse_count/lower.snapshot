@@ -49,6 +49,7 @@
                       __count_0 :usize
                     r:
                       int(1) :usize
+        step
           assign
             target:
               __fuse_i_4 :usize
@@ -113,24 +114,26 @@
         let __count_7: usize = int(0) :usize
         let x: i32 = int(0) :i32
         loop while (<…>)
-          if :void
-            cond:
-              call :bool
-                callee:
-                  pred :fn(i32) -> bool
-                arg0:
-                  x :i32
-            then:
-              let __elem_8: i32 = x :i32
-              assign
-                target:
-                  __count_7 :usize
-                value:
-                  add :usize
-                    l:
-                      __count_7 :usize
-                    r:
-                      int(1) :usize
+          ~>
+            if :void
+              cond:
+                call :bool
+                  callee:
+                    pred :fn(i32) -> bool
+                  arg0:
+                    x :i32
+              then:
+                let __elem_8: i32 = x :i32
+                assign
+                  target:
+                    __count_7 :usize
+                  value:
+                    add :usize
+                      l:
+                        __count_7 :usize
+                      r:
+                        int(1) :usize
+        step
           assign
             target:
               x :i32

@@ -45,6 +45,7 @@
                 value:
                   true
               break
+        step
           assign
             target:
               __fuse_i_4 :usize
@@ -71,30 +72,32 @@
                 __fuse_arr_5 :i32[]!
               ix:
                 __fuse_i_9 :usize
-          if :void
-            cond:
-              call :bool
-                callee:
-                  pred :fn(i32) -> bool
-                arg0:
-                  x :i32
-            then:
-              let __elem_7: i32 = x :i32
-              if :void
-                cond:
-                  not :bool
-                    call :bool
-                      callee:
-                        __lambda_snippet_3 :fn(i32) -> bool
-                      arg0:
-                        __elem_7 :i32
-                then:
-                  assign
-                    target:
-                      __acc_6 :bool
-                    value:
-                      false
-                  break
+          ~>
+            if :void
+              cond:
+                call :bool
+                  callee:
+                    pred :fn(i32) -> bool
+                  arg0:
+                    x :i32
+              then:
+                let __elem_7: i32 = x :i32
+                if :void
+                  cond:
+                    not :bool
+                      call :bool
+                        callee:
+                          __lambda_snippet_3 :fn(i32) -> bool
+                        arg0:
+                          __elem_7 :i32
+                  then:
+                    assign
+                      target:
+                        __acc_6 :bool
+                      value:
+                        false
+                    break
+        step
           assign
             target:
               __fuse_i_9 :usize
@@ -142,6 +145,7 @@
                 value:
                   false
               break
+        step
           assign
             target:
               __fuse_i_14 :usize
@@ -286,6 +290,7 @@
                 value:
                   __elem_19 :i32
               break
+        step
           assign
             target:
               __fuse_i_21 :usize
@@ -373,29 +378,31 @@
                 __fuse_arr_24 :i32[]!
               ix:
                 __fuse_i_28 :usize
-          if :void
-            cond:
-              call :bool
-                callee:
-                  pred :fn(i32) -> bool
-                arg0:
-                  x :i32
-            then:
-              let __elem_26: i32 = x :i32
-              if :void
-                cond:
-                  call :bool
-                    callee:
-                      __lambda_snippet_9 :fn(i32) -> bool
-                    arg0:
-                      __elem_26 :i32
-                then:
-                  assign
-                    target:
-                      __find_25 :i32 | null
-                    value:
-                      __elem_26 :i32
-                  break
+          ~>
+            if :void
+              cond:
+                call :bool
+                  callee:
+                    pred :fn(i32) -> bool
+                  arg0:
+                    x :i32
+              then:
+                let __elem_26: i32 = x :i32
+                if :void
+                  cond:
+                    call :bool
+                      callee:
+                        __lambda_snippet_9 :fn(i32) -> bool
+                      arg0:
+                        __elem_26 :i32
+                  then:
+                    assign
+                      target:
+                        __find_25 :i32 | null
+                      value:
+                        __elem_26 :i32
+                    break
+        step
           assign
             target:
               __fuse_i_28 :usize

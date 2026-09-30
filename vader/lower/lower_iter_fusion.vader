@@ -3,9 +3,9 @@
 // Turns `for x in (0..<n).map(f).filter(p)` into a single flat counter loop (no
 // iterator struct, no `next()`, no step pair). The entry `try_lower_chain_fusion`
 // is called first from `lower_for_in`; a `null` result falls through to the other
-// fast paths. Shared loop-building helpers (`bind_loop_var`, `build_int_range_body`,
-// `cmp_op_for_inclusive`, `is_integer_type`, `resolve_loop_binding`) stay in
-// `lower_for_in.vader` — same `module "vader/lower"`, so callable with no import.
+// fast paths. Shared loop-building helpers (`bind_loop_var`, `cmp_op_for_inclusive`,
+// `is_integer_type`, `resolve_loop_binding`) stay in `lower_for_in.vader` — same
+// `module "vader/lower"`, so callable with no import.
 
 module "vader/lower"
 
@@ -931,6 +931,7 @@ emit_fused_opaque_iter :: fn(
         .body = LoweredBlock {
             .span = span, .type = TY_VOID, .stmts = [step_let, branch_if], .trailing = null,
         },
+        .step = [],
     }
     out: LoweredStmt[]: [loop_stmt]
     return out
@@ -977,13 +978,9 @@ emit_fused_range :: fn(
         bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, counter_ref, int_type, span)
         prepend_stmts_to_block(bind_stmts, template.user_body)
     }
-    body_stmts :: build_int_range_body(range_body, inc_stmt, loop_label)
     loop_stmt :: LoweredLoop {
-        .span = outer_span, .label = loop_label, .cond = cond,
-        .body = LoweredBlock {
-            .span = span, .type = TY_VOID,
-            .stmts = body_stmts, .trailing = null,
-        },
+        .span = outer_span, .label = loop_label, .cond = cond, .body = range_body,
+        .step = [inc_stmt],
     }
     out: LoweredStmt[]!: []
     out.push(counter_init)
@@ -1041,14 +1038,10 @@ emit_fused_array :: fn(
         },
     }
 
-    // Bind the element, then the shared int-range body builder places the
-    // increment continue-safely (mirrors `emit_fused_range`).
-    body :: prepend_stmts_to_block(bind_stmts, template.user_body)
-    body_stmts :: build_int_range_body(body, inc_stmt, loop_label)
-
     loop_stmt :: LoweredLoop {
         .span = outer_span, .label = loop_label, .cond = cond,
-        .body = LoweredBlock { .span = span, .type = TY_VOID, .stmts = body_stmts, .trailing = null },
+        .body = prepend_stmts_to_block(bind_stmts, template.user_body),
+        .step = [inc_stmt],
     }
 
     out: LoweredStmt[]!: []

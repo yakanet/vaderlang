@@ -16,16 +16,18 @@
           array :i32[]!
         let x: i32 = int(0) :i32
         loop while (<…>)
-          if :void
-            cond:
-              call :bool
-                callee:
-                  keep :fn(i32) -> bool
-                arg0:
-                  x :i32
-            then:
-              let __elem_1: i32 = x :i32
-              LoweredArrayPush cached
+          ~>
+            if :void
+              cond:
+                call :bool
+                  callee:
+                    keep :fn(i32) -> bool
+                  arg0:
+                    x :i32
+              then:
+                let __elem_1: i32 = x :i32
+                LoweredArrayPush cached
+        step
           assign
             target:
               x :i32

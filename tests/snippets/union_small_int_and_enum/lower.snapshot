@@ -549,15 +549,17 @@
               __for_arr_4 :(Color | string)[]!
             ix:
               __for_i_6 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                show_cell :fn(Color | string) -> string
-              arg0:
-                c :Color | string
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              call :string
+                callee:
+                  show_cell :fn(Color | string) -> string
+                arg0:
+                  c :Color | string
+      step
         assign
           target:
             __for_i_6 :usize

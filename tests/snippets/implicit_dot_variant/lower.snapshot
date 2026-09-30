@@ -71,15 +71,17 @@
               __for_arr_0 :Day[]
             ix:
               __for_i_2 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                show_day :fn(Day) -> string
-              arg0:
-                d :Day
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              call :string
+                callee:
+                  show_day :fn(Day) -> string
+                arg0:
+                  d :Day
+      step
         assign
           target:
             __for_i_2 :usize

@@ -62,6 +62,7 @@
                 n :string
               arg2:
                 "," :string
+      step
         assign
           target:
             __for_i_2 :usize

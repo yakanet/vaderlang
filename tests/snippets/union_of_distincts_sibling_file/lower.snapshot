@@ -57,15 +57,17 @@
               __for_arr_0 :(Celsius | Label)[]
             ix:
               __for_i_2 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                describe :fn(Celsius | Label) -> string
-              arg0:
-                r :Celsius | Label
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              call :string
+                callee:
+                  describe :fn(Celsius | Label) -> string
+                arg0:
+                  r :Celsius | Label
+      step
         assign
           target:
             __for_i_2 :usize

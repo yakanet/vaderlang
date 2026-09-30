@@ -268,6 +268,10 @@ export LoweredLoop :: struct {
     label: string | null
     cond:  LoweredExpr | null
     body:  LoweredBlock
+    /// Runs after the body, and wherever a `continue` targets this loop, before
+    /// `cond` is tested again — a counted loop's increment. Straight-line code:
+    /// no jump, no `yield` or `await`. Empty for a loop with no step.
+    step:  LoweredStmt[]
 }
 
 export LoweredBreak :: struct {

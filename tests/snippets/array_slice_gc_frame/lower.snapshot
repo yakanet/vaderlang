@@ -32,6 +32,7 @@
               r:
                 cast → i32
                   LoweredArrayLen
+      step
         assign
           target:
             _ :i32

@@ -106,6 +106,8 @@ LoopFrame :: struct {
     label:     string | null
     header_id: BlockId      // continue target
     exit_id:   BlockId      // break target
+    /// Runs before every jump to the header — see `build_back_edge`.
+    step:      LoweredStmt[]
 }
 
 /// Per-function build context. `current` tracks the basic block under
@@ -601,7 +603,7 @@ build_stmt :: fn(fn_ctx: FnCtx!, s: LoweredStmt) -> void {
         }
         is LoweredContinue -> {
             frame :: resolve_loop_frame(fn_ctx, s.label) ?? return
-            terminate(fn_ctx, TermBranch { .target = frame.header_id, .span = s.span })
+            build_back_edge(fn_ctx, frame, s.span)
         }
         is LoweredYield | LoweredAwait -> {
             // Transient coroutine-suspension markers. `lower_coroutine` rewrites
@@ -676,13 +678,14 @@ build_loop :: fn(fn_ctx: FnCtx!, s: LoweredLoop) -> void {
         terminate(fn_ctx, TermBranch { .target = body_id, .span = s.span })
     }
 
-    fn_ctx.loop_stack.push(LoopFrame {
-        .label = s.label, .header_id = header_id, .exit_id = exit_id,
-    })
+    frame :: LoopFrame {
+        .label = s.label, .header_id = header_id, .exit_id = exit_id, .step = s.step,
+    }
+    fn_ctx.loop_stack.push(frame)
     fn_ctx.current = body_id
     build_block_body(fn_ctx, s.body)
     if fn_ctx.current !is null {
-        terminate(fn_ctx, TermBranch { .target = header_id, .span = s.span })
+        build_back_edge(fn_ctx, frame, s.span)
     }
     // pop loop frame
     new_stack: LoopFrame[]!: []
@@ -692,6 +695,18 @@ build_loop :: fn(fn_ctx: FnCtx!, s: LoweredLoop) -> void {
     fn_ctx.loop_stack = new_stack
 
     fn_ctx.current = exit_id
+}
+
+// Run `frame`'s step, then go back to its header. Each jump builds its own copy:
+// one step block every `continue` reaches is a latch, which the structurer takes
+// for the join of the conditional around the `continue`.
+build_back_edge :: fn(fn_ctx: FnCtx!, frame: LoopFrame, span: Span) -> void {
+    for st in frame.step {
+        build_stmt(fn_ctx, st)
+    }
+    if fn_ctx.current !is null {
+        terminate(fn_ctx, TermBranch { .target = frame.header_id, .span = span })
+    }
 }
 
 resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame | null {

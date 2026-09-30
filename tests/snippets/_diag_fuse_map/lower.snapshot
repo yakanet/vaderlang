@@ -29,6 +29,7 @@
                 total :i32
               r:
                 x :i32
+      step
         assign
           target:
             x :i32

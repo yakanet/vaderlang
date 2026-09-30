@@ -388,17 +388,7 @@
                   r:
                     int(20) :i32
           then:
-            block :void
-              assign
-                target:
-                  __fuse_i_15 :usize
-                value:
-                  add :usize
-                    l:
-                      __fuse_i_15 :usize
-                    r:
-                      int(1) :usize
-              continue
+            continue
         assign
           target:
             kept :i32
@@ -408,6 +398,7 @@
                 kept :i32
               r:
                 x :i32
+      step
         assign
           target:
             __fuse_i_15 :usize
@@ -444,17 +435,7 @@
                   r:
                     int(20) :i32
           then:
-            block :void
-              assign
-                target:
-                  __fuse_i_17 :usize
-                value:
-                  add :usize
-                    l:
-                      __fuse_i_17 :usize
-                    r:
-                      int(1) :usize
-              continue
+            continue
         assign
           target:
             kept :i32
@@ -464,6 +445,7 @@
                 kept :i32
               r:
                 x :i32
+      step
         assign
           target:
             __fuse_i_17 :usize
@@ -557,6 +539,7 @@
                 whole :i32
               r:
                 x :i32
+      step
         assign
           target:
             __fuse_i_23 :usize
@@ -586,6 +569,7 @@
                 whole :i32
               r:
                 x :i32
+      step
         assign
           target:
             __fuse_i_25 :usize
@@ -693,6 +677,7 @@
                 mapped :i32
               r:
                 x :i32
+      step
         assign
           target:
             __fuse_i_30 :usize
@@ -807,6 +792,7 @@
                     nested :i32
                   r:
                     y :i32
+          step
             assign
               target:
                 __for_i_35 :usize
@@ -816,6 +802,7 @@
                     __for_i_35 :usize
                   r:
                     int(1) :usize
+      step
         assign
           target:
             __fuse_i_39 :usize
@@ -866,6 +853,7 @@
                     nested :i32
                   r:
                     y :i32
+          step
             assign
               target:
                 __for_i_35 :usize
@@ -875,6 +863,7 @@
                     __for_i_35 :usize
                   r:
                     int(1) :usize
+      step
         assign
           target:
             __fuse_i_41 :usize

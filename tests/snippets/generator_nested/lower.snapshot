@@ -89,6 +89,7 @@
                         __buf_0 :Buffer
                       arg1:
                         __off_1 :usize
+          step
             assign
               target:
                 __for_i_2 :usize
@@ -98,6 +99,7 @@
                     __for_i_2 :usize
                   r:
                     int(1) :usize
+      step
         assign
           target:
             __fuse_i_4 :usize

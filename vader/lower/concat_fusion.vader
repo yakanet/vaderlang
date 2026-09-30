@@ -250,6 +250,7 @@ cf_stmt_mentions :: fn(st: LoweredStmt, symbol_id: i32, kinds: CfMentionKinds) -
     is LoweredDeferPush            -> cf_expr_mentions(st.thunk, symbol_id, kinds)
     is LoweredLoop                 ->
         cf_opt_expr_mentions(st.cond, symbol_id, kinds) || cf_block_mentions(st.body, symbol_id, kinds)
+            || cf_block_mentions(loop_step_block(st), symbol_id, kinds)
     is LoweredBreak | LoweredContinue | LoweredDeferPopExec -> false
 }
 
@@ -316,6 +317,7 @@ cf_test_block :: fn(stmts: LoweredStmt[]!, trailing: LoweredExpr | null) -> Lowe
     inner: LoweredStmt[]!: [LoweredExprStmt { .span = empty_span(), .expr = cf_test_target() }]
     outer: LoweredStmt[]!: [LoweredLoop {
         .span = empty_span(), .cond = null, .body = cf_test_block(inner, null), .label = "",
+        .step = [],
     }]
     body :: cf_test_block(outer, null)
     assert(cf_expr_mentions(body, CF_TEST_ID, CF_ANY_MENTION), "`s` inside a loop body is a read")

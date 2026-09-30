@@ -30,6 +30,7 @@
                 sum :i32
               r:
                 x :i32
+      step
         assign
           target:
             __for_i_2 :usize
@@ -113,6 +114,7 @@
                 n :i32
               r:
                 int(1) :i32
+      step
         assign
           target:
             __for_i_8 :usize

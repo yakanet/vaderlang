@@ -91,15 +91,17 @@
               __for_arr_0 :(i32 | string)[]!
             ix:
               __for_i_2 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                show :fn(i32 | string) -> string
-              arg0:
-                c :i32 | string
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              call :string
+                callee:
+                  show :fn(i32 | string) -> string
+                arg0:
+                  c :i32 | string
+      step
         assign
           target:
             __for_i_2 :usize

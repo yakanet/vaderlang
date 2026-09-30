@@ -258,6 +258,9 @@ export prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) 
     }
 }
 
+// The step of `lp` as a block, for a predicate that folds over blocks.
+loop_step_block :: fn(lp: LoweredLoop) -> LoweredBlock = arm_block(lp.step, lp.span)
+
 // ---- operands --------------------------------------------------------------
 //
 // An operand evaluated once but read later — by a loop at every step, or twice

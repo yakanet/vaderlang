@@ -110,6 +110,7 @@
             f1 :i32
           value:
             c :i32
+      step
         assign
           target:
             i :i32
@@ -334,6 +335,7 @@
             g1 :u64
           value:
             g :u64
+      step
         assign
           target:
             i :i32

@@ -62,42 +62,44 @@
               __for_arr_0 :Shape[]!
             ix:
               __for_i_2 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_3: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(20) :usize
-              let __off_4: usize = int(0) :usize
-              assign
-                target:
-                  __off_4 :usize
-                value:
-                  call :usize
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_3: Buffer =
+                  call :Buffer
                     callee:
-                      write_int :usize
+                      new_byte_buffer :Buffer
+                    arg0:
+                      int(20) :usize
+                let __off_4: usize = int(0) :usize
+                assign
+                  target:
+                    __off_4 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_3 :Buffer
+                      arg1:
+                        __off_4 :usize
+                      arg2:
+                        cast → i64
+                          vcall Shape.area :i32
+                            recv:
+                              s :Shape
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
                     arg0:
                       __buf_3 :Buffer
                     arg1:
                       __off_4 :usize
-                    arg2:
-                      cast → i64
-                        vcall Shape.area :i32
-                          recv:
-                            s :Shape
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_3 :Buffer
-                  arg1:
-                    __off_4 :usize
+      step
         assign
           target:
             __for_i_2 :usize

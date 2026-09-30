@@ -164,7 +164,12 @@ bp_scan_stmt :: fn(s: LoweredStmt, in_loop: bool, ctx: LowerProjectCtx!) -> void
                 bp_scan_expr(v, in_loop, ctx)
             }
         }
-        is LoweredLoop      -> { bp_scan_block(s.body, true, ctx) }
+        is LoweredLoop      -> {
+            bp_scan_block(s.body, true, ctx)
+            for st in s.step {
+                bp_scan_stmt(st, true, ctx)
+            }
+        }
         _                   -> {}
     }
 }
@@ -224,6 +229,9 @@ bp_stmt :: fn(s: LoweredStmt!, pctx: BcePurityCtx!) -> void {
             bp_expr(c, pctx)
         }
         bp_block(s.body, pctx)
+        for st in s.step {
+            bp_stmt(st, pctx)
+        }
     } else if s is LoweredDeferPush {
         bp_expr(s.thunk, pctx)
     }
@@ -332,7 +340,8 @@ bp_try_prove :: fn(the_len: LoweredArrayLen!, the_loop: LoweredLoop!, pctx: BceP
     // Guard on the bound array's symbol : the length was read from the array that
     // symbol held, so rebinding it (`arr = other`) voids the proof.
     guard :: bp_guard_sym(the_len)
-    if bce_block_unsafe(the_loop.body, guard, pctx) {
+    if bce_block_unsafe(the_loop.body, guard, pctx)
+        || bce_block_unsafe(loop_step_block(the_loop), guard, pctx) {
         return
     }
     bp_mark_idx_block(the_loop.body)
@@ -609,6 +618,7 @@ bce_test_recheck_index :: fn(sym: Symbol) -> LoweredIndex = LoweredIndex {
 bce_test_loop_over :: fn(idx: LoweredIndex) -> LoweredStmt = LoweredLoop {
     .span = empty_span(), .label = null, .cond = null,
     .body = bce_test_block([LoweredExprStmt { .span = empty_span(), .expr = idx }]),
+    .step = [],
 }
 
 // `let len = <recheck arr.len()>` — the preheader bound.

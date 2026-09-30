@@ -76,15 +76,17 @@
               __for_arr_0 :(Cat | Dog)[]!
             ix:
               __for_i_2 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                describe :fn(Cat | Dog) -> string
-              arg0:
-                p :Cat | Dog
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              call :string
+                callee:
+                  describe :fn(Cat | Dog) -> string
+                arg0:
+                  p :Cat | Dog
+      step
         assign
           target:
             __for_i_2 :usize

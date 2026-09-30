@@ -52,17 +52,7 @@
                     nulls :i32
                   r:
                     int(1) :i32
-            block :void
-              assign
-                target:
-                  __for_i_2 :usize
-                value:
-                  add :usize
-                    l:
-                      __for_i_2 :usize
-                    r:
-                      int(1) :usize
-              continue
+            continue
         assign
           target:
             sum :i32
@@ -73,6 +63,7 @@
               r:
                 cast → i32
                   x :i32 | null
+      step
         assign
           target:
             __for_i_2 :usize

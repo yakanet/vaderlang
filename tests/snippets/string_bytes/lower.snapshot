@@ -37,6 +37,7 @@
               r:
                 cast → u32
                   b :u8
+      step
         assign
           target:
             __for_i_2 :usize
@@ -115,40 +116,42 @@
               __for_arr_5 :u8[]
             ix:
               __for_i_7 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_8: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(20) :usize
-              let __off_9: usize = int(0) :usize
-              assign
-                target:
-                  __off_9 :usize
-                value:
-                  call :usize
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              block :string
+                let __buf_8: Buffer =
+                  call :Buffer
                     callee:
-                      write_unsigned :usize
+                      new_byte_buffer :Buffer
+                    arg0:
+                      int(20) :usize
+                let __off_9: usize = int(0) :usize
+                assign
+                  target:
+                    __off_9 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_unsigned :usize
+                      arg0:
+                        __buf_8 :Buffer
+                      arg1:
+                        __off_9 :usize
+                      arg2:
+                        cast → u64
+                          b :u8
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
                     arg0:
                       __buf_8 :Buffer
                     arg1:
                       __off_9 :usize
-                    arg2:
-                      cast → u64
-                        b :u8
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_8 :Buffer
-                  arg1:
-                    __off_9 :usize
+      step
         assign
           target:
             __for_i_7 :usize
@@ -393,11 +396,13 @@
               __for_arr_14 :u8[]
             ix:
               __for_i_16 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            "never" :string
+        ~>
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              "never" :string
+      step
         assign
           target:
             __for_i_16 :usize

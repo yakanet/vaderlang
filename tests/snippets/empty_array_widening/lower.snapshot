@@ -24,6 +24,7 @@
                 total :i32
               r:
                 v :i32
+      step
         assign
           target:
             __for_i_2 :usize
@@ -40,7 +41,9 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             i :i32
@@ -195,7 +198,9 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush
+        ~>
+          LoweredArrayPush
+      step
         assign
           target:
             i :i32
@@ -337,7 +342,9 @@
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
-        LoweredArrayPush cached
+        ~>
+          LoweredArrayPush cached
+      step
         assign
           target:
             i :i32

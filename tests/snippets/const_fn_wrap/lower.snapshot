@@ -33,18 +33,20 @@
               __for_arr_0 :Spec<i32>[]
             ix:
               __for_i_2 :usize
-        if :void
-          cond:
-            eq :bool
-              l:
-                .name :string
+        ~>
+          if :void
+            cond:
+              eq :bool
+                l:
+                  .name :string
+                    s :Spec<i32>
+                r:
+                  name :string
+            then:
+              return
+                .code :i32
                   s :Spec<i32>
-              r:
-                name :string
-          then:
-            return
-              .code :i32
-                s :Spec<i32>
+      step
         assign
           target:
             __for_i_2 :usize
