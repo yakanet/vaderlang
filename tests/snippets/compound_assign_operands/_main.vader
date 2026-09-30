@@ -1,0 +1,130 @@
+// A compound assignment `place op= rhs` evaluates the operands of its place once :
+// the index, and a receiver that is not itself a place, run before the read, then
+// `rhs`, then the write lands where the read came from. Every operand logs its
+// evaluation, so an index or a receiver evaluated twice shows in the output.
+//
+// The place itself is read twice — a name, a field or an array element does no
+// work ; an element an `Index` impl returns is a call, so that receiver is bound
+// whole. A hand-written `a[i()] = a[i()] + 1` keeps its two evaluations.
+module "snippet"
+
+import "std/io"
+
+slot :: fn(i: usize) -> usize {
+    println("index ${i}")
+    return i
+}
+
+Counter :: struct {
+    count: i32
+}
+
+Holder :: struct {
+    items: i32[]!
+}
+
+Row :: struct {
+    cells: i32[]!
+}
+
+// Hands its argument back, so a receiver evaluated twice would still write it.
+pick :: fn(c: Counter!) -> Counter! {
+    println("pick")
+    return c
+}
+
+Cell :: struct {
+    slots: i32[]!
+}
+
+Cell implements Index<usize, i32> {
+    at :: fn(self, i: usize) -> i32 = self.slots[i]
+}
+
+Cell implements IndexSet<usize, i32> {
+    set_at :: fn(self!, i: usize, v: i32) {
+        self.slots[i] = v
+    }
+}
+
+// The same write through a type-param bound : a virtual `at` then `set_at`.
+bump_nth :: fn<C: Index<usize, i32> & IndexSet<usize, i32>>(c: C, i: usize) {
+    c[slot(i)] += 100
+}
+
+// Its read is an `at` call, so a place under it evaluates it once.
+Shelf :: struct {
+    items: Counter![]
+}
+
+Shelf implements Index<usize, Counter!> {
+    at :: fn(self, i: usize) -> Counter! {
+        println("at ${i}")
+        return self.items[i]
+    }
+}
+
+// A trait's default method is cloned into each impl ; the clone keeps the
+// compound form, so it too evaluates the index once.
+Stepper :: trait {
+    step :: fn(self) -> i32
+    advance :: fn(self, xs: i32[]!) -> void {
+        xs[slot(0)] += self.step()
+    }
+}
+
+Two :: struct {}
+
+Two implements Stepper {
+    step :: fn(self) -> i32 = 2
+}
+
+main :: fn() -> i32 {
+    a: i32[]!: [10, 20, 30]
+    a[slot(1)] += 1
+    println("a = ${a[0]} ${a[1]} ${a[2]}")
+
+    holder :: Holder { .items = [1, 2] }
+    holder.items[slot(0)] *= 7
+    println("holder = ${holder.items[0]} ${holder.items[1]}")
+
+    rows: Row[]!: [Row { .cells = [0, 0] }, Row { .cells = [0, 0] }]
+    rows[slot(1)].cells[slot(0)] += 5
+    println("rows = ${rows[1].cells[0]}")
+
+    shelf :: Shelf { .items = [Counter { .count = 1 }, Counter { .count = 2 }] }
+    shelf[slot(1)].count += 10
+    println("shelf = ${shelf.items[1].count}")
+
+    shared :: Counter { .count = 0 }
+    pick(shared).count += 3
+    println("shared = ${shared.count}")
+
+    words: string[]!: ["a", "b"]
+    words[slot(1)] += "!"
+    println("words = ${words[0]} ${words[1]}")
+
+    cell :: Cell { .slots = [1, 2, 3] }
+    cell[slot(2)] -= 1
+    println("cell = ${cell[2]}")
+    bump_nth<Cell>(cell, 0)
+    println("bounded = ${cell[0]}")
+
+    // The rhs rebinds the index through a closure : the write still lands on the
+    // element the read came from.
+    k: usize = 0
+    move_k :: () -> {
+        k = 2
+        1
+    }
+    a[k] += move_k()
+    println("rebound = ${a[0]} ${a[2]} k=${k}")
+
+    two :: Two {}
+    two.advance(a)
+    println("default method = ${a[0]}")
+
+    a[slot(2)] = a[slot(2)] + 1
+    println("written out = ${a[2]}")
+    return 0
+}

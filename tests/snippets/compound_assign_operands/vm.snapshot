@@ -1,0 +1,27 @@
+# stdout
+index 1
+a = 10 21 30
+index 0
+holder = 7 2
+index 1
+index 0
+rows = 5
+index 1
+at 1
+shelf = 12
+pick
+shared = 3
+index 1
+words = a b!
+index 2
+cell = 2
+index 0
+bounded = 101
+rebound = 11 30 k=2
+index 0
+default method = 13
+index 2
+index 2
+written out = 31
+# exit
+0

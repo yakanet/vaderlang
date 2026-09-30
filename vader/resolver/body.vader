@@ -48,6 +48,11 @@ export ResolvedFile :: struct {
     /// they are recognised from `SymbolKind.Const`, needing no table and working
     /// cross-module for free.
     immutable_borrows: MutableMap<i32, bool>
+    /// Locals and parameters no assignment of the file rebinds, `::` or not. Two
+    /// reads of one yield the same value — within one iteration, for a `for`
+    /// loop variable, which the loop itself advances. A symbol missing here may be
+    /// rebound, so an empty set claims nothing.
+    rebind_free: MutableSet<i32>
     /// `Symbol.id → bound TypeExpr` for every TypeParam minted with
     /// an explicit `T: Trait` clause. Lets downstream consumers
     /// dispatch trait methods on bounded type parameters.
@@ -89,6 +94,7 @@ export resolve_program :: fn(
         .idents = state.idents,
         .immutable_locals = state.immutable_locals,
         .immutable_borrows = state.immutable_borrows,
+        .rebind_free = state.rebind_free_locals(),
         .type_param_bounds = state.type_param_bounds,
         .diags = state.diags,
     }
@@ -114,6 +120,8 @@ ResolveState :: struct {
     mutable_decls:    MutableDecl[]!
     /// Symbol ids an assignment rebinds. Read once the file is walked.
     reassigned:       MutableSet<i32>
+    /// Every local and parameter the walk declared, for `rebind_free_locals`.
+    declared_locals:  i32[]! = []
     diags:            Diagnostic[]!
     scope:            Scope
     module_path:      string
@@ -153,6 +161,9 @@ bind_local_checked :: fn(self: ResolveState!, kind: SymbolKind, name: string, sp
     }
     sym :: self.mint_local(kind, name, span)
     self.scope.bind(name, sym)
+    if kind == .Local || kind == .Param {
+        self.declared_locals.push(sym.id)
+    }
     return sym
 }
 
@@ -545,6 +556,17 @@ binding_span :: fn(b: AST.LetBinding) -> Span = match b {
     is AST.TupleBinding    -> b.span
     is AST.RestBinding     -> b.span
     is AST.WildcardBinding -> b.span
+}
+
+// Every local and parameter the file declares that no assignment rebinds.
+rebind_free_locals :: fn(self: ResolveState) -> MutableSet<i32> {
+    out :: MutableSet<i32> {}
+    for id in self.declared_locals {
+        if !(id in self.reassigned) {
+            _ :: out.add(id)
+        }
+    }
+    return out
 }
 
 // W0015 — every `:=` nothing ever reassigned. Reported at the end of the file

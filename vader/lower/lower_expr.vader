@@ -44,6 +44,12 @@ lower_char_lit :: fn(e: CharLitExpr, ty: Type) -> LoweredExpr {
 }
 
 export lower_expr :: fn(ctx: FnLowerCtx!, expr: Expr) -> LoweredExpr {
+    if !ctx.bound_operands.is_empty() {
+        bound :: ctx.bound_operands[expr.id]
+        if bound != null {
+            return bound
+        }
+    }
     type :: ctx.types.expr_type(expr)
     match expr {
         is IntLitExpr    -> { return LoweredIntLit { .span = expr.span, .type = default_if_free(type), .value = i64(expr.value) } }

@@ -1,0 +1,2445 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "wildcard"
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "slot",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "i",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "usize"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "usize"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "index "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "i"
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IdentExpr",
+              "name": "i"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Counter",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "count",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "visibility": "public",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Holder",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "items",
+          "type": {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            }
+          },
+          "visibility": "public",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Row",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "cells",
+          "type": {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            }
+          },
+          "visibility": "public",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "pick",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "c",
+          "type": {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Counter"
+            }
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "MutableTypeExpr",
+        "inner": {
+          "kind": "IdentExpr",
+          "name": "Counter"
+        }
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "pick"
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IdentExpr",
+              "name": "c"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Cell",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "slots",
+          "type": {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            }
+          },
+          "visibility": "public",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "ImplDecl",
+      "typeParams": [],
+      "forType": {
+        "kind": "IdentExpr",
+        "name": "Cell"
+      },
+      "traitName": "Index",
+      "traitArgs": [
+        {
+          "kind": "IdentExpr",
+          "name": "usize"
+        },
+        {
+          "kind": "IdentExpr",
+          "name": "i32"
+        }
+      ],
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "at",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            },
+            {
+              "name": "i",
+              "type": {
+                "kind": "IdentExpr",
+                "name": "usize"
+              },
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [],
+            "trailing": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "self"
+                },
+                "field": "slots"
+              },
+              "index": {
+                "kind": "IdentExpr",
+                "name": "i"
+              }
+            }
+          },
+          "decorators": [],
+          "isExpressionBodied": true
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "ImplDecl",
+      "typeParams": [],
+      "forType": {
+        "kind": "IdentExpr",
+        "name": "Cell"
+      },
+      "traitName": "IndexSet",
+      "traitArgs": [
+        {
+          "kind": "IdentExpr",
+          "name": "usize"
+        },
+        {
+          "kind": "IdentExpr",
+          "name": "i32"
+        }
+      ],
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "set_at",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false,
+              "mutable": true
+            },
+            {
+              "name": "i",
+              "type": {
+                "kind": "IdentExpr",
+                "name": "usize"
+              },
+              "defaultValue": null,
+              "variadic": false
+            },
+            {
+              "name": "v",
+              "type": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              },
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": null,
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [
+              {
+                "kind": "AssignStmt",
+                "target": {
+                  "kind": "IndexExpr",
+                  "target": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "self"
+                    },
+                    "field": "slots"
+                  },
+                  "index": {
+                    "kind": "IdentExpr",
+                    "name": "i"
+                  }
+                },
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "v"
+                }
+              }
+            ],
+            "trailing": null
+          },
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "bump_nth",
+      "visibility": "private",
+      "typeParams": [
+        {
+          "name": "C",
+          "bound": {
+            "kind": "BinaryExpr",
+            "op": "bitand",
+            "left": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Index"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "usize"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
+            },
+            "right": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "IndexSet"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "usize"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
+            }
+          },
+          "isComptimeValue": false
+        }
+      ],
+      "params": [
+        {
+          "name": "c",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "C"
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "i",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "usize"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": null,
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "c"
+              },
+              "index": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "slot"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "i"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IndexExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "c"
+                },
+                "index": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "slot"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IdentExpr",
+                        "name": "i"
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "100n"
+              }
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Shelf",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "items",
+          "type": {
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "IdentExpr",
+                "name": "Counter"
+              }
+            }
+          },
+          "visibility": "public",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "ImplDecl",
+      "typeParams": [],
+      "forType": {
+        "kind": "IdentExpr",
+        "name": "Shelf"
+      },
+      "traitName": "Index",
+      "traitArgs": [
+        {
+          "kind": "IdentExpr",
+          "name": "usize"
+        },
+        {
+          "kind": "MutableTypeExpr",
+          "inner": {
+            "kind": "IdentExpr",
+            "name": "Counter"
+          }
+        }
+      ],
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "at",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            },
+            {
+              "name": "i",
+              "type": {
+                "kind": "IdentExpr",
+                "name": "usize"
+              },
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Counter"
+            }
+          },
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [
+              {
+                "kind": "ExprStmt",
+                "expr": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "println"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "at "
+                          },
+                          {
+                            "kind": "interp",
+                            "expr": {
+                              "kind": "IdentExpr",
+                              "name": "i"
+                            }
+                          }
+                        ]
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "ReturnStmt",
+                "value": {
+                  "kind": "IndexExpr",
+                  "target": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "self"
+                    },
+                    "field": "items"
+                  },
+                  "index": {
+                    "kind": "IdentExpr",
+                    "name": "i"
+                  }
+                }
+              }
+            ],
+            "trailing": null
+          },
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "TraitDecl",
+      "name": "Stepper",
+      "visibility": "private",
+      "typeParams": [],
+      "requires": null,
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "step",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "body": null,
+          "decorators": []
+        },
+        {
+          "kind": "FnDecl",
+          "name": "advance",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            },
+            {
+              "name": "xs",
+              "type": {
+                "kind": "MutableTypeExpr",
+                "inner": {
+                  "kind": "ArrayTypeExpr",
+                  "element": {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                }
+              },
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "IdentExpr",
+            "name": "void"
+          },
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [
+              {
+                "kind": "AssignStmt",
+                "target": {
+                  "kind": "IndexExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "xs"
+                  },
+                  "index": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "slot"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "0n"
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                "value": {
+                  "kind": "BinaryExpr",
+                  "op": "add",
+                  "left": {
+                    "kind": "IndexExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "xs"
+                    },
+                    "index": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "slot"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          },
+                          "spread": false
+                        }
+                      ]
+                    }
+                  },
+                  "right": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "self"
+                      },
+                      "field": "step"
+                    },
+                    "args": []
+                  }
+                }
+              }
+            ],
+            "trailing": null
+          },
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Two",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [],
+      "decorators": []
+    },
+    {
+      "kind": "ImplDecl",
+      "typeParams": [],
+      "forType": {
+        "kind": "IdentExpr",
+        "name": "Two"
+      },
+      "traitName": "Stepper",
+      "traitArgs": [],
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "step",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "body": {
+            "kind": "BlockExpr",
+            "stmts": [],
+            "trailing": {
+              "kind": "IntLitExpr",
+              "value": "2n"
+            }
+          },
+          "decorators": [],
+          "isExpressionBodied": true
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "a"
+            },
+            "type": {
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              }
+            },
+            "value": {
+              "kind": "SeqLitExpr",
+              "elements": [
+                {
+                  "kind": "IntLitExpr",
+                  "value": "10n"
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "20n"
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "30n"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "a"
+              },
+              "index": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "slot"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "1n"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IndexExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "a"
+                },
+                "index": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "slot"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IntLitExpr",
+                        "value": "1n"
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "1n"
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "a = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "a"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          }
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "a"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "1n"
+                          }
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "a"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "2n"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "holder"
+            },
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "Holder"
+              },
+              "items": [
+                {
+                  "kind": "field",
+                  "name": "items",
+                  "value": {
+                    "kind": "SeqLitExpr",
+                    "elements": [
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "1n"
+                      },
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "2n"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "holder"
+                },
+                "field": "items"
+              },
+              "index": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "slot"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "0n"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "mul",
+              "left": {
+                "kind": "IndexExpr",
+                "target": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "holder"
+                  },
+                  "field": "items"
+                },
+                "index": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "slot"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IntLitExpr",
+                        "value": "0n"
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "7n"
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "holder = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "holder"
+                            },
+                            "field": "items"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          }
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "holder"
+                            },
+                            "field": "items"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "1n"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "rows"
+            },
+            "type": {
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "Row"
+                }
+              }
+            },
+            "value": {
+              "kind": "SeqLitExpr",
+              "elements": [
+                {
+                  "kind": "StructLitExpr",
+                  "typeName": {
+                    "kind": "IdentExpr",
+                    "name": "Row"
+                  },
+                  "items": [
+                    {
+                      "kind": "field",
+                      "name": "cells",
+                      "value": {
+                        "kind": "SeqLitExpr",
+                        "elements": [
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          },
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "StructLitExpr",
+                  "typeName": {
+                    "kind": "IdentExpr",
+                    "name": "Row"
+                  },
+                  "items": [
+                    {
+                      "kind": "field",
+                      "name": "cells",
+                      "value": {
+                        "kind": "SeqLitExpr",
+                        "elements": [
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          },
+                          {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IndexExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "rows"
+                  },
+                  "index": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "slot"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "1n"
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                "field": "cells"
+              },
+              "index": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "slot"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "0n"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IndexExpr",
+                "target": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IndexExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "rows"
+                    },
+                    "index": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "slot"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "IntLitExpr",
+                            "value": "1n"
+                          },
+                          "spread": false
+                        }
+                      ]
+                    }
+                  },
+                  "field": "cells"
+                },
+                "index": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "slot"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IntLitExpr",
+                        "value": "0n"
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "5n"
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "rows = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IndexExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "rows"
+                              },
+                              "index": {
+                                "kind": "IntLitExpr",
+                                "value": "1n"
+                              }
+                            },
+                            "field": "cells"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "shelf"
+            },
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "Shelf"
+              },
+              "items": [
+                {
+                  "kind": "field",
+                  "name": "items",
+                  "value": {
+                    "kind": "SeqLitExpr",
+                    "elements": [
+                      {
+                        "kind": "StructLitExpr",
+                        "typeName": {
+                          "kind": "IdentExpr",
+                          "name": "Counter"
+                        },
+                        "items": [
+                          {
+                            "kind": "field",
+                            "name": "count",
+                            "value": {
+                              "kind": "IntLitExpr",
+                              "value": "1n"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "StructLitExpr",
+                        "typeName": {
+                          "kind": "IdentExpr",
+                          "name": "Counter"
+                        },
+                        "items": [
+                          {
+                            "kind": "field",
+                            "name": "count",
+                            "value": {
+                              "kind": "IntLitExpr",
+                              "value": "2n"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "FieldExpr",
+              "target": {
+                "kind": "IndexExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "shelf"
+                },
+                "index": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "slot"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IntLitExpr",
+                        "value": "1n"
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "field": "count"
+            },
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IndexExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "shelf"
+                  },
+                  "index": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "slot"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "1n"
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                "field": "count"
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "10n"
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "shelf = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IndexExpr",
+                            "target": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "shelf"
+                              },
+                              "field": "items"
+                            },
+                            "index": {
+                              "kind": "IntLitExpr",
+                              "value": "1n"
+                            }
+                          },
+                          "field": "count"
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "shared"
+            },
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "Counter"
+              },
+              "items": [
+                {
+                  "kind": "field",
+                  "name": "count",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "0n"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "FieldExpr",
+              "target": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "pick"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "shared"
+                    },
+                    "spread": false
+                  }
+                ]
+              },
+              "field": "count"
+            },
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "pick"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IdentExpr",
+                        "name": "shared"
+                      },
+                      "spread": false
+                    }
+                  ]
+                },
+                "field": "count"
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "3n"
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "shared = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "shared"
+                          },
+                          "field": "count"
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "words"
+            },
+            "type": {
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "string"
+                }
+              }
+            },
+            "value": {
+              "kind": "SeqLitExpr",
+              "elements": [
+                {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "a"
+                    }
+                  ]
+                },
+                {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "b"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "words"
+              },
+              "index": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "slot"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "1n"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IndexExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "words"
+                },
+                "index": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "slot"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IntLitExpr",
+                        "value": "1n"
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "right": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "!"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "words = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "words"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          }
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "words"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "1n"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "cell"
+            },
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "Cell"
+              },
+              "items": [
+                {
+                  "kind": "field",
+                  "name": "slots",
+                  "value": {
+                    "kind": "SeqLitExpr",
+                    "elements": [
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "1n"
+                      },
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "2n"
+                      },
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "3n"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "cell"
+              },
+              "index": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "slot"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "2n"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "sub",
+              "left": {
+                "kind": "IndexExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "cell"
+                },
+                "index": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "slot"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IntLitExpr",
+                        "value": "2n"
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "1n"
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "cell = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "cell"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "2n"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "GenericInstExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "bump_nth"
+                },
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "Cell"
+                  }
+                ]
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IdentExpr",
+                    "name": "cell"
+                  },
+                  "spread": false
+                },
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "0n"
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "bounded = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "cell"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "k"
+            },
+            "type": {
+              "kind": "IdentExpr",
+              "name": "usize"
+            },
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n"
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "move_k"
+            },
+            "type": null,
+            "value": {
+              "kind": "LambdaExpr",
+              "params": [],
+              "returnType": null,
+              "body": {
+                "kind": "BlockExpr",
+                "stmts": [
+                  {
+                    "kind": "AssignStmt",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "k"
+                    },
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "2n"
+                    }
+                  }
+                ],
+                "trailing": {
+                  "kind": "IntLitExpr",
+                  "value": "1n"
+                }
+              }
+            }
+          },
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "a"
+              },
+              "index": {
+                "kind": "IdentExpr",
+                "name": "k"
+              }
+            },
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IndexExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "a"
+                },
+                "index": {
+                  "kind": "IdentExpr",
+                  "name": "k"
+                }
+              },
+              "right": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "move_k"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "rebound = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "a"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          }
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "a"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "2n"
+                          }
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " k="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "k"
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "two"
+            },
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "Two"
+              },
+              "items": []
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "two"
+                },
+                "field": "advance"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IdentExpr",
+                    "name": "a"
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "default method = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "a"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "a"
+              },
+              "index": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "slot"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "2n"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IndexExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "a"
+                },
+                "index": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "slot"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IntLitExpr",
+                        "value": "2n"
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "1n"
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "written out = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "a"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "2n"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

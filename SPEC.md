@@ -326,7 +326,7 @@ Membership   : in   (sugar for `right.contains(left)`)
 Type test    : is Type   (in `match` arms and in `if`/`else` conditions ; narrows the scrutinee)
               !is Type   (negated form, parsed as `bang` + `kw_is` ; desugars to `!(x is Type)`)
 Logical      : && || !
-Assignment   : =  (also compound : += -= *= /= %=, each desugaring `lhs op= rhs` → `lhs = lhs op rhs`)
+Assignment   : =  (also compound : += -= *= /= %=, each `lhs op= rhs` meaning `lhs = lhs op rhs`, `lhs` evaluated once)
 Declaration  : x :: value           (immutable, type inferred)
                x := value           (mutable,   type inferred)
                x: T : value         (immutable, typed)
@@ -1589,7 +1589,7 @@ Built-in operators dispatch through stdlib traits when the operand types are not
 | `a[i] = v`      | `IndexSet<I, T>`   | `set_at :: fn(self, i: I, v: T)`            |
 | `v in a`        | `Contains<T>`      | `contains :: fn(self, v: T) -> bool`        |
 
-Compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`) desugar to `lhs = lhs <op> rhs` at parse time, so they reuse the corresponding trait dispatch. Because the result is rebound to `lhs`, a compound assignment requires the operator's `Out` to be assignable to `lhs`'s type — always true in the homogeneous `Out = Self` case; a heterogeneous `Out` (e.g. `Instant - Instant -> Duration`) simply can't be used with the compound form.
+Compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`) desugar to `lhs = lhs <op> rhs` at parse time, so they reuse the corresponding trait dispatch. The place `lhs` is still evaluated once: in `a[i()] += v()`, `a` and `i()` run first, then the element is read, then `v()` runs, and the result is written back to that same element — `i()` runs once, where the spelled-out `a[i()] = a[i()] + v()` would run it twice. Because the result is rebound to `lhs`, a compound assignment requires the operator's `Out` to be assignable to `lhs`'s type — always true in the homogeneous `Out = Self` case; a heterogeneous `Out` (e.g. `Instant - Instant -> Duration`) simply can't be used with the compound form.
 
 Resolution rule for **arithmetic** operators (`+ - * / %`):
 1. If both operands are primitive numerics, use the built-in op (current behaviour).

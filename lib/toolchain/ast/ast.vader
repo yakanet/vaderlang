@@ -568,12 +568,39 @@ export RestTarget :: struct {
 }
 
 /// An assignment to an existing place, `target = value`.
+///
+/// `lhs op= rhs` parses to one too : `value` is `lhs op rhs` over the SAME `lhs`
+/// node as `target`, which `compound_assign_op` recognises.
 export AssignStmt :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
     target: Expr
     value:  Expr
 }
+
+/// The operator of a compound assignment `lhs op= rhs`, or null for a plain one.
+///
+/// `target` and `value.left` are one node, so they carry one span ; a
+/// hand-written `a = a + 1` reads an `a` of its own, at another position — in a
+/// cloned body too, where every node gets a column of its own. A pass that
+/// evaluates `lhs`'s operands once, or prints the `op=` back, keys on this — and a
+/// pass that clones an assignment keeps the two sides one node.
+/// @param s  the assignment.
+/// @return   the arithmetic operator the `op=` spells, or null.
+export compound_assign_op :: fn(s: AssignStmt) -> BinaryOp | null {
+    if s.value is BinaryExpr as value {
+        if value.left.span == s.target.span && is_arith_op(value.op) {
+            return value.op
+        }
+    }
+    return null
+}
+
+/// Whether `op` is one of the five arithmetic operators — `+` `-` `*` `/` `%`,
+/// the ones a compound assignment spells.
+/// @param op  the operator.
+export is_arith_op :: fn(op: BinaryOp) -> bool =
+    op == .Add || op == .Sub || op == .Mul || op == .Div || op == .Mod
 
 /// An expression evaluated for its effect, its value discarded.
 export ExprStmt :: struct {

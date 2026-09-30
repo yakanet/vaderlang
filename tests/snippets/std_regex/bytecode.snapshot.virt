@@ -2651,26 +2651,23 @@ end
 fn 28 regex$truncate_threads (ref,usize) -> ref
   local out ref
   local i usize
-  local __for_hi_0 usize
-  local $idx_8 ref
+  local $idx_7 ref
   array.new 20 0   ; regex$Thread[][]
   local.set 2   ; out
   i64.const 0
   local.set 3   ; i
-  local.get 1   ; arg 1
-  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
       local.get 3   ; i
-      local.get 4   ; __for_hi_0
+      local.get 1   ; arg 1
       u64.lt
       if $L2 void
         local.get 0   ; arg 0
         local.get 3   ; i
         array.get 20   ; regex$Thread[][]
-        local.set 5   ; $idx_8
+        local.set 4   ; $idx_7
         local.get 2   ; out
-        local.get 5   ; $idx_8
+        local.get 4   ; $idx_7
         array.push 21 2   ; regex$Thread[]
         local.get 3   ; i
         i64.const 1
@@ -2839,13 +2836,12 @@ end
 fn 33 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
   local shift usize
   local i usize
-  local __for_hi_0 usize
   local inst any
-  local $add_16 usize
-  local $add_19 usize
-  local $struct_20 ref
-  local $struct_25 ref
-  local $cast_26 any
+  local $add_15 usize
+  local $add_18 usize
+  local $struct_19 ref
+  local $struct_24 ref
+  local $cast_25 any
   local.get 0   ; arg 0
   array.len
   local.get 4   ; arg 4
@@ -2853,61 +2849,59 @@ fn 33 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
   local.set 5   ; shift
   local.get 2   ; arg 2
   local.set 6   ; i
-  local.get 3   ; arg 3
-  local.set 7   ; __for_hi_0
   block $L0 void
     loop $L1 void
       local.get 6   ; i
-      local.get 7   ; __for_hi_0
+      local.get 3   ; arg 3
       u64.lt
       if $L2 void
         local.get 1   ; arg 1
         local.get 6   ; i
         array.get 25   ; union[][]
-        local.tee 8   ; inst
+        local.tee 7   ; inst
         type_check 34   ; regex$InstSplit
         if $L3 void
-          local.get 8   ; inst
+          local.get 7   ; inst
           ref.cast 34   ; -> regex$InstSplit
           struct.get 34 0   ; regex$InstSplit.a
           ref.cast 8   ; -> usize
           local.get 5   ; shift
           i64.add
-          local.set 9   ; $add_16
-          local.get 8   ; inst
+          local.set 8   ; $add_15
+          local.get 7   ; inst
           ref.cast 34   ; -> regex$InstSplit
           struct.get 34 1   ; regex$InstSplit.b
           ref.cast 8   ; -> usize
           local.get 5   ; shift
           i64.add
-          local.set 10   ; $add_19
-          local.get 9   ; $add_16
-          local.get 10   ; $add_19
+          local.set 9   ; $add_18
+          local.get 8   ; $add_15
+          local.get 9   ; $add_18
           struct.new 34   ; regex$InstSplit
-          local.set 11   ; $struct_20
+          local.set 10   ; $struct_19
           local.get 0   ; arg 0
-          local.get 11   ; $struct_20
+          local.get 10   ; $struct_19
           array.push 26   ; union[]
         else
-          local.get 8   ; inst
+          local.get 7   ; inst
           type_check 31   ; regex$InstJump
           if $L4 void
-            local.get 8   ; inst
+            local.get 7   ; inst
             ref.cast 31   ; -> regex$InstJump
             struct.get 31 0   ; regex$InstJump.target
             ref.cast 8   ; -> usize
             local.get 5   ; shift
             i64.add
             struct.new 31   ; regex$InstJump
-            local.set 12   ; $struct_25
+            local.set 11   ; $struct_24
             local.get 0   ; arg 0
-            local.get 12   ; $struct_25
+            local.get 11   ; $struct_24
             array.push 26   ; union[]
           else
-            local.get 8   ; inst
-            local.set 13   ; $cast_26
+            local.get 7   ; inst
+            local.set 12   ; $cast_25
             local.get 0   ; arg 0
-            local.get 13   ; $cast_26
+            local.get 12   ; $cast_25
             array.push 26   ; union[]
           end $L4
         end $L3

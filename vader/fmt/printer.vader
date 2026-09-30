@@ -1296,13 +1296,10 @@ emit_destructure_assign_stmt :: fn(self: Printer!, s: p.DestructureAssignStmt) -
 }
 
 emit_assign_stmt :: fn(self: Printer!, s: p.AssignStmt) -> void {
-    // Recover compound assignment (`+=`, `-=`, `*=`, `/=`, `%=`). The
-    // parser desugars `lhs += rhs` into `AssignStmt { target = lhs,
-    // value = BinaryExpr(op, lhs, rhs) }`, reusing the same `lhs` node
-    // for `target` and `value.left` ; identical spans + a compound-
-    // eligible op means the source had the augmented form. Falling
-    // back to `=` for anything else preserves the desugared expansion
-    // when the user typed it manually.
+    // Recover compound assignment (`+=`, `-=`, `*=`, `/=`, `%=`) — the parser
+    // desugars `lhs += rhs` to `lhs = lhs + rhs` (`p.compound_assign_op`).
+    // Falling back to `=` for anything else preserves the expansion when the
+    // user typed it out.
     aug :: compound_assign_symbol(s)
     match aug {
         is null -> {
@@ -1325,29 +1322,11 @@ emit_assign_stmt :: fn(self: Printer!, s: p.AssignStmt) -> void {
     }
 }
 
-// Return the augmented-assignment symbol (`"+="`, `"-="`, …) iff `s`
-// matches the parser's compound-assign desugar shape : `target` and
-// `value.left` are the same source span, and the binary op is one of
-// the compound-eligible arithmetic ops. Returns `null` otherwise so the
-// caller falls back to the plain `=` rendering.
+// The augmented-assignment symbol (`"+="`, `"-="`, …) of a compound
+// assignment, or `null` so the caller renders the plain `=`.
 compound_assign_symbol :: fn(s: p.AssignStmt) -> string | null {
-    // @partial: only a BinaryExpr value can carry a compound-assign shape; any other value → null.
-    return @partial match s.value as b {
-        is p.BinaryExpr -> {
-            if b.left.span.start.offset != s.target.span.start.offset { return null }
-            if b.left.span.end.offset != s.target.span.end.offset { return null }
-            // @partial: only the compound-eligible arithmetic ops have a symbol; others → null.
-            @partial match b.op {
-                .Add -> "+="
-                .Sub -> "-="
-                .Mul -> "*="
-                .Div -> "/="
-                .Mod -> "%="
-                _    -> null
-            }
-        }
-        _               -> null
-    }
+    op :: p.compound_assign_op(s) ?? return null
+    return "${binary_op_symbol(op)}="
 }
 
 emit_return_stmt :: fn(self: Printer!, s: p.ReturnStmt) -> void {
@@ -1790,7 +1769,6 @@ binary_precedence :: fn(op: p.BinaryOp) -> i32 = match op {
 is_non_assoc_binop :: fn(op: p.BinaryOp) = op == .Eq || op == .Neq || op == .Lt
     || op == .Lte || op == .Gt || op == .Gte || op == .Is || op == .In || op == .NotIn
 
-is_arith_op   :: fn(op: p.BinaryOp) = op == .Add || op == .Sub || op == .Mul || op == .Div || op == .Mod
 is_shift_op   :: fn(op: p.BinaryOp) = op == .Shl || op == .Shr
 is_bitwise_op :: fn(op: p.BinaryOp) = op == .BitAnd || op == .BitOr || op == .BitXor
 
@@ -1801,10 +1779,10 @@ is_bitwise_op :: fn(op: p.BinaryOp) = op == .BitAnd || op == .BitOr || op == .Bi
 // (`a & b | c`). This only ever ADDS parens (OR-ed into `need_parens`), so it
 // can't drop a precedence-required one.
 mixed_family_parens :: fn(parent: p.BinaryOp, child: p.BinaryOp) -> bool {
-    p_in :: is_arith_op(parent) || is_shift_op(parent) || is_bitwise_op(parent)
-    c_in :: is_arith_op(child)  || is_shift_op(child)  || is_bitwise_op(child)
+    p_in :: p.is_arith_op(parent) || is_shift_op(parent) || is_bitwise_op(parent)
+    c_in :: p.is_arith_op(child)  || is_shift_op(child)  || is_bitwise_op(child)
     if !p_in || !c_in { return false }
-    if is_arith_op(parent)   && is_arith_op(child)   { return false }
+    if p.is_arith_op(parent) && p.is_arith_op(child) { return false }
     if is_shift_op(parent)   && is_shift_op(child)   { return false }
     if is_bitwise_op(parent) && is_bitwise_op(child) { return parent != child }
     return true

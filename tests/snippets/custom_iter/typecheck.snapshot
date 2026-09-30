@@ -13,7 +13,6 @@
   expr 10262:33 BinaryExpr     :: bool
   expr 10262:34 IdentExpr      :: Continuation
   expr 10262:35 DotVariantExpr :: Continuation
-  expr 10262:39 IdentExpr      :: usize
   expr 10262:40 BinaryExpr     :: usize
   expr 10262:41 IdentExpr      :: usize
   expr 10262:44 IdentExpr      :: usize

@@ -348,10 +348,11 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
             }
         }
         is AST.AssignStmt            -> {
+            target :: substitute_expr_full(s.target, subst)
             return AST.AssignStmt {
                 .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
-                .target = substitute_expr_full(s.target, subst),
-                .value = substitute_expr_full(s.value, subst),
+                .target = target,
+                .value = clone_assign_value(s, target, subst),
             }
         }
         is AST.DestructureAssignStmt -> {
@@ -404,6 +405,24 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
         // TODO : DeferStmt. Falls through unchanged for the sketch.
         _                            -> { return s }
     }
+}
+
+// The clone of an assignment's value. A compound assignment's `value.left` IS its
+// target, so its clone is the cloned `target` : two copies would each get an id
+// and a stamped span of their own — no longer read as `op=`, and each lowered on
+// its own, evaluating the place's operands twice.
+clone_assign_value :: fn(s: AST.AssignStmt, target: AST.Expr, subst: Subst) -> AST.Expr {
+    if AST.compound_assign_op(s) != null {
+        if s.value is AST.BinaryExpr as value {
+            return AST.BinaryExpr {
+                .span = value.span, .id = AST.UNASSIGNED_NODE_ID,
+                .op = value.op,
+                .left = target,
+                .right = substitute_expr_full(value.right, subst),
+            }
+        }
+    }
+    return substitute_expr_full(s.value, subst)
 }
 
 /// Clone a `let` binding so a materialised body owns it (the resolver keys

@@ -10,8 +10,71 @@ import "vader/resolver/symbol"
 import "vader/types"
 import "toolchain/span"
 
-lower_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt =
-    lower_assign_one(ctx, assign_stmt.target, lower_expr(ctx, assign_stmt.value), assign_stmt.span)
+lower_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt {
+    // A bare name has no operands ; a field or an element does.
+    if compound_assign_op(assign_stmt) != null && !(assign_stmt.target is IdentExpr) {
+        return lower_compound_assign(ctx, assign_stmt)
+    }
+    value :: lower_expr(ctx, assign_stmt.value)
+    return lower_assign_one(ctx, assign_stmt.target, value, assign_stmt.span)
+}
+
+// `lhs op= rhs`, whose `lhs` node is both the target and the left operand of
+// `value`. The operands of that place — an index, a receiver that is not itself a
+// place — are evaluated once, ahead of the statement, then the write and the read
+// of `lhs op rhs` both lower them to that one value (`bound_operands`). The place
+// itself is read twice : a name, a field or an array element does no work.
+lower_compound_assign :: fn(ctx: FnLowerCtx!, s: AssignStmt) -> LoweredStmt {
+    // A compound assignment in a block of `rhs` gets a table of its own ; this one
+    // is back before this statement's write lowers.
+    outer :: ctx.bound_operands
+    ctx.bound_operands = MutableMap<usize, LoweredExpr> {}
+    stmts: LoweredStmt[]!: []
+    bind_place_operands(ctx, s.target, stmts)
+    stmts.push(lower_assign_one(ctx, s.target, lower_expr(ctx, s.value), s.span))
+    ctx.bound_operands = outer
+    return wrap_stmts(s.span, stmts)
+}
+
+// Bind the operands of the place `target` : a field's receiver, an element's
+// receiver and index.
+bind_place_operands :: fn(ctx: FnLowerCtx!, target: Expr, out: LoweredStmt[]!) -> void {
+    // @partial: only a field or an element has operands ; a bare name has none.
+    @partial match target {
+        is FieldExpr -> { bind_place_receiver(ctx, target.target, out) }
+        is IndexExpr -> {
+            bind_place_receiver(ctx, target.target, out)
+            bind_place_operand(ctx, target.index, out)
+        }
+        _ -> {}
+    }
+}
+
+// A receiver that is itself a place — a name, a field, an array element — is read
+// again, so only its own operands are bound. Any other is bound whole, an element
+// an `Index` impl returns included : its read is a call.
+bind_place_receiver :: fn(ctx: FnLowerCtx!, receiver: Expr, out: LoweredStmt[]!) -> void {
+    // @partial: a name, a field or an element may be a place ; anything else is a value.
+    @partial match receiver {
+        is IdentExpr | FieldExpr -> { bind_place_operands(ctx, receiver, out) }
+        is IndexExpr -> {
+            if ctx.types.expr_type(receiver.target) is ArrayType {
+                bind_place_operands(ctx, receiver, out)
+            } else {
+                bind_place_operand(ctx, receiver, out)
+            }
+        }
+        _ -> { bind_place_operand(ctx, receiver, out) }
+    }
+}
+
+// `rhs` runs between the read and the write, so the operand stays in place only
+// when nothing can rebind it.
+bind_place_operand :: fn(ctx: FnLowerCtx!, operand: Expr, out: LoweredStmt[]!) -> void {
+    value :: lower_expr(ctx, operand)
+    bound :: bind_unless_invariant(ctx, value, "place_operand", span_of(value), out)
+    ctx.bound_operands[operand.id] = bound
+}
 
 /// One write to one target, with the value ALREADY lowered.
 ///
@@ -176,12 +239,13 @@ lower_index :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type) -> LoweredExpr 
     // TypeParam-bounded `Index` receiver : the typer recorded the dispatch on
     // this index expr — emit a virtual `Index.at(c, i)` call so the erased
     // receiver's runtime tag picks the impl, mirroring the `c.at(i)` method form
-    // (`try_lower_virtual_call`).
-    if ctx.typed.bounded_dispatch_trait[expr.id] is string as bounded_trait {
-        ctx.project.virtually_dispatched_traits.add(bounded_trait)
+    // (`try_lower_virtual_call`). The entry only says the index dispatches : in
+    // `c[i] op= v` one node is read AND written, so it may name `IndexSet`.
+    if ctx.typed.bounded_dispatch_trait[expr.id] != null {
+        ctx.project.virtually_dispatched_traits.add(TRAIT_INDEX)
         return LoweredVirtualCall {
             .span = expr.span, .type = type,
-            .trait_name = bounded_trait, .method = METHOD_AT,
+            .trait_name = TRAIT_INDEX, .method = METHOD_AT,
             .receiver = lower_expr(ctx, expr.target),
             .args = [lower_expr(ctx, expr.index)], .param_types = [],
         }
@@ -328,13 +392,15 @@ try_lower_index_set_assign :: fn(
             // dispatch on this index expr (`check_assign`) — emit a virtual
             // `IndexSet.set_at(c, i, v)` call (erased receiver, runtime tag picks
             // the impl), mirroring the read-side `Index.at` vcall in `lower_index`.
-            if ctx.typed.bounded_dispatch_trait[target.id] is string as bounded_trait {
-                ctx.project.virtually_dispatched_traits.add(bounded_trait)
+            // As there, the entry only says the index dispatches : `c[i] op= v`
+            // reads the same node, which may have recorded `Index` last.
+            if ctx.typed.bounded_dispatch_trait[target.id] != null {
+                ctx.project.virtually_dispatched_traits.add(TRAIT_INDEX_SET)
                 return LoweredExprStmt {
                     .span = span,
                     .expr = LoweredVirtualCall {
                         .span = span, .type = TY_VOID,
-                        .trait_name = bounded_trait, .method = METHOD_SET_AT,
+                        .trait_name = TRAIT_INDEX_SET, .method = METHOD_SET_AT,
                         .receiver = lower_expr(ctx, target.target),
                         .args = [lower_expr(ctx, target.index), value], .param_types = [],
                     },

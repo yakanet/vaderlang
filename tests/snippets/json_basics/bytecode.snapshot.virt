@@ -4214,28 +4214,25 @@ end
 
 fn 42 std_core$write_zeros (ref,usize,i32) -> usize
   local i i32
-  local __for_hi_0 i32
-  local $cast_7 usize
-  local $add_8 usize
+  local $cast_6 usize
+  local $add_7 usize
   i32.const 0
   local.set 3   ; i
-  local.get 2   ; arg 2
-  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
       local.get 3   ; i
-      local.get 4   ; __for_hi_0
+      local.get 2   ; arg 2
       i32.lt
       if $L2 void
         local.get 3   ; i
         i32.to_i64
-        local.set 5   ; $cast_7
+        local.set 4   ; $cast_6
         local.get 1   ; arg 1
-        local.get 5   ; $cast_7
+        local.get 4   ; $cast_6
         i64.add
-        local.set 6   ; $add_8
+        local.set 5   ; $add_7
         local.get 0   ; arg 0
-        local.get 6   ; $add_8
+        local.get 5   ; $add_7
         i32.const 48
         call 111   ; std_core$Buffer$ByteAccess$store_u8_vt
         local.get 3   ; i
@@ -4248,9 +4245,9 @@ fn 42 std_core$write_zeros (ref,usize,i32) -> usize
   end $L0
   local.get 2   ; arg 2
   i32.to_i64
-  local.set 5   ; $cast_7
+  local.set 4   ; $cast_6
   local.get 1   ; arg 1
-  local.get 5   ; $cast_7
+  local.get 4   ; $cast_6
   i64.add
   return
 end
@@ -6611,7 +6608,6 @@ end
 fn 77 std_string$pad_start (string,usize,char) -> string
   local n usize
   local sb ref
-  local __for_hi_0 usize
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
   local.tee 3   ; n
@@ -6624,12 +6620,10 @@ fn 77 std_string$pad_start (string,usize,char) -> string
   array.new 47 0   ; string[][]
   struct.new 32   ; std_string_builder$StringBuilder
   local.set 4   ; sb
-  local.get 1   ; arg 1
-  local.set 5   ; __for_hi_0
   block $L1 void
     loop $L2 void
       local.get 3   ; n
-      local.get 5   ; __for_hi_0
+      local.get 1   ; arg 1
       u64.lt
       if $L3 void
         local.get 4   ; sb
@@ -6982,19 +6976,16 @@ end
 fn 91 std_string_builder$append_repeated (ref,char,i32) -> void
   local s string
   local _ i32
-  local __for_hi_0 i32
   local.get 1   ; arg 1
   call 5   ; std_core$utf8_encode
   call.import 2   ; std_core$bytes_to_string
   local.set 3   ; s
   i32.const 0
   local.set 4   ; _
-  local.get 2   ; arg 2
-  local.set 5   ; __for_hi_0
   block $L0 void
     loop $L1 void
       local.get 4   ; _
-      local.get 5   ; __for_hi_0
+      local.get 2   ; arg 2
       i32.lt
       if $L2 void
         local.field 0 32 0   ; arg 0.parts
@@ -7177,20 +7168,18 @@ end
 fn 96 std_collections$rehash__string__Any (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
+  local e usize
   local __for_hi_1 usize
-  local __for_hi_2 usize
   local s usize
-  local $cast_32 i32
+  local $cast_31 i32
   array.new 43 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
-  local.get 1   ; arg 1
-  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 4   ; __for_hi_1
+      local.get 1   ; arg 1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -7209,18 +7198,18 @@ fn 96 std_collections$rehash__string__Any (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; __for_hi_1
+  local.set 4   ; e
   local.field 0 48 4   ; arg 0.size
   ref.cast 7   ; -> usize
-  local.set 5   ; __for_hi_2
+  local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
-      local.get 4   ; __for_hi_1
-      local.get 5   ; __for_hi_2
+      local.get 4   ; e
+      local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
         local.field 0 48 0   ; arg 0.ekeys
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         array.get 47   ; string[][]
         ref.cast 1   ; -> string
         call 110   ; std_core$string$Hash$hash_vt
@@ -7245,19 +7234,19 @@ fn 96 std_collections$rehash__string__Any (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_32
+        local.set 7   ; $cast_31
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_32
+        local.get 7   ; $cast_31
         store_slot_i32
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
-        local.set 4   ; __for_hi_1
+        local.set 4   ; e
         br $L4
       end $L5
     end $L4

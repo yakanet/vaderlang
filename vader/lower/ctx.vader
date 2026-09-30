@@ -477,6 +477,13 @@ export FnLowerCtx :: struct {
     /// entry, popped at exit ; shape mirrors `narrowed` in typecheck.
     comptime_bindings:  MutableMap<i32, LoweredExpr>
 
+    /// The operands of a compound assignment's place, evaluated once ahead of
+    /// it : keyed by AST node id, the value `lower_expr` returns for that node
+    /// while the statement is lowered, so the write and the read in
+    /// `lhs op rhs` share one evaluation. Transient — `lower_compound_assign`
+    /// removes its entries once the statement is lowered.
+    bound_operands:     MutableMap<usize, LoweredExpr> = MutableMap<usize, LoweredExpr> {}
+
     /// True while lowering a `generator` body: `lower_stmt` emits a
     /// transient `LoweredYield` marker for `yield e` (consumed by the
     /// generator transform) instead of the not-implemented trap.

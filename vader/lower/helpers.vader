@@ -297,12 +297,13 @@ bind_unless_stable :: fn(
 }
 
 // Whether `value` reads the same however much code runs before the read — a loop
-// body included : a literal, or a name nothing rebinds — a fn, a const, a `::`
-// local. A parameter can be reassigned, so it is not one.
+// body included : a literal, or a name nothing rebinds — a fn, a const, a local or
+// parameter no assignment rebinds (`rebind_free` ; a `for` variable only within
+// one iteration of its own loop, the one place it is read).
 // @partial: every other expression may do work or read a different value.
 is_invariant_operand :: fn(ctx: FnLowerCtx, value: LoweredExpr) -> bool = @partial match value {
     is LoweredIdent -> value.symbol.kind == .Fn || value.symbol.kind == .Const
-        || ctx.typed.resolved.immutable_locals[value.symbol.id] != null
+        || value.symbol.id in ctx.typed.resolved.rebind_free
     _ -> is_literal(value)
 }
 

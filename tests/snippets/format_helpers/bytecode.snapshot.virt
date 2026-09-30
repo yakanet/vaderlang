@@ -534,7 +534,6 @@ end
 fn 11 std_string$pad_start (string,usize,char) -> string
   local n usize
   local sb ref
-  local __for_hi_0 usize
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
   local.tee 3   ; n
@@ -547,12 +546,10 @@ fn 11 std_string$pad_start (string,usize,char) -> string
   array.new 13 0   ; string[][]
   struct.new 12   ; std_string_builder$StringBuilder
   local.set 4   ; sb
-  local.get 1   ; arg 1
-  local.set 5   ; __for_hi_0
   block $L1 void
     loop $L2 void
       local.get 3   ; n
-      local.get 5   ; __for_hi_0
+      local.get 1   ; arg 1
       u64.lt
       if $L3 void
         local.get 4   ; sb
@@ -577,7 +574,6 @@ end
 fn 12 std_string$pad_end (string,usize,char) -> string
   local n usize
   local sb ref
-  local __for_hi_0 usize
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
   local.tee 3   ; n
@@ -592,12 +588,10 @@ fn 12 std_string$pad_end (string,usize,char) -> string
   local.tee 4   ; sb
   local.get 0   ; arg 0
   call 18   ; std_string_builder$append
-  local.get 1   ; arg 1
-  local.set 5   ; __for_hi_0
   block $L1 void
     loop $L2 void
       local.get 3   ; n
-      local.get 5   ; __for_hi_0
+      local.get 1   ; arg 1
       u64.lt
       if $L3 void
         local.get 4   ; sb

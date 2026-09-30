@@ -271,13 +271,13 @@ static void* __lambda_snippet_0(void) {
 
 static void* snippet_build__i32__(size_t l0, void* l1) {
     void* l2 = NULL;
-    void* l5 = NULL;
-    size_t l3, l4;
+    void* l4 = NULL;
+    size_t l3;
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
     int64_t t2;
     vader_box_t* gc_roots[1] = { &t1 };
-    void** gc_raw_roots[4] = { &l1, &l2, &l5, &t0 };
+    void** gc_raw_roots[4] = { &l1, &l2, &l4, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 13 "tests/snippets/generic_lambda_factory/_main.vader"
@@ -287,13 +287,12 @@ static void* snippet_build__i32__(size_t l0, void* l1) {
     l2 = (void*) _a1_arr;
 #line 14 "tests/snippets/generic_lambda_factory/_main.vader"
     l3 = (size_t) 0;
-    l4 = l0;
-    while ((l3 < l4)) {
+    while ((l3 < l0)) {
 #line 15 "tests/snippets/generic_lambda_factory/_main.vader"
         vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
         t1 = ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
-        l5 = t1.payload.obj;
-        vader_array_push((vader_array_t*) l2, vader_ref_box(l5));
+        l4 = t1.payload.obj;
+        vader_array_push((vader_array_t*) l2, vader_ref_box(l4));
 #line 14 "tests/snippets/generic_lambda_factory/_main.vader"
         t2 = (l3 + INT64_C(1));
         l3 = (size_t) (int64_t) t2;

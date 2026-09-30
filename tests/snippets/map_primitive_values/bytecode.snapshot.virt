@@ -3593,28 +3593,25 @@ end
 
 fn 50 std_core$write_zeros (ref,usize,i32) -> usize
   local i i32
-  local __for_hi_0 i32
-  local $cast_7 usize
-  local $add_8 usize
+  local $cast_6 usize
+  local $add_7 usize
   i32.const 0
   local.set 3   ; i
-  local.get 2   ; arg 2
-  local.set 4   ; __for_hi_0
   block $L0 void
     loop $L1 void
       local.get 3   ; i
-      local.get 4   ; __for_hi_0
+      local.get 2   ; arg 2
       i32.lt
       if $L2 void
         local.get 3   ; i
         i32.to_i64
-        local.set 5   ; $cast_7
+        local.set 4   ; $cast_6
         local.get 1   ; arg 1
-        local.get 5   ; $cast_7
+        local.get 4   ; $cast_6
         i64.add
-        local.set 6   ; $add_8
+        local.set 5   ; $add_7
         local.get 0   ; arg 0
-        local.get 6   ; $add_8
+        local.get 5   ; $add_7
         i32.const 48
         call 116   ; std_core$Buffer$ByteAccess$store_u8_vt
         local.get 3   ; i
@@ -3627,9 +3624,9 @@ fn 50 std_core$write_zeros (ref,usize,i32) -> usize
   end $L0
   local.get 2   ; arg 2
   i32.to_i64
-  local.set 5   ; $cast_7
+  local.set 4   ; $cast_6
   local.get 1   ; arg 1
-  local.get 5   ; $cast_7
+  local.get 4   ; $cast_6
   i64.add
   return
 end
@@ -4361,20 +4358,18 @@ end
 fn 83 std_collections$rehash__string__bool (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
+  local e usize
   local __for_hi_1 usize
-  local __for_hi_2 usize
   local s usize
-  local $cast_32 i32
+  local $cast_31 i32
   array.new 38 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
-  local.get 1   ; arg 1
-  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 4   ; __for_hi_1
+      local.get 1   ; arg 1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -4393,18 +4388,18 @@ fn 83 std_collections$rehash__string__bool (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; __for_hi_1
+  local.set 4   ; e
   local.field 0 23 4   ; arg 0.size
   ref.cast 5   ; -> usize
-  local.set 5   ; __for_hi_2
+  local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
-      local.get 4   ; __for_hi_1
-      local.get 5   ; __for_hi_2
+      local.get 4   ; e
+      local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
         local.field 0 23 0   ; arg 0.ekeys
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         array.get 40   ; string[][]
         ref.cast 2   ; -> string
         call 119   ; std_core$string$Hash$hash_vt
@@ -4429,19 +4424,19 @@ fn 83 std_collections$rehash__string__bool (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_32
+        local.set 7   ; $cast_31
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_32
+        local.get 7   ; $cast_31
         store_slot_i32
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
-        local.set 4   ; __for_hi_1
+        local.set 4   ; e
         br $L4
       end $L5
     end $L4
@@ -4461,20 +4456,18 @@ end
 fn 84 std_collections$rehash__string__char (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
+  local e usize
   local __for_hi_1 usize
-  local __for_hi_2 usize
   local s usize
-  local $cast_32 i32
+  local $cast_31 i32
   array.new 38 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
-  local.get 1   ; arg 1
-  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 4   ; __for_hi_1
+      local.get 1   ; arg 1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -4493,18 +4486,18 @@ fn 84 std_collections$rehash__string__char (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; __for_hi_1
+  local.set 4   ; e
   local.field 0 24 4   ; arg 0.size
   ref.cast 5   ; -> usize
-  local.set 5   ; __for_hi_2
+  local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
-      local.get 4   ; __for_hi_1
-      local.get 5   ; __for_hi_2
+      local.get 4   ; e
+      local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
         local.field 0 24 0   ; arg 0.ekeys
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         array.get 40   ; string[][]
         ref.cast 2   ; -> string
         call 119   ; std_core$string$Hash$hash_vt
@@ -4529,19 +4522,19 @@ fn 84 std_collections$rehash__string__char (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_32
+        local.set 7   ; $cast_31
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_32
+        local.get 7   ; $cast_31
         store_slot_i32
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
-        local.set 4   ; __for_hi_1
+        local.set 4   ; e
         br $L4
       end $L5
     end $L4
@@ -4561,20 +4554,18 @@ end
 fn 85 std_collections$rehash__string__f32 (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
+  local e usize
   local __for_hi_1 usize
-  local __for_hi_2 usize
   local s usize
-  local $cast_32 i32
+  local $cast_31 i32
   array.new 38 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
-  local.get 1   ; arg 1
-  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 4   ; __for_hi_1
+      local.get 1   ; arg 1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -4593,18 +4584,18 @@ fn 85 std_collections$rehash__string__f32 (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; __for_hi_1
+  local.set 4   ; e
   local.field 0 26 4   ; arg 0.size
   ref.cast 5   ; -> usize
-  local.set 5   ; __for_hi_2
+  local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
-      local.get 4   ; __for_hi_1
-      local.get 5   ; __for_hi_2
+      local.get 4   ; e
+      local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
         local.field 0 26 0   ; arg 0.ekeys
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         array.get 40   ; string[][]
         ref.cast 2   ; -> string
         call 119   ; std_core$string$Hash$hash_vt
@@ -4629,19 +4620,19 @@ fn 85 std_collections$rehash__string__f32 (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_32
+        local.set 7   ; $cast_31
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_32
+        local.get 7   ; $cast_31
         store_slot_i32
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
-        local.set 4   ; __for_hi_1
+        local.set 4   ; e
         br $L4
       end $L5
     end $L4
@@ -4661,20 +4652,18 @@ end
 fn 86 std_collections$rehash__string__f64 (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
+  local e usize
   local __for_hi_1 usize
-  local __for_hi_2 usize
   local s usize
-  local $cast_32 i32
+  local $cast_31 i32
   array.new 38 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
-  local.get 1   ; arg 1
-  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 4   ; __for_hi_1
+      local.get 1   ; arg 1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -4693,18 +4682,18 @@ fn 86 std_collections$rehash__string__f64 (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; __for_hi_1
+  local.set 4   ; e
   local.field 0 28 4   ; arg 0.size
   ref.cast 5   ; -> usize
-  local.set 5   ; __for_hi_2
+  local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
-      local.get 4   ; __for_hi_1
-      local.get 5   ; __for_hi_2
+      local.get 4   ; e
+      local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
         local.field 0 28 0   ; arg 0.ekeys
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         array.get 40   ; string[][]
         ref.cast 2   ; -> string
         call 119   ; std_core$string$Hash$hash_vt
@@ -4729,19 +4718,19 @@ fn 86 std_collections$rehash__string__f64 (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_32
+        local.set 7   ; $cast_31
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_32
+        local.get 7   ; $cast_31
         store_slot_i32
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
-        local.set 4   ; __for_hi_1
+        local.set 4   ; e
         br $L4
       end $L5
     end $L4
@@ -4761,20 +4750,18 @@ end
 fn 87 std_collections$rehash__string__i16 (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
+  local e usize
   local __for_hi_1 usize
-  local __for_hi_2 usize
   local s usize
-  local $cast_32 i32
+  local $cast_31 i32
   array.new 38 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
-  local.get 1   ; arg 1
-  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 4   ; __for_hi_1
+      local.get 1   ; arg 1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -4793,18 +4780,18 @@ fn 87 std_collections$rehash__string__i16 (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; __for_hi_1
+  local.set 4   ; e
   local.field 0 30 4   ; arg 0.size
   ref.cast 5   ; -> usize
-  local.set 5   ; __for_hi_2
+  local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
-      local.get 4   ; __for_hi_1
-      local.get 5   ; __for_hi_2
+      local.get 4   ; e
+      local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
         local.field 0 30 0   ; arg 0.ekeys
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         array.get 40   ; string[][]
         ref.cast 2   ; -> string
         call 119   ; std_core$string$Hash$hash_vt
@@ -4829,19 +4816,19 @@ fn 87 std_collections$rehash__string__i16 (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_32
+        local.set 7   ; $cast_31
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_32
+        local.get 7   ; $cast_31
         store_slot_i32
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
-        local.set 4   ; __for_hi_1
+        local.set 4   ; e
         br $L4
       end $L5
     end $L4
@@ -4861,20 +4848,18 @@ end
 fn 88 std_collections$rehash__string__i64 (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
+  local e usize
   local __for_hi_1 usize
-  local __for_hi_2 usize
   local s usize
-  local $cast_32 i32
+  local $cast_31 i32
   array.new 38 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
-  local.get 1   ; arg 1
-  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 4   ; __for_hi_1
+      local.get 1   ; arg 1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -4893,18 +4878,18 @@ fn 88 std_collections$rehash__string__i64 (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; __for_hi_1
+  local.set 4   ; e
   local.field 0 32 4   ; arg 0.size
   ref.cast 5   ; -> usize
-  local.set 5   ; __for_hi_2
+  local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
-      local.get 4   ; __for_hi_1
-      local.get 5   ; __for_hi_2
+      local.get 4   ; e
+      local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
         local.field 0 32 0   ; arg 0.ekeys
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         array.get 40   ; string[][]
         ref.cast 2   ; -> string
         call 119   ; std_core$string$Hash$hash_vt
@@ -4929,19 +4914,19 @@ fn 88 std_collections$rehash__string__i64 (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_32
+        local.set 7   ; $cast_31
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_32
+        local.get 7   ; $cast_31
         store_slot_i32
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
-        local.set 4   ; __for_hi_1
+        local.set 4   ; e
         br $L4
       end $L5
     end $L4
@@ -4961,20 +4946,18 @@ end
 fn 89 std_collections$rehash__string__u16 (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
+  local e usize
   local __for_hi_1 usize
-  local __for_hi_2 usize
   local s usize
-  local $cast_32 i32
+  local $cast_31 i32
   array.new 38 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
-  local.get 1   ; arg 1
-  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 4   ; __for_hi_1
+      local.get 1   ; arg 1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -4993,18 +4976,18 @@ fn 89 std_collections$rehash__string__u16 (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; __for_hi_1
+  local.set 4   ; e
   local.field 0 34 4   ; arg 0.size
   ref.cast 5   ; -> usize
-  local.set 5   ; __for_hi_2
+  local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
-      local.get 4   ; __for_hi_1
-      local.get 5   ; __for_hi_2
+      local.get 4   ; e
+      local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
         local.field 0 34 0   ; arg 0.ekeys
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         array.get 40   ; string[][]
         ref.cast 2   ; -> string
         call 119   ; std_core$string$Hash$hash_vt
@@ -5029,19 +5012,19 @@ fn 89 std_collections$rehash__string__u16 (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_32
+        local.set 7   ; $cast_31
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_32
+        local.get 7   ; $cast_31
         store_slot_i32
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
-        local.set 4   ; __for_hi_1
+        local.set 4   ; e
         br $L4
       end $L5
     end $L4
@@ -5061,20 +5044,18 @@ end
 fn 90 std_collections$rehash__string__u8 (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
+  local e usize
   local __for_hi_1 usize
-  local __for_hi_2 usize
   local s usize
-  local $cast_32 i32
+  local $cast_31 i32
   array.new 38 0   ; i32[][]
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
-  local.get 1   ; arg 1
-  local.set 4   ; __for_hi_1
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_discard_0
-      local.get 4   ; __for_hi_1
+      local.get 1   ; arg 1
       u64.lt
       if $L2 void
         local.get 2   ; fresh
@@ -5093,18 +5074,18 @@ fn 90 std_collections$rehash__string__u8 (ref,usize) -> void
   i64.sub
   local.set 3   ; __for_discard_0
   i64.const 0
-  local.set 4   ; __for_hi_1
+  local.set 4   ; e
   local.field 0 36 4   ; arg 0.size
   ref.cast 5   ; -> usize
-  local.set 5   ; __for_hi_2
+  local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
-      local.get 4   ; __for_hi_1
-      local.get 5   ; __for_hi_2
+      local.get 4   ; e
+      local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
         local.field 0 36 0   ; arg 0.ekeys
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         array.get 40   ; string[][]
         ref.cast 2   ; -> string
         call 119   ; std_core$string$Hash$hash_vt
@@ -5129,19 +5110,19 @@ fn 90 std_collections$rehash__string__u8 (ref,usize) -> void
             end $L8
           end $L7
         end $L6
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_32
+        local.set 7   ; $cast_31
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_32
+        local.get 7   ; $cast_31
         store_slot_i32
-        local.get 4   ; __for_hi_1
+        local.get 4   ; e
         i64.const 1
         i64.add
-        local.set 4   ; __for_hi_1
+        local.set 4   ; e
         br $L4
       end $L5
     end $L4

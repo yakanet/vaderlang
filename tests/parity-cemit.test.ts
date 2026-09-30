@@ -194,6 +194,10 @@ const C_PARITY = new Set<string>([
   // element — the predicate of a terminal, a range bound, a layer argument. Every
   // operand logs its evaluation, so the native run pins the order and the count.
   "iter_chain_operands",
+  // `place op= rhs` evaluates the operands of its place once — index, call
+  // receiver, nested place, `IndexSet` impl and bound, a default method's clone.
+  // Every operand logs, so the native run pins the count.
+  "compound_assign_operands",
   // `@extern` forwarding shim — string args marshalled atom → `const char*`
   // (`c_emit/host.vader::user_extern_shim`). The shim exists only in native C
   // output — the VM reaches a foreign symbol through `dlsym` instead, so it
