@@ -3097,7 +3097,9 @@ static const uint8_t* vader_array_src_region(vader_array_t* src, size_t extra, u
 /* `[lhs] * n` — fresh array repeating `src`'s elements `n` times. `length =
  * src.length * n`, `capacity = max(length, n)` so `[] * n` (src.length 0) yields
  * an empty array with n slots reserved (the preallocation case — no named
- * `with_capacity`). The result reuses `src`'s array type / element kind / tag.
+ * `with_capacity`) — never fewer than the empty literal's own capacity, which a
+ * reservation must not undercut. The result reuses `src`'s array type / element
+ * kind / tag.
  * For a ref element the SAME reference is repeated n times (shallow, evaluate-
  * once — the documented semantics). */
 vader_array_t* vader_array_repeat(vader_array_t* src, size_t n) {
@@ -3109,6 +3111,7 @@ vader_array_t* vader_array_repeat(vader_array_t* src, size_t n) {
     }
     size_t out_len = src_len * n;
     size_t cap = out_len > n ? out_len : n;
+    if (cap < 4) cap = 4;
     /* Read the element metadata before the alloc (it may relocate `src`). */
     uint8_t kind; uint32_t tag; size_t esz;
     vader_array_src_region(src, 0, &kind, &tag, &esz);

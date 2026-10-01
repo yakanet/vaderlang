@@ -3,7 +3,9 @@
 ## snippet
   fn snippet$__comptime_SQUARES() -> u32[]!
     let r: u32[]! =
-      array :u32[]!
+      @array.repeat :u32[]!
+        array :u32[]!
+        int(6) :usize
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)

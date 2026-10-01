@@ -42,6 +42,7 @@ export lower_block :: fn(
             lower_stmt_into(ctx, stmt, stmt_out)
             drain_pending_from(ctx, stmts, base)
             for s in stmt_out { stmts.push(s) }
+            reserve_push_tail(stmts)
         } else {
             lower_stmt_into(ctx, stmt, stmts)
             // `s = s + a ; s = s + b` builds the string twice — one buffer and
@@ -51,6 +52,9 @@ export lower_block :: fn(
             // async, where `drain_pending_from` splices awaits between the
             // statements this would be merging across.
             fuse_concat_tail(ctx, stmts)
+            // `out := []` then a counted loop pushing onto it once per turn:
+            // create `out` at the trip count. See `push_reserve.vader`.
+            reserve_push_tail(stmts)
         }
     }
     trailing_base :: if ctx.in_async { ctx.pending_awaits.len() } else { usize(0) }

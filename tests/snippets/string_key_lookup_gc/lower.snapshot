@@ -97,7 +97,9 @@
       let round: i32 = int(0) :i32
       loop while (<…>)
         let words: string[]! =
-          array :string[]!
+          @array.repeat :string[]!
+            array :string[]!
+            int(100) :usize
         block :void
           let i: i32 = int(0) :i32
           loop while (<…>)

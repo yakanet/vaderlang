@@ -3,7 +3,9 @@
 ## snippet
   fn snippet$Histogram$Mul$mul(self: Histogram, k: u32) -> Histogram
     let out: Histogram =
-      array :Histogram
+      @array.repeat :Histogram
+        array :Histogram
+        LoweredArrayLen
     block :void
       let i: usize = int(0) :usize
       let __for_hi_0: usize =
@@ -24,7 +26,9 @@
     return out :Histogram
   fn snippet$Histogram$Div$div(self: Histogram, k: u32) -> [Histogram, u32]!
     let out: Histogram =
-      array :Histogram
+      @array.repeat :Histogram
+        array :Histogram
+        LoweredArrayLen
     block :void
       let i: usize = int(0) :usize
       let __for_hi_0: usize =

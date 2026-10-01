@@ -55,42 +55,49 @@ fn 1 snippet$is_even (i32) -> bool
 end
 
 fn 2 snippet$main () -> i32
-  local thunks ref
-  local __for_arr_0 ref
-  local __for_len_1 usize
+  local labels ref
+  local $arr_5 ref
+  local $len_6 usize
   local __for_i_2 usize
-  local $closure_17 ref
+  local $closure_19 ref
   local i i32
   local i any
-  local $cast_46 i64
+  local $cast_48 i64
   string.const 0   ; "a"
   string.const 1   ; "b"
   string.const 2   ; "c"
   array.new 17 3   ; string[][]
-  local.set 1   ; __for_arr_0
+  local.set 0   ; labels
   array.new 18 0   ; fn[][]
-  local.set 0   ; thunks
-  local.get 1   ; __for_arr_0
+  local.set 1   ; $arr_5
+  local.get 0   ; labels
   array.len
-  local.set 2   ; __for_len_1
+  local.set 2   ; $len_6
+  local.get 1   ; $arr_5
+  local.get 2   ; $len_6
+  array.repeat
+  local.set 1   ; $arr_5
+  local.get 0   ; labels
+  array.len
+  local.set 2   ; $len_6
   i64.const 0
   local.set 3   ; __for_i_2
   block $L0 void
     loop $L1 void
       local.get 3   ; __for_i_2
-      local.get 2   ; __for_len_1
+      local.get 2   ; $len_6
       u64.lt
       if $L2 void
-        local.get 1   ; __for_arr_0
+        local.get 0   ; labels
         local.get 3   ; __for_i_2
         array.get 17   ; string[][]
         ref.cast 10   ; -> string
         struct.new 20   ; $Cell_string
         struct.new 3   ; __lambda_env_snippet_1
         make_closure 3 19   ; __lambda_snippet_0
-        local.set 4   ; $closure_17
-        local.get 0   ; thunks
-        local.get 4   ; $closure_17
+        local.set 4   ; $closure_19
+        local.get 1   ; $arr_5
+        local.get 4   ; $closure_19
         array.push 19   ; fn[]
         local.get 3   ; __for_i_2
         i64.const 1
@@ -100,18 +107,19 @@ fn 2 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  local.get 0   ; thunks
+  local.get 1   ; $arr_5
+  local.tee 0   ; labels
   array.len
-  local.set 2   ; __for_len_1
+  local.set 2   ; $len_6
   i64.const 0
   local.set 3   ; __for_i_2
   block $L3 void
     loop $L4 void
       local.get 3   ; __for_i_2
-      local.get 2   ; __for_len_1
+      local.get 2   ; $len_6
       u64.lt
       if $L5 void
-        local.get 0   ; thunks
+        local.get 0   ; labels
         local.get 3   ; __for_i_2
         array.get 18   ; fn[][]
         call.indirect 19   ; fn
@@ -139,24 +147,24 @@ fn 2 snippet$main () -> i32
         defer.push
         i64.const 33
         call 10   ; std_core$new_byte_buffer
-        local.set 0   ; thunks
+        local.set 0   ; labels
         i64.const 0
-        local.set 2   ; __for_len_1
-        local.get 0   ; thunks
-        local.get 2   ; __for_len_1
+        local.set 2   ; $len_6
+        local.get 0   ; labels
+        local.get 2   ; $len_6
         string.const 3   ; "range body i="
         call 12   ; std_core$write_string_at
-        local.set 2   ; __for_len_1
+        local.set 2   ; $len_6
         local.field 6 21 0   ; i.value
         i32.to_i64
-        local.set 7   ; $cast_46
-        local.get 0   ; thunks
-        local.get 2   ; __for_len_1
-        local.get 7   ; $cast_46
+        local.set 7   ; $cast_48
+        local.get 0   ; labels
+        local.get 2   ; $len_6
+        local.get 7   ; $cast_48
         call 13   ; std_core$write_int
-        local.set 2   ; __for_len_1
-        local.get 0   ; thunks
-        local.get 2   ; __for_len_1
+        local.set 2   ; $len_6
+        local.get 0   ; labels
+        local.get 2   ; $len_6
         call 11   ; std_core$finish_buffer
         call 16   ; std_io$println__string
         defer.pop_exec 1
@@ -169,7 +177,9 @@ fn 2 snippet$main () -> i32
     end $L7
   end $L6
   array.new 18 0   ; fn[][]
-  local.set 0   ; thunks
+  i64.const 3
+  array.repeat
+  local.set 0   ; labels
   i32.const 0
   local.set 5   ; i
   block $L9 void
@@ -183,9 +193,9 @@ fn 2 snippet$main () -> i32
         struct.new 21   ; $Cell_i32
         struct.new 6   ; __lambda_env_snippet_5
         make_closure 5 19   ; __lambda_snippet_4
-        local.set 1   ; __for_arr_0
-        local.get 0   ; thunks
-        local.get 1   ; __for_arr_0
+        local.set 1   ; $arr_5
+        local.get 0   ; labels
+        local.get 1   ; $arr_5
         array.push 19   ; fn[]
         local.get 5   ; i
         i32.const 1
@@ -195,18 +205,18 @@ fn 2 snippet$main () -> i32
       end $L11
     end $L10
   end $L9
-  local.get 0   ; thunks
+  local.get 0   ; labels
   array.len
-  local.set 2   ; __for_len_1
+  local.set 2   ; $len_6
   i64.const 0
   local.set 3   ; __for_i_2
   block $L12 void
     loop $L13 void
       local.get 3   ; __for_i_2
-      local.get 2   ; __for_len_1
+      local.get 2   ; $len_6
       u64.lt
       if $L14 void
-        local.get 0   ; thunks
+        local.get 0   ; labels
         local.get 3   ; __for_i_2
         array.get 18   ; fn[][]
         call.indirect 19   ; fn

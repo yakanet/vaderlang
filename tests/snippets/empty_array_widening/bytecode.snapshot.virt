@@ -71,13 +71,15 @@ fn 1 snippet$main () -> i32
   local i i32
   local __buf_0 ref
   local __off_1 usize
-  local $cast_16 u64
-  local $cast_22 i64
-  local $call_51 string
+  local $cast_18 u64
+  local $cast_24 i64
+  local $call_55 string
   local __p_5 string
-  local $call_62 usize
-  local $mul_88 i32
+  local $call_66 usize
+  local $mul_94 i32
   array.new 1 0   ; i32[][]
+  i64.const 9
+  array.repeat
   local.set 0   ; numbers
   i32.const 0
   local.set 1   ; i
@@ -111,10 +113,10 @@ fn 1 snippet$main () -> i32
   local.get 0   ; numbers
   array.len
   usize.to_i64
-  local.set 4   ; $cast_16
+  local.set 4   ; $cast_18
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 4   ; $cast_16
+  local.get 4   ; $cast_18
   call 7   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -126,10 +128,10 @@ fn 1 snippet$main () -> i32
   i32.const 0
   load_slot_i32
   i32.to_i64
-  local.set 5   ; $cast_22
+  local.set 5   ; $cast_24
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 5   ; $cast_22
+  local.get 5   ; $cast_24
   call 6   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -141,10 +143,10 @@ fn 1 snippet$main () -> i32
   i32.const 8
   load_slot_i32
   i32.to_i64
-  local.set 5   ; $cast_22
+  local.set 5   ; $cast_24
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 5   ; $cast_22
+  local.get 5   ; $cast_24
   call 6   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -155,10 +157,10 @@ fn 1 snippet$main () -> i32
   local.get 0   ; numbers
   call 0   ; snippet$sum_of
   i32.to_i64
-  local.set 5   ; $cast_22
+  local.set 5   ; $cast_24
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 5   ; $cast_22
+  local.get 5   ; $cast_24
   call 6   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -166,6 +168,8 @@ fn 1 snippet$main () -> i32
   call 4   ; std_core$finish_buffer
   call 10   ; std_io$println__string
   array.new 12 0   ; string[][]
+  i64.const 9
+  array.repeat
   local.set 0   ; numbers
   i32.const 0
   local.set 1   ; i
@@ -187,18 +191,18 @@ fn 1 snippet$main () -> i32
         local.set 3   ; __off_1
         local.get 1   ; i
         i32.to_i64
-        local.set 5   ; $cast_22
+        local.set 5   ; $cast_24
         local.get 2   ; __buf_0
         local.get 3   ; __off_1
-        local.get 5   ; $cast_22
+        local.get 5   ; $cast_24
         call 6   ; std_core$write_int
         local.set 3   ; __off_1
         local.get 2   ; __buf_0
         local.get 3   ; __off_1
         call 4   ; std_core$finish_buffer
-        local.set 6   ; $call_51
+        local.set 6   ; $call_55
         local.get 0   ; numbers
-        local.get 6   ; $call_51
+        local.get 6   ; $call_55
         array.push 3   ; string[]
         local.get 1   ; i
         i32.const 1
@@ -212,20 +216,20 @@ fn 1 snippet$main () -> i32
   i32.const 0
   array.get 12   ; string[][]
   ref.cast 3   ; -> string
-  local.set 6   ; $call_51
+  local.set 6   ; $call_55
   local.get 0   ; numbers
   i32.const 8
   array.get 12   ; string[][]
   ref.cast 3   ; -> string
   local.set 7   ; __p_5
-  local.get 6   ; $call_51
+  local.get 6   ; $call_55
   call.import 0   ; std_core$byte_len
   local.set 3   ; __off_1
   local.get 7   ; __p_5
   call.import 0   ; std_core$byte_len
-  local.set 8   ; $call_62
+  local.set 8   ; $call_66
   local.get 3   ; __off_1
-  local.get 8   ; $call_62
+  local.get 8   ; $call_66
   i64.add
   local.set 3   ; __off_1
   i64.const 44
@@ -243,10 +247,10 @@ fn 1 snippet$main () -> i32
   local.get 0   ; numbers
   array.len
   usize.to_i64
-  local.set 4   ; $cast_16
+  local.set 4   ; $cast_18
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 4   ; $cast_16
+  local.get 4   ; $cast_18
   call 7   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -256,7 +260,7 @@ fn 1 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 6   ; $call_51
+  local.get 6   ; $call_55
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -274,6 +278,8 @@ fn 1 snippet$main () -> i32
   call 4   ; std_core$finish_buffer
   call 10   ; std_io$println__string
   array.new 1 0   ; i32[][]
+  i64.const 9
+  array.repeat
   local.set 0   ; numbers
   i32.const 0
   local.set 1   ; i
@@ -286,9 +292,9 @@ fn 1 snippet$main () -> i32
         local.get 1   ; i
         i32.const 2
         i32.mul
-        local.set 9   ; $mul_88
+        local.set 9   ; $mul_94
         local.get 0   ; numbers
-        local.get 9   ; $mul_88
+        local.get 9   ; $mul_94
         array.push 2 0   ; i32[]
         local.get 1   ; i
         i32.const 1
@@ -311,10 +317,10 @@ fn 1 snippet$main () -> i32
   local.get 0   ; numbers
   array.len
   usize.to_i64
-  local.set 4   ; $cast_16
+  local.set 4   ; $cast_18
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 4   ; $cast_16
+  local.get 4   ; $cast_18
   call 7   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -326,10 +332,10 @@ fn 1 snippet$main () -> i32
   i32.const 8
   load_slot_i32
   i32.to_i64
-  local.set 5   ; $cast_22
+  local.set 5   ; $cast_24
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 5   ; $cast_22
+  local.get 5   ; $cast_24
   call 6   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -340,10 +346,10 @@ fn 1 snippet$main () -> i32
   local.get 0   ; numbers
   call 0   ; snippet$sum_of
   i32.to_i64
-  local.set 5   ; $cast_22
+  local.set 5   ; $cast_24
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 5   ; $cast_22
+  local.get 5   ; $cast_24
   call 6   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0

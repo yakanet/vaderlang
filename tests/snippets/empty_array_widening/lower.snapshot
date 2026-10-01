@@ -37,7 +37,9 @@
     return total :i32
   fn snippet$main() -> i32
     let numbers: i32[]! =
-      array :i32[]!
+      @array.repeat :i32[]!
+        array :i32[]!
+        int(9) :usize
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
@@ -194,7 +196,9 @@
               arg1:
                 __off_1 :usize
     let names: string[]! =
-      array :string[]!
+      @array.repeat :string[]!
+        array :string[]!
+        int(9) :usize
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
@@ -338,7 +342,9 @@
               arg1:
                 __off_7 :usize
     let annotated: i32[]! =
-      array :i32[]!
+      @array.repeat :i32[]!
+        array :i32[]!
+        int(9) :usize
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)

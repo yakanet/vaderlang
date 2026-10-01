@@ -3,7 +3,9 @@
 ## snippet
   fn snippet$build_squares() -> u32[]
     let r: u32[]! =
-      array :u32[]!
+      @array.repeat :u32[]!
+        array :u32[]!
+        int(8) :usize
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)

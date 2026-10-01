@@ -2407,87 +2407,94 @@ fn 17 std_core$umul128 (u64,u64) -> (u64,u64)
 end
 
 fn 18 std_core$mul_add_small (ref,u32,u32) -> ref
-  local out ref
+  local $arr_3 ref
+  local $len_4 usize
   local carry u64
-  local i usize
   local __for_hi_0 usize
-  local $cast_13 u64
-  local $cast_14 u64
+  local $cast_15 u64
+  local $cast_16 u64
   local v u64
-  local $cast_20 u32
+  local $cast_22 u32
   array.new 15 0   ; u32[][]
-  local.set 3   ; out
+  local.set 3   ; $arr_3
+  local.get 0   ; arg 0
+  array.len
+  local.set 4   ; $len_4
+  local.get 3   ; $arr_3
+  local.get 4   ; $len_4
+  array.repeat
+  local.set 3   ; $arr_3
   local.get 2   ; arg 2
   u32.to_i64
-  local.set 4   ; carry
+  local.set 5   ; carry
   i64.const 0
-  local.set 5   ; i
+  local.set 4   ; $len_4
   local.get 0   ; arg 0
   array.len
   local.set 6   ; __for_hi_0
   block $L0 void
     loop $L1 void
-      local.get 5   ; i
+      local.get 4   ; $len_4
       local.get 6   ; __for_hi_0
       u64.lt
       if $L2 void
         local.get 0   ; arg 0
-        local.get 5   ; i
+        local.get 4   ; $len_4
         array.get 15   ; u32[][]
         ref.cast 16   ; -> u32
         u32.to_i64
-        local.set 7   ; $cast_13
+        local.set 7   ; $cast_15
         local.get 1   ; arg 1
         u32.to_i64
-        local.set 8   ; $cast_14
-        local.get 7   ; $cast_13
-        local.get 8   ; $cast_14
+        local.set 8   ; $cast_16
+        local.get 7   ; $cast_15
+        local.get 8   ; $cast_16
         i64.mul
-        local.get 4   ; carry
+        local.get 5   ; carry
         i64.add
         local.tee 9   ; v
         i64.const 4294967295
         i64.bitand
         u64.to_i32
-        local.set 10   ; $cast_20
-        local.get 3   ; out
-        local.get 10   ; $cast_20
+        local.set 10   ; $cast_22
+        local.get 3   ; $arr_3
+        local.get 10   ; $cast_22
         array.push 16 3   ; u32[]
         local.get 9   ; v
         i64.const 32
         u64.shr
-        local.set 4   ; carry
-        local.get 5   ; i
+        local.set 5   ; carry
+        local.get 4   ; $len_4
         i64.const 1
         i64.add
-        local.set 5   ; i
+        local.set 4   ; $len_4
         br $L1
       end $L2
     end $L1
   end $L0
   block $L3 void
     loop $L4 void
-      local.get 4   ; carry
+      local.get 5   ; carry
       i64.const 0
       u64.gt
       if $L5 void
-        local.get 4   ; carry
+        local.get 5   ; carry
         i64.const 4294967295
         i64.bitand
         u64.to_i32
-        local.set 10   ; $cast_20
-        local.get 3   ; out
-        local.get 10   ; $cast_20
+        local.set 10   ; $cast_22
+        local.get 3   ; $arr_3
+        local.get 10   ; $cast_22
         array.push 16 3   ; u32[]
-        local.get 4   ; carry
+        local.get 5   ; carry
         i64.const 32
         u64.shr
-        local.set 4   ; carry
+        local.set 5   ; carry
         br $L4
       end $L5
     end $L4
   end $L3
-  local.get 3   ; out
+  local.get 3   ; $arr_3
   return
 end
 
@@ -7173,6 +7180,8 @@ fn 95 std_collections$ensure_index__string__Any (ref) -> void
   i64.eq
   if $L0 void
     array.new 43 0   ; i32[][]
+    i64.const 16
+    array.repeat
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -7211,8 +7220,10 @@ fn 96 std_collections$rehash__string__Any (ref,usize) -> void
   local e usize
   local __for_hi_1 usize
   local s usize
-  local $cast_31 i32
+  local $cast_32 i32
   array.new 43 0   ; i32[][]
+  local.get 1   ; arg 1
+  array.repeat
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -7278,10 +7289,10 @@ fn 96 std_collections$rehash__string__Any (ref,usize) -> void
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_31
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_31
+        local.get 7   ; $cast_32
         store_slot_i32
         local.get 4   ; e
         i64.const 1

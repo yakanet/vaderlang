@@ -1,0 +1,125 @@
+// An empty array filled by a counted loop, one push per turn, is created at the
+// loop's trip count (`[] * n`, see the lower snapshot) — a hand-written loop over
+// an array, a field or a range (inclusive too), and a `collect` over a chain
+// alike; several arrays filled by one loop, past a `let` in between, and in an
+// async fn. A range that runs no turn reserves nothing. A conditional push, or a
+// loop that may leave early, keeps the plain empty array. Every case prints what
+// it built.
+
+module "snippet"
+
+import "std/async"
+import "std/io"
+import "std/iter"
+
+square :: fn(x: i32) -> i64 = i64(x) * i64(x)
+
+odd :: fn(x: i32) -> bool = x % 2 == 1
+
+show :: fn(label: string, xs: i64[]) -> void {
+    out := "${label}:"
+    for x in xs {
+        out = "${out} ${x}"
+    }
+    println(out)
+}
+
+over_array :: fn(a: i32[]) -> i64[] {
+    out: i64[]!: []
+    for x in a {
+        out.push(square(x))
+    }
+    return out
+}
+
+over_range :: fn(lo: i32, hi: i32) -> i64[] {
+    out: i64[]!: []
+    for i in lo..<hi {
+        out.push(square(i))
+    }
+    return out
+}
+
+over_inclusive :: fn(lo: i32, hi: i32) -> i64[] {
+    out: i64[]!: []
+    for i in lo..=hi {
+        out.push(square(i))
+    }
+    return out
+}
+
+Bag :: struct {
+    items: i32[]
+}
+
+over_field :: fn(bag: Bag) -> i64[] {
+    out: i64[]!: []
+    for x in bag.items {
+        out.push(square(x))
+    }
+    return out
+}
+
+// Two arrays filled by one loop, a `let` between them and the loop.
+split :: fn(a: i32[]) -> i64 {
+    squares: i64[]!: []
+    doubles: i64[]!: []
+    offset :: 100
+    for x in a {
+        squares.push(square(x))
+        doubles.push(i64(x * 2 + offset))
+    }
+    return squares[squares.len() - 1] + doubles[0]
+}
+
+squares_later :: fn(a: i32[]) -> Async<i64[]> {
+    out: i64[]!: []
+    for x in a {
+        out.push(square(x))
+    }
+    await sleep(0)
+    return out
+}
+
+// Not reserved: the push is conditional.
+odd_squares :: fn(a: i32[]) -> i64[] {
+    out: i64[]!: []
+    for x in a {
+        if odd(x) {
+            out.push(square(x))
+        }
+    }
+    return out
+}
+
+// Not reserved: the loop may stop early.
+until_big :: fn(a: i32[]) -> i64[] {
+    out: i64[]!: []
+    for x in a {
+        if x > 3 {
+            break
+        }
+        out.push(square(x))
+    }
+    return out
+}
+
+main :: fn() -> i32 {
+    a :: [1, 2, 3, 4, 5]
+    show("array", over_array(a))
+    show("range", over_range(2, 6))
+    show("empty range", over_range(6, 2))
+    show("collect", a.map(square).collect())
+    show("collect range", (0..<4).map(square).collect())
+    show("filtered", odd_squares(a))
+    show("until", until_big(a))
+    empty: i32[]: []
+    show("empty array", over_array(empty))
+    show("inclusive", over_inclusive(1, 3))
+    show("empty inclusive", over_inclusive(3, 1))
+    show("field", over_field(Bag { .items = [3, 4] }))
+    println("split: ${split(a)}")
+    later :: await squares_later(a)
+    show("async", later)
+    return 0
+}

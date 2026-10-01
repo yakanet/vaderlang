@@ -35,13 +35,15 @@ fn 0 snippet$main () -> i32
   local i i32
   local __buf_0 ref
   local __off_1 usize
-  local $cast_19 u64
-  local $cast_34 i64
-  local $call_36 string
+  local $cast_21 u64
+  local $cast_36 i64
+  local $call_38 string
   local __coalesce_6 any
-  local $cast_95 usize
+  local $cast_97 usize
   local __buf_10 ref
   array.new 11 0   ; i32[][]
+  i64.const 200
+  array.repeat
   local.set 0   ; local
   i32.const 0
   local.set 1   ; i
@@ -83,10 +85,10 @@ fn 0 snippet$main () -> i32
   local.get 0   ; local
   array.len
   usize.to_i64
-  local.set 4   ; $cast_19
+  local.set 4   ; $cast_21
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 4   ; $cast_19
+  local.get 4   ; $cast_21
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -115,18 +117,18 @@ fn 0 snippet$main () -> i32
         local.set 3   ; __off_1
         local.get 1   ; i
         i32.to_i64
-        local.set 5   ; $cast_34
+        local.set 5   ; $cast_36
         local.get 2   ; __buf_0
         local.get 3   ; __off_1
-        local.get 5   ; $cast_34
+        local.get 5   ; $cast_36
         call 5   ; std_core$write_int
         local.set 3   ; __off_1
         local.get 2   ; __buf_0
         local.get 3   ; __off_1
         call 3   ; std_core$finish_buffer
-        local.set 6   ; $call_36
+        local.set 6   ; $call_38
         local.get 0   ; local
-        local.get 6   ; $call_36
+        local.get 6   ; $call_38
         array.push 2   ; string[]
         data.const 0 12   ; pool[0] : string[]
         array.len
@@ -157,10 +159,10 @@ fn 0 snippet$main () -> i32
   data.const 0 12   ; pool[0] : string[]
   array.len
   usize.to_i64
-  local.set 4   ; $cast_19
+  local.set 4   ; $cast_21
   local.get 0   ; local
   local.get 3   ; __off_1
-  local.get 4   ; $cast_19
+  local.get 4   ; $cast_21
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 0   ; local
@@ -179,13 +181,13 @@ fn 0 snippet$main () -> i32
   type_check 0   ; null
   if $L8 void
     string.const 5   ; "<null>"
-    local.set 6   ; $call_36
+    local.set 6   ; $call_38
   else
     local.get 7   ; __coalesce_6
     ref.cast 2   ; -> string
-    local.set 6   ; $call_36
+    local.set 6   ; $call_38
   end $L8
-  local.get 6   ; $call_36
+  local.get 6   ; $call_38
   call.import 0   ; std_core$byte_len
   local.set 3   ; __off_1
   i64.const 33
@@ -202,7 +204,7 @@ fn 0 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 0   ; local
   local.get 3   ; __off_1
-  local.get 6   ; $call_36
+  local.get 6   ; $call_38
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; local
@@ -213,10 +215,10 @@ fn 0 snippet$main () -> i32
   data.const 0 12   ; pool[0] : string[]
   array.len
   usize.to_i64
-  local.set 4   ; $cast_19
+  local.set 4   ; $cast_21
   local.get 0   ; local
   local.get 3   ; __off_1
-  local.get 4   ; $cast_19
+  local.get 4   ; $cast_21
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 0   ; local
@@ -235,10 +237,10 @@ fn 0 snippet$main () -> i32
   local.set 3   ; __off_1
   i32.const 3
   i32.to_i64
-  local.set 8   ; $cast_95
+  local.set 8   ; $cast_97
   local.get 0   ; local
   local.get 3   ; __off_1
-  local.get 8   ; $cast_95
+  local.get 8   ; $cast_97
   array.slice 11   ; i32[][]
   local.set 2   ; __buf_0
   local.get 0   ; local
@@ -256,10 +258,10 @@ fn 0 snippet$main () -> i32
   local.get 2   ; __buf_0
   array.len
   usize.to_i64
-  local.set 4   ; $cast_19
+  local.set 4   ; $cast_21
   local.get 9   ; __buf_10
   local.get 3   ; __off_1
-  local.get 4   ; $cast_19
+  local.get 4   ; $cast_21
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 9   ; __buf_10
@@ -270,10 +272,10 @@ fn 0 snippet$main () -> i32
   local.get 0   ; local
   array.len
   usize.to_i64
-  local.set 4   ; $cast_19
+  local.set 4   ; $cast_21
   local.get 9   ; __buf_10
   local.get 3   ; __off_1
-  local.get 4   ; $cast_19
+  local.get 4   ; $cast_21
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 9   ; __buf_10

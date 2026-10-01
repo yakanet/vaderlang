@@ -209,6 +209,13 @@ fn 0 snippet$main () -> i32
   local.get 3   ; __fuse_arr_1
   array.len
   local.set 5   ; __fuse_len_0
+  local.get 4   ; out
+  local.get 5   ; __fuse_len_0
+  array.repeat
+  local.set 4   ; out
+  local.get 3   ; __fuse_arr_1
+  array.len
+  local.set 5   ; __fuse_len_0
   i64.const 0
   local.set 6   ; __fuse_i_1
   block $L9 void

@@ -403,6 +403,8 @@ const C_PARITY = new Set<string>([
   "iterator_consumers",
   // A destructured element of a layered chain, fused against lazy.
   "fusion_destructure_filtered",
+  // An empty array filled by a counted loop, created at its trip count.
+  "array_reserved_by_loop",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

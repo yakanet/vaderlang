@@ -1,0 +1,16 @@
+# stdout
+array: 1 4 9 16 25
+range: 4 9 16 25
+empty range:
+collect: 1 4 9 16 25
+collect range: 0 1 4 9
+filtered: 1 9 25
+until: 1 4 9
+empty array:
+inclusive: 1 4 9
+empty inclusive:
+field: 9 16
+split: 127
+async: 1 4 9 16 25
+# exit
+0

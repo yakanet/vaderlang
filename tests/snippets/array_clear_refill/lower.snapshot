@@ -3,7 +3,9 @@
 ## snippet
   fn snippet$main() -> i32
     let local: i32[]! =
-      array :i32[]!
+      @array.repeat :i32[]!
+        array :i32[]!
+        int(200) :usize
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)

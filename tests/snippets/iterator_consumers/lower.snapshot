@@ -379,7 +379,9 @@
     return n :i32
   fn snippet$main() -> i32
     let a: i32[]! =
-      array :i32[]!
+      @array.repeat :i32[]!
+        array :i32[]!
+        int(10) :usize
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
@@ -400,7 +402,9 @@
         let __fuse_arr_0: i32[]! = a :i32[]!
         let f: fn(i32) -> Point! = __lambda_snippet_0 :fn(i32) -> Point!
         let out: Point![]! =
-          array :Point![]!
+          @array.repeat :Point![]!
+            array :Point![]!
+            LoweredArrayLen
         block :void
           let __fuse_len_0: usize =
             LoweredArrayLen

@@ -45,9 +45,9 @@ fn 2 snippet$main () -> i32
   local x i32
   local x i32
   local __fuse_arr_3 ref
-  local out ref
-  local $cast_53 i64
-  local $cast_58 u64
+  local $arr_33 ref
+  local $cast_55 i64
+  local $cast_60 u64
   i32.const 0
   local.set 0   ; total
   i32.const 1
@@ -93,7 +93,14 @@ fn 2 snippet$main () -> i32
   array.new 12 2   ; i32[][]
   local.set 6   ; __fuse_arr_3
   array.new 12 0   ; i32[][]
-  local.set 7   ; out
+  local.set 7   ; $arr_33
+  local.get 6   ; __fuse_arr_3
+  array.len
+  local.set 2   ; __fuse_len_1
+  local.get 7   ; $arr_33
+  local.get 2   ; __fuse_len_1
+  array.repeat
+  local.set 7   ; $arr_33
   local.get 6   ; __fuse_arr_3
   array.len
   local.set 2   ; __fuse_len_1
@@ -110,7 +117,7 @@ fn 2 snippet$main () -> i32
         load_slot_i32
         call 0   ; snippet$triple
         local.set 4   ; x
-        local.get 7   ; out
+        local.get 7   ; $arr_33
         local.get 4   ; x
         array.push 1 7   ; i32[]
         local.get 3   ; __fuse_i_2
@@ -121,7 +128,7 @@ fn 2 snippet$main () -> i32
       end $L6
     end $L5
   end $L4
-  local.get 7   ; out
+  local.get 7   ; $arr_33
   local.set 1   ; __fuse_arr_0
   i64.const 99
   call 4   ; std_core$new_byte_buffer
@@ -135,10 +142,10 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __fuse_len_1
   local.get 0   ; total
   i32.to_i64
-  local.set 8   ; $cast_53
+  local.set 8   ; $cast_55
   local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
-  local.get 8   ; $cast_53
+  local.get 8   ; $cast_55
   call 7   ; std_core$write_int
   local.set 2   ; __fuse_len_1
   local.get 6   ; __fuse_arr_3
@@ -149,10 +156,10 @@ fn 2 snippet$main () -> i32
   local.get 1   ; __fuse_arr_0
   array.len
   usize.to_i64
-  local.set 9   ; $cast_58
+  local.set 9   ; $cast_60
   local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
-  local.get 9   ; $cast_58
+  local.get 9   ; $cast_60
   call 8   ; std_core$write_unsigned
   local.set 2   ; __fuse_len_1
   local.get 6   ; __fuse_arr_3
@@ -164,10 +171,10 @@ fn 2 snippet$main () -> i32
   i32.const 0
   load_slot_i32
   i32.to_i64
-  local.set 8   ; $cast_53
+  local.set 8   ; $cast_55
   local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
-  local.get 8   ; $cast_53
+  local.get 8   ; $cast_55
   call 7   ; std_core$write_int
   local.set 2   ; __fuse_len_1
   local.get 6   ; __fuse_arr_3
@@ -179,10 +186,10 @@ fn 2 snippet$main () -> i32
   i32.const 1
   load_slot_i32
   i32.to_i64
-  local.set 8   ; $cast_53
+  local.set 8   ; $cast_55
   local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
-  local.get 8   ; $cast_53
+  local.get 8   ; $cast_55
   call 7   ; std_core$write_int
   local.set 2   ; __fuse_len_1
   local.get 6   ; __fuse_arr_3

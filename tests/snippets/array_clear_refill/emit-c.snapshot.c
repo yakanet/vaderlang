@@ -127,28 +127,30 @@ static int32_t snippet_main(void) {
     int64_t l5;
     vader_string_t l6 = 0;
     vader_box_t l7 = vader_box_null();
-    size_t t0;
-    int64_t t1;
-    vader_string_t t2 = 0;
-    void* t3 = NULL;
+    void* t0 = NULL;
+    size_t t1;
+    int64_t t2;
+    vader_string_t t3 = 0;
     vader_box_t* gc_roots[1] = { &l7 };
-    void** gc_raw_roots[4] = { &l0, &l2, &l9, &t3 };
-    vader_string_t* gc_atom_roots[2] = { &l6, &t2 };
+    void** gc_raw_roots[4] = { &l0, &l2, &l9, &t0 };
+    vader_string_t* gc_atom_roots[2] = { &l6, &t3 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 25 "tests/snippets/array_clear_refill/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(11u, 0u, 7u, 1u);
-    l0 = (void*) _a0_arr;
+    t0 = (void*) _a0_arr;
+    vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (size_t) INT64_C(200));
+    l0 = (void*) _a1_arr;
 #line 26 "tests/snippets/array_clear_refill/_main.vader"
     l1 = INT32_C(0);
     while ((l1 < INT32_C(200))) {
 #line 27 "tests/snippets/array_clear_refill/_main.vader"
         vader_array_push_i32((vader_array_t*) l0, l1);
 #line 28 "tests/snippets/array_clear_refill/_main.vader"
-        t0 = ((vader_array_t*) l0)->length;
-        if ((t0 > INT64_C(4))) {
+        t1 = ((vader_array_t*) l0)->length;
+        if ((t1 > INT64_C(4))) {
 #line 29 "tests/snippets/array_clear_refill/_main.vader"
             vader_array_clear((vader_array_t*) l0);
 #line 28 "tests/snippets/array_clear_refill/_main.vader"
@@ -160,12 +162,12 @@ static int32_t snippet_main(void) {
     l2 = std_core_new_byte_buffer((size_t) 26);
     l3 = (size_t) 0;
     l3 = std_core_write_string_at(l2, l3, 1u);
-    t0 = ((vader_array_t*) l0)->length;
-    t1 = ((int64_t) (size_t) t0);
-    l4 = (uint64_t) (int64_t) t1;
+    t1 = ((vader_array_t*) l0)->length;
+    t2 = ((int64_t) (size_t) t1);
+    l4 = (uint64_t) (int64_t) t2;
     l3 = std_core_write_unsigned(l2, l3, l4);
-    t2 = std_core_finish_buffer(l2, l3);
-    std_io_println__string(t2);
+    t3 = std_core_finish_buffer(l2, l3);
+    std_io_println__string(t3);
 #line 34 "tests/snippets/array_clear_refill/_main.vader"
     l1 = INT32_C(0);
     while ((l1 < INT32_C(5000))) {
@@ -180,14 +182,14 @@ static int32_t snippet_main(void) {
         l6 = std_core_finish_buffer(l2, l3);
         vader_array_push((vader_array_t*) l0, vader_box_string(2u, l6));
 #line 22 "tests/snippets/array_clear_refill/_main.vader"
-        t3 = (void*) &vader_data_0;
+        t0 = (void*) &vader_data_0;
 #line 36 "tests/snippets/array_clear_refill/_main.vader"
-        t0 = ((vader_array_t*) t3)->length;
-        if ((t0 > INT64_C(128))) {
+        t1 = ((vader_array_t*) t0)->length;
+        if ((t1 > INT64_C(128))) {
 #line 22 "tests/snippets/array_clear_refill/_main.vader"
-            t3 = (void*) &vader_data_0;
+            t0 = (void*) &vader_data_0;
 #line 37 "tests/snippets/array_clear_refill/_main.vader"
-            vader_array_clear((vader_array_t*) t3);
+            vader_array_clear((vader_array_t*) t0);
 #line 36 "tests/snippets/array_clear_refill/_main.vader"
         }
 #line 34 "tests/snippets/array_clear_refill/_main.vader"
@@ -198,26 +200,26 @@ static int32_t snippet_main(void) {
     l3 = (size_t) 0;
     l3 = std_core_write_string_at(l0, l3, 3u);
 #line 22 "tests/snippets/array_clear_refill/_main.vader"
-    t3 = (void*) &vader_data_0;
+    t0 = (void*) &vader_data_0;
 #line 40 "tests/snippets/array_clear_refill/_main.vader"
-    t0 = ((vader_array_t*) t3)->length;
-    t1 = ((int64_t) (size_t) t0);
-    l4 = (uint64_t) (int64_t) t1;
+    t1 = ((vader_array_t*) t0)->length;
+    t2 = ((int64_t) (size_t) t1);
+    l4 = (uint64_t) (int64_t) t2;
     l3 = std_core_write_unsigned(l0, l3, l4);
-    t2 = std_core_finish_buffer(l0, l3);
-    std_io_println__string(t2);
+    t3 = std_core_finish_buffer(l0, l3);
+    std_io_println__string(t3);
 #line 22 "tests/snippets/array_clear_refill/_main.vader"
-    t3 = (void*) &vader_data_0;
+    t0 = (void*) &vader_data_0;
 #line 44 "tests/snippets/array_clear_refill/_main.vader"
-    vader_array_push((vader_array_t*) t3, vader_box_string(2u, 4u));
+    vader_array_push((vader_array_t*) t0, vader_box_string(2u, 4u));
 #line 22 "tests/snippets/array_clear_refill/_main.vader"
-    t3 = (void*) &vader_data_0;
+    t0 = (void*) &vader_data_0;
 #line 45 "tests/snippets/array_clear_refill/_main.vader"
-    vader_array_push((vader_array_t*) t3, vader_box_string(2u, 5u));
+    vader_array_push((vader_array_t*) t0, vader_box_string(2u, 5u));
 #line 22 "tests/snippets/array_clear_refill/_main.vader"
-    t3 = (void*) &vader_data_0;
+    t0 = (void*) &vader_data_0;
 #line 46 "tests/snippets/array_clear_refill/_main.vader"
-    l7 = vader_array_remove_last((vader_array_t*) t3);
+    l7 = vader_array_remove_last((vader_array_t*) t0);
 #line 47 "tests/snippets/array_clear_refill/_main.vader"
     if (l7.tag == 0u) {
         l6 = 6u;
@@ -231,46 +233,46 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_string_at(l0, l3, l6);
     l3 = std_core_write_string_at(l0, l3, 8u);
 #line 22 "tests/snippets/array_clear_refill/_main.vader"
-    t3 = (void*) &vader_data_0;
+    t0 = (void*) &vader_data_0;
 #line 47 "tests/snippets/array_clear_refill/_main.vader"
-    t0 = ((vader_array_t*) t3)->length;
-    t1 = ((int64_t) (size_t) t0);
-    l4 = (uint64_t) (int64_t) t1;
+    t1 = ((vader_array_t*) t0)->length;
+    t2 = ((int64_t) (size_t) t1);
+    l4 = (uint64_t) (int64_t) t2;
     l3 = std_core_write_unsigned(l0, l3, l4);
-    t2 = std_core_finish_buffer(l0, l3);
-    std_io_println__string(t2);
+    t3 = std_core_finish_buffer(l0, l3);
+    std_io_println__string(t3);
 #line 50 "tests/snippets/array_clear_refill/_main.vader"
-    vader_array_t* _a1_arr = vader_array_new(11u, 5u, 7u, 1u);
-    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 4u] = (int32_t) INT32_C(5);
-    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 3u] = (int32_t) INT32_C(4);
-    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 2u] = (int32_t) INT32_C(3);
-    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int32_t) INT32_C(2);
-    ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int32_t) INT32_C(1);
-    l0 = (void*) _a1_arr;
+    vader_array_t* _a2_arr = vader_array_new(11u, 5u, 7u, 1u);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 4u] = (int32_t) INT32_C(5);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 3u] = (int32_t) INT32_C(4);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 2u] = (int32_t) INT32_C(3);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (int32_t) INT32_C(2);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int32_t) INT32_C(1);
+    l0 = (void*) _a2_arr;
 #line 51 "tests/snippets/array_clear_refill/_main.vader"
-    t1 = ((int64_t) 1);
-    l3 = (size_t) (int64_t) t1;
-    t1 = ((int64_t) 3);
-    l8 = (size_t) (int64_t) t1;
-    vader_array_t* _a2_arr = vader_array_slice((vader_array_t*) l0, (size_t) l3, (size_t) l8);
-    l2 = (void*) _a2_arr;
+    t2 = ((int64_t) 1);
+    l3 = (size_t) (int64_t) t2;
+    t2 = ((int64_t) 3);
+    l8 = (size_t) (int64_t) t2;
+    vader_array_t* _a3_arr = vader_array_slice((vader_array_t*) l0, (size_t) l3, (size_t) l8);
+    l2 = (void*) _a3_arr;
 #line 52 "tests/snippets/array_clear_refill/_main.vader"
     vader_array_clear((vader_array_t*) l0);
 #line 53 "tests/snippets/array_clear_refill/_main.vader"
     l9 = std_core_new_byte_buffer((size_t) 50);
     l3 = (size_t) 0;
     l3 = std_core_write_string_at(l9, l3, 9u);
-    t0 = ((vader_array_t*) l2)->length;
-    t1 = ((int64_t) (size_t) t0);
-    l4 = (uint64_t) (int64_t) t1;
+    t1 = ((vader_array_t*) l2)->length;
+    t2 = ((int64_t) (size_t) t1);
+    l4 = (uint64_t) (int64_t) t2;
     l3 = std_core_write_unsigned(l9, l3, l4);
     l3 = std_core_write_string_at(l9, l3, 10u);
-    t0 = ((vader_array_t*) l0)->length;
-    t1 = ((int64_t) (size_t) t0);
-    l4 = (uint64_t) (int64_t) t1;
+    t1 = ((vader_array_t*) l0)->length;
+    t2 = ((int64_t) (size_t) t1);
+    l4 = (uint64_t) (int64_t) t2;
     l3 = std_core_write_unsigned(l9, l3, l4);
-    t2 = std_core_finish_buffer(l9, l3);
-    std_io_println__string(t2);
+    t3 = std_core_finish_buffer(l9, l3);
+    std_io_println__string(t3);
 #line 54 "tests/snippets/array_clear_refill/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }

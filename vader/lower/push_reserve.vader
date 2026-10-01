@@ -1,0 +1,277 @@
+// vader/lower/push_reserve — create an array at the size a counted loop fills it to.
+//
+// `out := []` followed by a loop that runs a known number of times, pushing onto
+// `out` once per turn, grows `out` by doubling: each growth allocates a buffer,
+// copies the elements and leaves the old buffer to the collector — on a large
+// array as much work as the loop itself. When the trip count is known before the
+// loop starts, `out` is created with that capacity instead (`[] * n`), which the
+// runtime and the push cache treat as any fresh array. The loop's shape decides:
+// a hand-written loop, a fused chain and an inlined `collect` take the same one.
+//
+// The capacity is a hint, never a semantics: a skipped push or an early exit only
+// leaves slots unused. So the rule asks for what keeps the hint tight — a push at
+// the top of the body, no jump in it — not for what keeps the program correct.
+
+module "vader/lower"
+
+import "toolchain/span"
+import "vader/resolver/symbol"
+import "vader/types"
+
+/// When the last statement of `stmts` is a counted loop, create each empty array
+/// it fills — one push per turn — at the loop's trip count instead.
+///
+/// The arrays are the `let`s right ahead of the loop, walked back to the first
+/// statement that is not a `let`, or to the `let` of a value the trip count
+/// reads, which an earlier creation could not see. Call it after every statement
+/// a block lowers, as `fuse_concat_tail` is. `push_cache_tag`, which runs later,
+/// sees a reserved array as the fresh array it is.
+///
+/// @param stmts  the block's statements so far ; the `let`s are rewritten in place.
+export reserve_push_tail :: fn(stmts: LoweredStmt[]!) -> void {
+    n :: stmts.len()
+    if n < 2 || stmts[n - 2] !is LoweredLet {
+        return
+    }
+    counted :: counted_loop_of(stmts[n - 1]) ?? return
+    if !runs_every_turn(counted) {
+        return
+    }
+    i := n - 1
+    for i > 0 {
+        i -= 1
+        st :: stmts[i]
+        if st !is LoweredLet {
+            return
+        }
+        if is_empty_array_lit(st.value) && has_top_level_push(counted.body, st.symbol) {
+            reserve :: LoweredIntrinsicCall {
+                .span = st.span,
+                .type = type_of(st.value),
+                .name = INTRINSIC_ARRAY_REPEAT,
+                .args = [st.value, trip_count(counted, st.span)],
+            }
+            stmts[i] = LoweredLet { ...st, .value = reserve }
+        }
+        if reads_local(counted.start, st.symbol) || reads_local(counted.bound, st.symbol) {
+            return
+        }
+    }
+}
+
+is_empty_array_lit :: fn(e: LoweredExpr) -> bool = e is LoweredArrayLit && e.elements.len() == 0
+
+// ---- the loop ---------------------------------------------------------------
+
+// A loop stepping its counter by one up to its bound — the shape of every counter
+// loop the lowering emits, a `for` over a range or an array, fused or not. Its
+// start and bound are expressions valid ahead of the loop's block.
+CountedLoop :: struct {
+    body:      LoweredBlock
+    counter:   Symbol
+    start:     LoweredExpr
+    bound:     LoweredExpr
+    /// The bound is reached: `c <= bound`, not `c < bound`.
+    inclusive: bool
+}
+
+// The counted loop `st` runs: the loop itself, or a block whose statements are
+// `let`s then a block of the same shape or the loop — null for any other shape,
+// or when the trip count is not known before the block starts.
+counted_loop_of :: fn(st: LoweredStmt) -> CountedLoop | null {
+    lets: LoweredLet[]!: []
+    return counted_loop_in(st, lets)
+}
+
+counted_loop_in :: fn(st: LoweredStmt, lets: LoweredLet[]!) -> CountedLoop | null {
+    if st is LoweredLoop {
+        return counted_shape(st, lets)
+    }
+    if st is LoweredExprStmt {
+        if st.expr is LoweredBlock as b {
+            if b.trailing != null || b.stmts.len() == 0 {
+                return null
+            }
+            last :: b.stmts.len() - 1
+            for k in 0..<last {
+                s :: b.stmts[k]
+                if s !is LoweredLet {
+                    return null
+                }
+                lets.push(s)
+            }
+            return counted_loop_in(b.stmts[last], lets)
+        }
+    }
+    return null
+}
+
+// `loop while c < bound { … } step c = c + 1` (or `c <= bound`), `c` one of the
+// `lets`, its start and the bound hoisted ahead of them.
+counted_shape :: fn(lp: LoweredLoop, lets: LoweredLet[]) -> CountedLoop | null {
+    cond :: lp.cond ?? return null
+    if lp.step.len() != 1 || cond !is LoweredBinary {
+        return null
+    }
+    if (cond.op != .Lt && cond.op != .Lte) || cond.left !is LoweredIdent {
+        return null
+    }
+    counter :: cond.left.symbol
+    if !steps_by_one(lp.step[0], counter) {
+        return null
+    }
+    start_let :: defining_let(lets, counter) ?? return null
+    return CountedLoop {
+        .body = lp.body,
+        .counter = counter,
+        .start = hoisted(start_let.value, lets) ?? return null,
+        .bound = hoisted(cond.right, lets) ?? return null,
+        .inclusive = cond.op == .Lte,
+    }
+}
+
+// `c = c + 1`.
+steps_by_one :: fn(st: LoweredStmt, counter: Symbol) -> bool {
+    if st !is LoweredAssign || !names_local(st.target, counter) {
+        return false
+    }
+    v :: st.value
+    return v is LoweredBinary && v.op == .Add && names_local(v.left, counter) && is_int_lit(v.right, 1)
+}
+
+names_local :: fn(e: LoweredExpr, symbol: Symbol) -> bool =
+    e is LoweredIdent && e.symbol.id == symbol.id
+
+is_int_lit :: fn(e: LoweredExpr, value: i64) -> bool = e is LoweredIntLit && e.value == value
+
+// The `let` among `lets` that defines `symbol`.
+defining_let :: fn(lets: LoweredLet[], symbol: Symbol) -> LoweredLet | null {
+    for l in lets {
+        if l.symbol.id == symbol.id {
+            return l
+        }
+    }
+    return null
+}
+
+// Every turn runs the whole body: nothing in it skips the rest of a turn or
+// leaves the loop early, nor writes the counter.
+runs_every_turn :: fn(counted: CountedLoop) -> bool {
+    irregular := false
+    stmt_node_block(counted.body, (s: LoweredStmt) -> {
+        jumps :: s is LoweredBreak || s is LoweredContinue || s is LoweredReturn
+        if jumps || (s is LoweredAssign && names_local(s.target, counted.counter)) {
+            irregular = true
+        }
+    })
+    return !irregular
+}
+
+// A push onto `out` at the top of the body: it runs on every turn.
+has_top_level_push :: fn(body: LoweredBlock, out: Symbol) -> bool {
+    for s in body.stmts {
+        if s is LoweredExprStmt && is_push_onto(s.expr, out) {
+            return true
+        }
+    }
+    t :: body.trailing ?? return false
+    return is_push_onto(t, out)
+}
+
+is_push_onto :: fn(e: LoweredExpr, out: Symbol) -> bool =
+    e is LoweredArrayPush && names_local(e.target, out)
+
+// ---- the trip count ---------------------------------------------------------
+
+// How many turns the loop runs, as a `usize`: `bound - start` (one more when the
+// bound is reached), or 0 for a range whose bound sits below its start.
+trip_count :: fn(counted: CountedLoop, span: Span) -> LoweredExpr {
+    start :: counted.start
+    bound :: counted.bound
+    extra: i64: if counted.inclusive { 1 } else { 0 }
+    if is_int_lit(start, 0) && is_usize(type_of(bound)) && !counted.inclusive {
+        return bound
+    }
+    if start is LoweredIntLit && bound is LoweredIntLit {
+        turns :: bound.value - start.value + extra
+        return usize_lit(if turns > 0 { turns } else { 0 }, span)
+    }
+    difference :: LoweredBinary {
+        .span = span,
+        .type = type_of(bound),
+        .op = .Sub,
+        .left = bound,
+        .right = start,
+    }
+    turns :: cast_to_usize(difference, span)
+    in_range :: LoweredBinary {
+        .span = span,
+        .type = TY_BOOL,
+        .op = if counted.inclusive { .Lte } else { .Lt },
+        .left = start,
+        .right = bound,
+    }
+    return LoweredIf {
+        .span = span,
+        .type = mk_primitive("usize"),
+        .cond = in_range,
+        .then_block = wrap_as_block(if counted.inclusive { plus_one(turns, span) } else { turns }, span),
+        .else_block = wrap_as_block(usize_lit(0, span), span),
+    }
+}
+
+plus_one :: fn(e: LoweredExpr, span: Span) -> LoweredExpr = LoweredBinary {
+    .span = span,
+    .type = mk_primitive("usize"),
+    .op = .Add,
+    .left = e,
+    .right = usize_lit(1, span),
+}
+
+// Whether `e`, a hoisted start or bound, reads `symbol`.
+reads_local :: fn(e: LoweredExpr, symbol: Symbol) -> bool {
+    if e is LoweredIdent {
+        return e.symbol.id == symbol.id
+    }
+    if e is LoweredArrayLen {
+        return reads_local(e.target, symbol)
+    }
+    if e is LoweredFieldAccess {
+        return reads_local(e.target, symbol)
+    }
+    return false
+}
+
+is_usize :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "usize"
+
+usize_lit :: fn(value: i64, span: Span) -> LoweredExpr = LoweredIntLit {
+    .span = span,
+    .type = mk_primitive("usize"),
+    .value = value,
+}
+
+// `e` with each read of a preheader `let` replaced by that `let`'s value, when
+// what remains only reads locals, fields and lengths — values the `let`s
+// between the empty array and the loop leave alone. A literal, a local, a field
+// and an array's length are the values a counter loop starts from or runs to ;
+// a call may not be re-run early. Read early, a value some `let` in between does
+// change only mis-sizes the capacity.
+hoisted :: fn(e: LoweredExpr, lets: LoweredLet[]) -> LoweredExpr | null {
+    if e is LoweredIntLit {
+        return e
+    }
+    if e is LoweredIdent {
+        defined :: defining_let(lets, e.symbol) ?? return e
+        return hoisted(defined.value, lets)
+    }
+    if e is LoweredArrayLen {
+        target :: hoisted(e.target, lets) ?? return null
+        // A copy the bounds-check pass must not pair with the loop it measures.
+        return LoweredArrayLen { ...e, .target = target, .bce_recheck = false }
+    }
+    if e is LoweredFieldAccess {
+        target :: hoisted(e.target, lets) ?? return null
+        return LoweredFieldAccess { ...e, .target = target }
+    }
+    return null
+}

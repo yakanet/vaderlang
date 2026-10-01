@@ -1746,33 +1746,40 @@ fn 21 cli$accepts_value (ref,string) -> bool
 end
 
 fn 22 cli$value_list (ref) -> string
-  local names ref
+  local $arr_1 ref
+  local $len_3 usize
   local __for_arr_0 ref
-  local __for_len_1 usize
   local __for_i_2 usize
-  local $field_12 string
+  local $field_15 string
   array.new 10 0   ; string[][]
-  local.set 1   ; names
+  local.set 1   ; $arr_1
   local.field 0 12 6   ; arg 0.values
-  local.tee 2   ; __for_arr_0
   array.len
-  local.set 3   ; __for_len_1
+  local.set 2   ; $len_3
+  local.get 1   ; $arr_1
+  local.get 2   ; $len_3
+  array.repeat
+  local.set 1   ; $arr_1
+  local.field 0 12 6   ; arg 0.values
+  local.tee 3   ; __for_arr_0
+  array.len
+  local.set 2   ; $len_3
   i64.const 0
   local.set 4   ; __for_i_2
   block $L0 void
     loop $L1 void
       local.get 4   ; __for_i_2
-      local.get 3   ; __for_len_1
+      local.get 2   ; $len_3
       u64.lt
       if $L2 void
-        local.get 2   ; __for_arr_0
+        local.get 3   ; __for_arr_0
         local.get 4   ; __for_i_2
         array.get 16   ; cli$ValueSpec[][]
         struct.get 17 0   ; cli$ValueSpec.name
         ref.cast 2   ; -> string
-        local.set 5   ; $field_12
-        local.get 1   ; names
-        local.get 5   ; $field_12
+        local.set 5   ; $field_15
+        local.get 1   ; $arr_1
+        local.get 5   ; $field_15
         array.push 2 1   ; string[]
         local.get 4   ; __for_i_2
         i64.const 1
@@ -1782,7 +1789,7 @@ fn 22 cli$value_list (ref) -> string
       end $L2
     end $L1
   end $L0
-  local.get 1   ; names
+  local.get 1   ; $arr_1
   string.const 58   ; ", "
   call 37   ; std_string$join
   return
@@ -1820,6 +1827,8 @@ fn 26 std_collections$ensure_index__string__string (ref) -> void
   i64.eq
   if $L0 void
     array.new 20 0   ; i32[][]
+    i64.const 16
+    array.repeat
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -1858,8 +1867,10 @@ fn 27 std_collections$rehash__string__string (ref,usize) -> void
   local e usize
   local __for_hi_1 usize
   local s usize
-  local $cast_31 i32
+  local $cast_32 i32
   array.new 20 0   ; i32[][]
+  local.get 1   ; arg 1
+  array.repeat
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -1925,10 +1936,10 @@ fn 27 std_collections$rehash__string__string (ref,usize) -> void
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_31
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_31
+        local.get 7   ; $cast_32
         store_slot_i32
         local.get 4   ; e
         i64.const 1

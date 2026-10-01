@@ -219,7 +219,9 @@
         let __fuse_arr_11: Rec[] = a :Rec[]
         let f: fn(Rec) -> Rec! = __lambda_snippet_0 :fn(Rec) -> Rec!
         let out: Rec![]! =
-          array :Rec![]!
+          @array.repeat :Rec![]!
+            array :Rec![]!
+            LoweredArrayLen
         block :void
           let __fuse_len_0: usize =
             LoweredArrayLen

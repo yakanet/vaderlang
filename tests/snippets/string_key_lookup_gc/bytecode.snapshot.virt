@@ -60,12 +60,12 @@ fn 0 snippet$main () -> i32
   local __for_len_5 usize
   local __for_i_6 usize
   local w string
-  local $cast_74 i32
+  local $cast_76 i32
   local __coalesce_7 any
   local if_res i32
-  local $add_83 i32
-  local $cast_100 u64
-  local $gt_106 bool
+  local $add_85 i32
+  local $cast_102 u64
+  local $gt_108 bool
   array.new 17 0   ; string[][]
   local.set 0   ; $arr_0
   array.new 16 0   ; bool[][]
@@ -148,6 +148,8 @@ fn 0 snippet$main () -> i32
       i32.lt
       if $L5 void
         array.new 17 0   ; string[][]
+        i64.const 100
+        array.repeat
         local.set 2   ; $arr_2
         i32.const 0
         local.set 9   ; i
@@ -222,9 +224,9 @@ fn 0 snippet$main () -> i32
                 i64.const 1
                 call.import 1   ; std_core$byte_at
                 u8.to_i32
-                local.set 14   ; $cast_74
+                local.set 14   ; $cast_76
                 local.get 3   ; i
-                local.get 14   ; $cast_74
+                local.get 14   ; $cast_76
                 i32.add
                 local.set 3   ; i
                 local.get 1   ; $arr_1
@@ -243,10 +245,10 @@ fn 0 snippet$main () -> i32
                 local.get 16   ; if_res
                 i32.const 1
                 i32.add
-                local.set 17   ; $add_83
+                local.set 17   ; $add_85
                 local.get 1   ; $arr_1
                 local.get 13   ; w
-                local.get 17   ; $add_83
+                local.get 17   ; $add_85
                 call 9   ; std_collections$MutableMap$IndexSet$set_at__string__i32
               end $L12
               local.get 12   ; __for_i_6
@@ -291,10 +293,10 @@ fn 0 snippet$main () -> i32
   local.get 1   ; $arr_1
   call 24   ; std_collections$len__string__i32
   usize.to_i64
-  local.set 18   ; $cast_100
+  local.set 18   ; $cast_102
   local.get 0   ; $arr_0
   local.get 4   ; __off_1
-  local.get 18   ; $cast_100
+  local.get 18   ; $cast_102
   call 6   ; std_core$write_unsigned
   local.set 4   ; __off_1
   local.get 0   ; $arr_0
@@ -305,10 +307,10 @@ fn 0 snippet$main () -> i32
   call.import 5   ; std_runtime$collections
   i32.const 0
   i32.gt
-  local.set 19   ; $gt_106
+  local.set 19   ; $gt_108
   local.get 0   ; $arr_0
   local.get 4   ; __off_1
-  local.get 19   ; $gt_106
+  local.get 19   ; $gt_108
   call 7   ; std_core$write_bool
   local.set 4   ; __off_1
   local.get 0   ; $arr_0
@@ -648,6 +650,8 @@ fn 14 std_collections$ensure_index__string__bool (ref) -> void
   i64.eq
   if $L0 void
     array.new 15 0   ; i32[][]
+    i64.const 16
+    array.repeat
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -689,6 +693,8 @@ fn 15 std_collections$ensure_index__string__i32 (ref) -> void
   i64.eq
   if $L0 void
     array.new 15 0   ; i32[][]
+    i64.const 16
+    array.repeat
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -727,8 +733,10 @@ fn 16 std_collections$rehash__string__bool (ref,usize) -> void
   local e usize
   local __for_hi_1 usize
   local s usize
-  local $cast_31 i32
+  local $cast_32 i32
   array.new 15 0   ; i32[][]
+  local.get 1   ; arg 1
+  array.repeat
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -794,10 +802,10 @@ fn 16 std_collections$rehash__string__bool (ref,usize) -> void
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_31
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_31
+        local.get 7   ; $cast_32
         store_slot_i32
         local.get 4   ; e
         i64.const 1
@@ -825,8 +833,10 @@ fn 17 std_collections$rehash__string__i32 (ref,usize) -> void
   local e usize
   local __for_hi_1 usize
   local s usize
-  local $cast_31 i32
+  local $cast_32 i32
   array.new 15 0   ; i32[][]
+  local.get 1   ; arg 1
+  array.repeat
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -892,10 +902,10 @@ fn 17 std_collections$rehash__string__i32 (ref,usize) -> void
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_31
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_31
+        local.get 7   ; $cast_32
         store_slot_i32
         local.get 4   ; e
         i64.const 1

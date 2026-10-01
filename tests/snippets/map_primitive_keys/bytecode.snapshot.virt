@@ -1325,6 +1325,8 @@ fn 35 std_collections$ensure_index__char__i32 (ref) -> void
   i64.eq
   if $L0 void
     array.new 21 0   ; i32[][]
+    i64.const 16
+    array.repeat
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -1366,6 +1368,8 @@ fn 36 std_collections$ensure_index__i16__i32 (ref) -> void
   i64.eq
   if $L0 void
     array.new 21 0   ; i32[][]
+    i64.const 16
+    array.repeat
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -1407,6 +1411,8 @@ fn 37 std_collections$ensure_index__i64__i32 (ref) -> void
   i64.eq
   if $L0 void
     array.new 21 0   ; i32[][]
+    i64.const 16
+    array.repeat
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -1448,6 +1454,8 @@ fn 38 std_collections$ensure_index__u16__i32 (ref) -> void
   i64.eq
   if $L0 void
     array.new 21 0   ; i32[][]
+    i64.const 16
+    array.repeat
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -1489,6 +1497,8 @@ fn 39 std_collections$ensure_index__u8__i32 (ref) -> void
   i64.eq
   if $L0 void
     array.new 21 0   ; i32[][]
+    i64.const 16
+    array.repeat
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -1530,6 +1540,8 @@ fn 40 std_collections$ensure_index__usize__i32 (ref) -> void
   i64.eq
   if $L0 void
     array.new 21 0   ; i32[][]
+    i64.const 16
+    array.repeat
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
@@ -1568,8 +1580,10 @@ fn 41 std_collections$rehash__char__i32 (ref,usize) -> void
   local e usize
   local __for_hi_1 usize
   local s usize
-  local $cast_31 i32
+  local $cast_32 i32
   array.new 21 0   ; i32[][]
+  local.get 1   ; arg 1
+  array.repeat
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -1634,10 +1648,10 @@ fn 41 std_collections$rehash__char__i32 (ref,usize) -> void
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_31
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_31
+        local.get 7   ; $cast_32
         store_slot_i32
         local.get 4   ; e
         i64.const 1
@@ -1665,8 +1679,10 @@ fn 42 std_collections$rehash__i16__i32 (ref,usize) -> void
   local e usize
   local __for_hi_1 usize
   local s usize
-  local $cast_31 i32
+  local $cast_32 i32
   array.new 21 0   ; i32[][]
+  local.get 1   ; arg 1
+  array.repeat
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -1732,10 +1748,10 @@ fn 42 std_collections$rehash__i16__i32 (ref,usize) -> void
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_31
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_31
+        local.get 7   ; $cast_32
         store_slot_i32
         local.get 4   ; e
         i64.const 1
@@ -1763,8 +1779,10 @@ fn 43 std_collections$rehash__i64__i32 (ref,usize) -> void
   local e usize
   local __for_hi_1 usize
   local s usize
-  local $cast_31 i32
+  local $cast_32 i32
   array.new 21 0   ; i32[][]
+  local.get 1   ; arg 1
+  array.repeat
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -1829,10 +1847,10 @@ fn 43 std_collections$rehash__i64__i32 (ref,usize) -> void
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_31
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_31
+        local.get 7   ; $cast_32
         store_slot_i32
         local.get 4   ; e
         i64.const 1
@@ -1860,8 +1878,10 @@ fn 44 std_collections$rehash__u16__i32 (ref,usize) -> void
   local e usize
   local __for_hi_1 usize
   local s usize
-  local $cast_31 i32
+  local $cast_32 i32
   array.new 21 0   ; i32[][]
+  local.get 1   ; arg 1
+  array.repeat
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -1927,10 +1947,10 @@ fn 44 std_collections$rehash__u16__i32 (ref,usize) -> void
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_31
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_31
+        local.get 7   ; $cast_32
         store_slot_i32
         local.get 4   ; e
         i64.const 1
@@ -1958,8 +1978,10 @@ fn 45 std_collections$rehash__u8__i32 (ref,usize) -> void
   local e usize
   local __for_hi_1 usize
   local s usize
-  local $cast_31 i32
+  local $cast_32 i32
   array.new 21 0   ; i32[][]
+  local.get 1   ; arg 1
+  array.repeat
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -2025,10 +2047,10 @@ fn 45 std_collections$rehash__u8__i32 (ref,usize) -> void
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_31
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_31
+        local.get 7   ; $cast_32
         store_slot_i32
         local.get 4   ; e
         i64.const 1
@@ -2056,8 +2078,10 @@ fn 46 std_collections$rehash__usize__i32 (ref,usize) -> void
   local e usize
   local __for_hi_1 usize
   local s usize
-  local $cast_31 i32
+  local $cast_32 i32
   array.new 21 0   ; i32[][]
+  local.get 1   ; arg 1
+  array.repeat
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -2122,10 +2146,10 @@ fn 46 std_collections$rehash__usize__i32 (ref,usize) -> void
         i64.const 1
         i64.add
         usize.to_i32
-        local.set 7   ; $cast_31
+        local.set 7   ; $cast_32
         local.get 2   ; fresh
         local.get 6   ; s
-        local.get 7   ; $cast_31
+        local.get 7   ; $cast_32
         store_slot_i32
         local.get 4   ; e
         i64.const 1

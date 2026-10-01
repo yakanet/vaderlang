@@ -105,9 +105,10 @@ exec_array_repeat :: fn(frame: Frame!) -> Trap | null {
     array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.repeat receiver")
     if array_unwrap is Trap { return array_unwrap }
     count :: clamp_nonneg(i32(count_unwrap))
-    // No capacity concept in the VM (capacity is a native-only perf
-    // hint) : `[] * n` yields a length-0 array, `[v] * n` n copies.
-    repeated: Value[]!: [] * (count * array_unwrap.length)
+    // `[] * n` yields a length-0 array with `n` slots reserved, `[v] * n` n
+    // copies.
+    slots :: if array_unwrap.length == 0 { count } else { count * array_unwrap.length }
+    repeated: Value[]!: [] * slots
     for _ in 0..<count {
         for j in 0..<array_unwrap.length {
             repeated.push(array_unwrap.elements[array_unwrap.offset + j])
