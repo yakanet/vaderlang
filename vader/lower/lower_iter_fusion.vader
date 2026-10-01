@@ -561,6 +561,12 @@ emit_fused_range :: fn(
     loop_stmt :: LoweredLoop {
         .span = outer_span, .label = null, .cond = cond, .body = range_body,
         .step = [inc_stmt],
+        .turns = LoopTurns {
+            .counter = counter_symbol,
+            .start = lo,
+            .bound = hi,
+            .inclusive = range_chain.inclusive,
+        },
     }
     out: LoweredStmt[]!: []
     out.push(counter_init)
@@ -622,6 +628,12 @@ emit_fused_array :: fn(
         .span = outer_span, .label = null, .cond = cond,
         .body = prepend_stmts_to_block(bind_stmts, template.user_body),
         .step = [inc_stmt],
+        .turns = LoopTurns {
+            .counter = idx_sym,
+            .start = idx_init.value,
+            .bound = len_ref,
+            .inclusive = false,
+        },
     }
 
     out: LoweredStmt[]!: []

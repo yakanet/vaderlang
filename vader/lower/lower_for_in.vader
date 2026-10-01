@@ -745,6 +745,12 @@ try_lower_for_in_raw_array :: fn(
         .span = span, .label = resolve_loop_label(ctx, for_stmt), .cond = cond,
         .body = prepend_stmts_to_block(bind_stmts, user_body),
         .step = [inc_stmt],
+        .turns = LoopTurns {
+            .counter = idx_sym,
+            .start = idx_init.value,
+            .bound = len_ref,
+            .inclusive = false,
+        },
     }
 
     block_stmts: LoweredStmt[]!: []
@@ -854,6 +860,12 @@ try_lower_for_in_int_range :: fn(
         .span = span, .label = resolve_loop_label(ctx, for_stmt), .cond = cond,
         .body = user_body,
         .step = [inc_stmt],
+        .turns = LoopTurns {
+            .counter = counter_symbol,
+            .start = lo,
+            .bound = hi,
+            .inclusive = range.inclusive,
+        },
     }
 
     // The counter first : its initial value is the lower bound, which is

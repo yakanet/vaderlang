@@ -283,6 +283,26 @@ export LoweredLoop :: struct {
     /// `cond` is tested again — a counted loop's increment. Straight-line code:
     /// no jump, no `yield` or `await`. Empty for a loop with no step.
     step:  LoweredStmt[]
+    /// How many turns the loop runs, when the emitter that built it knows ; null
+    /// for any other loop.
+    turns: LoopTurns | null = null
+}
+
+/// The trip count of a counted loop, as its emitter knows it: `counter` steps by
+/// one from `start` up to `bound` — reaching it when `inclusive` — unless the
+/// body writes `counter` too, which a reader must rule out: a range's counter can
+/// be the user's loop variable. `start` is what the counter is initialised from
+/// and `bound` what it is tested against, each as the loop's preheader computes
+/// it — any expression, a call included: evaluating either one again, or
+/// earlier, is the reader's to prove safe.
+///
+/// Valid only while the block holding the loop lowers (`push_reserve.vader`):
+/// no later pass rewrites these expressions, and no backend reads them.
+export LoopTurns :: struct {
+    counter:   Symbol
+    start:     LoweredExpr
+    bound:     LoweredExpr
+    inclusive: bool
 }
 
 export LoweredBreak :: struct {

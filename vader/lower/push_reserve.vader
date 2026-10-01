@@ -5,8 +5,9 @@
 // copies the elements and leaves the old buffer to the collector — on a large
 // array as much work as the loop itself. When the trip count is known before the
 // loop starts, `out` is created with that capacity instead (`[] * n`), which the
-// runtime and the push cache treat as any fresh array. The loop's shape decides:
-// a hand-written loop, a fused chain and an inlined `collect` take the same one.
+// runtime and the push cache treat as any fresh array. The loop's emitter
+// decides, by recording the trip count on `LoweredLoop.turns`: a `for` over a
+// range or an array does, hand-written or fused — an inlined `collect` included.
 //
 // The capacity is a hint, never a semantics: a skipped push or an early exit only
 // leaves slots unused. So the rule asks for what keeps the hint tight — a push at
@@ -49,11 +50,12 @@ export reserve_push_tail :: fn(stmts: LoweredStmt[]!) -> void {
                 .span = st.span,
                 .type = type_of(st.value),
                 .name = INTRINSIC_ARRAY_REPEAT,
-                .args = [st.value, trip_count(counted, st.span)],
+                .args = [st.value, trip_count(counted.turns, st.span)],
             }
             stmts[i] = LoweredLet { ...st, .value = reserve }
         }
-        if reads_local(counted.start, st.symbol) || reads_local(counted.bound, st.symbol) {
+        turns :: counted.turns
+        if reads_local(turns.start, st.symbol) || reads_local(turns.bound, st.symbol) {
             return
         }
     }
@@ -63,29 +65,34 @@ is_empty_array_lit :: fn(e: LoweredExpr) -> bool = e is LoweredArrayLit && e.ele
 
 // ---- the loop ---------------------------------------------------------------
 
-// A loop stepping its counter by one up to its bound — the shape of every counter
-// loop the lowering emits, a `for` over a range or an array, fused or not. Its
-// start and bound are expressions valid ahead of the loop's block.
+// A counted loop, the start and bound of its `turns` hoisted ahead of the loop's
+// block.
 CountedLoop :: struct {
-    body:      LoweredBlock
-    counter:   Symbol
-    start:     LoweredExpr
-    bound:     LoweredExpr
-    /// The bound is reached: `c <= bound`, not `c < bound`.
-    inclusive: bool
+    body:  LoweredBlock
+    turns: LoopTurns
 }
 
 // The counted loop `st` runs: the loop itself, or a block whose statements are
 // `let`s then a block of the same shape or the loop — null for any other shape,
-// or when the trip count is not known before the block starts.
+// for a loop whose emitter knows no trip count, or when the count is not known
+// before the block starts.
 counted_loop_of :: fn(st: LoweredStmt) -> CountedLoop | null {
+    if st !is LoweredLoop && st !is LoweredExprStmt {
+        return null
+    }
     lets: LoweredLet[]!: []
     return counted_loop_in(st, lets)
 }
 
 counted_loop_in :: fn(st: LoweredStmt, lets: LoweredLet[]!) -> CountedLoop | null {
     if st is LoweredLoop {
-        return counted_shape(st, lets)
+        turns :: st.turns ?? return null
+        hoisted_turns :: LoopTurns {
+            ...turns,
+            .start = hoisted(turns.start, lets) ?? return null,
+            .bound = hoisted(turns.bound, lets) ?? return null,
+        }
+        return CountedLoop { .body = st.body, .turns = hoisted_turns }
     }
     if st is LoweredExprStmt {
         if st.expr is LoweredBlock as b {
@@ -104,39 +111,6 @@ counted_loop_in :: fn(st: LoweredStmt, lets: LoweredLet[]!) -> CountedLoop | nul
         }
     }
     return null
-}
-
-// `loop while c < bound { … } step c = c + 1` (or `c <= bound`), `c` one of the
-// `lets`, its start and the bound hoisted ahead of them.
-counted_shape :: fn(lp: LoweredLoop, lets: LoweredLet[]) -> CountedLoop | null {
-    cond :: lp.cond ?? return null
-    if lp.step.len() != 1 || cond !is LoweredBinary {
-        return null
-    }
-    if (cond.op != .Lt && cond.op != .Lte) || cond.left !is LoweredIdent {
-        return null
-    }
-    counter :: cond.left.symbol
-    if !steps_by_one(lp.step[0], counter) {
-        return null
-    }
-    start_let :: defining_let(lets, counter) ?? return null
-    return CountedLoop {
-        .body = lp.body,
-        .counter = counter,
-        .start = hoisted(start_let.value, lets) ?? return null,
-        .bound = hoisted(cond.right, lets) ?? return null,
-        .inclusive = cond.op == .Lte,
-    }
-}
-
-// `c = c + 1`.
-steps_by_one :: fn(st: LoweredStmt, counter: Symbol) -> bool {
-    if st !is LoweredAssign || !names_local(st.target, counter) {
-        return false
-    }
-    v :: st.value
-    return v is LoweredBinary && v.op == .Add && names_local(v.left, counter) && is_int_lit(v.right, 1)
 }
 
 names_local :: fn(e: LoweredExpr, symbol: Symbol) -> bool =
@@ -160,7 +134,8 @@ runs_every_turn :: fn(counted: CountedLoop) -> bool {
     irregular := false
     stmt_node_block(counted.body, (s: LoweredStmt) -> {
         jumps :: s is LoweredBreak || s is LoweredContinue || s is LoweredReturn
-        if jumps || (s is LoweredAssign && names_local(s.target, counted.counter)) {
+        writes_counter :: s is LoweredAssign && names_local(s.target, counted.turns.counter)
+        if jumps || writes_counter {
             irregular = true
         }
     })
@@ -185,16 +160,17 @@ is_push_onto :: fn(e: LoweredExpr, out: Symbol) -> bool =
 
 // How many turns the loop runs, as a `usize`: `bound - start` (one more when the
 // bound is reached), or 0 for a range whose bound sits below its start.
-trip_count :: fn(counted: CountedLoop, span: Span) -> LoweredExpr {
-    start :: counted.start
-    bound :: counted.bound
-    extra: i64: if counted.inclusive { 1 } else { 0 }
-    if is_int_lit(start, 0) && is_usize(type_of(bound)) && !counted.inclusive {
+trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr {
+    start :: turns.start
+    bound :: turns.bound
+    inclusive :: turns.inclusive
+    extra: i64: if inclusive { 1 } else { 0 }
+    if is_int_lit(start, 0) && is_usize(type_of(bound)) && !inclusive {
         return bound
     }
     if start is LoweredIntLit && bound is LoweredIntLit {
-        turns :: bound.value - start.value + extra
-        return usize_lit(if turns > 0 { turns } else { 0 }, span)
+        count :: bound.value - start.value + extra
+        return usize_lit(if count > 0 { count } else { 0 }, span)
     }
     difference :: LoweredBinary {
         .span = span,
@@ -203,11 +179,11 @@ trip_count :: fn(counted: CountedLoop, span: Span) -> LoweredExpr {
         .left = bound,
         .right = start,
     }
-    turns :: cast_to_usize(difference, span)
+    turned :: cast_to_usize(difference, span)
     in_range :: LoweredBinary {
         .span = span,
         .type = TY_BOOL,
-        .op = if counted.inclusive { .Lte } else { .Lt },
+        .op = if inclusive { .Lte } else { .Lt },
         .left = start,
         .right = bound,
     }
@@ -215,7 +191,7 @@ trip_count :: fn(counted: CountedLoop, span: Span) -> LoweredExpr {
         .span = span,
         .type = mk_primitive("usize"),
         .cond = in_range,
-        .then_block = wrap_as_block(if counted.inclusive { plus_one(turns, span) } else { turns }, span),
+        .then_block = wrap_as_block(if inclusive { plus_one(turned, span) } else { turned }, span),
         .else_block = wrap_as_block(usize_lit(0, span), span),
     }
 }
