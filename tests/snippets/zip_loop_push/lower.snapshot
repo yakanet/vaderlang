@@ -5,9 +5,9 @@
     let out: i64[]! =
       array :i64[]!
     block :void
-      let __fuse_arr_1: i32[] = a :i32[]
-      let __fuse_arr_2: i32[] = b :i32[]
-      let __fuse_len_3: usize =
+      let self: i32[] = a :i32[]
+      let other: i32[] = b :i32[]
+      let n: usize =
         if :usize
           cond:
             lt :bool
@@ -21,41 +21,41 @@
           else:
             ~>
               LoweredArrayLen
-      let __fuse_i_4: usize = int(0) :usize
-      loop while (<…>)
-        let __for_elem_5: [i32, i32] =
-          [i32, i32] {
-            _0:
-              index :i32
-                on:
-                  __fuse_arr_1 :i32[]
-                ix:
-                  __fuse_i_4 :usize
-            _1:
-              index :i32
-                on:
-                  __fuse_arr_2 :i32[]
-                ix:
-                  __fuse_i_4 :usize
-          }
-        let x: i32 =
-          ._0 :i32
-            __for_elem_5 :[i32, i32]
-        let y: i32 =
-          ._1 :i32
-            __for_elem_5 :[i32, i32]
-        ~>
+      block :void
+        let i: usize = int(0) :usize
+        loop while (<…>)
+          let __gen_elem_1: [i32, i32] =
+            [i32, i32]! {
+              _0:
+                index :i32
+                  on:
+                    self :i32[]
+                  ix:
+                    i :usize
+              _1:
+                index :i32
+                  on:
+                    other :i32[]
+                  ix:
+                    i :usize
+            }
+          let x: i32 =
+            ._0 :i32
+              __gen_elem_1 :[i32, i32]
+          let y: i32 =
+            ._1 :i32
+              __gen_elem_1 :[i32, i32]
           LoweredArrayPush cached
-      step
-        assign
-          target:
-            __fuse_i_4 :usize
-          value:
-            add :usize
-              l:
-                __fuse_i_4 :usize
-              r:
-                int(1) :usize
+        step
+          assign
+            target:
+              i :usize
+            value:
+              add :usize
+                l:
+                  i :usize
+                r:
+                  int(1) :usize
     return out :i64[]!
   fn snippet$main() -> i32
     let p: i64[] =

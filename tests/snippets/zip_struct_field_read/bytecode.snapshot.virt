@@ -28,13 +28,13 @@ fn 0 snippet$main () -> i32
   local $struct_7 ref
   local $struct_10 ref
   local $struct_13 ref
-  local __fuse_arr_4 ref
-  local __fuse_len_6 usize
+  local self ref
+  local n usize
   local $len_20 usize
   local $idx_27 string
+  local $idx_28 any
   local __p_1 string
   local $call_37 usize
-  local __buf_2 ref
   local __off_3 usize
   local $cast_47 i64
   local $cast_52 i64
@@ -42,7 +42,7 @@ fn 0 snippet$main () -> i32
   string.const 1   ; "b"
   string.const 2   ; "c"
   array.new 11 3   ; string[][]
-  local.set 3   ; __fuse_arr_4
+  local.set 3   ; self
   i32.const 10
   i32.const 1
   struct.new_stack 3   ; snippet$Point
@@ -60,33 +60,33 @@ fn 0 snippet$main () -> i32
   local.get 2   ; $struct_13
   array.new 12 3   ; snippet$Point[][]
   local.set 0   ; $struct_7
-  local.get 3   ; __fuse_arr_4
+  local.get 3   ; self
   array.len
-  local.set 4   ; __fuse_len_6
+  local.set 4   ; n
   local.get 0   ; $struct_7
   array.len
   local.set 5   ; $len_20
-  local.get 4   ; __fuse_len_6
+  local.get 4   ; n
   local.get 5   ; $len_20
   u64.lt
   if $L0 void
-    local.get 3   ; __fuse_arr_4
+    local.get 3   ; self
     array.len
-    local.set 4   ; __fuse_len_6
+    local.set 4   ; n
   else
     local.get 0   ; $struct_7
     array.len
-    local.set 4   ; __fuse_len_6
+    local.set 4   ; n
   end $L0
   i64.const 0
   local.set 5   ; $len_20
   block $L1 void
     loop $L2 void
       local.get 5   ; $len_20
-      local.get 4   ; __fuse_len_6
+      local.get 4   ; n
       u64.lt
       if $L3 void
-        local.get 3   ; __fuse_arr_4
+        local.get 3   ; self
         local.get 5   ; $len_20
         array.get 11   ; string[][]
         ref.cast 2   ; -> string
@@ -94,55 +94,55 @@ fn 0 snippet$main () -> i32
         local.get 0   ; $struct_7
         local.get 5   ; $len_20
         array.get 12   ; snippet$Point[][]
-        local.set 1   ; $struct_10
+        local.set 7   ; $idx_28
         local.get 6   ; $idx_27
-        local.set 7   ; __p_1
-        local.get 1   ; $struct_10
-        local.set 2   ; $struct_13
-        local.get 7   ; __p_1
+        local.set 8   ; __p_1
+        local.get 7   ; $idx_28
+        local.set 1   ; $struct_10
+        local.get 8   ; __p_1
         call.import 0   ; std_core$byte_len
-        local.set 8   ; $call_37
+        local.set 9   ; $call_37
         i64.const 42
-        local.get 8   ; $call_37
+        local.get 9   ; $call_37
         i64.add
         call 2   ; std_core$new_byte_buffer
-        local.set 9   ; __buf_2
+        local.set 2   ; $struct_13
         i64.const 0
         local.set 10   ; __off_3
-        local.get 9   ; __buf_2
+        local.get 2   ; $struct_13
         local.get 10   ; __off_3
-        local.get 7   ; __p_1
+        local.get 8   ; __p_1
         call 4   ; std_core$write_string_at
         local.set 10   ; __off_3
-        local.get 9   ; __buf_2
+        local.get 2   ; $struct_13
         local.get 10   ; __off_3
         string.const 3   ; ":"
         call 4   ; std_core$write_string_at
         local.set 10   ; __off_3
-        local.field 2 3 0   ; $struct_13.x
+        local.field 1 3 0   ; $struct_10.x
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 11   ; $cast_47
-        local.get 9   ; __buf_2
+        local.get 2   ; $struct_13
         local.get 10   ; __off_3
         local.get 11   ; $cast_47
         call 5   ; std_core$write_int
         local.set 10   ; __off_3
-        local.get 9   ; __buf_2
+        local.get 2   ; $struct_13
         local.get 10   ; __off_3
         string.const 4   ; ","
         call 4   ; std_core$write_string_at
         local.set 10   ; __off_3
-        local.field 2 3 1   ; $struct_13.y
+        local.field 1 3 1   ; $struct_10.y
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_52
-        local.get 9   ; __buf_2
+        local.get 2   ; $struct_13
         local.get 10   ; __off_3
         local.get 12   ; $cast_52
         call 5   ; std_core$write_int
         local.set 10   ; __off_3
-        local.get 9   ; __buf_2
+        local.get 2   ; $struct_13
         local.get 10   ; __off_3
         call 3   ; std_core$finish_buffer
         call 8   ; std_io$println__string

@@ -394,6 +394,9 @@ const C_PARITY = new Set<string>([
   "zip_loop_push",
   // `zip(a, b)` as a chain source, fused against the same chain bound lazily.
   "zip_source_fusion",
+  // Any generator heading a chain — user generators, `window` — fused against the
+  // same chain bound lazily.
+  "generator_source_fusion",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

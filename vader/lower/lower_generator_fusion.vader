@@ -1,19 +1,17 @@
-// vader/lower/lower_generator_fusion — inline a consumed `generator` body into
-// its for-in.
+// vader/lower/lower_generator_fusion — inline a consumed `generator` body into the
+// chain that consumes it.
 //
-// `for v in gen(args) { body }` where `gen` carries `generator` is lowered by
-// inlining gen's body with (a) each param bound to the matching call arg and
-// (b) each `yield e` redirected to the consumer's loop-var binding + body — no
-// state-machine struct, no boxed `Iterator`, no virtual `next()`. The generator's
-// own `for x in <param>` fuses through the existing for-in fast paths (raw array,
-// int range, map/set, chain fusion). Tried from `lower_for_in` right after the
-// combinator-chain fusion; a `null` result falls through to the boxed path.
-//
-// Handles a DIRECT call `for v in gen(args)` — generic or not: a generic
-// generator reconstructs its instance substitution at this site via
-// `infer_type_args` + the instance-flavor path, then lowers the body in a
-// gen-ctx under that subst. Chained combinators (`xs.gen_map(f)`, a UFCS
-// FieldExpr callee) recurse into the receiver — Increment 3.
+// A generator call fuses one of two ways, decided by the shape of its body, never
+// by its name:
+//   - a COMBINATOR (`map`, `filter`, `chain`, … — a body whose root loops iterate
+//     its source params) is a chain LAYER: its source loop fuses with the source
+//     beneath it, and its inner body runs per element (`try_descend_gen_combinator`) ;
+//   - any other generator is a chain SOURCE: its whole body is inlined at the
+//     bottom of the chain, each `yield` feeding the stage above
+//     (`try_descend_gen_source`) — `for v in gen(args)` is the one-stage case.
+// Either way the body lowers in its own ctx — its module, its instance
+// substitution, its `GenInstance` names — with the consumer installed as the
+// `yield` sink: no state-machine struct, no boxed `Iterator`, no virtual `next()`.
 
 module "vader/lower"
 
@@ -24,25 +22,6 @@ import "vader/resolver/symbol"
 import "vader/types"
 import "vader/typecheck"
 import "toolchain/span"
-
-// Recognise `for v in <gen-call>` where the callee is a directly-called
-// `generator` fn (generic or not), and inline its yield-loop in place of the
-// boxed `next()` dispatch. Returns null for any non-matching shape (the caller
-// falls through to the generic step-loop).
-export try_lower_generator_inline :: fn(
-    ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
-) -> LoweredStmt | null {
-    // Direct-ident callee only (Increment 1): `gen(args)`, not `recv.gen(args)`.
-    // Both `is` bindings stay live in the inner block, so the worker takes them.
-    if in_form.iter is AST.CallExpr as call {
-        if call.callee is AST.IdentExpr as callee_id {
-            return inline_gen_ident_call(ctx, for_stmt, in_form, call, callee_id, recurse, block_lowerer)
-        }
-    }
-    return null
-}
 
 // The yielded element type for a `generator` fn, from the typecheck-side
 // registry (`register_generator_iter_impls`) substituted by the call's instance
@@ -83,84 +62,6 @@ build_gen_sink :: fn(
     }
 }
 
-// The direct-call worker. Resolves the callee to its `generator` FnDecl, binds
-// each param to its arg, and lowers the generator body with the consumer's body
-// installed as the `yield` sink (`ctx.gen_inline_sink`).
-inline_gen_ident_call :: fn(
-    ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor, call: AST.CallExpr,
-    callee_id: AST.IdentExpr,
-    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
-) -> LoweredStmt | null {
-    raw_callee :: resolve_ident(ctx, callee_id.span) ?? return null
-    // Follow a directly-called imported generator's ImportBinding to its owner fn.
-    callee_sym :: follow_import_binding(ctx, raw_callee)
-    owner_typed :: resolve_owner_typed(ctx, callee_sym.module) ?? return null
-    fn_decl :: owner_typed.fn_decls[callee_sym.id] ?? return null
-    if !fn_is_generator(fn_decl) { return null }
-    gen_body :: fn_decl.body ?? return null
-    if call.args.len() != fn_decl.params.len() { return null }
-
-    // The generator's instance substitution: empty for a non-generic generator ;
-    // the inferred per-instance subst for a generic one. Null → a generic body
-    // whose type args don't infer to all-concrete ; bail to the boxed path.
-    subst_opt :: gen_instance_subst(ctx, callee_id, call, fn_decl, owner_typed) ?? return null
-    subst :: subst_opt
-
-    // Direction A: the call result is the concrete `__genstate_<fn>` struct, not
-    // `Iterator<U>` — take the yielded element from the registered element.
-    element_type :: genstate_element(ctx.typed, fn_decl.name, subst) ?? return null
-    if element_type == TY_VOID { return null }
-
-    // Bind each generator param to its call arg — a `let <param> = <arg>` ahead
-    // of the inlined body. Args lower in the CONSUMER ctx (they are consumer
-    // exprs) ; the param SYMBOL is this instance's clone, the one the body (lowered
-    // below under `instance`) resolves its references to.
-    instance :: new_gen_instance(ctx.project, callee_sym, fn_decl, owner_typed) ?? return null
-    param_lets: LoweredStmt[]!: []
-    for i in 0..<fn_decl.params.len() {
-        p :: fn_decl.params[i]
-        p_sym :: lookup_local_symbol(ctx.project, owner_typed.resolved, p.span) ?? return null
-        arg_lowered :: recurse(ctx, call.args[i].value)
-        param_lets.push(cell_aware_let(
-            ctx, clone_of(instance, p_sym), p.name, arg_lowered, type_of(arg_lowered), p.span,
-        ))
-    }
-
-    lb :: resolve_loop_binding(ctx, in_form.loop_var, for_stmt.span)
-    // A generator body can splice the consumer anywhere: every jump of the
-    // consumer loop is redirected.
-    ctx.jump_frames.push(JumpFrame {
-        .loop_id = for_stmt.id, .breaks_land = false, .continue_lands = false,
-    })
-    body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
-    frame :: pop_jump_frame(ctx)
-    consumer_body :: resumable_body(frame, body)
-
-    // Lower the generator body in its OWN fn-ctx — the generator's module +
-    // its instance subst — sharing `ctx.project` so synthetic ids don't collide
-    // with the consumer's. The sink routes each `yield e` to the consumer's
-    // binding + body ; nested generator-in-generator consumption saves/restores
-    // its own sink on the inner ctx.
-    gen_return :: substitute(return_type_of(fn_decl, make_entry_types(owner_typed, subst)), subst)
-    gen_ctx :: new_fn_lower_ctx(
-        ctx.project, stub_entry(fn_decl, owner_typed), owner_typed, subst, gen_return,
-    )
-    gen_ctx.gen_inline_sink = build_gen_sink(ctx, lb.pattern, lb.symbol, lb.name, element_type, consumer_body, for_stmt.span)
-    gen_ctx.instance = instance
-    entered :: ctx.project.inlining_generators.add(instance.generator_id)
-    lowered_gen :: block_lowerer(gen_ctx, gen_body, false, null)
-    if entered {
-        ctx.project.inlining_generators.remove(instance.generator_id)
-    }
-
-    out: LoweredStmt[]!: []
-    out.push_all(param_lets)
-    out.push_all(block_stmts_with_trailing(lowered_gen))
-    instance_stmts :: wrap_instance_exit(instance, for_stmt.span, out)
-    return wrap_stmts(for_stmt.span, exit_block(frame, for_stmt.span, instance_stmts))
-}
-
 // The generator's owning-module typed program: `ctx.typed` when the call is
 // same-module, else the project table. Null when the module isn't loaded.
 resolve_owner_typed :: fn(ctx: FnLowerCtx, module: string) -> TypedProgram | null {
@@ -170,26 +71,9 @@ resolve_owner_typed :: fn(ctx: FnLowerCtx, module: string) -> TypedProgram | nul
     return null
 }
 
-// The instance substitution for the generator body: empty for a non-generic
-// generator ; the inferred per-instance subst for a generic one, via the same
-// `infer_type_args` + instance-flavor path the generic call site uses
-// (`emit_generic_fn_call`). Null when a generic generator's type args don't
-// infer to all-concrete — the caller then bails to the boxed path.
-gen_instance_subst :: fn(
-    ctx: FnLowerCtx, callee_id: AST.IdentExpr, call: AST.CallExpr,
-    fn_decl: AST.FnDecl, owner_typed: TypedProgram,
-) -> Substitution | null {
-    if fn_decl.type_params.len() == 0 { return new_substitution() }
-    ft :: ctx.types.raw_expr_type(callee_id)
-    if ft is FnType {
-        return subst_from_concrete(fn_decl, owner_typed, infer_type_args(ft, call, ctx))
-    }
-    return null
-}
-
 // Pick the per-instance substitution for `fn_decl<concrete_args>` via the
-// instance-flavor classifier — the shared tail of both the direct-call subst
-// (`gen_instance_subst`) and the chained-combinator subst.
+// instance-flavor classifier — the shared tail of the generator-source subst
+// (`gen_source_subst`) and the chained-combinator subst.
 subst_from_flavor :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, concrete_args: Type[]) -> Substitution {
     flavor :: fn_instance_flavor(fn_decl, owner_typed, concrete_args)
     if flavor == .Mono { return build_fn_concrete_subst(fn_decl, owner_typed, concrete_args) }
@@ -507,14 +391,9 @@ emit_fused_gen_combinator :: fn(
     if src is null { return [] }
     if layer is null { return [] }
 
-    // Shared gen-ctx (owner module + instance subst) with the OUTER template installed
-    // as the yield sink — every source loop routes its yields to the same consumer body.
-    gen_return :: substitute(return_type_of(layer.decl, make_entry_types(layer.owner, layer.subst)), layer.subst)
-    gen_ctx :: new_fn_lower_ctx(
-        ctx.project, stub_entry(layer.decl, layer.owner), layer.owner, layer.subst, gen_return,
-    )
-    gen_ctx.gen_inline_sink = build_gen_sink(ctx, template.pattern, template.binding_symbol, template.binding_name, template.element_type, template.user_body, chain.span)
-    gen_ctx.instance = layer.instance
+    // Shared gen-ctx with the OUTER template installed as the yield sink — every
+    // source loop routes its yields to the same consumer body.
+    gen_ctx :: inline_gen_ctx(ctx, layer.decl, layer.owner, layer.subst, layer.instance, template, chain.span)
 
     out: LoweredStmt[]!: []
     // The primary `self` loop, then each extra source loop (chain's `other`), fused
@@ -564,4 +443,161 @@ fuse_source_loop :: fn(
     }
     out.push_all(exit_block(frame, span, emitted))
     return out
+}
+
+// ---- a generator as a chain source -----------------------------------------
+//
+// A call to a `generator` that is not a combinator — `zip(a, b)`, `xs.window(3)`, a
+// user generator over a range — heads a chain as a SOURCE: its whole body is
+// inlined at the bottom of the chain, each `yield` feeding the stage above. A bare
+// `for v in gen(args)` is the one-stage case. No generator is special-cased:
+// whatever its body does, the consumer is spliced at its yields.
+
+/// A generator call heading a chain, carried on `IterChain.gen_source`.
+GenSourceCall :: struct {
+    decl:     AST.FnDecl
+    owner:    TypedProgram
+    subst:    Substitution
+    /// The call's arguments in parameter order — a UFCS receiver first.
+    args:     AST.Expr[]
+    instance: GenInstance!
+}
+
+// The callee and the arguments, in parameter order, of `gen(args)` or
+// `recv.gen(args)` ; null for any other callee shape.
+GeneratorCall :: struct {
+    callee: Symbol
+    args:   AST.Expr[]
+}
+
+generator_call_target :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> GeneratorCall | null {
+    args: AST.Expr[]!: []
+    callee :: combinator_effective_callee(call.callee)
+    if callee is AST.FieldExpr {
+        if ctx.typed.ufcs_receiver_types[callee.id] == null {
+            return null
+        }
+        args.push(callee.target)
+    } else if callee !is AST.IdentExpr {
+        return null
+    }
+    for a in call.args {
+        args.push(a.value)
+    }
+    // A UFCS callee resolves through its receiver ; an ident through itself.
+    receiver :: if callee is AST.FieldExpr { callee.target } else { callee }
+    sym :: combinator_callee_sym(ctx, call, receiver) ?? return null
+    return GeneratorCall { .callee = sym, .args = args }
+}
+
+// `call` as a chain source when it calls a generator with every parameter given
+// and its instance and element type resolve ; null otherwise.
+try_descend_gen_source :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterChain | null {
+    target :: generator_call_target(ctx, call) ?? return null
+    owner :: resolve_owner_typed(ctx, target.callee.module) ?? return null
+    decl :: owner.fn_decls[target.callee.id] ?? return null
+    if !fn_is_generator(decl) || decl.params.len() != target.args.len() {
+        return null
+    }
+    if decl.body == null {
+        return null
+    }
+    subst :: gen_source_subst(ctx, decl, owner, target.callee, target.args, call) ?? return null
+    element :: genstate_element(ctx.typed, decl.name, subst) ?? return null
+    if element == TY_VOID {
+        return null
+    }
+    // Minted last: a descent that gives up must leave no ids or clones behind.
+    instance :: new_gen_instance(ctx.project, target.callee, decl, owner) ?? return null
+    return IterChain {
+        .kind = .GenSource,
+        .range_lower = null, .range_upper = null, .inclusive = false,
+        .element_type = element,
+        .gen_source = GenSourceCall {
+            .decl = decl, .owner = owner, .subst = subst, .args = target.args,
+            .instance = instance,
+        },
+        .source = null, .span = call.span,
+    }
+}
+
+// The instance substitution of a generator source: each declared parameter unified
+// with its argument's type, then the result with the call's own type (a type
+// parameter only the result names). The arguments are listed in the order the
+// parameters are DECLARED, which is the order the substitution reads them in ;
+// one left unbound declines.
+gen_source_subst :: fn(
+    ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram, callee: Symbol, args: AST.Expr[],
+    call: AST.CallExpr,
+) -> Substitution | null {
+    if decl.type_params.len() == 0 {
+        return new_substitution()
+    }
+    ft :: owner.decl_types[callee.id]
+    if ft is FnType {
+        if ft.params.len() != args.len() {
+            return null
+        }
+        bindings :: MutableMap<i32, Type> {}
+        order: i32[]!: []
+        for k in 0..<args.len() {
+            unify_params(ft.params[k], default_if_free(ctx.types.expr_type(args[k])), bindings, order, ctx)
+        }
+        unify_params(ft.return_type, default_if_free(ctx.types.expr_type(call)), bindings, order, ctx)
+        concrete_args: Type[]!: []
+        for tp in decl.type_params {
+            tp_sym :: find_type_param_in_resolved(owner.resolved, tp.name, tp.span) ?? return null
+            concrete_args.push(bindings[tp_sym.id] ?? return null)
+        }
+        return subst_from_concrete(decl, owner, concrete_args)
+    }
+    return null
+}
+
+// Each argument bound, in parameter order, to the instance's clone of the
+// parameter — the symbol the inlined body reads.
+bind_gen_source_operands :: fn(
+    ctx: FnLowerCtx!, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
+    out: LoweredStmt[]!,
+) -> IterChain {
+    gs :: chain.gen_source ?? return chain
+    for k in 0..<gs.decl.params.len() {
+        p :: gs.decl.params[k]
+        p_sym :: lookup_local_symbol(ctx.project, gs.owner.resolved, p.span) ?? panic(
+            "generator source: parameter `${p.name}` has no symbol",
+        )
+        arg :: recurse(ctx, gs.args[k])
+        out.push(cell_aware_let(ctx, clone_of(gs.instance, p_sym), p.name, arg, type_of(arg), p.span))
+    }
+    return chain
+}
+
+// The generator's body lowered in its own ctx — its module, its instance — with
+// `template` installed as the `yield` sink.
+emit_fused_gen_source :: fn(ctx: FnLowerCtx!, chain: IterChain, template: BodyTemplate) -> LoweredStmt[] {
+    gs :: chain.gen_source ?? panic(UNBOUND_CHAIN)
+    body :: gs.decl.body ?? panic("generator source: the generator has no body")
+    gen_ctx :: inline_gen_ctx(ctx, gs.decl, gs.owner, gs.subst, gs.instance, template, chain.span)
+    entered :: ctx.project.inlining_generators.add(gs.instance.generator_id)
+    lowered :: lower_block(gen_ctx, body, false, null)
+    if entered {
+        ctx.project.inlining_generators.remove(gs.instance.generator_id)
+    }
+    return wrap_instance_exit(gs.instance, chain.span, block_stmts_with_trailing(lowered))
+}
+
+// The ctx a generator body is inlined under: its module and instance substitution,
+// its instance's names, and `template` — the consumer — as the `yield` sink.
+inline_gen_ctx :: fn(
+    ctx: FnLowerCtx!, decl: AST.FnDecl, owner: TypedProgram, subst: Substitution,
+    instance: GenInstance!, template: BodyTemplate, span: Span,
+) -> FnLowerCtx! {
+    gen_return :: substitute(return_type_of(decl, make_entry_types(owner, subst)), subst)
+    gen_ctx :: new_fn_lower_ctx(ctx.project, stub_entry(decl, owner), owner, subst, gen_return)
+    gen_ctx.gen_inline_sink = build_gen_sink(
+        ctx, template.pattern, template.binding_symbol, template.binding_name,
+        template.element_type, template.user_body, span,
+    )
+    gen_ctx.instance = instance
+    return gen_ctx
 }

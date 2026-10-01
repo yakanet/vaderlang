@@ -107,9 +107,9 @@ static const char vader_atom_blob[] =
     "flat_map.take(4):" "\0"
     " |" "\0"
     "generator.take(2), fused:" "\0"
+    "  produce " "\0"
     "  got " "\0"
     "generator.take(2), lazy:" "\0"
-    "  produce " "\0"
     "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
@@ -120,9 +120,9 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27] },
     { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45] },
     { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[81] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[106] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[85] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[92] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[117] },
 };
 
@@ -590,17 +590,18 @@ static vader_box_t snippet_produced(int32_t l0) {
 }
 
 static void snippet_from_a_generator(void) {
-    vader_box_t l0 = vader_box_null();
-    void* l1 = NULL;
+    size_t l0, l1, l4, l8;
+    int32_t l2, l6;
     void* l3 = NULL;
-    int32_t l2;
-    size_t l4;
-    int64_t l5;
-    vader_box_t t0 = vader_box_null();
-    vader_string_t t1 = 0;
-    vader_box_t* gc_roots[2] = { &l0, &t0 };
-    void** gc_raw_roots[2] = { &l1, &l3 };
-    vader_string_t* gc_atom_roots[1] = { &t1 };
+    void* l7 = NULL;
+    int64_t l5, l9;
+    vader_box_t l10 = vader_box_null();
+    vader_string_t t0 = 0;
+    int64_t t1;
+    vader_box_t t2 = vader_box_null();
+    vader_box_t* gc_roots[2] = { &l10, &t2 };
+    void** gc_raw_roots[2] = { &l3, &l7 };
+    vader_string_t* gc_atom_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
@@ -608,47 +609,70 @@ static void snippet_from_a_generator(void) {
 #line 53 "tests/snippets/fusion_take_exact/_main.vader"
     std_io_println__string(7u);
 #line 54 "tests/snippets/fusion_take_exact/_main.vader"
-    t0 = snippet_produced(INT32_C(5));
-    l0 = std_iter_take__i32(t0, (size_t) 2);
-    for (;;) {
-        t0 = vader_vt_Iterator__next(l0);
-        l1 = t0.payload.obj;
-        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l1)->f__1 == INT32_C(1)) {
-        } else {
-            l2 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l1)->f__0;
-#line 55 "tests/snippets/fusion_take_exact/_main.vader"
-            l3 = std_core_new_byte_buffer((size_t) 26);
+    l0 = (size_t) 2;
+#line 269 "lib/std/iter/iter.vader"
+    if (l0 == INT64_C(0)) {
+#line 272 "lib/std/iter/iter.vader"
+    } else {
+        l1 = (size_t) 0;
+#line 54 "tests/snippets/fusion_take_exact/_main.vader"
+#line 46 "tests/snippets/fusion_take_exact/_main.vader"
+        l2 = INT32_C(0);
+        while ((l2 < INT32_C(5))) {
+#line 47 "tests/snippets/fusion_take_exact/_main.vader"
+            l3 = std_core_new_byte_buffer((size_t) 30);
             l4 = (size_t) 0;
             l4 = std_core_write_string_at(l3, l4, 8u);
             l5 = ((int64_t) (int32_t) l2);
             l4 = std_core_write_int(l3, l4, l5);
-            t1 = std_core_finish_buffer(l3, l4);
-            std_io_println__string(t1);
-#line 54 "tests/snippets/fusion_take_exact/_main.vader"
-            continue;
+            t0 = std_core_finish_buffer(l3, l4);
+            std_io_println__string(t0);
+#line 48 "tests/snippets/fusion_take_exact/_main.vader"
+            l6 = l2;
+#line 55 "tests/snippets/fusion_take_exact/_main.vader"
+            l7 = std_core_new_byte_buffer((size_t) 26);
+            l8 = (size_t) 0;
+            l8 = std_core_write_string_at(l7, l8, 9u);
+            l9 = ((int64_t) (int32_t) l6);
+            l8 = std_core_write_int(l7, l8, l9);
+            t0 = std_core_finish_buffer(l7, l8);
+            std_io_println__string(t0);
+#line 275 "lib/std/iter/iter.vader"
+            t1 = (l1 + INT64_C(1));
+            l1 = (size_t) (int64_t) t1;
+#line 276 "lib/std/iter/iter.vader"
+            if ((l1 >= l0)) {
+#line 277 "lib/std/iter/iter.vader"
+                break;
+#line 276 "lib/std/iter/iter.vader"
+            }
+#line 46 "tests/snippets/fusion_take_exact/_main.vader"
+            l2 = (l2 + INT32_C(1));
         }
-        break;
+#line 54 "tests/snippets/fusion_take_exact/_main.vader"
+#line 269 "lib/std/iter/iter.vader"
     }
+#line 54 "tests/snippets/fusion_take_exact/_main.vader"
 #line 57 "tests/snippets/fusion_take_exact/_main.vader"
-    std_io_println__string(9u);
+    std_io_println__string(10u);
 #line 58 "tests/snippets/fusion_take_exact/_main.vader"
-    t0 = snippet_produced(INT32_C(5));
-    l0 = std_iter_take__i32(t0, (size_t) 2);
+    t2 = snippet_produced(INT32_C(5));
+    l10 = std_iter_take__i32(t2, (size_t) 2);
 #line 59 "tests/snippets/fusion_take_exact/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l0);
-        l1 = t0.payload.obj;
-        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l1)->f__1 == INT32_C(1)) {
+        t2 = vader_vt_Iterator__next(l10);
+        l3 = t2.payload.obj;
+        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__1 == INT32_C(1)) {
         } else {
-            l2 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l1)->f__0;
+            l2 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__0;
 #line 60 "tests/snippets/fusion_take_exact/_main.vader"
-            l3 = std_core_new_byte_buffer((size_t) 26);
-            l4 = (size_t) 0;
-            l4 = std_core_write_string_at(l3, l4, 8u);
+            l7 = std_core_new_byte_buffer((size_t) 26);
+            l0 = (size_t) 0;
+            l0 = std_core_write_string_at(l7, l0, 9u);
             l5 = ((int64_t) (int32_t) l2);
-            l4 = std_core_write_int(l3, l4, l5);
-            t1 = std_core_finish_buffer(l3, l4);
-            std_io_println__string(t1);
+            l0 = std_core_write_int(l7, l0, l5);
+            t0 = std_core_finish_buffer(l7, l0);
+            std_io_println__string(t0);
 #line 59 "tests/snippets/fusion_take_exact/_main.vader"
             continue;
         }
@@ -752,7 +776,7 @@ static void* snippet___genstate_produced_Iterator_next(void* l0) {
 #line 47 "tests/snippets/fusion_take_exact/_main.vader"
             l7 = std_core_new_byte_buffer((size_t) 30);
             l8 = (size_t) 0;
-            l8 = std_core_write_string_at(l7, l8, 10u);
+            l8 = std_core_write_string_at(l7, l8, 8u);
 #line 45 "tests/snippets/fusion_take_exact/_main.vader"
             t0 = ((vader_struct___genstate_produced_t*) l0)->f_s1;
 #line 47 "tests/snippets/fusion_take_exact/_main.vader"

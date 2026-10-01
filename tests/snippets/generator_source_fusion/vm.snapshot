@@ -1,0 +1,13 @@
+# stdout
+pairs fused: 0 2 4 20 22 24 40 42 44
+pairs lazy: 0 2 4 20 22 24 40 42 44
+odd squares fused: 3
+odd squares lazy: 3
+find fused: 36
+loop fused: 196
+window fused: 6 9 12
+window lazy: 6 9 12
+async fused: 40
+comptime fused: 3
+# exit
+0

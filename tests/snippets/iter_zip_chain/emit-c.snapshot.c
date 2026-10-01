@@ -298,7 +298,7 @@ static int32_t snippet_main(void) {
     ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = (int32_t) INT32_C(1);
     l1 = (void*) _a3_arr;
-#line 16 "tests/snippets/iter_zip_chain/_main.vader"
+#line 109 "lib/std/iter/iter.vader"
     l5 = ((vader_array_t*) l0)->length;
     l6 = ((vader_array_t*) l1)->length;
     if ((l5 < l6)) {
@@ -306,8 +306,10 @@ static int32_t snippet_main(void) {
     } else {
         l2 = ((vader_array_t*) l1)->length;
     }
+#line 110 "lib/std/iter/iter.vader"
     l5 = (size_t) 0;
     while ((l5 < l2)) {
+#line 111 "lib/std/iter/iter.vader"
         vader_array_t* _a4_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l5)
@@ -317,6 +319,7 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l5)
         l8 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l5];
+#line 16 "tests/snippets/iter_zip_chain/_main.vader"
         l10 = l7;
         l9 = l8;
 #line 17 "tests/snippets/iter_zip_chain/_main.vader"
@@ -329,7 +332,7 @@ static int32_t snippet_main(void) {
         l12 = std_core_write_int(l11, l12, l4);
         t2 = std_core_finish_buffer(l11, l12);
         std_io_println__string(t2);
-#line 16 "tests/snippets/iter_zip_chain/_main.vader"
+#line 110 "lib/std/iter/iter.vader"
         t1 = (l5 + INT64_C(1));
         l5 = (size_t) (int64_t) t1;
     }

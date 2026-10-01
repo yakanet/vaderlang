@@ -887,29 +887,30 @@ static void snippet_defaults(void) {
     l1 = std_core_new_byte_buffer((size_t) 55);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 4u);
-    l0 = snippet_upto(INT32_C(4));
     l3 = (size_t) 0;
-    for (;;) {
-        t1 = vader_vt_Iterator__next(l0);
-        if ((t1.tag == 42u ? ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) t1.payload.obj)->f__1 : ((vader_struct___Tuple_i32_u8_99ae0d29_t*) t1.payload.obj)->f__1) == INT32_C(1)) {
-        } else {
-            t2 = (l3 + INT64_C(1));
-            l3 = (size_t) (int64_t) t2;
-            continue;
-        }
-        break;
+#line 46 "tests/snippets/iterator_lazy_forms/_main.vader"
+    l9 = INT32_C(0);
+    while ((l9 < INT32_C(4))) {
+#line 80 "tests/snippets/iterator_lazy_forms/_main.vader"
+        t2 = (l3 + INT64_C(1));
+        l3 = (size_t) (int64_t) t2;
+#line 46 "tests/snippets/iterator_lazy_forms/_main.vader"
+        l9 = (l9 + INT32_C(1));
     }
+#line 80 "tests/snippets/iterator_lazy_forms/_main.vader"
     t2 = ((int64_t) (size_t) l3);
     l4 = (uint64_t) (int64_t) t2;
     l2 = std_core_write_unsigned(l1, l2, l4);
     l2 = std_core_write_string_at(l1, l2, 5u);
-    l0 = snippet_upto(INT32_C(0));
     l5 = true;
-    t1 = vader_vt_Iterator__next(l0);
-    if ((t1.tag == 42u ? ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) t1.payload.obj)->f__1 : ((vader_struct___Tuple_i32_u8_99ae0d29_t*) t1.payload.obj)->f__1) == INT32_C(1)) {
-    } else {
+#line 46 "tests/snippets/iterator_lazy_forms/_main.vader"
+    if ((INT32_C(0) < INT32_C(0))) {
+#line 80 "tests/snippets/iterator_lazy_forms/_main.vader"
         l5 = false;
+#line 46 "tests/snippets/iterator_lazy_forms/_main.vader"
+    } else {
     }
+#line 80 "tests/snippets/iterator_lazy_forms/_main.vader"
     l2 = std_core_write_bool(l1, l2, l5);
     t3 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t3);
@@ -960,6 +961,7 @@ static void snippet_defaults(void) {
     ((int32_t*) _a6_arr->buf->slots)[_a6_arr->offset + 0u] = (int32_t) INT32_C(3);
     l12 = (void*) _a6_arr;
     l3 = (size_t) 0;
+#line 109 "lib/std/iter/iter.vader"
     l13 = ((vader_array_t*) l8)->length;
     l14 = ((vader_array_t*) l12)->length;
     if ((l13 < l14)) {
@@ -967,8 +969,10 @@ static void snippet_defaults(void) {
     } else {
         l11 = ((vader_array_t*) l12)->length;
     }
+#line 110 "lib/std/iter/iter.vader"
     l13 = (size_t) 0;
     while ((l13 < l11)) {
+#line 111 "lib/std/iter/iter.vader"
         vader_array_t* _a7_slotarr = ((vader_array_t*) l8);
         VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a7_slotarr, l13)
@@ -977,11 +981,14 @@ static void snippet_defaults(void) {
         VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l13)
         t4 = ((int32_t*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l13];
+#line 82 "tests/snippets/iterator_lazy_forms/_main.vader"
         t2 = (l3 + INT64_C(1));
         l3 = (size_t) (int64_t) t2;
+#line 110 "lib/std/iter/iter.vader"
         t2 = (l13 + INT64_C(1));
         l13 = (size_t) (int64_t) t2;
     }
+#line 82 "tests/snippets/iterator_lazy_forms/_main.vader"
     t2 = ((int64_t) (size_t) l3);
     l4 = (uint64_t) (int64_t) t2;
     l2 = std_core_write_unsigned(l1, l2, l4);

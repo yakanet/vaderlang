@@ -18,62 +18,92 @@
   fn snippet$sum_tripled_hi(it: Iterator<i32>) -> i32
     let total: i32 = int(0) :i32
     block :void
-      let __iter_0: Iterator<i32> =
-        call :__genstate_filter<i32>!
-          callee:
-            std_iter$filter__i32 :__genstate_filter<i32>!
-          arg0:
-            call :__genstate_map<i32>!
-              callee:
-                std_iter$map__i32__i32 :__genstate_map<i32>!
-              arg0:
-                it :Iterator<i32>
-              arg1:
-                triple :fn(i32) -> i32
-          arg1:
-            keep_hi :fn(i32) -> bool
-      loop
-        let __step_1: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
-            recv:
-              __iter_0 :Iterator<i32>
-        if :void
-          cond:
-            eq :bool
-              l:
-                ._1 :Continuation
+      let self: Iterator<i32> = it :Iterator<i32>
+      let f: fn(i32) -> i32 = triple :fn(i32) -> i32
+      let pred: fn(i32) -> bool = keep_hi :fn(i32) -> bool
+      block :void
+        let __iter_0: Iterator<i32> = self :Iterator<i32>
+        loop
+          let __step_1: [i32, Continuation]! =
+            vcall Iterator.next :[i32, Continuation]!
+              recv:
+                __iter_0 :Iterator<i32>
+          if :void
+            cond:
+              eq :bool
+                l:
+                  ._1 :Continuation
+                    __step_1 :[i32, Continuation]!
+                r:
+                  int(1) :u8
+            then:
+              break
+            else:
+              let x: i32 =
+                ._0 :i32
                   __step_1 :[i32, Continuation]!
-              r:
-                int(1) :u8
-          then:
-            break
-          else:
-            let x: i32 =
-              ._0 :i32
-                __step_1 :[i32, Continuation]!
-            assign
-              target:
-                total :i32
-              value:
-                add :i32
-                  l:
-                    total :i32
-                  r:
+              let x: i32 =
+                call :i32
+                  callee:
+                    triple :fn(i32) -> i32
+                  arg0:
                     x :i32
+              if :void
+                cond:
+                  call :bool
+                    callee:
+                      keep_hi :fn(i32) -> bool
+                    arg0:
+                      x :i32
+                then:
+                  let x: i32 = x :i32
+                  assign
+                    target:
+                      total :i32
+                    value:
+                      add :i32
+                        l:
+                          total :i32
+                        r:
+                          x :i32
     return total :i32
   fn snippet$drain(it: Iterator<i32>) -> i32[]
     return
-      call :i32[]!
-        callee:
-          std_iter$collect__i32 :i32[]!
-        arg0:
-          call :__genstate_map<i32>!
-            callee:
-              std_iter$map__i32__i32 :__genstate_map<i32>!
-            arg0:
-              it :Iterator<i32>
-            arg1:
-              triple :fn(i32) -> i32
+      block :i32[]!
+        let self: Iterator<i32> = it :Iterator<i32>
+        let f: fn(i32) -> i32 = triple :fn(i32) -> i32
+        let __collect_0: i32[]! =
+          array :i32[]!
+        block :void
+          let __iter_0: Iterator<i32> = self :Iterator<i32>
+          loop
+            let __step_1: [i32, Continuation]! =
+              vcall Iterator.next :[i32, Continuation]!
+                recv:
+                  __iter_0 :Iterator<i32>
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    ._1 :Continuation
+                      __step_1 :[i32, Continuation]!
+                  r:
+                    int(1) :u8
+              then:
+                break
+              else:
+                let x: i32 =
+                  ._0 :i32
+                    __step_1 :[i32, Continuation]!
+                let __elem_1: i32 =
+                  call :i32
+                    callee:
+                      triple :fn(i32) -> i32
+                    arg0:
+                      x :i32
+                LoweredArrayPush
+        ~>
+          __collect_0 :i32[]!
   fn snippet$main() -> i32
     let s: i32 =
       call :i32

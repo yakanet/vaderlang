@@ -41,9 +41,9 @@ string 4 " "
 string 5 "flat_map.take(4):"
 string 6 " |"
 string 7 "generator.take(2), fused:"
-string 8 "  got "
-string 9 "generator.take(2), lazy:"
-string 10 "  produce "
+string 8 "  produce "
+string 9 "  got "
+string 10 "generator.take(2), lazy:"
 string 11 "\n"
 import 0 byte_len std_core$byte_len result_type=1 param_types=10 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=20 param_types=10 param_mutable=0 param_by_address= (string) -> ref
@@ -441,104 +441,150 @@ fn 3 snippet$produced (i32) -> any
 end
 
 fn 4 snippet$from_a_generator () -> void
-  local __iter_0 any
-  local __step_1 ref
+  local n usize
+  local i usize
+  local i i32
+  local __buf_0 ref
+  local __off_1 usize
+  local $cast_19 i64
   local v i32
-  local __buf_2 ref
-  local __off_3 usize
-  local $cast_20 i64
+  local __buf_0 ref
+  local __off_1 usize
+  local $cast_31 i64
+  local __iter_2 any
   string.const 7   ; "generator.take(2), fused:"
   call 33   ; std_io$println__string
-  i32.const 5
-  call 3   ; snippet$produced
   i64.const 2
-  call 38   ; std_iter$take__i32
-  local.set 0   ; __iter_0
+  local.set 0   ; n
   block $L0 void
-    loop $L1 void
-      local.get 0   ; __iter_0
-      virtual.call 1 Iterator.next
-      local.set 1   ; __step_1
-      local.field 1 8 1   ; __step_1._1
-      i32.const 1
-      i32.eq
-      if $L2 void
-      else
-        local.field 1 8 0   ; __step_1._0
-        ref.cast 3   ; -> i32
-        local.set 2   ; v
-        i64.const 26
-        call 14   ; std_core$new_byte_buffer
-        local.set 3   ; __buf_2
-        i64.const 0
-        local.set 4   ; __off_3
-        local.get 3   ; __buf_2
-        local.get 4   ; __off_3
-        string.const 8   ; "  got "
-        call 16   ; std_core$write_string_at
-        local.set 4   ; __off_3
-        local.get 2   ; v
-        i32.to_i64
-        local.set 5   ; $cast_20
-        local.get 3   ; __buf_2
-        local.get 4   ; __off_3
-        local.get 5   ; $cast_20
-        call 17   ; std_core$write_int
-        local.set 4   ; __off_3
-        local.get 3   ; __buf_2
-        local.get 4   ; __off_3
-        call 15   ; std_core$finish_buffer
-        call 33   ; std_io$println__string
-        br $L1
+    local.get 0   ; n
+    i64.const 0
+    i64.eq
+    if $L1 void
+    else
+      i64.const 0
+      local.set 1   ; i
+      block $L2 void
+        i32.const 0
+        local.set 2   ; i
+        block $L3 void
+          loop $L4 void
+            local.get 2   ; i
+            i32.const 5
+            i32.lt
+            if $L5 void
+              i64.const 30
+              call 14   ; std_core$new_byte_buffer
+              local.set 3   ; __buf_0
+              i64.const 0
+              local.set 4   ; __off_1
+              local.get 3   ; __buf_0
+              local.get 4   ; __off_1
+              string.const 8   ; "  produce "
+              call 16   ; std_core$write_string_at
+              local.set 4   ; __off_1
+              local.get 2   ; i
+              i32.to_i64
+              local.set 5   ; $cast_19
+              local.get 3   ; __buf_0
+              local.get 4   ; __off_1
+              local.get 5   ; $cast_19
+              call 17   ; std_core$write_int
+              local.set 4   ; __off_1
+              local.get 3   ; __buf_0
+              local.get 4   ; __off_1
+              call 15   ; std_core$finish_buffer
+              call 33   ; std_io$println__string
+              local.get 2   ; i
+              local.set 6   ; v
+              i64.const 26
+              call 14   ; std_core$new_byte_buffer
+              local.set 7   ; __buf_0
+              i64.const 0
+              local.set 8   ; __off_1
+              local.get 7   ; __buf_0
+              local.get 8   ; __off_1
+              string.const 9   ; "  got "
+              call 16   ; std_core$write_string_at
+              local.set 8   ; __off_1
+              local.get 6   ; v
+              i32.to_i64
+              local.set 9   ; $cast_31
+              local.get 7   ; __buf_0
+              local.get 8   ; __off_1
+              local.get 9   ; $cast_31
+              call 17   ; std_core$write_int
+              local.set 8   ; __off_1
+              local.get 7   ; __buf_0
+              local.get 8   ; __off_1
+              call 15   ; std_core$finish_buffer
+              call 33   ; std_io$println__string
+              local.get 1   ; i
+              i64.const 1
+              i64.add
+              local.tee 1   ; i
+              local.get 0   ; n
+              u64.ge
+              if $L6 void
+                br $L2
+              end $L6
+              local.get 2   ; i
+              i32.const 1
+              i32.add
+              local.set 2   ; i
+              br $L4
+            end $L5
+          end $L4
+        end $L3
       end $L2
     end $L1
   end $L0
-  string.const 9   ; "generator.take(2), lazy:"
+  string.const 10   ; "generator.take(2), lazy:"
   call 33   ; std_io$println__string
   i32.const 5
   call 3   ; snippet$produced
   i64.const 2
   call 38   ; std_iter$take__i32
-  local.set 0   ; __iter_0
-  block $L3 void
-    loop $L4 void
-      local.get 0   ; __iter_0
+  local.set 10   ; __iter_2
+  block $L7 void
+    loop $L8 void
+      local.get 10   ; __iter_2
       virtual.call 1 Iterator.next
-      local.set 1   ; __step_1
-      local.field 1 8 1   ; __step_1._1
+      local.set 3   ; __buf_0
+      local.field 3 8 1   ; __buf_0._1
       i32.const 1
       i32.eq
-      if $L5 void
+      if $L9 void
       else
-        local.field 1 8 0   ; __step_1._0
+        local.field 3 8 0   ; __buf_0._0
         ref.cast 3   ; -> i32
-        local.set 2   ; v
+        local.set 2   ; i
         i64.const 26
         call 14   ; std_core$new_byte_buffer
-        local.set 3   ; __buf_2
+        local.set 7   ; __buf_0
         i64.const 0
-        local.set 4   ; __off_3
-        local.get 3   ; __buf_2
-        local.get 4   ; __off_3
-        string.const 8   ; "  got "
+        local.set 0   ; n
+        local.get 7   ; __buf_0
+        local.get 0   ; n
+        string.const 9   ; "  got "
         call 16   ; std_core$write_string_at
-        local.set 4   ; __off_3
-        local.get 2   ; v
+        local.set 0   ; n
+        local.get 2   ; i
         i32.to_i64
-        local.set 5   ; $cast_20
-        local.get 3   ; __buf_2
-        local.get 4   ; __off_3
-        local.get 5   ; $cast_20
+        local.set 5   ; $cast_19
+        local.get 7   ; __buf_0
+        local.get 0   ; n
+        local.get 5   ; $cast_19
         call 17   ; std_core$write_int
-        local.set 4   ; __off_3
-        local.get 3   ; __buf_2
-        local.get 4   ; __off_3
+        local.set 0   ; n
+        local.get 7   ; __buf_0
+        local.get 0   ; n
         call 15   ; std_core$finish_buffer
         call 33   ; std_io$println__string
-        br $L4
-      end $L5
-    end $L4
-  end $L3
+        br $L8
+      end $L9
+    end $L8
+  end $L7
   return
 end
 
@@ -676,7 +722,7 @@ fn 7 snippet$__genstate_produced$Iterator$next (ref) -> ref
         local.set 8   ; __off_1
         local.get 7   ; __buf_0
         local.get 8   ; __off_1
-        string.const 10   ; "  produce "
+        string.const 8   ; "  produce "
         call 16   ; std_core$write_string_at
         local.set 8   ; __off_1
         local.field 0 7 1   ; arg 0.s1

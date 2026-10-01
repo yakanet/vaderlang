@@ -1,0 +1,92 @@
+// Any generator that is not a combinator heads a fused chain: its whole body is
+// inlined, each `yield` feeding the stage above — a user generator as much as
+// `zip` or `window`. Each case prints the chain consumed where it is written,
+// then the same chain bound to a local first (the lazy form).
+
+module "snippet"
+
+import "std/async"
+import "std/io"
+import "std/iter"
+
+// Several yields per turn, a nested loop, and an early `return`.
+pairs_until :: fn(n: i32, stop: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        if i == stop {
+            return
+        }
+        yield i * 10
+        for j in 0..<2 {
+            yield i * 10 + j + 1
+        }
+    }
+}
+
+squares :: fn(n: i32) -> Iterator<i32> {
+    for i in 1..=n {
+        yield i * i
+    }
+}
+
+odd :: fn(x: i32) -> bool = x % 2 == 1
+
+double :: fn(x: i32) -> i32 = x * 2
+
+sum_of :: fn(w: i32[]) -> i32 {
+    total := 0
+    for x in w {
+        total += x
+    }
+    return total
+}
+
+// A fused source in an async fn, across an `await` in the loop body.
+odd_square_total :: fn(n: i32) -> Async<i32> {
+    total := 0
+    for x in squares(n).filter(odd) {
+        await sleep(0)
+        total += x
+    }
+    return total + i32(squares(n).count())
+}
+
+// A fused source evaluated at compile time.
+ODD_SQUARES :: @comptime squares(5).filter(odd).count()
+
+show :: fn(label: string, xs: i32[]) -> void {
+    out := "${label}:"
+    for x in xs {
+        out = "${out} ${x}"
+    }
+    println(out)
+}
+
+main :: fn() -> i32 {
+    show("pairs fused", pairs_until(5, 3).map(double).collect())
+    lazy_pairs :: pairs_until(5, 3)
+    show("pairs lazy", lazy_pairs.map(double).collect())
+    println("odd squares fused: ${squares(6).filter(odd).count()}")
+    lazy_squares :: squares(6)
+    println("odd squares lazy: ${lazy_squares.filter(odd).count()}")
+    found :: squares(10).find((x) -> x > 30)
+    println("find fused: ${found ?? -1}")
+    total := 0
+    for x in pairs_until(4, 99).map(double) {
+        if x == 2 {
+            continue
+        }
+        if x > 50 {
+            break
+        }
+        total += x
+    }
+    println("loop fused: ${total}")
+    xs: i32[]!: [1, 2, 3, 4, 5]
+    show("window fused", xs.window(3).map(sum_of).collect())
+    lazy_window :: xs.window(3)
+    show("window lazy", lazy_window.map(sum_of).collect())
+    in_async :: await odd_square_total(5)
+    println("async fused: ${in_async}")
+    println("comptime fused: ${ODD_SQUARES}")
+    return 0
+}

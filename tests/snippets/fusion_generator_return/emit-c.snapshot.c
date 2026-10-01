@@ -685,7 +685,7 @@ static vader_box_t snippet_relay(void) {
     _a0_obj->f_s0 = INT32_C(0);
     _a0_obj->f_s1 = INT32_C(0);
     _a0_obj->f_s2 = INT32_C(0);
-    _a0_obj->f_state = INT32_C(12);
+    _a0_obj->f_state = INT32_C(13);
     t0 = (void*) _a0_obj;
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -848,10 +848,10 @@ static void snippet_return_before_break(void) {
         l5 = ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) INT64_C(1)];
 #line 144 "tests/snippets/fusion_generator_return/_main.vader"
         l6 = 0u;
-#line 145 "tests/snippets/fusion_generator_return/_main.vader"
 #line 127 "tests/snippets/fusion_generator_return/_main.vader"
         l7 = l4;
         l8 = l5;
+#line 145 "tests/snippets/fusion_generator_return/_main.vader"
 #line 128 "tests/snippets/fusion_generator_return/_main.vader"
         l9 = INT32_C(0);
 #line 129 "tests/snippets/fusion_generator_return/_main.vader"
@@ -1582,85 +1582,90 @@ static void* snippet___genstate_relay_Iterator_next(void* l0) {
             } else {
                 t0 = ((vader_struct___genstate_relay_t*) l0)->f_state;
                 if (t0 == INT32_C(4)) {
-                    t0 = ((vader_struct___genstate_relay_t*) l0)->f_s1;
-#line 15 "tests/snippets/fusion_generator_return/_main.vader"
-#line 105 "tests/snippets/fusion_generator_return/_main.vader"
-                    if ((t0 < INT32_C(10))) {
-                        ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(10);
-                    } else {
-                        ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(3);
-                    }
+                    ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(3);
                 } else {
                     t0 = ((vader_struct___genstate_relay_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
                         t0 = ((vader_struct___genstate_relay_t*) l0)->f_s1;
 #line 15 "tests/snippets/fusion_generator_return/_main.vader"
-                        l4 = (t0 + INT32_C(1));
-                        ((vader_struct___genstate_relay_t*) l0)->f_s1 = l4;
 #line 105 "tests/snippets/fusion_generator_return/_main.vader"
-                        ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(4);
+                        if ((t0 < INT32_C(10))) {
+                            ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(11);
+                        } else {
+                            ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(4);
+                        }
                     } else {
                         t0 = ((vader_struct___genstate_relay_t*) l0)->f_state;
                         if (t0 == INT32_C(6)) {
+                            t0 = ((vader_struct___genstate_relay_t*) l0)->f_s1;
+#line 15 "tests/snippets/fusion_generator_return/_main.vader"
+                            l4 = (t0 + INT32_C(1));
+                            ((vader_struct___genstate_relay_t*) l0)->f_s1 = l4;
+#line 105 "tests/snippets/fusion_generator_return/_main.vader"
                             ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(5);
-                            t0 = ((vader_struct___genstate_relay_t*) l0)->f_s2;
-#line 107 "tests/snippets/fusion_generator_return/_main.vader"
-#line 105 "tests/snippets/fusion_generator_return/_main.vader"
-                            vader_struct___Tuple_i32_u8_99ae0d29_t* _a1_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
-                            vader_obj_header_init(_a1_obj, 5u);
-                            _a1_obj->f__0 = (t0 * INT32_C(10));
-                            _a1_obj->f__1 = (uint8_t) 0;
-                            t1 = (void*) _a1_obj;
-                            { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-                        }
-                        t0 = ((vader_struct___genstate_relay_t*) l0)->f_state;
-                        if (t0 == INT32_C(7)) {
-                            l5 = ((vader_struct___genstate_relay_t*) l0)->f_s1;
-#line 19 "tests/snippets/fusion_generator_return/_main.vader"
-                            ((vader_struct___genstate_relay_t*) l0)->f_s2 = l5;
-#line 105 "tests/snippets/fusion_generator_return/_main.vader"
-                            ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(6);
                         } else {
                             t0 = ((vader_struct___genstate_relay_t*) l0)->f_state;
+                            if (t0 == INT32_C(7)) {
+                                ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(6);
+                                t0 = ((vader_struct___genstate_relay_t*) l0)->f_s2;
+#line 107 "tests/snippets/fusion_generator_return/_main.vader"
+#line 105 "tests/snippets/fusion_generator_return/_main.vader"
+                                vader_struct___Tuple_i32_u8_99ae0d29_t* _a1_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
+                                vader_obj_header_init(_a1_obj, 5u);
+                                _a1_obj->f__0 = (t0 * INT32_C(10));
+                                _a1_obj->f__1 = (uint8_t) 0;
+                                t1 = (void*) _a1_obj;
+                                { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+                            }
+                            t0 = ((vader_struct___genstate_relay_t*) l0)->f_state;
                             if (t0 == INT32_C(8)) {
+                                l5 = ((vader_struct___genstate_relay_t*) l0)->f_s1;
+#line 19 "tests/snippets/fusion_generator_return/_main.vader"
+                                ((vader_struct___genstate_relay_t*) l0)->f_s2 = l5;
+#line 105 "tests/snippets/fusion_generator_return/_main.vader"
                                 ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(7);
                             } else {
                                 t0 = ((vader_struct___genstate_relay_t*) l0)->f_state;
                                 if (t0 == INT32_C(9)) {
-                                    ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(1);
+                                    ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(8);
                                 } else {
                                     t0 = ((vader_struct___genstate_relay_t*) l0)->f_state;
                                     if (t0 == INT32_C(10)) {
-                                        l6 = ((vader_struct___genstate_relay_t*) l0)->f_s1;
-                                        l7 = ((vader_struct___genstate_relay_t*) l0)->f_s0;
-#line 16 "tests/snippets/fusion_generator_return/_main.vader"
-#line 105 "tests/snippets/fusion_generator_return/_main.vader"
-                                        if (l6 == l7) {
-                                            ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(9);
-                                        } else {
-                                            ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(7);
-                                        }
+                                        ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(2);
                                     } else {
                                         t0 = ((vader_struct___genstate_relay_t*) l0)->f_state;
                                         if (t0 == INT32_C(11)) {
-#line 15 "tests/snippets/fusion_generator_return/_main.vader"
-                                            ((vader_struct___genstate_relay_t*) l0)->f_s1 = INT32_C(0);
+                                            l6 = ((vader_struct___genstate_relay_t*) l0)->f_s1;
+                                            l7 = ((vader_struct___genstate_relay_t*) l0)->f_s0;
+#line 16 "tests/snippets/fusion_generator_return/_main.vader"
 #line 105 "tests/snippets/fusion_generator_return/_main.vader"
-                                            ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(4);
+                                            if (l6 == l7) {
+                                                ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(10);
+                                            } else {
+                                                ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(8);
+                                            }
                                         } else {
                                             t0 = ((vader_struct___genstate_relay_t*) l0)->f_state;
                                             if (t0 == INT32_C(12)) {
-#line 14 "tests/snippets/fusion_generator_return/_main.vader"
-                                                ((vader_struct___genstate_relay_t*) l0)->f_s0 = INT32_C(3);
+#line 15 "tests/snippets/fusion_generator_return/_main.vader"
+                                                ((vader_struct___genstate_relay_t*) l0)->f_s1 = INT32_C(0);
 #line 105 "tests/snippets/fusion_generator_return/_main.vader"
-                                                ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(11);
+                                                ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(5);
                                             } else {
-                                                vader_struct___Tuple_i32_u8_99ae0d29_t* _a2_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
-                                                vader_obj_header_init(_a2_obj, 5u);
-                                                _a2_obj->f__0 = INT32_C(0);
-                                                _a2_obj->f__1 = (uint8_t) 1;
-                                                t1 = (void*) _a2_obj;
-                                                { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+                                                t0 = ((vader_struct___genstate_relay_t*) l0)->f_state;
+                                                if (t0 == INT32_C(13)) {
+#line 14 "tests/snippets/fusion_generator_return/_main.vader"
+                                                    ((vader_struct___genstate_relay_t*) l0)->f_s0 = INT32_C(3);
+#line 105 "tests/snippets/fusion_generator_return/_main.vader"
+                                                    ((vader_struct___genstate_relay_t*) l0)->f_state = INT32_C(12);
+                                                } else {
+                                                    vader_struct___Tuple_i32_u8_99ae0d29_t* _a2_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
+                                                    vader_obj_header_init(_a2_obj, 5u);
+                                                    _a2_obj->f__0 = INT32_C(0);
+                                                    _a2_obj->f__1 = (uint8_t) 1;
+                                                    t1 = (void*) _a2_obj;
+                                                    { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+                                                }
                                             }
                                         }
                                     }

@@ -35,10 +35,10 @@ IterChainKind :: enum(u8) {
     // declining onto the broken genstate default-method dispatch. Set only via
     // `opaque_iter_bottom` (as a combinator source). See `emit_fused_opaque_iter`.
     OpaqueIter,
-    // `zip(a, b)` over two arrays — one index loop up to the shorter length,
-    // yielding `[a[i], b[i]]`, instead of the generator's state machine. See
-    // `descend_zip_call` / `emit_fused_zip`.
-    Zip,
+    // A call to a generator that is not a combinator — `zip(a, b)`, a user
+    // generator — whose whole body is inlined at the bottom of the chain. See
+    // `try_descend_gen_source` / `emit_fused_gen_source`.
+    GenSource,
 }
 
 IterChain :: struct {
@@ -48,11 +48,9 @@ IterChain :: struct {
     range_upper:  AST.Expr | null
     inclusive:    bool
     element_type: Type
-    // Array bottom — the concrete source array ; a Zip bottom's left array.
-    // Defaulted so the Range/Generator literals need no update.
+    // Array bottom — the concrete source array. Defaulted so the
+    // Range/Generator literals need no update.
     array_expr:   AST.Expr | null = null
-    // Zip bottom — the right array.
-    second_expr:  AST.Expr | null = null
     // True when this Array bottom is a BARE array (`arr.map(f)`'s implicit head),
     // vs an explicit `arr.into()` cursor. A top-level bare Array is
     // declined by `try_lower_chain_fusion` so a plain `for x in arr` keeps the
@@ -63,6 +61,8 @@ IterChain :: struct {
     // Generator combinator layer — the inlined `generator` body (map / filter /
     // take / skip, all `generator`). Defaulted ; see `lower_generator_fusion.vader`.
     gen_layer:    GenComboLayer | null = null
+    // GenSource bottom — the generator call whose body is inlined.
+    gen_source:   GenSourceCall | null = null
     // OpaqueIter bottom — the `Iterator`-typed receiver expression iterated via a
     // virtual `next()` loop. Defaulted ; set only by `mk_opaque_iter_chain`.
     iter_expr:    AST.Expr | null = null
@@ -74,8 +74,6 @@ IterChain :: struct {
     bound_lower:  LoweredExpr | null = null
     bound_upper:  LoweredExpr | null = null
     bound_source: LoweredExpr | null = null
-    /// A Zip bottom's right array, bound like `bound_source`.
-    bound_second: LoweredExpr | null = null
 }
 
 // Build an `OpaqueIter` chain bottom over an `Iterator`-typed receiver, iterated
@@ -234,16 +232,17 @@ descend_chain_concrete :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | nu
             // through whatever the coercion would materialise.
             arr_bottom :: descend_array_call(ctx, expr)
             if arr_bottom != null { return arr_bottom }
-            zipped :: descend_zip_call(ctx, expr)
-            if zipped != null {
-                return zipped
-            }
             // Generator combinator (`generator` whose first param is the source
             // iterator) — recognised by callee. map / filter / take / skip all
             // lower through here now the hand-written *Iterator structs are gone.
             combinator :: try_descend_gen_combinator(ctx, expr)
             if combinator != null {
                 return combinator
+            }
+            // Any other generator call : its body inlined as the source.
+            gen_source :: try_descend_gen_source(ctx, expr)
+            if gen_source != null {
+                return gen_source
             }
             // Any other call is a source like any expression : `f().map(g)`.
             return bare_array_bottom(ctx, expr)
@@ -336,29 +335,6 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
     return null
 }
 
-// `zip(a, b)` / `a.zip(b)` — std/iter's own `zip` over two arrays — as a Zip
-// bottom ; null for any other call.
-descend_zip_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
-    fluent :: unpack_fluent_combinator(ctx, call) ?? return null
-    right :: fluent.fn_arg ?? return null
-    callee :: combinator_callee_sym(ctx, call, fluent.receiver) ?? return null
-    std_zip :: module_export(ctx.project, "std/iter", "zip") ?? return null
-    if callee.id != std_zip.id {
-        return null
-    }
-    left_type :: ctx.types.expr_type(fluent.receiver)
-    if left_type !is ArrayType || ctx.types.expr_type(right) !is ArrayType {
-        return null
-    }
-    element :: opaque_iter_element(ctx, ctx.types.expr_type(call)) ?? return null
-    return IterChain {
-        .kind = .Zip,
-        .range_lower = null, .range_upper = null, .inclusive = false,
-        .element_type = element, .array_expr = fluent.receiver, .second_expr = right,
-        .source = null, .span = call.span,
-    }
-}
-
 // The source array of an `arr.into()` (UFCS) / `into(arr)` (direct) call whose
 // receiver is statically an array — else null (a non-array `.into()` head, e.g.
 // `set.into()`, is not a fusible array bottom).
@@ -381,7 +357,7 @@ array_from_into_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | nu
 }
 
 chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {
-    .Range | .Array | .OpaqueIter | .Zip -> chain.element_type
+    .Range | .Array | .OpaqueIter | .GenSource -> chain.element_type
     .Generator -> if chain.gen_layer is GenComboLayer as gl { gl.output_elem } else { TY_UNRESOLVED }
 }
 
@@ -404,7 +380,7 @@ bind_chain_operands :: fn(
     .Array      -> bind_array_operand(ctx, chain, recurse, out)
     .Generator  -> bind_layer_operands(ctx, chain, recurse, out)
     .OpaqueIter -> bind_opaque_iter_operand(ctx, chain, recurse, out)
-    .Zip        -> bind_zip_operands(ctx, chain, recurse, out)
+    .GenSource  -> bind_gen_source_operands(ctx, chain, recurse, out)
 }
 
 // A loop body may run before either bound is read : `hi` is read at every step,
@@ -430,20 +406,6 @@ bind_array_operand :: fn(
     arr :: recurse(ctx, src)
     bound :: bind_to_local(ctx, arr, type_of(arr), "fuse_arr", chain.span, out)
     return IterChain { ...chain, .bound_source = bound }
-}
-
-// Both arrays, each bound like an Array bottom's, the left one first.
-bind_zip_operands :: fn(
-    ctx: FnLowerCtx!, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    out: LoweredStmt[]!,
-) -> IterChain {
-    left_src :: chain.array_expr ?? return chain
-    right_src :: chain.second_expr ?? return chain
-    left :: recurse(ctx, left_src)
-    left_bound :: bind_to_local(ctx, left, type_of(left), "fuse_arr", chain.span, out)
-    right :: recurse(ctx, right_src)
-    right_bound :: bind_to_local(ctx, right, type_of(right), "fuse_arr", chain.span, out)
-    return IterChain { ...chain, .bound_source = left_bound, .bound_second = right_bound }
 }
 
 // The iterator is the loop's cursor, so it always gets a local of its own — typed
@@ -506,7 +468,7 @@ emit_fused_chain :: fn(
     .Array      -> emit_fused_array(ctx, chain, outer_span, template)
     .Generator  -> emit_fused_gen_combinator(ctx, chain, outer_span, template, recurse)
     .OpaqueIter -> emit_fused_opaque_iter(ctx, chain, outer_span, template)
-    .Zip        -> emit_fused_zip(ctx, chain, outer_span, template)
+    .GenSource  -> emit_fused_gen_source(ctx, chain, template)
 }
 
 // Emit the fused loop at an `OpaqueIter` bottom : a virtual `next()` step-loop
@@ -653,31 +615,15 @@ emit_fused_array :: fn(
         .value = LoweredIntLit { .span = span, .type = usize_type, .value = 0 },
     }
     idx_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = idx_sym }
+    len_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = len_sym }
 
-    elem_access :: LoweredIndex {
-        .span = span, .type = elem_type, .target = arr_ref, .index = idx_ref, .bce_recheck = true,
-    }
-    return emit_index_loop(ctx, len_let, idx_init, elem_access, elem_type, template, outer_span)
-}
-
-// The counter loop an indexed source runs: `idx_init`'s index from 0 while below
-// `len_let`'s length, `element` — read at that index — bound to the loop variable
-// ahead of the body, the increment in the loop's step so a `continue` keeps it.
-emit_index_loop :: fn(
-    ctx: FnLowerCtx!, len_let: LoweredLet, idx_init: LoweredLet, element: LoweredExpr,
-    element_type: Type, template: BodyTemplate, outer_span: Span,
-) -> LoweredStmt[] {
-    span :: len_let.span
-    usize_type :: mk_primitive("usize")
-    idx_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = idx_init.symbol }
-    len_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = len_let.symbol }
     cond :: LoweredBinary {
         .span = span, .type = TY_BOOL, .op = .Lt, .left = idx_ref, .right = len_ref,
     }
-    bind_stmts :: bind_loop_var(
-        ctx, template.binding_symbol, template.binding_name, template.pattern, element,
-        element_type, span,
-    )
+    elem_access :: LoweredIndex {
+        .span = span, .type = elem_type, .target = arr_ref, .index = idx_ref, .bce_recheck = true,
+    }
+    bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, elem_access, elem_type, span)
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
@@ -685,56 +631,16 @@ emit_index_loop :: fn(
             .left = idx_ref, .right = LoweredIntLit { .span = span, .type = usize_type, .value = 1 },
         },
     }
+
     loop_stmt :: LoweredLoop {
         .span = outer_span, .label = null, .cond = cond,
         .body = prepend_stmts_to_block(bind_stmts, template.user_body),
         .step = [inc_stmt],
     }
-    return [len_let, idx_init, loop_stmt]
-}
 
-// Emit the fused loop at a Zip bottom: an index loop up to the shorter array's
-// length, binding `[left[i], right[i]]` as the element — the loop `zip`'s own
-// body runs, without its state machine.
-emit_fused_zip :: fn(
-    ctx: FnLowerCtx!, zip_chain: IterChain, outer_span: Span,
-    template: BodyTemplate,
-) -> LoweredStmt[] {
-    span :: zip_chain.span
-    left :: zip_chain.bound_source ?? panic(UNBOUND_CHAIN)
-    right :: zip_chain.bound_second ?? panic(UNBOUND_CHAIN)
-    usize_type :: mk_primitive("usize")
-    len_sym :: fresh_synthetic_symbol(ctx, "fuse_len")
-    idx_sym :: fresh_synthetic_symbol(ctx, "fuse_i")
-    left_len :: LoweredArrayLen { .span = span, .type = usize_type, .target = left }
-    right_len :: LoweredArrayLen { .span = span, .type = usize_type, .target = right }
-    shorter :: LoweredIf {
-        .span = span, .type = usize_type,
-        .cond = LoweredBinary {
-            .span = span, .type = TY_BOOL, .op = .Lt, .left = left_len, .right = right_len,
-        },
-        .then_block = LoweredBlock { .span = span, .type = usize_type, .stmts = [], .trailing = left_len },
-        .else_block = LoweredBlock { .span = span, .type = usize_type, .stmts = [], .trailing = right_len },
-    }
-    len_let :: LoweredLet {
-        .span = span, .name = len_sym.name, .symbol = len_sym, .type = usize_type, .value = shorter,
-    }
-    idx_init :: LoweredLet {
-        .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = usize_type,
-        .value = LoweredIntLit { .span = span, .type = usize_type, .value = 0 },
-    }
-    idx_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = idx_sym }
-    pair :: LoweredStructLit {
-        .span = span, .type = zip_chain.element_type,
-        .fields = [
-            LoweredStructLitField { .name = "_0", .value = zip_element(left, idx_ref, span) },
-            LoweredStructLitField { .name = "_1", .value = zip_element(right, idx_ref, span) },
-        ],
-    }
-    return emit_index_loop(ctx, len_let, idx_init, pair, zip_chain.element_type, template, outer_span)
-}
-
-// `array[index]`, typed as the array's element.
-zip_element :: fn(array: LoweredExpr, index: LoweredExpr, span: Span) -> LoweredExpr = LoweredIndex {
-    .span = span, .type = array_element_type(type_of(array)), .target = array, .index = index,
+    out: LoweredStmt[]!: []
+    out.push(len_let)
+    out.push(idx_init)
+    out.push(loop_stmt)
+    return out
 }
