@@ -388,6 +388,8 @@ const C_PARITY = new Set<string>([
   "operand_order_in_slice",
   // A `defer` / lambda reading a `@comptime for` variable: natively, a SIGSEGV.
   "comptime_for_closures",
+  // An alias declared below its use, across modules, or generic in a sibling file.
+  "alias_declaration_order",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

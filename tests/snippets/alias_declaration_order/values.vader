@@ -1,0 +1,5 @@
+module "snippet"
+
+// A generic alias above the alias it names, in a sibling file.
+OrNote<T> :: T | Note
+Note :: string

@@ -1,0 +1,55 @@
+# Typecheck
+
+## tests/snippets/alias_declaration_order
+  FnDecl         annotate             :: fn(f64 | Note) -> string
+  FnDecl         describe             :: fn(Celsius | Tag) -> string
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Note                 :: type
+  TypeAliasDecl  OrNote               :: Note | T
+  ConstDecl      Reading              :: type
+  expr 10:40    MatchExpr      :: string
+  expr 10:46    IdentExpr      :: Celsius | Tag
+  expr 11:19    StringLitExpr  :: string
+  expr 11:22    CallExpr       :: f64
+  expr 11:22    IdentExpr      :: type
+  expr 11:26    IdentExpr      :: Celsius
+  expr 12:19    StringLitExpr  :: string
+  expr 12:26    CallExpr       :: string
+  expr 12:26    IdentExpr      :: type
+  expr 12:33    IdentExpr      :: Tag
+  expr 15:44    MatchExpr      :: string
+  expr 15:50    IdentExpr      :: f64 | Note
+  expr 16:16    StringLitExpr  :: string
+  expr 16:19    IdentExpr      :: f64
+  expr 17:16    StringLitExpr  :: string
+  expr 17:24    CallExpr       :: string
+  expr 17:24    IdentExpr      :: type
+  expr 17:31    IdentExpr      :: Note
+  expr 23:13    CallExpr       :: string
+  expr 23:13    IdentExpr      :: fn(Celsius | Tag) -> string
+  expr 23:22    CallExpr       :: Celsius
+  expr 23:22    IdentExpr      :: type
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:13    CallExpr       :: string
+  expr 24:13    IdentExpr      :: fn(Celsius | Tag) -> string
+  expr 24:22    CallExpr       :: Tag
+  expr 24:22    IdentExpr      :: type
+  expr 24:26    StringLitExpr  :: string
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:13    CallExpr       :: string
+  expr 25:13    IdentExpr      :: fn(f64 | Note) -> string
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 26:13    CallExpr       :: string
+  expr 26:13    IdentExpr      :: fn(f64 | Note) -> string
+  expr 26:22    CallExpr       :: Note
+  expr 26:22    IdentExpr      :: type
+  expr 26:27    StringLitExpr  :: string
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/alias_declaration_order/units
+  ConstDecl      Celsius              :: type
+  ConstDecl      Tag                  :: type

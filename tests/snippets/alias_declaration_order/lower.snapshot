@@ -1,0 +1,180 @@
+# Lower
+
+## snippet
+  fn snippet$describe(r: Celsius | Tag) -> string
+    ~>
+      block :string
+        ~>
+          if :string
+            cond:
+              is Celsius :bool
+                r :Celsius | Tag
+            then:
+              ~>
+                call :string
+                  callee:
+                    concat_2 :string
+                  arg0:
+                    call :string
+                      callee:
+                        std_core$f64$Display$to_string :string
+                      arg0:
+                        cast → f64
+                          cast → Celsius
+                            r :Celsius | Tag
+                  arg1:
+                    " C" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    is Tag :bool
+                      r :Celsius | Tag
+                  then:
+                    ~>
+                      call :string
+                        callee:
+                          concat_2 :string
+                        arg0:
+                          "tag " :string
+                        arg1:
+                          cast → string
+                            cast → Tag
+                              r :Celsius | Tag
+                  else:
+                    ~>
+                      unreachable("non-exhaustive match (T3013 should have caught this)") :string
+  fn snippet$annotate(r: f64 | Note) -> string
+    ~>
+      block :string
+        ~>
+          if :string
+            cond:
+              is f64 :bool
+                r :f64 | Note
+            then:
+              ~>
+                call :string
+                  callee:
+                    concat_2 :string
+                  arg0:
+                    call :string
+                      callee:
+                        std_core$f64$Display$to_string :string
+                      arg0:
+                        cast → f64
+                          r :f64 | Note
+                  arg1:
+                    " C" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    is Note :bool
+                      r :f64 | Note
+                  then:
+                    ~>
+                      call :string
+                        callee:
+                          concat_2 :string
+                        arg0:
+                          "note " :string
+                        arg1:
+                          cast → string
+                            cast → Note
+                              r :f64 | Note
+                  else:
+                    ~>
+                      unreachable("non-exhaustive match (T3013 should have caught this)") :string
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            describe :fn(Celsius | Tag) -> string
+          arg0:
+            cast → Celsius
+              float(21.5) :f64
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            describe :fn(Celsius | Tag) -> string
+          arg0:
+            cast → Tag
+              "cold" :string
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            annotate :fn(f64 | Note) -> string
+          arg0:
+            float(18.0) :f64
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            annotate :fn(f64 | Note) -> string
+          arg0:
+            cast → Note
+              "windy" :string
+    return int(0) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize
+
+## snippet/units

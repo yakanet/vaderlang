@@ -1,0 +1,28 @@
+// A type alias resolves wherever it is declared: below the signature that names
+// it, with members another module declares (`Reading`), or generic, above the
+// alias it names in a sibling file (`OrNote`, `values.vader`).
+
+module "snippet"
+
+import "snippet/units"
+import "std/io"
+
+describe :: fn(r: Reading) -> string = match r {
+    is Celsius -> "${f64(r)} C"
+    is Tag     -> "tag ${string(r)}"
+}
+
+annotate :: fn(r: OrNote<f64>) -> string = match r {
+    is f64  -> "${r} C"
+    is Note -> "note ${string(r)}"
+}
+
+Reading :: Celsius | Tag
+
+main :: fn() -> i32 {
+    println(describe(Celsius(21.5)))
+    println(describe(Tag("cold")))
+    println(annotate(18.0))
+    println(annotate(Note("windy")))
+    return 0
+}

@@ -174,16 +174,21 @@ export check_project_with_bodies :: fn(
     // Phase A : register every type alias project-wide. Cross-
     // module aliases (`Pet` imported from `./types`) need to land
     // before any fn signature consults them.
-    register_aliases(entry_typed, merge_module_program(entry_loaded.module.files).decls)
+    unsettled :: MutableMap<string, AST.Decl[]> {}
+    unsettled[project.entry] = register_aliases(
+        entry_typed, merge_module_program(entry_loaded.module.files).decls,
+    )
     for [id, other] in project.modules {
         if id == project.entry {
             continue
         }
         other_typed :: per_module[id]
         if other_typed !is null {
-            register_aliases(other_typed, merge_module_program(other.module.files).decls)
+            decls :: merge_module_program(other.module.files).decls
+            unsettled[id] = register_aliases(other_typed, decls)
         }
     }
+    settle_project_aliases(per_module, unsettled)
     merge_external_alias_types(entry_typed, per_module)
     // Make every module's enums resolvable cross-module before any fn
     // signature is lowered — so a `d: parser.Visibility` param resolves to
@@ -1127,47 +1132,85 @@ reset_expr_tables :: fn(typed: TypedProgram!) -> void {
     typed.narrow = NarrowState {}
 }
 
-// Walk a module's top-level decls and register every type alias
-// (explicit `T :: type ...` or implicit `T :: <type-expr>`) into
-// `resolved.alias_types`. Runs across the project BEFORE
-// `declare_module` so cross-module aliases resolve at fn-signature
-// lowering time.
-register_aliases :: fn(typed: TypedProgram!, decls: AST.Decl[]) -> void {
-    pending: AST.ConstDecl[]! = []
+// Register every type alias of one module (explicit `T :: type ...` or implicit
+// `T :: <type-expr>`) into `resolved.alias_types` — across the project, BEFORE
+// `declare_module`, so a signature naming an alias resolves it — and return the
+// decls that could not settle: an alias const whose RHS is not yet a type, a type
+// alias naming a type not yet registered. The module's own order is settled here
+// (`Value :: I32Val | StringVal` above the distincts it names) ; what another
+// module declares is `settle_project_aliases`'.
+register_aliases :: fn(typed: TypedProgram!, decls: AST.Decl[]) -> AST.Decl[] {
+    pending: AST.Decl[]!: []
     for decl in decls {
-        match decl {
-            is AST.TypeAliasDecl -> {
-                aliased :: type_from_expr(decl.aliased, typed.resolved, diag_sink())
-                for s in typed.resolved.symbols {
-                    if s.name == decl.name {
-                        typed.resolved.alias_types[s.id] = aliased
-                        typed.resolved.alias_decls[s.id] = decl
-                    }
-                }
-            }
-            is AST.ConstDecl     -> {
-                if decl.ty is null && !register_alias_const(decl, typed) {
-                    pending.push(decl)
-                }
-            }
-            _                          -> {}
+        if !register_alias_decl(decl, typed) {
+            pending.push(decl)
         }
     }
-    // `Value :: I32Val | StringVal` reads as a type only once the distincts it
-    // names are registered, and they may be declared further down. A sibling file
-    // lowers its signatures before `declare_const` reaches this one, so retry
-    // until a round registers nothing.
-    for pending.len() > 0 {
-        rest: AST.ConstDecl[]!: []
-        for cd in pending {
-            if !register_alias_const(cd, typed) {
-                rest.push(cd)
+    return settle_pending_aliases(typed, pending)
+}
+
+// Retry `pending` until a round registers nothing ; what is left is returned.
+settle_pending_aliases :: fn(typed: TypedProgram!, pending: AST.Decl[]) -> AST.Decl[] {
+    rest := pending
+    for rest.len() > 0 {
+        still: AST.Decl[]!: []
+        for decl in rest {
+            if !register_alias_decl(decl, typed) {
+                still.push(decl)
             }
         }
-        if rest.len() == pending.len() {
+        if still.len() == rest.len() {
             break
         }
-        pending = rest
+        rest = still
+    }
+    return rest
+}
+
+// Register `decl` when it is a type alias ; false when it is one that does not
+// settle yet. Any other decl has nothing to register.
+register_alias_decl :: fn(decl: AST.Decl, typed: TypedProgram!) -> bool {
+    if decl is AST.TypeAliasDecl {
+        aliased :: type_from_expr(decl.aliased, typed.resolved, diag_sink())
+        for s in typed.resolved.symbols {
+            if s.name == decl.name {
+                typed.resolved.alias_types[s.id] = aliased
+                typed.resolved.alias_decls[s.id] = decl
+            }
+        }
+        return !contains_unresolved(aliased)
+    }
+    if decl is AST.ConstDecl {
+        return decl.ty != null || register_alias_const(decl, typed)
+    }
+    return true
+}
+
+// An alias naming another module's types (`Reading :: Celsius | Label`, the
+// members imported) settles only once that module's aliases are visible: merge
+// every module's tables into each one still unsettled and retry, until a round
+// registers nothing.
+settle_project_aliases :: fn(
+    per_module: MutableMap<string, TypedProgram!>, unsettled: MutableMap<string, AST.Decl[]>!,
+) -> void {
+    for {
+        progressed := false
+        for id in unsettled.keys() {
+            pending :: unsettled[id] ?? continue
+            typed :: per_module[id] ?? continue
+            if pending.len() == 0 {
+                continue
+            }
+            merge_external_alias_types(typed, per_module)
+            rest :: settle_pending_aliases(typed, pending)
+            if rest.len() < pending.len() {
+                unsettled[id] = rest
+                progressed = true
+            }
+        }
+        if !progressed {
+            return
+        }
     }
 }
 
@@ -1312,6 +1355,10 @@ export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
 // Mirror every non-entry module's `alias_types` / `alias_decls` into
 // the entry's resolver tables so cross-module aliases (e.g. `Pet`
 // imported from `./types`) expand at use sites.
+//
+// A copy taken while an alias was still unsettled (`?` inside) never replaces a
+// settled entry: during `settle_project_aliases` the module that owns the alias
+// may have settled it since another module copied it.
 merge_external_alias_types :: fn(
     entry_typed: TypedProgram!,
     per_module: MutableMap<string, TypedProgram!>,
@@ -1322,6 +1369,10 @@ merge_external_alias_types :: fn(
             continue
         }
         for [sym_id, ty] in other.resolved.alias_types {
+            present :: entry_typed.resolved.alias_types[sym_id]
+            if present != null && contains_unresolved(ty) && !contains_unresolved(present) {
+                continue
+            }
             entry_typed.resolved.alias_types[sym_id] = ty
         }
         for [sym_id, decl] in other.resolved.alias_decls {
