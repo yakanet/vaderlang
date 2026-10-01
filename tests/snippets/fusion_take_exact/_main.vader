@@ -1,0 +1,70 @@
+// fusion_take_exact — `take(n)` pulls exactly `n` items from its source, and
+// `take(0)` none: through `map`, through `flat_map` (whose own loop must stop
+// mid-array), and from a user generator that logs each item it produces.
+//
+// Each line prints the pulls of the chain consumed where it is written (fused),
+// then of the same chain bound to a local first (lazy: it runs as a state machine
+// and is the reference). The two halves agree.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+counting :: fn(n: usize) -> void {
+    pulls := 0
+    counted :: (x: i32) -> {
+        pulls += 1
+        return x
+    }
+    for _ in [1, 2, 3, 4].map(counted).take(n) {
+    }
+    fused :: pulls
+    pulls = 0
+    it :: [1, 2, 3, 4].map(counted).take(n)
+    for _ in it {
+    }
+    println("map.take(${n}), pulls: ${fused} | ${pulls}")
+}
+
+spread :: fn(x: i32) -> i32[] = [10 * x, 10 * x + 1, 10 * x + 2]
+
+through_flat_map :: fn() -> void {
+    fused := ""
+    for v in [1, 2].flat_map(spread).take(4) {
+        fused = fused + " ${v}"
+    }
+    lazy := ""
+    it :: [1, 2].flat_map(spread).take(4)
+    for v in it {
+        lazy = lazy + " ${v}"
+    }
+    println("flat_map.take(4):${fused} |${lazy}")
+}
+
+produced :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        println("  produce ${i}")
+        yield i
+    }
+}
+
+from_a_generator :: fn() -> void {
+    println("generator.take(2), fused:")
+    for v in produced(5).take(2) {
+        println("  got ${v}")
+    }
+    println("generator.take(2), lazy:")
+    it :: produced(5).take(2)
+    for v in it {
+        println("  got ${v}")
+    }
+}
+
+main :: fn() -> i32 {
+    counting(2)
+    counting(0)
+    through_flat_map()
+    from_a_generator()
+    return 0
+}

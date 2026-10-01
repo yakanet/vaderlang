@@ -935,53 +935,63 @@
         let n: usize = int(3) :usize
         let __collect_0: i32[]! =
           array :i32[]!
-        let i: usize = int(0) :usize
-        let __fuse_len_3: usize =
-          LoweredArrayLen
-        let __fuse_i_4: usize = int(0) :usize
-        loop while (<…>)
-          let x: i32 =
-            index :i32
-              on:
-                __fuse_arr_2 :i32[]
-              ix:
-                __fuse_i_4 :usize
-          let x: i32 =
-            call :i32
-              callee:
-                triple :fn(i32) -> i32
-              arg0:
-                x :i32
+        block :$exit$i53
           if :void
             cond:
-              gte :bool
+              eq :bool
                 l:
-                  i :usize
-                r:
                   n :usize
+                r:
+                  int(0) :usize
             then:
-              break
-          let __elem_1: i32 = x :i32
-          LoweredArrayPush cached
-          assign
-            target:
-              i :usize
-            value:
-              add :usize
-                l:
-                  i :usize
-                r:
-                  int(1) :usize
-        step
-          assign
-            target:
-              __fuse_i_4 :usize
-            value:
-              add :usize
-                l:
+              break :$exit$i53
+          let i: usize = int(0) :usize
+          let __fuse_len_3: usize =
+            LoweredArrayLen
+          let __fuse_i_4: usize = int(0) :usize
+          loop while (<…>)
+            let x: i32 =
+              index :i32
+                on:
+                  __fuse_arr_2 :i32[]
+                ix:
                   __fuse_i_4 :usize
-                r:
-                  int(1) :usize
+            let x: i32 =
+              call :i32
+                callee:
+                  triple :fn(i32) -> i32
+                arg0:
+                  x :i32
+            let __elem_1: i32 = x :i32
+            LoweredArrayPush cached
+            assign
+              target:
+                i :usize
+              value:
+                add :usize
+                  l:
+                    i :usize
+                  r:
+                    int(1) :usize
+            if :void
+              cond:
+                gte :bool
+                  l:
+                    i :usize
+                  r:
+                    n :usize
+              then:
+                break
+          step
+            assign
+              target:
+                __fuse_i_4 :usize
+              value:
+                add :usize
+                  l:
+                    __fuse_i_4 :usize
+                  r:
+                    int(1) :usize
         ~>
           __collect_0 :i32[]!
   fn snippet$sum(a: i32[]) -> i32

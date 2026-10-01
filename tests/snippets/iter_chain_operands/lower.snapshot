@@ -810,55 +810,66 @@
                           arg0:
                             int(2) :usize
                       let __count_40: usize = int(0) :usize
-                      let i: usize = int(0) :usize
-                      let __fuse_len_43: usize =
-                        LoweredArrayLen
-                      let __fuse_i_44: usize = int(0) :usize
-                      loop while (<…>)
-                        let x: i32 =
-                          index :i32
-                            on:
-                              __fuse_arr_42 :i32[]
-                            ix:
-                              __fuse_i_44 :usize
+                      block :$exit$i87
                         if :void
                           cond:
-                            gte :bool
+                            eq :bool
                               l:
-                                i :usize
-                              r:
                                 n :usize
+                              r:
+                                int(0) :usize
                           then:
-                            break
-                        let __elem_41: i32 = x :i32
-                        assign
-                          target:
-                            __count_40 :usize
-                          value:
-                            add :usize
-                              l:
-                                __count_40 :usize
-                              r:
-                                int(1) :usize
-                        assign
-                          target:
-                            i :usize
-                          value:
-                            add :usize
-                              l:
-                                i :usize
-                              r:
-                                int(1) :usize
-                      step
-                        assign
-                          target:
-                            __fuse_i_44 :usize
-                          value:
-                            add :usize
-                              l:
+                            break :$exit$i87
+                        let i: usize = int(0) :usize
+                        let __fuse_len_43: usize =
+                          LoweredArrayLen
+                        let __fuse_i_44: usize = int(0) :usize
+                        loop while (<…>)
+                          let x: i32 =
+                            index :i32
+                              on:
+                                __fuse_arr_42 :i32[]
+                              ix:
                                 __fuse_i_44 :usize
-                              r:
-                                int(1) :usize
+                          let __elem_41: i32 = x :i32
+                          assign
+                            target:
+                              __count_40 :usize
+                            value:
+                              add :usize
+                                l:
+                                  __count_40 :usize
+                                r:
+                                  int(1) :usize
+                          assign
+                            target:
+                              i :usize
+                            value:
+                              add :usize
+                                l:
+                                  i :usize
+                                r:
+                                  int(1) :usize
+                          ~>
+                            if :void
+                              cond:
+                                gte :bool
+                                  l:
+                                    i :usize
+                                  r:
+                                    n :usize
+                              then:
+                                break
+                        step
+                          assign
+                            target:
+                              __fuse_i_44 :usize
+                            value:
+                              add :usize
+                                l:
+                                  __fuse_i_44 :usize
+                                r:
+                                  int(1) :usize
                       ~>
                         __count_40 :usize
           ~>

@@ -263,13 +263,19 @@ export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
     for x in self { yield f(x) }
 }
 
-/// Fluent lazy `take`. Yields the first `n` items from `self`, then ends.
+/// Fluent lazy `take`. Yields the first `n` items from `self`, then ends —
+/// pulling exactly `n` items from `self`, none for `take(0)`.
 export take :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
+    if n == 0 {
+        return
+    }
     i: usize = 0
     for x in self {
-        if i >= n { break }
         yield x
         i += 1
+        if i >= n {
+            break
+        }
     }
 }
 
@@ -448,4 +454,46 @@ import "std/testing"
 
 @test test_fused_skip_twice :: fn() -> void {
     assert_eq([1, 2, 3, 4, 5, 6, 7].skip(1).skip(2).count(), 4)
+}
+
+// `take(n)` pulls exactly `n` items from its source, fused where it is consumed
+// and lazy once bound to a local.
+
+take_pulls_fused :: fn(n: usize) -> i32 {
+    pulls := 0
+    counted :: (x: i32) -> {
+        pulls += 1
+        return x
+    }
+    for _ in [1, 2, 3, 4].map(counted).take(n) {
+    }
+    return pulls
+}
+
+take_pulls_lazy :: fn(n: usize) -> i32 {
+    pulls := 0
+    counted :: (x: i32) -> {
+        pulls += 1
+        return x
+    }
+    it :: [1, 2, 3, 4].map(counted).take(n)
+    for _ in it {
+    }
+    return pulls
+}
+
+@test test_take_pulls_n_fused :: fn() -> void {
+    assert_eq(take_pulls_fused(2), 2)
+}
+
+@test test_take_pulls_n_lazy :: fn() -> void {
+    assert_eq(take_pulls_lazy(2), 2)
+}
+
+@test test_take_zero_pulls_nothing_fused :: fn() -> void {
+    assert_eq(take_pulls_fused(0), 0)
+}
+
+@test test_take_zero_pulls_nothing_lazy :: fn() -> void {
+    assert_eq(take_pulls_lazy(0), 0)
 }

@@ -195,7 +195,7 @@ fn 5 snippet$main () -> i32
   local __fuse_i_44 usize
   local __elem_48 i32
   local __in_hi_85 i32
-  local $call_elem_456 u8
+  local $call_elem_458 u8
   i32.const 1
   i32.const 2
   i32.const 3
@@ -554,41 +554,44 @@ fn 5 snippet$main () -> i32
   local.set 8   ; __fuse_len_4
   i64.const 0
   local.set 9   ; __fuse_i_5
-  i64.const 0
-  local.set 13   ; __fuse_i_37
-  local.get 2   ; __buf_6
-  array.len
-  local.set 15   ; __fuse_len_43
-  i64.const 0
-  local.set 16   ; __fuse_i_44
   block $L21 void
-    loop $L22 void
-      local.get 16   ; __fuse_i_44
-      local.get 15   ; __fuse_len_43
-      u64.lt
-      if $L23 void
-        local.get 2   ; __buf_6
-        local.get 16   ; __fuse_i_44
-        load_slot_i32
-        drop
-        local.get 13   ; __fuse_i_37
-        local.get 8   ; __fuse_len_4
-        u64.ge
-        if $L24 void
-        else
-          local.get 9   ; __fuse_i_5
-          i64.const 1
-          i64.add
-          local.set 9   ; __fuse_i_5
-          local.get 13   ; __fuse_i_37
-          i64.const 1
-          i64.add
-          local.set 13   ; __fuse_i_37
+    local.get 8   ; __fuse_len_4
+    i64.const 0
+    i64.eq
+    if $L22 void
+    else
+      i64.const 0
+      local.set 13   ; __fuse_i_37
+      local.get 2   ; __buf_6
+      array.len
+      local.set 15   ; __fuse_len_43
+      i64.const 0
+      local.set 16   ; __fuse_i_44
+      block $L23 void
+        loop $L24 void
           local.get 16   ; __fuse_i_44
-          i64.const 1
-          i64.add
-          local.set 16   ; __fuse_i_44
-          br $L22
+          local.get 15   ; __fuse_len_43
+          u64.lt
+          if $L25 void
+            local.get 9   ; __fuse_i_5
+            i64.const 1
+            i64.add
+            local.set 9   ; __fuse_i_5
+            local.get 13   ; __fuse_i_37
+            i64.const 1
+            i64.add
+            local.tee 13   ; __fuse_i_37
+            local.get 8   ; __fuse_len_4
+            u64.ge
+            if $L26 void
+            else
+              local.get 16   ; __fuse_i_44
+              i64.const 1
+              i64.add
+              local.set 16   ; __fuse_i_44
+              br $L24
+            end $L26
+          end $L25
         end $L24
       end $L23
     end $L22
@@ -629,33 +632,33 @@ fn 5 snippet$main () -> i32
   local.set 8   ; __fuse_len_4
   i64.const 0
   local.set 9   ; __fuse_i_5
-  block $L25 void
-    loop $L26 void
+  block $L27 void
+    loop $L28 void
       local.get 9   ; __fuse_i_5
       local.get 8   ; __fuse_len_4
       u64.lt
-      if $L27 void
+      if $L29 void
         local.get 2   ; __buf_6
         local.get 9   ; __fuse_i_5
         load_slot_i32
         local.tee 11   ; __elem_20
         local.get 4   ; __fuse_arr_0
         call.indirect 6   ; fn
-        if $L28 void
+        if $L30 void
           local.get 11   ; __elem_20
           local.set 17   ; __elem_48
           local.get 5   ; f
           local.get 17   ; __elem_48
           array.push 3   ; i32[]
-        end $L28
+        end $L30
         local.get 9   ; __fuse_i_5
         i64.const 1
         i64.add
         local.set 9   ; __fuse_i_5
-        br $L26
-      end $L27
-    end $L26
-  end $L25
+        br $L28
+      end $L29
+    end $L28
+  end $L27
   local.get 5   ; f
   array.len
   usize.to_i64
@@ -684,12 +687,12 @@ fn 5 snippet$main () -> i32
   local.set 3   ; __off_7
   i64.const 0
   local.set 8   ; __fuse_len_4
-  block $L29 void
-    loop $L30 void
+  block $L31 void
+    loop $L32 void
       local.get 8   ; __fuse_len_4
       local.get 3   ; __off_7
       u64.lt
-      if $L31 void
+      if $L33 void
         local.get 0   ; xs
         local.get 8   ; __fuse_len_4
         load_slot_i32
@@ -698,7 +701,7 @@ fn 5 snippet$main () -> i32
         local.tee 11   ; __elem_20
         local.get 2   ; __buf_6
         call.indirect 6   ; fn
-        if $L32 void
+        if $L34 void
           local.get 11   ; __elem_20
           local.set 17   ; __elem_48
           i64.const 28
@@ -723,15 +726,15 @@ fn 5 snippet$main () -> i32
           local.get 9   ; __fuse_i_5
           call 11   ; std_core$finish_buffer
           call 23   ; std_io$println__string
-        end $L32
+        end $L34
         local.get 8   ; __fuse_len_4
         i64.const 1
         i64.add
         local.set 8   ; __fuse_len_4
-        br $L30
-      end $L31
-    end $L30
-  end $L29
+        br $L32
+      end $L33
+    end $L32
+  end $L31
   i64.const 28
   call 10   ; std_core$new_byte_buffer
   local.set 0   ; xs
@@ -755,12 +758,12 @@ fn 5 snippet$main () -> i32
   local.set 1   ; empty
   i64.const 0
   local.set 8   ; __fuse_len_4
-  block $L33 void
-    loop $L34 void
+  block $L35 void
+    loop $L36 void
       local.get 17   ; __elem_48
       local.get 11   ; __elem_20
       i32.lt
-      if $L35 void
+      if $L37 void
         local.get 17   ; __elem_48
         local.get 1   ; empty
         call.indirect 5   ; fn
@@ -773,10 +776,10 @@ fn 5 snippet$main () -> i32
         i32.const 1
         i32.add
         local.set 17   ; __elem_48
-        br $L34
-      end $L35
-    end $L34
-  end $L33
+        br $L36
+      end $L37
+    end $L36
+  end $L35
   local.get 8   ; __fuse_len_4
   usize.to_i64
   local.set 14   ; $cast_180
@@ -809,12 +812,12 @@ fn 5 snippet$main () -> i32
   local.set 3   ; __off_7
   i64.const 0
   local.set 8   ; __fuse_len_4
-  block $L36 void
-    loop $L37 void
+  block $L38 void
+    loop $L39 void
       local.get 8   ; __fuse_len_4
       local.get 3   ; __off_7
       u64.lt
-      if $L38 void
+      if $L40 void
         local.get 0   ; xs
         local.get 8   ; __fuse_len_4
         load_slot_i32
@@ -845,21 +848,21 @@ fn 5 snippet$main () -> i32
         i64.const 1
         i64.add
         local.set 8   ; __fuse_len_4
-        br $L37
-      end $L38
-    end $L37
-  end $L36
+        br $L39
+      end $L40
+    end $L39
+  end $L38
   local.get 1   ; empty
   array.len
   local.set 3   ; __off_7
   i64.const 0
   local.set 8   ; __fuse_len_4
-  block $L39 void
-    loop $L40 void
+  block $L41 void
+    loop $L42 void
       local.get 8   ; __fuse_len_4
       local.get 3   ; __off_7
       u64.lt
-      if $L41 void
+      if $L43 void
         local.get 1   ; empty
         local.get 8   ; __fuse_len_4
         load_slot_i32
@@ -890,10 +893,10 @@ fn 5 snippet$main () -> i32
         i64.const 1
         i64.add
         local.set 8   ; __fuse_len_4
-        br $L40
-      end $L41
-    end $L40
-  end $L39
+        br $L42
+      end $L43
+    end $L42
+  end $L41
   string.const 16   ; "lo"
   i32.const 0
   call 1   ; snippet$bound
@@ -908,16 +911,16 @@ fn 5 snippet$main () -> i32
   local.get 11   ; __elem_20
   struct.new 11   ; std_core$Range__i32
   local.set 0   ; xs
-  block $L42 void
-    loop $L43 void
+  block $L44 void
+    loop $L45 void
       local.get 0   ; xs
       call 9   ; std_core$Range$Iterator$next__i32$v
-      local.set 19   ; $call_elem_456
+      local.set 19   ; $call_elem_458
       local.set 18   ; __in_hi_85
-      local.get 19   ; $call_elem_456
+      local.get 19   ; $call_elem_458
       i32.const 1
       i32.eq
-      if $L44 void
+      if $L46 void
       else
         local.get 18   ; __in_hi_85
         local.set 11   ; __elem_20
@@ -943,10 +946,10 @@ fn 5 snippet$main () -> i32
         local.get 3   ; __off_7
         call 11   ; std_core$finish_buffer
         call 23   ; std_io$println__string
-        br $L43
-      end $L44
-    end $L43
-  end $L42
+        br $L45
+      end $L46
+    end $L45
+  end $L44
   string.const 16   ; "lo"
   i32.const 0
   call 1   ; snippet$bound
@@ -955,12 +958,12 @@ fn 5 snippet$main () -> i32
   i32.const 2
   call 1   ; snippet$bound
   local.set 17   ; __elem_48
-  block $L45 void
-    loop $L46 void
+  block $L47 void
+    loop $L48 void
       local.get 11   ; __elem_20
       local.get 17   ; __elem_48
       i32.lt
-      if $L47 void
+      if $L49 void
         i64.const 30
         call 10   ; std_core$new_byte_buffer
         local.set 0   ; xs
@@ -987,18 +990,18 @@ fn 5 snippet$main () -> i32
         i32.const 1
         i32.add
         local.set 11   ; __elem_20
-        br $L46
-      end $L47
-    end $L46
-  end $L45
+        br $L48
+      end $L49
+    end $L48
+  end $L47
   i32.const 0
   local.set 11   ; __elem_20
-  block $L48 void
-    loop $L49 void
+  block $L50 void
+    loop $L51 void
       local.get 11   ; __elem_20
       i32.const 2
       i32.lt
-      if $L50 void
+      if $L52 void
         i64.const 32
         call 10   ; std_core$new_byte_buffer
         local.set 0   ; xs
@@ -1025,10 +1028,10 @@ fn 5 snippet$main () -> i32
         i32.const 1
         i32.add
         local.set 11   ; __elem_20
-        br $L49
-      end $L50
-    end $L49
-  end $L48
+        br $L51
+      end $L52
+    end $L51
+  end $L50
   i32.const 1
   i32.neg
   local.set 11   ; __elem_20
@@ -1053,7 +1056,7 @@ fn 5 snippet$main () -> i32
   local.get 17   ; __elem_48
   local.get 11   ; __elem_20
   i32.le
-  if $L51 void
+  if $L53 void
     local.get 11   ; __elem_20
     local.get 18   ; __in_hi_85
     i32.lt
@@ -1061,7 +1064,7 @@ fn 5 snippet$main () -> i32
   else
     bool.const false
     local.set 7   ; __acc_2
-  end $L51
+  end $L53
   local.get 0   ; xs
   local.get 3   ; __off_7
   local.get 7   ; __acc_2

@@ -1,0 +1,16 @@
+# stdout
+map.take(2), pulls: 2 | 2
+map.take(0), pulls: 0 | 0
+flat_map.take(4): 10 11 12 20 | 10 11 12 20
+generator.take(2), fused:
+  produce 0
+  got 0
+  produce 1
+  got 1
+generator.take(2), lazy:
+  produce 0
+  got 0
+  produce 1
+  got 1
+# exit
+0

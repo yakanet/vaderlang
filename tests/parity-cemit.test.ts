@@ -371,6 +371,8 @@ const C_PARITY = new Set<string>([
   "fusion_consumer_continue",
   // A combinator's own `break x` / `continue x`, from a loop nested in its loop.
   "fusion_stage_named_jumps",
+  // `take(n)` pulls exactly `n` items, through `map`, `flat_map` and a generator.
+  "fusion_take_exact",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.
