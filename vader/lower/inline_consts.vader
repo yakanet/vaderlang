@@ -216,7 +216,12 @@ render_data_pool_entry :: fn(
         values :: render_string_items(lit) ?? return null
         return StrDataPoolEntry { .values = values, .mutable = mutable }
     }
-    rendered :: render_data_items(lit, element_name)
+    // A union element is boxed, each with its own member: never a packed scalar.
+    rendered :: if array_element_type(lit.type) is UnionType {
+        null
+    } else {
+        render_data_items(lit, element_name)
+    }
     if rendered != null {
         return PrimDataPoolEntry {
             .element_type_name = element_name, .items = rendered, .mutable = mutable,

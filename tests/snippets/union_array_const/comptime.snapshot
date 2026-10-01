@@ -1,0 +1,31 @@
+# Comptime
+
+## tests/snippets/union_array_const
+  @comptime  CELLS                = [4_i32, "four", 5_i32]
+  @comptime  MIXED                = [1.5_f64, true, '\u0078', "s"]
+  @comptime  NUMBERS              = [6_i32, 7_i32]
+  @comptime  ONE                  = 8_i32
+  @comptime  SMALL                = [200_i32, "a"]
+  @comptime  WIDE                 = [5000000000_i32, "w"]
+
+## generic instances
+  __genstate_array_iter<T>
+  ArrayOps<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Async<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>

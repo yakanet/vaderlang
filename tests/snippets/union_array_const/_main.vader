@@ -1,0 +1,63 @@
+// A module const whose elements are a union is baked into `.rodata`, each element
+// boxed with the member it is — an `i32`, a `u8`, an `i64`, a float, a char, a
+// bool, a string, a struct — and so is a union field of a baked struct. Every
+// element is read back as the member it was written as.
+
+module "snippet"
+
+import "std/io"
+
+Cell :: i32 | string
+Mixed :: f64 | bool | char | string
+Small :: u8 | string
+Wide :: i64 | string
+Circle :: struct { r: i32 }
+Square :: struct { side: i32 }
+Shape :: Circle | Square
+Holder :: struct { label: string, cell: Small }
+
+CELLS: Cell[]: [4, "four", 5]
+NUMBERS: Cell[]: [6, 7]
+ONE: Cell: 8
+MIXED: Mixed[]: [1.5, true, 'x', "s"]
+SMALL: Small[]: [200, "a"]
+WIDE: Wide[]: [5000000000, "w"]
+SHAPES: Shape[]: [Circle { .r = 1 }, Square { .side = 2 }]
+HOLDERS: Holder[]: [Holder { .label = "h", .cell = 9 }, Holder { .label = "k", .cell = "nine" }]
+
+cell :: fn(c: Cell) -> string = if c is i32 { "i32 ${c}" } else { "string ${c}" }
+
+mixed :: fn(m: Mixed) -> string = match m {
+    is f64    -> "f64 ${m}"
+    is bool   -> "bool ${m}"
+    is char   -> "char ${m}"
+    is string -> "string ${m}"
+}
+
+small :: fn(s: Small) -> string = if s is u8 { "u8 ${s}" } else { "string ${s}" }
+
+main :: fn() -> i32 {
+    for c in CELLS {
+        println(cell(c))
+    }
+    for c in NUMBERS {
+        println(cell(c))
+    }
+    println(cell(ONE))
+    for m in MIXED {
+        println(mixed(m))
+    }
+    for s in SMALL {
+        println(small(s))
+    }
+    for w in WIDE {
+        println(if w is i64 { "i64 ${w}" } else { "string ${w}" })
+    }
+    for s in SHAPES {
+        println(if s is Circle { "circle ${s.r}" } else { "square ${s.side}" })
+    }
+    for h in HOLDERS {
+        println("${h.label}: ${small(h.cell)}")
+    }
+    return 0
+}

@@ -1,0 +1,130 @@
+# Typecheck
+
+## tests/snippets/union_array_const
+  ConstDecl      Cell                 :: type
+  FnDecl         cell                 :: fn(i32 | string) -> string
+  ConstDecl      CELLS                :: (i32 | string)[]
+  StructDecl     Circle               :: Circle!
+  StructDecl     Holder               :: Holder!
+  ConstDecl      HOLDERS              :: Holder[]
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      MIXED                :: (bool | char | f64 | string)[]
+  ConstDecl      Mixed                :: type
+  FnDecl         mixed                :: fn(bool | char | f64 | string) -> string
+  ConstDecl      NUMBERS              :: (i32 | string)[]
+  ConstDecl      ONE                  :: i32 | string
+  ConstDecl      Shape                :: type
+  ConstDecl      SHAPES               :: (Circle | Square)[]
+  ConstDecl      SMALL                :: (string | u8)[]
+  ConstDecl      Small                :: type
+  FnDecl         small                :: fn(string | u8) -> string
+  StructDecl     Square               :: Square!
+  ConstDecl      WIDE                 :: (i64 | string)[]
+  ConstDecl      Wide                 :: type
+  expr 19:16    SeqLitExpr     :: (i32 | string)[]
+  expr 19:20    StringLitExpr  :: string
+  expr 20:18    SeqLitExpr     :: (i32 | string)[]
+  expr 22:17    SeqLitExpr     :: (bool | char | f64 | string)[]
+  expr 22:34    StringLitExpr  :: string
+  expr 23:17    SeqLitExpr     :: (string | u8)[]
+  expr 23:23    StringLitExpr  :: string
+  expr 24:15    SeqLitExpr     :: (i64 | string)[]
+  expr 24:28    StringLitExpr  :: string
+  expr 25:18    SeqLitExpr     :: (Circle | Square)[]
+  expr 25:19    StructLitExpr  :: Circle!
+  expr 25:38    StructLitExpr  :: Square!
+  expr 26:20    SeqLitExpr     :: Holder[]
+  expr 26:21    StructLitExpr  :: Holder!
+  expr 26:39    StringLitExpr  :: string
+  expr 26:57    StructLitExpr  :: Holder!
+  expr 26:75    StringLitExpr  :: string
+  expr 26:88    StringLitExpr  :: string
+  expr 28:33    IfExpr         :: string
+  expr 28:36    BinaryExpr     :: bool
+  expr 28:36    IdentExpr      :: i32 | string
+  expr 28:41    IdentExpr      :: i32
+  expr 28:47    StringLitExpr  :: string
+  expr 28:54    IdentExpr      :: i32
+  expr 28:67    StringLitExpr  :: string
+  expr 28:77    IdentExpr      :: string
+  expr 30:35    MatchExpr      :: string
+  expr 30:41    IdentExpr      :: bool | char | f64 | string
+  expr 31:18    StringLitExpr  :: string
+  expr 31:25    IdentExpr      :: f64
+  expr 32:18    StringLitExpr  :: string
+  expr 32:26    IdentExpr      :: bool
+  expr 33:18    StringLitExpr  :: string
+  expr 33:26    IdentExpr      :: char
+  expr 34:18    StringLitExpr  :: string
+  expr 34:28    IdentExpr      :: string
+  expr 37:35    IfExpr         :: string
+  expr 37:38    BinaryExpr     :: bool
+  expr 37:38    IdentExpr      :: string | u8
+  expr 37:43    IdentExpr      :: u8
+  expr 37:48    StringLitExpr  :: string
+  expr 37:54    IdentExpr      :: u8
+  expr 37:67    StringLitExpr  :: string
+  expr 37:77    IdentExpr      :: string
+  expr 40:14    IdentExpr      :: (i32 | string)[]
+  expr 41:17    CallExpr       :: string
+  expr 41:17    IdentExpr      :: fn(i32 | string) -> string
+  expr 41:22    IdentExpr      :: i32 | string
+  expr 41:9     CallExpr       :: void
+  expr 41:9     IdentExpr      :: fn(T) -> void
+  expr 43:14    IdentExpr      :: (i32 | string)[]
+  expr 44:17    CallExpr       :: string
+  expr 44:17    IdentExpr      :: fn(i32 | string) -> string
+  expr 44:22    IdentExpr      :: i32 | string
+  expr 44:9     CallExpr       :: void
+  expr 44:9     IdentExpr      :: fn(T) -> void
+  expr 46:13    CallExpr       :: string
+  expr 46:13    IdentExpr      :: fn(i32 | string) -> string
+  expr 46:18    IdentExpr      :: i32 | string
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 47:14    IdentExpr      :: (bool | char | f64 | string)[]
+  expr 48:17    CallExpr       :: string
+  expr 48:17    IdentExpr      :: fn(bool | char | f64 | string) -> string
+  expr 48:23    IdentExpr      :: bool | char | f64 | string
+  expr 48:9     CallExpr       :: void
+  expr 48:9     IdentExpr      :: fn(T) -> void
+  expr 50:14    IdentExpr      :: (string | u8)[]
+  expr 51:17    CallExpr       :: string
+  expr 51:17    IdentExpr      :: fn(string | u8) -> string
+  expr 51:23    IdentExpr      :: string | u8
+  expr 51:9     CallExpr       :: void
+  expr 51:9     IdentExpr      :: fn(T) -> void
+  expr 53:14    IdentExpr      :: (i64 | string)[]
+  expr 54:17    IfExpr         :: string
+  expr 54:20    BinaryExpr     :: bool
+  expr 54:20    IdentExpr      :: i64 | string
+  expr 54:25    IdentExpr      :: i64
+  expr 54:31    StringLitExpr  :: string
+  expr 54:38    IdentExpr      :: i64
+  expr 54:51    StringLitExpr  :: string
+  expr 54:61    IdentExpr      :: string
+  expr 54:9     CallExpr       :: void
+  expr 54:9     IdentExpr      :: fn(T) -> void
+  expr 56:14    IdentExpr      :: (Circle | Square)[]
+  expr 57:17    IfExpr         :: string
+  expr 57:20    BinaryExpr     :: bool
+  expr 57:20    IdentExpr      :: Circle | Square
+  expr 57:25    IdentExpr      :: Circle!
+  expr 57:34    StringLitExpr  :: string
+  expr 57:44    FieldExpr      :: i32
+  expr 57:44    IdentExpr      :: Circle
+  expr 57:59    StringLitExpr  :: string
+  expr 57:69    FieldExpr      :: i32
+  expr 57:69    IdentExpr      :: Square
+  expr 57:9     CallExpr       :: void
+  expr 57:9     IdentExpr      :: fn(T) -> void
+  expr 59:14    IdentExpr      :: Holder[]
+  expr 60:17    StringLitExpr  :: string
+  expr 60:20    FieldExpr      :: string
+  expr 60:20    IdentExpr      :: Holder
+  expr 60:32    CallExpr       :: string
+  expr 60:32    IdentExpr      :: fn(string | u8) -> string
+  expr 60:38    FieldExpr      :: string | u8
+  expr 60:38    IdentExpr      :: Holder
+  expr 60:9     CallExpr       :: void
+  expr 60:9     IdentExpr      :: fn(T) -> void

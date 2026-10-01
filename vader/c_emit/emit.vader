@@ -835,18 +835,25 @@ struct_field_init :: fn(
     atom_of: MutableMap<string,
     i32>,
 ) -> CExpression {
+    // T12: an erased field (union / open ref) is a tagged `vader_box_t` slot,
+    // boxed with the value's own type ; a concrete-ref field (struct/array/fn) is
+    // a raw `void*`.
+    field_val :: val_type_of_bc_type(ctx.module.types[usize(field_tid)])
+    if field_val == .Any {
+        return box_slot(ctx, items, v, name, field_tid, atom_of)
+    }
     if v is BcValPrim { return data_slot(v.kind, v.bits) }
     if v is BcValStr { return unsigned(i64(atom_for(atom_of, v.value))) }
-    // T12: a concrete-ref field (struct/array/fn) is a raw `void*` ; an erased
-    // field (union / open ref) stays a tagged `vader_box_t` slot.
-    if val_type_of_bc_type(ctx.module.types[usize(field_tid)]) == .Ref {
+    if field_val == .Ref {
         return cast("void*", emit_data_value(ctx, items, v, name, atom_of))
     }
     return boxed_object(field_tid, emit_data_value(ctx, items, v, name, atom_of))
 }
 
-// One `vader_box_t` slot for a boxed-array element : a string boxes its atom in
-// `.s`, a struct / nested array boxes a pointer to its static in `.obj`.
+// One `vader_box_t` slot for a boxed-array element, tagged with the element's own
+// type as a box built at run time is — the member of a union it is, not the union:
+// a string boxes its atom in `.s`, a number its value, a struct / nested array a
+// pointer to its static in `.obj`. `tag` is the nested array's.
 box_slot :: fn(
     ctx: EmitCtx,
     items: CTopLevel[]!,
@@ -856,9 +863,45 @@ box_slot :: fn(
     atom_of: MutableMap<string,
     i32>,
 ) -> CExpression {
-    if v is BcValStr { return boxed_string(tag, atom_for(atom_of, v.value)) }
-    return boxed_object(tag, emit_data_value(ctx, items, v, name, atom_of))
+    types :: ctx.module.types
+    if v is BcValStr {
+        return boxed_string(primitive_tag_of(types, .String), atom_for(atom_of, v.value))
+    }
+    if v is BcValPrim {
+        return boxed_scalar(scalar_tag(types, v.kind), v.kind, v.bits)
+    }
+    own :: if v is BcValStruct { type_id_for_struct_symbol(types, v.symbol_id) } else { tag }
+    return boxed_object(own, emit_data_value(ctx, items, v, name, atom_of))
 }
+
+// Type-table index of the primitive a baked number of `kind` is, or 0.
+scalar_tag :: fn(types: BcType[], kind: ArrayKind) -> i32 {
+    for i in 0..<types.len() {
+        if types[i] is BcPrimitive as p {
+            if p.val != .Pointer && array_kind_of_val(p.val) == kind { return i32(i) }
+        }
+    }
+    return 0
+}
+
+// `{ tag, 0u, { .i = value } }` — a box holding a number, its payload widened as
+// `box_expr` widens it at run time (a 32-bit-or-narrower integer through `int32_t`).
+boxed_scalar :: fn(tag: i32, kind: ArrayKind, bits: u64) -> CExpression {
+    value :: data_slot(kind, bits)
+    payload :: match kind {
+        .F32 | .F64               -> designated(".f", cast("double", value))
+        .Bool                     -> designated(".b", value)
+        .U8 | .U16 | .U32         -> integer_payload(["int64_t", "int32_t", "uint32_t"], value)
+        .I8 | .I16 | .I32 | .Char -> integer_payload(["int64_t", "int32_t"], value)
+        .I64 | .U64               -> integer_payload(["int64_t"], value)
+        .Ref | .Boxed             -> panic("c_emit: a baked number of kind `${array_kind_name(kind)}`")
+    }
+    return initializer_list([unsigned(i64(tag)), ZERO, initializer_list([payload])])
+}
+
+// `.i = (<casts>) value`, the casts applied right to left.
+integer_payload :: fn(casts: string[], value: CExpression) -> CExpression =
+    designated(".i", CCast { .types = casts, .value = value })
 
 // `{ tag, 0u, { .obj = (void*) pointer } }` — a box holding a static object.
 boxed_object :: fn(tag: i32, pointer: CExpression) -> CExpression = initializer_list([

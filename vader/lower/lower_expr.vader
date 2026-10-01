@@ -413,8 +413,8 @@ is_numeric_conversion_of_literal :: fn(c: CallExpr) -> bool {
 /// values (arrays, structs) recurse field-by-field.
 export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: Span) -> LoweredExpr {
     match v {
-        is IntValue    -> { return LoweredIntLit { .span = span, .type = type_hint, .value = v.value } }
-        is FloatValue  -> { return LoweredFloatLit { .span = span, .type = type_hint, .value = v.value } }
+        is IntValue    -> { return LoweredIntLit { .span = span, .type = scalar_type(v.type_name, TY_FREE_INT, type_hint), .value = v.value } }
+        is FloatValue  -> { return LoweredFloatLit { .span = span, .type = scalar_type(v.type_name, TY_FREE_FLOAT, type_hint), .value = v.value } }
         is BoolValue   -> { return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = v.value } }
         is CharValue   -> { return LoweredCharLit { .span = span, .type = mk_primitive("char"), .value = v.value } }
         is StringValue -> { return LoweredStringLit { .span = span, .type = TY_STRING, .value = v.value } }
@@ -448,6 +448,24 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
         }
         is TypeValue -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime type-value lowering deferred" } }
     }
+}
+
+// The type a baked number takes: the slot's, unless the slot is a union — then its
+// own width when that is a member, else the member a literal of its family settles
+// on there (the evaluator keeps a free literal at its default width: `200` in a
+// `u8 | string` is baked an `i32`).
+scalar_type :: fn(type_name: string, family: Type, hint: Type) -> Type {
+    if hint !is UnionType {
+        return hint
+    }
+    own :: mk_primitive(type_name)
+    for member in hint.variants {
+        if equals_type(member, own) {
+            return own
+        }
+    }
+    settled :: union_literal_member(family, hint) ?? return own
+    return settled
 }
 
 // Element type of an array, or `unresolved` when `t` isn't a concrete array

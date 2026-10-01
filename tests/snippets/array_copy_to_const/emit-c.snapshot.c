@@ -59,7 +59,7 @@ static const struct { vader_obj_header_t header; size_t capacity; size_t length;
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 0u, { 0u, 0u, 0u },
     {
         {
-            0u, 0u,
+            3u, 0u,
             { .obj = (void*) (struct vader_struct_snippet_Inner_t*) &vader_data_0_e0_f1_x0 },
         },
     },

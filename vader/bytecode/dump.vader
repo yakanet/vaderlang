@@ -123,7 +123,7 @@ write_data_pool :: fn(sb: StringBuilder!, data_pool: BcDataEntry[], strings: str
                     if v is BcValStruct { for f in v.fields { write_data_value(out, f, str_index, types) } }
                 }
             } else {
-                out.append("data ${i} ${storage_class(e.mutable)}agg ${e.element_type_name} ${e.elements.len()}")
+                out.append("data ${i} ${storage_class(e.mutable)}agg ${type_name_token(e.element_type_name)} ${e.elements.len()}")
                 for v in e.elements { write_data_value(out, v, str_index, types) }
             }
             sb.append("${out}\n")
@@ -189,10 +189,14 @@ write_data_value :: fn(
         out.append(" struct ${struct_symbol_type_index(types, v.symbol_id)} ${v.fields.len()}")
         for f in v.fields { write_data_value(out, f, str_index, types) }
     } else if v is BcValArray {
-        out.append(" array ${v.element_type_name} ${v.elements.len()}")
+        out.append(" array ${type_name_token(v.element_type_name)} ${v.elements.len()}")
         for e in v.elements { write_data_value(out, e, str_index, types) }
     }
 }
+
+// A type name as one token of a data line: quoted when it has a space in it (a
+// union, `i32 | string`), since the reader splits the line on spaces.
+type_name_token :: fn(name: string) -> string = if " " in name { quote_string(name) } else { name }
 
 // Type-table index of the struct declared by `symbol_id`, or -1 when none is.
 struct_symbol_type_index :: fn(types: BcType[], symbol_id: i32) -> i32 {

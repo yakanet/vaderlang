@@ -511,7 +511,7 @@ export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
 ///
 /// @param got  the literal's free type.
 /// @param u    the union it flows into.
-union_literal_member :: fn(got: Type, u: UnionType) -> PrimitiveType | null {
+export union_literal_member :: fn(got: Type, u: UnionType) -> PrimitiveType | null {
     if !is_free_numeric(got) {
         return null
     }

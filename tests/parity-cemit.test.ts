@@ -381,6 +381,9 @@ const C_PARITY = new Set<string>([
   // A free literal branch beside a concrete one: natively, a union of the two
   // compiled to a box read of a constant.
   "branch_literal_width",
+  // A union-element const baked in `.rodata`: natively, every box carried the
+  // union's tag and a number sat in the pointer slot.
+  "union_array_const",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

@@ -1,0 +1,21 @@
+# stdout
+i32 4
+string four
+i32 5
+i32 6
+i32 7
+i32 8
+f64 1.5
+bool true
+char x
+string s
+u8 200
+string a
+i64 5000000000
+string w
+circle 1
+square 2
+h: u8 9
+k: string nine
+# exit
+0
