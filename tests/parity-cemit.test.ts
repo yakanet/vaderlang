@@ -373,6 +373,9 @@ const C_PARITY = new Set<string>([
   "fusion_stage_named_jumps",
   // `take(n)` pulls exactly `n` items, through `map`, `flat_map` and a generator.
   "fusion_take_exact",
+  // A jump out of nested or unrolled loops runs the defers of each body it leaves.
+  "defer_named_jump_nested_loop",
+  "comptime_for_jumps",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

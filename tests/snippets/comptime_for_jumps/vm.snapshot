@@ -1,0 +1,15 @@
+# stdout
+continue: 0:1
+continue: 0:3
+continue: 1:1
+continue: 1:3
+break: 0:1
+  defer of a copy, round 0
+  defer of a copy, round 0
+after round 0
+break: 1:1
+  defer of a copy, round 1
+  defer of a copy, round 1
+after round 1
+# exit
+0

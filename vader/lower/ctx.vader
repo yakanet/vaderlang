@@ -411,25 +411,26 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
 
 /// Per-block bookkeeping. `defers` is filled by every `DeferStmt`
 /// encountered in source order ; every block-exit edge replays it in
-/// reverse. `is_fn_root` is true for the body of the enclosing fn,
-/// `is_loop_body` for the body of an enclosing loop — both fields drive
-/// `break` / `continue` / `return` defer replay semantics.
+/// reverse. `is_fn_root` is true for the body of the enclosing fn, `loop_id`
+/// set on the body of a loop — both fields drive `break` / `continue` /
+/// `return` defer replay semantics.
 export BlockCtx :: struct {
-    defers:       Stmt[]!
-    is_fn_root:   bool
-    is_loop_body: bool
+    defers:     Stmt[]!
+    is_fn_root: bool
+    /// The `ForStmt.id` of the loop this block is the body of; null for any
+    /// other block. A jump drains defers up to the body of the loop it targets.
+    loop_id:    usize | null
 }
 
-/// Construct a fresh `BlockCtx` with no defers. The `is_*` flags get
-/// set at construction by the caller.
-/// @param is_fn_root    true when this block is the enclosing fn body.
-/// @param is_loop_body  true when this block is the body of a loop.
-/// @return              a fresh block context.
-export new_block_ctx :: fn(is_fn_root: bool, is_loop_body: bool) -> BlockCtx {
+/// Construct a fresh `BlockCtx` with no defers.
+/// @param is_fn_root  true when this block is the enclosing fn body.
+/// @param loop_id     the loop this block is the body of; null for any other.
+/// @return            a fresh block context.
+export new_block_ctx :: fn(is_fn_root: bool, loop_id: usize | null) -> BlockCtx {
     return BlockCtx {
-        .defers       = [],
-        .is_fn_root   = is_fn_root,
-        .is_loop_body = is_loop_body,
+        .defers     = [],
+        .is_fn_root = is_fn_root,
+        .loop_id    = loop_id,
     }
 }
 
@@ -606,8 +607,8 @@ import "std/testing"
 }
 
 @test test_new_block_ctx_sets_flags :: fn() -> void {
-    block :: new_block_ctx(true, false)
+    block :: new_block_ctx(true, null)
     assert(block.is_fn_root, "expected is_fn_root to be true")
-    assert(!block.is_loop_body, "expected is_loop_body to be false")
+    assert(block.loop_id == null, "expected no loop id")
     assert_eq(block.defers.len(), 0)
 }

@@ -41,7 +41,7 @@ import "toolchain/span"
 export lower_for_in :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredStmt {
     span :: for_stmt.span
     // Fast path : `for x in <chain>` where `<chain>` is one or more
@@ -166,7 +166,7 @@ export lower_for_in :: fn(
     value_access :: step_value(shape, step_ref, span)
     bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, value_access, element_type, span)
 
-    user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    user_body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
     body_stmts :: build_body_stmts(bind_stmts, user_body)
 
     branch_if :: LoweredExprStmt {
@@ -669,7 +669,7 @@ try_lower_for_in_raw_array :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     iter_lowered: LoweredExpr, iter_type: Type,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredStmt | null {
     array_elem_type: Type = TY_UNRESOLVED
     // Arrays — and array-backed distinct newtypes via `array_backing` — iterate
@@ -688,7 +688,7 @@ try_lower_for_in_raw_array :: fn(
     len_sym :: fresh_synthetic_symbol(ctx, "for_len")
     idx_sym :: fresh_synthetic_symbol(ctx, "for_i")
 
-    user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    user_body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
 
     arr_let :: LoweredLet {
         .span = span, .name = arr_sym.name, .symbol = arr_sym,
@@ -759,7 +759,7 @@ try_lower_for_in_raw_array :: fn(
 try_lower_for_in_int_range :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredStmt | null {
     range :: extract_range(in_form.iter) ?? return null
     raw_lower :: ctx.types.expr_type(range.lower)
@@ -805,7 +805,7 @@ try_lower_for_in_int_range :: fn(
         .span = span, .type = bound_type, .symbol = counter_symbol,
     }
 
-    raw_user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    raw_user_body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
     user_body :: if !captured { raw_user_body } else {
         // The counter runs on `counter_symbol` ; rebind the user's loop var to a
         // fresh per-iteration cell over the current counter value.
@@ -899,7 +899,7 @@ cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {
 try_lower_for_in_map_set :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     src_value: LoweredExpr, src_type: Type, span: Span,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredStmt | null {
     if src_type is StructType {
         // `MutableMap` / `MutableSet` lookups returning null (std/collections not
@@ -930,7 +930,7 @@ try_lower_for_in_map_set :: fn(
 lower_map_set_compact :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     src_value: LoweredExpr, src_type: Type, span: Span,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
     source: StructType, is_map: bool, is_set: bool, entry_args: Type[],
 ) -> LoweredStmt {
     usize_ty :: mk_primitive("usize")
@@ -1021,7 +1021,7 @@ lower_map_set_compact :: fn(
             .left = pos_ref, .right = LoweredIntLit { .span = span, .type = usize_ty, .value = 1 },
         },
     }
-    user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    user_body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
     loop_body_stmts: LoweredStmt[]!: []
     loop_body_stmts.push(oob_if)
     loop_body_stmts.push_all(binding_stmts)

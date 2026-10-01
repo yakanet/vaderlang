@@ -94,7 +94,7 @@ mk_generator_chain :: fn(source: IterChain, gen_layer: GenComboLayer, span: Span
 try_lower_chain_fusion :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredStmt | null {
     chain :: top_level_chain(ctx, in_form.iter) ?? return null
     // Bare ranges already hit the int-range fast path ; bypassing
@@ -102,7 +102,7 @@ try_lower_chain_fusion :: fn(
     if chain.kind == .Range { return null }
     lb :: resolve_loop_binding(ctx, in_form.loop_var, for_stmt.span)
     ctx.jump_frames.push(chain_jump_frame(for_stmt.id, chain))
-    body :: block_lowerer(ctx, for_stmt.body, false, true)
+    body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
     frame :: pop_jump_frame(ctx)
     user_body :: resumable_body(frame, body)
     body_template :: BodyTemplate {

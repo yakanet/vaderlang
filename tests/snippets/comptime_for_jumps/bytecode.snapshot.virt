@@ -1,0 +1,757 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 struct __defer_env_snippet_1 { cap_0:7 }
+type 3 primitive void
+type 4 struct __defer_env_snippet_3 { cap_0:7 }
+type 5 struct __defer_env_snippet_5 { cap_0:7 }
+type 6 primitive string
+type 7 ref _
+type 8 primitive u8
+type 9 primitive usize
+type 10 struct std_core$Buffer {  }
+type 11 primitive i64
+type 12 array 8
+type 13 primitive isize
+type 14 struct $Cell_i32 { value:1 }
+type 15 fn () -> 3
+string 0 "continue: "
+string 1 ":"
+string 2 "break: "
+string 3 "after round "
+string 4 "  defer of a copy, round "
+string 5 "\n"
+import 0 byte_len std_core$byte_len result_type=9 param_types=6 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=12 param_types=6 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,12,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 10 ByteAccess
+export main 0
+
+fn 0 snippet$main () -> i32
+  local i i32
+  local __buf_0 ref
+  local __off_1 usize
+  local $cast_14 i64
+  local $cast_19 i64
+  local __buf_2 ref
+  local __off_3 usize
+  local $cast_32 i64
+  local $cast_37 i64
+  local __buf_4 ref
+  local __off_5 usize
+  local $cast_50 i64
+  local $cast_55 i64
+  local i any
+  local __buf_16 ref
+  local __off_17 usize
+  local $cast_137 i64
+  i32.const 0
+  local.set 0   ; i
+  block $L0 void
+    loop $L1 void
+      local.get 0   ; i
+      i32.const 2
+      i32.lt
+      if $L2 void
+        block $L3 void
+          i32.const 1
+          i32.const 2
+          i32.eq
+          if $L4 void
+          else
+            i64.const 51
+            call 5   ; std_core$new_byte_buffer
+            local.set 1   ; __buf_0
+            i64.const 0
+            local.set 2   ; __off_1
+            local.get 1   ; __buf_0
+            local.get 2   ; __off_1
+            string.const 0   ; "continue: "
+            call 7   ; std_core$write_string_at
+            local.set 2   ; __off_1
+            local.get 0   ; i
+            i32.to_i64
+            local.set 3   ; $cast_14
+            local.get 1   ; __buf_0
+            local.get 2   ; __off_1
+            local.get 3   ; $cast_14
+            call 8   ; std_core$write_int
+            local.set 2   ; __off_1
+            local.get 1   ; __buf_0
+            local.get 2   ; __off_1
+            string.const 1   ; ":"
+            call 7   ; std_core$write_string_at
+            local.set 2   ; __off_1
+            i32.const 1
+            i32.to_i64
+            local.set 4   ; $cast_19
+            local.get 1   ; __buf_0
+            local.get 2   ; __off_1
+            local.get 4   ; $cast_19
+            call 8   ; std_core$write_int
+            local.set 2   ; __off_1
+            local.get 1   ; __buf_0
+            local.get 2   ; __off_1
+            call 6   ; std_core$finish_buffer
+            call 11   ; std_io$println__string
+          end $L4
+        end $L3
+        block $L5 void
+          i32.const 2
+          i32.const 2
+          i32.eq
+          if $L6 void
+          else
+            i64.const 51
+            call 5   ; std_core$new_byte_buffer
+            local.set 5   ; __buf_2
+            i64.const 0
+            local.set 6   ; __off_3
+            local.get 5   ; __buf_2
+            local.get 6   ; __off_3
+            string.const 0   ; "continue: "
+            call 7   ; std_core$write_string_at
+            local.set 6   ; __off_3
+            local.get 0   ; i
+            i32.to_i64
+            local.set 7   ; $cast_32
+            local.get 5   ; __buf_2
+            local.get 6   ; __off_3
+            local.get 7   ; $cast_32
+            call 8   ; std_core$write_int
+            local.set 6   ; __off_3
+            local.get 5   ; __buf_2
+            local.get 6   ; __off_3
+            string.const 1   ; ":"
+            call 7   ; std_core$write_string_at
+            local.set 6   ; __off_3
+            i32.const 2
+            i32.to_i64
+            local.set 8   ; $cast_37
+            local.get 5   ; __buf_2
+            local.get 6   ; __off_3
+            local.get 8   ; $cast_37
+            call 8   ; std_core$write_int
+            local.set 6   ; __off_3
+            local.get 5   ; __buf_2
+            local.get 6   ; __off_3
+            call 6   ; std_core$finish_buffer
+            call 11   ; std_io$println__string
+          end $L6
+        end $L5
+        block $L7 void
+          i32.const 3
+          i32.const 2
+          i32.eq
+          if $L8 void
+          else
+            i64.const 51
+            call 5   ; std_core$new_byte_buffer
+            local.set 9   ; __buf_4
+            i64.const 0
+            local.set 10   ; __off_5
+            local.get 9   ; __buf_4
+            local.get 10   ; __off_5
+            string.const 0   ; "continue: "
+            call 7   ; std_core$write_string_at
+            local.set 10   ; __off_5
+            local.get 0   ; i
+            i32.to_i64
+            local.set 11   ; $cast_50
+            local.get 9   ; __buf_4
+            local.get 10   ; __off_5
+            local.get 11   ; $cast_50
+            call 8   ; std_core$write_int
+            local.set 10   ; __off_5
+            local.get 9   ; __buf_4
+            local.get 10   ; __off_5
+            string.const 1   ; ":"
+            call 7   ; std_core$write_string_at
+            local.set 10   ; __off_5
+            i32.const 3
+            i32.to_i64
+            local.set 12   ; $cast_55
+            local.get 9   ; __buf_4
+            local.get 10   ; __off_5
+            local.get 12   ; $cast_55
+            call 8   ; std_core$write_int
+            local.set 10   ; __off_5
+            local.get 9   ; __buf_4
+            local.get 10   ; __off_5
+            call 6   ; std_core$finish_buffer
+            call 11   ; std_io$println__string
+          end $L8
+        end $L7
+        local.get 0   ; i
+        i32.const 1
+        i32.add
+        local.set 0   ; i
+        br $L1
+      end $L2
+    end $L1
+  end $L0
+  i32.const 0
+  local.set 0   ; i
+  block $L9 void
+    loop $L10 void
+      local.get 0   ; i
+      i32.const 2
+      i32.lt
+      if $L11 void
+        local.get 0   ; i
+        struct.new 14   ; $Cell_i32
+        local.set 13   ; i
+        block $L12 void
+          local.get 13   ; i
+          struct.new 2   ; __defer_env_snippet_1
+          make_closure 1 15   ; __defer_snippet_0
+          defer.push
+          i32.const 1
+          i32.const 2
+          i32.eq
+          if $L13 void
+            defer.pop_exec 1
+          else
+            i64.const 48
+            call 5   ; std_core$new_byte_buffer
+            local.set 1   ; __buf_0
+            i64.const 0
+            local.set 2   ; __off_1
+            local.get 1   ; __buf_0
+            local.get 2   ; __off_1
+            string.const 2   ; "break: "
+            call 7   ; std_core$write_string_at
+            local.set 2   ; __off_1
+            local.field 13 14 0   ; i.value
+            i32.to_i64
+            local.set 3   ; $cast_14
+            local.get 1   ; __buf_0
+            local.get 2   ; __off_1
+            local.get 3   ; $cast_14
+            call 8   ; std_core$write_int
+            local.set 2   ; __off_1
+            local.get 1   ; __buf_0
+            local.get 2   ; __off_1
+            string.const 1   ; ":"
+            call 7   ; std_core$write_string_at
+            local.set 2   ; __off_1
+            i32.const 1
+            i32.to_i64
+            local.set 4   ; $cast_19
+            local.get 1   ; __buf_0
+            local.get 2   ; __off_1
+            local.get 4   ; $cast_19
+            call 8   ; std_core$write_int
+            local.set 2   ; __off_1
+            local.get 1   ; __buf_0
+            local.get 2   ; __off_1
+            call 6   ; std_core$finish_buffer
+            call 11   ; std_io$println__string
+            defer.pop_exec 1
+            local.get 13   ; i
+            struct.new 4   ; __defer_env_snippet_3
+            make_closure 2 15   ; __defer_snippet_2
+            defer.push
+            i32.const 2
+            i32.const 2
+            i32.eq
+            if $L14 void
+              defer.pop_exec 1
+            else
+              i64.const 48
+              call 5   ; std_core$new_byte_buffer
+              local.set 5   ; __buf_2
+              i64.const 0
+              local.set 6   ; __off_3
+              local.get 5   ; __buf_2
+              local.get 6   ; __off_3
+              string.const 2   ; "break: "
+              call 7   ; std_core$write_string_at
+              local.set 6   ; __off_3
+              local.field 13 14 0   ; i.value
+              i32.to_i64
+              local.set 7   ; $cast_32
+              local.get 5   ; __buf_2
+              local.get 6   ; __off_3
+              local.get 7   ; $cast_32
+              call 8   ; std_core$write_int
+              local.set 6   ; __off_3
+              local.get 5   ; __buf_2
+              local.get 6   ; __off_3
+              string.const 1   ; ":"
+              call 7   ; std_core$write_string_at
+              local.set 6   ; __off_3
+              i32.const 2
+              i32.to_i64
+              local.set 8   ; $cast_37
+              local.get 5   ; __buf_2
+              local.get 6   ; __off_3
+              local.get 8   ; $cast_37
+              call 8   ; std_core$write_int
+              local.set 6   ; __off_3
+              local.get 5   ; __buf_2
+              local.get 6   ; __off_3
+              call 6   ; std_core$finish_buffer
+              call 11   ; std_io$println__string
+              defer.pop_exec 1
+              local.get 13   ; i
+              struct.new 5   ; __defer_env_snippet_5
+              make_closure 3 15   ; __defer_snippet_4
+              defer.push
+              i32.const 3
+              i32.const 2
+              i32.eq
+              if $L15 void
+                defer.pop_exec 1
+              else
+                i64.const 48
+                call 5   ; std_core$new_byte_buffer
+                local.set 9   ; __buf_4
+                i64.const 0
+                local.set 10   ; __off_5
+                local.get 9   ; __buf_4
+                local.get 10   ; __off_5
+                string.const 2   ; "break: "
+                call 7   ; std_core$write_string_at
+                local.set 10   ; __off_5
+                local.field 13 14 0   ; i.value
+                i32.to_i64
+                local.set 11   ; $cast_50
+                local.get 9   ; __buf_4
+                local.get 10   ; __off_5
+                local.get 11   ; $cast_50
+                call 8   ; std_core$write_int
+                local.set 10   ; __off_5
+                local.get 9   ; __buf_4
+                local.get 10   ; __off_5
+                string.const 1   ; ":"
+                call 7   ; std_core$write_string_at
+                local.set 10   ; __off_5
+                i32.const 3
+                i32.to_i64
+                local.set 12   ; $cast_55
+                local.get 9   ; __buf_4
+                local.get 10   ; __off_5
+                local.get 12   ; $cast_55
+                call 8   ; std_core$write_int
+                local.set 10   ; __off_5
+                local.get 9   ; __buf_4
+                local.get 10   ; __off_5
+                call 6   ; std_core$finish_buffer
+                call 11   ; std_io$println__string
+                defer.pop_exec 1
+              end $L15
+            end $L14
+          end $L13
+        end $L12
+        i64.const 32
+        call 5   ; std_core$new_byte_buffer
+        local.set 14   ; __buf_16
+        i64.const 0
+        local.set 15   ; __off_17
+        local.get 14   ; __buf_16
+        local.get 15   ; __off_17
+        string.const 3   ; "after round "
+        call 7   ; std_core$write_string_at
+        local.set 15   ; __off_17
+        local.field 13 14 0   ; i.value
+        i32.to_i64
+        local.set 16   ; $cast_137
+        local.get 14   ; __buf_16
+        local.get 15   ; __off_17
+        local.get 16   ; $cast_137
+        call 8   ; std_core$write_int
+        local.set 15   ; __off_17
+        local.get 14   ; __buf_16
+        local.get 15   ; __off_17
+        call 6   ; std_core$finish_buffer
+        call 11   ; std_io$println__string
+        local.get 0   ; i
+        i32.const 1
+        i32.add
+        local.set 0   ; i
+        br $L10
+      end $L11
+    end $L10
+  end $L9
+  return.lit i32.const 0
+end
+
+fn 1 __defer_snippet_0 (ref) -> void
+  local __buf_0 ref
+  local __off_1 usize
+  local $cast_10 i64
+  i64.const 45
+  call 5   ; std_core$new_byte_buffer
+  local.set 1   ; __buf_0
+  i64.const 0
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  string.const 4   ; "  defer of a copy, round "
+  call 7   ; std_core$write_string_at
+  local.set 2   ; __off_1
+  local.field 0 2 0   ; arg 0.cap_0
+  struct.get 14 0   ; $Cell_i32.value
+  i32.to_i64
+  local.set 3   ; $cast_10
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_10
+  call 8   ; std_core$write_int
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  call 6   ; std_core$finish_buffer
+  call 11   ; std_io$println__string
+  return
+end
+
+fn 2 __defer_snippet_2 (ref) -> void
+  local __buf_0 ref
+  local __off_1 usize
+  local $cast_10 i64
+  i64.const 45
+  call 5   ; std_core$new_byte_buffer
+  local.set 1   ; __buf_0
+  i64.const 0
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  string.const 4   ; "  defer of a copy, round "
+  call 7   ; std_core$write_string_at
+  local.set 2   ; __off_1
+  local.field 0 4 0   ; arg 0.cap_0
+  struct.get 14 0   ; $Cell_i32.value
+  i32.to_i64
+  local.set 3   ; $cast_10
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_10
+  call 8   ; std_core$write_int
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  call 6   ; std_core$finish_buffer
+  call 11   ; std_io$println__string
+  return
+end
+
+fn 3 __defer_snippet_4 (ref) -> void
+  local __buf_0 ref
+  local __off_1 usize
+  local $cast_10 i64
+  i64.const 45
+  call 5   ; std_core$new_byte_buffer
+  local.set 1   ; __buf_0
+  i64.const 0
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  string.const 4   ; "  defer of a copy, round "
+  call 7   ; std_core$write_string_at
+  local.set 2   ; __off_1
+  local.field 0 5 0   ; arg 0.cap_0
+  struct.get 14 0   ; $Cell_i32.value
+  i32.to_i64
+  local.set 3   ; $cast_10
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_10
+  call 8   ; std_core$write_int
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  call 6   ; std_core$finish_buffer
+  call 11   ; std_io$println__string
+  return
+end
+
+fn 4 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  call 12   ; std_core$usize$BufferAlloc$new_buffer_vt
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 14   ; std_core$Buffer$ByteAccess$intern_string_vt
+  return
+end
+
+fn 5 std_core$new_byte_buffer (usize) -> ref
+  local.get 0   ; arg 0
+  call 12   ; std_core$usize$BufferAlloc$new_buffer_vt
+  return
+end
+
+fn 6 std_core$finish_buffer (ref,usize) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 14   ; std_core$Buffer$ByteAccess$intern_string_vt
+  return
+end
+
+fn 7 std_core$write_string_at (ref,usize,string) -> usize
+  local $call_3 usize
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call 15   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_3
+  local.get 1   ; arg 1
+  local.get 3   ; $call_3
+  i64.add
+  return
+end
+
+fn 8 std_core$write_int (ref,usize,i64) -> usize
+  local neg bool
+  local ndigits usize
+  local m i64
+  local total usize
+  local $cast_36 u8
+  local $add_37 u8
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.eq
+  if $L0 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 48
+    call 13   ; std_core$Buffer$ByteAccess$store_u8_vt
+    local.get 1   ; arg 1
+    i64.const 1
+    i64.add
+    return
+  end $L0
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.lt
+  local.set 3   ; neg
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.gt
+  if $L1 void
+    local.get 2   ; arg 2
+    i64.neg
+    local.set 2   ; arg 2
+  end $L1
+  i64.const 0
+  local.set 4   ; ndigits
+  local.get 2   ; arg 2
+  local.set 5   ; m
+  block $L2 void
+    loop $L3 void
+      local.get 5   ; m
+      i64.const 0
+      i64.ne
+      if $L4 void
+        local.get 4   ; ndigits
+        i64.const 1
+        i64.add
+        local.set 4   ; ndigits
+        local.get 5   ; m
+        i64.const 10
+        i64.div
+        local.set 5   ; m
+        br $L3
+      end $L4
+    end $L3
+  end $L2
+  local.get 3   ; neg
+  if $L5 void
+    local.get 4   ; ndigits
+    i64.const 1
+    i64.add
+    local.set 6   ; total
+  else
+    local.get 4   ; ndigits
+    local.set 6   ; total
+  end $L5
+  local.get 1   ; arg 1
+  local.get 6   ; total
+  i64.add
+  local.set 4   ; ndigits
+  block $L6 void
+    loop $L7 void
+      local.get 2   ; arg 2
+      i64.const 0
+      i64.ne
+      if $L8 void
+        local.get 4   ; ndigits
+        i64.const 1
+        i64.sub
+        local.set 4   ; ndigits
+        local.get 2   ; arg 2
+        i64.const 10
+        i64.rem
+        i64.neg
+        i64.to_i32
+        local.set 7   ; $cast_36
+        i32.const 48
+        local.get 7   ; $cast_36
+        i32.add
+        local.set 8   ; $add_37
+        local.get 0   ; arg 0
+        local.get 4   ; ndigits
+        local.get 8   ; $add_37
+        call 13   ; std_core$Buffer$ByteAccess$store_u8_vt
+        local.get 2   ; arg 2
+        i64.const 10
+        i64.div
+        local.set 2   ; arg 2
+        br $L7
+      end $L8
+    end $L7
+  end $L6
+  local.get 3   ; neg
+  if $L9 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 45
+    call 13   ; std_core$Buffer$ByteAccess$store_u8_vt
+  end $L9
+  local.get 1   ; arg 1
+  local.get 6   ; total
+  i64.add
+  return
+end
+
+fn 9 std_io$write (u8,string) -> void
+  local buf ref
+  local sent usize
+  local $len_6 usize
+  local $len_8 usize
+  local chunk ref
+  local $len_11 usize
+  local n i32
+  local $cast_16 usize
+  local.get 1   ; arg 1
+  call.import 1   ; std_core$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  block $L0 void
+    loop $L1 void
+      local.get 2   ; buf
+      array.len
+      local.set 4   ; $len_6
+      local.get 3   ; sent
+      local.get 4   ; $len_6
+      u64.ge
+      if $L2 void
+        return
+      end $L2
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 12   ; u8[][]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 10   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L1
+    end $L1
+  end $L0
+  return
+end
+
+fn 10 std_io$write_bytes (u8,ref,usize) -> i32
+  local fd i32
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
+  end $L0
+  local.get 3   ; fd
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 2   ; system_posix$sys_write
+  isize.to_i32
+  return
+end
+
+fn 11 std_io$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 5   ; "\n"
+  call 4   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 9   ; std_io$write
+  return
+end
+
+fn 12 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+  local.get 0   ; arg 0
+  buffer.new
+  return
+end
+
+fn 13 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  store_u8
+  return
+end
+
+fn 14 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  buffer_to_string
+  return
+end
+
+fn 15 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
+  return
+end

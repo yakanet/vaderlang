@@ -39,7 +39,7 @@ import "toolchain/span"
 /// @param block_lowerer callback to lower a `BlockExpr` (cycle-breaker,
 ///                      same pattern as `lower_match`).
 /// @return              the make-closure expression, or the lifted fn's ident.
-export lower_lambda :: fn(ctx: FnLowerCtx!, lambda: AST.LambdaExpr, block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock) -> LoweredExpr {
+export lower_lambda :: fn(ctx: FnLowerCtx!, lambda: AST.LambdaExpr, block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock) -> LoweredExpr {
     captures :: lookup_captures(ctx, lambda)
     lifted_symbol :: fresh_lifted_symbol(ctx, is_env = false)
     return_type :: lambda_return_type(ctx, lambda)
@@ -68,9 +68,9 @@ export lower_lambda :: fn(ctx: FnLowerCtx!, lambda: AST.LambdaExpr, block_lowere
 // The lifted fn: `lambda`'s body lowered in its own ctx, under `params`.
 lift_fn :: fn(
     lifted_ctx: FnLowerCtx!, symbol: Symbol, lambda: AST.LambdaExpr, params: LoweredParam[],
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredFnDecl {
-    raw_body :: block_lowerer(lifted_ctx, lambda.body, true, false)
+    raw_body :: block_lowerer(lifted_ctx, lambda.body, true, null)
     // A lambda's OWN param can itself be captured by a further-nested lambda ;
     // cell-promote it at the lifted fn's entry, exactly as `lower_fn_body` does
     // for a top-level fn. (Captures FROM the outer scope route through the env,

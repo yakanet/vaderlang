@@ -1,0 +1,32 @@
+# Typecheck
+
+## tests/snippets/comptime_for_jumps
+  FnDecl         main                 :: fn() -> i32
+  expr 11:14    RangeExpr      :: Range<i32>!
+  expr 12:28    SeqLitExpr     :: i32[]!
+  expr 13:13    IfExpr         :: void
+  expr 13:16    BinaryExpr     :: bool
+  expr 13:16    IdentExpr      :: i32
+  expr 16:13    CallExpr       :: void
+  expr 16:13    IdentExpr      :: fn(T) -> void
+  expr 16:21    StringLitExpr  :: string
+  expr 16:34    IdentExpr      :: i32
+  expr 16:39    IdentExpr      :: i32
+  expr 19:14    RangeExpr      :: Range<i32>!
+  expr 20:28    SeqLitExpr     :: i32[]!
+  expr 21:19    CallExpr       :: void
+  expr 21:19    IdentExpr      :: fn(T) -> void
+  expr 21:27    StringLitExpr  :: string
+  expr 21:55    IdentExpr      :: i32
+  expr 22:13    IfExpr         :: void
+  expr 22:16    BinaryExpr     :: bool
+  expr 22:16    IdentExpr      :: i32
+  expr 25:13    CallExpr       :: void
+  expr 25:13    IdentExpr      :: fn(T) -> void
+  expr 25:21    StringLitExpr  :: string
+  expr 25:31    IdentExpr      :: i32
+  expr 25:36    IdentExpr      :: i32
+  expr 27:17    StringLitExpr  :: string
+  expr 27:32    IdentExpr      :: i32
+  expr 27:9     CallExpr       :: void
+  expr 27:9     IdentExpr      :: fn(T) -> void

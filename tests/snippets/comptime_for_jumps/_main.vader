@@ -1,0 +1,30 @@
+// A `@comptime for` is unrolled: no loop is left of it. Its `continue` leaves
+// the copy of the body it is in and goes on with the next one, its `break`
+// leaves every copy — never the runtime loop around the unrolled one — and the
+// copy's defers run on the way out.
+
+module "snippet"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    for i in 0..<2 {
+        @comptime for x in [1, 2, 3] {
+            if x == 2 {
+                continue
+            }
+            println("continue: ${i}:${x}")
+        }
+    }
+    for i in 0..<2 {
+        @comptime for x in [1, 2, 3] {
+            defer println("  defer of a copy, round ${i}")
+            if x == 2 {
+                break
+            }
+            println("break: ${i}:${x}")
+        }
+        println("after round ${i}")
+    }
+    return 0
+}

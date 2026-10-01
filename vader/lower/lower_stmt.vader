@@ -21,13 +21,14 @@ import "toolchain/span"
 /// @param ctx           the fn-body context.
 /// @param block         the source block.
 /// @param is_fn_root    true when this is the enclosing fn's body.
-/// @param is_loop_body  true when this is the body of a loop.
+/// @param loop_id       the `ForStmt.id` of the loop this is the body of; null
+///                      for any other block.
 /// @return              the lowered block.
 export lower_block :: fn(
-    ctx: FnLowerCtx!, block: BlockExpr, is_fn_root: bool, is_loop_body: bool,
+    ctx: FnLowerCtx!, block: BlockExpr, is_fn_root: bool, loop_id: usize | null,
 ) -> LoweredBlock {
     entry_depth :: ctx.blocks.len()
-    ctx.blocks.push(new_block_ctx(is_fn_root, is_loop_body))
+    ctx.blocks.push(new_block_ctx(is_fn_root, loop_id))
     stmts: LoweredStmt[]!: []
     for stmt in block.stmts {
         if ctx.in_async {
@@ -220,7 +221,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
         is ForStmt               -> { out.push(lower_for(ctx, stmt)) }
         is BreakStmt             -> {
             drain: LoweredStmt[]!: []
-            drain_defers_to_loop(ctx, stmt.span, drain)
+            drain_defers_to_loop(ctx, stmt.id, stmt.span, drain)
             exit :: lower_jump(ctx, stmt.id, stmt.label, true, stmt.span)
             if drain.len() > 0 {
                 drain.push(exit)
@@ -231,7 +232,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
         }
         is ContinueStmt          -> {
             drain: LoweredStmt[]!: []
-            drain_defers_to_loop(ctx, stmt.span, drain)
+            drain_defers_to_loop(ctx, stmt.id, stmt.span, drain)
             exit :: lower_jump(ctx, stmt.id, stmt.label, false, stmt.span)
             if drain.len() > 0 {
                 drain.push(exit)
@@ -455,16 +456,20 @@ lowered_jump_label :: fn(ctx: FnLowerCtx, jump_id: usize, written: string | null
     return instance_label(ctx, if renamed != null { renamed } else { written })
 }
 
-// Sum defers from the innermost block up to (but not including) the
-// nearest enclosing loop body — break/continue exit only the loop
-// scope, not the fn.
-drain_defers_to_loop :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]!) -> void {
+// Sum defers from the innermost block up to the body of the loop the jump
+// `jump_id` targets — break/continue exit every loop body up to their target's,
+// not the fn.
+drain_defers_to_loop :: fn(ctx: FnLowerCtx, jump_id: usize, span: Span, out: LoweredStmt[]!) -> void {
+    target :: ctx.typed.jump_targets[jump_id]
     total: i32 = 0
     i := i64(ctx.blocks.len()) - 1
     for i >= 0 {
         b :: ctx.blocks[usize(i)]
         total += i32(b.defers.len())
-        if b.is_loop_body { break }
+        loop_id :: b.loop_id
+        if loop_id != null && (target == null || loop_id == target) {
+            break
+        }
         i -= 1
     }
     if total > 0 {
@@ -486,7 +491,7 @@ lower_for :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt) -> LoweredStmt {
     }
     match for_stmt.form as while_for {
         is InfiniteFor -> {
-            body :: lower_block(ctx, for_stmt.body, false, true)
+            body :: lower_block(ctx, for_stmt.body, false, for_stmt.id)
             return LoweredLoop {
                 .span = for_stmt.span, .label = instance_label(ctx, for_stmt.label),
                 .cond = null, .body = body, .step = [],
@@ -510,7 +515,7 @@ lower_for :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt) -> LoweredStmt {
             // A loop condition re-evaluates each iteration ; an `await` there
             // can't be hoisted before the loop (would run once). v1: diagnose.
             guard_no_pending_await(ctx, cond_base, while_for.cond.span)
-            body :: lower_block(ctx, for_stmt.body, false, true)
+            body :: lower_block(ctx, for_stmt.body, false, for_stmt.id)
             return LoweredLoop {
                 .span = for_stmt.span, .label = instance_label(ctx, for_stmt.label),
                 .cond = cond, .body = body, .step = [],
@@ -559,15 +564,19 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt, in_form: InFor)
     // name doesn't silently clobber an outer scope's substitution.
     prior :: ctx.comptime_bindings[binding_symbol.id]
     unrolled: LoweredStmt[]!: []
+    // The unrolled loop leaves no loop behind: its `continue` leaves the copy of
+    // the body it is in, its `break` all of them.
+    ctx.jump_frames.push(JumpFrame {
+        .loop_id = for_stmt.id, .breaks_land = false, .continue_lands = false,
+    })
+    copies: LoweredBlock[]!: []
     for elt in arr_lit.elements {
         ctx.comptime_bindings[binding_symbol.id] = elt
-        body :: lower_block(ctx, for_stmt.body, false, false)
-        for s in body.stmts { unrolled.push(s) }
-        if body.trailing !is null {
-            unrolled.push(LoweredExprStmt {
-                .span = span_of(body.trailing), .expr = body.trailing,
-            })
-        }
+        copies.push(lower_block(ctx, for_stmt.body, false, for_stmt.id))
+    }
+    frame :: pop_jump_frame(ctx)
+    for body in copies {
+        unrolled.push_all(block_stmts_with_trailing(resumable_body(frame, body)))
     }
     if prior is null {
         // Erase the binding : the map must come out of the unroll exactly as it
@@ -582,7 +591,7 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt, in_form: InFor)
         .span = span,
         .expr = LoweredBlock {
             .span = span, .type = TY_VOID,
-            .stmts = unrolled, .trailing = null,
+            .stmts = exit_block(frame, span, unrolled), .trailing = null,
         },
     }
 }

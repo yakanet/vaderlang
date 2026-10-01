@@ -314,7 +314,7 @@ lower_fn_body :: fn(
 ) -> LoweredBlock | null {
     if fn_decl.body == null { return null }
     fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type)
-    block :: lower_block(fn_ctx, fn_decl.body, true, false)
+    block :: lower_block(fn_ctx, fn_decl.body, true, null)
     return promote_captured_params(fn_ctx, fn_decl.params, block)
 }
 

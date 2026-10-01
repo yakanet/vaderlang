@@ -140,7 +140,7 @@ export lower_expr :: fn(ctx: FnLowerCtx!, expr: Expr) -> LoweredExpr {
             }
             return lower_if(ctx, expr, type)
         }
-        is BlockExpr     -> { return lower_block(ctx, expr, false, false) }
+        is BlockExpr     -> { return lower_block(ctx, expr, false, null) }
         is StructLitExpr -> { return lower_struct_lit(ctx, expr, type) }
         is SeqLitExpr    -> { return lower_seq_lit(ctx, expr, type) }
         is CastExpr      -> {
@@ -743,7 +743,7 @@ voidify_block :: fn(block: LoweredBlock) -> LoweredBlock {
 /// then-block ; the lowering site materialises its slot once and every
 /// downstream read sees the narrowed type.
 lower_then_with_binding :: fn(ctx: FnLowerCtx!, if_expr: IfExpr) -> LoweredBlock {
-    block :: lower_block(ctx, if_expr.then_block, false, false)
+    block :: lower_block(ctx, if_expr.then_block, false, null)
     cond :: if_expr.cond
     if !(cond is BinaryExpr) { return block }
     if cond is BinaryExpr {
@@ -785,7 +785,7 @@ lower_if_else :: fn(ctx: FnLowerCtx!, branch: IfElse | null) -> LoweredBlock | n
                 .stmts = [], .trailing = chained,
             }
         }
-        is IfElseBlock -> { return lower_block(ctx, branch.block, false, false) }
+        is IfElseBlock -> { return lower_block(ctx, branch.block, false, null) }
     }
 }
 

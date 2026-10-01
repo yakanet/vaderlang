@@ -1,0 +1,21 @@
+# stdout
+continue v:
+  body 0.0
+  inner defer 0.0
+  inner defer 0.1
+  outer defer 0
+  body 1.0
+  inner defer 1.0
+  inner defer 1.1
+  outer defer 1
+break v:
+  body 0.0
+  inner defer 0.0
+  body 0.1
+  inner defer 0.1
+  outer defer 0
+  inner defer 1.0
+  outer defer 1
+  after the loops
+# exit
+0

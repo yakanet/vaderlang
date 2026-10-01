@@ -32,7 +32,7 @@ import "toolchain/span"
 export try_lower_generator_inline :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredStmt | null {
     // Direct-ident callee only (Increment 1): `gen(args)`, not `recv.gen(args)`.
     // Both `is` bindings stay live in the inner block, so the worker takes them.
@@ -90,7 +90,7 @@ inline_gen_ident_call :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor, call: AST.CallExpr,
     callee_id: AST.IdentExpr,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredStmt | null {
     raw_callee :: resolve_ident(ctx, callee_id.span) ?? return null
     // Follow a directly-called imported generator's ImportBinding to its owner fn.
@@ -133,7 +133,7 @@ inline_gen_ident_call :: fn(
     ctx.jump_frames.push(JumpFrame {
         .loop_id = for_stmt.id, .breaks_land = false, .continue_lands = false,
     })
-    body :: block_lowerer(ctx, for_stmt.body, false, true)
+    body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
     frame :: pop_jump_frame(ctx)
     consumer_body :: resumable_body(frame, body)
 
@@ -149,7 +149,7 @@ inline_gen_ident_call :: fn(
     gen_ctx.gen_inline_sink = build_gen_sink(ctx, lb.pattern, lb.symbol, lb.name, element_type, consumer_body, for_stmt.span)
     gen_ctx.instance = instance
     entered :: ctx.project.inlining_generators.add(instance.generator_id)
-    lowered_gen :: block_lowerer(gen_ctx, gen_body, false, false)
+    lowered_gen :: block_lowerer(gen_ctx, gen_body, false, null)
     if entered {
         ctx.project.inlining_generators.remove(instance.generator_id)
     }
@@ -547,25 +547,21 @@ fuse_source_loop :: fn(
     // The loop over the source is the source's consumer: its own jumps land in
     // the source's code.
     gen_ctx.jump_frames.push(chain_jump_frame(binding.loop_id, binding.source))
-    inner_lowered :: recurse(gen_ctx, binding.inner)
+    inner_lowered :: lower_block(gen_ctx, binding.inner, false, binding.loop_id)
     frame :: pop_jump_frame(gen_ctx)
-    if inner_lowered is LoweredBlock {
-        inner_template :: BodyTemplate {
-            .binding_name = binding.loopvar.name,
-            .binding_symbol = binding.loopvar,
-            .element_type = chain_element_type(binding.source),
-            .user_body = resumable_body(frame, inner_lowered),
-        }
-        emitted :: emit_fused_chain(ctx, binding.source, outer_span, inner_template, recurse)
-        source_stmts :: exit_block(frame, span, emitted)
-        out: LoweredStmt[]!: []
-        if binding.prelude.len() > 0 {
-            prelude_expr: AST.Expr: AST.BlockExpr { .span = span, .stmts = binding.prelude, .trailing = null }
-            prelude_lowered :: recurse(gen_ctx, prelude_expr)
-            if prelude_lowered is LoweredBlock { out.push_all(prelude_lowered.stmts) }
-        }
-        out.push_all(source_stmts)
-        return out
+    inner_template :: BodyTemplate {
+        .binding_name = binding.loopvar.name,
+        .binding_symbol = binding.loopvar,
+        .element_type = chain_element_type(binding.source),
+        .user_body = resumable_body(frame, inner_lowered),
     }
-    return []
+    emitted :: emit_fused_chain(ctx, binding.source, outer_span, inner_template, recurse)
+    out: LoweredStmt[]!: []
+    if binding.prelude.len() > 0 {
+        prelude_expr: AST.Expr: AST.BlockExpr { .span = span, .stmts = binding.prelude, .trailing = null }
+        prelude_lowered :: recurse(gen_ctx, prelude_expr)
+        if prelude_lowered is LoweredBlock { out.push_all(prelude_lowered.stmts) }
+    }
+    out.push_all(exit_block(frame, span, emitted))
+    return out
 }

@@ -1,0 +1,43 @@
+// A `continue v` / `break v` written in an inner loop leaves the inner loop's
+// body AND the body of `v`'s loop: the defers of both run, innermost first,
+// before the jump lands.
+
+module "snippet"
+
+import "std/io"
+
+continue_outer :: fn() -> void {
+    for v in 0..<2 {
+        defer println("  outer defer ${v}")
+        for w in 0..<2 {
+            defer println("  inner defer ${v}.${w}")
+            if w == 1 {
+                continue v
+            }
+            println("  body ${v}.${w}")
+        }
+        println("  never: the inner loop always leaves by `continue v`")
+    }
+}
+
+break_outer :: fn() -> void {
+    for v in 0..<2 {
+        defer println("  outer defer ${v}")
+        for w in 0..<2 {
+            defer println("  inner defer ${v}.${w}")
+            if v == 1 {
+                break v
+            }
+            println("  body ${v}.${w}")
+        }
+    }
+    println("  after the loops")
+}
+
+main :: fn() -> i32 {
+    println("continue v:")
+    continue_outer()
+    println("break v:")
+    break_outer()
+    return 0
+}

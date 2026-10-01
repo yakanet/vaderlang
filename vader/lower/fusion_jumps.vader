@@ -9,6 +9,9 @@
 // code (its exit block), and a `continue` leaves the body spliced at this
 // `yield` (its resume block), so the producer goes on from the `yield`.
 //
+// An unrolled `@comptime for` keeps no loop either; its jumps take the same
+// frame, with nothing that lands as written.
+//
 // A bare jump that already lands right is lowered as written, so a chain whose
 // stages hold no loop and run nothing after their `yield` keeps its loops as
 // they are. A named one never does: no loop the fusion emits carries the name
@@ -22,7 +25,8 @@ import "vader/typecheck"
 
 // ---- frames -----------------------------------------------------------------
 
-/// A loop whose body is being lowered for splicing into its producer's code.
+/// A loop whose body is being lowered with no loop of its own around it: spliced
+/// into its producer's code, or copied by an unrolled `@comptime for`.
 export JumpFrame :: struct {
     /// The loop's `ForStmt.id`, in the module the body is lowered from.
     loop_id:        usize
