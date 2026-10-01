@@ -1,8 +1,9 @@
 // _diag_fusion_recursive_generator — a generator that consumes itself.
 //
-// THE COMMITTED OUTPUT IS WRONG: the compiler crashes. Consumed by a `for`, the
-// generator is inlined into its own body without end, until the lowering
-// overflows the stack. The lazy form would print `v=3 v=2 v=1 done`.
+// THE COMMITTED OUTPUT IS WRONG. The outer call is inlined; the recursive call,
+// met inside its own inlined body, is not, and takes the lazy path. That path
+// loses a local declared in an `if` after a `yield` — its own defect — and traps
+// after `v=3 v=2`. The expected output is `v=3 v=2 v=1 done`.
 
 module "snippet"
 

@@ -170,13 +170,13 @@
         let x: string =
           call :string
             callee:
-              f :fn(i32) -> string
+              to_text :fn(i32) -> string
             arg0:
               x :i32
         let n: usize =
           call :usize
             callee:
-              f :fn(string) -> usize
+              text_len :fn(string) -> usize
             arg0:
               x :string
         assign

@@ -39,7 +39,7 @@
         let x: i32 =
           call :i32
             callee:
-              f :fn(i32) -> i32
+              triple :fn(i32) -> i32
             arg0:
               x :i32
         if :void
@@ -92,10 +92,10 @@
           let __elem_4: i32 =
             call :i32
               callee:
-                f :fn(i32) -> i32
+                triple :fn(i32) -> i32
               arg0:
                 x :i32
-          LoweredArrayPush
+          LoweredArrayPush cached
         step
           assign
             target:

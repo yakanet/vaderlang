@@ -414,6 +414,8 @@ resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
     //       `comptime_value_by_symbol_id` so dotted refs to a `::`
     //       alias still fold.
     if arg is IdentExpr {
+        // The resolver's own symbol, not an instance's clone: the tables below are
+        // keyed by its id.
         sym :: ctx.typed.resolved.idents[arg.span.hash()] ?? return via_type_expr
         if sym is Symbol {
             aliased :: ctx.typed.let_type_aliases[sym.id]

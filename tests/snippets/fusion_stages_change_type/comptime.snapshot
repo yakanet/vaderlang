@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/_diag_fusion_shared_slot_type
+## tests/snippets/fusion_stages_change_type
 
 ## generic instances
   __genstate_array_iter<T>
@@ -11,6 +11,8 @@
   __genstate_map<i32>
   __genstate_map<string>
   __genstate_map<usize>
+  __genstate_take<i32>
+  __genstate_skip<i32>
   Into<Target>
   Add<Rhs, Out>
   ArrayOps<T>

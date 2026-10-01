@@ -1,0 +1,14 @@
+# stdout
+map.map: 4 6 8 | 4 6 8
+filter.filter.count: 3 | 3
+take.take.count: 2 | 2
+skip.skip.count: 4 | 4
+map.chain(map): 69 | 69
+scale.scale: 30 60 | 30 60
+upto in upto, rounds: 6 | 6
+take in take, rounds: 2 | 2
+chars.filter.filter.count: 14 | 14
+comptime map.map sum: 18 | 18
+break i: 0:0 0:1 | 0:0 0:1
+# exit
+0

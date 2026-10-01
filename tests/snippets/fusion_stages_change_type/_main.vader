@@ -1,9 +1,8 @@
-// _diag_fusion_shared_slot_type — two inlined `map`s of different element types
-// share one slot: `[1, 22, 333].map(to_text).map(text_len)`.
+// fusion_stages_change_type — two inlined `map`s whose elements have different
+// types, `[1, 22, 333].map(to_text).map(text_len)`: each keeps its own slots.
 //
-// THE COMMITTED OUTPUT IS WRONG. The lazy half, the reference, runs first. The fused half then reads a string slot as an i32:
-// the VM traps (`byte_len: expected string, got i32`), the native binary prints
-// `1 0 0` without a word.
+// The lazy half, the reference, prints first; the fused half must print the
+// same.
 
 module "snippet"
 

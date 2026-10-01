@@ -216,8 +216,7 @@ export lower_for_in :: fn(
 // user label (`name:` prefix, usually null for a for-in — see W0010).
 resolve_loop_label :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt) -> string | null {
     injected :: ctx.typed.loop_target_labels[for_stmt.id]
-    if injected != null { return injected }
-    return for_stmt.label
+    return instance_label(ctx, if injected != null { injected } else { for_stmt.label })
 }
 
 build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
@@ -465,18 +464,11 @@ synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
     }
 }
 
-// Look up the for-in binding's resolver-minted Symbol via the shared
-// per-module `defined_span -> Symbol` index (`lookup_local_symbol`).
-// Was a naive O(idents) scan per binding until it was routed through
-// the constant-time index every other lowering site already uses.
-export lookup_for_binding :: fn(ctx: FnLowerCtx!, binding_span: Span) -> Symbol | null =
-    lookup_local_symbol(ctx.project, ctx.typed.resolved, binding_span)
-
 // For-in bindings that the body never references don't appear in
 // `resolved.idents` (the use-site map). Synthesize a placeholder
 // symbol so the lowered shape stays consistent.
 resolve_or_synth_symbol :: fn(ctx: FnLowerCtx!, name: string, span: Span) -> Symbol {
-    found :: lookup_for_binding(ctx, span)
+    found :: resolve_binding(ctx, span)
     match found {
         is Symbol -> { return found }
         is null -> {

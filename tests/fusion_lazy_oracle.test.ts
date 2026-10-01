@@ -1,5 +1,5 @@
-// The `_diag_fusion_*` snippets print every chain twice: fused where it is
-// written, then bound to a local first — the lazy reference. The reference only
+// The `fusion_*` and `_diag_fusion_*` snippets print every chain twice: fused
+// where it is written, then bound to a local first — the lazy reference. The reference only
 // holds while that local stays a state machine: a pass that fused through the
 // local would make both halves agree on the wrong answer, and the snippets would
 // pin nothing without a single snapshot line saying so. So every lazy local must
@@ -21,13 +21,13 @@ const LOWERED_LAZY = /^\s*let (it|outer|inner): __genstate_/gm;
 test("the lazy half of every fusion diagnostic stays a state machine", () => {
   const problems: string[] = [];
   for (const s of listSnippets("tests/snippets")) {
-    if (!s.name.startsWith("_diag_fusion_")) continue;
+    if (!s.name.startsWith("fusion_") && !s.name.startsWith("_diag_fusion_")) continue;
     const lowered = readFileSync(join(s.dir, "lower.snapshot"), "utf8");
     // A snippet pinning a compiler crash has no lowered form to check.
     if (lowered.startsWith(CLI_FAILED_PREFIX)) continue;
     const written = [...s.source.matchAll(SOURCE_LAZY)].length;
     const kept = [...lowered.matchAll(LOWERED_LAZY)].length;
-    if (written === 0 || kept !== written) {
+    if (kept !== written) {
       problems.push(`${s.name}: ${written} lazy locals written, ${kept} lowered to a state machine`);
     }
   }

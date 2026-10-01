@@ -1,14 +1,11 @@
-// _diag_fusion_shared_instances — two inlined instances of one generator share
-// its variables: `map.map`, `filter.filter`, `take.take`, `skip.skip`, a user
-// stage twice, a generator nested in itself, `@comptime` on a fused chain.
+// fusion_same_generator_twice — two inlined instances of one generator keep
+// their own variables: `map.map`, `filter.filter`, `take.take`, `skip.skip`, a
+// user stage twice, a generator nested in itself, `@comptime` on a fused chain,
+// and a consumer `break i` past a generator loop also named `i`.
 //
-// THE COMMITTED OUTPUT IS WRONG. Each line prints the chain consumed where it is
-// written (fused), then the same chain bound to a local first (lazy: it runs as
-// a state machine and is the reference). The two halves should agree. A line
-// whose halves already agree pins a case a fix must not break.
-//
-// Every instance is inlined under the generator's own symbols, so the second
-// instance writes the first one's counters and parameters.
+// Each line prints the chain consumed where it is written (fused), then the same
+// chain bound to a local first (lazy: it runs as a state machine and is the
+// reference). The two halves agree.
 //
 // A consumer loop that could spin ends through a guard that RETURNS: a `break`
 // would make the loop a jump target, and a jumped loop is not fused.

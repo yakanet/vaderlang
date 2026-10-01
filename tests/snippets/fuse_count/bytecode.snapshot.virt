@@ -11,7 +11,6 @@ type 8 array 4
 type 9 primitive void
 type 10 primitive isize
 type 11 array 1
-type 12 fn (1) -> 2
 string 0 "a "
 string 1 "b "
 string 2 "c "
@@ -25,7 +24,6 @@ export main 0
 fn 0 snippet$main () -> i32
   local a usize
   local __fuse_arr_2 ref
-  local pred ref
   local __fuse_len_3 usize
   local __fuse_i_4 usize
   local $cast_37 u64
@@ -38,37 +36,34 @@ fn 0 snippet$main () -> i32
   i32.const 6
   array.new 11 6   ; i32[][]
   local.set 1   ; __fuse_arr_2
-  fn.ref 2 12   ; __lambda_snippet_1
-  local.set 2   ; pred
   i64.const 0
   local.set 0   ; a
   local.get 1   ; __fuse_arr_2
   array.len
-  local.set 3   ; __fuse_len_3
+  local.set 2   ; __fuse_len_3
   i64.const 0
-  local.set 4   ; __fuse_i_4
+  local.set 3   ; __fuse_i_4
   block $L0 void
     loop $L1 void
-      local.get 4   ; __fuse_i_4
-      local.get 3   ; __fuse_len_3
+      local.get 3   ; __fuse_i_4
+      local.get 2   ; __fuse_len_3
       u64.lt
       if $L2 void
         local.get 1   ; __fuse_arr_2
-        local.get 4   ; __fuse_i_4
+        local.get 3   ; __fuse_i_4
         load_slot_i32
         call 1   ; __lambda_snippet_0
-        local.get 2   ; pred
-        call.indirect 12   ; fn
+        call 2   ; __lambda_snippet_1
         if $L3 void
           local.get 0   ; a
           i64.const 1
           i64.add
           local.set 0   ; a
         end $L3
-        local.get 4   ; __fuse_i_4
+        local.get 3   ; __fuse_i_4
         i64.const 1
         i64.add
-        local.set 4   ; __fuse_i_4
+        local.set 3   ; __fuse_i_4
         br $L1
       end $L2
     end $L1
@@ -77,75 +72,72 @@ fn 0 snippet$main () -> i32
   call 5   ; std_core$new_byte_buffer
   local.set 1   ; __fuse_arr_2
   i64.const 0
-  local.set 3   ; __fuse_len_3
+  local.set 2   ; __fuse_len_3
   local.get 1   ; __fuse_arr_2
-  local.get 3   ; __fuse_len_3
+  local.get 2   ; __fuse_len_3
   string.const 0   ; "a "
   call 7   ; std_core$write_string_at
-  local.set 3   ; __fuse_len_3
+  local.set 2   ; __fuse_len_3
   local.get 0   ; a
   usize.to_i64
-  local.set 5   ; $cast_37
+  local.set 4   ; $cast_37
   local.get 1   ; __fuse_arr_2
-  local.get 3   ; __fuse_len_3
-  local.get 5   ; $cast_37
+  local.get 2   ; __fuse_len_3
+  local.get 4   ; $cast_37
   call 8   ; std_core$write_unsigned
-  local.set 3   ; __fuse_len_3
+  local.set 2   ; __fuse_len_3
   local.get 1   ; __fuse_arr_2
-  local.get 3   ; __fuse_len_3
+  local.get 2   ; __fuse_len_3
   call 6   ; std_core$finish_buffer
   call 11   ; std_io$println__string
-  fn.ref 3 12   ; __lambda_snippet_2
-  local.set 1   ; __fuse_arr_2
   i64.const 0
-  local.set 3   ; __fuse_len_3
+  local.set 2   ; __fuse_len_3
   i32.const 0
-  local.set 6   ; x
+  local.set 5   ; x
   block $L4 void
     loop $L5 void
-      local.get 6   ; x
+      local.get 5   ; x
       i32.const 10
       i32.lt
       if $L6 void
-        local.get 6   ; x
-        local.get 1   ; __fuse_arr_2
-        call.indirect 12   ; fn
+        local.get 5   ; x
+        call 3   ; __lambda_snippet_2
         if $L7 void
-          local.get 3   ; __fuse_len_3
+          local.get 2   ; __fuse_len_3
           i64.const 1
           i64.add
-          local.set 3   ; __fuse_len_3
+          local.set 2   ; __fuse_len_3
         end $L7
-        local.get 6   ; x
+        local.get 5   ; x
         i32.const 1
         i32.add
-        local.set 6   ; x
+        local.set 5   ; x
         br $L5
       end $L6
     end $L5
   end $L4
-  local.get 3   ; __fuse_len_3
+  local.get 2   ; __fuse_len_3
   local.set 0   ; a
   i64.const 22
   call 5   ; std_core$new_byte_buffer
   local.set 1   ; __fuse_arr_2
   i64.const 0
-  local.set 3   ; __fuse_len_3
+  local.set 2   ; __fuse_len_3
   local.get 1   ; __fuse_arr_2
-  local.get 3   ; __fuse_len_3
+  local.get 2   ; __fuse_len_3
   string.const 1   ; "b "
   call 7   ; std_core$write_string_at
-  local.set 3   ; __fuse_len_3
+  local.set 2   ; __fuse_len_3
   local.get 0   ; a
   usize.to_i64
-  local.set 5   ; $cast_37
+  local.set 4   ; $cast_37
   local.get 1   ; __fuse_arr_2
-  local.get 3   ; __fuse_len_3
-  local.get 5   ; $cast_37
+  local.get 2   ; __fuse_len_3
+  local.get 4   ; $cast_37
   call 8   ; std_core$write_unsigned
-  local.set 3   ; __fuse_len_3
+  local.set 2   ; __fuse_len_3
   local.get 1   ; __fuse_arr_2
-  local.get 3   ; __fuse_len_3
+  local.get 2   ; __fuse_len_3
   call 6   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   i32.const 10
@@ -158,22 +150,22 @@ fn 0 snippet$main () -> i32
   call 5   ; std_core$new_byte_buffer
   local.set 1   ; __fuse_arr_2
   i64.const 0
-  local.set 3   ; __fuse_len_3
+  local.set 2   ; __fuse_len_3
   local.get 1   ; __fuse_arr_2
-  local.get 3   ; __fuse_len_3
+  local.get 2   ; __fuse_len_3
   string.const 2   ; "c "
   call 7   ; std_core$write_string_at
-  local.set 3   ; __fuse_len_3
+  local.set 2   ; __fuse_len_3
   local.get 0   ; a
   usize.to_i64
-  local.set 5   ; $cast_37
+  local.set 4   ; $cast_37
   local.get 1   ; __fuse_arr_2
-  local.get 3   ; __fuse_len_3
-  local.get 5   ; $cast_37
+  local.get 2   ; __fuse_len_3
+  local.get 4   ; $cast_37
   call 8   ; std_core$write_unsigned
-  local.set 3   ; __fuse_len_3
+  local.set 2   ; __fuse_len_3
   local.get 1   ; __fuse_arr_2
-  local.get 3   ; __fuse_len_3
+  local.get 2   ; __fuse_len_3
   call 6   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   return.lit i32.const 0

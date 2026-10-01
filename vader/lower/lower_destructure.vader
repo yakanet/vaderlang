@@ -158,7 +158,7 @@ emit_rest_loop :: fn(
 ) -> void {
     // The resolver indexes a rest binding's Symbol by `span` (not
     // `name_span` like simple bindings — see resolver `bind_let_binding`).
-    rest_sym :: lookup_local_symbol(ctx.project, ctx.typed.resolved, rest.span) ?? return
+    rest_sym :: resolve_binding(ctx, rest.span) ?? return
     array_type :: mk_array(elem_type, false)
     empty_arr :: LoweredArrayLit { .span = rest.span, .type = array_type, .elements = [] }
     out.push(cell_aware_let(ctx, rest_sym, rest.name, empty_arr, array_type, rest.span))
@@ -242,7 +242,7 @@ emit_let_leaf_array :: fn(
 ) -> void {
     match leaf {
         is SimpleBinding -> {
-            symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, leaf.name_span)
+            symbol :: resolve_binding(ctx, leaf.name_span)
             if symbol is null { return }
             out.push(cell_aware_let(ctx, symbol, leaf.name, access, elem_type, leaf.span))
         }
@@ -274,7 +274,7 @@ emit_let_leaf :: fn(
             })
         }
         is SimpleBinding -> {
-            symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, leaf.name_span)
+            symbol :: resolve_binding(ctx, leaf.name_span)
             if symbol is null { return }
             elem_type :: tuple_or_array_element_type(target_type, index, ctx, leaf)
             access :: build_leaf_access(target, target_type, elem_type, leaf.span, index, field_names)

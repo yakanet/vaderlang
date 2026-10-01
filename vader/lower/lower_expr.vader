@@ -203,7 +203,7 @@ resolver_reported_at :: fn(ctx: FnLowerCtx, span: Span) -> bool {
 }
 
 lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr {
-    symbol :: ctx.typed.resolved.idents[ident.span.hash()]
+    symbol :: resolve_ident(ctx, ident.span)
     match symbol {
         is null -> {
             // LOUD, but only when the resolver was happy. A miss here lowers to
@@ -330,7 +330,7 @@ try_lower_namespace_fn_value :: fn(ctx: FnLowerCtx!, e: FieldExpr, type: Type) -
 // access target) rather than folding to the projected element.
 field_target_is_comptime_const :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
     if target is IdentExpr {
-        symbol :: ctx.typed.resolved.idents[target.span.hash()]
+        symbol :: resolve_ident(ctx, target.span)
         if symbol is Symbol {
             baked :: lookup_const_baked_value(ctx, symbol)
             return baked is StructValue || baked is ArrayValue

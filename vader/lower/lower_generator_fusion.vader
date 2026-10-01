@@ -99,7 +99,7 @@ inline_gen_ident_call :: fn(
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
-    raw_callee :: ctx.typed.resolved.idents[callee_id.span.hash()] ?? return null
+    raw_callee :: resolve_ident(ctx, callee_id.span) ?? return null
     // Follow a directly-called imported generator's ImportBinding to its owner fn.
     callee_sym :: follow_import_binding(ctx, raw_callee)
     owner_typed :: resolve_owner_typed(ctx, callee_sym.module) ?? return null
@@ -121,16 +121,17 @@ inline_gen_ident_call :: fn(
 
     // Bind each generator param to its call arg — a `let <param> = <arg>` ahead
     // of the inlined body. Args lower in the CONSUMER ctx (they are consumer
-    // exprs) ; the param SYMBOL is the generator module's own, so the body (lowered
-    // below in `owner_typed`) resolves its references to these lets.
+    // exprs) ; the param SYMBOL is this instance's clone, the one the body (lowered
+    // below under `instance`) resolves its references to.
+    instance :: new_gen_instance(ctx.project, callee_sym, fn_decl, owner_typed) ?? return null
     param_lets: LoweredStmt[]!: []
     for i in 0..<fn_decl.params.len() {
         p :: fn_decl.params[i]
         p_sym :: lookup_local_symbol(ctx.project, owner_typed.resolved, p.span) ?? return null
         arg_lowered :: recurse(ctx, call.args[i].value)
-        param_lets.push(
-            cell_aware_let(ctx, p_sym, p.name, arg_lowered, type_of(arg_lowered), p.span),
-        )
+        param_lets.push(cell_aware_let(
+            ctx, clone_of(instance, p_sym), p.name, arg_lowered, type_of(arg_lowered), p.span,
+        ))
     }
 
     lb :: resolve_loop_binding(ctx, in_form.loop_var, for_stmt.span)
@@ -146,7 +147,12 @@ inline_gen_ident_call :: fn(
         ctx.project, stub_entry(fn_decl, owner_typed), owner_typed, subst, gen_return,
     )
     gen_ctx.gen_inline_sink = build_gen_sink(ctx, lb.pattern, lb.symbol, lb.name, element_type, consumer_body, for_stmt.span)
+    gen_ctx.instance = instance
+    entered :: ctx.project.inlining_generators.add(instance.generator_id)
     lowered_gen :: block_lowerer(gen_ctx, gen_body, false, false)
+    if entered {
+        ctx.project.inlining_generators.remove(instance.generator_id)
+    }
 
     out: LoweredStmt[]!: []
     out.push_all(param_lets)
@@ -233,6 +239,7 @@ GenComboLayer :: struct {
     arg_sym:     Symbol | null   // the single non-self DATA param's symbol (map's `f`) ; null for a 0-arg combinator (`enumerate`) or when the non-self param is itself a source (`chain`)
     arg_expr:    AST.Expr | null // the call's non-self DATA argument (map's `f`, …) ; null as above
     output_elem: Type            // the combinator's yielded element type
+    instance:    GenInstance     // the names this layer's body lowers under
     prelude:     AST.Stmt[]      // counter `let`s ahead of the primary source loop (take/skip/enumerate)
     // Additional source loops beyond the primary `self` loop, in body order —
     // one per extra source param (`chain`'s `other`). Empty for every single-
@@ -259,8 +266,9 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
     // The primary loop iterates `self` (param 0) ; its source is the receiver.
     primary :: find_source_loop(loops, 0) ?? return null
     source :: descend_chain(ctx, fluent.receiver, true) ?? return null
-    primary_loopvar :: lookup_local_symbol(ctx.project, owner.resolved, primary.loopvar_span)
-    if primary_loopvar is null { return null }
+    primary_loopvar :: lookup_local_symbol(
+        ctx.project, owner.resolved, primary.loopvar_span,
+    ) ?? return null
 
     // Classify the non-self param (param 1, if any): a SOURCE — its own loop, as in
     // `chain`'s `other` — fuses as an extra source ; otherwise it's DATA (map's `f`,
@@ -273,11 +281,16 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
     if param1_loop is GenSourceLoop {
         other_expr :: fluent.fn_arg ?? return null
         other_src :: descend_chain(ctx, other_expr, true) ?? return null
-        other_loopvar :: lookup_local_symbol(ctx.project, owner.resolved, param1_loop.loopvar_span)
-        if other_loopvar is null { return null }
+        other_loopvar :: lookup_local_symbol(
+            ctx.project,
+            owner.resolved,
+            param1_loop.loopvar_span,
+        ) ?? return null
         extra_sources.push(GenSourceBinding {
-            .source = other_src, .loopvar = other_loopvar,
-            .inner = param1_loop.inner, .prelude = param1_loop.prelude,
+            .source = other_src,
+            .loopvar = other_loopvar,
+            .inner = param1_loop.inner,
+            .prelude = param1_loop.prelude,
         })
     }
     // No 3-source combinator exists — reject any loop over param ≥ 2.
@@ -295,11 +308,22 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
     // Direction A: the call result is the concrete `__genstate_<fn>` struct, not
     // `Iterator<U>` — take the yielded element from the registered element.
     output_elem :: genstate_element(ctx.typed, decl.name, subst_opt) ?? return null
+
+    // Minted last: a descent that gives up must leave no ids, clones or captures behind.
+    instance :: new_gen_instance(ctx.project, callee_sym, decl, owner) ?? return null
+    cloned_extras: GenSourceBinding[]!: []
+    for extra in extra_sources {
+        cloned_extras.push(GenSourceBinding {
+            ...extra,
+            .loopvar = clone_of(instance, extra.loopvar),
+        })
+    }
+    cloned_arg :: if arg_sym is Symbol { clone_of(instance, arg_sym) } else { null }
     return mk_generator_chain(source, GenComboLayer {
         .decl = decl, .subst = subst_opt, .owner = owner,
-        .loopvar = primary_loopvar, .inner = primary.inner,
-        .arg_sym = arg_sym, .arg_expr = data_arg, .output_elem = output_elem,
-        .prelude = primary.prelude, .extra_sources = extra_sources,
+        .loopvar = clone_of(instance, primary_loopvar), .inner = primary.inner,
+        .arg_sym = cloned_arg, .arg_expr = data_arg, .output_elem = output_elem,
+        .prelude = primary.prelude, .extra_sources = cloned_extras, .instance = instance,
     }, call.span)
 }
 
@@ -386,7 +410,7 @@ combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr, receiver: AST.E
             return null
         }
         is AST.IdentExpr -> {
-            sym :: ctx.typed.resolved.idents[fe.span.hash()] ?? return null
+            sym :: resolve_ident(ctx, fe.span) ?? return null
             // A directly-called imported combinator resolves to the `import`
             // ImportBinding ; follow it to the OWNER fn so `resolve_owner_typed`
             // + `gen_state_symbol` see the defining module.
@@ -474,14 +498,21 @@ emit_fused_gen_combinator :: fn(
         ctx.project, stub_entry(layer.decl, layer.owner), layer.owner, layer.subst, gen_return,
     )
     gen_ctx.gen_inline_sink = build_gen_sink(ctx, template.pattern, template.binding_symbol, template.binding_name, template.element_type, template.user_body, chain.span)
+    gen_ctx.instance = layer.instance
 
     out: LoweredStmt[]!: []
     // The primary `self` loop, then each extra source loop (chain's `other`), fused
     // in body order — all binding into the shared sink.
     primary_binding :: GenSourceBinding { .source = src, .loopvar = layer.loopvar, .inner = layer.inner, .prelude = layer.prelude }
+    // The source chain emits inside this window and may hold another layer of the
+    // same generator: the id leaves with the frame that put it there.
+    entered :: ctx.project.inlining_generators.add(layer.instance.generator_id)
     out.push_all(fuse_source_loop(ctx, gen_ctx, primary_binding, loop_label, outer_span, chain.span, recurse))
     for extra in layer.extra_sources {
         out.push_all(fuse_source_loop(ctx, gen_ctx, extra, loop_label, outer_span, chain.span, recurse))
+    }
+    if entered {
+        ctx.project.inlining_generators.remove(layer.instance.generator_id)
     }
     return out
 }

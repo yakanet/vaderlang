@@ -220,7 +220,8 @@ export cell_aware_let :: fn(
 
 /// The expression denoting `symbol`'s CELL inside the fn being lowered right
 /// now: `env.cap_N` when that fn is itself a lifted body that captured it, a
-/// plain ident otherwise.
+/// plain ident otherwise — to the instance's clone inside an inlined generator,
+/// since the capture lists name the resolver's symbols.
 ///
 /// This is what an env literal must store. A captured binding is heap-promoted
 /// to a `Cell<T>` (`lower_cell_init`) and every lift sharing it holds a ref to
@@ -255,7 +256,7 @@ export lifted_cell_ref :: fn(
             }
         }
     }
-    return LoweredIdent { .span = span, .type = type, .symbol = symbol }
+    return LoweredIdent { .span = span, .type = type, .symbol = instance_symbol(ctx, symbol) }
 }
 
 /// Return a copy of `block` with `prefix` spliced in before its statements,
@@ -325,7 +326,7 @@ bind_unless_stable :: fn(
 // @partial: every other expression may do work or read a different value.
 is_invariant_operand :: fn(ctx: FnLowerCtx, value: LoweredExpr) -> bool = @partial match value {
     is LoweredIdent -> value.symbol.kind == .Fn || value.symbol.kind == .Const
-        || value.symbol.id in ctx.typed.resolved.rebind_free
+        || origin_symbol_id(ctx.project, value.symbol) in ctx.typed.resolved.rebind_free
     _ -> is_literal(value)
 }
 

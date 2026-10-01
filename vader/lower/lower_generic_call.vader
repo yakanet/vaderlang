@@ -60,7 +60,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) ->
     // bypassing the inference step the bare-ident path uses.
     if call.callee is GenericInstExpr as gi {
         if gi.callee is IdentExpr as inner_id {
-            sym_or_null :: ctx.typed.resolved.idents[inner_id.span.hash()]
+            sym_or_null :: resolve_ident(ctx, inner_id.span)
             if sym_or_null is Symbol {
                 fn_sym :: follow_import_binding(ctx, sym_or_null)
                 if fn_sym.kind == .Fn {
@@ -82,7 +82,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) ->
     }
     callee_ident :: as_ident(call.callee) ?? return null
     if callee_ident is IdentExpr {
-        raw_sym :: ctx.typed.resolved.idents[callee_ident.span.hash()] ?? return null
+        raw_sym :: resolve_ident(ctx, callee_ident.span) ?? return null
         if raw_sym is Symbol {
             fn_sym :: follow_import_binding(ctx, raw_sym)
             if fn_sym.kind != .Fn { return null }

@@ -1,0 +1,46 @@
+# Typecheck
+
+## tests/snippets/fusion_stages_change_type
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         text_len             :: fn(string) -> usize
+  FnDecl         to_text              :: fn(i32) -> string
+  expr 12:35    StringLitExpr  :: string
+  expr 12:38    IdentExpr      :: i32
+  expr 14:38    CallExpr       :: usize
+  expr 14:38    FieldExpr      :: fn() -> usize
+  expr 14:38    IdentExpr      :: string
+  expr 17:13    StringLitExpr  :: string
+  expr 18:11    CallExpr       :: __genstate_map<string>!
+  expr 18:11    CallExpr       :: __genstate_map<usize>!
+  expr 18:11    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
+  expr 18:11    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 18:11    SeqLitExpr     :: i32[]!
+  expr 18:28    IdentExpr      :: fn(i32) -> string
+  expr 18:41    IdentExpr      :: fn(string) -> usize
+  expr 19:14    IdentExpr      :: __genstate_map<usize>!
+  expr 20:16    BinaryExpr     :: string
+  expr 20:16    IdentExpr      :: string
+  expr 20:23    StringLitExpr  :: string
+  expr 20:27    IdentExpr      :: usize
+  expr 20:9     IdentExpr      :: string
+  expr 22:13    StringLitExpr  :: string
+  expr 22:21    IdentExpr      :: string
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 23:14    StringLitExpr  :: string
+  expr 24:14    CallExpr       :: __genstate_map<string>!
+  expr 24:14    CallExpr       :: __genstate_map<usize>!
+  expr 24:14    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
+  expr 24:14    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 24:14    SeqLitExpr     :: i32[]!
+  expr 24:31    IdentExpr      :: fn(i32) -> string
+  expr 24:44    IdentExpr      :: fn(string) -> usize
+  expr 25:17    BinaryExpr     :: string
+  expr 25:17    IdentExpr      :: string
+  expr 25:25    StringLitExpr  :: string
+  expr 25:29    IdentExpr      :: usize
+  expr 25:9     IdentExpr      :: string
+  expr 27:13    StringLitExpr  :: string
+  expr 27:22    IdentExpr      :: string
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void

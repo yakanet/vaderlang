@@ -259,7 +259,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
 lower_let_into :: fn(ctx: FnLowerCtx!, let_stmt: LetStmt, out: LoweredStmt[]!) -> void {
     match let_stmt.binding as simple {
         is SimpleBinding   -> {
-            symbol_or_null :: lookup_local_symbol(ctx.project, ctx.typed.resolved, simple.name_span)
+            symbol_or_null :: resolve_binding(ctx, simple.name_span)
             // Synthesise a Local symbol when the resolver dropped this
             // binding (cascading-error case, e.g. T3001 on an invalid
             // annotation, OR an unused let with zero body use-sites).
@@ -437,10 +437,7 @@ drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]!) -> void
 // loop by its iteration variable — that loop is lowered under its label.
 lowered_jump_label :: fn(ctx: FnLowerCtx, jump_id: usize, written: string | null) -> string | null {
     renamed :: ctx.typed.jump_labels[jump_id]
-    if renamed != null {
-        return renamed
-    }
-    return written
+    return instance_label(ctx, if renamed != null { renamed } else { written })
 }
 
 drain_defers_to_loop :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]!) -> void {
@@ -473,7 +470,7 @@ lower_for :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt) -> LoweredStmt {
         is InfiniteFor -> {
             body :: lower_block(ctx, for_stmt.body, false, true)
             return LoweredLoop {
-                .span = for_stmt.span, .label = for_stmt.label,
+                .span = for_stmt.span, .label = instance_label(ctx, for_stmt.label),
                 .cond = null, .body = body, .step = [],
             }
         }
@@ -497,7 +494,7 @@ lower_for :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt) -> LoweredStmt {
             guard_no_pending_await(ctx, cond_base, while_for.cond.span)
             body :: lower_block(ctx, for_stmt.body, false, true)
             return LoweredLoop {
-                .span = for_stmt.span, .label = for_stmt.label,
+                .span = for_stmt.span, .label = instance_label(ctx, for_stmt.label),
                 .cond = cond, .body = body, .step = [],
             }
         }
@@ -527,7 +524,7 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx!, for_stmt: ForStmt, in_form: InFor)
     if in_form.loop_var is DestructureVar {
         return comptime_for_reject(ctx, span, "`@comptime for` does not support `[k, v]` destructure")
     }
-    binding_symbol :: lookup_for_binding(ctx, loop_var_span(in_form.loop_var, span))
+    binding_symbol :: resolve_binding(ctx, loop_var_span(in_form.loop_var, span))
     if binding_symbol is null {
         return comptime_for_reject(ctx, span, "`@comptime for` binding not resolved")
     }

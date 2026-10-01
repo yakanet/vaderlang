@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/_diag_fusion_shared_generic_param
+## tests/snippets/fusion_generic_generator_nested
   FnDecl         each_then            :: fn(T[], T) -> Iterator<T>
   FnDecl         main                 :: fn() -> i32
   expr 13:14    IdentExpr      :: T[]

@@ -321,7 +321,7 @@ impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
 try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr | null {
     if call.args.len() != 1 { return null }
     callee_ident :: as_ident(call.callee) ?? return null
-    callee_symbol :: ctx.typed.resolved.idents[callee_ident.span.hash()] ?? return null
+    callee_symbol :: resolve_ident(ctx, callee_ident.span) ?? return null
     // Follow an import binding first : a renamed import (`{ Info as I }`) and a
     // cross-module distinct both carry their kind and their `alias_types` entry
     // on the DEFINING symbol, not on the binding.

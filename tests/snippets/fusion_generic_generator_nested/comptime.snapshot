@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/_diag_fusion_shared_generic_param
+## tests/snippets/fusion_generic_generator_nested
 
 ## generic instances
   __genstate_each_then<i32>

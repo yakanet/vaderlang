@@ -1,6 +1,0 @@
-# stdout
-lazy: 1p 1zz 2p 2zz 9p 9zz
-# stderr
-vader vm: convert at pc=250: cannot read string as numeric (got string) in 'snippet$main'
-# exit
-1

@@ -1,0 +1,188 @@
+// vader/lower/gen_instance — the names one inlined generator instance lowers under.
+//
+// Inlining a generator splices its body into the consumer. Lowered under the
+// generator's own symbols, two instances of one generator in one function body —
+// `xs.map(f).map(g)`, a generator consumed inside a loop over itself — would be
+// one set of locals: midir keys a local by its symbol id, so the second instance
+// writes the first one's parameters and counters. So an instance clones every
+// binding the generator declares, and marks every label it writes.
+//
+// Every lowering site that turns a source name into a `Symbol` goes through
+// `resolve_ident` / `resolve_binding`, which apply the instance of the context
+// they lower in. A context with no instance — every ordinary fn body, a lifted
+// lambda even inside an instance — resolves to the original symbols, which is
+// what the typecheck tables keyed by symbol id expect.
+
+module "vader/lower"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+
+// ---- instances --------------------------------------------------------------
+
+/// The names one inlined generator instance lowers under. Every binding the
+/// generator declares has a clone of its `Symbol` under a fresh id, and every
+/// label it writes takes a suffix of its own, so two instances of one generator
+/// in one function body are two sets of locals and loops.
+export GenInstance :: struct {
+    /// The generator's own symbol id: while its body is inlined, the id sits in
+    /// `LowerProjectCtx.inlining_generators`.
+    generator_id: i32
+    /// Original symbol id → this instance's clone.
+    clones:       MutableMap<i32, Symbol>
+    /// Appended to every loop and jump label the instance lowers.
+    label_suffix: string
+}
+
+/// A fresh instance of `generator`, declared by `decl` in `owner`: every binding
+/// the declaration introduces gets a clone under a new id. A clone of a binding a
+/// closure captures is recorded as captured, so its `let` still makes a cell.
+///
+/// @param project    the project context: mints the ids, holds the captures.
+/// @param generator  the generator's own symbol; keys the binding cache.
+/// @param decl       the generator's declaration.
+/// @param owner      the module `decl` is declared in.
+/// @return           null while `generator`'s body is being inlined further out:
+///                   inlining it again from inside its own body would never end.
+new_gen_instance :: fn(
+    project: LowerProjectCtx!, generator: Symbol, decl: AST.FnDecl, owner: TypedProgram,
+) -> GenInstance | null {
+    if generator.id in project.inlining_generators {
+        return null
+    }
+    clones :: MutableMap<i32, Symbol> {}
+    for binding in declared_bindings(project, generator, decl, owner) {
+        clone :: Symbol { ...binding, .id = next_project_synthetic_id(project) }
+        clones[binding.id] = clone
+        project.clone_origins[clone.id] = binding.id
+        if binding.id in project.closures.captured_symbols {
+            project.closures.captured_symbols.add(clone.id)
+        }
+    }
+    return GenInstance {
+        .generator_id = generator.id,
+        .clones = clones,
+        .label_suffix = r"$i" + "${-next_project_synthetic_id(project)}",
+    }
+}
+
+// Every binding `decl` introduces — parameters, locals, loop variables, pattern
+// leaves: each has a `defined_at` inside the declaration. `resolved.symbols`
+// holds only the module's top-level symbols; the index `lookup_local_symbol`
+// reads covers every binding. Gathered once per generator.
+declared_bindings :: fn(
+    project: LowerProjectCtx!, generator: Symbol, decl: AST.FnDecl, owner: TypedProgram,
+) -> Symbol[] {
+    cached :: project.generator_bindings[generator.id]
+    if cached != null {
+        return cached
+    }
+    found: Symbol[]!: []
+    for [_, symbol] in ensure_local_symbol_index(project, owner.resolved) {
+        if !is_local_binding(symbol.kind) {
+            continue
+        }
+        at :: symbol.defined_at ?? continue
+        if starts_within(decl.span, at) {
+            found.push(symbol)
+        }
+    }
+    project.generator_bindings[generator.id] = found
+    return found
+}
+
+is_local_binding :: fn(kind: SymbolKind) -> bool =
+    kind == .Param || kind == .Local || kind == .Binding
+
+// True when `inner` starts inside `outer`, in the same file.
+starts_within :: fn(outer: Span, inner: Span) -> bool =
+    inner.start.file == outer.start.file
+        && inner.start.offset >= outer.start.offset
+        && inner.start.offset < outer.end.offset
+
+// ---- resolution -------------------------------------------------------------
+
+/// `instance`'s clone of `symbol`, or `symbol` itself when the generator does
+/// not declare it.
+///
+/// @param instance  the inlined generator instance.
+/// @param symbol    a symbol as the resolver recorded it.
+clone_of :: fn(instance: GenInstance, symbol: Symbol) -> Symbol =
+    instance.clones[symbol.id] ?? symbol
+
+/// `symbol` as the lowering in `ctx` names it: the instance's clone when `ctx`
+/// lowers an inlined generator that declares it, `symbol` itself otherwise.
+///
+/// @param ctx     the fn-body context; its `instance` decides.
+/// @param symbol  a symbol as the resolver recorded it.
+instance_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Symbol {
+    instance :: ctx.instance ?? return symbol
+    return clone_of(instance, symbol)
+}
+
+/// The symbol the identifier at `span` refers to, as `ctx` names it.
+///
+/// @param ctx   the fn-body context.
+/// @param span  the identifier's span.
+/// @return      null when the resolver recorded nothing at `span`.
+resolve_ident :: fn(ctx: FnLowerCtx, span: Span) -> Symbol | null {
+    symbol :: ctx.typed.resolved.idents[span.hash()] ?? return null
+    return instance_symbol(ctx, symbol)
+}
+
+/// The symbol bound at `name_span`, as `ctx` names it.
+///
+/// @param ctx        the fn-body context.
+/// @param name_span  the binding's name span.
+/// @return           null when no symbol is defined at `name_span`.
+resolve_binding :: fn(ctx: FnLowerCtx, name_span: Span) -> Symbol | null {
+    symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, name_span) ?? return null
+    return instance_symbol(ctx, symbol)
+}
+
+/// `label` as `ctx` writes it: marked with the instance's suffix when `ctx`
+/// lowers an inlined generator, so its loops never answer a jump written outside
+/// that instance — the consumer's, or another instance's.
+///
+/// @param ctx    the fn-body context.
+/// @param label  a loop or jump label; null stays null.
+instance_label :: fn(ctx: FnLowerCtx, label: string | null) -> string | null {
+    if label == null {
+        return null
+    }
+    instance :: ctx.instance ?? return label
+    return label + instance.label_suffix
+}
+
+/// The id the resolver knows `symbol` by: the original's for an instance clone.
+/// Every resolver table indexed by symbol id is keyed by it.
+///
+/// @param project  the project context, which records every clone.
+/// @param symbol   any symbol.
+origin_symbol_id :: fn(project: LowerProjectCtx, symbol: Symbol) -> i32 =
+    project.clone_origins[symbol.id] ?? symbol.id
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+span_at :: fn(file: string, from: usize, to: usize) -> Span = Span {
+    .start = Position { .file = file, .offset = from, .line = 1, .column = 1 },
+    .end = Position { .file = file, .offset = to, .line = 1, .column = 1 },
+}
+
+@test
+test_starts_within_inner_start :: fn() -> void {
+    assert(starts_within(span_at("a", 10, 50), span_at("a", 10, 12)), "at the start")
+    assert(starts_within(span_at("a", 10, 50), span_at("a", 49, 60)), "starts before the end")
+    assert(!starts_within(span_at("a", 10, 50), span_at("a", 50, 52)), "at the end")
+    assert(!starts_within(span_at("a", 10, 50), span_at("a", 9, 12)), "before")
+}
+
+@test
+test_starts_within_same_file_only :: fn() -> void {
+    assert(!starts_within(span_at("a", 10, 50), span_at("b", 20, 22)), "other file")
+}

@@ -91,7 +91,6 @@ fn 2 snippet$main () -> i32
   local $cast_27 u64
   local $call_29 string
   local n usize
-  local __buf_4 ref
   local __off_5 usize
   string.const 0   ; ""
   local.set 0   ; lazy
@@ -166,10 +165,7 @@ fn 2 snippet$main () -> i32
   i32.const 22
   i32.const 333
   array.new 13 3   ; i32[][]
-  local.set 2   ; $fn_ref_7
-  fn.ref 1 22   ; snippet$text_len
-  local.set 3   ; $fn_ref_9
-  local.get 2   ; $fn_ref_7
+  local.tee 2   ; $fn_ref_7
   array.len
   local.set 4   ; n
   i64.const 0
@@ -183,31 +179,29 @@ fn 2 snippet$main () -> i32
         local.get 2   ; $fn_ref_7
         local.get 5   ; __off_3
         load_slot_i32
-        local.get 3   ; $fn_ref_9
-        call.indirect 18   ; fn
-        local.get 3   ; $fn_ref_9
-        call.indirect 22   ; fn
+        call 0   ; snippet$to_text
+        call 1   ; snippet$text_len
         local.set 8   ; n
         i64.const 21
         call 8   ; std_core$new_byte_buffer
-        local.set 9   ; __buf_4
+        local.set 3   ; $fn_ref_9
         i64.const 0
-        local.set 10   ; __off_5
-        local.get 9   ; __buf_4
-        local.get 10   ; __off_5
+        local.set 9   ; __off_5
+        local.get 3   ; $fn_ref_9
+        local.get 9   ; __off_5
         string.const 1   ; " "
         call 10   ; std_core$write_string_at
-        local.set 10   ; __off_5
+        local.set 9   ; __off_5
         local.get 8   ; n
         usize.to_i64
         local.set 6   ; $cast_27
-        local.get 9   ; __buf_4
-        local.get 10   ; __off_5
+        local.get 3   ; $fn_ref_9
+        local.get 9   ; __off_5
         local.get 6   ; $cast_27
         call 12   ; std_core$write_unsigned
-        local.set 10   ; __off_5
-        local.get 9   ; __buf_4
-        local.get 10   ; __off_5
+        local.set 9   ; __off_5
+        local.get 3   ; $fn_ref_9
+        local.get 9   ; __off_5
         call 9   ; std_core$finish_buffer
         local.set 7   ; $call_29
         local.get 0   ; lazy

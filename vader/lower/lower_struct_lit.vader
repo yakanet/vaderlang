@@ -159,7 +159,7 @@ try_lower_enum_field :: fn(ctx: FnLowerCtx!, expr: FieldExpr, type: Type) -> Low
 // passing the receiver of the member access.
 as_namespace_binding :: fn(ctx: FnLowerCtx, expr: Expr) -> Symbol | null {
     ident :: as_ident(expr) ?? return null
-    sym :: ctx.typed.resolved.idents[ident.span.hash()] ?? return null
+    sym :: resolve_ident(ctx, ident.span) ?? return null
     if sym.kind == .ImportBinding { return sym }
     return null
 }
@@ -202,6 +202,7 @@ ctx_in_owning_module :: fn(ctx: FnLowerCtx!, module_id: string, decl: StructDecl
         .typed = owner_typed,
         .types = make_entry_types(owner_typed, merged),
         .subst = merged,
+        .instance = null,
     }
 }
 

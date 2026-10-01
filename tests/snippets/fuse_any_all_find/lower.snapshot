@@ -28,7 +28,7 @@
           let __elem_2: i32 =
             call :i32
               callee:
-                f :fn(i32) -> i32
+                __lambda_snippet_0 :fn(i32) -> i32
               arg0:
                 x :i32
           if :void
@@ -77,7 +77,7 @@
               cond:
                 call :bool
                   callee:
-                    pred :fn(i32) -> bool
+                    __lambda_snippet_2 :fn(i32) -> bool
                   arg0:
                     x :i32
               then:
@@ -127,7 +127,7 @@
           let __elem_12: i32 =
             call :i32
               callee:
-                f :fn(i32) -> i32
+                __lambda_snippet_4 :fn(i32) -> i32
               arg0:
                 x :i32
           if :void
@@ -273,7 +273,7 @@
           let __elem_19: i32 =
             call :i32
               callee:
-                f :fn(i32) -> i32
+                __lambda_snippet_6 :fn(i32) -> i32
               arg0:
                 x :i32
           if :void
@@ -383,7 +383,7 @@
               cond:
                 call :bool
                   callee:
-                    pred :fn(i32) -> bool
+                    __lambda_snippet_8 :fn(i32) -> bool
                   arg0:
                     x :i32
               then:

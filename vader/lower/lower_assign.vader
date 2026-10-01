@@ -103,7 +103,7 @@ try_lower_cell_set_assign :: fn(
 ) -> LoweredStmt | null {
     target_ident :: as_ident(assign_target) ?? return null
     if target_ident is IdentExpr {
-        symbol :: ctx.typed.resolved.idents[target_ident.span.hash()] ?? return null
+        symbol :: resolve_ident(ctx, target_ident.span) ?? return null
         if symbol is Symbol {
             if !ctx.project.closures.captured_symbols.contains(symbol.id) { return null }
             value_type :: ctx.types.expr_type(target_ident)
@@ -204,7 +204,7 @@ lower_destructuring_assign :: fn(ctx: FnLowerCtx!, s: DestructureAssignStmt) -> 
 /// breaks that pattern match.
 lower_assign_target :: fn(ctx: FnLowerCtx!, target: Expr) -> LoweredExpr {
     if target is IdentExpr {
-        symbol :: ctx.typed.resolved.idents[target.span.hash()]
+        symbol :: resolve_ident(ctx, target.span)
         if symbol is Symbol {
             return LoweredIdent {
                 .span = target.span, .type = ctx.types.expr_type(target), .symbol = symbol,

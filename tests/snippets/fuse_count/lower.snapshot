@@ -35,7 +35,7 @@
             cond:
               call :bool
                 callee:
-                  pred :fn(i32) -> bool
+                  __lambda_snippet_1 :fn(i32) -> bool
                 arg0:
                   x :i32
             then:
@@ -119,7 +119,7 @@
               cond:
                 call :bool
                   callee:
-                    pred :fn(i32) -> bool
+                    __lambda_snippet_2 :fn(i32) -> bool
                   arg0:
                     x :i32
               then:

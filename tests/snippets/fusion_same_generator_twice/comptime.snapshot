@@ -1,7 +1,7 @@
 # Comptime
 
-## tests/snippets/_diag_fusion_shared_instances
-  @comptime  COMPTIME_SUM         = 24_i32
+## tests/snippets/fusion_same_generator_twice
+  @comptime  COMPTIME_SUM         = 18_i32
   @comptime  GUARD                = 20_i32
 
 ## generic instances

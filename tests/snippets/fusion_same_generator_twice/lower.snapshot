@@ -75,13 +75,13 @@
         let x: i32 =
           call :i32
             callee:
-              f :fn(i32) -> i32
+              inc :fn(i32) -> i32
             arg0:
               x :i32
         let v: i32 =
           call :i32
             callee:
-              f :fn(i32) -> i32
+              twice :fn(i32) -> i32
             arg0:
               x :i32
         assign
@@ -289,7 +289,7 @@
               cond:
                 call :bool
                   callee:
-                    pred :fn(i32) -> bool
+                    odd :fn(i32) -> bool
                   arg0:
                     x :i32
               then:
@@ -298,7 +298,7 @@
                   cond:
                     call :bool
                       callee:
-                        pred :fn(i32) -> bool
+                        small :fn(i32) -> bool
                       arg0:
                         x :i32
                   then:
@@ -916,7 +916,7 @@
         let x: i32 =
           call :i32
             callee:
-              f :fn(i32) -> i32
+              inc :fn(i32) -> i32
             arg0:
               x :i32
         let v: i32 = x :i32
@@ -952,7 +952,7 @@
         let y: i32 =
           call :i32
             callee:
-              f :fn(i32) -> i32
+              twice :fn(i32) -> i32
             arg0:
               x :i32
         let v: i32 = y :i32
@@ -1934,7 +1934,7 @@
                 cond:
                   call :bool
                     callee:
-                      pred :fn(char) -> bool
+                      __lambda_snippet_0 :fn(char) -> bool
                     arg0:
                       x :char
                 then:
@@ -1943,7 +1943,7 @@
                     cond:
                       call :bool
                         callee:
-                          pred :fn(char) -> bool
+                          __lambda_snippet_1 :fn(char) -> bool
                         arg0:
                           x :char
                     then:
@@ -2106,13 +2106,13 @@
         let x: i32 =
           call :i32
             callee:
-              f :fn(i32) -> i32
+              inc :fn(i32) -> i32
             arg0:
               x :i32
         let v: i32 =
           call :i32
             callee:
-              f :fn(i32) -> i32
+              twice :fn(i32) -> i32
             arg0:
               x :i32
         assign
@@ -2195,7 +2195,7 @@
         callee:
           sum_map_map :fn() -> i32
   const snippet$COMPTIME_SUM: i32 =
-    int(24) :i32
+    int(18) :i32
   fn snippet$comptime_map_map() -> void
     ~>
       call :void
@@ -2236,7 +2236,7 @@
                     __off_1 :usize
                   arg2:
                     cast → i64
-                      int(24) :i32
+                      int(18) :i32
             assign
               target:
                 __off_1 :usize
@@ -2289,7 +2289,7 @@
       loop while (<…>) :i
         block :void
           let i: i32 = int(0) :i32
-          loop while (<…>) :i
+          loop while (<…>) :i$i213
             block :void
               let j: i32 = int(0) :i32
               loop while (<…>)
@@ -2479,7 +2479,7 @@
                         r:
                           int(2) :i32
                     then:
-                      break :i
+                      break :i$i213
               step
                 assign
                   target:

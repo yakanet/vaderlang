@@ -1,9 +1,9 @@
-// _diag_fusion_shared_generic_param — one generic generator inlined twice, at
-// `i32` then at `string`, nested: the instances share the parameter `last`.
+// fusion_generic_generator_nested — one generic generator inlined twice, at
+// `i32` then at `string`, nested: each instance keeps its own parameter `last`,
+// which the trailing `yield last` reads.
 //
-// THE COMMITTED OUTPUT IS WRONG. The lazy half, the reference, runs first. In the fused half the outer instance's trailing
-// `yield last` reads the inner instance's string: the VM traps (`cannot read
-// string as numeric`), the native binary yields the stale `2` instead of `9`.
+// The lazy half, the reference, prints first; the fused half must print the
+// same.
 
 module "snippet"
 

@@ -71,7 +71,7 @@ export lower_match :: fn(
     // it and a captured binding is heap-promoted to a `Cell` while the pattern
     // predicates need the bare value.
     alias_symbol :: if expr.bind_as is AsBinding {
-        ctx.typed.resolved.idents[expr.bind_as.span.hash()]
+        resolve_ident(ctx, expr.bind_as.span)
     } else {
         null
     }
@@ -428,7 +428,7 @@ struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) 
 // synthetic only when the resolver wrote none — defensive against
 // cascading diagnostics.
 resolve_pattern_symbol :: fn(ctx: FnLowerCtx!, name_span: Span, name: string) -> Symbol {
-    found :: lookup_local_symbol(ctx.project, ctx.typed.resolved, name_span)
+    found :: resolve_binding(ctx, name_span)
     if found == null { return fresh_synthetic_symbol(ctx, name) }
     return found
 }

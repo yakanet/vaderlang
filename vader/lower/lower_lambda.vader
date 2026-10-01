@@ -45,7 +45,7 @@ export lower_lambda :: fn(ctx: FnLowerCtx!, lambda: AST.LambdaExpr, block_lowere
     return_type :: lambda_return_type(ctx, lambda)
     lifted_entry :: synth_mono_entry(ctx, lifted_symbol)
     lifted_ctx :: new_fn_lower_ctx(ctx.project, lifted_entry, ctx.typed, ctx.subst, return_type)
-    own_params :: lambda_params(ctx, lambda)
+    own_params :: lambda_params(lifted_ctx, lambda)
     if captures.len() == 0 {
         ctx.project.synth_decls.push(lift_fn(lifted_ctx, lifted_symbol, lambda, own_params, block_lowerer))
         return LoweredIdent { .span = lambda.span, .type = ctx.types.expr_type(lambda), .symbol = lifted_symbol }
