@@ -6,7 +6,7 @@
 // Branch-condition narrowing (`if x is T as a { … }`, `x == null`,
 // `x.f != null`, including `&&` and `||` chains) is applied through
 // `narrow.vader` in the then/else branches ; free-numeric branch types repin via
-// `join_if_branches` ; divergent guards (`if … { return }`) narrow the
+// `join_branch_types` ; divergent guards (`if … { return }`) narrow the
 // fall-through. See `detect_is_narrow` / `push_cond_narrows`.
 
 module "vader/typecheck"
@@ -15,12 +15,6 @@ import "vader/diagnostics"
 import "vader/types"
 AST :: import "toolchain/ast"
 
-/// Combine the two branch types of an `if`/`else`. A free numeric-literal branch
-/// coerces to a concrete sibling of its own family — `if c { x: i32 } else { 0 }`
-/// is `i32`, not `i32 | {integer}` — mirroring the binary-operator coercion
-/// (`binary.vader::numeric_result`). Without this, an unannotated `::` binding
-/// (`expected = null`) escapes as a union with no arithmetic defined on it
-/// (T3017). Unrelated branches fall back to the plain union.
 /// T3074 when a join carries the same array type at two mutabilities.
 ///
 /// The two branches disagree on whether the result may be mutated, and neither
@@ -34,32 +28,34 @@ export report_mixed_mutability :: fn(joined: Type, span: Span, diags: Diagnostic
         + "on both sides, or pin the slot's type"))
 }
 
-join_if_branches :: fn(a: Type, b: Type) -> Type {
-    if a is FreeIntType {
-        if b is FreeIntType { return a }
-        if is_concrete_int(b) { return b }
+/// The type of a value one of several branches gives — an `if`'s two, a `match`'s
+/// arms: their union, each free-literal branch coerced to the first concrete
+/// sibling of its own family. `if c { x: i32 } else { 0 }` is `i32`, not
+/// `i32 | {integer}`, and a char literal takes the width of an integer sibling
+/// (`if c { byte } else { '(' }` is that byte's `u8`) or is the `char` of a char
+/// one — mirroring the binary-operator coercion (`binary.vader::numeric_result`).
+/// Without this, an unannotated `::` binding (`expected = null`) escapes as a
+/// union with no arithmetic defined on it (T3017). Unrelated branches fall back
+/// to the plain union.
+///
+/// @param types  the branches' types, in source order.
+export join_branch_types :: fn(types: Type[]) -> Type {
+    repinned: Type[]!: []
+    for t in types {
+        repinned.push(repin_free(t, types))
     }
-    if b is FreeIntType {
-        if is_concrete_int(a) { return a }
-    }
-    if a is FreeFloatType {
-        if b is FreeFloatType { return a }
-        if is_concrete_float(b) { return b }
-    }
-    if b is FreeFloatType {
-        if is_concrete_float(a) { return a }
-    }
-    return union_of([a, b])
+    return union_of(repinned)
 }
 
-is_concrete_int :: fn(t: Type) -> bool {
-    if t is PrimitiveType { return is_int_name(t.name) }
-    return false
-}
-
-is_concrete_float :: fn(t: Type) -> bool {
-    if t is PrimitiveType { return is_float_name(t.name) }
-    return false
+// `t` as the first of `siblings` it is a free literal of, `t` itself otherwise —
+// a concrete `t` among them.
+repin_free :: fn(t: Type, siblings: Type[]) -> Type {
+    for sibling in siblings {
+        if sibling is PrimitiveType && literal_family_holds(t, sibling.name) {
+            return sibling
+        }
+    }
+    return t
 }
 
 /// Type-check an `IfExpr`. `expected` flows into both branches so
@@ -85,7 +81,7 @@ export infer_if :: fn(
         is AST.IfElseBlock -> {
             else_ty :: check_else_with_narrow(
                 eb.block, e.cond, expected, typed, diags, ctx, check_expr_fn)
-            joined :: join_if_branches(then_ty, else_ty)
+            joined :: join_branch_types([then_ty, else_ty])
             // Only when nothing pins the result. With an `expected` slot each branch
             // was already checked against it, so the union is an artefact of the join
             // — reporting it would flag every `if c { field } else { [] }` used as a
@@ -99,7 +95,7 @@ export infer_if :: fn(
             inner: AST.Expr: eb.branch
             else_ty :: check_else_branch_expr(
                 inner, e.cond, expected, typed, diags, check_expr_fn)
-            return collapse_if_unresolved(join_if_branches(then_ty, else_ty), then_ty, else_ty)
+            return collapse_if_unresolved(join_branch_types([then_ty, else_ty]), then_ty, else_ty)
         }
     }
 }

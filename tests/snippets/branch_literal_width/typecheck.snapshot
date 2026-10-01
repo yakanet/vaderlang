@@ -1,0 +1,63 @@
+# Typecheck
+
+## tests/snippets/branch_literal_width
+  FnDecl         main                 :: fn() -> i32
+  expr 11:17    SeqLitExpr     :: u8[]!
+  expr 12:13    IfExpr         :: u8
+  expr 12:16    BinaryExpr     :: bool
+  expr 12:16    CallExpr       :: usize
+  expr 12:16    FieldExpr      :: fn() -> usize
+  expr 12:16    IdentExpr      :: u8[]!
+  expr 12:32    IdentExpr      :: u8[]!
+  expr 12:32    IndexExpr      :: u8
+  expr 12:36    BinaryExpr     :: usize
+  expr 12:36    CallExpr       :: usize
+  expr 12:36    FieldExpr      :: fn() -> usize
+  expr 12:36    IdentExpr      :: u8[]!
+  expr 13:13    IfExpr         :: string
+  expr 13:16    BinaryExpr     :: bool
+  expr 13:16    IdentExpr      :: u8
+  expr 13:30    StringLitExpr  :: string
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(T) -> void
+  expr 13:64    StringLitExpr  :: string
+  expr 14:19    SeqLitExpr     :: u8[]!
+  expr 15:14    IfExpr         :: u8
+  expr 15:17    BinaryExpr     :: bool
+  expr 15:17    CallExpr       :: usize
+  expr 15:17    FieldExpr      :: fn() -> usize
+  expr 15:17    IdentExpr      :: u8[]!
+  expr 15:35    IdentExpr      :: u8[]!
+  expr 15:35    IndexExpr      :: u8
+  expr 16:13    IfExpr         :: string
+  expr 16:16    BinaryExpr     :: bool
+  expr 16:16    IdentExpr      :: u8
+  expr 16:31    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 16:58    StringLitExpr  :: string
+  expr 17:10    CallExpr       :: usize
+  expr 17:10    FieldExpr      :: fn() -> usize
+  expr 17:10    IdentExpr      :: u8[]!
+  expr 18:15    MatchExpr      :: u8
+  expr 18:21    IdentExpr      :: usize
+  expr 20:14    IdentExpr      :: u8[]!
+  expr 20:14    IndexExpr      :: u8
+  expr 20:20    BinaryExpr     :: usize
+  expr 20:20    IdentExpr      :: usize
+  expr 22:13    IfExpr         :: string
+  expr 22:16    BinaryExpr     :: bool
+  expr 22:16    IdentExpr      :: u8
+  expr 22:32    StringLitExpr  :: string
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 22:69    StringLitExpr  :: string
+  expr 24:13    MatchExpr      :: i64
+  expr 24:19    IdentExpr      :: usize
+  expr 26:14    IdentExpr      :: i64
+  expr 28:13    StringLitExpr  :: string
+  expr 28:35    BinaryExpr     :: i64
+  expr 28:35    IdentExpr      :: i64
+  expr 28:42    IdentExpr      :: i64
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void

@@ -1,0 +1,7 @@
+# stdout
+if, byte or char: byte
+if, empty: char
+match, byte or char: char
+match, i64 or int: 5000000001
+# exit
+0

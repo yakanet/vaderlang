@@ -380,6 +380,9 @@ const C_PARITY = new Set<string>([
   // erased stage over a concrete tuple source, a local after a `yield`.
   "iterator_lazy_forms",
   "fusion_recursive_generator",
+  // A free literal branch beside a concrete one: natively, a union of the two
+  // compiled to a box read of a constant.
+  "branch_literal_width",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

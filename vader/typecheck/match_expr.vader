@@ -1,6 +1,7 @@
 // vader/typecheck/match_expr — MatchExpr inference (MVP).
 //
-// `match scrutinee { p1 -> b1, p2 -> b2 }` types as `union_of(arm bodies)`.
+// `match scrutinee { p1 -> b1, p2 -> b2 }` types as the join of its arm bodies
+// (`join_branch_types`: their union, a free literal arm repinned to a concrete one).
 // Out of scope: exhaustiveness check (T3013), per-arm scrutinee
 // narrowing (the header alias `match e as x` typing `x` per arm) — both
 // land with `narrow.vader`. Guards must be `bool` (T3019).
@@ -307,7 +308,7 @@ export infer_match :: fn(
     // `bc_type_of` footguns — so `never` is NOT exempt. Only a genuine void
     // statement match (`_ -> {}`, side-effects only) and open scrutinees
     // (i32 / string / …) stay out of scope.
-    result_ty :: union_of(arm_types)
+    result_ty :: join_branch_types(arm_types)
     // Same rule as the `if` join : only when nothing pins the result.
     if expected == null {
         report_mixed_mutability(result_ty, e.span, diags)

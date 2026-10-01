@@ -1,0 +1,30 @@
+// A free literal in one branch of an `if` or a `match` takes the type of a
+// concrete sibling branch of its family: a char literal beside a byte is that
+// byte's `u8`, an integer literal beside an `i64` is an `i64`. Unpinned, the
+// result would be a union of the two, compared and computed with as one.
+
+module "snippet"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    out: u8[]!: [65]
+    last :: if out.len() > 0 { out[out.len() - 1] } else { '(' }
+    println(if last != '(' { "if, byte or char: byte" } else { "if, byte or char: char" })
+    empty: u8[]!: []
+    first :: if empty.len() > 0 { empty[0] } else { '(' }
+    println(if first == '(' { "if, empty: char" } else { "if, empty: byte" })
+    n :: empty.len()
+    picked :: match n {
+        0 -> '('
+        _ -> empty[n - 1]
+    }
+    println(if picked == '(' { "match, byte or char: char" } else { "match, byte or char: byte" })
+    big: i64: 5_000_000_000
+    wide :: match n {
+        0 -> 1
+        _ -> big
+    }
+    println("match, i64 or int: ${wide + big}")
+    return 0
+}
