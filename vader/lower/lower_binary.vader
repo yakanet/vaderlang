@@ -109,23 +109,25 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
             if back != null { find_impl_member_for(ctx, back, METHOD_CONTAINS) } else { direct }
         }
         if member is UfcsMember {
-            args: LoweredExpr[]!: []
-            args.push(lower_expr(ctx, binary.right))
-            args.push(lower_expr(ctx, binary.left))
+            // `contains` takes the collection first: `x` is bound ahead of it unless
+            // neither can change what the other reads.
+            prelude: LoweredStmt[]!: []
+            element_value :: lower_expr(ctx, binary.left)
+            coll :: lower_expr(ctx, binary.right)
+            element :: if reads_independently(element_value, coll) {
+                element_value
+            } else {
+                bind_unless_stable(ctx, element_value, "in_x", binary.span, prelude)
+            }
             call :: LoweredCall {
                 .span = binary.span, .type = TY_BOOL,
                 .callee = LoweredIdent {
                     .span = binary.span, .type = TY_BOOL, .symbol = member.symbol,
                 },
-                .args = args,
+                .args = [coll, element],
             }
-            if binary.op == .NotIn {
-                return LoweredUnary {
-                    .span = binary.span, .type = TY_BOOL,
-                    .op = .Not, .operand = call,
-                }
-            }
-            return call
+            test :: maybe_negate(call, binary.op == .NotIn, binary.span)
+            return with_prelude(prelude, test, binary.span)
         }
         return stub(binary.span, type, "`in` / `not in` lowering deferred")
     }

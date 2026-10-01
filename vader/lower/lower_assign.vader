@@ -315,10 +315,19 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type, as_st
     if idx_type is StructType {
         if idx_type.symbol.name != STRUCT_RANGE { return null }
         span :: expr.span
+        stmts: LoweredStmt[]!: []
+        // The target is evaluated ahead of the range, as written.
+        target_value :: lower_expr(ctx, expr.target)
+        range_value :: lower_expr(ctx, expr.index)
+        target :: if reads_independently(target_value, range_value) {
+            target_value
+        } else {
+            bind_unless_stable(ctx, target_value, "slice_target", span, stmts)
+        }
         range_sym :: fresh_synthetic_symbol(ctx, "slice_r")
         range_binding :: LoweredLet {
             .span = span, .name = range_sym.name, .symbol = range_sym,
-            .type = idx_type, .value = lower_expr(ctx, expr.index),
+            .type = idx_type, .value = range_value,
         }
         range_ref :: LoweredIdent { .span = span, .type = idx_type, .symbol = range_sym }
         bound_type :: if idx_type.args.len() > 0 { idx_type.args[0] } else { mk_primitive("usize") }
@@ -331,13 +340,10 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type, as_st
         hi_value :: adjust_hi_inclusive_dynamic(hi_raw, LoweredFieldAccess {
             .span = span, .type = TY_BOOL, .target = range_ref, .field = "inclusive",
         }, span)
-        stmts: LoweredStmt[]!: []
         stmts.push(range_binding)
         return LoweredBlock {
             .span = span, .type = type, .stmts = stmts,
-            .trailing = mk_slice_node(
-                as_string, span, type, lower_expr(ctx, expr.target), lo_value, hi_value,
-            ),
+            .trailing = mk_slice_node(as_string, span, type, target, lo_value, hi_value),
         }
     }
     return null

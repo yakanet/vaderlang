@@ -1,0 +1,36 @@
+// `x in coll` and `target[range]` evaluate their operands in the order they are
+// written — `x` before `coll`, the target before a range value — though the
+// first lowers to `coll.contains(x)` and the second binds the range first.
+
+module "snippet"
+
+import "std/collections"
+import "std/io"
+
+say :: fn(label: string, value: i32) -> i32 {
+    println(label)
+    return value
+}
+
+pool :: fn(label: string) -> i32[] {
+    println(label)
+    return [1, 2, 3]
+}
+
+window :: fn(label: string) -> Range<usize> {
+    println(label)
+    lo: usize: 1
+    hi: usize: 3
+    return lo..<hi
+}
+
+main :: fn() -> i32 {
+    println(if say("x", 2) in pool("coll") { "in: yes" } else { "in: no" })
+    println(if say("x", 7) !in pool("coll") { "not in: yes" } else { "not in: no" })
+    seen :: MutableSet<i32> {}
+    seen.add(2)
+    println(if say("x", 2) in seen { "set: yes" } else { "set: no" })
+    part :: pool("target")[window("range")]
+    println("slice: ${part.len()}")
+    return 0
+}

@@ -347,6 +347,11 @@ is_effect_free_read :: fn(value: LoweredExpr) -> bool = @partial match value {
     _                     -> is_stable_operand(value)
 }
 
+// Whether `first` and `second`, evaluated in either order, give the same values —
+// the second stable, or both reads that run nothing.
+reads_independently :: fn(first: LoweredExpr, second: LoweredExpr) -> bool =
+    is_stable_operand(second) || is_effect_free_read(first) && is_effect_free_read(second)
+
 // @partial: only the literal nodes are literals.
 is_literal :: fn(value: LoweredExpr) -> bool = @partial match value {
     is LoweredIntLit | LoweredCharLit | LoweredBoolLit -> true

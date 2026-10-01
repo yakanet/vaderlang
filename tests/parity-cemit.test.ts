@@ -384,6 +384,8 @@ const C_PARITY = new Set<string>([
   // A union-element const baked in `.rodata`: natively, every box carried the
   // union's tag and a number sat in the pointer slot.
   "union_array_const",
+  // `x in coll` and `target[range]` evaluate their operands as written.
+  "operand_order_in_slice",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

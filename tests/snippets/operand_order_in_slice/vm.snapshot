@@ -1,0 +1,14 @@
+# stdout
+x
+coll
+in: yes
+x
+coll
+not in: yes
+x
+set: yes
+target
+range
+slice: 2
+# exit
+0
