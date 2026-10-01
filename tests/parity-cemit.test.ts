@@ -392,6 +392,8 @@ const C_PARITY = new Set<string>([
   "alias_declaration_order",
   // A push in a `for [x, y] in zip(a, b)` loop takes the push cache.
   "zip_loop_push",
+  // `zip(a, b)` as a chain source, fused against the same chain bound lazily.
+  "zip_source_fusion",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

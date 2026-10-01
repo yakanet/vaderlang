@@ -1,0 +1,15 @@
+# stdout
+map fused: 4 10 18
+map lazy: 4 10 18
+filter count fused: 1
+filter count lazy: 1
+take fused: 4 10
+any fused: true
+find fused: 5 2
+loop fused: 4
+enumerate fused: 0 1 4
+enumerate fused: 1 5 2
+enumerate fused: 2 3 6
+empty fused: 0
+# exit
+0

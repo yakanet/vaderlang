@@ -1,0 +1,1228 @@
+# Lower
+
+## snippet
+  fn snippet$product(p: [i32, i32]) -> i32
+    ~>
+      mul :i32
+        l:
+          ._0 :i32
+            p :[i32, i32]
+        r:
+          ._1 :i32
+            p :[i32, i32]
+  fn snippet$left_bigger(p: [i32, i32]) -> bool
+    ~>
+      gt :bool
+        l:
+          ._0 :i32
+            p :[i32, i32]
+        r:
+          ._1 :i32
+            p :[i32, i32]
+  fn snippet$show(label: string, xs: i32[]) -> void
+    let line: string =
+      call :string
+        callee:
+          concat_2 :string
+        arg0:
+          label :string
+        arg1:
+          ":" :string
+    let out: string = line :string
+    block :void
+      let __for_arr_0: i32[] = xs :i32[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let x: i32 =
+          index :i32
+            on:
+              __for_arr_0 :i32[]
+            ix:
+              __for_i_2 :usize
+        assign
+          target:
+            out :string
+          value:
+            block :string
+              let __p_3: string = out :string
+              let __buf_4: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    add :usize
+                      l:
+                        int(21) :usize
+                      r:
+                        call :usize
+                          callee:
+                            byte_len :usize
+                          arg0:
+                            __p_3 :string
+              let __off_5: usize = int(0) :usize
+              assign
+                target:
+                  __off_5 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_4 :Buffer
+                    arg1:
+                      __off_5 :usize
+                    arg2:
+                      __p_3 :string
+              assign
+                target:
+                  __off_5 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_4 :Buffer
+                    arg1:
+                      __off_5 :usize
+                    arg2:
+                      " " :string
+              assign
+                target:
+                  __off_5 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_4 :Buffer
+                    arg1:
+                      __off_5 :usize
+                    arg2:
+                      cast → i64
+                        x :i32
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_4 :Buffer
+                  arg1:
+                    __off_5 :usize
+      step
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          out :string
+  fn snippet$main() -> i32
+    let a: i32[]! =
+      array :i32[]!
+        int(1) :i32
+        int(5) :i32
+        int(3) :i32
+        int(8) :i32
+    let b: i32[]! =
+      array :i32[]!
+        int(4) :i32
+        int(2) :i32
+        int(6) :i32
+    call :void
+      callee:
+        show :fn(string, i32[]) -> void
+      arg0:
+        "map fused" :string
+      arg1:
+        block :i32[]!
+          let __fuse_arr_2: i32[]! = a :i32[]!
+          let __fuse_arr_3: i32[]! = b :i32[]!
+          let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
+          let __collect_0: i32[]! =
+            array :i32[]!
+          let __fuse_len_4: usize =
+            if :usize
+              cond:
+                lt :bool
+                  l:
+                    LoweredArrayLen
+                  r:
+                    LoweredArrayLen
+              then:
+                ~>
+                  LoweredArrayLen
+              else:
+                ~>
+                  LoweredArrayLen
+          let __fuse_i_5: usize = int(0) :usize
+          loop while (<…>)
+            let x: [i32, i32] =
+              [i32, i32] {
+                _0:
+                  index :i32
+                    on:
+                      __fuse_arr_2 :i32[]!
+                    ix:
+                      __fuse_i_5 :usize
+                _1:
+                  index :i32
+                    on:
+                      __fuse_arr_3 :i32[]!
+                    ix:
+                      __fuse_i_5 :usize
+              }
+            let __elem_1: i32 =
+              call :i32
+                callee:
+                  product :fn(Any) -> i32
+                arg0:
+                  x :Any
+            LoweredArrayPush
+          step
+            assign
+              target:
+                __fuse_i_5 :usize
+              value:
+                add :usize
+                  l:
+                    __fuse_i_5 :usize
+                  r:
+                    int(1) :usize
+          ~>
+            __collect_0 :i32[]!
+    let lazy_map: __genstate_zip<[i32, i32]>! =
+      call :__genstate_zip<[i32, i32]>!
+        callee:
+          std_iter$zip__i32__i32 :__genstate_zip<[i32, i32]>!
+        arg0:
+          a :i32[]!
+        arg1:
+          b :i32[]!
+    call :void
+      callee:
+        show :fn(string, i32[]) -> void
+      arg0:
+        "map lazy" :string
+      arg1:
+        call :i32[]!
+          callee:
+            std_iter$collect__i32 :i32[]!
+          arg0:
+            call :__genstate_map<i32>!
+              callee:
+                std_iter$map__Any__i32 :__genstate_map<i32>!
+              arg0:
+                lazy_map :__genstate_zip<[i32, i32]>!
+              arg1:
+                product :fn([i32, i32]) -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_12: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(40) :usize
+          let __off_13: usize = int(0) :usize
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  "filter count fused: " :string
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  cast → u64
+                    block :usize
+                      let __fuse_arr_8: i32[]! = a :i32[]!
+                      let __fuse_arr_9: i32[]! = b :i32[]!
+                      let pred: fn([i32, i32]) -> bool = left_bigger :fn([i32, i32]) -> bool
+                      let __count_6: usize = int(0) :usize
+                      let __fuse_len_10: usize =
+                        if :usize
+                          cond:
+                            lt :bool
+                              l:
+                                LoweredArrayLen
+                              r:
+                                LoweredArrayLen
+                          then:
+                            ~>
+                              LoweredArrayLen
+                          else:
+                            ~>
+                              LoweredArrayLen
+                      let __fuse_i_11: usize = int(0) :usize
+                      loop while (<…>)
+                        let x: [i32, i32] =
+                          [i32, i32] {
+                            _0:
+                              index :i32
+                                on:
+                                  __fuse_arr_8 :i32[]!
+                                ix:
+                                  __fuse_i_11 :usize
+                            _1:
+                              index :i32
+                                on:
+                                  __fuse_arr_9 :i32[]!
+                                ix:
+                                  __fuse_i_11 :usize
+                          }
+                        ~>
+                          if :void
+                            cond:
+                              call :bool
+                                callee:
+                                  left_bigger :fn(Any) -> bool
+                                arg0:
+                                  x :Any
+                            then:
+                              let __elem_7: Any = x :Any
+                              assign
+                                target:
+                                  __count_6 :usize
+                                value:
+                                  add :usize
+                                    l:
+                                      __count_6 :usize
+                                    r:
+                                      int(1) :usize
+                      step
+                        assign
+                          target:
+                            __fuse_i_11 :usize
+                          value:
+                            add :usize
+                              l:
+                                __fuse_i_11 :usize
+                              r:
+                                int(1) :usize
+                      ~>
+                        __count_6 :usize
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_12 :Buffer
+              arg1:
+                __off_13 :usize
+    let lazy_filter: __genstate_zip<[i32, i32]>! =
+      call :__genstate_zip<[i32, i32]>!
+        callee:
+          std_iter$zip__i32__i32 :__genstate_zip<[i32, i32]>!
+        arg0:
+          a :i32[]!
+        arg1:
+          b :i32[]!
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_18: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(39) :usize
+          let __off_19: usize = int(0) :usize
+          assign
+            target:
+              __off_19 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_18 :Buffer
+                arg1:
+                  __off_19 :usize
+                arg2:
+                  "filter count lazy: " :string
+          assign
+            target:
+              __off_19 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_18 :Buffer
+                arg1:
+                  __off_19 :usize
+                arg2:
+                  cast → u64
+                    block :usize
+                      let __fuse_iter_16: Iterator<[i32, i32]!> =
+                        call :__genstate_filter<[i32, i32]!>!
+                          callee:
+                            std_iter$filter___i32__i32_ :__genstate_filter<[i32, i32]!>!
+                          arg0:
+                            lazy_filter :__genstate_zip<[i32, i32]>!
+                          arg1:
+                            left_bigger :fn([i32, i32]) -> bool
+                      let __count_14: usize = int(0) :usize
+                      loop
+                        let __fuse_step_17: [[i32, i32]!, Continuation]! =
+                          vcall Iterator.next :[[i32, i32]!, Continuation]!
+                            recv:
+                              __fuse_iter_16 :Iterator<[i32, i32]!>
+                        if :void
+                          cond:
+                            eq :bool
+                              l:
+                                ._1 :Continuation
+                                  __fuse_step_17 :[[i32, i32]!, Continuation]!
+                              r:
+                                int(1) :u8
+                          then:
+                            break
+                          else:
+                            let __elem_15: [i32, i32]! =
+                              ._0 :[i32, i32]!
+                                __fuse_step_17 :[[i32, i32]!, Continuation]!
+                            assign
+                              target:
+                                __count_14 :usize
+                              value:
+                                add :usize
+                                  l:
+                                    __count_14 :usize
+                                  r:
+                                    int(1) :usize
+                      ~>
+                        __count_14 :usize
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_18 :Buffer
+              arg1:
+                __off_19 :usize
+    call :void
+      callee:
+        show :fn(string, i32[]) -> void
+      arg0:
+        "take fused" :string
+      arg1:
+        block :i32[]!
+          let __fuse_arr_22: i32[]! = a :i32[]!
+          let __fuse_arr_23: i32[]! = b :i32[]!
+          let n: usize = int(2) :usize
+          let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
+          let __collect_20: i32[]! =
+            array :i32[]!
+          block :$exit$i45
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    n :usize
+                  r:
+                    int(0) :usize
+              then:
+                break :$exit$i45
+            let i: usize = int(0) :usize
+            let __fuse_len_24: usize =
+              if :usize
+                cond:
+                  lt :bool
+                    l:
+                      LoweredArrayLen
+                    r:
+                      LoweredArrayLen
+                then:
+                  ~>
+                    LoweredArrayLen
+                else:
+                  ~>
+                    LoweredArrayLen
+            let __fuse_i_25: usize = int(0) :usize
+            loop while (<…>)
+              let x: [i32, i32] =
+                [i32, i32] {
+                  _0:
+                    index :i32
+                      on:
+                        __fuse_arr_22 :i32[]!
+                      ix:
+                        __fuse_i_25 :usize
+                  _1:
+                    index :i32
+                      on:
+                        __fuse_arr_23 :i32[]!
+                      ix:
+                        __fuse_i_25 :usize
+                }
+              let x: Any = x :Any
+              let __elem_21: i32 =
+                call :i32
+                  callee:
+                    product :fn(Any) -> i32
+                  arg0:
+                    x :Any
+              LoweredArrayPush
+              assign
+                target:
+                  i :usize
+                value:
+                  add :usize
+                    l:
+                      i :usize
+                    r:
+                      int(1) :usize
+              ~>
+                if :void
+                  cond:
+                    gte :bool
+                      l:
+                        i :usize
+                      r:
+                        n :usize
+                  then:
+                    break
+            step
+              assign
+                target:
+                  __fuse_i_25 :usize
+                value:
+                  add :usize
+                    l:
+                      __fuse_i_25 :usize
+                    r:
+                      int(1) :usize
+          ~>
+            __collect_20 :i32[]!
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_32: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(16) :usize
+          let __off_33: usize = int(0) :usize
+          assign
+            target:
+              __off_33 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_32 :Buffer
+                arg1:
+                  __off_33 :usize
+                arg2:
+                  "any fused: " :string
+          assign
+            target:
+              __off_33 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_32 :Buffer
+                arg1:
+                  __off_33 :usize
+                arg2:
+                  block :bool
+                    let __fuse_arr_26: i32[]! = a :i32[]!
+                    let __fuse_arr_27: i32[]! = b :i32[]!
+                    let __acc_28: bool = false
+                    let __fuse_len_30: usize =
+                      if :usize
+                        cond:
+                          lt :bool
+                            l:
+                              LoweredArrayLen
+                            r:
+                              LoweredArrayLen
+                        then:
+                          ~>
+                            LoweredArrayLen
+                        else:
+                          ~>
+                            LoweredArrayLen
+                    let __fuse_i_31: usize = int(0) :usize
+                    loop while (<…>)
+                      let __elem_29: [i32, i32] =
+                        [i32, i32] {
+                          _0:
+                            index :i32
+                              on:
+                                __fuse_arr_26 :i32[]!
+                              ix:
+                                __fuse_i_31 :usize
+                          _1:
+                            index :i32
+                              on:
+                                __fuse_arr_27 :i32[]!
+                              ix:
+                                __fuse_i_31 :usize
+                        }
+                      if :void
+                        cond:
+                          call :bool
+                            callee:
+                              left_bigger :fn([i32, i32]) -> bool
+                            arg0:
+                              __elem_29 :[i32, i32]
+                        then:
+                          assign
+                            target:
+                              __acc_28 :bool
+                            value:
+                              true
+                          break
+                    step
+                      assign
+                        target:
+                          __fuse_i_31 :usize
+                        value:
+                          add :usize
+                            l:
+                              __fuse_i_31 :usize
+                            r:
+                              int(1) :usize
+                    ~>
+                      __acc_28 :bool
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_32 :Buffer
+              arg1:
+                __off_33 :usize
+    let found: [i32, i32]! | null =
+      block :[i32, i32] | null
+        let __fuse_arr_34: i32[]! = a :i32[]!
+        let __fuse_arr_35: i32[]! = b :i32[]!
+        let __find_36: [i32, i32] | null = null
+        let __fuse_len_38: usize =
+          if :usize
+            cond:
+              lt :bool
+                l:
+                  LoweredArrayLen
+                r:
+                  LoweredArrayLen
+            then:
+              ~>
+                LoweredArrayLen
+            else:
+              ~>
+                LoweredArrayLen
+        let __fuse_i_39: usize = int(0) :usize
+        loop while (<…>)
+          let __elem_37: [i32, i32] =
+            [i32, i32] {
+              _0:
+                index :i32
+                  on:
+                    __fuse_arr_34 :i32[]!
+                  ix:
+                    __fuse_i_39 :usize
+              _1:
+                index :i32
+                  on:
+                    __fuse_arr_35 :i32[]!
+                  ix:
+                    __fuse_i_39 :usize
+            }
+          if :void
+            cond:
+              call :bool
+                callee:
+                  left_bigger :fn([i32, i32]) -> bool
+                arg0:
+                  __elem_37 :[i32, i32]
+            then:
+              assign
+                target:
+                  __find_36 :[i32, i32] | null
+                value:
+                  __elem_37 :[i32, i32]
+              break
+        step
+          assign
+            target:
+              __fuse_i_39 :usize
+            value:
+              add :usize
+                l:
+                  __fuse_i_39 :usize
+                r:
+                  int(1) :usize
+        ~>
+          __find_36 :[i32, i32] | null
+    if :void
+      cond:
+        not :bool
+          is null :bool
+            found :[i32, i32]! | null
+      then:
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            block :string
+              let __buf_40: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(53) :usize
+              let __off_41: usize = int(0) :usize
+              assign
+                target:
+                  __off_41 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_40 :Buffer
+                    arg1:
+                      __off_41 :usize
+                    arg2:
+                      "find fused: " :string
+              assign
+                target:
+                  __off_41 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_40 :Buffer
+                    arg1:
+                      __off_41 :usize
+                    arg2:
+                      cast → i64
+                        ._0 :i32
+                          cast → [i32, i32]!
+                            found :[i32, i32]! | null
+              assign
+                target:
+                  __off_41 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_40 :Buffer
+                    arg1:
+                      __off_41 :usize
+                    arg2:
+                      " " :string
+              assign
+                target:
+                  __off_41 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_40 :Buffer
+                    arg1:
+                      __off_41 :usize
+                    arg2:
+                      cast → i64
+                        ._1 :i32
+                          cast → [i32, i32]!
+                            found :[i32, i32]! | null
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_40 :Buffer
+                  arg1:
+                    __off_41 :usize
+    let total: i32 = int(0) :i32
+    block :void
+      let __fuse_arr_42: i32[]! = a :i32[]!
+      let __fuse_arr_43: i32[]! = b :i32[]!
+      let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
+      let __fuse_len_44: usize =
+        if :usize
+          cond:
+            lt :bool
+              l:
+                LoweredArrayLen
+              r:
+                LoweredArrayLen
+          then:
+            ~>
+              LoweredArrayLen
+          else:
+            ~>
+              LoweredArrayLen
+      let __fuse_i_45: usize = int(0) :usize
+      loop while (<…>)
+        let x: [i32, i32] =
+          [i32, i32] {
+            _0:
+              index :i32
+                on:
+                  __fuse_arr_42 :i32[]!
+                ix:
+                  __fuse_i_45 :usize
+            _1:
+              index :i32
+                on:
+                  __fuse_arr_43 :i32[]!
+                ix:
+                  __fuse_i_45 :usize
+          }
+        let x: i32 =
+          call :i32
+            callee:
+              product :fn(Any) -> i32
+            arg0:
+              x :Any
+        if :void
+          cond:
+            eq :bool
+              l:
+                x :i32
+              r:
+                int(10) :i32
+          then:
+            continue
+        if :void
+          cond:
+            gt :bool
+              l:
+                x :i32
+              r:
+                int(15) :i32
+          then:
+            break
+        assign
+          target:
+            total :i32
+          value:
+            add :i32
+              l:
+                total :i32
+              r:
+                x :i32
+      step
+        assign
+          target:
+            __fuse_i_45 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_45 :usize
+              r:
+                int(1) :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_46: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(32) :usize
+          let __off_47: usize = int(0) :usize
+          assign
+            target:
+              __off_47 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_46 :Buffer
+                arg1:
+                  __off_47 :usize
+                arg2:
+                  "loop fused: " :string
+          assign
+            target:
+              __off_47 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_46 :Buffer
+                arg1:
+                  __off_47 :usize
+                arg2:
+                  cast → i64
+                    total :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_46 :Buffer
+              arg1:
+                __off_47 :usize
+    block :void
+      let __fuse_arr_51: i32[]! = a :i32[]!
+      let __fuse_arr_52: i32[]! = b :i32[]!
+      let i: usize = int(0) :usize
+      let __fuse_len_54: usize =
+        if :usize
+          cond:
+            lt :bool
+              l:
+                LoweredArrayLen
+              r:
+                LoweredArrayLen
+          then:
+            ~>
+              LoweredArrayLen
+          else:
+            ~>
+              LoweredArrayLen
+      let __fuse_i_55: usize = int(0) :usize
+      loop while (<…>)
+        let x: [i32, i32] =
+          [i32, i32] {
+            _0:
+              index :i32
+                on:
+                  __fuse_arr_51 :i32[]!
+                ix:
+                  __fuse_i_55 :usize
+            _1:
+              index :i32
+                on:
+                  __fuse_arr_52 :i32[]!
+                ix:
+                  __fuse_i_55 :usize
+          }
+        let __gen_elem_53: [usize, Any] =
+          [usize, Any]! {
+            _0: i :usize
+            _1: x :Any
+          }
+        let i: usize =
+          ._0 :usize
+            __gen_elem_53 :[usize, Any]
+        let pair: [i32, i32]! =
+          ._1 :[i32, i32]!
+            __gen_elem_53 :[usize, Any]
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            block :string
+              let __buf_49: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(79) :usize
+              let __off_50: usize = int(0) :usize
+              assign
+                target:
+                  __off_50 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_49 :Buffer
+                    arg1:
+                      __off_50 :usize
+                    arg2:
+                      "enumerate fused: " :string
+              assign
+                target:
+                  __off_50 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_unsigned :usize
+                    arg0:
+                      __buf_49 :Buffer
+                    arg1:
+                      __off_50 :usize
+                    arg2:
+                      cast → u64
+                        i :usize
+              assign
+                target:
+                  __off_50 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_49 :Buffer
+                    arg1:
+                      __off_50 :usize
+                    arg2:
+                      " " :string
+              assign
+                target:
+                  __off_50 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_49 :Buffer
+                    arg1:
+                      __off_50 :usize
+                    arg2:
+                      cast → i64
+                        ._0 :i32
+                          pair :[i32, i32]!
+              assign
+                target:
+                  __off_50 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_49 :Buffer
+                    arg1:
+                      __off_50 :usize
+                    arg2:
+                      " " :string
+              assign
+                target:
+                  __off_50 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_49 :Buffer
+                    arg1:
+                      __off_50 :usize
+                    arg2:
+                      cast → i64
+                        ._1 :i32
+                          pair :[i32, i32]!
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_49 :Buffer
+                  arg1:
+                    __off_50 :usize
+        assign
+          target:
+            i :usize
+          value:
+            add :usize
+              l:
+                i :usize
+              r:
+                int(1) :usize
+      step
+        assign
+          target:
+            __fuse_i_55 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_55 :usize
+              r:
+                int(1) :usize
+    let empty: i32[] =
+      array :i32[]
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_62: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(33) :usize
+          let __off_63: usize = int(0) :usize
+          assign
+            target:
+              __off_63 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_62 :Buffer
+                arg1:
+                  __off_63 :usize
+                arg2:
+                  "empty fused: " :string
+          assign
+            target:
+              __off_63 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_62 :Buffer
+                arg1:
+                  __off_63 :usize
+                arg2:
+                  cast → u64
+                    block :usize
+                      let __fuse_arr_58: i32[]! = a :i32[]!
+                      let __fuse_arr_59: i32[] = empty :i32[]
+                      let __count_56: usize = int(0) :usize
+                      let __fuse_len_60: usize =
+                        if :usize
+                          cond:
+                            lt :bool
+                              l:
+                                LoweredArrayLen
+                              r:
+                                LoweredArrayLen
+                          then:
+                            ~>
+                              LoweredArrayLen
+                          else:
+                            ~>
+                              LoweredArrayLen
+                      let __fuse_i_61: usize = int(0) :usize
+                      loop while (<…>)
+                        let __elem_57: [i32, i32] =
+                          [i32, i32] {
+                            _0:
+                              index :i32
+                                on:
+                                  __fuse_arr_58 :i32[]!
+                                ix:
+                                  __fuse_i_61 :usize
+                            _1:
+                              index :i32
+                                on:
+                                  __fuse_arr_59 :i32[]
+                                ix:
+                                  __fuse_i_61 :usize
+                          }
+                        assign
+                          target:
+                            __count_56 :usize
+                          value:
+                            add :usize
+                              l:
+                                __count_56 :usize
+                              r:
+                                int(1) :usize
+                      step
+                        assign
+                          target:
+                            __fuse_i_61 :usize
+                          value:
+                            add :usize
+                              l:
+                                __fuse_i_61 :usize
+                              r:
+                                int(1) :usize
+                      ~>
+                        __count_56 :usize
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_62 :Buffer
+              arg1:
+                __off_63 :usize
+    return int(0) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

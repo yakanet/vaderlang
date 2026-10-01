@@ -1,0 +1,55 @@
+// `zip(a, b)` as the source of a chain fuses to one index loop up to the shorter
+// array, and gives what the lazy chain gives — each case prints the chain
+// consumed where it is written, then the same chain bound to a local first.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+product :: fn(p: [i32, i32]) -> i32 = p.0 * p.1
+
+left_bigger :: fn(p: [i32, i32]) -> bool = p.0 > p.1
+
+show :: fn(label: string, xs: i32[]) -> void {
+    line :: "${label}:"
+    out := line
+    for x in xs {
+        out = "${out} ${x}"
+    }
+    println(out)
+}
+
+main :: fn() -> i32 {
+    a :: [1, 5, 3, 8]
+    b :: [4, 2, 6]
+    show("map fused", zip(a, b).map(product).collect())
+    lazy_map :: zip(a, b)
+    show("map lazy", lazy_map.map(product).collect())
+    println("filter count fused: ${a.zip(b).filter(left_bigger).count()}")
+    lazy_filter :: a.zip(b)
+    println("filter count lazy: ${lazy_filter.filter(left_bigger).count()}")
+    show("take fused", zip(a, b).take(2).map(product).collect())
+    println("any fused: ${zip(a, b).any_match(left_bigger)}")
+    found :: zip(a, b).find(left_bigger)
+    if found != null {
+        println("find fused: ${found.0} ${found.1}")
+    }
+    total := 0
+    for x in zip(a, b).map(product) {
+        if x == 10 {
+            continue
+        }
+        if x > 15 {
+            break
+        }
+        total += x
+    }
+    println("loop fused: ${total}")
+    for [i, pair] in zip(a, b).enumerate() {
+        println("enumerate fused: ${i} ${pair.0} ${pair.1}")
+    }
+    empty: i32[]: []
+    println("empty fused: ${zip(a, empty).count()}")
+    return 0
+}

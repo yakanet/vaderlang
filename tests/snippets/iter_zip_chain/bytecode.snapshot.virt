@@ -69,7 +69,7 @@ fn 0 snippet$main () -> i32
   local __buf_6 ref
   local __off_7 usize
   local $call_150 usize
-  local __off_20 usize
+  local __off_24 usize
   local $call_170 any
   i32.const 10
   i32.const 20
@@ -350,27 +350,27 @@ fn 0 snippet$main () -> i32
         call 7   ; std_core$new_byte_buffer
         local.set 1   ; __buf_0
         i64.const 0
-        local.set 14   ; __off_20
+        local.set 14   ; __off_24
         local.get 12   ; __off_7
         usize.to_i64
         local.set 3   ; $cast_13
         local.get 1   ; __buf_0
-        local.get 14   ; __off_20
+        local.get 14   ; __off_24
         local.get 3   ; $cast_13
         call 11   ; std_core$write_unsigned
-        local.set 14   ; __off_20
+        local.set 14   ; __off_24
         local.get 1   ; __buf_0
-        local.get 14   ; __off_20
+        local.get 14   ; __off_24
         string.const 11   ; ": "
         call 9   ; std_core$write_string_at
-        local.set 14   ; __off_20
+        local.set 14   ; __off_24
         local.get 1   ; __buf_0
-        local.get 14   ; __off_20
+        local.get 14   ; __off_24
         local.get 10   ; __p_5
         call 9   ; std_core$write_string_at
-        local.set 14   ; __off_20
+        local.set 14   ; __off_24
         local.get 1   ; __buf_0
-        local.get 14   ; __off_20
+        local.get 14   ; __off_24
         call 8   ; std_core$finish_buffer
         call 26   ; std_io$println__string
         local.get 2   ; __off_1

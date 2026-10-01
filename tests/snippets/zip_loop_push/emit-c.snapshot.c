@@ -97,10 +97,9 @@ static void* snippet_products(void* l0, void* l1) {
 #line 11 "tests/snippets/zip_loop_push/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(3u, 0u, 8u, 4u);
     l2 = (void*) _a0_arr;
-#line 108 "lib/std/iter/iter.vader"
+#line 12 "tests/snippets/zip_loop_push/_main.vader"
     l3 = l0;
     l4 = l1;
-#line 109 "lib/std/iter/iter.vader"
     l5 = ((vader_array_t*) l3)->length;
     l6 = ((vader_array_t*) l4)->length;
     if ((l5 < l6)) {
@@ -108,7 +107,6 @@ static void* snippet_products(void* l0, void* l1) {
     } else {
         l5 = ((vader_array_t*) l4)->length;
     }
-#line 110 "lib/std/iter/iter.vader"
     l6 = (size_t) 0;
     {
         vader_array_t* _pc27_hdr = (vader_array_t*) l2;
@@ -117,7 +115,6 @@ static void* snippet_products(void* l0, void* l1) {
         void* _pc27_slots = _pc27_hdr->buf->slots;
         for (;;) {
             if ((l6 < l5)) {
-#line 111 "lib/std/iter/iter.vader"
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l6)
@@ -126,7 +123,6 @@ static void* snippet_products(void* l0, void* l1) {
                 VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
                 l8 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l6];
-#line 12 "tests/snippets/zip_loop_push/_main.vader"
                 l9 = l7;
                 l10 = l8;
 #line 13 "tests/snippets/zip_loop_push/_main.vader"
@@ -147,7 +143,7 @@ static void* snippet_products(void* l0, void* l1) {
                     _pc27_cap = (_pc27_hdr->offset == 0 && !vader_array_is_borrowed(_pc27_hdr) && _pc27_hdr->length >= _pc27_hdr->buf->length) ? _pc27_hdr->capacity : (size_t) 0;
                     _pc27_slots = _pc27_hdr->buf->slots;
                 }
-#line 110 "lib/std/iter/iter.vader"
+#line 12 "tests/snippets/zip_loop_push/_main.vader"
                 t0 = (l6 + INT64_C(1));
                 l6 = (size_t) (int64_t) t0;
                 continue;

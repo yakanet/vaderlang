@@ -23,9 +23,9 @@
           y: int(3) :i32
         }
     block :void
-      let self: string[] = labels :string[]
-      let other: Point[] = pts :Point[]
-      let n: usize =
+      let __fuse_arr_4: string[] = labels :string[]
+      let __fuse_arr_5: Point[] = pts :Point[]
+      let __fuse_len_6: usize =
         if :usize
           cond:
             lt :bool
@@ -39,30 +39,30 @@
           else:
             ~>
               LoweredArrayLen
-      block :void
-        let i: usize = int(0) :usize
-        loop while (<…>)
-          let __gen_elem_4: [string, Any] =
-            [string, Any]! {
-              _0:
-                index :string
-                  on:
-                    self :string[]
-                  ix:
-                    i :usize
-              _1:
-                index :Any
-                  on:
-                    other :Any[]
-                  ix:
-                    i :usize
-            }
-          let label: string =
-            ._0 :string
-              __gen_elem_4 :[string, Any]
-          let p: Point! =
-            ._1 :Point!
-              __gen_elem_4 :[string, Any]
+      let __fuse_i_7: usize = int(0) :usize
+      loop while (<…>)
+        let __for_elem_8: [string, Point!] =
+          [string, Point!] {
+            _0:
+              index :string
+                on:
+                  __fuse_arr_4 :string[]
+                ix:
+                  __fuse_i_7 :usize
+            _1:
+              index :Point
+                on:
+                  __fuse_arr_5 :Point[]
+                ix:
+                  __fuse_i_7 :usize
+          }
+        let label: string =
+          ._0 :string
+            __for_elem_8 :[string, Point!]
+        let p: Point! =
+          ._1 :Point!
+            __for_elem_8 :[string, Point!]
+        ~>
           call :void
             callee:
               std_io$println__string :void
@@ -161,16 +161,16 @@
                       __buf_2 :Buffer
                     arg1:
                       __off_3 :usize
-        step
-          assign
-            target:
-              i :usize
-            value:
-              add :usize
-                l:
-                  i :usize
-                r:
-                  int(1) :usize
+      step
+        assign
+          target:
+            __fuse_i_7 :usize
+          value:
+            add :usize
+              l:
+                __fuse_i_7 :usize
+              r:
+                int(1) :usize
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
