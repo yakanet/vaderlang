@@ -31,6 +31,10 @@
           {
             "name": "collect",
             "alias": "_"
+          },
+          {
+            "name": "count",
+            "alias": "_"
           }
         ]
       },

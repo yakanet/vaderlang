@@ -257,114 +257,115 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_4: Buffer =
+          let __buf_3: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(40) :usize
-          let __off_5: usize = int(0) :usize
+          let __off_4: usize = int(0) :usize
           assign
             target:
-              __off_5 :usize
+              __off_4 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_4 :Buffer
+                  __buf_3 :Buffer
                 arg1:
-                  __off_5 :usize
+                  __off_4 :usize
                 arg2:
                   "filter count fused: " :string
           assign
             target:
-              __off_5 :usize
+              __off_4 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_4 :Buffer
+                  __buf_3 :Buffer
                 arg1:
-                  __off_5 :usize
+                  __off_4 :usize
                 arg2:
                   cast → u64
                     block :usize
                       let self: i32[]! = a :i32[]!
                       let other: i32[]! = b :i32[]!
                       let pred: fn([i32, i32]) -> bool = left_bigger :fn([i32, i32]) -> bool
-                      let __count_2: usize = int(0) :usize
-                      let n: usize =
-                        if :usize
-                          cond:
-                            lt :bool
-                              l:
-                                LoweredArrayLen
-                              r:
-                                LoweredArrayLen
-                          then:
-                            ~>
-                              LoweredArrayLen
-                          else:
-                            ~>
-                              LoweredArrayLen
+                      let total: usize = int(0) :usize
                       block :void
-                        let i: usize = int(0) :usize
-                        loop while (<…>)
-                          let x: [i32, i32] =
-                            [i32, i32]! {
-                              _0:
-                                index :i32
-                                  on:
-                                    self :i32[]
-                                  ix:
-                                    i :usize
-                              _1:
-                                index :i32
-                                  on:
-                                    other :i32[]
-                                  ix:
-                                    i :usize
-                            }
-                          if :void
+                        let n: usize =
+                          if :usize
                             cond:
-                              call :bool
-                                callee:
-                                  left_bigger :fn([i32, i32]) -> bool
-                                arg0:
-                                  x :[i32, i32]
-                            then:
-                              let __elem_3: [i32, i32] = x :[i32, i32]
-                              assign
-                                target:
-                                  __count_2 :usize
-                                value:
-                                  add :usize
-                                    l:
-                                      __count_2 :usize
-                                    r:
-                                      int(1) :usize
-                        step
-                          assign
-                            target:
-                              i :usize
-                            value:
-                              add :usize
+                              lt :bool
                                 l:
-                                  i :usize
+                                  LoweredArrayLen
                                 r:
-                                  int(1) :usize
+                                  LoweredArrayLen
+                            then:
+                              ~>
+                                LoweredArrayLen
+                            else:
+                              ~>
+                                LoweredArrayLen
+                        block :void
+                          let i: usize = int(0) :usize
+                          loop while (<…>)
+                            let x: [i32, i32] =
+                              [i32, i32]! {
+                                _0:
+                                  index :i32
+                                    on:
+                                      self :i32[]
+                                    ix:
+                                      i :usize
+                                _1:
+                                  index :i32
+                                    on:
+                                      other :i32[]
+                                    ix:
+                                      i :usize
+                              }
+                            if :void
+                              cond:
+                                call :bool
+                                  callee:
+                                    left_bigger :fn([i32, i32]) -> bool
+                                  arg0:
+                                    x :[i32, i32]
+                              then:
+                                let _: [i32, i32]! = x :[i32, i32]
+                                assign
+                                  target:
+                                    total :usize
+                                  value:
+                                    add :usize
+                                      l:
+                                        total :usize
+                                      r:
+                                        int(1) :usize
+                          step
+                            assign
+                              target:
+                                i :usize
+                              value:
+                                add :usize
+                                  l:
+                                    i :usize
+                                  r:
+                                    int(1) :usize
                       ~>
-                        __count_2 :usize
+                        total :usize
           ~>
             call :string
               callee:
                 finish_buffer :string
               arg0:
-                __buf_4 :Buffer
+                __buf_3 :Buffer
               arg1:
-                __off_5 :usize
+                __off_4 :usize
     let lazy_filter: __genstate_zip<[i32, i32]>! =
       call :__genstate_zip<[i32, i32]>!
         callee:
@@ -378,92 +379,93 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_8: Buffer =
+          let __buf_6: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(39) :usize
-          let __off_9: usize = int(0) :usize
+          let __off_7: usize = int(0) :usize
           assign
             target:
-              __off_9 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_8 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_9 :usize
+                  __off_7 :usize
                 arg2:
                   "filter count lazy: " :string
           assign
             target:
-              __off_9 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_8 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_9 :usize
+                  __off_7 :usize
                 arg2:
                   cast → u64
                     block :usize
                       let self: __genstate_zip<[i32, i32]>! = lazy_filter :__genstate_zip<[i32, i32]>!
                       let pred: fn([i32, i32]) -> bool = left_bigger :fn([i32, i32]) -> bool
-                      let __count_6: usize = int(0) :usize
+                      let total: usize = int(0) :usize
                       block :void
-                        let __iter_0: Iterator<[i32, i32]> = self :Iterator<[i32, i32]>
-                        loop
-                          let __step_1: [[i32, i32], Continuation]! =
-                            vcall Iterator.next :[[i32, i32], Continuation]!
-                              recv:
-                                __iter_0 :Iterator<[i32, i32]>
-                          if :void
-                            cond:
-                              eq :bool
-                                l:
-                                  ._1 :Continuation
+                        block :void
+                          let __iter_0: Iterator<[i32, i32]> = self :Iterator<[i32, i32]>
+                          loop
+                            let __step_1: [[i32, i32], Continuation]! =
+                              vcall Iterator.next :[[i32, i32], Continuation]!
+                                recv:
+                                  __iter_0 :Iterator<[i32, i32]>
+                            if :void
+                              cond:
+                                eq :bool
+                                  l:
+                                    ._1 :Continuation
+                                      __step_1 :[[i32, i32], Continuation]!
+                                  r:
+                                    int(1) :u8
+                              then:
+                                break
+                              else:
+                                let x: [i32, i32] =
+                                  ._0 :[i32, i32]
                                     __step_1 :[[i32, i32], Continuation]!
-                                r:
-                                  int(1) :u8
-                            then:
-                              break
-                            else:
-                              let x: [i32, i32] =
-                                ._0 :[i32, i32]
-                                  __step_1 :[[i32, i32], Continuation]!
-                              if :void
-                                cond:
-                                  call :bool
-                                    callee:
-                                      left_bigger :fn([i32, i32]) -> bool
-                                    arg0:
-                                      x :[i32, i32]
-                                then:
-                                  let __elem_7: [i32, i32] = x :[i32, i32]
-                                  assign
-                                    target:
-                                      __count_6 :usize
-                                    value:
-                                      add :usize
-                                        l:
-                                          __count_6 :usize
-                                        r:
-                                          int(1) :usize
+                                if :void
+                                  cond:
+                                    call :bool
+                                      callee:
+                                        left_bigger :fn([i32, i32]) -> bool
+                                      arg0:
+                                        x :[i32, i32]
+                                  then:
+                                    let _: [i32, i32]! = x :[i32, i32]
+                                    assign
+                                      target:
+                                        total :usize
+                                      value:
+                                        add :usize
+                                          l:
+                                            total :usize
+                                          r:
+                                            int(1) :usize
                       ~>
-                        __count_6 :usize
+                        total :usize
           ~>
             call :string
               callee:
                 finish_buffer :string
               arg0:
-                __buf_8 :Buffer
+                __buf_6 :Buffer
               arg1:
-                __off_9 :usize
+                __off_7 :usize
     call :void
       callee:
         show :fn(string, i32[]) -> void
@@ -478,7 +480,7 @@
           let out: i32[]! =
             array :i32[]!
           block :void
-            block :$exit$i70
+            block :$exit$i76
               if :void
                 cond:
                   eq :bool
@@ -487,9 +489,9 @@
                     r:
                       int(0) :usize
                 then:
-                  break :$exit$i70
+                  break :$exit$i76
               let i: usize = int(0) :usize
-              block :$leave80
+              block :$leave86
                 let n: usize =
                   if :usize
                     cond:
@@ -547,7 +549,7 @@
                           r:
                             n :usize
                       then:
-                        break :$leave80
+                        break :$leave86
                   step
                     assign
                       target:
@@ -565,44 +567,44 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_12: Buffer =
+          let __buf_10: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(16) :usize
-          let __off_13: usize = int(0) :usize
+          let __off_11: usize = int(0) :usize
           assign
             target:
-              __off_13 :usize
+              __off_11 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_12 :Buffer
+                  __buf_10 :Buffer
                 arg1:
-                  __off_13 :usize
+                  __off_11 :usize
                 arg2:
                   "any fused: " :string
           assign
             target:
-              __off_13 :usize
+              __off_11 :usize
             value:
               call :usize
                 callee:
                   write_bool :usize
                 arg0:
-                  __buf_12 :Buffer
+                  __buf_10 :Buffer
                 arg1:
-                  __off_13 :usize
+                  __off_11 :usize
                 arg2:
                   block :bool
                     let self: i32[]! = a :i32[]!
                     let other: i32[]! = b :i32[]!
                     let pred: fn([i32, i32]) -> bool = left_bigger :fn([i32, i32]) -> bool
-                    let __consumed_11: bool = false
-                    block :$exit$i89
+                    let __consumed_9: bool = false
+                    block :$exit$i95
                       block :void
                         let n: usize =
                           if :usize
@@ -646,10 +648,10 @@
                               then:
                                 assign
                                   target:
-                                    __consumed_11 :bool
+                                    __consumed_9 :bool
                                   value:
                                     true
-                                break :$exit$i89
+                                break :$exit$i95
                           step
                             assign
                               target:
@@ -662,26 +664,26 @@
                                     int(1) :usize
                       assign
                         target:
-                          __consumed_11 :bool
+                          __consumed_9 :bool
                         value:
                           false
                     ~>
-                      __consumed_11 :bool
+                      __consumed_9 :bool
           ~>
             call :string
               callee:
                 finish_buffer :string
               arg0:
-                __buf_12 :Buffer
+                __buf_10 :Buffer
               arg1:
-                __off_13 :usize
+                __off_11 :usize
     let found: [i32, i32]! | null =
       block :[i32, i32]! | null
         let self: i32[]! = a :i32[]!
         let other: i32[]! = b :i32[]!
         let pred: fn([i32, i32]) -> bool = left_bigger :fn([i32, i32]) -> bool
-        let __consumed_14: [i32, i32]! | null = null
-        block :$exit$i101
+        let __consumed_12: [i32, i32]! | null = null
+        block :$exit$i107
           block :void
             let n: usize =
               if :usize
@@ -725,10 +727,10 @@
                   then:
                     assign
                       target:
-                        __consumed_14 :[i32, i32]! | null
+                        __consumed_12 :[i32, i32]! | null
                       value:
                         x :[i32, i32]
-                    break :$exit$i101
+                    break :$exit$i107
               step
                 assign
                   target:
@@ -741,11 +743,11 @@
                         int(1) :usize
           assign
             target:
-              __consumed_14 :[i32, i32]! | null
+              __consumed_12 :[i32, i32]! | null
             value:
               null
         ~>
-          __consumed_14 :[i32, i32]! | null
+          __consumed_12 :[i32, i32]! | null
     if :void
       cond:
         not :bool
@@ -757,37 +759,37 @@
             std_io$println__string :void
           arg0:
             block :string
-              let __buf_15: Buffer =
+              let __buf_13: Buffer =
                 call :Buffer
                   callee:
                     new_byte_buffer :Buffer
                   arg0:
                     int(53) :usize
-              let __off_16: usize = int(0) :usize
+              let __off_14: usize = int(0) :usize
               assign
                 target:
-                  __off_16 :usize
+                  __off_14 :usize
                 value:
                   call :usize
                     callee:
                       write_string_at :usize
                     arg0:
-                      __buf_15 :Buffer
+                      __buf_13 :Buffer
                     arg1:
-                      __off_16 :usize
+                      __off_14 :usize
                     arg2:
                       "find fused: " :string
               assign
                 target:
-                  __off_16 :usize
+                  __off_14 :usize
                 value:
                   call :usize
                     callee:
                       write_int :usize
                     arg0:
-                      __buf_15 :Buffer
+                      __buf_13 :Buffer
                     arg1:
-                      __off_16 :usize
+                      __off_14 :usize
                     arg2:
                       cast → i64
                         ._0 :i32
@@ -795,28 +797,28 @@
                             found :[i32, i32]! | null
               assign
                 target:
-                  __off_16 :usize
+                  __off_14 :usize
                 value:
                   call :usize
                     callee:
                       write_string_at :usize
                     arg0:
-                      __buf_15 :Buffer
+                      __buf_13 :Buffer
                     arg1:
-                      __off_16 :usize
+                      __off_14 :usize
                     arg2:
                       " " :string
               assign
                 target:
-                  __off_16 :usize
+                  __off_14 :usize
                 value:
                   call :usize
                     callee:
                       write_int :usize
                     arg0:
-                      __buf_15 :Buffer
+                      __buf_13 :Buffer
                     arg1:
-                      __off_16 :usize
+                      __off_14 :usize
                     arg2:
                       cast → i64
                         ._1 :i32
@@ -827,15 +829,15 @@
                   callee:
                     finish_buffer :string
                   arg0:
-                    __buf_15 :Buffer
+                    __buf_13 :Buffer
                   arg1:
-                    __off_16 :usize
+                    __off_14 :usize
     let total: i32 = int(0) :i32
     block :void
       let self: i32[]! = a :i32[]!
       let other: i32[]! = b :i32[]!
       let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
-      block :$leave115
+      block :$leave121
         let n: usize =
           if :usize
             cond:
@@ -874,7 +876,7 @@
                   product :fn([i32, i32]) -> i32
                 arg0:
                   x :[i32, i32]
-            block :$resume114
+            block :$resume120
               if :void
                 cond:
                   eq :bool
@@ -883,7 +885,7 @@
                     r:
                       int(10) :i32
                 then:
-                  break :$resume114
+                  break :$resume120
               if :void
                 cond:
                   gt :bool
@@ -892,7 +894,7 @@
                     r:
                       int(15) :i32
                 then:
-                  break :$leave115
+                  break :$leave121
               assign
                 target:
                   total :i32
@@ -917,37 +919,37 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_17: Buffer =
+          let __buf_15: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(32) :usize
-          let __off_18: usize = int(0) :usize
+          let __off_16: usize = int(0) :usize
           assign
             target:
-              __off_18 :usize
+              __off_16 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_17 :Buffer
+                  __buf_15 :Buffer
                 arg1:
-                  __off_18 :usize
+                  __off_16 :usize
                 arg2:
                   "loop fused: " :string
           assign
             target:
-              __off_18 :usize
+              __off_16 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_17 :Buffer
+                  __buf_15 :Buffer
                 arg1:
-                  __off_18 :usize
+                  __off_16 :usize
                 arg2:
                   cast → i64
                     total :i32
@@ -956,9 +958,9 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_17 :Buffer
+                __buf_15 :Buffer
               arg1:
-                __off_18 :usize
+                __off_16 :usize
     block :void
       let self: i32[]! = a :i32[]!
       let other: i32[]! = b :i32[]!
@@ -995,108 +997,108 @@
                   ix:
                     i :usize
             }
-          let __gen_elem_22: [usize, [i32, i32]] =
+          let __gen_elem_20: [usize, [i32, i32]] =
             [usize, [i32, i32]]! {
               _0: i :usize
               _1: x :[i32, i32]
             }
           let i: usize =
             ._0 :usize
-              __gen_elem_22 :[usize, [i32, i32]]
+              __gen_elem_20 :[usize, [i32, i32]]
           let pair: [i32, i32]! =
             ._1 :[i32, i32]!
-              __gen_elem_22 :[usize, [i32, i32]]
+              __gen_elem_20 :[usize, [i32, i32]]
           call :void
             callee:
               std_io$println__string :void
             arg0:
               block :string
-                let __buf_20: Buffer =
+                let __buf_18: Buffer =
                   call :Buffer
                     callee:
                       new_byte_buffer :Buffer
                     arg0:
                       int(79) :usize
-                let __off_21: usize = int(0) :usize
+                let __off_19: usize = int(0) :usize
                 assign
                   target:
-                    __off_21 :usize
+                    __off_19 :usize
                   value:
                     call :usize
                       callee:
                         write_string_at :usize
                       arg0:
-                        __buf_20 :Buffer
+                        __buf_18 :Buffer
                       arg1:
-                        __off_21 :usize
+                        __off_19 :usize
                       arg2:
                         "enumerate fused: " :string
                 assign
                   target:
-                    __off_21 :usize
+                    __off_19 :usize
                   value:
                     call :usize
                       callee:
                         write_unsigned :usize
                       arg0:
-                        __buf_20 :Buffer
+                        __buf_18 :Buffer
                       arg1:
-                        __off_21 :usize
+                        __off_19 :usize
                       arg2:
                         cast → u64
                           i :usize
                 assign
                   target:
-                    __off_21 :usize
+                    __off_19 :usize
                   value:
                     call :usize
                       callee:
                         write_string_at :usize
                       arg0:
-                        __buf_20 :Buffer
+                        __buf_18 :Buffer
                       arg1:
-                        __off_21 :usize
+                        __off_19 :usize
                       arg2:
                         " " :string
                 assign
                   target:
-                    __off_21 :usize
+                    __off_19 :usize
                   value:
                     call :usize
                       callee:
                         write_int :usize
                       arg0:
-                        __buf_20 :Buffer
+                        __buf_18 :Buffer
                       arg1:
-                        __off_21 :usize
+                        __off_19 :usize
                       arg2:
                         cast → i64
                           ._0 :i32
                             pair :[i32, i32]!
                 assign
                   target:
-                    __off_21 :usize
+                    __off_19 :usize
                   value:
                     call :usize
                       callee:
                         write_string_at :usize
                       arg0:
-                        __buf_20 :Buffer
+                        __buf_18 :Buffer
                       arg1:
-                        __off_21 :usize
+                        __off_19 :usize
                       arg2:
                         " " :string
                 assign
                   target:
-                    __off_21 :usize
+                    __off_19 :usize
                   value:
                     call :usize
                       callee:
                         write_int :usize
                       arg0:
-                        __buf_20 :Buffer
+                        __buf_18 :Buffer
                       arg1:
-                        __off_21 :usize
+                        __off_19 :usize
                       arg2:
                         cast → i64
                           ._1 :i32
@@ -1106,9 +1108,9 @@
                     callee:
                       finish_buffer :string
                     arg0:
-                      __buf_20 :Buffer
+                      __buf_18 :Buffer
                     arg1:
-                      __off_21 :usize
+                      __off_19 :usize
           assign
             target:
               i :usize
@@ -1135,104 +1137,105 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_25: Buffer =
+          let __buf_22: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(33) :usize
-          let __off_26: usize = int(0) :usize
+          let __off_23: usize = int(0) :usize
           assign
             target:
-              __off_26 :usize
+              __off_23 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_25 :Buffer
+                  __buf_22 :Buffer
                 arg1:
-                  __off_26 :usize
+                  __off_23 :usize
                 arg2:
                   "empty fused: " :string
           assign
             target:
-              __off_26 :usize
+              __off_23 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_25 :Buffer
+                  __buf_22 :Buffer
                 arg1:
-                  __off_26 :usize
+                  __off_23 :usize
                 arg2:
                   cast → u64
                     block :usize
                       let self: i32[]! = a :i32[]!
                       let other: i32[] = empty :i32[]
-                      let __count_23: usize = int(0) :usize
-                      let n: usize =
-                        if :usize
-                          cond:
-                            lt :bool
-                              l:
-                                LoweredArrayLen
-                              r:
-                                LoweredArrayLen
-                          then:
-                            ~>
-                              LoweredArrayLen
-                          else:
-                            ~>
-                              LoweredArrayLen
+                      let total: usize = int(0) :usize
                       block :void
-                        let i: usize = int(0) :usize
-                        loop while (<…>)
-                          let __elem_24: [i32, i32] =
-                            [i32, i32]! {
-                              _0:
-                                index :i32
-                                  on:
-                                    self :i32[]
-                                  ix:
-                                    i :usize
-                              _1:
-                                index :i32
-                                  on:
-                                    other :i32[]
-                                  ix:
-                                    i :usize
-                            }
-                          assign
-                            target:
-                              __count_23 :usize
-                            value:
-                              add :usize
+                        let n: usize =
+                          if :usize
+                            cond:
+                              lt :bool
                                 l:
-                                  __count_23 :usize
+                                  LoweredArrayLen
                                 r:
-                                  int(1) :usize
-                        step
-                          assign
-                            target:
-                              i :usize
-                            value:
-                              add :usize
-                                l:
-                                  i :usize
-                                r:
-                                  int(1) :usize
+                                  LoweredArrayLen
+                            then:
+                              ~>
+                                LoweredArrayLen
+                            else:
+                              ~>
+                                LoweredArrayLen
+                        block :void
+                          let i: usize = int(0) :usize
+                          loop while (<…>)
+                            let _: [i32, i32] =
+                              [i32, i32]! {
+                                _0:
+                                  index :i32
+                                    on:
+                                      self :i32[]
+                                    ix:
+                                      i :usize
+                                _1:
+                                  index :i32
+                                    on:
+                                      other :i32[]
+                                    ix:
+                                      i :usize
+                              }
+                            assign
+                              target:
+                                total :usize
+                              value:
+                                add :usize
+                                  l:
+                                    total :usize
+                                  r:
+                                    int(1) :usize
+                          step
+                            assign
+                              target:
+                                i :usize
+                              value:
+                                add :usize
+                                  l:
+                                    i :usize
+                                  r:
+                                    int(1) :usize
                       ~>
-                        __count_23 :usize
+                        total :usize
           ~>
             call :string
               callee:
                 finish_buffer :string
               arg0:
-                __buf_25 :Buffer
+                __buf_22 :Buffer
               arg1:
-                __off_26 :usize
+                __off_23 :usize
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

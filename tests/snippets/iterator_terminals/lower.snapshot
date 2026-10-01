@@ -1,0 +1,282 @@
+# Lower
+
+## snippet
+  struct snippet$Countdown { remaining: i32 }
+  fn snippet$Countdown$Iterator$next(self: Countdown!) -> [i32, Continuation]!
+    if :void
+      cond:
+        lte :bool
+          l:
+            .remaining :i32
+              self :Countdown!
+          r:
+            int(0) :i32
+      then:
+        return
+          [i32, Continuation]! {
+            _0: int(0) :i32
+            _1: int(1) :u8
+          }
+    let v: i32 =
+      .remaining :i32
+        self :Countdown!
+    assign
+      target:
+        .remaining :i32
+          self :Countdown!
+      value:
+        sub :i32
+          l:
+            .remaining :i32
+              self :Countdown!
+          r:
+            int(1) :i32
+    return
+      [i32, Continuation]! {
+        _0: v :i32
+        _1: int(0) :u8
+      }
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__usize :void
+      arg0:
+        block :usize
+          let total: usize = int(0) :usize
+          block :void
+            let _: i32 = int(0) :i32
+            loop while (<…>)
+              assign
+                target:
+                  total :usize
+                value:
+                  add :usize
+                    l:
+                      total :usize
+                    r:
+                      int(1) :usize
+            step
+              assign
+                target:
+                  _ :i32
+                value:
+                  add :i32
+                    l:
+                      _ :i32
+                    r:
+                      int(1) :i32
+          ~>
+            total :usize
+    block :void
+      let __scrut_2: i32 | null =
+        block :i32 | null
+          let result: i32 | null = null
+          block :void
+            let x: i32 = int(10) :i32
+            loop while (<…>)
+              assign
+                target:
+                  result :i32 | null
+                value:
+                  x :i32
+            step
+              assign
+                target:
+                  x :i32
+                value:
+                  add :i32
+                    l:
+                      x :i32
+                    r:
+                      int(1) :i32
+          ~>
+            result :i32 | null
+      let v: i32 | null = __scrut_2 :i32 | null
+      ~>
+        if :void
+          cond:
+            is i32 :bool
+              __scrut_2 :i32 | null
+          then:
+            ~>
+              call :void
+                callee:
+                  std_io$println__i32 :void
+                arg0:
+                  cast → i32
+                    v :i32 | null
+          else:
+            ~>
+              if :void
+                cond:
+                  is null :bool
+                    __scrut_2 :i32 | null
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        std_io$println__string :void
+                      arg0:
+                        "none" :string
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    call :void
+      callee:
+        std_io$println__bool :void
+      arg0:
+        block :bool
+          let __consumed_3: bool = false
+          block :$exit$i14
+            block :void
+              let _: i32 = int(0) :i32
+              loop while (<…>)
+                assign
+                  target:
+                    __consumed_3 :bool
+                  value:
+                    false
+                break :$exit$i14
+              step
+                assign
+                  target:
+                    _ :i32
+                  value:
+                    add :i32
+                      l:
+                        _ :i32
+                      r:
+                        int(1) :i32
+            assign
+              target:
+                __consumed_3 :bool
+              value:
+                true
+          ~>
+            __consumed_3 :bool
+    call :void
+      callee:
+        std_io$println__bool :void
+      arg0:
+        block :bool
+          let __consumed_4: bool = false
+          block :$exit$i18
+            block :void
+              let _: i32 = int(0) :i32
+              loop while (<…>)
+                assign
+                  target:
+                    __consumed_4 :bool
+                  value:
+                    false
+                break :$exit$i18
+              step
+                assign
+                  target:
+                    _ :i32
+                  value:
+                    add :i32
+                      l:
+                        _ :i32
+                      r:
+                        int(1) :i32
+            assign
+              target:
+                __consumed_4 :bool
+              value:
+                true
+          ~>
+            __consumed_4 :bool
+    call :void
+      callee:
+        std_io$println__usize :void
+      arg0:
+        block :usize
+          let __fuse_iter_5: Countdown! =
+            Countdown! {
+              remaining: int(3) :i32
+            }
+          let total: usize = int(0) :usize
+          block :void
+            loop
+              let __fuse_step_0: [i32, Continuation]! =
+                call :[i32, Continuation]!
+                  callee:
+                    snippet$Countdown$Iterator$next :?
+                  arg0:
+                    __fuse_iter_5 :Countdown!
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      ._1 :Continuation
+                        __fuse_step_0 :[i32, Continuation]!
+                    r:
+                      int(1) :u8
+                then:
+                  break
+                else:
+                  let _: i32 =
+                    ._0 :i32
+                      __fuse_step_0 :[i32, Continuation]!
+                  assign
+                    target:
+                      total :usize
+                    value:
+                      add :usize
+                        l:
+                          total :usize
+                        r:
+                          int(1) :usize
+          ~>
+            total :usize
+    return int(0) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

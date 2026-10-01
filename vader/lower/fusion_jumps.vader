@@ -127,30 +127,6 @@ exit_label :: fn(ctx: FnLowerCtx!, frame: JumpFrame!) -> string {
 
 // ---- where a spliced jump lands ---------------------------------------------
 
-/// The `break` by which a terminal's loop body leaves `chain`'s loops.
-///
-/// @param chain  the chain the terminal consumes.
-/// @param span   the jump's span.
-chain_break :: fn(chain: IterChain, span: Span) -> LoweredStmt {
-    if !chain_landing(chain).breaks {
-        exit :: producer_instance(chain)
-        if exit != null {
-            return leave_instance(exit, span)
-        }
-    }
-    return LoweredBreak { .span = span, .label = null }
-}
-
-// The instance whose code `chain` emits; null for a range, an array or an
-// opaque iterator.
-producer_instance :: fn(chain: IterChain) -> InlineInstance! | null {
-    if chain.gen_source is GenSourceCall as gs {
-        return gs.instance
-    }
-    layer :: chain.gen_layer ?? return null
-    return layer.instance
-}
-
 // Whether a bare jump spliced into a chain's code lands right as written — a
 // `break` when one loop runs around the splice and nothing after it, a
 // `continue` when nothing runs between the splice and that loop's step.

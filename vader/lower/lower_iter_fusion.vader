@@ -30,10 +30,9 @@ IterChainKind :: enum(u8) {
     Array,
     Generator,
     // Concrete-iterator bottom (e.g. `chars()` → `StringChars`) driven by a
-    // `next()` step-loop — the fallback for a COMBINATOR SOURCE that is neither a
-    // Range nor an array cursor. Lets `chars().filter(p).count()` fuse instead of
-    // declining onto the broken genstate default-method dispatch. Set only via
-    // `opaque_iter_bottom` (as a combinator source). See `emit_fused_opaque_iter`.
+    // `next()` step-loop — the fallback for a combinator source, or an inlined
+    // consumer's argument, that is neither a Range nor an array. Set only via
+    // `opaque_iter_bottom`. See `emit_fused_opaque_iter`.
     OpaqueIter,
     // A call to a generator that is not a combinator — `zip(a, b)`, a user
     // generator — whose whole body is inlined at the bottom of the chain. See
@@ -105,11 +104,16 @@ try_lower_chain_fusion :: fn(
     // The loop over an inlined consumer's parameter drains the call's chain,
     // whose operands the call site bound.
     consumed :: consumed_chain(ctx, in_form.iter)
-    found :: if consumed != null { consumed } else { top_level_chain(ctx, in_form.iter) }
+    found :: if consumed != null { consumed } else { descend_chain(ctx, in_form.iter, false) }
     chain :: found ?? return null
-    // Bare ranges already hit the int-range fast path ; bypassing
-    // would lose `default_if_free` + counter-name fidelity.
-    if consumed == null && chain.kind == .Range { return null }
+    if consumed == null {
+        // Bare ranges already hit the int-range fast path ; bypassing would lose
+        // `default_if_free` + counter-name fidelity. A bare array keeps the
+        // raw-array fast path: the array bottom is only meant as a source.
+        if chain.kind == .Range || (chain.kind == .Array && chain.implicit_head) {
+            return null
+        }
+    }
     lb :: resolve_loop_binding(ctx, in_form.loop_var, for_stmt.span)
     ctx.jump_frames.push(chain_jump_frame(for_stmt.id, chain))
     body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
@@ -154,22 +158,6 @@ BodyTemplate :: struct {
     pattern:        AST.LetBinding | null = null
 }
 
-// Walk the iter expression top-down. Each layer either matches a
-// `generator` combinator call (via `try_descend_gen_combinator`) or
-// bottoms at an integer-typed `RangeExpr` / an array.
-// Anything else returns null.
-// `descend_chain` for a TOP-LEVEL consumer (a `for x in <expr>` or a terminal like
-// `<expr>.count()`). A BARE array here (`for x in arr`, `arr.collect()`) is NOT a
-// fusible chain — it keeps the raw-array fast path / the eager terminal overload.
-// The bare-array bottom is only meant as a COMBINATOR's source (`arr.map(f)`),
-// reached via `try_descend_gen_combinator` → `descend_chain` directly (which does
-// accept it). So a top-level bare `Array` bottom declines here.
-top_level_chain :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | null {
-    chain :: descend_chain(ctx, expr, false) ?? return null
-    if chain.kind == .Array && chain.implicit_head { return null }
-    return chain
-}
-
 // A concrete `Iterator` struct used as a COMBINATOR SOURCE that isn't a Range or
 // array bottom — e.g. `chars()` → `StringChars` under `.filter(p)`. Iterate it
 // via its own `next()` (a static call for a concrete struct — see
@@ -189,7 +177,7 @@ opaque_iter_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 
 // The element type of a concrete iterator struct: the typecheck's authoritative
 // `iter_element_types` side table first (keyed by display name), then the sole
-// type arg (`Range<T>`, a user iterator, a generator state struct).
+// type arg (`Range<T>`, a user iterator).
 opaque_iter_element :: fn(ctx: FnLowerCtx, t: Type) -> Type | null {
     side :: ctx.typed.iter_element_types[display_type_key(t)]
     if !(side is null) { return side }
@@ -201,9 +189,9 @@ opaque_iter_element :: fn(ctx: FnLowerCtx, t: Type) -> Type | null {
 
 // Descend a fusible iterator chain. `as_source` is true when `expr` sits UNDER a
 // combinator (its source) : a concrete-iterator bottom that isn't a Range/array
-// (`chars()`) then fuses via `opaque_iter_bottom`. A top-level receiver
-// (`as_source = false`) keeps that fallback OFF so a bare concrete-iterator
-// terminal (`s.chars().count()`) keeps its own dispatch — no output churn.
+// (`chars()`) then fuses via `opaque_iter_bottom`, as does the argument of an
+// inlined consumer. A top-level `for` (`as_source = false`) keeps that fallback
+// off: a bare concrete iterator there takes the for-in step loop.
 descend_chain :: fn(ctx: FnLowerCtx!, expr: AST.Expr, as_source: bool) -> IterChain | null {
     concrete :: descend_chain_concrete(ctx, expr)
     if concrete != null { return concrete }
@@ -409,16 +397,14 @@ bind_array_operand :: fn(
     return IterChain { ...chain, .bound_source = bound }
 }
 
-// The iterator is the loop's cursor, so it always gets a local of its own — typed
-// as the erased `Iterator<E>` so `next()` dispatches through the vtable.
+// The iterator is the loop's cursor, so it always gets a local of its own.
 bind_opaque_iter_operand :: fn(
     ctx: FnLowerCtx!, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
     out: LoweredStmt[]!,
 ) -> IterChain {
     src :: chain.iter_expr ?? return chain
     iter :: recurse(ctx, src)
-    iter_type :: erase_genstate_for_dispatch(ctx, type_of(iter), chain.element_type)
-    bound :: bind_to_local(ctx, iter, iter_type, "fuse_iter", chain.span, out)
+    bound :: bind_to_local(ctx, iter, type_of(iter), "fuse_iter", chain.span, out)
     return IterChain { ...chain, .bound_source = bound }
 }
 
@@ -472,12 +458,11 @@ emit_fused_chain :: fn(
     .GenSource  -> emit_fused_gen_source(ctx, chain, template)
 }
 
-// Emit the fused loop at an `OpaqueIter` bottom : a virtual `next()` step-loop
-// over the `Iterator`-typed receiver, structurally the un-fused for-in shape
-// (`lower_for_in`) but driven by the terminal's accumulator template instead of
-// a user body. `break` inside the template (any_match / all_match / find) exits
-// the loop ; `continue` is naturally step-safe (the next iteration re-pulls
-// `next()`).
+// Emit the fused loop at an `OpaqueIter` bottom : a `next()` step-loop over the
+// concrete iterator — a static call — structurally the un-fused for-in shape
+// (`lower_for_in`) but running the chain's template. A `break` in the template
+// exits the loop ; `continue` is naturally step-safe (the next iteration
+// re-pulls `next()`).
 emit_fused_opaque_iter :: fn(
     ctx: FnLowerCtx!, chain: IterChain, outer_span: Span,
     template: BodyTemplate,

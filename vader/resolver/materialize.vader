@@ -91,7 +91,7 @@ synth_with_body :: fn(
         .name = method.name,
         // The trait method's name span, distinct per default method — not the
         // shared `impl_.trait_name_span`, which is name-span-keyed into
-        // `impl_method_decl_types` and would collapse is_empty / count / last
+        // `impl_method_decl_types` and would collapse `lt` / `lte` / `gt` / `gte`
         // onto one return type.
         .name_span = method.name_span,
         .visibility = .Public,

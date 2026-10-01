@@ -102,17 +102,17 @@ const vader_type_info_t vader_type_info_table[19] = {
     [3] = { .slot_size = 1 },
     [4] = { .slot_size = 1 },
     [5] = { .slot_size = 8 },
-    [6] = { .slot_size = 16 },
-    [7] = {
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
+    [7] = { .slot_size = 8 },
     [8] = { .slot_size = 8 },
-    [9] = { .slot_size = 8 },
-    [10] = {
+    [9] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
+    [11] = { .slot_size = 16 },
     [12] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__i32_t), .slot_size = 8,
@@ -159,7 +159,7 @@ static uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 10u, 4u);
+    return (void*) vader_string_bytes_view(a0, 9u, 4u);
 }
 
 static uint64_t vader_host_std_core_string_Hash_hash(vader_string_t a0) {

@@ -3383,16 +3383,13 @@ The iterator trait lives in `std/core` (auto-imported). `next()` hands back a PA
 Continuation :: enum(u8) { Continue, Stop }
 
 Iterator :: trait<T> {
-    next     :: fn(self!) -> [T, Continuation]
-    is_empty :: fn(self!) -> bool                 // default — derives from next
-    count    :: fn(self!) -> usize                // default — drains, returns total
-    last     :: fn(self!) -> T | null             // default — drains, last yielded
+    next :: fn(self!) -> [T, Continuation]
 }
 ```
 
 The element beside `Stop` is **meaningless** and no consumer may read it (`for x in it` never does). An implementation returns whatever `T` it has at hand — its cursor, a spare literal — rather than manufacturing one. An implementation with no `T` to offer at all (an empty `T[]`, an unconstrained `T`) is written as a generator instead, where the lowerer supplies the type's zero: that is what `std/core::array_iter` is.
 
-`is_empty` / `count` / `last` are default methods (Layer 8d) — every Iterator impl inherits the bodies derived from `next`, the user only has to provide `next`.
+An implementation provides `next` and nothing else: everything that consumes an iterator — `count`, `last`, `is_empty`, `collect`, … — is a free function of `std/iter` over `Iterator<T>`, called with the method syntax (`it.count()`).
 
 `std/iter` provides **lazy combinators** on top of `Iterator<T>`. Each is a generator (it `yield`s) returning `Iterator<U>`: nothing is materialised until a terminal drains the stream, and chains **fuse** through their `Iterator<T>` slots down to a single loop with no intermediate arrays. There is one family — no eager `T[]`-returning overloads and no `.iter()` cursor.
 
@@ -3412,9 +3409,11 @@ zip       :: fn<T, U>(self: T[], other: U[])                 -> Iterator<[T, U]>
 ```vader
 collect  :: fn<T>(it: Iterator<T>) -> T[]                    // the way to get a T[] back
 fold     :: fn<T, U>(it: Iterator<T>, init: U, f: fn(U, T) -> U) -> U
-sum / count / is_empty                                       // whole-stream reductions
-any_match / all_match / find / find_map                      // stop on the first match
+sum / count / last                                           // whole-stream reductions
+is_empty / any_match / all_match / find / find_map           // stop on the first match
 ```
+
+A terminal is an ordinary function: it consumes its `Iterator<T>` parameter with one `for`. Any function of that shape — a user's as much as std's — fuses with the chain it is handed, down to the same single loop.
 
 The blanket `T[] implements<T> Into<Iterator<T>>` makes a raw array drop into any `Iterator<T>` slot, so the combinators resolve **directly on a bare array** — no cursor, no explicit wrap:
 

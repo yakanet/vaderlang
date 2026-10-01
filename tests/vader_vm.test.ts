@@ -115,11 +115,8 @@ const VADER_SELF_EMIT = new Set<string>([
   "custom_iter_generic",
   "custom_iter",
   "array_iter",
-  // Iterator default methods (`count` / `last` / `is_empty`) now self-host :
-  // the generic-impl default bodies + the bound primitive `Comparable` / `Step`
-  // impls are materialised, the vtable carries the primitive rows, and the
-  // cloned bodies get deterministic spans so resolve↔lower agree.
-  "iter_defaults",
+  // `count` / `last` / `is_empty` over a range and a user iterator struct.
+  "iterator_terminals",
   // Promoted 2026-05-30 : Vader self-emitted bytecode runs to the same
   // vm.snapshot oracle as the TS path (verified by full-suite run). Bytecode
   // may still diverge from TS at the .virt level (tracked separately in

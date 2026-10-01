@@ -142,46 +142,46 @@ const vader_type_info_t vader_type_info_table[29] = {
     [11] = { .slot_size = 8 },
     [12] = { .slot_size = 1 },
     [13] = { .slot_size = 1 },
-    [14] = { .slot_size = 16 },
-    [15] = {
+    [14] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
+    [15] = { .slot_size = 8 },
     [16] = { .slot_size = 8 },
-    [17] = { .slot_size = 8 },
-    [18] = {
+    [17] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [19] = {
+    [18] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_async_JoinAll__i32_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_async_JoinAll__i32_t, f_children), offsetof(vader_struct_std_async_JoinAll__i32_t, f_results) },
         .ref_count = 2,
     },
+    [19] = { .slot_size = 16 },
     [20] = { .slot_size = 16 },
-    [21] = { .slot_size = 16 },
-    [22] = {
+    [21] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_async_Sleep_t),
         .slot_size = 8,
     },
-    [23] = { .slot_size = 16 },
-    [24] = {
+    [22] = { .slot_size = 16 },
+    [23] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [25] = { .slot_size = 16 },
-    [26] = {
+    [24] = { .slot_size = 16 },
+    [25] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_index) },
         .ref_count = 3,
     },
-    [27] = { .slot_size = 8 },
-    [28] = {
+    [26] = { .slot_size = 8 },
+    [27] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
+    [28] = { .slot_size = 16 },
 };
 const size_t vader_type_info_count = 29;
 
@@ -193,7 +193,7 @@ static size_t vader_host_std_core_byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 18u, 13u);
+    return (void*) vader_string_bytes_view(a0, 17u, 13u);
 }
 
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) {
@@ -487,7 +487,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                                     l16 = snippet_mk(INT32_C(3));
                                     l17 = snippet_mk(INT32_C(1));
                                     l18 = snippet_mk(INT32_C(2));
-                                    vader_array_t* _a2_arr = vader_array_new(24u, 3u, 0u, 2u);
+                                    vader_array_t* _a2_arr = vader_array_new(23u, 3u, 0u, 2u);
                                     vader_array_box_slots(_a2_arr->buf)[_a2_arr->offset + 2u] = l18;
                                     vader_array_box_slots(_a2_arr->buf)[_a2_arr->offset + 1u] = l17;
                                     vader_array_box_slots(_a2_arr->buf)[_a2_arr->offset + 0u] = l16;
@@ -867,7 +867,7 @@ static vader_box_t std_async_sleep(int64_t l0) {
     vader_gc_top = &gc_frame;
 #line 55 "lib/std/async/async.vader"
     vader_struct_std_async_Sleep_t* _a0_obj = (vader_struct_std_async_Sleep_t*) vader_gc_alloc(sizeof(vader_struct_std_async_Sleep_t));
-    vader_obj_header_init(_a0_obj, 22u);
+    vader_obj_header_init(_a0_obj, 21u);
     _a0_obj->f_ms = l0;
     _a0_obj->f_deadline = INT64_C(0);
     _a0_obj->f_armed = false;
@@ -970,7 +970,7 @@ static vader_box_t std_async_join_all__i32(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 54 "lib/std/collections/collections.vader"
-    vader_array_t* _a0_arr = vader_array_new(28u, 0u, 4u, 11u);
+    vader_array_t* _a0_arr = vader_array_new(27u, 0u, 4u, 11u);
     l1 = (void*) _a0_arr;
 #line 57 "lib/std/collections/collections.vader"
     vader_array_t* _a1_arr = vader_array_new(10u, 0u, 7u, 1u);
@@ -980,7 +980,7 @@ static vader_box_t std_async_join_all__i32(void* l0) {
     l3 = (void*) _a2_arr;
 #line 137 "lib/std/async/async.vader"
     vader_struct_std_collections_MutableMap__usize__i32_t* _a3_obj = (vader_struct_std_collections_MutableMap__usize__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__usize__i32_t));
-    vader_obj_header_init(_a3_obj, 26u);
+    vader_obj_header_init(_a3_obj, 25u);
     _a3_obj->f_ekeys = l1;
     _a3_obj->f_evals = l2;
     _a3_obj->f_index = l3;
@@ -990,7 +990,7 @@ static vader_box_t std_async_join_all__i32(void* l0) {
     l1 = (void*) _a3_obj;
 #line 135 "lib/std/async/async.vader"
     vader_struct_std_async_JoinAll__i32_t* _a4_obj = (vader_struct_std_async_JoinAll__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_async_JoinAll__i32_t));
-    vader_obj_header_init(_a4_obj, 19u);
+    vader_obj_header_init(_a4_obj, 18u);
     _a4_obj->f_children = l0;
     _a4_obj->f_results = l1;
     t0 = (void*) _a4_obj;
@@ -1510,8 +1510,8 @@ static vader_box_t vader_vt_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
         case 3u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         case 7u: return snippet___asyncstate_snippet_1_Async_resume(recv.payload.obj);
-        case 19u: return std_async_JoinAll_Async_resume__i32(recv.payload.obj);
-        case 22u: return std_async_Sleep_Async_resume(recv.payload.obj);
+        case 18u: return std_async_JoinAll_Async_resume__i32(recv.payload.obj);
+        case 21u: return std_async_Sleep_Async_resume(recv.payload.obj);
         default: vader_unreachable("vtable miss in Async.resume");
     }
     vader_unreachable("vtable miss in Async.resume");
@@ -1521,8 +1521,8 @@ static void vader_vt_Async__cancel(vader_box_t recv) {
     switch (recv.tag) {
         case 3u: snippet___asyncstate_snippet_0_Async_cancel(recv.payload.obj); return;
         case 7u: snippet___asyncstate_snippet_1_Async_cancel(recv.payload.obj); return;
-        case 19u: std_async_JoinAll_Async_cancel__i32(recv.payload.obj); return;
-        case 22u: std_async_Sleep_Async_cancel(recv.payload.obj); return;
+        case 18u: std_async_JoinAll_Async_cancel__i32(recv.payload.obj); return;
+        case 21u: std_async_Sleep_Async_cancel(recv.payload.obj); return;
         default: vader_unreachable("vtable miss in Async.cancel");
     }
 }

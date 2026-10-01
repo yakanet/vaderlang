@@ -15,6 +15,14 @@
       "decorators": []
     },
     {
+      "kind": "ImportDecl",
+      "path": "std/iter",
+      "binding": {
+        "kind": "wildcard"
+      },
+      "decorators": []
+    },
+    {
       "kind": "StructDecl",
       "name": "Countdown",
       "visibility": "private",

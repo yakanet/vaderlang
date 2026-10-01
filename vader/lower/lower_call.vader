@@ -45,13 +45,10 @@ mark_produced_structs :: fn(t: Type, ctx: FnLowerCtx!) -> void {
 
 lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
     mark_produced_structs(type, ctx)
-    // A call consuming a fusible chain — a fn iterating its `Iterator` parameter
-    // once, or an `Iterator` default — becomes the chain's loop, before the call
-    // itself is formed. Both decline (null) for any other call.
+    // A call to a fn iterating its `Iterator` parameter once, handed a fusible
+    // chain, becomes the chain's loop before the call itself is formed.
     consumer_form :: try_inline_consumer(ctx, call, type)
     if consumer_form != null { return consumer_form }
-    terminal_form :: try_lower_terminal_fusion(ctx, call)
-    if terminal_form != null { return terminal_form }
     array_form :: try_lower_array_op(ctx, call, type)
     if array_form != null { return array_form }
     namespace_form :: try_lower_namespace_call(ctx, call, type)

@@ -142,7 +142,7 @@
   expr 78:38    IdentExpr      :: fn(i32) -> bool
   expr 79:13    StringLitExpr  :: string
   expr 79:36    CallExpr       :: i32 | null
-  expr 79:36    FieldExpr      :: fn() -> i32 | null
+  expr 79:36    FieldExpr      :: fn() -> null | T
   expr 79:36    IdentExpr      :: __genstate_filter<i32>!
   expr 79:36    NullCoalesceExpr :: i32
   expr 79:5     CallExpr       :: void
@@ -162,7 +162,7 @@
   expr 81:13    StringLitExpr  :: string
   expr 81:27    CallExpr       :: __genstate_map<i32>!
   expr 81:27    CallExpr       :: i32 | null
-  expr 81:27    FieldExpr      :: fn() -> i32 | null
+  expr 81:27    FieldExpr      :: fn() -> null | T
   expr 81:27    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 81:27    NullCoalesceExpr :: i32
   expr 81:27    SeqLitExpr     :: i32[]!

@@ -320,8 +320,8 @@ try_trait_method_dispatch :: fn(
 }
 
 // Struct that implements a trait carrying a same-named method WITH a
-// default body (`Iterator.count` / `Iterator.is_empty`) — synthesise
-// the dispatch from the trait method's signature.
+// default body (`Equals.not_equals`, `Comparable.lt`) — synthesise the
+// dispatch from the trait method's signature.
 try_default_trait_method_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
@@ -1052,8 +1052,8 @@ dispatch_bounded_method :: fn(
 /// curried signature with `Self → struct_ty`. Trait type-args aren't
 /// recovered (`struct_implemented_traits` only stores trait names),
 /// so methods that reference the trait's `T` come back unsubstituted —
-/// good enough for std/string's `len = s.chars().count()`
-/// where `count :: fn(self) -> usize` doesn't mention `T`.
+/// good enough for a default whose signature names only `Self`
+/// (`not_equals :: fn(self, other: Self) -> bool`).
 try_default_trait_method :: fn(
     target_ty: StructType,
     name: string,
@@ -1079,8 +1079,8 @@ try_default_trait_method :: fn(
             }
             ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
             // Substitute Self → struct, then trait type-params →
-            // recorded impl args. Lets `(0..<5).last()` report
-            // `i32 | null` instead of `T | null`.
+            // recorded impl args, so a default naming the trait's `T`
+            // reports the impl's argument instead.
             sub_self :: substitute_self(member_fn_type(m, params, ret), target_ty)
             return substitute_trait_typeparams(sub_self, decl, trait_name, target_ty, typed)
         }
@@ -1098,18 +1098,12 @@ substitute_trait_typeparams :: fn(
     if trait_decl.type_params.len() == 0 {
         return t
     }
-    // A generator's state struct has no `struct_decl` to substitute its impl's
-    // args against: it carries its element as its sole type arg
-    // (`<fn>$State<E> implements Iterator<E>`), which `for_in_element` reads too.
-    if is_gen_state_struct(target_ty) && target_ty.args.len() == 1 {
-        return substitute_by_name(t, trait_decl.type_params, target_ty.args)
-    }
     per_struct :: typed.struct_trait_args[target_ty.symbol.name] ?? return t
     impl_args :: per_struct[trait_name] ?? return t
     // The impl args might themselves reference TypeParams from the
     // implementing struct (`Range<T> implements Iterator<T>` records
     // `[T]` where T is Range's). Resolve those against the receiver's
-    // concrete args first so `(10..=15).last()` ends up `i32 | null`.
+    // concrete args first, so `Range<i32>` substitutes `i32`.
     resolved_args: Type[]!: []
     struct_decl :: typed.struct_decls[target_ty.symbol.id]
     for a in impl_args {

@@ -378,7 +378,11 @@ assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr, span: Span
     if type == TY_VOID {
         return LoweredExprStmt { .span = span, .expr = value }
     }
-    return assign_result(result, type, value, span)
+    return LoweredAssign {
+        .span = span,
+        .target = synth_ident(result, type, span),
+        .value = value,
+    }
 }
 
 /// The value of a `return` in an inlined consumer, assigned to the call's

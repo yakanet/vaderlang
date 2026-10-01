@@ -10,18 +10,15 @@
 //     stays `T[]`/`U[]` (its lockstep pull needs indexed access, unlike the
 //     source-driven combinators). Their tuple elements destructure in `for [x, y]
 //     in`. The generator's state machine only materialises when the value escapes.
-//   - **Terminals** `collect` / `fold` / `sum` / `any_match` / `all_match` / `find` /
-//     `find_map` take an `Iterator<T>` and consume it (a raw array auto-coerces
-//     at the call site). `count` / `is_empty` / `last` are the `Iterator` trait's
-//     own default methods (`std/core`).
-//   - **Array helpers** `clone` / `is_empty` take a `T[]`. For a plain array
-//     prefer the built-ins : `arr.len()`, `arr[start..<end]`, `arr.clone()`
-//     (not the removed `count`/`slice`/eager-`collect`).
+//   - **Terminals** `collect` / `fold` / `sum` / `count` / `last` / `is_empty` /
+//     `any_match` / `all_match` / `find` / `find_map` take an `Iterator<T>` and
+//     consume it with one `for` (a raw array auto-coerces at the call site) ; over
+//     a chain, the call inlines into the fused loop.
+//   - **Array helpers** `clone` / `is_empty` / `count` / `last` take a `T[]`, in
+//     O(1). For a plain array prefer the built-ins : `arr.len()`,
+//     `arr[start..<end]`, `arr.clone()` (not the removed `slice` / eager `collect`).
 
 module "std/iter"
-
-// `count` : use `arr.len()` for an array (O(1)) ; `it.count()` is the
-// `Iterator` trait's default method for a lazy chain (consumes it, O(n)).
 
 /// True when `arr` carries no elements. Cheap one-liner — saves the
 /// `.len() == usize(0)` boilerplate that polluted call sites.
@@ -29,6 +26,55 @@ module "std/iter"
 /// @param arr  source array.
 /// @return     true when `arr.len() == 0`.
 export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == 0
+
+/// True when `it` yields nothing. Pulls one element at most, with no peek: a
+/// `false` result has consumed the first one.
+///
+/// @param it  source iterator.
+export is_empty :: fn<T>(it: Iterator<T>) -> bool {
+    for _ in it {
+        return false
+    }
+    return true
+}
+
+/// How many elements `arr` holds — its length, O(1).
+///
+/// @param arr  source array.
+export count :: fn<T>(arr: T[]) -> usize = arr.len()
+
+/// Drain `it`, returning how many elements it yielded — O(n).
+///
+/// @param it  source iterator.
+export count :: fn<T>(it: Iterator<T>) -> usize {
+    total: usize = 0
+    for _ in it {
+        total += 1
+    }
+    return total
+}
+
+/// The last element of `arr`, or `null` when it is empty — O(1).
+///
+/// @param arr  source array.
+export last :: fn<T>(arr: T[]) -> T | null {
+    n :: arr.len()
+    if n == 0 {
+        return null
+    }
+    return arr[n - 1]
+}
+
+/// Drain `it`, returning its last element, or `null` when it yields none.
+///
+/// @param it  source iterator.
+export last :: fn<T>(it: Iterator<T>) -> T | null {
+    result: T | null = null
+    for x in it {
+        result = x
+    }
+    return result
+}
 
 // `collect` on an array is `arr.clone()` (built-in) ; the only `collect` here
 // is the Iterator terminal below — drains a lazy chain into a fresh array.
@@ -301,10 +347,26 @@ export skip :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
 import "std/testing"
 
 @test test_count :: fn() -> void {
-    // `count` is the `Iterator` trait's default terminal — exercise it over a
-    // lazy chain (an array uses the O(1) built-in `arr.len()` instead).
     assert_eq((0..<3).count(), 3)
     assert_eq((0..<0).count(), 0)
+}
+
+@test test_last :: fn() -> void {
+    assert_eq((0..<3).last() ?? -1, 2)
+    assert_eq((0..<0).last() ?? -1, -1)
+}
+
+@test test_count_and_last_of_an_array :: fn() -> void {
+    xs :: [4, 5, 6]
+    assert_eq(xs.count(), 3)
+    assert_eq(xs.last() ?? -1, 6)
+    empty: i32[]: []
+    assert_eq(empty.last() ?? -1, -1)
+}
+
+@test test_is_empty_iterator :: fn() -> void {
+    assert((0..<0).is_empty(), "an empty range")
+    assert(!(0..<3).is_empty(), "a range with elements")
 }
 
 @test test_sum :: fn() -> void {

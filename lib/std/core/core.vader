@@ -168,9 +168,9 @@ export Continuation :: enum(u8) {
 }
 
 /// Pull-based iterator. The lowerer dispatches `for x in iter` through
-/// the impl table — users never call `next` directly. `count` / `last` /
-/// `is_empty` are default methods derived from `next` (Layer 8d) ; every
-/// `Iterator` impl picks them up without re-implementing.
+/// the impl table — users never call `next` directly. What consumes one —
+/// `count`, `last`, `collect`, `find`… — is a free function over
+/// `Iterator<T>` in `std/iter`, a `for` over its argument.
 ///
 /// `next()` hands back the element and whether the iteration goes on. A PAIR
 /// rather than a wrapper around a nullable: the pair crosses the call in
@@ -183,43 +183,6 @@ export Continuation :: enum(u8) {
 /// may read it before testing the `Continuation`.
 export Iterator :: trait<T> {
     next :: fn(self!) -> [T, Continuation]
-
-    // True iff the next `next()` call stops. Drains exactly one step ; a
-    // `false` result has *consumed* the first yielded item already (the
-    // iterator is one step ahead from the caller's perspective). Reflects the
-    // pull-based shape — there's no peek without an internal buffer.
-    is_empty :: fn(self!) -> bool {
-        [_, c] :: self.next()
-        return c == .Stop
-    }
-
-    // Drain the iterator, returning the count of yielded items. Consumes
-    // self ; the iterator is exhausted after this call.
-    count :: fn(self!) -> usize {
-        total: usize = 0
-        for {
-            [_, c] :: self.next()
-            if c == .Stop {
-                break
-            }
-            total += 1
-        }
-        return total
-    }
-
-    // Drain the iterator, returning the last yielded item or `null` if it
-    // was empty. Consumes self.
-    last :: fn(self!) -> T | null {
-        result: T | null = null
-        for {
-            [v, c] :: self.next()
-            if c == .Stop {
-                break
-            }
-            result = v
-        }
-        return result
-    }
 }
 
 /// Base trait for every error type usable in `T | Error` returns and the

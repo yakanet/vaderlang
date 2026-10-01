@@ -16,48 +16,48 @@ type 13 array 1
 type 14 primitive usize
 type 15 primitive bool
 type 16 primitive u8
-type 17 union 1,0
-type 18 struct std_core$Buffer {  }
-type 19 primitive i64
-type 20 primitive u64
-type 21 array 16
-type 22 struct std_async$JoinAll__i32 { children:27,results:29 }
-type 23 union 13,7
-type 24 ref Async
-type 25 struct std_async$Sleep { ms:19,deadline:19,armed:15 }
-type 26 union 0,7
-type 27 array 2
-type 28 ref Async
-type 29 struct std_collections$MutableMap__usize__i32 { ekeys:31,evals:13,index:13,mask:14,size:14,tombs:14 }
-type 30 primitive isize
-type 31 array 14
+type 17 struct std_core$Buffer {  }
+type 18 primitive i64
+type 19 primitive u64
+type 20 array 16
+type 21 struct std_async$JoinAll__i32 { children:26,results:28 }
+type 22 union 13,7
+type 23 ref Async
+type 24 struct std_async$Sleep { ms:18,deadline:18,armed:15 }
+type 25 union 0,7
+type 26 array 2
+type 27 ref Async
+type 28 struct std_collections$MutableMap__usize__i32 { ekeys:30,evals:13,index:13,mask:14,size:14,tombs:14 }
+type 29 primitive isize
+type 30 array 14
+type 31 union 1,0
 type 32 struct $Cell_i32 { value:1 }
 string 0 "\n"
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len result_type=14 param_types=9 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=21 param_types=9 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=30 param_types=1,21,14 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-import 3 sched_now std_runtime$sched_now result_type=19 () -> i64
-import 4 sched_arm std_runtime$sched_arm result_type=4 param_types=19 param_mutable=0 param_by_address= (i64) -> void
+import 1 bytes std_core$bytes result_type=20 param_types=9 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=29 param_types=1,20,14 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 sched_now std_runtime$sched_now result_type=18 () -> i64
+import 4 sched_arm std_runtime$sched_arm result_type=4 param_types=18 param_mutable=0 param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=1 () -> i32
 import 6 panic std_abort$panic result_type=4 param_types=9 param_mutable=0 param_by_address= (string) -> void
 impl 5 Async
 impl 8 Async
-impl 18 ByteAccess
-impl 22 Async
-impl 25 Async
-impl 29 Index
-impl 29 IndexSet
-impl 29 Contains
-impl 29 Into
+impl 17 ByteAccess
+impl 21 Async
+impl 24 Async
+impl 28 Index
+impl 28 IndexSet
+impl 28 Contains
+impl 28 Into
 vtable Async.resume 5 3
 vtable Async.resume 8 5
-vtable Async.resume 22 15
-vtable Async.resume 25 19
+vtable Async.resume 21 15
+vtable Async.resume 24 19
 vtable Async.cancel 5 4
 vtable Async.cancel 8 6
-vtable Async.cancel 22 16
-vtable Async.cancel 25 20
+vtable Async.cancel 21 16
+vtable Async.cancel 24 20
 export main 1
 
 fn 0 snippet$worker (i32,i32) -> any
@@ -550,7 +550,7 @@ fn 5 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
                     local.set 17   ; $call_72
                     local.get 16   ; $call_69
                     local.get 17   ; $call_72
-                    array.new 27 2   ; ref Async[][]
+                    array.new 26 2   ; ref Async[][]
                     call 22   ; std_async$join_all__i32
                     local.set 18   ; $cast_75
                     local.get 0   ; arg 0
@@ -792,7 +792,7 @@ fn 12 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 21   ; u8[][]
+      array.slice 20   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -857,7 +857,7 @@ fn 15 std_async$JoinAll$Async$resume__i32 (ref) -> any
   local r any
   local $field_18 ref
   local $cast_19 i32
-  local.field 0 22 0   ; arg 0.children
+  local.field 0 21 0   ; arg 0.children
   array.len
   local.set 1   ; n
   i64.const 0
@@ -868,7 +868,7 @@ fn 15 std_async$JoinAll$Async$resume__i32 (ref) -> any
       local.get 1   ; n
       u64.lt
       if $L2 void
-        local.field 0 22 1   ; arg 0.results
+        local.field 0 21 1   ; arg 0.results
         local.get 2   ; i
         call 25   ; std_collections$MutableMap$Contains$contains__usize__i32
         if $L3 void
@@ -878,9 +878,9 @@ fn 15 std_async$JoinAll$Async$resume__i32 (ref) -> any
           local.set 2   ; i
           br $L1
         end $L3
-        local.field 0 22 0   ; arg 0.children
+        local.field 0 21 0   ; arg 0.children
         local.get 2   ; i
-        array.get 27   ; ref Async[][]
+        array.get 26   ; ref Async[][]
         virtual.call 1 Async.resume
         local.tee 3   ; r
         type_check 7   ; std_core$Suspended
@@ -891,7 +891,7 @@ fn 15 std_async$JoinAll$Async$resume__i32 (ref) -> any
           local.set 2   ; i
           br $L1
         end $L4
-        local.field 0 22 1   ; arg 0.results
+        local.field 0 21 1   ; arg 0.results
         local.set 4   ; $field_18
         local.get 3   ; r
         ref.cast 1   ; -> i32
@@ -908,7 +908,7 @@ fn 15 std_async$JoinAll$Async$resume__i32 (ref) -> any
       end $L2
     end $L1
   end $L0
-  local.field 0 22 1   ; arg 0.results
+  local.field 0 21 1   ; arg 0.results
   call 33   ; std_collections$len__usize__i32
   local.get 1   ; n
   i64.ne
@@ -926,7 +926,7 @@ fn 15 std_async$JoinAll$Async$resume__i32 (ref) -> any
       local.get 1   ; n
       u64.lt
       if $L8 void
-        local.field 0 22 1   ; arg 0.results
+        local.field 0 21 1   ; arg 0.results
         local.get 2   ; i
         call 23   ; std_collections$MutableMap$Index$at__usize__i32
         local.tee 3   ; r
@@ -956,7 +956,7 @@ fn 16 std_async$JoinAll$Async$cancel__i32 (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local.field 0 22 0   ; arg 0.children
+  local.field 0 21 0   ; arg 0.children
   local.tee 1   ; __for_arr_0
   array.len
   local.set 2   ; __for_len_1
@@ -970,7 +970,7 @@ fn 16 std_async$JoinAll$Async$cancel__i32 (ref) -> void
       if $L2 void
         local.get 1   ; __for_arr_0
         local.get 3   ; __for_i_2
-        array.get 27   ; ref Async[][]
+        array.get 26   ; ref Async[][]
         virtual.call 1 Async.cancel
         local.get 3   ; __for_i_2
         i64.const 1
@@ -987,7 +987,7 @@ fn 17 std_async$sleep (i64) -> any
   local.get 0   ; arg 0
   i64.const 0
   bool.const false
-  struct.new 25   ; std_async$Sleep
+  struct.new 24   ; std_async$Sleep
   return
 end
 
@@ -1000,17 +1000,17 @@ end
 fn 19 std_async$Sleep$Async$resume (ref) -> any
   local $call_4 i64
   local $field_5 i64
-  local.field 0 25 2   ; arg 0.armed
+  local.field 0 24 2   ; arg 0.armed
   ref.cast 15   ; -> bool
   bool.not
   if $L0 void
     local.get 0   ; arg 0
     bool.const true
-    struct.set 25 2   ; std_async$Sleep.armed
+    struct.set 24 2   ; std_async$Sleep.armed
     call.import 3   ; std_runtime$sched_now
     local.set 1   ; $call_4
-    local.field 0 25 0   ; arg 0.ms
-    ref.cast 19   ; -> i64
+    local.field 0 24 0   ; arg 0.ms
+    ref.cast 18   ; -> i64
     local.set 2   ; $field_5
     local.get 1   ; $call_4
     local.get 2   ; $field_5
@@ -1018,15 +1018,15 @@ fn 19 std_async$Sleep$Async$resume (ref) -> any
     local.set 1   ; $call_4
     local.get 0   ; arg 0
     local.get 1   ; $call_4
-    struct.set 25 1   ; std_async$Sleep.deadline
-    local.field 0 25 1   ; arg 0.deadline
-    ref.cast 19   ; -> i64
+    struct.set 24 1   ; std_async$Sleep.deadline
+    local.field 0 24 1   ; arg 0.deadline
+    ref.cast 18   ; -> i64
     call.import 4   ; std_runtime$sched_arm
   end $L0
   call.import 3   ; std_runtime$sched_now
   local.set 1   ; $call_4
-  local.field 0 25 1   ; arg 0.deadline
-  ref.cast 19   ; -> i64
+  local.field 0 24 1   ; arg 0.deadline
+  ref.cast 18   ; -> i64
   local.set 2   ; $field_5
   local.get 1   ; $call_4
   local.get 2   ; $field_5
@@ -1076,7 +1076,7 @@ fn 22 std_async$join_all__i32 (ref) -> any
   local $arr_1 ref
   local $arr_2 ref
   local $arr_3 ref
-  array.new 31 0   ; usize[][]
+  array.new 30 0   ; usize[][]
   local.set 1   ; $arr_1
   array.new 13 0   ; i32[][]
   local.set 2   ; $arr_2
@@ -1088,11 +1088,11 @@ fn 22 std_async$join_all__i32 (ref) -> any
   i64.const 0
   i64.const 0
   i64.const 0
-  struct.new 29   ; std_collections$MutableMap__usize__i32
+  struct.new 28   ; std_collections$MutableMap__usize__i32
   local.set 1   ; $arr_1
   local.get 0   ; arg 0
   local.get 1   ; $arr_1
-  struct.new 22   ; std_async$JoinAll__i32
+  struct.new 21   ; std_async$JoinAll__i32
   return
 end
 
@@ -1129,7 +1129,7 @@ end
 fn 27 std_collections$ensure_index__usize__i32 (ref) -> void
   local idx ref
   local __for_discard_0 usize
-  local.field 0 29 2   ; arg 0.index
+  local.field 0 28 2   ; arg 0.index
   array.len
   i64.const 0
   i64.eq
@@ -1157,12 +1157,12 @@ fn 27 std_collections$ensure_index__usize__i32 (ref) -> void
     end $L1
     local.get 0   ; arg 0
     local.get 1   ; idx
-    struct.set 29 2   ; std_collections$MutableMap__usize__i32.index
+    struct.set 28 2   ; std_collections$MutableMap__usize__i32.index
     i64.const 15
     local.set 2   ; __for_discard_0
     local.get 0   ; arg 0
     local.get 2   ; __for_discard_0
-    struct.set 29 3   ; std_collections$MutableMap__usize__i32.mask
+    struct.set 28 3   ; std_collections$MutableMap__usize__i32.mask
   end $L0
   return
 end
@@ -1201,7 +1201,7 @@ fn 28 std_collections$rehash__usize__i32 (ref,usize) -> void
   local.set 3   ; __for_discard_0
   i64.const 0
   local.set 4   ; e
-  local.field 0 29 4   ; arg 0.size
+  local.field 0 28 4   ; arg 0.size
   ref.cast 14   ; -> usize
   local.set 5   ; __for_hi_1
   block $L3 void
@@ -1210,7 +1210,7 @@ fn 28 std_collections$rehash__usize__i32 (ref,usize) -> void
       local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
-        local.field 0 29 0   ; arg 0.ekeys
+        local.field 0 28 0   ; arg 0.ekeys
         local.get 4   ; e
         load_slot_i64
         call 11   ; std_core$usize$Hash$hash
@@ -1254,13 +1254,13 @@ fn 28 std_collections$rehash__usize__i32 (ref,usize) -> void
   end $L3
   local.get 0   ; arg 0
   local.get 2   ; fresh
-  struct.set 29 2   ; std_collections$MutableMap__usize__i32.index
+  struct.set 28 2   ; std_collections$MutableMap__usize__i32.index
   local.get 0   ; arg 0
   local.get 3   ; __for_discard_0
-  struct.set 29 3   ; std_collections$MutableMap__usize__i32.mask
+  struct.set 28 3   ; std_collections$MutableMap__usize__i32.mask
   local.get 0   ; arg 0
   i64.const 0
-  struct.set 29 5   ; std_collections$MutableMap__usize__i32.tombs
+  struct.set 28 5   ; std_collections$MutableMap__usize__i32.tombs
   return
 end
 
@@ -1268,28 +1268,28 @@ fn 29 std_collections$write_entry__usize__i32 (ref,usize,i32) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
-  local.field 0 29 4   ; arg 0.size
+  local.field 0 28 4   ; arg 0.size
   ref.cast 14   ; -> usize
   local.set 3   ; $field_3
-  local.field 0 29 0   ; arg 0.ekeys
+  local.field 0 28 0   ; arg 0.ekeys
   array.len
   local.set 4   ; $len_5
   local.get 3   ; $field_3
   local.get 4   ; $len_5
   u64.lt
   if $L0 void
-    local.field 0 29 0   ; arg 0.ekeys
+    local.field 0 28 0   ; arg 0.ekeys
     local.set 5   ; $field_7
-    local.field 0 29 4   ; arg 0.size
+    local.field 0 28 4   ; arg 0.size
     ref.cast 14   ; -> usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 1   ; arg 1
     store_slot_i64
-    local.field 0 29 1   ; arg 0.evals
+    local.field 0 28 1   ; arg 0.evals
     local.set 5   ; $field_7
-    local.field 0 29 4   ; arg 0.size
+    local.field 0 28 4   ; arg 0.size
     ref.cast 14   ; -> usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
@@ -1297,10 +1297,10 @@ fn 29 std_collections$write_entry__usize__i32 (ref,usize,i32) -> void
     local.get 2   ; arg 2
     store_slot_i32
   else
-    local.field 0 29 0   ; arg 0.ekeys
+    local.field 0 28 0   ; arg 0.ekeys
     local.get 1   ; arg 1
     array.push 14   ; usize[]
-    local.field 0 29 1   ; arg 0.evals
+    local.field 0 28 1   ; arg 0.evals
     local.get 2   ; arg 2
     array.push 1   ; i32[]
   end $L0
@@ -1318,10 +1318,10 @@ fn 30 std_collections$put__usize__i32 (ref,usize,i32) -> void
   local $cast_73 i32
   local.get 0   ; arg 0
   call 27   ; std_collections$ensure_index__usize__i32
-  local.field 0 29 4   ; arg 0.size
+  local.field 0 28 4   ; arg 0.size
   ref.cast 14   ; -> usize
   local.set 3   ; $field_3
-  local.field 0 29 5   ; arg 0.tombs
+  local.field 0 28 5   ; arg 0.tombs
   ref.cast 14   ; -> usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
@@ -1332,7 +1332,7 @@ fn 30 std_collections$put__usize__i32 (ref,usize,i32) -> void
   i64.const 4
   i64.mul
   local.set 3   ; $field_3
-  local.field 0 29 3   ; arg 0.mask
+  local.field 0 28 3   ; arg 0.mask
   ref.cast 14   ; -> usize
   i64.const 1
   i64.add
@@ -1347,7 +1347,7 @@ fn 30 std_collections$put__usize__i32 (ref,usize,i32) -> void
     local.set 3   ; $field_3
     block $L1 void
       loop $L2 void
-        local.field 0 29 4   ; arg 0.size
+        local.field 0 28 4   ; arg 0.size
         ref.cast 14   ; -> usize
         i64.const 1
         i64.add
@@ -1377,7 +1377,7 @@ fn 30 std_collections$put__usize__i32 (ref,usize,i32) -> void
   local.get 1   ; arg 1
   call 11   ; std_core$usize$Hash$hash
   local.set 6   ; $call_28
-  local.field 0 29 3   ; arg 0.mask
+  local.field 0 28 3   ; arg 0.mask
   ref.cast 14   ; -> usize
   local.set 3   ; $field_3
   local.get 6   ; $call_28
@@ -1389,13 +1389,13 @@ fn 30 std_collections$put__usize__i32 (ref,usize,i32) -> void
   local.set 7   ; first_tomb
   block $L4 void
     loop $L5 void
-      local.field 0 29 2   ; arg 0.index
+      local.field 0 28 2   ; arg 0.index
       local.get 3   ; $field_3
       load_slot_i32
       i32.const 0
       i32.ne
       if $L6 void
-        local.field 0 29 2   ; arg 0.index
+        local.field 0 28 2   ; arg 0.index
         local.get 3   ; $field_3
         load_slot_i32
         i32.const -1
@@ -1410,20 +1410,20 @@ fn 30 std_collections$put__usize__i32 (ref,usize,i32) -> void
             local.set 7   ; first_tomb
           end $L8
         else
-          local.field 0 29 2   ; arg 0.index
+          local.field 0 28 2   ; arg 0.index
           local.get 3   ; $field_3
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; $field_4
-          local.field 0 29 0   ; arg 0.ekeys
+          local.field 0 28 0   ; arg 0.ekeys
           local.get 4   ; $field_4
           load_slot_i64
           local.get 1   ; arg 1
           i64.eq
           if $L9 void
-            local.field 0 29 1   ; arg 0.evals
+            local.field 0 28 1   ; arg 0.evals
             local.get 4   ; $field_4
             local.get 2   ; arg 2
             store_slot_i32
@@ -1434,7 +1434,7 @@ fn 30 std_collections$put__usize__i32 (ref,usize,i32) -> void
         i64.const 1
         i64.add
         local.set 5   ; $mul_24
-        local.field 0 29 3   ; arg 0.mask
+        local.field 0 28 3   ; arg 0.mask
         ref.cast 14   ; -> usize
         local.set 8   ; $field_58
         local.get 5   ; $mul_24
@@ -1460,22 +1460,22 @@ fn 30 std_collections$put__usize__i32 (ref,usize,i32) -> void
   i64.const 0
   i64.ge
   if $L11 void
-    local.field 0 29 5   ; arg 0.tombs
+    local.field 0 28 5   ; arg 0.tombs
     ref.cast 14   ; -> usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
     local.get 0   ; arg 0
     local.get 3   ; $field_3
-    struct.set 29 5   ; std_collections$MutableMap__usize__i32.tombs
+    struct.set 28 5   ; std_collections$MutableMap__usize__i32.tombs
   end $L11
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call 29   ; std_collections$write_entry__usize__i32
-  local.field 0 29 2   ; arg 0.index
+  local.field 0 28 2   ; arg 0.index
   local.set 9   ; $field_69
-  local.field 0 29 4   ; arg 0.size
+  local.field 0 28 4   ; arg 0.size
   ref.cast 14   ; -> usize
   i64.const 1
   i64.add
@@ -1485,14 +1485,14 @@ fn 30 std_collections$put__usize__i32 (ref,usize,i32) -> void
   local.get 4   ; $field_4
   local.get 10   ; $cast_73
   store_slot_i32
-  local.field 0 29 4   ; arg 0.size
+  local.field 0 28 4   ; arg 0.size
   ref.cast 14   ; -> usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
   local.get 0   ; arg 0
   local.get 3   ; $field_3
-  struct.set 29 4   ; std_collections$MutableMap__usize__i32.size
+  struct.set 28 4   ; std_collections$MutableMap__usize__i32.size
   return
 end
 
@@ -1502,7 +1502,7 @@ fn 31 std_collections$get__usize__i32 (ref,usize) -> any
   local ei usize
   local $add_31 usize
   local $field_32 usize
-  local.field 0 29 2   ; arg 0.index
+  local.field 0 28 2   ; arg 0.index
   array.len
   i64.const 0
   i64.eq
@@ -1512,7 +1512,7 @@ fn 31 std_collections$get__usize__i32 (ref,usize) -> any
   local.get 1   ; arg 1
   call 11   ; std_core$usize$Hash$hash
   local.set 2   ; $call_7
-  local.field 0 29 3   ; arg 0.mask
+  local.field 0 28 3   ; arg 0.mask
   ref.cast 14   ; -> usize
   local.set 3   ; $field_8
   local.get 2   ; $call_7
@@ -1521,32 +1521,32 @@ fn 31 std_collections$get__usize__i32 (ref,usize) -> any
   local.set 3   ; $field_8
   block $L1 void
     loop $L2 void
-      local.field 0 29 2   ; arg 0.index
+      local.field 0 28 2   ; arg 0.index
       local.get 3   ; $field_8
       load_slot_i32
       i32.const 0
       i32.ne
       if $L3 void
-        local.field 0 29 2   ; arg 0.index
+        local.field 0 28 2   ; arg 0.index
         local.get 3   ; $field_8
         load_slot_i32
         i32.const -1
         i32.ne
         if $L4 void
-          local.field 0 29 2   ; arg 0.index
+          local.field 0 28 2   ; arg 0.index
           local.get 3   ; $field_8
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; ei
-          local.field 0 29 0   ; arg 0.ekeys
+          local.field 0 28 0   ; arg 0.ekeys
           local.get 4   ; ei
           load_slot_i64
           local.get 1   ; arg 1
           i64.eq
           if $L5 void
-            local.field 0 29 1   ; arg 0.evals
+            local.field 0 28 1   ; arg 0.evals
             local.get 4   ; ei
             load_slot_i32
             retag 1   ; -> i32
@@ -1557,7 +1557,7 @@ fn 31 std_collections$get__usize__i32 (ref,usize) -> any
         i64.const 1
         i64.add
         local.set 5   ; $add_31
-        local.field 0 29 3   ; arg 0.mask
+        local.field 0 28 3   ; arg 0.mask
         ref.cast 14   ; -> usize
         local.set 6   ; $field_32
         local.get 5   ; $add_31
@@ -1577,7 +1577,7 @@ fn 32 std_collections$contains_key__usize__i32 (ref,usize) -> bool
   local ei usize
   local $add_30 usize
   local $field_31 usize
-  local.field 0 29 2   ; arg 0.index
+  local.field 0 28 2   ; arg 0.index
   array.len
   i64.const 0
   i64.eq
@@ -1587,7 +1587,7 @@ fn 32 std_collections$contains_key__usize__i32 (ref,usize) -> bool
   local.get 1   ; arg 1
   call 11   ; std_core$usize$Hash$hash
   local.set 2   ; $call_7
-  local.field 0 29 3   ; arg 0.mask
+  local.field 0 28 3   ; arg 0.mask
   ref.cast 14   ; -> usize
   local.set 3   ; $field_8
   local.get 2   ; $call_7
@@ -1596,26 +1596,26 @@ fn 32 std_collections$contains_key__usize__i32 (ref,usize) -> bool
   local.set 3   ; $field_8
   block $L1 void
     loop $L2 void
-      local.field 0 29 2   ; arg 0.index
+      local.field 0 28 2   ; arg 0.index
       local.get 3   ; $field_8
       load_slot_i32
       i32.const 0
       i32.ne
       if $L3 void
-        local.field 0 29 2   ; arg 0.index
+        local.field 0 28 2   ; arg 0.index
         local.get 3   ; $field_8
         load_slot_i32
         i32.const -1
         i32.ne
         if $L4 void
-          local.field 0 29 2   ; arg 0.index
+          local.field 0 28 2   ; arg 0.index
           local.get 3   ; $field_8
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; ei
-          local.field 0 29 0   ; arg 0.ekeys
+          local.field 0 28 0   ; arg 0.ekeys
           local.get 4   ; ei
           load_slot_i64
           local.get 1   ; arg 1
@@ -1628,7 +1628,7 @@ fn 32 std_collections$contains_key__usize__i32 (ref,usize) -> bool
         i64.const 1
         i64.add
         local.set 5   ; $add_30
-        local.field 0 29 3   ; arg 0.mask
+        local.field 0 28 3   ; arg 0.mask
         ref.cast 14   ; -> usize
         local.set 6   ; $field_31
         local.get 5   ; $add_30
@@ -1643,7 +1643,7 @@ fn 32 std_collections$contains_key__usize__i32 (ref,usize) -> bool
 end
 
 fn 33 std_collections$len__usize__i32 (ref) -> usize
-  local.field 0 29 4   ; arg 0.size
+  local.field 0 28 4   ; arg 0.size
   ref.cast 14   ; -> usize
   return
 end

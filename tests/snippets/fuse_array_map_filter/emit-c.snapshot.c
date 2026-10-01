@@ -121,9 +121,9 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l2)
         t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
-#line 263 "lib/std/iter/iter.vader"
+#line 309 "lib/std/iter/iter.vader"
         l3 = snippet_double(t0);
-#line 257 "lib/std/iter/iter.vader"
+#line 303 "lib/std/iter/iter.vader"
         t1 = snippet_is_twenty_multiple(l3);
         if (t1) {
             l4 = l3;
@@ -134,7 +134,7 @@ static int32_t snippet_main(void) {
             l6 = std_core_write_int(l5, l6, l7);
             t2 = std_core_finish_buffer(l5, l6);
             std_io_println__string(t2);
-#line 257 "lib/std/iter/iter.vader"
+#line 303 "lib/std/iter/iter.vader"
         }
 #line 14 "tests/snippets/fuse_array_map_filter/_main.vader"
         t3 = (l2 + INT64_C(1));

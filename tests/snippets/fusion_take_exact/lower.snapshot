@@ -512,7 +512,7 @@
     block :void
       let n: i32 = int(5) :i32
       let n: usize = int(2) :usize
-      block :$exit$i88
+      block :$exit$i70
         if :void
           cond:
             eq :bool
@@ -521,9 +521,9 @@
               r:
                 int(0) :usize
           then:
-            break :$exit$i88
+            break :$exit$i70
         let i: usize = int(0) :usize
-        block :$leave91
+        block :$leave73
           block :void
             let i: i32 = int(0) :i32
             loop while (<…>)
@@ -640,7 +640,7 @@
                     r:
                       n :usize
                 then:
-                  break :$leave91
+                  break :$leave73
             step
               assign
                 target:
@@ -966,104 +966,6 @@
                                       _0: int(0) :i32
                                       _1: int(1) :u8
                                     }
-  fn snippet$__genstate_produced$Iterator$count(self: __genstate_produced!) -> usize
-    let __fuse_iter_4: Iterator<i32> = __self_3 :__genstate_produced!
-    return
-      block :usize
-        let __count_5: usize = int(0) :usize
-        loop
-          let __fuse_step_7: [i32, Continuation]! =
-            vcall Iterator.next :[i32, Continuation]!
-              recv:
-                __fuse_iter_4 :Iterator<i32>
-          if :void
-            cond:
-              eq :bool
-                l:
-                  ._1 :Continuation
-                    __fuse_step_7 :[i32, Continuation]!
-                r:
-                  int(1) :u8
-            then:
-              break
-            else:
-              let __elem_6: i32 =
-                ._0 :i32
-                  __fuse_step_7 :[i32, Continuation]!
-              assign
-                target:
-                  __count_5 :usize
-                value:
-                  add :usize
-                    l:
-                      __count_5 :usize
-                    r:
-                      int(1) :usize
-        ~>
-          __count_5 :usize
-  fn snippet$__genstate_produced$Iterator$is_empty(self: __genstate_produced!) -> bool
-    let __fuse_iter_9: Iterator<i32> = __self_8 :__genstate_produced!
-    return
-      block :bool
-        let __empty_10: bool = true
-        loop
-          let __fuse_step_12: [i32, Continuation]! =
-            vcall Iterator.next :[i32, Continuation]!
-              recv:
-                __fuse_iter_9 :Iterator<i32>
-          if :void
-            cond:
-              eq :bool
-                l:
-                  ._1 :Continuation
-                    __fuse_step_12 :[i32, Continuation]!
-                r:
-                  int(1) :u8
-            then:
-              break
-            else:
-              let __elem_11: i32 =
-                ._0 :i32
-                  __fuse_step_12 :[i32, Continuation]!
-              assign
-                target:
-                  __empty_10 :bool
-                value:
-                  false
-              break
-        ~>
-          __empty_10 :bool
-  fn snippet$__genstate_produced$Iterator$last(self: __genstate_produced!) -> i32 | null
-    let __fuse_iter_14: Iterator<i32> = __self_13 :__genstate_produced!
-    return
-      block :i32 | null
-        let __last_15: i32 | null = null
-        loop
-          let __fuse_step_17: [i32, Continuation]! =
-            vcall Iterator.next :[i32, Continuation]!
-              recv:
-                __fuse_iter_14 :Iterator<i32>
-          if :void
-            cond:
-              eq :bool
-                l:
-                  ._1 :Continuation
-                    __fuse_step_17 :[i32, Continuation]!
-                r:
-                  int(1) :u8
-            then:
-              break
-            else:
-              let __elem_16: i32 =
-                ._0 :i32
-                  __fuse_step_17 :[i32, Continuation]!
-              assign
-                target:
-                  __last_15 :i32 | null
-                value:
-                  __elem_16 :i32
-        ~>
-          __last_15 :i32 | null
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

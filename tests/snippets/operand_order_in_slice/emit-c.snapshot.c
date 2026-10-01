@@ -423,7 +423,7 @@ static bool std_core____Contains_contains__i32(void* l0, int32_t l1) {
     size_t l3, l4;
     int32_t t0;
     int64_t t1;
-#line 351 "lib/std/core/core.vader"
+#line 314 "lib/std/core/core.vader"
     l2 = l0;
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
@@ -431,15 +431,15 @@ static bool std_core____Contains_contains__i32(void* l0, int32_t l1) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         t0 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
-#line 352 "lib/std/core/core.vader"
+#line 315 "lib/std/core/core.vader"
         if (t0 == l1) {
             return true;
         }
-#line 351 "lib/std/core/core.vader"
+#line 314 "lib/std/core/core.vader"
         t1 = (l4 + INT64_C(1));
         l4 = (size_t) (int64_t) t1;
     }
-#line 354 "lib/std/core/core.vader"
+#line 317 "lib/std/core/core.vader"
     return false;
 }
 

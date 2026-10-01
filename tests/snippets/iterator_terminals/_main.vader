@@ -1,11 +1,11 @@
-// `Iterator` defaults injected via Layer 8d — `count`, `last`, `is_empty`
-// derive from the user's `next`. Every Iterator impl (Range, StringChars, a
-// user struct, a generator's state machine, …) inherits the three methods
-// without writing a body.
+// `count`, `last`, `is_empty` over any iterator — a range, a user struct that
+// implements `Iterator` — as free functions of std/iter: an implementation
+// provides `next` and nothing else.
 
 module "snippet"
 
 import "std/io"
+import "std/iter"
 
 Countdown :: struct { remaining: i32 }
 
@@ -34,7 +34,7 @@ main :: fn() -> i32 {
     println((0..<0).is_empty())
     println((0..<5).is_empty())
 
-    // User struct — same machinery via the trait default.
+    // User struct — the same functions, over its `next`.
     println(Countdown { .remaining = 3 }.count())
 
     return 0

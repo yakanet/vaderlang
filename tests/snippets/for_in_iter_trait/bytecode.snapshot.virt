@@ -34,18 +34,18 @@ fn 0 snippet$is_l (char) -> bool
 end
 
 fn 1 snippet$count_ls (string) -> usize
-  local __fuse_iter_2 ref
-  local __count_0 usize
+  local __fuse_iter_0 ref
+  local total usize
   local $call_elem_18 char
   local $call_elem_19 u8
   local.get 0   ; arg 0
   call 12   ; std_string$chars
-  local.set 1   ; __fuse_iter_2
+  local.set 1   ; __fuse_iter_0
   i64.const 0
-  local.set 2   ; __count_0
+  local.set 2   ; total
   block $L0 void
     loop $L1 void
-      local.get 1   ; __fuse_iter_2
+      local.get 1   ; __fuse_iter_0
       call 13   ; std_string$StringChars$Iterator$next$v
       local.set 4   ; $call_elem_19
       local.set 3   ; $call_elem_18
@@ -57,16 +57,16 @@ fn 1 snippet$count_ls (string) -> usize
         local.get 3   ; $call_elem_18
         call 0   ; snippet$is_l
         if $L3 void
-          local.get 2   ; __count_0
+          local.get 2   ; total
           i64.const 1
           i64.add
-          local.set 2   ; __count_0
+          local.set 2   ; total
         end $L3
         br $L1
       end $L2
     end $L1
   end $L0
-  local.get 2   ; __count_0
+  local.get 2   ; total
   return
 end
 

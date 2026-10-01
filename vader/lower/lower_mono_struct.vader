@@ -128,9 +128,9 @@ materialize_one_instance :: fn(
                 materialize_struct_instance(inst, owner_decls, owner_typed, project_ctx, project)
                 // (2) For every generic impl whose for_type targets the
                 // same struct symbol, materialize each member — including
-                // stdlib structs (`Range<i32>`, `MutableMap<…>`). Trait
-                // default methods (`Range.count()` / `.last()` /
-                // `.is_empty()`) need a real body to dispatch through ;
+                // stdlib structs (`Range<i32>`, `MutableMap<…>`). Impl
+                // members — `Range.next`, the trait defaults cloned into
+                // the impl — need a real body to dispatch through ;
                 // skipping stdlib here dropped them onto the defensive
                 // `Return` arm in the CFG emit. Whole-program DCE
                 // (`prune_unreachable_fns`) culls anything the user never
@@ -475,10 +475,10 @@ materialize_impl_for_instance :: fn(
     erased_args :: if is_empty_substitution(subst) { inst.args } else { build_mixed_args_list(inst.args) }
     self_struct :: StructType { .symbol = inst.symbol, .args = erased_args, .immutable = false }
     self_type: Type: self_struct
-    // Suffix from the ERASED args : a generic impl mangles `count__Any`
-    // (not `count__i32`) so the shared erased body's sibling self-calls
-    // (`self.next()` in the `count` default) and every concrete-arg call
-    // site resolve to one name. `find_impl_member_for` / `lower_for_in`
+    // Suffix from the ERASED args : a generic impl mangles `next__Any`
+    // (not `next__i32`) so the shared erased body's sibling self-calls
+    // (`self.compare(other)` in a `Comparable` default) and every
+    // concrete-arg call site resolve to one name. `find_impl_member_for` / `lower_for_in`
     // erase the receiver args the same way (gated on `ImplEntry.is_generic`).
     // Concrete-instantiation impls keep `erased_args == inst.args`, so their
     // suffix stays concrete. Generic impls use the STRUCTURE-FREE

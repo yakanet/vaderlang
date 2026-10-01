@@ -1,8 +1,8 @@
 // The lazy form of an iterator chain — bound to a local, it runs as a state
 // machine — on the paths fusion used to cover for it:
-// - the `Iterator` defaults `count` / `is_empty` / `last` on a generator's state,
-//   directly and through an erased `Iterator<T>`, and `last` over a fused chain,
-//   whose element the call must still type;
+// - std's `count` / `is_empty` / `last` on a generator's state, directly and
+//   through an erased `Iterator<T>`, and `last` over a fused chain, whose
+//   element the call must still type;
 // - a lazy stage over a source of tuples or arrays (`enumerate`, `zip`,
 //   `window`): the stage is an erased instance, its source a concrete one, and
 //   natively the two lay the `next()` step out differently;

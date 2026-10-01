@@ -44,55 +44,56 @@
   fn snippet$count_ls(s: string) -> usize
     return
       block :usize
-        let __fuse_iter_2: StringChars =
+        let __fuse_iter_0: StringChars =
           call :StringChars
             callee:
               chars :StringChars
             arg0:
               s :string
         let pred: fn(char) -> bool = is_l :fn(char) -> bool
-        let __count_0: usize = int(0) :usize
-        loop
-          let __fuse_step_3: [char, Continuation]! =
-            call :[char, Continuation]!
-              callee:
-                std_string$StringChars$Iterator$next :?
-              arg0:
-                __fuse_iter_2 :StringChars
-          if :void
-            cond:
-              eq :bool
-                l:
-                  ._1 :Continuation
-                    __fuse_step_3 :[char, Continuation]!
-                r:
-                  int(1) :u8
-            then:
-              break
-            else:
-              let x: char =
-                ._0 :char
-                  __fuse_step_3 :[char, Continuation]!
-              if :void
-                cond:
-                  call :bool
-                    callee:
-                      is_l :fn(char) -> bool
-                    arg0:
-                      x :char
-                then:
-                  let __elem_1: char = x :char
-                  assign
-                    target:
-                      __count_0 :usize
-                    value:
-                      add :usize
-                        l:
-                          __count_0 :usize
-                        r:
-                          int(1) :usize
+        let total: usize = int(0) :usize
+        block :void
+          loop
+            let __fuse_step_0: [char, Continuation]! =
+              call :[char, Continuation]!
+                callee:
+                  std_string$StringChars$Iterator$next :?
+                arg0:
+                  __fuse_iter_0 :StringChars
+            if :void
+              cond:
+                eq :bool
+                  l:
+                    ._1 :Continuation
+                      __fuse_step_0 :[char, Continuation]!
+                  r:
+                    int(1) :u8
+              then:
+                break
+              else:
+                let x: char =
+                  ._0 :char
+                    __fuse_step_0 :[char, Continuation]!
+                if :void
+                  cond:
+                    call :bool
+                      callee:
+                        is_l :fn(char) -> bool
+                      arg0:
+                        x :char
+                  then:
+                    let _: char = x :char
+                    assign
+                      target:
+                        total :usize
+                      value:
+                        add :usize
+                          l:
+                            total :usize
+                          r:
+                            int(1) :usize
         ~>
-          __count_0 :usize
+          total :usize
   fn snippet$main() -> i32
     let a: i32 =
       block :i32

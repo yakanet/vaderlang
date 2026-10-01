@@ -6,12 +6,12 @@ type 3 struct snippet$Counts { by_name:4 }
 type 4 struct std_collections$MutableMap__string__i32 { ekeys:14,evals:13,index:13,mask:6,size:6,tombs:6 }
 type 5 primitive u8
 type 6 primitive usize
-type 7 union 1,0
-type 8 struct std_core$Buffer {  }
-type 9 primitive i64
-type 10 primitive u64
-type 11 array 5
-type 12 primitive void
+type 7 struct std_core$Buffer {  }
+type 8 primitive i64
+type 9 primitive u64
+type 10 array 5
+type 11 primitive void
+type 12 union 1,0
 type 13 array 1
 type 14 array 2
 type 15 primitive isize
@@ -19,10 +19,10 @@ string 0 "x"
 string 1 "v="
 string 2 "\n"
 import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=11 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 hash std_core$string$Hash$hash result_type=10 param_types=2 param_mutable=0 param_by_address= (string) -> u64
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,11,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 8 ByteAccess
+import 1 bytes std_core$bytes result_type=10 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 2 hash std_core$string$Hash$hash result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> u64
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,10,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 7 ByteAccess
 impl 4 Index
 impl 4 IndexSet
 impl 4 Contains
@@ -767,7 +767,7 @@ fn 14 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 10   ; u8[][]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

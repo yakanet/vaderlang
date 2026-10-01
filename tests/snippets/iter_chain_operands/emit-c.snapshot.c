@@ -389,42 +389,42 @@ static int32_t snippet_main(void) {
     l4 = snippet_source(7u, l0);
     l5 = snippet_adder(INT32_C(1));
     t0 = snippet_above(INT32_C(100));
-#line 189 "lib/std/iter/iter.vader"
+#line 235 "lib/std/iter/iter.vader"
     l6 = t0;
 #line 46 "tests/snippets/iter_chain_operands/_main.vader"
     l7 = false;
     {
         l8 = ((vader_array_t*) l4)->length;
         l9 = (size_t) 0;
-#line 190 "lib/std/iter/iter.vader"
+#line 236 "lib/std/iter/iter.vader"
         while ((l9 < l8)) {
 #line 46 "tests/snippets/iter_chain_operands/_main.vader"
             vader_array_t* _a2_slotarr = ((vader_array_t*) l4);
             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l9)
             t1 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l9];
-#line 263 "lib/std/iter/iter.vader"
+#line 309 "lib/std/iter/iter.vader"
             vader_fn_t* _a3_fnobj = (vader_fn_t*) l5;
             t2 = ((vader_fn_erased_sig_1_t) _a3_fnobj->code)(_a3_fnobj->env, vader_box_i32(3u, t1));
             t1 = ((int32_t) t2.payload.i);
-#line 191 "lib/std/iter/iter.vader"
+#line 237 "lib/std/iter/iter.vader"
             vader_fn_t* _a4_fnobj = (vader_fn_t*) l6;
             t2 = ((vader_fn_erased_sig_1_t) _a4_fnobj->code)(_a4_fnobj->env, vader_box_i32(3u, t1));
             t3 = t2.payload.b;
             if (t3) {
-#line 192 "lib/std/iter/iter.vader"
+#line 238 "lib/std/iter/iter.vader"
                 l7 = true;
                 goto end_31;
-#line 191 "lib/std/iter/iter.vader"
+#line 237 "lib/std/iter/iter.vader"
             }
 #line 46 "tests/snippets/iter_chain_operands/_main.vader"
             t4 = (l9 + INT64_C(1));
             l9 = (size_t) (int64_t) t4;
-#line 190 "lib/std/iter/iter.vader"
+#line 236 "lib/std/iter/iter.vader"
 #line 46 "tests/snippets/iter_chain_operands/_main.vader"
-#line 190 "lib/std/iter/iter.vader"
+#line 236 "lib/std/iter/iter.vader"
         }
-#line 195 "lib/std/iter/iter.vader"
+#line 241 "lib/std/iter/iter.vader"
         l7 = false;
 #line 46 "tests/snippets/iter_chain_operands/_main.vader"
     } end_31: ;
@@ -438,42 +438,42 @@ static int32_t snippet_main(void) {
     l4 = snippet_source(7u, l0);
     l5 = snippet_adder(INT32_C(1));
     t0 = snippet_above(INT32_C(0));
-#line 202 "lib/std/iter/iter.vader"
+#line 248 "lib/std/iter/iter.vader"
     l6 = t0;
 #line 47 "tests/snippets/iter_chain_operands/_main.vader"
     l7 = false;
     {
         l8 = ((vader_array_t*) l4)->length;
         l9 = (size_t) 0;
-#line 203 "lib/std/iter/iter.vader"
+#line 249 "lib/std/iter/iter.vader"
         while ((l9 < l8)) {
 #line 47 "tests/snippets/iter_chain_operands/_main.vader"
             vader_array_t* _a5_slotarr = ((vader_array_t*) l4);
             VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l9)
             t1 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l9];
-#line 263 "lib/std/iter/iter.vader"
+#line 309 "lib/std/iter/iter.vader"
             vader_fn_t* _a6_fnobj = (vader_fn_t*) l5;
             t2 = ((vader_fn_erased_sig_1_t) _a6_fnobj->code)(_a6_fnobj->env, vader_box_i32(3u, t1));
             t1 = ((int32_t) t2.payload.i);
-#line 204 "lib/std/iter/iter.vader"
+#line 250 "lib/std/iter/iter.vader"
             vader_fn_t* _a7_fnobj = (vader_fn_t*) l6;
             t2 = ((vader_fn_erased_sig_1_t) _a7_fnobj->code)(_a7_fnobj->env, vader_box_i32(3u, t1));
             t3 = t2.payload.b;
             if (!(t3)) {
-#line 205 "lib/std/iter/iter.vader"
+#line 251 "lib/std/iter/iter.vader"
                 l7 = false;
                 goto end_97;
-#line 204 "lib/std/iter/iter.vader"
+#line 250 "lib/std/iter/iter.vader"
             }
 #line 47 "tests/snippets/iter_chain_operands/_main.vader"
             t4 = (l9 + INT64_C(1));
             l9 = (size_t) (int64_t) t4;
-#line 203 "lib/std/iter/iter.vader"
+#line 249 "lib/std/iter/iter.vader"
 #line 47 "tests/snippets/iter_chain_operands/_main.vader"
-#line 203 "lib/std/iter/iter.vader"
+#line 249 "lib/std/iter/iter.vader"
         }
-#line 208 "lib/std/iter/iter.vader"
+#line 254 "lib/std/iter/iter.vader"
         l7 = true;
 #line 47 "tests/snippets/iter_chain_operands/_main.vader"
     } end_97: ;
@@ -487,42 +487,42 @@ static int32_t snippet_main(void) {
     l4 = snippet_source(7u, l0);
     l5 = snippet_adder(INT32_C(1));
     t0 = snippet_above(INT32_C(3));
-#line 215 "lib/std/iter/iter.vader"
+#line 261 "lib/std/iter/iter.vader"
     l6 = t0;
 #line 48 "tests/snippets/iter_chain_operands/_main.vader"
     l10 = vader_box_obj(0u, NULL);
     {
         l8 = ((vader_array_t*) l4)->length;
         l9 = (size_t) 0;
-#line 216 "lib/std/iter/iter.vader"
+#line 262 "lib/std/iter/iter.vader"
         while ((l9 < l8)) {
 #line 48 "tests/snippets/iter_chain_operands/_main.vader"
             vader_array_t* _a8_slotarr = ((vader_array_t*) l4);
             VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l9)
             t1 = ((int32_t*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l9];
-#line 263 "lib/std/iter/iter.vader"
+#line 309 "lib/std/iter/iter.vader"
             vader_fn_t* _a9_fnobj = (vader_fn_t*) l5;
             t2 = ((vader_fn_erased_sig_1_t) _a9_fnobj->code)(_a9_fnobj->env, vader_box_i32(3u, t1));
             l11 = ((int32_t) t2.payload.i);
-#line 217 "lib/std/iter/iter.vader"
+#line 263 "lib/std/iter/iter.vader"
             vader_fn_t* _a10_fnobj = (vader_fn_t*) l6;
             t2 = ((vader_fn_erased_sig_1_t) _a10_fnobj->code)(_a10_fnobj->env, vader_box_i32(3u, l11));
             t3 = t2.payload.b;
             if (t3) {
-#line 218 "lib/std/iter/iter.vader"
+#line 264 "lib/std/iter/iter.vader"
                 l10 = vader_box_i32(3u, l11);
                 goto end_164;
-#line 217 "lib/std/iter/iter.vader"
+#line 263 "lib/std/iter/iter.vader"
             }
 #line 48 "tests/snippets/iter_chain_operands/_main.vader"
             t4 = (l9 + INT64_C(1));
             l9 = (size_t) (int64_t) t4;
-#line 216 "lib/std/iter/iter.vader"
+#line 262 "lib/std/iter/iter.vader"
 #line 48 "tests/snippets/iter_chain_operands/_main.vader"
-#line 216 "lib/std/iter/iter.vader"
+#line 262 "lib/std/iter/iter.vader"
         }
-#line 221 "lib/std/iter/iter.vader"
+#line 267 "lib/std/iter/iter.vader"
         l10 = vader_box_obj(0u, NULL);
 #line 48 "tests/snippets/iter_chain_operands/_main.vader"
     } end_164: ;
@@ -542,42 +542,42 @@ static int32_t snippet_main(void) {
     l1 = snippet_source(11u, l1);
     l4 = snippet_adder(INT32_C(1));
     t0 = snippet_above(INT32_C(0));
-#line 189 "lib/std/iter/iter.vader"
+#line 235 "lib/std/iter/iter.vader"
     l5 = t0;
 #line 49 "tests/snippets/iter_chain_operands/_main.vader"
     l7 = false;
     {
         l8 = ((vader_array_t*) l1)->length;
         l9 = (size_t) 0;
-#line 190 "lib/std/iter/iter.vader"
+#line 236 "lib/std/iter/iter.vader"
         while ((l9 < l8)) {
 #line 49 "tests/snippets/iter_chain_operands/_main.vader"
             vader_array_t* _a11_slotarr = ((vader_array_t*) l1);
             VADER_ARRAY_RESOLVE_BUF(_a11_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a11_slotarr, l9)
             t1 = ((int32_t*) _a11_slotarr->buf->slots)[_a11_slotarr->offset + (size_t) l9];
-#line 263 "lib/std/iter/iter.vader"
+#line 309 "lib/std/iter/iter.vader"
             vader_fn_t* _a12_fnobj = (vader_fn_t*) l4;
             t2 = ((vader_fn_erased_sig_1_t) _a12_fnobj->code)(_a12_fnobj->env, vader_box_i32(3u, t1));
             t1 = ((int32_t) t2.payload.i);
-#line 191 "lib/std/iter/iter.vader"
+#line 237 "lib/std/iter/iter.vader"
             vader_fn_t* _a13_fnobj = (vader_fn_t*) l5;
             t2 = ((vader_fn_erased_sig_1_t) _a13_fnobj->code)(_a13_fnobj->env, vader_box_i32(3u, t1));
             t3 = t2.payload.b;
             if (t3) {
-#line 192 "lib/std/iter/iter.vader"
+#line 238 "lib/std/iter/iter.vader"
                 l7 = true;
                 goto end_245;
-#line 191 "lib/std/iter/iter.vader"
+#line 237 "lib/std/iter/iter.vader"
             }
 #line 49 "tests/snippets/iter_chain_operands/_main.vader"
             t4 = (l9 + INT64_C(1));
             l9 = (size_t) (int64_t) t4;
-#line 190 "lib/std/iter/iter.vader"
+#line 236 "lib/std/iter/iter.vader"
 #line 49 "tests/snippets/iter_chain_operands/_main.vader"
-#line 190 "lib/std/iter/iter.vader"
+#line 236 "lib/std/iter/iter.vader"
         }
-#line 195 "lib/std/iter/iter.vader"
+#line 241 "lib/std/iter/iter.vader"
         l7 = false;
 #line 49 "tests/snippets/iter_chain_operands/_main.vader"
     } end_245: ;
@@ -591,32 +591,40 @@ static int32_t snippet_main(void) {
     l2 = snippet_source(7u, l0);
     l4 = snippet_adder(INT32_C(1));
     l5 = snippet_above(INT32_C(2));
+#line 50 "lib/std/iter/iter.vader"
     l8 = (size_t) 0;
+#line 50 "tests/snippets/iter_chain_operands/_main.vader"
     l9 = ((vader_array_t*) l2)->length;
     l13 = (size_t) 0;
+#line 51 "lib/std/iter/iter.vader"
     while ((l13 < l9)) {
+#line 50 "tests/snippets/iter_chain_operands/_main.vader"
         vader_array_t* _a14_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a14_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a14_slotarr, l13)
         t1 = ((int32_t*) _a14_slotarr->buf->slots)[_a14_slotarr->offset + (size_t) l13];
-#line 263 "lib/std/iter/iter.vader"
+#line 309 "lib/std/iter/iter.vader"
         vader_fn_t* _a15_fnobj = (vader_fn_t*) l4;
         t2 = ((vader_fn_erased_sig_1_t) _a15_fnobj->code)(_a15_fnobj->env, vader_box_i32(3u, t1));
         t1 = ((int32_t) t2.payload.i);
-#line 257 "lib/std/iter/iter.vader"
+#line 303 "lib/std/iter/iter.vader"
         vader_fn_t* _a16_fnobj = (vader_fn_t*) l5;
         t2 = ((vader_fn_erased_sig_1_t) _a16_fnobj->code)(_a16_fnobj->env, vader_box_i32(3u, t1));
         t3 = t2.payload.b;
         if (t3) {
-#line 50 "tests/snippets/iter_chain_operands/_main.vader"
+#line 52 "lib/std/iter/iter.vader"
             t4 = (l8 + INT64_C(1));
             l8 = (size_t) (int64_t) t4;
-#line 257 "lib/std/iter/iter.vader"
+#line 303 "lib/std/iter/iter.vader"
         }
 #line 50 "tests/snippets/iter_chain_operands/_main.vader"
         t4 = (l13 + INT64_C(1));
         l13 = (size_t) (int64_t) t4;
+#line 51 "lib/std/iter/iter.vader"
+#line 50 "tests/snippets/iter_chain_operands/_main.vader"
+#line 51 "lib/std/iter/iter.vader"
     }
+#line 50 "tests/snippets/iter_chain_operands/_main.vader"
     t4 = ((int64_t) (size_t) l8);
     l14 = (uint64_t) (int64_t) t4;
     l3 = std_core_write_unsigned(l1, l3, l14);
@@ -628,36 +636,43 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_string_at(l1, l3, 13u);
     l2 = snippet_source(7u, l0);
     l8 = snippet_limit((size_t) 2);
+#line 50 "lib/std/iter/iter.vader"
     l9 = (size_t) 0;
-#line 269 "lib/std/iter/iter.vader"
+#line 51 "tests/snippets/iter_chain_operands/_main.vader"
+#line 315 "lib/std/iter/iter.vader"
     if (l8 == INT64_C(0)) {
-#line 272 "lib/std/iter/iter.vader"
+#line 318 "lib/std/iter/iter.vader"
     } else {
         l13 = (size_t) 0;
 #line 51 "tests/snippets/iter_chain_operands/_main.vader"
         l15 = ((vader_array_t*) l2)->length;
         l16 = (size_t) 0;
+#line 51 "lib/std/iter/iter.vader"
         for (;;) {
+#line 51 "tests/snippets/iter_chain_operands/_main.vader"
             if ((l16 < l15)) {
+#line 52 "lib/std/iter/iter.vader"
                 t4 = (l9 + INT64_C(1));
                 l9 = (size_t) (int64_t) t4;
-#line 275 "lib/std/iter/iter.vader"
+#line 321 "lib/std/iter/iter.vader"
                 t4 = (l13 + INT64_C(1));
                 l13 = (size_t) (int64_t) t4;
-#line 276 "lib/std/iter/iter.vader"
+#line 322 "lib/std/iter/iter.vader"
                 if ((l13 >= l8)) {
 #line 51 "tests/snippets/iter_chain_operands/_main.vader"
                 } else {
                     t4 = (l16 + INT64_C(1));
                     l16 = (size_t) (int64_t) t4;
+#line 51 "lib/std/iter/iter.vader"
                     continue;
-#line 276 "lib/std/iter/iter.vader"
+#line 322 "lib/std/iter/iter.vader"
                 }
 #line 51 "tests/snippets/iter_chain_operands/_main.vader"
             }
+#line 51 "lib/std/iter/iter.vader"
             break;
         }
-#line 269 "lib/std/iter/iter.vader"
+#line 315 "lib/std/iter/iter.vader"
     }
 #line 51 "tests/snippets/iter_chain_operands/_main.vader"
     t4 = ((int64_t) (size_t) l9);
@@ -671,35 +686,35 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_string_at(l1, l3, 14u);
     l2 = snippet_source(7u, l0);
     l4 = snippet_above(INT32_C(3));
-#line 40 "lib/std/iter/iter.vader"
+#line 86 "lib/std/iter/iter.vader"
     vader_array_t* _a17_arr = vader_array_new(2u, 0u, 7u, 3u);
     l5 = (void*) _a17_arr;
 #line 52 "tests/snippets/iter_chain_operands/_main.vader"
     l8 = ((vader_array_t*) l2)->length;
     l9 = (size_t) 0;
-#line 41 "lib/std/iter/iter.vader"
+#line 87 "lib/std/iter/iter.vader"
     while ((l9 < l8)) {
 #line 52 "tests/snippets/iter_chain_operands/_main.vader"
         vader_array_t* _a18_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a18_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a18_slotarr, l9)
         l11 = ((int32_t*) _a18_slotarr->buf->slots)[_a18_slotarr->offset + (size_t) l9];
-#line 257 "lib/std/iter/iter.vader"
+#line 303 "lib/std/iter/iter.vader"
         vader_fn_t* _a19_fnobj = (vader_fn_t*) l4;
         t2 = ((vader_fn_erased_sig_1_t) _a19_fnobj->code)(_a19_fnobj->env, vader_box_i32(3u, l11));
         t3 = t2.payload.b;
         if (t3) {
             l17 = l11;
-#line 42 "lib/std/iter/iter.vader"
+#line 88 "lib/std/iter/iter.vader"
             vader_array_push_i32((vader_array_t*) l5, l17);
-#line 257 "lib/std/iter/iter.vader"
+#line 303 "lib/std/iter/iter.vader"
         }
 #line 52 "tests/snippets/iter_chain_operands/_main.vader"
         t4 = (l9 + INT64_C(1));
         l9 = (size_t) (int64_t) t4;
-#line 41 "lib/std/iter/iter.vader"
+#line 87 "lib/std/iter/iter.vader"
 #line 52 "tests/snippets/iter_chain_operands/_main.vader"
-#line 41 "lib/std/iter/iter.vader"
+#line 87 "lib/std/iter/iter.vader"
     }
 #line 52 "tests/snippets/iter_chain_operands/_main.vader"
     t6 = ((vader_array_t*) l5)->length;
@@ -719,11 +734,11 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a20_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a20_slotarr, l8)
         t1 = ((int32_t*) _a20_slotarr->buf->slots)[_a20_slotarr->offset + (size_t) l8];
-#line 263 "lib/std/iter/iter.vader"
+#line 309 "lib/std/iter/iter.vader"
         vader_fn_t* _a21_fnobj = (vader_fn_t*) l1;
         t2 = ((vader_fn_erased_sig_1_t) _a21_fnobj->code)(_a21_fnobj->env, vader_box_i32(3u, t1));
         l11 = ((int32_t) t2.payload.i);
-#line 257 "lib/std/iter/iter.vader"
+#line 303 "lib/std/iter/iter.vader"
         vader_fn_t* _a22_fnobj = (vader_fn_t*) l2;
         t2 = ((vader_fn_erased_sig_1_t) _a22_fnobj->code)(_a22_fnobj->env, vader_box_i32(3u, l11));
         t3 = t2.payload.b;
@@ -737,7 +752,7 @@ static int32_t snippet_main(void) {
             l9 = std_core_write_int(l4, l9, l12);
             t5 = std_core_finish_buffer(l4, l9);
             std_io_println__string(t5);
-#line 257 "lib/std/iter/iter.vader"
+#line 303 "lib/std/iter/iter.vader"
         }
 #line 53 "tests/snippets/iter_chain_operands/_main.vader"
         t4 = (l8 + INT64_C(1));
@@ -750,17 +765,25 @@ static int32_t snippet_main(void) {
     l17 = snippet_bound(17u, INT32_C(0));
     l11 = snippet_bound(18u, INT32_C(3));
     l1 = snippet_adder(INT32_C(1));
+#line 50 "lib/std/iter/iter.vader"
     l8 = (size_t) 0;
+#line 51 "lib/std/iter/iter.vader"
     while ((l17 < l11)) {
-#line 263 "lib/std/iter/iter.vader"
+#line 56 "tests/snippets/iter_chain_operands/_main.vader"
+#line 309 "lib/std/iter/iter.vader"
         vader_fn_t* _a23_fnobj = (vader_fn_t*) l1;
         t2 = ((vader_fn_erased_sig_1_t) _a23_fnobj->code)(_a23_fnobj->env, vader_box_i32(3u, l17));
         t1 = ((int32_t) t2.payload.i);
-#line 56 "tests/snippets/iter_chain_operands/_main.vader"
+#line 52 "lib/std/iter/iter.vader"
         t4 = (l8 + INT64_C(1));
         l8 = (size_t) (int64_t) t4;
+#line 56 "tests/snippets/iter_chain_operands/_main.vader"
         l17 = (l17 + INT32_C(1));
+#line 51 "lib/std/iter/iter.vader"
+#line 56 "tests/snippets/iter_chain_operands/_main.vader"
+#line 51 "lib/std/iter/iter.vader"
     }
+#line 56 "tests/snippets/iter_chain_operands/_main.vader"
     t4 = ((int64_t) (size_t) l8);
     l14 = (uint64_t) (int64_t) t4;
     l3 = std_core_write_unsigned(l0, l3, l14);
@@ -935,31 +958,31 @@ static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, uint8_t
     int32_t l2, l3;
     bool t0;
     int32_t t1;
-#line 309 "lib/std/core/core.vader"
+#line 272 "lib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_inclusive;
     if (t0) {
         l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
         l1 = std_core_i32_Comparable_gt(l2, l3);
-#line 310 "lib/std/core/core.vader"
+#line 273 "lib/std/core/core.vader"
     } else {
         l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
         l1 = std_core_i32_Comparable_gte(l2, l3);
-#line 309 "lib/std/core/core.vader"
+#line 272 "lib/std/core/core.vader"
     }
-#line 313 "lib/std/core/core.vader"
+#line 276 "lib/std/core/core.vader"
     if (l1) {
         t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         *__o1 = (uint8_t) 1; *__o0 = t1; return;
     }
-#line 314 "lib/std/core/core.vader"
+#line 277 "lib/std/core/core.vader"
     l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
-#line 315 "lib/std/core/core.vader"
+#line 278 "lib/std/core/core.vader"
     t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
     l3 = std_core_i32_Step_step(t1);
     ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor = l3;
-#line 316 "lib/std/core/core.vader"
+#line 279 "lib/std/core/core.vader"
     *__o1 = (uint8_t) 0; *__o0 = l2; return;
 }
 
