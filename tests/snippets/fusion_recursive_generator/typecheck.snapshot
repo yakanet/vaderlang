@@ -1,0 +1,36 @@
+# Typecheck
+
+## tests/snippets/fusion_recursive_generator
+  FnDecl         countdown            :: fn(i32) -> Iterator<i32>
+  FnDecl         main                 :: fn() -> i32
+  expr 14:5     IfExpr         :: void
+  expr 14:8     BinaryExpr     :: bool
+  expr 14:8     IdentExpr      :: i32
+  expr 15:15    IdentExpr      :: i32
+  expr 16:18    CallExpr       :: __genstate_countdown<i32>!
+  expr 16:18    IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 16:28    BinaryExpr     :: i32
+  expr 16:28    IdentExpr      :: i32
+  expr 17:19    IdentExpr      :: i32
+  expr 23:14    StringLitExpr  :: string
+  expr 24:14    CallExpr       :: __genstate_countdown<i32>!
+  expr 24:14    IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 25:17    BinaryExpr     :: string
+  expr 25:17    IdentExpr      :: string
+  expr 25:25    StringLitExpr  :: string
+  expr 25:29    IdentExpr      :: i32
+  expr 25:9     IdentExpr      :: string
+  expr 27:13    StringLitExpr  :: string
+  expr 28:11    CallExpr       :: __genstate_countdown<i32>!
+  expr 28:11    IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 29:14    IdentExpr      :: __genstate_countdown<i32>!
+  expr 30:16    BinaryExpr     :: string
+  expr 30:16    IdentExpr      :: string
+  expr 30:23    StringLitExpr  :: string
+  expr 30:27    IdentExpr      :: i32
+  expr 30:9     IdentExpr      :: string
+  expr 32:13    StringLitExpr  :: string
+  expr 32:29    IdentExpr      :: string
+  expr 32:39    IdentExpr      :: string
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void

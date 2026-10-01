@@ -1,0 +1,383 @@
+// vader/lower/fusion_terminals — a terminal consuming a fusible chain, as a loop.
+//
+// A terminal (`count`, `collect`, `find`, …) over a fusible chain fuses to a flat
+// loop with an ACCUMULATOR sink instead of materialising the lazy struct and
+// dispatching `next()`: `emit_fused_chain` driven by a template whose body is the
+// accumulator step, inside `{ let acc = <init>; <loop>; acc }` (a
+// block-expression). Called from `lower_call`; `null` falls through to the trait
+// default method / free fn.
+//
+// `count`, `is_empty` and `last` are the `Iterator` trait's default methods
+// (std/core). A generator's state implements `Iterator` through a synthetic impl
+// whose only member is `next`, so its defaults are synthesised here as well, as
+// the same loop over its own `next()` (`generator_default_decls`) — the row an
+// erased `Iterator<T>` dispatches to. Nothing can override them on a generator's
+// state.
+
+module "vader/lower"
+
+AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/comptime"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "vader/types"
+
+/// The `Iterator` trait's default methods, by name.
+ITERATOR_DEFAULTS :: ["count", "is_empty", "last"]
+
+/// Fuse a terminal over a fusible chain into a flat accumulator loop — the
+/// `Iterator` defaults, `collect`, `any_match`, `all_match`, `find` — or null when
+/// the call isn't such a terminal over a chain (a terminal over a non-chain, e.g.
+/// the eager `count(arr)` array overload, lowers normally), or when it reaches
+/// another fn of the terminal's name.
+///
+/// @param call  the terminal call expression.
+/// @param type  the call's result type from typecheck: `collect`'s element.
+/// @return      a block-expression evaluating to the result, or null.
+export try_lower_terminal_fusion :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
+    for name in ITERATOR_DEFAULTS {
+        receiver :: terminal_arg(ctx, call, name) ?? continue
+        chain :: default_method_source(ctx, receiver) ?? return null
+        return emit_iterator_default(ctx, name, chain, call.span)
+    }
+    collect_arg :: terminal_arg(ctx, call, "collect")
+    if collect_arg != null {
+        chain :: top_level_chain(ctx, collect_arg) ?? return null
+        return emit_collect_fusion(ctx, chain, type, call.span)
+    }
+    // Early-exit predicate terminals — any_match / all_match / find.
+    any_call :: terminal_pred_arg(ctx, call, "any_match")
+    if any_call != null {
+        chain :: top_level_chain(ctx, any_call.chain_arg) ?? return null
+        return emit_bool_terminal(ctx, chain, any_call.pred, call.span, false, true, false)
+    }
+    all_call :: terminal_pred_arg(ctx, call, "all_match")
+    if all_call != null {
+        chain :: top_level_chain(ctx, all_call.chain_arg) ?? return null
+        return emit_bool_terminal(ctx, chain, all_call.pred, call.span, true, false, true)
+    }
+    find_call :: terminal_pred_arg(ctx, call, "find")
+    if find_call != null {
+        chain :: top_level_chain(ctx, find_call.chain_arg) ?? return null
+        return emit_find_terminal(ctx, chain, find_call.pred, call.span)
+    }
+    return null
+}
+
+// ---- recognising a terminal -------------------------------------------------
+
+/// The iterator argument of a call to std's terminal `name`, or null.
+terminal_arg :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, name: string) -> AST.Expr | null {
+    chain :: terminal_arg_shape(call, name) ?? return null
+    return if reaches_std_terminal(ctx, call, chain, name) { chain } else { null }
+}
+
+// The iterator argument of a call named `name`, or null. Recognises the UFCS form
+// `<chain>.name()` (FieldExpr callee, no extra args) and the free-fn form
+// `name(<chain>)` (IdentExpr callee, one arg).
+terminal_arg_shape :: fn(call: AST.CallExpr, name: string) -> AST.Expr | null {
+    if call.callee is AST.FieldExpr as fe {
+        if fe.field == name && call.args.len() == 0 { return fe.target }
+    }
+    if call.callee is AST.IdentExpr as id {
+        if id.name == name && call.args.len() == 1 { return call.args[0].value }
+    }
+    return null
+}
+
+// Whether `call` reaches std's own terminal `name`. The terminals are recognised
+// by name, so without this a fn of that name declared elsewhere — a local `find`,
+// or one imported while std/iter's is excluded — would lower with std's
+// semantics. The `Iterator` defaults are trait methods (std/core), not std/iter
+// fns: std's own is then the call no free fn takes.
+reaches_std_terminal :: fn(
+    ctx: FnLowerCtx!, call: AST.CallExpr, chain_arg: AST.Expr, name: string,
+) -> bool {
+    callee :: combinator_callee_sym(ctx, call, chain_arg)
+    if name in ITERATOR_DEFAULTS {
+        return callee == null
+    }
+    std_fn :: module_export(ctx.project, "std/iter", name) ?? return false
+    return callee != null && callee.id == std_fn.id
+}
+
+// A terminal taking a predicate — its `(chain, pred)` args, or null.
+TerminalPredCall :: struct { chain_arg: AST.Expr, pred: AST.Expr }
+
+terminal_pred_arg :: fn(
+    ctx: FnLowerCtx!, call: AST.CallExpr, name: string,
+) -> TerminalPredCall | null {
+    found :: terminal_pred_shape(call, name) ?? return null
+    return if reaches_std_terminal(ctx, call, found.chain_arg, name) { found } else { null }
+}
+
+// The `(chain, pred)` args of a call named `name`, or null. Recognises the UFCS
+// form `<chain>.name(pred)` (FieldExpr callee, one arg) and the free-fn form
+// `name(<chain>, pred)` (IdentExpr callee, two args).
+terminal_pred_shape :: fn(call: AST.CallExpr, name: string) -> TerminalPredCall | null {
+    if call.callee is AST.FieldExpr as fe {
+        if fe.field == name && call.args.len() == 1 {
+            return TerminalPredCall { .chain_arg = fe.target, .pred = call.args[0].value }
+        }
+    }
+    if call.callee is AST.IdentExpr as id {
+        if id.name == name && call.args.len() == 2 {
+            return TerminalPredCall { .chain_arg = call.args[0].value, .pred = call.args[1].value }
+        }
+    }
+    return null
+}
+
+/// The chain a call to one of `Iterator`'s defaults consumes: the fusible chain
+/// `expr` heads, or a generator's state read through its `next()`; null for
+/// any other receiver, which keeps its own dispatch.
+///
+/// @param ctx   the fn-body context.
+/// @param expr  the call's receiver.
+default_method_source :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | null {
+    chain :: top_level_chain(ctx, expr)
+    if chain != null {
+        return chain
+    }
+    state :: ctx.types.expr_type(expr)
+    if !is_gen_state_struct(state) {
+        return null
+    }
+    element :: opaque_iter_element(ctx, state) ?? return null
+    return mk_opaque_iter_chain(expr, element, span_of(expr))
+}
+
+// ---- emitting a terminal ----------------------------------------------------
+
+// `!cond` when `negate`, else `cond`.
+maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
+    if negate { return LoweredUnary { .span = span, .type = TY_BOOL, .op = .Not, .operand = cond } }
+    return cond
+}
+
+// `pred(<elem>)` — the bound predicate applied to the loop-var symbol, cell-aware.
+emit_pred_call :: fn(
+    ctx: FnLowerCtx!, pred: LoweredExpr, elem_sym: Symbol, elem_ty: Type, span: Span,
+) -> LoweredExpr =
+    LoweredCall {
+        .span = span, .type = TY_BOOL, .callee = pred,
+        .args = [read_local_cell_aware(ctx, elem_sym, elem_ty, span)],
+    }
+
+// `{ <stmts>; let <result>: <type> = <init>; <fused loop over bound running body,
+// each element bound to element>; <result> }` — every terminal's shape. `stmts`
+// holds the chain's operands, bound to `bound`, and what the terminal binds
+// after them.
+accumulate_terminal :: fn(
+    ctx: FnLowerCtx!, stmts: LoweredStmt[]!, bound: IterChain, span: Span,
+    result: Symbol, type: Type, init: LoweredExpr,
+    element: Symbol, element_type: Type, body: LoweredStmt[],
+) -> LoweredExpr {
+    stmts.push(LoweredLet {
+        .span = span, .name = result.name, .symbol = result, .type = type, .value = init,
+    })
+    template :: BodyTemplate {
+        .binding_name = element.name, .binding_symbol = element, .element_type = element_type,
+        .user_body = arm_block(body, span),
+    }
+    stmts.push_all(emit_fused_chain(ctx, bound, span, template, lower_expr))
+    return LoweredBlock {
+        .span = span, .type = type, .stmts = stmts,
+        .trailing = LoweredIdent { .span = span, .type = type, .symbol = result },
+    }
+}
+
+// `<result> = <value>`.
+assign_result :: fn(result: Symbol, type: Type, value: LoweredExpr, span: Span) -> LoweredStmt =
+    LoweredAssign {
+        .span = span, .target = LoweredIdent { .span = span, .type = type, .symbol = result },
+        .value = value,
+    }
+
+// `if <cond> { <then> }`.
+guarded :: fn(cond: LoweredExpr, then: LoweredStmt[], span: Span) -> LoweredStmt = LoweredExprStmt {
+    .span = span,
+    .expr = LoweredIf {
+        .span = span, .type = TY_VOID, .cond = cond, .then_block = arm_block(then, span),
+        .else_block = null,
+    },
+}
+
+// `any_match` / `all_match`: `{ <operands>; let p = pred; let r = init; <flat loop>
+// if [!]p(v) { r = hit; break }; r }` — `p` is the predicate itself when it is
+// stable : only calls run until the loop is done with it.
+// any_match → (init=false, hit=true, negate=false) ;
+// all_match → (init=true, hit=false, negate=true).
+emit_bool_terminal :: fn(
+    ctx: FnLowerCtx!, chain: IterChain, pred: AST.Expr, span: Span,
+    init: bool, hit: bool, negate: bool,
+) -> LoweredExpr {
+    stmts: LoweredStmt[]!: []
+    bound :: bind_chain_operands(ctx, chain, lower_expr, stmts)
+    pred_fn :: bind_unless_stable(ctx, lower_expr(ctx, pred), "fuse_pred", span, stmts)
+    elem_ty :: chain_element_type(chain)
+    result :: fresh_synthetic_symbol(ctx, "acc")
+    element :: fresh_synthetic_symbol(ctx, "elem")
+    cond :: maybe_negate(emit_pred_call(ctx, pred_fn, element, elem_ty, span), negate, span)
+    found: LoweredStmt[]: [
+        assign_result(result, TY_BOOL, LoweredBoolLit { .span = span, .type = TY_BOOL, .value = hit }, span),
+        chain_break(chain, span),
+    ]
+    start :: LoweredBoolLit { .span = span, .type = TY_BOOL, .value = init }
+    body: LoweredStmt[]: [guarded(cond, found, span)]
+    return accumulate_terminal(ctx, stmts, bound, span, result, TY_BOOL, start, element, elem_ty, body)
+}
+
+// `find`: `{ <operands>; let p = pred; let r: element | null = null; <flat loop>
+// if p(v) { r = v; break }; r }`.
+emit_find_terminal :: fn(ctx: FnLowerCtx!, chain: IterChain, pred: AST.Expr, span: Span) -> LoweredExpr {
+    stmts: LoweredStmt[]!: []
+    bound :: bind_chain_operands(ctx, chain, lower_expr, stmts)
+    pred_fn :: bind_unless_stable(ctx, lower_expr(ctx, pred), "fuse_pred", span, stmts)
+    elem_ty :: chain_element_type(chain)
+    result_ty :: mk_union([elem_ty, TY_NULL])
+    result :: fresh_synthetic_symbol(ctx, "find")
+    element :: fresh_synthetic_symbol(ctx, "elem")
+    found: LoweredStmt[]: [
+        assign_result(result, result_ty, read_local_cell_aware(ctx, element, elem_ty, span), span),
+        chain_break(chain, span),
+    ]
+    body: LoweredStmt[]: [guarded(emit_pred_call(ctx, pred_fn, element, elem_ty, span), found, span)]
+    start :: LoweredNullLit { .span = span, .type = result_ty }
+    return accumulate_terminal(ctx, stmts, bound, span, result, result_ty, start, element, elem_ty, body)
+}
+
+// `{ <operands>; let out: element[] = []; <fused loop: out.push(v) per element>; out }`.
+emit_collect_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, result_type: Type, span: Span) -> LoweredExpr {
+    // Use the typer's CONCRETE result element (`result_type` = `element[]`), not
+    // the chain's fused `output_elem` — which is `TY_ANY` for an all-reference
+    // combinator instance (`.Erased` flavor). A `TY_ANY` element interns to an
+    // opaque `BcRef`, so the materialised result array gets `KIND_BOXED` slots
+    // while its source-level type is a concrete `T[]` (a `KIND_REF` array). A
+    // consumer reading the array as raw refs then dereferences a box → crash.
+    // Taking the element from `result_type` re-anchors it on the pre-reserved
+    // `BcStruct` slot, so the array is built `KIND_REF` and round-trips. Mirrors
+    // the `returns_typeparam_array -> .Mono` guard, which the inline collect
+    // array bypasses. Falls back to the fused element only if the result type
+    // isn't an array (never for a real `collect`).
+    elem_ty :: if result_type is ArrayType as a { a.element } else { chain_element_type(chain) }
+    arr_ty :: mk_array(elem_ty, false)
+    result :: fresh_synthetic_symbol(ctx, "collect")
+    element :: fresh_synthetic_symbol(ctx, "elem")
+    push :: LoweredArrayPush {
+        .span = span, .type = arr_ty,
+        .target = LoweredIdent { .span = span, .type = arr_ty, .symbol = result },
+        .value = LoweredIdent { .span = span, .type = elem_ty, .symbol = element },
+    }
+    stmts: LoweredStmt[]!: []
+    bound :: bind_chain_operands(ctx, chain, lower_expr, stmts)
+    start :: LoweredArrayLit { .span = span, .type = arr_ty, .elements = [] }
+    body: LoweredStmt[]: [LoweredExprStmt { .span = span, .expr = push }]
+    return accumulate_terminal(ctx, stmts, bound, span, result, arr_ty, start, element, elem_ty, body)
+}
+
+// The `Iterator` default `name` over `chain`.
+emit_iterator_default :: fn(ctx: FnLowerCtx!, name: string, chain: IterChain, span: Span) -> LoweredExpr {
+    if name == "count" {
+        return emit_count_terminal(ctx, chain, span)
+    }
+    if name == "is_empty" {
+        return emit_is_empty_terminal(ctx, chain, span)
+    }
+    return emit_last_terminal(ctx, chain, span)
+}
+
+// `count`: `{ <operands>; let n: usize = 0; <loop: n += 1>; n }` — definitionally
+// `usize`, the `Iterator::count` contract.
+emit_count_terminal :: fn(ctx: FnLowerCtx!, chain: IterChain, span: Span) -> LoweredExpr {
+    usize_ty :: mk_primitive("usize")
+    result :: fresh_synthetic_symbol(ctx, "count")
+    element :: fresh_synthetic_symbol(ctx, "elem")
+    total :: LoweredIdent { .span = span, .type = usize_ty, .symbol = result }
+    one :: LoweredIntLit { .span = span, .type = usize_ty, .value = 1 }
+    step :: assign_result(result, usize_ty, LoweredBinary {
+        .span = span, .type = usize_ty, .op = .Add, .left = total, .right = one,
+    }, span)
+    stmts: LoweredStmt[]!: []
+    bound :: bind_chain_operands(ctx, chain, lower_expr, stmts)
+    start :: LoweredIntLit { .span = span, .type = usize_ty, .value = 0 }
+    return accumulate_terminal(
+        ctx, stmts, bound, span, result, usize_ty, start, element, chain_element_type(chain), [step],
+    )
+}
+
+// `is_empty`: `{ <operands>; let r = true; <loop: r = false; break>; r }` — one
+// element pulled at most, as the default body pulls one.
+emit_is_empty_terminal :: fn(ctx: FnLowerCtx!, chain: IterChain, span: Span) -> LoweredExpr {
+    result :: fresh_synthetic_symbol(ctx, "empty")
+    body: LoweredStmt[]: [
+        assign_result(result, TY_BOOL, LoweredBoolLit { .span = span, .type = TY_BOOL, .value = false }, span),
+        chain_break(chain, span),
+    ]
+    element :: fresh_synthetic_symbol(ctx, "elem")
+    stmts: LoweredStmt[]!: []
+    bound :: bind_chain_operands(ctx, chain, lower_expr, stmts)
+    start :: LoweredBoolLit { .span = span, .type = TY_BOOL, .value = true }
+    return accumulate_terminal(
+        ctx, stmts, bound, span, result, TY_BOOL, start, element, chain_element_type(chain), body,
+    )
+}
+
+// `last`: `{ <operands>; let r: element | null = null; <loop: r = v>; r }`.
+emit_last_terminal :: fn(ctx: FnLowerCtx!, chain: IterChain, span: Span) -> LoweredExpr {
+    element_type :: chain_element_type(chain)
+    result_type :: mk_union([element_type, TY_NULL])
+    result :: fresh_synthetic_symbol(ctx, "last")
+    element :: fresh_synthetic_symbol(ctx, "elem")
+    current :: LoweredIdent { .span = span, .type = element_type, .symbol = element }
+    stmts: LoweredStmt[]!: []
+    bound :: bind_chain_operands(ctx, chain, lower_expr, stmts)
+    start :: LoweredNullLit { .span = span, .type = result_type }
+    body: LoweredStmt[]: [assign_result(result, result_type, current, span)]
+    return accumulate_terminal(ctx, stmts, bound, span, result, result_type, start, element, element_type, body)
+}
+
+// ---- a generator's state ----------------------------------------------------
+
+/// The `Iterator` defaults of a generator's state as functions of their own,
+/// beside its `next`: the rows a call through an erased `Iterator<T>` reaches.
+/// Each runs the default's loop on the state's own `next()`.
+///
+/// @param ctx         the generator's fn-lowering context.
+/// @param state_sym   the state struct's symbol, which the mangles name.
+/// @param state_ty    the state struct's type, each fn's `self`.
+/// @param element_ty  the generator's element.
+/// @param span        the generator's span.
+generator_default_decls :: fn(
+    ctx: FnLowerCtx!, state_sym: Symbol, state_ty: Type, element_ty: Type, span: Span,
+) -> LoweredFnDecl[] {
+    module_seg :: mangle_module_id(ctx.typed.resolved.display_path)
+    erased :: erase_genstate_for_dispatch(ctx, state_ty, element_ty)
+    out: LoweredFnDecl[]!: []
+    for name in ITERATOR_DEFAULTS {
+        self_sym :: fresh_synthetic_symbol(ctx, "self")
+        stmts: LoweredStmt[]!: []
+        receiver :: LoweredIdent { .span = span, .type = state_ty, .symbol = self_sym }
+        source :: bind_to_local(ctx, receiver, erased, "fuse_iter", span, stmts)
+        chain :: IterChain {
+            .kind = .OpaqueIter, .range_lower = null, .range_upper = null, .inclusive = false,
+            .element_type = element_ty, .source = null, .span = span, .bound_source = source,
+        }
+        result :: emit_iterator_default(ctx, name, chain, span)
+        stmts.push(LoweredReturn { .span = span, .value = result })
+        mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ITERATOR}$${name}"
+        symbol :: Symbol {
+            .id = next_synthetic_id(ctx), .kind = .Fn, .name = mangled,
+            .module = ctx.typed.resolved.path, .module_name = ctx.typed.resolved.path,
+            .visibility = .Private, .defined_at = null,
+        }
+        out.push(LoweredFnDecl {
+            .mangled = mangled,
+            .params = [LoweredParam { .name = "self", .symbol = self_sym, .type = state_ty }],
+            .return_type = type_of(result), .body = arm_block(stmts, span),
+            .origin = synth_mono_entry(ctx, symbol),
+        })
+    }
+    return out
+}

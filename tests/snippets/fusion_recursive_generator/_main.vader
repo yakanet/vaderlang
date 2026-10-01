@@ -1,0 +1,34 @@
+// fusion_recursive_generator — a generator that consumes itself. The outer call
+// is inlined; the recursive call, met inside its own inlined body, is not — it
+// takes the lazy path, a state machine, where a local declared in an `if` after
+// a `yield` must still live in the state.
+//
+// The chain is consumed where it is written (fused), then bound to a local first
+// (lazy: the reference). The two agree.
+
+module "snippet"
+
+import "std/io"
+
+countdown :: fn(n: i32) -> Iterator<i32> {
+    if n > 0 {
+        yield n
+        for x in countdown(n - 1) {
+            yield x
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    fused := ""
+    for v in countdown(3) {
+        fused = fused + " ${v}"
+    }
+    lazy := ""
+    it :: countdown(3)
+    for v in it {
+        lazy = lazy + " ${v}"
+    }
+    println("countdown(3):${fused} |${lazy}")
+    return 0
+}

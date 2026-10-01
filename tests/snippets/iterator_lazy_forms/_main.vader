@@ -1,0 +1,119 @@
+// The lazy form of an iterator chain — bound to a local, it runs as a state
+// machine — on the paths fusion used to cover for it:
+// - the `Iterator` defaults `count` / `is_empty` / `last` on a generator's state,
+//   directly and through an erased `Iterator<T>`, and `last` over a fused chain,
+//   whose element the call must still type;
+// - a lazy stage over a source of tuples or arrays (`enumerate`, `zip`,
+//   `window`): the stage is an erased instance, its source a concrete one, and
+//   natively the two lay the `next()` step out differently;
+// - a local declared in an `if` that closes a loop body, after a `yield`;
+// - a state-machine generator holding two instances of one combinator.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+odd :: fn(x: i32) -> bool = x % 2 == 1
+inc :: fn(x: i32) -> i32 = x + 1
+twice :: fn(x: i32) -> i32 = x * 2
+
+big :: fn(p: [usize, i32]) -> bool {
+    [_, x] :: p
+    return x > 10
+}
+
+both_odd :: fn(p: [i32, i32]) -> bool {
+    [a, b] :: p
+    return a % 2 == 1 && b % 2 == 1
+}
+
+total :: fn(w: i32[]) -> i32 {
+    s := 0
+    for x in w {
+        s += x
+    }
+    return s
+}
+
+erased_count :: fn(i: Iterator<i32>) -> usize = i.count()
+
+erased_last :: fn(i: Iterator<i32>) -> i32 = i.last() ?? -1
+
+erased_empty :: fn(i: Iterator<i32>) -> bool = i.is_empty()
+
+upto :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        yield i
+    }
+}
+
+after_yield :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        yield i
+        if i % 2 == 0 {
+            doubled :: i * 2
+            yield doubled + 100
+        }
+    }
+}
+
+relay :: fn(xs: i32[]) -> Iterator<i32> {
+    for x in xs.map(inc).map(twice) {
+        yield x
+        for y in xs.map(inc).map(twice) {
+            if y > x {
+                yield y * 100
+                break
+            }
+        }
+    }
+}
+
+defaults :: fn() -> void {
+    counted :: [1, 2, 3, 4, 5].filter(odd)
+    println("filter state, count: ${counted.count()}")
+    emptied :: [2, 4].filter(odd)
+    println("filter state, is_empty: ${emptied.is_empty()}")
+    lasted :: [1, 2, 3, 4, 5].filter(odd)
+    println("filter state, last: ${lasted.last() ?? -1}")
+    println("generator, count: ${upto(4).count()}, is_empty: ${upto(0).is_empty()}")
+    println("map, last: ${[1, 2, 3].map(inc).last() ?? -1}")
+    println("zip, count: ${zip([1, 2], [3, 4, 5]).count()}")
+    odds :: [1, 2, 3, 4, 5].filter(odd)
+    println("erased filter state, count: ${erased_count(odds)}")
+    println("erased generator, last: ${erased_last(upto(4))}, is_empty: ${erased_empty(upto(0))}")
+}
+
+composite_sources :: fn() -> void {
+    pairs :: [10, 20, 30].enumerate().filter(big)
+    for [i, x] in pairs {
+        println("enumerate.filter: ${i} ${x}")
+    }
+    zipped :: zip([1, 2, 3], [5, 6, 7]).filter(both_odd)
+    for [a, b] in zipped {
+        println("zip.filter: ${a} ${b}")
+    }
+    windows :: [1, 2, 3, 4].window(2).map(total)
+    for v in windows {
+        println("window.map: ${v}")
+    }
+}
+
+main :: fn() -> i32 {
+    defaults()
+    composite_sources()
+    s := ""
+    ay :: after_yield(3)
+    for v in ay {
+        s = s + " ${v}"
+    }
+    println("local after a yield:${s}")
+    r := ""
+    rl :: relay([1, 2, 3])
+    for v in rl {
+        r = r + " ${v}"
+    }
+    println("relay of fused chains:${r}")
+    return 0
+}

@@ -611,10 +611,13 @@ gb_cancel_body :: fn(gb: GenBuild) -> LoweredBlock {
 // ---- spill collection -----------------------------------------------------
 
 // Collect every `LoweredLet` symbol in a block (recursively through loops /
-// ifs) into `gb.field_map` (symbol id → field name) + `gb.fields`. v1 spills
-// every local ; params are pre-seeded by the caller.
+// ifs, the trailing expression included — a closing `if` is one) into
+// `gb.field_map` (symbol id → field name) + `gb.fields`. v1 spills every local ;
+// params are pre-seeded by the caller.
 gb_collect_block :: fn(gb: GenBuild!, block: LoweredBlock) -> void {
     for s in block.stmts { gb_collect_stmt(gb, s) }
+    trailing :: block.trailing ?? return
+    gb_collect_expr(gb, trailing)
 }
 
 gb_collect_stmt :: fn(gb: GenBuild!, s: LoweredStmt) -> void {

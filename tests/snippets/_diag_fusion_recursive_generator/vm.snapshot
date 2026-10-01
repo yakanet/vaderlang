@@ -1,7 +1,0 @@
-# stdout
-v=3
-v=2
-# stderr
-vader vm: reached unreachable: 
-# exit
-1

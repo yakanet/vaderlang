@@ -69,6 +69,7 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
 push_generator_decls :: fn(
     fn_ctx: FnLowerCtx!, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
     step_type: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
+    element_ty: Type, span: Span,
 ) -> void {
     module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
     next_mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ITERATOR}$${METHOD_NEXT}"
@@ -88,6 +89,9 @@ push_generator_decls :: fn(
     }
     fn_ctx.project.synth_decls.push(state_decl)
     fn_ctx.project.synth_decls.push(next_decl)
+    for d in generator_default_decls(fn_ctx, state_sym, state_ty, element_ty, span) {
+        fn_ctx.project.synth_decls.push(d)
+    }
 }
 
 // ---- entry ----------------------------------------------------------------
@@ -163,7 +167,10 @@ export lower_generator_fn :: fn(
         state_fields.push(LoweredStructField { .name = GB_DEFERS_FIELD, .type = gb_defers_ty() })
     }
     state_fields.push(LoweredStructField { .name = "state", .type = i32_ty })
-    push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, shape.type, gb_next_body(gb), state_fields)
+    push_generator_decls(
+        fn_ctx, state_sym, self_sym, state_ty, shape.type, gb_next_body(gb), state_fields,
+        element_ty, span,
+    )
 
     // Rewrite `g`'s body: `return g$State { <all fields>, .state = entry }`.
     // Param fields carry the incoming args (a captured param is cell-wrapped here

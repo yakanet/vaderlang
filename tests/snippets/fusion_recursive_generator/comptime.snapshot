@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/_diag_fusion_recursive_generator
+## tests/snippets/fusion_recursive_generator
 
 ## generic instances
   __genstate_countdown<i32>

@@ -376,6 +376,10 @@ const C_PARITY = new Set<string>([
   // A jump out of nested or unrolled loops runs the defers of each body it leaves.
   "defer_named_jump_nested_loop",
   "comptime_for_jumps",
+  // The lazy form of a chain: `Iterator` defaults on a generator's state, an
+  // erased stage over a concrete tuple source, a local after a `yield`.
+  "iterator_lazy_forms",
+  "fusion_recursive_generator",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

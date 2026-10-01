@@ -1188,6 +1188,104 @@
                                       _0: int(0) :i32
                                       _1: int(1) :u8
                                     }
+  fn snippet$__genstate_offset$Iterator$count(self: __genstate_offset!) -> usize
+    let __fuse_iter_3: Iterator<i32> = __self_2 :__genstate_offset!
+    return
+      block :usize
+        let __count_4: usize = int(0) :usize
+        loop
+          let __fuse_step_6: [i32, Continuation]! =
+            vcall Iterator.next :[i32, Continuation]!
+              recv:
+                __fuse_iter_3 :Iterator<i32>
+          if :void
+            cond:
+              eq :bool
+                l:
+                  ._1 :Continuation
+                    __fuse_step_6 :[i32, Continuation]!
+                r:
+                  int(1) :u8
+            then:
+              break
+            else:
+              let __elem_5: i32 =
+                ._0 :i32
+                  __fuse_step_6 :[i32, Continuation]!
+              assign
+                target:
+                  __count_4 :usize
+                value:
+                  add :usize
+                    l:
+                      __count_4 :usize
+                    r:
+                      int(1) :usize
+        ~>
+          __count_4 :usize
+  fn snippet$__genstate_offset$Iterator$is_empty(self: __genstate_offset!) -> bool
+    let __fuse_iter_8: Iterator<i32> = __self_7 :__genstate_offset!
+    return
+      block :bool
+        let __empty_9: bool = true
+        loop
+          let __fuse_step_11: [i32, Continuation]! =
+            vcall Iterator.next :[i32, Continuation]!
+              recv:
+                __fuse_iter_8 :Iterator<i32>
+          if :void
+            cond:
+              eq :bool
+                l:
+                  ._1 :Continuation
+                    __fuse_step_11 :[i32, Continuation]!
+                r:
+                  int(1) :u8
+            then:
+              break
+            else:
+              let __elem_10: i32 =
+                ._0 :i32
+                  __fuse_step_11 :[i32, Continuation]!
+              assign
+                target:
+                  __empty_9 :bool
+                value:
+                  false
+              break
+        ~>
+          __empty_9 :bool
+  fn snippet$__genstate_offset$Iterator$last(self: __genstate_offset!) -> i32 | null
+    let __fuse_iter_13: Iterator<i32> = __self_12 :__genstate_offset!
+    return
+      block :i32 | null
+        let __last_14: i32 | null = null
+        loop
+          let __fuse_step_16: [i32, Continuation]! =
+            vcall Iterator.next :[i32, Continuation]!
+              recv:
+                __fuse_iter_13 :Iterator<i32>
+          if :void
+            cond:
+              eq :bool
+                l:
+                  ._1 :Continuation
+                    __fuse_step_16 :[i32, Continuation]!
+                r:
+                  int(1) :u8
+            then:
+              break
+            else:
+              let __elem_15: i32 =
+                ._0 :i32
+                  __fuse_step_16 :[i32, Continuation]!
+              assign
+                target:
+                  __last_14 :i32 | null
+                value:
+                  __elem_15 :i32
+        ~>
+          __last_14 :i32 | null
   struct __lambda_env_snippet_17 { cap_0: ? }
   fn __lambda_snippet_16(__env_0: __lambda_env_snippet_17!, x: i32) -> i32
     ~>
@@ -1479,6 +1577,104 @@
                                                               _0: int(0) :i32
                                                               _1: int(1) :u8
                                                             }
+  fn snippet$__genstate_scaled$Iterator$count(self: __genstate_scaled!) -> usize
+    let __fuse_iter_5: Iterator<i32> = __self_4 :__genstate_scaled!
+    return
+      block :usize
+        let __count_6: usize = int(0) :usize
+        loop
+          let __fuse_step_8: [i32, Continuation]! =
+            vcall Iterator.next :[i32, Continuation]!
+              recv:
+                __fuse_iter_5 :Iterator<i32>
+          if :void
+            cond:
+              eq :bool
+                l:
+                  ._1 :Continuation
+                    __fuse_step_8 :[i32, Continuation]!
+                r:
+                  int(1) :u8
+            then:
+              break
+            else:
+              let __elem_7: i32 =
+                ._0 :i32
+                  __fuse_step_8 :[i32, Continuation]!
+              assign
+                target:
+                  __count_6 :usize
+                value:
+                  add :usize
+                    l:
+                      __count_6 :usize
+                    r:
+                      int(1) :usize
+        ~>
+          __count_6 :usize
+  fn snippet$__genstate_scaled$Iterator$is_empty(self: __genstate_scaled!) -> bool
+    let __fuse_iter_10: Iterator<i32> = __self_9 :__genstate_scaled!
+    return
+      block :bool
+        let __empty_11: bool = true
+        loop
+          let __fuse_step_13: [i32, Continuation]! =
+            vcall Iterator.next :[i32, Continuation]!
+              recv:
+                __fuse_iter_10 :Iterator<i32>
+          if :void
+            cond:
+              eq :bool
+                l:
+                  ._1 :Continuation
+                    __fuse_step_13 :[i32, Continuation]!
+                r:
+                  int(1) :u8
+            then:
+              break
+            else:
+              let __elem_12: i32 =
+                ._0 :i32
+                  __fuse_step_13 :[i32, Continuation]!
+              assign
+                target:
+                  __empty_11 :bool
+                value:
+                  false
+              break
+        ~>
+          __empty_11 :bool
+  fn snippet$__genstate_scaled$Iterator$last(self: __genstate_scaled!) -> i32 | null
+    let __fuse_iter_15: Iterator<i32> = __self_14 :__genstate_scaled!
+    return
+      block :i32 | null
+        let __last_16: i32 | null = null
+        loop
+          let __fuse_step_18: [i32, Continuation]! =
+            vcall Iterator.next :[i32, Continuation]!
+              recv:
+                __fuse_iter_15 :Iterator<i32>
+          if :void
+            cond:
+              eq :bool
+                l:
+                  ._1 :Continuation
+                    __fuse_step_18 :[i32, Continuation]!
+                r:
+                  int(1) :u8
+            then:
+              break
+            else:
+              let __elem_17: i32 =
+                ._0 :i32
+                  __fuse_step_18 :[i32, Continuation]!
+              assign
+                target:
+                  __last_16 :i32 | null
+                value:
+                  __elem_17 :i32
+        ~>
+          __last_16 :i32 | null
   struct __lambda_env_snippet_21 { cap_0: ? }
   fn __lambda_snippet_20(__env_0: __lambda_env_snippet_21!, x: i32) -> i32
     ~>

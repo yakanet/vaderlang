@@ -1,0 +1,20 @@
+# stdout
+filter state, count: 3
+filter state, is_empty: true
+filter state, last: 5
+generator, count: 4, is_empty: true
+map, last: 4
+zip, count: 2
+erased filter state, count: 3
+erased generator, last: 3, is_empty: true
+enumerate.filter: 1 20
+enumerate.filter: 2 30
+zip.filter: 1 5
+zip.filter: 3 7
+window.map: 3
+window.map: 5
+window.map: 7
+local after a yield: 0 100 1 2 104
+relay of fused chains: 4 600 6 800 8
+# exit
+0

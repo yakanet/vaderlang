@@ -2003,16 +2003,18 @@ push_struct_field :: fn(
         concrete :: field_of(cname, recv_ptr, f.name)
         // Erasure boundary (T12). An erased-generic producer (e.g. a generic
         // `zip` / `enumerate`) returns an erased sibling layout (some or all
-        // fields boxed) ; Vader erases the carrying array / result to a bare
-        // `ref`, so the concrete element type only resurfaces HERE, at the field
-        // read (the `local.field` / `struct.get` op carries the concrete
-        // `type_id`). Dispatch on the runtime tag : a concrete value reads the
-        // concrete layout directly ; an erased sibling reads the sibling's field
-        // and box/unboxes it to the concrete field's storage. Self-gating — a
-        // concrete value never matches a sibling tag, so non-erased reads are
-        // unaffected. Vader's array is erased to `ref`, so the reshape happens
-        // per-read here rather than eagerly over the whole array.
-        sibs :: find_erased_siblings(types, type_index)
+        // fields boxed), and a concrete producer hands an erased consumer its
+        // concrete layout — a `filter` erased over tuples reads the steps of a
+        // concrete `enumerate`. Vader erases the carrying array / result to a
+        // bare `ref`, so the layout the value has only resurfaces HERE, at the
+        // field read (the `local.field` / `struct.get` op carries the type_id it
+        // expects). Dispatch on the runtime tag : a value of the expected type
+        // reads its layout directly ; a sibling reads the sibling's field and
+        // box/unboxes it to the expected field's storage. Self-gating — a value
+        // of the expected type never matches a sibling tag. Vader's array is
+        // erased to `ref`, so the reshape happens per-read here rather than
+        // eagerly over the whole array.
+        sibs :: find_layout_siblings(types, type_index)
         if sibs.len() == 0 {
             push_expr(s, fval, concrete)
         } else {
@@ -2036,39 +2038,18 @@ push_struct_field :: fn(
     }
 }
 
-/// True when every field of `st` is an open `ref` — the erased all-`Any` form
-/// an erased-generic body materialises.
-struct_all_ref :: fn(types: BcType[], st: BcStruct) -> bool {
-    if st.fields.len() == 0 {
-        return false
-    }
-    for f in st.fields {
-        if usize(f.type_index) >= types.len() {
-            return false
-        }
-        if types[usize(f.type_index)] !is BcRef {
-            return false
-        }
-    }
-    return true
-}
-
-/// Find every erased sibling layout of concrete struct `struct_idx` : same
-/// generic group (a shared `symbol_id` for named generics, or both anonymous
-/// `__Tuple_*`), same arity, and each field either identical to the concrete's
-/// or an open `ref` — with at least one `ref` (else it is the same layout, not
-/// a sibling). Covers both the all-`Any` form (`zip` erases every field →
-/// `[Any, Any]`) and partial erasure (`enumerate` keeps the concrete `usize`
-/// index, erases only the element → `[usize, Any]`). Returns [] when
-/// `struct_idx` is itself the erased form.
-find_erased_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
+/// Find every sibling layout of struct `struct_idx` : same generic group (a
+/// shared `symbol_id` for named generics, or both anonymous `__Tuple_*`), same
+/// arity, and each field identical or erased on one side — an open `ref` in the
+/// sibling, or an open `ref` here where the sibling holds a reference. Covers
+/// the all-`Any` form (`zip` erases every field → `[Any, Any]`), partial erasure
+/// (`enumerate` keeps the concrete `usize` index, erases only the element →
+/// `[usize, Any]`), and the concrete layout an erased consumer receives from a
+/// concrete producer.
+find_layout_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
     out: i32[]!: []
     et :: types[usize(struct_idx)]
     if et is BcStruct {
-        if struct_all_ref(types, et) {
-            return out
-        }
-        nfields :: et.fields.len()
         // Anonymous tuples carry no source symbol — they group by the reserved
         // `__Tuple` name marker ; named generics group by a shared `symbol_id`.
         is_tuple :: "__Tuple" in et.name
@@ -2077,30 +2058,41 @@ find_erased_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
                 continue
             }
             if types[i] is BcStruct as cand {
-                if cand.fields.len() != nfields {
-                    continue
-                }
                 same_group :: et.symbol_id >= 0 && cand.symbol_id == et.symbol_id || is_tuple && "__Tuple" in cand.name
-                if same_group {
-                    ok := true
-                    any_ref := false
-                    for fi in 0..<nfields {
-                        ef :: et.fields[fi]
-                        cf :: cand.fields[fi]
-                        if types[usize(cf.type_index)] is BcRef {
-                            any_ref = true
-                        } else if cf.type_index != ef.type_index {
-                            ok = false
-                        }
-                    }
-                    if ok && any_ref {
-                        out.push(i32(i))
-                    }
+                if same_group && fields_are_layout_siblings(types, et, cand) {
+                    out.push(i32(i))
                 }
             }
         }
     }
     return out
+}
+
+// True when `cand` lays out the same fields as `expected` with some of them
+// erased on one side: each field is the same type, or boxed in `cand` (an erased
+// producer), or boxed in `expected` while `cand` holds a reference there (a
+// concrete producer read by an erased consumer — erasure boxes only references).
+fields_are_layout_siblings :: fn(types: BcType[], expected: BcStruct, cand: BcStruct) -> bool {
+    if cand.fields.len() != expected.fields.len() {
+        return false
+    }
+    differs := false
+    for fi in 0..<expected.fields.len() {
+        ef :: expected.fields[fi].type_index
+        cf :: cand.fields[fi].type_index
+        if cf == ef {
+            continue
+        }
+        differs = true
+        if types[usize(cf)] is BcRef {
+            continue
+        }
+        if types[usize(ef)] is BcRef && val_type_of_field(types, cf) == .Ref {
+            continue
+        }
+        return false
+    }
+    return differs
 }
 
 /// Read field `field_index` of the erased sibling struct `sib_idx` off `recv`,
