@@ -570,7 +570,7 @@
               r:
                 int(1) :usize
     return int(0) :i32
-  struct __genstate_bytes { state: i32 }
+  struct snippet$__genstate_bytes { state: i32 }
   fn snippet$__genstate_bytes$Iterator$next(self: __genstate_bytes!) -> [string | u8, Continuation]!
     loop :dispatch$
       if :void

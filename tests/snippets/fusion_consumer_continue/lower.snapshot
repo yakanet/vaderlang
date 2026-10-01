@@ -3002,7 +3002,7 @@
               awaited: null
               state: int(8) :i32
             }
-  struct __genstate_twice_per_round { s0: i32, state: i32 }
+  struct snippet$__genstate_twice_per_round { s0: i32, state: i32 }
   fn snippet$__genstate_twice_per_round$Iterator$next(self: __genstate_twice_per_round!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -3173,7 +3173,7 @@
                                       _0: int(0) :i32
                                       _1: int(1) :u8
                                     }
-  struct __genstate_three { state: i32 }
+  struct snippet$__genstate_three { state: i32 }
   fn snippet$__genstate_three$Iterator$next(self: __genstate_three!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -3260,7 +3260,7 @@
                           _0: int(0) :i32
                           _1: int(1) :u8
                         }
-  struct __genstate_drop_odd { s0: Iterator<i32>, s1: Iterator<i32>, s2: [i32, Continuation]!, s3: i32, state: i32 }
+  struct snippet$__genstate_drop_odd { s0: Iterator<i32>, s1: Iterator<i32>, s2: [i32, Continuation]!, s3: i32, state: i32 }
   fn snippet$__genstate_drop_odd$Iterator$next(self: __genstate_drop_odd!) -> [i32, Continuation]!
     loop :dispatch$
       if :void

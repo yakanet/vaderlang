@@ -5,7 +5,7 @@
 #include <string.h>
 
 typedef struct vader_struct___defer_env_snippet_1_t vader_struct___defer_env_snippet_1_t;
-typedef struct vader_struct___genstate_evens_t vader_struct___genstate_evens_t;
+typedef struct vader_struct_snippet___genstate_evens_t vader_struct_snippet___genstate_evens_t;
 typedef struct vader_struct___Tuple_i32_u8_99ae0d29_t vader_struct___Tuple_i32_u8_99ae0d29_t;
 typedef struct vader_struct_std_core_Range__i32_t vader_struct_std_core_Range__i32_t;
 typedef struct vader_struct_std_core_Range__usize_t vader_struct_std_core_Range__usize_t;
@@ -17,7 +17,7 @@ struct vader_struct___defer_env_snippet_1_t {
     vader_obj_header_t header;
     vader_box_t f_cap_0;
 };
-struct vader_struct___genstate_evens_t {
+struct vader_struct_snippet___genstate_evens_t {
     vader_obj_header_t header;
     int32_t f_s0;
     int32_t f_s1;
@@ -160,7 +160,7 @@ const vader_type_info_t vader_type_info_table[24] = {
         .ptr_count = 1,
     },
     [6] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___genstate_evens_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet___genstate_evens_t),
         .slot_size = 8,
     },
     [7] = {
@@ -787,7 +787,7 @@ static vader_box_t snippet_evens(int32_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 151 "tests/snippets/counted_loop_continue/_main.vader"
-    vader_struct___genstate_evens_t* _a0_obj = (vader_struct___genstate_evens_t*) vader_gc_alloc(sizeof(vader_struct___genstate_evens_t));
+    vader_struct_snippet___genstate_evens_t* _a0_obj = (vader_struct_snippet___genstate_evens_t*) vader_gc_alloc(sizeof(vader_struct_snippet___genstate_evens_t));
     vader_obj_header_init(_a0_obj, 6u);
     _a0_obj->f_s0 = l0;
     _a0_obj->f_s1 = INT32_C(0);
@@ -895,44 +895,44 @@ static void* snippet___genstate_evens_Iterator_next(void* l0) {
     vader_gc_top = &gc_frame;
 #line 151 "tests/snippets/counted_loop_continue/_main.vader"
     for (;;) {
-        t0 = ((vader_struct___genstate_evens_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
-            ((vader_struct___genstate_evens_t*) l0)->f_state = INT32_C(-1);
+            ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(-1);
             continue;
         }
-        t0 = ((vader_struct___genstate_evens_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
         if (t0 == INT32_C(1)) {
-            ((vader_struct___genstate_evens_t*) l0)->f_state = INT32_C(0);
+            ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(0);
             continue;
         }
-        t0 = ((vader_struct___genstate_evens_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
         if (t0 == INT32_C(2)) {
-            l1 = ((vader_struct___genstate_evens_t*) l0)->f_s1;
-            l2 = ((vader_struct___genstate_evens_t*) l0)->f_s0;
+            l1 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1;
+            l2 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s0;
 #line 152 "tests/snippets/counted_loop_continue/_main.vader"
 #line 151 "tests/snippets/counted_loop_continue/_main.vader"
             if ((l1 < l2)) {
-                ((vader_struct___genstate_evens_t*) l0)->f_state = INT32_C(7);
+                ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(7);
             } else {
-                ((vader_struct___genstate_evens_t*) l0)->f_state = INT32_C(1);
+                ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(1);
             }
             continue;
         }
-        t0 = ((vader_struct___genstate_evens_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
         if (t0 == INT32_C(3)) {
-            t0 = ((vader_struct___genstate_evens_t*) l0)->f_s1;
+            t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1;
 #line 152 "tests/snippets/counted_loop_continue/_main.vader"
             l3 = (t0 + INT32_C(1));
-            ((vader_struct___genstate_evens_t*) l0)->f_s1 = l3;
+            ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1 = l3;
 #line 151 "tests/snippets/counted_loop_continue/_main.vader"
-            ((vader_struct___genstate_evens_t*) l0)->f_state = INT32_C(2);
+            ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(2);
             continue;
         }
-        t0 = ((vader_struct___genstate_evens_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
         if (t0 == INT32_C(4)) {
             l4 = INT32_C(3);
-            ((vader_struct___genstate_evens_t*) l0)->f_state = l4;
-            l5 = ((vader_struct___genstate_evens_t*) l0)->f_s1;
+            ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = l4;
+            l5 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1;
             l6 = (uint8_t) 0;
             vader_struct___Tuple_i32_u8_99ae0d29_t* _a0_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
             vader_obj_header_init(_a0_obj, 7u);
@@ -941,37 +941,37 @@ static void* snippet___genstate_evens_Iterator_next(void* l0) {
             t1 = (void*) _a0_obj;
             { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
         }
-        t0 = ((vader_struct___genstate_evens_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
         if (t0 == INT32_C(5)) {
-            ((vader_struct___genstate_evens_t*) l0)->f_state = INT32_C(4);
+            ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(4);
         } else {
-            t0 = ((vader_struct___genstate_evens_t*) l0)->f_state;
+            t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
             if (t0 == INT32_C(6)) {
-                t0 = ((vader_struct___genstate_evens_t*) l0)->f_s1;
+                t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1;
 #line 152 "tests/snippets/counted_loop_continue/_main.vader"
                 l7 = (t0 + INT32_C(1));
-                ((vader_struct___genstate_evens_t*) l0)->f_s1 = l7;
+                ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1 = l7;
 #line 151 "tests/snippets/counted_loop_continue/_main.vader"
-                ((vader_struct___genstate_evens_t*) l0)->f_state = INT32_C(2);
+                ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(2);
             } else {
-                t0 = ((vader_struct___genstate_evens_t*) l0)->f_state;
+                t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
                 if (t0 == INT32_C(7)) {
-                    t0 = ((vader_struct___genstate_evens_t*) l0)->f_s1;
+                    t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1;
 #line 153 "tests/snippets/counted_loop_continue/_main.vader"
                     t2 = vader_mod_i32(t0, INT32_C(2));
 #line 151 "tests/snippets/counted_loop_continue/_main.vader"
                     if (t2 == INT32_C(1)) {
-                        ((vader_struct___genstate_evens_t*) l0)->f_state = INT32_C(6);
+                        ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(6);
                     } else {
-                        ((vader_struct___genstate_evens_t*) l0)->f_state = INT32_C(4);
+                        ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(4);
                     }
                 } else {
-                    t0 = ((vader_struct___genstate_evens_t*) l0)->f_state;
+                    t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
                     if (t0 == INT32_C(8)) {
 #line 152 "tests/snippets/counted_loop_continue/_main.vader"
-                        ((vader_struct___genstate_evens_t*) l0)->f_s1 = INT32_C(0);
+                        ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1 = INT32_C(0);
 #line 151 "tests/snippets/counted_loop_continue/_main.vader"
-                        ((vader_struct___genstate_evens_t*) l0)->f_state = INT32_C(2);
+                        ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(2);
                     } else {
                         vader_struct___Tuple_i32_u8_99ae0d29_t* _a1_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                         vader_obj_header_init(_a1_obj, 7u);
@@ -986,8 +986,8 @@ static void* snippet___genstate_evens_Iterator_next(void* l0) {
         continue;
     }
     l4 = INT32_C(3);
-    ((vader_struct___genstate_evens_t*) l0)->f_state = l4;
-    l5 = ((vader_struct___genstate_evens_t*) l0)->f_s1;
+    ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = l4;
+    l5 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1;
     l6 = (uint8_t) 0;
     vader_struct___Tuple_i32_u8_99ae0d29_t* _a2_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
     vader_obj_header_init(_a2_obj, 7u);

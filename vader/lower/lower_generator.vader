@@ -88,7 +88,8 @@ push_generator_decls :: fn(
         .origin = synth_mono_entry(fn_ctx, next_sym),
     }
     state_decl :: LoweredStructDecl {
-        .mangled = state_sym.name, .fields = state_fields,
+        .mangled = "${module_seg}$${state_sym.name}",
+        .fields = state_fields,
         .origin = synth_mono_entry(fn_ctx, state_sym),
     }
     fn_ctx.project.synth_decls.push(state_decl)
@@ -119,14 +120,16 @@ export lower_generator_fn :: fn(
     element_ty :: generator_element_of(return_type)
     i32_ty :: mk_primitive("i32")
 
-    // Direction A : mint the state struct under the SAME deterministic symbol
-    // typecheck uses (`gen_state_symbol` : `__genstate_<fn>`, id `BASE - fn.id`),
-    // so an escaping generator — now typed as the concrete `__genstate_<fn>` — has
-    // its `Iterator::next` mangle resolve at the consumer's devirtualized call.
-    // Falls back to a fresh lifted symbol when the fn symbol is unavailable.
-    state_sym :: match fn_ctx.entry.symbol as fn_sym {
-        is Symbol -> gen_state_symbol(fn_sym)
-        is null   -> fresh_lifted_symbol_with_prefix(fn_ctx, true, "__gen_", "__gen_state_")
+    // Direction A : build the state struct under the symbol typecheck recorded for
+    // this declaration, so an escaping generator — typed as that concrete struct —
+    // has its `Iterator::next` mangle resolve at the consumer's devirtualized call.
+    // A generic instance with no symbol of its own — one per key — has fields of
+    // its own, so a struct of its own.
+    state :: generator_state_of(fn_decl, fn_ctx.typed)
+    state_sym :: if fn_ctx.entry.symbol != null && state != null {
+        state.symbol
+    } else {
+        fresh_lifted_symbol_with_prefix(fn_ctx, true, "__gen_", "__gen_state_")
     }
     // The lowered state struct stays NO-ARG (`__genstate_<fn>`) — its `next()` body
     // accesses concrete fields (`self.state`, `self.s0`), so a parameterised type

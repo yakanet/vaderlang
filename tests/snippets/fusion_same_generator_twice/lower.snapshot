@@ -2737,7 +2737,7 @@
       callee:
         break_outer_loop_named_like_generator_loop :fn() -> void
     return int(0) :i32
-  struct __genstate_scale { s0: Iterator<i32>, s1: i32, s2: Iterator<i32>, s3: [i32, Continuation]!, s4: i32, state: i32 }
+  struct snippet$__genstate_scale { s0: Iterator<i32>, s1: i32, s2: Iterator<i32>, s3: [i32, Continuation]!, s4: i32, state: i32 }
   fn snippet$__genstate_scale$Iterator$next(self: __genstate_scale!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -2990,7 +2990,7 @@
                                                           _0: int(0) :i32
                                                           _1: int(1) :u8
                                                         }
-  struct __genstate_upto { s0: i32, s1: i32, state: i32 }
+  struct snippet$__genstate_upto { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_upto$Iterator$next(self: __genstate_upto!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -3170,7 +3170,7 @@
           c :char
         r:
           char(0x6f)
-  struct __genstate_grid { s0: i32, s1: i32, state: i32 }
+  struct snippet$__genstate_grid { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_grid$Iterator$next(self: __genstate_grid!) -> [i32, Continuation]!
     loop :dispatch$
       if :void

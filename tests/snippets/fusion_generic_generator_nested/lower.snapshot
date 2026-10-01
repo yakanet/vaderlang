@@ -562,7 +562,7 @@
         s5: int(0) :i32
         state: int(7) :i32
       }
-  struct __gen_state_snippet_0 { s0: i32[], s1: i32, s2: i32[], s3: usize, s4: usize, s5: i32, state: i32 }
+  struct snippet$__gen_state_snippet_0 { s0: i32[], s1: i32, s2: i32[], s3: usize, s4: usize, s5: i32, state: i32 }
   fn snippet$__gen_state_snippet_0$Iterator$next(self: __gen_state_snippet_0!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -782,7 +782,7 @@
         s5: "" :string
         state: int(7) :i32
       }
-  struct __gen_state_snippet_1 { s0: string[], s1: string, s2: string[], s3: usize, s4: usize, s5: string, state: i32 }
+  struct snippet$__gen_state_snippet_1 { s0: string[], s1: string, s2: string[], s3: usize, s4: usize, s5: string, state: i32 }
   fn snippet$__gen_state_snippet_1$Iterator$next(self: __gen_state_snippet_1!) -> [string, Continuation]!
     loop :dispatch$
       if :void

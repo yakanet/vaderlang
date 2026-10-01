@@ -1800,7 +1800,7 @@
       callee:
         loop_labelled_exit :fn() -> void
     return int(0) :i32
-  struct __genstate_upto_stop { s0: i32, s1: i32, state: i32 }
+  struct snippet$__genstate_upto_stop { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_upto_stop$Iterator$next(self: __genstate_upto_stop!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -2014,7 +2014,7 @@
                                               _0: int(0) :i32
                                               _1: int(1) :u8
                                             }
-  struct __genstate_until_negative { s0: Iterator<i32>, s1: Iterator<i32>, s2: [i32, Continuation]!, s3: i32, state: i32 }
+  struct snippet$__genstate_until_negative { s0: Iterator<i32>, s1: Iterator<i32>, s2: [i32, Continuation]!, s3: i32, state: i32 }
   fn snippet$__genstate_until_negative$Iterator$next(self: __genstate_until_negative!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -2331,7 +2331,7 @@
                                                                       _0: int(0) :i32
                                                                       _1: int(1) :u8
                                                                     }
-  struct __genstate_grid_until { s0: i32, s1: i32, s2: i32, s3: i32, state: i32 }
+  struct snippet$__genstate_grid_until { s0: i32, s1: i32, s2: i32, s3: i32, state: i32 }
   fn snippet$__genstate_grid_until$Iterator$next(self: __genstate_grid_until!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -2722,7 +2722,7 @@
                                                                           _0: int(0) :i32
                                                                           _1: int(1) :u8
                                                                         }
-  struct __genstate_relay { s0: i32, s1: i32, s2: i32, state: i32 }
+  struct snippet$__genstate_relay { s0: i32, s1: i32, s2: i32, state: i32 }
   fn snippet$__genstate_relay$Iterator$next(self: __genstate_relay!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -3033,7 +3033,7 @@
                                                                   _0: int(0) :i32
                                                                   _1: int(1) :u8
                                                                 }
-  struct __genstate_counter { s0: i32, s1: i32, s2: i32, state: i32 }
+  struct snippet$__genstate_counter { s0: i32, s1: i32, s2: i32, state: i32 }
   fn snippet$__genstate_counter$Iterator$next(self: __genstate_counter!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -3301,7 +3301,7 @@
                                                           _0: int(0) :i32
                                                           _1: int(1) :u8
                                                         }
-  struct __genstate_labelled_exit { s0: i32, state: i32 }
+  struct snippet$__genstate_labelled_exit { s0: i32, state: i32 }
   fn snippet$__genstate_labelled_exit$Iterator$next(self: __genstate_labelled_exit!) -> [i32, Continuation]!
     loop :dispatch$
       if :void

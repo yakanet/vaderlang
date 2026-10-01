@@ -405,6 +405,9 @@ const C_PARITY = new Set<string>([
   "fusion_destructure_filtered",
   // An empty array filled by a counted loop, created at its trip count.
   "array_reserved_by_loop",
+  // Three generators of one name, one of them imported, each with its own state
+  // machine — fused, escaping, heading a chain, reached by UFCS.
+  "generator_overloads",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

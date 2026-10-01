@@ -7,8 +7,9 @@
 // boundaries. This makes a combinator chain `arr.map(f).filter(p)` resolve
 // field/UFCS on a CONCRETE nominal receiver, instead of the erased trait
 // receiver that mis-resolves to a virtual dispatch.
-// The state-struct symbol is derived DETERMINISTICALLY from the fn symbol so the
-// lowerer (`lower_generator.vader`) reuses the same one.
+// Each generator DECLARATION has its own state struct — two overloads of a name
+// are two generators — recorded in `generator_states`, which the lowerer
+// (`lower_generator.vader`) reads to build that same struct.
 
 module "vader/typecheck"
 
@@ -19,12 +20,9 @@ import "vader/types"
 import "std/collections"
 
 // The `<fn>$State` naming convention — one source of truth shared by the symbol
-// mint (`gen_state_symbol`), the registry keys, and the lower-side recognition
+// mint (`gen_state_symbol`) and the lower-side recognition
 // (`is_gen_state_struct`).
 GEN_STATE_PREFIX :: "__genstate_"
-
-/// The deterministic state-struct name for a `generator` fn named `fn_name`.
-export gen_state_name :: fn(fn_name: string) -> string = "${GEN_STATE_PREFIX}${fn_name}"
 
 // Reserved synthetic-id range for generator state structs — a large negative
 // offset distinct from the lowerer's small-magnitude `next_synthetic_id` pool
@@ -33,34 +31,50 @@ export gen_state_name :: fn(fn_name: string) -> string = "${GEN_STATE_PREFIX}${f
 // (see the plan's CLEANUP entry).
 GEN_STATE_ID_BASE :: -1000000
 
-/// The nominal state-struct symbol for a `generator` from its `(id, name,
-/// module)` — deterministic (no counter, no side-table) so typecheck and lowering
-/// agree on it. Threaded via raw `(id, name, module)` so a caller holding those
-/// (the registry) needn't fabricate a throwaway `Symbol` just to be re-read.
-export gen_state_symbol_of :: fn(fn_id: i32, fn_name: string, module: string) -> Symbol = Symbol {
-    .id         = GEN_STATE_ID_BASE - fn_id,
-    .kind       = .Struct,
-    .name       = gen_state_name(fn_name),
-    .module     = module,
-    .module_name = module,
-    .visibility = .Private,
-    .defined_at = null,
+// The state-struct symbol of the `generator` `decl`, whose symbol is `fn_id` in
+// `owner`. Its name carries the overload suffix the fn's own mangled name does,
+// so two overloads of one name get two state structs.
+gen_state_symbol :: fn(fn_id: i32, decl: AST.FnDecl, owner: TypedProgram) -> Symbol {
+    suffix :: overload_suffix(owner.resolved, decl.name, decl.name_span)
+    // `display_path` (the DECLARED name), not `path`: this feeds `module_name`,
+    // which `symbol_key` folds into a type-intern key and from there into
+    // emitted C names. `path` is the filesystem identity and is absolute
+    // whenever the entry was named absolutely.
+    module :: owner.resolved.display_path
+    return Symbol {
+        .id = GEN_STATE_ID_BASE - fn_id,
+        .kind = .Struct,
+        .name = "${GEN_STATE_PREFIX}${decl.name}${suffix}",
+        .module = module,
+        .module_name = module,
+        .visibility = .Private,
+        .defined_at = null,
+    }
 }
 
-/// The state-struct symbol for a `generator` fn symbol.
-export gen_state_symbol :: fn(fn_sym: Symbol) -> Symbol =
-    gen_state_symbol_of(fn_sym.id, fn_sym.name, fn_sym.module)
-
 /// True when `t` is a `generator`'s synthetic `<fn>$State` iterator struct.
-/// Recognises by the deterministic `gen_state_symbol` name (not user-derived).
+/// Recognises by the `gen_state_symbol` name (not user-derived).
 export is_gen_state_struct :: fn(t: Type) -> bool {
     if t is StructType { return starts_with(t.symbol.name, GEN_STATE_PREFIX) }
     return false
 }
 
-// One `generator`'s state-struct registration facts, collected from the module
-// that OWNS the fn (its `decl_types` / resolved symbol resolve the element).
-GenStateEntry :: struct { name: string, module: string, id: i32, element: Type }
+/// One `generator` declaration's state struct and what it yields.
+export GeneratorState :: struct {
+    /// The state struct: a call to the generator types as it, and its
+    /// lowering builds it.
+    symbol:  Symbol
+    /// The yielded element, in the declaration's own type parameters.
+    element: Type
+}
+
+/// The state of the `generator` declared by `decl` ; null when `decl` declares
+/// no generator, or one whose element did not resolve.
+///
+/// @param decl   a fn declaration, from any module.
+/// @param typed  any module's typechecked program: every one holds the registry.
+export generator_state_of :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GeneratorState | null =
+    typed.generator_states[decl.name_span.hash()]
 
 /// Register every `generator` fn's synthetic state struct as `implements
 /// Iterator<U>` — into EVERY module's registry — so a call to it types as a
@@ -68,40 +82,43 @@ GenStateEntry :: struct { name: string, module: string, id: i32, element: Type }
 /// Runs before any body walk so `try_trait_widen` sees `<fn>$State → Iterator`
 /// while typing chained receivers.
 ///
-/// Cross-module: a generator's element resolves only in its OWNER module (whose
-/// `decl_types` carries its signature) — `cross_publish_fn_decls` copies fn_decls
-/// but not decl_types, so a copy in a consuming module's `fn_decls` yields
-/// `TY_UNRESOLVED` and is skipped, deduping the collection to one entry per fn.
+/// Each generator registers from the module that declares it: `fn_decls` also
+/// holds the declarations other modules publish into it (`cross_publish_fn_decls`),
+/// and a signature resolves only in its owner — read from a consumer declaring a
+/// fn of the same name, it would take that fn's.
 export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedProgram!>) -> void {
-    entries: GenStateEntry[]!: []
+    states :: MutableMap<u64, GeneratorState> {}
     for [_, owner] in per_module {
         sink: Diagnostic[]!: []
         for [sym_id, fn_decl] in owner.fn_decls {
-            if !fn_is_generator(fn_decl) { continue }
+            if !fn_is_generator(fn_decl) || !declares_fn(owner, sym_id, fn_decl.name) { continue }
             elem :: generator_element_type(fn_decl, lookup_return_type(fn_decl, owner), sink)
             if elem is null { continue }
-            entries.push(GenStateEntry {
-                // `display_path` (the DECLARED name), not `path`: this feeds `module_name`,
-                // which `symbol_key` folds into a type-intern key and from there into
-                // emitted C names. `path` is the filesystem identity and is absolute
-                // whenever the entry was named absolutely.
-                .name = fn_decl.name, .module = owner.resolved.display_path, .id = sym_id, .element = elem,
-            })
-        }
-    }
-    for [_, tp] in per_module {
-        if entries.len() > 0 { tp.has_generators = true }
-        for e in entries {
-            state_ty :: mk_struct(gen_state_symbol_of(e.id, e.name, e.module), [], immutable = false)
-            record_struct_trait(tp, state_ty, TRAIT_ITERATOR)
-            record_struct_trait_args(tp, state_ty, TRAIT_ITERATOR, [e.element])
-            tp.iter_element_types[gen_state_name(e.name)] = e.element
-            tp.generator_symbols[e.name] = Symbol {
-                .id = e.id, .kind = .Fn, .name = e.name,
-                .module = e.module, .module_name = e.module, .visibility = .Private, .defined_at = null,
+            states[fn_decl.name_span.hash()] = GeneratorState {
+                .symbol = gen_state_symbol(sym_id, fn_decl, owner),
+                .element = elem,
             }
         }
     }
+    for [_, tp] in per_module {
+        tp.generator_states = states
+        for [_, state] in states {
+            state_ty :: mk_struct(state.symbol, [], immutable = false)
+            record_struct_trait(tp, state_ty, TRAIT_ITERATOR)
+            record_struct_trait_args(tp, state_ty, TRAIT_ITERATOR, [state.element])
+        }
+    }
+}
+
+// Whether `owner` itself declares the fn whose symbol is `sym_id`.
+declares_fn :: fn(owner: TypedProgram, sym_id: i32, name: string) -> bool {
+    bucket :: owner.resolved.fn_overloads[name] ?? return false
+    for sym in bucket {
+        if sym.id == sym_id {
+            return true
+        }
+    }
+    return false
 }
 
 /// The concrete result type for a call whose callee is a `generator`, or null.
@@ -112,12 +129,13 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
 /// concretises instead of erasing to `T[]` (the `<fn>$State<E> implements
 /// Iterator<E>` convention that `resolve_struct_trait_args` reads).
 export generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_ret: Type) -> Type | null {
-    // Cheap program-level bail: a generator-free program (the compiler's own
-    // self-compile today) skips the per-call callee probe entirely.
-    if !typed.has_generators { return null }
-    fn_sym :: callee_generator_symbol(c, typed) ?? return null
-    elem :: iterator_element_of(concrete_ret) ?? return mk_struct(gen_state_symbol(fn_sym), [], false)
-    return mk_struct(gen_state_symbol(fn_sym), [elem], false)
+    // Cheap program-level bail: a generator-free program skips the per-call
+    // callee probe entirely.
+    if typed.generator_states.is_empty() { return null }
+    decl :: callee_decl(c, typed) ?? return null
+    state :: generator_state_of(decl, typed) ?? return null
+    elem :: iterator_element_of(concrete_ret) ?? return mk_struct(state.symbol, [], false)
+    return mk_struct(state.symbol, [elem], false)
 }
 
 /// The element `E` of an `Iterator<E>`, or null when `t` isn't a single-arg
@@ -130,50 +148,13 @@ iterator_element_of :: fn(t: Type) -> Type | null {
     return null
 }
 
-// The callee's fn symbol IF it is a `generator`, else null. Handles the direct
-// ident callee and the UFCS field callee (free fn whose first param fits the
-// receiver).
-callee_generator_symbol :: fn(c: AST.CallExpr, typed: TypedProgram) -> Symbol | null {
-    @partial match c.callee as id {
-        is AST.IdentExpr -> {
-            // Direct call `name(args)` : the resolver already picked the overload,
-            // so trust its bound symbol (a picked eager overload is simply not a
-            // generator).
-            sym :: typed.resolved.idents[id.span.hash()] ?? return null
-            if is_generator_symbol(sym, typed) { return sym }
-            return null
-        }
-        is AST.FieldExpr -> {
-            recv_ty :: typed.expr_types[id.target.id] ?? return null
-            return ufcs_generator_symbol(id.field, recv_ty, typed)
-        }
-        _                -> { return null }
+// The declaration `c` calls, as typecheck chose it: the fn a UFCS call
+// dispatched to, the overload a direct call picked — else the one its callee
+// names.
+callee_decl :: fn(c: AST.CallExpr, typed: TypedProgram) -> AST.FnDecl | null {
+    chosen :: typed.chosen_decls[c.callee.id]
+    if chosen != null {
+        return chosen
     }
-}
-
-is_generator_symbol :: fn(sym: Symbol, typed: TypedProgram) -> bool {
-    fd :: typed.fn_decls[sym.id]
-    if fd is AST.FnDecl { return fn_is_generator(fd) }
-    return false
-}
-
-// The `generator` combinator named `name` for a UFCS `.name()` on an iterator
-// (or array) receiver, or null. Consults the `generator_symbols` registry —
-// authoritative for `map` / `filter` / `take` / `skip`, which are now ONLY the
-// lazy `generator`s (the eager `T[]` overloads were dropped). A bare array
-// receiver selects the lazy combinator too : `arr.map(f)` is lazy and fuses over
-// the raw array (`T[] implements Into<Iterator<T>>` — the implicit array head).
-ufcs_generator_symbol :: fn(name: string, recv_ty: Type, typed: TypedProgram) -> Symbol | null {
-    gen_sym :: typed.generator_symbols[name] ?? return null
-    if generator_receiver_is_iterator(recv_ty, typed) { return gen_sym }
-    return null
-}
-
-// Whether `recv_ty` accepts a combinator's `self: Iterator<T>` param : an actual
-// iterator (a struct impl'ing `Iterator`, or the erased `Iterator` trait) OR a raw
-// array via the blanket `T[] implements Into<Iterator<T>>`.
-generator_receiver_is_iterator :: fn(recv_ty: Type, typed: TypedProgram) -> bool {
-    if recv_ty is ArrayType { return true }
-    if recv_ty is TraitType { return recv_ty.symbol.name == TRAIT_ITERATOR }
-    return struct_implements_trait(recv_ty, TRAIT_ITERATOR, typed)
+    return lookup_callee_fn_decl(c.callee, typed)
 }

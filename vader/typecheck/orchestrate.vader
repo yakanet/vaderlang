@@ -1645,12 +1645,14 @@ populate_imported_fn_overloads :: fn(
 // materialised trait-default body carries (`resolver/substitute_body.vader`):
 // such a body has no file of its own, and the names it may use are the ones its
 // impl's file can see. Maps hold references, so the alias costs one entry.
-file_overload_table :: fn(typed: TypedProgram!, file: string) -> MutableMap<string, ImportedFn[]!>! {
+file_overload_table :: fn(
+    typed: TypedProgram!, file: string,
+) -> MutableMap<string, FnCandidate[]!>! {
     existing :: typed.imported_fn_overloads[file]
     if existing !is null {
         return existing
     }
-    table :: MutableMap<string, ImportedFn[]!> {}
+    table :: MutableMap<string, FnCandidate[]!> {}
     typed.imported_fn_overloads[file] = table
     typed.imported_fn_overloads["${CLONE_FILE_PREFIX}${file}"] = table
     return table
@@ -1672,7 +1674,7 @@ push_renamed_imports :: fn(entry_typed: TypedProgram!) -> void {
         // so the decl travels with it exactly as a wildcard's does.
         push_overload(
             file_overload_table(entry_typed, where.start.file), local.name,
-            ImportedFn { .ty = ty, .decl = entry_typed.fn_decls[st.symbol.id] },
+            FnCandidate { .ty = ty, .decl = entry_typed.fn_decls[st.symbol.id] },
         )
     }
 }
@@ -1690,7 +1692,7 @@ push_renamed_imports :: fn(entry_typed: TypedProgram!) -> void {
 push_module_exported_fns :: fn(
     from: TypedProgram,
     into: TypedProgram!,
-    table: MutableMap<string, ImportedFn[]!>!,
+    table: MutableMap<string, FnCandidate[]!>!,
     excluded: string[],
 ) -> void {
     if from.resolved.path == into.resolved.path {
@@ -1713,7 +1715,7 @@ push_module_exported_fns :: fn(
                     // parameter names and defaults, which a UFCS call site in
                     // the importing module has no other way to reach.
                     fd :: from.fn_decls[sym.id]
-                    push_overload(table, name, ImportedFn { .ty = ty, .decl = fd })
+                    push_overload(table, name, FnCandidate { .ty = ty, .decl = fd })
                     // And the defaults' own name resolutions travel with it —
                     // they are lowered in the CALLER's context. See
                     // `import_defaults.vader`.
@@ -1743,7 +1745,9 @@ push_module_exported_fns :: fn(
     }
 }
 
-push_overload :: fn(table: MutableMap<string, ImportedFn[]!>!, name: string, ft: ImportedFn) -> void {
+push_overload :: fn(
+    table: MutableMap<string, FnCandidate[]!>!, name: string, ft: FnCandidate,
+) -> void {
     bucket :: table[name]
     if bucket is null {
         table[name] = [ft]

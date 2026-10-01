@@ -1,0 +1,21 @@
+# stdout
+fused 0
+fused 1
+fused ab0
+fused ab1
+fused 0.5
+fused 1.0
+lazy xyz0
+lazy xyz1
+lazy xyz2
+lazy 0
+lazy 1
+lazy 2
+lazy 0.5
+lazy 1.0
+lazy 1.5
+2 3
+2
+ufcs k0
+# exit
+0

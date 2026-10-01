@@ -23,13 +23,13 @@ import "vader/types"
 import "vader/typecheck"
 import "toolchain/span"
 
-// The yielded element type for a `generator` fn, from the typecheck-side
-// registry (`register_generator_iter_impls`) substituted by the call's instance
-// subst. Null when the fn isn't registered (declines fusion). Shared by the
-// direct-call and combinator fusion sites.
-genstate_element :: fn(typed: TypedProgram, fn_name: string, subst: Substitution) -> Type | null {
-    raw :: typed.iter_element_types[gen_state_name(fn_name)] ?? return null
-    return substitute(raw, subst)
+// The element the `generator` `decl` yields, from the typecheck-side registry
+// (`generator_state_of`) substituted by the call's instance subst. Null when the
+// declaration isn't registered (declines fusion). Shared by the direct-call and
+// combinator fusion sites.
+genstate_element :: fn(typed: TypedProgram, decl: AST.FnDecl, subst: Substitution) -> Type | null {
+    state :: generator_state_of(decl, typed) ?? return null
+    return substitute(state.element, subst)
 }
 
 // Build the yield sink for a generator inlined into a `for` consumer. For a
@@ -281,7 +281,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
 
     // Direction A: the call result is the concrete `__genstate_<fn>` struct, not
     // `Iterator<U>` — take the yielded element from the registered element.
-    output_elem :: genstate_element(ctx.typed, decl.name, subst_opt) ?? return null
+    output_elem :: genstate_element(ctx.typed, decl, subst_opt) ?? return null
 
     // Minted last: a descent that gives up must leave no ids, clones or captures behind.
     instance :: new_inline_instance(ctx.project, callee_sym, decl, owner) ?? return null
@@ -397,7 +397,7 @@ combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr, receiver: AST.E
             sym :: resolve_ident(ctx, fe.span) ?? return null
             // A directly-called imported combinator resolves to the `import`
             // ImportBinding ; follow it to the OWNER fn so `resolve_owner_typed`
-            // + `gen_state_symbol` see the defining module.
+            // sees the defining module.
             return follow_import_binding(ctx, sym)
         }
         _                -> { return null }
@@ -559,7 +559,7 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterChain 
         return null
     }
     subst :: gen_source_subst(ctx, target, call) ?? return null
-    element :: genstate_element(ctx.typed, decl.name, subst) ?? return null
+    element :: genstate_element(ctx.typed, decl, subst) ?? return null
     if element == TY_VOID {
         return null
     }

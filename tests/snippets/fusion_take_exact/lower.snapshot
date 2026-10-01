@@ -757,7 +757,7 @@
   struct __lambda_env_snippet_1 { cap_0: ? }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, x: i32) -> i32
     return x :i32
-  struct __genstate_produced { s0: i32, s1: i32, state: i32 }
+  struct snippet$__genstate_produced { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_produced$Iterator$next(self: __genstate_produced!) -> [i32, Continuation]!
     loop :dispatch$
       if :void

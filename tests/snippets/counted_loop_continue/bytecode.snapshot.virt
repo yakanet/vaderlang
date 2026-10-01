@@ -5,7 +5,7 @@ type 2 union 1,0
 type 3 primitive void
 type 4 ref Iterator
 type 5 struct __defer_env_snippet_1 { cap_0:10 }
-type 6 struct __genstate_evens { s0:1,s1:1,state:1 }
+type 6 struct snippet$__genstate_evens { s0:1,s1:1,state:1 }
 type 7 struct __Tuple_i32_u8_99ae0d29 { _0:1,_1:8 }
 type 8 primitive u8
 type 9 primitive string
@@ -799,7 +799,7 @@ fn 11 snippet$evens (i32) -> any
   local.get 0   ; arg 0
   i32.const 0
   i32.const 8
-  struct.new 6   ; __genstate_evens
+  struct.new 6   ; snippet$__genstate_evens
   return
 end
 
@@ -915,7 +915,7 @@ fn 15 snippet$__genstate_evens$Iterator$next (ref) -> ref
       if $L2 void
         local.get 0   ; arg 0
         i32.const -1
-        struct.set 6 2   ; __genstate_evens.state
+        struct.set 6 2   ; snippet$__genstate_evens.state
         br $L1
       end $L2
       local.field 0 6 2   ; arg 0.state
@@ -925,7 +925,7 @@ fn 15 snippet$__genstate_evens$Iterator$next (ref) -> ref
       if $L3 void
         local.get 0   ; arg 0
         i32.const 0
-        struct.set 6 2   ; __genstate_evens.state
+        struct.set 6 2   ; snippet$__genstate_evens.state
         br $L1
       end $L3
       local.field 0 6 2   ; arg 0.state
@@ -945,11 +945,11 @@ fn 15 snippet$__genstate_evens$Iterator$next (ref) -> ref
         if $L5 void
           local.get 0   ; arg 0
           i32.const 7
-          struct.set 6 2   ; __genstate_evens.state
+          struct.set 6 2   ; snippet$__genstate_evens.state
         else
           local.get 0   ; arg 0
           i32.const 1
-          struct.set 6 2   ; __genstate_evens.state
+          struct.set 6 2   ; snippet$__genstate_evens.state
         end $L5
         br $L1
       end $L4
@@ -965,10 +965,10 @@ fn 15 snippet$__genstate_evens$Iterator$next (ref) -> ref
         local.set 3   ; $add_22
         local.get 0   ; arg 0
         local.get 3   ; $add_22
-        struct.set 6 1   ; __genstate_evens.s1
+        struct.set 6 1   ; snippet$__genstate_evens.s1
         local.get 0   ; arg 0
         i32.const 2
-        struct.set 6 2   ; __genstate_evens.state
+        struct.set 6 2   ; snippet$__genstate_evens.state
         br $L1
       end $L6
       local.field 0 6 2   ; arg 0.state
@@ -980,7 +980,7 @@ fn 15 snippet$__genstate_evens$Iterator$next (ref) -> ref
         local.set 4   ; $k_27
         local.get 0   ; arg 0
         local.get 4   ; $k_27
-        struct.set 6 2   ; __genstate_evens.state
+        struct.set 6 2   ; snippet$__genstate_evens.state
         local.field 0 6 1   ; arg 0.s1
         ref.cast 1   ; -> i32
         local.set 5   ; $field_28
@@ -998,7 +998,7 @@ fn 15 snippet$__genstate_evens$Iterator$next (ref) -> ref
       if $L8 void
         local.get 0   ; arg 0
         i32.const 4
-        struct.set 6 2   ; __genstate_evens.state
+        struct.set 6 2   ; snippet$__genstate_evens.state
       else
         local.field 0 6 2   ; arg 0.state
         ref.cast 1   ; -> i32
@@ -1012,10 +1012,10 @@ fn 15 snippet$__genstate_evens$Iterator$next (ref) -> ref
           local.set 7   ; $add_40
           local.get 0   ; arg 0
           local.get 7   ; $add_40
-          struct.set 6 1   ; __genstate_evens.s1
+          struct.set 6 1   ; snippet$__genstate_evens.s1
           local.get 0   ; arg 0
           i32.const 2
-          struct.set 6 2   ; __genstate_evens.state
+          struct.set 6 2   ; snippet$__genstate_evens.state
         else
           local.field 0 6 2   ; arg 0.state
           ref.cast 1   ; -> i32
@@ -1031,11 +1031,11 @@ fn 15 snippet$__genstate_evens$Iterator$next (ref) -> ref
             if $L11 void
               local.get 0   ; arg 0
               i32.const 6
-              struct.set 6 2   ; __genstate_evens.state
+              struct.set 6 2   ; snippet$__genstate_evens.state
             else
               local.get 0   ; arg 0
               i32.const 4
-              struct.set 6 2   ; __genstate_evens.state
+              struct.set 6 2   ; snippet$__genstate_evens.state
             end $L11
           else
             local.field 0 6 2   ; arg 0.state
@@ -1045,10 +1045,10 @@ fn 15 snippet$__genstate_evens$Iterator$next (ref) -> ref
             if $L12 void
               local.get 0   ; arg 0
               i32.const 0
-              struct.set 6 1   ; __genstate_evens.s1
+              struct.set 6 1   ; snippet$__genstate_evens.s1
               local.get 0   ; arg 0
               i32.const 2
-              struct.set 6 2   ; __genstate_evens.state
+              struct.set 6 2   ; snippet$__genstate_evens.state
             else
               i32.const 0
               i32.const 1
@@ -1065,7 +1065,7 @@ fn 15 snippet$__genstate_evens$Iterator$next (ref) -> ref
   local.set 4   ; $k_27
   local.get 0   ; arg 0
   local.get 4   ; $k_27
-  struct.set 6 2   ; __genstate_evens.state
+  struct.set 6 2   ; snippet$__genstate_evens.state
   local.field 0 6 1   ; arg 0.s1
   ref.cast 1   ; -> i32
   local.set 5   ; $field_28

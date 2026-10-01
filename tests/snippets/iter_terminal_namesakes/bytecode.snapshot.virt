@@ -14,9 +14,9 @@ type 11 primitive i64
 type 12 primitive u64
 type 13 array 9
 type 14 primitive void
-type 15 struct __gen_state_std_core_0 { s0:5,s1:6,s2:6,state:3 }
+type 15 struct std_core$__gen_state_std_core_0 { s0:5,s1:6,s2:6,state:3 }
 type 16 fn (3) -> 3
-type 17 struct __gen_state_std_iter_0 { s0:1,s1:16,s2:1,s3:8,s4:3,state:3 }
+type 17 struct std_iter$__gen_state_std_iter_0 { s0:1,s1:16,s2:1,s3:8,s4:3,state:3 }
 type 18 primitive isize
 type 19 ref Iterator
 type 20 ref __genstate_map
@@ -554,7 +554,7 @@ fn 21 std_core$array_iter__i32 (ref) -> any
   i64.const 0
   i64.const 0
   i32.const 5
-  struct.new 15   ; __gen_state_std_core_0
+  struct.new 15   ; std_core$__gen_state_std_core_0
   return
 end
 
@@ -661,7 +661,7 @@ fn 25 std_iter$map__i32__i32 (any,ref) -> any
   local.get 3   ; $k_3
   i32.const 0
   i32.const 11
-  struct.new 17   ; __gen_state_std_iter_0
+  struct.new 17   ; std_iter$__gen_state_std_iter_0
   return
 end
 

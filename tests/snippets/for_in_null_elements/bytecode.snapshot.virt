@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 ref Iterator
 type 2 primitive i32
-type 3 struct __genstate_maybe { state:2 }
+type 3 struct snippet$__genstate_maybe { state:2 }
 type 4 struct __Tuple_Union_i32_null_u8_9381f7b1 { _0:5,_1:6 }
 type 5 union 2,0
 type 6 primitive u8
@@ -41,7 +41,7 @@ export main 1
 
 fn 0 snippet$maybe () -> any
   i32.const 5
-  struct.new 3   ; __genstate_maybe
+  struct.new 3   ; snippet$__genstate_maybe
   return
 end
 
@@ -280,7 +280,7 @@ fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
       if $L2 void
         local.get 0   ; arg 0
         i32.const -1
-        struct.set 3 0   ; __genstate_maybe.state
+        struct.set 3 0   ; snippet$__genstate_maybe.state
         br $L1
       end $L2
     end $L1
@@ -292,7 +292,7 @@ fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
   if $L3 void
     local.get 0   ; arg 0
     i32.const 0
-    struct.set 3 0   ; __genstate_maybe.state
+    struct.set 3 0   ; snippet$__genstate_maybe.state
     i32.const 5
     retag 2   ; -> i32
     i32.const 0
@@ -306,7 +306,7 @@ fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
   if $L4 void
     local.get 0   ; arg 0
     i32.const 1
-    struct.set 3 0   ; __genstate_maybe.state
+    struct.set 3 0   ; snippet$__genstate_maybe.state
     null.const
     i32.const 0
     struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
@@ -319,7 +319,7 @@ fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
   if $L5 void
     local.get 0   ; arg 0
     i32.const 2
-    struct.set 3 0   ; __genstate_maybe.state
+    struct.set 3 0   ; snippet$__genstate_maybe.state
     i32.const 3
     retag 2   ; -> i32
     i32.const 0
@@ -333,7 +333,7 @@ fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
   if $L6 void
     local.get 0   ; arg 0
     i32.const 3
-    struct.set 3 0   ; __genstate_maybe.state
+    struct.set 3 0   ; snippet$__genstate_maybe.state
     null.const
     i32.const 0
     struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
@@ -346,7 +346,7 @@ fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
   if $L7 void
     local.get 0   ; arg 0
     i32.const 4
-    struct.set 3 0   ; __genstate_maybe.state
+    struct.set 3 0   ; snippet$__genstate_maybe.state
     i32.const 1
     retag 2   ; -> i32
     i32.const 0

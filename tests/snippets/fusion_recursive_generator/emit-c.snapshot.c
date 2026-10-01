@@ -4,14 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct___genstate_countdown_t vader_struct___genstate_countdown_t;
+typedef struct vader_struct_snippet___genstate_countdown_t vader_struct_snippet___genstate_countdown_t;
 typedef struct vader_struct___Tuple_i32_u8_99ae0d29_t vader_struct___Tuple_i32_u8_99ae0d29_t;
 typedef struct vader_struct_std_core_Range__i32_t vader_struct_std_core_Range__i32_t;
 typedef struct vader_struct_std_core_Range__usize_t vader_struct_std_core_Range__usize_t;
 typedef struct vader_struct___Tuple_usize_u8_de11f1ad_t vader_struct___Tuple_usize_u8_de11f1ad_t;
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 
-struct vader_struct___genstate_countdown_t {
+struct vader_struct_snippet___genstate_countdown_t {
     vader_obj_header_t header;
     int32_t f_s0;
     int32_t f_s1;
@@ -97,11 +97,11 @@ const vader_type_info_t vader_type_info_table[18] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 16 },
     [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___genstate_countdown_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet___genstate_countdown_t),
         .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___genstate_countdown_t, f_s3) },
+        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet___genstate_countdown_t, f_s3) },
         .ptr_count = 1,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___genstate_countdown_t, f_s4) },
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet___genstate_countdown_t, f_s4) },
         .ref_count = 1,
     },
     [4] = {
@@ -168,7 +168,7 @@ static vader_box_t snippet_countdown(int32_t l0) {
 #line 13 "tests/snippets/fusion_recursive_generator/_main.vader"
     l1 = vader_box_obj(0u, NULL);
     l2 = vader_box_obj(0u, NULL).payload.obj;
-    vader_struct___genstate_countdown_t* _a0_obj = (vader_struct___genstate_countdown_t*) vader_gc_alloc(sizeof(vader_struct___genstate_countdown_t));
+    vader_struct_snippet___genstate_countdown_t* _a0_obj = (vader_struct_snippet___genstate_countdown_t*) vader_gc_alloc(sizeof(vader_struct_snippet___genstate_countdown_t));
     vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_s0 = l0;
     _a0_obj->f_s1 = INT32_C(0);
@@ -284,61 +284,61 @@ static void* snippet___genstate_countdown_Iterator_next(void* l0) {
     vader_gc_top = &gc_frame;
 #line 13 "tests/snippets/fusion_recursive_generator/_main.vader"
     for (;;) {
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(-1);
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(-1);
             continue;
         }
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(1)) {
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(0);
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(0);
             continue;
         }
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(2)) {
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(1);
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(1);
             continue;
         }
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(3)) {
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(2);
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(2);
             continue;
         }
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(4)) {
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(3);
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(3);
             continue;
         }
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(5)) {
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(13);
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(13);
             continue;
         }
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(6)) {
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(5);
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(5);
             continue;
         }
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(7)) {
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(6);
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(6);
             continue;
         }
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(8)) {
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(4);
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(4);
             continue;
         }
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(9)) {
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(6);
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(6);
             continue;
         }
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(10)) {
             l1 = INT32_C(9);
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = l1;
-            l2 = ((vader_struct___genstate_countdown_t*) l0)->f_s2;
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = l1;
+            l2 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s2;
             l3 = (uint8_t) 0;
             vader_struct___Tuple_i32_u8_99ae0d29_t* _a0_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
             vader_obj_header_init(_a0_obj, 4u);
@@ -347,53 +347,53 @@ static void* snippet___genstate_countdown_Iterator_next(void* l0) {
             t1 = (void*) _a0_obj;
             { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
         }
-        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
         if (t0 == INT32_C(11)) {
 #line 16 "tests/snippets/fusion_recursive_generator/_main.vader"
-            l4 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___genstate_countdown_t*) l0)->f_s4)->f__0;
-            ((vader_struct___genstate_countdown_t*) l0)->f_s5 = l4;
+            l4 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s4)->f__0;
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s5 = l4;
 #line 13 "tests/snippets/fusion_recursive_generator/_main.vader"
-            l5 = ((vader_struct___genstate_countdown_t*) l0)->f_s5;
+            l5 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s5;
 #line 17 "tests/snippets/fusion_recursive_generator/_main.vader"
-            ((vader_struct___genstate_countdown_t*) l0)->f_s2 = l5;
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s2 = l5;
 #line 13 "tests/snippets/fusion_recursive_generator/_main.vader"
-            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(10);
+            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(10);
         } else {
-            t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+            t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
             if (t0 == INT32_C(12)) {
 #line 16 "tests/snippets/fusion_recursive_generator/_main.vader"
 #line 13 "tests/snippets/fusion_recursive_generator/_main.vader"
-                if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___genstate_countdown_t*) l0)->f_s4)->f__1 == INT32_C(1)) {
-                    ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(8);
+                if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s4)->f__1 == INT32_C(1)) {
+                    ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(8);
                 } else {
-                    ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(11);
+                    ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(11);
                 }
             } else {
-                t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+                t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
                 if (t0 == INT32_C(13)) {
 #line 16 "tests/snippets/fusion_recursive_generator/_main.vader"
-                    t2 = vader_vt_Iterator__next(((vader_struct___genstate_countdown_t*) l0)->f_s3);
+                    t2 = vader_vt_Iterator__next(((vader_struct_snippet___genstate_countdown_t*) l0)->f_s3);
                     l6 = t2.payload.obj;
-                    ((vader_struct___genstate_countdown_t*) l0)->f_s4 = l6;
-                    VADER_WRITE_BARRIER((vader_struct___genstate_countdown_t*) l0);
+                    ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s4 = l6;
+                    VADER_WRITE_BARRIER((vader_struct_snippet___genstate_countdown_t*) l0);
 #line 13 "tests/snippets/fusion_recursive_generator/_main.vader"
-                    ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(12);
+                    ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(12);
                 } else {
-                    t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+                    t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
                     if (t0 == INT32_C(14)) {
-                        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_s1;
+                        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s1;
 #line 16 "tests/snippets/fusion_recursive_generator/_main.vader"
                         t2 = snippet_countdown((t0 - INT32_C(1)));
                         l7 = t2.payload.obj;
-                        ((vader_struct___genstate_countdown_t*) l0)->f_s3 = vader_ref_box(l7);
-                        VADER_WRITE_BARRIER((vader_struct___genstate_countdown_t*) l0);
+                        ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s3 = vader_ref_box(l7);
+                        VADER_WRITE_BARRIER((vader_struct_snippet___genstate_countdown_t*) l0);
 #line 13 "tests/snippets/fusion_recursive_generator/_main.vader"
-                        ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(5);
+                        ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(5);
                     } else {
-                        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+                        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
                         if (t0 == INT32_C(15)) {
-                            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(14);
-                            t0 = ((vader_struct___genstate_countdown_t*) l0)->f_s2;
+                            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(14);
+                            t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s2;
                             vader_struct___Tuple_i32_u8_99ae0d29_t* _a1_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                             vader_obj_header_init(_a1_obj, 4u);
                             _a1_obj->f__0 = t0;
@@ -401,38 +401,38 @@ static void* snippet___genstate_countdown_Iterator_next(void* l0) {
                             t1 = (void*) _a1_obj;
                             { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
                         }
-                        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+                        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
                         if (t0 == INT32_C(16)) {
-                            l8 = ((vader_struct___genstate_countdown_t*) l0)->f_s1;
+                            l8 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s1;
 #line 15 "tests/snippets/fusion_recursive_generator/_main.vader"
-                            ((vader_struct___genstate_countdown_t*) l0)->f_s2 = l8;
+                            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s2 = l8;
 #line 13 "tests/snippets/fusion_recursive_generator/_main.vader"
-                            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(15);
+                            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(15);
                         } else {
-                            t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+                            t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
                             if (t0 == INT32_C(17)) {
-                                t0 = ((vader_struct___genstate_countdown_t*) l0)->f_s1;
+                                t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s1;
 #line 14 "tests/snippets/fusion_recursive_generator/_main.vader"
 #line 13 "tests/snippets/fusion_recursive_generator/_main.vader"
                                 if ((t0 > INT32_C(0))) {
-                                    ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(16);
+                                    ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(16);
                                 } else {
-                                    ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(2);
+                                    ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(2);
                                 }
                             } else {
-                                t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+                                t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
                                 if (t0 == INT32_C(18)) {
-                                    t0 = ((vader_struct___genstate_countdown_t*) l0)->f_s0;
+                                    t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s0;
 #line 16 "tests/snippets/fusion_recursive_generator/_main.vader"
                                     l9 = (t0 - INT32_C(1));
 #line 13 "tests/snippets/fusion_recursive_generator/_main.vader"
-                                    ((vader_struct___genstate_countdown_t*) l0)->f_s1 = l9;
-                                    ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(17);
+                                    ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s1 = l9;
+                                    ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(17);
                                 } else {
-                                    t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+                                    t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
                                     if (t0 == INT32_C(19)) {
-                                        ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(18);
-                                        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_s0;
+                                        ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(18);
+                                        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s0;
                                         vader_struct___Tuple_i32_u8_99ae0d29_t* _a2_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                                         vader_obj_header_init(_a2_obj, 4u);
                                         _a2_obj->f__0 = t0;
@@ -440,15 +440,15 @@ static void* snippet___genstate_countdown_Iterator_next(void* l0) {
                                         t1 = (void*) _a2_obj;
                                         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
                                     }
-                                    t0 = ((vader_struct___genstate_countdown_t*) l0)->f_state;
+                                    t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
                                     if (t0 == INT32_C(20)) {
-                                        t0 = ((vader_struct___genstate_countdown_t*) l0)->f_s0;
+                                        t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s0;
 #line 14 "tests/snippets/fusion_recursive_generator/_main.vader"
 #line 13 "tests/snippets/fusion_recursive_generator/_main.vader"
                                         if ((t0 > INT32_C(0))) {
-                                            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(19);
+                                            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(19);
                                         } else {
-                                            ((vader_struct___genstate_countdown_t*) l0)->f_state = INT32_C(0);
+                                            ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = INT32_C(0);
                                         }
                                     } else {
                                         vader_struct___Tuple_i32_u8_99ae0d29_t* _a3_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
@@ -468,8 +468,8 @@ static void* snippet___genstate_countdown_Iterator_next(void* l0) {
         continue;
     }
     l1 = INT32_C(9);
-    ((vader_struct___genstate_countdown_t*) l0)->f_state = l1;
-    l2 = ((vader_struct___genstate_countdown_t*) l0)->f_s2;
+    ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state = l1;
+    l2 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s2;
     l3 = (uint8_t) 0;
     vader_struct___Tuple_i32_u8_99ae0d29_t* _a4_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
     vader_obj_header_init(_a4_obj, 4u);

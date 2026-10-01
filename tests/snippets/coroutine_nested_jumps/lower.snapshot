@@ -140,7 +140,7 @@
               awaited: null
               state: int(57) :i32
             }
-  struct __genstate_evens { s0: i32, s1: i32, s2: i32, s3: i32 | null, state: i32 }
+  struct snippet$__genstate_evens { s0: i32, s1: i32, s2: i32, s3: i32 | null, state: i32 }
   fn snippet$__genstate_evens$Iterator$next(self: __genstate_evens!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -351,7 +351,7 @@
                                       _0: int(0) :i32
                                       _1: int(1) :u8
                                     }
-  struct __genstate_evens_with_tail { s0: i32, s1: i32, s2: i32 | null, state: i32 }
+  struct snippet$__genstate_evens_with_tail { s0: i32, s1: i32, s2: i32 | null, state: i32 }
   fn snippet$__genstate_evens_with_tail$Iterator$next(self: __genstate_evens_with_tail!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -587,7 +587,7 @@
                                   _0: int(0) :i32
                                   _1: int(1) :u8
                                 }
-  struct __genstate_until_three { s0: i32, s1: i32, s2: i32, s3: i32 | null, state: i32 }
+  struct snippet$__genstate_until_three { s0: i32, s1: i32, s2: i32, s3: i32 | null, state: i32 }
   fn snippet$__genstate_until_three$Iterator$next(self: __genstate_until_three!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -810,7 +810,7 @@
                                           _0: int(0) :i32
                                           _1: int(1) :u8
                                         }
-  struct __genstate_stop_at_three { s0: i32, s1: i32, s2: i32, s3: i32 | null, state: i32 }
+  struct snippet$__genstate_stop_at_three { s0: i32, s1: i32, s2: i32, s3: i32 | null, state: i32 }
   fn snippet$__genstate_stop_at_three$Iterator$next(self: __genstate_stop_at_three!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -1037,7 +1037,7 @@
                                           _0: int(0) :i32
                                           _1: int(1) :u8
                                         }
-  struct __genstate_first_odd_above { s0: i32, s1: i32, s2: i32, s3: i32, s4: i32, state: i32 }
+  struct snippet$__genstate_first_odd_above { s0: i32, s1: i32, s2: i32, s3: i32, s4: i32, state: i32 }
   fn snippet$__genstate_first_odd_above$Iterator$next(self: __genstate_first_odd_above!) -> [i32, Continuation]!
     loop :dispatch$
       if :void

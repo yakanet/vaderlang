@@ -13,7 +13,7 @@ type 10 struct __Tuple_usize_u8_de11f1ad { _0:9,_1:7 }
 type 11 struct std_core$Buffer {  }
 type 12 primitive i64
 type 13 array 2
-type 14 struct __gen_state_std_core_0 { s0:13,s1:9,s2:9,state:2 }
+type 14 struct std_core$__gen_state_std_core_0 { s0:13,s1:9,s2:9,state:2 }
 type 15 array 7
 type 16 primitive void
 type 17 primitive isize
@@ -629,7 +629,7 @@ fn 20 std_core$array_iter__i32 (ref) -> any
   i64.const 0
   i64.const 0
   i32.const 5
-  struct.new 14   ; __gen_state_std_core_0
+  struct.new 14   ; std_core$__gen_state_std_core_0
   return
 end
 
@@ -652,7 +652,7 @@ fn 21 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
       if $L2 void
         local.get 0   ; arg 0
         i32.const -1
-        struct.set 14 3   ; __gen_state_std_core_0.state
+        struct.set 14 3   ; std_core$__gen_state_std_core_0.state
         br $L1
       end $L2
       local.field 0 14 3   ; arg 0.state
@@ -662,7 +662,7 @@ fn 21 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
       if $L3 void
         local.get 0   ; arg 0
         i32.const 0
-        struct.set 14 3   ; __gen_state_std_core_0.state
+        struct.set 14 3   ; std_core$__gen_state_std_core_0.state
         br $L1
       end $L3
       local.field 0 14 3   ; arg 0.state
@@ -682,11 +682,11 @@ fn 21 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
         if $L5 void
           local.get 0   ; arg 0
           i32.const 4
-          struct.set 14 3   ; __gen_state_std_core_0.state
+          struct.set 14 3   ; std_core$__gen_state_std_core_0.state
         else
           local.get 0   ; arg 0
           i32.const 1
-          struct.set 14 3   ; __gen_state_std_core_0.state
+          struct.set 14 3   ; std_core$__gen_state_std_core_0.state
         end $L5
         br $L1
       end $L4
@@ -702,10 +702,10 @@ fn 21 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
         local.set 3   ; $add_22
         local.get 0   ; arg 0
         local.get 3   ; $add_22
-        struct.set 14 1   ; __gen_state_std_core_0.s1
+        struct.set 14 1   ; std_core$__gen_state_std_core_0.s1
         local.get 0   ; arg 0
         i32.const 2
-        struct.set 14 3   ; __gen_state_std_core_0.state
+        struct.set 14 3   ; std_core$__gen_state_std_core_0.state
         br $L1
       end $L6
       local.field 0 14 3   ; arg 0.state
@@ -717,7 +717,7 @@ fn 21 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
         local.set 4   ; $k_27
         local.get 0   ; arg 0
         local.get 4   ; $k_27
-        struct.set 14 3   ; __gen_state_std_core_0.state
+        struct.set 14 3   ; std_core$__gen_state_std_core_0.state
         local.field 0 14 0   ; arg 0.s0
         local.set 5   ; $field_28
         local.field 0 14 1   ; arg 0.s1
@@ -741,16 +741,16 @@ fn 21 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
       if $L8 void
         local.get 0   ; arg 0
         i64.const 0
-        struct.set 14 1   ; __gen_state_std_core_0.s1
+        struct.set 14 1   ; std_core$__gen_state_std_core_0.s1
         local.field 0 14 0   ; arg 0.s0
         array.len
         local.set 9   ; $len_38
         local.get 0   ; arg 0
         local.get 9   ; $len_38
-        struct.set 14 2   ; __gen_state_std_core_0.s2
+        struct.set 14 2   ; std_core$__gen_state_std_core_0.s2
         local.get 0   ; arg 0
         i32.const 2
-        struct.set 14 3   ; __gen_state_std_core_0.state
+        struct.set 14 3   ; std_core$__gen_state_std_core_0.state
       else
         i32.const 0
         i32.const 1
@@ -764,7 +764,7 @@ fn 21 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
   local.set 4   ; $k_27
   local.get 0   ; arg 0
   local.get 4   ; $k_27
-  struct.set 14 3   ; __gen_state_std_core_0.state
+  struct.set 14 3   ; std_core$__gen_state_std_core_0.state
   local.field 0 14 0   ; arg 0.s0
   local.set 5   ; $field_28
   local.field 0 14 1   ; arg 0.s1

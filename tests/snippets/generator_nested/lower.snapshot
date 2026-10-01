@@ -110,7 +110,7 @@
               r:
                 int(1) :usize
     return int(0) :i32
-  struct __genstate_pairs { s0: i32[], s1: i32[], s2: i32[], s3: usize, s4: usize, s5: i32, s6: i32[], s7: usize, s8: usize, s9: i32, state: i32 }
+  struct snippet$__genstate_pairs { s0: i32[], s1: i32[], s2: i32[], s3: usize, s4: usize, s5: i32, s6: i32[], s7: usize, s8: usize, s9: i32, state: i32 }
   fn snippet$__genstate_pairs$Iterator$next(self: __genstate_pairs!) -> [i32, Continuation]!
     loop :dispatch$
       if :void

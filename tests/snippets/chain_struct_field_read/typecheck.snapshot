@@ -79,7 +79,7 @@
   expr 48:37    IdentExpr      :: Rec!
   expr 48:9     CallExpr       :: void
   expr 48:9     IdentExpr      :: fn(T) -> void
-  expr 50:14    CallExpr       :: Iterator<Rec!>
+  expr 50:14    CallExpr       :: __genstate_chain<Rec!>!
   expr 50:14    GenericInstExpr :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
   expr 50:14    IdentExpr      :: fn(Iterator<T>, Iterator<T>) -> Iterator<T>
   expr 50:25    IdentExpr      :: Rec[]

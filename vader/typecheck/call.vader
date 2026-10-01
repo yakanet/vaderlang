@@ -95,10 +95,11 @@ pick_overload :: fn(
     // lets a named-arg / arity-disambiguated overload resolve (`size(a = 1, b =
     // 2)` vs `size(a = 1)`) — then by declaration order (keep the first among
     // equals). Eligibility is unchanged : only the `is_assignable` gate below.
-    best: FnType | null = null
+    best: FnCandidate | null = null
     best_spec: i32 = -1
     best_exact := false
-    for ft in candidates {
+    for candidate in candidates {
+        ft :: candidate.ty
         if ft.params.len() == 0 {
             continue
         }
@@ -108,15 +109,15 @@ pick_overload :: fn(
         spec :: overload_specificity(arg0_ty, ft.params[0])
         exact :: ft.params.len() == c.args.len()
         if best == null || spec > best_spec || spec == best_spec && exact && !best_exact {
-            best = ft
+            best = candidate
             best_spec = spec
             best_exact = exact
         }
     }
-    if best is FnType {
-        return commit_overload_pick(best, c, typed, primary_ft)
+    if best == null {
+        return initial
     }
-    return initial
+    return commit_overload_pick(best, c, typed, primary_ft)
 }
 
 // Specificity of `param0` for a receiver `arg0`: the count of arg0's (union)
@@ -154,16 +155,20 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
 }
 
 // Record a chosen overload : patch the callee IdentExpr's type so the dump
-// shows the picked signature, and mark non-primary picks so the lowerer emits
-// the call's result type on the callee ident (imported overloads carry no
-// primary, so they are always non-primary).
+// shows the picked signature, keep the declaration it runs, and mark
+// non-primary picks so the lowerer emits the call's result type on the callee
+// ident (imported overloads carry no primary, so they are always non-primary).
 commit_overload_pick :: fn(
-    ft: FnType,
+    picked: FnCandidate,
     c: AST.CallExpr,
     typed: TypedProgram!,
     primary_ft: Type | null,
 ) -> FnType {
+    ft :: picked.ty
     typed.expr_types[c.callee.id] = ft
+    if picked.decl != null {
+        typed.chosen_decls[c.callee.id] = picked.decl
+    }
     if is_nonprimary_pick(ft, primary_ft) {
         typed.overload_result_callees[c.callee.id] = true
     }
@@ -203,20 +208,22 @@ primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null 
     return null
 }
 
-collect_overload_candidates :: fn(name: string, file: string, typed: TypedProgram) -> FnType[] {
-    out: FnType[]!: []
+collect_overload_candidates :: fn(
+    name: string, file: string, typed: TypedProgram,
+) -> FnCandidate[] {
+    out: FnCandidate[]!: []
     bucket :: typed.resolved.fn_overloads[name]
     if bucket !is null {
         for sym in bucket {
             ft :: typed.decl_types[sym.id] ?? continue
             if ft is FnType {
-                out.push(ft)
+                out.push(FnCandidate { .ty = ft, .decl = typed.fn_decls[sym.id] })
             }
         }
     }
     // Scoped to the call site's file — imports are file-scoped (SPEC §"Modules").
     for imported in imported_overloads_in(typed, file, name) {
-        out.push(imported.ty)
+        out.push(imported)
     }
     return out
 }
@@ -454,7 +461,7 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
         // receiver, which is what lines up with the curried callee type. Beats
         // re-deriving the winner from the receiver type — the same answer, and
         // one the imported half cannot give at all.
-        chosen :: typed.ufcs_chosen_decls[fe.id]
+        chosen :: typed.chosen_decls[fe.id]
         if chosen is AST.FnDecl {
             return ufcs_tail_params(chosen)
         }

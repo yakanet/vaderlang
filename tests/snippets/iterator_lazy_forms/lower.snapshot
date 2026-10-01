@@ -1417,7 +1417,7 @@
           arg1:
             r :string
     return int(0) :i32
-  struct __genstate_upto { s0: i32, s1: i32, state: i32 }
+  struct snippet$__genstate_upto { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_upto$Iterator$next(self: __genstate_upto!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -1562,7 +1562,7 @@
                                   _0: int(0) :i32
                                   _1: int(1) :u8
                                 }
-  struct __genstate_after_yield { s0: i32, s1: i32, s2: i32, state: i32 }
+  struct snippet$__genstate_after_yield { s0: i32, s1: i32, s2: i32, state: i32 }
   fn snippet$__genstate_after_yield$Iterator$next(self: __genstate_after_yield!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -1813,7 +1813,7 @@
                                                   _0: int(0) :i32
                                                   _1: int(1) :u8
                                                 }
-  struct __genstate_relay { s0: i32[], s1: i32[], s2: fn(i32) -> i32, s3: fn(i32) -> i32, s4: usize, s5: usize, s6: i32, s7: i32, s8: i32, s9: i32[], s10: fn(i32) -> i32, s11: fn(i32) -> i32, s12: usize, s13: usize, s14: i32, s15: i32, s16: i32, state: i32 }
+  struct snippet$__genstate_relay { s0: i32[], s1: i32[], s2: fn(i32) -> i32, s3: fn(i32) -> i32, s4: usize, s5: usize, s6: i32, s7: i32, s8: i32, s9: i32[], s10: fn(i32) -> i32, s11: fn(i32) -> i32, s12: usize, s13: usize, s14: i32, s15: i32, s16: i32, state: i32 }
   fn snippet$__genstate_relay$Iterator$next(self: __genstate_relay!) -> [i32, Continuation]!
     loop :dispatch$
       if :void

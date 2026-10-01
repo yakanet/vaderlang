@@ -69,7 +69,7 @@
                       arg1:
                         __off_3 :usize
     return int(0) :i32
-  struct __genstate_gen { s0: i32, s1: i32, state: i32 }
+  struct snippet$__genstate_gen { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_gen$Iterator$next(self: __genstate_gen!) -> [i32, Continuation]!
     loop :dispatch$
       if :void

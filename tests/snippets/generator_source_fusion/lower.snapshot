@@ -268,7 +268,7 @@
               awaited: null
               state: int(37) :i32
             }
-  struct __genstate_pairs_until { s0: i32, s1: i32, s2: i32, s3: i32, state: i32 }
+  struct snippet$__genstate_pairs_until { s0: i32, s1: i32, s2: i32, s3: i32, state: i32 }
   fn snippet$__genstate_pairs_until$Iterator$next(self: __genstate_pairs_until!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -620,7 +620,7 @@
                                                                   _0: int(0) :i32
                                                                   _1: int(1) :u8
                                                                 }
-  struct __genstate_squares { s0: i32, s1: i32, state: i32 }
+  struct snippet$__genstate_squares { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_squares$Iterator$next(self: __genstate_squares!) -> [i32, Continuation]!
     loop :dispatch$
       if :void

@@ -974,7 +974,7 @@
       callee:
         first_column :fn() -> void
     return int(0) :i32
-  struct __genstate_three { state: i32 }
+  struct snippet$__genstate_three { state: i32 }
   fn snippet$__genstate_three$Iterator$next(self: __genstate_three!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -1061,7 +1061,7 @@
                           _0: int(0) :i32
                           _1: int(1) :u8
                         }
-  struct __genstate_upto { s0: i32, s1: i32, state: i32 }
+  struct snippet$__genstate_upto { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_upto$Iterator$next(self: __genstate_upto!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -1206,7 +1206,7 @@
                                   _0: int(0) :i32
                                   _1: int(1) :u8
                                 }
-  struct __genstate_by_twos { s0: i32, s1: i32, state: i32 }
+  struct snippet$__genstate_by_twos { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_by_twos$Iterator$next(self: __genstate_by_twos!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -1335,7 +1335,7 @@
                               _0: int(0) :i32
                               _1: int(1) :u8
                             }
-  struct __genstate_pairs { s0: i32, s1: i32, state: i32 }
+  struct snippet$__genstate_pairs { s0: i32, s1: i32, state: i32 }
   fn snippet$__genstate_pairs$Iterator$next(self: __genstate_pairs!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -1585,7 +1585,7 @@
                                                   _0: int(0) :i32
                                                   _1: int(1) :u8
                                                 }
-  struct __genstate_with_header { s0: i32[], s1: i32[], s2: usize, s3: usize, s4: i32, state: i32 }
+  struct snippet$__genstate_with_header { s0: i32[], s1: i32[], s2: usize, s3: usize, s4: i32, state: i32 }
   fn snippet$__genstate_with_header$Iterator$next(self: __genstate_with_header!) -> [i32, Continuation]!
     loop :dispatch$
       if :void

@@ -259,7 +259,7 @@
           arg3:
             lazy :string
     return int(0) :i32
-  struct __genstate_countdown { s0: i32, s1: i32, s2: i32, s3: Iterator<i32>, s4: [i32, Continuation]!, s5: i32, state: i32 }
+  struct snippet$__genstate_countdown { s0: i32, s1: i32, s2: i32, s3: Iterator<i32>, s4: [i32, Continuation]!, s5: i32, state: i32 }
   fn snippet$__genstate_countdown$Iterator$next(self: __genstate_countdown!) -> [i32, Continuation]!
     loop :dispatch$
       if :void

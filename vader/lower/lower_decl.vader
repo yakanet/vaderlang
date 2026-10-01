@@ -509,30 +509,11 @@ stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
     }
 }
 
-/// `_N` suffix for overloaded fn names. The resolver groups every
-/// fn-decl with the same name into `fn_overloads[name]` ; this fn
-/// finds the current decl's position in that bucket and emits the
-/// matching index. Returns `""` for unique names + non-fn decls.
+// The overload suffix of `decl` in its module (`overload_suffix`) ; `""` for a
+// declaration that is not a fn.
 overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
-    name_span_or_null :: decl_name_span(decl) ?? return ""
-    if name_span_or_null is Span {
-        bucket :: typed.resolved.fn_overloads[decl_name(decl)] ?? return ""
-        if bucket is Symbol[] as symbols {
-            if symbols.len() < 2 { return "" }
-            for i in 0..<symbols.len() {
-                match symbols[i].defined_at as defined {
-                    is null -> {}
-                    is Span -> {
-                        if defined.hash() == name_span_or_null.hash() {
-                            if i == 0 { return "" }
-                            return "_${i}"
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return ""
+    name_span :: decl_name_span(decl) ?? return ""
+    return overload_suffix(typed.resolved, decl_name(decl), name_span)
 }
 
 decl_name_span :: fn(decl: Decl) -> Span | null {

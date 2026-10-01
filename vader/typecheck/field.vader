@@ -241,7 +241,7 @@ try_free_fn_ufcs_dispatch :: fn(
     typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
     chosen :: free_ufcs.decl
     if chosen != null {
-        typed.ufcs_chosen_decls[e.id] = chosen
+        typed.chosen_decls[e.id] = chosen
     }
     // T3071 on THIS dispatch path too. A mutator declared as a free fn called via
     // UFCS — `put`, `remove`, `clear`, `append` — is the dominant stdlib style, and

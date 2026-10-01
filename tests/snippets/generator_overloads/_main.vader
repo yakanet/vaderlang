@@ -1,0 +1,57 @@
+// Three `generator`s named `upto`, told apart by their parameter — two declared
+// here, one imported from `snippet/halves`: each declaration has its own state
+// machine (`__genstate_upto`, `__genstate_upto_1`, and the other module's
+// `__genstate_upto`), whether the call fuses into the loop that consumes it,
+// escapes into a local, heads a chain or is reached by UFCS.
+module "snippet"
+
+import "snippet/halves"
+import "std/io"
+import "std/iter"
+
+upto :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        yield i
+    }
+}
+
+upto :: fn(s: string) -> Iterator<string> {
+    for i in 0..<s.byte_len() {
+        yield "${s}${i}"
+    }
+}
+
+main :: fn() -> i32 {
+    // fused: each `for` inlines the overload its call picked
+    for x in upto(2) {
+        println("fused ${x}")                            // 0, 1
+    }
+    for w in upto("ab") {
+        println("fused ${w}")                            // ab0, ab1
+    }
+    for h in upto(1.0) {
+        println("fused ${h}")                            // 0.5, 1.0
+    }
+    // escaping: the second overload's state machine first
+    words :: upto("xyz")
+    numbers :: upto(3)
+    halves :: upto(1.5)
+    for w in words {
+        println("lazy ${w}")                             // xyz0, xyz1, xyz2
+    }
+    for x in numbers {
+        println("lazy ${x}")                             // 0, 1, 2
+    }
+    for h in halves {
+        println("lazy ${h}")                             // 0.5, 1.0, 1.5
+    }
+    // heading a chain, and counted
+    lengths :: upto("pq").map((w: string) -> w.byte_len()).collect()
+    println("${lengths.len()} ${lengths[0]}")           // 2 3
+    println("${upto(4).filter((x: i32) -> x % 2 == 0).count()}")          // 2
+    // UFCS picks the overload by its receiver
+    for w in "k".upto() {
+        println("ufcs ${w}")                             // k0
+    }
+    return 0
+}

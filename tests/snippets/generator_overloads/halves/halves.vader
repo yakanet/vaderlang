@@ -1,0 +1,11 @@
+// A third `upto`, declared in another module: its state machine is its own, apart
+// from the two the main module declares under the same name.
+module "snippet/halves"
+
+export upto :: fn(limit: f64) -> Iterator<f64> {
+    x := 0.5
+    for x <= limit {
+        yield x
+        x += 0.5
+    }
+}
