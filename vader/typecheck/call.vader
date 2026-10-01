@@ -830,7 +830,8 @@ export infer_call :: fn(
             // Decided once : the guard walks the declared type recursively.
             fiction :: substituted_element_fiction(callee_ty.params[i])
             got_ty  :: if fiction { element_bits_cleared(arg_types[i]) } else { arg_types[i] }
-            want_ty :: if fiction { element_bits_cleared(want) } else { want }
+            aligned :: align_callback_bits(callee_ty.params[i], want, arg_types[i])
+            want_ty :: if fiction { element_bits_cleared(aligned) } else { aligned }
             if is_assignable(got_ty, want_ty)                          { continue }
             if try_into(arg_types[i], want, typed, c.args[i].value.id) { continue }
             diags.push(mismatch_diagnostic_hinted(
@@ -1454,6 +1455,40 @@ arg_mutability_cleared :: fn(t: Type) -> Type = if t is ArrayType { t } else { e
 substituted_element_fiction :: fn(
     declared: Type,
 ) -> bool = !(declared is TypeParamType | FnType) && type_contains_type_param(declared)
+
+// `want` with each position of a callback that the callee declared as a bare type
+// parameter carrying the root mutability bit the argument has there. Binding a type
+// parameter erases its root bit (`unify_type_param`, ADR 0017), so a substituted `T`
+// reads mutable and would refuse a callback whose own signature is read-only —
+// `rs.map(keys)` with `keys :: fn(Rec) -> string[]`. A position the callee wrote
+// keeps its bit.
+align_callback_bits :: fn(declared: Type, want: Type, got: Type) -> Type {
+    if declared is FnType && want is FnType && got is FnType {
+        n :: want.params.len()
+        if declared.params.len() != n || got.params.len() != n {
+            return want
+        }
+        params: Type[]!: []
+        for k in 0..<n {
+            params.push(align_callback_position(declared.params[k], want.params[k], got.params[k]))
+        }
+        return FnType {
+            ...want,
+            .params = params,
+            .return_type = align_callback_position(
+                declared.return_type, want.return_type, got.return_type,
+            ),
+        }
+    }
+    return want
+}
+
+align_callback_position :: fn(declared: Type, want: Type, got: Type) -> Type {
+    if declared is TypeParamType && got is ArrayType | StructType | TupleType {
+        return with_immutable(want, type_is_immutable(got))
+    }
+    return align_callback_bits(declared, want, got)
+}
 
 // `arg_mutability_cleared`, descending into the array element too.
 element_bits_cleared :: fn(t: Type) -> Type = match t {

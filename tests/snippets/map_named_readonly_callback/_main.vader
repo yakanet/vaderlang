@@ -1,0 +1,26 @@
+// A named fn whose signature is read-only is a valid callback for a generic
+// combinator: `rs.map(keys)` with `keys :: fn(Rec) -> string[]`. The `T` / `U`
+// positions of `map`'s `fn(T) -> U` take the argument's own mutability, as the
+// lambda `(r) -> keys(r)` already does.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+Rec :: struct { name: string }
+
+keys :: fn(r: Rec) -> string[] = [r.name, "${r.name}!"]
+
+same :: fn(r: Rec) -> Rec = r
+
+main :: fn() -> i32 {
+    rs :: [Rec { .name = "a" }, Rec { .name = "b" }]
+    ks :: rs.map(keys).collect()
+    println("named: ${ks.len()} ${ks[1][0]} ${ks[1][1]}")
+    ls :: rs.map((r) -> keys(r)).collect()
+    println("lambda: ${ls.len()} ${ls[0][1]}")
+    ss :: rs.map(same).collect()
+    println("struct: ${ss[1].name}")
+    return 0
+}
