@@ -390,6 +390,8 @@ const C_PARITY = new Set<string>([
   "comptime_for_closures",
   // An alias declared below its use, across modules, or generic in a sibling file.
   "alias_declaration_order",
+  // A push in a `for [x, y] in zip(a, b)` loop takes the push cache.
+  "zip_loop_push",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

@@ -1,0 +1,22 @@
+// A push in a loop over `zip(a, b)` keeps the array's state in locals (the push
+// cache), as the same loop written by index does: the tuple each step yields is
+// a value of two primitives, never an allocation.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+products :: fn(a: i32[], b: i32[]) -> i64[] {
+    out: i64[]!: []
+    for [x, y] in zip(a, b) {
+        out.push(i64(x) * i64(y))
+    }
+    return out
+}
+
+main :: fn() -> i32 {
+    p :: products([1, 2, 3, 4], [10, 20, 30])
+    println("${p.len()} ${p[0]} ${p[2]}")
+    return 0
+}

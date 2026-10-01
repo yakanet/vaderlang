@@ -1,0 +1,35 @@
+# Typecheck
+
+## tests/snippets/zip_loop_push
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         products             :: fn(i32[], i32[]) -> i64[]
+  expr 11:18    SeqLitExpr     :: i64[]!
+  expr 12:19    CallExpr       :: __genstate_zip<[i32, i32]>!
+  expr 12:19    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
+  expr 12:23    IdentExpr      :: i32[]
+  expr 12:26    IdentExpr      :: i32[]
+  expr 13:18    BinaryExpr     :: i64
+  expr 13:18    CallExpr       :: i64
+  expr 13:18    IdentExpr      :: type
+  expr 13:22    IdentExpr      :: i32
+  expr 13:27    CallExpr       :: i64
+  expr 13:27    IdentExpr      :: type
+  expr 13:31    IdentExpr      :: i32
+  expr 13:9     CallExpr       :: void
+  expr 13:9     FieldExpr      :: fn(i64) -> void
+  expr 13:9     IdentExpr      :: i64[]!
+  expr 15:12    IdentExpr      :: i64[]!
+  expr 19:10    CallExpr       :: i64[]
+  expr 19:10    IdentExpr      :: fn(i32[], i32[]) -> i64[]
+  expr 19:19    SeqLitExpr     :: i32[]
+  expr 19:33    SeqLitExpr     :: i32[]
+  expr 20:13    StringLitExpr  :: string
+  expr 20:16    CallExpr       :: usize
+  expr 20:16    FieldExpr      :: fn() -> usize
+  expr 20:16    IdentExpr      :: i64[]
+  expr 20:27    IdentExpr      :: i64[]
+  expr 20:27    IndexExpr      :: i64
+  expr 20:35    IdentExpr      :: i64[]
+  expr 20:35    IndexExpr      :: i64
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void

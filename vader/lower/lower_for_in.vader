@@ -543,7 +543,10 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 //   - a CALL (`LoweredCall` / `LoweredVirtualCall` / `LoweredIntrinsicCall`) or a
 //     `push` : may allocate (⟹ GC ⟹ the buffer moves) and/or change the length ;
 //   - a pure ALLOCATION (`LoweredArrayLit` / `StructLit` / `CellNew` /
-//     `MakeClosure` / `ArraySlice` / `StringSlice`) : allocates ⟹ GC ⟹ move ;
+//     `MakeClosure` / `ArraySlice` / `StringSlice`) : allocates ⟹ GC ⟹ move —
+//     save a tuple literal within the value ABI (`value_abi_type_size`), which
+//     crosses in registers (c_emit still re-checks the push cache on the op
+//     stream that ships) ;
 //   - a SUSPEND point (`yield` / `await`) : on resume a GC may have run, or another
 //     task may have mutated the array ;
 //   - a `defer` push/pop : may allocate the defer stack / runs arbitrary code.
@@ -632,6 +635,18 @@ bce_stmt_unsafe :: fn(
     is LoweredDeferPopExec -> true
 }
 
+// Whether any field value of a struct literal is unsafe (`bce_expr_unsafe`).
+bce_fields_unsafe :: fn(
+    fields: LoweredStructLitField[], guard_sym: i32 | null, pctx: BcePurityCtx!,
+) -> bool {
+    for f in fields {
+        if bce_expr_unsafe(f.value, guard_sym, pctx) {
+            return true
+        }
+    }
+    return false
+}
+
 bce_expr_unsafe :: fn(
     e: LoweredExpr, guard_sym: i32 | null, pctx: BcePurityCtx!,
 ) -> bool = match e {
@@ -640,7 +655,10 @@ bce_expr_unsafe :: fn(
     is LoweredCall                                    -> bce_call_unsafe(e, guard_sym, pctx)
     is LoweredVirtualCall | LoweredIntrinsicCall | LoweredArrayPush -> true
     // Allocations : allocate ⟹ GC ⟹ the buffer moves.
-    is LoweredArrayLit | LoweredStructLit | LoweredCellNew | LoweredMakeClosure | LoweredArraySlice | LoweredStringSlice -> true
+    is LoweredArrayLit | LoweredCellNew | LoweredMakeClosure | LoweredArraySlice | LoweredStringSlice -> true
+    // A tuple of primitives within the value ABI crosses in registers, never on
+    // the heap ; any other struct literal allocates.
+    is LoweredStructLit -> value_abi_type_size(e.type) < 0 || bce_fields_unsafe(e.fields, guard_sym, pctx)
     // Leaves : no allocation, no call.
     is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit | LoweredCharLit | LoweredStringLit | LoweredIdent | LoweredDataConst | LoweredUnreachable | LoweredTypeConst -> false
     // Pure composites : recurse (they don't allocate themselves).
