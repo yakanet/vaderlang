@@ -81,10 +81,23 @@ pc_update_live :: fn(live: i32[]!, st: LoweredStmt) -> void {
     // a parameter or a call result all hand back an array something else may
     // still point at, and a read through THAT reference is invisible here.
     if st is LoweredLet {
-        if st.value is LoweredArrayLit {
+        if is_fresh_array(st.value) {
             live.push(st.symbol.id)
         }
     }
+}
+
+// An array literal, or one repeated (`[] * n` reserving `n` slots, `[0] * n`):
+// either way a new array nothing else holds.
+is_fresh_array :: fn(value: LoweredExpr) -> bool {
+    if value is LoweredArrayLit {
+        return true
+    }
+    if value is LoweredIntrinsicCall {
+        return value.name == INTRINSIC_ARRAY_REPEAT && value.args.len() == 2
+            && value.args[0] is LoweredArrayLit
+    }
+    return false
 }
 
 // Entering a loop, an array minted OUTSIDE it loses its standing if anything in

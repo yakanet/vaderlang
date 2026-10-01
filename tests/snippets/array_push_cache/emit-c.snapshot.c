@@ -33,6 +33,7 @@ static const char vader_atom_blob[] =
     "|" "\0"
     "tight        " "\0"
     " n=" "\0"
+    "reserved     " "\0"
     "allocates    " "\0"
     "reads_itself " "\0"
     "with_break   " "\0"
@@ -67,8 +68,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54] },
     { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68] },
     { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[82] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[96] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[98] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[96] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[110] },
     { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[112] },
     { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[126] },
     { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[140] },
@@ -82,12 +83,14 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[252] },
     { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[266] },
     { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[280] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[294] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[294] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[308] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 27u
+#define VADER_COMPTIME_ATOM_COUNT 28u
 
 static void* snippet_tight(int32_t l0);
+static void* snippet_reserved(int32_t l0);
 static vader_string_t snippet_mk(int32_t l0);
 static void* snippet_allocates(int32_t l0);
 static void* snippet_reads_itself(int32_t l0);
@@ -256,6 +259,61 @@ static void* snippet_tight(int32_t l0) {
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static void* snippet_reserved(int32_t l0) {
+    void* l1 = NULL;
+    size_t l2;
+    int32_t l3, l4;
+    int64_t t0;
+    void** gc_raw_roots[1] = { &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+#line 29 "tests/snippets/array_push_cache/_main.vader"
+    vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
+    l1 = (void*) _a0_arr;
+    t0 = ((int64_t) (int32_t) l0);
+    l2 = (size_t) (int64_t) t0;
+    vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (size_t) l2);
+    l1 = (void*) _a1_arr;
+#line 30 "tests/snippets/array_push_cache/_main.vader"
+    l3 = INT32_C(0);
+    {
+        vader_array_t* _pc12_hdr = (vader_array_t*) l1;
+        size_t _pc12_len = _pc12_hdr->length;
+        size_t _pc12_cap = (_pc12_hdr->offset == 0 && !vader_array_is_borrowed(_pc12_hdr) && _pc12_hdr->length >= _pc12_hdr->buf->length) ? _pc12_hdr->capacity : (size_t) 0;
+        void* _pc12_slots = _pc12_hdr->buf->slots;
+        for (;;) {
+            if ((l3 < l0)) {
+#line 31 "tests/snippets/array_push_cache/_main.vader"
+                l4 = (l3 * INT32_C(3));
+                if (VADER_LIKELY(_pc12_len < _pc12_cap)) {
+                    ((int32_t*) _pc12_slots)[_pc12_len] = (int32_t) (l4);
+                    _pc12_len += 1;
+                } else {
+                    _pc12_hdr->length = _pc12_len;
+                    if (_pc12_hdr->buf->length < _pc12_len) {
+                        _pc12_hdr->buf->length = _pc12_len;
+                    }
+                    vader_array_push_i32((vader_array_t*) l1, l4);
+                    _pc12_hdr = (vader_array_t*) l1;
+                    _pc12_len = _pc12_hdr->length;
+                    _pc12_cap = (_pc12_hdr->offset == 0 && !vader_array_is_borrowed(_pc12_hdr) && _pc12_hdr->length >= _pc12_hdr->buf->length) ? _pc12_hdr->capacity : (size_t) 0;
+                    _pc12_slots = _pc12_hdr->buf->slots;
+                }
+#line 30 "tests/snippets/array_push_cache/_main.vader"
+                l3 = (l3 + INT32_C(1));
+                continue;
+            }
+            _pc12_hdr->length = _pc12_len;
+            if (_pc12_hdr->buf->length < _pc12_len) {
+                _pc12_hdr->buf->length = _pc12_len;
+            }
+            break;
+        }
+    }
+#line 33 "tests/snippets/array_push_cache/_main.vader"
+    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
 static vader_string_t snippet_mk(int32_t l0) {
     void* l1 = NULL;
     size_t l2;
@@ -267,7 +325,7 @@ static vader_string_t snippet_mk(int32_t l0) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 28 "tests/snippets/array_push_cache/_main.vader"
+#line 37 "tests/snippets/array_push_cache/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 21);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 1u);
@@ -287,19 +345,19 @@ static void* snippet_allocates(int32_t l0) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 31 "tests/snippets/array_push_cache/_main.vader"
+#line 40 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(4u, 0u, 0u, 3u);
     l1 = (void*) _a0_arr;
-#line 32 "tests/snippets/array_push_cache/_main.vader"
+#line 41 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
     while ((l2 < l0)) {
-#line 33 "tests/snippets/array_push_cache/_main.vader"
+#line 42 "tests/snippets/array_push_cache/_main.vader"
         l3 = snippet_mk(l2);
         vader_array_push((vader_array_t*) l1, vader_box_string(3u, l3));
-#line 32 "tests/snippets/array_push_cache/_main.vader"
+#line 41 "tests/snippets/array_push_cache/_main.vader"
         l2 = (l2 + INT32_C(1));
     }
-#line 35 "tests/snippets/array_push_cache/_main.vader"
+#line 44 "tests/snippets/array_push_cache/_main.vader"
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -310,26 +368,26 @@ static void* snippet_reads_itself(int32_t l0) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 40 "tests/snippets/array_push_cache/_main.vader"
+#line 49 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
-#line 41 "tests/snippets/array_push_cache/_main.vader"
+#line 50 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
     while ((l2 < l0)) {
-#line 42 "tests/snippets/array_push_cache/_main.vader"
+#line 51 "tests/snippets/array_push_cache/_main.vader"
         vader_array_push_i32((vader_array_t*) l1, l2);
-#line 43 "tests/snippets/array_push_cache/_main.vader"
+#line 52 "tests/snippets/array_push_cache/_main.vader"
         t0 = ((vader_array_t*) l1)->length;
         if ((t0 > INT64_C(3))) {
-#line 44 "tests/snippets/array_push_cache/_main.vader"
+#line 53 "tests/snippets/array_push_cache/_main.vader"
             l3 = -(INT32_C(1));
             vader_array_push_i32((vader_array_t*) l1, l3);
-#line 43 "tests/snippets/array_push_cache/_main.vader"
+#line 52 "tests/snippets/array_push_cache/_main.vader"
         }
-#line 41 "tests/snippets/array_push_cache/_main.vader"
+#line 50 "tests/snippets/array_push_cache/_main.vader"
         l2 = (l2 + INT32_C(1));
     }
-#line 47 "tests/snippets/array_push_cache/_main.vader"
+#line 56 "tests/snippets/array_push_cache/_main.vader"
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -339,10 +397,10 @@ static void* snippet_with_break(int32_t l0) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 53 "tests/snippets/array_push_cache/_main.vader"
+#line 62 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
-#line 54 "tests/snippets/array_push_cache/_main.vader"
+#line 63 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
     {
         vader_array_t* _pc5_hdr = (vader_array_t*) l1;
@@ -351,9 +409,9 @@ static void* snippet_with_break(int32_t l0) {
         void* _pc5_slots = _pc5_hdr->buf->slots;
         for (;;) {
             if ((l2 < l0)) {
-#line 55 "tests/snippets/array_push_cache/_main.vader"
+#line 64 "tests/snippets/array_push_cache/_main.vader"
                 if (l2 == INT32_C(3)) {
-#line 58 "tests/snippets/array_push_cache/_main.vader"
+#line 67 "tests/snippets/array_push_cache/_main.vader"
                 } else {
                     if (VADER_LIKELY(_pc5_len < _pc5_cap)) {
                         ((int32_t*) _pc5_slots)[_pc5_len] = (int32_t) (l2);
@@ -369,12 +427,12 @@ static void* snippet_with_break(int32_t l0) {
                         _pc5_cap = (_pc5_hdr->offset == 0 && !vader_array_is_borrowed(_pc5_hdr) && _pc5_hdr->length >= _pc5_hdr->buf->length) ? _pc5_hdr->capacity : (size_t) 0;
                         _pc5_slots = _pc5_hdr->buf->slots;
                     }
-#line 54 "tests/snippets/array_push_cache/_main.vader"
+#line 63 "tests/snippets/array_push_cache/_main.vader"
                     l2 = (l2 + INT32_C(1));
                     continue;
-#line 55 "tests/snippets/array_push_cache/_main.vader"
+#line 64 "tests/snippets/array_push_cache/_main.vader"
                 }
-#line 54 "tests/snippets/array_push_cache/_main.vader"
+#line 63 "tests/snippets/array_push_cache/_main.vader"
             }
             _pc5_hdr->length = _pc5_len;
             if (_pc5_hdr->buf->length < _pc5_len) {
@@ -383,7 +441,7 @@ static void* snippet_with_break(int32_t l0) {
             break;
         }
     }
-#line 60 "tests/snippets/array_push_cache/_main.vader"
+#line 69 "tests/snippets/array_push_cache/_main.vader"
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -396,10 +454,10 @@ static void* snippet_break_mid(void* l0) {
     void** gc_raw_roots[3] = { &l0, &l1, &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 66 "tests/snippets/array_push_cache/_main.vader"
+#line 75 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
-#line 67 "tests/snippets/array_push_cache/_main.vader"
+#line 76 "tests/snippets/array_push_cache/_main.vader"
     l2 = l0;
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
@@ -414,7 +472,7 @@ static void* snippet_break_mid(void* l0) {
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
                 l5 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l4];
-#line 68 "tests/snippets/array_push_cache/_main.vader"
+#line 77 "tests/snippets/array_push_cache/_main.vader"
                 if (VADER_LIKELY(_pc9_len < _pc9_cap)) {
                     ((int32_t*) _pc9_slots)[_pc9_len] = (int32_t) (l5);
                     _pc9_len += 1;
@@ -429,9 +487,9 @@ static void* snippet_break_mid(void* l0) {
                     _pc9_cap = (_pc9_hdr->offset == 0 && !vader_array_is_borrowed(_pc9_hdr) && _pc9_hdr->length >= _pc9_hdr->buf->length) ? _pc9_hdr->capacity : (size_t) 0;
                     _pc9_slots = _pc9_hdr->buf->slots;
                 }
-#line 69 "tests/snippets/array_push_cache/_main.vader"
+#line 78 "tests/snippets/array_push_cache/_main.vader"
                 if ((l5 < INT32_C(0))) {
-#line 72 "tests/snippets/array_push_cache/_main.vader"
+#line 81 "tests/snippets/array_push_cache/_main.vader"
                 } else {
                     l6 = (l5 * INT32_C(10));
                     if (VADER_LIKELY(_pc9_len < _pc9_cap)) {
@@ -448,13 +506,13 @@ static void* snippet_break_mid(void* l0) {
                         _pc9_cap = (_pc9_hdr->offset == 0 && !vader_array_is_borrowed(_pc9_hdr) && _pc9_hdr->length >= _pc9_hdr->buf->length) ? _pc9_hdr->capacity : (size_t) 0;
                         _pc9_slots = _pc9_hdr->buf->slots;
                     }
-#line 67 "tests/snippets/array_push_cache/_main.vader"
+#line 76 "tests/snippets/array_push_cache/_main.vader"
                     t0 = (l4 + INT64_C(1));
                     l4 = (size_t) (int64_t) t0;
                     continue;
-#line 69 "tests/snippets/array_push_cache/_main.vader"
+#line 78 "tests/snippets/array_push_cache/_main.vader"
                 }
-#line 67 "tests/snippets/array_push_cache/_main.vader"
+#line 76 "tests/snippets/array_push_cache/_main.vader"
             }
             _pc9_hdr->length = _pc9_len;
             if (_pc9_hdr->buf->length < _pc9_len) {
@@ -463,7 +521,7 @@ static void* snippet_break_mid(void* l0) {
             break;
         }
     }
-#line 74 "tests/snippets/array_push_cache/_main.vader"
+#line 83 "tests/snippets/array_push_cache/_main.vader"
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -477,10 +535,10 @@ static int32_t snippet_early_return(void* l0) {
     void** gc_raw_roots[3] = { &l0, &l1, &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 79 "tests/snippets/array_push_cache/_main.vader"
+#line 88 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
-#line 80 "tests/snippets/array_push_cache/_main.vader"
+#line 89 "tests/snippets/array_push_cache/_main.vader"
     l2 = l0;
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
@@ -489,19 +547,19 @@ static int32_t snippet_early_return(void* l0) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         l5 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l4];
-#line 81 "tests/snippets/array_push_cache/_main.vader"
+#line 90 "tests/snippets/array_push_cache/_main.vader"
         if ((l5 < INT32_C(0))) {
-#line 82 "tests/snippets/array_push_cache/_main.vader"
+#line 91 "tests/snippets/array_push_cache/_main.vader"
             { int32_t __vret = -(INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
-#line 81 "tests/snippets/array_push_cache/_main.vader"
+#line 90 "tests/snippets/array_push_cache/_main.vader"
         }
-#line 84 "tests/snippets/array_push_cache/_main.vader"
+#line 93 "tests/snippets/array_push_cache/_main.vader"
         vader_array_push_i32((vader_array_t*) l1, l5);
-#line 80 "tests/snippets/array_push_cache/_main.vader"
+#line 89 "tests/snippets/array_push_cache/_main.vader"
         t0 = (l4 + INT64_C(1));
         l4 = (size_t) (int64_t) t0;
     }
-#line 86 "tests/snippets/array_push_cache/_main.vader"
+#line 95 "tests/snippets/array_push_cache/_main.vader"
     t1 = ((vader_array_t*) l1)->length;
     { int32_t __vret = ((int32_t) (size_t) t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -513,30 +571,30 @@ static int32_t snippet_break_outer(int32_t l0) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 92 "tests/snippets/array_push_cache/_main.vader"
+#line 101 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
-#line 93 "tests/snippets/array_push_cache/_main.vader"
+#line 102 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
     while ((l2 < l0)) {
-#line 94 "tests/snippets/array_push_cache/_main.vader"
+#line 103 "tests/snippets/array_push_cache/_main.vader"
         l3 = INT32_C(0);
         while ((l3 < l0)) {
-#line 95 "tests/snippets/array_push_cache/_main.vader"
+#line 104 "tests/snippets/array_push_cache/_main.vader"
             if (((l2 * l0) + l3) == INT32_C(7)) {
-#line 96 "tests/snippets/array_push_cache/_main.vader"
+#line 105 "tests/snippets/array_push_cache/_main.vader"
                 goto end_9;
-#line 95 "tests/snippets/array_push_cache/_main.vader"
+#line 104 "tests/snippets/array_push_cache/_main.vader"
             }
-#line 98 "tests/snippets/array_push_cache/_main.vader"
+#line 107 "tests/snippets/array_push_cache/_main.vader"
             vader_array_push_i32((vader_array_t*) l1, l3);
-#line 94 "tests/snippets/array_push_cache/_main.vader"
+#line 103 "tests/snippets/array_push_cache/_main.vader"
             l3 = (l3 + INT32_C(1));
         }
-#line 93 "tests/snippets/array_push_cache/_main.vader"
+#line 102 "tests/snippets/array_push_cache/_main.vader"
         l2 = (l2 + INT32_C(1));
     } end_9: ;
-#line 101 "tests/snippets/array_push_cache/_main.vader"
+#line 110 "tests/snippets/array_push_cache/_main.vader"
     t0 = ((vader_array_t*) l1)->length;
     { int32_t __vret = ((int32_t) (size_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -547,18 +605,18 @@ static void* snippet_boxed(int32_t l0) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 107 "tests/snippets/array_push_cache/_main.vader"
+#line 116 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(4u, 0u, 0u, 3u);
     l1 = (void*) _a0_arr;
-#line 108 "tests/snippets/array_push_cache/_main.vader"
+#line 117 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
     while ((l2 < l0)) {
-#line 109 "tests/snippets/array_push_cache/_main.vader"
+#line 118 "tests/snippets/array_push_cache/_main.vader"
         vader_array_push((vader_array_t*) l1, vader_box_string(3u, 2u));
-#line 108 "tests/snippets/array_push_cache/_main.vader"
+#line 117 "tests/snippets/array_push_cache/_main.vader"
         l2 = (l2 + INT32_C(1));
     }
-#line 111 "tests/snippets/array_push_cache/_main.vader"
+#line 120 "tests/snippets/array_push_cache/_main.vader"
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -570,7 +628,7 @@ static void* snippet_into_view(void) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 119 "tests/snippets/array_push_cache/_main.vader"
+#line 128 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 5u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 4u] = (int32_t) INT32_C(50);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 3u] = (int32_t) INT32_C(40);
@@ -578,23 +636,23 @@ static void* snippet_into_view(void) {
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(20);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
     l0 = (void*) _a0_arr;
-#line 120 "tests/snippets/array_push_cache/_main.vader"
+#line 129 "tests/snippets/array_push_cache/_main.vader"
     t0 = ((int64_t) 1);
     l1 = (size_t) (int64_t) t0;
     t0 = ((int64_t) 3);
     l2 = (size_t) (int64_t) t0;
     vader_array_t* _a1_arr = vader_array_slice((vader_array_t*) l0, (size_t) l1, (size_t) l2);
     l0 = (void*) _a1_arr;
-#line 121 "tests/snippets/array_push_cache/_main.vader"
+#line 130 "tests/snippets/array_push_cache/_main.vader"
     l3 = INT32_C(0);
     while ((l3 < INT32_C(3))) {
-#line 122 "tests/snippets/array_push_cache/_main.vader"
+#line 131 "tests/snippets/array_push_cache/_main.vader"
         l4 = (INT32_C(100) + l3);
         vader_array_push_i32((vader_array_t*) l0, l4);
-#line 121 "tests/snippets/array_push_cache/_main.vader"
+#line 130 "tests/snippets/array_push_cache/_main.vader"
         l3 = (l3 + INT32_C(1));
     }
-#line 124 "tests/snippets/array_push_cache/_main.vader"
+#line 133 "tests/snippets/array_push_cache/_main.vader"
     { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -606,18 +664,18 @@ static int32_t snippet_nested(int32_t l0) {
     void** gc_raw_roots[2] = { &l2, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 129 "tests/snippets/array_push_cache/_main.vader"
+#line 138 "tests/snippets/array_push_cache/_main.vader"
     l1 = INT32_C(0);
-#line 130 "tests/snippets/array_push_cache/_main.vader"
+#line 139 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l2 = (void*) _a0_arr;
-#line 131 "tests/snippets/array_push_cache/_main.vader"
+#line 140 "tests/snippets/array_push_cache/_main.vader"
     l3 = INT32_C(0);
     while ((l3 < l0)) {
-#line 132 "tests/snippets/array_push_cache/_main.vader"
+#line 141 "tests/snippets/array_push_cache/_main.vader"
         vader_array_t* _a1_arr = vader_array_new(2u, 0u, 7u, 1u);
         l4 = (void*) _a1_arr;
-#line 133 "tests/snippets/array_push_cache/_main.vader"
+#line 142 "tests/snippets/array_push_cache/_main.vader"
         l5 = INT32_C(0);
         {
             vader_array_t* _pc17_hdr = (vader_array_t*) l4;
@@ -626,7 +684,7 @@ static int32_t snippet_nested(int32_t l0) {
             void* _pc17_slots = _pc17_hdr->buf->slots;
             for (;;) {
                 if ((l5 < l0)) {
-#line 134 "tests/snippets/array_push_cache/_main.vader"
+#line 143 "tests/snippets/array_push_cache/_main.vader"
                     l6 = (l3 * l5);
                     if (VADER_LIKELY(_pc17_len < _pc17_cap)) {
                         ((int32_t*) _pc17_slots)[_pc17_len] = (int32_t) (l6);
@@ -642,7 +700,7 @@ static int32_t snippet_nested(int32_t l0) {
                         _pc17_cap = (_pc17_hdr->offset == 0 && !vader_array_is_borrowed(_pc17_hdr) && _pc17_hdr->length >= _pc17_hdr->buf->length) ? _pc17_hdr->capacity : (size_t) 0;
                         _pc17_slots = _pc17_hdr->buf->slots;
                     }
-#line 133 "tests/snippets/array_push_cache/_main.vader"
+#line 142 "tests/snippets/array_push_cache/_main.vader"
                     l5 = (l5 + INT32_C(1));
                     continue;
                 }
@@ -653,18 +711,18 @@ static int32_t snippet_nested(int32_t l0) {
                 break;
             }
         }
-#line 136 "tests/snippets/array_push_cache/_main.vader"
+#line 145 "tests/snippets/array_push_cache/_main.vader"
         t0 = ((vader_array_t*) l4)->length;
         l7 = ((int32_t) (size_t) t0);
         vader_array_push_i32((vader_array_t*) l2, l7);
-#line 137 "tests/snippets/array_push_cache/_main.vader"
+#line 146 "tests/snippets/array_push_cache/_main.vader"
         t0 = ((vader_array_t*) l4)->length;
         l8 = ((int32_t) (size_t) t0);
         l1 = (l1 + l8);
-#line 131 "tests/snippets/array_push_cache/_main.vader"
+#line 140 "tests/snippets/array_push_cache/_main.vader"
         l3 = (l3 + INT32_C(1));
     }
-#line 139 "tests/snippets/array_push_cache/_main.vader"
+#line 148 "tests/snippets/array_push_cache/_main.vader"
     t0 = ((vader_array_t*) l2)->length;
     l3 = ((int32_t) (size_t) t0);
     { int32_t __vret = (l1 + l3); vader_gc_top = gc_frame.prev; return __vret; }
@@ -694,10 +752,10 @@ static vader_string_t snippet_widths(int32_t l0) {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 149 "tests/snippets/array_push_cache/_main.vader"
+#line 158 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(14u, 0u, 1u, 9u);
     l1 = (void*) _a0_arr;
-#line 150 "tests/snippets/array_push_cache/_main.vader"
+#line 159 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
     {
         vader_array_t* _pc5_hdr = (vader_array_t*) l1;
@@ -706,7 +764,7 @@ static vader_string_t snippet_widths(int32_t l0) {
         void* _pc5_slots = _pc5_hdr->buf->slots;
         for (;;) {
             if ((l2 < l0)) {
-#line 151 "tests/snippets/array_push_cache/_main.vader"
+#line 160 "tests/snippets/array_push_cache/_main.vader"
                 t0 = vader_mod_i32(l2, INT32_C(200));
                 t1 = (t0 & INT32_C(255));
                 l3 = (uint8_t) (int32_t) t1;
@@ -724,7 +782,7 @@ static vader_string_t snippet_widths(int32_t l0) {
                     _pc5_cap = (_pc5_hdr->offset == 0 && !vader_array_is_borrowed(_pc5_hdr) && _pc5_hdr->length >= _pc5_hdr->buf->length) ? _pc5_hdr->capacity : (size_t) 0;
                     _pc5_slots = _pc5_hdr->buf->slots;
                 }
-#line 150 "tests/snippets/array_push_cache/_main.vader"
+#line 159 "tests/snippets/array_push_cache/_main.vader"
                 l2 = (l2 + INT32_C(1));
                 continue;
             }
@@ -735,10 +793,10 @@ static vader_string_t snippet_widths(int32_t l0) {
             break;
         }
     }
-#line 153 "tests/snippets/array_push_cache/_main.vader"
+#line 162 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a1_arr = vader_array_new(18u, 0u, 6u, 17u);
     l4 = (void*) _a1_arr;
-#line 154 "tests/snippets/array_push_cache/_main.vader"
+#line 163 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
     {
         vader_array_t* _pc33_hdr = (vader_array_t*) l4;
@@ -747,7 +805,7 @@ static vader_string_t snippet_widths(int32_t l0) {
         void* _pc33_slots = _pc33_hdr->buf->slots;
         for (;;) {
             if ((l2 < l0)) {
-#line 155 "tests/snippets/array_push_cache/_main.vader"
+#line 164 "tests/snippets/array_push_cache/_main.vader"
                 t0 = ((((l2 * INT32_C(3)) & INT32_C(65535)) ^ INT32_C(32768)) - INT32_C(32768));
                 l5 = (int16_t) (int32_t) t0;
                 if (VADER_LIKELY(_pc33_len < _pc33_cap)) {
@@ -764,7 +822,7 @@ static vader_string_t snippet_widths(int32_t l0) {
                     _pc33_cap = (_pc33_hdr->offset == 0 && !vader_array_is_borrowed(_pc33_hdr) && _pc33_hdr->length >= _pc33_hdr->buf->length) ? _pc33_hdr->capacity : (size_t) 0;
                     _pc33_slots = _pc33_hdr->buf->slots;
                 }
-#line 154 "tests/snippets/array_push_cache/_main.vader"
+#line 163 "tests/snippets/array_push_cache/_main.vader"
                 l2 = (l2 + INT32_C(1));
                 continue;
             }
@@ -775,10 +833,10 @@ static vader_string_t snippet_widths(int32_t l0) {
             break;
         }
     }
-#line 157 "tests/snippets/array_push_cache/_main.vader"
+#line 166 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a2_arr = vader_array_new(19u, 0u, 9u, 20u);
     l6 = (void*) _a2_arr;
-#line 158 "tests/snippets/array_push_cache/_main.vader"
+#line 167 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
     {
         vader_array_t* _pc65_hdr = (vader_array_t*) l6;
@@ -787,7 +845,7 @@ static vader_string_t snippet_widths(int32_t l0) {
         void* _pc65_slots = _pc65_hdr->buf->slots;
         for (;;) {
             if ((l2 < l0)) {
-#line 159 "tests/snippets/array_push_cache/_main.vader"
+#line 168 "tests/snippets/array_push_cache/_main.vader"
                 t2 = ((double) (int32_t) l2);
                 l7 = (float) (double) t2;
                 l8 = (float) (double) 1.5;
@@ -807,7 +865,7 @@ static vader_string_t snippet_widths(int32_t l0) {
                     _pc65_cap = (_pc65_hdr->offset == 0 && !vader_array_is_borrowed(_pc65_hdr) && _pc65_hdr->length >= _pc65_hdr->buf->length) ? _pc65_hdr->capacity : (size_t) 0;
                     _pc65_slots = _pc65_hdr->buf->slots;
                 }
-#line 158 "tests/snippets/array_push_cache/_main.vader"
+#line 167 "tests/snippets/array_push_cache/_main.vader"
                 l2 = (l2 + INT32_C(1));
                 continue;
             }
@@ -818,9 +876,9 @@ static vader_string_t snippet_widths(int32_t l0) {
             break;
         }
     }
-#line 161 "tests/snippets/array_push_cache/_main.vader"
+#line 170 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
-#line 162 "tests/snippets/array_push_cache/_main.vader"
+#line 171 "tests/snippets/array_push_cache/_main.vader"
     l10 = ((vader_array_t*) l1)->length;
     l11 = (size_t) 0;
     while ((l11 < l10)) {
@@ -828,16 +886,16 @@ static vader_string_t snippet_widths(int32_t l0) {
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         t3 = vader_array_read_u8(_a3_slotarr, _a3_slotarr->offset + (size_t) l11, 9u);
         t4 = ((uint8_t) t3.payload.i);
-#line 163 "tests/snippets/array_push_cache/_main.vader"
+#line 172 "tests/snippets/array_push_cache/_main.vader"
         l12 = ((int32_t) (uint8_t) t4);
         l2 = (l2 + l12);
-#line 162 "tests/snippets/array_push_cache/_main.vader"
+#line 171 "tests/snippets/array_push_cache/_main.vader"
         t5 = (l11 + INT64_C(1));
         l11 = (size_t) (int64_t) t5;
     }
-#line 165 "tests/snippets/array_push_cache/_main.vader"
+#line 174 "tests/snippets/array_push_cache/_main.vader"
     l12 = INT32_C(0);
-#line 166 "tests/snippets/array_push_cache/_main.vader"
+#line 175 "tests/snippets/array_push_cache/_main.vader"
     l1 = l4;
     l10 = ((vader_array_t*) l1)->length;
     l11 = (size_t) 0;
@@ -846,16 +904,16 @@ static vader_string_t snippet_widths(int32_t l0) {
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         t3 = vader_box_i32(17u, ((int16_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l11]);
         t6 = ((int16_t) t3.payload.i);
-#line 167 "tests/snippets/array_push_cache/_main.vader"
+#line 176 "tests/snippets/array_push_cache/_main.vader"
         l13 = ((int32_t) (int16_t) t6);
         l12 = (l12 + l13);
-#line 166 "tests/snippets/array_push_cache/_main.vader"
+#line 175 "tests/snippets/array_push_cache/_main.vader"
         t5 = (l11 + INT64_C(1));
         l11 = (size_t) (int64_t) t5;
     }
-#line 169 "tests/snippets/array_push_cache/_main.vader"
+#line 178 "tests/snippets/array_push_cache/_main.vader"
     l7 = (float) (double) 0.0;
-#line 170 "tests/snippets/array_push_cache/_main.vader"
+#line 179 "tests/snippets/array_push_cache/_main.vader"
     l1 = l6;
     l10 = ((vader_array_t*) l1)->length;
     l11 = (size_t) 0;
@@ -864,14 +922,14 @@ static vader_string_t snippet_widths(int32_t l0) {
         VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
         t3 = vader_box_f64(20u, (double) ((float*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l11]);
         l8 = ((float) t3.payload.f);
-#line 171 "tests/snippets/array_push_cache/_main.vader"
+#line 180 "tests/snippets/array_push_cache/_main.vader"
         t2 = (l7 + l8);
         l7 = (float) (double) t2;
-#line 170 "tests/snippets/array_push_cache/_main.vader"
+#line 179 "tests/snippets/array_push_cache/_main.vader"
         t5 = (l11 + INT64_C(1));
         l11 = (size_t) (int64_t) t5;
     }
-#line 173 "tests/snippets/array_push_cache/_main.vader"
+#line 182 "tests/snippets/array_push_cache/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 62);
     l10 = (size_t) 0;
     l14 = ((int64_t) (int32_t) l2);
@@ -888,7 +946,7 @@ static vader_string_t snippet_widths(int32_t l0) {
 
 static int32_t snippet_observed_length(void* l0) {
     size_t t0;
-#line 181 "tests/snippets/array_push_cache/_main.vader"
+#line 190 "tests/snippets/array_push_cache/_main.vader"
     t0 = ((vader_array_t*) ((vader_struct_snippet_Holder_t*) l0)->f_items)->length;
     return ((int32_t) (size_t) t0);
 }
@@ -901,29 +959,29 @@ static int32_t snippet_aliased(int32_t l0) {
     void** gc_raw_roots[3] = { &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 188 "tests/snippets/array_push_cache/_main.vader"
+#line 197 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     t0 = (void*) _a0_arr;
     vader_struct_snippet_Holder_t* _a1_obj = (vader_struct_snippet_Holder_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Holder_t));
     vader_obj_header_init(_a1_obj, 5u);
     _a1_obj->f_items = t0;
     l1 = (void*) _a1_obj;
-#line 189 "tests/snippets/array_push_cache/_main.vader"
+#line 198 "tests/snippets/array_push_cache/_main.vader"
     l2 = ((vader_struct_snippet_Holder_t*) l1)->f_items;
-#line 190 "tests/snippets/array_push_cache/_main.vader"
+#line 199 "tests/snippets/array_push_cache/_main.vader"
     l3 = INT32_C(0);
-#line 191 "tests/snippets/array_push_cache/_main.vader"
+#line 200 "tests/snippets/array_push_cache/_main.vader"
     l4 = INT32_C(0);
     while ((l4 < l0)) {
-#line 192 "tests/snippets/array_push_cache/_main.vader"
+#line 201 "tests/snippets/array_push_cache/_main.vader"
         vader_array_push_i32((vader_array_t*) l2, l4);
-#line 193 "tests/snippets/array_push_cache/_main.vader"
+#line 202 "tests/snippets/array_push_cache/_main.vader"
         l5 = snippet_observed_length(l1);
         l3 = (l3 + l5);
-#line 191 "tests/snippets/array_push_cache/_main.vader"
+#line 200 "tests/snippets/array_push_cache/_main.vader"
         l4 = (l4 + INT32_C(1));
     }
-#line 195 "tests/snippets/array_push_cache/_main.vader"
+#line 204 "tests/snippets/array_push_cache/_main.vader"
     { int32_t __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -936,7 +994,7 @@ static int32_t snippet_captured(int32_t l0) {
     void** gc_raw_roots[2] = { &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 201 "tests/snippets/array_push_cache/_main.vader"
+#line 210 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     t0 = (void*) _a0_arr;
     vader_struct__Cell_Array_i32__t* _a1_obj = (vader_struct__Cell_Array_i32__t*) vader_gc_alloc(sizeof(vader_struct__Cell_Array_i32__t));
@@ -944,25 +1002,25 @@ static int32_t snippet_captured(int32_t l0) {
     _a1_obj->f_value = t0;
     t0 = (void*) _a1_obj;
     l1 = vader_ref_box(t0);
-#line 202 "tests/snippets/array_push_cache/_main.vader"
+#line 211 "tests/snippets/array_push_cache/_main.vader"
     vader_struct___lambda_env_snippet_1_t* _a2_obj = (vader_struct___lambda_env_snippet_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_1_t));
     vader_obj_header_init(_a2_obj, 7u);
     _a2_obj->f_cap_0 = l1;
     l2 = (void*) _a2_obj;
-#line 203 "tests/snippets/array_push_cache/_main.vader"
+#line 212 "tests/snippets/array_push_cache/_main.vader"
     l3 = INT32_C(0);
-#line 204 "tests/snippets/array_push_cache/_main.vader"
+#line 213 "tests/snippets/array_push_cache/_main.vader"
     l4 = INT32_C(0);
     while ((l4 < l0)) {
-#line 205 "tests/snippets/array_push_cache/_main.vader"
+#line 214 "tests/snippets/array_push_cache/_main.vader"
         vader_array_push_i32((vader_array_t*) ((vader_struct__Cell_Array_i32__t*) l1.payload.obj)->f_value, l4);
-#line 206 "tests/snippets/array_push_cache/_main.vader"
+#line 215 "tests/snippets/array_push_cache/_main.vader"
         l5 = __lambda_snippet_0(l2);
         l3 = (l3 + l5);
-#line 204 "tests/snippets/array_push_cache/_main.vader"
+#line 213 "tests/snippets/array_push_cache/_main.vader"
         l4 = (l4 + INT32_C(1));
     }
-#line 208 "tests/snippets/array_push_cache/_main.vader"
+#line 217 "tests/snippets/array_push_cache/_main.vader"
     { int32_t __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -974,26 +1032,26 @@ static int32_t snippet_two_names(int32_t l0) {
     void** gc_raw_roots[2] = { &l1, &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 214 "tests/snippets/array_push_cache/_main.vader"
+#line 223 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
-#line 215 "tests/snippets/array_push_cache/_main.vader"
+#line 224 "tests/snippets/array_push_cache/_main.vader"
     l2 = l1;
-#line 216 "tests/snippets/array_push_cache/_main.vader"
+#line 225 "tests/snippets/array_push_cache/_main.vader"
     l3 = INT32_C(0);
-#line 217 "tests/snippets/array_push_cache/_main.vader"
+#line 226 "tests/snippets/array_push_cache/_main.vader"
     l4 = INT32_C(0);
     while ((l4 < l0)) {
-#line 218 "tests/snippets/array_push_cache/_main.vader"
+#line 227 "tests/snippets/array_push_cache/_main.vader"
         vader_array_push_i32((vader_array_t*) l1, l4);
-#line 219 "tests/snippets/array_push_cache/_main.vader"
+#line 228 "tests/snippets/array_push_cache/_main.vader"
         t0 = ((vader_array_t*) l2)->length;
         l5 = ((int32_t) (size_t) t0);
         l3 = (l3 + l5);
-#line 217 "tests/snippets/array_push_cache/_main.vader"
+#line 226 "tests/snippets/array_push_cache/_main.vader"
         l4 = (l4 + INT32_C(1));
     }
-#line 221 "tests/snippets/array_push_cache/_main.vader"
+#line 230 "tests/snippets/array_push_cache/_main.vader"
     { int32_t __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1005,32 +1063,32 @@ static int32_t snippet_rebound(int32_t l0) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 227 "tests/snippets/array_push_cache/_main.vader"
+#line 236 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
-#line 228 "tests/snippets/array_push_cache/_main.vader"
+#line 237 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
-#line 229 "tests/snippets/array_push_cache/_main.vader"
+#line 238 "tests/snippets/array_push_cache/_main.vader"
     l3 = INT32_C(0);
     while ((l3 < l0)) {
-#line 230 "tests/snippets/array_push_cache/_main.vader"
+#line 239 "tests/snippets/array_push_cache/_main.vader"
         vader_array_push_i32((vader_array_t*) l1, l3);
-#line 231 "tests/snippets/array_push_cache/_main.vader"
+#line 240 "tests/snippets/array_push_cache/_main.vader"
         t0 = vader_mod_i32(l3, INT32_C(3));
         if (t0 == INT32_C(2)) {
-#line 232 "tests/snippets/array_push_cache/_main.vader"
+#line 241 "tests/snippets/array_push_cache/_main.vader"
             t1 = ((vader_array_t*) l1)->length;
             l4 = ((int32_t) (size_t) t1);
             l2 = (l2 + l4);
-#line 233 "tests/snippets/array_push_cache/_main.vader"
+#line 242 "tests/snippets/array_push_cache/_main.vader"
             vader_array_t* _a1_arr = vader_array_new(2u, 0u, 7u, 1u);
             l1 = (void*) _a1_arr;
-#line 231 "tests/snippets/array_push_cache/_main.vader"
+#line 240 "tests/snippets/array_push_cache/_main.vader"
         }
-#line 229 "tests/snippets/array_push_cache/_main.vader"
+#line 238 "tests/snippets/array_push_cache/_main.vader"
         l3 = (l3 + INT32_C(1));
     }
-#line 236 "tests/snippets/array_push_cache/_main.vader"
+#line 245 "tests/snippets/array_push_cache/_main.vader"
     t1 = ((vader_array_t*) l1)->length;
     l3 = ((int32_t) (size_t) t1);
     { int32_t __vret = (l2 + l3); vader_gc_top = gc_frame.prev; return __vret; }
@@ -1043,10 +1101,10 @@ static int32_t snippet_len_after(int32_t l0) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 243 "tests/snippets/array_push_cache/_main.vader"
+#line 252 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
-#line 244 "tests/snippets/array_push_cache/_main.vader"
+#line 253 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
     {
         vader_array_t* _pc5_hdr = (vader_array_t*) l1;
@@ -1055,7 +1113,7 @@ static int32_t snippet_len_after(int32_t l0) {
         void* _pc5_slots = _pc5_hdr->buf->slots;
         for (;;) {
             if ((l2 < l0)) {
-#line 245 "tests/snippets/array_push_cache/_main.vader"
+#line 254 "tests/snippets/array_push_cache/_main.vader"
                 l3 = (l2 * INT32_C(2));
                 if (VADER_LIKELY(_pc5_len < _pc5_cap)) {
                     ((int32_t*) _pc5_slots)[_pc5_len] = (int32_t) (l3);
@@ -1071,7 +1129,7 @@ static int32_t snippet_len_after(int32_t l0) {
                     _pc5_cap = (_pc5_hdr->offset == 0 && !vader_array_is_borrowed(_pc5_hdr) && _pc5_hdr->length >= _pc5_hdr->buf->length) ? _pc5_hdr->capacity : (size_t) 0;
                     _pc5_slots = _pc5_hdr->buf->slots;
                 }
-#line 244 "tests/snippets/array_push_cache/_main.vader"
+#line 253 "tests/snippets/array_push_cache/_main.vader"
                 l2 = (l2 + INT32_C(1));
                 continue;
             }
@@ -1082,7 +1140,7 @@ static int32_t snippet_len_after(int32_t l0) {
             break;
         }
     }
-#line 247 "tests/snippets/array_push_cache/_main.vader"
+#line 256 "tests/snippets/array_push_cache/_main.vader"
     t0 = ((vader_array_t*) l1)->length;
     { int32_t __vret = ((int32_t) (size_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1096,12 +1154,12 @@ static int32_t snippet_one_shot(void* l0) {
     void** gc_raw_roots[3] = { &l0, &l1, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 253 "tests/snippets/array_push_cache/_main.vader"
+#line 262 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
-#line 254 "tests/snippets/array_push_cache/_main.vader"
+#line 263 "tests/snippets/array_push_cache/_main.vader"
     l2 = (size_t) 0;
-#line 255 "tests/snippets/array_push_cache/_main.vader"
+#line 264 "tests/snippets/array_push_cache/_main.vader"
     l3 = l0;
     l4 = ((vader_array_t*) l3)->length;
     l5 = (size_t) 0;
@@ -1110,28 +1168,28 @@ static int32_t snippet_one_shot(void* l0) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
         l6 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l5];
-#line 257 "tests/snippets/array_push_cache/_main.vader"
+#line 266 "tests/snippets/array_push_cache/_main.vader"
         vader_array_push_i32((vader_array_t*) l1, l6);
-#line 260 "tests/snippets/array_push_cache/_main.vader"
+#line 269 "tests/snippets/array_push_cache/_main.vader"
         l7 = ((vader_array_t*) l1)->length;
         t0 = (l2 + l7);
         l2 = (size_t) (int64_t) t0;
-#line 255 "tests/snippets/array_push_cache/_main.vader"
+#line 264 "tests/snippets/array_push_cache/_main.vader"
         t0 = (l5 + INT64_C(1));
         l5 = (size_t) (int64_t) t0;
     }
-#line 262 "tests/snippets/array_push_cache/_main.vader"
+#line 271 "tests/snippets/array_push_cache/_main.vader"
     { int32_t __vret = ((int32_t) (size_t) l2); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t snippet_triple(int32_t l0) {
-#line 267 "tests/snippets/array_push_cache/_main.vader"
+#line 276 "tests/snippets/array_push_cache/_main.vader"
     return (l0 * INT32_C(3));
 }
 
 static bool snippet_is_odd(int32_t l0) {
     int32_t t0;
-#line 268 "tests/snippets/array_push_cache/_main.vader"
+#line 277 "tests/snippets/array_push_cache/_main.vader"
     t0 = vader_mod_i32(l0, INT32_C(2));
     return t0 == INT32_C(1);
 }
@@ -1142,7 +1200,7 @@ static void* snippet_collected(int32_t l0) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 270 "tests/snippets/array_push_cache/_main.vader"
+#line 279 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
     l2 = INT32_C(0);
@@ -1155,7 +1213,7 @@ static void* snippet_collected(int32_t l0) {
             if ((l2 < l0)) {
 #line 263 "lib/std/iter/iter.vader"
                 l3 = snippet_triple(l2);
-#line 270 "tests/snippets/array_push_cache/_main.vader"
+#line 279 "tests/snippets/array_push_cache/_main.vader"
                 if (VADER_LIKELY(_pc5_len < _pc5_cap)) {
                     ((int32_t*) _pc5_slots)[_pc5_len] = (int32_t) (l3);
                     _pc5_len += 1;
@@ -1193,7 +1251,7 @@ static void* snippet_filtered(void* l0) {
     void** gc_raw_roots[3] = { &l0, &l1, &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 272 "tests/snippets/array_push_cache/_main.vader"
+#line 281 "tests/snippets/array_push_cache/_main.vader"
     l1 = l0;
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l2 = (void*) _a0_arr;
@@ -1215,7 +1273,7 @@ static void* snippet_filtered(void* l0) {
                 if (t0) {
 #line 263 "lib/std/iter/iter.vader"
                     l6 = snippet_triple(l5);
-#line 272 "tests/snippets/array_push_cache/_main.vader"
+#line 281 "tests/snippets/array_push_cache/_main.vader"
                     if (VADER_LIKELY(_pc10_len < _pc10_cap)) {
                         ((int32_t*) _pc10_slots)[_pc10_len] = (int32_t) (l6);
                         _pc10_len += 1;
@@ -1232,7 +1290,7 @@ static void* snippet_filtered(void* l0) {
                     }
 #line 257 "lib/std/iter/iter.vader"
                 }
-#line 272 "tests/snippets/array_push_cache/_main.vader"
+#line 281 "tests/snippets/array_push_cache/_main.vader"
                 t1 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t1;
                 continue;
@@ -1257,7 +1315,7 @@ static void* snippet_taken(void* l0) {
     void** gc_raw_roots[3] = { &l0, &l1, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 275 "tests/snippets/array_push_cache/_main.vader"
+#line 284 "tests/snippets/array_push_cache/_main.vader"
     l1 = l0;
     l2 = (size_t) 3;
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
@@ -1267,7 +1325,7 @@ static void* snippet_taken(void* l0) {
 #line 272 "lib/std/iter/iter.vader"
     } else {
         l4 = (size_t) 0;
-#line 275 "tests/snippets/array_push_cache/_main.vader"
+#line 284 "tests/snippets/array_push_cache/_main.vader"
         l5 = ((vader_array_t*) l1)->length;
         l6 = (size_t) 0;
         {
@@ -1283,7 +1341,7 @@ static void* snippet_taken(void* l0) {
                     t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l6];
 #line 263 "lib/std/iter/iter.vader"
                     l7 = snippet_triple(t0);
-#line 275 "tests/snippets/array_push_cache/_main.vader"
+#line 284 "tests/snippets/array_push_cache/_main.vader"
                     if (VADER_LIKELY(_pc20_len < _pc20_cap)) {
                         ((int32_t*) _pc20_slots)[_pc20_len] = (int32_t) (l7);
                         _pc20_len += 1;
@@ -1303,14 +1361,14 @@ static void* snippet_taken(void* l0) {
                     l4 = (size_t) (int64_t) t1;
 #line 276 "lib/std/iter/iter.vader"
                     if ((l4 >= l2)) {
-#line 275 "tests/snippets/array_push_cache/_main.vader"
+#line 284 "tests/snippets/array_push_cache/_main.vader"
                     } else {
                         t1 = (l6 + INT64_C(1));
                         l6 = (size_t) (int64_t) t1;
                         continue;
 #line 276 "lib/std/iter/iter.vader"
                     }
-#line 275 "tests/snippets/array_push_cache/_main.vader"
+#line 284 "tests/snippets/array_push_cache/_main.vader"
                 }
                 _pc20_hdr->length = _pc20_len;
                 if (_pc20_hdr->buf->length < _pc20_len) {
@@ -1321,7 +1379,7 @@ static void* snippet_taken(void* l0) {
         }
 #line 269 "lib/std/iter/iter.vader"
     }
-#line 275 "tests/snippets/array_push_cache/_main.vader"
+#line 284 "tests/snippets/array_push_cache/_main.vader"
     { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1330,9 +1388,9 @@ static int32_t snippet_sum(void* l0) {
     void* l2;
     size_t l3, l4;
     int64_t t0;
-#line 278 "tests/snippets/array_push_cache/_main.vader"
+#line 287 "tests/snippets/array_push_cache/_main.vader"
     l1 = INT32_C(0);
-#line 279 "tests/snippets/array_push_cache/_main.vader"
+#line 288 "tests/snippets/array_push_cache/_main.vader"
     l2 = l0;
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
@@ -1340,13 +1398,13 @@ static int32_t snippet_sum(void* l0) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         l5 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
-#line 280 "tests/snippets/array_push_cache/_main.vader"
+#line 289 "tests/snippets/array_push_cache/_main.vader"
         l1 = (l1 + l5);
-#line 279 "tests/snippets/array_push_cache/_main.vader"
+#line 288 "tests/snippets/array_push_cache/_main.vader"
         t0 = (l4 + INT64_C(1));
         l4 = (size_t) (int64_t) t0;
     }
-#line 282 "tests/snippets/array_push_cache/_main.vader"
+#line 291 "tests/snippets/array_push_cache/_main.vader"
     return l1;
 }
 
@@ -1364,9 +1422,9 @@ static vader_string_t snippet_join(void* l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 286 "tests/snippets/array_push_cache/_main.vader"
+#line 295 "tests/snippets/array_push_cache/_main.vader"
     l1 = 0u;
-#line 287 "tests/snippets/array_push_cache/_main.vader"
+#line 296 "tests/snippets/array_push_cache/_main.vader"
     l2 = l0;
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
@@ -1376,13 +1434,13 @@ static vader_string_t snippet_join(void* l0) {
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         t0 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l4];
         l5 = t0.payload.s;
-#line 288 "tests/snippets/array_push_cache/_main.vader"
+#line 297 "tests/snippets/array_push_cache/_main.vader"
         l1 = concat_3(l1, l5, 4u);
-#line 287 "tests/snippets/array_push_cache/_main.vader"
+#line 296 "tests/snippets/array_push_cache/_main.vader"
         t1 = (l4 + INT64_C(1));
         l4 = (size_t) (int64_t) t1;
     }
-#line 290 "tests/snippets/array_push_cache/_main.vader"
+#line 299 "tests/snippets/array_push_cache/_main.vader"
     { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1405,7 +1463,7 @@ static int32_t snippet_main(void) {
         vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 294 "tests/snippets/array_push_cache/_main.vader"
+#line 303 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 56);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l0, l1, 5u);
@@ -1421,31 +1479,47 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_unsigned(l0, l1, l3);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 295 "tests/snippets/array_push_cache/_main.vader"
-    t0 = snippet_allocates(INT32_C(3));
-    l4 = snippet_join(t0);
-    t4 = concat_2(7u, l4);
-    std_io_println__string(t4);
-#line 296 "tests/snippets/array_push_cache/_main.vader"
+#line 304 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 56);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 8u);
-    t0 = snippet_reads_itself(INT32_C(5));
+    l1 = std_core_write_string_at(l0, l1, 7u);
+    t0 = snippet_reserved(INT32_C(6));
     t1 = snippet_sum(t0);
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     l1 = std_core_write_string_at(l0, l1, 6u);
-    t0 = snippet_reads_itself(INT32_C(5));
+    t0 = snippet_reserved(INT32_C(6));
     t2 = ((vader_array_t*) t0)->length;
     t3 = ((int64_t) (size_t) t2);
     l3 = (uint64_t) (int64_t) t3;
     l1 = std_core_write_unsigned(l0, l1, l3);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 297 "tests/snippets/array_push_cache/_main.vader"
+#line 305 "tests/snippets/array_push_cache/_main.vader"
+    t0 = snippet_allocates(INT32_C(3));
+    l4 = snippet_join(t0);
+    t4 = concat_2(8u, l4);
+    std_io_println__string(t4);
+#line 306 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 56);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l0, l1, 9u);
+    t0 = snippet_reads_itself(INT32_C(5));
+    t1 = snippet_sum(t0);
+    l2 = ((int64_t) (int32_t) t1);
+    l1 = std_core_write_int(l0, l1, l2);
+    l1 = std_core_write_string_at(l0, l1, 6u);
+    t0 = snippet_reads_itself(INT32_C(5));
+    t2 = ((vader_array_t*) t0)->length;
+    t3 = ((int64_t) (size_t) t2);
+    l3 = (uint64_t) (int64_t) t3;
+    l1 = std_core_write_unsigned(l0, l1, l3);
+    t4 = std_core_finish_buffer(l0, l1);
+    std_io_println__string(t4);
+#line 307 "tests/snippets/array_push_cache/_main.vader"
+    l0 = std_core_new_byte_buffer((size_t) 56);
+    l1 = (size_t) 0;
+    l1 = std_core_write_string_at(l0, l1, 10u);
     t0 = snippet_with_break(INT32_C(9));
     t1 = snippet_sum(t0);
     l2 = ((int64_t) (int32_t) t1);
@@ -1458,10 +1532,10 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_unsigned(l0, l1, l3);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 298 "tests/snippets/array_push_cache/_main.vader"
+#line 308 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 56);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 10u);
+    l1 = std_core_write_string_at(l0, l1, 11u);
     l5 = -(INT32_C(3));
     vader_array_t* _a0_arr = vader_array_new(2u, 4u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 3u] = (int32_t) INT32_C(4);
@@ -1488,10 +1562,10 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_unsigned(l0, l1, l3);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 299 "tests/snippets/array_push_cache/_main.vader"
+#line 309 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 54);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 11u);
+    l1 = std_core_write_string_at(l0, l1, 12u);
     vader_array_t* _a2_arr = vader_array_new(2u, 3u, 7u, 1u);
     ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (int32_t) INT32_C(2);
@@ -1500,7 +1574,7 @@ static int32_t snippet_main(void) {
     t1 = snippet_early_return(t0);
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
-    l1 = std_core_write_string_at(l0, l1, 12u);
+    l1 = std_core_write_string_at(l0, l1, 13u);
     l5 = -(INT32_C(1));
     vader_array_t* _a3_arr = vader_array_new(2u, 3u, 7u, 1u);
     ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 2u] = (int32_t) INT32_C(2);
@@ -1512,24 +1586,24 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l2);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 300 "tests/snippets/array_push_cache/_main.vader"
+#line 310 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 33);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 13u);
+    l1 = std_core_write_string_at(l0, l1, 14u);
     t1 = snippet_break_outer(INT32_C(4));
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 301 "tests/snippets/array_push_cache/_main.vader"
+#line 311 "tests/snippets/array_push_cache/_main.vader"
     t0 = snippet_boxed(INT32_C(4));
     l4 = snippet_join(t0);
-    t4 = concat_2(14u, l4);
+    t4 = concat_2(15u, l4);
     std_io_println__string(t4);
-#line 302 "tests/snippets/array_push_cache/_main.vader"
+#line 312 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 56);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 15u);
+    l1 = std_core_write_string_at(l0, l1, 16u);
     t0 = snippet_into_view();
     t1 = snippet_sum(t0);
     l2 = ((int64_t) (int32_t) t1);
@@ -1542,68 +1616,68 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_unsigned(l0, l1, l3);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 303 "tests/snippets/array_push_cache/_main.vader"
+#line 313 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 33);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 16u);
+    l1 = std_core_write_string_at(l0, l1, 17u);
     t1 = snippet_nested(INT32_C(4));
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 304 "tests/snippets/array_push_cache/_main.vader"
+#line 314 "tests/snippets/array_push_cache/_main.vader"
     l4 = snippet_widths(INT32_C(150));
-    t4 = concat_2(17u, l4);
+    t4 = concat_2(18u, l4);
     std_io_println__string(t4);
-#line 305 "tests/snippets/array_push_cache/_main.vader"
+#line 315 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 33);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 18u);
+    l1 = std_core_write_string_at(l0, l1, 19u);
     t1 = snippet_aliased(INT32_C(8));
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 306 "tests/snippets/array_push_cache/_main.vader"
+#line 316 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 33);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 19u);
+    l1 = std_core_write_string_at(l0, l1, 20u);
     t1 = snippet_len_after(INT32_C(5));
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 307 "tests/snippets/array_push_cache/_main.vader"
+#line 317 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 33);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 20u);
+    l1 = std_core_write_string_at(l0, l1, 21u);
     t1 = snippet_captured(INT32_C(8));
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 308 "tests/snippets/array_push_cache/_main.vader"
+#line 318 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 33);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 21u);
+    l1 = std_core_write_string_at(l0, l1, 22u);
     t1 = snippet_two_names(INT32_C(8));
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 309 "tests/snippets/array_push_cache/_main.vader"
+#line 319 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 33);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 22u);
+    l1 = std_core_write_string_at(l0, l1, 23u);
     t1 = snippet_rebound(INT32_C(8));
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 310 "tests/snippets/array_push_cache/_main.vader"
+#line 320 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 33);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 23u);
+    l1 = std_core_write_string_at(l0, l1, 24u);
     vader_array_t* _a4_arr = vader_array_new(2u, 3u, 7u, 1u);
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 1u] = (int32_t) INT32_C(2);
@@ -1614,10 +1688,10 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l2);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 311 "tests/snippets/array_push_cache/_main.vader"
+#line 321 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 56);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 24u);
+    l1 = std_core_write_string_at(l0, l1, 25u);
     t0 = snippet_collected(INT32_C(6));
     t1 = snippet_sum(t0);
     l2 = ((int64_t) (int32_t) t1);
@@ -1630,10 +1704,10 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_unsigned(l0, l1, l3);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 312 "tests/snippets/array_push_cache/_main.vader"
+#line 322 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 56);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 25u);
+    l1 = std_core_write_string_at(l0, l1, 26u);
     vader_array_t* _a5_arr = vader_array_new(2u, 4u, 7u, 1u);
     ((int32_t*) _a5_arr->buf->slots)[_a5_arr->offset + 3u] = (int32_t) INT32_C(5);
     ((int32_t*) _a5_arr->buf->slots)[_a5_arr->offset + 2u] = (int32_t) INT32_C(3);
@@ -1658,10 +1732,10 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_unsigned(l0, l1, l3);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 313 "tests/snippets/array_push_cache/_main.vader"
+#line 323 "tests/snippets/array_push_cache/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 56);
     l1 = (size_t) 0;
-    l1 = std_core_write_string_at(l0, l1, 26u);
+    l1 = std_core_write_string_at(l0, l1, 27u);
     vader_array_t* _a7_arr = vader_array_new(2u, 5u, 7u, 1u);
     ((int32_t*) _a7_arr->buf->slots)[_a7_arr->offset + 4u] = (int32_t) INT32_C(5);
     ((int32_t*) _a7_arr->buf->slots)[_a7_arr->offset + 3u] = (int32_t) INT32_C(4);
@@ -1688,13 +1762,13 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_unsigned(l0, l1, l3);
     t4 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t4);
-#line 314 "tests/snippets/array_push_cache/_main.vader"
+#line 324 "tests/snippets/array_push_cache/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
 static int32_t __lambda_snippet_0(void* l0) {
     size_t t0;
-#line 202 "tests/snippets/array_push_cache/_main.vader"
+#line 211 "tests/snippets/array_push_cache/_main.vader"
     t0 = ((vader_array_t*) ((vader_struct__Cell_Array_i32__t*) ((vader_struct___lambda_env_snippet_1_t*) l0)->f_cap_0.payload.obj)->f_value)->length;
     return ((int32_t) (size_t) t0);
 }
@@ -1971,7 +2045,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 235 "lib/std/io/io.vader"
-    l1 = concat_2(l0, 27u);
+    l1 = concat_2(l0, 28u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }

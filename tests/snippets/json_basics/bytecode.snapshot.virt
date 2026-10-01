@@ -7574,7 +7574,7 @@ fn 100 std_collections$keys__string__JsonArray___JsonBool___JsonNull___JsonNumbe
         local.set 4   ; $idx_11
         local.get 1   ; $arr_1
         local.get 4   ; $idx_11
-        array.push 1   ; string[]
+        array.push 1 1   ; string[]
         local.get 2   ; $field_2
         i64.const 1
         i64.add
@@ -7618,7 +7618,7 @@ fn 101 std_collections$values__string__JsonArray___JsonBool___JsonNull___JsonNum
         local.set 4   ; $idx_11
         local.get 1   ; $arr_1
         local.get 4   ; $idx_11
-        array.push 30   ; union[]
+        array.push 30 1   ; union[]
         local.get 2   ; $field_2
         i64.const 1
         i64.add

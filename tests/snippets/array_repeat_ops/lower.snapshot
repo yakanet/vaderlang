@@ -191,7 +191,7 @@
       let i: i32 = int(0) :i32
       loop while (<…>)
         ~>
-          LoweredArrayPush
+          LoweredArrayPush cached
       step
         assign
           target:

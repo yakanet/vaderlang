@@ -20,6 +20,28 @@
               r:
                 int(1) :i32
     return out :i32[]!
+  fn snippet$reserved(n: i32) -> i32[]!
+    let out: i32[]! =
+      @array.repeat :i32[]!
+        array :i32[]!
+        cast → usize
+          n :i32
+    block :void
+      let i: i32 = int(0) :i32
+      loop while (<…>)
+        ~>
+          LoweredArrayPush cached
+      step
+        assign
+          target:
+            i :i32
+          value:
+            add :i32
+              l:
+                i :i32
+              r:
+                int(1) :i32
+    return out :i32[]!
   fn snippet$mk(i: i32) -> string
     ~>
       block :string
@@ -1153,25 +1175,6 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "allocates    " :string
-          arg1:
-            call :string
-              callee:
-                join :fn(string[]) -> string
-              arg0:
-                call :string[]!
-                  callee:
-                    allocates :fn(i32) -> string[]!
-                  arg0:
-                    int(3) :i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
         block :string
           let __buf_2: Buffer =
             call :Buffer
@@ -1192,7 +1195,7 @@
                 arg1:
                   __off_3 :usize
                 arg2:
-                  "reads_itself " :string
+                  "reserved     " :string
           assign
             target:
               __off_3 :usize
@@ -1212,9 +1215,9 @@
                       arg0:
                         call :i32[]!
                           callee:
-                            reads_itself :fn(i32) -> i32[]!
+                            reserved :fn(i32) -> i32[]!
                           arg0:
-                            int(5) :i32
+                            int(6) :i32
           assign
             target:
               __off_3 :usize
@@ -1254,6 +1257,25 @@
       callee:
         std_io$println__string :void
       arg0:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "allocates    " :string
+          arg1:
+            call :string
+              callee:
+                join :fn(string[]) -> string
+              arg0:
+                call :string[]!
+                  callee:
+                    allocates :fn(i32) -> string[]!
+                  arg0:
+                    int(3) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
         block :string
           let __buf_4: Buffer =
             call :Buffer
@@ -1274,7 +1296,7 @@
                 arg1:
                   __off_5 :usize
                 arg2:
-                  "with_break   " :string
+                  "reads_itself " :string
           assign
             target:
               __off_5 :usize
@@ -1294,9 +1316,9 @@
                       arg0:
                         call :i32[]!
                           callee:
-                            with_break :fn(i32) -> i32[]!
+                            reads_itself :fn(i32) -> i32[]!
                           arg0:
-                            int(9) :i32
+                            int(5) :i32
           assign
             target:
               __off_5 :usize
@@ -1356,7 +1378,7 @@
                 arg1:
                   __off_7 :usize
                 arg2:
-                  "break_mid    " :string
+                  "with_break   " :string
           assign
             target:
               __off_7 :usize
@@ -1376,14 +1398,9 @@
                       arg0:
                         call :i32[]!
                           callee:
-                            break_mid :fn(i32[]) -> i32[]!
+                            with_break :fn(i32) -> i32[]!
                           arg0:
-                            array :i32[]
-                              int(1) :i32
-                              int(2) :i32
-                              neg :i32
-                                int(3) :i32
-                              int(4) :i32
+                            int(9) :i32
           assign
             target:
               __off_7 :usize
@@ -1429,7 +1446,7 @@
               callee:
                 new_byte_buffer :Buffer
               arg0:
-                int(54) :usize
+                int(56) :usize
           let __off_9: usize = int(0) :usize
           assign
             target:
@@ -1443,7 +1460,7 @@
                 arg1:
                   __off_9 :usize
                 arg2:
-                  "early_return " :string
+                  "break_mid    " :string
           assign
             target:
               __off_9 :usize
@@ -1459,12 +1476,18 @@
                   cast → i64
                     call :i32
                       callee:
-                        early_return :fn(i32[]) -> i32
+                        sum :fn(i32[]) -> i32
                       arg0:
-                        array :i32[]
-                          int(1) :i32
-                          int(2) :i32
-                          int(3) :i32
+                        call :i32[]!
+                          callee:
+                            break_mid :fn(i32[]) -> i32[]!
+                          arg0:
+                            array :i32[]
+                              int(1) :i32
+                              int(2) :i32
+                              neg :i32
+                                int(3) :i32
+                              int(4) :i32
           assign
             target:
               __off_9 :usize
@@ -1477,29 +1500,21 @@
                 arg1:
                   __off_9 :usize
                 arg2:
-                  " " :string
+                  " n=" :string
           assign
             target:
               __off_9 :usize
             value:
               call :usize
                 callee:
-                  write_int :usize
+                  write_unsigned :usize
                 arg0:
                   __buf_8 :Buffer
                 arg1:
                   __off_9 :usize
                 arg2:
-                  cast → i64
-                    call :i32
-                      callee:
-                        early_return :fn(i32[]) -> i32
-                      arg0:
-                        array :i32[]
-                          int(1) :i32
-                          neg :i32
-                            int(1) :i32
-                          int(2) :i32
+                  cast → u64
+                    LoweredArrayLen
           ~>
             call :string
               callee:
@@ -1518,7 +1533,7 @@
               callee:
                 new_byte_buffer :Buffer
               arg0:
-                int(33) :usize
+                int(54) :usize
           let __off_11: usize = int(0) :usize
           assign
             target:
@@ -1532,7 +1547,7 @@
                 arg1:
                   __off_11 :usize
                 arg2:
-                  "break_outer  " :string
+                  "early_return " :string
           assign
             target:
               __off_11 :usize
@@ -1548,9 +1563,47 @@
                   cast → i64
                     call :i32
                       callee:
-                        break_outer :fn(i32) -> i32
+                        early_return :fn(i32[]) -> i32
                       arg0:
-                        int(4) :i32
+                        array :i32[]
+                          int(1) :i32
+                          int(2) :i32
+                          int(3) :i32
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        early_return :fn(i32[]) -> i32
+                      arg0:
+                        array :i32[]
+                          int(1) :i32
+                          neg :i32
+                            int(1) :i32
+                          int(2) :i32
           ~>
             call :string
               callee:
@@ -1559,6 +1612,57 @@
                 __buf_10 :Buffer
               arg1:
                 __off_11 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_12: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(33) :usize
+          let __off_13: usize = int(0) :usize
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  "break_outer  " :string
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        break_outer :fn(i32) -> i32
+                      arg0:
+                        int(4) :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_12 :Buffer
+              arg1:
+                __off_13 :usize
     call :void
       callee:
         std_io$println__string :void
@@ -1583,92 +1687,12 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_12: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(56) :usize
-          let __off_13: usize = int(0) :usize
-          assign
-            target:
-              __off_13 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_12 :Buffer
-                arg1:
-                  __off_13 :usize
-                arg2:
-                  "into_view    " :string
-          assign
-            target:
-              __off_13 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_12 :Buffer
-                arg1:
-                  __off_13 :usize
-                arg2:
-                  cast → i64
-                    call :i32
-                      callee:
-                        sum :fn(i32[]) -> i32
-                      arg0:
-                        call :i32[]!
-                          callee:
-                            into_view :fn() -> i32[]!
-          assign
-            target:
-              __off_13 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_12 :Buffer
-                arg1:
-                  __off_13 :usize
-                arg2:
-                  " n=" :string
-          assign
-            target:
-              __off_13 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_12 :Buffer
-                arg1:
-                  __off_13 :usize
-                arg2:
-                  cast → u64
-                    LoweredArrayLen
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_12 :Buffer
-              arg1:
-                __off_13 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
           let __buf_14: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
-                int(33) :usize
+                int(56) :usize
           let __off_15: usize = int(0) :usize
           assign
             target:
@@ -1682,7 +1706,7 @@
                 arg1:
                   __off_15 :usize
                 arg2:
-                  "nested       " :string
+                  "into_view    " :string
           assign
             target:
               __off_15 :usize
@@ -1698,9 +1722,38 @@
                   cast → i64
                     call :i32
                       callee:
-                        nested :fn(i32) -> i32
+                        sum :fn(i32[]) -> i32
                       arg0:
-                        int(4) :i32
+                        call :i32[]!
+                          callee:
+                            into_view :fn() -> i32[]!
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  " n=" :string
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
           ~>
             call :string
               callee:
@@ -1709,21 +1762,6 @@
                 __buf_14 :Buffer
               arg1:
                 __off_15 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat_2 :string
-          arg0:
-            "widths       " :string
-          arg1:
-            call :string
-              callee:
-                widths :fn(i32) -> string
-              arg0:
-                int(150) :i32
     call :void
       callee:
         std_io$println__string :void
@@ -1748,7 +1786,7 @@
                 arg1:
                   __off_17 :usize
                 arg2:
-                  "aliased      " :string
+                  "nested       " :string
           assign
             target:
               __off_17 :usize
@@ -1764,9 +1802,9 @@
                   cast → i64
                     call :i32
                       callee:
-                        aliased :fn(i32) -> i32
+                        nested :fn(i32) -> i32
                       arg0:
-                        int(8) :i32
+                        int(4) :i32
           ~>
             call :string
               callee:
@@ -1775,6 +1813,21 @@
                 __buf_16 :Buffer
               arg1:
                 __off_17 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat_2 :string
+          arg0:
+            "widths       " :string
+          arg1:
+            call :string
+              callee:
+                widths :fn(i32) -> string
+              arg0:
+                int(150) :i32
     call :void
       callee:
         std_io$println__string :void
@@ -1799,7 +1852,7 @@
                 arg1:
                   __off_19 :usize
                 arg2:
-                  "len_after    " :string
+                  "aliased      " :string
           assign
             target:
               __off_19 :usize
@@ -1815,9 +1868,9 @@
                   cast → i64
                     call :i32
                       callee:
-                        len_after :fn(i32) -> i32
+                        aliased :fn(i32) -> i32
                       arg0:
-                        int(5) :i32
+                        int(8) :i32
           ~>
             call :string
               callee:
@@ -1850,7 +1903,7 @@
                 arg1:
                   __off_21 :usize
                 arg2:
-                  "captured     " :string
+                  "len_after    " :string
           assign
             target:
               __off_21 :usize
@@ -1866,9 +1919,9 @@
                   cast → i64
                     call :i32
                       callee:
-                        captured :fn(i32) -> i32
+                        len_after :fn(i32) -> i32
                       arg0:
-                        int(8) :i32
+                        int(5) :i32
           ~>
             call :string
               callee:
@@ -1901,7 +1954,7 @@
                 arg1:
                   __off_23 :usize
                 arg2:
-                  "two_names    " :string
+                  "captured     " :string
           assign
             target:
               __off_23 :usize
@@ -1917,7 +1970,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        two_names :fn(i32) -> i32
+                        captured :fn(i32) -> i32
                       arg0:
                         int(8) :i32
           ~>
@@ -1952,7 +2005,7 @@
                 arg1:
                   __off_25 :usize
                 arg2:
-                  "rebound      " :string
+                  "two_names    " :string
           assign
             target:
               __off_25 :usize
@@ -1968,7 +2021,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        rebound :fn(i32) -> i32
+                        two_names :fn(i32) -> i32
                       arg0:
                         int(8) :i32
           ~>
@@ -2003,7 +2056,7 @@
                 arg1:
                   __off_27 :usize
                 arg2:
-                  "one_shot     " :string
+                  "rebound      " :string
           assign
             target:
               __off_27 :usize
@@ -2019,12 +2072,9 @@
                   cast → i64
                     call :i32
                       callee:
-                        one_shot :fn(i32[]) -> i32
+                        rebound :fn(i32) -> i32
                       arg0:
-                        array :i32[]
-                          int(1) :i32
-                          int(2) :i32
-                          int(3) :i32
+                        int(8) :i32
           ~>
             call :string
               callee:
@@ -2043,7 +2093,7 @@
               callee:
                 new_byte_buffer :Buffer
               arg0:
-                int(56) :usize
+                int(33) :usize
           let __off_29: usize = int(0) :usize
           assign
             target:
@@ -2057,7 +2107,7 @@
                 arg1:
                   __off_29 :usize
                 arg2:
-                  "collected    " :string
+                  "one_shot     " :string
           assign
             target:
               __off_29 :usize
@@ -2073,40 +2123,12 @@
                   cast → i64
                     call :i32
                       callee:
-                        sum :fn(i32[]) -> i32
+                        one_shot :fn(i32[]) -> i32
                       arg0:
-                        call :i32[]
-                          callee:
-                            collected :fn(i32) -> i32[]
-                          arg0:
-                            int(6) :i32
-          assign
-            target:
-              __off_29 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_28 :Buffer
-                arg1:
-                  __off_29 :usize
-                arg2:
-                  " n=" :string
-          assign
-            target:
-              __off_29 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_28 :Buffer
-                arg1:
-                  __off_29 :usize
-                arg2:
-                  cast → u64
-                    LoweredArrayLen
+                        array :i32[]
+                          int(1) :i32
+                          int(2) :i32
+                          int(3) :i32
           ~>
             call :string
               callee:
@@ -2139,7 +2161,7 @@
                 arg1:
                   __off_31 :usize
                 arg2:
-                  "filtered     " :string
+                  "collected    " :string
           assign
             target:
               __off_31 :usize
@@ -2159,13 +2181,9 @@
                       arg0:
                         call :i32[]
                           callee:
-                            filtered :fn(i32[]) -> i32[]
+                            collected :fn(i32) -> i32[]
                           arg0:
-                            array :i32[]
-                              int(1) :i32
-                              int(2) :i32
-                              int(3) :i32
-                              int(5) :i32
+                            int(6) :i32
           assign
             target:
               __off_31 :usize
@@ -2225,7 +2243,7 @@
                 arg1:
                   __off_33 :usize
                 arg2:
-                  "taken        " :string
+                  "filtered     " :string
           assign
             target:
               __off_33 :usize
@@ -2245,13 +2263,12 @@
                       arg0:
                         call :i32[]
                           callee:
-                            taken :fn(i32[]) -> i32[]
+                            filtered :fn(i32[]) -> i32[]
                           arg0:
                             array :i32[]
                               int(1) :i32
                               int(2) :i32
                               int(3) :i32
-                              int(4) :i32
                               int(5) :i32
           assign
             target:
@@ -2288,6 +2305,93 @@
                 __buf_32 :Buffer
               arg1:
                 __off_33 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_34: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(56) :usize
+          let __off_35: usize = int(0) :usize
+          assign
+            target:
+              __off_35 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_34 :Buffer
+                arg1:
+                  __off_35 :usize
+                arg2:
+                  "taken        " :string
+          assign
+            target:
+              __off_35 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_34 :Buffer
+                arg1:
+                  __off_35 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        sum :fn(i32[]) -> i32
+                      arg0:
+                        call :i32[]
+                          callee:
+                            taken :fn(i32[]) -> i32[]
+                          arg0:
+                            array :i32[]
+                              int(1) :i32
+                              int(2) :i32
+                              int(3) :i32
+                              int(4) :i32
+                              int(5) :i32
+          assign
+            target:
+              __off_35 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_34 :Buffer
+                arg1:
+                  __off_35 :usize
+                arg2:
+                  " n=" :string
+          assign
+            target:
+              __off_35 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_34 :Buffer
+                arg1:
+                  __off_35 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_34 :Buffer
+              arg1:
+                __off_35 :usize
     return int(0) :i32
   struct __lambda_env_snippet_1 { cap_0: ? }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> i32
