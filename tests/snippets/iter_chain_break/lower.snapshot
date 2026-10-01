@@ -16,7 +16,7 @@
     block :void
       let __fuse_arr_0: i32[]! = a :i32[]!
       let __fuse_arr_1: i32[]! = b :i32[]!
-      block :$exit$i5
+      block :$leave6
         let __fuse_len_2: usize =
           LoweredArrayLen
         let __fuse_i_3: usize = int(0) :usize
@@ -36,7 +36,7 @@
                 r:
                   int(2) :i32
             then:
-              break :$exit$i5
+              break :$leave6
           assign
             target:
               first :i32
@@ -75,7 +75,7 @@
                 r:
                   int(2) :i32
             then:
-              break :$exit$i5
+              break :$leave6
           assign
             target:
               first :i32
@@ -159,7 +159,7 @@
     block :void
       let __fuse_arr_8: i32[]! = a :i32[]!
       let __fuse_arr_9: i32[]! = b :i32[]!
-      block :$exit$i18
+      block :$leave20
         let __fuse_len_10: usize =
           LoweredArrayLen
         let __fuse_i_11: usize = int(0) :usize
@@ -179,7 +179,7 @@
                 r:
                   int(20) :i32
             then:
-              break :$exit$i18
+              break :$leave20
           assign
             target:
               second :i32
@@ -218,7 +218,7 @@
                 r:
                   int(20) :i32
             then:
-              break :$exit$i18
+              break :$leave20
           assign
             target:
               second :i32
@@ -302,11 +302,11 @@
     block :void
       let __fuse_arr_16: i32[]! = a :i32[]!
       let __fuse_arr_17: i32[]! = b :i32[]!
-      block :$exit$i31
+      block :$leave34
         let __fuse_len_18: usize =
           LoweredArrayLen
         let __fuse_i_19: usize = int(0) :usize
-        loop while (<…>) :y
+        loop while (<…>)
           let x: i32 =
             index :i32
               on:
@@ -322,7 +322,7 @@
                 r:
                   int(2) :i32
             then:
-              break :$exit$i31
+              break :$leave34
           assign
             target:
               labelled :i32
@@ -345,7 +345,7 @@
         let __fuse_len_20: usize =
           LoweredArrayLen
         let __fuse_i_21: usize = int(0) :usize
-        loop while (<…>) :y
+        loop while (<…>)
           let y: i32 =
             index :i32
               on:
@@ -361,7 +361,7 @@
                 r:
                   int(2) :i32
             then:
-              break :$exit$i31
+              break :$leave34
           assign
             target:
               labelled :i32

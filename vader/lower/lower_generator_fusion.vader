@@ -131,10 +131,11 @@ inline_gen_ident_call :: fn(
     // A generator body can splice the consumer anywhere: every jump of the
     // consumer loop is redirected.
     ctx.jump_frames.push(JumpFrame {
-        .loop_id = for_stmt.id, .exit = instance, .continue_lands = false,
+        .loop_id = for_stmt.id, .breaks_land = false, .continue_lands = false,
     })
     body :: block_lowerer(ctx, for_stmt.body, false, true)
-    consumer_body :: resumable_body(pop_jump_frame(ctx), body)
+    frame :: pop_jump_frame(ctx)
+    consumer_body :: resumable_body(frame, body)
 
     // Lower the generator body in its OWN fn-ctx — the generator's module +
     // its instance subst — sharing `ctx.project` so synthetic ids don't collide
@@ -156,7 +157,8 @@ inline_gen_ident_call :: fn(
     out: LoweredStmt[]!: []
     out.push_all(param_lets)
     out.push_all(block_stmts_with_trailing(lowered_gen))
-    return wrap_stmts(for_stmt.span, wrap_instance_exit(instance, for_stmt.span, out))
+    instance_stmts :: wrap_instance_exit(instance, for_stmt.span, out)
+    return wrap_stmts(for_stmt.span, exit_block(frame, for_stmt.span, instance_stmts))
 }
 
 // The generator's owning-module typed program: `ctx.typed` when the call is
@@ -494,7 +496,9 @@ gen_combo_subst :: fn(
 // multi-source combinators (`chain`) fuse each source loop in body order, all
 // into the same sink.
 emit_fused_gen_combinator :: fn(
-    ctx: FnLowerCtx!, chain: IterChain, loop_label: string | null, outer_span: Span,
+    ctx: FnLowerCtx!,
+    chain: IterChain,
+    outer_span: Span,
     template: BodyTemplate,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] {
@@ -522,9 +526,9 @@ emit_fused_gen_combinator :: fn(
     // The source chain emits inside this window and may hold another layer of the
     // same generator: the id leaves with the frame that put it there.
     entered :: ctx.project.inlining_generators.add(layer.instance.generator_id)
-    out.push_all(fuse_source_loop(ctx, gen_ctx, primary_binding, loop_label, outer_span, chain.span, recurse))
+    out.push_all(fuse_source_loop(ctx, gen_ctx, primary_binding, outer_span, chain.span, recurse))
     for extra in layer.extra_sources {
-        out.push_all(fuse_source_loop(ctx, gen_ctx, extra, loop_label, outer_span, chain.span, recurse))
+        out.push_all(fuse_source_loop(ctx, gen_ctx, extra, outer_span, chain.span, recurse))
     }
     if entered {
         ctx.project.inlining_generators.remove(layer.instance.generator_id)
@@ -537,14 +541,12 @@ emit_fused_gen_combinator :: fn(
 // counter `let`, sibling of the loop so inner counter refs resolve) followed by the
 // fused source loop binding the loop var to each element.
 fuse_source_loop :: fn(
-    ctx: FnLowerCtx!, gen_ctx: FnLowerCtx!, binding: GenSourceBinding, loop_label: string | null,
+    ctx: FnLowerCtx!, gen_ctx: FnLowerCtx!, binding: GenSourceBinding,
     outer_span: Span, span: Span, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] {
     // The loop over the source is the source's consumer: its own jumps land in
-    // the source's code, whose loops carry the outer consumer's label.
-    source_frame :: chain_jump_frame(binding.loop_id, binding.source)
-    source_frame.label_carried = false
-    gen_ctx.jump_frames.push(source_frame)
+    // the source's code.
+    gen_ctx.jump_frames.push(chain_jump_frame(binding.loop_id, binding.source))
     inner_lowered :: recurse(gen_ctx, binding.inner)
     frame :: pop_jump_frame(gen_ctx)
     if inner_lowered is LoweredBlock {
@@ -554,8 +556,8 @@ fuse_source_loop :: fn(
             .element_type = chain_element_type(binding.source),
             .user_body = resumable_body(frame, inner_lowered),
         }
-        emitted :: emit_fused_chain(ctx, binding.source, loop_label, outer_span, inner_template, recurse)
-        source_stmts :: named_exit_block(frame, span, emitted)
+        emitted :: emit_fused_chain(ctx, binding.source, outer_span, inner_template, recurse)
+        source_stmts :: exit_block(frame, span, emitted)
         out: LoweredStmt[]!: []
         if binding.prelude.len() > 0 {
             prelude_expr: AST.Expr: AST.BlockExpr { .span = span, .stmts = binding.prelude, .trailing = null }

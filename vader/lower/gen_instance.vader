@@ -185,8 +185,8 @@ origin_symbol_id :: fn(project: LowerProjectCtx, symbol: Symbol) -> i32 =
 instance_exit_label :: fn(instance: GenInstance) -> string = r"$exit" + instance.label_suffix
 
 /// A `break` out of everything `instance` emits — what a `return` of the
-/// generator means, and a `break` of the loop consuming it — recorded so the
-/// emitter puts the block it leaves around the instance.
+/// generator means, and a terminal's early exit — recorded so the emitter puts
+/// the block it leaves around the instance.
 ///
 /// @param instance  the instance to leave.
 /// @param span      the jump's span.

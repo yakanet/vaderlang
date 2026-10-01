@@ -340,53 +340,49 @@ static void snippet_chain_continue_and_break(void) {
     l1 = (void*) _a0_arr;
     l2 = ((vader_array_t*) l1)->length;
     l3 = (size_t) 0;
-    for (;;) {
-        if ((l3 < l2)) {
-            vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
-            VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-            VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
-            t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3];
+    while ((l3 < l2)) {
+        vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
+        VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
+        t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3];
 #line 263 "lib/std/iter/iter.vader"
-            l4 = snippet_inc(t0);
+        l4 = snippet_inc(t0);
 #line 43 "tests/snippets/counted_loop_continue/_main.vader"
-            l0 = (l0 + INT32_C(1));
+        l0 = (l0 + INT32_C(1));
 #line 44 "tests/snippets/counted_loop_continue/_main.vader"
-            if ((l0 > INT32_C(20))) {
+        if ((l0 > INT32_C(20))) {
 #line 45 "tests/snippets/counted_loop_continue/_main.vader"
-                std_io_println__string(3u);
+            std_io_println__string(3u);
+#line 46 "tests/snippets/counted_loop_continue/_main.vader"
+            break;
 #line 44 "tests/snippets/counted_loop_continue/_main.vader"
-#line 48 "tests/snippets/counted_loop_continue/_main.vader"
-            } else {
-                if (l4 == INT32_C(2)) {
-#line 42 "tests/snippets/counted_loop_continue/_main.vader"
-                    t1 = (l3 + INT64_C(1));
-                    l3 = (size_t) (int64_t) t1;
-#line 49 "tests/snippets/counted_loop_continue/_main.vader"
-                    continue;
-#line 48 "tests/snippets/counted_loop_continue/_main.vader"
-                }
-#line 51 "tests/snippets/counted_loop_continue/_main.vader"
-                if (l4 == INT32_C(4)) {
-#line 54 "tests/snippets/counted_loop_continue/_main.vader"
-                } else {
-                    l5 = std_core_new_byte_buffer((size_t) 26);
-                    l6 = (size_t) 0;
-                    l6 = std_core_write_string_at(l5, l6, 4u);
-                    l7 = ((int64_t) (int32_t) l4);
-                    l6 = std_core_write_int(l5, l6, l7);
-                    t2 = std_core_finish_buffer(l5, l6);
-                    std_io_println__string(t2);
-#line 42 "tests/snippets/counted_loop_continue/_main.vader"
-                    t1 = (l3 + INT64_C(1));
-                    l3 = (size_t) (int64_t) t1;
-                    continue;
-#line 51 "tests/snippets/counted_loop_continue/_main.vader"
-                }
-#line 44 "tests/snippets/counted_loop_continue/_main.vader"
-            }
-#line 42 "tests/snippets/counted_loop_continue/_main.vader"
         }
-        break;
+#line 48 "tests/snippets/counted_loop_continue/_main.vader"
+        if (l4 == INT32_C(2)) {
+#line 42 "tests/snippets/counted_loop_continue/_main.vader"
+            t1 = (l3 + INT64_C(1));
+            l3 = (size_t) (int64_t) t1;
+#line 49 "tests/snippets/counted_loop_continue/_main.vader"
+            continue;
+#line 48 "tests/snippets/counted_loop_continue/_main.vader"
+        }
+#line 51 "tests/snippets/counted_loop_continue/_main.vader"
+        if (l4 == INT32_C(4)) {
+#line 52 "tests/snippets/counted_loop_continue/_main.vader"
+            break;
+#line 51 "tests/snippets/counted_loop_continue/_main.vader"
+        }
+#line 54 "tests/snippets/counted_loop_continue/_main.vader"
+        l5 = std_core_new_byte_buffer((size_t) 26);
+        l6 = (size_t) 0;
+        l6 = std_core_write_string_at(l5, l6, 4u);
+        l7 = ((int64_t) (int32_t) l4);
+        l6 = std_core_write_int(l5, l6, l7);
+        t2 = std_core_finish_buffer(l5, l6);
+        std_io_println__string(t2);
+#line 42 "tests/snippets/counted_loop_continue/_main.vader"
+        t1 = (l3 + INT64_C(1));
+        l3 = (size_t) (int64_t) t1;
     }
 #line 40 "tests/snippets/counted_loop_continue/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }

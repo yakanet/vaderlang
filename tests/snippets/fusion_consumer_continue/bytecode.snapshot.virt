@@ -1980,11 +1980,11 @@ fn 15 snippet$chain_continue_by_name () -> void
   local __for_i_2 usize
   local y i32
   local or_res bool
-  local $mul_37 i32
+  local $mul_35 i32
+  local $call_77 any
   local $call_81 any
-  local $call_85 any
-  local $mul_113 i32
-  local $cast_124 i64
+  local $mul_109 i32
+  local $cast_120 i64
   i32.const 0
   local.set 0   ; fused
   i32.const 1
@@ -2010,57 +2010,55 @@ fn 15 snippet$chain_continue_by_name () -> void
         local.get 4   ; __fuse_i_6
         load_slot_i32
         local.set 5   ; x
-        i32.const 10
-        i32.const 20
-        array.new 4 2   ; i32[][]
-        local.tee 6   ; __for_arr_0
-        array.len
-        local.set 7   ; __for_len_1
-        i64.const 0
-        local.set 8   ; __for_i_2
         block $L3 void
-          loop $L4 void
-            local.get 8   ; __for_i_2
-            local.get 7   ; __for_len_1
-            u64.lt
-            if $L5 void
-              local.get 6   ; __for_arr_0
+          i32.const 10
+          i32.const 20
+          array.new 4 2   ; i32[][]
+          local.tee 6   ; __for_arr_0
+          array.len
+          local.set 7   ; __for_len_1
+          i64.const 0
+          local.set 8   ; __for_i_2
+          block $L4 void
+            loop $L5 void
               local.get 8   ; __for_i_2
-              load_slot_i32
-              local.set 9   ; y
-              local.get 5   ; x
-              i32.const 2
-              i32.eq
+              local.get 7   ; __for_len_1
+              u64.lt
               if $L6 void
-                bool.const true
-                local.set 10   ; or_res
-              else
-                local.get 9   ; y
-                i32.const 20
+                local.get 6   ; __for_arr_0
+                local.get 8   ; __for_i_2
+                load_slot_i32
+                local.set 9   ; y
+                local.get 5   ; x
+                i32.const 2
                 i32.eq
-                local.set 10   ; or_res
-              end $L6
-              local.get 10   ; or_res
-              if $L7 void
-                local.get 4   ; __fuse_i_6
+                if $L7 void
+                  bool.const true
+                  local.set 10   ; or_res
+                else
+                  local.get 9   ; y
+                  i32.const 20
+                  i32.eq
+                  local.set 10   ; or_res
+                end $L7
+                local.get 10   ; or_res
+                if $L8 void
+                  br $L3
+                end $L8
+                local.get 5   ; x
+                local.get 9   ; y
+                i32.mul
+                local.set 11   ; $mul_35
+                local.get 0   ; fused
+                local.get 11   ; $mul_35
+                i32.add
+                local.set 0   ; fused
+                local.get 8   ; __for_i_2
                 i64.const 1
                 i64.add
-                local.set 4   ; __fuse_i_6
-                br $L1
-              end $L7
-              local.get 5   ; x
-              local.get 9   ; y
-              i32.mul
-              local.set 11   ; $mul_37
-              local.get 0   ; fused
-              local.get 11   ; $mul_37
-              i32.add
-              local.set 0   ; fused
-              local.get 8   ; __for_i_2
-              i64.const 1
-              i64.add
-              local.set 8   ; __for_i_2
-              br $L4
+                local.set 8   ; __for_i_2
+                br $L5
+              end $L6
             end $L5
           end $L4
         end $L3
@@ -2077,103 +2075,101 @@ fn 15 snippet$chain_continue_by_name () -> void
   local.set 3   ; __fuse_len_5
   i64.const 0
   local.set 4   ; __fuse_i_6
-  block $L8 void
-    loop $L9 void
+  block $L9 void
+    loop $L10 void
       local.get 4   ; __fuse_i_6
       local.get 3   ; __fuse_len_5
       u64.lt
-      if $L10 void
+      if $L11 void
         local.get 2   ; __fuse_arr_4
         local.get 4   ; __fuse_i_6
         load_slot_i32
         local.set 5   ; x
-        i32.const 10
-        i32.const 20
-        array.new 4 2   ; i32[][]
-        local.tee 1   ; __fuse_arr_3
-        array.len
-        local.set 7   ; __for_len_1
-        i64.const 0
-        local.set 8   ; __for_i_2
-        block $L11 void
-          loop $L12 void
-            local.get 8   ; __for_i_2
-            local.get 7   ; __for_len_1
-            u64.lt
-            if $L13 void
-              local.get 1   ; __fuse_arr_3
+        block $L12 void
+          i32.const 10
+          i32.const 20
+          array.new 4 2   ; i32[][]
+          local.tee 1   ; __fuse_arr_3
+          array.len
+          local.set 7   ; __for_len_1
+          i64.const 0
+          local.set 8   ; __for_i_2
+          block $L13 void
+            loop $L14 void
               local.get 8   ; __for_i_2
-              load_slot_i32
-              local.set 9   ; y
-              local.get 5   ; x
-              i32.const 2
-              i32.eq
-              if $L14 void
-                bool.const true
-                local.set 10   ; or_res
-              else
-                local.get 9   ; y
-                i32.const 20
-                i32.eq
-                local.set 10   ; or_res
-              end $L14
-              local.get 10   ; or_res
+              local.get 7   ; __for_len_1
+              u64.lt
               if $L15 void
-                local.get 4   ; __fuse_i_6
+                local.get 1   ; __fuse_arr_3
+                local.get 8   ; __for_i_2
+                load_slot_i32
+                local.set 9   ; y
+                local.get 5   ; x
+                i32.const 2
+                i32.eq
+                if $L16 void
+                  bool.const true
+                  local.set 10   ; or_res
+                else
+                  local.get 9   ; y
+                  i32.const 20
+                  i32.eq
+                  local.set 10   ; or_res
+                end $L16
+                local.get 10   ; or_res
+                if $L17 void
+                  br $L12
+                end $L17
+                local.get 5   ; x
+                local.get 9   ; y
+                i32.mul
+                local.set 11   ; $mul_35
+                local.get 0   ; fused
+                local.get 11   ; $mul_35
+                i32.add
+                local.set 0   ; fused
+                local.get 8   ; __for_i_2
                 i64.const 1
                 i64.add
-                local.set 4   ; __fuse_i_6
-                br $L9
+                local.set 8   ; __for_i_2
+                br $L14
               end $L15
-              local.get 5   ; x
-              local.get 9   ; y
-              i32.mul
-              local.set 11   ; $mul_37
-              local.get 0   ; fused
-              local.get 11   ; $mul_37
-              i32.add
-              local.set 0   ; fused
-              local.get 8   ; __for_i_2
-              i64.const 1
-              i64.add
-              local.set 8   ; __for_i_2
-              br $L12
-            end $L13
-          end $L12
-        end $L11
+            end $L14
+          end $L13
+        end $L12
         local.get 4   ; __fuse_i_6
         i64.const 1
         i64.add
         local.set 4   ; __fuse_i_6
-        br $L9
-      end $L10
-    end $L9
-  end $L8
+        br $L10
+      end $L11
+    end $L10
+  end $L9
   i32.const 0
   local.set 5   ; x
   i32.const 1
   i32.const 2
   array.new 4 2   ; i32[][]
   call 37   ; std_core$[]$Into$into__i32
-  local.set 12   ; $call_81
+  local.set 12   ; $call_77
   i32.const 3
   i32.const 4
   array.new 4 2   ; i32[][]
   call 37   ; std_core$[]$Into$into__i32
-  local.set 13   ; $call_85
-  local.get 12   ; $call_81
-  local.get 13   ; $call_85
+  local.set 13   ; $call_81
+  local.get 12   ; $call_77
+  local.get 13   ; $call_81
   call 55   ; std_iter$chain__i32
-  local.set 12   ; $call_81
-  block $L16 void
-    loop $L17 void
-      local.get 12   ; $call_81
+  local.set 12   ; $call_77
+  block $L18 void
+    loop $L19 void
+      local.get 12   ; $call_77
       virtual.call 1 Iterator.next
       local.set 1   ; __fuse_arr_3
       local.field 1 8 1   ; __fuse_arr_3._1
       i32.const 1
       i32.eq
-      if $L18 void
+      if $L20 void
       else
         local.field 1 8 0   ; __fuse_arr_3._0
         ref.cast 3   ; -> i32
@@ -2186,52 +2182,52 @@ fn 15 snippet$chain_continue_by_name () -> void
         local.set 3   ; __fuse_len_5
         i64.const 0
         local.set 4   ; __fuse_i_6
-        block $L19 void
-          loop $L20 void
+        block $L21 void
+          loop $L22 void
             local.get 4   ; __fuse_i_6
             local.get 3   ; __fuse_len_5
             u64.lt
-            if $L21 void
+            if $L23 void
               local.get 2   ; __fuse_arr_4
               local.get 4   ; __fuse_i_6
               load_slot_i32
-              local.set 11   ; $mul_37
+              local.set 11   ; $mul_35
               local.get 9   ; y
               i32.const 2
               i32.eq
-              if $L22 void
+              if $L24 void
                 bool.const true
                 local.set 10   ; or_res
               else
-                local.get 11   ; $mul_37
+                local.get 11   ; $mul_35
                 i32.const 20
                 i32.eq
                 local.set 10   ; or_res
-              end $L22
+              end $L24
               local.get 10   ; or_res
-              if $L23 void
-                br $L17
-              end $L23
+              if $L25 void
+                br $L19
+              end $L25
               local.get 9   ; y
-              local.get 11   ; $mul_37
+              local.get 11   ; $mul_35
               i32.mul
-              local.set 14   ; $mul_113
+              local.set 14   ; $mul_109
               local.get 5   ; x
-              local.get 14   ; $mul_113
+              local.get 14   ; $mul_109
               i32.add
               local.set 5   ; x
               local.get 4   ; __fuse_i_6
               i64.const 1
               i64.add
               local.set 4   ; __fuse_i_6
-              br $L20
-            end $L21
-          end $L20
-        end $L19
-        br $L17
-      end $L18
-    end $L17
-  end $L16
+              br $L22
+            end $L23
+          end $L22
+        end $L21
+        br $L19
+      end $L20
+    end $L19
+  end $L18
   i64.const 87
   call 31   ; std_core$new_byte_buffer
   local.set 1   ; __fuse_arr_3
@@ -2244,10 +2240,10 @@ fn 15 snippet$chain_continue_by_name () -> void
   local.set 3   ; __fuse_len_5
   local.get 0   ; fused
   i32.to_i64
-  local.set 15   ; $cast_124
+  local.set 15   ; $cast_120
   local.get 1   ; __fuse_arr_3
   local.get 3   ; __fuse_len_5
-  local.get 15   ; $cast_124
+  local.get 15   ; $cast_120
   call 34   ; std_core$write_int
   local.set 3   ; __fuse_len_5
   local.get 1   ; __fuse_arr_3
@@ -2257,10 +2253,10 @@ fn 15 snippet$chain_continue_by_name () -> void
   local.set 3   ; __fuse_len_5
   local.get 5   ; x
   i32.to_i64
-  local.set 15   ; $cast_124
+  local.set 15   ; $cast_120
   local.get 1   ; __fuse_arr_3
   local.get 3   ; __fuse_len_5
-  local.get 15   ; $cast_124
+  local.get 15   ; $cast_120
   call 34   ; std_core$write_int
   local.set 3   ; __fuse_len_5
   local.get 1   ; __fuse_arr_3

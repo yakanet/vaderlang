@@ -103,7 +103,8 @@ try_lower_chain_fusion :: fn(
     lb :: resolve_loop_binding(ctx, in_form.loop_var, for_stmt.span)
     ctx.jump_frames.push(chain_jump_frame(for_stmt.id, chain))
     body :: block_lowerer(ctx, for_stmt.body, false, true)
-    user_body :: resumable_body(pop_jump_frame(ctx), body)
+    frame :: pop_jump_frame(ctx)
+    user_body :: resumable_body(frame, body)
     body_template :: BodyTemplate {
         .binding_name   = lb.name,
         .binding_symbol = lb.symbol,
@@ -113,8 +114,8 @@ try_lower_chain_fusion :: fn(
     }
     stmts: LoweredStmt[]!: []
     bound :: bind_chain_operands(ctx, chain, recurse, stmts)
-    loop_label :: resolve_loop_label(ctx, for_stmt)
-    stmts.push_all(emit_fused_chain(ctx, bound, loop_label, for_stmt.span, body_template, recurse))
+    emitted :: emit_fused_chain(ctx, bound, for_stmt.span, body_template, recurse)
+    stmts.push_all(exit_block(frame, for_stmt.span, emitted))
     return LoweredExprStmt {
         .span = for_stmt.span,
         .expr = LoweredBlock {
@@ -318,7 +319,7 @@ emit_bool_terminal :: fn(
         },
     }
     stmts.push(init_let)
-    stmts.push_all(emit_fused_chain(ctx, bound, null, span, template, lower_expr))
+    stmts.push_all(emit_fused_chain(ctx, bound, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = TY_BOOL, .stmts = stmts,
         .trailing = LoweredIdent { .span = span, .type = TY_BOOL, .symbol = result_sym },
@@ -362,7 +363,7 @@ emit_find_terminal :: fn(ctx: FnLowerCtx!, chain: IterChain, pred: AST.Expr, spa
         },
     }
     stmts.push(init_let)
-    stmts.push_all(emit_fused_chain(ctx, bound, null, span, template, lower_expr))
+    stmts.push_all(emit_fused_chain(ctx, bound, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = result_ty, .stmts = stmts,
         .trailing = LoweredIdent { .span = span, .type = result_ty, .symbol = result_sym },
@@ -396,7 +397,7 @@ emit_count_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, span: Span) -> Lower
     stmts: LoweredStmt[]!: []
     bound :: bind_chain_operands(ctx, chain, lower_expr, stmts)
     stmts.push(init)
-    stmts.push_all(emit_fused_chain(ctx, bound, null, span, template, lower_expr))
+    stmts.push_all(emit_fused_chain(ctx, bound, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = usize_ty, .stmts = stmts,
         .trailing = LoweredIdent { .span = span, .type = usize_ty, .symbol = result_sym },
@@ -443,7 +444,7 @@ emit_collect_fusion :: fn(ctx: FnLowerCtx!, chain: IterChain, result_type: Type,
     stmts: LoweredStmt[]!: []
     bound :: bind_chain_operands(ctx, chain, lower_expr, stmts)
     stmts.push(init)
-    stmts.push_all(emit_fused_chain(ctx, bound, null, span, template, lower_expr))
+    stmts.push_all(emit_fused_chain(ctx, bound, span, template, lower_expr))
     return LoweredBlock {
         .span = span, .type = arr_ty, .stmts = stmts,
         .trailing = LoweredIdent { .span = span, .type = arr_ty, .symbol = result_sym },
@@ -752,14 +753,14 @@ UNBOUND_CHAIN :: "fused chain emitted before `bind_chain_operands` bound its ope
 // inlines its `generator` body over its source (map / filter / take / skip all
 // lower through here).
 emit_fused_chain :: fn(
-    ctx: FnLowerCtx!, chain: IterChain, loop_label: string | null, outer_span: Span,
+    ctx: FnLowerCtx!, chain: IterChain, outer_span: Span,
     template: BodyTemplate,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] = match chain.kind {
-    .Range      -> emit_fused_range(ctx, chain, loop_label, outer_span, template)
-    .Array      -> emit_fused_array(ctx, chain, loop_label, outer_span, template)
-    .Generator  -> emit_fused_gen_combinator(ctx, chain, loop_label, outer_span, template, recurse)
-    .OpaqueIter -> emit_fused_opaque_iter(ctx, chain, loop_label, outer_span, template)
+    .Range      -> emit_fused_range(ctx, chain, outer_span, template)
+    .Array      -> emit_fused_array(ctx, chain, outer_span, template)
+    .Generator  -> emit_fused_gen_combinator(ctx, chain, outer_span, template, recurse)
+    .OpaqueIter -> emit_fused_opaque_iter(ctx, chain, outer_span, template)
 }
 
 // Emit the fused loop at an `OpaqueIter` bottom : a virtual `next()` step-loop
@@ -769,7 +770,7 @@ emit_fused_chain :: fn(
 // the loop ; `continue` is naturally step-safe (the next iteration re-pulls
 // `next()`).
 emit_fused_opaque_iter :: fn(
-    ctx: FnLowerCtx!, chain: IterChain, loop_label: string | null, outer_span: Span,
+    ctx: FnLowerCtx!, chain: IterChain, outer_span: Span,
     template: BodyTemplate,
 ) -> LoweredStmt[] {
     span :: chain.span
@@ -812,7 +813,7 @@ emit_fused_opaque_iter :: fn(
     }
 
     loop_stmt :: LoweredLoop {
-        .span = outer_span, .label = loop_label, .cond = null,
+        .span = outer_span, .label = null, .cond = null,
         .body = LoweredBlock {
             .span = span, .type = TY_VOID, .stmts = [step_let, branch_if], .trailing = null,
         },
@@ -826,7 +827,7 @@ emit_fused_opaque_iter :: fn(
 // re-cast under the surface name so the body sees the same symbol
 // the resolver bound.
 emit_fused_range :: fn(
-    ctx: FnLowerCtx!, range_chain: IterChain, loop_label: string | null, outer_span: Span,
+    ctx: FnLowerCtx!, range_chain: IterChain, outer_span: Span,
     template: BodyTemplate,
 ) -> LoweredStmt[] {
     span :: range_chain.span
@@ -864,7 +865,7 @@ emit_fused_range :: fn(
         prepend_stmts_to_block(bind_stmts, template.user_body)
     }
     loop_stmt :: LoweredLoop {
-        .span = outer_span, .label = loop_label, .cond = cond, .body = range_body,
+        .span = outer_span, .label = null, .cond = cond, .body = range_body,
         .step = [inc_stmt],
     }
     out: LoweredStmt[]!: []
@@ -879,7 +880,7 @@ emit_fused_range :: fn(
 // with the array element bound to the chain's source binding. `continue` is made
 // increment-safe exactly like the non-fused raw-array path.
 emit_fused_array :: fn(
-    ctx: FnLowerCtx!, array_chain: IterChain, loop_label: string | null, outer_span: Span,
+    ctx: FnLowerCtx!, array_chain: IterChain, outer_span: Span,
     template: BodyTemplate,
 ) -> LoweredStmt[] {
     span :: array_chain.span
@@ -924,7 +925,7 @@ emit_fused_array :: fn(
     }
 
     loop_stmt :: LoweredLoop {
-        .span = outer_span, .label = loop_label, .cond = cond,
+        .span = outer_span, .label = null, .cond = cond,
         .body = prepend_stmts_to_block(bind_stmts, template.user_body),
         .step = [inc_stmt],
     }

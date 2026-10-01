@@ -1144,7 +1144,7 @@
       let __fuse_len_4: usize =
         LoweredArrayLen
       let __fuse_i_5: usize = int(0) :usize
-      loop while (<…>) :y
+      loop while (<…>)
         let x: i32 =
           index :i32
             on:
@@ -2598,7 +2598,7 @@
       let __fuse_len_5: usize =
         LoweredArrayLen
       let __fuse_i_6: usize = int(0) :usize
-      loop while (<…>) :x
+      loop while (<…>)
         let x: i32 =
           index :i32
             on:
@@ -2606,61 +2606,62 @@
             ix:
               __fuse_i_6 :usize
         let x: i32 = x :i32
-        block :void
-          let __for_arr_0: i32[]! =
-            array :i32[]!
-              int(10) :i32
-              int(20) :i32
-          let __for_len_1: usize =
-            LoweredArrayLen
-          let __for_i_2: usize = int(0) :usize
-          loop while (<…>)
-            let y: i32 =
-              index :i32
-                on:
-                  __for_arr_0 :i32[]!
-                ix:
-                  __for_i_2 :usize
-            if :void
-              cond:
-                or :bool
-                  l:
-                    eq :bool
-                      l:
-                        x :i32
-                      r:
-                        int(2) :i32
-                  r:
-                    eq :bool
-                      l:
-                        y :i32
-                      r:
-                        int(20) :i32
-              then:
-                continue :x
-            assign
-              target:
-                fused :i32
-              value:
-                add :i32
-                  l:
-                    fused :i32
-                  r:
-                    mul :i32
-                      l:
-                        x :i32
-                      r:
-                        y :i32
-          step
-            assign
-              target:
-                __for_i_2 :usize
-              value:
-                add :usize
-                  l:
+        block :$resume184
+          block :void
+            let __for_arr_0: i32[]! =
+              array :i32[]!
+                int(10) :i32
+                int(20) :i32
+            let __for_len_1: usize =
+              LoweredArrayLen
+            let __for_i_2: usize = int(0) :usize
+            loop while (<…>)
+              let y: i32 =
+                index :i32
+                  on:
+                    __for_arr_0 :i32[]!
+                  ix:
                     __for_i_2 :usize
-                  r:
-                    int(1) :usize
+              if :void
+                cond:
+                  or :bool
+                    l:
+                      eq :bool
+                        l:
+                          x :i32
+                        r:
+                          int(2) :i32
+                    r:
+                      eq :bool
+                        l:
+                          y :i32
+                        r:
+                          int(20) :i32
+                then:
+                  break :$resume184
+              assign
+                target:
+                  fused :i32
+                value:
+                  add :i32
+                    l:
+                      fused :i32
+                    r:
+                      mul :i32
+                        l:
+                          x :i32
+                        r:
+                          y :i32
+            step
+              assign
+                target:
+                  __for_i_2 :usize
+                value:
+                  add :usize
+                    l:
+                      __for_i_2 :usize
+                    r:
+                      int(1) :usize
       step
         assign
           target:
@@ -2674,7 +2675,7 @@
       let __fuse_len_7: usize =
         LoweredArrayLen
       let __fuse_i_8: usize = int(0) :usize
-      loop while (<…>) :x
+      loop while (<…>)
         let y: i32 =
           index :i32
             on:
@@ -2682,61 +2683,62 @@
             ix:
               __fuse_i_8 :usize
         let x: i32 = y :i32
-        block :void
-          let __for_arr_0: i32[]! =
-            array :i32[]!
-              int(10) :i32
-              int(20) :i32
-          let __for_len_1: usize =
-            LoweredArrayLen
-          let __for_i_2: usize = int(0) :usize
-          loop while (<…>)
-            let y: i32 =
-              index :i32
-                on:
-                  __for_arr_0 :i32[]!
-                ix:
-                  __for_i_2 :usize
-            if :void
-              cond:
-                or :bool
-                  l:
-                    eq :bool
-                      l:
-                        x :i32
-                      r:
-                        int(2) :i32
-                  r:
-                    eq :bool
-                      l:
-                        y :i32
-                      r:
-                        int(20) :i32
-              then:
-                continue :x
-            assign
-              target:
-                fused :i32
-              value:
-                add :i32
-                  l:
-                    fused :i32
-                  r:
-                    mul :i32
-                      l:
-                        x :i32
-                      r:
-                        y :i32
-          step
-            assign
-              target:
-                __for_i_2 :usize
-              value:
-                add :usize
-                  l:
+        block :$resume184
+          block :void
+            let __for_arr_0: i32[]! =
+              array :i32[]!
+                int(10) :i32
+                int(20) :i32
+            let __for_len_1: usize =
+              LoweredArrayLen
+            let __for_i_2: usize = int(0) :usize
+            loop while (<…>)
+              let y: i32 =
+                index :i32
+                  on:
+                    __for_arr_0 :i32[]!
+                  ix:
                     __for_i_2 :usize
-                  r:
-                    int(1) :usize
+              if :void
+                cond:
+                  or :bool
+                    l:
+                      eq :bool
+                        l:
+                          x :i32
+                        r:
+                          int(2) :i32
+                    r:
+                      eq :bool
+                        l:
+                          y :i32
+                        r:
+                          int(20) :i32
+                then:
+                  break :$resume184
+              assign
+                target:
+                  fused :i32
+                value:
+                  add :i32
+                    l:
+                      fused :i32
+                    r:
+                      mul :i32
+                        l:
+                          x :i32
+                        r:
+                          y :i32
+            step
+              assign
+                target:
+                  __for_i_2 :usize
+                value:
+                  add :usize
+                    l:
+                      __for_i_2 :usize
+                    r:
+                      int(1) :usize
       step
         assign
           target:

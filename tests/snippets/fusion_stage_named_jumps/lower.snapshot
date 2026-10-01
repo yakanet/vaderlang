@@ -280,7 +280,7 @@
           int(3) :i32
       let f: fn(i32) -> i32[] = spread :fn(i32) -> i32[]
       let stop: i32 = int(2) :i32
-      block :$exit$i48
+      block :$leave57
         let __fuse_len_3: usize =
           LoweredArrayLen
         let __fuse_i_4: usize = int(0) :usize
@@ -320,7 +320,7 @@
                         r:
                           stop :i32
                     then:
-                      break :$exit$i48
+                      break :$leave57
                   let v: i32 =
                     add :i32
                       l:
@@ -543,7 +543,7 @@
               __fuse_arr_2 :i32[]!
             ix:
               __fuse_i_4 :usize
-        block :$resume73
+        block :$resume74
           block :void
             let j: i32 = int(0) :i32
             loop while (<…>)
@@ -567,7 +567,7 @@
                         r:
                           int(2) :i32
                 then:
-                  break :$resume73
+                  break :$resume74
               let v: i32 =
                 add :i32
                   l:
@@ -787,7 +787,7 @@
           then:
             break
         let x: i32 = x :i32
-        block :$resume92
+        block :$resume93
           block :void
             let j: i32 = int(0) :i32
             loop while (<…>)
@@ -811,7 +811,7 @@
                         r:
                           int(2) :i32
                 then:
-                  break :$resume92
+                  break :$resume93
               let v: i32 =
                 add :i32
                   l:

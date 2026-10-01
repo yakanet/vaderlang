@@ -5,13 +5,14 @@
 // range or array bottom. A `break` or `continue` written for that loop lands on
 // whichever loop of the producer's code encloses the splice, and that is the
 // right one only for some producers. Everywhere else the jump is redirected
-// while the body is lowered: a `break` leaves the producer's instance (its exit
-// block, `gen_instance.vader`), and a `continue` leaves the body spliced at this
+// while the body is lowered: a `break` leaves a block around the producer's
+// code (its exit block), and a `continue` leaves the body spliced at this
 // `yield` (its resume block), so the producer goes on from the `yield`.
 //
-// A jump that already lands right is lowered as written, so a chain whose
+// A bare jump that already lands right is lowered as written, so a chain whose
 // stages hold no loop and run nothing after their `yield` keeps its loops as
-// they are.
+// they are. A named one never does: no loop the fusion emits carries the name
+// of the loop it fuses.
 
 module "vader/lower"
 
@@ -25,22 +26,16 @@ import "vader/typecheck"
 export JumpFrame :: struct {
     /// The loop's `ForStmt.id`, in the module the body is lowered from.
     loop_id:        usize
-    /// The instance a `break` of the loop leaves; null when a `break` lands
-    /// right as written.
-    exit:           GenInstance! | null
-    /// True when a `continue` of the loop lands right as written.
+    /// True when a bare `break` of the loop lands right as written.
+    breaks_land:    bool
+    /// True when a bare `continue` of the loop lands right as written.
     continue_lands: bool
-    /// True when the producer's loops carry the loop's own label, so a jump
-    /// naming the loop lands where a bare one does. A stage's loop over its
-    /// source gives none of them its name.
-    label_carried:  bool = true
+    /// The label of the block around the producer's code a redirected `break`
+    /// leaves: minted with the first one, null while there is none.
+    exit:           string | null = null
     /// The label of the block a redirected `continue` leaves: minted with the
     /// first one, null while there is none.
     resume:         string | null = null
-    /// The label of the block around the producer's code that a `break` naming
-    /// the loop leaves, where no loop carries the name: minted with the first
-    /// one, null while there is none.
-    named_exit:     string | null = null
 }
 
 /// The frame of loop `loop_id`, whose body is spliced into `chain`'s code.
@@ -50,9 +45,7 @@ export JumpFrame :: struct {
 chain_jump_frame :: fn(loop_id: usize, chain: IterChain) -> JumpFrame! {
     landing :: chain_landing(chain)
     return JumpFrame {
-        .loop_id = loop_id,
-        .exit = if landing.breaks { null } else { producer_instance(chain) },
-        .continue_lands = landing.continues,
+        .loop_id = loop_id, .breaks_land = landing.breaks, .continue_lands = landing.continues,
     }
 }
 
@@ -73,14 +66,14 @@ resumable_body :: fn(frame: JumpFrame, body: LoweredBlock) -> LoweredBlock {
     return arm_block([labelled_block(label, body.span, block_stmts_with_trailing(body))], body.span)
 }
 
-/// `stmts`, the producer's code for `frame`'s loop: inside the block a `break`
-/// naming the loop leaves, when one does, as they are otherwise.
+/// `stmts`, the producer's code for `frame`'s loop: inside its exit block when a
+/// `break` leaves it, as they are otherwise.
 ///
 /// @param frame  the frame the loop body was lowered under, popped.
 /// @param span   span of the block when one is built.
 /// @param stmts  the producer's emitted statements.
-named_exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt[]) -> LoweredStmt[] {
-    label :: frame.named_exit ?? return stmts
+exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt[]) -> LoweredStmt[] {
+    label :: frame.exit ?? return stmts
     return [labelled_block(label, span, stmts)]
 }
 
@@ -97,21 +90,12 @@ spliced_jump :: fn(
 ) -> LoweredStmt | null {
     target :: ctx.typed.jump_targets[jump_id] ?? return null
     frame :: frame_of(ctx, target) ?? return null
-    lands_by_name :: written == null || frame.label_carried
-    if is_break {
-        exit :: frame.exit
-        if exit != null {
-            return leave_instance(exit, span)
-        }
-        if lands_by_name {
-            return null
-        }
-        return LoweredBreak { .span = span, .label = named_exit_label(ctx, frame) }
-    }
-    if frame.continue_lands && lands_by_name {
+    lands :: if is_break { frame.breaks_land } else { frame.continue_lands }
+    if lands && written == null {
         return null
     }
-    return LoweredBreak { .span = span, .label = resume_label(ctx, frame) }
+    label :: if is_break { exit_label(ctx, frame) } else { resume_label(ctx, frame) }
+    return LoweredBreak { .span = span, .label = label }
 }
 
 frame_of :: fn(ctx: FnLowerCtx, loop_id: usize) -> JumpFrame! | null {
@@ -131,9 +115,9 @@ resume_label :: fn(ctx: FnLowerCtx!, frame: JumpFrame!) -> string {
     return label
 }
 
-named_exit_label :: fn(ctx: FnLowerCtx!, frame: JumpFrame!) -> string {
-    label :: frame.named_exit ?? synthetic_label(ctx.project, r"$leave")
-    frame.named_exit = label
+exit_label :: fn(ctx: FnLowerCtx!, frame: JumpFrame!) -> string {
+    label :: frame.exit ?? synthetic_label(ctx.project, r"$leave")
+    frame.exit = label
     return label
 }
 
@@ -160,11 +144,9 @@ producer_instance :: fn(chain: IterChain) -> GenInstance! | null {
     return layer.instance
 }
 
-// Whether a jump spliced into a chain's code lands right as written — a
+// Whether a bare jump spliced into a chain's code lands right as written — a
 // `break` when one loop runs around the splice and nothing after it, a
-// `continue` when nothing runs between the splice and that loop's step. Where
-// either does, the loops around the splice are bottom loops, which carry the
-// consuming loop's label: a named jump lands where a bare one does.
+// `continue` when nothing runs between the splice and that loop's step.
 SplicedLanding :: struct {
     breaks:    bool
     continues: bool
