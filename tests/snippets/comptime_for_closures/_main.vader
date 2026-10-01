@@ -1,0 +1,30 @@
+// A `defer` or a lambda inside an unrolled `@comptime for` reads the loop
+// variable as the literal of its own copy of the body — it has no runtime slot to
+// capture. Nested lambdas see it too, and a runtime local is still captured
+// beside it.
+
+module "snippet"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    @comptime for x in [1, 2, 3] {
+        defer println("deferred ${x}")
+        println("body ${x}")
+    }
+    total := 0
+    @comptime for x in [10, 20] {
+        add :: (n: i32) -> n + x
+        total = add(total)
+    }
+    println("total ${total}")
+    base :: 100
+    @comptime for x in [1, 2] {
+        outer :: () -> {
+            inner :: () -> base + x
+            return inner()
+        }
+        println("nested ${outer()}")
+    }
+    return 0
+}

@@ -386,6 +386,8 @@ const C_PARITY = new Set<string>([
   "union_array_const",
   // `x in coll` and `target[range]` evaluate their operands as written.
   "operand_order_in_slice",
+  // A `defer` / lambda reading a `@comptime for` variable: natively, a SIGSEGV.
+  "comptime_for_closures",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

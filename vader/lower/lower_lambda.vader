@@ -45,6 +45,7 @@ export lower_lambda :: fn(ctx: FnLowerCtx!, lambda: AST.LambdaExpr, block_lowere
     return_type :: lambda_return_type(ctx, lambda)
     lifted_entry :: synth_mono_entry(ctx, lifted_symbol)
     lifted_ctx :: new_fn_lower_ctx(ctx.project, lifted_entry, ctx.typed, ctx.subst, return_type)
+    lifted_ctx.comptime_bindings = ctx.comptime_bindings
     own_params :: lambda_params(lifted_ctx, lambda)
     if captures.len() == 0 {
         ctx.project.synth_decls.push(lift_fn(lifted_ctx, lifted_symbol, lambda, own_params, block_lowerer))
@@ -88,7 +89,23 @@ lift_fn :: fn(
 lookup_captures :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Capture[] {
     found :: ctx.project.closures.lambda_captures[capture_key(ctx.typed.resolved.path, lambda.id)]
     if found == null { return [] }
-    return found
+    return runtime_captures(ctx, found)
+}
+
+// `captures` less the variables of an unrolled `@comptime for`: in this copy of
+// the body they are literals, with no runtime slot to capture — the lifted body
+// reads them from the `comptime_bindings` it inherits.
+runtime_captures :: fn(ctx: FnLowerCtx, captures: Capture[]) -> Capture[] {
+    if ctx.comptime_bindings.is_empty() {
+        return captures
+    }
+    runtime: Capture[]!: []
+    for capture in captures {
+        if ctx.comptime_bindings[capture.symbol.id] == null {
+            runtime.push(capture)
+        }
+    }
+    return runtime
 }
 
 build_env_struct_fields :: fn(captures: Capture[]) -> LoweredStructField[] {

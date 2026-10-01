@@ -1,0 +1,39 @@
+# Typecheck
+
+## tests/snippets/comptime_for_closures
+  FnDecl         main                 :: fn() -> i32
+  expr 11:24    SeqLitExpr     :: i32[]!
+  expr 12:15    CallExpr       :: void
+  expr 12:15    IdentExpr      :: fn(T) -> void
+  expr 12:23    StringLitExpr  :: string
+  expr 12:35    IdentExpr      :: i32
+  expr 13:17    StringLitExpr  :: string
+  expr 13:25    IdentExpr      :: i32
+  expr 13:9     CallExpr       :: void
+  expr 13:9     IdentExpr      :: fn(T) -> void
+  expr 16:24    SeqLitExpr     :: i32[]!
+  expr 17:16    LambdaExpr     :: fn(i32) -> i32
+  expr 17:28    BinaryExpr     :: i32
+  expr 17:28    IdentExpr      :: i32
+  expr 17:32    IdentExpr      :: i32
+  expr 18:17    CallExpr       :: i32
+  expr 18:17    IdentExpr      :: fn(i32) -> i32
+  expr 18:21    IdentExpr      :: i32
+  expr 18:9     IdentExpr      :: i32
+  expr 20:13    StringLitExpr  :: string
+  expr 20:22    IdentExpr      :: i32
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 22:24    SeqLitExpr     :: i32[]!
+  expr 23:18    LambdaExpr     :: fn() -> i32
+  expr 24:22    LambdaExpr     :: fn() -> i32
+  expr 24:28    BinaryExpr     :: i32
+  expr 24:28    IdentExpr      :: i32
+  expr 24:35    IdentExpr      :: i32
+  expr 25:20    CallExpr       :: i32
+  expr 25:20    IdentExpr      :: fn() -> i32
+  expr 27:17    StringLitExpr  :: string
+  expr 27:27    CallExpr       :: i32
+  expr 27:27    IdentExpr      :: fn() -> i32
+  expr 27:9     CallExpr       :: void
+  expr 27:9     IdentExpr      :: fn(T) -> void

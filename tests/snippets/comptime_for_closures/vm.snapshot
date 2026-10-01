@@ -1,0 +1,12 @@
+# stdout
+body 1
+deferred 1
+body 2
+deferred 2
+body 3
+deferred 3
+total 30
+nested 101
+nested 102
+# exit
+0
