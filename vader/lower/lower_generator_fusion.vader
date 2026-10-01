@@ -10,7 +10,7 @@
 //     bottom of the chain, each `yield` feeding the stage above
 //     (`try_descend_gen_source`) — `for v in gen(args)` is the one-stage case.
 // Either way the body lowers in its own ctx — its module, its instance
-// substitution, its `GenInstance` names — with the consumer installed as the
+// substitution, its `InlineInstance` names — with the consumer installed as the
 // `yield` sink: no state-machine struct, no boxed `Iterator`, no virtual `next()`.
 
 module "vader/lower"
@@ -165,41 +165,6 @@ unify_type_args :: fn(ctx: FnLowerCtx, patterns: Type[], actuals: Type[], type_p
     return out
 }
 
-// `value` bound to `instance`'s clone of the parameter `p` — the symbol the
-// inlined body reads.
-bind_instance_param :: fn(
-    ctx: FnLowerCtx!, instance: GenInstance, owner: TypedProgram, p: AST.FnParam, value: LoweredExpr,
-    slot: Type,
-) -> LoweredStmt {
-    symbol :: lookup_local_symbol(ctx.project, owner.resolved, p.span) ?? panic(
-        "inlined call: parameter `${p.name}` has no symbol",
-    )
-    return cell_aware_let(ctx, clone_of(instance, symbol), p.name, value, slot, p.span)
-}
-
-// The ctx a body inlined as `instance` lowers under: its module, its instance
-// substitution and its instance's names.
-instance_ctx :: fn(
-    ctx: FnLowerCtx!, decl: AST.FnDecl, owner: TypedProgram, subst: Substitution, instance: GenInstance!,
-) -> FnLowerCtx! {
-    return_type :: substitute(return_type_of(decl, make_entry_types(owner, subst)), subst)
-    inner :: new_fn_lower_ctx(ctx.project, stub_entry(decl, owner), owner, subst, return_type)
-    inner.instance = instance
-    return inner
-}
-
-// `body` lowered under `inner`, an instance's ctx. Meanwhile the instance's
-// callee counts as being inlined, so it is not inlined again from inside itself.
-lower_instance_body :: fn(ctx: FnLowerCtx!, inner: FnLowerCtx!, body: AST.BlockExpr) -> LoweredBlock {
-    instance :: inner.instance ?? panic("an instance body lowered with no instance")
-    entered :: ctx.project.inlining_generators.add(instance.generator_id)
-    lowered :: lower_block(inner, body, false, null)
-    if entered {
-        ctx.project.inlining_generators.remove(instance.generator_id)
-    }
-    return lowered
-}
-
 // Strip distinct wrappers off `args`, require all-concrete, then bind each type
 // parameter to its argument — the shared tail of every generator subst. Concrete
 // whatever the arguments: an inlined body is never shared, so erasing its
@@ -247,7 +212,7 @@ GenComboLayer :: struct {
     arg_sym:     Symbol | null   // the single non-self DATA param's symbol (map's `f`) ; null for a 0-arg combinator (`enumerate`) or when the non-self param is itself a source (`chain`)
     arg_expr:    AST.Expr | null // the call's non-self DATA argument (map's `f`, …) ; null as above
     output_elem: Type            // the combinator's yielded element type
-    instance:    GenInstance!    // the names this layer's body lowers under
+    instance:    InlineInstance!    // the names this layer's body lowers under
     prelude:     AST.Stmt[]      // counter `let`s ahead of the primary source loop (take/skip/enumerate)
     // Additional source loops beyond the primary `self` loop, in body order —
     // one per extra source param (`chain`'s `other`). Empty for every single-
@@ -319,7 +284,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
     output_elem :: genstate_element(ctx.typed, decl.name, subst_opt) ?? return null
 
     // Minted last: a descent that gives up must leave no ids, clones or captures behind.
-    instance :: new_gen_instance(ctx.project, callee_sym, decl, owner) ?? return null
+    instance :: new_inline_instance(ctx.project, callee_sym, decl, owner) ?? return null
     cloned_extras: GenSourceBinding[]!: []
     for extra in extra_sources {
         cloned_extras.push(GenSourceBinding {
@@ -525,13 +490,13 @@ emit_fused_gen_combinator :: fn(
     }
     // The source chain emits inside this window and may hold another layer of the
     // same generator: the id leaves with the frame that put it there.
-    entered :: ctx.project.inlining_generators.add(layer.instance.generator_id)
+    entered :: ctx.project.inlining_callees.add(layer.instance.callee_id)
     out.push_all(fuse_source_loop(ctx, gen_ctx, primary_binding, outer_span, chain.span, recurse))
     for extra in layer.extra_sources {
         out.push_all(fuse_source_loop(ctx, gen_ctx, extra, outer_span, chain.span, recurse))
     }
     if entered {
-        ctx.project.inlining_generators.remove(layer.instance.generator_id)
+        ctx.project.inlining_callees.remove(layer.instance.callee_id)
     }
     return wrap_instance_exit(layer.instance, chain.span, out)
 }
@@ -581,7 +546,7 @@ GenSourceCall :: struct {
     subst:    Substitution
     /// The call's arguments in parameter order — a UFCS receiver first.
     args:     AST.Expr[]
-    instance: GenInstance!
+    instance: InlineInstance!
 }
 
 // `call` as a chain source when it calls a generator with every parameter given
@@ -599,7 +564,7 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterChain 
         return null
     }
     // Minted last: a descent that gives up must leave no ids or clones behind.
-    instance :: new_gen_instance(ctx.project, target.callee, decl, owner) ?? return null
+    instance :: new_inline_instance(ctx.project, target.callee, decl, owner) ?? return null
     return IterChain {
         .kind = .GenSource,
         .range_lower = null, .range_upper = null, .inclusive = false,
@@ -662,7 +627,7 @@ emit_fused_gen_source :: fn(ctx: FnLowerCtx!, chain: IterChain, template: BodyTe
 // its instance's names, and `template` — the consumer — as the `yield` sink.
 inline_gen_ctx :: fn(
     ctx: FnLowerCtx!, decl: AST.FnDecl, owner: TypedProgram, subst: Substitution,
-    instance: GenInstance!, template: BodyTemplate, span: Span,
+    instance: InlineInstance!, template: BodyTemplate, span: Span,
 ) -> FnLowerCtx! {
     gen_ctx :: instance_ctx(ctx, decl, owner, subst, instance)
     gen_ctx.gen_inline_sink = build_gen_sink(

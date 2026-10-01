@@ -99,12 +99,13 @@ export LowerProjectCtx :: struct {
     /// when `opt_report` is on ; never a diagnostic, never gates a build.
     opt_misses:          OptMiss[]! = []
 
-    /// The bindings each inlined generator declares, keyed by the generator's
-    /// symbol id — gathered once per generator (`declared_bindings`).
-    generator_bindings:  MutableMap<i32, Symbol[]> = MutableMap<i32, Symbol[]> {}
-    /// The generators whose body is being inlined right now. Inlining one of them
-    /// again, from inside its own body, would never end.
-    inlining_generators: MutableSet<i32> = MutableSet<i32> {}
+    /// The bindings each inlined callee declares, keyed by its symbol id —
+    /// gathered once per callee (`declared_bindings`).
+    instance_bindings:   MutableMap<i32, Symbol[]> = MutableMap<i32, Symbol[]> {}
+    /// The callees whose body is being inlined right now — generators and
+    /// iterator consumers alike. Inlining one of them again, from inside its own
+    /// body, would never end.
+    inlining_callees:    MutableSet<i32> = MutableSet<i32> {}
     /// Instance clone id → the resolver's id for the same binding: the key of
     /// every resolver table indexed by symbol id (`origin_symbol_id`).
     clone_origins:       MutableMap<i32, i32> = MutableMap<i32, i32> {}
@@ -528,9 +529,9 @@ export FnLowerCtx :: struct {
     /// (inner yields → the sink, outer yields → the enclosing state machine).
     gen_inline_sink:    GenInlineSink | null = null
 
-    /// Non-null while lowering the body of an inlined generator instance: the
-    /// names that instance lowers under (`gen_instance.vader`).
-    instance:           GenInstance! | null = null
+    /// Non-null while lowering an inlined body — a generator's or an iterator
+    /// consumer's: the names that instance lowers under (`inline_instance.vader`).
+    instance:           InlineInstance! | null = null
 
     /// Non-null while lowering the body of an inlined iterator consumer
     /// (`inline_consumer.vader`): the loop over its consumed parameter drains the

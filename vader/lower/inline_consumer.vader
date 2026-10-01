@@ -10,7 +10,7 @@
 // parameter, the subject of a `for` outside every other loop and every lambda.
 //
 // The body lowers in its own ctx, as an inlined generator does — its module, a
-// concrete substitution, a `GenInstance` for its names. A `return v` assigns
+// concrete substitution, a `InlineInstance` for its names. A `return v` assigns
 // the result and leaves the instance ; a final `return v` is the value of the
 // block the call becomes.
 
@@ -45,7 +45,7 @@ export try_inline_consumer :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, type: Typ
         return null
     }
     target :: call_target(ctx, call) ?? return null
-    if target.callee.id in ctx.project.inlining_generators {
+    if target.callee.id in ctx.project.inlining_callees {
         return null
     }
     signature :: fn_signature(target.owner, target.callee) ?? return null
@@ -53,7 +53,7 @@ export try_inline_consumer :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, type: Typ
     subst :: consumer_subst(ctx, shape, signature, target.args, type) ?? return null
     chain :: descend_chain(ctx, target.args[shape.param], true) ?? return null
     // Minted last: a descent that gives up must leave no ids or clones behind.
-    instance :: new_gen_instance(ctx.project, target.callee, target.decl, target.owner) ?? return null
+    instance :: new_inline_instance(ctx.project, target.callee, target.decl, target.owner) ?? return null
     consumer :: ConsumerCall {
         .target = target,
         .signature = signature,
@@ -72,7 +72,7 @@ ConsumerCall :: struct {
     shape:     ConsumerShape
     subst:     Substitution
     chain:     IterChain
-    instance:  GenInstance!
+    instance:  InlineInstance!
 }
 
 // ---- the shape ----------------------------------------------------------------

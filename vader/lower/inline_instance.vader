@@ -1,11 +1,12 @@
-// vader/lower/gen_instance — the names one inlined generator instance lowers under.
+// vader/lower/inline_instance — the names one inlined body lowers under.
 //
-// Inlining a generator splices its body into the consumer. Lowered under the
-// generator's own symbols, two instances of one generator in one function body —
+// The fusion splices a callee's body into its caller: a generator's into the
+// chain that consumes it, an iterator consumer's at its call. Lowered under the
+// callee's own symbols, two instances of one callee in one function body —
 // `xs.map(f).map(g)`, a generator consumed inside a loop over itself — would be
 // one set of locals: midir keys a local by its symbol id, so the second instance
 // writes the first one's parameters and counters. So an instance clones every
-// binding the generator declares, and marks every label it writes.
+// binding the callee declares, and marks every label it writes.
 //
 // Every lowering site that turns a source name into a `Symbol` goes through
 // `resolve_ident` / `resolve_binding`, which apply the instance of the context
@@ -20,17 +21,18 @@ AST :: import "toolchain/ast"
 import "toolchain/span"
 import "vader/resolver/symbol"
 import "vader/typecheck"
+import "vader/types"
 
 // ---- instances --------------------------------------------------------------
 
-/// The names one inlined generator instance lowers under. Every binding the
-/// generator declares has a clone of its `Symbol` under a fresh id, and every
-/// label it writes takes a suffix of its own, so two instances of one generator
-/// in one function body are two sets of locals and loops.
-export GenInstance :: struct {
-    /// The generator's own symbol id: while its body is inlined, the id sits in
-    /// `LowerProjectCtx.inlining_generators`.
-    generator_id: i32
+/// The names one inlined body lowers under. Every binding the callee declares
+/// has a clone of its `Symbol` under a fresh id, and every label it writes takes
+/// a suffix of its own, so two instances of one callee in one function body are
+/// two sets of locals and loops.
+export InlineInstance :: struct {
+    /// The callee's own symbol id: while its body is inlined, the id sits in
+    /// `LowerProjectCtx.inlining_callees`.
+    callee_id:    i32
     /// Original symbol id → this instance's clone.
     clones:       MutableMap<i32, Symbol>
     /// Appended to every loop and jump label the instance lowers.
@@ -40,24 +42,24 @@ export GenInstance :: struct {
     exited:       bool = false
 }
 
-/// A fresh instance of `generator`, declared by `decl` in `owner`: every binding
-/// the declaration introduces gets a clone under a new id. A clone of a binding a
+/// A fresh instance of `callee`, declared by `decl` in `owner`: every binding the
+/// declaration introduces gets a clone under a new id. A clone of a binding a
 /// closure captures is recorded as captured, so its `let` still makes a cell.
 ///
-/// @param project    the project context: mints the ids, holds the captures.
-/// @param generator  the generator's own symbol; keys the binding cache.
-/// @param decl       the generator's declaration.
-/// @param owner      the module `decl` is declared in.
-/// @return           null while `generator`'s body is being inlined further out:
-///                   inlining it again from inside its own body would never end.
-new_gen_instance :: fn(
-    project: LowerProjectCtx!, generator: Symbol, decl: AST.FnDecl, owner: TypedProgram,
-) -> GenInstance! | null {
-    if generator.id in project.inlining_generators {
+/// @param project  the project context: mints the ids, holds the captures.
+/// @param callee   the inlined fn's own symbol; keys the binding cache.
+/// @param decl     its declaration.
+/// @param owner    the module `decl` is declared in.
+/// @return         null while `callee`'s body is being inlined further out:
+///                 inlining it again from inside its own body would never end.
+new_inline_instance :: fn(
+    project: LowerProjectCtx!, callee: Symbol, decl: AST.FnDecl, owner: TypedProgram,
+) -> InlineInstance! | null {
+    if callee.id in project.inlining_callees {
         return null
     }
     clones :: MutableMap<i32, Symbol> {}
-    for binding in declared_bindings(project, generator, decl, owner) {
+    for binding in declared_bindings(project, callee, decl, owner) {
         clone :: Symbol { ...binding, .id = next_project_synthetic_id(project) }
         clones[binding.id] = clone
         project.clone_origins[clone.id] = binding.id
@@ -65,8 +67,8 @@ new_gen_instance :: fn(
             project.closures.captured_symbols.add(clone.id)
         }
     }
-    return GenInstance {
-        .generator_id = generator.id,
+    return InlineInstance {
+        .callee_id = callee.id,
         .clones = clones,
         .label_suffix = synthetic_label(project, r"$i"),
     }
@@ -75,11 +77,11 @@ new_gen_instance :: fn(
 // Every binding `decl` introduces — parameters, locals, loop variables, pattern
 // leaves: each has a `defined_at` inside the declaration. `resolved.symbols`
 // holds only the module's top-level symbols; the index `lookup_local_symbol`
-// reads covers every binding. Gathered once per generator.
+// reads covers every binding. Gathered once per callee.
 declared_bindings :: fn(
-    project: LowerProjectCtx!, generator: Symbol, decl: AST.FnDecl, owner: TypedProgram,
+    project: LowerProjectCtx!, callee: Symbol, decl: AST.FnDecl, owner: TypedProgram,
 ) -> Symbol[] {
-    cached :: project.generator_bindings[generator.id]
+    cached :: project.instance_bindings[callee.id]
     if cached != null {
         return cached
     }
@@ -93,7 +95,7 @@ declared_bindings :: fn(
             found.push(symbol)
         }
     }
-    project.generator_bindings[generator.id] = found
+    project.instance_bindings[callee.id] = found
     return found
 }
 
@@ -116,16 +118,16 @@ synthetic_label :: fn(project: LowerProjectCtx!, prefix: string) -> string =
 
 // ---- resolution -------------------------------------------------------------
 
-/// `instance`'s clone of `symbol`, or `symbol` itself when the generator does
-/// not declare it.
+/// `instance`'s clone of `symbol`, or `symbol` itself when the callee does not
+/// declare it.
 ///
-/// @param instance  the inlined generator instance.
+/// @param instance  the inlined instance.
 /// @param symbol    a symbol as the resolver recorded it.
-clone_of :: fn(instance: GenInstance, symbol: Symbol) -> Symbol =
+clone_of :: fn(instance: InlineInstance, symbol: Symbol) -> Symbol =
     instance.clones[symbol.id] ?? symbol
 
 /// `symbol` as the lowering in `ctx` names it: the instance's clone when `ctx`
-/// lowers an inlined generator that declares it, `symbol` itself otherwise.
+/// lowers an inlined body that declares it, `symbol` itself otherwise.
 ///
 /// @param ctx     the fn-body context; its `instance` decides.
 /// @param symbol  a symbol as the resolver recorded it.
@@ -155,8 +157,8 @@ resolve_binding :: fn(ctx: FnLowerCtx, name_span: Span) -> Symbol | null {
 }
 
 /// `label` as `ctx` writes it: marked with the instance's suffix when `ctx`
-/// lowers an inlined generator, so its loops never answer a jump written outside
-/// that instance — the consumer's, or another instance's.
+/// lowers an inlined body, so its loops never answer a jump written outside that
+/// instance — the consumer's, or another instance's.
 ///
 /// @param ctx    the fn-body context.
 /// @param label  a loop or jump label; null stays null.
@@ -176,21 +178,59 @@ instance_label :: fn(ctx: FnLowerCtx, label: string | null) -> string | null {
 origin_symbol_id :: fn(project: LowerProjectCtx, symbol: Symbol) -> i32 =
     project.clone_origins[symbol.id] ?? symbol.id
 
+// ---- lowering an instance -----------------------------------------------------
+
+// `value` bound to `instance`'s clone of the parameter `p` — the symbol the
+// inlined body reads.
+bind_instance_param :: fn(
+    ctx: FnLowerCtx!, instance: InlineInstance, owner: TypedProgram, p: AST.FnParam, value: LoweredExpr,
+    slot: Type,
+) -> LoweredStmt {
+    symbol :: lookup_local_symbol(ctx.project, owner.resolved, p.span) ?? panic(
+        "inlined call: parameter `${p.name}` has no symbol",
+    )
+    return cell_aware_let(ctx, clone_of(instance, symbol), p.name, value, slot, p.span)
+}
+
+// The ctx a body inlined as `instance` lowers under: its module, its instance
+// substitution and its instance's names.
+instance_ctx :: fn(
+    ctx: FnLowerCtx!, decl: AST.FnDecl, owner: TypedProgram, subst: Substitution, instance: InlineInstance!,
+) -> FnLowerCtx! {
+    return_type :: substitute(return_type_of(decl, make_entry_types(owner, subst)), subst)
+    inner :: new_fn_lower_ctx(ctx.project, stub_entry(decl, owner), owner, subst, return_type)
+    inner.instance = instance
+    return inner
+}
+
+// `body` lowered under `inner`, an instance's ctx. Meanwhile the instance's
+// callee counts as being inlined, so it is not inlined again from inside itself.
+lower_instance_body :: fn(ctx: FnLowerCtx!, inner: FnLowerCtx!, body: AST.BlockExpr) -> LoweredBlock {
+    instance :: inner.instance ?? panic("an instance body lowered with no instance")
+    entered :: ctx.project.inlining_callees.add(instance.callee_id)
+    lowered :: lower_block(inner, body, false, null)
+    if entered {
+        ctx.project.inlining_callees.remove(instance.callee_id)
+    }
+    return lowered
+}
+
 // ---- leaving an instance ----------------------------------------------------
 
 // The label of the block around an instance's whole inlined body: a `return` in
-// the generator leaves it, which ends the generator and not the consuming function.
+// the callee leaves it — it ends a generator, it gives a consumer's result — and
+// not the function the body is inlined into.
 // The leading `$` keeps it apart from every label `instance_label` derives from a
 // source one, `exit:` included.
-instance_exit_label :: fn(instance: GenInstance) -> string = r"$exit" + instance.label_suffix
+instance_exit_label :: fn(instance: InlineInstance) -> string = r"$exit" + instance.label_suffix
 
 /// A `break` out of everything `instance` emits — what a `return` of the
-/// generator means, and a terminal's early exit — recorded so the emitter puts
+/// callee means, and a terminal's early exit — recorded so the emitter puts
 /// the block it leaves around the instance.
 ///
 /// @param instance  the instance to leave.
 /// @param span      the jump's span.
-leave_instance :: fn(instance: GenInstance!, span: Span) -> LoweredStmt {
+leave_instance :: fn(instance: InlineInstance!, span: Span) -> LoweredStmt {
     instance.exited = true
     return LoweredBreak { .span = span, .label = instance_exit_label(instance) }
 }
@@ -201,7 +241,7 @@ leave_instance :: fn(instance: GenInstance!, span: Span) -> LoweredStmt {
 /// @param instance  the inlined instance.
 /// @param span      span of the block when one is built.
 /// @param stmts     the instance's emitted statements.
-wrap_instance_exit :: fn(instance: GenInstance, span: Span, stmts: LoweredStmt[]) -> LoweredStmt[] {
+wrap_instance_exit :: fn(instance: InlineInstance, span: Span, stmts: LoweredStmt[]) -> LoweredStmt[] {
     if !instance.exited {
         return stmts
     }

@@ -168,7 +168,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
             // In an inlined generator, `return` ends the generator: it leaves the
             // instance, not the function the instance is inlined into. An inlined
             // consumer's carries the call's result there.
-            if ctx.instance is GenInstance as instance {
+            if ctx.instance is InlineInstance as instance {
                 if ctx.inline_consumer is InlineConsumer as consumer {
                     assign_consumer_return(ctx, consumer, stmt, out)
                 }

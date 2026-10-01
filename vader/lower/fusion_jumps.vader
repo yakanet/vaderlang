@@ -143,7 +143,7 @@ chain_break :: fn(chain: IterChain, span: Span) -> LoweredStmt {
 
 // The instance whose code `chain` emits; null for a range, an array or an
 // opaque iterator.
-producer_instance :: fn(chain: IterChain) -> GenInstance! | null {
+producer_instance :: fn(chain: IterChain) -> InlineInstance! | null {
     if chain.gen_source is GenSourceCall as gs {
         return gs.instance
     }
