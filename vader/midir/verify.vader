@@ -112,6 +112,7 @@ verify_cfg_function :: fn(
     // indexes `blocks` by id without a bounds check, so running it on a CFG
     // with a dangling successor crashes the verifier instead of reporting it.
     ids_ok :: verify_block_ids(fn_, where, diags)
+    verify_regions(fn_, where, diags)
     // Reads are only checked where they can run. An unreachable block is NOT
     // a break: `build_cfg_project` mints dead join blocks by design when every
     // arm of a match returns, and `emit.vader:1001-1006` skips them. When the
@@ -192,6 +193,20 @@ verify_block_ids :: fn(fn_: CFGFunction, where: string, diags: Diagnostic[]!) ->
         }
     }
     return ok
+}
+
+// I7012 — a labelled block's region (entry → exit) addresses two real blocks: the
+// emitter opens the block at the entry and closes it where control reaches the
+// exit, so a stale id misplaces the `end` with nothing downstream to notice.
+verify_regions :: fn(fn_: CFGFunction, where: string, diags: Diagnostic[]!) -> void {
+    block_count :: i32(fn_.blocks.len())
+    for [entry, exit] in fn_.block_regions {
+        if entry >= 0 && entry < block_count && i32(exit) >= 0 && i32(exit) < block_count {
+            continue
+        }
+        diags.push(internal_error(.RegionOutOfRange, fn_span(fn_),
+            "${where}: region bb${entry} → bb${exit}, but the fn has ${block_count} blocks"))
+    }
 }
 
 // I7005 / I7006 — a LocalId indexes `locals`, and a local that is read must be

@@ -303,4 +303,5 @@ export InternalCode :: enum(CodeInfo) {
     NonPrimitiveDataPoolLeaf { .id = "I7009", .message = "pooled constant holds a non-primitive leaf" },
     ReturnArityMismatch      { .id = "I7010", .message = "a return hands back a different number of values than the function declares" },
     CapturedBindingNotInCell { .id = "I7011", .message = "a binding a closure captures is not held in a cell" },
+    RegionOutOfRange         { .id = "I7012", .message = "labelled block region names a block outside the function" },
 }
