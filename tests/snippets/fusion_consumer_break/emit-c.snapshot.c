@@ -454,7 +454,9 @@ static void snippet_flat_map_find(void) {
     {
         l3 = ((vader_array_t*) l2)->length;
         l4 = (size_t) 0;
+#line 216 "lib/std/iter/iter.vader"
         while ((l4 < l3)) {
+#line 24 "tests/snippets/fusion_consumer_break/_main.vader"
             vader_array_t* _a1_slotarr = ((vader_array_t*) l2);
             VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
@@ -467,11 +469,13 @@ static void snippet_flat_map_find(void) {
                 vader_array_t* _a2_slotarr = ((vader_array_t*) l5);
                 VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                 l0 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l7];
-#line 24 "tests/snippets/fusion_consumer_break/_main.vader"
+#line 217 "lib/std/iter/iter.vader"
                 t1 = snippet_over_ten(l0);
                 if (t1) {
+#line 218 "lib/std/iter/iter.vader"
                     l1 = vader_box_i32(1u, l0);
                     goto end_6;
+#line 217 "lib/std/iter/iter.vader"
                 }
 #line 172 "lib/std/iter/iter.vader"
                 t2 = (l7 + INT64_C(1));
@@ -480,7 +484,13 @@ static void snippet_flat_map_find(void) {
 #line 24 "tests/snippets/fusion_consumer_break/_main.vader"
             t2 = (l4 + INT64_C(1));
             l4 = (size_t) (int64_t) t2;
+#line 216 "lib/std/iter/iter.vader"
+#line 24 "tests/snippets/fusion_consumer_break/_main.vader"
+#line 216 "lib/std/iter/iter.vader"
         }
+#line 221 "lib/std/iter/iter.vader"
+        l1 = vader_box_obj(0u, NULL);
+#line 24 "tests/snippets/fusion_consumer_break/_main.vader"
     } end_6: ;
     if (l1.tag == 0u) {
         l0 = -(INT32_C(1));
@@ -551,32 +561,54 @@ static void snippet_chain_find(void) {
     {
         l4 = ((vader_array_t*) l2)->length;
         l5 = (size_t) 0;
+#line 216 "lib/std/iter/iter.vader"
         while ((l5 < l4)) {
+#line 31 "tests/snippets/fusion_consumer_break/_main.vader"
             vader_array_t* _a2_slotarr = ((vader_array_t*) l2);
             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
             l0 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l5];
+#line 217 "lib/std/iter/iter.vader"
             t0 = snippet_above_one(l0);
             if (t0) {
+#line 218 "lib/std/iter/iter.vader"
                 l1 = vader_box_i32(1u, l0);
                 goto end_10;
+#line 217 "lib/std/iter/iter.vader"
             }
+#line 31 "tests/snippets/fusion_consumer_break/_main.vader"
             t1 = (l5 + INT64_C(1));
             l5 = (size_t) (int64_t) t1;
+#line 216 "lib/std/iter/iter.vader"
+#line 31 "tests/snippets/fusion_consumer_break/_main.vader"
+#line 216 "lib/std/iter/iter.vader"
         }
+#line 31 "tests/snippets/fusion_consumer_break/_main.vader"
         l4 = ((vader_array_t*) l3)->length;
         l5 = (size_t) 0;
+#line 216 "lib/std/iter/iter.vader"
         while ((l5 < l4)) {
+#line 31 "tests/snippets/fusion_consumer_break/_main.vader"
             vader_array_t* _a3_slotarr = ((vader_array_t*) l3);
             VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
             l6 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l5];
+#line 217 "lib/std/iter/iter.vader"
             t0 = snippet_above_one(l6);
             if (t0) {
+#line 218 "lib/std/iter/iter.vader"
                 l1 = vader_box_i32(1u, l6);
-                break;
+                goto end_10;
+#line 217 "lib/std/iter/iter.vader"
             }
+#line 31 "tests/snippets/fusion_consumer_break/_main.vader"
             t1 = (l5 + INT64_C(1));
             l5 = (size_t) (int64_t) t1;
+#line 216 "lib/std/iter/iter.vader"
+#line 31 "tests/snippets/fusion_consumer_break/_main.vader"
+#line 216 "lib/std/iter/iter.vader"
         }
+#line 221 "lib/std/iter/iter.vader"
+        l1 = vader_box_obj(0u, NULL);
+#line 31 "tests/snippets/fusion_consumer_break/_main.vader"
     } end_10: ;
     if (l1.tag == 0u) {
         l0 = -(INT32_C(1));

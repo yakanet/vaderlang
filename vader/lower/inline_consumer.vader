@@ -1,0 +1,414 @@
+// vader/lower/inline_consumer — inline a function that consumes an iterator
+// argument with one loop.
+//
+// A call whose callee iterates an `Iterator<T>` parameter with a single `for`
+// — std's `collect`, `find`, `fold`, a user function alike — is inlined at the
+// call site when the argument descends into a fusible chain: the loop over the
+// parameter becomes the chain's fused loop, the callee's loop body its consumer.
+// The callee's shape decides, never its name. The loop must run at most once,
+// as the lazy iterator it replaces can only be drained once: one reference to the
+// parameter, the subject of a `for` outside every other loop and every lambda.
+//
+// The body lowers in its own ctx, as an inlined generator does — its module, a
+// concrete substitution, a `GenInstance` for its names. A `return v` assigns
+// the result and leaves the instance ; a final `return v` is the value of the
+// block the call becomes.
+
+module "vader/lower"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/comptime"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "vader/types"
+
+/// How a callee consumes its iterator parameter — found once per callee.
+export ConsumerShape :: struct {
+    /// The consumed parameter's index.
+    param:       usize
+    /// The consumed parameter's symbol, as the resolver recorded it.
+    symbol:      Symbol
+    /// The callee's type parameters, in declaration order.
+    type_params: Symbol[]
+}
+
+/// The call inlined, its consumed argument fused into the callee's loop, or null
+/// when the callee is no such consumer, or the argument no chain.
+///
+/// @param call  the call expression.
+/// @param type  the call's result type from typecheck.
+/// @return      a block-expression evaluating to the call's result, or null.
+export try_inline_consumer :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
+    if is_known_non_consumer(ctx, call) {
+        return null
+    }
+    target :: call_target(ctx, call) ?? return null
+    if target.callee.id in ctx.project.inlining_generators {
+        return null
+    }
+    signature :: fn_signature(target.owner, target.callee) ?? return null
+    shape :: consumer_shape(ctx.project, target, signature) ?? return null
+    subst :: consumer_subst(ctx, shape, signature, target.args, type) ?? return null
+    chain :: descend_chain(ctx, target.args[shape.param], true) ?? return null
+    // Minted last: a descent that gives up must leave no ids or clones behind.
+    instance :: new_gen_instance(ctx.project, target.callee, target.decl, target.owner) ?? return null
+    consumer :: ConsumerCall {
+        .target = target,
+        .signature = signature,
+        .shape = shape,
+        .subst = subst,
+        .chain = chain,
+        .instance = instance,
+    }
+    return emit_inlined_consumer(ctx, consumer, type, call.span)
+}
+
+// A consumer call about to be inlined.
+ConsumerCall :: struct {
+    target:    CallTarget
+    signature: FnType
+    shape:     ConsumerShape
+    subst:     Substitution
+    chain:     IterChain
+    instance:  GenInstance!
+}
+
+// ---- the shape ----------------------------------------------------------------
+
+// Whether `call` is a UFCS call to a declaration already known to consume
+// nothing — read off the declaration typecheck picked, before resolving the
+// callee again.
+is_known_non_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> bool {
+    callee :: combinator_effective_callee(call.callee)
+    if callee is AST.FieldExpr {
+        decl :: ctx.typed.ufcs_chosen_decls[callee.id] ?? return false
+        return decl.span.hash() in ctx.project.non_consumers
+    }
+    return false
+}
+
+// The shape of `target`'s callee, or null when it consumes no parameter —
+// keyed by its declaration, so a module's callee is examined once.
+consumer_shape :: fn(project: LowerProjectCtx!, target: CallTarget, signature: FnType) -> ConsumerShape | null {
+    key :: target.decl.span.hash()
+    if key in project.non_consumers {
+        return null
+    }
+    known :: project.consumers[key]
+    if known != null {
+        return known
+    }
+    found :: find_consumer_shape(project, target, signature)
+    if found == null {
+        project.non_consumers.add(key)
+    } else {
+        project.consumers[key] = found
+    }
+    return found
+}
+
+find_consumer_shape :: fn(project: LowerProjectCtx!, target: CallTarget, signature: FnType) -> ConsumerShape | null {
+    decl :: target.decl
+    if fn_is_generator(decl) || fn_is_async(decl) {
+        return null
+    }
+    body :: decl.body ?? return null
+    for p in decl.params {
+        if p.variadic || p.default_value != null {
+            return null
+        }
+    }
+    for k in 0..<decl.params.len() {
+        if iterator_element_of(signature.params[k]) == null {
+            continue
+        }
+        p :: decl.params[k]
+        symbol :: lookup_local_symbol(project, target.owner.resolved, p.span) ?? continue
+        if reference_count(target.owner, symbol, p.span) != 1 {
+            continue
+        }
+        if block_holds(body, false, (s) -> loops_over(s, target.owner, symbol)) {
+            return shape_of(target, body, k, symbol)
+        }
+    }
+    return null
+}
+
+// `target` consuming its parameter `param` ; null when its body holds a `defer`,
+// which a `return` would leave without unwinding, or a type parameter has no
+// symbol.
+shape_of :: fn(target: CallTarget, body: AST.BlockExpr, param: usize, symbol: Symbol) -> ConsumerShape | null {
+    if block_holds(body, true, is_defer) {
+        return null
+    }
+    type_params :: declared_type_params(target.decl, target.owner) ?? return null
+    return ConsumerShape {
+        .param = param,
+        .symbol = symbol,
+        .type_params = type_params,
+    }
+}
+
+// How many identifiers of `owner` refer to `symbol`, its declaration at `at` left
+// out.
+reference_count :: fn(owner: TypedProgram, symbol: Symbol, at: Span) -> usize {
+    count: usize = 0
+    for [_, s] in owner.resolved.idents {
+        if s.id == symbol.id {
+            count += 1
+        }
+    }
+    declared :: owner.resolved.idents[at.hash()]
+    if declared != null && declared.id == symbol.id {
+        count -= 1
+    }
+    return count
+}
+
+is_defer :: fn(s: AST.Stmt) -> bool = s is AST.DeferStmt
+
+// A `for … in <param>` over `symbol` — not an unrolled `@comptime for`, which
+// would run its body once per element of a constant.
+loops_over :: fn(s: AST.Stmt, owner: TypedProgram, symbol: Symbol) -> bool {
+    if s is AST.ForStmt {
+        if s.form is AST.InFor as form {
+            return !s.is_comptime && names_symbol(form.iter, owner, symbol)
+        }
+    }
+    return false
+}
+
+names_symbol :: fn(e: AST.Expr, owner: TypedProgram, symbol: Symbol) -> bool {
+    if e is AST.IdentExpr {
+        found :: owner.resolved.idents[e.span.hash()] ?? return false
+        return found.id == symbol.id
+    }
+    return false
+}
+
+// Whether a statement of `block` satisfies `test` — through blocks, `if`s and
+// `match`es in statement position, and through loop bodies when `into_loops`;
+// never through a lambda, whose statements are its own.
+block_holds :: fn(block: AST.BlockExpr, into_loops: bool, test: fn(AST.Stmt) -> bool) -> bool {
+    for s in block.stmts {
+        if stmt_holds(s, into_loops, test) {
+            return true
+        }
+    }
+    trailing :: block.trailing ?? return false
+    return expr_holds(trailing, into_loops, test)
+}
+
+stmt_holds :: fn(s: AST.Stmt, into_loops: bool, test: fn(AST.Stmt) -> bool) -> bool {
+    if test(s) {
+        return true
+    }
+    if s is AST.ForStmt {
+        return into_loops && block_holds(s.body, into_loops, test)
+    }
+    // @partial: a statement holding an expression is walked through it; a jump,
+    // a `yield` or a `defer` holds no statement of the enclosing flow.
+    return @partial match s {
+        is AST.ExprStmt   -> expr_holds(s.expr, into_loops, test)
+        is AST.LetStmt    -> expr_holds(s.value, into_loops, test)
+        is AST.AssignStmt -> expr_holds(s.value, into_loops, test)
+        is AST.ReturnStmt -> if s.value is AST.Expr as v { expr_holds(v, into_loops, test) } else { false }
+        _                 -> false
+    }
+}
+
+// @partial: a block, an `if` and a `match` hold statements in the flow of the
+// enclosing body; a statement inside any other expression is not walked.
+expr_holds :: fn(e: AST.Expr, into_loops: bool, test: fn(AST.Stmt) -> bool) -> bool = @partial match e {
+    is AST.BlockExpr -> block_holds(e, into_loops, test)
+    is AST.IfExpr    -> if_holds(e, into_loops, test)
+    is AST.MatchExpr -> arms_hold(e.arms, into_loops, test)
+    _                -> false
+}
+
+arms_hold :: fn(arms: AST.MatchArm[], into_loops: bool, test: fn(AST.Stmt) -> bool) -> bool {
+    for arm in arms {
+        if expr_holds(arm.body, into_loops, test) {
+            return true
+        }
+    }
+    return false
+}
+
+if_holds :: fn(e: AST.IfExpr, into_loops: bool, test: fn(AST.Stmt) -> bool) -> bool {
+    if block_holds(e.then_block, into_loops, test) {
+        return true
+    }
+    return match e.else_branch as branch {
+        is null            -> false
+        is AST.IfElseIf    -> if_holds(branch.branch, into_loops, test)
+        is AST.IfElseBlock -> block_holds(branch.block, into_loops, test)
+    }
+}
+
+// ---- the substitution -------------------------------------------------------
+
+// The concrete substitution the body is inlined under: each parameter unified
+// with its argument's type, then the result with the call's own type (a type
+// parameter only the result names). One left unbound declines.
+consumer_subst :: fn(
+    ctx: FnLowerCtx, shape: ConsumerShape, signature: FnType, args: AST.Expr[], type: Type,
+) -> Substitution | null {
+    subst :: new_substitution()
+    if shape.type_params.len() == 0 {
+        return subst
+    }
+    patterns: Type[]!: []
+    actuals: Type[]!: []
+    for k in 0..<args.len() {
+        patterns.push(signature.params[k])
+        actuals.push(default_if_free(ctx.types.expr_type(args[k])))
+    }
+    patterns.push(signature.return_type)
+    actuals.push(default_if_free(type))
+    bound :: unify_type_args(ctx, patterns, actuals, shape.type_params) ?? return null
+    concrete :: strip_distinct_each(bound)
+    if !all_concrete(concrete) {
+        return null
+    }
+    for i in 0..<shape.type_params.len() {
+        subst.type_params[shape.type_params[i].id] = concrete[i]
+    }
+    return subst
+}
+
+// ---- the inlined body -------------------------------------------------------
+
+// `{ <arguments, in parameter order>; [let result]; <body>; <result> }`.
+emit_inlined_consumer :: fn(ctx: FnLowerCtx!, call: ConsumerCall, type: Type, span: Span) -> LoweredExpr {
+    stmts: LoweredStmt[]!: []
+    chain :: bind_consumer_arguments(ctx, call, stmts)
+    decl :: call.target.decl
+    body :: decl.body ?? panic("consumer: the callee has no body")
+    result :: fresh_synthetic_symbol(ctx, "consumed")
+    consumer_ctx :: instance_ctx(ctx, decl, call.target.owner, call.subst, call.instance)
+    consumer_ctx.inline_consumer = InlineConsumer {
+        .param = clone_of(call.instance, call.shape.symbol),
+        .chain = chain,
+        .result = result,
+        .result_type = type,
+    }
+    lowered :: lower_instance_body(ctx, consumer_ctx, value_tail(body))
+    raw :: lowered.trailing
+    trailing :: if raw == null { null } else { slot_result(consumer_ctx, raw, type, span) }
+    if !call.instance.exited {
+        stmts.push_all(lowered.stmts)
+        return result_block(stmts, trailing, type, span)
+    }
+    // A `return` left the body early: every path assigns the result.
+    inner: LoweredStmt[]!: []
+    inner.push_all(lowered.stmts)
+    if trailing != null {
+        inner.push(assign_consumed(result, type, trailing, span))
+    }
+    returns_value :: type != TY_VOID
+    if returns_value {
+        stmts.push(LoweredLet {
+            .span = span,
+            .name = result.name,
+            .symbol = result,
+            .type = type,
+            .value = zero_value_lit(span, type),
+        })
+    }
+    stmts.push_all(wrap_instance_exit(call.instance, span, inner))
+    tail :: if returns_value { synth_ident(result, type, span) } else { null }
+    return result_block(stmts, tail, type, span)
+}
+
+result_block :: fn(stmts: LoweredStmt[], trailing: LoweredExpr | null, type: Type, span: Span) -> LoweredExpr =
+    LoweredBlock {
+        .span = span,
+        .type = type,
+        .stmts = stmts,
+        .trailing = trailing,
+    }
+
+// Each argument evaluated once, in parameter order, as the call would: the
+// consumed one as its chain's operands, every other one bound to the instance's
+// clone of its parameter. Returns the consumed chain, bound.
+bind_consumer_arguments :: fn(ctx: FnLowerCtx!, call: ConsumerCall, out: LoweredStmt[]!) -> IterChain {
+    target :: call.target
+    bound := call.chain
+    for k in 0..<target.decl.params.len() {
+        if k == call.shape.param {
+            bound = bind_chain_operands(ctx, call.chain, lower_expr, out)
+            continue
+        }
+        slot :: substitute(call.signature.params[k], call.subst)
+        arg :: target.args[k]
+        value :: prepare_value_for_slot(ctx, lower_expr(ctx, arg), slot, span_of(arg))
+        out.push(bind_instance_param(ctx, call.instance, target.owner, target.decl.params[k], value, slot))
+    }
+    return bound
+}
+
+// `body` with a final `return v` turned into its trailing `v`, the value of the
+// block — so a body with no early `return` needs no result local.
+value_tail :: fn(body: AST.BlockExpr) -> AST.BlockExpr {
+    n :: body.stmts.len()
+    if n == 0 || body.trailing != null {
+        return body
+    }
+    last :: body.stmts[n - 1]
+    if last is AST.ReturnStmt {
+        value :: last.value ?? return body
+        return AST.BlockExpr {
+            .span = body.span,
+            .stmts = body.stmts[0..<n - 1],
+            .trailing = value,
+        }
+    }
+    return body
+}
+
+// `value` in the call's result slot ; a void result keeps it as it is, a
+// statement.
+slot_result :: fn(ctx: FnLowerCtx!, value: LoweredExpr, type: Type, span: Span) -> LoweredExpr =
+    if type == TY_VOID { value } else { prepare_value_for_slot(ctx, value, type, span) }
+
+assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr, span: Span) -> LoweredStmt {
+    if type == TY_VOID {
+        return LoweredExprStmt { .span = span, .expr = value }
+    }
+    return assign_result(result, type, value, span)
+}
+
+/// The value of a `return` in an inlined consumer, assigned to the call's
+/// result ahead of the jump out of the instance.
+///
+/// @param ctx       the consumer's ctx.
+/// @param consumer  its inlined-consumer state.
+/// @param stmt      the `return`.
+/// @param out       receives the assignment, when the `return` carries a value.
+assign_consumer_return :: fn(
+    ctx: FnLowerCtx!, consumer: InlineConsumer, stmt: AST.ReturnStmt, out: LoweredStmt[]!,
+) -> void {
+    if stmt.value is AST.Expr as v {
+        value :: slot_result(ctx, lower_expr(ctx, v), consumer.result_type, stmt.span)
+        out.push(assign_consumed(consumer.result, consumer.result_type, value, stmt.span))
+    }
+}
+
+/// The chain a `for … in <iter>` in an inlined consumer drains: the consumed
+/// argument's, when `iter` names the consumed parameter ; null otherwise.
+///
+/// @param ctx   the fn-body context.
+/// @param iter  the loop's iterated expression.
+consumed_chain :: fn(ctx: FnLowerCtx, iter: AST.Expr) -> IterChain | null {
+    consumer :: ctx.inline_consumer ?? return null
+    if iter is AST.IdentExpr {
+        symbol :: resolve_ident(ctx, iter.span) ?? return null
+        if symbol.id == consumer.param.id {
+            return consumer.chain
+        }
+    }
+    return null
+}

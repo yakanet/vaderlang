@@ -72,38 +72,39 @@
       block :i32[]!
         let self: Iterator<i32> = it :Iterator<i32>
         let f: fn(i32) -> i32 = triple :fn(i32) -> i32
-        let __collect_0: i32[]! =
+        let out: i32[]! =
           array :i32[]!
         block :void
-          let __iter_0: Iterator<i32> = self :Iterator<i32>
-          loop
-            let __step_1: [i32, Continuation]! =
-              vcall Iterator.next :[i32, Continuation]!
-                recv:
-                  __iter_0 :Iterator<i32>
-            if :void
-              cond:
-                eq :bool
-                  l:
-                    ._1 :Continuation
+          block :void
+            let __iter_0: Iterator<i32> = self :Iterator<i32>
+            loop
+              let __step_1: [i32, Continuation]! =
+                vcall Iterator.next :[i32, Continuation]!
+                  recv:
+                    __iter_0 :Iterator<i32>
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      ._1 :Continuation
+                        __step_1 :[i32, Continuation]!
+                    r:
+                      int(1) :u8
+                then:
+                  break
+                else:
+                  let x: i32 =
+                    ._0 :i32
                       __step_1 :[i32, Continuation]!
-                  r:
-                    int(1) :u8
-              then:
-                break
-              else:
-                let x: i32 =
-                  ._0 :i32
-                    __step_1 :[i32, Continuation]!
-                let __elem_1: i32 =
-                  call :i32
-                    callee:
-                      triple :fn(i32) -> i32
-                    arg0:
-                      x :i32
-                LoweredArrayPush
+                  let x: i32 =
+                    call :i32
+                      callee:
+                        triple :fn(i32) -> i32
+                      arg0:
+                        x :i32
+                  LoweredArrayPush
         ~>
-          __collect_0 :i32[]!
+          out :i32[]!
   fn snippet$main() -> i32
     let s: i32 =
       call :i32

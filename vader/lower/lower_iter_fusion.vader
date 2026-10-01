@@ -102,10 +102,14 @@ try_lower_chain_fusion :: fn(
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredStmt | null {
-    chain :: top_level_chain(ctx, in_form.iter) ?? return null
+    // The loop over an inlined consumer's parameter drains the call's chain,
+    // whose operands the call site bound.
+    consumed :: consumed_chain(ctx, in_form.iter)
+    found :: if consumed != null { consumed } else { top_level_chain(ctx, in_form.iter) }
+    chain :: found ?? return null
     // Bare ranges already hit the int-range fast path ; bypassing
     // would lose `default_if_free` + counter-name fidelity.
-    if chain.kind == .Range { return null }
+    if consumed == null && chain.kind == .Range { return null }
     lb :: resolve_loop_binding(ctx, in_form.loop_var, for_stmt.span)
     ctx.jump_frames.push(chain_jump_frame(for_stmt.id, chain))
     body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
@@ -119,7 +123,7 @@ try_lower_chain_fusion :: fn(
         .pattern        = lb.pattern,
     }
     stmts: LoweredStmt[]!: []
-    bound :: bind_chain_operands(ctx, chain, recurse, stmts)
+    bound :: consumed ?? bind_chain_operands(ctx, chain, recurse, stmts)
     emitted :: emit_fused_chain(ctx, bound, for_stmt.span, body_template, recurse)
     stmts.push_all(exit_block(frame, for_stmt.span, emitted))
     return LoweredExprStmt {
@@ -132,13 +136,10 @@ try_lower_chain_fusion :: fn(
 }
 
 // The fused loop variable's element type. Prefer the typer's CONCRETE loop-var
-// type over the chain's fused `output_elem` — the latter is `TY_ANY` for an
-// all-reference combinator instance (`.Erased` flavor), so `for m in
-// chain(structs) { m.field }` would bind `m: Any` and fail field access in
-// mid-IR. `concrete_local_type` reads the same slot the un-fused
-// `resolve_element_type` does, and answers null for the cases the fused element
-// covers better: destructuring, an unresolved binding, and a generic body whose
-// `T` no instance substitution has bound.
+// type over the chain's fused `output_elem`. `concrete_local_type` reads the same
+// slot the un-fused `resolve_element_type` does, and answers null for the cases
+// the fused element covers better: destructuring, an unresolved binding, and a
+// generic body whose `T` no instance substitution has bound.
 fused_loop_element_type :: fn(ctx: FnLowerCtx, loop_var: AST.LoopVar, span: Span, chain: IterChain) -> Type =
     concrete_local_type(ctx.types, loop_var_type_key(loop_var, span)) ?? chain_element_type(chain)
 

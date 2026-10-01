@@ -44,8 +44,8 @@ fn 2 snippet$main () -> i32
   local __fuse_i_2 usize
   local x i32
   local x i32
-  local __fuse_arr_5 ref
-  local __collect_3 ref
+  local __fuse_arr_3 ref
+  local out ref
   local $cast_53 i64
   local $cast_58 u64
   i32.const 0
@@ -91,10 +91,10 @@ fn 2 snippet$main () -> i32
   i32.const 10
   i32.const 20
   array.new 12 2   ; i32[][]
-  local.set 6   ; __fuse_arr_5
+  local.set 6   ; __fuse_arr_3
   array.new 12 0   ; i32[][]
-  local.set 7   ; __collect_3
-  local.get 6   ; __fuse_arr_5
+  local.set 7   ; out
+  local.get 6   ; __fuse_arr_3
   array.len
   local.set 2   ; __fuse_len_1
   i64.const 0
@@ -105,12 +105,12 @@ fn 2 snippet$main () -> i32
       local.get 2   ; __fuse_len_1
       u64.lt
       if $L6 void
-        local.get 6   ; __fuse_arr_5
+        local.get 6   ; __fuse_arr_3
         local.get 3   ; __fuse_i_2
         load_slot_i32
         call 0   ; snippet$triple
         local.set 4   ; x
-        local.get 7   ; __collect_3
+        local.get 7   ; out
         local.get 4   ; x
         array.push 1 7   ; i32[]
         local.get 3   ; __fuse_i_2
@@ -121,14 +121,14 @@ fn 2 snippet$main () -> i32
       end $L6
     end $L5
   end $L4
-  local.get 7   ; __collect_3
+  local.get 7   ; out
   local.set 1   ; __fuse_arr_0
   i64.const 99
   call 4   ; std_core$new_byte_buffer
-  local.set 6   ; __fuse_arr_5
+  local.set 6   ; __fuse_arr_3
   i64.const 0
   local.set 2   ; __fuse_len_1
-  local.get 6   ; __fuse_arr_5
+  local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
   string.const 0   ; "sum="
   call 6   ; std_core$write_string_at
@@ -136,12 +136,12 @@ fn 2 snippet$main () -> i32
   local.get 0   ; total
   i32.to_i64
   local.set 8   ; $cast_53
-  local.get 6   ; __fuse_arr_5
+  local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
   local.get 8   ; $cast_53
   call 7   ; std_core$write_int
   local.set 2   ; __fuse_len_1
-  local.get 6   ; __fuse_arr_5
+  local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
   string.const 1   ; " drain="
   call 6   ; std_core$write_string_at
@@ -150,12 +150,12 @@ fn 2 snippet$main () -> i32
   array.len
   usize.to_i64
   local.set 9   ; $cast_58
-  local.get 6   ; __fuse_arr_5
+  local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
   local.get 9   ; $cast_58
   call 8   ; std_core$write_unsigned
   local.set 2   ; __fuse_len_1
-  local.get 6   ; __fuse_arr_5
+  local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
   string.const 2   ; " d0="
   call 6   ; std_core$write_string_at
@@ -165,12 +165,12 @@ fn 2 snippet$main () -> i32
   load_slot_i32
   i32.to_i64
   local.set 8   ; $cast_53
-  local.get 6   ; __fuse_arr_5
+  local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
   local.get 8   ; $cast_53
   call 7   ; std_core$write_int
   local.set 2   ; __fuse_len_1
-  local.get 6   ; __fuse_arr_5
+  local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
   string.const 3   ; " d1="
   call 6   ; std_core$write_string_at
@@ -180,12 +180,12 @@ fn 2 snippet$main () -> i32
   load_slot_i32
   i32.to_i64
   local.set 8   ; $cast_53
-  local.get 6   ; __fuse_arr_5
+  local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
   local.get 8   ; $cast_53
   call 7   ; std_core$write_int
   local.set 2   ; __fuse_len_1
-  local.get 6   ; __fuse_arr_5
+  local.get 6   ; __fuse_arr_3
   local.get 2   ; __fuse_len_1
   call 5   ; std_core$finish_buffer
   call 11   ; std_io$println__string

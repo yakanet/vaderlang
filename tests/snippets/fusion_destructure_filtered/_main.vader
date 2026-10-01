@@ -1,10 +1,6 @@
-// _diag_fusion_destructure_filtered — `for [i, x] in xs.enumerate().filter(p)`:
-// the fused loop destructures an element whose type fell back to the erased one.
-//
-// THE COMMITTED OUTPUT IS WRONG. The lazy line runs first; the fused loop
-// then reaches `unreachable`, the destructure of an element typed `Any`.
-// Natively the lazy half crashes too, the lazy path's own defect, so only the
-// VM output is pinned.
+// fusion_destructure_filtered — `for [i, x] in xs.enumerate().filter(p)`: the
+// fused loop destructures each element of a layered chain, against the same
+// chain bound lazily to a local first.
 
 module "snippet"
 

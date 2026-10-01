@@ -69,7 +69,6 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 5u
 
-static int32_t snippet_sum_both(vader_box_t l0, vader_box_t l1);
 static int32_t snippet_Tally_Adder_add_all(void* l0, vader_box_t l1);
 static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
@@ -106,12 +105,12 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[20] = {
-    [1] = { .slot_size = 16 },
-    [2] = { .slot_size = 4 },
-    [3] = {
+    [1] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Tally_t),
         .slot_size = 8,
     },
+    [2] = { .slot_size = 16 },
+    [3] = { .slot_size = 4 },
     [4] = { .slot_size = 16 },
     [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i32_t),
@@ -175,51 +174,6 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 /* vtable forwards */
 static vader_box_t vader_vt_Iterator__next(vader_box_t recv);
 
-static int32_t snippet_sum_both(vader_box_t l0, vader_box_t l1) {
-    int32_t l2, l5;
-    vader_box_t l3 = vader_box_null();
-    void* l4 = NULL;
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[4] = { &l0, &l1, &l3, &t0 };
-    void** gc_raw_roots[1] = { &l4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-#line 17 "tests/snippets/iter_coerce_method_arg/_main.vader"
-    l2 = INT32_C(0);
-#line 18 "tests/snippets/iter_coerce_method_arg/_main.vader"
-    l3 = l0;
-    for (;;) {
-        t0 = vader_vt_Iterator__next(l3);
-        l4 = t0.payload.obj;
-        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l4)->f__1 == INT32_C(1)) {
-        } else {
-            l5 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l4)->f__0;
-#line 19 "tests/snippets/iter_coerce_method_arg/_main.vader"
-            l2 = (l2 + l5);
-#line 18 "tests/snippets/iter_coerce_method_arg/_main.vader"
-            continue;
-        }
-        break;
-    }
-#line 21 "tests/snippets/iter_coerce_method_arg/_main.vader"
-    l3 = l1;
-    for (;;) {
-        t0 = vader_vt_Iterator__next(l3);
-        l4 = t0.payload.obj;
-        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l4)->f__1 == INT32_C(1)) {
-        } else {
-            l5 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l4)->f__0;
-#line 22 "tests/snippets/iter_coerce_method_arg/_main.vader"
-            l2 = (l2 + l5);
-#line 21 "tests/snippets/iter_coerce_method_arg/_main.vader"
-            continue;
-        }
-        break;
-    }
-#line 24 "tests/snippets/iter_coerce_method_arg/_main.vader"
-    { int32_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
 static int32_t snippet_Tally_Adder_add_all(void* l0, vader_box_t l1) {
     int32_t l2, l5;
     vader_box_t l3 = vader_box_null();
@@ -254,26 +208,30 @@ static int32_t snippet_main(void) {
     void* l0 = NULL;
     void* l1 = NULL;
     void* l2 = NULL;
-    size_t l3;
-    vader_box_t l4 = vader_box_null(), l5 = vader_box_null();
-    int64_t l6;
-    int32_t t0;
-    vader_string_t t1 = 0;
-    vader_box_t* gc_roots[2] = { &l4, &l5 };
-    void** gc_raw_roots[3] = { &l0, &l1, &l2 };
-    vader_string_t* gc_atom_roots[1] = { &t1 };
+    void* l4 = NULL;
+    size_t l3, l7, l8;
+    vader_box_t l5 = vader_box_null();
+    int32_t l6, l9;
+    int64_t l10;
+    vader_box_t t0 = vader_box_null();
+    int64_t t1;
+    vader_string_t t2 = 0;
+    int32_t t3;
+    vader_box_t* gc_roots[2] = { &l5, &t0 };
+    void** gc_raw_roots[4] = { &l0, &l1, &l2, &l4 };
+    vader_string_t* gc_atom_roots[1] = { &t2 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 46 "tests/snippets/iter_coerce_method_arg/_main.vader"
-    vader_array_t* _a0_arr = vader_array_new(14u, 3u, 7u, 2u);
+    vader_array_t* _a0_arr = vader_array_new(14u, 3u, 7u, 3u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
     l0 = (void*) _a0_arr;
 #line 47 "tests/snippets/iter_coerce_method_arg/_main.vader"
-    vader_array_t* _a1_arr = vader_array_new(14u, 2u, 7u, 2u);
+    vader_array_t* _a1_arr = vader_array_new(14u, 2u, 7u, 3u);
     ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int32_t) INT32_C(20);
     ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int32_t) INT32_C(10);
     l1 = (void*) _a1_arr;
@@ -281,35 +239,107 @@ static int32_t snippet_main(void) {
     l2 = std_core_new_byte_buffer((size_t) 51);
     l3 = (size_t) 0;
     l3 = std_core_write_string_at(l2, l3, 1u);
-    l4 = std_core____Into_into__i32(l0);
-    l5 = std_core____Into_into__i32(l1);
-    t0 = snippet_sum_both(l4, l5);
-    l6 = ((int64_t) (int32_t) t0);
-    l3 = std_core_write_int(l2, l3, l6);
+    l4 = l0;
+    t0 = std_core____Into_into__i32(l1);
+#line 16 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    l5 = t0;
+#line 17 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    l6 = INT32_C(0);
+#line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    l7 = ((vader_array_t*) l4)->length;
+    l8 = (size_t) 0;
+#line 18 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    while ((l8 < l7)) {
+#line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
+        vader_array_t* _a2_slotarr = ((vader_array_t*) l4);
+        VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+        l9 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l8];
+#line 19 "tests/snippets/iter_coerce_method_arg/_main.vader"
+        l6 = (l6 + l9);
+#line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
+        t1 = (l8 + INT64_C(1));
+        l8 = (size_t) (int64_t) t1;
+#line 18 "tests/snippets/iter_coerce_method_arg/_main.vader"
+#line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
+#line 18 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    }
+#line 21 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    for (;;) {
+        t0 = vader_vt_Iterator__next(l5);
+        l4 = t0.payload.obj;
+        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l4)->f__1 == INT32_C(1)) {
+        } else {
+            l9 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l4)->f__0;
+#line 22 "tests/snippets/iter_coerce_method_arg/_main.vader"
+            l6 = (l6 + l9);
+#line 21 "tests/snippets/iter_coerce_method_arg/_main.vader"
+            continue;
+        }
+        break;
+    }
+#line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    l10 = ((int64_t) (int32_t) l6);
+    l3 = std_core_write_int(l2, l3, l10);
     l3 = std_core_write_string_at(l2, l3, 2u);
-    l4 = std_core____Into_into__i32(l0);
-    l5 = std_core____Into_into__i32(l1);
-    t0 = snippet_sum_both(l4, l5);
-    l6 = ((int64_t) (int32_t) t0);
-    l3 = std_core_write_int(l2, l3, l6);
-    t1 = std_core_finish_buffer(l2, l3);
-    std_io_println__string(t1);
+    l4 = l0;
+    t0 = std_core____Into_into__i32(l1);
+#line 16 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    l5 = t0;
+#line 17 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    l6 = INT32_C(0);
+#line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    l7 = ((vader_array_t*) l4)->length;
+    l8 = (size_t) 0;
+#line 18 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    while ((l8 < l7)) {
+#line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
+        vader_array_t* _a3_slotarr = ((vader_array_t*) l4);
+        VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+        l9 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l8];
+#line 19 "tests/snippets/iter_coerce_method_arg/_main.vader"
+        l6 = (l6 + l9);
+#line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
+        t1 = (l8 + INT64_C(1));
+        l8 = (size_t) (int64_t) t1;
+#line 18 "tests/snippets/iter_coerce_method_arg/_main.vader"
+#line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
+#line 18 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    }
+#line 21 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    for (;;) {
+        t0 = vader_vt_Iterator__next(l5);
+        l1 = t0.payload.obj;
+        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l1)->f__1 == INT32_C(1)) {
+        } else {
+            l9 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l1)->f__0;
+#line 22 "tests/snippets/iter_coerce_method_arg/_main.vader"
+            l6 = (l6 + l9);
+#line 21 "tests/snippets/iter_coerce_method_arg/_main.vader"
+            continue;
+        }
+        break;
+    }
+#line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
+    l10 = ((int64_t) (int32_t) l6);
+    l3 = std_core_write_int(l2, l3, l10);
+    t2 = std_core_finish_buffer(l2, l3);
+    std_io_println__string(t2);
 #line 55 "tests/snippets/iter_coerce_method_arg/_main.vader"
-    vader_struct_snippet_Tally_t* _a2_obj = (vader_struct_snippet_Tally_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Tally_t));
-    vader_obj_header_init(_a2_obj, 3u);
-    _a2_obj->f_base = INT32_C(100);
-    l1 = (void*) _a2_obj;
+    vader_struct_snippet_Tally_t* _a4_obj = (vader_struct_snippet_Tally_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Tally_t));
+    vader_obj_header_init(_a4_obj, 1u);
+    _a4_obj->f_base = INT32_C(100);
+    l1 = (void*) _a4_obj;
 #line 56 "tests/snippets/iter_coerce_method_arg/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) 36);
     l3 = (size_t) 0;
     l3 = std_core_write_string_at(l2, l3, 3u);
-    l4 = std_core____Into_into__i32(l0);
-    t0 = snippet_Tally_Adder_add_all(l1, l4);
-    l6 = ((int64_t) (int32_t) t0);
-    l3 = std_core_write_int(l2, l3, l6);
+    l5 = std_core____Into_into__i32(l0);
+    t3 = snippet_Tally_Adder_add_all(l1, l5);
+    l10 = ((int64_t) (int32_t) t3);
+    l3 = std_core_write_int(l2, l3, l10);
     l3 = std_core_write_string_at(l2, l3, 4u);
-    t1 = std_core_finish_buffer(l2, l3);
-    std_io_println__string(t1);
+    t2 = std_core_finish_buffer(l2, l3);
+    std_io_println__string(t2);
 #line 57 "tests/snippets/iter_coerce_method_arg/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }

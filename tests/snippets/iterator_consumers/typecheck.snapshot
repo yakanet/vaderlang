@@ -1,0 +1,454 @@
+# Typecheck
+
+## tests/snippets/iterator_consumers
+  FnDecl         add                  :: fn(i64, i64) -> i64
+  FnDecl         big_pair             :: fn([i32, i32]) -> bool
+  FnDecl         drained_twice        :: fn(Iterator<i32>) -> i32
+  FnDecl         fifties              :: fn(i32) -> [i32, i32]
+  FnDecl         first_over           :: fn(i64, Iterator<i64>) -> i64
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         odd                  :: fn(i32) -> bool
+  FnDecl         pair_sum             :: fn(Iterator<[i32, i32]>) -> [i32, i32]
+  StructDecl     Point                :: Point!
+  FnDecl         print_until_stop     :: fn(Iterator<string>) -> void
+  FnDecl         square               :: fn(i32) -> i64
+  FnDecl         tens                 :: fn(i32) -> [i32, i32]
+  FnDecl         total                :: fn(Iterator<i64>) -> i64
+  FnDecl         weigh                :: fn(Iterator<i64>) -> i64
+  FnDecl         weigh                :: fn(i64, Iterator<i64>) -> i64
+  expr 103:16   SeqLitExpr     :: i32[]!
+  expr 104:14   RangeExpr      :: Range<i32>!
+  expr 105:16   IdentExpr      :: i32
+  expr 105:9    CallExpr       :: void
+  expr 105:9    FieldExpr      :: fn(i32) -> void
+  expr 105:9    IdentExpr      :: i32[]!
+  expr 107:12   CallExpr       :: Point![]!
+  expr 107:12   CallExpr       :: __genstate_map<Point!>!
+  expr 107:12   FieldExpr      :: fn() -> T[]!
+  expr 107:12   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 107:12   IdentExpr      :: i32[]!
+  expr 107:18   LambdaExpr     :: fn(i32) -> Point!
+  expr 107:25   StructLitExpr  :: Point!
+  expr 107:38   IdentExpr      :: i32
+  expr 107:46   BinaryExpr     :: i32
+  expr 107:46   IdentExpr      :: i32
+  expr 109:16   CallExpr       :: __genstate_map<i64>!
+  expr 109:16   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 109:16   IdentExpr      :: i32[]!
+  expr 109:22   IdentExpr      :: fn(i32) -> i64
+  expr 110:13   StringLitExpr  :: string
+  expr 110:21   CallExpr       :: __genstate_map<i64>!
+  expr 110:21   CallExpr       :: i64
+  expr 110:21   FieldExpr      :: fn(U, fn(U, T) -> U) -> U
+  expr 110:21   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 110:21   IdentExpr      :: i32[]!
+  expr 110:27   IdentExpr      :: fn(i32) -> i64
+  expr 110:40   CallExpr       :: i64
+  expr 110:40   IdentExpr      :: type
+  expr 110:48   IdentExpr      :: fn(i64, i64) -> i64
+  expr 110:5    CallExpr       :: void
+  expr 110:5    IdentExpr      :: fn(T) -> void
+  expr 110:56   CallExpr       :: i64
+  expr 110:56   FieldExpr      :: fn(U, fn(U, T) -> U) -> U
+  expr 110:56   IdentExpr      :: __genstate_map<i64>!
+  expr 110:69   CallExpr       :: i64
+  expr 110:69   IdentExpr      :: type
+  expr 110:77   IdentExpr      :: fn(i64, i64) -> i64
+  expr 111:13   CallExpr       :: __genstate_filter<i32>!
+  expr 111:13   FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
+  expr 111:13   IdentExpr      :: i32[]!
+  expr 111:22   IdentExpr      :: fn(i32) -> bool
+  expr 112:13   StringLitExpr  :: string
+  expr 112:20   CallExpr       :: __genstate_filter<i32>!
+  expr 112:20   CallExpr       :: i32
+  expr 112:20   FieldExpr      :: fn() -> i32
+  expr 112:20   FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
+  expr 112:20   IdentExpr      :: i32[]!
+  expr 112:29   IdentExpr      :: fn(i32) -> bool
+  expr 112:43   CallExpr       :: i32
+  expr 112:43   FieldExpr      :: fn() -> i32
+  expr 112:43   IdentExpr      :: __genstate_filter<i32>!
+  expr 112:5    CallExpr       :: void
+  expr 112:5    IdentExpr      :: fn(T) -> void
+  expr 113:22   CallExpr       :: __genstate_map<i64>!
+  expr 113:22   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 113:22   IdentExpr      :: i32[]!
+  expr 113:28   IdentExpr      :: fn(i32) -> i64
+  expr 114:13   StringLitExpr  :: string
+  expr 114:21   CallExpr       :: i64
+  expr 114:21   IdentExpr      :: fn(Iterator<i64>) -> i64
+  expr 114:27   CallExpr       :: __genstate_map<i64>!
+  expr 114:27   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 114:27   IdentExpr      :: i32[]!
+  expr 114:33   IdentExpr      :: fn(i32) -> i64
+  expr 114:45   CallExpr       :: i64
+  expr 114:45   IdentExpr      :: fn(Iterator<i64>) -> i64
+  expr 114:5    CallExpr       :: void
+  expr 114:5    IdentExpr      :: fn(T) -> void
+  expr 114:51   IdentExpr      :: __genstate_map<i64>!
+  expr 115:21   CallExpr       :: __genstate_map<i64>!
+  expr 115:21   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 115:21   IdentExpr      :: i32[]!
+  expr 115:27   IdentExpr      :: fn(i32) -> i64
+  expr 116:13   StringLitExpr  :: string
+  expr 116:22   CallExpr       :: i64
+  expr 116:22   IdentExpr      :: fn(i64, Iterator<i64>) -> i64
+  expr 116:37   CallExpr       :: __genstate_map<i64>!
+  expr 116:37   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 116:37   IdentExpr      :: i32[]!
+  expr 116:43   IdentExpr      :: fn(i32) -> i64
+  expr 116:5    CallExpr       :: void
+  expr 116:5    IdentExpr      :: fn(T) -> void
+  expr 116:55   CallExpr       :: i64
+  expr 116:55   IdentExpr      :: fn(i64, Iterator<i64>) -> i64
+  expr 116:70   IdentExpr      :: __genstate_map<i64>!
+  expr 117:21   CallExpr       :: __genstate_map<i64>!
+  expr 117:21   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 117:21   IdentExpr      :: i32[]!
+  expr 117:27   IdentExpr      :: fn(i32) -> i64
+  expr 118:13   StringLitExpr  :: string
+  expr 118:21   CallExpr       :: i64
+  expr 118:21   IdentExpr      :: fn(i64, Iterator<i64>) -> i64
+  expr 118:38   CallExpr       :: __genstate_map<i64>!
+  expr 118:38   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 118:38   IdentExpr      :: i32[]!
+  expr 118:44   IdentExpr      :: fn(i32) -> i64
+  expr 118:5    CallExpr       :: void
+  expr 118:5    IdentExpr      :: fn(T) -> void
+  expr 118:56   CallExpr       :: i64
+  expr 118:56   IdentExpr      :: fn(i64, Iterator<i64>) -> i64
+  expr 118:73   IdentExpr      :: __genstate_map<i64>!
+  expr 119:12   CallExpr       :: __genstate_filter<Point!>!
+  expr 119:12   FieldExpr      :: fn(fn(Point!) -> bool) -> Iterator<Point!>
+  expr 119:12   IdentExpr      :: Point![]!
+  expr 119:23   LambdaExpr     :: fn(Point) -> bool
+  expr 119:30   BinaryExpr     :: bool
+  expr 119:30   FieldExpr      :: i32
+  expr 119:30   IdentExpr      :: Point
+  expr 120:14   CallExpr       :: __genstate_filter<Point!>!
+  expr 120:14   CallExpr       :: null | Point!
+  expr 120:14   FieldExpr      :: fn(fn(Point!) -> bool) -> Iterator<Point!>
+  expr 120:14   FieldExpr      :: fn(fn(T) -> bool) -> null | T
+  expr 120:14   FieldExpr      :: i32
+  expr 120:14   IdentExpr      :: Point![]!
+  expr 120:14   NullCoalesceExpr :: Point!
+  expr 120:25   LambdaExpr     :: fn(Point) -> bool
+  expr 120:32   BinaryExpr     :: bool
+  expr 120:32   FieldExpr      :: i32
+  expr 120:32   IdentExpr      :: Point
+  expr 120:46   LambdaExpr     :: fn(Point) -> bool
+  expr 120:53   BinaryExpr     :: bool
+  expr 120:53   FieldExpr      :: i32
+  expr 120:53   IdentExpr      :: Point
+  expr 120:66   StructLitExpr  :: Point!
+  expr 121:13   StringLitExpr  :: string
+  expr 121:28   IdentExpr      :: i32
+  expr 121:37   CallExpr       :: null | Point!
+  expr 121:37   FieldExpr      :: fn(fn(T) -> bool) -> null | T
+  expr 121:37   FieldExpr      :: i32
+  expr 121:37   IdentExpr      :: __genstate_filter<Point!>!
+  expr 121:37   NullCoalesceExpr :: Point!
+  expr 121:46   LambdaExpr     :: fn(Point) -> bool
+  expr 121:5    CallExpr       :: void
+  expr 121:5    IdentExpr      :: fn(T) -> void
+  expr 121:53   BinaryExpr     :: bool
+  expr 121:53   FieldExpr      :: i32
+  expr 121:53   IdentExpr      :: Point
+  expr 121:66   StructLitExpr  :: Point!
+  expr 122:15   CallExpr       :: __genstate_filter<Point!>!
+  expr 122:15   FieldExpr      :: fn(fn(Point!) -> bool) -> Iterator<Point!>
+  expr 122:15   IdentExpr      :: Point![]!
+  expr 122:26   LambdaExpr     :: fn(Point) -> bool
+  expr 122:33   BinaryExpr     :: bool
+  expr 122:33   BinaryExpr     :: i32
+  expr 122:33   FieldExpr      :: i32
+  expr 122:33   IdentExpr      :: Point
+  expr 123:13   StringLitExpr  :: string
+  expr 123:31   CallExpr       :: Point![]!
+  expr 123:31   CallExpr       :: __genstate_filter<Point!>!
+  expr 123:31   CallExpr       :: usize
+  expr 123:31   FieldExpr      :: fn() -> T[]!
+  expr 123:31   FieldExpr      :: fn() -> usize
+  expr 123:31   FieldExpr      :: fn(fn(Point!) -> bool) -> Iterator<Point!>
+  expr 123:31   IdentExpr      :: Point![]!
+  expr 123:42   LambdaExpr     :: fn(Point) -> bool
+  expr 123:49   BinaryExpr     :: bool
+  expr 123:49   BinaryExpr     :: i32
+  expr 123:49   FieldExpr      :: i32
+  expr 123:49   IdentExpr      :: Point
+  expr 123:5    CallExpr       :: void
+  expr 123:5    IdentExpr      :: fn(T) -> void
+  expr 123:82   CallExpr       :: Point![]!
+  expr 123:82   CallExpr       :: usize
+  expr 123:82   FieldExpr      :: fn() -> T[]!
+  expr 123:82   FieldExpr      :: fn() -> usize
+  expr 123:82   IdentExpr      :: __genstate_filter<Point!>!
+  expr 125:14   CallExpr       :: __genstate_map<string>!
+  expr 125:14   FieldExpr      :: fn(fn(string) -> U) -> Iterator<U>
+  expr 125:14   SeqLitExpr     :: string[]!
+  expr 125:15   StringLitExpr  :: string
+  expr 125:20   StringLitExpr  :: string
+  expr 125:25   StringLitExpr  :: string
+  expr 125:33   StringLitExpr  :: string
+  expr 125:42   LambdaExpr     :: fn(string) -> string
+  expr 125:49   IdentExpr      :: string
+  expr 126:22   CallExpr       :: __genstate_map<string>!
+  expr 126:22   FieldExpr      :: fn(fn(string) -> U) -> Iterator<U>
+  expr 126:22   SeqLitExpr     :: string[]!
+  expr 126:23   StringLitExpr  :: string
+  expr 126:28   StringLitExpr  :: string
+  expr 126:33   StringLitExpr  :: string
+  expr 126:41   StringLitExpr  :: string
+  expr 126:5    CallExpr       :: void
+  expr 126:5    IdentExpr      :: fn(Iterator<string>) -> void
+  expr 126:50   LambdaExpr     :: fn(string) -> string
+  expr 126:57   IdentExpr      :: string
+  expr 127:22   IdentExpr      :: __genstate_map<string>!
+  expr 127:5    CallExpr       :: void
+  expr 127:5    IdentExpr      :: fn(Iterator<string>) -> void
+  expr 128:22   CallExpr       :: __genstate_map<string>!
+  expr 128:22   FieldExpr      :: fn(fn(string) -> U) -> Iterator<U>
+  expr 128:22   SeqLitExpr     :: string[]!
+  expr 128:23   StringLitExpr  :: string
+  expr 128:28   StringLitExpr  :: string
+  expr 128:37   LambdaExpr     :: fn(string) -> string
+  expr 128:44   BinaryExpr     :: string
+  expr 128:44   IdentExpr      :: string
+  expr 128:48   IdentExpr      :: string
+  expr 128:5    CallExpr       :: void
+  expr 128:5    IdentExpr      :: fn(Iterator<string>) -> void
+  expr 12:31    BinaryExpr     :: i64
+  expr 12:31    CallExpr       :: i64
+  expr 12:31    IdentExpr      :: type
+  expr 12:35    IdentExpr      :: i32
+  expr 12:40    CallExpr       :: i64
+  expr 12:40    IdentExpr      :: type
+  expr 12:44    IdentExpr      :: i32
+  expr 130:14   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 130:14   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 130:14   IdentExpr      :: i32[]!
+  expr 130:20   IdentExpr      :: fn(i32) -> [i32, i32]
+  expr 131:10   CallExpr       :: [i32, i32]
+  expr 131:10   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
+  expr 131:19   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 131:19   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 131:19   IdentExpr      :: i32[]!
+  expr 131:25   IdentExpr      :: fn(i32) -> [i32, i32]
+  expr 132:15   CallExpr       :: [i32, i32]
+  expr 132:15   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
+  expr 132:24   IdentExpr      :: __genstate_map<[i32, i32]!>!
+  expr 133:13   StringLitExpr  :: string
+  expr 133:21   FieldExpr      :: i32
+  expr 133:21   IdentExpr      :: [i32, i32]
+  expr 133:28   FieldExpr      :: i32
+  expr 133:28   IdentExpr      :: [i32, i32]
+  expr 133:35   FieldExpr      :: i32
+  expr 133:35   IdentExpr      :: [i32, i32]
+  expr 133:47   FieldExpr      :: i32
+  expr 133:47   IdentExpr      :: [i32, i32]
+  expr 133:5    CallExpr       :: void
+  expr 133:5    IdentExpr      :: fn(T) -> void
+  expr 134:13   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 134:13   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 134:13   IdentExpr      :: i32[]!
+  expr 134:19   IdentExpr      :: fn(i32) -> [i32, i32]
+  expr 135:10   CallExpr       :: [i32, i32]
+  expr 135:10   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
+  expr 135:19   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 135:19   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 135:19   IdentExpr      :: i32[]!
+  expr 135:25   IdentExpr      :: fn(i32) -> [i32, i32]
+  expr 136:15   CallExpr       :: [i32, i32]
+  expr 136:15   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
+  expr 136:24   IdentExpr      :: __genstate_map<[i32, i32]!>!
+  expr 137:13   StringLitExpr  :: string
+  expr 137:27   FieldExpr      :: i32
+  expr 137:27   IdentExpr      :: [i32, i32]
+  expr 137:34   FieldExpr      :: i32
+  expr 137:34   IdentExpr      :: [i32, i32]
+  expr 137:41   FieldExpr      :: i32
+  expr 137:41   IdentExpr      :: [i32, i32]
+  expr 137:5    CallExpr       :: void
+  expr 137:5    IdentExpr      :: fn(T) -> void
+  expr 137:53   FieldExpr      :: i32
+  expr 137:53   IdentExpr      :: [i32, i32]
+  expr 139:15   CallExpr       :: __genstate_filter<[i32, i32]!>!
+  expr 139:15   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 139:15   FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
+  expr 139:15   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 139:15   IdentExpr      :: i32[]!
+  expr 139:21   IdentExpr      :: fn(i32) -> [i32, i32]
+  expr 139:34   IdentExpr      :: fn([i32, i32]) -> bool
+  expr 140:10   CallExpr       :: [i32, i32]
+  expr 140:10   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
+  expr 140:19   CallExpr       :: __genstate_filter<[i32, i32]!>!
+  expr 140:19   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 140:19   FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
+  expr 140:19   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 140:19   IdentExpr      :: i32[]!
+  expr 140:25   IdentExpr      :: fn(i32) -> [i32, i32]
+  expr 140:38   IdentExpr      :: fn([i32, i32]) -> bool
+  expr 141:15   CallExpr       :: [i32, i32]
+  expr 141:15   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
+  expr 141:24   IdentExpr      :: __genstate_filter<[i32, i32]!>!
+  expr 142:13   StringLitExpr  :: string
+  expr 142:30   FieldExpr      :: i32
+  expr 142:30   IdentExpr      :: [i32, i32]
+  expr 142:37   FieldExpr      :: i32
+  expr 142:37   IdentExpr      :: [i32, i32]
+  expr 142:44   FieldExpr      :: i32
+  expr 142:44   IdentExpr      :: [i32, i32]
+  expr 142:5    CallExpr       :: void
+  expr 142:5    IdentExpr      :: fn(T) -> void
+  expr 142:56   FieldExpr      :: i32
+  expr 142:56   IdentExpr      :: [i32, i32]
+  expr 143:15   CallExpr       :: __genstate_map<i64>!
+  expr 143:15   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 143:15   IdentExpr      :: i32[]!
+  expr 143:21   IdentExpr      :: fn(i32) -> i64
+  expr 144:13   StringLitExpr  :: string
+  expr 144:25   CallExpr       :: i64
+  expr 144:25   IdentExpr      :: fn(Iterator<i64>) -> i64
+  expr 144:31   CallExpr       :: __genstate_map<i64>!
+  expr 144:31   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 144:31   IdentExpr      :: i32[]!
+  expr 144:37   IdentExpr      :: fn(i32) -> i64
+  expr 144:49   CallExpr       :: i64
+  expr 144:49   IdentExpr      :: fn(i64, Iterator<i64>) -> i64
+  expr 144:5    CallExpr       :: void
+  expr 144:5    IdentExpr      :: fn(T) -> void
+  expr 144:59   CallExpr       :: __genstate_map<i64>!
+  expr 144:59   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 144:59   IdentExpr      :: i32[]!
+  expr 144:65   IdentExpr      :: fn(i32) -> i64
+  expr 144:77   CallExpr       :: i64
+  expr 144:77   IdentExpr      :: fn(i64, Iterator<i64>) -> i64
+  expr 144:87   IdentExpr      :: __genstate_map<i64>!
+  expr 146:13   StringLitExpr  :: string
+  expr 146:22   CallExpr       :: i32
+  expr 146:22   IdentExpr      :: fn(Iterator<i32>) -> i32
+  expr 146:36   CallExpr       :: __genstate_map<i32>!
+  expr 146:36   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 146:36   IdentExpr      :: i32[]!
+  expr 146:42   LambdaExpr     :: fn(i32) -> i32
+  expr 146:49   BinaryExpr     :: i32
+  expr 146:49   IdentExpr      :: i32
+  expr 146:5    CallExpr       :: void
+  expr 146:5    IdentExpr      :: fn(T) -> void
+  expr 147:13   StringLitExpr  :: string
+  expr 147:27   CallExpr       :: i64
+  expr 147:27   FieldExpr      :: fn(U, fn(U, i32) -> U) -> U
+  expr 147:27   IdentExpr      :: i32[]!
+  expr 147:34   CallExpr       :: i64
+  expr 147:34   IdentExpr      :: type
+  expr 147:42   LambdaExpr     :: fn(i64, i32) -> i64
+  expr 147:5    CallExpr       :: void
+  expr 147:5    IdentExpr      :: fn(T) -> void
+  expr 147:54   BinaryExpr     :: i64
+  expr 147:54   IdentExpr      :: i64
+  expr 147:60   CallExpr       :: i64
+  expr 147:60   IdentExpr      :: type
+  expr 147:64   IdentExpr      :: i32
+  expr 148:13   StringLitExpr  :: string
+  expr 148:27   CallExpr       :: __genstate_map<i32>!
+  expr 148:27   CallExpr       :: i32
+  expr 148:27   FieldExpr      :: fn() -> i32
+  expr 148:27   FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
+  expr 148:27   RangeExpr      :: Range<i32>!
+  expr 148:38   LambdaExpr     :: fn(i32) -> i32
+  expr 148:45   BinaryExpr     :: i32
+  expr 148:45   IdentExpr      :: i32
+  expr 148:5    CallExpr       :: void
+  expr 148:5    IdentExpr      :: fn(T) -> void
+  expr 149:13   StringLitExpr  :: string
+  expr 149:25   CallExpr       :: i32 | null
+  expr 149:25   FieldExpr      :: fn(fn(i32) -> null | U) -> null | U
+  expr 149:25   IdentExpr      :: i32[]!
+  expr 149:25   NullCoalesceExpr :: i32
+  expr 149:36   LambdaExpr     :: fn(i32) -> i32 | null
+  expr 149:43   IfExpr         :: i32 | null
+  expr 149:46   BinaryExpr     :: bool
+  expr 149:46   IdentExpr      :: i32
+  expr 149:5    CallExpr       :: void
+  expr 149:5    IdentExpr      :: fn(T) -> void
+  expr 149:54   BinaryExpr     :: i32
+  expr 149:54   IdentExpr      :: i32
+  expr 14:38    BinaryExpr     :: i64
+  expr 14:38    IdentExpr      :: i64
+  expr 14:44    IdentExpr      :: i64
+  expr 16:29    BinaryExpr     :: bool
+  expr 16:29    BinaryExpr     :: i32
+  expr 16:29    IdentExpr      :: i32
+  expr 18:36    SeqLitExpr     :: [i32, i32]!
+  expr 18:37    IdentExpr      :: i32
+  expr 18:40    BinaryExpr     :: i32
+  expr 18:40    IdentExpr      :: i32
+  expr 20:39    SeqLitExpr     :: [i32, i32]!
+  expr 20:40    BinaryExpr     :: i32
+  expr 20:40    IdentExpr      :: i32
+  expr 20:48    IdentExpr      :: i32
+  expr 22:41    BinaryExpr     :: bool
+  expr 22:41    FieldExpr      :: i32
+  expr 22:41    IdentExpr      :: [i32, i32]
+  expr 31:14    IdentExpr      :: Iterator<i64>
+  expr 32:14    IdentExpr      :: i64
+  expr 32:9     BinaryExpr     :: i64
+  expr 32:9     IdentExpr      :: i64
+  expr 34:12    IdentExpr      :: i64
+  expr 39:14    IdentExpr      :: Iterator<i64>
+  expr 40:12    BinaryExpr     :: bool
+  expr 40:12    IdentExpr      :: i64
+  expr 40:16    IdentExpr      :: i64
+  expr 40:9     IfExpr         :: void
+  expr 41:20    IdentExpr      :: i64
+  expr 44:12    UnaryExpr      :: i64
+  expr 49:14    IdentExpr      :: Iterator<string>
+  expr 50:12    BinaryExpr     :: bool
+  expr 50:12    IdentExpr      :: string
+  expr 50:17    StringLitExpr  :: string
+  expr 50:9     IfExpr         :: void
+  expr 53:15    StringLitExpr  :: string
+  expr 53:18    IdentExpr      :: string
+  expr 53:9     CallExpr       :: void
+  expr 53:9     IdentExpr      :: fn(T) -> void
+  expr 55:13    StringLitExpr  :: string
+  expr 55:5     CallExpr       :: void
+  expr 55:5     IdentExpr      :: fn(T) -> void
+  expr 62:19    IdentExpr      :: Iterator<[i32, i32]>
+  expr 63:12    BinaryExpr     :: bool
+  expr 63:12    IdentExpr      :: i32
+  expr 63:9     IfExpr         :: void
+  expr 64:20    SeqLitExpr     :: [i32, i32]!
+  expr 64:21    IdentExpr      :: i32
+  expr 64:24    IdentExpr      :: i32
+  expr 66:14    IdentExpr      :: i32
+  expr 66:9     BinaryExpr     :: i32
+  expr 66:9     IdentExpr      :: i32
+  expr 67:14    IdentExpr      :: i32
+  expr 67:9     BinaryExpr     :: i32
+  expr 67:9     IdentExpr      :: i32
+  expr 69:12    SeqLitExpr     :: [i32, i32]!
+  expr 69:13    IdentExpr      :: i32
+  expr 69:16    IdentExpr      :: i32
+  expr 75:14    IdentExpr      :: Iterator<i64>
+  expr 76:14    IdentExpr      :: i64
+  expr 76:9     BinaryExpr     :: i64
+  expr 76:9     IdentExpr      :: i64
+  expr 78:12    IdentExpr      :: i64
+  expr 83:14    IdentExpr      :: Iterator<i64>
+  expr 84:14    BinaryExpr     :: i64
+  expr 84:14    IdentExpr      :: i64
+  expr 84:18    IdentExpr      :: i64
+  expr 84:9     BinaryExpr     :: i64
+  expr 84:9     IdentExpr      :: i64
+  expr 86:12    IdentExpr      :: i64
+  expr 93:14    IdentExpr      :: Iterator<i32>
+  expr 94:14    IdentExpr      :: i32
+  expr 94:9     BinaryExpr     :: i32
+  expr 94:9     IdentExpr      :: i32
+  expr 96:14    IdentExpr      :: Iterator<i32>
+  expr 97:14    BinaryExpr     :: i32
+  expr 97:14    IdentExpr      :: i32
+  expr 97:9     BinaryExpr     :: i32
+  expr 97:9     IdentExpr      :: i32
+  expr 99:12    IdentExpr      :: i32

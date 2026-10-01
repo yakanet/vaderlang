@@ -115,103 +115,215 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_0: Buffer =
+          let __buf_4: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(51) :usize
-          let __off_1: usize = int(0) :usize
+          let __off_5: usize = int(0) :usize
           assign
             target:
-              __off_1 :usize
+              __off_5 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_0 :Buffer
+                  __buf_4 :Buffer
                 arg1:
-                  __off_1 :usize
+                  __off_5 :usize
                 arg2:
                   "free=" :string
           assign
             target:
-              __off_1 :usize
+              __off_5 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_0 :Buffer
+                  __buf_4 :Buffer
                 arg1:
-                  __off_1 :usize
+                  __off_5 :usize
                 arg2:
                   cast → i64
-                    call :i32
-                      callee:
-                        sum_both :fn(Iterator<i32>, Iterator<i32>) -> i32
-                      arg0:
-                        call :Iterator<i32>
-                          callee:
-                            std_core$[]$Into$into__i32 :Iterator<i32>
-                          arg0:
-                            xs :i32[]!
-                      arg1:
+                    block :i32
+                      let __fuse_arr_0: i32[]! = xs :i32[]!
+                      let b: Iterator<i32> =
                         call :Iterator<i32>
                           callee:
                             std_core$[]$Into$into__i32 :Iterator<i32>
                           arg0:
                             ys :i32[]!
+                      let total: i32 = int(0) :i32
+                      block :void
+                        let __fuse_len_0: usize =
+                          LoweredArrayLen
+                        let __fuse_i_1: usize = int(0) :usize
+                        loop while (<…>)
+                          let x: i32 =
+                            index :i32
+                              on:
+                                __fuse_arr_0 :i32[]!
+                              ix:
+                                __fuse_i_1 :usize
+                          assign
+                            target:
+                              total :i32
+                            value:
+                              add :i32
+                                l:
+                                  total :i32
+                                r:
+                                  x :i32
+                        step
+                          assign
+                            target:
+                              __fuse_i_1 :usize
+                            value:
+                              add :usize
+                                l:
+                                  __fuse_i_1 :usize
+                                r:
+                                  int(1) :usize
+                      block :void
+                        let __iter_2: Iterator<i32> = b :Iterator<i32>
+                        loop
+                          let __step_3: [i32, Continuation]! =
+                            vcall Iterator.next :[i32, Continuation]!
+                              recv:
+                                __iter_2 :Iterator<i32>
+                          if :void
+                            cond:
+                              eq :bool
+                                l:
+                                  ._1 :Continuation
+                                    __step_3 :[i32, Continuation]!
+                                r:
+                                  int(1) :u8
+                            then:
+                              break
+                            else:
+                              let y: i32 =
+                                ._0 :i32
+                                  __step_3 :[i32, Continuation]!
+                              assign
+                                target:
+                                  total :i32
+                                value:
+                                  add :i32
+                                    l:
+                                      total :i32
+                                    r:
+                                      y :i32
+                      ~>
+                        total :i32
           assign
             target:
-              __off_1 :usize
+              __off_5 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_0 :Buffer
+                  __buf_4 :Buffer
                 arg1:
-                  __off_1 :usize
+                  __off_5 :usize
                 arg2:
                   " ufcs=" :string
           assign
             target:
-              __off_1 :usize
+              __off_5 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_0 :Buffer
+                  __buf_4 :Buffer
                 arg1:
-                  __off_1 :usize
+                  __off_5 :usize
                 arg2:
                   cast → i64
-                    call :i32
-                      callee:
-                        sum_both :i32
-                      arg0:
-                        call :Iterator<i32>
-                          callee:
-                            std_core$[]$Into$into__i32 :Iterator<i32>
-                          arg0:
-                            xs :i32[]!
-                      arg1:
+                    block :i32
+                      let __fuse_arr_2: i32[]! = xs :i32[]!
+                      let b: Iterator<i32> =
                         call :Iterator<i32>
                           callee:
                             std_core$[]$Into$into__i32 :Iterator<i32>
                           arg0:
                             ys :i32[]!
+                      let total: i32 = int(0) :i32
+                      block :void
+                        let __fuse_len_0: usize =
+                          LoweredArrayLen
+                        let __fuse_i_1: usize = int(0) :usize
+                        loop while (<…>)
+                          let x: i32 =
+                            index :i32
+                              on:
+                                __fuse_arr_2 :i32[]!
+                              ix:
+                                __fuse_i_1 :usize
+                          assign
+                            target:
+                              total :i32
+                            value:
+                              add :i32
+                                l:
+                                  total :i32
+                                r:
+                                  x :i32
+                        step
+                          assign
+                            target:
+                              __fuse_i_1 :usize
+                            value:
+                              add :usize
+                                l:
+                                  __fuse_i_1 :usize
+                                r:
+                                  int(1) :usize
+                      block :void
+                        let __iter_2: Iterator<i32> = b :Iterator<i32>
+                        loop
+                          let __step_3: [i32, Continuation]! =
+                            vcall Iterator.next :[i32, Continuation]!
+                              recv:
+                                __iter_2 :Iterator<i32>
+                          if :void
+                            cond:
+                              eq :bool
+                                l:
+                                  ._1 :Continuation
+                                    __step_3 :[i32, Continuation]!
+                                r:
+                                  int(1) :u8
+                            then:
+                              break
+                            else:
+                              let y: i32 =
+                                ._0 :i32
+                                  __step_3 :[i32, Continuation]!
+                              assign
+                                target:
+                                  total :i32
+                                value:
+                                  add :i32
+                                    l:
+                                      total :i32
+                                    r:
+                                      y :i32
+                      ~>
+                        total :i32
           ~>
             call :string
               callee:
                 finish_buffer :string
               arg0:
-                __buf_0 :Buffer
+                __buf_4 :Buffer
               arg1:
-                __off_1 :usize
+                __off_5 :usize
     let t: Tally! =
       Tally! {
         base: int(100) :i32
@@ -221,37 +333,37 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_2: Buffer =
+          let __buf_6: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(36) :usize
-          let __off_3: usize = int(0) :usize
+          let __off_7: usize = int(0) :usize
           assign
             target:
-              __off_3 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_2 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_3 :usize
+                  __off_7 :usize
                 arg2:
                   "member=" :string
           assign
             target:
-              __off_3 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_2 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_3 :usize
+                  __off_7 :usize
                 arg2:
                   cast → i64
                     call :i32
@@ -267,15 +379,15 @@
                             xs :i32[]!
           assign
             target:
-              __off_3 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_2 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_3 :usize
+                  __off_7 :usize
                 arg2:
                   " want=106" :string
           ~>
@@ -283,9 +395,9 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_2 :Buffer
+                __buf_6 :Buffer
               arg1:
-                __off_3 :usize
+                __off_7 :usize
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

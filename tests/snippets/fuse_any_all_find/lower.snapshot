@@ -14,237 +14,261 @@
       block :bool
         let __fuse_arr_0: i32[]! = xs :i32[]!
         let f: fn(i32) -> i32 = __lambda_snippet_0 :fn(i32) -> i32
-        let __acc_1: bool = false
-        let __fuse_len_3: usize =
-          LoweredArrayLen
-        let __fuse_i_4: usize = int(0) :usize
-        loop while (<…>)
-          let x: i32 =
-            index :i32
-              on:
-                __fuse_arr_0 :i32[]!
-              ix:
-                __fuse_i_4 :usize
-          let __elem_2: i32 =
-            call :i32
-              callee:
-                __lambda_snippet_0 :fn(i32) -> i32
-              arg0:
-                x :i32
-          if :void
-            cond:
-              call :bool
-                callee:
-                  __lambda_snippet_1 :fn(i32) -> bool
-                arg0:
-                  __elem_2 :i32
-            then:
-              assign
-                target:
-                  __acc_1 :bool
-                value:
-                  true
-              break
-        step
-          assign
-            target:
-              __fuse_i_4 :usize
-            value:
-              add :usize
-                l:
-                  __fuse_i_4 :usize
-                r:
-                  int(1) :usize
-        ~>
-          __acc_1 :bool
-    let b: bool =
-      block :bool
-        let __fuse_arr_5: i32[]! = xs :i32[]!
-        let pred: fn(i32) -> bool = __lambda_snippet_2 :fn(i32) -> bool
-        let __acc_6: bool = true
-        let __fuse_len_8: usize =
-          LoweredArrayLen
-        let __fuse_i_9: usize = int(0) :usize
-        loop while (<…>)
-          let x: i32 =
-            index :i32
-              on:
-                __fuse_arr_5 :i32[]!
-              ix:
-                __fuse_i_9 :usize
-          ~>
-            if :void
-              cond:
-                call :bool
+        let pred: fn(i32) -> bool = __lambda_snippet_1 :fn(i32) -> bool
+        let __consumed_1: bool = false
+        block :$exit$i8
+          block :void
+            let __fuse_len_0: usize =
+              LoweredArrayLen
+            let __fuse_i_1: usize = int(0) :usize
+            loop while (<…>)
+              let x: i32 =
+                index :i32
+                  on:
+                    __fuse_arr_0 :i32[]!
+                  ix:
+                    __fuse_i_1 :usize
+              let x: i32 =
+                call :i32
                   callee:
-                    __lambda_snippet_2 :fn(i32) -> bool
+                    __lambda_snippet_0 :fn(i32) -> i32
                   arg0:
                     x :i32
-              then:
-                let __elem_7: i32 = x :i32
-                if :void
-                  cond:
-                    not :bool
-                      call :bool
-                        callee:
-                          __lambda_snippet_3 :fn(i32) -> bool
-                        arg0:
-                          __elem_7 :i32
-                  then:
-                    assign
-                      target:
-                        __acc_6 :bool
-                      value:
-                        false
-                    break
-        step
-          assign
-            target:
-              __fuse_i_9 :usize
-            value:
-              add :usize
-                l:
-                  __fuse_i_9 :usize
-                r:
-                  int(1) :usize
-        ~>
-          __acc_6 :bool
-    let c: bool =
-      block :bool
-        let __fuse_arr_10: i32[]! = xs :i32[]!
-        let f: fn(i32) -> i32 = __lambda_snippet_4 :fn(i32) -> i32
-        let __acc_11: bool = true
-        let __fuse_len_13: usize =
-          LoweredArrayLen
-        let __fuse_i_14: usize = int(0) :usize
-        loop while (<…>)
-          let x: i32 =
-            index :i32
-              on:
-                __fuse_arr_10 :i32[]!
-              ix:
-                __fuse_i_14 :usize
-          let __elem_12: i32 =
-            call :i32
-              callee:
-                __lambda_snippet_4 :fn(i32) -> i32
-              arg0:
-                x :i32
-          if :void
-            cond:
-              not :bool
-                call :bool
-                  callee:
-                    __lambda_snippet_5 :fn(i32) -> bool
-                  arg0:
-                    __elem_12 :i32
-            then:
+              if :void
+                cond:
+                  call :bool
+                    callee:
+                      __lambda_snippet_1 :fn(i32) -> bool
+                    arg0:
+                      x :i32
+                then:
+                  assign
+                    target:
+                      __consumed_1 :bool
+                    value:
+                      true
+                  break :$exit$i8
+            step
               assign
                 target:
-                  __acc_11 :bool
+                  __fuse_i_1 :usize
                 value:
-                  false
-              break
-        step
+                  add :usize
+                    l:
+                      __fuse_i_1 :usize
+                    r:
+                      int(1) :usize
           assign
             target:
-              __fuse_i_14 :usize
+              __consumed_1 :bool
             value:
-              add :usize
-                l:
-                  __fuse_i_14 :usize
-                r:
-                  int(1) :usize
+              false
         ~>
-          __acc_11 :bool
+          __consumed_1 :bool
+    let b: bool =
+      block :bool
+        let __fuse_arr_2: i32[]! = xs :i32[]!
+        let pred: fn(i32) -> bool = __lambda_snippet_2 :fn(i32) -> bool
+        let pred: fn(i32) -> bool = __lambda_snippet_3 :fn(i32) -> bool
+        let __consumed_3: bool = false
+        block :$exit$i22
+          block :void
+            let __fuse_len_0: usize =
+              LoweredArrayLen
+            let __fuse_i_1: usize = int(0) :usize
+            loop while (<…>)
+              let x: i32 =
+                index :i32
+                  on:
+                    __fuse_arr_2 :i32[]!
+                  ix:
+                    __fuse_i_1 :usize
+              ~>
+                if :void
+                  cond:
+                    call :bool
+                      callee:
+                        __lambda_snippet_2 :fn(i32) -> bool
+                      arg0:
+                        x :i32
+                  then:
+                    let x: i32 = x :i32
+                    if :void
+                      cond:
+                        not :bool
+                          call :bool
+                            callee:
+                              __lambda_snippet_3 :fn(i32) -> bool
+                            arg0:
+                              x :i32
+                      then:
+                        assign
+                          target:
+                            __consumed_3 :bool
+                          value:
+                            false
+                        break :$exit$i22
+            step
+              assign
+                target:
+                  __fuse_i_1 :usize
+                value:
+                  add :usize
+                    l:
+                      __fuse_i_1 :usize
+                    r:
+                      int(1) :usize
+          assign
+            target:
+              __consumed_3 :bool
+            value:
+              true
+        ~>
+          __consumed_3 :bool
+    let c: bool =
+      block :bool
+        let __fuse_arr_4: i32[]! = xs :i32[]!
+        let f: fn(i32) -> i32 = __lambda_snippet_4 :fn(i32) -> i32
+        let pred: fn(i32) -> bool = __lambda_snippet_5 :fn(i32) -> bool
+        let __consumed_5: bool = false
+        block :$exit$i36
+          block :void
+            let __fuse_len_0: usize =
+              LoweredArrayLen
+            let __fuse_i_1: usize = int(0) :usize
+            loop while (<…>)
+              let x: i32 =
+                index :i32
+                  on:
+                    __fuse_arr_4 :i32[]!
+                  ix:
+                    __fuse_i_1 :usize
+              let x: i32 =
+                call :i32
+                  callee:
+                    __lambda_snippet_4 :fn(i32) -> i32
+                  arg0:
+                    x :i32
+              if :void
+                cond:
+                  not :bool
+                    call :bool
+                      callee:
+                        __lambda_snippet_5 :fn(i32) -> bool
+                      arg0:
+                        x :i32
+                then:
+                  assign
+                    target:
+                      __consumed_5 :bool
+                    value:
+                      false
+                  break :$exit$i36
+            step
+              assign
+                target:
+                  __fuse_i_1 :usize
+                value:
+                  add :usize
+                    l:
+                      __fuse_i_1 :usize
+                    r:
+                      int(1) :usize
+          assign
+            target:
+              __consumed_5 :bool
+            value:
+              true
+        ~>
+          __consumed_5 :bool
     call :void
       callee:
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_15: Buffer =
+          let __buf_6: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(30) :usize
-          let __off_16: usize = int(0) :usize
+          let __off_7: usize = int(0) :usize
           assign
             target:
-              __off_16 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_15 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_16 :usize
+                  __off_7 :usize
                 arg2:
                   "any " :string
           assign
             target:
-              __off_16 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_bool :usize
                 arg0:
-                  __buf_15 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_16 :usize
+                  __off_7 :usize
                 arg2:
                   a :bool
           assign
             target:
-              __off_16 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_15 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_16 :usize
+                  __off_7 :usize
                 arg2:
                   " all " :string
           assign
             target:
-              __off_16 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_bool :usize
                 arg0:
-                  __buf_15 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_16 :usize
+                  __off_7 :usize
                 arg2:
                   b :bool
           assign
             target:
-              __off_16 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_15 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_16 :usize
+                  __off_7 :usize
                 arg2:
                   " all2 " :string
           assign
             target:
-              __off_16 :usize
+              __off_7 :usize
             value:
               call :usize
                 callee:
                   write_bool :usize
                 arg0:
-                  __buf_15 :Buffer
+                  __buf_6 :Buffer
                 arg1:
-                  __off_16 :usize
+                  __off_7 :usize
                 arg2:
                   c :bool
           ~>
@@ -252,56 +276,64 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_15 :Buffer
+                __buf_6 :Buffer
               arg1:
-                __off_16 :usize
+                __off_7 :usize
     let f: i32 | null =
       block :i32 | null
-        let __fuse_arr_17: i32[]! = xs :i32[]!
+        let __fuse_arr_8: i32[]! = xs :i32[]!
         let f: fn(i32) -> i32 = __lambda_snippet_6 :fn(i32) -> i32
-        let __find_18: i32 | null = null
-        let __fuse_len_20: usize =
-          LoweredArrayLen
-        let __fuse_i_21: usize = int(0) :usize
-        loop while (<…>)
-          let x: i32 =
-            index :i32
-              on:
-                __fuse_arr_17 :i32[]!
-              ix:
-                __fuse_i_21 :usize
-          let __elem_19: i32 =
-            call :i32
-              callee:
-                __lambda_snippet_6 :fn(i32) -> i32
-              arg0:
-                x :i32
-          if :void
-            cond:
-              call :bool
-                callee:
-                  __lambda_snippet_7 :fn(i32) -> bool
-                arg0:
-                  __elem_19 :i32
-            then:
+        let pred: fn(i32) -> bool = __lambda_snippet_7 :fn(i32) -> bool
+        let __consumed_9: i32 | null = null
+        block :$exit$i52
+          block :void
+            let __fuse_len_0: usize =
+              LoweredArrayLen
+            let __fuse_i_1: usize = int(0) :usize
+            loop while (<…>)
+              let x: i32 =
+                index :i32
+                  on:
+                    __fuse_arr_8 :i32[]!
+                  ix:
+                    __fuse_i_1 :usize
+              let x: i32 =
+                call :i32
+                  callee:
+                    __lambda_snippet_6 :fn(i32) -> i32
+                  arg0:
+                    x :i32
+              if :void
+                cond:
+                  call :bool
+                    callee:
+                      __lambda_snippet_7 :fn(i32) -> bool
+                    arg0:
+                      x :i32
+                then:
+                  assign
+                    target:
+                      __consumed_9 :i32 | null
+                    value:
+                      x :i32
+                  break :$exit$i52
+            step
               assign
                 target:
-                  __find_18 :i32 | null
+                  __fuse_i_1 :usize
                 value:
-                  __elem_19 :i32
-              break
-        step
+                  add :usize
+                    l:
+                      __fuse_i_1 :usize
+                    r:
+                      int(1) :usize
           assign
             target:
-              __fuse_i_21 :usize
+              __consumed_9 :i32 | null
             value:
-              add :usize
-                l:
-                  __fuse_i_21 :usize
-                r:
-                  int(1) :usize
+              null
         ~>
-          __find_18 :i32 | null
+          __consumed_9 :i32 | null
     if :void
       cond:
         is null :bool
@@ -320,37 +352,37 @@
               std_io$println__string :void
             arg0:
               block :string
-                let __buf_22: Buffer =
+                let __buf_10: Buffer =
                   call :Buffer
                     callee:
                       new_byte_buffer :Buffer
                     arg0:
                       int(22) :usize
-                let __off_23: usize = int(0) :usize
+                let __off_11: usize = int(0) :usize
                 assign
                   target:
-                    __off_23 :usize
+                    __off_11 :usize
                   value:
                     call :usize
                       callee:
                         write_string_at :usize
                       arg0:
-                        __buf_22 :Buffer
+                        __buf_10 :Buffer
                       arg1:
-                        __off_23 :usize
+                        __off_11 :usize
                       arg2:
                         "f " :string
                 assign
                   target:
-                    __off_23 :usize
+                    __off_11 :usize
                   value:
                     call :usize
                       callee:
                         write_int :usize
                       arg0:
-                        __buf_22 :Buffer
+                        __buf_10 :Buffer
                       arg1:
-                        __off_23 :usize
+                        __off_11 :usize
                       arg2:
                         cast → i64
                           cast → i32
@@ -360,60 +392,68 @@
                     callee:
                       finish_buffer :string
                     arg0:
-                      __buf_22 :Buffer
+                      __buf_10 :Buffer
                     arg1:
-                      __off_23 :usize
+                      __off_11 :usize
     let g: i32 | null =
       block :i32 | null
-        let __fuse_arr_24: i32[]! = xs :i32[]!
+        let __fuse_arr_12: i32[]! = xs :i32[]!
         let pred: fn(i32) -> bool = __lambda_snippet_8 :fn(i32) -> bool
-        let __find_25: i32 | null = null
-        let __fuse_len_27: usize =
-          LoweredArrayLen
-        let __fuse_i_28: usize = int(0) :usize
-        loop while (<…>)
-          let x: i32 =
-            index :i32
-              on:
-                __fuse_arr_24 :i32[]!
-              ix:
-                __fuse_i_28 :usize
-          ~>
-            if :void
-              cond:
-                call :bool
-                  callee:
-                    __lambda_snippet_8 :fn(i32) -> bool
-                  arg0:
-                    x :i32
-              then:
-                let __elem_26: i32 = x :i32
+        let pred: fn(i32) -> bool = __lambda_snippet_9 :fn(i32) -> bool
+        let __consumed_13: i32 | null = null
+        block :$exit$i68
+          block :void
+            let __fuse_len_0: usize =
+              LoweredArrayLen
+            let __fuse_i_1: usize = int(0) :usize
+            loop while (<…>)
+              let x: i32 =
+                index :i32
+                  on:
+                    __fuse_arr_12 :i32[]!
+                  ix:
+                    __fuse_i_1 :usize
+              ~>
                 if :void
                   cond:
                     call :bool
                       callee:
-                        __lambda_snippet_9 :fn(i32) -> bool
+                        __lambda_snippet_8 :fn(i32) -> bool
                       arg0:
-                        __elem_26 :i32
+                        x :i32
                   then:
-                    assign
-                      target:
-                        __find_25 :i32 | null
-                      value:
-                        __elem_26 :i32
-                    break
-        step
+                    let x: i32 = x :i32
+                    if :void
+                      cond:
+                        call :bool
+                          callee:
+                            __lambda_snippet_9 :fn(i32) -> bool
+                          arg0:
+                            x :i32
+                      then:
+                        assign
+                          target:
+                            __consumed_13 :i32 | null
+                          value:
+                            x :i32
+                        break :$exit$i68
+            step
+              assign
+                target:
+                  __fuse_i_1 :usize
+                value:
+                  add :usize
+                    l:
+                      __fuse_i_1 :usize
+                    r:
+                      int(1) :usize
           assign
             target:
-              __fuse_i_28 :usize
+              __consumed_13 :i32 | null
             value:
-              add :usize
-                l:
-                  __fuse_i_28 :usize
-                r:
-                  int(1) :usize
+              null
         ~>
-          __find_25 :i32 | null
+          __consumed_13 :i32 | null
     if :void
       cond:
         is null :bool
@@ -432,37 +472,37 @@
               std_io$println__string :void
             arg0:
               block :string
-                let __buf_29: Buffer =
+                let __buf_14: Buffer =
                   call :Buffer
                     callee:
                       new_byte_buffer :Buffer
                     arg0:
                       int(22) :usize
-                let __off_30: usize = int(0) :usize
+                let __off_15: usize = int(0) :usize
                 assign
                   target:
-                    __off_30 :usize
+                    __off_15 :usize
                   value:
                     call :usize
                       callee:
                         write_string_at :usize
                       arg0:
-                        __buf_29 :Buffer
+                        __buf_14 :Buffer
                       arg1:
-                        __off_30 :usize
+                        __off_15 :usize
                       arg2:
                         "g " :string
                 assign
                   target:
-                    __off_30 :usize
+                    __off_15 :usize
                   value:
                     call :usize
                       callee:
                         write_int :usize
                       arg0:
-                        __buf_29 :Buffer
+                        __buf_14 :Buffer
                       arg1:
-                        __off_30 :usize
+                        __off_15 :usize
                       arg2:
                         cast → i64
                           cast → i32
@@ -472,9 +512,9 @@
                     callee:
                       finish_buffer :string
                     arg0:
-                      __buf_29 :Buffer
+                      __buf_14 :Buffer
                     arg1:
-                      __off_30 :usize
+                      __off_15 :usize
     return int(0) :i32
   fn __lambda_snippet_0(x: i32) -> i32
     ~>

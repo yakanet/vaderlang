@@ -179,12 +179,17 @@
           cond:
             call :bool
               callee:
-                not_twenty :fn(Any) -> bool
+                not_twenty :fn([usize, i32]) -> bool
               arg0:
-                x :Any
+                x :[usize, i32]
           then:
-            let __gen_elem_10: Any = x :Any
-            unreachable("destructure of Any : no inlinable Into<[...]> coercion") :void
+            let __gen_elem_10: [usize, i32] = x :[usize, i32]
+            let i: usize =
+              ._0 :usize
+                __gen_elem_10 :[usize, i32]
+            let x: i32 =
+              ._1 :i32
+                __gen_elem_10 :[usize, i32]
             assign
               target:
                 fused :string

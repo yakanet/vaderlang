@@ -1,6 +1,5 @@
 # stdout
 lazy enumerate.filter: 0:10 2:30
-# stderr
-vader vm: reached unreachable: 
+fused enumerate.filter: 0:10 2:30
 # exit
-1
+0

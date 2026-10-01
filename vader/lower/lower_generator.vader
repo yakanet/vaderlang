@@ -33,13 +33,18 @@ import "std/abort"
 /// Extract `T` from a `generator`'s `-> Iterator<T>` return type. The
 /// typechecker (T3056) already guaranteed the shape ; fall back to `TY_VOID`
 /// defensively if something slipped through.
-generator_element_of :: fn(return_type: Type) -> Type {
-    if return_type is TraitType {
-        if return_type.symbol.name == TRAIT_ITERATOR && return_type.args.len() > 0 {
-            return return_type.args[0]
+generator_element_of :: fn(return_type: Type) -> Type = iterator_element_of(return_type) ?? TY_VOID
+
+/// The element `t` yields when it is `Iterator<E>` ; null for any other type.
+///
+/// @param t  the type to read.
+iterator_element_of :: fn(t: Type) -> Type | null {
+    if t is TraitType {
+        if t.symbol.name == TRAIT_ITERATOR && t.args.len() > 0 {
+            return t.args[0]
         }
     }
-    return TY_VOID
+    return null
 }
 
 // A zero value of `ty` for a local `g$State` field's initial slot — overwritten

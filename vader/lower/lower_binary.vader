@@ -22,6 +22,19 @@ strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr {
     return e
 }
 
+// `!cond` when `negate`, else `cond`.
+maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
+    if negate {
+        return LoweredUnary {
+            .span = span,
+            .type = TY_BOOL,
+            .op = .Not,
+            .operand = cond,
+        }
+    }
+    return cond
+}
+
 lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredExpr {
     // `expr is T` lowers to a runtime tag check ; the RHS is a type
     // expression, not a value. The `bind_as` parsing is handled inside

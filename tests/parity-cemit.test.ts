@@ -397,6 +397,12 @@ const C_PARITY = new Set<string>([
   // Any generator heading a chain — user generators, `window` — fused against the
   // same chain bound lazily.
   "generator_source_fusion",
+  // A function consuming its `Iterator` parameter with one loop, inlined over a
+  // chain — std's terminals and user functions — against the same chain bound
+  // lazily.
+  "iterator_consumers",
+  // A destructured element of a layered chain, fused against lazy.
+  "fusion_destructure_filtered",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

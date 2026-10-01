@@ -1200,20 +1200,23 @@ static void* snippet_collected(int32_t l0) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 279 "tests/snippets/array_push_cache/_main.vader"
+#line 40 "lib/std/iter/iter.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
+#line 279 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
+#line 41 "lib/std/iter/iter.vader"
     {
         vader_array_t* _pc5_hdr = (vader_array_t*) l1;
         size_t _pc5_len = _pc5_hdr->length;
         size_t _pc5_cap = (_pc5_hdr->offset == 0 && !vader_array_is_borrowed(_pc5_hdr) && _pc5_hdr->length >= _pc5_hdr->buf->length) ? _pc5_hdr->capacity : (size_t) 0;
         void* _pc5_slots = _pc5_hdr->buf->slots;
         for (;;) {
+#line 279 "tests/snippets/array_push_cache/_main.vader"
             if ((l2 < l0)) {
 #line 263 "lib/std/iter/iter.vader"
                 l3 = snippet_triple(l2);
-#line 279 "tests/snippets/array_push_cache/_main.vader"
+#line 42 "lib/std/iter/iter.vader"
                 if (VADER_LIKELY(_pc5_len < _pc5_cap)) {
                     ((int32_t*) _pc5_slots)[_pc5_len] = (int32_t) (l3);
                     _pc5_len += 1;
@@ -1228,9 +1231,13 @@ static void* snippet_collected(int32_t l0) {
                     _pc5_cap = (_pc5_hdr->offset == 0 && !vader_array_is_borrowed(_pc5_hdr) && _pc5_hdr->length >= _pc5_hdr->buf->length) ? _pc5_hdr->capacity : (size_t) 0;
                     _pc5_slots = _pc5_hdr->buf->slots;
                 }
+#line 279 "tests/snippets/array_push_cache/_main.vader"
                 l2 = (l2 + INT32_C(1));
+#line 41 "lib/std/iter/iter.vader"
                 continue;
+#line 279 "tests/snippets/array_push_cache/_main.vader"
             }
+#line 41 "lib/std/iter/iter.vader"
             _pc5_hdr->length = _pc5_len;
             if (_pc5_hdr->buf->length < _pc5_len) {
                 _pc5_hdr->buf->length = _pc5_len;
@@ -1238,6 +1245,7 @@ static void* snippet_collected(int32_t l0) {
             break;
         }
     }
+#line 279 "tests/snippets/array_push_cache/_main.vader"
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1253,16 +1261,20 @@ static void* snippet_filtered(void* l0) {
     vader_gc_top = &gc_frame;
 #line 281 "tests/snippets/array_push_cache/_main.vader"
     l1 = l0;
+#line 40 "lib/std/iter/iter.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l2 = (void*) _a0_arr;
+#line 281 "tests/snippets/array_push_cache/_main.vader"
     l3 = ((vader_array_t*) l1)->length;
     l4 = (size_t) 0;
+#line 41 "lib/std/iter/iter.vader"
     {
         vader_array_t* _pc10_hdr = (vader_array_t*) l2;
         size_t _pc10_len = _pc10_hdr->length;
         size_t _pc10_cap = (_pc10_hdr->offset == 0 && !vader_array_is_borrowed(_pc10_hdr) && _pc10_hdr->length >= _pc10_hdr->buf->length) ? _pc10_hdr->capacity : (size_t) 0;
         void* _pc10_slots = _pc10_hdr->buf->slots;
         for (;;) {
+#line 281 "tests/snippets/array_push_cache/_main.vader"
             if ((l4 < l3)) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
@@ -1273,7 +1285,7 @@ static void* snippet_filtered(void* l0) {
                 if (t0) {
 #line 263 "lib/std/iter/iter.vader"
                     l6 = snippet_triple(l5);
-#line 281 "tests/snippets/array_push_cache/_main.vader"
+#line 42 "lib/std/iter/iter.vader"
                     if (VADER_LIKELY(_pc10_len < _pc10_cap)) {
                         ((int32_t*) _pc10_slots)[_pc10_len] = (int32_t) (l6);
                         _pc10_len += 1;
@@ -1293,8 +1305,11 @@ static void* snippet_filtered(void* l0) {
 #line 281 "tests/snippets/array_push_cache/_main.vader"
                 t1 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t1;
+#line 41 "lib/std/iter/iter.vader"
                 continue;
+#line 281 "tests/snippets/array_push_cache/_main.vader"
             }
+#line 41 "lib/std/iter/iter.vader"
             _pc10_hdr->length = _pc10_len;
             if (_pc10_hdr->buf->length < _pc10_len) {
                 _pc10_hdr->buf->length = _pc10_len;
@@ -1302,6 +1317,7 @@ static void* snippet_filtered(void* l0) {
             break;
         }
     }
+#line 281 "tests/snippets/array_push_cache/_main.vader"
     { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1318,8 +1334,10 @@ static void* snippet_taken(void* l0) {
 #line 284 "tests/snippets/array_push_cache/_main.vader"
     l1 = l0;
     l2 = (size_t) 3;
+#line 40 "lib/std/iter/iter.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l3 = (void*) _a0_arr;
+#line 284 "tests/snippets/array_push_cache/_main.vader"
 #line 269 "lib/std/iter/iter.vader"
     if (l2 == INT64_C(0)) {
 #line 272 "lib/std/iter/iter.vader"
@@ -1328,12 +1346,14 @@ static void* snippet_taken(void* l0) {
 #line 284 "tests/snippets/array_push_cache/_main.vader"
         l5 = ((vader_array_t*) l1)->length;
         l6 = (size_t) 0;
+#line 41 "lib/std/iter/iter.vader"
         {
             vader_array_t* _pc20_hdr = (vader_array_t*) l3;
             size_t _pc20_len = _pc20_hdr->length;
             size_t _pc20_cap = (_pc20_hdr->offset == 0 && !vader_array_is_borrowed(_pc20_hdr) && _pc20_hdr->length >= _pc20_hdr->buf->length) ? _pc20_hdr->capacity : (size_t) 0;
             void* _pc20_slots = _pc20_hdr->buf->slots;
             for (;;) {
+#line 284 "tests/snippets/array_push_cache/_main.vader"
                 if ((l6 < l5)) {
                     vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
                     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
@@ -1341,7 +1361,7 @@ static void* snippet_taken(void* l0) {
                     t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l6];
 #line 263 "lib/std/iter/iter.vader"
                     l7 = snippet_triple(t0);
-#line 284 "tests/snippets/array_push_cache/_main.vader"
+#line 42 "lib/std/iter/iter.vader"
                     if (VADER_LIKELY(_pc20_len < _pc20_cap)) {
                         ((int32_t*) _pc20_slots)[_pc20_len] = (int32_t) (l7);
                         _pc20_len += 1;
@@ -1365,11 +1385,13 @@ static void* snippet_taken(void* l0) {
                     } else {
                         t1 = (l6 + INT64_C(1));
                         l6 = (size_t) (int64_t) t1;
+#line 41 "lib/std/iter/iter.vader"
                         continue;
 #line 276 "lib/std/iter/iter.vader"
                     }
 #line 284 "tests/snippets/array_push_cache/_main.vader"
                 }
+#line 41 "lib/std/iter/iter.vader"
                 _pc20_hdr->length = _pc20_len;
                 if (_pc20_hdr->buf->length < _pc20_len) {
                     _pc20_hdr->buf->length = _pc20_len;

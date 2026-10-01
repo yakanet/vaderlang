@@ -776,62 +776,69 @@
                         int(1) :i32
                         int(2) :i32
                         int(3) :i32
-                    let __find_2: i32 | null = null
-                    block :$exit$i140
-                      let __elem_3: i32 = int(0) :i32
-                      if :void
-                        cond:
-                          call :bool
-                            callee:
-                              below_five :fn(i32) -> bool
-                            arg0:
-                              __elem_3 :i32
-                        then:
-                          assign
-                            target:
-                              __find_2 :i32 | null
-                            value:
-                              __elem_3 :i32
-                          break :$exit$i140
+                    let pred: fn(i32) -> bool = below_five :fn(i32) -> bool
+                    let __consumed_2: i32 | null = null
+                    block :$exit$i144
                       block :void
-                        let __for_arr_0: i32[] = xs :i32[]
-                        let __for_len_1: usize =
-                          LoweredArrayLen
-                        let __for_i_2: usize = int(0) :usize
-                        loop while (<…>)
-                          let x: i32 =
-                            index :i32
-                              on:
-                                __for_arr_0 :i32[]
-                              ix:
-                                __for_i_2 :usize
-                          let __elem_3: i32 = x :i32
-                          if :void
-                            cond:
-                              call :bool
-                                callee:
-                                  below_five :fn(i32) -> bool
-                                arg0:
-                                  __elem_3 :i32
-                            then:
-                              assign
-                                target:
-                                  __find_2 :i32 | null
-                                value:
-                                  __elem_3 :i32
-                              break :$exit$i140
-                        step
-                          assign
-                            target:
-                              __for_i_2 :usize
-                            value:
-                              add :usize
-                                l:
+                        let x: i32 = int(0) :i32
+                        if :void
+                          cond:
+                            call :bool
+                              callee:
+                                below_five :fn(i32) -> bool
+                              arg0:
+                                x :i32
+                          then:
+                            assign
+                              target:
+                                __consumed_2 :i32 | null
+                              value:
+                                x :i32
+                            break :$exit$i144
+                        block :void
+                          let __for_arr_0: i32[] = xs :i32[]
+                          let __for_len_1: usize =
+                            LoweredArrayLen
+                          let __for_i_2: usize = int(0) :usize
+                          loop while (<…>)
+                            let x: i32 =
+                              index :i32
+                                on:
+                                  __for_arr_0 :i32[]
+                                ix:
                                   __for_i_2 :usize
-                                r:
-                                  int(1) :usize
+                            let x: i32 = x :i32
+                            if :void
+                              cond:
+                                call :bool
+                                  callee:
+                                    below_five :fn(i32) -> bool
+                                  arg0:
+                                    x :i32
+                              then:
+                                assign
+                                  target:
+                                    __consumed_2 :i32 | null
+                                  value:
+                                    x :i32
+                                break :$exit$i144
+                          step
+                            assign
+                              target:
+                                __for_i_2 :usize
+                              value:
+                                add :usize
+                                  l:
+                                    __for_i_2 :usize
+                                  r:
+                                    int(1) :usize
+                      assign
+                        target:
+                          __consumed_2 :i32 | null
+                        value:
+                          null
                     ~>
-                      __find_2 :i32 | null
+                      __consumed_2 :i32 | null
   fn snippet$first_column() -> void
     block :void
       let n: i32 = int(3) :i32
@@ -839,7 +846,7 @@
         let i: i32 = int(0) :i32
         loop while (<…>)
           let r: i32 = i :i32
-          block :$resume155
+          block :$resume158
             block :void
               let c: i32 = int(0) :i32
               loop while (<…>)
@@ -851,7 +858,7 @@
                       r:
                         int(1) :i32
                   then:
-                    break :$resume155
+                    break :$resume158
                 ~>
                   call :void
                     callee:

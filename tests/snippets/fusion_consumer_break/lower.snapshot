@@ -42,72 +42,79 @@
                 int(1) :i32
                 int(2) :i32
             let f: fn(i32) -> i32[] = spread :fn(i32) -> i32[]
-            let __find_2: i32 | null = null
-            block :$exit$i6
-              let __fuse_len_4: usize =
-                LoweredArrayLen
-              let __fuse_i_5: usize = int(0) :usize
-              loop while (<…>)
-                let x: i32 =
-                  index :i32
-                    on:
-                      __fuse_arr_1 :i32[]!
-                    ix:
-                      __fuse_i_5 :usize
-                block :void
-                  let __for_arr_0: i32[] =
-                    call :i32[]
-                      callee:
-                        spread :fn(i32) -> i32[]
-                      arg0:
-                        x :i32
-                  let __for_len_1: usize =
-                    LoweredArrayLen
-                  let __for_i_2: usize = int(0) :usize
-                  loop while (<…>)
-                    let y: i32 =
-                      index :i32
-                        on:
-                          __for_arr_0 :i32[]
-                        ix:
-                          __for_i_2 :usize
-                    let __elem_3: i32 = y :i32
-                    if :void
-                      cond:
-                        call :bool
-                          callee:
-                            over_ten :fn(i32) -> bool
-                          arg0:
-                            __elem_3 :i32
-                      then:
-                        assign
-                          target:
-                            __find_2 :i32 | null
-                          value:
-                            __elem_3 :i32
-                        break :$exit$i6
-                  step
-                    assign
-                      target:
-                        __for_i_2 :usize
-                      value:
-                        add :usize
-                          l:
+            let pred: fn(i32) -> bool = over_ten :fn(i32) -> bool
+            let __consumed_2: i32 | null = null
+            block :$exit$i10
+              block :void
+                let __fuse_len_0: usize =
+                  LoweredArrayLen
+                let __fuse_i_1: usize = int(0) :usize
+                loop while (<…>)
+                  let x: i32 =
+                    index :i32
+                      on:
+                        __fuse_arr_1 :i32[]!
+                      ix:
+                        __fuse_i_1 :usize
+                  block :void
+                    let __for_arr_0: i32[] =
+                      call :i32[]
+                        callee:
+                          spread :fn(i32) -> i32[]
+                        arg0:
+                          x :i32
+                    let __for_len_1: usize =
+                      LoweredArrayLen
+                    let __for_i_2: usize = int(0) :usize
+                    loop while (<…>)
+                      let y: i32 =
+                        index :i32
+                          on:
+                            __for_arr_0 :i32[]
+                          ix:
                             __for_i_2 :usize
-                          r:
-                            int(1) :usize
-              step
-                assign
-                  target:
-                    __fuse_i_5 :usize
-                  value:
-                    add :usize
-                      l:
-                        __fuse_i_5 :usize
-                      r:
-                        int(1) :usize
+                      let x: i32 = y :i32
+                      if :void
+                        cond:
+                          call :bool
+                            callee:
+                              over_ten :fn(i32) -> bool
+                            arg0:
+                              x :i32
+                        then:
+                          assign
+                            target:
+                              __consumed_2 :i32 | null
+                            value:
+                              x :i32
+                          break :$exit$i10
+                    step
+                      assign
+                        target:
+                          __for_i_2 :usize
+                        value:
+                          add :usize
+                            l:
+                              __for_i_2 :usize
+                            r:
+                              int(1) :usize
+                step
+                  assign
+                    target:
+                      __fuse_i_1 :usize
+                    value:
+                      add :usize
+                        l:
+                          __fuse_i_1 :usize
+                        r:
+                          int(1) :usize
+              assign
+                target:
+                  __consumed_2 :i32 | null
+                value:
+                  null
             ~>
-              __find_2 :i32 | null
+              __consumed_2 :i32 | null
         ~>
           if :i32
             cond:
@@ -137,7 +144,7 @@
           spread :fn(i32) -> i32[]
     let lazy: i32 =
       block :i32
-        let __coalesce_6: i32 | null =
+        let __coalesce_3: i32 | null =
           call :i32 | null
             callee:
               std_iter$find__i32 :i32 | null
@@ -149,7 +156,7 @@
           if :i32
             cond:
               is null :bool
-                __coalesce_6 :i32 | null
+                __coalesce_3 :i32 | null
             then:
               ~>
                 neg :i32
@@ -157,71 +164,71 @@
             else:
               ~>
                 cast → i32
-                  __coalesce_6 :i32 | null
+                  __coalesce_3 :i32 | null
     ~>
       call :void
         callee:
           std_io$println__string :void
         arg0:
           block :string
-            let __buf_7: Buffer =
+            let __buf_4: Buffer =
               call :Buffer
                 callee:
                   new_byte_buffer :Buffer
                 arg0:
                   int(58) :usize
-            let __off_8: usize = int(0) :usize
+            let __off_5: usize = int(0) :usize
             assign
               target:
-                __off_8 :usize
+                __off_5 :usize
               value:
                 call :usize
                   callee:
                     write_string_at :usize
                   arg0:
-                    __buf_7 :Buffer
+                    __buf_4 :Buffer
                   arg1:
-                    __off_8 :usize
+                    __off_5 :usize
                   arg2:
                     "flat_map.find: " :string
             assign
               target:
-                __off_8 :usize
+                __off_5 :usize
               value:
                 call :usize
                   callee:
                     write_int :usize
                   arg0:
-                    __buf_7 :Buffer
+                    __buf_4 :Buffer
                   arg1:
-                    __off_8 :usize
+                    __off_5 :usize
                   arg2:
                     cast → i64
                       fused :i32
             assign
               target:
-                __off_8 :usize
+                __off_5 :usize
               value:
                 call :usize
                   callee:
                     write_string_at :usize
                   arg0:
-                    __buf_7 :Buffer
+                    __buf_4 :Buffer
                   arg1:
-                    __off_8 :usize
+                    __off_5 :usize
                   arg2:
                     " | " :string
             assign
               target:
-                __off_8 :usize
+                __off_5 :usize
               value:
                 call :usize
                   callee:
                     write_int :usize
                   arg0:
-                    __buf_7 :Buffer
+                    __buf_4 :Buffer
                   arg1:
-                    __off_8 :usize
+                    __off_5 :usize
                   arg2:
                     cast → i64
                       lazy :i32
@@ -230,9 +237,9 @@
                 callee:
                   finish_buffer :string
                 arg0:
-                  __buf_7 :Buffer
+                  __buf_4 :Buffer
                 arg1:
-                  __off_8 :usize
+                  __off_5 :usize
   fn snippet$chain_find() -> void
     let fused: i32 =
       block :i32
@@ -246,80 +253,87 @@
               array :i32[]!
                 int(3) :i32
                 int(4) :i32
-            let __find_3: i32 | null = null
-            block :$exit$i23
-              let __fuse_len_5: usize =
-                LoweredArrayLen
-              let __fuse_i_6: usize = int(0) :usize
-              loop while (<…>)
-                let x: i32 =
-                  index :i32
-                    on:
-                      __fuse_arr_1 :i32[]!
-                    ix:
-                      __fuse_i_6 :usize
-                let __elem_4: i32 = x :i32
-                if :void
-                  cond:
-                    call :bool
-                      callee:
-                        above_one :fn(i32) -> bool
-                      arg0:
-                        __elem_4 :i32
-                  then:
-                    assign
-                      target:
-                        __find_3 :i32 | null
-                      value:
-                        __elem_4 :i32
-                    break :$exit$i23
-              step
-                assign
-                  target:
-                    __fuse_i_6 :usize
-                  value:
-                    add :usize
-                      l:
-                        __fuse_i_6 :usize
-                      r:
-                        int(1) :usize
-              let __fuse_len_7: usize =
-                LoweredArrayLen
-              let __fuse_i_8: usize = int(0) :usize
-              loop while (<…>)
-                let y: i32 =
-                  index :i32
-                    on:
-                      __fuse_arr_2 :i32[]!
-                    ix:
-                      __fuse_i_8 :usize
-                let __elem_4: i32 = y :i32
-                if :void
-                  cond:
-                    call :bool
-                      callee:
-                        above_one :fn(i32) -> bool
-                      arg0:
-                        __elem_4 :i32
-                  then:
-                    assign
-                      target:
-                        __find_3 :i32 | null
-                      value:
-                        __elem_4 :i32
-                    break :$exit$i23
-              step
-                assign
-                  target:
-                    __fuse_i_8 :usize
-                  value:
-                    add :usize
-                      l:
-                        __fuse_i_8 :usize
-                      r:
-                        int(1) :usize
+            let pred: fn(i32) -> bool = above_one :fn(i32) -> bool
+            let __consumed_3: i32 | null = null
+            block :$exit$i30
+              block :void
+                let __fuse_len_0: usize =
+                  LoweredArrayLen
+                let __fuse_i_1: usize = int(0) :usize
+                loop while (<…>)
+                  let x: i32 =
+                    index :i32
+                      on:
+                        __fuse_arr_1 :i32[]!
+                      ix:
+                        __fuse_i_1 :usize
+                  let x: i32 = x :i32
+                  if :void
+                    cond:
+                      call :bool
+                        callee:
+                          above_one :fn(i32) -> bool
+                        arg0:
+                          x :i32
+                    then:
+                      assign
+                        target:
+                          __consumed_3 :i32 | null
+                        value:
+                          x :i32
+                      break :$exit$i30
+                step
+                  assign
+                    target:
+                      __fuse_i_1 :usize
+                    value:
+                      add :usize
+                        l:
+                          __fuse_i_1 :usize
+                        r:
+                          int(1) :usize
+                let __fuse_len_2: usize =
+                  LoweredArrayLen
+                let __fuse_i_3: usize = int(0) :usize
+                loop while (<…>)
+                  let y: i32 =
+                    index :i32
+                      on:
+                        __fuse_arr_2 :i32[]!
+                      ix:
+                        __fuse_i_3 :usize
+                  let x: i32 = y :i32
+                  if :void
+                    cond:
+                      call :bool
+                        callee:
+                          above_one :fn(i32) -> bool
+                        arg0:
+                          x :i32
+                    then:
+                      assign
+                        target:
+                          __consumed_3 :i32 | null
+                        value:
+                          x :i32
+                      break :$exit$i30
+                step
+                  assign
+                    target:
+                      __fuse_i_3 :usize
+                    value:
+                      add :usize
+                        l:
+                          __fuse_i_3 :usize
+                        r:
+                          int(1) :usize
+              assign
+                target:
+                  __consumed_3 :i32 | null
+                value:
+                  null
             ~>
-              __find_3 :i32 | null
+              __consumed_3 :i32 | null
         ~>
           if :i32
             cond:
@@ -355,7 +369,7 @@
                 int(4) :i32
     let lazy: i32 =
       block :i32
-        let __coalesce_9: i32 | null =
+        let __coalesce_4: i32 | null =
           call :i32 | null
             callee:
               std_iter$find__i32 :i32 | null
@@ -367,7 +381,7 @@
           if :i32
             cond:
               is null :bool
-                __coalesce_9 :i32 | null
+                __coalesce_4 :i32 | null
             then:
               ~>
                 neg :i32
@@ -375,71 +389,71 @@
             else:
               ~>
                 cast → i32
-                  __coalesce_9 :i32 | null
+                  __coalesce_4 :i32 | null
     ~>
       call :void
         callee:
           std_io$println__string :void
         arg0:
           block :string
-            let __buf_10: Buffer =
+            let __buf_5: Buffer =
               call :Buffer
                 callee:
                   new_byte_buffer :Buffer
                 arg0:
                   int(55) :usize
-            let __off_11: usize = int(0) :usize
+            let __off_6: usize = int(0) :usize
             assign
               target:
-                __off_11 :usize
+                __off_6 :usize
               value:
                 call :usize
                   callee:
                     write_string_at :usize
                   arg0:
-                    __buf_10 :Buffer
+                    __buf_5 :Buffer
                   arg1:
-                    __off_11 :usize
+                    __off_6 :usize
                   arg2:
                     "chain.find: " :string
             assign
               target:
-                __off_11 :usize
+                __off_6 :usize
               value:
                 call :usize
                   callee:
                     write_int :usize
                   arg0:
-                    __buf_10 :Buffer
+                    __buf_5 :Buffer
                   arg1:
-                    __off_11 :usize
+                    __off_6 :usize
                   arg2:
                     cast → i64
                       fused :i32
             assign
               target:
-                __off_11 :usize
+                __off_6 :usize
               value:
                 call :usize
                   callee:
                     write_string_at :usize
                   arg0:
-                    __buf_10 :Buffer
+                    __buf_5 :Buffer
                   arg1:
-                    __off_11 :usize
+                    __off_6 :usize
                   arg2:
                     " | " :string
             assign
               target:
-                __off_11 :usize
+                __off_6 :usize
               value:
                 call :usize
                   callee:
                     write_int :usize
                   arg0:
-                    __buf_10 :Buffer
+                    __buf_5 :Buffer
                   arg1:
-                    __off_11 :usize
+                    __off_6 :usize
                   arg2:
                     cast → i64
                       lazy :i32
@@ -448,9 +462,9 @@
                 callee:
                   finish_buffer :string
                 arg0:
-                  __buf_10 :Buffer
+                  __buf_5 :Buffer
                 arg1:
-                  __off_11 :usize
+                  __off_6 :usize
   fn snippet$flat_map_break() -> void
     let fused: i32 = int(0) :i32
     block :void
@@ -459,7 +473,7 @@
           int(1) :i32
           int(2) :i32
       let f: fn(i32) -> i32[] = spread :fn(i32) -> i32[]
-      block :$leave40
+      block :$leave46
         let __fuse_len_1: usize =
           LoweredArrayLen
         let __fuse_i_2: usize = int(0) :usize
@@ -505,7 +519,7 @@
                     r:
                       int(10) :i32
                 then:
-                  break :$leave40
+                  break :$leave46
             step
               assign
                 target:
@@ -668,7 +682,7 @@
           int(3) :i32
       let f: fn(i32) -> i32[] = counted :fn(i32) -> i32[]
       let n: usize = int(1) :usize
-      block :$exit$i63
+      block :$exit$i69
         if :void
           cond:
             eq :bool
@@ -677,9 +691,9 @@
               r:
                 int(0) :usize
           then:
-            break :$exit$i63
+            break :$exit$i69
         let i: usize = int(0) :usize
-        block :$leave65
+        block :$leave71
           let __fuse_len_2: usize =
             LoweredArrayLen
           let __fuse_i_3: usize = int(0) :usize
@@ -726,7 +740,7 @@
                       r:
                         n :usize
                   then:
-                    break :$leave65
+                    break :$leave71
               step
                 assign
                   target:
@@ -886,7 +900,7 @@
         array :i32[]
           int(3) :i32
           int(4) :i32
-      block :$leave100
+      block :$leave106
         block :void
           let i: usize = int(0) :usize
           let __for_hi_0: usize =
@@ -907,7 +921,7 @@
                     fused :i32
                   r:
                     int(1) :i32
-            break :$leave100
+            break :$leave106
             let v: i32 =
               index :i32
                 on:
@@ -923,7 +937,7 @@
                     fused :i32
                   r:
                     int(1) :i32
-            break :$leave100
+            break :$leave106
           step
             assign
               target:
@@ -1062,7 +1076,7 @@
   fn snippet$tail_yield_break() -> void
     let fused: string = "" :string
     block :void
-      block :$leave136
+      block :$leave142
         block :void
           let i: i32 = int(0) :i32
           loop while (<…>)
@@ -1120,7 +1134,7 @@
                             __buf_0 :Buffer
                           arg1:
                             __off_1 :usize
-            break :$leave136
+            break :$leave142
           step
             assign
               target:
@@ -1185,7 +1199,7 @@
                         __buf_0 :Buffer
                       arg1:
                         __off_1 :usize
-        break :$leave136
+        break :$leave142
     let lazy: string = "" :string
     let it: __genstate_loop_then_tail<i32>! =
       call :__genstate_loop_then_tail<i32>!
@@ -1302,7 +1316,7 @@
       arg0:
         "generator of generator, fused:" :string
     block :void
-      block :$leave200
+      block :$leave206
         block :void
           block :void
             let i: i32 = int(0) :i32
@@ -1314,7 +1328,7 @@
                     y :i32
                   r:
                     int(10) :i32
-              block :$resume199
+              block :$resume205
                 if :void
                   cond:
                     eq :bool
@@ -1323,7 +1337,7 @@
                       r:
                         int(0) :i32
                   then:
-                    break :$resume199
+                    break :$resume205
                 if :void
                   cond:
                     eq :bool
@@ -1332,7 +1346,7 @@
                       r:
                         int(10) :i32
                   then:
-                    break :$leave200
+                    break :$leave206
                 call :void
                   callee:
                     std_io$println__string :void
@@ -1439,7 +1453,7 @@
                     r:
                       int(1) :i32
         let v: i32 = int(99) :i32
-        block :$resume199
+        block :$resume205
           if :void
             cond:
               eq :bool
@@ -1448,7 +1462,7 @@
                 r:
                   int(0) :i32
             then:
-              break :$resume199
+              break :$resume205
           if :void
             cond:
               eq :bool
@@ -1457,7 +1471,7 @@
                 r:
                   int(10) :i32
             then:
-              break :$leave200
+              break :$leave206
           call :void
             callee:
               std_io$println__string :void
@@ -1611,7 +1625,7 @@
         array :i32[]!
           int(3) :i32
           int(4) :i32
-      block :$leave216
+      block :$leave222
         let __fuse_len_2: usize =
           LoweredArrayLen
         let __fuse_i_3: usize = int(0) :usize
@@ -1631,7 +1645,7 @@
                 r:
                   int(2) :i32
             then:
-              break :$leave216
+              break :$leave222
           assign
             target:
               fused :i32
@@ -1670,7 +1684,7 @@
                 r:
                   int(2) :i32
             then:
-              break :$leave216
+              break :$leave222
           assign
             target:
               fused :i32
@@ -1836,7 +1850,7 @@
         array :i32[]!
           int(3) :i32
           int(4) :i32
-      block :$leave235
+      block :$leave241
         let __fuse_len_5: usize =
           LoweredArrayLen
         let __fuse_i_6: usize = int(0) :usize
@@ -1871,7 +1885,7 @@
                     r:
                       int(2) :i32
                 then:
-                  break :$leave235
+                  break :$leave241
               assign
                 target:
                   fused :i32
@@ -1935,7 +1949,7 @@
                     r:
                       int(2) :i32
                 then:
-                  break :$leave235
+                  break :$leave241
               assign
                 target:
                   fused :i32
@@ -2134,7 +2148,7 @@
           int(2) :i32
           int(3) :i32
       let f: fn(i32) -> i32[] = spread :fn(i32) -> i32[]
-      block :$leave259
+      block :$leave265
         let __fuse_len_6: usize =
           LoweredArrayLen
         let __fuse_i_7: usize = int(0) :usize
@@ -2170,7 +2184,7 @@
                     int(8) :i32
                     int(9) :i32
                 let n: usize = int(2) :usize
-                block :$exit$i258
+                block :$exit$i264
                   if :void
                     cond:
                       eq :bool
@@ -2179,7 +2193,7 @@
                         r:
                           int(0) :usize
                     then:
-                      break :$exit$i258
+                      break :$exit$i264
                   let i: usize = int(0) :usize
                   let __fuse_len_3: usize =
                     LoweredArrayLen
@@ -2200,7 +2214,7 @@
                           r:
                             int(11) :i32
                       then:
-                        break :$leave259
+                        break :$leave265
                     assign
                       target:
                         fused :string
@@ -2519,7 +2533,7 @@
         array :i32[]
           int(3) :i32
           int(4) :i32
-      block :$leave284
+      block :$leave290
         block :void
           let i: usize = int(0) :usize
           let __for_hi_0: usize =
@@ -2554,7 +2568,7 @@
                       r:
                         int(3) :i32
                   then:
-                    break :$leave284
+                    break :$leave290
                 assign
                   target:
                     fused :i32
@@ -2603,7 +2617,7 @@
                       r:
                         int(3) :i32
                   then:
-                    break :$leave284
+                    break :$leave290
                 assign
                   target:
                     fused :i32

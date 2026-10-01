@@ -32,9 +32,9 @@ fn 0 snippet$main () -> i32
   local n usize
   local $len_20 usize
   local $idx_27 string
-  local $idx_28 any
   local __p_1 string
   local $call_37 usize
+  local __buf_2 ref
   local __off_3 usize
   local $cast_47 i64
   local $cast_52 i64
@@ -94,55 +94,55 @@ fn 0 snippet$main () -> i32
         local.get 0   ; $struct_7
         local.get 5   ; $len_20
         array.get 12   ; snippet$Point[][]
-        local.set 7   ; $idx_28
-        local.get 6   ; $idx_27
-        local.set 8   ; __p_1
-        local.get 7   ; $idx_28
         local.set 1   ; $struct_10
-        local.get 8   ; __p_1
+        local.get 6   ; $idx_27
+        local.set 7   ; __p_1
+        local.get 1   ; $struct_10
+        local.set 2   ; $struct_13
+        local.get 7   ; __p_1
         call.import 0   ; std_core$byte_len
-        local.set 9   ; $call_37
+        local.set 8   ; $call_37
         i64.const 42
-        local.get 9   ; $call_37
+        local.get 8   ; $call_37
         i64.add
         call 2   ; std_core$new_byte_buffer
-        local.set 2   ; $struct_13
+        local.set 9   ; __buf_2
         i64.const 0
         local.set 10   ; __off_3
-        local.get 2   ; $struct_13
+        local.get 9   ; __buf_2
         local.get 10   ; __off_3
-        local.get 8   ; __p_1
+        local.get 7   ; __p_1
         call 4   ; std_core$write_string_at
         local.set 10   ; __off_3
-        local.get 2   ; $struct_13
+        local.get 9   ; __buf_2
         local.get 10   ; __off_3
         string.const 3   ; ":"
         call 4   ; std_core$write_string_at
         local.set 10   ; __off_3
-        local.field 1 3 0   ; $struct_10.x
+        local.field 2 3 0   ; $struct_13.x
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 11   ; $cast_47
-        local.get 2   ; $struct_13
+        local.get 9   ; __buf_2
         local.get 10   ; __off_3
         local.get 11   ; $cast_47
         call 5   ; std_core$write_int
         local.set 10   ; __off_3
-        local.get 2   ; $struct_13
+        local.get 9   ; __buf_2
         local.get 10   ; __off_3
         string.const 4   ; ","
         call 4   ; std_core$write_string_at
         local.set 10   ; __off_3
-        local.field 1 3 1   ; $struct_10.y
+        local.field 2 3 1   ; $struct_13.y
         ref.cast 1   ; -> i32
         i32.to_i64
         local.set 12   ; $cast_52
-        local.get 2   ; $struct_13
+        local.get 9   ; __buf_2
         local.get 10   ; __off_3
         local.get 12   ; $cast_52
         call 5   ; std_core$write_int
         local.set 10   ; __off_3
-        local.get 2   ; $struct_13
+        local.get 9   ; __buf_2
         local.get 10   ; __off_3
         call 3   ; std_core$finish_buffer
         call 8   ; std_io$println__string

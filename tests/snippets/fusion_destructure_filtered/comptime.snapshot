@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/_diag_fusion_destructure_filtered
+## tests/snippets/fusion_destructure_filtered
 
 ## generic instances
   __genstate_array_iter<T>

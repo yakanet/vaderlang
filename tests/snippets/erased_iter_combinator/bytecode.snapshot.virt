@@ -94,14 +94,14 @@ fn 2 snippet$sum_tripled_hi (any) -> i32
 end
 
 fn 3 snippet$drain (any) -> ref
-  local __collect_0 ref
+  local out ref
   local __iter_0 any
   local __step_1 ref
-  local __elem_1 i32
+  local x i32
   local.get 0   ; arg 0
   local.set 2   ; __iter_0
   array.new 4 0   ; i32[][]
-  local.set 1   ; __collect_0
+  local.set 1   ; out
   block $L0 void
     loop $L1 void
       local.get 2   ; __iter_0
@@ -115,15 +115,15 @@ fn 3 snippet$drain (any) -> ref
         local.field 3 7 0   ; __step_1._0
         ref.cast 1   ; -> i32
         call 0   ; snippet$triple
-        local.set 4   ; __elem_1
-        local.get 1   ; __collect_0
-        local.get 4   ; __elem_1
+        local.set 4   ; x
+        local.get 1   ; out
+        local.get 4   ; x
         array.push 1   ; i32[]
         br $L1
       end $L2
     end $L1
   end $L0
-  local.get 1   ; __collect_0
+  local.get 1   ; out
   return
 end
 

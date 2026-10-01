@@ -1,0 +1,151 @@
+// A function consuming an `Iterator` parameter with one loop is inlined at a call
+// that hands it a fusible chain — std's `fold`, `sum`, `find`, `collect` and user
+// functions alike. Each line prints the inlined form, then the same chain bound
+// to a local first: a named chain stays lazy, the oracle the inlined form must
+// match.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+square :: fn(x: i32) -> i64 = i64(x) * i64(x)
+
+add :: fn(acc: i64, x: i64) -> i64 = acc + x
+
+odd :: fn(x: i32) -> bool = x % 2 == 1
+
+tens :: fn(i: i32) -> [i32, i32] = [i, i * 10]
+
+fifties :: fn(i: i32) -> [i32, i32] = [i * 50, i]
+
+big_pair :: fn(p: [i32, i32]) -> bool = p.0 > 3
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+total :: fn(it: Iterator<i64>) -> i64 {
+    s: i64 = 0
+    for x in it {
+        s += x
+    }
+    return s
+}
+
+// An early `return` from inside the loop, and a final one after it.
+first_over :: fn(limit: i64, it: Iterator<i64>) -> i64 {
+    for x in it {
+        if x > limit {
+            return x
+        }
+    }
+    return -1
+}
+
+// A void consumer leaving through a bare `return`.
+print_until_stop :: fn(it: Iterator<string>) -> void {
+    for s in it {
+        if s == "stop" {
+            return
+        }
+        print("${s} ")
+    }
+    println("")
+}
+
+// A destructured element, and a tuple result with an early return.
+pair_sum :: fn(it: Iterator<[i32, i32]>) -> [i32, i32] {
+    a := 0
+    b := 0
+    for [x, y] in it {
+        if x > 100 {
+            return [x, y]
+        }
+        a += x
+        b += y
+    }
+    return [a, b]
+}
+
+// An overloaded consumer: the call inlines the overload typecheck picked.
+weigh :: fn(it: Iterator<i64>) -> i64 {
+    n: i64 = 0
+    for x in it {
+        n += x
+    }
+    return n
+}
+
+weigh :: fn(scale: i64, it: Iterator<i64>) -> i64 {
+    n: i64 = 0
+    for x in it {
+        n += x * scale
+    }
+    return n
+}
+
+// Two loops over the parameter: the second sees a drained iterator, so this one
+// is never inlined.
+drained_twice :: fn(it: Iterator<i32>) -> i32 {
+    n := 0
+    for x in it {
+        n += x
+    }
+    for x in it {
+        n += x * 100
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    a: i32[]!: []
+    for i in 0..<10 {
+        a.push(i)
+    }
+    pts :: a.map((i) -> Point { .x = i, .y = i * 2 }).collect()
+
+    squares :: a.map(square)
+    println("fold ${a.map(square).fold(i64(0), add)} ${squares.fold(i64(0), add)}")
+    odds :: a.filter(odd)
+    println("sum ${a.filter(odd).sum()} ${odds.sum()}")
+    squares_total :: a.map(square)
+    println("user ${total(a.map(square))} ${total(squares_total)}")
+    squares_over :: a.map(square)
+    println("early ${first_over(20, a.map(square))} ${first_over(20, squares_over)}")
+    squares_none :: a.map(square)
+    println("none ${first_over(1000, a.map(square))} ${first_over(1000, squares_none)}")
+    far :: pts.filter((p) -> p.x > 6)
+    near :: (pts.filter((p) -> p.x > 6).find((p) -> p.y > 14) ?? Point { .x = 0, .y = 0 }).x
+    println("find struct ${near} ${(far.find((p) -> p.y > 14) ?? Point { .x = 0, .y = 0 }).x}")
+    thirds :: pts.filter((p) -> p.x % 3 == 0)
+    println("collect struct ${pts.filter((p) -> p.x % 3 == 0).collect().len()} ${thirds.collect().len()}")
+
+    words :: ["a", "b", "stop", "c"].map((s) -> s)
+    print_until_stop(["a", "b", "stop", "c"].map((s) -> s))
+    print_until_stop(words)
+    print_until_stop(["x", "y"].map((s) -> s + s))
+
+    pairs :: a.map(tens)
+    p :: pair_sum(a.map(tens))
+    lazy_p :: pair_sum(pairs)
+    println("pair ${p.0} ${p.1} ${lazy_p.0} ${lazy_p.1}")
+    late :: a.map(fifties)
+    q :: pair_sum(a.map(fifties))
+    lazy_q :: pair_sum(late)
+    println("pair early ${q.0} ${q.1} ${lazy_q.0} ${lazy_q.1}")
+
+    tuples :: a.map(tens).filter(big_pair)
+    r :: pair_sum(a.map(tens).filter(big_pair))
+    lazy_r :: pair_sum(tuples)
+    println("pair filtered ${r.0} ${r.1} ${lazy_r.0} ${lazy_r.1}")
+    scaled :: a.map(square)
+    println("overload ${weigh(a.map(square))} ${weigh(10, a.map(square))} ${weigh(10, scaled)}")
+
+    println("twice ${drained_twice(a.map((i) -> i + 1))}")
+    println("array fold ${a.fold(i64(0), (acc, x) -> acc + i64(x))}")
+    println("range sum ${(0..<5).map((i) -> i * 3).sum()}")
+    println("find_map ${a.find_map((x) -> if x > 4 { x * 100 } else { null }) ?? 0}")
+    return 0
+}

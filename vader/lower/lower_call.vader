@@ -45,11 +45,12 @@ mark_produced_structs :: fn(t: Type, ctx: FnLowerCtx!) -> void {
 
 lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
     mark_produced_structs(type, ctx)
-    // Terminal fusion (B-terminals): `<chain>.count()` / `.collect()` over a
-    // fusible iterator chain fuses to a flat accumulator loop, before the trait
-    // default-method / free-fn call is formed. Declines (null) for a terminal
-    // over a non-chain (e.g. the eager `count(arr)` array overload).
-    terminal_form :: try_lower_terminal_fusion(ctx, call, type)
+    // A call consuming a fusible chain — a fn iterating its `Iterator` parameter
+    // once, or an `Iterator` default — becomes the chain's loop, before the call
+    // itself is formed. Both decline (null) for any other call.
+    consumer_form :: try_inline_consumer(ctx, call, type)
+    if consumer_form != null { return consumer_form }
+    terminal_form :: try_lower_terminal_fusion(ctx, call)
     if terminal_form != null { return terminal_form }
     array_form :: try_lower_array_op(ctx, call, type)
     if array_form != null { return array_form }

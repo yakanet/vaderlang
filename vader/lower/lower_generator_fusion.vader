@@ -71,23 +71,144 @@ resolve_owner_typed :: fn(ctx: FnLowerCtx, module: string) -> TypedProgram | nul
     return null
 }
 
-// Pick the per-instance substitution for `fn_decl<concrete_args>` via the
-// instance-flavor classifier — the shared tail of the generator-source subst
-// (`gen_source_subst`) and the chained-combinator subst.
-subst_from_flavor :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, concrete_args: Type[]) -> Substitution {
-    flavor :: fn_instance_flavor(fn_decl, owner_typed, concrete_args)
-    if flavor == .Mono { return build_fn_concrete_subst(fn_decl, owner_typed, concrete_args) }
-    if flavor == .Mixed { return build_fn_mixed_subst(fn_decl, owner_typed, concrete_args) }
-    return build_fn_any_subst(fn_decl, owner_typed)
+/// A call's callee — its symbol, module and declaration — and its arguments in
+/// parameter order, a UFCS receiver first.
+CallTarget :: struct {
+    callee: Symbol
+    owner:  TypedProgram
+    decl:   AST.FnDecl
+    args:   AST.Expr[]
 }
 
-// Strip distinct wrappers off `args`, require all-concrete, then pick the flavor
-// subst — the shared finalize tail of every generator subst path. Null when any
-// arg stays a free type param (the caller bails to the boxed path).
+// The target of `f(args)` or `recv.f(args)` ; null for any other callee shape, a
+// callee with no declaration in a loaded module, or one the arguments do not
+// fill parameter for parameter.
+call_target :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> CallTarget | null {
+    callee :: combinator_effective_callee(call.callee)
+    if callee is AST.FieldExpr {
+        if ctx.typed.ufcs_receiver_types[callee.id] == null {
+            return null
+        }
+    } else if callee !is AST.IdentExpr {
+        return null
+    }
+    symbol :: callee_symbol(ctx, call, callee) ?? return null
+    owner :: resolve_owner_typed(ctx, symbol.module) ?? return null
+    decl :: owner.fn_decls[symbol.id] ?? return null
+    args: AST.Expr[]!: []
+    if callee is AST.FieldExpr {
+        args.push(callee.target)
+    }
+    for a in call.args {
+        args.push(a.value)
+    }
+    if decl.params.len() != args.len() {
+        return null
+    }
+    return CallTarget {
+        .callee = symbol,
+        .owner = owner,
+        .decl = decl,
+        .args = args,
+    }
+}
+
+// The symbol `callee` names: a UFCS callee resolves through its receiver, an
+// ident through itself — to the overload typecheck picked, when it is not the
+// first one, which is the one the resolver binds an overloaded name to.
+callee_symbol :: fn(ctx: FnLowerCtx, call: AST.CallExpr, callee: AST.Expr) -> Symbol | null {
+    if callee is AST.IdentExpr {
+        if ctx.typed.overload_result_callees[callee.id] != null {
+            picked :: ctx.types.expr_type(callee)
+            if picked is FnType {
+                return find_picked_overload_symbol(ctx, callee.name, picked)
+            }
+            return null
+        }
+    }
+    receiver :: if callee is AST.FieldExpr { callee.target } else { callee }
+    return combinator_callee_sym(ctx, call, receiver)
+}
+
+// The declared signature of `callee`, null when typecheck recorded none.
+fn_signature :: fn(owner: TypedProgram, callee: Symbol) -> FnType | null {
+    t :: owner.decl_types[callee.id]
+    if t is FnType {
+        return t
+    }
+    return null
+}
+
+// `decl`'s type parameters as the resolver bound them, in declaration order ;
+// null when one has no symbol.
+declared_type_params :: fn(decl: AST.FnDecl, owner: TypedProgram) -> Symbol[] | null {
+    out: Symbol[]!: []
+    for tp in decl.type_params {
+        out.push(find_type_param_in_resolved(owner.resolved, tp.name, tp.span) ?? return null)
+    }
+    return out
+}
+
+// The binding of each of `type_params`, listed as they are, once each pattern is
+// unified with its actual in order — the first binding of a parameter wins ;
+// null when one stays unbound.
+unify_type_args :: fn(ctx: FnLowerCtx, patterns: Type[], actuals: Type[], type_params: Symbol[]) -> Type[] | null {
+    bindings :: MutableMap<i32, Type> {}
+    order: i32[]!: []
+    for k in 0..<patterns.len() {
+        unify_params(patterns[k], actuals[k], bindings, order, ctx)
+    }
+    out: Type[]!: []
+    for tp in type_params {
+        out.push(bindings[tp.id] ?? return null)
+    }
+    return out
+}
+
+// `value` bound to `instance`'s clone of the parameter `p` — the symbol the
+// inlined body reads.
+bind_instance_param :: fn(
+    ctx: FnLowerCtx!, instance: GenInstance, owner: TypedProgram, p: AST.FnParam, value: LoweredExpr,
+    slot: Type,
+) -> LoweredStmt {
+    symbol :: lookup_local_symbol(ctx.project, owner.resolved, p.span) ?? panic(
+        "inlined call: parameter `${p.name}` has no symbol",
+    )
+    return cell_aware_let(ctx, clone_of(instance, symbol), p.name, value, slot, p.span)
+}
+
+// The ctx a body inlined as `instance` lowers under: its module, its instance
+// substitution and its instance's names.
+instance_ctx :: fn(
+    ctx: FnLowerCtx!, decl: AST.FnDecl, owner: TypedProgram, subst: Substitution, instance: GenInstance!,
+) -> FnLowerCtx! {
+    return_type :: substitute(return_type_of(decl, make_entry_types(owner, subst)), subst)
+    inner :: new_fn_lower_ctx(ctx.project, stub_entry(decl, owner), owner, subst, return_type)
+    inner.instance = instance
+    return inner
+}
+
+// `body` lowered under `inner`, an instance's ctx. Meanwhile the instance's
+// callee counts as being inlined, so it is not inlined again from inside itself.
+lower_instance_body :: fn(ctx: FnLowerCtx!, inner: FnLowerCtx!, body: AST.BlockExpr) -> LoweredBlock {
+    instance :: inner.instance ?? panic("an instance body lowered with no instance")
+    entered :: ctx.project.inlining_generators.add(instance.generator_id)
+    lowered :: lower_block(inner, body, false, null)
+    if entered {
+        ctx.project.inlining_generators.remove(instance.generator_id)
+    }
+    return lowered
+}
+
+// Strip distinct wrappers off `args`, require all-concrete, then bind each type
+// parameter to its argument — the shared tail of every generator subst. Concrete
+// whatever the arguments: an inlined body is never shared, so erasing its
+// references would only lose the types its values have. Null when an argument
+// stays a free type parameter (the caller bails to the boxed path).
 subst_from_concrete :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, args: Type[]) -> Substitution | null {
     concrete :: strip_distinct_each(args)
     if !all_concrete(concrete) { return null }
-    return subst_from_flavor(fn_decl, owner_typed, concrete)
+    return build_fn_concrete_subst(fn_decl, owner_typed, concrete)
 }
 
 // ---- chained generator combinators (Increment 3) --------------------------
@@ -463,46 +584,16 @@ GenSourceCall :: struct {
     instance: GenInstance!
 }
 
-// The callee and the arguments, in parameter order, of `gen(args)` or
-// `recv.gen(args)` ; null for any other callee shape.
-GeneratorCall :: struct {
-    callee: Symbol
-    args:   AST.Expr[]
-}
-
-generator_call_target :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> GeneratorCall | null {
-    args: AST.Expr[]!: []
-    callee :: combinator_effective_callee(call.callee)
-    if callee is AST.FieldExpr {
-        if ctx.typed.ufcs_receiver_types[callee.id] == null {
-            return null
-        }
-        args.push(callee.target)
-    } else if callee !is AST.IdentExpr {
-        return null
-    }
-    for a in call.args {
-        args.push(a.value)
-    }
-    // A UFCS callee resolves through its receiver ; an ident through itself.
-    receiver :: if callee is AST.FieldExpr { callee.target } else { callee }
-    sym :: combinator_callee_sym(ctx, call, receiver) ?? return null
-    return GeneratorCall { .callee = sym, .args = args }
-}
-
 // `call` as a chain source when it calls a generator with every parameter given
 // and its instance and element type resolve ; null otherwise.
 try_descend_gen_source :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterChain | null {
-    target :: generator_call_target(ctx, call) ?? return null
-    owner :: resolve_owner_typed(ctx, target.callee.module) ?? return null
-    decl :: owner.fn_decls[target.callee.id] ?? return null
-    if !fn_is_generator(decl) || decl.params.len() != target.args.len() {
+    target :: call_target(ctx, call) ?? return null
+    decl :: target.decl
+    owner :: target.owner
+    if !fn_is_generator(decl) || decl.body == null {
         return null
     }
-    if decl.body == null {
-        return null
-    }
-    subst :: gen_source_subst(ctx, decl, owner, target.callee, target.args, call) ?? return null
+    subst :: gen_source_subst(ctx, target, call) ?? return null
     element :: genstate_element(ctx.typed, decl.name, subst) ?? return null
     if element == TY_VOID {
         return null
@@ -523,35 +614,24 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterChain 
 
 // The instance substitution of a generator source: each declared parameter unified
 // with its argument's type, then the result with the call's own type (a type
-// parameter only the result names). The arguments are listed in the order the
-// parameters are DECLARED, which is the order the substitution reads them in ;
-// one left unbound declines.
-gen_source_subst :: fn(
-    ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram, callee: Symbol, args: AST.Expr[],
-    call: AST.CallExpr,
-) -> Substitution | null {
+// parameter only the result names). One left unbound declines.
+gen_source_subst :: fn(ctx: FnLowerCtx, target: CallTarget, call: AST.CallExpr) -> Substitution | null {
+    decl :: target.decl
     if decl.type_params.len() == 0 {
         return new_substitution()
     }
-    ft :: owner.decl_types[callee.id]
-    if ft is FnType {
-        if ft.params.len() != args.len() {
-            return null
-        }
-        bindings :: MutableMap<i32, Type> {}
-        order: i32[]!: []
-        for k in 0..<args.len() {
-            unify_params(ft.params[k], default_if_free(ctx.types.expr_type(args[k])), bindings, order, ctx)
-        }
-        unify_params(ft.return_type, default_if_free(ctx.types.expr_type(call)), bindings, order, ctx)
-        concrete_args: Type[]!: []
-        for tp in decl.type_params {
-            tp_sym :: find_type_param_in_resolved(owner.resolved, tp.name, tp.span) ?? return null
-            concrete_args.push(bindings[tp_sym.id] ?? return null)
-        }
-        return subst_from_concrete(decl, owner, concrete_args)
+    signature :: fn_signature(target.owner, target.callee) ?? return null
+    patterns: Type[]!: []
+    actuals: Type[]!: []
+    for k in 0..<target.args.len() {
+        patterns.push(signature.params[k])
+        actuals.push(default_if_free(ctx.types.expr_type(target.args[k])))
     }
-    return null
+    patterns.push(signature.return_type)
+    actuals.push(default_if_free(ctx.types.expr_type(call)))
+    type_params :: declared_type_params(decl, target.owner) ?? return null
+    concrete :: unify_type_args(ctx, patterns, actuals, type_params) ?? return null
+    return subst_from_concrete(decl, target.owner, concrete)
 }
 
 // Each argument bound, in parameter order, to the instance's clone of the
@@ -562,12 +642,8 @@ bind_gen_source_operands :: fn(
 ) -> IterChain {
     gs :: chain.gen_source ?? return chain
     for k in 0..<gs.decl.params.len() {
-        p :: gs.decl.params[k]
-        p_sym :: lookup_local_symbol(ctx.project, gs.owner.resolved, p.span) ?? panic(
-            "generator source: parameter `${p.name}` has no symbol",
-        )
         arg :: recurse(ctx, gs.args[k])
-        out.push(cell_aware_let(ctx, clone_of(gs.instance, p_sym), p.name, arg, type_of(arg), p.span))
+        out.push(bind_instance_param(ctx, gs.instance, gs.owner, gs.decl.params[k], arg, type_of(arg)))
     }
     return chain
 }
@@ -578,11 +654,7 @@ emit_fused_gen_source :: fn(ctx: FnLowerCtx!, chain: IterChain, template: BodyTe
     gs :: chain.gen_source ?? panic(UNBOUND_CHAIN)
     body :: gs.decl.body ?? panic("generator source: the generator has no body")
     gen_ctx :: inline_gen_ctx(ctx, gs.decl, gs.owner, gs.subst, gs.instance, template, chain.span)
-    entered :: ctx.project.inlining_generators.add(gs.instance.generator_id)
-    lowered :: lower_block(gen_ctx, body, false, null)
-    if entered {
-        ctx.project.inlining_generators.remove(gs.instance.generator_id)
-    }
+    lowered :: lower_instance_body(ctx, gen_ctx, body)
     return wrap_instance_exit(gs.instance, chain.span, block_stmts_with_trailing(lowered))
 }
 
@@ -592,12 +664,10 @@ inline_gen_ctx :: fn(
     ctx: FnLowerCtx!, decl: AST.FnDecl, owner: TypedProgram, subst: Substitution,
     instance: GenInstance!, template: BodyTemplate, span: Span,
 ) -> FnLowerCtx! {
-    gen_return :: substitute(return_type_of(decl, make_entry_types(owner, subst)), subst)
-    gen_ctx :: new_fn_lower_ctx(ctx.project, stub_entry(decl, owner), owner, subst, gen_return)
+    gen_ctx :: instance_ctx(ctx, decl, owner, subst, instance)
     gen_ctx.gen_inline_sink = build_gen_sink(
         ctx, template.pattern, template.binding_symbol, template.binding_name,
         template.element_type, template.user_body, span,
     )
-    gen_ctx.instance = instance
     return gen_ctx
 }

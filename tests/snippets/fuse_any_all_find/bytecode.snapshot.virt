@@ -31,16 +31,15 @@ fn 0 snippet$main () -> i32
   local xs ref
   local a bool
   local __fuse_arr_0 ref
-  local __fuse_len_3 usize
-  local __fuse_i_4 usize
+  local __fuse_len_0 usize
+  local __fuse_i_1 usize
   local b bool
   local x i32
-  local $k_45 usize
   local c bool
   local f any
-  local $cast_110 i64
-  local __find_25 any
-  local __elem_26 i32
+  local $cast_122 i64
+  local __consumed_13 any
+  local x i32
   i32.const 1
   i32.const 2
   i32.const 3
@@ -52,194 +51,200 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __fuse_arr_0
   bool.const false
   local.set 1   ; a
-  local.get 2   ; __fuse_arr_0
-  array.len
-  local.set 3   ; __fuse_len_3
-  i64.const 0
-  local.set 4   ; __fuse_i_4
   block $L0 void
-    loop $L1 void
-      local.get 4   ; __fuse_i_4
-      local.get 3   ; __fuse_len_3
-      u64.lt
-      if $L2 void
-        local.get 2   ; __fuse_arr_0
-        local.get 4   ; __fuse_i_4
-        load_slot_i32
-        call 1   ; __lambda_snippet_0
-        call 2   ; __lambda_snippet_1
+    local.get 2   ; __fuse_arr_0
+    array.len
+    local.set 3   ; __fuse_len_0
+    i64.const 0
+    local.set 4   ; __fuse_i_1
+    block $L1 void
+      loop $L2 void
+        local.get 4   ; __fuse_i_1
+        local.get 3   ; __fuse_len_0
+        u64.lt
         if $L3 void
-          bool.const true
-          local.set 1   ; a
-        else
-          local.get 4   ; __fuse_i_4
+          local.get 2   ; __fuse_arr_0
+          local.get 4   ; __fuse_i_1
+          load_slot_i32
+          call 1   ; __lambda_snippet_0
+          call 2   ; __lambda_snippet_1
+          if $L4 void
+            bool.const true
+            local.set 1   ; a
+            br $L0
+          end $L4
+          local.get 4   ; __fuse_i_1
           i64.const 1
           i64.add
-          local.set 4   ; __fuse_i_4
-          br $L1
+          local.set 4   ; __fuse_i_1
+          br $L2
         end $L3
       end $L2
     end $L1
+    bool.const false
+    local.set 1   ; a
   end $L0
   local.get 0   ; xs
   local.set 2   ; __fuse_arr_0
-  bool.const true
+  bool.const false
   local.set 5   ; b
-  local.get 2   ; __fuse_arr_0
-  array.len
-  local.set 3   ; __fuse_len_3
-  i64.const 0
-  local.set 4   ; __fuse_i_4
-  block $L4 void
-    loop $L5 void
-      local.get 4   ; __fuse_i_4
-      local.get 3   ; __fuse_len_3
-      u64.lt
-      if $L6 void
-        local.get 2   ; __fuse_arr_0
-        local.get 4   ; __fuse_i_4
-        load_slot_i32
-        local.tee 6   ; x
-        call 3   ; __lambda_snippet_2
-        if $L7 void
-          local.get 6   ; x
-          call 4   ; __lambda_snippet_3
-          bool.not
-          if $L8 void
-            bool.const false
-            local.set 5   ; b
-          else
-            i64.const 1
-            local.set 7   ; $k_45
-            local.get 4   ; __fuse_i_4
-            local.get 7   ; $k_45
-            i64.add
-            local.set 4   ; __fuse_i_4
-            br $L5
-          end $L8
-        else
+  block $L5 void
+    local.get 2   ; __fuse_arr_0
+    array.len
+    local.set 3   ; __fuse_len_0
+    i64.const 0
+    local.set 4   ; __fuse_i_1
+    block $L6 void
+      loop $L7 void
+        local.get 4   ; __fuse_i_1
+        local.get 3   ; __fuse_len_0
+        u64.lt
+        if $L8 void
+          local.get 2   ; __fuse_arr_0
+          local.get 4   ; __fuse_i_1
+          load_slot_i32
+          local.tee 6   ; x
+          call 3   ; __lambda_snippet_2
+          if $L9 void
+            local.get 6   ; x
+            call 4   ; __lambda_snippet_3
+            bool.not
+            if $L10 void
+              bool.const false
+              local.set 5   ; b
+              br $L5
+            end $L10
+          end $L9
+          local.get 4   ; __fuse_i_1
           i64.const 1
-          local.set 7   ; $k_45
-          local.get 4   ; __fuse_i_4
-          local.get 7   ; $k_45
           i64.add
-          local.set 4   ; __fuse_i_4
-          br $L5
-        end $L7
-      end $L6
-    end $L5
-  end $L4
+          local.set 4   ; __fuse_i_1
+          br $L7
+        end $L8
+      end $L7
+    end $L6
+    bool.const true
+    local.set 5   ; b
+  end $L5
   local.get 0   ; xs
   local.set 2   ; __fuse_arr_0
-  bool.const true
-  local.set 8   ; c
-  local.get 2   ; __fuse_arr_0
-  array.len
-  local.set 3   ; __fuse_len_3
-  i64.const 0
-  local.set 4   ; __fuse_i_4
-  block $L9 void
-    loop $L10 void
-      local.get 4   ; __fuse_i_4
-      local.get 3   ; __fuse_len_3
-      u64.lt
-      if $L11 void
-        local.get 2   ; __fuse_arr_0
-        local.get 4   ; __fuse_i_4
-        load_slot_i32
-        call 5   ; __lambda_snippet_4
-        call 6   ; __lambda_snippet_5
-        bool.not
-        if $L12 void
-          bool.const false
-          local.set 8   ; c
-        else
-          local.get 4   ; __fuse_i_4
+  bool.const false
+  local.set 7   ; c
+  block $L11 void
+    local.get 2   ; __fuse_arr_0
+    array.len
+    local.set 3   ; __fuse_len_0
+    i64.const 0
+    local.set 4   ; __fuse_i_1
+    block $L12 void
+      loop $L13 void
+        local.get 4   ; __fuse_i_1
+        local.get 3   ; __fuse_len_0
+        u64.lt
+        if $L14 void
+          local.get 2   ; __fuse_arr_0
+          local.get 4   ; __fuse_i_1
+          load_slot_i32
+          call 5   ; __lambda_snippet_4
+          call 6   ; __lambda_snippet_5
+          bool.not
+          if $L15 void
+            bool.const false
+            local.set 7   ; c
+            br $L11
+          end $L15
+          local.get 4   ; __fuse_i_1
           i64.const 1
           i64.add
-          local.set 4   ; __fuse_i_4
-          br $L10
-        end $L12
-      end $L11
-    end $L10
-  end $L9
+          local.set 4   ; __fuse_i_1
+          br $L13
+        end $L14
+      end $L13
+    end $L12
+    bool.const true
+    local.set 7   ; c
+  end $L11
   i64.const 30
   call 12   ; std_core$new_byte_buffer
   local.set 2   ; __fuse_arr_0
   i64.const 0
-  local.set 3   ; __fuse_len_3
+  local.set 3   ; __fuse_len_0
   local.get 2   ; __fuse_arr_0
-  local.get 3   ; __fuse_len_3
+  local.get 3   ; __fuse_len_0
   string.const 0   ; "any "
   call 14   ; std_core$write_string_at
-  local.set 3   ; __fuse_len_3
+  local.set 3   ; __fuse_len_0
   local.get 2   ; __fuse_arr_0
-  local.get 3   ; __fuse_len_3
+  local.get 3   ; __fuse_len_0
   local.get 1   ; a
   call 16   ; std_core$write_bool
-  local.set 3   ; __fuse_len_3
+  local.set 3   ; __fuse_len_0
   local.get 2   ; __fuse_arr_0
-  local.get 3   ; __fuse_len_3
+  local.get 3   ; __fuse_len_0
   string.const 1   ; " all "
   call 14   ; std_core$write_string_at
-  local.set 3   ; __fuse_len_3
+  local.set 3   ; __fuse_len_0
   local.get 2   ; __fuse_arr_0
-  local.get 3   ; __fuse_len_3
+  local.get 3   ; __fuse_len_0
   local.get 5   ; b
   call 16   ; std_core$write_bool
-  local.set 3   ; __fuse_len_3
+  local.set 3   ; __fuse_len_0
   local.get 2   ; __fuse_arr_0
-  local.get 3   ; __fuse_len_3
+  local.get 3   ; __fuse_len_0
   string.const 2   ; " all2 "
   call 14   ; std_core$write_string_at
-  local.set 3   ; __fuse_len_3
+  local.set 3   ; __fuse_len_0
   local.get 2   ; __fuse_arr_0
-  local.get 3   ; __fuse_len_3
-  local.get 8   ; c
+  local.get 3   ; __fuse_len_0
+  local.get 7   ; c
   call 16   ; std_core$write_bool
-  local.set 3   ; __fuse_len_3
+  local.set 3   ; __fuse_len_0
   local.get 2   ; __fuse_arr_0
-  local.get 3   ; __fuse_len_3
+  local.get 3   ; __fuse_len_0
   call 13   ; std_core$finish_buffer
   call 19   ; std_io$println__string
   local.get 0   ; xs
   local.set 2   ; __fuse_arr_0
   null.const
-  local.set 9   ; f
-  local.get 2   ; __fuse_arr_0
-  array.len
-  local.set 3   ; __fuse_len_3
-  i64.const 0
-  local.set 4   ; __fuse_i_4
-  block $L13 void
-    loop $L14 void
-      local.get 4   ; __fuse_i_4
-      local.get 3   ; __fuse_len_3
-      u64.lt
-      if $L15 void
-        local.get 2   ; __fuse_arr_0
-        local.get 4   ; __fuse_i_4
-        load_slot_i32
-        call 7   ; __lambda_snippet_6
-        local.tee 6   ; x
-        call 8   ; __lambda_snippet_7
-        if $L16 void
-          local.get 6   ; x
-          retag 1   ; -> i32
-          local.set 9   ; f
-        else
-          local.get 4   ; __fuse_i_4
+  local.set 8   ; f
+  block $L16 void
+    local.get 2   ; __fuse_arr_0
+    array.len
+    local.set 3   ; __fuse_len_0
+    i64.const 0
+    local.set 4   ; __fuse_i_1
+    block $L17 void
+      loop $L18 void
+        local.get 4   ; __fuse_i_1
+        local.get 3   ; __fuse_len_0
+        u64.lt
+        if $L19 void
+          local.get 2   ; __fuse_arr_0
+          local.get 4   ; __fuse_i_1
+          load_slot_i32
+          call 7   ; __lambda_snippet_6
+          local.tee 6   ; x
+          call 8   ; __lambda_snippet_7
+          if $L20 void
+            local.get 6   ; x
+            retag 1   ; -> i32
+            local.set 8   ; f
+            br $L16
+          end $L20
+          local.get 4   ; __fuse_i_1
           i64.const 1
           i64.add
-          local.set 4   ; __fuse_i_4
-          br $L14
-        end $L16
-      end $L15
-    end $L14
-  end $L13
-  local.get 9   ; f
+          local.set 4   ; __fuse_i_1
+          br $L18
+        end $L19
+      end $L18
+    end $L17
+    null.const
+    local.set 8   ; f
+  end $L16
+  local.get 8   ; f
   type_check 0   ; null
-  if $L17 void
+  if $L21 void
     string.const 3   ; "f none"
     call 19   ; std_io$println__string
   else
@@ -247,77 +252,71 @@ fn 0 snippet$main () -> i32
     call 12   ; std_core$new_byte_buffer
     local.set 2   ; __fuse_arr_0
     i64.const 0
-    local.set 3   ; __fuse_len_3
+    local.set 3   ; __fuse_len_0
     local.get 2   ; __fuse_arr_0
-    local.get 3   ; __fuse_len_3
+    local.get 3   ; __fuse_len_0
     string.const 4   ; "f "
     call 14   ; std_core$write_string_at
-    local.set 3   ; __fuse_len_3
-    local.get 9   ; f
+    local.set 3   ; __fuse_len_0
+    local.get 8   ; f
     ref.cast 1   ; -> i32
     i32.to_i64
-    local.set 10   ; $cast_110
+    local.set 9   ; $cast_122
     local.get 2   ; __fuse_arr_0
-    local.get 3   ; __fuse_len_3
-    local.get 10   ; $cast_110
+    local.get 3   ; __fuse_len_0
+    local.get 9   ; $cast_122
     call 15   ; std_core$write_int
-    local.set 3   ; __fuse_len_3
+    local.set 3   ; __fuse_len_0
     local.get 2   ; __fuse_arr_0
-    local.get 3   ; __fuse_len_3
+    local.get 3   ; __fuse_len_0
     call 13   ; std_core$finish_buffer
     call 19   ; std_io$println__string
-  end $L17
+  end $L21
   null.const
-  local.set 11   ; __find_25
-  local.get 0   ; xs
-  array.len
-  local.set 3   ; __fuse_len_3
-  i64.const 0
-  local.set 4   ; __fuse_i_4
-  block $L18 void
-    loop $L19 void
-      local.get 4   ; __fuse_i_4
-      local.get 3   ; __fuse_len_3
-      u64.lt
-      if $L20 void
-        local.get 0   ; xs
-        local.get 4   ; __fuse_i_4
-        load_slot_i32
-        local.tee 6   ; x
-        call 9   ; __lambda_snippet_8
-        if $L21 void
-          local.get 6   ; x
-          local.tee 12   ; __elem_26
-          call 10   ; __lambda_snippet_9
-          if $L22 void
-            local.get 12   ; __elem_26
-            retag 1   ; -> i32
-            local.set 11   ; __find_25
-          else
-            i64.const 1
-            local.set 7   ; $k_45
-            local.get 4   ; __fuse_i_4
-            local.get 7   ; $k_45
-            i64.add
-            local.set 4   ; __fuse_i_4
-            br $L19
-          end $L22
-        else
+  local.set 10   ; __consumed_13
+  block $L22 void
+    local.get 0   ; xs
+    array.len
+    local.set 3   ; __fuse_len_0
+    i64.const 0
+    local.set 4   ; __fuse_i_1
+    block $L23 void
+      loop $L24 void
+        local.get 4   ; __fuse_i_1
+        local.get 3   ; __fuse_len_0
+        u64.lt
+        if $L25 void
+          local.get 0   ; xs
+          local.get 4   ; __fuse_i_1
+          load_slot_i32
+          local.tee 6   ; x
+          call 9   ; __lambda_snippet_8
+          if $L26 void
+            local.get 6   ; x
+            local.tee 11   ; x
+            call 10   ; __lambda_snippet_9
+            if $L27 void
+              local.get 11   ; x
+              retag 1   ; -> i32
+              local.set 10   ; __consumed_13
+              br $L22
+            end $L27
+          end $L26
+          local.get 4   ; __fuse_i_1
           i64.const 1
-          local.set 7   ; $k_45
-          local.get 4   ; __fuse_i_4
-          local.get 7   ; $k_45
           i64.add
-          local.set 4   ; __fuse_i_4
-          br $L19
-        end $L21
-      end $L20
-    end $L19
-  end $L18
-  local.get 11   ; __find_25
-  local.tee 9   ; f
+          local.set 4   ; __fuse_i_1
+          br $L24
+        end $L25
+      end $L24
+    end $L23
+    null.const
+    local.set 10   ; __consumed_13
+  end $L22
+  local.get 10   ; __consumed_13
+  local.tee 8   ; f
   type_check 0   ; null
-  if $L23 void
+  if $L28 void
     string.const 5   ; "g none"
     call 19   ; std_io$println__string
   else
@@ -325,26 +324,26 @@ fn 0 snippet$main () -> i32
     call 12   ; std_core$new_byte_buffer
     local.set 0   ; xs
     i64.const 0
-    local.set 3   ; __fuse_len_3
+    local.set 3   ; __fuse_len_0
     local.get 0   ; xs
-    local.get 3   ; __fuse_len_3
+    local.get 3   ; __fuse_len_0
     string.const 6   ; "g "
     call 14   ; std_core$write_string_at
-    local.set 3   ; __fuse_len_3
-    local.get 9   ; f
+    local.set 3   ; __fuse_len_0
+    local.get 8   ; f
     ref.cast 1   ; -> i32
     i32.to_i64
-    local.set 10   ; $cast_110
+    local.set 9   ; $cast_122
     local.get 0   ; xs
-    local.get 3   ; __fuse_len_3
-    local.get 10   ; $cast_110
+    local.get 3   ; __fuse_len_0
+    local.get 9   ; $cast_122
     call 15   ; std_core$write_int
-    local.set 3   ; __fuse_len_3
+    local.set 3   ; __fuse_len_0
     local.get 0   ; xs
-    local.get 3   ; __fuse_len_3
+    local.get 3   ; __fuse_len_0
     call 13   ; std_core$finish_buffer
     call 19   ; std_io$println__string
-  end $L23
+  end $L28
   return.lit i32.const 0
 end
 

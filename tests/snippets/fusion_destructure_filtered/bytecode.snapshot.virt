@@ -78,6 +78,9 @@ fn 1 snippet$main () -> i32
   local $cast_34 i64
   local $call_36 string
   local __fuse_i_12 usize
+  local i usize
+  local x i32
+  local __off_8 usize
   string.const 0   ; ""
   local.set 0   ; lazy
   i32.const 10
@@ -158,6 +161,8 @@ fn 1 snippet$main () -> i32
   local.get 0   ; lazy
   call 2   ; concat_2
   call 26   ; std_io$println__string
+  string.const 0   ; ""
+  local.set 0   ; lazy
   i32.const 10
   i32.const 20
   i32.const 30
@@ -185,7 +190,49 @@ fn 1 snippet$main () -> i32
         struct.new 1   ; __Tuple_usize_i32_b216d996
         call 0   ; snippet$not_twenty
         if $L6 void
-          unreachable
+          local.get 4   ; i
+          local.set 12   ; i
+          local.get 5   ; x
+          local.set 13   ; x
+          i64.const 42
+          call 7   ; std_core$new_byte_buffer
+          local.set 2   ; $fn_ref_8
+          i64.const 0
+          local.set 14   ; __off_8
+          local.get 2   ; $fn_ref_8
+          local.get 14   ; __off_8
+          string.const 1   ; " "
+          call 9   ; std_core$write_string_at
+          local.set 14   ; __off_8
+          local.get 12   ; i
+          usize.to_i64
+          local.set 8   ; $cast_30
+          local.get 2   ; $fn_ref_8
+          local.get 14   ; __off_8
+          local.get 8   ; $cast_30
+          call 11   ; std_core$write_unsigned
+          local.set 14   ; __off_8
+          local.get 2   ; $fn_ref_8
+          local.get 14   ; __off_8
+          string.const 2   ; ":"
+          call 9   ; std_core$write_string_at
+          local.set 14   ; __off_8
+          local.get 13   ; x
+          i32.to_i64
+          local.set 9   ; $cast_34
+          local.get 2   ; $fn_ref_8
+          local.get 14   ; __off_8
+          local.get 9   ; $cast_34
+          call 10   ; std_core$write_int
+          local.set 14   ; __off_8
+          local.get 2   ; $fn_ref_8
+          local.get 14   ; __off_8
+          call 8   ; std_core$finish_buffer
+          local.set 10   ; $call_36
+          local.get 0   ; lazy
+          local.get 10   ; $call_36
+          call 2   ; concat_2
+          local.set 0   ; lazy
         end $L6
         local.get 4   ; i
         i64.const 1
@@ -200,7 +247,7 @@ fn 1 snippet$main () -> i32
     end $L4
   end $L3
   string.const 4   ; "fused enumerate.filter:"
-  string.const 0   ; ""
+  local.get 0   ; lazy
   call 2   ; concat_2
   call 26   ; std_io$println__string
   return.lit i32.const 0

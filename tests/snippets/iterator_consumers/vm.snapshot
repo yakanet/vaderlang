@@ -1,0 +1,19 @@
+# stdout
+fold 285 285
+sum 25 25
+user 285 285
+early 25 25
+none -1 -1
+find struct 8 8
+collect struct 4 4
+a b a b xx yy 
+pair 45 450 45 450
+pair early 150 3 150 3
+pair filtered 39 390 39 390
+overload 285 2850 2850
+twice 55
+array fold 45
+range sum 30
+find_map 500
+# exit
+0

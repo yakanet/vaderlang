@@ -443,8 +443,8 @@ fn 6 snippet$headed () -> void
   local $cast_20 i64
   local __for_i_2 usize
   local __off_1 usize
-  local __find_2 any
-  local $vcall_71 string
+  local __consumed_2 any
+  local $vcall_74 string
   i32.const 1
   i32.const 2
   i32.const 3
@@ -543,7 +543,7 @@ fn 6 snippet$headed () -> void
   array.new 5 3   ; i32[][]
   local.set 0   ; xs
   null.const
-  local.set 7   ; __find_2
+  local.set 7   ; __consumed_2
   block $L7 void
     i32.const 0
     local.tee 1   ; v
@@ -551,7 +551,7 @@ fn 6 snippet$headed () -> void
     if $L8 void
       local.get 1   ; v
       retag 2   ; -> i32
-      local.set 7   ; __find_2
+      local.set 7   ; __consumed_2
     else
       local.get 0   ; xs
       array.len
@@ -572,7 +572,7 @@ fn 6 snippet$headed () -> void
             if $L12 void
               local.get 1   ; v
               retag 2   ; -> i32
-              local.set 7   ; __find_2
+              local.set 7   ; __consumed_2
               br $L8
             end $L12
             local.get 5   ; __for_i_2
@@ -583,13 +583,15 @@ fn 6 snippet$headed () -> void
           end $L11
         end $L10
       end $L9
+      null.const
+      local.set 7   ; __consumed_2
     end $L8
   end $L7
-  local.get 7   ; __find_2
+  local.get 7   ; __consumed_2
   virtual.call 1 Display.to_string
-  local.set 8   ; $vcall_71
+  local.set 8   ; $vcall_74
   string.const 7   ; "found "
-  local.get 8   ; $vcall_71
+  local.get 8   ; $vcall_74
   call 9   ; concat_2
   call 63   ; std_io$println__string
   return

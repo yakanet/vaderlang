@@ -37,7 +37,6 @@ typedef struct vader_struct_std_collections_MutableMap__usize__bool_t vader_stru
 typedef struct vader_struct___gen_state_std_collections_5_t vader_struct___gen_state_std_collections_5_t;
 typedef struct vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t;
 typedef struct vader_struct___Tuple_usize_bool_c5a1221e_t vader_struct___Tuple_usize_bool_c5a1221e_t;
-typedef struct vader_struct___Tuple_Any_u8_d7d23c9c_t vader_struct___Tuple_Any_u8_d7d23c9c_t;
 
 struct vader_struct___genstate_pairs_until_t {
     vader_obj_header_t header;
@@ -80,21 +79,22 @@ struct vader_struct___asyncstate_snippet_2_t {
     vader_box_t f_s1;
     vader_box_t f_s2;
     int32_t f_s3;
-    vader_box_t f_s4;
-    int32_t f_s5;
+    void* f_s4;
+    vader_box_t f_s5;
     int32_t f_s6;
     int32_t f_s7;
     int32_t f_s8;
     int32_t f_s9;
-    void* f_s10;
-    int32_t f_s11;
+    int32_t f_s10;
+    void* f_s11;
     int32_t f_s12;
     int32_t f_s13;
     int32_t f_s14;
-    void* f_s15;
-    vader_box_t f_s16;
-    int32_t f_s17;
+    int32_t f_s15;
+    void* f_s16;
+    vader_box_t f_s17;
     int32_t f_s18;
+    int32_t f_s19;
     vader_box_t f_awaited;
     int32_t f_state;
 };
@@ -266,11 +266,6 @@ struct vader_struct___Tuple_usize_bool_c5a1221e_t {
     size_t f__0;
     bool f__1;
 };
-struct vader_struct___Tuple_Any_u8_d7d23c9c_t {
-    vader_obj_header_t header;
-    vader_box_t f__0;
-    uint8_t f__1;
-};
 
 /* Compile-time atom table — see docs/ATOM_INTERNING.md. */
 static const char vader_atom_blob[] =
@@ -381,10 +376,19 @@ static vader_fn_t vader_fn_static_snippet_double = {
     { 21u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet_double, NULL,
 };
 
+static vader_box_t vader_fn_tramp___lambda_snippet_1(void* env, vader_box_t a0) {
+    (void) env;
+    return vader_box_bool(3u, __lambda_snippet_1(((int32_t) a0.payload.i)));
+}
+
+static vader_fn_t vader_fn_static___lambda_snippet_1 = {
+    { 16u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_1, NULL,
+};
+
 static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[63] = {
+const vader_type_info_t vader_type_info_table[61] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 16 },
     [3] = { .slot_size = 1 },
@@ -423,10 +427,10 @@ const vader_type_info_t vader_type_info_table[63] = {
     [15] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_2_t),
         .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_2_t, f_s0), offsetof(vader_struct___asyncstate_snippet_2_t, f_s1), offsetof(vader_struct___asyncstate_snippet_2_t, f_s2), offsetof(vader_struct___asyncstate_snippet_2_t, f_s4), offsetof(vader_struct___asyncstate_snippet_2_t, f_s16), offsetof(vader_struct___asyncstate_snippet_2_t, f_awaited) },
+        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_2_t, f_s0), offsetof(vader_struct___asyncstate_snippet_2_t, f_s1), offsetof(vader_struct___asyncstate_snippet_2_t, f_s2), offsetof(vader_struct___asyncstate_snippet_2_t, f_s5), offsetof(vader_struct___asyncstate_snippet_2_t, f_s17), offsetof(vader_struct___asyncstate_snippet_2_t, f_awaited) },
         .ptr_count = 6,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_2_t, f_s10), offsetof(vader_struct___asyncstate_snippet_2_t, f_s15) },
-        .ref_count = 2,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_2_t, f_s4), offsetof(vader_struct___asyncstate_snippet_2_t, f_s11), offsetof(vader_struct___asyncstate_snippet_2_t, f_s16) },
+        .ref_count = 3,
     },
     [16] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
@@ -465,138 +469,141 @@ const vader_type_info_t vader_type_info_table[63] = {
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [31] = { .slot_size = 16 },
-    [32] = { .slot_size = 16 },
-    [33] = {
+    [32] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_async_Sleep_t),
         .slot_size = 8,
     },
+    [33] = { .slot_size = 16 },
     [34] = { .slot_size = 16 },
-    [35] = { .slot_size = 16 },
-    [36] = {
+    [35] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___gen_state_std_iter_0_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___gen_state_std_iter_0_t, f_s0) },
         .ref_count = 1,
     },
-    [37] = {
+    [36] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_Array_i32_u8_0f73abee_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Array_i32_u8_0f73abee_t, f__0) },
         .ref_count = 1,
     },
-    [38] = {
+    [37] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__bool_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_index) },
         .ref_count = 3,
     },
-    [39] = {
+    [38] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___gen_state_std_collections_0_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___gen_state_std_collections_0_t, f_s0) },
         .ref_count = 1,
     },
-    [40] = {
+    [39] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t, f__0) },
         .ref_count = 1,
     },
-    [41] = {
+    [40] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_i32_bool_cd1657f9_t),
         .slot_size = 8,
     },
-    [42] = {
+    [41] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_index) },
         .ref_count = 3,
     },
-    [43] = {
+    [42] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___gen_state_std_collections_1_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___gen_state_std_collections_1_t, f_s0) },
         .ref_count = 1,
     },
-    [44] = {
+    [43] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t, f__0) },
         .ref_count = 1,
     },
-    [45] = {
+    [44] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_i32_i32_3103e027_t),
         .slot_size = 8,
     },
-    [46] = {
+    [45] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_index) },
         .ref_count = 3,
     },
-    [47] = {
+    [46] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___gen_state_std_collections_2_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___gen_state_std_collections_2_t, f_s0) },
         .ref_count = 1,
     },
-    [48] = {
+    [47] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t, f__0) },
         .ref_count = 1,
     },
-    [49] = {
+    [48] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_string_i32_4ccf6d4f_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_string_i32_4ccf6d4f_t, f__0) },
         .string_count = 1,
     },
-    [50] = {
+    [49] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableSet__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableSet__i32_t, f_inner) },
         .ref_count = 1,
     },
-    [51] = {
+    [50] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___gen_state_std_collections_3_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___gen_state_std_collections_3_t, f_s0) },
         .ref_count = 1,
     },
-    [52] = {
+    [51] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableSet__usize_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableSet__usize_t, f_inner) },
         .ref_count = 1,
     },
-    [53] = {
+    [52] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___gen_state_std_collections_4_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___gen_state_std_collections_4_t, f_s0) },
         .ref_count = 1,
     },
-    [54] = {
+    [53] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__bool_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_index) },
         .ref_count = 3,
     },
-    [55] = {
+    [54] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___gen_state_std_collections_5_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___gen_state_std_collections_5_t, f_s0) },
         .ref_count = 1,
     },
-    [56] = {
+    [55] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t, f__0) },
         .ref_count = 1,
     },
-    [57] = {
+    [56] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_usize_bool_c5a1221e_t),
         .slot_size = 8,
+    },
+    [57] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [58] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -606,19 +613,9 @@ const vader_type_info_t vader_type_info_table[63] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [60] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
-    },
-    [61] = { .slot_size = 8 },
-    [62] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_Any_u8_d7d23c9c_t),
-        .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Any_u8_d7d23c9c_t, f__0) },
-        .ptr_count = 1,
-    },
+    [60] = { .slot_size = 8 },
 };
-const size_t vader_type_info_count = 63;
+const size_t vader_type_info_count = 61;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -801,26 +798,28 @@ static void snippet_show(vader_string_t l0, void* l1) {
 static int32_t snippet_main(void) {
     void* l0 = NULL;
     void* l1 = NULL;
-    void* l4 = NULL;
+    void* l3 = NULL;
     void* l5 = NULL;
     void* l6 = NULL;
-    vader_box_t l2 = vader_box_null(), l3 = vader_box_null(), l7 = vader_box_null();
+    void* l7 = NULL;
+    vader_box_t l2 = vader_box_null(), l4 = vader_box_null(), l8 = vader_box_null();
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
     int32_t t2;
-    vader_box_t* gc_roots[4] = { &l2, &l3, &l7, &t1 };
-    void** gc_raw_roots[6] = { &l0, &l1, &l4, &l5, &l6, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 6u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_box_t* gc_roots[4] = { &l2, &l4, &l8, &t1 };
+    void** gc_raw_roots[7] = { &l0, &l1, &l3, &l5, &l6, &l7, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 7u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
     l0 = vader_box_obj(0u, NULL).payload.obj;
     l1 = vader_box_obj(0u, NULL).payload.obj;
     l2 = vader_box_obj(0u, NULL);
-    l3 = vader_box_obj(0u, NULL);
-    l4 = vader_box_obj(0u, NULL).payload.obj;
+    l3 = vader_box_obj(0u, NULL).payload.obj;
+    l4 = vader_box_obj(0u, NULL);
     l5 = vader_box_obj(0u, NULL).payload.obj;
     l6 = vader_box_obj(0u, NULL).payload.obj;
-    l7 = vader_box_obj(0u, NULL);
+    l7 = vader_box_obj(0u, NULL).payload.obj;
+    l8 = vader_box_obj(0u, NULL);
     vader_struct___asyncstate_snippet_2_t* _a0_obj = (vader_struct___asyncstate_snippet_2_t*) vader_gc_alloc(sizeof(vader_struct___asyncstate_snippet_2_t));
     vader_obj_header_init(_a0_obj, 15u);
     _a0_obj->f_s0 = vader_ref_box(l0);
@@ -828,21 +827,22 @@ static int32_t snippet_main(void) {
     _a0_obj->f_s2 = l2;
     _a0_obj->f_s3 = INT32_C(0);
     _a0_obj->f_s4 = l3;
-    _a0_obj->f_s5 = INT32_C(0);
+    _a0_obj->f_s5 = l4;
     _a0_obj->f_s6 = INT32_C(0);
     _a0_obj->f_s7 = INT32_C(0);
     _a0_obj->f_s8 = INT32_C(0);
     _a0_obj->f_s9 = INT32_C(0);
-    _a0_obj->f_s10 = l4;
-    _a0_obj->f_s11 = INT32_C(0);
+    _a0_obj->f_s10 = INT32_C(0);
+    _a0_obj->f_s11 = l5;
     _a0_obj->f_s12 = INT32_C(0);
     _a0_obj->f_s13 = INT32_C(0);
     _a0_obj->f_s14 = INT32_C(0);
-    _a0_obj->f_s15 = l5;
-    _a0_obj->f_s16 = vader_ref_box(l6);
-    _a0_obj->f_s17 = INT32_C(0);
+    _a0_obj->f_s15 = INT32_C(0);
+    _a0_obj->f_s16 = l6;
+    _a0_obj->f_s17 = vader_ref_box(l7);
     _a0_obj->f_s18 = INT32_C(0);
-    _a0_obj->f_awaited = l7;
+    _a0_obj->f_s19 = INT32_C(0);
+    _a0_obj->f_awaited = l8;
     _a0_obj->f_state = INT32_C(37);
     t0 = (void*) _a0_obj;
     t1 = vader_ref_box(t0);
@@ -1340,7 +1340,7 @@ static bool __lambda_snippet_1(int32_t l0) {
 }
 
 static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
-    int32_t l1, l2, l10, l24, l29, l30, l31, l32, l33, l34, l35, l36, l37, l38, l39, l41, l42, l43, l44, l45, l47, l48, l49, l52, l53, l54, l55, l60, l64, l74, l75, l76, l77, l78, l79, l80, l85;
+    int32_t l1, l2, l10, l24, l29, l30, l31, l32, l33, l34, l35, l36, l37, l38, l39, l41, l42, l43, l44, l45, l47, l48, l49, l52, l53, l54, l55, l60, l64, l75, l76, l77, l78, l79, l81, l82, l87;
     void* l3 = NULL;
     void* l6 = NULL;
     void* l12 = NULL;
@@ -1361,11 +1361,13 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
     void* l66 = NULL;
     void* l67 = NULL;
     void* l71 = NULL;
-    void* l82 = NULL;
-    size_t l4, l7, l13, l17, l19, l20, l22, l23, l62, l63, l68, l69, l83;
-    int64_t l5, l14, l86;
+    void* l73 = NULL;
+    void* l80 = NULL;
+    void* l84 = NULL;
+    size_t l4, l7, l13, l17, l19, l20, l22, l23, l62, l63, l68, l69, l85;
+    int64_t l5, l14, l88;
     uint64_t l8, l65, l72;
-    vader_box_t l9 = vader_box_null(), l11 = vader_box_null(), l27 = vader_box_null(), l58 = vader_box_null(), l70 = vader_box_null(), l73 = vader_box_null(), l81 = vader_box_null(), l84 = vader_box_null();
+    vader_box_t l9 = vader_box_null(), l11 = vader_box_null(), l27 = vader_box_null(), l58 = vader_box_null(), l70 = vader_box_null(), l74 = vader_box_null(), l83 = vader_box_null(), l86 = vader_box_null();
     bool l21;
     int32_t t0;
     vader_string_t t1 = 0;
@@ -1373,14 +1375,14 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
     void* t3 = NULL;
     vader_box_t t4 = vader_box_null();
     bool t5;
-    vader_box_t* gc_roots[9] = { &l9, &l11, &l27, &l58, &l70, &l73, &l81, &l84, &t4 };
-    void** gc_raw_roots[23] = {
+    vader_box_t* gc_roots[9] = { &l9, &l11, &l27, &l58, &l70, &l74, &l83, &l86, &t4 };
+    void** gc_raw_roots[25] = {
         &l0, &l3, &l6, &l12, &l15, &l16, &l18, &l25, &l26, &l28, &l40, &l46, &l50, &l51, &l56, &l57,
-        &l59, &l61, &l66, &l67, &l71, &l82, &t3,
+        &l59, &l61, &l66, &l67, &l71, &l73, &l80, &l84, &t3,
     };
     vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 9u, 23u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 9u, 25u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
@@ -1400,15 +1402,15 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
         }
         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
         if (t0 == INT32_C(2)) {
-            l2 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s17;
+            l2 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s18;
 #line 88 "tests/snippets/generator_source_fusion/_main.vader"
-            ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s18 = l2;
+            ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s19 = l2;
 #line 89 "tests/snippets/generator_source_fusion/_main.vader"
             l3 = std_core_new_byte_buffer((size_t) 33);
             l4 = (size_t) 0;
             l4 = std_core_write_string_at(l3, l4, 3u);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s18;
+            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s19;
 #line 89 "tests/snippets/generator_source_fusion/_main.vader"
             l5 = ((int64_t) (int32_t) t0);
             l4 = std_core_write_int(l3, l4, l5);
@@ -1436,7 +1438,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                     { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
                 }
                 l10 = ((int32_t) l9.payload.i);
-                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s17 = l10;
+                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s18 = l10;
                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(2);
             } else {
                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
@@ -1456,7 +1458,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                         l13 = (size_t) 0;
                         l13 = std_core_write_string_at(l12, l13, 5u);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                        t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7;
+                        t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s8;
 #line 83 "tests/snippets/generator_source_fusion/_main.vader"
                         l14 = ((int64_t) (int32_t) t0);
                         l13 = std_core_write_int(l12, l13, l14);
@@ -1470,12 +1472,13 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                         ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int32_t) INT32_C(2);
                         ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int32_t) INT32_C(1);
                         l15 = (void*) _a1_arr;
-                        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s15 = l15;
+                        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s16 = l15;
                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                        l16 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s15;
+                        l16 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s16;
 #line 85 "tests/snippets/generator_source_fusion/_main.vader"
                         l17 = (size_t) 3;
+#line 40 "lib/std/iter/iter.vader"
                         vader_array_t* _a2_arr = vader_array_new(4u, 0u, 7u, 1u);
                         l18 = (void*) _a2_arr;
 #line 132 "lib/std/iter/iter.vader"
@@ -1502,7 +1505,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                             t3 = (void*) _a3_arr;
 #line 263 "lib/std/iter/iter.vader"
                             l24 = snippet_sum_of(t3);
-#line 85 "tests/snippets/generator_source_fusion/_main.vader"
+#line 42 "lib/std/iter/iter.vader"
                             vader_array_push_i32((vader_array_t*) l18, l24);
 #line 134 "lib/std/iter/iter.vader"
                             t2 = (l22 + INT64_C(1));
@@ -1512,23 +1515,23 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                         snippet_show(6u, l18);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
 #line 86 "tests/snippets/generator_source_fusion/_main.vader"
-                        t4 = std_iter_window__i32(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s15, (size_t) 3);
+                        t4 = std_iter_window__i32(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s16, (size_t) 3);
                         l25 = t4.payload.obj;
-                        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s16 = vader_ref_box(l25);
+                        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s17 = vader_ref_box(l25);
                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                        l27 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s16;
-#line 87 "tests/snippets/generator_source_fusion/_main.vader"
+                        l27 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s17;
+#line 40 "lib/std/iter/iter.vader"
                         vader_array_t* _a4_arr = vader_array_new(4u, 0u, 7u, 1u);
                         l26 = (void*) _a4_arr;
 #line 263 "lib/std/iter/iter.vader"
                         for (;;) {
                             t4 = vader_vt_Iterator__next(l27);
                             l28 = t4.payload.obj;
-                            if ((((vader_obj_header_t*) l28)->type_index == 37u ? ((vader_struct___Tuple_Array_i32_u8_0f73abee_t*) l28)->f__1 : (((vader_obj_header_t*) l28)->type_index == 40u ? ((vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t*) l28)->f__1 : (((vader_obj_header_t*) l28)->type_index == 44u ? ((vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t*) l28)->f__1 : (((vader_obj_header_t*) l28)->type_index == 48u ? ((vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t*) l28)->f__1 : (((vader_obj_header_t*) l28)->type_index == 56u ? ((vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t*) l28)->f__1 : ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l28)->f__1))))) == INT32_C(1)) {
+                            if (((vader_struct___Tuple_Array_i32_u8_0f73abee_t*) l28)->f__1 == INT32_C(1)) {
                             } else {
-                                l29 = snippet_sum_of((((vader_obj_header_t*) l28)->type_index == 37u ? vader_ref_box(((vader_struct___Tuple_Array_i32_u8_0f73abee_t*) l28)->f__0) : (((vader_obj_header_t*) l28)->type_index == 40u ? vader_ref_box(((vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t*) l28)->f__0) : (((vader_obj_header_t*) l28)->type_index == 44u ? vader_ref_box(((vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t*) l28)->f__0) : (((vader_obj_header_t*) l28)->type_index == 48u ? vader_ref_box(((vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t*) l28)->f__0) : (((vader_obj_header_t*) l28)->type_index == 56u ? vader_ref_box(((vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t*) l28)->f__0) : ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l28)->f__0))))).payload.obj);
-#line 87 "tests/snippets/generator_source_fusion/_main.vader"
+                                l29 = snippet_sum_of(((vader_struct___Tuple_Array_i32_u8_0f73abee_t*) l28)->f__0);
+#line 42 "lib/std/iter/iter.vader"
                                 vader_array_push_i32((vader_array_t*) l26, l29);
 #line 263 "lib/std/iter/iter.vader"
                                 continue;
@@ -1558,8 +1561,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                     } else {
                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                         if (t0 == INT32_C(10)) {
-                                            l30 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11;
-                                            l31 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s8;
+                                            l30 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12;
+                                            l31 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s9;
 #line 14 "tests/snippets/generator_source_fusion/_main.vader"
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                             if ((l30 < l31)) {
@@ -1570,10 +1573,10 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                         } else {
                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                             if (t0 == INT32_C(11)) {
-                                                t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11;
+                                                t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12;
 #line 14 "tests/snippets/generator_source_fusion/_main.vader"
                                                 l32 = (t0 + INT32_C(1));
-                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11 = l32;
+                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12 = l32;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(10);
                                             } else {
@@ -1583,7 +1586,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                 } else {
                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                     if (t0 == INT32_C(13)) {
-                                                        t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14;
+                                                        t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s15;
 #line 19 "tests/snippets/generator_source_fusion/_main.vader"
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                         if ((t0 < INT32_C(2))) {
@@ -1594,20 +1597,20 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                     } else {
                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                         if (t0 == INT32_C(14)) {
-                                                            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14;
+                                                            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s15;
 #line 19 "tests/snippets/generator_source_fusion/_main.vader"
                                                             l33 = (t0 + INT32_C(1));
-                                                            ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14 = l33;
+                                                            ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s15 = l33;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                             ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(13);
                                                         } else {
                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                             if (t0 == INT32_C(15)) {
-                                                                l34 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7;
-                                                                l35 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13;
+                                                                l34 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s8;
+                                                                l35 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14;
 #line 81 "tests/snippets/generator_source_fusion/_main.vader"
                                                                 l36 = (l34 + l35);
-                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7 = l36;
+                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s8 = l36;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(14);
                                                             } else {
@@ -1621,7 +1624,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                     } else {
                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                         if (t0 == INT32_C(18)) {
-                                                                            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13;
+                                                                            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14;
 #line 78 "tests/snippets/generator_source_fusion/_main.vader"
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                             if ((t0 > INT32_C(50))) {
@@ -1640,7 +1643,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                 } else {
                                                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                     if (t0 == INT32_C(21)) {
-                                                                                        t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13;
+                                                                                        t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14;
 #line 75 "tests/snippets/generator_source_fusion/_main.vader"
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                         if (t0 == INT32_C(2)) {
@@ -1651,39 +1654,39 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                     } else {
                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                         if (t0 == INT32_C(22)) {
-                                                                                            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11;
+                                                                                            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12;
 #line 20 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                             l37 = (t0 * INT32_C(10));
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                            l38 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14;
+                                                                                            l38 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s15;
 #line 20 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                             l39 = ((l37 + l38) + INT32_C(1));
-                                                                                            ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12 = l39;
+                                                                                            ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13 = l39;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                            l40 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s10;
-                                                                                            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12;
+                                                                                            l40 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11;
+                                                                                            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13;
 #line 263 "lib/std/iter/iter.vader"
                                                                                             vader_fn_t* _a5_fnobj = (vader_fn_t*) l40;
                                                                                             t4 = ((vader_fn_erased_sig_1_t) _a5_fnobj->code)(_a5_fnobj->env, vader_box_i32(1u, t0));
                                                                                             l41 = ((int32_t) t4.payload.i);
-                                                                                            ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13 = l41;
+                                                                                            ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14 = l41;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                             ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(21);
                                                                                         } else {
                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                             if (t0 == INT32_C(23)) {
 #line 19 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14 = INT32_C(0);
+                                                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s15 = INT32_C(0);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(13);
                                                                                             } else {
                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                 if (t0 == INT32_C(24)) {
-                                                                                                    l42 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7;
-                                                                                                    l43 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13;
+                                                                                                    l42 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s8;
+                                                                                                    l43 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14;
 #line 81 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                     l44 = (l42 + l43);
-                                                                                                    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7 = l44;
+                                                                                                    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s8 = l44;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(23);
                                                                                                 } else {
@@ -1697,7 +1700,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                         } else {
                                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                             if (t0 == INT32_C(27)) {
-                                                                                                                t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13;
+                                                                                                                t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14;
 #line 78 "tests/snippets/generator_source_fusion/_main.vader"
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                 if ((t0 > INT32_C(50))) {
@@ -1716,7 +1719,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                     } else {
                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                         if (t0 == INT32_C(30)) {
-                                                                                                                            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13;
+                                                                                                                            t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14;
 #line 75 "tests/snippets/generator_source_fusion/_main.vader"
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                             if (t0 == INT32_C(2)) {
@@ -1727,18 +1730,18 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                         } else {
                                                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                             if (t0 == INT32_C(31)) {
-                                                                                                                                t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11;
+                                                                                                                                t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12;
 #line 18 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                 l45 = (t0 * INT32_C(10));
-                                                                                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12 = l45;
+                                                                                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13 = l45;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                l46 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s10;
-                                                                                                                                t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12;
+                                                                                                                                l46 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11;
+                                                                                                                                t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13;
 #line 263 "lib/std/iter/iter.vader"
                                                                                                                                 vader_fn_t* _a6_fnobj = (vader_fn_t*) l46;
                                                                                                                                 t4 = ((vader_fn_erased_sig_1_t) _a6_fnobj->code)(_a6_fnobj->env, vader_box_i32(1u, t0));
                                                                                                                                 l47 = ((int32_t) t4.payload.i);
-                                                                                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13 = l47;
+                                                                                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14 = l47;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(30);
                                                                                                                             } else {
@@ -1752,8 +1755,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                     } else {
                                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                         if (t0 == INT32_C(34)) {
-                                                                                                                                            l48 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11;
-                                                                                                                                            l49 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s9;
+                                                                                                                                            l48 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12;
+                                                                                                                                            l49 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s10;
 #line 15 "tests/snippets/generator_source_fusion/_main.vader"
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                             if (l48 == l49) {
@@ -1765,27 +1768,28 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                             if (t0 == INT32_C(35)) {
 #line 14 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11 = INT32_C(0);
+                                                                                                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12 = INT32_C(0);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(10);
                                                                                                                                             } else {
                                                                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                 if (t0 == INT32_C(36)) {
 #line 13 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s8 = INT32_C(4);
-                                                                                                                                                    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s9 = INT32_C(99);
+                                                                                                                                                    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s9 = INT32_C(4);
+                                                                                                                                                    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s10 = INT32_C(99);
 #line 74 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                                     l50 = (void*) &vader_fn_static_snippet_double;
-                                                                                                                                                    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s10 = l50;
+                                                                                                                                                    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11 = l50;
                                                                                                                                                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(35);
                                                                                                                                                 } else {
                                                                                                                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                     if (t0 == INT32_C(37)) {
-#line 65 "tests/snippets/generator_source_fusion/_main.vader"
+#line 40 "lib/std/iter/iter.vader"
                                                                                                                                                         vader_array_t* _a7_arr = vader_array_new(4u, 0u, 7u, 1u);
                                                                                                                                                         l51 = (void*) _a7_arr;
+#line 65 "tests/snippets/generator_source_fusion/_main.vader"
 #line 14 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                                         l52 = INT32_C(0);
                                                                                                                                                         while ((l52 < INT32_C(5))) {
@@ -1798,7 +1802,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
 #line 18 "tests/snippets/generator_source_fusion/_main.vader"
 #line 263 "lib/std/iter/iter.vader"
                                                                                                                                                             l53 = snippet_double((l52 * INT32_C(10)));
-#line 65 "tests/snippets/generator_source_fusion/_main.vader"
+#line 42 "lib/std/iter/iter.vader"
                                                                                                                                                             vader_array_push_i32((vader_array_t*) l51, l53);
 #line 19 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                                             l54 = INT32_C(0);
@@ -1806,7 +1810,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
 #line 20 "tests/snippets/generator_source_fusion/_main.vader"
 #line 263 "lib/std/iter/iter.vader"
                                                                                                                                                                 l55 = snippet_double((((l52 * INT32_C(10)) + l54) + INT32_C(1)));
-#line 65 "tests/snippets/generator_source_fusion/_main.vader"
+#line 42 "lib/std/iter/iter.vader"
                                                                                                                                                                 vader_array_push_i32((vader_array_t*) l51, l55);
 #line 19 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                                                 l54 = (l54 + INT32_C(1));
@@ -1823,18 +1827,18 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                                         l58 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s0;
-#line 67 "tests/snippets/generator_source_fusion/_main.vader"
+#line 40 "lib/std/iter/iter.vader"
                                                                                                                                                         vader_array_t* _a8_arr = vader_array_new(4u, 0u, 7u, 1u);
                                                                                                                                                         l57 = (void*) _a8_arr;
 #line 263 "lib/std/iter/iter.vader"
                                                                                                                                                         for (;;) {
                                                                                                                                                             t4 = vader_vt_Iterator__next(l58);
                                                                                                                                                             l59 = t4.payload.obj;
-                                                                                                                                                            if ((((vader_obj_header_t*) l59)->type_index == 62u ? ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l59)->f__1 : ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l59)->f__1) == INT32_C(1)) {
+                                                                                                                                                            if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l59)->f__1 == INT32_C(1)) {
                                                                                                                                                             } else {
-                                                                                                                                                                t0 = (((vader_obj_header_t*) l59)->type_index == 62u ? ((int32_t) ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l59)->f__0.payload.i) : ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l59)->f__0);
+                                                                                                                                                                t0 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l59)->f__0;
                                                                                                                                                                 l60 = snippet_double(t0);
-#line 67 "tests/snippets/generator_source_fusion/_main.vader"
+#line 42 "lib/std/iter/iter.vader"
                                                                                                                                                                 vader_array_push_i32((vader_array_t*) l57, l60);
 #line 263 "lib/std/iter/iter.vader"
                                                                                                                                                                 continue;
@@ -1886,9 +1890,9 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                                         for (;;) {
                                                                                                                                                             t4 = vader_vt_Iterator__next(l70);
                                                                                                                                                             l71 = t4.payload.obj;
-                                                                                                                                                            if ((((vader_obj_header_t*) l71)->type_index == 62u ? ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l71)->f__1 : ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l71)->f__1) == INT32_C(1)) {
+                                                                                                                                                            if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l71)->f__1 == INT32_C(1)) {
                                                                                                                                                             } else {
-                                                                                                                                                                t0 = (((vader_obj_header_t*) l71)->type_index == 62u ? ((int32_t) ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l71)->f__0.payload.i) : ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l71)->f__0);
+                                                                                                                                                                t0 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l71)->f__0;
                                                                                                                                                                 t5 = snippet_odd(t0);
                                                                                                                                                                 if (t5) {
 #line 70 "tests/snippets/generator_source_fusion/_main.vader"
@@ -1909,75 +1913,88 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
 #line 25 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s3 = INT32_C(10);
 #line 71 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                        l73 = vader_box_obj(0u, NULL);
+                                                                                                                                                        l73 = (void*) &vader_fn_static___lambda_snippet_1;
+#line 215 "lib/std/iter/iter.vader"
                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s4 = l73;
                                                                                                                                                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
+#line 71 "tests/snippets/generator_source_fusion/_main.vader"
+                                                                                                                                                        l74 = vader_box_obj(0u, NULL);
+                                                                                                                                                        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5 = l74;
+                                                                                                                                                        VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
+                                                                                                                                                        {
 #line 26 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5 = INT32_C(1);
-                                                                                                                                                        for (;;) {
+                                                                                                                                                            ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6 = INT32_C(1);
+                                                                                                                                                            for (;;) {
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                            l74 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5;
-                                                                                                                                                            l75 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s3;
+                                                                                                                                                                l75 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6;
+                                                                                                                                                                l76 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s3;
 #line 26 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                            if ((l74 <= l75)) {
+                                                                                                                                                                if ((l75 <= l76)) {
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                                l76 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5;
-                                                                                                                                                                l77 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5;
+                                                                                                                                                                    l77 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6;
+                                                                                                                                                                    l78 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6;
 #line 27 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                                l78 = (l76 * l77);
-                                                                                                                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6 = l78;
+                                                                                                                                                                    l79 = (l77 * l78);
+                                                                                                                                                                    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7 = l79;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                                t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6;
-#line 71 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                                t5 = __lambda_snippet_1(t0);
-                                                                                                                                                                if (t5) {
+                                                                                                                                                                    l80 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s4;
+                                                                                                                                                                    t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7;
+#line 217 "lib/std/iter/iter.vader"
+                                                                                                                                                                    vader_fn_t* _a9_fnobj = (vader_fn_t*) l80;
+                                                                                                                                                                    t4 = ((vader_fn_erased_sig_1_t) _a9_fnobj->code)(_a9_fnobj->env, vader_box_i32(1u, t0));
+                                                                                                                                                                    t5 = t4.payload.b;
+                                                                                                                                                                    if (t5) {
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                                    l79 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6;
-#line 71 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                                    t4 = vader_box_i32(1u, l79);
-                                                                                                                                                                    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s4 = t4;
-                                                                                                                                                                    VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-                                                                                                                                                                    break;
-                                                                                                                                                                }
+                                                                                                                                                                        l81 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7;
+#line 218 "lib/std/iter/iter.vader"
+                                                                                                                                                                        t4 = vader_box_i32(1u, l81);
+                                                                                                                                                                        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5 = t4;
+                                                                                                                                                                        VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
+                                                                                                                                                                        goto end_951;
+#line 217 "lib/std/iter/iter.vader"
+                                                                                                                                                                    }
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                                t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5;
+                                                                                                                                                                    t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6;
 #line 26 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                                l80 = (t0 + INT32_C(1));
-                                                                                                                                                                ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5 = l80;
-                                                                                                                                                                continue;
+                                                                                                                                                                    l82 = (t0 + INT32_C(1));
+                                                                                                                                                                    ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6 = l82;
+                                                                                                                                                                    continue;
+                                                                                                                                                                }
+                                                                                                                                                                break;
                                                                                                                                                             }
-                                                                                                                                                            break;
-                                                                                                                                                        }
 #line 71 "tests/snippets/generator_source_fusion/_main.vader"
+                                                                                                                                                            ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5 = vader_box_obj(0u, NULL);
+                                                                                                                                                            VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
+                                                                                                                                                        } end_951: ;
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                        l81 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s4;
+                                                                                                                                                        l83 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5;
 #line 71 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s2 = l81;
+                                                                                                                                                        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s2 = l83;
                                                                                                                                                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
 #line 72 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                        l82 = std_core_new_byte_buffer((size_t) 32);
-                                                                                                                                                        l83 = (size_t) 0;
-                                                                                                                                                        l83 = std_core_write_string_at(l82, l83, 12u);
+                                                                                                                                                        l84 = std_core_new_byte_buffer((size_t) 32);
+                                                                                                                                                        l85 = (size_t) 0;
+                                                                                                                                                        l85 = std_core_write_string_at(l84, l85, 12u);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                        l84 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s2;
+                                                                                                                                                        l86 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s2;
 #line 72 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                        if (l84.tag == 0u) {
-                                                                                                                                                            l85 = -(INT32_C(1));
+                                                                                                                                                        if (l86.tag == 0u) {
+                                                                                                                                                            l87 = -(INT32_C(1));
                                                                                                                                                         } else {
-                                                                                                                                                            l85 = ((int32_t) l84.payload.i);
+                                                                                                                                                            l87 = ((int32_t) l86.payload.i);
                                                                                                                                                         }
-                                                                                                                                                        l86 = ((int64_t) (int32_t) l85);
-                                                                                                                                                        l83 = std_core_write_int(l82, l83, l86);
-                                                                                                                                                        t1 = std_core_finish_buffer(l82, l83);
+                                                                                                                                                        l88 = ((int64_t) (int32_t) l87);
+                                                                                                                                                        l85 = std_core_write_int(l84, l85, l88);
+                                                                                                                                                        t1 = std_core_finish_buffer(l84, l85);
                                                                                                                                                         std_io_println__string(t1);
 #line 73 "tests/snippets/generator_source_fusion/_main.vader"
-                                                                                                                                                        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7 = INT32_C(0);
+                                                                                                                                                        ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s8 = INT32_C(0);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(36);
                                                                                                                                                     } else {
-                                                                                                                                                        vader_struct_std_core_Suspended_t* _a9_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
-                                                                                                                                                        vader_obj_header_init(_a9_obj, 14u);
-                                                                                                                                                        t3 = (void*) _a9_obj;
+                                                                                                                                                        vader_struct_std_core_Suspended_t* _a10_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
+                                                                                                                                                        vader_obj_header_init(_a10_obj, 14u);
+                                                                                                                                                        t3 = (void*) _a10_obj;
                                                                                                                                                         { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
                                                                                                                                                     }
                                                                                                                                                 }
@@ -2397,7 +2414,7 @@ static vader_box_t std_async_sleep(int64_t l0) {
     vader_gc_top = &gc_frame;
 #line 55 "lib/std/async/async.vader"
     vader_struct_std_async_Sleep_t* _a0_obj = (vader_struct_std_async_Sleep_t*) vader_gc_alloc(sizeof(vader_struct_std_async_Sleep_t));
-    vader_obj_header_init(_a0_obj, 33u);
+    vader_obj_header_init(_a0_obj, 32u);
     _a0_obj->f_ms = l0;
     _a0_obj->f_deadline = INT64_C(0);
     _a0_obj->f_armed = false;
@@ -2571,7 +2588,7 @@ static vader_box_t std_iter_window__i32(void* l0, size_t l1) {
     vader_gc_top = &gc_frame;
 #line 131 "lib/std/iter/iter.vader"
     vader_struct___gen_state_std_iter_0_t* _a0_obj = (vader_struct___gen_state_std_iter_0_t*) vader_gc_alloc(sizeof(vader_struct___gen_state_std_iter_0_t));
-    vader_obj_header_init(_a0_obj, 36u);
+    vader_obj_header_init(_a0_obj, 35u);
     _a0_obj->f_s0 = l0;
     _a0_obj->f_s1 = l1;
     _a0_obj->f_s2 = (size_t) 0;
@@ -2649,7 +2666,7 @@ static void* std_iter___gen_state_std_iter_0_Iterator_next(void* l0) {
 #line 131 "lib/std/iter/iter.vader"
             l11 = (uint8_t) 0;
             vader_struct___Tuple_Array_i32_u8_0f73abee_t* _a1_obj = (vader_struct___Tuple_Array_i32_u8_0f73abee_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Array_i32_u8_0f73abee_t));
-            vader_obj_header_init(_a1_obj, 37u);
+            vader_obj_header_init(_a1_obj, 36u);
             _a1_obj->f__0 = l10;
             _a1_obj->f__1 = l11;
             t3 = (void*) _a1_obj;
@@ -2695,7 +2712,7 @@ static void* std_iter___gen_state_std_iter_0_Iterator_next(void* l0) {
             } else {
                 l19 = vader_box_obj(0u, NULL).payload.obj;
                 vader_struct___Tuple_Array_i32_u8_0f73abee_t* _a2_obj = (vader_struct___Tuple_Array_i32_u8_0f73abee_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Array_i32_u8_0f73abee_t));
-                vader_obj_header_init(_a2_obj, 37u);
+                vader_obj_header_init(_a2_obj, 36u);
                 _a2_obj->f__0 = l19;
                 _a2_obj->f__1 = (uint8_t) 1;
                 t3 = (void*) _a2_obj;
@@ -2718,7 +2735,7 @@ static void* std_iter___gen_state_std_iter_0_Iterator_next(void* l0) {
 #line 131 "lib/std/iter/iter.vader"
     l11 = (uint8_t) 0;
     vader_struct___Tuple_Array_i32_u8_0f73abee_t* _a4_obj = (vader_struct___Tuple_Array_i32_u8_0f73abee_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Array_i32_u8_0f73abee_t));
-    vader_obj_header_init(_a4_obj, 37u);
+    vader_obj_header_init(_a4_obj, 36u);
     _a4_obj->f__0 = l10;
     _a4_obj->f__1 = l11;
     t3 = (void*) _a4_obj;
@@ -2804,14 +2821,14 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
             t3 = vader_box_bool(3u, ((uint8_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l9]);
             l10 = t3.payload.b;
             vader_struct___Tuple_i32_bool_cd1657f9_t* _a2_obj = (vader_struct___Tuple_i32_bool_cd1657f9_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_bool_cd1657f9_t));
-            vader_obj_header_init(_a2_obj, 41u);
+            vader_obj_header_init(_a2_obj, 40u);
             _a2_obj->f__0 = l7;
             _a2_obj->f__1 = l10;
             l11 = (void*) _a2_obj;
 #line 296 "lib/std/collections/collections.vader"
             l12 = (uint8_t) 0;
             vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t* _a3_obj = (vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t));
-            vader_obj_header_init(_a3_obj, 40u);
+            vader_obj_header_init(_a3_obj, 39u);
             _a3_obj->f__0 = l11;
             _a3_obj->f__1 = l12;
             t4 = (void*) _a3_obj;
@@ -2830,7 +2847,7 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
         } else {
             l14 = vader_box_obj(0u, NULL).payload.obj;
             vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t* _a4_obj = (vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t));
-            vader_obj_header_init(_a4_obj, 40u);
+            vader_obj_header_init(_a4_obj, 39u);
             _a4_obj->f__0 = l14;
             _a4_obj->f__1 = (uint8_t) 1;
             t4 = (void*) _a4_obj;
@@ -2861,14 +2878,14 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
     t3 = vader_box_bool(3u, ((uint8_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l9]);
     l10 = t3.payload.b;
     vader_struct___Tuple_i32_bool_cd1657f9_t* _a7_obj = (vader_struct___Tuple_i32_bool_cd1657f9_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_bool_cd1657f9_t));
-    vader_obj_header_init(_a7_obj, 41u);
+    vader_obj_header_init(_a7_obj, 40u);
     _a7_obj->f__0 = l7;
     _a7_obj->f__1 = l10;
     l11 = (void*) _a7_obj;
 #line 296 "lib/std/collections/collections.vader"
     l12 = (uint8_t) 0;
     vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t* _a8_obj = (vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t));
-    vader_obj_header_init(_a8_obj, 40u);
+    vader_obj_header_init(_a8_obj, 39u);
     _a8_obj->f__0 = l11;
     _a8_obj->f__1 = l12;
     t4 = (void*) _a8_obj;
@@ -2950,14 +2967,14 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
             VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l9)
             l10 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l9];
             vader_struct___Tuple_i32_i32_3103e027_t* _a2_obj = (vader_struct___Tuple_i32_i32_3103e027_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_i32_3103e027_t));
-            vader_obj_header_init(_a2_obj, 45u);
+            vader_obj_header_init(_a2_obj, 44u);
             _a2_obj->f__0 = l7;
             _a2_obj->f__1 = l10;
             l11 = (void*) _a2_obj;
 #line 296 "lib/std/collections/collections.vader"
             l12 = (uint8_t) 0;
             vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t* _a3_obj = (vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t));
-            vader_obj_header_init(_a3_obj, 44u);
+            vader_obj_header_init(_a3_obj, 43u);
             _a3_obj->f__0 = l11;
             _a3_obj->f__1 = l12;
             t3 = (void*) _a3_obj;
@@ -2976,7 +2993,7 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
         } else {
             l14 = vader_box_obj(0u, NULL).payload.obj;
             vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t* _a4_obj = (vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t));
-            vader_obj_header_init(_a4_obj, 44u);
+            vader_obj_header_init(_a4_obj, 43u);
             _a4_obj->f__0 = l14;
             _a4_obj->f__1 = (uint8_t) 1;
             t3 = (void*) _a4_obj;
@@ -3006,14 +3023,14 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
     VADER_ARRAY_CHECK_INDEX(_a6_slotarr, l9)
     l10 = ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l9];
     vader_struct___Tuple_i32_i32_3103e027_t* _a7_obj = (vader_struct___Tuple_i32_i32_3103e027_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_i32_3103e027_t));
-    vader_obj_header_init(_a7_obj, 45u);
+    vader_obj_header_init(_a7_obj, 44u);
     _a7_obj->f__0 = l7;
     _a7_obj->f__1 = l10;
     l11 = (void*) _a7_obj;
 #line 296 "lib/std/collections/collections.vader"
     l12 = (uint8_t) 0;
     vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t* _a8_obj = (vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t));
-    vader_obj_header_init(_a8_obj, 44u);
+    vader_obj_header_init(_a8_obj, 43u);
     _a8_obj->f__0 = l11;
     _a8_obj->f__1 = l12;
     t3 = (void*) _a8_obj;
@@ -3102,14 +3119,14 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
             VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l9)
             l10 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l9];
             vader_struct___Tuple_string_i32_4ccf6d4f_t* _a2_obj = (vader_struct___Tuple_string_i32_4ccf6d4f_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_string_i32_4ccf6d4f_t));
-            vader_obj_header_init(_a2_obj, 49u);
+            vader_obj_header_init(_a2_obj, 48u);
             _a2_obj->f__0 = l7;
             _a2_obj->f__1 = l10;
             l11 = (void*) _a2_obj;
 #line 296 "lib/std/collections/collections.vader"
             l12 = (uint8_t) 0;
             vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t* _a3_obj = (vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t));
-            vader_obj_header_init(_a3_obj, 48u);
+            vader_obj_header_init(_a3_obj, 47u);
             _a3_obj->f__0 = l11;
             _a3_obj->f__1 = l12;
             t4 = (void*) _a3_obj;
@@ -3128,7 +3145,7 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
         } else {
             l14 = vader_box_obj(0u, NULL).payload.obj;
             vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t* _a4_obj = (vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t));
-            vader_obj_header_init(_a4_obj, 48u);
+            vader_obj_header_init(_a4_obj, 47u);
             _a4_obj->f__0 = l14;
             _a4_obj->f__1 = (uint8_t) 1;
             t4 = (void*) _a4_obj;
@@ -3159,14 +3176,14 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
     VADER_ARRAY_CHECK_INDEX(_a6_slotarr, l9)
     l10 = ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l9];
     vader_struct___Tuple_string_i32_4ccf6d4f_t* _a7_obj = (vader_struct___Tuple_string_i32_4ccf6d4f_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_string_i32_4ccf6d4f_t));
-    vader_obj_header_init(_a7_obj, 49u);
+    vader_obj_header_init(_a7_obj, 48u);
     _a7_obj->f__0 = l7;
     _a7_obj->f__1 = l10;
     l11 = (void*) _a7_obj;
 #line 296 "lib/std/collections/collections.vader"
     l12 = (uint8_t) 0;
     vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t* _a8_obj = (vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t));
-    vader_obj_header_init(_a8_obj, 48u);
+    vader_obj_header_init(_a8_obj, 47u);
     _a8_obj->f__0 = l11;
     _a8_obj->f__1 = l12;
     t4 = (void*) _a8_obj;
@@ -3477,14 +3494,14 @@ static void* std_collections___gen_state_std_collections_5_Iterator_next(void* l
             t3 = vader_box_bool(3u, ((uint8_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l9]);
             l10 = t3.payload.b;
             vader_struct___Tuple_usize_bool_c5a1221e_t* _a2_obj = (vader_struct___Tuple_usize_bool_c5a1221e_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_usize_bool_c5a1221e_t));
-            vader_obj_header_init(_a2_obj, 57u);
+            vader_obj_header_init(_a2_obj, 56u);
             _a2_obj->f__0 = l7;
             _a2_obj->f__1 = l10;
             l11 = (void*) _a2_obj;
 #line 296 "lib/std/collections/collections.vader"
             l12 = (uint8_t) 0;
             vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t* _a3_obj = (vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t));
-            vader_obj_header_init(_a3_obj, 56u);
+            vader_obj_header_init(_a3_obj, 55u);
             _a3_obj->f__0 = l11;
             _a3_obj->f__1 = l12;
             t4 = (void*) _a3_obj;
@@ -3503,7 +3520,7 @@ static void* std_collections___gen_state_std_collections_5_Iterator_next(void* l
         } else {
             l14 = vader_box_obj(0u, NULL).payload.obj;
             vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t* _a4_obj = (vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t));
-            vader_obj_header_init(_a4_obj, 56u);
+            vader_obj_header_init(_a4_obj, 55u);
             _a4_obj->f__0 = l14;
             _a4_obj->f__1 = (uint8_t) 1;
             t4 = (void*) _a4_obj;
@@ -3535,14 +3552,14 @@ static void* std_collections___gen_state_std_collections_5_Iterator_next(void* l
     t3 = vader_box_bool(3u, ((uint8_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l9]);
     l10 = t3.payload.b;
     vader_struct___Tuple_usize_bool_c5a1221e_t* _a7_obj = (vader_struct___Tuple_usize_bool_c5a1221e_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_usize_bool_c5a1221e_t));
-    vader_obj_header_init(_a7_obj, 57u);
+    vader_obj_header_init(_a7_obj, 56u);
     _a7_obj->f__0 = l7;
     _a7_obj->f__1 = l10;
     l11 = (void*) _a7_obj;
 #line 296 "lib/std/collections/collections.vader"
     l12 = (uint8_t) 0;
     vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t* _a8_obj = (vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_usize_bool_u8_6c9d6c39_t));
-    vader_obj_header_init(_a8_obj, 56u);
+    vader_obj_header_init(_a8_obj, 55u);
     _a8_obj->f__0 = l11;
     _a8_obj->f__1 = l12;
     t4 = (void*) _a8_obj;
@@ -3587,13 +3604,13 @@ static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
         case 11u: return vader_ref_box(snippet___genstate_squares_Iterator_next(recv.payload.obj));
         case 23u: return vader_ref_box(std_core_Range_Iterator_next__i32(recv.payload.obj));
         case 25u: return vader_ref_box(std_core_Range_Iterator_next__usize(recv.payload.obj));
-        case 36u: return vader_ref_box(std_iter___gen_state_std_iter_0_Iterator_next(recv.payload.obj));
-        case 39u: return vader_ref_box(std_collections___gen_state_std_collections_0_Iterator_next(recv.payload.obj));
-        case 43u: return vader_ref_box(std_collections___gen_state_std_collections_1_Iterator_next(recv.payload.obj));
-        case 47u: return vader_ref_box(std_collections___gen_state_std_collections_2_Iterator_next(recv.payload.obj));
-        case 51u: return vader_ref_box(std_collections___gen_state_std_collections_3_Iterator_next(recv.payload.obj));
-        case 53u: return vader_ref_box(std_collections___gen_state_std_collections_4_Iterator_next(recv.payload.obj));
-        case 55u: return vader_ref_box(std_collections___gen_state_std_collections_5_Iterator_next(recv.payload.obj));
+        case 35u: return vader_ref_box(std_iter___gen_state_std_iter_0_Iterator_next(recv.payload.obj));
+        case 38u: return vader_ref_box(std_collections___gen_state_std_collections_0_Iterator_next(recv.payload.obj));
+        case 42u: return vader_ref_box(std_collections___gen_state_std_collections_1_Iterator_next(recv.payload.obj));
+        case 46u: return vader_ref_box(std_collections___gen_state_std_collections_2_Iterator_next(recv.payload.obj));
+        case 50u: return vader_ref_box(std_collections___gen_state_std_collections_3_Iterator_next(recv.payload.obj));
+        case 52u: return vader_ref_box(std_collections___gen_state_std_collections_4_Iterator_next(recv.payload.obj));
+        case 54u: return vader_ref_box(std_collections___gen_state_std_collections_5_Iterator_next(recv.payload.obj));
         default: vader_unreachable("vtable miss in Iterator.next");
     }
     vader_unreachable("vtable miss in Iterator.next");
@@ -3603,7 +3620,7 @@ static vader_box_t vader_vt_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
         case 12u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         case 15u: return snippet___asyncstate_snippet_2_Async_resume(recv.payload.obj);
-        case 33u: return std_async_Sleep_Async_resume(recv.payload.obj);
+        case 32u: return std_async_Sleep_Async_resume(recv.payload.obj);
         default: vader_unreachable("vtable miss in Async.resume");
     }
     vader_unreachable("vtable miss in Async.resume");

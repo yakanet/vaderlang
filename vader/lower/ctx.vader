@@ -108,6 +108,11 @@ export LowerProjectCtx :: struct {
     /// Instance clone id → the resolver's id for the same binding: the key of
     /// every resolver table indexed by symbol id (`origin_symbol_id`).
     clone_origins:       MutableMap<i32, i32> = MutableMap<i32, i32> {}
+    /// How each callee known to consume an iterator argument does it, keyed by
+    /// its declaration's span (`inline_consumer.vader`).
+    consumers:           MutableMap<u64, ConsumerShape> = MutableMap<u64, ConsumerShape> {}
+    /// The callees known to consume none, keyed the same way.
+    non_consumers:       MutableSet<u64> = MutableSet<u64> {}
 
     /// `name -> Symbol` from `std/core` (cached once at construction
     /// so trait / struct lookups don't re-walk the module map).
@@ -527,6 +532,12 @@ export FnLowerCtx :: struct {
     /// names that instance lowers under (`gen_instance.vader`).
     instance:           GenInstance! | null = null
 
+    /// Non-null while lowering the body of an inlined iterator consumer
+    /// (`inline_consumer.vader`): the loop over its consumed parameter drains the
+    /// call's chain, and a `return` assigns the call's result.
+    @internal
+    inline_consumer:    InlineConsumer | null = null
+
     /// The loops whose body is being lowered for splicing into a producer's code,
     /// innermost last (`fusion_jumps.vader`). Each describes one module's loops:
     /// a context lowering another module's code starts with none.
@@ -548,6 +559,19 @@ export GenInlineSink :: struct {
     /// `binding_symbol` bound to the element temp it destructures. So the sink
     /// itself always binds a single element ; no pattern field is needed here.
     body:           LoweredBlock
+}
+
+/// The call side of an inlined iterator consumer, installed on
+/// `FnLowerCtx.inline_consumer` while its body is lowered.
+InlineConsumer :: struct {
+    /// The instance's clone of the consumed parameter.
+    param:       Symbol
+    /// The argument's chain, its operands bound at the call site.
+    chain:       IterChain
+    /// The local a `return` assigns, declared only when one leaves early.
+    result:      Symbol
+    /// The call's result type.
+    result_type: Type
 }
 
 /// Build a fresh `FnLowerCtx` for `entry`'s body. Populates the
