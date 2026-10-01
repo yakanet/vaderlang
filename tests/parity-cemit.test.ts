@@ -276,11 +276,9 @@ const C_PARITY = new Set<string>([
   // increment must run on a var-targeted `continue` (else it spins) — native run
   // is the guard on that reconciliation.
   "loop_break_by_var",
-  // Regression guard for the narrow-int VM width fix (2026-07-16): the VM now
-  // truncates narrow-integer arithmetic / casts / returns / struct-literal fields
-  // to width (u8 200+100 → 44) at the store boundaries, matching native. Guards
-  // native output == vm.snapshot so the VM and native can't drift on narrow-int
-  // wrap again.
+  // Narrow-integer casts and arithmetic cut to their width wherever they are
+  // read, stored or not; native output == vm.snapshot keeps the backends from
+  // drifting on it.
   "narrow_int_wrap",
   // Generic call whose type-param is bound only by the call's expected type,
   // with a lambda factory argument. Native is the oracle that matters here: the

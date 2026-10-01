@@ -141,6 +141,8 @@ fn 2 std_core$utf8_encode (char) -> ref
   if $L0 void
     local.get 1   ; cp
     u32.to_i32
+    i32.const 255
+    i32.bitand
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
@@ -158,6 +160,8 @@ fn 2 std_core$utf8_encode (char) -> ref
       local.get 4   ; $shr_12
       i32.bitor
       u32.to_i32
+      i32.const 255
+      i32.bitand
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
@@ -170,6 +174,8 @@ fn 2 std_core$utf8_encode (char) -> ref
       local.get 4   ; $shr_12
       i32.bitor
       u32.to_i32
+      i32.const 255
+      i32.bitand
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
@@ -187,6 +193,8 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -201,6 +209,8 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -213,6 +223,8 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -226,6 +238,8 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -240,6 +254,8 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -254,6 +270,8 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -266,6 +284,8 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.get 1   ; cp
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -1505,6 +1525,8 @@ fn 10 crypto$pad_md5 (string) -> ref
         i64.const 255
         i64.bitand
         u64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 5   ; b
         local.get 1   ; ib
         local.get 5   ; b
@@ -1573,6 +1595,8 @@ fn 13 crypto$append_hex_u32_le (ref,u32) -> void
         i32.const 255
         i32.bitand
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 4   ; b
         local.get 0   ; arg 0
         local.get 4   ; b
@@ -1683,6 +1707,8 @@ fn 16 crypto$pad_sha256_bytes (ref) -> ref
         i64.const 255
         i64.bitand
         u64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 5   ; b
         local.get 2   ; out
         local.get 5   ; b
@@ -1729,6 +1755,8 @@ fn 18 crypto$append_u32_be (ref,u32) -> void
   i32.const 255
   i32.bitand
   u32.to_i32
+  i32.const 255
+  i32.bitand
   local.set 2   ; $cast_6
   local.get 0   ; arg 0
   local.get 2   ; $cast_6
@@ -1739,6 +1767,8 @@ fn 18 crypto$append_u32_be (ref,u32) -> void
   i32.const 255
   i32.bitand
   u32.to_i32
+  i32.const 255
+  i32.bitand
   local.set 2   ; $cast_6
   local.get 0   ; arg 0
   local.get 2   ; $cast_6
@@ -1749,6 +1779,8 @@ fn 18 crypto$append_u32_be (ref,u32) -> void
   i32.const 255
   i32.bitand
   u32.to_i32
+  i32.const 255
+  i32.bitand
   local.set 2   ; $cast_6
   local.get 0   ; arg 0
   local.get 2   ; $cast_6
@@ -1757,6 +1789,8 @@ fn 18 crypto$append_u32_be (ref,u32) -> void
   i32.const 255
   i32.bitand
   u32.to_i32
+  i32.const 255
+  i32.bitand
   local.set 2   ; $cast_6
   local.get 0   ; arg 0
   local.get 2   ; $cast_6

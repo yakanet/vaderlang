@@ -110,6 +110,8 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 3   ; i
         i32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 4   ; $cast_12
         local.get 3   ; i
         i32.const 7
@@ -314,6 +316,12 @@ fn 0 snippet$main () -> i32
   local.set 0   ; $arr_0
   i32.const 1000
   i32.neg
+  i32.const 65535
+  i32.bitand
+  i32.const 32768
+  i32.bitxor
+  i32.const 32768
+  i32.sub
   local.set 9   ; $unop_111
   local.get 0   ; $arr_0
   local.get 9   ; $unop_111
@@ -325,6 +333,12 @@ fn 0 snippet$main () -> i32
   call 25   ; std_collections$MutableMap$IndexSet$set_at__i16__i32
   i32.const 1
   i32.neg
+  i32.const 65535
+  i32.bitand
+  i32.const 32768
+  i32.bitxor
+  i32.const 32768
+  i32.sub
   local.set 9   ; $unop_111
   local.get 0   ; $arr_0
   local.get 9   ; $unop_111
@@ -342,6 +356,12 @@ fn 0 snippet$main () -> i32
   local.set 6   ; __off_1
   i32.const 1000
   i32.neg
+  i32.const 65535
+  i32.bitand
+  i32.const 32768
+  i32.bitxor
+  i32.const 32768
+  i32.sub
   local.set 9   ; $unop_111
   i32.const 1
   i32.neg
@@ -383,6 +403,12 @@ fn 0 snippet$main () -> i32
   local.set 6   ; __off_1
   i32.const 1
   i32.neg
+  i32.const 65535
+  i32.bitand
+  i32.const 32768
+  i32.bitxor
+  i32.const 32768
+  i32.sub
   local.set 9   ; $unop_111
   i32.const 1
   i32.neg
@@ -946,10 +972,14 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
         i64.rem
         i64.neg
         i64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 7   ; $cast_36
         i32.const 48
         local.get 7   ; $cast_36
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 8   ; $add_37
         local.get 0   ; arg 0
         local.get 4   ; ndigits
@@ -1035,10 +1065,14 @@ fn 12 std_core$write_unsigned (ref,usize,u64) -> usize
         i64.const 10
         u64.rem
         u64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 6   ; $cast_26
         i32.const 48
         local.get 6   ; $cast_26
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 7   ; $add_27
         local.get 0   ; arg 0
         local.get 5   ; i

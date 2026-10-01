@@ -535,7 +535,7 @@ export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
 narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
     // Only the sub-32-bit widths need masking ; i32/i64 (and the unsigned u32/u64
     // read back through the unsigned view) already wrap at their width.
-    if !is_narrow_valtype(vt) { return v }
+    if !bc.is_narrow_valtype(vt) { return v }
     bits: i64: if vt == .U8 || vt == .I8 { 8 } else { 16 }
     // A narrow slot only ever holds an int (carried as I32Val / I64Val).
     raw: i64 = 0
@@ -568,10 +568,6 @@ slot_valtype :: fn(body: bc.BcFunction, slot: i32) -> bc.ValType {
     if li < body.locals.len() { return body.locals[li].val }
     return .I32     // defensive : unknown slot ⇒ no masking
 }
-
-// True when `vt` is a sub-32-bit width whose stored VM value must be truncated
-// to that width (`narrow_mask`).
-is_narrow_valtype :: fn(vt: bc.ValType) = vt == .U8 || vt == .I8 || vt == .U16 || vt == .I16
 
 // ValType of a struct field's declared type (`BcField.type_index` → type table).
 // A non-primitive field returns `Ref` (never narrow), so `narrow_mask` no-ops.

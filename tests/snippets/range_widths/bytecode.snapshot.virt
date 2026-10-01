@@ -183,6 +183,8 @@ fn 0 snippet$main () -> i32
         local.get 9   ; i
         i32.const 1
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 9   ; i
         br $L10
       end $L11
@@ -230,6 +232,12 @@ fn 0 snippet$main () -> i32
         local.get 12   ; i
         i32.const 1
         i32.add
+        i32.const 65535
+        i32.bitand
+        i32.const 32768
+        i32.bitxor
+        i32.const 32768
+        i32.sub
         local.set 12   ; i
         br $L13
       end $L14
@@ -400,10 +408,14 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
         i64.rem
         i64.neg
         i64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 7   ; $cast_36
         i32.const 48
         local.get 7   ; $cast_36
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 8   ; $add_37
         local.get 0   ; arg 0
         local.get 4   ; ndigits
@@ -489,10 +501,14 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
         i64.const 10
         u64.rem
         u64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 6   ; $cast_26
         i32.const 48
         local.get 6   ; $cast_26
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 7   ; $add_27
         local.get 0   ; arg 0
         local.get 5   ; i

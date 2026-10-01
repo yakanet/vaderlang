@@ -367,6 +367,8 @@ fn 4 std_core$scan_decimal (string) -> any
         call.import 1   ; std_core$byte_at
         i32.const 48
         i32.sub
+        i32.const 255
+        i32.bitand
         u8.to_i64
         local.set 10   ; d
         local.get 5   ; sig
@@ -458,6 +460,8 @@ fn 4 std_core$scan_decimal (string) -> any
           call.import 1   ; std_core$byte_at
           i32.const 48
           i32.sub
+          i32.const 255
+          i32.bitand
           u8.to_i64
           local.set 10   ; d
           local.get 5   ; sig
@@ -640,6 +644,8 @@ fn 4 std_core$scan_decimal (string) -> any
             call.import 1   ; std_core$byte_at
             i32.const 48
             i32.sub
+            i32.const 255
+            i32.bitand
             u8.to_i32
             local.set 13   ; $cast_152
             local.get 12   ; $mul_148
@@ -1376,6 +1382,8 @@ fn 10 std_core$sd_scan (string) -> ref
         call.import 1   ; std_core$byte_at
         i32.const 48
         i32.sub
+        i32.const 255
+        i32.bitand
         local.set 7   ; digit
         local.get 3   ; or_res
         if $L6 void
@@ -1450,6 +1458,8 @@ fn 10 std_core$sd_scan (string) -> ref
           call.import 1   ; std_core$byte_at
           i32.const 48
           i32.sub
+          i32.const 255
+          i32.bitand
           local.set 7   ; digit
           local.get 3   ; or_res
           if $L14 void
@@ -1598,6 +1608,8 @@ fn 10 std_core$sd_scan (string) -> ref
             call.import 1   ; std_core$byte_at
             i32.const 48
             i32.sub
+            i32.const 255
+            i32.bitand
             u8.to_i32
             local.set 12   ; $cast_117
             local.get 11   ; $mul_113
@@ -2645,6 +2657,8 @@ fn 26 std_string$parse_int (string) -> any
         local.get 5   ; b
         i32.const 48
         i32.sub
+        i32.const 255
+        i32.bitand
         u8.to_i64
         local.set 8   ; $cast_37
         local.get 7   ; $mul_34

@@ -633,9 +633,9 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
         l4 = (size_t) (int64_t) t0;
 #line 143 "lib/std/core/primitives.vader"
         t0 = vader_mod_i64(l2, INT64_C(10));
-        t1 = ((int32_t) (int64_t) -(t0));
+        t1 = (((int32_t) (int64_t) -(t0)) & INT32_C(255));
         l7 = (uint8_t) (int32_t) t1;
-        t1 = (INT32_C(48) + l7);
+        t1 = ((INT32_C(48) + l7) & INT32_C(255));
         l8 = (uint8_t) (int32_t) t1;
         std_core_Buffer_ByteAccess_store_u8_vt(l0, l4, l8);
 #line 144 "lib/std/core/primitives.vader"

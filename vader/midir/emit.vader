@@ -1208,6 +1208,10 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         emit_get(ctx, ins.rhs, ins.span)
         lhs_type :: ctx.fn_.locals[usize(ins.lhs)].type
         push_emit(ctx, binary_op_for(ins.op, val_type_of_type(lhs_type)), ins.span)
+        result_val :: val_type_of_type(ins.type)
+        if binary_leaves_width(ins.op, result_val) {
+            emit_narrowing(ctx, result_val, ins.span)
+        }
         emit_result(ctx, pos, ins.dst, ins.span)
         return
     }
@@ -1237,6 +1241,9 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         emit_first_get(ctx, pos, ins.operand, ins.span)
         operand_val :: val_type_of_type(ctx.fn_.locals[usize(ins.operand)].type)
         push_emit(ctx, unary_op_for(ins.op, operand_val), ins.span)
+        if unary_leaves_width(ins.op, operand_val) {
+            emit_narrowing(ctx, operand_val, ins.span)
+        }
         emit_result(ctx, pos, ins.dst, ins.span)
         return
     }
@@ -1480,6 +1487,9 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
                 push_emit(ctx, RefCast { .type_id = intern_type(ins.type, ctx.project) }, ins.span)
             } else if convert_eligible(from_val) {
                 push_emit(ctx, Convert { .from_name = val_type_name(from_val), .target = target_opt }, ins.span)
+                if !fits_in(from_val, to_val) {
+                    emit_narrowing(ctx, to_val, ins.span)
+                }
             } else {
                 push_emit(ctx, RefCast { .type_id = intern_type(ins.type, ctx.project) }, ins.span)
             }
@@ -1580,6 +1590,58 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
     // no-silent-drop guarantee.)
     panic("midir/emit: unhandled Instruction reached emit_instr — a variant has no emitter")
 }
+
+// A value of a class narrower than the 32 bits it rides in is cut to its width
+// where it is made — `u8(300)` is 44, `i8(200)` is -56, a `u8` sum of 200 and
+// 100 is 44 — since every reader of the stack sees the bits as they are, and a
+// store into a slot of the class, which cuts too, may be folded away.
+//
+// A signed width is cut as `((x & mask) ^ sign) - sign`, which no step can
+// overflow: a shift pair would shift a negative value left, which C leaves
+// undefined.
+emit_narrowing :: fn(ctx: FnEmitCfg!, class: ValType, span: Span) -> void {
+    byte :: class == .U8 || class == .I8
+    push_emit(ctx, I32Const { .value = if byte { 0xFF } else { 0xFFFF } }, span)
+    push_emit(ctx, I32BitAnd {}, span)
+    if !is_unsigned_val(class) {
+        sign :: if byte { 0x80 } else { 0x8000 }
+        push_emit(ctx, I32Const { .value = sign }, span)
+        push_emit(ctx, I32BitXor {}, span)
+        push_emit(ctx, I32Const { .value = sign }, span)
+        push_emit(ctx, I32Sub {}, span)
+    }
+}
+
+// Whether every value of the class `from` is a value of `to` — false only when
+// `to` is narrower than 32 bits and `from` reaches outside it.
+fits_in :: fn(from: ValType, to: ValType) -> bool = match to {
+    .U8  -> from == .U8
+    .I8  -> from == .I8
+    .U16 -> from == .U8 || from == .U16
+    .I16 -> from == .U8 || from == .I8 || from == .I16
+    .I32 | .I64 | .Isize | .U32 | .U64 | .Usize | .F32 | .F64 | .Bool | .Char | .String | .Null
+     | .Void | .Pointer | .Ref | .Any -> true
+}
+
+// Whether `op` on two values of the class `class` can give one outside it. A
+// bitwise op, a shift right and a remainder stay within; a signed quotient
+// leaves it only as `-128 / -1`.
+binary_leaves_width :: fn(op: LoweredBinaryOp, class: ValType) -> bool =
+    is_narrow_valtype(class) && match op {
+        .Add | .Sub | .Mul | .Shl -> true
+        .Div                      -> !is_unsigned_val(class)
+        .Mod | .Shr | .BitAnd | .BitOr | .BitXor | .And | .Or | .Eq | .Neq | .Lt | .Lte | .Gt
+         | .Gte -> false
+    }
+
+// Whether `op` on a value of the class `class` can give one outside it: a
+// negation always can, a complement only of an unsigned value.
+unary_leaves_width :: fn(op: LoweredUnaryOp, class: ValType) -> bool =
+    is_narrow_valtype(class) && match op {
+        .Neg    -> true
+        .BitNot -> is_unsigned_val(class)
+        .Not    -> false
+    }
 
 /// True when `v` is a numeric / char ValType that can flow through
 /// a `Convert` op. Anything else (ref / any / void / null / bool /

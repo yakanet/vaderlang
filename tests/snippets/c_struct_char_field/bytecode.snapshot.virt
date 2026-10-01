@@ -265,10 +265,14 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
         i64.rem
         i64.neg
         i64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 7   ; $cast_36
         i32.const 48
         local.get 7   ; $cast_36
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 8   ; $add_37
         local.get 0   ; arg 0
         local.get 4   ; ndigits
@@ -334,6 +338,8 @@ fn 8 std_core$utf8_encode (char) -> ref
   if $L0 void
     local.get 1   ; cp
     u32.to_i32
+    i32.const 255
+    i32.bitand
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
@@ -351,6 +357,8 @@ fn 8 std_core$utf8_encode (char) -> ref
       local.get 4   ; $shr_12
       i32.bitor
       u32.to_i32
+      i32.const 255
+      i32.bitand
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
@@ -363,6 +371,8 @@ fn 8 std_core$utf8_encode (char) -> ref
       local.get 4   ; $shr_12
       i32.bitor
       u32.to_i32
+      i32.const 255
+      i32.bitand
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
@@ -380,6 +390,8 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -394,6 +406,8 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -406,6 +420,8 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -419,6 +435,8 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -433,6 +451,8 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -447,6 +467,8 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -459,6 +481,8 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.get 1   ; cp
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7

@@ -1592,10 +1592,14 @@ fn 20 std_core$write_digits (ref,usize,u64,i32) -> usize
         i64.const 10
         u64.rem
         u64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 7   ; $cast_15
         i32.const 48
         local.get 7   ; $cast_15
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 8   ; $add_16
         local.get 0   ; arg 0
         local.get 6   ; i
@@ -1752,10 +1756,14 @@ fn 23 std_core$write_unsigned (ref,usize,u64) -> usize
         i64.const 10
         u64.rem
         u64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 6   ; $cast_26
         i32.const 48
         local.get 6   ; $cast_26
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 7   ; $add_27
         local.get 0   ; arg 0
         local.get 5   ; i

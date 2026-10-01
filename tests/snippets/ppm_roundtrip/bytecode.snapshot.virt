@@ -465,10 +465,14 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
         i64.const 10
         u64.rem
         u64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 6   ; $cast_26
         i32.const 48
         local.get 6   ; $cast_26
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 7   ; $add_27
         local.get 0   ; arg 0
         local.get 5   ; i
@@ -1789,6 +1793,8 @@ fn 22 images_ppm$scan_uint (ref,usize) -> ref
         ref.cast 4   ; -> u8
         i32.const 48
         i32.sub
+        i32.const 255
+        i32.bitand
         u8.to_i32
         local.set 6   ; d
         i32.const -1

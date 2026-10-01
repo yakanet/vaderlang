@@ -284,9 +284,9 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
         l4 = (size_t) (int64_t) t0;
 #line 143 "lib/std/core/primitives.vader"
         t0 = vader_mod_i64(l2, INT64_C(10));
-        t1 = ((int32_t) (int64_t) -(t0));
+        t1 = (((int32_t) (int64_t) -(t0)) & INT32_C(255));
         l7 = (uint8_t) (int32_t) t1;
-        t1 = (INT32_C(48) + l7);
+        t1 = ((INT32_C(48) + l7) & INT32_C(255));
         l8 = (uint8_t) (int32_t) t1;
         std_core_Buffer_ByteAccess_store_u8_vt(l0, l4, l8);
 #line 144 "lib/std/core/primitives.vader"
@@ -345,7 +345,7 @@ static void* std_core_utf8_encode(uint32_t l0) {
 #line 184 "lib/std/core/primitives.vader"
     if ((l1 < INT32_C(128))) {
 #line 185 "lib/std/core/primitives.vader"
-        t0 = ((int32_t) (uint32_t) l1);
+        t0 = (((int32_t) (uint32_t) l1) & INT32_C(255));
         l3 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l3);
 #line 184 "lib/std/core/primitives.vader"
@@ -353,13 +353,13 @@ static void* std_core_utf8_encode(uint32_t l0) {
     } else if ((l1 < INT32_C(2048))) {
 #line 187 "lib/std/core/primitives.vader"
         l4 = (l1 >> INT32_C(6));
-        t0 = (INT32_C(192) | l4);
+        t0 = ((INT32_C(192) | l4) & INT32_C(255));
         l3 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l3);
 #line 188 "lib/std/core/primitives.vader"
         t0 = (l1 & INT32_C(63));
         l4 = (uint32_t) (int32_t) t0;
-        t0 = (INT32_C(128) | l4);
+        t0 = ((INT32_C(128) | l4) & INT32_C(255));
         l3 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l3);
 #line 186 "lib/std/core/primitives.vader"
@@ -367,44 +367,44 @@ static void* std_core_utf8_encode(uint32_t l0) {
     } else if ((l1 < INT32_C(65536))) {
 #line 190 "lib/std/core/primitives.vader"
         l4 = (l1 >> INT32_C(12));
-        t0 = (INT32_C(224) | l4);
+        t0 = ((INT32_C(224) | l4) & INT32_C(255));
         l3 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l3);
 #line 191 "lib/std/core/primitives.vader"
         t0 = ((l1 >> INT32_C(6)) & INT32_C(63));
         l4 = (uint32_t) (int32_t) t0;
-        t0 = (INT32_C(128) | l4);
+        t0 = ((INT32_C(128) | l4) & INT32_C(255));
         l3 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l3);
 #line 192 "lib/std/core/primitives.vader"
         t0 = (l1 & INT32_C(63));
         l4 = (uint32_t) (int32_t) t0;
-        t0 = (INT32_C(128) | l4);
+        t0 = ((INT32_C(128) | l4) & INT32_C(255));
         l3 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l3);
 #line 189 "lib/std/core/primitives.vader"
 #line 194 "lib/std/core/primitives.vader"
     } else {
         l4 = (l1 >> INT32_C(18));
-        t0 = (INT32_C(240) | l4);
+        t0 = ((INT32_C(240) | l4) & INT32_C(255));
         l3 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l3);
 #line 195 "lib/std/core/primitives.vader"
         t0 = ((l1 >> INT32_C(12)) & INT32_C(63));
         l4 = (uint32_t) (int32_t) t0;
-        t0 = (INT32_C(128) | l4);
+        t0 = ((INT32_C(128) | l4) & INT32_C(255));
         l3 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l3);
 #line 196 "lib/std/core/primitives.vader"
         t0 = ((l1 >> INT32_C(6)) & INT32_C(63));
         l4 = (uint32_t) (int32_t) t0;
-        t0 = (INT32_C(128) | l4);
+        t0 = ((INT32_C(128) | l4) & INT32_C(255));
         l3 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l3);
 #line 197 "lib/std/core/primitives.vader"
         t0 = (l1 & INT32_C(63));
         l1 = (uint32_t) (int32_t) t0;
-        t0 = (INT32_C(128) | l1);
+        t0 = ((INT32_C(128) | l1) & INT32_C(255));
         l3 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l3);
 #line 189 "lib/std/core/primitives.vader"

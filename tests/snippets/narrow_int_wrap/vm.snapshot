@@ -1,7 +1,26 @@
 # stdout
-unstored=300
-compound=44
-fn=44
-cast=44
+u8 sum: 44
+u8 difference: 156
+u8 product: 144
+u8 shift: 144
+u8 complement: 55
+compared sum: cut
+compound: 44
+returned: 44
+i8 sum: -128
+i8 negation: -128
+i8 quotient: -128
+u16 sum: 0
+stored cast: 44
+u8 cast: 44
+i8 cast: 44
+u16 cast: 300
+i16 cast: -32468
+u32 of i64: 300
+u8 of i64: 44
+i8 of u8: -112
+u16 of i8: 65535
+compared cast: cut
+cast in a union: 44
 # exit
 0

@@ -252,6 +252,12 @@ export is_u32_class :: fn(v: ValType) -> bool = match v {
 /// @return   `true` for any of `u8` / `u16` / `u32` / `u64` / `usize`.
 export is_unsigned_val :: fn(v: ValType) -> bool = is_u32_class(v) || is_u64_class(v)
 
+/// True when the val-type is an integer width narrower than the 32 bits it rides
+/// in — `u8` / `i8` / `u16` / `i16` — so a value of it must be cut to its width.
+///
+/// @param v  the value class to classify.
+export is_narrow_valtype :: fn(v: ValType) -> bool = v == .U8 || v == .I8 || v == .U16 || v == .I16
+
 /// True when the val-type is exactly `String`. Companion to
 /// `is_integer_val` / `is_float_val` ; consumed by the C emitter's
 /// per-struct field-classification walk (string fields land in the

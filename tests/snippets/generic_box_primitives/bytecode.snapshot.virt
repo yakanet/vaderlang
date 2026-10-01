@@ -102,6 +102,12 @@ fn 0 snippet$main () -> i32
   local.set 4   ; bf64
   i32.const 1000
   i32.neg
+  i32.const 65535
+  i32.bitand
+  i32.const 32768
+  i32.bitxor
+  i32.const 32768
+  i32.sub
   struct.new 8   ; snippet$Box__i16
   local.set 5   ; bi16
   i32.const 50000
@@ -620,10 +626,14 @@ fn 12 std_core$write_int (ref,usize,i64) -> usize
         i64.rem
         i64.neg
         i64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 7   ; $cast_36
         i32.const 48
         local.get 7   ; $cast_36
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 8   ; $add_37
         local.get 0   ; arg 0
         local.get 4   ; ndigits
@@ -709,10 +719,14 @@ fn 13 std_core$write_unsigned (ref,usize,u64) -> usize
         i64.const 10
         u64.rem
         u64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 6   ; $cast_26
         i32.const 48
         local.get 6   ; $cast_26
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 7   ; $add_27
         local.get 0   ; arg 0
         local.get 5   ; i
@@ -783,6 +797,8 @@ fn 18 std_core$utf8_encode (char) -> ref
   if $L0 void
     local.get 1   ; cp
     u32.to_i32
+    i32.const 255
+    i32.bitand
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
@@ -800,6 +816,8 @@ fn 18 std_core$utf8_encode (char) -> ref
       local.get 4   ; $shr_12
       i32.bitor
       u32.to_i32
+      i32.const 255
+      i32.bitand
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
@@ -812,6 +830,8 @@ fn 18 std_core$utf8_encode (char) -> ref
       local.get 4   ; $shr_12
       i32.bitor
       u32.to_i32
+      i32.const 255
+      i32.bitand
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
@@ -829,6 +849,8 @@ fn 18 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -843,6 +865,8 @@ fn 18 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -855,6 +879,8 @@ fn 18 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -868,6 +894,8 @@ fn 18 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -882,6 +910,8 @@ fn 18 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -896,6 +926,8 @@ fn 18 std_core$utf8_encode (char) -> ref
         local.get 4   ; $shr_12
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -908,6 +940,8 @@ fn 18 std_core$utf8_encode (char) -> ref
         local.get 1   ; cp
         i32.bitor
         u32.to_i32
+        i32.const 255
+        i32.bitand
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
@@ -3101,10 +3135,14 @@ fn 41 std_core$write_digits (ref,usize,u64,i32) -> usize
         i64.const 10
         u64.rem
         u64.to_i32
+        i32.const 255
+        i32.bitand
         local.set 7   ; $cast_15
         i32.const 48
         local.get 7   ; $cast_15
         i32.add
+        i32.const 255
+        i32.bitand
         local.set 8   ; $add_16
         local.get 0   ; arg 0
         local.get 6   ; i

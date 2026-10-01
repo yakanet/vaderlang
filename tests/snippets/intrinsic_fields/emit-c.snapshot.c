@@ -310,9 +310,9 @@ static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2) {
         l5 = (size_t) (int64_t) t0;
 #line 165 "lib/std/core/primitives.vader"
         t1 = vader_mod_u64(l2, INT64_C(10));
-        t2 = ((int32_t) (uint64_t) t1);
+        t2 = (((int32_t) (uint64_t) t1) & INT32_C(255));
         l6 = (uint8_t) (int32_t) t2;
-        t2 = (INT32_C(48) + l6);
+        t2 = ((INT32_C(48) + l6) & INT32_C(255));
         l7 = (uint8_t) (int32_t) t2;
         std_core_Buffer_ByteAccess_store_u8_vt(l0, l5, l7);
 #line 166 "lib/std/core/primitives.vader"
