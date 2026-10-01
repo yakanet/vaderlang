@@ -56,7 +56,7 @@ static const vader_array_t vader_data_0 = {
 };
 
 static int32_t snippet_main(void);
-static int64_t snippet_as_int__Color(vader_box_t l0);
+static int64_t snippet_as_int__snippet_Color(vader_box_t l0);
 static int64_t snippet_as_int__snippet_HttpStatus(uint8_t l0);
 static int64_t snippet_as_int__snippet_Level(uint8_t l0);
 static vader_string_t snippet_pair__snippet_HttpStatus__Any(uint8_t l0, vader_box_t l1);
@@ -72,10 +72,10 @@ static vader_box_t std_collections_MutableMap_Index_at__snippet_HttpStatus__stri
 static void std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2);
 static size_t std_collections_slot_for(uint64_t l0, size_t l1);
 static void std_collections_ensure_index__snippet_HttpStatus__string(void* l0);
-static void std_collections_rehash__HttpStatus__string(void* l0, size_t l1);
+static void std_collections_rehash__snippet_HttpStatus__string(void* l0, size_t l1);
 static void std_collections_write_entry__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2);
-static void std_collections_put__HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2);
-static vader_box_t std_collections_get__HttpStatus__string(void* l0, uint8_t l1);
+static void std_collections_put__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2);
+static vader_box_t std_collections_get__snippet_HttpStatus__string(void* l0, uint8_t l1);
 static size_t std_collections_len__snippet_HttpStatus__string(void* l0);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
@@ -178,7 +178,7 @@ static int32_t snippet_main(void) {
     l2 = snippet_as_int__snippet_Level((uint8_t) 1);
     l1 = std_core_write_int(l0, l1, l2);
     l1 = std_core_write_string_at(l0, l1, 1u);
-    l2 = snippet_as_int__Color(vader_box_i32(1u, INT32_C(9)));
+    l2 = snippet_as_int__snippet_Color(vader_box_i32(1u, INT32_C(9)));
     l1 = std_core_write_int(l0, l1, l2);
     t0 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t0);
@@ -253,7 +253,7 @@ static int32_t snippet_main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static int64_t snippet_as_int__Color(vader_box_t l0) {
+static int64_t snippet_as_int__snippet_Color(vader_box_t l0) {
     int64_t t0;
 #line 30 "tests/snippets/generic_enum_argument/_main.vader"
     t0 = ((int64_t) l0.payload.i);
@@ -504,14 +504,14 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
 }
 
 static uint64_t std_core_u8_Hash_hash(uint8_t l0) {
-#line 288 "lib/std/core/primitives.vader"
+#line 289 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (uint8_t) l0);
 }
 
 static vader_box_t std_collections_MutableMap_Index_at__snippet_HttpStatus__string(void* l0, uint8_t l1) {
     vader_box_t t0;
 #line 256 "lib/std/collections/collections.vader"
-    t0 = std_collections_get__HttpStatus__string(l0, l1);
+    t0 = std_collections_get__snippet_HttpStatus__string(l0, l1);
     return t0;
 }
 
@@ -523,7 +523,7 @@ static void std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__stri
     };
     vader_gc_top = &gc_frame;
 #line 260 "lib/std/collections/collections.vader"
-    std_collections_put__HttpStatus__string(l0, l1, l2);
+    std_collections_put__snippet_HttpStatus__string(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -595,7 +595,7 @@ static void std_collections_ensure_index__snippet_HttpStatus__string(void* l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static void std_collections_rehash__HttpStatus__string(void* l0, size_t l1) {
+static void std_collections_rehash__snippet_HttpStatus__string(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -735,7 +735,7 @@ static void std_collections_write_entry__snippet_HttpStatus__string(void* l0, ui
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static void std_collections_put__HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2) {
+static void std_collections_put__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2) {
     size_t l3, l4, l5, l8;
     uint64_t l6;
     int64_t l7;
@@ -780,7 +780,7 @@ static void std_collections_put__HttpStatus__string(void* l0, uint8_t l1, vader_
             break;
         }
 #line 136 "lib/std/collections/collections.vader"
-        std_collections_rehash__HttpStatus__string(l0, l3);
+        std_collections_rehash__snippet_HttpStatus__string(l0, l3);
 #line 133 "lib/std/collections/collections.vader"
     }
 #line 138 "lib/std/collections/collections.vader"
@@ -874,7 +874,7 @@ static void std_collections_put__HttpStatus__string(void* l0, uint8_t l1, vader_
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_box_t std_collections_get__HttpStatus__string(void* l0, uint8_t l1) {
+static vader_box_t std_collections_get__snippet_HttpStatus__string(void* l0, uint8_t l1) {
     uint64_t l2;
     size_t l3, l4, l5, l6;
     size_t t0;

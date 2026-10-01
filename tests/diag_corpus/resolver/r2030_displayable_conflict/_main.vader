@@ -1,0 +1,13 @@
+// R2030: `@displayable` generates the enum's `Display`, so an impl written next
+// to it is a second impl for the same (type, trait). The conflict is reported
+// at the decorator, the generated impl having no source of its own.
+module "snippet"
+
+@displayable
+Direction :: enum { North, South }
+
+Direction implements Display {
+    to_string :: fn(self) -> string = "somewhere"
+}
+
+main :: fn() -> i32 { return 0 }

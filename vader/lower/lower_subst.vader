@@ -398,10 +398,14 @@ keep_concrete_or_erase :: fn(t: Type) -> Type = kept_type_argument(t) ?? any_lea
 // would otherwise share one instance.
 kept_suffix :: fn(kept: Type | null) -> string {
     if kept is EnumType {
-        return "${mangle_module_id(kept.symbol.module_name)}_${kept.symbol.name}"
+        return module_qualified_name(kept.symbol)
     }
     return if kept == null { "Any" } else { mangle_type_arg(kept) }
 }
+
+// A nominal type's name as an instance suffix carries it, qualified by its module.
+module_qualified_name :: fn(sym: Symbol) -> string =
+    "${mangle_module_id(sym.module_name)}_${sym.name}"
 
 // True when AT LEAST ONE type arg is one `kept_type_argument` keeps (the mixed-flavor
 // gate, BROAD — incl `string`/`bool`/`char`, matching `mixed_any_suffix` /

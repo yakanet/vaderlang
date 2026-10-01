@@ -61,7 +61,6 @@ impl 12 ByteAccess
 impl 24 Iterator
 vtable Iterator.next 5 2
 vtable Iterator.next 8 6
-vtable Iterator.next 8 6
 vtable Iterator.next 13 8
 vtable Iterator.next 14 9
 vtable Iterator.next 24 45

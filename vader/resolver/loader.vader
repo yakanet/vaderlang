@@ -435,11 +435,12 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]!, overlay: Mutable
         if content == "" { continue }
         parsed :: parse_source(content, path)
         for e in parsed.errors { diags.push(e) }
-        assign_program_ids(parsed.program, node_factory)
+        program :: with_displayable_impls(parsed.program)
+        assign_program_ids(program, node_factory)
         out.push(SourceFile {
             .path       = path,
             .content    = content,
-            .program    = parsed.program,
+            .program    = program,
             .id_factory = node_factory,
         })
     }

@@ -101,7 +101,12 @@
           ]
         }
       ],
-      "decorators": []
+      "decorators": [
+        {
+          "name": "displayable",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "EnumDecl",

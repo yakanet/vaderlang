@@ -477,6 +477,13 @@ export TypedProgram :: struct {
     /// name) so overloaded generics don't collide.
     fn_trait_dispatches: MutableMap<usize, bool>
 
+    /// Generic fn AST-node id → true when its body interpolates a value whose
+    /// type mentions a type-param, so renders it through a `Display` dispatched
+    /// on it. Read by the lowerer's instance flavor : an enum or a distinct
+    /// argument then gets a concrete instance, since erasure boxes it as its
+    /// representation and the dispatch would reach that type's `Display`.
+    fn_display_dispatches: MutableMap<usize, bool>
+
     /// Callee `IdentExpr.id` → true when overload resolution picked a
     /// non-primary overload for a direct call (`describe(b)` choosing
     /// the `Bag` overload while the resolver bound the `Box` primary).
@@ -596,6 +603,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .const_decls = MutableMap<i32, ConstDecl> {},
     .bounded_dispatch_trait = MutableMap<usize, string> {},
     .fn_trait_dispatches = MutableMap<usize, bool> {},
+    .fn_display_dispatches = MutableMap<usize, bool> {},
     .overload_result_callees = MutableMap<usize, bool> {},
     .enum_data_reads = MutableMap<usize, bool> {},
 }

@@ -1048,7 +1048,19 @@ check_typeparam_bounds :: fn(
         bound_ty :: bindings[sym.id] ?? continue
         bound_trait :: type_from_expr(tp.bound, typed.resolved, [])
         if bound_trait is TraitType {
-            if !satisfies_trait(bound_ty, bound_trait, typed) {
+            // An erased instance dispatches `Display` on its value's runtime type,
+            // and no vtable carries an array's : its impl is reached only where
+            // the value is known to be an array.
+            if bound_ty is ArrayType && bound_trait.symbol.name == TRAIT_DISPLAY {
+                diags.push(
+                    typecheck_error(
+                        .TraitNotSatisfied,
+                        c.span,
+                        "an array renders only when interpolated directly, not through type "
+                            + "parameter `${tp.name}` of `${callee_name(c.callee)}`",
+                    ),
+                )
+            } else if !satisfies_trait(bound_ty, bound_trait, typed) {
                 diags.push(
                     typecheck_error(
                         .TraitNotSatisfied,

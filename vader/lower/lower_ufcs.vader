@@ -383,9 +383,7 @@ harvest_ufcs_fn_instance :: fn(
             }
         }
         if !all_concrete(concrete_args) { return null }
-        // Strip distinct→backing before keying the instance — distinct ends at
-        // the lowering boundary (see `lower_generic_call::emit_generic_fn_call`).
-        mono_args :: strip_distinct_each(concrete_args)
+        mono_args :: instance_type_args(ctx, fn_sym, concrete_args)
         // Record the instance once ; return the (uniq-disambiguated) mangle on
         // every call so the call site can target it even when a sibling call
         // already harvested. The name is built INSIDE

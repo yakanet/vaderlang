@@ -215,7 +215,8 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
     string_type :: TY_STRING
     usize_type :: mk_primitive("usize")
     span :: expr.span
-    // Lower every part once, classifying interpolated values by type.
+    // Lower every part once, classifying interpolated values by type ; a
+    // `${Display}` part is rendered here, and joins the strings.
     values: LoweredExpr[]!: []
     kinds: WriterKind[]!: []
     has_direct := false
@@ -226,11 +227,17 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
                 kinds.push(.Text)
             }
             is StringLitInterp -> {
-                inner :: as_written_value(ctx, part.expr, lower_expr(ctx, part.expr))
-                k :: classify_kind(type_of(inner))
+                inner :: lower_expr(ctx, part.expr)
+                shown :: shown_type(ctx, part.expr, inner)
+                k :: classify_kind(shown)
                 if k == .Signed || k == .Unsigned || k == .Bool { has_direct = true }
-                values.push(inner)
-                kinds.push(k)
+                if k == .Display {
+                    values.push(build_display_to_string_call(ctx, inner, shown, span))
+                    kinds.push(.Str)
+                } else {
+                    values.push(inner)
+                    kinds.push(k)
+                }
             }
         }
     }
@@ -291,10 +298,15 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx!, expr: StringLitExpr) -> LoweredExpr 
             write_values.push(v)
             write_kinds.push(.Str)
         } else {
-            // Str / Display — bind to a tmp, add a runtime `byte_len` size term.
-            str_val :: if k == .Display { build_display_to_string_call(ctx, v, span) } else { v }
+            // A string — bind to a tmp, add a runtime `byte_len` size term.
             tmp_sym :: fresh_synthetic_symbol(ctx, "p")
-            stmts.push(LoweredLet { .span = span, .name = tmp_sym.name, .symbol = tmp_sym, .type = string_type, .value = str_val })
+            stmts.push(LoweredLet {
+                .span = span,
+                .name = tmp_sym.name,
+                .symbol = tmp_sym,
+                .type = string_type,
+                .value = v,
+            })
             tmp_ref :: synth_ident(tmp_sym, string_type, span)
             blen_call :: mk_lowered_call(blen_sym, [tmp_ref], usize_type, span)
             if runtime_size == null { runtime_size = blen_call } else {
@@ -347,7 +359,7 @@ concat_from_collected :: fn(ctx: FnLowerCtx!, values: LoweredExpr[], kinds: Writ
         if kinds[i] == .Str || kinds[i] == .Text {
             operands.push(values[i])
         } else {
-            operands.push(build_display_to_string_call(ctx, values[i], span))
+            operands.push(build_display_to_string_call(ctx, values[i], type_of(values[i]), span))
         }
     }
     return lower_concat_chain(ctx, operands, span)
@@ -360,15 +372,25 @@ cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExp
     return LoweredCast { .span = span, .type = mk_primitive(width), .value = inner }
 }
 
-// Build a `<T>.Display.to_string(value)` call shape. Prefers a direct
-// `LoweredCall` to the per-receiver impl member when the impl is
+// The type whose `Display` renders an interpolated value : its checked type when
+// that is an enum, since an enum literal lowers to its bare integer — a variant
+// of an enum with variant data, to its rank.
+shown_type :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExpr) -> Type {
+    checked :: enum_type_or_unwrap(ctx, ctx.types.expr_type(source))
+    return if checked is EnumType { checked } else { type_of(lowered) }
+}
+
+// Build a `<T>.Display.to_string(value)` call shape, `T` being `source_type`.
+// Prefers a direct `LoweredCall` to the per-receiver impl member when the impl is
 // statically resolvable (concrete struct / enum types). Falls back
 // to `LoweredVirtualCall` for primitives / generic-T receivers where
 // the impl exists per-instantiation but isn't reachable at lower-time.
-build_display_to_string_call :: fn(ctx: FnLowerCtx!, value: LoweredExpr, span: Span) -> LoweredExpr {
+build_display_to_string_call :: fn(
+    ctx: FnLowerCtx!, value: LoweredExpr, source_type: Type, span: Span,
+) -> LoweredExpr {
     string_type :: TY_STRING
     no_args: LoweredExpr[]!: []
-    direct :: try_direct_display_call(ctx, value, span)
+    direct :: try_direct_display_call(ctx, value, source_type, span)
     if direct != null { return direct }
     // Erased Display dispatch (generic-`T` receiver) : record the trait so
     // every primitive `Display` impl enters the vtable (the boxed tag picks
@@ -385,17 +407,18 @@ build_display_to_string_call :: fn(ctx: FnLowerCtx!, value: LoweredExpr, span: S
     }
 }
 
-// Look up `<sourceType>.Display.to_string` statically. Returns a
+// Look up `<source_type>.Display.to_string` statically. Returns a
 // `LoweredCall` whose callee is the impl-member's mangled fn symbol
 // when reachable ; null otherwise. The mangling matches what
 // `lower_impl_members` registers in `lower.vader`.
-try_direct_display_call :: fn(ctx: FnLowerCtx!, value: LoweredExpr, span: Span) -> LoweredExpr | null {
+try_direct_display_call :: fn(
+    ctx: FnLowerCtx!, value: LoweredExpr, source_type: Type, span: Span,
+) -> LoweredExpr | null {
     string_type :: TY_STRING
-    source_type := type_of(value)
     // A `FreeFloat` literal (un-defaulted at lower-time) displays as `f64`:
     // pin it so the lookup finds f64's concrete Ryu `Display` impl rather than
     // falling through to an erased virtual dispatch.
-    if source_type is FreeFloatType { source_type = mk_primitive("f64") }
+    receiver_type :: if source_type is FreeFloatType { mk_primitive("f64") } else { source_type }
     // Resolve `<T>.Display.to_string` through the canonical UFCS path. This
     // mangles via the IMPL's owning module (`std_core$usize$Display$to_string`,
     // not the caller's) AND records the mangle in `referenced_impl_mangles`, so
@@ -405,7 +428,7 @@ try_direct_display_call :: fn(ctx: FnLowerCtx!, value: LoweredExpr, span: Span) 
     // call fell through to the emit's defensive `Return` (e.g. every `${usize}`
     // interpolation silently mis-compiled). `null` (no concrete Display impl:
     // generic-T / trait receiver) falls back to a `LoweredVirtualCall`.
-    member :: find_impl_member_for(ctx, source_type, METHOD_TO_STRING) ?? return null
+    member :: find_impl_member_for(ctx, receiver_type, METHOD_TO_STRING) ?? return null
     // Build the direct `to_string(value)` call — or, when the member is the
     // identity `fn(self) = self` (string's `Display`), inline to `value` itself.
     call_args: LoweredExpr[]!: []

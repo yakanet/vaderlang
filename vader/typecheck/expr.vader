@@ -156,13 +156,11 @@ infer_expr :: fn(
         is AST.NullLitExpr   -> { return TY_NULL }
         is AST.CharLitExpr   -> { return TY_FREE_CHAR }
         is AST.StringLitExpr -> {
-            // Walk interpolation parts so `"${x}"`'s `x` lands in
-            // `expr_types`. T3018 Display
-            // check is deferred — currently we just type the inner.
             for part in expr.parts {
                 if part is AST.StringLitInterp {
                     part_type :: check_expr(part.expr, null, typed, diags)
-                    check_interpolated_union(part_type, part.expr, typed, diags)
+                    check_interpolated_part(part_type, part.expr, typed, diags)
+                    mark_display_dispatch(part_type, typed)
                 }
             }
             return TY_STRING
@@ -204,25 +202,96 @@ infer_expr :: fn(
     }
 }
 
-// T3086 : a boxed enum carries its integer's runtime type, not its own, so a
-// union holding an enum with variant data would print the stored rank instead
-// of the written value. Refused until a boxed enum keeps its identity.
-check_interpolated_union :: fn(type: Type, part: AST.Expr, typed: TypedProgram, diags: Diagnostic[]!) -> void {
-    if type !is UnionType {
+// Attribute to the enclosing fn the `Display` an interpolated value dispatches on
+// a type-param — see `fn_display_dispatches`.
+mark_display_dispatch :: fn(type: Type, typed: TypedProgram!) -> void {
+    if !type_contains_type_param(type) {
         return
     }
-    for variant in type.variants {
-        real :: if variant is StructType && variant.symbol.kind == .Enum {
-            typed.decl_types[variant.symbol.id] ?? variant
-        } else {
-            variant
-        }
-        if real is EnumType && real.data != null {
-            diags.push(typecheck_error(.UnionEnumDataNotInterpolable, part.span,
-                "narrow it to `${real.symbol.name}` first"))
-            return
+    fn_ctx :: typed.current_fn_ctx ?? return
+    if fn_ctx.fn_id != 0 {
+        typed.fn_display_dispatches[fn_ctx.fn_id] = true
+    }
+}
+
+// T3018 : an interpolated value renders through its `Display`, so a type with
+// none is refused here — past this check it would compile and fail at run time,
+// a dispatch finding no impl.
+//
+// T3086 : a boxed enum carries its integer's runtime type, not its own, so an
+// enum reached through a union — the value itself, or an array's elements —
+// would render through its integer's `Display`. Refused until a boxed enum keeps
+// its identity ; a narrowed value renders through its own. Only worth reporting
+// on a type that would otherwise render.
+check_interpolated_part :: fn(
+    type: Type, part: AST.Expr, typed: TypedProgram, diags: Diagnostic[]!,
+) -> void {
+    if has_display(type, typed) {
+        boxed :: boxed_enum(type, typed) ?? return
+        diags.push(typecheck_error(.UnionEnumNotInterpolable, part.span,
+            "narrow it to `${boxed.symbol.name}` first"))
+        return
+    }
+    // @partial: only a type parameter and an enum have a remedy worth naming.
+    detail :: @partial match type {
+        is TypeParamType -> "type parameter `${type.symbol.name}` has no `Display` bound"
+        is EnumType      -> ("`${type.symbol.name}` does not implement it ; add `@displayable` to "
+            + "render its variant names, or implement `Display`")
+        _                -> "`${display_type(type)}` does not implement it"
+    }
+    diags.push(typecheck_error(.InterpolationRequiresDisplay, part.span, detail))
+}
+
+// Whether a value of type `t` renders through `Display`: its own impl, a
+// distinct's backing, the elements of an array, every variant of a union, a
+// type parameter's bound.
+has_display :: fn(t: Type, typed: TypedProgram) -> bool = match t {
+    is PrimitiveType | StructType | EnumType -> struct_implements_trait(t, TRAIT_DISPLAY, typed)
+    is DistinctType  -> (struct_implements_trait(t, TRAIT_DISPLAY, typed)
+        || has_display(t.backing, typed))
+    is ArrayType     -> has_display(t.element, typed)
+    is UnionType     -> all_display(t.variants, typed)
+    is TypeParamType -> bound_names_display(typed.resolved.type_param_bounds[t.symbol.id], typed)
+    is TraitType     -> t.symbol.name == TRAIT_DISPLAY
+    is FreeIntType | FreeFloatType | FreeCharType | NeverType -> true
+    // A trait's own body is checked once per implementor, with `Self` resolved.
+    is SelfType -> true
+    // Already reported where the type failed to resolve.
+    is UnresolvedType | AnyType -> true
+    is TupleType | FnType | TypeMetaType -> false
+}
+
+all_display :: fn(types: Type[], typed: TypedProgram) -> bool {
+    for t in types {
+        if !has_display(t, typed) {
+            return false
         }
     }
+    return true
+}
+
+bound_names_display :: fn(bound: AST.Expr | null, typed: TypedProgram) -> bool {
+    if bound == null {
+        return false
+    }
+    return bounded_trait_args(bound, TRAIT_DISPLAY, typed) != null
+}
+
+// The first enum `t` holds as a union variant, looking through array elements.
+boxed_enum :: fn(t: Type, typed: TypedProgram) -> EnumType | null {
+    if t is ArrayType {
+        return boxed_enum(t.element, typed)
+    }
+    if t !is UnionType {
+        return null
+    }
+    for variant in t.variants {
+        real :: lift_enum_placeholder(variant, typed)
+        if real is EnumType {
+            return real
+        }
+    }
+    return null
 }
 
 // ---- tests ----------------------------------------------------------------

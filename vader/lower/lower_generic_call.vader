@@ -140,10 +140,7 @@ emit_generic_fn_call :: fn(
     // the generic shape) with the call arg's inferred concrete type. Each unique
     // TypeParam symbol in the fn's signature contributes one entry to
     // `concrete_args` in source-declared order.
-    // Strip distinct→backing before this list keys any instance (suffix, body
-    // subst, erasure): a distinct has no runtime identity, so its instance must
-    // BE the backing's, not a separate erased one that collides with it.
-    concrete_args :: strip_distinct_each(infer_type_args(ft, call, ctx))
+    concrete_args :: instance_type_args(ctx, fn_sym, infer_type_args(ft, call, ctx))
     if !all_concrete(concrete_args) { return null }
     // Register the instance for materialisation at the end of `lower_project` and
     // take the mangle it settles on. Everything about the name is derived inside,
@@ -245,9 +242,7 @@ register_and_emit_generic_call :: fn(
     // `main`) sends the lookup to the wrong module → returns null →
     // instance never materialises → `emit_call_to_symbol` misses and
     // the call drops. Mirrors the harvest in `lower_ufcs::harvest_ufcs_fn_instance`.
-    // Strip distinct→backing so this instance keys/dedups as the backing's (see
-    // `emit_generic_fn_call`). Distinct ends at the lowering boundary.
-    mono_args :: strip_distinct_each(concrete_args)
+    mono_args :: instance_type_args(ctx, fn_sym, concrete_args)
     mangled :: register_fn_instance_mangle(ctx, fn_sym, mono_args)
     lowered_args: LoweredExpr[]!: []
     for ca in call.args { lowered_args.push(lower_expr(ctx, ca.value)) }
@@ -468,7 +463,18 @@ mono_suffix :: fn(args: Type[]) -> string {
     sb :: StringBuilder {}
     for a in args {
         sb.append("__")
-        sb.append(mangle_type_arg(a))
+        sb.append(mangle_instance_arg(a))
     }
     return sb.to_string()
+}
+
+// A type argument as it names an instance. A distinct keeps its own name, since
+// one reaching here is kept by a concrete instance (`instance_type_args`) whose
+// body is not its backing's ; an enum or a distinct is qualified by its module,
+// its name being unique only there.
+// @partial: any other type is named by its display key.
+mangle_instance_arg :: fn(t: Type) -> string = @partial match t {
+    is EnumType     -> module_qualified_name(t.symbol)
+    is DistinctType -> module_qualified_name(t.symbol)
+    _               -> mangle_type_arg(t)
 }

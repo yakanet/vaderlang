@@ -1,0 +1,14 @@
+// T3006: an array renders where it is interpolated as an array, but not as the
+// argument of a `T: Display` parameter. An erased instance dispatches `Display`
+// on its value's runtime type, and no vtable carries an array's — the call
+// would compile and fail at run time.
+module "snippet"
+
+show :: fn<T: Display>(value: T) -> string = "<${value}>"
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3]
+    direct :: "${xs}"
+    through :: show(xs)
+    return 0
+}

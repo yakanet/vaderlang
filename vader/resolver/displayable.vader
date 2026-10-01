@@ -1,0 +1,58 @@
+// vader/resolver/displayable — the `Display` an `@displayable` enum is given.
+//
+// The impl is written out as source, parsed, and appended to the enum's own
+// file before node ids are assigned, so every later pass meets an ordinary
+// `E implements Display` and the generated code goes through the checks a
+// written one does. It is parsed under a file name of its own per enum, which
+// keeps each of its spans unique: the span-keyed tables (`idents`,
+// `impl_method_decl_types`) must never see two nodes on one span.
+
+module "vader/resolver"
+
+import "std/iter"
+import "std/string_builder"
+import "vader/parser"
+AST :: import "toolchain/ast"
+
+// Prefix of the file name a generated impl is parsed under ; the rest is the
+// enum's file, then `#` and the enum's name.
+DISPLAYABLE_FILE_PREFIX :: "<displayable>:"
+
+/// Return `program` with the `Display` impl of every enum it declares under
+/// `@displayable` appended — `program` itself when it declares none. Each
+/// variant renders as its own name.
+///
+/// @param program  one parsed file, before node ids are assigned.
+export with_displayable_impls :: fn(program: AST.Program) -> AST.Program {
+    generated: AST.Decl![]!: []
+    for d in program.decls {
+        if d is AST.EnumDecl {
+            decorator :: d.decorators.find((x) -> x.name == "displayable") ?? continue
+            generated.push(displayable_impl(d, decorator, program.file))
+        }
+    }
+    if generated.is_empty() {
+        return program
+    }
+    return AST.Program { ...program, .decls = program.decls + generated }
+}
+
+// The impl reports at the decorator — a conflict with a written impl, an
+// "implementations" lookup — since its own spans name no real file. It carries
+// the decorator too, which is how a conflict says where the impl came from.
+displayable_impl :: fn(e: AST.EnumDecl, decorator: AST.Decorator, file: string) -> AST.Decl {
+    sb :: StringBuilder {}
+    sb.append("${e.name} implements Display {\n")
+    sb.append("    to_string :: fn(self) -> string = match self {\n")
+    for v in e.variants {
+        sb.append("        .${v.name} -> \"${v.name}\"\n")
+    }
+    sb.append("    }\n}\n")
+    source_file :: "${DISPLAYABLE_FILE_PREFIX}${file}#${e.name}"
+    impl_ :: parse_source(sb.to_string(), source_file).program.decls[0]
+    if impl_ is AST.ImplDecl {
+        impl_.span = decorator.span
+        impl_.decorators = [decorator]
+    }
+    return impl_
+}

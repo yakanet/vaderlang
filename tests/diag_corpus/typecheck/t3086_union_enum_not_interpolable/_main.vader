@@ -1,0 +1,21 @@
+// Interpolating a union that holds an enum — T3086.
+//
+// A boxed enum carries its integer's runtime type, not its own : `"${v}"` would
+// render through the integer's `Display` and print the variant's rank where the
+// enum's own `Display` says `NotFound`. Narrowing first renders it through its
+// own.
+module "snippet"
+
+@displayable
+HttpStatus :: enum {
+    Ok = 200,
+    NotFound = 404,
+}
+
+pick :: fn(found: bool) -> HttpStatus | null = if found { .Ok } else { null }
+
+main :: fn() -> i32 {
+    v :: pick(true)
+    line :: "status ${v}"
+    return 0
+}

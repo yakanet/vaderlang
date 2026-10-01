@@ -43,6 +43,7 @@ static const char vader_atom_blob[] =
     "," "\0"
     "true" "\0"
     "false" "\0"
+    "null" "\0"
     "0" "\0"
     "nan" "\0"
     "-inf" "\0"
@@ -64,16 +65,17 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[76] },
     { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[78] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[83] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[89] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[91] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[95] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[100] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[104] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[109] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[113] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[89] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[94] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[96] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[100] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[105] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[109] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[114] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[118] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 19u
+#define VADER_COMPTIME_ATOM_COUNT 20u
 
 /* Comptime data pool — read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
@@ -859,6 +861,7 @@ static vader_string_t std_core_usize_Display_to_string(size_t l0);
 static vader_string_t std_core_bool_Display_to_string(bool l0);
 static vader_string_t std_core_char_Display_to_string(uint32_t l0);
 static vader_string_t std_core_string_Display_to_string(vader_string_t l0);
+static vader_string_t std_core_null_Display_to_string(vader_box_t l0);
 static vader_string_t std_core_f32_Display_to_string(float l0);
 static vader_string_t std_core_f64_Display_to_string(double l0);
 static vader_string_t std_core_format_signed(int64_t l0);
@@ -1711,12 +1714,17 @@ static vader_string_t std_core_string_Display_to_string(vader_string_t l0) {
     return l0;
 }
 
+static vader_string_t std_core_null_Display_to_string(vader_box_t l0) {
+#line 244 "lib/std/core/primitives.vader"
+    return 13u;
+}
+
 static vader_string_t std_core_f32_Display_to_string(float l0) {
     vader_string_t t0 = 0;
     vader_string_t* gc_atom_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 245 "lib/std/core/primitives.vader"
+#line 246 "lib/std/core/primitives.vader"
     t0 = std_core_format_f32(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1726,7 +1734,7 @@ static vader_string_t std_core_f64_Display_to_string(double l0) {
     vader_string_t* gc_atom_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 246 "lib/std/core/primitives.vader"
+#line 247 "lib/std/core/primitives.vader"
     t0 = std_core_format_f64(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1748,7 +1756,7 @@ static vader_string_t std_core_format_signed(int64_t l0) {
     vader_gc_top = &gc_frame;
 #line 46 "lib/std/core/primitives.vader"
     if (l0 == INT64_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 13u; }
+        { vader_gc_top = gc_frame.prev; return 14u; }
     }
 #line 47 "lib/std/core/primitives.vader"
     l1 = (l0 < INT64_C(0));
@@ -1822,7 +1830,7 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
     vader_gc_top = &gc_frame;
 #line 71 "lib/std/core/primitives.vader"
     if (l0 == INT64_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 13u; }
+        { vader_gc_top = gc_frame.prev; return 14u; }
     }
 #line 72 "lib/std/core/primitives.vader"
     l1 = (size_t) 0;
@@ -1980,13 +1988,13 @@ static vader_string_t std_core_format_f32(float l0) {
     if (l1 == INT32_C(255)) {
 #line 203 "lib/std/core/f2s.vader"
         if (l3 != INT32_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 14u; }
+            { vader_gc_top = gc_frame.prev; return 15u; }
         }
 #line 204 "lib/std/core/f2s.vader"
         if (l2) {
-            l4 = 15u;
-        } else {
             l4 = 16u;
+        } else {
+            l4 = 17u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 202 "lib/std/core/f2s.vader"
@@ -2000,9 +2008,9 @@ static vader_string_t std_core_format_f32(float l0) {
     if (l5) {
 #line 207 "lib/std/core/f2s.vader"
         if (l2) {
-            l4 = 17u;
-        } else {
             l4 = 18u;
+        } else {
+            l4 = 19u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 206 "lib/std/core/f2s.vader"
@@ -2046,13 +2054,13 @@ static vader_string_t std_core_format_f64(double l0) {
     if (l1 == INT64_C(2047)) {
 #line 404 "lib/std/core/dtoa.vader"
         if (l3 != INT64_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 14u; }
+            { vader_gc_top = gc_frame.prev; return 15u; }
         }
 #line 405 "lib/std/core/dtoa.vader"
         if (l2) {
-            l4 = 15u;
-        } else {
             l4 = 16u;
+        } else {
+            l4 = 17u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 403 "lib/std/core/dtoa.vader"
@@ -2066,9 +2074,9 @@ static vader_string_t std_core_format_f64(double l0) {
     if (l5) {
 #line 408 "lib/std/core/dtoa.vader"
         if (l2) {
-            l4 = 17u;
-        } else {
             l4 = 18u;
+        } else {
+            l4 = 19u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 407 "lib/std/core/dtoa.vader"
@@ -3552,7 +3560,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 235 "lib/std/io/io.vader"
-    l1 = concat_2(l0, 19u);
+    l1 = concat_2(l0, 20u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -3617,6 +3625,7 @@ static vader_string_t vader_vt_Display__to_string(vader_box_t recv) {
         case 3u: return std_core_bool_Display_to_string(recv.payload.b);
         case 16u: return std_core_char_Display_to_string(((uint32_t) recv.payload.i));
         case 4u: return std_core_string_Display_to_string(recv.payload.s);
+        case 0u: return std_core_null_Display_to_string(recv);
         case 17u: return std_core_f32_Display_to_string(((float) recv.payload.f));
         case 18u: return std_core_f64_Display_to_string(((double) recv.payload.f));
         default: vader_unreachable("vtable miss in Display.to_string");

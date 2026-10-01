@@ -1,0 +1,19 @@
+// `@displayable` generates an enum's `Display`, one variant name per variant.
+// Anywhere else there is no variant to name, and nothing would read the
+// decorator — so it is refused where the parser still knows what it decorates,
+// an impl member included.
+
+module "main"
+
+@displayable
+Point :: struct { x: i32 }
+
+@displayable
+Named :: trait { name :: fn(self) -> string }
+
+Point implements Named {
+    @displayable
+    name :: fn(self) -> string = "point"
+}
+
+main :: fn() -> i32 = 0

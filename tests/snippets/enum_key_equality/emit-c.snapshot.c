@@ -91,13 +91,13 @@ static size_t std_collections_slot_for(uint64_t l0, size_t l1);
 static void std_collections_ensure_index__Any__i32(void* l0);
 static void std_collections_ensure_index__snippet_HttpStatus__string(void* l0);
 static void std_collections_rehash__Any__i32(void* l0, size_t l1);
-static void std_collections_rehash__HttpStatus__string(void* l0, size_t l1);
+static void std_collections_rehash__snippet_HttpStatus__string(void* l0, size_t l1);
 static void std_collections_write_entry__Any__i32(void* l0, vader_box_t l1, int32_t l2);
 static void std_collections_write_entry__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2);
 static void std_collections_put__Any__i32(void* l0, vader_box_t l1, int32_t l2);
-static void std_collections_put__HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2);
+static void std_collections_put__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2);
 static vader_box_t std_collections_get__Any__i32(void* l0, vader_box_t l1);
-static vader_box_t std_collections_get__HttpStatus__string(void* l0, uint8_t l1);
+static vader_box_t std_collections_get__snippet_HttpStatus__string(void* l0, uint8_t l1);
 static size_t std_collections_len__snippet_HttpStatus__string(void* l0);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
@@ -548,57 +548,57 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
 }
 
 static uint64_t std_core_i8_Hash_hash(int8_t l0) {
-#line 283 "lib/std/core/primitives.vader"
+#line 284 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (int8_t) l0);
 }
 
 static uint64_t std_core_i16_Hash_hash(int16_t l0) {
-#line 284 "lib/std/core/primitives.vader"
+#line 285 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (int16_t) l0);
 }
 
 static uint64_t std_core_i32_Hash_hash(int32_t l0) {
-#line 285 "lib/std/core/primitives.vader"
+#line 286 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 
 static uint64_t std_core_i64_Hash_hash(int64_t l0) {
-#line 286 "lib/std/core/primitives.vader"
+#line 287 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) l0;
 }
 
 static uint64_t std_core_isize_Hash_hash(ptrdiff_t l0) {
-#line 287 "lib/std/core/primitives.vader"
+#line 288 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (ptrdiff_t) l0);
 }
 
 static uint64_t std_core_u8_Hash_hash(uint8_t l0) {
-#line 288 "lib/std/core/primitives.vader"
+#line 289 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (uint8_t) l0);
 }
 
 static uint64_t std_core_u16_Hash_hash(uint16_t l0) {
-#line 289 "lib/std/core/primitives.vader"
+#line 290 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (uint16_t) l0);
 }
 
 static uint64_t std_core_u32_Hash_hash(uint32_t l0) {
-#line 290 "lib/std/core/primitives.vader"
+#line 291 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (uint32_t) l0);
 }
 
 static uint64_t std_core_u64_Hash_hash(uint64_t l0) {
-#line 291 "lib/std/core/primitives.vader"
+#line 292 "lib/std/core/primitives.vader"
     return l0;
 }
 
 static uint64_t std_core_usize_Hash_hash(size_t l0) {
-#line 292 "lib/std/core/primitives.vader"
+#line 293 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (size_t) l0);
 }
 
 static uint64_t std_core_char_Hash_hash(uint32_t l0) {
-#line 293 "lib/std/core/primitives.vader"
+#line 294 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (uint32_t) l0);
 }
 
@@ -626,7 +626,7 @@ static void std_collections_MutableMap_IndexSet_set_at__Any__i32(void* l0, vader
 static vader_box_t std_collections_MutableMap_Index_at__snippet_HttpStatus__string(void* l0, uint8_t l1) {
     vader_box_t t0;
 #line 256 "lib/std/collections/collections.vader"
-    t0 = std_collections_get__HttpStatus__string(l0, l1);
+    t0 = std_collections_get__snippet_HttpStatus__string(l0, l1);
     return t0;
 }
 
@@ -638,7 +638,7 @@ static void std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__stri
     };
     vader_gc_top = &gc_frame;
 #line 260 "lib/std/collections/collections.vader"
-    std_collections_put__HttpStatus__string(l0, l1, l2);
+    std_collections_put__snippet_HttpStatus__string(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -873,7 +873,7 @@ static void std_collections_rehash__Any__i32(void* l0, size_t l1) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static void std_collections_rehash__HttpStatus__string(void* l0, size_t l1) {
+static void std_collections_rehash__snippet_HttpStatus__string(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3, l4, l5, l6;
     int32_t l7;
@@ -1188,7 +1188,7 @@ static void std_collections_put__Any__i32(void* l0, vader_box_t l1, int32_t l2) 
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static void std_collections_put__HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2) {
+static void std_collections_put__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2) {
     size_t l3, l4, l5, l8;
     uint64_t l6;
     int64_t l7;
@@ -1233,7 +1233,7 @@ static void std_collections_put__HttpStatus__string(void* l0, uint8_t l1, vader_
             break;
         }
 #line 136 "lib/std/collections/collections.vader"
-        std_collections_rehash__HttpStatus__string(l0, l3);
+        std_collections_rehash__snippet_HttpStatus__string(l0, l3);
 #line 133 "lib/std/collections/collections.vader"
     }
 #line 138 "lib/std/collections/collections.vader"
@@ -1400,7 +1400,7 @@ static vader_box_t std_collections_get__Any__i32(void* l0, vader_box_t l1) {
     { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
 }
 
-static vader_box_t std_collections_get__HttpStatus__string(void* l0, uint8_t l1) {
+static vader_box_t std_collections_get__snippet_HttpStatus__string(void* l0, uint8_t l1) {
     uint64_t l2;
     size_t l3, l4, l5, l6;
     size_t t0;

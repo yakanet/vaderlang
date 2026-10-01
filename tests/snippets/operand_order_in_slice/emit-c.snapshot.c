@@ -444,7 +444,7 @@ static bool std_core____Contains_contains__i32(void* l0, int32_t l1) {
 }
 
 static uint64_t std_core_i32_Hash_hash(int32_t l0) {
-#line 285 "lib/std/core/primitives.vader"
+#line 286 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 

@@ -1,0 +1,20 @@
+// T3018: an interpolated value renders through its `Display`. A type without
+// one is refused at compile time — past this point the program would compile
+// and fail at run time, on a dispatch finding no impl. An enum gets a `Display`
+// only on request : `@displayable`, or an impl of its own.
+module "snippet"
+
+Direction :: enum { North, South }
+
+Point :: struct { x: i32 }
+
+describe :: fn<T>(value: T) -> string = "value ${value}"
+
+main :: fn() -> i32 {
+    d :: Direction.South
+    p :: Point { .x = 1 }
+    a :: "heading ${d}"
+    b :: "at ${p}"
+    c :: describe(1)
+    return 0
+}

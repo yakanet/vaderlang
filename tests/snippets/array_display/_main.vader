@@ -1,0 +1,27 @@
+// An array renders as `[`, each element's own `Display` separated by `, `, then
+// `]` — numbers, strings, structs, nested arrays, an empty one, the elements of
+// a generic `T[]`, and an array held by a generic struct whose `Display` an
+// erased instance dispatches. `null` renders as `null`.
+module "snippet"
+
+import "std/io"
+
+Point :: struct { x: i32, y: i32 }
+Point implements Display -> "(${self.x}, ${self.y})"
+
+Box :: struct<T> { value: T }
+Box<T> implements<T: Display> Display -> "Box ${self.value}"
+
+show :: fn<T: Display>(value: T) -> string = "<${value}>"
+
+listed :: fn<T: Display>(values: T[]) -> string = "${values.len()}: ${values}"
+
+main :: fn() -> i32 {
+    empty: i32[]: []
+    println("${[1, 2, 3]} ${["a", "b"]} ${[true]} ${empty}")
+    println("${[Point { .x = 1, .y = 2 }]} ${[[1], [2, 3]]}")
+    println("${listed([1.5, 2.0])} ${listed(["x"])}")
+    println("${Box { .value = [4, 5] }} ${show(Box { .value = [6] })}")
+    println("${null} ${[null]}")
+    return 0
+}

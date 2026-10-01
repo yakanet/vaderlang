@@ -631,18 +631,22 @@ check_module_impl_coherence :: fn(
             if seen[key] != null {
                 // `ConflictingImpl` is a `ResolverCode` (declaration-level, like
                 // the R2018 orphan rule), so it's built with `resolver_error`.
-                diags.push(
-                    resolver_error(
-                        .ConflictingImpl,
-                        decl.span,
-                        "`${display_type(for_ty)}` already implements `${decl.trait_name}` — only one impl per (type, trait) is allowed",
-                    ),
-                )
+                detail :: conflict_detail(decl, for_ty)
+                diags.push(resolver_error(.ConflictingImpl, decl.span, detail))
             } else {
                 seen[key] = decl.span
             }
         }
     }
+}
+
+conflict_detail :: fn(decl: AST.ImplDecl, for_ty: Type) -> string {
+    if AST.decorators_have(decl.decorators, "displayable") {
+        return ("`@displayable` generates the `Display` of `${display_type(for_ty)}`, "
+            + "which already implements it")
+    }
+    return ("`${display_type(for_ty)}` already implements `${decl.trait_name}` — "
+        + "only one impl per (type, trait) is allowed")
 }
 
 // No two functions in a module may share a name AND signature (resolved param

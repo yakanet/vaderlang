@@ -1,0 +1,24 @@
+// `==` / `!=` between a union and a scalar of one of its variants : the scalar
+// is boxed as it would be entering the union, and the two boxes compare by tag
+// and payload — so `null` is never equal to a zero, whose payload is the same
+// word.
+module "snippet"
+
+import "std/io"
+
+Direction :: enum { North, East }
+
+maybe_direction :: fn(found: bool) -> Direction | null = if found { .East } else { null }
+
+maybe_count :: fn(found: bool) -> i32 | null = if found { 0 } else { null }
+
+main :: fn() -> i32 {
+    v :: maybe_direction(true)
+    none :: maybe_direction(false)
+    println("${v == Direction.East} ${v == Direction.North} ${v != Direction.East}")
+    println("${none == Direction.North} ${Direction.North == none} ${none != Direction.North}")
+    zero :: maybe_count(true)
+    missing :: maybe_count(false)
+    println("${zero == 0} ${0 == zero} ${missing == 0} ${missing != 0} ${zero == 1}")
+    return 0
+}

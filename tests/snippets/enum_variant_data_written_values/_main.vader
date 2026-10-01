@@ -1,7 +1,8 @@
 // Enum variant data with written values : the enum stores its variant's rank,
 // the data table is indexed by it, and a conversion to an integer reads the
 // written value back — folded for a constant, `rank + first` for consecutive
-// values, a read of the value table otherwise.
+// values, a read of the value table otherwise. Interpolated, a variant renders
+// through `Display`, here the variant name `@displayable` generates.
 
 module "snippet"
 
@@ -11,6 +12,7 @@ StatusInfo :: struct {
     reason: string
 }
 
+@displayable
 HttpStatus :: enum(StatusInfo) {
     Ok          { .reason = "OK" }                  = 200,
     NotFound    { .reason = "Not Found" }           = 404,

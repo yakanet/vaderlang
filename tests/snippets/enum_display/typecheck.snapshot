@@ -1,0 +1,117 @@
+# Typecheck
+
+## tests/snippets/enum_display
+  EnumDecl       Direction            :: Direction
+  FnDecl         listed               :: fn(T[]) -> string
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         maybe_byte           :: fn(bool) -> null | u8
+  FnDecl         maybe_direction      :: fn(bool) -> Direction | null
+  FnDecl         pair                 :: fn(T, T) -> string
+  FnDecl         show                 :: fn(T) -> string
+  EnumDecl       Status               :: Status
+  StructDecl     StatusInfo           :: StatusInfo!
+  ConstDecl      Weight               :: type
+  expr 25:30    StringLitExpr  :: string
+  expr 25:33    CallExpr       :: u8
+  expr 25:33    IdentExpr      :: type
+  expr 25:36    IdentExpr      :: Weight
+  expr 27:46    StringLitExpr  :: string
+  expr 27:50    IdentExpr      :: T
+  expr 29:48    StringLitExpr  :: string
+  expr 29:51    IdentExpr      :: T
+  expr 29:56    IdentExpr      :: T
+  expr 2:39     MatchExpr      :: string
+  expr 2:39     MatchExpr      :: string
+  expr 2:45     IdentExpr      :: Direction
+  expr 2:45     IdentExpr      :: Status
+  expr 31:51    StringLitExpr  :: string
+  expr 31:54    IdentExpr      :: T[]
+  expr 33:58    IfExpr         :: Direction | null
+  expr 33:61    IdentExpr      :: bool
+  expr 33:69    DotVariantExpr :: Direction
+  expr 35:46    IfExpr         :: null | u8
+  expr 35:49    IdentExpr      :: bool
+  expr 38:10    FieldExpr      :: Direction
+  expr 38:10    IdentExpr      :: Direction
+  expr 39:13    StringLitExpr  :: string
+  expr 39:16    IdentExpr      :: Direction
+  expr 39:21    FieldExpr      :: Direction
+  expr 39:21    IdentExpr      :: Direction
+  expr 39:39    CallExpr       :: string
+  expr 39:39    FieldExpr      :: fn() -> string
+  expr 39:39    IdentExpr      :: Direction
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 3:16     StringLitExpr  :: string
+  expr 3:19     StringLitExpr  :: string
+  expr 40:10    CallExpr       :: Direction | null
+  expr 40:10    IdentExpr      :: fn(bool) -> Direction | null
+  expr 41:5     IfExpr         :: void
+  expr 41:8     BinaryExpr     :: bool
+  expr 41:8     IdentExpr      :: Direction | null
+  expr 42:17    StringLitExpr  :: string
+  expr 42:29    IdentExpr      :: Direction
+  expr 42:9     CallExpr       :: void
+  expr 42:9     IdentExpr      :: fn(T) -> void
+  expr 44:13    StringLitExpr  :: string
+  expr 44:16    SeqLitExpr     :: Direction[]!
+  expr 44:17    FieldExpr      :: Direction
+  expr 44:17    IdentExpr      :: Direction
+  expr 44:34    FieldExpr      :: Direction
+  expr 44:34    IdentExpr      :: Direction
+  expr 44:5     CallExpr       :: void
+  expr 44:5     IdentExpr      :: fn(T) -> void
+  expr 45:13    StringLitExpr  :: string
+  expr 45:16    FieldExpr      :: Status
+  expr 45:16    IdentExpr      :: Status
+  expr 45:34    CallExpr       :: i32
+  expr 45:34    IdentExpr      :: type
+  expr 45:38    FieldExpr      :: Status
+  expr 45:38    IdentExpr      :: Status
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(T) -> void
+  expr 46:13    StringLitExpr  :: string
+  expr 46:16    CallExpr       :: string
+  expr 46:16    IdentExpr      :: fn(T) -> string
+  expr 46:21    IdentExpr      :: Direction
+  expr 46:27    CallExpr       :: string
+  expr 46:27    IdentExpr      :: fn(T) -> string
+  expr 46:32    FieldExpr      :: Status
+  expr 46:32    IdentExpr      :: Status
+  expr 46:46    CallExpr       :: string
+  expr 46:46    IdentExpr      :: fn(T, T) -> string
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 46:51    FieldExpr      :: Direction
+  expr 46:51    IdentExpr      :: Direction
+  expr 46:68    DotVariantExpr :: Direction
+  expr 47:13    StringLitExpr  :: string
+  expr 47:16    CallExpr       :: string
+  expr 47:16    IdentExpr      :: fn(T[]) -> string
+  expr 47:23    SeqLitExpr     :: Direction[]
+  expr 47:24    FieldExpr      :: Direction
+  expr 47:24    IdentExpr      :: Direction
+  expr 47:40    FieldExpr      :: Direction
+  expr 47:40    IdentExpr      :: Direction
+  expr 47:5     CallExpr       :: void
+  expr 47:5     IdentExpr      :: fn(T) -> void
+  expr 48:13    StringLitExpr  :: string
+  expr 48:16    CallExpr       :: string
+  expr 48:16    IdentExpr      :: fn(T) -> string
+  expr 48:21    CallExpr       :: Weight
+  expr 48:21    IdentExpr      :: type
+  expr 48:35    CallExpr       :: string
+  expr 48:35    IdentExpr      :: fn(T) -> string
+  expr 48:40    CallExpr       :: u8
+  expr 48:40    IdentExpr      :: type
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 49:13    StringLitExpr  :: string
+  expr 49:21    CallExpr       :: null | u8
+  expr 49:21    IdentExpr      :: fn(bool) -> null | u8
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void
+  expr 4:18     StringLitExpr  :: string
+  expr 4:21     StringLitExpr  :: string
+  expr 5:19     StringLitExpr  :: string
+  expr 6:18     StringLitExpr  :: string

@@ -889,6 +889,14 @@ export kept_type_argument :: fn(t: Type) -> Type | null {
     return null
 }
 
+/// Whether a boxed value of type `t` carries its representation's runtime type
+/// rather than its own : an enum boxes as its integer, a distinct as its
+/// backing. A trait dispatched on such a value reaches its own impl only where
+/// its type is known statically.
+///
+/// @param t  the type of the value boxed.
+export boxes_as_representation :: fn(t: Type) -> bool = t is EnumType || t is DistinctType
+
 /// Map `strip_distinct` over a type-arg list. Always returns a fresh array
 /// with each element passed through `strip_distinct`.
 /// @param args  the concrete type arguments.

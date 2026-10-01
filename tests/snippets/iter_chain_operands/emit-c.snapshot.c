@@ -1151,7 +1151,7 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
 
 static int32_t std_core_three_way(bool l0, bool l1) {
     int32_t l2;
-#line 312 "lib/std/core/primitives.vader"
+#line 313 "lib/std/core/primitives.vader"
     if (l0) {
         l2 = -(INT32_C(1));
     } else if (l1) {
@@ -1165,7 +1165,7 @@ static int32_t std_core_three_way(bool l0, bool l1) {
 static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
     bool l2, l3;
     int32_t t0;
-#line 316 "lib/std/core/primitives.vader"
+#line 317 "lib/std/core/primitives.vader"
     l2 = (l0 < l1);
     l3 = (l0 > l1);
     t0 = std_core_three_way(l2, l3);
@@ -1178,7 +1178,7 @@ static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
 
 static bool std_core_i32_Comparable_gt(int32_t l0, int32_t l1) {
     int32_t t0;
-#line 323602 "<clone>:lib/std/core/primitives.vader"
+#line 324626 "<clone>:lib/std/core/primitives.vader"
     t0 = std_core_i32_Comparable_compare(l0, l1);
     return (t0 > INT32_C(0));
     t0 = std_core_i32_Comparable_compare(l0, l1);
@@ -1187,7 +1187,7 @@ static bool std_core_i32_Comparable_gt(int32_t l0, int32_t l1) {
 
 static bool std_core_i32_Comparable_gte(int32_t l0, int32_t l1) {
     int32_t t0;
-#line 323602 "<clone>:lib/std/core/primitives.vader"
+#line 324626 "<clone>:lib/std/core/primitives.vader"
     t0 = std_core_i32_Comparable_compare(l0, l1);
     return (t0 >= INT32_C(0));
     t0 = std_core_i32_Comparable_compare(l0, l1);
@@ -1195,7 +1195,7 @@ static bool std_core_i32_Comparable_gte(int32_t l0, int32_t l1) {
 }
 
 static int32_t std_core_i32_Step_step(int32_t l0) {
-#line 334 "lib/std/core/primitives.vader"
+#line 335 "lib/std/core/primitives.vader"
     return (l0 + INT32_C(1));
     return (l0 + INT32_C(1));
 }

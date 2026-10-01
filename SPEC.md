@@ -103,7 +103,7 @@ The lowerer consumes the monomorphised typed AST and produces a **separate, smal
 
 - **Pattern match → if/else chains.** Naive linear lowering: each arm becomes a guarded `if` whose predicate is the pattern's discriminator (type tag, struct shape, literal equality) ∧ its optional `if`-guard. The `match e as x` binder becomes a local binding ahead of the arms; struct destructuring binds locals at the head of the arm body. No decision-tree compilation in MVP — naive code is fine for the bytecode emitter to optimise later.
 - **`expr?` → `match`.** Lowered to `match expr as v { is Error -> return v  is T -> v }` over the typed scrutinee. Every `Error`-implementing variant routes to a `return` of that same value; the happy variant becomes the expression's result.
-- **String interpolation → builder intrinsics.** Each `"…${x}…"` lowers to a sequence of `builder.new`, `builder.append_str`, `builder.append_display(x)`, `builder.finish` intrinsic calls. The runtime (which `std/string_builder` wraps) provides the actual implementation; the lowerer only emits the call chain. `builder.append_display` is dispatched statically per the post-mono `Display` impl table.
+- **String interpolation → one string build.** Each `"…${x}…"` lowers to plain Vader calls on the `std/core` byte-buffer API, or to the shared `concat_N` when no segment is an integer or a bool (§9 *Compile-time verification*). A segment of any other type renders through its `Display.to_string`, called directly when the impl is known at that point.
 - **`defer` → exit-point duplication.** The lowerer keeps a per-block stack of pending defers (LIFO) and inlines them physically at every textual exit of the block: implicit fallthrough, `return`, `break`, `continue`. A `panic` (or trap) **runs the pending defers** of every frame it unwinds through — LIFO, innermost frame first — before the process aborts; the panic stays fatal (no recovery). Each frame runs its own defers as the stack tears down; defers do not otherwise propagate across function boundaries.
 - **Trait calls → static dispatch.** Because monomorphization has stripped abstract generics, every trait-method call site has a concrete receiver type. The lowerer rewrites `recv.to_string()` to a direct call of the specific impl's function. No vtable / dynamic dispatch in MVP.
 - **No inserted runtime checks.** The lowerer does not synthesize bounds checks, null checks, division-by-zero guards, or overflow checks. Type narrowing already covers nullability; the remaining safety checks are the runtime's responsibility (when emitted) or are explicitly out of scope for MVP. One exception is enforced by the **backends, not the lowerer**: an integer `div` / `mod` by zero traps identically on both — the VM raises a labelled trap and the C backend routes the op through a `vader_{div,mod}_<width>` runtime helper that does the same (it also folds `INT_MIN / -1`). Float divide keeps IEEE `inf` / `nan`.
@@ -1212,25 +1212,33 @@ The header takes three forms: `enum(u8)` (a width, no data), `enum(Info)` (data,
 - **Reading.** `v.field` is the field of `v`'s data; `Info(v)` is the whole value, **read-only** (`info.code = 5` is `T3070`). On the enum's name, `HttpStatus.code` is still a variant lookup (`T3027`).
 - **Representation.** An enum with data stores its variant's **rank** — 0, 1, 2… in declaration order — not the written value: the data is a read-only table indexed by the rank, so a read allocates nothing, and `==`, `match` and `.Variant` compare ranks. The width (written, or inferred as the narrowest holding the ranks) and `@size_of` follow the number of variants, not the values: `HttpStatus` above is 1 byte.
 - **Converting to an integer** (`i32(s)`) gives the written value — folded for a constant, `rank + first` when the values are consecutive, else a read of a second table of the values.
-- **Interpolating a union that holds one is refused** (`T3086`): `"${v}"` with `v : HttpStatus | null` — narrow first (`if v != null { "${v}" }`). A value boxed in a union carries its integer's runtime type, not the enum's, so it would print the rank.
+- **Interpolating** renders through `Display`, like any enum (below) — never the written value.
 - **No C representation.** Such an enum cannot be a `@c_struct` field (`T3050`): C would read the rank where the source says 404.
 
 #### `Display`
 
-Enums do not implement `Display` automatically. Implement the trait explicitly to use an enum in string interpolation:
+An enum implements `Display` only on request; interpolating one that does not is `T3018`. **`@displayable`** asks the compiler for it: each variant renders as its own name.
 
 ```vader
-Direction implements Display {
-    to_string :: fn(self) -> string {
-        match self {
-            .North -> "North"
-            .South -> "South"
-            .East  -> "East"
-            .West  -> "West"
-        }
-    }
+@displayable
+Direction :: enum { North, South, East, West }
+
+"${Direction.East}"   // "East"
+```
+
+The generated impl is an ordinary `Direction implements Display`, so writing one as well is `R2030`. For any other text, implement the trait yourself:
+
+```vader
+Direction implements Display -> match self {
+    .North -> "N"
+    .South -> "S"
+    .East  -> "E"
+    .West  -> "W"
 }
 ```
+
+- **A generic `T: Display`** instantiated with an enum (or a distinct) gets an instance of its own when the fn interpolates `T`, so the dispatch reaches the enum's impl rather than its integer's.
+- **Interpolating a union that holds an enum is refused** (`T3086`), an array of such unions included: `"${v}"` with `v : Direction | null` — narrow first (`if v != null { "${v}" }`). A value boxed in a union carries its integer's runtime type, not the enum's, so it would render through the integer's `Display`.
 
 ---
 
@@ -2321,14 +2329,14 @@ line 2 with ${var}
 Interpolation expressions `${...}` are parsed and **type-checked at compile time**. Errors caught:
 
 - Variable does not exist
-- Type incompatible with `Display`
+- Type without a `Display` (`T3018`) — an enum without `@displayable` or an impl, a struct without an impl, a type parameter without a `Display` bound (`T` alone is refused, `T: Display` is not)
 - Malformed expression
 
-Interpolation is **desugared** into a string-concatenation chain. Each `${expr}` segment is rendered to a string through its `Display.to_string` (string-typed segments pass straight through), and the literal pieces + rendered segments are joined uniformly: a short interpolation folds to `concat2` / `concat3` / `concat4`, a longer one to a `StringBuilder` chain. There is no primitive vs. non-primitive split — every non-string segment goes through `to_string`, so interpolation honours user `Display` impls on any type.
+Interpolation is **desugared** into one string build. An integer or a `bool` segment writes its digits straight into a buffer sized up front; a string segment is copied as is; every other segment renders through its `Display.to_string`, so interpolation honours user `Display` impls on any type. An interpolation with no integer or `bool` segment is a call to the shared `concat_N`, the same as a `+` chain.
 
 ### `Display` trait
 
-All primitives implement `Display`. User types must impl explicitly:
+All primitives implement `Display`, and so does `null` (`"null"`). An array renders as `[`, each element's own `Display` separated by `, `, then `]` — `"${[1, 2]}"` is `"[1, 2]"`, `"${[[1], [2, 3]]}"` is `"[[1], [2, 3]]"`; an array of a type without `Display` is `T3018`. An array does not satisfy a `T: Display` bound (`T3006`): an erased instance dispatches `Display` on its value's runtime type, and no vtable carries an array's, so `show(xs)` is refused where `"${xs}"` renders. Enums opt in through `@displayable` (§Enums). User types must impl explicitly:
 
 ```vader
 Point implements Display {
@@ -2676,6 +2684,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@no_return` | fn | Marks the fn as **diverging** — control never returns to the caller (it panics, aborts, or loops forever). A call to it types as `never`, so it is assignable into any slot (`_ -> todo("x")` where a value is expected type-checks) and terminates control flow (the call satisfies a non-`void` fn's return obligation; code after it is unreachable, `W0002`). Powers `panic` / `todo` / `unreachable` in `std/abort`. |
 | `@internal` | struct field | Restricts a single struct field to its **declaring module**. Struct fields are **public by default** (the opposite polarity to top-level `export`, which is private-by-default); `@internal` opts one field out. Reading, writing, constructing-with, or pattern-binding the field from another module is rejected with `T3054`. An `@internal` field should usually carry a `default` so the type stays constructible across modules via `T {}` (otherwise the type is constructible only from inside its module — a deliberate "factory-only" pattern). |
 | `@target` or `@target(.Os, …)` | top-level fn | Selects which BODY of a function this build uses — see §17 *Target selection*. **Bare** names the declaration: it carries the signature, the `export` and the vaderdoc, and optionally the general body. **With a list** it names a body for those operating systems, and is *always* a body, never a declaration. Only the OS axis selects code: there is no `@architecture`, because an architecture parameterises values and never includes or excludes a declaration. Rejected anywhere but a top-level fn (`P1014`) — on a struct, a trait or an impl member it would parse and then do nothing, and a silent no-op is worse than either answer. |
+| `@displayable` | enum decl | Generates the enum's `Display`: each variant renders as its own name (`"${Direction.East}"` is `"East"`). The impl is an ordinary one, so an explicit `implements Display` beside it is `R2030`. Rejected anywhere else (`P1014`). |
 | `@allow_unused` | any top-level decl | Exempts the declaration from the `W0007` dead-code lint (an unused private fn / const / type / enum / trait / alias). Use for intentional dead code : an API not yet wired, a helper kept for symmetry, or a test fixture's deliberate decoy. The declaration is treated as a reachability root — never flagged, and anything it references stays live. |
 
 `@extern` and `@intrinsic` are siblings — both apply to declarations the source doesn't define a body for, with the host filling in the runtime behavior. `@extern` is for **user code** crossing into FFI; `@intrinsic` is for **stdlib code** whose implementation lives in the host runtime (e.g. `print`, `collect`, the methods of `string implements Add / Hash / Index`). The decorator is **load-bearing**, not merely informational: a bodyless free fn *must* carry `@intrinsic` or `@extern` (`T3062`), so host-ness is always *declared* rather than implied by the missing body — a bodyless `Name :: fn(...)` is unambiguously a host, and a named function-*type* is spelled inline at its use sites (not as a bodyless declaration). The compiler then verifies, at bytecode emit, that every non-`@extern` host import is actually wired: its mangled name must be recognised by the intrinsic manifest (`intrinsic_id_for` — itself exhaustively dispatched by the VM and C backends, so `T3013` forces both to handle it) or map to a dedicated bytecode op; an unwired host fails the build rather than reaching runtime as an unbound `call.import`. This closes the chain bodyless ⟹ `@intrinsic` ⟹ recognised ⟹ served.

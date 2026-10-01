@@ -1,0 +1,51 @@
+// `@displayable` gives an enum the `Display` that renders each variant by its
+// name — a variable, a literal (which lowers to the bare rank), a narrowed
+// union, an array element, an enum with variant data (its written values are
+// not what it renders), and a generic `T: Display` instantiated with it, which
+// gets a concrete instance so the dispatch reaches the enum's impl rather than
+// its integer's. A distinct with a `Display` of its own keeps it the same way,
+// and neither takes the slot of the integer they are stored as : a real `u8`
+// boxed in a union still renders as a number.
+module "snippet"
+
+import "std/io"
+
+@displayable
+Direction :: enum { North, East, South, West }
+
+StatusInfo :: struct { code: i32 }
+
+@displayable
+Status :: enum(StatusInfo) {
+    Ok      { .code = 0 } = 200,
+    Missing { .code = 1 } = 404,
+}
+
+Weight :: u8
+Weight implements Display -> "${u8(self)} kg"
+
+show :: fn<T: Display>(value: T) -> string = "<${value}>"
+
+pair :: fn<T: Display>(a: T, b: T) -> string = "${a}/${b}"
+
+listed :: fn<T: Display>(values: T[]) -> string = "${values}"
+
+maybe_direction :: fn(found: bool) -> Direction | null = if found { .East } else { null }
+
+maybe_byte :: fn(found: bool) -> u8 | null = if found { 7 } else { null }
+
+main :: fn() -> i32 {
+    d :: Direction.South
+    println("${d} ${Direction.West} ${d.to_string()}")
+    v :: maybe_direction(true)
+    if v != null {
+        println("narrowed ${v}")
+    }
+    println("${[Direction.North, Direction.West]}")
+    println("${Status.Missing} ${i32(Status.Missing)}")
+    println("${show(d)} ${show(Status.Ok)} ${pair(Direction.North, .East)}")
+    println("${listed([Direction.East, Direction.South])}")
+    println("${show(Weight(3))} ${show(u8(3))}")
+    println("byte ${maybe_byte(true)}")
+    return 0
+}

@@ -241,6 +241,7 @@ usize  implements Display -> format_unsigned(u64(self))
 bool   implements Display -> if self { "true" } else { "false" }
 char   implements Display -> utf8_encode(self).bytes_to_string()
 string implements Display -> self
+null   implements Display -> "null"
 
 f32 implements Display -> format_f32(self)
 f64 implements Display -> format_f64(self)

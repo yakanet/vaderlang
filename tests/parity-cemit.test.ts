@@ -408,6 +408,13 @@ const C_PARITY = new Set<string>([
   // Three generators of one name, one of them imported, each with its own state
   // machine — fused, escaping, heading a chain, reached by UFCS.
   "generator_overloads",
+  // `@displayable` enums rendered by name — a literal, a narrowed union, array
+  // elements, generic instances — and a distinct that leaves its integer's slot.
+  "enum_display",
+  // Arrays and `null` rendered through `Display`, directly and from generics.
+  "array_display",
+  // A scalar compared with a union holding its type, `null` against a zero.
+  "union_scalar_equality",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

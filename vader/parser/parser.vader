@@ -529,7 +529,16 @@ parse_decl :: fn(p: Parser!) -> Decl | null {
     if p.match_kind(.KwExport) != null {
         visibility = .Public
     }
+    decl :: p.parse_decorated_decl(decorators, visibility)
+    if decl != null && decl !is EnumDecl {
+        p.reject_displayable_decorator(decorators)
+    }
+    return decl
+}
 
+parse_decorated_decl :: fn(
+    p: Parser!, decorators: Decorator[], visibility: Visibility,
+) -> Decl | null {
     // `@assert(condition)` is a "decorator-statement" that stands on its
     // own at the top level rather than annotating a following decl. Only
     // the lone-decorator form promotes — mixing `@comptime @assert(...)`
@@ -631,6 +640,16 @@ reject_c_decorators :: fn(p: Parser!, decorators: Decorator[], what: string) -> 
         if d.name == "c_struct" {
             p.error(.UnknownDecoratorPlacement, d.span,
                 "`@c_struct` names the C type a STRUCT mirrors ; it does not apply to ${what}")
+        }
+    }
+}
+
+// `@displayable` asks for an enum's generated `Display` ; on anything else there
+// is no variant name to render, and nothing downstream would read it.
+reject_displayable_decorator :: fn(p: Parser!, decorators: Decorator[]) -> void {
+    for d in decorators {
+        if d.name == "displayable" {
+            p.error(.UnknownDecoratorPlacement, d.span, "`@displayable` applies to an enum only")
         }
     }
 }
@@ -1072,6 +1091,7 @@ parse_fn_body_tail :: fn(p: Parser!, return_type: TypeExpr | null) -> FnBodyTail
 
 parse_fn_decl_inside_trait :: fn(p: Parser!) -> FnDecl | null {
     decorators :: p.parse_decorators()
+    p.reject_displayable_decorator(decorators)
     visibility: Visibility = .Private
     if p.match_kind(.KwExport) != null { visibility = .Public }
     // Unified syntax: `name :: fn(...)` — same shape as top-level fns.

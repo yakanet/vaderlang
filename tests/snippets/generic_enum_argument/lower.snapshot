@@ -89,7 +89,7 @@
                 arg2:
                   call :i64
                     callee:
-                      snippet$as_int__Color :i64
+                      snippet$as_int__snippet_Color :i64
                     arg0:
                       int(9) :u8
           ~>
@@ -360,7 +360,7 @@
               arg1:
                 __off_9 :usize
     return int(0) :i32
-  fn snippet$as_int__Color(v: Any) -> i64
+  fn snippet$as_int__snippet_Color(v: Any) -> i64
     ~>
       cast → i64
         v :Any

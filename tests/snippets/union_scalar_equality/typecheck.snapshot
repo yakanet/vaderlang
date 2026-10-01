@@ -1,0 +1,63 @@
+# Typecheck
+
+## tests/snippets/union_scalar_equality
+  EnumDecl       Direction            :: Direction
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         maybe_count          :: fn(bool) -> i32 | null
+  FnDecl         maybe_direction      :: fn(bool) -> Direction | null
+  expr 11:58    IfExpr         :: Direction | null
+  expr 11:61    IdentExpr      :: bool
+  expr 11:69    DotVariantExpr :: Direction
+  expr 13:48    IfExpr         :: i32 | null
+  expr 13:51    IdentExpr      :: bool
+  expr 16:10    CallExpr       :: Direction | null
+  expr 16:10    IdentExpr      :: fn(bool) -> Direction | null
+  expr 17:13    CallExpr       :: Direction | null
+  expr 17:13    IdentExpr      :: fn(bool) -> Direction | null
+  expr 18:13    StringLitExpr  :: string
+  expr 18:16    BinaryExpr     :: bool
+  expr 18:16    IdentExpr      :: Direction | null
+  expr 18:21    FieldExpr      :: Direction
+  expr 18:21    IdentExpr      :: Direction
+  expr 18:39    BinaryExpr     :: bool
+  expr 18:39    IdentExpr      :: Direction | null
+  expr 18:44    FieldExpr      :: Direction
+  expr 18:44    IdentExpr      :: Direction
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 18:63    BinaryExpr     :: bool
+  expr 18:63    IdentExpr      :: Direction | null
+  expr 18:68    FieldExpr      :: Direction
+  expr 18:68    IdentExpr      :: Direction
+  expr 19:13    StringLitExpr  :: string
+  expr 19:16    BinaryExpr     :: bool
+  expr 19:16    IdentExpr      :: Direction | null
+  expr 19:24    FieldExpr      :: Direction
+  expr 19:24    IdentExpr      :: Direction
+  expr 19:43    BinaryExpr     :: bool
+  expr 19:43    FieldExpr      :: Direction
+  expr 19:43    IdentExpr      :: Direction
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 19:62    IdentExpr      :: Direction | null
+  expr 19:70    BinaryExpr     :: bool
+  expr 19:70    IdentExpr      :: Direction | null
+  expr 19:78    FieldExpr      :: Direction
+  expr 19:78    IdentExpr      :: Direction
+  expr 20:13    CallExpr       :: i32 | null
+  expr 20:13    IdentExpr      :: fn(bool) -> i32 | null
+  expr 21:16    CallExpr       :: i32 | null
+  expr 21:16    IdentExpr      :: fn(bool) -> i32 | null
+  expr 22:13    StringLitExpr  :: string
+  expr 22:16    BinaryExpr     :: bool
+  expr 22:16    IdentExpr      :: i32 | null
+  expr 22:29    BinaryExpr     :: bool
+  expr 22:34    IdentExpr      :: i32 | null
+  expr 22:42    BinaryExpr     :: bool
+  expr 22:42    IdentExpr      :: i32 | null
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 22:58    BinaryExpr     :: bool
+  expr 22:58    IdentExpr      :: i32 | null
+  expr 22:74    BinaryExpr     :: bool
+  expr 22:74    IdentExpr      :: i32 | null

@@ -531,7 +531,21 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
     }
     rows_by_key: MutableMap<string, usize>: MutableMap<string, usize> {}
     out: VtableRow[]!: []
+    // An enum or a distinct boxes under its representation's tag, so its entry
+    // shares that type's slot : listed last, it only fills a slot the
+    // representation leaves empty — a boxed `u8` keeps rendering as a `u8`, on
+    // every backend.
+    ordered: LoweredVtableEntry[]!: []
+    deferred: LoweredVtableEntry[]!: []
     for ve in entries {
+        if boxes_as_representation(ve.struct_type) {
+            deferred.push(ve)
+        } else {
+            ordered.push(ve)
+        }
+    }
+    ordered.push_all(deferred)
+    for ve in ordered {
         key :: "${ve.trait_name}.${ve.method_name}"
         if used_keys[key] !is bool { continue }
         fn_idx :: resolve_fn_index(ve.fn_symbol, ctx)
@@ -546,6 +560,9 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
         receiver_idx :: receiver_slot
         existing :: rows_by_key[key]
         if existing is usize {
+            if has_receiver(out[existing], receiver_idx) {
+                continue
+            }
             out[existing].entries.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
         } else {
             new_idx :: out.len()
@@ -556,6 +573,15 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
         }
     }
     return out
+}
+
+has_receiver :: fn(row: VtableRow, type_index: i32) -> bool {
+    for entry in row.entries {
+        if entry.receiver_type_index == type_index {
+            return true
+        }
+    }
+    return false
 }
 
 // Builds the module's impl table : one BcImplEntry per (struct_type_index,
@@ -962,6 +988,11 @@ emit_operands_into :: fn(
     }
 }
 
+// `==` / `!=` against a union compares two boxes, so a scalar on the other side
+// is tagged as it would be entering that union.
+compares_boxes :: fn(op: LoweredBinaryOp, other: Type) -> bool =
+    (op == .Eq || op == .Neq) && is_union_slot(other)
+
 // A slot of type `t` holds a union value — through a distinct over one too.
 is_union_slot :: fn(t: Type) -> bool =
     t is UnionType || (t is DistinctType && is_union_slot(t.backing))
@@ -1204,10 +1235,16 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrBinOp {
-        emit_first_get(ctx, pos, ins.lhs, ins.span)
-        emit_get(ctx, ins.rhs, ins.span)
         lhs_type :: ctx.fn_.locals[usize(ins.lhs)].type
-        push_emit(ctx, binary_op_for(ins.op, val_type_of_type(lhs_type)), ins.span)
+        rhs_type :: ctx.fn_.locals[usize(ins.rhs)].type
+        tag_lhs :: compares_boxes(ins.op, rhs_type)
+        emit_first_get(ctx, pos, ins.lhs, ins.span)
+        emit_retag_into(ctx, ins.lhs, tag_lhs, ins.span)
+        emit_get(ctx, ins.rhs, ins.span)
+        emit_retag_into(ctx, ins.rhs, compares_boxes(ins.op, lhs_type), ins.span)
+        // A tagged scalar compares as the union it was tagged for.
+        compared :: if tag_lhs { rhs_type } else { lhs_type }
+        push_emit(ctx, binary_op_for(ins.op, val_type_of_type(compared)), ins.span)
         result_val :: val_type_of_type(ins.type)
         if binary_leaves_width(ins.op, result_val) {
             emit_narrowing(ctx, result_val, ins.span)

@@ -18,8 +18,8 @@ import 1 bytes std_core$bytes result_type=8 param_types=3 param_mutable=0 param_
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 2 Shape
 impl 6 ByteAccess
-vtable Shape.area 1 0
 vtable Shape.area 2 1
+vtable Shape.area 1 0
 export main 2
 
 fn 0 snippet$Square$Shape$area (i32) -> i32

@@ -21,6 +21,9 @@ static const char vader_atom_blob[] =
     "missing" "\0"
     "later" "\0"
     " " "\0"
+    "Ok" "\0"
+    "NotFound" "\0"
+    "Unavailable" "\0"
     "true" "\0"
     "false" "\0"
     "\n" "\0"
@@ -36,18 +39,21 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[5] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[26] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[81] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[58] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[61] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[91] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[97] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[105] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 13u
+#define VADER_COMPTIME_ATOM_COUNT 16u
 
 /* Comptime data pool — read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
@@ -60,13 +66,13 @@ static const vader_array_t vader_data_0 = {
     { 14u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
 static const struct vader_struct_snippet_StatusInfo_t vader_data_1_e0 = {
-    { 4u, 0u, 0u, 0u, NULL }, 8u,
+    { 4u, 0u, 0u, 0u, NULL }, 11u,
 };
 static const struct vader_struct_snippet_StatusInfo_t vader_data_1_e1 = {
-    { 4u, 0u, 0u, 0u, NULL }, 9u,
+    { 4u, 0u, 0u, 0u, NULL }, 12u,
 };
 static const struct vader_struct_snippet_StatusInfo_t vader_data_1_e2 = {
-    { 4u, 0u, 0u, 0u, NULL }, 10u,
+    { 4u, 0u, 0u, 0u, NULL }, 13u,
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[3]; } vader_data_1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 4u, 0u, { 0u, 0u, 0u },
@@ -80,13 +86,13 @@ static const vader_array_t vader_data_1 = {
     { 15u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 static const struct vader_struct_snippet_StatusInfo_t vader_data_2_e0 = {
-    { 4u, 0u, 0u, 0u, NULL }, 11u,
+    { 4u, 0u, 0u, 0u, NULL }, 14u,
 };
 static const struct vader_struct_snippet_StatusInfo_t vader_data_2_e1 = {
-    { 4u, 0u, 0u, 0u, NULL }, 12u,
+    { 4u, 0u, 0u, 0u, NULL }, 15u,
 };
 static const struct vader_struct_snippet_StatusInfo_t vader_data_2_e2 = {
-    { 4u, 0u, 0u, 0u, NULL }, 13u,
+    { 4u, 0u, 0u, 0u, NULL }, 16u,
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[3]; } vader_data_2_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 4u, 0u, { 0u, 0u, 0u },
@@ -102,6 +108,7 @@ static const vader_array_t vader_data_2 = {
 
 static vader_string_t snippet_describe(uint8_t l0);
 static int32_t snippet_main(void);
+static vader_string_t snippet_HttpStatus_Display_to_string(uint8_t l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
@@ -174,59 +181,59 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 
 static vader_string_t snippet_describe(uint8_t l0) {
     vader_string_t l1;
-#line 27 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 29 "tests/snippets/enum_variant_data_written_values/_main.vader"
     if (l0 == INT32_C(0)) {
         l1 = 1u;
-#line 28 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 30 "tests/snippets/enum_variant_data_written_values/_main.vader"
     } else if (l0 == INT32_C(1)) {
         l1 = 2u;
-#line 29 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 31 "tests/snippets/enum_variant_data_written_values/_main.vader"
     } else if (l0 == INT32_C(2)) {
         l1 = 3u;
-#line 26 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 28 "tests/snippets/enum_variant_data_written_values/_main.vader"
     } else {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 29 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 31 "tests/snippets/enum_variant_data_written_values/_main.vader"
     }
+#line 30 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 29 "tests/snippets/enum_variant_data_written_values/_main.vader"
 #line 28 "tests/snippets/enum_variant_data_written_values/_main.vader"
-#line 27 "tests/snippets/enum_variant_data_written_values/_main.vader"
-#line 26 "tests/snippets/enum_variant_data_written_values/_main.vader"
     return l1;
 }
 
 static int32_t snippet_main(void) {
     void* l0 = NULL;
     void* l1 = NULL;
-    void* l5 = NULL;
-    void* l12 = NULL;
-    void* l14 = NULL;
+    void* l6 = NULL;
+    void* l15 = NULL;
     void* l17 = NULL;
-    size_t l2, l3, l9, l10, l11, l13;
+    size_t l2, l3, l10, l11, l12, l13, l14, l16;
     uint8_t l4;
-    int64_t l6, l15, l16, l18;
-    vader_string_t l7 = 0;
+    vader_string_t l5 = 0;
     vader_string_t l8 = 0;
-    uint64_t l19;
+    vader_string_t l9 = 0;
+    int64_t l7, l18, l19;
     bool l20;
+    uint64_t l21;
     vader_box_t t0 = vader_box_null();
     void* t1 = NULL;
     int64_t t2;
     uint16_t t3;
     vader_string_t t4 = 0;
     vader_box_t* gc_roots[1] = { &t0 };
-    void** gc_raw_roots[7] = { &l0, &l1, &l5, &l12, &l14, &l17, &t1 };
-    vader_string_t* gc_atom_roots[3] = { &l7, &l8, &t4 };
+    void** gc_raw_roots[6] = { &l0, &l1, &l6, &l15, &l17, &t1 };
+    vader_string_t* gc_atom_roots[4] = { &l5, &l8, &l9, &t4 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 7u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+        vader_gc_top, 1u, 6u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 33 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 35 "tests/snippets/enum_variant_data_written_values/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(10u, 3u, 1u, 1u);
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (uint8_t) INT32_C(2);
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (uint8_t) INT32_C(1);
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l0 = (void*) _a0_arr;
-#line 34 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 36 "tests/snippets/enum_variant_data_written_values/_main.vader"
     l1 = l0;
     l2 = ((vader_array_t*) l1)->length;
     l3 = (size_t) 0;
@@ -236,112 +243,128 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
         t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l3, 1u);
         l4 = ((uint8_t) t0.payload.i);
-#line 14 "tests/snippets/enum_variant_data_written_values/_main.vader"
-        l5 = (void*) &vader_data_1;
-#line 35 "tests/snippets/enum_variant_data_written_values/_main.vader"
-        l6 = ((int64_t) (uint8_t) l4);
-        vader_array_t* _a2_slotarr = ((vader_array_t*) l5);
+#line 37 "tests/snippets/enum_variant_data_written_values/_main.vader"
+        l5 = snippet_HttpStatus_Display_to_string(l4);
+#line 16 "tests/snippets/enum_variant_data_written_values/_main.vader"
+        l6 = (void*) &vader_data_1;
+#line 37 "tests/snippets/enum_variant_data_written_values/_main.vader"
+        l7 = ((int64_t) (uint8_t) l4);
+        vader_array_t* _a2_slotarr = ((vader_array_t*) l6);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
-        t1 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l6);
-        l7 = ((vader_struct_snippet_StatusInfo_t*) t1)->f_reason;
-        l8 = snippet_describe(l4);
-        l9 = vader_host_std_core_byte_len(l7);
-        l10 = vader_host_std_core_byte_len(l8);
-        t2 = (l9 + l10);
-        l11 = (size_t) (int64_t) t2;
-        l12 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(43) + l11));
-        l13 = (size_t) 0;
-#line 14 "tests/snippets/enum_variant_data_written_values/_main.vader"
-        l14 = (void*) &vader_data_0;
-#line 35 "tests/snippets/enum_variant_data_written_values/_main.vader"
-        l15 = ((int64_t) (uint8_t) l4);
-        vader_array_t* _a3_slotarr = ((vader_array_t*) l14);
-        VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l15)
-        t0 = vader_box_i32(13u, ((uint16_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l15]);
-        t3 = ((uint16_t) t0.payload.i);
-        l16 = ((int64_t) (int32_t) ((int32_t) (uint16_t) t3));
-        l13 = std_core_write_int(l12, l13, l16);
-        l13 = std_core_write_string_at(l12, l13, 4u);
-#line 14 "tests/snippets/enum_variant_data_written_values/_main.vader"
+        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l7)
+        t1 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l7);
+        l8 = ((vader_struct_snippet_StatusInfo_t*) t1)->f_reason;
+        l9 = snippet_describe(l4);
+        l10 = vader_host_std_core_byte_len(l5);
+        l11 = vader_host_std_core_byte_len(l8);
+        t2 = (l10 + l11);
+        l12 = (size_t) (int64_t) t2;
+        l13 = vader_host_std_core_byte_len(l9);
+        t2 = (l12 + l13);
+        l14 = (size_t) (int64_t) t2;
+        l15 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(23) + l14));
+        l16 = (size_t) 0;
+#line 16 "tests/snippets/enum_variant_data_written_values/_main.vader"
         l17 = (void*) &vader_data_0;
-#line 35 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 37 "tests/snippets/enum_variant_data_written_values/_main.vader"
         l18 = ((int64_t) (uint8_t) l4);
-        vader_array_t* _a4_slotarr = ((vader_array_t*) l17);
-        VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l18)
-        t0 = vader_box_i32(13u, ((uint16_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l18]);
+        vader_array_t* _a3_slotarr = ((vader_array_t*) l17);
+        VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l18)
+        t0 = vader_box_i32(13u, ((uint16_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l18]);
         t3 = ((uint16_t) t0.payload.i);
-        t2 = ((int64_t) (uint16_t) t3);
-        l19 = (uint64_t) (int64_t) t2;
-        l13 = std_core_write_unsigned(l12, l13, l19);
-        l13 = std_core_write_string_at(l12, l13, 4u);
-        l13 = std_core_write_string_at(l12, l13, l7);
-        l13 = std_core_write_string_at(l12, l13, 4u);
-        l13 = std_core_write_string_at(l12, l13, l8);
-        t4 = std_core_finish_buffer(l12, l13);
+        l19 = ((int64_t) (int32_t) ((int32_t) (uint16_t) t3));
+        l16 = std_core_write_int(l15, l16, l19);
+        l16 = std_core_write_string_at(l15, l16, 4u);
+        l16 = std_core_write_string_at(l15, l16, l5);
+        l16 = std_core_write_string_at(l15, l16, 4u);
+        l16 = std_core_write_string_at(l15, l16, l8);
+        l16 = std_core_write_string_at(l15, l16, 4u);
+        l16 = std_core_write_string_at(l15, l16, l9);
+        t4 = std_core_finish_buffer(l15, l16);
         std_io_println__string(t4);
-#line 34 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 36 "tests/snippets/enum_variant_data_written_values/_main.vader"
         t2 = (l3 + INT64_C(1));
         l3 = (size_t) (int64_t) t2;
     }
-#line 37 "tests/snippets/enum_variant_data_written_values/_main.vader"
-    vader_array_t* _a5_arr = vader_array_new(10u, 3u, 1u, 1u);
-    ((uint8_t*) _a5_arr->buf->slots)[_a5_arr->offset + 2u] = (uint8_t) INT32_C(2);
-    ((uint8_t*) _a5_arr->buf->slots)[_a5_arr->offset + 1u] = (uint8_t) INT32_C(1);
-    ((uint8_t*) _a5_arr->buf->slots)[_a5_arr->offset + 0u] = (uint8_t) INT32_C(0);
-    l1 = (void*) _a5_arr;
+#line 39 "tests/snippets/enum_variant_data_written_values/_main.vader"
+    vader_array_t* _a4_arr = vader_array_new(10u, 3u, 1u, 1u);
+    ((uint8_t*) _a4_arr->buf->slots)[_a4_arr->offset + 2u] = (uint8_t) INT32_C(2);
+    ((uint8_t*) _a4_arr->buf->slots)[_a4_arr->offset + 1u] = (uint8_t) INT32_C(1);
+    ((uint8_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (uint8_t) INT32_C(0);
+    l1 = (void*) _a4_arr;
     l2 = ((vader_array_t*) l1)->length;
     l3 = (size_t) 0;
     while ((l3 < l2)) {
-        vader_array_t* _a6_slotarr = ((vader_array_t*) l1);
-        VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a6_slotarr, l3)
-        t0 = vader_array_read_u8(_a6_slotarr, _a6_slotarr->offset + (size_t) l3, 1u);
+        vader_array_t* _a5_slotarr = ((vader_array_t*) l1);
+        VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l3)
+        t0 = vader_array_read_u8(_a5_slotarr, _a5_slotarr->offset + (size_t) l3, 1u);
         l4 = ((uint8_t) t0.payload.i);
-#line 20 "tests/snippets/enum_variant_data_written_values/_main.vader"
-        l5 = (void*) &vader_data_2;
-#line 38 "tests/snippets/enum_variant_data_written_values/_main.vader"
-        l6 = ((int64_t) (uint8_t) l4);
-        vader_array_t* _a7_slotarr = ((vader_array_t*) l5);
-        VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a7_slotarr, l6)
-        t1 = vader_array_ref_load_obj(_a7_slotarr->buf, _a7_slotarr->offset + (size_t) l6);
-        l7 = ((vader_struct_snippet_StatusInfo_t*) t1)->f_reason;
-        l9 = vader_host_std_core_byte_len(l7);
-        l12 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(21) + l9));
-        l10 = (size_t) 0;
-        l15 = ((int64_t) (int32_t) ((int32_t) (int64_t) (((int64_t) (uint8_t) l4) + INT64_C(1))));
-        l10 = std_core_write_int(l12, l10, l15);
-        l10 = std_core_write_string_at(l12, l10, 4u);
-        l10 = std_core_write_string_at(l12, l10, l7);
-        t4 = std_core_finish_buffer(l12, l10);
+#line 22 "tests/snippets/enum_variant_data_written_values/_main.vader"
+        l6 = (void*) &vader_data_2;
+#line 40 "tests/snippets/enum_variant_data_written_values/_main.vader"
+        l7 = ((int64_t) (uint8_t) l4);
+        vader_array_t* _a6_slotarr = ((vader_array_t*) l6);
+        VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a6_slotarr, l7)
+        t1 = vader_array_ref_load_obj(_a6_slotarr->buf, _a6_slotarr->offset + (size_t) l7);
+        l5 = ((vader_struct_snippet_StatusInfo_t*) t1)->f_reason;
+        l10 = vader_host_std_core_byte_len(l5);
+        l15 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(21) + l10));
+        l11 = (size_t) 0;
+        l18 = ((int64_t) (int32_t) ((int32_t) (int64_t) (((int64_t) (uint8_t) l4) + INT64_C(1))));
+        l11 = std_core_write_int(l15, l11, l18);
+        l11 = std_core_write_string_at(l15, l11, 4u);
+        l11 = std_core_write_string_at(l15, l11, l5);
+        t4 = std_core_finish_buffer(l15, l11);
         std_io_println__string(t4);
-#line 37 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 39 "tests/snippets/enum_variant_data_written_values/_main.vader"
         t2 = (l3 + INT64_C(1));
         l3 = (size_t) (int64_t) t2;
     }
-#line 40 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 42 "tests/snippets/enum_variant_data_written_values/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 47);
     l2 = (size_t) 0;
-    l6 = ((int64_t) (int32_t) ((int32_t) 404));
-    l2 = std_core_write_int(l1, l2, l6);
+    l7 = ((int64_t) (int32_t) ((int32_t) 404));
+    l2 = std_core_write_int(l1, l2, l7);
     l2 = std_core_write_string_at(l1, l2, 4u);
-    vader_array_t* _a8_slotarr = ((vader_array_t*) l0);
-    VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
-    VADER_ARRAY_CHECK_INDEX(_a8_slotarr, INT32_C(1))
-    t0 = vader_array_read_u8(_a8_slotarr, _a8_slotarr->offset + (size_t) INT32_C(1), 1u);
+    vader_array_t* _a7_slotarr = ((vader_array_t*) l0);
+    VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
+    VADER_ARRAY_CHECK_INDEX(_a7_slotarr, INT32_C(1))
+    t0 = vader_array_read_u8(_a7_slotarr, _a7_slotarr->offset + (size_t) INT32_C(1), 1u);
     l20 = ((int32_t) t0.payload.i) == INT32_C(1);
     l2 = std_core_write_bool(l1, l2, l20);
     l2 = std_core_write_string_at(l1, l2, 4u);
     t2 = INT64_C(1);
-    l19 = (uint64_t) (int64_t) t2;
-    l2 = std_core_write_unsigned(l1, l2, l19);
+    l21 = (uint64_t) (int64_t) t2;
+    l2 = std_core_write_unsigned(l1, l2, l21);
     t4 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t4);
-#line 41 "tests/snippets/enum_variant_data_written_values/_main.vader"
+#line 43 "tests/snippets/enum_variant_data_written_values/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
+}
+
+static vader_string_t snippet_HttpStatus_Display_to_string(uint8_t l0) {
+    vader_string_t l1;
+#line 3 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+    if (l0 == INT32_C(0)) {
+        l1 = 5u;
+#line 4 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+    } else if (l0 == INT32_C(1)) {
+        l1 = 6u;
+#line 5 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+    } else if (l0 == INT32_C(2)) {
+        l1 = 7u;
+#line 2 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+    } else {
+        vader_unreachable("non-exhaustive match (T3013 should have caught this)");
+#line 5 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+    }
+#line 4 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+#line 3 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+#line 2 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+    return l1;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
@@ -521,11 +544,11 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     size_t t0;
 #line 173 "lib/std/core/primitives.vader"
     if (l2) {
-        t0 = std_core_write_string_at(l0, l1, 5u);
+        t0 = std_core_write_string_at(l0, l1, 8u);
         return t0;
     }
 #line 174 "lib/std/core/primitives.vader"
-    t0 = std_core_write_string_at(l0, l1, 6u);
+    t0 = std_core_write_string_at(l0, l1, 9u);
     return t0;
 }
 
@@ -602,7 +625,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 235 "lib/std/io/io.vader"
-    l1 = concat_2(l0, 7u);
+    l1 = concat_2(l0, 10u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }

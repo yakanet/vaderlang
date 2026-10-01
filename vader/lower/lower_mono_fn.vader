@@ -4,6 +4,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/iter"
 import "std/sort"
 import "std/string"
 import "std/string_builder"
@@ -335,8 +336,10 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
 // MUST be computed from one classifier — `fn_instance_flavor` — at both the call
 // site and the materialiser, or the registered mangle and the body drift apart.
 //   Mono   — full-concrete subst + `mono_suffix`. Trait-dispatch (the dispatch
-//            vtable needs the concrete struct) or a bare type-param array return
-//            (the result array's element kind must be concrete, S5 Solution A).
+//            vtable needs the concrete struct), a `Display` dispatched on an enum
+//            or a distinct (boxed, it would reach its representation's), or a bare
+//            type-param array return (the result array's element kind must be
+//            concrete, S5 Solution A).
 //   Mixed  — `build_fn_mixed_subst` + `mixed_any_suffix`. ≥1 arg `kept_type_argument`
 //            keeps: keep those concrete (devirt + primops/atom-eq inline), erase the
 //            rest to `Any`. Mangle-indexed (entry_symbol=null), invariant under ref-erasure.
@@ -350,6 +353,10 @@ InstanceFlavor :: enum { Mono, Mixed, Erased }
 // arg stays full-concrete.
 fn_instance_flavor :: fn(fn_decl: FnDecl, owner_typed: TypedProgram, type_args: Type[]) -> InstanceFlavor {
     if owner_typed.fn_trait_dispatches[fn_decl.id] is bool { return .Mono }
+    if owner_typed.fn_display_dispatches[fn_decl.id] is bool
+        && type_args.any_match((a) -> boxes_as_representation(a)) {
+        return .Mono
+    }
     if returns_typeparam_array(fn_decl) { return .Mono }
     if has_any_kept_arg(type_args) { return .Mixed }
     return .Erased
@@ -370,6 +377,26 @@ call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) ->
         }
     }
     return .Erased
+}
+
+/// The type arguments an instance of `fn_sym` keys on (suffix, body subst,
+/// erasure). A distinct is its backing, before anything keys: it has no runtime
+/// identity, so an erased instance of its own would collide with the backing's.
+/// Except for a Mono instance, concrete and per mangle: there the distinct keeps
+/// its name, so a trait dispatched on it reaches the distinct's own impl.
+///
+/// @param ctx     the fn-body context.
+/// @param fn_sym  the generic fn instantiated.
+/// @param args    its inferred type arguments, in declaration order.
+instance_type_args :: fn(ctx: FnLowerCtx, fn_sym: Symbol, args: Type[]) -> Type[] {
+    // With no distinct to strip, the flavor makes no difference.
+    if !args.any_match((a) -> contains_distinct(a)) {
+        return args
+    }
+    if call_site_fn_flavor(ctx, fn_sym, args) == .Mono {
+        return args
+    }
+    return strip_distinct_each(args)
 }
 
 // The instance-mangle suffix a generic free-fn CALL SITE must use, matching the

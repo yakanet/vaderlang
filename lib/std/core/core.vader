@@ -338,6 +338,34 @@ T[] implements<T> Mul<usize> {
     }
 }
 
+/// An array's text: `[`, then each element's own `Display` separated by `, `,
+/// then `]` — `[1, 2]`, `[a, b]`, `[[1], [2, 3]]`. Each element is rendered once,
+/// then written into one buffer sized to fit them all.
+T[] implements<T: Display> Display {
+    to_string :: fn(self) -> string {
+        parts: string[]!: []
+        size: usize = 2
+        for item in self {
+            part :: item.to_string()
+            size += part.byte_len()
+            parts.push(part)
+        }
+        if parts.len() > 1 {
+            size += 2 * (parts.len() - 1)
+        }
+        buffer :: new_byte_buffer(size)
+        offset := buffer.write_string_at(0, "[")
+        for i in 0..<parts.len() {
+            if i > 0 {
+                offset = buffer.write_string_at(offset, ", ")
+            }
+            offset = buffer.write_string_at(offset, parts[i])
+        }
+        offset = buffer.write_string_at(offset, "]")
+        return buffer.finish_buffer(offset)
+    }
+}
+
 T implements<T: Display> Into<string> {
     into :: fn(self) -> string {
         return self.to_string()

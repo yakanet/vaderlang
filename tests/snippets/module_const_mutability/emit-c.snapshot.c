@@ -59,6 +59,7 @@ static const char vader_atom_blob[] =
     "total=" "\0"
     "true" "\0"
     "false" "\0"
+    "null" "\0"
     "0" "\0"
     "nan" "\0"
     "-inf" "\0"
@@ -96,29 +97,30 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[137] },
     { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[144] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[149] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[155] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[157] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[161] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[166] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[170] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[175] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[179] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[181] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[183] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[185] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[191] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[196] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[203] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[155] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[160] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[162] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[166] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[171] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[175] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[180] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[184] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[186] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[188] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[190] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[196] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[201] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[208] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 35u
+#define VADER_COMPTIME_ATOM_COUNT 36u
 
 /* Comptime data pool — read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[3]; } vader_data_0_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 4u, 0u, { 0u, 0u, 0u },
-    { { 4u, 0u, { .s = 23u } }, { 4u, 0u, { .s = 30u } }, { 4u, 0u, { .s = 31u } } },
+    { { 4u, 0u, { .s = 24u } }, { 4u, 0u, { .s = 31u } }, { 4u, 0u, { .s = 32u } } },
 };
 static const vader_array_t vader_data_0 = {
     { 24u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
@@ -131,10 +133,10 @@ static const vader_array_t vader_data_1 = {
     { 23u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 static const struct vader_struct_snippet_Spec_t vader_data_2_e0 = {
-    { 5u, 0u, 0u, 0u, NULL }, 32u, (int32_t) UINT64_C(1),
+    { 5u, 0u, 0u, 0u, NULL }, 33u, (int32_t) UINT64_C(1),
 };
 static const struct vader_struct_snippet_Spec_t vader_data_2_e1 = {
-    { 5u, 0u, 0u, 0u, NULL }, 33u, (int32_t) UINT64_C(2),
+    { 5u, 0u, 0u, 0u, NULL }, 34u, (int32_t) UINT64_C(2),
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_2_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 5u, 0u, { 0u, 0u, 0u },
@@ -147,7 +149,7 @@ static const vader_array_t vader_data_2 = {
     { 25u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
 };
 static const struct vader_struct_snippet_Spec_t vader_data_3_e0 = {
-    { 5u, 0u, 0u, 0u, NULL }, 34u, (int32_t) UINT64_C(0),
+    { 5u, 0u, 0u, 0u, NULL }, 35u, (int32_t) UINT64_C(0),
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_3_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 5u, 0u, { 0u, 0u, 0u },
@@ -203,7 +205,7 @@ static vader_array_t vader_data_6 = {
     { 26u, 0u, 0u, 0u, NULL }, 4u, 4u, 0u, (vader_array_buf_t*) &vader_data_6_buf,
 };
 static const struct vader_struct_snippet_Spec_t vader_data_7_e0 = {
-    { 5u, 0u, 0u, 0u, NULL }, 35u, (int32_t) UINT64_C(0),
+    { 5u, 0u, 0u, 0u, NULL }, 36u, (int32_t) UINT64_C(0),
 };
 static struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_7_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 5u, 0u, { 0u, 0u, 0u },
@@ -997,6 +999,7 @@ static vader_string_t std_core_usize_Display_to_string(size_t l0);
 static vader_string_t std_core_bool_Display_to_string(bool l0);
 static vader_string_t std_core_char_Display_to_string(uint32_t l0);
 static vader_string_t std_core_string_Display_to_string(vader_string_t l0);
+static vader_string_t std_core_null_Display_to_string(vader_box_t l0);
 static vader_string_t std_core_f32_Display_to_string(float l0);
 static vader_string_t std_core_f64_Display_to_string(double l0);
 static vader_string_t std_core_format_signed(int64_t l0);
@@ -1925,12 +1928,17 @@ static vader_string_t std_core_string_Display_to_string(vader_string_t l0) {
     return l0;
 }
 
+static vader_string_t std_core_null_Display_to_string(vader_box_t l0) {
+#line 244 "lib/std/core/primitives.vader"
+    return 23u;
+}
+
 static vader_string_t std_core_f32_Display_to_string(float l0) {
     vader_string_t t0 = 0;
     vader_string_t* gc_atom_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 245 "lib/std/core/primitives.vader"
+#line 246 "lib/std/core/primitives.vader"
     t0 = std_core_format_f32(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1940,7 +1948,7 @@ static vader_string_t std_core_f64_Display_to_string(double l0) {
     vader_string_t* gc_atom_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 246 "lib/std/core/primitives.vader"
+#line 247 "lib/std/core/primitives.vader"
     t0 = std_core_format_f64(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1962,7 +1970,7 @@ static vader_string_t std_core_format_signed(int64_t l0) {
     vader_gc_top = &gc_frame;
 #line 46 "lib/std/core/primitives.vader"
     if (l0 == INT64_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 23u; }
+        { vader_gc_top = gc_frame.prev; return 24u; }
     }
 #line 47 "lib/std/core/primitives.vader"
     l1 = (l0 < INT64_C(0));
@@ -2036,7 +2044,7 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
     vader_gc_top = &gc_frame;
 #line 71 "lib/std/core/primitives.vader"
     if (l0 == INT64_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 23u; }
+        { vader_gc_top = gc_frame.prev; return 24u; }
     }
 #line 72 "lib/std/core/primitives.vader"
     l1 = (size_t) 0;
@@ -2194,13 +2202,13 @@ static vader_string_t std_core_format_f32(float l0) {
     if (l1 == INT32_C(255)) {
 #line 203 "lib/std/core/f2s.vader"
         if (l3 != INT32_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 24u; }
+            { vader_gc_top = gc_frame.prev; return 25u; }
         }
 #line 204 "lib/std/core/f2s.vader"
         if (l2) {
-            l4 = 25u;
-        } else {
             l4 = 26u;
+        } else {
+            l4 = 27u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 202 "lib/std/core/f2s.vader"
@@ -2214,9 +2222,9 @@ static vader_string_t std_core_format_f32(float l0) {
     if (l5) {
 #line 207 "lib/std/core/f2s.vader"
         if (l2) {
-            l4 = 27u;
-        } else {
             l4 = 28u;
+        } else {
+            l4 = 29u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 206 "lib/std/core/f2s.vader"
@@ -2260,13 +2268,13 @@ static vader_string_t std_core_format_f64(double l0) {
     if (l1 == INT64_C(2047)) {
 #line 404 "lib/std/core/dtoa.vader"
         if (l3 != INT64_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 24u; }
+            { vader_gc_top = gc_frame.prev; return 25u; }
         }
 #line 405 "lib/std/core/dtoa.vader"
         if (l2) {
-            l4 = 25u;
-        } else {
             l4 = 26u;
+        } else {
+            l4 = 27u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 403 "lib/std/core/dtoa.vader"
@@ -2280,9 +2288,9 @@ static vader_string_t std_core_format_f64(double l0) {
     if (l5) {
 #line 408 "lib/std/core/dtoa.vader"
         if (l2) {
-            l4 = 27u;
-        } else {
             l4 = 28u;
+        } else {
+            l4 = 29u;
         }
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 #line 407 "lib/std/core/dtoa.vader"
@@ -3766,7 +3774,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 235 "lib/std/io/io.vader"
-    l1 = concat_2(l0, 29u);
+    l1 = concat_2(l0, 30u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -3831,6 +3839,7 @@ static vader_string_t vader_vt_Display__to_string(vader_box_t recv) {
         case 6u: return std_core_bool_Display_to_string(recv.payload.b);
         case 16u: return std_core_char_Display_to_string(((uint32_t) recv.payload.i));
         case 4u: return std_core_string_Display_to_string(recv.payload.s);
+        case 0u: return std_core_null_Display_to_string(recv);
         case 17u: return std_core_f32_Display_to_string(((float) recv.payload.f));
         case 18u: return std_core_f64_Display_to_string(((double) recv.payload.f));
         default: vader_unreachable("vtable miss in Display.to_string");

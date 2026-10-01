@@ -502,7 +502,8 @@ emit_c_for_targets :: fn(
         // named here instead.
         gaps :: atom_universe_gaps(mods[i].module.strings, universe)
         if gaps.len() > 0 {
-            eprintln("vader build: atom universe misses ${gaps.len()} literal(s) for ${targets[i]}, first `${gaps[0]}`")
+            eprintln("vader build: atom universe misses ${gaps.len()} literal(s) for "
+                + "${display_target(targets[i])}, first `${gaps[0]}`")
             return 1
         }
         progs.push(
