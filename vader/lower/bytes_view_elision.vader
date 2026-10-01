@@ -230,6 +230,7 @@ bve_analyze_stmt :: fn(s: LoweredStmt, ctx: BveCtx!) -> void {
         }
         is LoweredYield -> { bve_analyze_expr(s.value, ctx) }
         is LoweredAwait -> { bve_analyze_expr(s.awaited, ctx) }
+        is LoweredLabelledBlock -> { bve_analyze_block(s.body, ctx) }
         is LoweredLoop -> {
             c :: s.cond
             if c != null {
@@ -402,6 +403,7 @@ bve_rewrite_stmt :: fn(s: LoweredStmt!, ctx: BveCtx) -> void {
         }
         is LoweredYield -> { s.value = bve_rewrite_expr(s.value, ctx) }
         is LoweredAwait -> { s.awaited = bve_rewrite_expr(s.awaited, ctx) }
+        is LoweredLabelledBlock -> { bve_rewrite_block(s.body, ctx) }
         is LoweredLoop -> {
             c :: s.cond
             if c != null {

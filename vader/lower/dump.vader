@@ -163,6 +163,10 @@ emit_stmt :: fn(lines: string[]!, stmt: LoweredStmt, indent: string) -> void {
                 }
             }
         }
+        is LoweredLabelledBlock -> {
+            lines.push("${indent}block${render_label(stmt.label)}")
+            emit_block(lines, stmt.body, "${indent}  ")
+        }
         is LoweredLoop -> {
             cond_suffix :: render_loop_cond(stmt.cond)
             label_suffix :: render_label(stmt.label)

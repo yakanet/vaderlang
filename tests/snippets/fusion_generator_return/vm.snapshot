@@ -1,0 +1,11 @@
+# stdout
+void consumer, then after the loop: 0 1 | 0 1
+value consumer: 3 | 3
+stage consumer, then after the loop: 1 2 | 1 2
+return across two loops: 0 1 2 100 10 | 0 1 2 100 10
+relay of a returning generator: 0 10 20 99 | 0 10 20 99
+stop 2 cap 5: 0 1 | 0 1
+stop 5 cap 2: 0 1 100 | 0 1 100
+a loop labelled exit: 0 1 | 0 1
+# exit
+0

@@ -623,6 +623,7 @@ bce_stmt_unsafe :: fn(
     is LoweredReturn       -> bce_opt_expr_unsafe(s.value, guard_sym, pctx)
     is LoweredYield        -> true
     is LoweredAwait        -> true
+    is LoweredLabelledBlock -> bce_block_unsafe(s.body, guard_sym, pctx)
     is LoweredLoop         -> bce_opt_expr_unsafe(s.cond, guard_sym, pctx) || bce_block_unsafe(s.body, guard_sym, pctx)
         || bce_block_unsafe(loop_step_block(s), guard_sym, pctx)
     is LoweredBreak        -> false

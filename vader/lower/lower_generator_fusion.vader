@@ -157,7 +157,7 @@ inline_gen_ident_call :: fn(
     out: LoweredStmt[]!: []
     out.push_all(param_lets)
     out.push_all(block_stmts_with_trailing(lowered_gen))
-    return wrap_stmts(for_stmt.span, out)
+    return wrap_stmts(for_stmt.span, wrap_instance_exit(ctx, instance, for_stmt.span, out))
 }
 
 // The generator's owning-module typed program: `ctx.typed` when the call is
@@ -514,7 +514,7 @@ emit_fused_gen_combinator :: fn(
     if entered {
         ctx.project.inlining_generators.remove(layer.instance.generator_id)
     }
-    return out
+    return wrap_instance_exit(ctx, layer.instance, chain.span, out)
 }
 
 // Fuse one source loop of a generator combinator: lower its inner body in the

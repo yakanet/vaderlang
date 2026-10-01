@@ -248,6 +248,7 @@ cf_stmt_mentions :: fn(st: LoweredStmt, symbol_id: i32, kinds: CfMentionKinds) -
     is LoweredYield                -> cf_expr_mentions(st.value, symbol_id, kinds)
     is LoweredAwait                -> cf_expr_mentions(st.awaited, symbol_id, kinds)
     is LoweredDeferPush            -> cf_expr_mentions(st.thunk, symbol_id, kinds)
+    is LoweredLabelledBlock        -> cf_block_mentions(st.body, symbol_id, kinds)
     is LoweredLoop                 ->
         cf_opt_expr_mentions(st.cond, symbol_id, kinds) || cf_block_mentions(st.body, symbol_id, kinds)
             || cf_block_mentions(loop_step_block(st), symbol_id, kinds)

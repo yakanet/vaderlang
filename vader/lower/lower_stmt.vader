@@ -164,6 +164,12 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
             out.push(LoweredExprStmt { .span = stmt.span, .expr = lower_expr(ctx, stmt.expr) })
         }
         is ReturnStmt            -> {
+            // In an inlined generator, `return` ends the generator: it leaves the
+            // instance, not the function the instance is inlined into.
+            if ctx.instance is GenInstance as instance {
+                out.push(leave_instance(ctx, instance, stmt.span))
+                return
+            }
             // Drain every pending defer in the enclosing scopes BEFORE
             // the actual return op. Count = sum of `defers` across every
             // open BlockCtx (the innermost block back up to the fn root).

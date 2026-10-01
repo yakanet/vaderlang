@@ -182,6 +182,7 @@ export LoweredStmt ::
     | LoweredYield
     | LoweredAwait
     | LoweredLoop
+    | LoweredLabelledBlock
     | LoweredBreak
     | LoweredContinue
     | LoweredDeferPush
@@ -259,6 +260,15 @@ export LoweredAwait :: struct {
     target:      Symbol
     target_type: Type
     awaited:     LoweredExpr
+}
+
+/// A block that a `break <label>` leaves early, where the lowering has to jump
+/// out of code that is not a loop — past everything an inlined generator emits.
+/// It is not a loop: no `continue` targets it, and no analysis may take it for one.
+export LoweredLabelledBlock :: struct {
+    span:  Span
+    label: string
+    body:  LoweredBlock
 }
 
 /// Every `for` form collapses to a Loop after lowering. `cond == null`

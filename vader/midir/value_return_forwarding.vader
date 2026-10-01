@@ -72,6 +72,7 @@ forwarding_body :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction {
     return CFGFunction {
         ...f,
         .locals = locals,
+        .block_regions = MutableMap<i32, BlockId> {},
         .blocks = [
             BasicBlock {
                 .id = BlockId(0),

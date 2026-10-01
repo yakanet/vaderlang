@@ -61,6 +61,10 @@ export CFGFunction :: struct {
     is_extern:   bool
     /// True when @export-decorated. Drives the bytecode export table.
     is_exported: bool
+    /// Labelled-block regions, entry block id → exit block id. A `break` out of
+    /// one is a forward jump the structurer cannot place from the CFG alone: the
+    /// region tells it where to open the `block` the jump leaves.
+    block_regions: MutableMap<i32, BlockId> = MutableMap<i32, BlockId> {}
     /// When non-empty, the values this fn hands back INSTEAD of the single
     /// object `return_type` names — set by `scalarise_value_returns`.
     ///

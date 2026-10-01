@@ -164,6 +164,7 @@ bp_scan_stmt :: fn(s: LoweredStmt, in_loop: bool, ctx: LowerProjectCtx!) -> void
                 bp_scan_expr(v, in_loop, ctx)
             }
         }
+        is LoweredLabelledBlock -> { bp_scan_block(s.body, in_loop, ctx) }
         is LoweredLoop      -> {
             bp_scan_block(s.body, true, ctx)
             for st in s.step {
@@ -223,6 +224,8 @@ bp_stmt :: fn(s: LoweredStmt!, pctx: BcePurityCtx!) -> void {
         bp_expr(s.value, pctx)
     } else if s is LoweredAwait {
         bp_expr(s.awaited, pctx)
+    } else if s is LoweredLabelledBlock {
+        bp_block(s.body, pctx)
     } else if s is LoweredLoop {
         c :: s.cond
         if c != null {
@@ -389,6 +392,8 @@ bp_mark_idx_stmt :: fn(s: LoweredStmt!) -> void {
         bp_mark_idx_expr(s.awaited)
     } else if s is LoweredDeferPush {
         bp_mark_idx_expr(s.thunk)
+    } else if s is LoweredLabelledBlock {
+        bp_mark_idx_block(s.body)
     }
     // LoweredLoop : NOT descended (nested loop owns its own accesses).
     // Break / Continue / DeferPopExec : nothing.

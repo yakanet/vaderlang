@@ -72,6 +72,14 @@ gb_retarget_stmt :: fn(gb: GenBuild!, s: LoweredStmt) -> LoweredStmt = match s {
     is LoweredExprStmt -> LoweredExprStmt { ...s, .expr = gb_retarget_expr(gb, s.expr) }
     is LoweredYield -> LoweredYield { ...s, .value = gb_retarget_expr(gb, s.value) }
     is LoweredAwait -> LoweredAwait { ...s, .awaited = gb_retarget_expr(gb, s.awaited) }
+    is LoweredLabelledBlock -> {
+        gb.loop_stack.push(LoopFrame {
+            .label = s.label, .header = -1, .exit = -1, .step = [], .local = true, .block = true,
+        })
+        body :: gb_retarget_block(gb, s.body)
+        gb.loop_stack.remove_last()
+        LoweredLabelledBlock { ...s, .body = body }
+    }
     // The condition runs before the loop's frame exists, as in midir; the step
     // holds no jump.
     is LoweredLoop -> {

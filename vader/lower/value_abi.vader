@@ -248,6 +248,7 @@ block_returns_fresh :: fn(b: LoweredBlock) -> bool {
 stmt_returns_fresh :: fn(st: LoweredStmt) -> bool = @partial match st {
     is LoweredReturn -> is_fresh_composite(st.value)
     is LoweredLoop   -> block_returns_fresh(st.body)
+    is LoweredLabelledBlock -> block_returns_fresh(st.body)
     is LoweredExprStmt -> expr_returns_fresh(st.expr)
     _ -> true
 }

@@ -124,6 +124,7 @@ pc_scan_stmt :: fn(st: LoweredStmt!, live: i32[], pctx: BcePurityCtx!) -> void {
         is LoweredExprStmt  -> { pc_scan_expr(st.expr, live, pctx) }
         is LoweredAwait     -> { pc_scan_expr(st.awaited, live, pctx) }
         is LoweredDeferPush -> { pc_scan_expr(st.thunk, live, pctx) }
+        is LoweredLabelledBlock -> { pc_scan_block(st.body, live, pctx) }
         is LoweredReturn    -> {
             // `.value` sits at a different offset per variant, so these cannot be
             // collapsed into one or-pattern arm (T3008).
@@ -221,6 +222,9 @@ pc_collect_in_stmt :: fn(st: LoweredStmt!, out: LoweredArrayPush![]!) -> void {
         is LoweredAssign   -> {
             pc_collect_in_expr(st.value, out)
         }
+        is LoweredLabelledBlock -> {
+            pc_collect_pushes(st.body, out)
+        }
         _                  -> {}
     }
 }
@@ -282,7 +286,8 @@ pc_has_extra_exit :: fn(b: LoweredBlock) -> bool {
 pc_stmt_exits :: fn(st: LoweredStmt) -> bool = match st {
     is LoweredReturn | LoweredYield | LoweredAwait | LoweredDeferPush | LoweredDeferPopExec -> true
     is LoweredBreak | LoweredContinue -> st.label != null
-    is LoweredLet | LoweredAssign | LoweredCellSet | LoweredExprStmt | LoweredLoop -> false
+    is LoweredLet | LoweredAssign | LoweredCellSet | LoweredExprStmt | LoweredLoop
+        | LoweredLabelledBlock -> false
 }
 
 // Any mention of `sym` that is not a candidate push's own target — such a read
@@ -319,6 +324,9 @@ pc_body_unsafe :: fn(b: LoweredBlock, sym: i32, pctx: BcePurityCtx!) -> bool {
 pc_stmt_unsafe :: fn(st: LoweredStmt, sym: i32, pctx: BcePurityCtx!) -> bool {
     if st is LoweredExprStmt {
         return pc_expr_unsafe_skipping_push(st.expr, sym, pctx)
+    }
+    if st is LoweredLabelledBlock {
+        return pc_body_unsafe(st.body, sym, pctx)
     }
     if st is LoweredLoop {
         return bce_opt_expr_unsafe(st.cond, sym, pctx) || pc_body_unsafe(st.body, sym, pctx)

@@ -108,6 +108,9 @@ export LowerProjectCtx :: struct {
     /// Instance clone id → the resolver's id for the same binding: the key of
     /// every resolver table indexed by symbol id (`origin_symbol_id`).
     clone_origins:       MutableMap<i32, i32> = MutableMap<i32, i32> {}
+    /// Labels of the blocks a lowered jump already leaves (`leave_instance`): an
+    /// emitter wraps its statements in the block only when one is here.
+    exits_taken:         MutableSet<string> = MutableSet<string> {}
 
     /// `name -> Symbol` from `std/core` (cached once at construction
     /// so trait / struct lookups don't re-walk the module map).

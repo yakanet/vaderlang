@@ -165,6 +165,43 @@ instance_label :: fn(ctx: FnLowerCtx, label: string | null) -> string | null {
 origin_symbol_id :: fn(project: LowerProjectCtx, symbol: Symbol) -> i32 =
     project.clone_origins[symbol.id] ?? symbol.id
 
+// ---- leaving an instance ----------------------------------------------------
+
+// The label of the block around an instance's whole inlined body: a `return` in
+// the generator leaves it, which ends the generator and not the consuming function.
+// The leading `$` keeps it apart from every label `instance_label` derives from a
+// source one, `exit:` included.
+instance_exit_label :: fn(instance: GenInstance) -> string = r"$exit" + instance.label_suffix
+
+/// A `return` written in the generator `instance` inlines: a `break` out of the
+/// instance, recorded so the emitter puts the block it leaves around it.
+///
+/// @param ctx       the fn-body context lowering the instance.
+/// @param instance  the instance the `return` belongs to.
+/// @param span      the `return`'s span.
+leave_instance :: fn(ctx: FnLowerCtx!, instance: GenInstance, span: Span) -> LoweredStmt {
+    label :: instance_exit_label(instance)
+    ctx.project.exits_taken.add(label)
+    return LoweredBreak { .span = span, .label = label }
+}
+
+/// `stmts`, everything `instance` emits, inside the block a `return` of the
+/// generator leaves — or as they are when none does.
+///
+/// @param ctx       the fn-body context.
+/// @param instance  the inlined instance.
+/// @param span      span of the block when one is built.
+/// @param stmts     the instance's emitted statements.
+wrap_instance_exit :: fn(
+    ctx: FnLowerCtx, instance: GenInstance, span: Span, stmts: LoweredStmt[],
+) -> LoweredStmt[] {
+    label :: instance_exit_label(instance)
+    if !(label in ctx.project.exits_taken) {
+        return stmts
+    }
+    return [LoweredLabelledBlock { .span = span, .label = label, .body = arm_block(stmts, span) }]
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

@@ -108,6 +108,9 @@ LoopFrame :: struct {
     exit_id:   BlockId      // break target
     /// Runs before every jump to the header — see `build_back_edge`.
     step:      LoweredStmt[]
+    /// A `LoweredLabelledBlock`: only a `break` naming it reaches it, so a bare
+    /// jump looks past it and `header_id` is unused.
+    block:     bool = false
 }
 
 /// Per-function build context. `current` tracks the basic block under
@@ -124,6 +127,8 @@ FnCtx :: struct {
     blocks:          MutableBlock![]!
     loop_stack:      LoopFrame[]!
     current:         BlockId | null
+    /// Entry → exit of every labelled block built so far (`CFGFunction.block_regions`).
+    block_regions:   MutableMap<i32, BlockId> = MutableMap<i32, BlockId> {}
 }
 
 import "vader/comptime"
@@ -493,6 +498,7 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
         .extern_name = meta.extern_name,
         .is_extern   = meta.is_extern,
         .is_exported = meta.is_exported,
+        .block_regions = fn_ctx.block_regions,
     }
 }
 
@@ -597,6 +603,7 @@ build_stmt :: fn(fn_ctx: FnCtx!, s: LoweredStmt) -> void {
             terminate(fn_ctx, TermReturn { .values = values, .span = s.span })
         }
         is LoweredLoop -> { build_loop(fn_ctx, s) }
+        is LoweredLabelledBlock -> { build_labelled_block(fn_ctx, s) }
         is LoweredBreak -> {
             frame :: resolve_loop_frame(fn_ctx, s.label)
             terminate(fn_ctx, TermBranch { .target = frame.exit_id, .span = s.span })
@@ -696,6 +703,27 @@ build_loop :: fn(fn_ctx: FnCtx!, s: LoweredLoop) -> void {
     fn_ctx.current = exit_id
 }
 
+// The body, then the exit a `break <label>` reaches early. The region is recorded:
+// nothing in the CFG says where the `block` that jump leaves has to open.
+build_labelled_block :: fn(fn_ctx: FnCtx!, s: LoweredLabelledBlock) -> void {
+    entry_id :: new_block(fn_ctx, s.span)
+    exit_id :: new_block(fn_ctx, s.span)
+    if fn_ctx.current !is null {
+        terminate(fn_ctx, TermBranch { .target = entry_id, .span = s.span })
+    }
+    fn_ctx.block_regions[i32(entry_id)] = exit_id
+    fn_ctx.loop_stack.push(LoopFrame {
+        .label = s.label, .header_id = exit_id, .exit_id = exit_id, .step = [], .block = true,
+    })
+    fn_ctx.current = entry_id
+    build_block_body(fn_ctx, s.body)
+    if fn_ctx.current !is null {
+        terminate(fn_ctx, TermBranch { .target = exit_id, .span = s.span })
+    }
+    fn_ctx.loop_stack.remove_last()
+    fn_ctx.current = exit_id
+}
+
 // Run `frame`'s step, then go back to its header. Each jump builds its own copy:
 // one step block every `continue` reaches is a latch, which the structurer takes
 // for the join of the conditional around the `continue`.
@@ -710,13 +738,17 @@ build_back_edge :: fn(fn_ctx: FnCtx!, frame: LoopFrame, span: Span) -> void {
 
 // The loop a `break` / `continue` targets. The typechecker refuses a jump with no
 // loop to reach (T3015, T3067), so one that finds none here is a lowering bug —
-// dropping it would compile the jump as falling through.
+// dropping it would compile the jump as falling through. A bare jump looks past a
+// labelled block: only a `break` naming it reaches it.
 resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame {
     if label is null {
-        if fn_ctx.loop_stack.len() == 0 {
-            panic("midir/build: `${fn_ctx.mangled}` has a `break` / `continue` outside any loop")
+        j := i64(fn_ctx.loop_stack.len()) - 1
+        for j >= 0 {
+            frame :: fn_ctx.loop_stack[usize(j)]
+            if !frame.block { return frame }
+            j -= 1
         }
-        return fn_ctx.loop_stack[fn_ctx.loop_stack.len() - 1]
+        panic("midir/build: `${fn_ctx.mangled}` has a `break` / `continue` outside any loop")
     }
     // Extract the non-null label once — the c-emit's `string | null`
     // comparison currently mis-boxes when crossing a field vs a param

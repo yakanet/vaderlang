@@ -641,6 +641,8 @@ FnEmitCfg :: struct {
     scopes: ScopeFrame[]!
     pending: PendingBranch[]!
     wrapped_loop_headers: MutableSet<i32>
+    /// Labelled-block entries whose `block` is already open (`emit_range`).
+    wrapped_regions: MutableSet<i32> = MutableSet<i32> {}
     hints: ScheduleHints
     /// When false, the two push helpers store `null` in `slot.debug` instead
     /// of building a `DebugPos` per op — see `EmitOptions.want_debug`. Only
@@ -837,6 +839,20 @@ emit_range :: fn(ctx: FnEmitCfg!, start: BlockId, until: BlockId) -> void {
     cur := start
     for cur != -1 && cur != until {
         block :: ctx.fn_.blocks[usize(cur)]
+        // A labelled block's entry: open the `block` its `break`s leave, emit the
+        // region up to its exit, and carry on from the exit.
+        region_exit :: ctx.fn_.block_regions[i32(cur)]
+        if region_exit != null && !ctx.wrapped_regions.contains(i32(cur)) {
+            ctx.wrapped_regions.add(i32(cur))
+            cf_block(ctx, block.span, region_exit)
+            emit_range(ctx, cur, region_exit)
+            cf_end(ctx, block.span)
+            // Unmarked like a loop header: a region emitted again (a continuation
+            // the structurer inlines twice) must open its `block` again.
+            ctx.wrapped_regions.remove(i32(cur))
+            cur = region_exit
+            continue
+        }
         // First visit to a loop header → wrap in block + loop. Subsequent
         // visits (back-edges, nested control flow inside the body) see
         // this header as already wrapped and emit it as a plain block.

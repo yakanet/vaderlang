@@ -89,15 +89,27 @@ LoopFrame :: struct {
     /// runs within one state, so a jump that resolves to it stays as written, and
     /// `header` / `exit` / `step` are unused.
     local:  bool = false
+    /// A `LoweredLabelledBlock`: only a `break` naming it reaches it, so `header`
+    /// is unused and a bare jump looks past it.
+    block:  bool = false
 }
 
 /// Resolve the target loop frame for a `break` / `continue`. A null label = the
 /// innermost loop ; a label = the nearest enclosing frame carrying it. Mirrors
 /// `midir/build.vader::resolve_loop_frame` — without label resolution a
 /// `break outer` would target the innermost loop (miscompile / infinite loop).
+/// A bare jump looks past a labelled block: only a `break` naming it reaches it.
 gb_resolve_loop_frame :: fn(gb: GenBuild, label: string | null) -> LoopFrame {
     if label is null {
-        return gb.loop_stack[gb.loop_stack.len() - 1]
+        j := i64(gb.loop_stack.len()) - 1
+        for j >= 0 {
+            frame :: gb.loop_stack[usize(j)]
+            if !frame.block {
+                return frame
+            }
+            j -= 1
+        }
+        panic("generator block-split: a `break` / `continue` outside any loop")
     }
     // Extract the non-null label once — comparing two `string` locals dodges the
     // c-emit `string | null` field-vs-param mis-box (see `resolve_loop_frame`).
@@ -257,12 +269,13 @@ gb_fill :: fn(gb: GenBuild!, idx: i64, stmts: LoweredStmt[]!) -> void {
 // nested blocks reach the lowered stmt list as `LoweredExprStmt` wrapping a
 // `LoweredIf` / `LoweredBlock` — treat those as control so nested yields split.
 gb_is_leaf :: fn(s: LoweredStmt) -> bool {
-    if s is LoweredYield    { return false }
-    if s is LoweredAwait    { return false }
-    if s is LoweredLoop     { return false }
-    if s is LoweredBreak    { return false }
-    if s is LoweredContinue { return false }
-    if s is LoweredReturn   { return false }
+    if s is LoweredYield         { return false }
+    if s is LoweredAwait         { return false }
+    if s is LoweredLoop          { return false }
+    if s is LoweredLabelledBlock { return false }
+    if s is LoweredBreak         { return false }
+    if s is LoweredContinue      { return false }
+    if s is LoweredReturn        { return false }
     if s is LoweredExprStmt {
         if s.expr is LoweredIf    { return false }
         if s.expr is LoweredBlock { return false }
@@ -364,6 +377,16 @@ gb_compile_ctrl :: fn(gb: GenBuild!, s: LoweredStmt, cont: i64) -> i64 {
             gb_fill(gb, header, [LoweredExprStmt { .span = gb.span, .expr = hdr_if }])
         }
         return header
+    }
+    if s is LoweredLabelledBlock {
+        // A block has no header: falling off its body and leaving it by `break`
+        // both reach `cont`.
+        gb.loop_stack.push(LoopFrame {
+            .label = s.label, .header = -1, .exit = cont, .step = [], .block = true,
+        })
+        body_entry :: gb_compile_block(gb, s.body, cont)
+        gb.loop_stack.remove_last()
+        return body_entry
     }
     if s is LoweredBreak {
         return gb_new_state(gb, gb_break_to(gb, gb_resolve_loop_frame(gb, s.label)))
@@ -610,6 +633,7 @@ gb_collect_stmt :: fn(gb: GenBuild!, s: LoweredStmt) -> void {
                 gb_collect_stmt(gb, st)
             }
         }
+        is LoweredLabelledBlock -> { gb_collect_block(gb, s.body) }
         is LoweredAssign -> {
             gb_collect_expr(gb, s.target)
             gb_collect_expr(gb, s.value)
@@ -702,6 +726,9 @@ gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]!) -> void {
                 .span = s.span, .label = s.label, .cond = new_cond,
                 .body = gb_route_block(gb, s.body), .step = new_step,
             })
+        }
+        is LoweredLabelledBlock -> {
+            out.push(LoweredLabelledBlock { ...s, .body = gb_route_block(gb, s.body) })
         }
         is LoweredBreak    -> { out.push(s) }
         is LoweredContinue -> { out.push(s) }

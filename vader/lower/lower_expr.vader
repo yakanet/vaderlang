@@ -723,6 +723,7 @@ block_has_await :: fn(b: LoweredBlock) -> bool {
 stmt_has_await :: fn(s: LoweredStmt) -> bool {
     if s is LoweredAwait { return true }
     if s is LoweredLoop { return block_has_await(s.body) }
+    if s is LoweredLabelledBlock { return block_has_await(s.body) }
     if s is LoweredExprStmt {
         if s.expr is LoweredIf as ie { if if_has_await(ie) { return true } }
         if s.expr is LoweredBlock as bl { return block_has_await(bl) }

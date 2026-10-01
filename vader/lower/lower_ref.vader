@@ -50,6 +50,7 @@ for_each_lowered_stmt :: fn(s: LoweredStmt, visit: fn(Type) -> void) -> void {
         }
         is LoweredYield -> { for_each_lowered_expr(s.value, visit) }
         is LoweredAwait -> { for_each_lowered_expr(s.awaited, visit) }
+        is LoweredLabelledBlock -> { for_each_lowered_block(s.body, visit) }
         is LoweredLoop -> {
             cond :: s.cond
             if cond != null { for_each_lowered_expr(cond, visit) }
@@ -201,6 +202,7 @@ ref_stmt :: fn(s: LoweredStmt, visit_fn: fn(i32, string) -> void, visit_virtual:
         }
         is LoweredYield -> ref_expr(s.value, visit_fn, visit_virtual)
         is LoweredAwait -> ref_expr(s.awaited, visit_fn, visit_virtual)
+        is LoweredLabelledBlock -> { ref_block(s.body, visit_fn, visit_virtual) }
         is LoweredLoop -> {
             cond :: s.cond
             if cond != null { ref_expr(cond, visit_fn, visit_virtual) }
@@ -338,6 +340,7 @@ stmt_node_stmt :: fn(s: LoweredStmt, visit: fn(LoweredStmt) -> void) -> void {
         }
         is LoweredYield    -> stmt_node_expr(s.value, visit)
         is LoweredAwait    -> stmt_node_expr(s.awaited, visit)
+        is LoweredLabelledBlock -> stmt_node_block(s.body, visit)
         is LoweredLoop     -> {
             cond :: s.cond
             if cond != null { stmt_node_expr(cond, visit) }
