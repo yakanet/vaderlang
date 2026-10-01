@@ -587,7 +587,7 @@ static void snippet_fused_range_continue(void) {
 }
 
 static void snippet_continue_outer(void) {
-    int32_t l0, l1, l2, l7;
+    int32_t l0, l1, l2;
     void* l3 = NULL;
     size_t l4;
     int64_t l5, l6;
@@ -605,56 +605,42 @@ static void snippet_continue_outer(void) {
     loop_5: while ((l1 < INT32_C(3))) {
 #line 108 "tests/snippets/counted_loop_continue/_main.vader"
         l2 = INT32_C(0);
-        for (;;) {
-            if ((l2 < INT32_C(3))) {
+        while ((l2 < INT32_C(3))) {
 #line 109 "tests/snippets/counted_loop_continue/_main.vader"
-                l0 = (l0 + INT32_C(1));
+            l0 = (l0 + INT32_C(1));
 #line 110 "tests/snippets/counted_loop_continue/_main.vader"
-                if ((l0 > INT32_C(20))) {
+            if ((l0 > INT32_C(20))) {
 #line 111 "tests/snippets/counted_loop_continue/_main.vader"
-                    std_io_println__string(11u);
+                std_io_println__string(11u);
+#line 112 "tests/snippets/counted_loop_continue/_main.vader"
+                goto end_9;
 #line 110 "tests/snippets/counted_loop_continue/_main.vader"
-#line 114 "tests/snippets/counted_loop_continue/_main.vader"
-                } else {
-                    if (l2 == INT32_C(1)) {
-#line 107 "tests/snippets/counted_loop_continue/_main.vader"
-                        l1 = (l1 + INT32_C(1));
-#line 115 "tests/snippets/counted_loop_continue/_main.vader"
-                        goto loop_5;
-#line 114 "tests/snippets/counted_loop_continue/_main.vader"
-                    }
-#line 117 "tests/snippets/counted_loop_continue/_main.vader"
-                    l3 = std_core_new_byte_buffer((size_t) 47);
-                    l4 = (size_t) 0;
-                    l4 = std_core_write_string_at(l3, l4, 12u);
-                    l5 = ((int64_t) (int32_t) l1);
-                    l4 = std_core_write_int(l3, l4, l5);
-                    l4 = std_core_write_string_at(l3, l4, 13u);
-                    l6 = ((int64_t) (int32_t) l2);
-                    l4 = std_core_write_int(l3, l4, l6);
-                    t0 = std_core_finish_buffer(l3, l4);
-                    std_io_println__string(t0);
-#line 108 "tests/snippets/counted_loop_continue/_main.vader"
-                    l2 = (l2 + INT32_C(1));
-                    continue;
-#line 110 "tests/snippets/counted_loop_continue/_main.vader"
-                }
-#line 108 "tests/snippets/counted_loop_continue/_main.vader"
-#line 107 "tests/snippets/counted_loop_continue/_main.vader"
-            } else {
-                l7 = INT32_C(1);
-                l1 = (l1 + l7);
-                goto loop_5;
-#line 108 "tests/snippets/counted_loop_continue/_main.vader"
             }
-#line 105 "tests/snippets/counted_loop_continue/_main.vader"
-            { vader_gc_top = gc_frame.prev; return; }
+#line 114 "tests/snippets/counted_loop_continue/_main.vader"
+            if (l2 == INT32_C(1)) {
+#line 107 "tests/snippets/counted_loop_continue/_main.vader"
+                l1 = (l1 + INT32_C(1));
+#line 115 "tests/snippets/counted_loop_continue/_main.vader"
+                goto loop_5;
+#line 114 "tests/snippets/counted_loop_continue/_main.vader"
+            }
+#line 117 "tests/snippets/counted_loop_continue/_main.vader"
+            l3 = std_core_new_byte_buffer((size_t) 47);
+            l4 = (size_t) 0;
+            l4 = std_core_write_string_at(l3, l4, 12u);
+            l5 = ((int64_t) (int32_t) l1);
+            l4 = std_core_write_int(l3, l4, l5);
+            l4 = std_core_write_string_at(l3, l4, 13u);
+            l6 = ((int64_t) (int32_t) l2);
+            l4 = std_core_write_int(l3, l4, l6);
+            t0 = std_core_finish_buffer(l3, l4);
+            std_io_println__string(t0);
 #line 108 "tests/snippets/counted_loop_continue/_main.vader"
+            l2 = (l2 + INT32_C(1));
         }
 #line 107 "tests/snippets/counted_loop_continue/_main.vader"
-        l7 = INT32_C(1);
-        l1 = (l1 + l7);
-    }
+        l1 = (l1 + INT32_C(1));
+    } end_9: ;
 #line 105 "tests/snippets/counted_loop_continue/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }

@@ -1,16 +1,14 @@
-// _diag_fusion_continue — a `continue` in the consumer must resume the inlined
+// fusion_consumer_continue — a `continue` in the consumer resumes the inlined
 // generator after its `yield`: `enumerate`, `take`, a generator with two
 // `yield`s per round, a generator with no loop, `continue y` from an inner loop,
-// `chars().enumerate()`, and `enumerate` in an async fn across an `await`.
+// `chars().enumerate()`, `enumerate` in an async fn across an `await`, a
+// `?? continue`, a stage's own `continue` over `take` — and `flat_map` and
+// `chain`, where the `continue` already lands on the loop it means, by name
+// from an inner loop too.
 //
-// THE COMMITTED OUTPUT IS WRONG. Each line prints the chain consumed where it is
-// written (fused), then the same chain bound to a local first (lazy: it runs as
-// a state machine and is the reference). The two halves should agree. A line
-// whose halves already agree pins a case a fix must not break.
-//
-// Where the consumer loop is itself a jump target, a user generator is not
-// inlined today: those lines compare the lazy form with itself, and pin what
-// the inlining has to keep once it handles jumps.
+// Each line prints the chain consumed where it is written (fused), then the same
+// chain bound to a local first (lazy: it runs as a state machine and is the
+// reference). The two halves agree.
 
 module "snippet"
 
@@ -150,6 +148,108 @@ chars_enumerate_continue :: fn() -> void {
     println("chars.enumerate + continue, index sum: ${fused} | ${lazy}")
 }
 
+spread :: fn(x: i32) -> i32[] = [10 * x, 10 * x + 1]
+
+drop_odd :: fn(self: Iterator<i32>) -> Iterator<i32> {
+    for x in self {
+        if x % 2 == 1 {
+            continue
+        }
+        yield x
+    }
+}
+
+stage_continue_over_take :: fn() -> void {
+    fused := ""
+    for x in [1, 2, 3, 4, 5, 6].take(3).drop_odd() {
+        fused = fused + " ${x}"
+    }
+    lazy := ""
+    it :: [1, 2, 3, 4, 5, 6].take(3).drop_odd()
+    for x in it {
+        lazy = lazy + " ${x}"
+    }
+    println("take(3).drop_odd():${fused} |${lazy}")
+}
+
+maybe_even :: fn(x: i32) -> i32 | null = if x % 2 == 0 { x } else { null }
+
+coalesce_continue :: fn() -> void {
+    fused := ""
+    for [i, x] in [1, 2, 3, 4].enumerate() {
+        v :: maybe_even(x) ?? continue
+        fused = fused + " ${i}:${v}"
+    }
+    lazy := ""
+    it :: [1, 2, 3, 4].enumerate()
+    for [i, x] in it {
+        v :: maybe_even(x) ?? continue
+        lazy = lazy + " ${i}:${v}"
+    }
+    println("enumerate + ?? continue:${fused} |${lazy}")
+}
+
+flat_map_continue :: fn() -> void {
+    fused := 0
+    for v in [1, 2].flat_map(spread) {
+        if v == 10 {
+            continue
+        }
+        fused += v
+    }
+    lazy := 0
+    it :: [1, 2].flat_map(spread)
+    for v in it {
+        if v == 10 {
+            continue
+        }
+        lazy += v
+    }
+    println("flat_map + continue, sum: ${fused} | ${lazy}")
+}
+
+chain_continue :: fn() -> void {
+    fused := 0
+    for x in [1, 2].chain([3, 4]) {
+        if x == 2 {
+            continue
+        }
+        fused += x
+    }
+    lazy := 0
+    it :: [1, 2].chain([3, 4])
+    for x in it {
+        if x == 2 {
+            continue
+        }
+        lazy += x
+    }
+    println("chain + continue, sum: ${fused} | ${lazy}")
+}
+
+chain_continue_by_name :: fn() -> void {
+    fused := 0
+    for x in [1, 2].chain([3, 4]) {
+        for y in [10, 20] {
+            if x == 2 || y == 20 {
+                continue x
+            }
+            fused += x * y
+        }
+    }
+    lazy := 0
+    it :: [1, 2].chain([3, 4])
+    for x in it {
+        for y in [10, 20] {
+            if x == 2 || y == 20 {
+                continue x
+            }
+            lazy += x * y
+        }
+    }
+    println("chain + continue x from an inner loop, sum: ${fused} | ${lazy}")
+}
+
 async_enumerate_continue :: fn(xs: i32[]) -> Async<i32> {
     total := 0
     for [i, x] in xs.enumerate() {
@@ -182,6 +282,11 @@ main :: fn() -> i32 {
     loopless_generator_continue()
     take_continue_outer()
     chars_enumerate_continue()
+    stage_continue_over_take()
+    coalesce_continue()
+    flat_map_continue()
+    chain_continue()
+    chain_continue_by_name()
     fused :: await async_enumerate_continue([10, 20, 30, 40])
     lazy :: await async_enumerate_continue_lazy([10, 20, 30, 40])
     println("async enumerate + continue, index sum: ${fused} | ${lazy}")

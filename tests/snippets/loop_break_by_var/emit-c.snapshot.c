@@ -85,7 +85,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 static void snippet_scan(void) {
-    int32_t l0, l1, l6;
+    int32_t l0, l1;
     void* l2 = NULL;
     size_t l3;
     int64_t l4, l5;
@@ -101,50 +101,35 @@ static void snippet_scan(void) {
     loop_3: while ((l0 < INT32_C(3))) {
 #line 12 "tests/snippets/loop_break_by_var/_main.vader"
         l1 = INT32_C(0);
-        for (;;) {
-            if ((l1 < INT32_C(3))) {
+        while ((l1 < INT32_C(3))) {
 #line 13 "tests/snippets/loop_break_by_var/_main.vader"
-                if (l1 == INT32_C(2)) {
+            if (l1 == INT32_C(2)) {
 #line 11 "tests/snippets/loop_break_by_var/_main.vader"
-                    l0 = (l0 + INT32_C(1));
+                l0 = (l0 + INT32_C(1));
 #line 13 "tests/snippets/loop_break_by_var/_main.vader"
-                    goto loop_3;
-                }
-#line 14 "tests/snippets/loop_break_by_var/_main.vader"
-                if (l0 == INT32_C(2)) {
-#line 15 "tests/snippets/loop_break_by_var/_main.vader"
-                } else {
-                    l2 = std_core_new_byte_buffer((size_t) 46);
-                    l3 = (size_t) 0;
-                    l3 = std_core_write_string_at(l2, l3, 1u);
-                    l4 = ((int64_t) (int32_t) l0);
-                    l3 = std_core_write_int(l2, l3, l4);
-                    l3 = std_core_write_string_at(l2, l3, 2u);
-                    l5 = ((int64_t) (int32_t) l1);
-                    l3 = std_core_write_int(l2, l3, l5);
-                    t0 = std_core_finish_buffer(l2, l3);
-                    std_io_println__string(t0);
-#line 12 "tests/snippets/loop_break_by_var/_main.vader"
-                    l1 = (l1 + INT32_C(1));
-                    continue;
-#line 14 "tests/snippets/loop_break_by_var/_main.vader"
-                }
-#line 12 "tests/snippets/loop_break_by_var/_main.vader"
-#line 11 "tests/snippets/loop_break_by_var/_main.vader"
-            } else {
-                l6 = INT32_C(1);
-                l0 = (l0 + l6);
                 goto loop_3;
-#line 12 "tests/snippets/loop_break_by_var/_main.vader"
             }
-#line 10 "tests/snippets/loop_break_by_var/_main.vader"
-            { vader_gc_top = gc_frame.prev; return; }
+#line 14 "tests/snippets/loop_break_by_var/_main.vader"
+            if (l0 == INT32_C(2)) {
+                goto end_7;
+            }
+#line 15 "tests/snippets/loop_break_by_var/_main.vader"
+            l2 = std_core_new_byte_buffer((size_t) 46);
+            l3 = (size_t) 0;
+            l3 = std_core_write_string_at(l2, l3, 1u);
+            l4 = ((int64_t) (int32_t) l0);
+            l3 = std_core_write_int(l2, l3, l4);
+            l3 = std_core_write_string_at(l2, l3, 2u);
+            l5 = ((int64_t) (int32_t) l1);
+            l3 = std_core_write_int(l2, l3, l5);
+            t0 = std_core_finish_buffer(l2, l3);
+            std_io_println__string(t0);
 #line 12 "tests/snippets/loop_break_by_var/_main.vader"
+            l1 = (l1 + INT32_C(1));
         }
 #line 11 "tests/snippets/loop_break_by_var/_main.vader"
-        l6 = INT32_C(1);
-        l0 = (l0 + l6);
-    }
+        l0 = (l0 + INT32_C(1));
+    } end_7: ;
 #line 10 "tests/snippets/loop_break_by_var/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -153,7 +138,7 @@ static void snippet_sift(void) {
     void* l0 = NULL;
     void* l1 = NULL;
     void* l2 = NULL;
-    size_t l3, l4, l5, l6, l8, l10;
+    size_t l3, l4, l5, l6, l8;
     int32_t l7;
     int64_t l9;
     int64_t t0;
@@ -196,55 +181,39 @@ static void snippet_sift(void) {
 #line 24 "tests/snippets/loop_break_by_var/_main.vader"
         l5 = ((vader_array_t*) l1)->length;
         l6 = (size_t) 0;
-        for (;;) {
-            if ((l6 < l5)) {
-                vader_array_t* _a5_slotarr = ((vader_array_t*) l1);
-                VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
-                VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l6)
-                l7 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l6];
+        while ((l6 < l5)) {
+            vader_array_t* _a5_slotarr = ((vader_array_t*) l1);
+            VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l6)
+            l7 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l6];
 #line 25 "tests/snippets/loop_break_by_var/_main.vader"
-                if (l7 == INT32_C(5)) {
-#line 26 "tests/snippets/loop_break_by_var/_main.vader"
-                } else {
-                    if (l7 == INT32_C(2)) {
-#line 23 "tests/snippets/loop_break_by_var/_main.vader"
-                        t0 = (l4 + INT64_C(1));
-                        l4 = (size_t) (int64_t) t0;
-#line 26 "tests/snippets/loop_break_by_var/_main.vader"
-                        goto loop_25;
-                    }
-#line 27 "tests/snippets/loop_break_by_var/_main.vader"
-                    l2 = std_core_new_byte_buffer((size_t) 25);
-                    l8 = (size_t) 0;
-                    l8 = std_core_write_string_at(l2, l8, 3u);
-                    l9 = ((int64_t) (int32_t) l7);
-                    l8 = std_core_write_int(l2, l8, l9);
-                    t1 = std_core_finish_buffer(l2, l8);
-                    std_io_println__string(t1);
-#line 24 "tests/snippets/loop_break_by_var/_main.vader"
-                    t0 = (l6 + INT64_C(1));
-                    l6 = (size_t) (int64_t) t0;
-                    continue;
-#line 25 "tests/snippets/loop_break_by_var/_main.vader"
-                }
-#line 24 "tests/snippets/loop_break_by_var/_main.vader"
-#line 23 "tests/snippets/loop_break_by_var/_main.vader"
-            } else {
-                l10 = (size_t) 1;
-                t0 = (l4 + l10);
-                l4 = (size_t) (int64_t) t0;
-                goto loop_25;
-#line 24 "tests/snippets/loop_break_by_var/_main.vader"
+            if (l7 == INT32_C(5)) {
+                goto end_29;
             }
-#line 21 "tests/snippets/loop_break_by_var/_main.vader"
-            { vader_gc_top = gc_frame.prev; return; }
+#line 26 "tests/snippets/loop_break_by_var/_main.vader"
+            if (l7 == INT32_C(2)) {
+#line 23 "tests/snippets/loop_break_by_var/_main.vader"
+                t0 = (l4 + INT64_C(1));
+                l4 = (size_t) (int64_t) t0;
+#line 26 "tests/snippets/loop_break_by_var/_main.vader"
+                goto loop_25;
+            }
+#line 27 "tests/snippets/loop_break_by_var/_main.vader"
+            l2 = std_core_new_byte_buffer((size_t) 25);
+            l8 = (size_t) 0;
+            l8 = std_core_write_string_at(l2, l8, 3u);
+            l9 = ((int64_t) (int32_t) l7);
+            l8 = std_core_write_int(l2, l8, l9);
+            t1 = std_core_finish_buffer(l2, l8);
+            std_io_println__string(t1);
 #line 24 "tests/snippets/loop_break_by_var/_main.vader"
+            t0 = (l6 + INT64_C(1));
+            l6 = (size_t) (int64_t) t0;
         }
 #line 23 "tests/snippets/loop_break_by_var/_main.vader"
-        l10 = (size_t) 1;
-        t0 = (l4 + l10);
+        t0 = (l4 + INT64_C(1));
         l4 = (size_t) (int64_t) t0;
-    }
+    } end_29: ;
 #line 21 "tests/snippets/loop_break_by_var/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }

@@ -304,26 +304,20 @@ static vader_box_t snippet_upto_stop(int32_t l0) {
 static void snippet_void_consumer(void) {
     vader_string_t l0 = 0;
     vader_string_t l6 = 0;
-    vader_string_t l7 = 0;
-    vader_string_t l15 = 0;
-    vader_string_t l17 = 0;
-    vader_string_t l18 = 0;
-    vader_string_t l19 = 0;
-    int32_t l1, l2, l12;
+    vader_string_t l9 = 0;
+    int32_t l1, l2;
     void* l3 = NULL;
-    void* l9 = NULL;
-    void* l13 = NULL;
-    size_t l4, l14;
-    int64_t l5, l16;
-    vader_box_t l8 = vader_box_null();
-    uint8_t l10, l11;
+    void* l8 = NULL;
+    size_t l4;
+    int64_t l5;
+    vader_box_t l7 = vader_box_null();
     vader_box_t t0 = vader_box_null();
     vader_string_t t1 = 0;
-    vader_box_t* gc_roots[2] = { &l8, &t0 };
-    void** gc_raw_roots[3] = { &l3, &l9, &l13 };
-    vader_string_t* gc_atom_roots[8] = { &l0, &l6, &l7, &l15, &l17, &l18, &l19, &t1 };
+    vader_box_t* gc_roots[2] = { &l7, &t0 };
+    void** gc_raw_roots[2] = { &l3, &l8 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l6, &l9, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 8u, gc_atom_roots,
+        vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 24 "tests/snippets/fusion_generator_return/_main.vader"
@@ -331,97 +325,53 @@ static void snippet_void_consumer(void) {
 #line 25 "tests/snippets/fusion_generator_return/_main.vader"
 #line 15 "tests/snippets/fusion_generator_return/_main.vader"
     l1 = INT32_C(0);
-    for (;;) {
-        if ((l1 < INT32_C(10))) {
+    while ((l1 < INT32_C(10))) {
 #line 16 "tests/snippets/fusion_generator_return/_main.vader"
-            if (l1 == INT32_C(2)) {
-#line 19 "tests/snippets/fusion_generator_return/_main.vader"
-            } else {
-                l2 = l1;
-#line 26 "tests/snippets/fusion_generator_return/_main.vader"
-                l3 = std_core_new_byte_buffer((size_t) 21);
-                l4 = (size_t) 0;
-                l4 = std_core_write_string_at(l3, l4, 1u);
-                l5 = ((int64_t) (int32_t) l2);
-                l4 = std_core_write_int(l3, l4, l5);
-                l6 = std_core_finish_buffer(l3, l4);
-                l0 = concat_2(l0, l6);
-#line 15 "tests/snippets/fusion_generator_return/_main.vader"
-                l1 = (l1 + INT32_C(1));
-                continue;
-#line 16 "tests/snippets/fusion_generator_return/_main.vader"
-            }
-#line 15 "tests/snippets/fusion_generator_return/_main.vader"
-        } else {
-        }
-#line 28 "tests/snippets/fusion_generator_return/_main.vader"
-        l7 = 0u;
-#line 29 "tests/snippets/fusion_generator_return/_main.vader"
-        l8 = snippet_upto_stop(INT32_C(2));
-#line 30 "tests/snippets/fusion_generator_return/_main.vader"
-        for (;;) {
-            t0 = vader_vt_Iterator__next(l8);
-            l9 = t0.payload.obj;
-            l10 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l9)->f__1;
-            l11 = (uint8_t) 1;
-            if (l10 == l11) {
-            } else {
-                l12 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l9)->f__0;
-#line 31 "tests/snippets/fusion_generator_return/_main.vader"
-                l13 = std_core_new_byte_buffer((size_t) 21);
-                l14 = (size_t) 0;
-                l15 = 1u;
-                l14 = std_core_write_string_at(l13, l14, l15);
-                l16 = ((int64_t) (int32_t) l12);
-                l14 = std_core_write_int(l13, l14, l16);
-                l17 = std_core_finish_buffer(l13, l14);
-                l7 = concat_2(l7, l17);
-#line 30 "tests/snippets/fusion_generator_return/_main.vader"
-                continue;
-            }
+        if (l1 == INT32_C(2)) {
+#line 17 "tests/snippets/fusion_generator_return/_main.vader"
             break;
+#line 16 "tests/snippets/fusion_generator_return/_main.vader"
         }
-#line 33 "tests/snippets/fusion_generator_return/_main.vader"
-        l18 = 2u;
-        l19 = 3u;
-        t1 = concat_4(l18, l0, l19, l7);
-        std_io_println__string(t1);
-#line 23 "tests/snippets/fusion_generator_return/_main.vader"
-        { vader_gc_top = gc_frame.prev; return; }
+#line 19 "tests/snippets/fusion_generator_return/_main.vader"
+        l2 = l1;
+#line 26 "tests/snippets/fusion_generator_return/_main.vader"
+        l3 = std_core_new_byte_buffer((size_t) 21);
+        l4 = (size_t) 0;
+        l4 = std_core_write_string_at(l3, l4, 1u);
+        l5 = ((int64_t) (int32_t) l2);
+        l4 = std_core_write_int(l3, l4, l5);
+        l6 = std_core_finish_buffer(l3, l4);
+        l0 = concat_2(l0, l6);
 #line 15 "tests/snippets/fusion_generator_return/_main.vader"
+        l1 = (l1 + INT32_C(1));
     }
 #line 25 "tests/snippets/fusion_generator_return/_main.vader"
 #line 28 "tests/snippets/fusion_generator_return/_main.vader"
-    l7 = 0u;
+    l6 = 0u;
 #line 29 "tests/snippets/fusion_generator_return/_main.vader"
-    l8 = snippet_upto_stop(INT32_C(2));
+    l7 = snippet_upto_stop(INT32_C(2));
 #line 30 "tests/snippets/fusion_generator_return/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l8);
-        l9 = t0.payload.obj;
-        l10 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l9)->f__1;
-        l11 = (uint8_t) 1;
-        if (l10 == l11) {
+        t0 = vader_vt_Iterator__next(l7);
+        l3 = t0.payload.obj;
+        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__1 == INT32_C(1)) {
         } else {
-            l12 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l9)->f__0;
+            l1 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__0;
 #line 31 "tests/snippets/fusion_generator_return/_main.vader"
-            l13 = std_core_new_byte_buffer((size_t) 21);
-            l14 = (size_t) 0;
-            l15 = 1u;
-            l14 = std_core_write_string_at(l13, l14, l15);
-            l16 = ((int64_t) (int32_t) l12);
-            l14 = std_core_write_int(l13, l14, l16);
-            l17 = std_core_finish_buffer(l13, l14);
-            l7 = concat_2(l7, l17);
+            l8 = std_core_new_byte_buffer((size_t) 21);
+            l4 = (size_t) 0;
+            l4 = std_core_write_string_at(l8, l4, 1u);
+            l5 = ((int64_t) (int32_t) l1);
+            l4 = std_core_write_int(l8, l4, l5);
+            l9 = std_core_finish_buffer(l8, l4);
+            l6 = concat_2(l6, l9);
 #line 30 "tests/snippets/fusion_generator_return/_main.vader"
             continue;
         }
         break;
     }
 #line 33 "tests/snippets/fusion_generator_return/_main.vader"
-    l18 = 2u;
-    l19 = 3u;
-    t1 = concat_4(l18, l0, l19, l7);
+    t1 = concat_4(2u, l0, 3u, l6);
     std_io_println__string(t1);
 #line 23 "tests/snippets/fusion_generator_return/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
@@ -434,26 +384,19 @@ static int32_t snippet_fused_value(void) {
 #line 38 "tests/snippets/fusion_generator_return/_main.vader"
 #line 15 "tests/snippets/fusion_generator_return/_main.vader"
     l1 = INT32_C(0);
-    for (;;) {
-        if ((l1 < INT32_C(10))) {
+    while ((l1 < INT32_C(10))) {
 #line 16 "tests/snippets/fusion_generator_return/_main.vader"
-            if (l1 == INT32_C(3)) {
-#line 19 "tests/snippets/fusion_generator_return/_main.vader"
-            } else {
-                l2 = l1;
-#line 39 "tests/snippets/fusion_generator_return/_main.vader"
-                l0 = (l0 + l2);
-#line 15 "tests/snippets/fusion_generator_return/_main.vader"
-                l1 = (l1 + INT32_C(1));
-                continue;
+        if (l1 == INT32_C(3)) {
+#line 17 "tests/snippets/fusion_generator_return/_main.vader"
+            break;
 #line 16 "tests/snippets/fusion_generator_return/_main.vader"
-            }
-#line 15 "tests/snippets/fusion_generator_return/_main.vader"
-        } else {
         }
-#line 41 "tests/snippets/fusion_generator_return/_main.vader"
-        return l0;
+#line 19 "tests/snippets/fusion_generator_return/_main.vader"
+        l2 = l1;
+#line 39 "tests/snippets/fusion_generator_return/_main.vader"
+        l0 = (l0 + l2);
 #line 15 "tests/snippets/fusion_generator_return/_main.vader"
+        l1 = (l1 + INT32_C(1));
     }
 #line 38 "tests/snippets/fusion_generator_return/_main.vader"
 #line 41 "tests/snippets/fusion_generator_return/_main.vader"
@@ -516,29 +459,22 @@ static vader_box_t snippet_until_negative(vader_box_t l0) {
 static void snippet_stage_consumer(void) {
     vader_string_t l0 = 0;
     vader_string_t l9 = 0;
-    vader_string_t l10 = 0;
-    vader_string_t l22 = 0;
-    vader_string_t l24 = 0;
-    vader_string_t l25 = 0;
-    vader_string_t l26 = 0;
-    int32_t l1, l5, l11, l12, l13, l14, l19;
+    vader_string_t l11 = 0;
+    int32_t l1, l5;
     void* l2 = NULL;
     void* l6 = NULL;
-    void* l16 = NULL;
-    void* l20 = NULL;
-    size_t l3, l4, l7, l21;
-    int64_t l8, l23;
-    vader_box_t l15 = vader_box_null();
-    uint8_t l17, l18;
+    size_t l3, l4, l7;
+    int64_t l8;
+    vader_box_t l10 = vader_box_null();
     int64_t t0;
     void* t1 = NULL;
     vader_box_t t2 = vader_box_null();
     vader_string_t t3 = 0;
-    vader_box_t* gc_roots[2] = { &l15, &t2 };
-    void** gc_raw_roots[5] = { &l2, &l6, &l16, &l20, &t1 };
-    vader_string_t* gc_atom_roots[8] = { &l0, &l9, &l10, &l22, &l24, &l25, &l26, &t3 };
+    vader_box_t* gc_roots[2] = { &l10, &t2 };
+    void** gc_raw_roots[3] = { &l2, &l6, &t1 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l9, &l11, &t3 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 5u, gc_roots, gc_raw_roots, 0u, NULL, 8u, gc_atom_roots,
+        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 63 "tests/snippets/fusion_generator_return/_main.vader"
@@ -553,123 +489,65 @@ static void snippet_stage_consumer(void) {
     l2 = (void*) _a0_arr;
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
-    for (;;) {
-        if ((l4 < l3)) {
-            vader_array_t* _a1_slotarr = ((vader_array_t*) l2);
-            VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-            VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
-            l1 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l4];
+    while ((l4 < l3)) {
+        vader_array_t* _a1_slotarr = ((vader_array_t*) l2);
+        VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
+        l1 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l4];
 #line 55 "tests/snippets/fusion_generator_return/_main.vader"
-            if ((l1 < INT32_C(0))) {
-#line 58 "tests/snippets/fusion_generator_return/_main.vader"
-            } else {
-                l5 = l1;
-#line 65 "tests/snippets/fusion_generator_return/_main.vader"
-                l6 = std_core_new_byte_buffer((size_t) 21);
-                l7 = (size_t) 0;
-                l7 = std_core_write_string_at(l6, l7, 1u);
-                l8 = ((int64_t) (int32_t) l5);
-                l7 = std_core_write_int(l6, l7, l8);
-                l9 = std_core_finish_buffer(l6, l7);
-                l0 = concat_2(l0, l9);
-#line 64 "tests/snippets/fusion_generator_return/_main.vader"
-                t0 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t0;
-                continue;
-#line 55 "tests/snippets/fusion_generator_return/_main.vader"
-            }
-#line 64 "tests/snippets/fusion_generator_return/_main.vader"
-        } else {
-        }
-#line 67 "tests/snippets/fusion_generator_return/_main.vader"
-        l10 = 0u;
-#line 68 "tests/snippets/fusion_generator_return/_main.vader"
-        l11 = INT32_C(1);
-        l12 = INT32_C(2);
-        l13 = -(INT32_C(1));
-        l14 = INT32_C(3);
-        vader_array_t* _a2_arr = vader_array_new(20u, 4u, 7u, 1u);
-        ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 3u] = (int32_t) l14;
-        ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 2u] = (int32_t) l13;
-        ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (int32_t) l12;
-        ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int32_t) l11;
-        t1 = (void*) _a2_arr;
-        t2 = std_core____Into_into__i32(t1);
-        l15 = snippet_until_negative(t2);
-#line 69 "tests/snippets/fusion_generator_return/_main.vader"
-        for (;;) {
-            t2 = vader_vt_Iterator__next(l15);
-            l16 = t2.payload.obj;
-            l17 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l16)->f__1;
-            l18 = (uint8_t) 1;
-            if (l17 == l18) {
-            } else {
-                l19 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l16)->f__0;
-#line 70 "tests/snippets/fusion_generator_return/_main.vader"
-                l20 = std_core_new_byte_buffer((size_t) 21);
-                l21 = (size_t) 0;
-                l22 = 1u;
-                l21 = std_core_write_string_at(l20, l21, l22);
-                l23 = ((int64_t) (int32_t) l19);
-                l21 = std_core_write_int(l20, l21, l23);
-                l24 = std_core_finish_buffer(l20, l21);
-                l10 = concat_2(l10, l24);
-#line 69 "tests/snippets/fusion_generator_return/_main.vader"
-                continue;
-            }
+        if ((l1 < INT32_C(0))) {
+#line 56 "tests/snippets/fusion_generator_return/_main.vader"
             break;
+#line 55 "tests/snippets/fusion_generator_return/_main.vader"
         }
-#line 72 "tests/snippets/fusion_generator_return/_main.vader"
-        l25 = 4u;
-        l26 = 3u;
-        t3 = concat_4(l25, l0, l26, l10);
-        std_io_println__string(t3);
-#line 62 "tests/snippets/fusion_generator_return/_main.vader"
-        { vader_gc_top = gc_frame.prev; return; }
+#line 58 "tests/snippets/fusion_generator_return/_main.vader"
+        l5 = l1;
+#line 65 "tests/snippets/fusion_generator_return/_main.vader"
+        l6 = std_core_new_byte_buffer((size_t) 21);
+        l7 = (size_t) 0;
+        l7 = std_core_write_string_at(l6, l7, 1u);
+        l8 = ((int64_t) (int32_t) l5);
+        l7 = std_core_write_int(l6, l7, l8);
+        l9 = std_core_finish_buffer(l6, l7);
+        l0 = concat_2(l0, l9);
 #line 64 "tests/snippets/fusion_generator_return/_main.vader"
+        t0 = (l4 + INT64_C(1));
+        l4 = (size_t) (int64_t) t0;
     }
 #line 67 "tests/snippets/fusion_generator_return/_main.vader"
-    l10 = 0u;
+    l9 = 0u;
 #line 68 "tests/snippets/fusion_generator_return/_main.vader"
-    l11 = INT32_C(1);
-    l12 = INT32_C(2);
-    l13 = -(INT32_C(1));
-    l14 = INT32_C(3);
-    vader_array_t* _a3_arr = vader_array_new(20u, 4u, 7u, 1u);
-    ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 3u] = (int32_t) l14;
-    ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 2u] = (int32_t) l13;
-    ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 1u] = (int32_t) l12;
-    ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = (int32_t) l11;
-    t1 = (void*) _a3_arr;
+    l1 = -(INT32_C(1));
+    vader_array_t* _a2_arr = vader_array_new(20u, 4u, 7u, 1u);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 3u] = (int32_t) INT32_C(3);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 2u] = (int32_t) l1;
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (int32_t) INT32_C(2);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int32_t) INT32_C(1);
+    t1 = (void*) _a2_arr;
     t2 = std_core____Into_into__i32(t1);
-    l15 = snippet_until_negative(t2);
+    l10 = snippet_until_negative(t2);
 #line 69 "tests/snippets/fusion_generator_return/_main.vader"
     for (;;) {
-        t2 = vader_vt_Iterator__next(l15);
-        l16 = t2.payload.obj;
-        l17 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l16)->f__1;
-        l18 = (uint8_t) 1;
-        if (l17 == l18) {
+        t2 = vader_vt_Iterator__next(l10);
+        l2 = t2.payload.obj;
+        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l2)->f__1 == INT32_C(1)) {
         } else {
-            l19 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l16)->f__0;
+            l1 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l2)->f__0;
 #line 70 "tests/snippets/fusion_generator_return/_main.vader"
-            l20 = std_core_new_byte_buffer((size_t) 21);
-            l21 = (size_t) 0;
-            l22 = 1u;
-            l21 = std_core_write_string_at(l20, l21, l22);
-            l23 = ((int64_t) (int32_t) l19);
-            l21 = std_core_write_int(l20, l21, l23);
-            l24 = std_core_finish_buffer(l20, l21);
-            l10 = concat_2(l10, l24);
+            l6 = std_core_new_byte_buffer((size_t) 21);
+            l3 = (size_t) 0;
+            l3 = std_core_write_string_at(l6, l3, 1u);
+            l8 = ((int64_t) (int32_t) l1);
+            l3 = std_core_write_int(l6, l3, l8);
+            l11 = std_core_finish_buffer(l6, l3);
+            l9 = concat_2(l9, l11);
 #line 69 "tests/snippets/fusion_generator_return/_main.vader"
             continue;
         }
         break;
     }
 #line 72 "tests/snippets/fusion_generator_return/_main.vader"
-    l25 = 4u;
-    l26 = 3u;
-    t3 = concat_4(l25, l0, l26, l10);
+    t3 = concat_4(4u, l0, 3u, l9);
     std_io_println__string(t3);
 #line 62 "tests/snippets/fusion_generator_return/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
@@ -695,171 +573,102 @@ static vader_box_t snippet_grid_until(int32_t l0) {
 static void snippet_across_two_loops(void) {
     vader_string_t l0 = 0;
     vader_string_t l8 = 0;
-    vader_string_t l12 = 0;
-    vader_string_t l14 = 0;
-    vader_string_t l16 = 0;
-    vader_string_t l24 = 0;
-    vader_string_t l26 = 0;
-    vader_string_t l27 = 0;
-    vader_string_t l28 = 0;
-    int32_t l1, l2, l3, l4, l9, l15, l21;
+    vader_string_t l13 = 0;
+    int32_t l1, l2, l3, l4, l9;
     void* l5 = NULL;
     void* l10 = NULL;
-    void* l18 = NULL;
-    void* l22 = NULL;
-    size_t l6, l11, l23;
-    int64_t l7, l13, l25;
-    vader_box_t l17 = vader_box_null();
-    uint8_t l19, l20;
+    size_t l6, l11;
+    int64_t l7, l12;
+    vader_box_t l14 = vader_box_null();
     vader_box_t t0 = vader_box_null();
     vader_string_t t1 = 0;
-    vader_box_t* gc_roots[2] = { &l17, &t0 };
-    void** gc_raw_roots[4] = { &l5, &l10, &l18, &l22 };
-    vader_string_t* gc_atom_roots[10] = { &l0, &l8, &l12, &l14, &l16, &l24, &l26, &l27, &l28, &t1 };
+    vader_box_t* gc_roots[2] = { &l14, &t0 };
+    void** gc_raw_roots[2] = { &l5, &l10 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l8, &l13, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 10u, gc_atom_roots,
+        vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 91 "tests/snippets/fusion_generator_return/_main.vader"
     l0 = 0u;
 #line 92 "tests/snippets/fusion_generator_return/_main.vader"
+    {
 #line 77 "tests/snippets/fusion_generator_return/_main.vader"
-    l1 = INT32_C(0);
-    loop_6: while ((l1 < INT32_C(3))) {
+        l1 = INT32_C(0);
+        while ((l1 < INT32_C(3))) {
 #line 78 "tests/snippets/fusion_generator_return/_main.vader"
-        l2 = INT32_C(0);
-        for (;;) {
-            if ((l2 < INT32_C(3))) {
+            l2 = INT32_C(0);
+            while ((l2 < INT32_C(3))) {
 #line 79 "tests/snippets/fusion_generator_return/_main.vader"
                 l3 = ((l1 * INT32_C(10)) + l2);
 #line 80 "tests/snippets/fusion_generator_return/_main.vader"
                 if (l3 == INT32_C(11)) {
-#line 83 "tests/snippets/fusion_generator_return/_main.vader"
-                } else {
-                    l4 = l3;
-#line 93 "tests/snippets/fusion_generator_return/_main.vader"
-                    l5 = std_core_new_byte_buffer((size_t) 21);
-                    l6 = (size_t) 0;
-                    l6 = std_core_write_string_at(l5, l6, 1u);
-                    l7 = ((int64_t) (int32_t) l4);
-                    l6 = std_core_write_int(l5, l6, l7);
-                    l8 = std_core_finish_buffer(l5, l6);
-                    l0 = concat_2(l0, l8);
-#line 78 "tests/snippets/fusion_generator_return/_main.vader"
-                    l2 = (l2 + INT32_C(1));
-                    continue;
+#line 81 "tests/snippets/fusion_generator_return/_main.vader"
+                    goto end_2;
 #line 80 "tests/snippets/fusion_generator_return/_main.vader"
                 }
-#line 78 "tests/snippets/fusion_generator_return/_main.vader"
-#line 85 "tests/snippets/fusion_generator_return/_main.vader"
-            } else {
-                l9 = (INT32_C(100) + l1);
+#line 83 "tests/snippets/fusion_generator_return/_main.vader"
+                l4 = l3;
 #line 93 "tests/snippets/fusion_generator_return/_main.vader"
-                l10 = std_core_new_byte_buffer((size_t) 21);
-                l11 = (size_t) 0;
-                l12 = 1u;
-                l11 = std_core_write_string_at(l10, l11, l12);
-                l13 = ((int64_t) (int32_t) l9);
-                l11 = std_core_write_int(l10, l11, l13);
-                l14 = std_core_finish_buffer(l10, l11);
-                l0 = concat_2(l0, l14);
+                l5 = std_core_new_byte_buffer((size_t) 21);
+                l6 = (size_t) 0;
+                l6 = std_core_write_string_at(l5, l6, 1u);
+                l7 = ((int64_t) (int32_t) l4);
+                l6 = std_core_write_int(l5, l6, l7);
+                l8 = std_core_finish_buffer(l5, l6);
+                l0 = concat_2(l0, l8);
+#line 78 "tests/snippets/fusion_generator_return/_main.vader"
+                l2 = (l2 + INT32_C(1));
+            }
+#line 85 "tests/snippets/fusion_generator_return/_main.vader"
+            l9 = (INT32_C(100) + l1);
+#line 93 "tests/snippets/fusion_generator_return/_main.vader"
+            l10 = std_core_new_byte_buffer((size_t) 21);
+            l11 = (size_t) 0;
+            l11 = std_core_write_string_at(l10, l11, 1u);
+            l12 = ((int64_t) (int32_t) l9);
+            l11 = std_core_write_int(l10, l11, l12);
+            l13 = std_core_finish_buffer(l10, l11);
+            l0 = concat_2(l0, l13);
 #line 77 "tests/snippets/fusion_generator_return/_main.vader"
-                l15 = INT32_C(1);
-                l1 = (l1 + l15);
-                goto loop_6;
-#line 78 "tests/snippets/fusion_generator_return/_main.vader"
-            }
-#line 95 "tests/snippets/fusion_generator_return/_main.vader"
-            l16 = 0u;
-#line 96 "tests/snippets/fusion_generator_return/_main.vader"
-            l17 = snippet_grid_until(INT32_C(11));
-#line 97 "tests/snippets/fusion_generator_return/_main.vader"
-            for (;;) {
-                t0 = vader_vt_Iterator__next(l17);
-                l18 = t0.payload.obj;
-                l19 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l18)->f__1;
-                l20 = (uint8_t) 1;
-                if (l19 == l20) {
-                } else {
-                    l21 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l18)->f__0;
-#line 98 "tests/snippets/fusion_generator_return/_main.vader"
-                    l22 = std_core_new_byte_buffer((size_t) 21);
-                    l23 = (size_t) 0;
-                    l24 = 1u;
-                    l23 = std_core_write_string_at(l22, l23, l24);
-                    l25 = ((int64_t) (int32_t) l21);
-                    l23 = std_core_write_int(l22, l23, l25);
-                    l26 = std_core_finish_buffer(l22, l23);
-                    l16 = concat_2(l16, l26);
-#line 97 "tests/snippets/fusion_generator_return/_main.vader"
-                    continue;
-                }
-                break;
-            }
-#line 100 "tests/snippets/fusion_generator_return/_main.vader"
-            l27 = 5u;
-            l28 = 3u;
-            t1 = concat_4(l27, l0, l28, l16);
-            std_io_println__string(t1);
-#line 90 "tests/snippets/fusion_generator_return/_main.vader"
-            { vader_gc_top = gc_frame.prev; return; }
-#line 78 "tests/snippets/fusion_generator_return/_main.vader"
+            l1 = (l1 + INT32_C(1));
         }
-#line 85 "tests/snippets/fusion_generator_return/_main.vader"
-        l9 = (INT32_C(100) + l1);
 #line 93 "tests/snippets/fusion_generator_return/_main.vader"
-        l10 = std_core_new_byte_buffer((size_t) 21);
-        l11 = (size_t) 0;
-        l12 = 1u;
-        l11 = std_core_write_string_at(l10, l11, l12);
-        l13 = ((int64_t) (int32_t) l9);
-        l11 = std_core_write_int(l10, l11, l13);
-        l14 = std_core_finish_buffer(l10, l11);
-        l0 = concat_2(l0, l14);
-#line 77 "tests/snippets/fusion_generator_return/_main.vader"
-        l15 = INT32_C(1);
-        l1 = (l1 + l15);
-    }
-#line 93 "tests/snippets/fusion_generator_return/_main.vader"
-    l5 = std_core_new_byte_buffer((size_t) 21);
-    l6 = (size_t) 0;
-    l6 = std_core_write_string_at(l5, l6, 1u);
-    l7 = ((int64_t) 999);
-    l6 = std_core_write_int(l5, l6, l7);
-    l8 = std_core_finish_buffer(l5, l6);
-    l0 = concat_2(l0, l8);
+        l5 = std_core_new_byte_buffer((size_t) 21);
+        l6 = (size_t) 0;
+        l6 = std_core_write_string_at(l5, l6, 1u);
+        l7 = ((int64_t) 999);
+        l6 = std_core_write_int(l5, l6, l7);
+        l8 = std_core_finish_buffer(l5, l6);
+        l0 = concat_2(l0, l8);
 #line 92 "tests/snippets/fusion_generator_return/_main.vader"
+    } end_2: ;
 #line 95 "tests/snippets/fusion_generator_return/_main.vader"
-    l16 = 0u;
+    l8 = 0u;
 #line 96 "tests/snippets/fusion_generator_return/_main.vader"
-    l17 = snippet_grid_until(INT32_C(11));
+    l14 = snippet_grid_until(INT32_C(11));
 #line 97 "tests/snippets/fusion_generator_return/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l17);
-        l18 = t0.payload.obj;
-        l19 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l18)->f__1;
-        l20 = (uint8_t) 1;
-        if (l19 == l20) {
+        t0 = vader_vt_Iterator__next(l14);
+        l5 = t0.payload.obj;
+        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l5)->f__1 == INT32_C(1)) {
         } else {
-            l21 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l18)->f__0;
+            l1 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l5)->f__0;
 #line 98 "tests/snippets/fusion_generator_return/_main.vader"
-            l22 = std_core_new_byte_buffer((size_t) 21);
-            l23 = (size_t) 0;
-            l24 = 1u;
-            l23 = std_core_write_string_at(l22, l23, l24);
-            l25 = ((int64_t) (int32_t) l21);
-            l23 = std_core_write_int(l22, l23, l25);
-            l26 = std_core_finish_buffer(l22, l23);
-            l16 = concat_2(l16, l26);
+            l10 = std_core_new_byte_buffer((size_t) 21);
+            l6 = (size_t) 0;
+            l6 = std_core_write_string_at(l10, l6, 1u);
+            l7 = ((int64_t) (int32_t) l1);
+            l6 = std_core_write_int(l10, l6, l7);
+            l13 = std_core_finish_buffer(l10, l6);
+            l8 = concat_2(l8, l13);
 #line 97 "tests/snippets/fusion_generator_return/_main.vader"
             continue;
         }
         break;
     }
 #line 100 "tests/snippets/fusion_generator_return/_main.vader"
-    l27 = 5u;
-    l28 = 3u;
-    t1 = concat_4(l27, l0, l28, l16);
+    t1 = concat_4(5u, l0, 3u, l8);
     std_io_println__string(t1);
 #line 90 "tests/snippets/fusion_generator_return/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
@@ -884,29 +693,20 @@ static vader_box_t snippet_relay(void) {
 static void snippet_relayed(void) {
     vader_string_t l0 = 0;
     vader_string_t l6 = 0;
-    vader_string_t l10 = 0;
-    vader_string_t l12 = 0;
-    vader_string_t l13 = 0;
-    vader_string_t l21 = 0;
-    vader_string_t l23 = 0;
-    vader_string_t l24 = 0;
-    vader_string_t l25 = 0;
-    int32_t l1, l2, l7, l18;
+    vader_string_t l9 = 0;
+    int32_t l1, l2;
     void* l3 = NULL;
     void* l8 = NULL;
-    void* l15 = NULL;
-    void* l19 = NULL;
-    size_t l4, l9, l20;
-    int64_t l5, l11, l22;
-    vader_box_t l14 = vader_box_null();
-    uint8_t l16, l17;
+    size_t l4;
+    int64_t l5;
+    vader_box_t l7 = vader_box_null();
     vader_box_t t0 = vader_box_null();
     vader_string_t t1 = 0;
-    vader_box_t* gc_roots[2] = { &l14, &t0 };
-    void** gc_raw_roots[4] = { &l3, &l8, &l15, &l19 };
-    vader_string_t* gc_atom_roots[10] = { &l0, &l6, &l10, &l12, &l13, &l21, &l23, &l24, &l25, &t1 };
+    vader_box_t* gc_roots[2] = { &l7, &t0 };
+    void** gc_raw_roots[2] = { &l3, &l8 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l6, &l9, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 10u, gc_atom_roots,
+        vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 113 "tests/snippets/fusion_generator_return/_main.vader"
@@ -914,120 +714,62 @@ static void snippet_relayed(void) {
 #line 106 "tests/snippets/fusion_generator_return/_main.vader"
 #line 15 "tests/snippets/fusion_generator_return/_main.vader"
     l1 = INT32_C(0);
-    for (;;) {
-        if ((l1 < INT32_C(10))) {
+    while ((l1 < INT32_C(10))) {
 #line 16 "tests/snippets/fusion_generator_return/_main.vader"
-            if (l1 == INT32_C(3)) {
+        if (l1 == INT32_C(3)) {
+#line 17 "tests/snippets/fusion_generator_return/_main.vader"
+            break;
+#line 16 "tests/snippets/fusion_generator_return/_main.vader"
+        }
 #line 19 "tests/snippets/fusion_generator_return/_main.vader"
 #line 107 "tests/snippets/fusion_generator_return/_main.vader"
-            } else {
-                l2 = (l1 * INT32_C(10));
+        l2 = (l1 * INT32_C(10));
 #line 115 "tests/snippets/fusion_generator_return/_main.vader"
-                l3 = std_core_new_byte_buffer((size_t) 21);
-                l4 = (size_t) 0;
-                l4 = std_core_write_string_at(l3, l4, 1u);
-                l5 = ((int64_t) (int32_t) l2);
-                l4 = std_core_write_int(l3, l4, l5);
-                l6 = std_core_finish_buffer(l3, l4);
-                l0 = concat_2(l0, l6);
+        l3 = std_core_new_byte_buffer((size_t) 21);
+        l4 = (size_t) 0;
+        l4 = std_core_write_string_at(l3, l4, 1u);
+        l5 = ((int64_t) (int32_t) l2);
+        l4 = std_core_write_int(l3, l4, l5);
+        l6 = std_core_finish_buffer(l3, l4);
+        l0 = concat_2(l0, l6);
 #line 15 "tests/snippets/fusion_generator_return/_main.vader"
-                l1 = (l1 + INT32_C(1));
-                continue;
-#line 16 "tests/snippets/fusion_generator_return/_main.vader"
-            }
-#line 15 "tests/snippets/fusion_generator_return/_main.vader"
-        } else {
-        }
-#line 109 "tests/snippets/fusion_generator_return/_main.vader"
-        l7 = INT32_C(99);
-#line 115 "tests/snippets/fusion_generator_return/_main.vader"
-        l8 = std_core_new_byte_buffer((size_t) 21);
-        l9 = (size_t) 0;
-        l10 = 1u;
-        l9 = std_core_write_string_at(l8, l9, l10);
-        l11 = ((int64_t) (int32_t) l7);
-        l9 = std_core_write_int(l8, l9, l11);
-        l12 = std_core_finish_buffer(l8, l9);
-        l0 = concat_2(l0, l12);
-#line 117 "tests/snippets/fusion_generator_return/_main.vader"
-        l13 = 0u;
-#line 118 "tests/snippets/fusion_generator_return/_main.vader"
-        l14 = snippet_relay();
-#line 119 "tests/snippets/fusion_generator_return/_main.vader"
-        for (;;) {
-            t0 = vader_vt_Iterator__next(l14);
-            l15 = t0.payload.obj;
-            l16 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l15)->f__1;
-            l17 = (uint8_t) 1;
-            if (l16 == l17) {
-            } else {
-                l18 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l15)->f__0;
-#line 120 "tests/snippets/fusion_generator_return/_main.vader"
-                l19 = std_core_new_byte_buffer((size_t) 21);
-                l20 = (size_t) 0;
-                l21 = 1u;
-                l20 = std_core_write_string_at(l19, l20, l21);
-                l22 = ((int64_t) (int32_t) l18);
-                l20 = std_core_write_int(l19, l20, l22);
-                l23 = std_core_finish_buffer(l19, l20);
-                l13 = concat_2(l13, l23);
-#line 119 "tests/snippets/fusion_generator_return/_main.vader"
-                continue;
-            }
-            break;
-        }
-#line 122 "tests/snippets/fusion_generator_return/_main.vader"
-        l24 = 6u;
-        l25 = 3u;
-        t1 = concat_4(l24, l0, l25, l13);
-        std_io_println__string(t1);
-#line 112 "tests/snippets/fusion_generator_return/_main.vader"
-        { vader_gc_top = gc_frame.prev; return; }
-#line 15 "tests/snippets/fusion_generator_return/_main.vader"
+        l1 = (l1 + INT32_C(1));
     }
 #line 106 "tests/snippets/fusion_generator_return/_main.vader"
-#line 109 "tests/snippets/fusion_generator_return/_main.vader"
-    l7 = INT32_C(99);
 #line 115 "tests/snippets/fusion_generator_return/_main.vader"
-    l8 = std_core_new_byte_buffer((size_t) 21);
-    l9 = (size_t) 0;
-    l10 = 1u;
-    l9 = std_core_write_string_at(l8, l9, l10);
-    l11 = ((int64_t) (int32_t) l7);
-    l9 = std_core_write_int(l8, l9, l11);
-    l12 = std_core_finish_buffer(l8, l9);
-    l0 = concat_2(l0, l12);
+    l3 = std_core_new_byte_buffer((size_t) 21);
+    l4 = (size_t) 0;
+    l4 = std_core_write_string_at(l3, l4, 1u);
+    l5 = ((int64_t) 99);
+    l4 = std_core_write_int(l3, l4, l5);
+    l6 = std_core_finish_buffer(l3, l4);
+    l0 = concat_2(l0, l6);
 #line 117 "tests/snippets/fusion_generator_return/_main.vader"
-    l13 = 0u;
+    l6 = 0u;
 #line 118 "tests/snippets/fusion_generator_return/_main.vader"
-    l14 = snippet_relay();
+    l7 = snippet_relay();
 #line 119 "tests/snippets/fusion_generator_return/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l14);
-        l15 = t0.payload.obj;
-        l16 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l15)->f__1;
-        l17 = (uint8_t) 1;
-        if (l16 == l17) {
+        t0 = vader_vt_Iterator__next(l7);
+        l3 = t0.payload.obj;
+        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__1 == INT32_C(1)) {
         } else {
-            l18 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l15)->f__0;
+            l1 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__0;
 #line 120 "tests/snippets/fusion_generator_return/_main.vader"
-            l19 = std_core_new_byte_buffer((size_t) 21);
-            l20 = (size_t) 0;
-            l21 = 1u;
-            l20 = std_core_write_string_at(l19, l20, l21);
-            l22 = ((int64_t) (int32_t) l18);
-            l20 = std_core_write_int(l19, l20, l22);
-            l23 = std_core_finish_buffer(l19, l20);
-            l13 = concat_2(l13, l23);
+            l8 = std_core_new_byte_buffer((size_t) 21);
+            l4 = (size_t) 0;
+            l4 = std_core_write_string_at(l8, l4, 1u);
+            l5 = ((int64_t) (int32_t) l1);
+            l4 = std_core_write_int(l8, l4, l5);
+            l9 = std_core_finish_buffer(l8, l4);
+            l6 = concat_2(l6, l9);
 #line 119 "tests/snippets/fusion_generator_return/_main.vader"
             continue;
         }
         break;
     }
 #line 122 "tests/snippets/fusion_generator_return/_main.vader"
-    l24 = 6u;
-    l25 = 3u;
-    t1 = concat_4(l24, l0, l25, l13);
+    t1 = concat_4(6u, l0, 3u, l6);
     std_io_println__string(t1);
 #line 112 "tests/snippets/fusion_generator_return/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
@@ -1055,35 +797,27 @@ static void snippet_return_before_break(void) {
     void* l11 = NULL;
     void* l15 = NULL;
     void* l21 = NULL;
-    void* l25 = NULL;
-    void* l36 = NULL;
-    size_t l2, l3, l12, l16, l26, l32, l33, l34, l35, l37, l44;
-    int32_t l4, l5, l7, l8, l9, l10, l24;
+    void* l23 = NULL;
+    void* l32 = NULL;
+    size_t l2, l3, l12, l16, l24, l29, l30, l31, l33;
+    int32_t l4, l5, l7, l8, l9, l10, l22;
     vader_string_t l6 = 0;
     vader_string_t l14 = 0;
     vader_string_t l18 = 0;
     vader_string_t l19 = 0;
+    vader_string_t l26 = 0;
     vader_string_t l27 = 0;
-    vader_string_t l29 = 0;
-    vader_string_t l30 = 0;
-    vader_string_t l31 = 0;
-    vader_string_t l38 = 0;
-    vader_string_t l40 = 0;
-    vader_string_t l42 = 0;
-    vader_string_t l43 = 0;
-    int64_t l13, l17, l28, l39, l41;
+    vader_string_t l28 = 0;
+    int64_t l13, l17, l25, l34, l35;
     vader_box_t l20 = vader_box_null();
-    uint8_t l22, l23;
     vader_box_t t0 = vader_box_null();
     int64_t t1;
     vader_string_t t2 = 0;
     vader_box_t* gc_roots[2] = { &l20, &t0 };
-    void** gc_raw_roots[7] = { &l0, &l1, &l11, &l15, &l21, &l25, &l36 };
-    vader_string_t* gc_atom_roots[13] = {
-        &l6, &l14, &l18, &l19, &l27, &l29, &l30, &l31, &l38, &l40, &l42, &l43, &t2,
-    };
+    void** gc_raw_roots[7] = { &l0, &l1, &l11, &l15, &l21, &l23, &l32 };
+    vader_string_t* gc_atom_roots[8] = { &l6, &l14, &l18, &l19, &l26, &l27, &l28, &t2 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 7u, gc_roots, gc_raw_roots, 0u, NULL, 13u, gc_atom_roots,
+        vader_gc_top, 2u, 7u, gc_roots, gc_raw_roots, 0u, NULL, 8u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 143 "tests/snippets/fusion_generator_return/_main.vader"
@@ -1101,7 +835,7 @@ static void snippet_return_before_break(void) {
     l0 = (void*) _a2_arr;
     l2 = ((vader_array_t*) l0)->length;
     l3 = (size_t) 0;
-    loop_17: while ((l3 < l2)) {
+    while ((l3 < l2)) {
         vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l3)
@@ -1124,8 +858,12 @@ static void snippet_return_before_break(void) {
         for (;;) {
 #line 130 "tests/snippets/fusion_generator_return/_main.vader"
             if (l9 == l7) {
+#line 131 "tests/snippets/fusion_generator_return/_main.vader"
+                break;
+#line 130 "tests/snippets/fusion_generator_return/_main.vader"
+            }
 #line 133 "tests/snippets/fusion_generator_return/_main.vader"
-            } else if (l9 == l8) {
+            if (l9 == l8) {
 #line 146 "tests/snippets/fusion_generator_return/_main.vader"
                 l15 = std_core_new_byte_buffer((size_t) 21);
                 l16 = (size_t) 0;
@@ -1134,84 +872,24 @@ static void snippet_return_before_break(void) {
                 l16 = std_core_write_int(l15, l16, l17);
                 l18 = std_core_finish_buffer(l15, l16);
                 l6 = concat_2(l6, l18);
-#line 133 "tests/snippets/fusion_generator_return/_main.vader"
-#line 136 "tests/snippets/fusion_generator_return/_main.vader"
-            } else {
-                l10 = l9;
-#line 146 "tests/snippets/fusion_generator_return/_main.vader"
-                l11 = std_core_new_byte_buffer((size_t) 21);
-                l12 = (size_t) 0;
-                l12 = std_core_write_string_at(l11, l12, 1u);
-                l13 = ((int64_t) (int32_t) l10);
-                l12 = std_core_write_int(l11, l12, l13);
-                l14 = std_core_finish_buffer(l11, l12);
-                l6 = concat_2(l6, l14);
-#line 137 "tests/snippets/fusion_generator_return/_main.vader"
-                l9 = (l9 + INT32_C(1));
-#line 129 "tests/snippets/fusion_generator_return/_main.vader"
-                continue;
-#line 133 "tests/snippets/fusion_generator_return/_main.vader"
-            }
-#line 130 "tests/snippets/fusion_generator_return/_main.vader"
-#line 148 "tests/snippets/fusion_generator_return/_main.vader"
-            l19 = 0u;
-#line 149 "tests/snippets/fusion_generator_return/_main.vader"
-            l20 = snippet_counter(l4, l5);
-#line 150 "tests/snippets/fusion_generator_return/_main.vader"
-            for (;;) {
-                t0 = vader_vt_Iterator__next(l20);
-                l21 = t0.payload.obj;
-                l22 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l21)->f__1;
-                l23 = (uint8_t) 1;
-                if (l22 == l23) {
-                } else {
-                    l24 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l21)->f__0;
-#line 151 "tests/snippets/fusion_generator_return/_main.vader"
-                    l25 = std_core_new_byte_buffer((size_t) 21);
-                    l26 = (size_t) 0;
-                    l27 = 1u;
-                    l26 = std_core_write_string_at(l25, l26, l27);
-                    l28 = ((int64_t) (int32_t) l24);
-                    l26 = std_core_write_int(l25, l26, l28);
-                    l29 = std_core_finish_buffer(l25, l26);
-                    l19 = concat_2(l19, l29);
-#line 150 "tests/snippets/fusion_generator_return/_main.vader"
-                    continue;
-                }
+#line 145 "tests/snippets/fusion_generator_return/_main.vader"
                 break;
+#line 133 "tests/snippets/fusion_generator_return/_main.vader"
             }
-#line 153 "tests/snippets/fusion_generator_return/_main.vader"
-            l30 = l6;
-            l31 = l19;
-            l32 = (size_t) 53;
-            l33 = vader_host_std_core_byte_len(l30);
-            l34 = vader_host_std_core_byte_len(l31);
-            t1 = (l33 + l34);
-            l35 = (size_t) (int64_t) t1;
-            l36 = std_core_new_byte_buffer((size_t) (int64_t) (l32 + l35));
-            l37 = (size_t) 0;
-            l38 = 7u;
-            l37 = std_core_write_string_at(l36, l37, l38);
-            l39 = ((int64_t) (int32_t) l4);
-            l37 = std_core_write_int(l36, l37, l39);
-            l40 = 8u;
-            l37 = std_core_write_string_at(l36, l37, l40);
-            l41 = ((int64_t) (int32_t) l5);
-            l37 = std_core_write_int(l36, l37, l41);
-            l42 = 9u;
-            l37 = std_core_write_string_at(l36, l37, l42);
-            l37 = std_core_write_string_at(l36, l37, l30);
-            l43 = 3u;
-            l37 = std_core_write_string_at(l36, l37, l43);
-            l37 = std_core_write_string_at(l36, l37, l31);
-            t2 = std_core_finish_buffer(l36, l37);
-            std_io_println__string(t2);
-#line 143 "tests/snippets/fusion_generator_return/_main.vader"
-            l44 = (size_t) 1;
-            t1 = (l3 + l44);
-            l3 = (size_t) (int64_t) t1;
-            goto loop_17;
+#line 136 "tests/snippets/fusion_generator_return/_main.vader"
+            l10 = l9;
+#line 146 "tests/snippets/fusion_generator_return/_main.vader"
+            l11 = std_core_new_byte_buffer((size_t) 21);
+            l12 = (size_t) 0;
+            l12 = std_core_write_string_at(l11, l12, 1u);
+            l13 = ((int64_t) (int32_t) l10);
+            l12 = std_core_write_int(l11, l12, l13);
+            l14 = std_core_finish_buffer(l11, l12);
+            l6 = concat_2(l6, l14);
+#line 137 "tests/snippets/fusion_generator_return/_main.vader"
+            l9 = (l9 + INT32_C(1));
 #line 129 "tests/snippets/fusion_generator_return/_main.vader"
+            continue;
         }
 #line 145 "tests/snippets/fusion_generator_return/_main.vader"
 #line 148 "tests/snippets/fusion_generator_return/_main.vader"
@@ -1222,54 +900,45 @@ static void snippet_return_before_break(void) {
         for (;;) {
             t0 = vader_vt_Iterator__next(l20);
             l21 = t0.payload.obj;
-            l22 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l21)->f__1;
-            l23 = (uint8_t) 1;
-            if (l22 == l23) {
+            if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l21)->f__1 == INT32_C(1)) {
             } else {
-                l24 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l21)->f__0;
+                l22 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l21)->f__0;
 #line 151 "tests/snippets/fusion_generator_return/_main.vader"
-                l25 = std_core_new_byte_buffer((size_t) 21);
-                l26 = (size_t) 0;
-                l27 = 1u;
-                l26 = std_core_write_string_at(l25, l26, l27);
-                l28 = ((int64_t) (int32_t) l24);
-                l26 = std_core_write_int(l25, l26, l28);
-                l29 = std_core_finish_buffer(l25, l26);
-                l19 = concat_2(l19, l29);
+                l23 = std_core_new_byte_buffer((size_t) 21);
+                l24 = (size_t) 0;
+                l24 = std_core_write_string_at(l23, l24, 1u);
+                l25 = ((int64_t) (int32_t) l22);
+                l24 = std_core_write_int(l23, l24, l25);
+                l26 = std_core_finish_buffer(l23, l24);
+                l19 = concat_2(l19, l26);
 #line 150 "tests/snippets/fusion_generator_return/_main.vader"
                 continue;
             }
             break;
         }
 #line 153 "tests/snippets/fusion_generator_return/_main.vader"
-        l30 = l6;
-        l31 = l19;
-        l32 = (size_t) 53;
-        l33 = vader_host_std_core_byte_len(l30);
-        l34 = vader_host_std_core_byte_len(l31);
-        t1 = (l33 + l34);
-        l35 = (size_t) (int64_t) t1;
-        l36 = std_core_new_byte_buffer((size_t) (int64_t) (l32 + l35));
-        l37 = (size_t) 0;
-        l38 = 7u;
-        l37 = std_core_write_string_at(l36, l37, l38);
-        l39 = ((int64_t) (int32_t) l4);
-        l37 = std_core_write_int(l36, l37, l39);
-        l40 = 8u;
-        l37 = std_core_write_string_at(l36, l37, l40);
-        l41 = ((int64_t) (int32_t) l5);
-        l37 = std_core_write_int(l36, l37, l41);
-        l42 = 9u;
-        l37 = std_core_write_string_at(l36, l37, l42);
-        l37 = std_core_write_string_at(l36, l37, l30);
-        l43 = 3u;
-        l37 = std_core_write_string_at(l36, l37, l43);
-        l37 = std_core_write_string_at(l36, l37, l31);
-        t2 = std_core_finish_buffer(l36, l37);
+        l27 = l6;
+        l28 = l19;
+        l29 = vader_host_std_core_byte_len(l27);
+        l30 = vader_host_std_core_byte_len(l28);
+        t1 = (l29 + l30);
+        l31 = (size_t) (int64_t) t1;
+        l32 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(53) + l31));
+        l33 = (size_t) 0;
+        l33 = std_core_write_string_at(l32, l33, 7u);
+        l34 = ((int64_t) (int32_t) l4);
+        l33 = std_core_write_int(l32, l33, l34);
+        l33 = std_core_write_string_at(l32, l33, 8u);
+        l35 = ((int64_t) (int32_t) l5);
+        l33 = std_core_write_int(l32, l33, l35);
+        l33 = std_core_write_string_at(l32, l33, 9u);
+        l33 = std_core_write_string_at(l32, l33, l27);
+        l33 = std_core_write_string_at(l32, l33, 3u);
+        l33 = std_core_write_string_at(l32, l33, l28);
+        t2 = std_core_finish_buffer(l32, l33);
         std_io_println__string(t2);
 #line 143 "tests/snippets/fusion_generator_return/_main.vader"
-        l44 = (size_t) 1;
-        t1 = (l3 + l44);
+        t1 = (l3 + INT64_C(1));
         l3 = (size_t) (int64_t) t1;
     }
 #line 142 "tests/snippets/fusion_generator_return/_main.vader"
@@ -1294,27 +963,19 @@ static void snippet_loop_labelled_exit(void) {
     vader_string_t l0 = 0;
     vader_string_t l6 = 0;
     vader_string_t l10 = 0;
-    vader_string_t l11 = 0;
-    vader_string_t l19 = 0;
-    vader_string_t l21 = 0;
-    vader_string_t l22 = 0;
-    vader_string_t l23 = 0;
-    int32_t l1, l2, l16;
+    int32_t l1, l2;
     void* l3 = NULL;
     void* l7 = NULL;
-    void* l13 = NULL;
-    void* l17 = NULL;
-    size_t l4, l8, l18;
-    int64_t l5, l9, l20;
-    vader_box_t l12 = vader_box_null();
-    uint8_t l14, l15;
+    size_t l4, l8;
+    int64_t l5, l9;
+    vader_box_t l11 = vader_box_null();
     vader_box_t t0 = vader_box_null();
     vader_string_t t1 = 0;
-    vader_box_t* gc_roots[2] = { &l12, &t0 };
-    void** gc_raw_roots[4] = { &l3, &l7, &l13, &l17 };
-    vader_string_t* gc_atom_roots[9] = { &l0, &l6, &l10, &l11, &l19, &l21, &l22, &l23, &t1 };
+    vader_box_t* gc_roots[2] = { &l11, &t0 };
+    void** gc_raw_roots[2] = { &l3, &l7 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l6, &l10, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 9u, gc_atom_roots,
+        vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 175 "tests/snippets/fusion_generator_return/_main.vader"
@@ -1326,8 +987,12 @@ static void snippet_loop_labelled_exit(void) {
     for (;;) {
 #line 162 "tests/snippets/fusion_generator_return/_main.vader"
         if (l1 == INT32_C(2)) {
+#line 163 "tests/snippets/fusion_generator_return/_main.vader"
+            break;
+#line 162 "tests/snippets/fusion_generator_return/_main.vader"
+        }
 #line 165 "tests/snippets/fusion_generator_return/_main.vader"
-        } else if (l1 == INT32_C(5)) {
+        if (l1 == INT32_C(5)) {
 #line 177 "tests/snippets/fusion_generator_return/_main.vader"
             l7 = std_core_new_byte_buffer((size_t) 21);
             l8 = (size_t) 0;
@@ -1336,93 +1001,52 @@ static void snippet_loop_labelled_exit(void) {
             l8 = std_core_write_int(l7, l8, l9);
             l10 = std_core_finish_buffer(l7, l8);
             l0 = concat_2(l0, l10);
-#line 165 "tests/snippets/fusion_generator_return/_main.vader"
-#line 168 "tests/snippets/fusion_generator_return/_main.vader"
-        } else {
-            l2 = l1;
-#line 177 "tests/snippets/fusion_generator_return/_main.vader"
-            l3 = std_core_new_byte_buffer((size_t) 21);
-            l4 = (size_t) 0;
-            l4 = std_core_write_string_at(l3, l4, 1u);
-            l5 = ((int64_t) (int32_t) l2);
-            l4 = std_core_write_int(l3, l4, l5);
-            l6 = std_core_finish_buffer(l3, l4);
-            l0 = concat_2(l0, l6);
-#line 169 "tests/snippets/fusion_generator_return/_main.vader"
-            l1 = (l1 + INT32_C(1));
-#line 161 "tests/snippets/fusion_generator_return/_main.vader"
-            continue;
-#line 165 "tests/snippets/fusion_generator_return/_main.vader"
-        }
-#line 162 "tests/snippets/fusion_generator_return/_main.vader"
-#line 179 "tests/snippets/fusion_generator_return/_main.vader"
-        l11 = 0u;
-#line 180 "tests/snippets/fusion_generator_return/_main.vader"
-        l12 = snippet_labelled_exit();
-#line 181 "tests/snippets/fusion_generator_return/_main.vader"
-        for (;;) {
-            t0 = vader_vt_Iterator__next(l12);
-            l13 = t0.payload.obj;
-            l14 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l13)->f__1;
-            l15 = (uint8_t) 1;
-            if (l14 == l15) {
-            } else {
-                l16 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l13)->f__0;
-#line 182 "tests/snippets/fusion_generator_return/_main.vader"
-                l17 = std_core_new_byte_buffer((size_t) 21);
-                l18 = (size_t) 0;
-                l19 = 1u;
-                l18 = std_core_write_string_at(l17, l18, l19);
-                l20 = ((int64_t) (int32_t) l16);
-                l18 = std_core_write_int(l17, l18, l20);
-                l21 = std_core_finish_buffer(l17, l18);
-                l11 = concat_2(l11, l21);
-#line 181 "tests/snippets/fusion_generator_return/_main.vader"
-                continue;
-            }
+#line 176 "tests/snippets/fusion_generator_return/_main.vader"
             break;
+#line 165 "tests/snippets/fusion_generator_return/_main.vader"
         }
-#line 184 "tests/snippets/fusion_generator_return/_main.vader"
-        l22 = 10u;
-        l23 = 3u;
-        t1 = concat_4(l22, l0, l23, l11);
-        std_io_println__string(t1);
-#line 174 "tests/snippets/fusion_generator_return/_main.vader"
-        { vader_gc_top = gc_frame.prev; return; }
+#line 168 "tests/snippets/fusion_generator_return/_main.vader"
+        l2 = l1;
+#line 177 "tests/snippets/fusion_generator_return/_main.vader"
+        l3 = std_core_new_byte_buffer((size_t) 21);
+        l4 = (size_t) 0;
+        l4 = std_core_write_string_at(l3, l4, 1u);
+        l5 = ((int64_t) (int32_t) l2);
+        l4 = std_core_write_int(l3, l4, l5);
+        l6 = std_core_finish_buffer(l3, l4);
+        l0 = concat_2(l0, l6);
+#line 169 "tests/snippets/fusion_generator_return/_main.vader"
+        l1 = (l1 + INT32_C(1));
 #line 161 "tests/snippets/fusion_generator_return/_main.vader"
+        continue;
     }
 #line 176 "tests/snippets/fusion_generator_return/_main.vader"
 #line 179 "tests/snippets/fusion_generator_return/_main.vader"
-    l11 = 0u;
+    l6 = 0u;
 #line 180 "tests/snippets/fusion_generator_return/_main.vader"
-    l12 = snippet_labelled_exit();
+    l11 = snippet_labelled_exit();
 #line 181 "tests/snippets/fusion_generator_return/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l12);
-        l13 = t0.payload.obj;
-        l14 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l13)->f__1;
-        l15 = (uint8_t) 1;
-        if (l14 == l15) {
+        t0 = vader_vt_Iterator__next(l11);
+        l3 = t0.payload.obj;
+        if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__1 == INT32_C(1)) {
         } else {
-            l16 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l13)->f__0;
+            l1 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__0;
 #line 182 "tests/snippets/fusion_generator_return/_main.vader"
-            l17 = std_core_new_byte_buffer((size_t) 21);
-            l18 = (size_t) 0;
-            l19 = 1u;
-            l18 = std_core_write_string_at(l17, l18, l19);
-            l20 = ((int64_t) (int32_t) l16);
-            l18 = std_core_write_int(l17, l18, l20);
-            l21 = std_core_finish_buffer(l17, l18);
-            l11 = concat_2(l11, l21);
+            l7 = std_core_new_byte_buffer((size_t) 21);
+            l4 = (size_t) 0;
+            l4 = std_core_write_string_at(l7, l4, 1u);
+            l5 = ((int64_t) (int32_t) l1);
+            l4 = std_core_write_int(l7, l4, l5);
+            l10 = std_core_finish_buffer(l7, l4);
+            l6 = concat_2(l6, l10);
 #line 181 "tests/snippets/fusion_generator_return/_main.vader"
             continue;
         }
         break;
     }
 #line 184 "tests/snippets/fusion_generator_return/_main.vader"
-    l22 = 10u;
-    l23 = 3u;
-    t1 = concat_4(l22, l0, l23, l11);
+    t1 = concat_4(10u, l0, 3u, l6);
     std_io_println__string(t1);
 #line 174 "tests/snippets/fusion_generator_return/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }

@@ -28,7 +28,6 @@ fn 0 snippet$scan () -> void
   local __off_1 usize
   local $cast_21 i64
   local $cast_25 i64
-  local $k_30 i32
   i32.const 0
   local.set 0   ; i
   block $L0 void
@@ -59,64 +58,53 @@ fn 0 snippet$scan () -> void
               i32.const 2
               i32.eq
               if $L7 void
-              else
-                i64.const 46
-                call 4   ; std_core$new_byte_buffer
-                local.set 2   ; __buf_0
-                i64.const 0
-                local.set 3   ; __off_1
-                local.get 2   ; __buf_0
-                local.get 3   ; __off_1
-                string.const 0   ; "scan "
-                call 6   ; std_core$write_string_at
-                local.set 3   ; __off_1
-                local.get 0   ; i
-                i32.to_i64
-                local.set 4   ; $cast_21
-                local.get 2   ; __buf_0
-                local.get 3   ; __off_1
-                local.get 4   ; $cast_21
-                call 7   ; std_core$write_int
-                local.set 3   ; __off_1
-                local.get 2   ; __buf_0
-                local.get 3   ; __off_1
-                string.const 1   ; ","
-                call 6   ; std_core$write_string_at
-                local.set 3   ; __off_1
-                local.get 1   ; j
-                i32.to_i64
-                local.set 5   ; $cast_25
-                local.get 2   ; __buf_0
-                local.get 3   ; __off_1
-                local.get 5   ; $cast_25
-                call 7   ; std_core$write_int
-                local.set 3   ; __off_1
-                local.get 2   ; __buf_0
-                local.get 3   ; __off_1
-                call 5   ; std_core$finish_buffer
-                call 10   ; std_io$println__string
-                local.get 1   ; j
-                i32.const 1
-                i32.add
-                local.set 1   ; j
-                br $L4
+                br $L2
               end $L7
-            else
-              i32.const 1
-              local.set 6   ; $k_30
+              i64.const 46
+              call 4   ; std_core$new_byte_buffer
+              local.set 2   ; __buf_0
+              i64.const 0
+              local.set 3   ; __off_1
+              local.get 2   ; __buf_0
+              local.get 3   ; __off_1
+              string.const 0   ; "scan "
+              call 6   ; std_core$write_string_at
+              local.set 3   ; __off_1
               local.get 0   ; i
-              local.get 6   ; $k_30
+              i32.to_i64
+              local.set 4   ; $cast_21
+              local.get 2   ; __buf_0
+              local.get 3   ; __off_1
+              local.get 4   ; $cast_21
+              call 7   ; std_core$write_int
+              local.set 3   ; __off_1
+              local.get 2   ; __buf_0
+              local.get 3   ; __off_1
+              string.const 1   ; ","
+              call 6   ; std_core$write_string_at
+              local.set 3   ; __off_1
+              local.get 1   ; j
+              i32.to_i64
+              local.set 5   ; $cast_25
+              local.get 2   ; __buf_0
+              local.get 3   ; __off_1
+              local.get 5   ; $cast_25
+              call 7   ; std_core$write_int
+              local.set 3   ; __off_1
+              local.get 2   ; __buf_0
+              local.get 3   ; __off_1
+              call 5   ; std_core$finish_buffer
+              call 10   ; std_io$println__string
+              local.get 1   ; j
+              i32.const 1
               i32.add
-              local.set 0   ; i
-              br $L1
+              local.set 1   ; j
+              br $L4
             end $L5
-            return
           end $L4
         end $L3
-        i32.const 1
-        local.set 6   ; $k_30
         local.get 0   ; i
-        local.get 6   ; $k_30
+        i32.const 1
         i32.add
         local.set 0   ; i
         br $L1
@@ -137,7 +125,6 @@ fn 1 snippet$sift () -> void
   local cell i32
   local __off_7 usize
   local $cast_43 i64
-  local $k_48 usize
   i32.const 1
   i32.const 2
   i32.const 3
@@ -189,61 +176,50 @@ fn 1 snippet$sift () -> void
               i32.const 5
               i32.eq
               if $L6 void
-              else
-                local.get 7   ; cell
-                i32.const 2
-                i32.eq
-                if $L7 void
-                  local.get 4   ; __for_i_2
-                  i64.const 1
-                  i64.add
-                  local.set 4   ; __for_i_2
-                  br $L1
-                end $L7
-                i64.const 25
-                call 4   ; std_core$new_byte_buffer
-                local.set 2   ; $arr_11
-                i64.const 0
-                local.set 8   ; __off_7
-                local.get 2   ; $arr_11
-                local.get 8   ; __off_7
-                string.const 2   ; "sift "
-                call 6   ; std_core$write_string_at
-                local.set 8   ; __off_7
-                local.get 7   ; cell
-                i32.to_i64
-                local.set 9   ; $cast_43
-                local.get 2   ; $arr_11
-                local.get 8   ; __off_7
-                local.get 9   ; $cast_43
-                call 7   ; std_core$write_int
-                local.set 8   ; __off_7
-                local.get 2   ; $arr_11
-                local.get 8   ; __off_7
-                call 5   ; std_core$finish_buffer
-                call 10   ; std_io$println__string
-                local.get 6   ; __for_i_5
+                br $L2
+              end $L6
+              local.get 7   ; cell
+              i32.const 2
+              i32.eq
+              if $L7 void
+                local.get 4   ; __for_i_2
                 i64.const 1
                 i64.add
-                local.set 6   ; __for_i_5
-                br $L4
-              end $L6
-            else
+                local.set 4   ; __for_i_2
+                br $L1
+              end $L7
+              i64.const 25
+              call 4   ; std_core$new_byte_buffer
+              local.set 2   ; $arr_11
+              i64.const 0
+              local.set 8   ; __off_7
+              local.get 2   ; $arr_11
+              local.get 8   ; __off_7
+              string.const 2   ; "sift "
+              call 6   ; std_core$write_string_at
+              local.set 8   ; __off_7
+              local.get 7   ; cell
+              i32.to_i64
+              local.set 9   ; $cast_43
+              local.get 2   ; $arr_11
+              local.get 8   ; __off_7
+              local.get 9   ; $cast_43
+              call 7   ; std_core$write_int
+              local.set 8   ; __off_7
+              local.get 2   ; $arr_11
+              local.get 8   ; __off_7
+              call 5   ; std_core$finish_buffer
+              call 10   ; std_io$println__string
+              local.get 6   ; __for_i_5
               i64.const 1
-              local.set 10   ; $k_48
-              local.get 4   ; __for_i_2
-              local.get 10   ; $k_48
               i64.add
-              local.set 4   ; __for_i_2
-              br $L1
+              local.set 6   ; __for_i_5
+              br $L4
             end $L5
-            return
           end $L4
         end $L3
-        i64.const 1
-        local.set 10   ; $k_48
         local.get 4   ; __for_i_2
-        local.get 10   ; $k_48
+        i64.const 1
         i64.add
         local.set 4   ; __for_i_2
         br $L1

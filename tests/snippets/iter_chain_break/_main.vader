@@ -1,16 +1,12 @@
 // `break` out of a for-in over a MULTI-SOURCE combinator (`chain`).
 //
 // Fusion is push: each `yield` site gets its own copy of the consumer body, and
-// `chain` has one loop per source. A `break` therefore left only the loop holding
-// that copy and the second source ran anyway — this summed 61 (1 + 10 + 20 + 30)
-// where the lazy iterator path stops at 1. Labelled `break <var>` was wrong the
-// same way, the label landing on both emitted loops.
-//
-// So a chain whose body can break declines fusion and runs lazily. What this
-// snippet pins is both halves of that: the RESULTS below, and — through the lower
-// / bytecode snapshots — that only the breaking chain declines. A chain with no
-// break, and any single-source combinator (map / filter / …) with one, must stay
-// fused.
+// `chain` has one loop per source. A `break` lowered as written leaves only the
+// loop holding that copy, and the second source runs anyway — 61 (1 + 10 + 20 +
+// 30) where the lazy iterator stops at 1 ; a labelled `break <var>` reaches only
+// the loop carrying the label, and fails the same way. So such a `break` leaves
+// the block around the whole `chain` instead. A `continue` is right as written:
+// advancing the current source is what it means.
 
 module "snippet"
 
@@ -61,14 +57,14 @@ main :: fn() -> i32 {
     }
     println("continue=${kept} want=44")
 
-    // No break: stays fused.
+    // No break: no block around the chain.
     whole := 0
     for x in a.chain(b) {
         whole += x
     }
     println("no break=${whole} want=66")
 
-    // Single-source combinator with a break: stays fused, and correct.
+    // A single-source combinator: the `break` lands on its one loop, as written.
     mapped := 0
     for x in a.map(v -> v * 10) {
         if x == 30 {
@@ -78,7 +74,7 @@ main :: fn() -> i32 {
     }
     println("map+break=${mapped} want=30")
 
-    // A break in a NESTED loop targets that loop, so the chain still fuses.
+    // A break in a NESTED loop targets that loop: the chain needs no block.
     nested := 0
     for x in a.chain(b) {
         for y in a {

@@ -1632,8 +1632,6 @@ fn 18 snippet$break_outer_loop_named_like_generator_loop () -> void
   local $call_50 string
   local __iter_4 any
   local $call_91 string
-  local $k_97 string
-  local $k_98 string
   string.const 0   ; ""
   local.set 0   ; fused
   i32.const 0
@@ -1854,20 +1852,9 @@ fn 18 snippet$break_outer_loop_named_like_generator_loop () -> void
             i32.const 1
             i32.eq
             if $L18 void
-            else
-              br $L16
+              br $L14
             end $L18
-            string.const 20   ; "break i:"
-            local.set 16   ; $k_97
-            string.const 3   ; " |"
-            local.set 17   ; $k_98
-            local.get 16   ; $k_97
-            local.get 0   ; fused
-            local.get 17   ; $k_98
-            local.get 13   ; $call_50
-            call 28   ; concat_4
-            call 52   ; std_io$println__string
-            return
+            br $L16
           end $L16
         end $L15
         i32.const 1
@@ -1881,12 +1868,8 @@ fn 18 snippet$break_outer_loop_named_like_generator_loop () -> void
     end $L13
   end $L12
   string.const 20   ; "break i:"
-  local.set 16   ; $k_97
-  string.const 3   ; " |"
-  local.set 17   ; $k_98
-  local.get 16   ; $k_97
   local.get 0   ; fused
-  local.get 17   ; $k_98
+  string.const 3   ; " |"
   local.get 13   ; $call_50
   call 28   ; concat_4
   call 52   ; std_io$println__string

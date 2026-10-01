@@ -366,11 +366,9 @@ const C_PARITY = new Set<string>([
   "fusion_generic_generator_nested",
   // A generator's `return` leaves the block around its inlined body.
   "fusion_generator_return",
-  // The fusion defects, pinned wrong. Only those whose VM and native runs agree:
-  // where the VM traps, the native run goes its own way — a mistyped slot read,
-  // a crash — and that is no output to pin.
-  "_diag_fusion_break",
-  "_diag_fusion_continue",
+  // A consumer's `break` leaves the inlined instances, its `continue` resumes them.
+  "fusion_consumer_break",
+  "fusion_consumer_continue",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

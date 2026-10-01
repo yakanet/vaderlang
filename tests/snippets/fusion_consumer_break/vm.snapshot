@@ -1,0 +1,17 @@
+# stdout
+flat_map.find: 11 | 11
+chain.find: 2 | 2
+flat_map + break, visits: 2 | 2
+flat_map.take(1), calls: 1 | 1
+two yields + break, visits: 1 | 1
+loop then tail yield + break: 0 | 0
+generator of generator, fused:
+  inner resumed after 0
+generator of generator, lazy:
+  inner resumed after 0
+chain + break, sum: 1 | 1
+chain + break x from an inner loop: 30 | 30
+flat_map, then take(2) inside, break a: 10:7 10:8 | 10:7 10:8
+two yields + break v from an inner loop: 2 | 2
+# exit
+0

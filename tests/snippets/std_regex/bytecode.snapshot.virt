@@ -2321,21 +2321,6 @@ fn 24 regex$expand_replacement (ref,ref,ref) -> void
             local.set 4   ; i
             br $L1
           end $L6
-          local.get 1   ; arg 1
-          local.get 4   ; i
-          call 48   ; std_string$utf8_decode_len
-          local.set 14   ; $call_elem_46
-          local.set 12   ; c
-          local.get 14   ; $call_elem_46
-          local.set 13   ; w
-          local.get 0   ; arg 0
-          local.get 12   ; c
-          call 52   ; std_string_builder$append_char
-          local.get 4   ; i
-          local.get 13   ; w
-          i64.add
-          local.set 4   ; i
-          br $L1
         end $L4
         local.get 1   ; arg 1
         local.get 4   ; i

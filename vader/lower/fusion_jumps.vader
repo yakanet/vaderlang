@@ -1,0 +1,311 @@
+// vader/lower/fusion_jumps — the jumps out of a loop body a fusion splices.
+//
+// A fused loop keeps no loop of its own: its body is spliced into its producer's
+// code — at each `yield` of an inlined generator, into the counter loop of a
+// range or array bottom. A `break` or `continue` written for that loop lands on
+// whichever loop of the producer's code encloses the splice, and that is the
+// right one only for some producers. Everywhere else the jump is redirected
+// while the body is lowered: a `break` leaves the producer's instance (its exit
+// block, `gen_instance.vader`), and a `continue` leaves the body spliced at this
+// `yield` (its resume block), so the producer goes on from the `yield`.
+//
+// A jump that already lands right is lowered as written, so a chain whose
+// stages hold no loop and run nothing after their `yield` keeps its loops as
+// they are.
+
+module "vader/lower"
+
+AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/typecheck"
+
+// ---- frames -----------------------------------------------------------------
+
+/// A loop whose body is being lowered for splicing into its producer's code.
+export JumpFrame :: struct {
+    /// The loop's `ForStmt.id`, in the module the body is lowered from.
+    loop_id:        usize
+    /// The instance a `break` of the loop leaves; null when a `break` lands
+    /// right as written.
+    exit:           GenInstance! | null
+    /// True when a `continue` of the loop lands right as written.
+    continue_lands: bool
+    /// The label of the block a redirected `continue` leaves: minted with the
+    /// first one, null while there is none.
+    resume:         string | null = null
+}
+
+/// The frame of loop `loop_id`, whose body is spliced into `chain`'s code.
+///
+/// @param loop_id  the consuming loop's `ForStmt.id`.
+/// @param chain    the chain the loop consumes.
+chain_jump_frame :: fn(loop_id: usize, chain: IterChain) -> JumpFrame! {
+    landing :: chain_landing(chain)
+    return JumpFrame {
+        .loop_id = loop_id,
+        .exit = if landing.breaks { null } else { producer_instance(chain) },
+        .continue_lands = landing.continues,
+    }
+}
+
+/// The innermost frame of `ctx`, taken off once the loop body it was pushed for
+/// is lowered.
+///
+/// @param ctx  the context the frame was pushed on.
+pop_jump_frame :: fn(ctx: FnLowerCtx!) -> JumpFrame =
+    ctx.jump_frames.remove_last() ?? panic("a jump frame popped where none was pushed")
+
+/// `body`, the loop body lowered under `frame`: inside its resume block when a
+/// `continue` leaves it, as it is otherwise.
+///
+/// @param frame  the frame the body was lowered under, popped.
+/// @param body   the loop body.
+resumable_body :: fn(frame: JumpFrame, body: LoweredBlock) -> LoweredBlock {
+    label :: frame.resume ?? return body
+    return arm_block([labelled_block(label, body.span, block_stmts_with_trailing(body))], body.span)
+}
+
+/// The jump a `break` (`is_break`) or `continue` of a spliced loop body lowers
+/// to, or null when it lands right as written — every jump not written for a
+/// loop of the frame stack among them.
+///
+/// @param ctx      the context lowering the jump.
+/// @param jump_id  the jump's node id, which the typecheck resolved to its loop.
+/// @param span     the jump's span.
+spliced_jump :: fn(
+    ctx: FnLowerCtx!, jump_id: usize, is_break: bool, span: Span,
+) -> LoweredStmt | null {
+    target :: ctx.typed.jump_targets[jump_id] ?? return null
+    frame :: frame_of(ctx, target) ?? return null
+    if is_break {
+        exit :: frame.exit ?? return null
+        return leave_instance(exit, span)
+    }
+    if frame.continue_lands {
+        return null
+    }
+    return LoweredBreak { .span = span, .label = resume_label(ctx, frame) }
+}
+
+frame_of :: fn(ctx: FnLowerCtx, loop_id: usize) -> JumpFrame! | null {
+    i := ctx.jump_frames.len()
+    for i > 0 {
+        i -= 1
+        if ctx.jump_frames[i].loop_id == loop_id {
+            return ctx.jump_frames[i]
+        }
+    }
+    return null
+}
+
+// A `$`-led label, out of reach of every label `instance_label` derives from a
+// source one.
+resume_label :: fn(ctx: FnLowerCtx!, frame: JumpFrame!) -> string {
+    minted :: frame.resume
+    if minted != null {
+        return minted
+    }
+    label :: r"$resume" + "${-next_synthetic_id(ctx)}"
+    frame.resume = label
+    return label
+}
+
+// ---- where a spliced jump lands ---------------------------------------------
+
+/// The `break` by which a terminal's loop body leaves `chain`'s loops.
+///
+/// @param chain  the chain the terminal consumes.
+/// @param span   the jump's span.
+chain_break :: fn(chain: IterChain, span: Span) -> LoweredStmt {
+    if !chain_landing(chain).breaks {
+        exit :: producer_instance(chain)
+        if exit != null {
+            return leave_instance(exit, span)
+        }
+    }
+    return LoweredBreak { .span = span, .label = null }
+}
+
+// The instance whose code `chain` emits; null for a range, an array or an
+// opaque iterator.
+producer_instance :: fn(chain: IterChain) -> GenInstance! | null {
+    layer :: chain.gen_layer ?? return null
+    return layer.instance
+}
+
+// Whether a jump spliced into a chain's code lands right as written — a
+// `break` when one loop runs around the splice and nothing after it, a
+// `continue` when nothing runs between the splice and that loop's step. Where
+// either does, the loops around the splice are bottom loops, which carry the
+// consuming loop's label: a named jump lands where a bare one does.
+SplicedLanding :: struct {
+    breaks:    bool
+    continues: bool
+}
+
+// A range, an array or an opaque iterator: one loop, and nothing after a turn.
+LANDS_AS_WRITTEN :: SplicedLanding { .breaks = true, .continues = true }
+
+chain_landing :: fn(chain: IterChain) -> SplicedLanding {
+    layer :: chain.gen_layer ?? return LANDS_AS_WRITTEN
+    source :: chain.source ?? return LANDS_AS_WRITTEN
+    placement :: yield_placement(layer.inner)
+    below :: chain_landing(source)
+    continues := placement == .Last && below.continues
+    for extra in layer.extra_sources {
+        continues = continues
+            && yield_placement(extra.inner) == .Last
+            && chain_landing(extra.source).continues
+    }
+    return SplicedLanding {
+        .breaks = layer.extra_sources.len() == 0 && placement != .Nested && below.breaks,
+        .continues = continues,
+    }
+}
+
+/// Where the `yield`s of a stage's loop body sit, for a jump spliced at one.
+YieldPlacement :: enum {
+    /// Each `yield` ends the iteration: nothing of the body runs after it.
+    Last,
+    /// Some `yield` is followed by more of the body; none sits in a nested loop.
+    Inside,
+    /// Some `yield` sits in a loop nested in the body — or somewhere this walk
+    /// does not follow.
+    Nested,
+}
+
+yield_placement :: fn(body: AST.BlockExpr) -> YieldPlacement = block_placement(body, true)
+
+// `tail` — the block ends the iteration once it is done.
+block_placement :: fn(block: AST.BlockExpr, tail: bool) -> YieldPlacement {
+    placement: YieldPlacement = .Last
+    n :: block.stmts.len()
+    for i in 0..<n {
+        last :: tail && i + 1 == n && block.trailing == null
+        placement = worse_placement(placement, stmt_placement(block.stmts[i], last))
+    }
+    trailing :: block.trailing ?? return placement
+    return worse_placement(placement, expr_placement(trailing, tail))
+}
+
+stmt_placement :: fn(s: AST.Stmt, tail: bool) -> YieldPlacement {
+    if s is AST.YieldStmt {
+        return if tail { .Last } else { .Inside }
+    }
+    if s is AST.ExprStmt {
+        return expr_placement(s.expr, tail)
+    }
+    // A nested loop, or a statement whose `yield` this walk does not follow.
+    return unfollowed_placement(stmt_has_yield(s))
+}
+
+// @partial: a block, an `if` and a `match` are the expressions that place a
+// statement in the iteration's flow; a `yield` in any other one sits where this
+// walk does not follow.
+expr_placement :: fn(e: AST.Expr, tail: bool) -> YieldPlacement = @partial match e {
+    is AST.BlockExpr -> block_placement(e, tail)
+    is AST.IfExpr    -> if_placement(e, tail)
+    is AST.MatchExpr -> arms_placement(e.arms, tail)
+    _                -> unfollowed_placement(expr_has_yield(e))
+}
+
+arms_placement :: fn(arms: AST.MatchArm[], tail: bool) -> YieldPlacement {
+    placement: YieldPlacement = .Last
+    for arm in arms {
+        placement = worse_placement(placement, expr_placement(arm.body, tail))
+    }
+    return placement
+}
+
+if_placement :: fn(e: AST.IfExpr, tail: bool) -> YieldPlacement {
+    then_placement :: block_placement(e.then_block, tail)
+    return match e.else_branch as branch {
+        is null            -> then_placement
+        is AST.IfElseIf    -> worse_placement(then_placement, if_placement(branch.branch, tail))
+        is AST.IfElseBlock -> worse_placement(then_placement, block_placement(branch.block, tail))
+    }
+}
+
+unfollowed_placement :: fn(has_yield: bool) -> YieldPlacement =
+    if has_yield { .Nested } else { .Last }
+
+worse_placement :: fn(a: YieldPlacement, b: YieldPlacement) -> YieldPlacement {
+    if a == .Nested || b == .Nested {
+        return .Nested
+    }
+    if a == .Inside || b == .Inside {
+        return .Inside
+    }
+    return .Last
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/parser"
+
+// The body of the loop the first fn of `source` opens on.
+first_loop_body :: fn(source: string) -> AST.BlockExpr {
+    decl :: parse_source(source, "t.vader").program.decls[0]
+    if decl is AST.FnDecl {
+        body :: decl.body ?? panic("the fn has no body")
+        if body.stmts[0] is AST.ForStmt as loop {
+            return loop.body
+        }
+    }
+    panic("expected a fn whose body opens on a loop")
+}
+
+@test
+test_yield_placement_ends_the_body :: fn() -> void {
+    body :: first_loop_body("""
+map :: fn(s: Iterator<i32>) -> Iterator<i32> { for x in s { yield x + 1 } }
+""")
+    assert(yield_placement(body) == .Last, "a lone yield ends the body")
+}
+
+@test
+test_yield_placement_ends_an_if_arm :: fn() -> void {
+    body :: first_loop_body("""
+filter :: fn(s: Iterator<i32>) -> Iterator<i32> { for x in s { if x > 0 { yield x } } }
+""")
+    assert(yield_placement(body) == .Last, "the arm ends the body")
+}
+
+@test
+test_yield_placement_followed_by_more :: fn() -> void {
+    body :: first_loop_body("""
+echo :: fn(s: Iterator<i32>) -> Iterator<i32> {
+    for x in s {
+        yield x
+        println("after")
+    }
+}
+""")
+    assert(yield_placement(body) == .Inside, "the body runs on after the yield")
+}
+
+@test
+test_yield_placement_in_one_arm_followed_by_more :: fn() -> void {
+    body :: first_loop_body("""
+g :: fn(s: Iterator<i32>) -> Iterator<i32> {
+    for x in s {
+        if x > 0 {
+            yield x
+        } else {
+            yield 0
+            println("after")
+        }
+    }
+}
+""")
+    assert(yield_placement(body) == .Inside, "the else arm runs code after its yield")
+}
+
+@test
+test_yield_placement_in_a_nested_loop :: fn() -> void {
+    body :: first_loop_body("""
+flat_map :: fn(s: Iterator<i32>) -> Iterator<i32> { for x in s { for y in 0..<x { yield y } } }
+""")
+    assert(yield_placement(body) == .Nested, "the yield sits in a nested loop")
+}

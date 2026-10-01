@@ -1139,14 +1139,20 @@ scope_contains_target :: fn(ctx: FnEmitCfg, target: BlockId) -> bool {
 /// the same exposure unguarded).
 cond_branch_merge :: fn(ctx: FnEmitCfg, block_id: BlockId, t: TermCondBranch, until: BlockId) -> BlockId {
     post :: ctx.ipostdom[usize(block_id)]
-    if post >= 0 {
+    // A post-dominator an open scope already targets, other than the region's
+    // own end, lies past that end: an arm `br`s out to it — `break outer`, a
+    // `break` leaving a labelled block — and the other arm reaches it only through
+    // the region's end. As the merge, the emission would carry on past the end
+    // from inside the region, copying everything after it in.
+    if post >= 0 && (BlockId(post) == until || !scope_contains_target(ctx, BlockId(post))) {
         if ctx.wrapped_loop_headers.contains(post) { return BlockId(-1) }
         return BlockId(post)
     }
-    // Post-dominance gave up : an arm reaches the synthetic exit, which then
-    // post-dominates the branch and hides the join. Fall back to the one the
-    // builder recorded. Without it the merge degrades to `until`, both arms walk
-    // past the join, and the continuation is emitted once PER ARM.
+    // Post-dominance gave up — an arm reaches the synthetic exit, which then
+    // post-dominates the branch and hides the join — or answered past the
+    // region's end. Fall back to the one the builder recorded. Without it the
+    // merge degrades to `until`, both arms walk past the join, and the
+    // continuation is emitted once PER ARM.
     recorded :: i32(t.join)
     if recorded >= 0 {
         if recorded >= i32(ctx.fn_.blocks.len()) || recorded == i32(block_id) {

@@ -1,16 +1,13 @@
-// _diag_fusion_break — a `break` in the consumer must abandon every inlined
-// instance: `flat_map` and `chain` under `find`, `flat_map` under `break` and
-// `take`, user generators with two `yield`s, a tail `yield`, a generator of a
-// generator.
+// fusion_consumer_break — a `break` in the consumer abandons every inlined
+// instance: `flat_map` and `chain` under `find`, `flat_map` and `chain` under a
+// `break`, `take`'s own `break` over `flat_map`, user generators with two
+// `yield`s, a tail `yield`, a generator of a generator — and `break <var>` from an
+// inner loop, out of `chain`, out of a user generator, and out of a fused loop
+// around another one.
 //
-// THE COMMITTED OUTPUT IS WRONG. Each line prints the chain consumed where it is
-// written (fused), then the same chain bound to a local first (lazy: it runs as
-// a state machine and is the reference). The two halves should agree. A line
-// whose halves already agree pins a case a fix must not break.
-//
-// Where the consumer loop is itself a jump target, a user generator is not
-// inlined today: those lines compare the lazy form with itself, and pin what
-// the inlining has to keep once it handles jumps.
+// Each line prints the chain consumed where it is written (fused), then the same
+// chain bound to a local first (lazy: it runs as a state machine and is the
+// reference). The two halves agree.
 
 module "snippet"
 
@@ -154,6 +151,95 @@ generator_of_generator :: fn() -> void {
     }
 }
 
+chain_break :: fn() -> void {
+    fused := 0
+    for x in [1, 2].chain([3, 4]) {
+        if x == 2 {
+            break
+        }
+        fused += x
+    }
+    lazy := 0
+    it :: [1, 2].chain([3, 4])
+    for x in it {
+        if x == 2 {
+            break
+        }
+        lazy += x
+    }
+    println("chain + break, sum: ${fused} | ${lazy}")
+}
+
+chain_break_by_name :: fn() -> void {
+    fused := 0
+    for x in [1, 2].chain([3, 4]) {
+        for y in [10, 20] {
+            if x == 2 {
+                break x
+            }
+            fused += y
+        }
+    }
+    lazy := 0
+    it :: [1, 2].chain([3, 4])
+    for x in it {
+        for y in [10, 20] {
+            if x == 2 {
+                break x
+            }
+            lazy += y
+        }
+    }
+    println("chain + break x from an inner loop: ${fused} | ${lazy}")
+}
+
+nested_break_outer :: fn() -> void {
+    fused := ""
+    for a in [1, 2, 3].flat_map(spread) {
+        for b in [7, 8, 9].take(2) {
+            if a == 11 {
+                break a
+            }
+            fused = fused + " ${a}:${b}"
+        }
+    }
+    lazy := ""
+    outer :: [1, 2, 3].flat_map(spread)
+    for a in outer {
+        inner :: [7, 8, 9].take(2)
+        for b in inner {
+            if a == 11 {
+                break a
+            }
+            lazy = lazy + " ${a}:${b}"
+        }
+    }
+    println("flat_map, then take(2) inside, break a:${fused} |${lazy}")
+}
+
+generator_break_by_name :: fn() -> void {
+    fused := 0
+    for v in pairs([1, 2], [3, 4]) {
+        for w in [0, 1] {
+            if v == 3 {
+                break v
+            }
+            fused += 1
+        }
+    }
+    lazy := 0
+    it :: pairs([1, 2], [3, 4])
+    for v in it {
+        for w in [0, 1] {
+            if v == 3 {
+                break v
+            }
+            lazy += 1
+        }
+    }
+    println("two yields + break v from an inner loop: ${fused} | ${lazy}")
+}
+
 main :: fn() -> i32 {
     flat_map_find()
     chain_find()
@@ -162,5 +248,9 @@ main :: fn() -> i32 {
     two_yields_break()
     tail_yield_break()
     generator_of_generator()
+    chain_break()
+    chain_break_by_name()
+    nested_break_outer()
+    generator_break_by_name()
     return 0
 }

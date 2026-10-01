@@ -510,7 +510,6 @@ fn 8 snippet$continue_outer () -> void
   local __off_1 usize
   local $cast_26 i64
   local $cast_30 i64
-  local $k_35 i32
   i32.const 0
   local.set 0   ; rounds
   i32.const 0
@@ -538,74 +537,63 @@ fn 8 snippet$continue_outer () -> void
               if $L6 void
                 string.const 10   ; "outer: runaway"
                 call 36   ; std_io$println__string
-              else
-                local.get 2   ; j
-                i32.const 1
-                i32.eq
-                if $L7 void
-                  local.get 1   ; i
-                  i32.const 1
-                  i32.add
-                  local.set 1   ; i
-                  br $L1
-                end $L7
-                i64.const 47
-                call 21   ; std_core$new_byte_buffer
-                local.set 3   ; __buf_0
-                i64.const 0
-                local.set 4   ; __off_1
-                local.get 3   ; __buf_0
-                local.get 4   ; __off_1
-                string.const 11   ; "outer "
-                call 23   ; std_core$write_string_at
-                local.set 4   ; __off_1
+                br $L2
+              end $L6
+              local.get 2   ; j
+              i32.const 1
+              i32.eq
+              if $L7 void
                 local.get 1   ; i
-                i32.to_i64
-                local.set 5   ; $cast_26
-                local.get 3   ; __buf_0
-                local.get 4   ; __off_1
-                local.get 5   ; $cast_26
-                call 24   ; std_core$write_int
-                local.set 4   ; __off_1
-                local.get 3   ; __buf_0
-                local.get 4   ; __off_1
-                string.const 12   ; ","
-                call 23   ; std_core$write_string_at
-                local.set 4   ; __off_1
-                local.get 2   ; j
-                i32.to_i64
-                local.set 6   ; $cast_30
-                local.get 3   ; __buf_0
-                local.get 4   ; __off_1
-                local.get 6   ; $cast_30
-                call 24   ; std_core$write_int
-                local.set 4   ; __off_1
-                local.get 3   ; __buf_0
-                local.get 4   ; __off_1
-                call 22   ; std_core$finish_buffer
-                call 36   ; std_io$println__string
-                local.get 2   ; j
                 i32.const 1
                 i32.add
-                local.set 2   ; j
-                br $L4
-              end $L6
-            else
-              i32.const 1
-              local.set 7   ; $k_35
+                local.set 1   ; i
+                br $L1
+              end $L7
+              i64.const 47
+              call 21   ; std_core$new_byte_buffer
+              local.set 3   ; __buf_0
+              i64.const 0
+              local.set 4   ; __off_1
+              local.get 3   ; __buf_0
+              local.get 4   ; __off_1
+              string.const 11   ; "outer "
+              call 23   ; std_core$write_string_at
+              local.set 4   ; __off_1
               local.get 1   ; i
-              local.get 7   ; $k_35
+              i32.to_i64
+              local.set 5   ; $cast_26
+              local.get 3   ; __buf_0
+              local.get 4   ; __off_1
+              local.get 5   ; $cast_26
+              call 24   ; std_core$write_int
+              local.set 4   ; __off_1
+              local.get 3   ; __buf_0
+              local.get 4   ; __off_1
+              string.const 12   ; ","
+              call 23   ; std_core$write_string_at
+              local.set 4   ; __off_1
+              local.get 2   ; j
+              i32.to_i64
+              local.set 6   ; $cast_30
+              local.get 3   ; __buf_0
+              local.get 4   ; __off_1
+              local.get 6   ; $cast_30
+              call 24   ; std_core$write_int
+              local.set 4   ; __off_1
+              local.get 3   ; __buf_0
+              local.get 4   ; __off_1
+              call 22   ; std_core$finish_buffer
+              call 36   ; std_io$println__string
+              local.get 2   ; j
+              i32.const 1
               i32.add
-              local.set 1   ; i
-              br $L1
+              local.set 2   ; j
+              br $L4
             end $L5
-            return
           end $L4
         end $L3
-        i32.const 1
-        local.set 7   ; $k_35
         local.get 1   ; i
-        local.get 7   ; $k_35
+        i32.const 1
         i32.add
         local.set 1   ; i
         br $L1

@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/_diag_fusion_break
+## tests/snippets/fusion_consumer_break
 
 ## generic instances
   __genstate_pairs<i32>

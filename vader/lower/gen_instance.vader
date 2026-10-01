@@ -35,6 +35,9 @@ export GenInstance :: struct {
     clones:       MutableMap<i32, Symbol>
     /// Appended to every loop and jump label the instance lowers.
     label_suffix: string
+    /// True once a lowered jump leaves the instance (`leave_instance`): the
+    /// emitter then puts the instance inside the block that jump leaves.
+    exited:       bool = false
 }
 
 /// A fresh instance of `generator`, declared by `decl` in `owner`: every binding
@@ -49,7 +52,7 @@ export GenInstance :: struct {
 ///                   inlining it again from inside its own body would never end.
 new_gen_instance :: fn(
     project: LowerProjectCtx!, generator: Symbol, decl: AST.FnDecl, owner: TypedProgram,
-) -> GenInstance | null {
+) -> GenInstance! | null {
     if generator.id in project.inlining_generators {
         return null
     }
@@ -173,34 +176,37 @@ origin_symbol_id :: fn(project: LowerProjectCtx, symbol: Symbol) -> i32 =
 // source one, `exit:` included.
 instance_exit_label :: fn(instance: GenInstance) -> string = r"$exit" + instance.label_suffix
 
-/// A `return` written in the generator `instance` inlines: a `break` out of the
-/// instance, recorded so the emitter puts the block it leaves around it.
+/// A `break` out of everything `instance` emits — what a `return` of the
+/// generator means, and a `break` of the loop consuming it — recorded so the
+/// emitter puts the block it leaves around the instance.
 ///
-/// @param ctx       the fn-body context lowering the instance.
-/// @param instance  the instance the `return` belongs to.
-/// @param span      the `return`'s span.
-leave_instance :: fn(ctx: FnLowerCtx!, instance: GenInstance, span: Span) -> LoweredStmt {
-    label :: instance_exit_label(instance)
-    ctx.project.exits_taken.add(label)
-    return LoweredBreak { .span = span, .label = label }
+/// @param instance  the instance to leave.
+/// @param span      the jump's span.
+leave_instance :: fn(instance: GenInstance!, span: Span) -> LoweredStmt {
+    instance.exited = true
+    return LoweredBreak { .span = span, .label = instance_exit_label(instance) }
 }
 
-/// `stmts`, everything `instance` emits, inside the block a `return` of the
-/// generator leaves — or as they are when none does.
+/// `stmts`, everything `instance` emits, inside the block a jump out of the
+/// instance leaves — or as they are when none does.
 ///
-/// @param ctx       the fn-body context.
 /// @param instance  the inlined instance.
 /// @param span      span of the block when one is built.
 /// @param stmts     the instance's emitted statements.
-wrap_instance_exit :: fn(
-    ctx: FnLowerCtx, instance: GenInstance, span: Span, stmts: LoweredStmt[],
-) -> LoweredStmt[] {
-    label :: instance_exit_label(instance)
-    if !(label in ctx.project.exits_taken) {
+wrap_instance_exit :: fn(instance: GenInstance, span: Span, stmts: LoweredStmt[]) -> LoweredStmt[] {
+    if !instance.exited {
         return stmts
     }
-    return [LoweredLabelledBlock { .span = span, .label = label, .body = arm_block(stmts, span) }]
+    return [labelled_block(instance_exit_label(instance), span, stmts)]
 }
+
+/// `stmts` inside a block a `break <label>` leaves.
+///
+/// @param label  the block's label.
+/// @param span   the block's span.
+/// @param stmts  the block's statements.
+labelled_block :: fn(label: string, span: Span, stmts: LoweredStmt[]) -> LoweredStmt =
+    LoweredLabelledBlock { .span = span, .label = label, .body = arm_block(stmts, span) }
 
 // ---- tests ----------------------------------------------------------------
 

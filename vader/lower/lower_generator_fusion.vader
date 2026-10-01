@@ -34,13 +34,6 @@ export try_lower_generator_inline :: fn(
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
-    // Decline when a `break` / `continue` targets THIS for-in: the inlined form
-    // builds no `LoweredLoop` for it, and a jump spliced in at a `yield` lands in
-    // the generator's innermost loop, if it has one. The boxed state-machine path
-    // keeps the consumer loop the jump needs.
-    if for_stmt.id in ctx.typed.jumped_loops {
-        return null
-    }
     // Direct-ident callee only (Increment 1): `gen(args)`, not `recv.gen(args)`.
     // Both `is` bindings stay live in the inner block, so the worker takes them.
     if in_form.iter is AST.CallExpr as call {
@@ -135,7 +128,13 @@ inline_gen_ident_call :: fn(
     }
 
     lb :: resolve_loop_binding(ctx, in_form.loop_var, for_stmt.span)
-    consumer_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    // A generator body can splice the consumer anywhere: every jump of the
+    // consumer loop is redirected.
+    ctx.jump_frames.push(JumpFrame {
+        .loop_id = for_stmt.id, .exit = instance, .continue_lands = false,
+    })
+    body :: block_lowerer(ctx, for_stmt.body, false, true)
+    consumer_body :: resumable_body(pop_jump_frame(ctx), body)
 
     // Lower the generator body in its OWN fn-ctx — the generator's module +
     // its instance subst — sharing `ctx.project` so synthetic ids don't collide
@@ -157,7 +156,7 @@ inline_gen_ident_call :: fn(
     out: LoweredStmt[]!: []
     out.push_all(param_lets)
     out.push_all(block_stmts_with_trailing(lowered_gen))
-    return wrap_stmts(for_stmt.span, wrap_instance_exit(ctx, instance, for_stmt.span, out))
+    return wrap_stmts(for_stmt.span, wrap_instance_exit(instance, for_stmt.span, out))
 }
 
 // The generator's owning-module typed program: `ctx.typed` when the call is
@@ -224,6 +223,7 @@ subst_from_concrete :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, args: 
 // the extra loops beyond the primary `self` loop in `GenComboLayer.extra_sources`.
 GenSourceBinding :: struct {
     source:  IterChain      // the param's arg chain
+    loop_id: usize          // the loop's `ForStmt.id`, in the generator's module
     loopvar: Symbol         // the loop's binding variable
     inner:   AST.BlockExpr  // the loop body (contains the yield)
     prelude: AST.Stmt[]     // counter `let`s ahead of this loop (take/skip/enumerate)
@@ -234,12 +234,13 @@ GenComboLayer :: struct {
     decl:        AST.FnDecl      // the generator combinator
     subst:       Substitution    // its instance substitution
     owner:       TypedProgram    // the module the generator is defined in
+    loop_id:     usize           // the primary loop's `ForStmt.id`, in `owner`
     loopvar:     Symbol          // the body's primary `for <loopvar> in self` variable
     inner:       AST.BlockExpr   // the primary for-loop body (contains the yield)
     arg_sym:     Symbol | null   // the single non-self DATA param's symbol (map's `f`) ; null for a 0-arg combinator (`enumerate`) or when the non-self param is itself a source (`chain`)
     arg_expr:    AST.Expr | null // the call's non-self DATA argument (map's `f`, …) ; null as above
     output_elem: Type            // the combinator's yielded element type
-    instance:    GenInstance     // the names this layer's body lowers under
+    instance:    GenInstance!    // the names this layer's body lowers under
     prelude:     AST.Stmt[]      // counter `let`s ahead of the primary source loop (take/skip/enumerate)
     // Additional source loops beyond the primary `self` loop, in body order —
     // one per extra source param (`chain`'s `other`). Empty for every single-
@@ -288,6 +289,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
         ) ?? return null
         extra_sources.push(GenSourceBinding {
             .source = other_src,
+            .loop_id = param1_loop.loop_id,
             .loopvar = other_loopvar,
             .inner = param1_loop.inner,
             .prelude = param1_loop.prelude,
@@ -321,7 +323,8 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
     cloned_arg :: if arg_sym is Symbol { clone_of(instance, arg_sym) } else { null }
     return mk_generator_chain(source, GenComboLayer {
         .decl = decl, .subst = subst_opt, .owner = owner,
-        .loopvar = clone_of(instance, primary_loopvar), .inner = primary.inner,
+        .loop_id = primary.loop_id, .loopvar = clone_of(instance, primary_loopvar),
+        .inner = primary.inner,
         .arg_sym = cloned_arg, .arg_expr = data_arg, .output_elem = output_elem,
         .prelude = primary.prelude, .extra_sources = cloned_extras, .instance = instance,
     }, call.span)
@@ -343,7 +346,13 @@ combinator_arg_sym :: fn(ctx: FnLowerCtx!, decl: AST.FnDecl, owner: TypedProgram
 // One source loop of a generator combinator body, tagged with the PARAM it
 // iterates. `prelude` is the run of non-loop statements ahead of it — a leading
 // counter `let` for `take`/`skip`/`enumerate` (`i: usize = 0`), empty otherwise.
-GenSourceLoop :: struct { param_index: usize, loopvar_span: Span, inner: AST.BlockExpr, prelude: AST.Stmt[] }
+GenSourceLoop :: struct {
+    param_index:  usize
+    loop_id:      usize
+    loopvar_span: Span
+    inner:        AST.BlockExpr
+    prelude:      AST.Stmt[]
+}
 
 // Split a generator combinator body into its ordered source loops. Each top-level
 // `for <lv> in <param_k> { <inner> }` statement is a source loop over param k ;
@@ -360,10 +369,7 @@ extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
     for stmt in body.stmts {
         matched :: match_source_loop(stmt, decl)
         if matched is GenSourceLoop {
-            loops.push(GenSourceLoop {
-                .param_index = matched.param_index, .loopvar_span = matched.loopvar_span,
-                .inner = matched.inner, .prelude = pending,
-            })
+            loops.push(GenSourceLoop { ...matched, .prelude = pending })
             pending = []
         } else {
             // A prelude runs once, outside every source loop: a `yield` there would
@@ -389,7 +395,13 @@ match_source_loop :: fn(stmt: AST.Stmt, decl: AST.FnDecl) -> GenSourceLoop | nul
             if inf.iter is AST.IdentExpr as it {
                 for i in 0..<decl.params.len() {
                     if decl.params[i].name == it.name {
-                        return GenSourceLoop { .param_index = i, .loopvar_span = loop_var_span(inf.loop_var, stmt.span), .inner = stmt.body, .prelude = [] }
+                        return GenSourceLoop {
+                            .param_index = i,
+                            .loop_id = stmt.id,
+                            .loopvar_span = loop_var_span(inf.loop_var, stmt.span),
+                            .inner = stmt.body,
+                            .prelude = [],
+                        }
                     }
                 }
             }
@@ -503,7 +515,10 @@ emit_fused_gen_combinator :: fn(
     out: LoweredStmt[]!: []
     // The primary `self` loop, then each extra source loop (chain's `other`), fused
     // in body order — all binding into the shared sink.
-    primary_binding :: GenSourceBinding { .source = src, .loopvar = layer.loopvar, .inner = layer.inner, .prelude = layer.prelude }
+    primary_binding :: GenSourceBinding {
+        .source = src, .loop_id = layer.loop_id, .loopvar = layer.loopvar,
+        .inner = layer.inner, .prelude = layer.prelude,
+    }
     // The source chain emits inside this window and may hold another layer of the
     // same generator: the id leaves with the frame that put it there.
     entered :: ctx.project.inlining_generators.add(layer.instance.generator_id)
@@ -514,7 +529,7 @@ emit_fused_gen_combinator :: fn(
     if entered {
         ctx.project.inlining_generators.remove(layer.instance.generator_id)
     }
-    return wrap_instance_exit(ctx, layer.instance, chain.span, out)
+    return wrap_instance_exit(layer.instance, chain.span, out)
 }
 
 // Fuse one source loop of a generator combinator: lower its inner body in the
@@ -525,13 +540,17 @@ fuse_source_loop :: fn(
     ctx: FnLowerCtx!, gen_ctx: FnLowerCtx!, binding: GenSourceBinding, loop_label: string | null,
     outer_span: Span, span: Span, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] {
+    // The loop over the source is the source's consumer: its own jumps land in
+    // the source's code.
+    gen_ctx.jump_frames.push(chain_jump_frame(binding.loop_id, binding.source))
     inner_lowered :: recurse(gen_ctx, binding.inner)
+    frame :: pop_jump_frame(gen_ctx)
     if inner_lowered is LoweredBlock {
         inner_template :: BodyTemplate {
             .binding_name = binding.loopvar.name,
             .binding_symbol = binding.loopvar,
             .element_type = chain_element_type(binding.source),
-            .user_body = inner_lowered,
+            .user_body = resumable_body(frame, inner_lowered),
         }
         source_stmts :: emit_fused_chain(ctx, binding.source, loop_label, outer_span, inner_template, recurse)
         out: LoweredStmt[]!: []

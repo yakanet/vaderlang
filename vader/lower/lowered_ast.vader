@@ -263,8 +263,9 @@ export LoweredAwait :: struct {
 }
 
 /// A block that a `break <label>` leaves early, where the lowering has to jump
-/// out of code that is not a loop — past everything an inlined generator emits.
-/// It is not a loop: no `continue` targets it, and no analysis may take it for one.
+/// out of code that is not a loop — past everything an inlined generator emits,
+/// or past the rest of a loop body spliced into one. It is not a loop: no
+/// `continue` targets it, and no analysis may take it for one.
 export LoweredLabelledBlock :: struct {
     span:  Span
     label: string

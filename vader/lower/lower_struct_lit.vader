@@ -203,6 +203,7 @@ ctx_in_owning_module :: fn(ctx: FnLowerCtx!, module_id: string, decl: StructDecl
         .types = make_entry_types(owner_typed, merged),
         .subst = merged,
         .instance = null,
+        .jump_frames = [],
     }
 }
 

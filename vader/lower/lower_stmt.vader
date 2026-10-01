@@ -167,7 +167,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
             // In an inlined generator, `return` ends the generator: it leaves the
             // instance, not the function the instance is inlined into.
             if ctx.instance is GenInstance as instance {
-                out.push(leave_instance(ctx, instance, stmt.span))
+                out.push(leave_instance(instance, stmt.span))
                 return
             }
             // Drain every pending defer in the enclosing scopes BEFORE
@@ -221,9 +221,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
         is BreakStmt             -> {
             drain: LoweredStmt[]!: []
             drain_defers_to_loop(ctx, stmt.span, drain)
-            exit :: LoweredBreak {
-                .span = stmt.span, .label = lowered_jump_label(ctx, stmt.id, stmt.label),
-            }
+            exit :: lower_jump(ctx, stmt.id, stmt.label, true, stmt.span)
             if drain.len() > 0 {
                 drain.push(exit)
                 out.push(wrap_stmts(stmt.span, drain))
@@ -234,9 +232,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
         is ContinueStmt          -> {
             drain: LoweredStmt[]!: []
             drain_defers_to_loop(ctx, stmt.span, drain)
-            exit :: LoweredContinue {
-                .span = stmt.span, .label = lowered_jump_label(ctx, stmt.id, stmt.label),
-            }
+            exit :: lower_jump(ctx, stmt.id, stmt.label, false, stmt.span)
             if drain.len() > 0 {
                 drain.push(exit)
                 out.push(wrap_stmts(stmt.span, drain))
@@ -436,9 +432,22 @@ drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]!) -> void
     }
 }
 
-// Sum defers from the innermost block up to (but not including) the
-// nearest enclosing loop body — break/continue exit only the loop
-// scope, not the fn.
+// A `break` (`is_break`) or a `continue`, as written — unless it leaves a body a
+// fusion splices into a producer's code, where it may have to land elsewhere.
+lower_jump :: fn(
+    ctx: FnLowerCtx!, jump_id: usize, written: string | null, is_break: bool, span: Span,
+) -> LoweredStmt {
+    spliced :: spliced_jump(ctx, jump_id, is_break, span)
+    if spliced != null {
+        return spliced
+    }
+    label :: lowered_jump_label(ctx, jump_id, written)
+    if is_break {
+        return LoweredBreak { .span = span, .label = label }
+    }
+    return LoweredContinue { .span = span, .label = label }
+}
+
 // The label a jump is lowered under: the one it wrote, unless it names a labelled
 // loop by its iteration variable — that loop is lowered under its label.
 lowered_jump_label :: fn(ctx: FnLowerCtx, jump_id: usize, written: string | null) -> string | null {
@@ -446,6 +455,9 @@ lowered_jump_label :: fn(ctx: FnLowerCtx, jump_id: usize, written: string | null
     return instance_label(ctx, if renamed != null { renamed } else { written })
 }
 
+// Sum defers from the innermost block up to (but not including) the
+// nearest enclosing loop body — break/continue exit only the loop
+// scope, not the fn.
 drain_defers_to_loop :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]!) -> void {
     total: i32 = 0
     i := i64(ctx.blocks.len()) - 1

@@ -1063,7 +1063,6 @@ fn 14 snippet$__genstate_first_odd_above$Iterator$next (ref) -> ref
   local and_res bool
   local $field_61 i32
   local $add_64 i32
-  local $k_68 i32
   block $L0 void
     loop $L1 void
       local.field 0 12 5   ; arg 0.state
@@ -1227,7 +1226,7 @@ fn 14 snippet$__genstate_first_odd_above$Iterator$next (ref) -> ref
                   local.get 0   ; arg 0
                   local.get 15   ; $field_61
                   struct.set 12 3   ; __genstate_first_odd_above.s3
-                  br $L10
+                  br $L12
                 end $L15
                 local.field 0 12 4   ; arg 0.s4
                 ref.cast 1   ; -> i32
@@ -1244,26 +1243,16 @@ fn 14 snippet$__genstate_first_odd_above$Iterator$next (ref) -> ref
           local.field 0 12 3   ; arg 0.s3
           ref.cast 1   ; -> i32
           local.set 7   ; if_res
-          local.get 0   ; arg 0
-          local.get 7   ; if_res
-          struct.set 12 2   ; __genstate_first_odd_above.s2
-          i32.const 4
-          local.set 17   ; $k_68
-          local.get 0   ; arg 0
-          local.get 17   ; $k_68
-          struct.set 12 5   ; __genstate_first_odd_above.state
-          br $L8
+        else
+          i32.const 1
+          i32.neg
+          local.set 7   ; if_res
         end $L9
-        i32.const 1
-        i32.neg
-        local.set 7   ; if_res
         local.get 0   ; arg 0
         local.get 7   ; if_res
         struct.set 12 2   ; __genstate_first_odd_above.s2
-        i32.const 4
-        local.set 17   ; $k_68
         local.get 0   ; arg 0
-        local.get 17   ; $k_68
+        i32.const 4
         struct.set 12 5   ; __genstate_first_odd_above.state
       else
         local.field 0 12 5   ; arg 0.state

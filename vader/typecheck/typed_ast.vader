@@ -496,10 +496,10 @@ export TypedProgram :: struct {
     /// loop's label, which it is lowered under.
     jump_labels: MutableMap<usize, string>
 
-    /// `ForStmt.id` of every loop some `break` / `continue` targets, in any form.
-    /// The generator fusion reads it: it splices the consumer body where no loop
-    /// of the consumer's own remains.
-    jumped_loops: MutableSet<usize>
+    /// Every `break` / `continue` → the `ForStmt.id` of the loop it targets,
+    /// written bare or by name. The fusion reads it: a jump out of a body spliced
+    /// into a producer's code may have to land elsewhere than its loop.
+    jump_targets: MutableMap<usize, usize>
 }
 
 /// One enclosing loop as seen by the loop-jump resolver. `binding` is the
@@ -528,7 +528,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .resolved        = resolved,
     .expr_types      = MutableMap<usize, Type> {},
     .loop_target_labels = MutableMap<usize, string> {},
-    .jumped_loops    = MutableSet<usize> {},
+    .jump_targets    = MutableMap<usize, usize> {},
     .jump_labels     = MutableMap<usize, string> {},
     .into_coercions  = MutableMap<usize, Type> {},
     .local_types     = MutableMap<u64, Type> {},

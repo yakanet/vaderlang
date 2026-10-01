@@ -1386,7 +1386,7 @@ static void* snippet___genstate_stop_at_three_Iterator_next(void* l0) {
 }
 
 static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
-    int32_t l1, l2, l3, l4, l5, l7, l8, l9, l10, l11, l12, l13, l15, l16, l17;
+    int32_t l1, l2, l3, l4, l5, l7, l8, l9, l10, l11, l12, l13, l15, l16;
     uint8_t l6;
     bool l14;
     int32_t t0, t2;
@@ -1506,20 +1506,14 @@ static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 l7 = ((vader_struct___genstate_first_odd_above_t*) l0)->f_s3;
 #line 53 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                ((vader_struct___genstate_first_odd_above_t*) l0)->f_s2 = l7;
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                l17 = INT32_C(4);
-                ((vader_struct___genstate_first_odd_above_t*) l0)->f_state = l17;
-                goto end_89;
+#line 66 "tests/snippets/coroutine_nested_jumps/_main.vader"
+            } else {
+                l7 = -(INT32_C(1));
 #line 53 "tests/snippets/coroutine_nested_jumps/_main.vader"
             }
-#line 66 "tests/snippets/coroutine_nested_jumps/_main.vader"
-            l7 = -(INT32_C(1));
-#line 53 "tests/snippets/coroutine_nested_jumps/_main.vader"
             ((vader_struct___genstate_first_odd_above_t*) l0)->f_s2 = l7;
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
-            l17 = INT32_C(4);
-            ((vader_struct___genstate_first_odd_above_t*) l0)->f_state = l17;
+            ((vader_struct___genstate_first_odd_above_t*) l0)->f_state = INT32_C(4);
         } else {
             t0 = ((vader_struct___genstate_first_odd_above_t*) l0)->f_state;
             if (t0 == INT32_C(6)) {
@@ -1535,7 +1529,7 @@ static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
                 t1 = (void*) _a1_obj;
                 { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
             }
-        } end_89: ;
+        }
         continue;
     }
     l4 = INT32_C(3);

@@ -508,7 +508,7 @@ static int32_t snippet_early_return(void* l0) {
 
 static int32_t snippet_break_outer(int32_t l0) {
     void* l1 = NULL;
-    int32_t l2, l3, l4;
+    int32_t l2, l3;
     size_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
@@ -518,38 +518,24 @@ static int32_t snippet_break_outer(int32_t l0) {
     l1 = (void*) _a0_arr;
 #line 93 "tests/snippets/array_push_cache/_main.vader"
     l2 = INT32_C(0);
-    loop_5: while ((l2 < l0)) {
+    while ((l2 < l0)) {
 #line 94 "tests/snippets/array_push_cache/_main.vader"
         l3 = INT32_C(0);
-        for (;;) {
-            if ((l3 < l0)) {
+        while ((l3 < l0)) {
 #line 95 "tests/snippets/array_push_cache/_main.vader"
-                if (((l2 * l0) + l3) == INT32_C(7)) {
-#line 98 "tests/snippets/array_push_cache/_main.vader"
-                } else {
-                    vader_array_push_i32((vader_array_t*) l1, l3);
-#line 94 "tests/snippets/array_push_cache/_main.vader"
-                    l3 = (l3 + INT32_C(1));
-                    continue;
+            if (((l2 * l0) + l3) == INT32_C(7)) {
+#line 96 "tests/snippets/array_push_cache/_main.vader"
+                goto end_9;
 #line 95 "tests/snippets/array_push_cache/_main.vader"
-                }
-#line 94 "tests/snippets/array_push_cache/_main.vader"
-#line 93 "tests/snippets/array_push_cache/_main.vader"
-            } else {
-                l4 = INT32_C(1);
-                l2 = (l2 + l4);
-                goto loop_5;
-#line 94 "tests/snippets/array_push_cache/_main.vader"
             }
-#line 101 "tests/snippets/array_push_cache/_main.vader"
-            t0 = ((vader_array_t*) l1)->length;
-            { int32_t __vret = ((int32_t) (size_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+#line 98 "tests/snippets/array_push_cache/_main.vader"
+            vader_array_push_i32((vader_array_t*) l1, l3);
 #line 94 "tests/snippets/array_push_cache/_main.vader"
+            l3 = (l3 + INT32_C(1));
         }
 #line 93 "tests/snippets/array_push_cache/_main.vader"
-        l4 = INT32_C(1);
-        l2 = (l2 + l4);
-    }
+        l2 = (l2 + INT32_C(1));
+    } end_9: ;
 #line 101 "tests/snippets/array_push_cache/_main.vader"
     t0 = ((vader_array_t*) l1)->length;
     { int32_t __vret = ((int32_t) (size_t) t0); vader_gc_top = gc_frame.prev; return __vret; }

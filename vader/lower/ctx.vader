@@ -108,9 +108,6 @@ export LowerProjectCtx :: struct {
     /// Instance clone id → the resolver's id for the same binding: the key of
     /// every resolver table indexed by symbol id (`origin_symbol_id`).
     clone_origins:       MutableMap<i32, i32> = MutableMap<i32, i32> {}
-    /// Labels of the blocks a lowered jump already leaves (`leave_instance`): an
-    /// emitter wraps its statements in the block only when one is here.
-    exits_taken:         MutableSet<string> = MutableSet<string> {}
 
     /// `name -> Symbol` from `std/core` (cached once at construction
     /// so trait / struct lookups don't re-walk the module map).
@@ -526,7 +523,12 @@ export FnLowerCtx :: struct {
 
     /// Non-null while lowering the body of an inlined generator instance: the
     /// names that instance lowers under (`gen_instance.vader`).
-    instance:           GenInstance | null = null
+    instance:           GenInstance! | null = null
+
+    /// The loops whose body is being lowered for splicing into a producer's code,
+    /// innermost last (`fusion_jumps.vader`). Each describes one module's loops:
+    /// a context lowering another module's code starts with none.
+    jump_frames:        JumpFrame![]! = []
 }
 
 /// The consumer side of a generator inline (Couche 4, stream-fusion). Installed

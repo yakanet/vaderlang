@@ -328,7 +328,6 @@ fn 7 snippet$break_outer (i32) -> i32
   local row ref
   local i i32
   local j i32
-  local $k_15 i32
   array.new 2 0   ; i32[][]
   local.set 1   ; row
   i32.const 0
@@ -355,35 +354,21 @@ fn 7 snippet$break_outer (i32) -> i32
               i32.const 7
               i32.eq
               if $L6 void
-              else
-                local.get 1   ; row
-                local.get 3   ; j
-                array.push 1   ; i32[]
-                local.get 3   ; j
-                i32.const 1
-                i32.add
-                local.set 3   ; j
-                br $L4
+                br $L2
               end $L6
-            else
+              local.get 1   ; row
+              local.get 3   ; j
+              array.push 1   ; i32[]
+              local.get 3   ; j
               i32.const 1
-              local.set 4   ; $k_15
-              local.get 2   ; i
-              local.get 4   ; $k_15
               i32.add
-              local.set 2   ; i
-              br $L1
+              local.set 3   ; j
+              br $L4
             end $L5
-            local.get 1   ; row
-            array.len
-            usize.to_i32
-            return
           end $L4
         end $L3
-        i32.const 1
-        local.set 4   ; $k_15
         local.get 2   ; i
-        local.get 4   ; $k_15
+        i32.const 1
         i32.add
         local.set 2   ; i
         br $L1

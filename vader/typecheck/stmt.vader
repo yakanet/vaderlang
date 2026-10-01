@@ -329,10 +329,12 @@ export stmt_has_yield :: fn(s: AST.Stmt) -> bool = match s {
     is AST.ContinueStmt          -> { return false }
 }
 
-/// A `yield` can hide inside a block/if/match used in statement position
-/// (`yield` is a statement, so it only appears in a block's stmt list) —
-/// descend the expression forms that carry blocks, skipping lambdas.
-expr_has_yield :: fn(e: AST.Expr) -> bool = match e {
+/// True when `e` holds a `yield` — inside a block / if / match used in statement
+/// position (`yield` is a statement, so it only appears in a block's stmt list),
+/// not inside a lambda.
+///
+/// @param e  the expression to scan.
+export expr_has_yield :: fn(e: AST.Expr) -> bool = match e {
     is AST.BlockExpr -> { return block_has_yield(e) }
     is AST.IfExpr -> { return if_has_yield(e) }
     is AST.MatchExpr -> {
@@ -1814,7 +1816,7 @@ check_loop_jump :: fn(
     // global `loop_stack` survives `if`/`match` nesting, mirroring `loop_depth`.
     if label == null {
         if typed.loop_stack.len() > 0 {
-            typed.jumped_loops.add(typed.loop_stack[typed.loop_stack.len() - 1].for_id)
+            typed.jump_targets[jump_id] = typed.loop_stack[typed.loop_stack.len() - 1].for_id
         }
     } else {
         name :: label
@@ -1830,7 +1832,7 @@ check_loop_jump :: fn(
                 ),
             )
         } else {
-            typed.jumped_loops.add(target.for_id)
+            typed.jump_targets[jump_id] = target.for_id
             // A VARIABLE match records the resolution for the lowerer: an unlabelled
             // loop is lowered under the variable's name (`LoweredLoop.label`), a
             // labelled one keeps its label and the jump takes it instead. A label

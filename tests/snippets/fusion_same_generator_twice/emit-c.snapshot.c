@@ -1566,8 +1566,6 @@ static void snippet_break_outer_loop_named_like_generator_loop(void) {
     vader_string_t l0 = 0;
     vader_string_t l13 = 0;
     vader_string_t l15 = 0;
-    vader_string_t l16 = 0;
-    vader_string_t l17 = 0;
     int32_t l1, l2, l3, l4, l5;
     void* l6 = NULL;
     void* l9 = NULL;
@@ -1578,9 +1576,9 @@ static void snippet_break_outer_loop_named_like_generator_loop(void) {
     vader_box_t t1 = vader_box_null();
     vader_box_t* gc_roots[2] = { &l14, &t1 };
     void** gc_raw_roots[2] = { &l6, &l9 };
-    vader_string_t* gc_atom_roots[6] = { &l0, &l13, &l15, &l16, &l17, &t0 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l13, &l15, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 6u, gc_atom_roots,
+        vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 206 "tests/snippets/fusion_same_generator_twice/_main.vader"
@@ -1679,28 +1677,19 @@ static void snippet_break_outer_loop_named_like_generator_loop(void) {
             l13 = concat_2(l13, l15);
 #line 226 "tests/snippets/fusion_same_generator_twice/_main.vader"
             if (l2 == INT32_C(1)) {
-#line 224 "tests/snippets/fusion_same_generator_twice/_main.vader"
-            } else {
-                continue;
+#line 227 "tests/snippets/fusion_same_generator_twice/_main.vader"
+                goto end_154;
 #line 226 "tests/snippets/fusion_same_generator_twice/_main.vader"
             }
-#line 231 "tests/snippets/fusion_same_generator_twice/_main.vader"
-            l16 = 20u;
-            l17 = 3u;
-            t0 = concat_4(l16, l0, l17, l13);
-            std_io_println__string(t0);
-#line 205 "tests/snippets/fusion_same_generator_twice/_main.vader"
-            { vader_gc_top = gc_frame.prev; return; }
 #line 224 "tests/snippets/fusion_same_generator_twice/_main.vader"
+            continue;
         }
 #line 222 "tests/snippets/fusion_same_generator_twice/_main.vader"
         l3 = INT32_C(1);
         l1 = (l1 + l3);
-    }
+    } end_154: ;
 #line 231 "tests/snippets/fusion_same_generator_twice/_main.vader"
-    l16 = 20u;
-    l17 = 3u;
-    t0 = concat_4(l16, l0, l17, l13);
+    t0 = concat_4(20u, l0, 3u, l13);
     std_io_println__string(t0);
 #line 205 "tests/snippets/fusion_same_generator_twice/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
