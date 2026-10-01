@@ -68,7 +68,7 @@ new_gen_instance :: fn(
     return GenInstance {
         .generator_id = generator.id,
         .clones = clones,
-        .label_suffix = r"$i" + "${-next_project_synthetic_id(project)}",
+        .label_suffix = synthetic_label(project, r"$i"),
     }
 }
 
@@ -105,6 +105,14 @@ starts_within :: fn(outer: Span, inner: Span) -> bool =
     inner.start.file == outer.start.file
         && inner.start.offset >= outer.start.offset
         && inner.start.offset < outer.end.offset
+
+/// `prefix` and a fresh number. Every label the fusion mints starts with `$`, so
+/// none can collide with a label written in source, which is an identifier.
+///
+/// @param project  the project context, which mints the number.
+/// @param prefix   the label's `$`-led stem.
+synthetic_label :: fn(project: LowerProjectCtx!, prefix: string) -> string =
+    prefix + "${-next_project_synthetic_id(project)}"
 
 // ---- resolution -------------------------------------------------------------
 

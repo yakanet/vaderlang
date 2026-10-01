@@ -1,0 +1,7 @@
+# stdout
+until_over(21), break x: 10 11 12 20 21 | 10 11 12 20 21
+flat_map.stop_at(2), break x: 10 11 | 10 11
+first_two_of_odd, continue x: 10 11 30 31 | 10 11 30 31
+take(3).first_two_of_odd, continue x: 10 11 30 31 | 10 11 30 31
+# exit
+0

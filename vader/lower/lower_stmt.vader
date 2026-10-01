@@ -437,7 +437,7 @@ drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]!) -> void
 lower_jump :: fn(
     ctx: FnLowerCtx!, jump_id: usize, written: string | null, is_break: bool, span: Span,
 ) -> LoweredStmt {
-    spliced :: spliced_jump(ctx, jump_id, is_break, span)
+    spliced :: spliced_jump(ctx, jump_id, written, is_break, span)
     if spliced != null {
         return spliced
     }

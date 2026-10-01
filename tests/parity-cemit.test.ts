@@ -369,6 +369,8 @@ const C_PARITY = new Set<string>([
   // A consumer's `break` leaves the inlined instances, its `continue` resumes them.
   "fusion_consumer_break",
   "fusion_consumer_continue",
+  // A combinator's own `break x` / `continue x`, from a loop nested in its loop.
+  "fusion_stage_named_jumps",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

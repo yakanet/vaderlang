@@ -30,9 +30,17 @@ export JumpFrame :: struct {
     exit:           GenInstance! | null
     /// True when a `continue` of the loop lands right as written.
     continue_lands: bool
+    /// True when the producer's loops carry the loop's own label, so a jump
+    /// naming the loop lands where a bare one does. A stage's loop over its
+    /// source gives none of them its name.
+    label_carried:  bool = true
     /// The label of the block a redirected `continue` leaves: minted with the
     /// first one, null while there is none.
     resume:         string | null = null
+    /// The label of the block around the producer's code that a `break` naming
+    /// the loop leaves, where no loop carries the name: minted with the first
+    /// one, null while there is none.
+    named_exit:     string | null = null
 }
 
 /// The frame of loop `loop_id`, whose body is spliced into `chain`'s code.
@@ -65,23 +73,42 @@ resumable_body :: fn(frame: JumpFrame, body: LoweredBlock) -> LoweredBlock {
     return arm_block([labelled_block(label, body.span, block_stmts_with_trailing(body))], body.span)
 }
 
+/// `stmts`, the producer's code for `frame`'s loop: inside the block a `break`
+/// naming the loop leaves, when one does, as they are otherwise.
+///
+/// @param frame  the frame the loop body was lowered under, popped.
+/// @param span   span of the block when one is built.
+/// @param stmts  the producer's emitted statements.
+named_exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt[]) -> LoweredStmt[] {
+    label :: frame.named_exit ?? return stmts
+    return [labelled_block(label, span, stmts)]
+}
+
 /// The jump a `break` (`is_break`) or `continue` of a spliced loop body lowers
 /// to, or null when it lands right as written — every jump not written for a
 /// loop of the frame stack among them.
 ///
 /// @param ctx      the context lowering the jump.
 /// @param jump_id  the jump's node id, which the typecheck resolved to its loop.
+/// @param written  the label the jump names, null when it names none.
 /// @param span     the jump's span.
 spliced_jump :: fn(
-    ctx: FnLowerCtx!, jump_id: usize, is_break: bool, span: Span,
+    ctx: FnLowerCtx!, jump_id: usize, written: string | null, is_break: bool, span: Span,
 ) -> LoweredStmt | null {
     target :: ctx.typed.jump_targets[jump_id] ?? return null
     frame :: frame_of(ctx, target) ?? return null
+    lands_by_name :: written == null || frame.label_carried
     if is_break {
-        exit :: frame.exit ?? return null
-        return leave_instance(exit, span)
+        exit :: frame.exit
+        if exit != null {
+            return leave_instance(exit, span)
+        }
+        if lands_by_name {
+            return null
+        }
+        return LoweredBreak { .span = span, .label = named_exit_label(ctx, frame) }
     }
-    if frame.continue_lands {
+    if frame.continue_lands && lands_by_name {
         return null
     }
     return LoweredBreak { .span = span, .label = resume_label(ctx, frame) }
@@ -98,15 +125,15 @@ frame_of :: fn(ctx: FnLowerCtx, loop_id: usize) -> JumpFrame! | null {
     return null
 }
 
-// A `$`-led label, out of reach of every label `instance_label` derives from a
-// source one.
 resume_label :: fn(ctx: FnLowerCtx!, frame: JumpFrame!) -> string {
-    minted :: frame.resume
-    if minted != null {
-        return minted
-    }
-    label :: r"$resume" + "${-next_synthetic_id(ctx)}"
+    label :: frame.resume ?? synthetic_label(ctx.project, r"$resume")
     frame.resume = label
+    return label
+}
+
+named_exit_label :: fn(ctx: FnLowerCtx!, frame: JumpFrame!) -> string {
+    label :: frame.named_exit ?? synthetic_label(ctx.project, r"$leave")
+    frame.named_exit = label
     return label
 }
 

@@ -297,9 +297,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   // snippet pins the wrong output until it is fixed. Tracked in TODO
   // (Priority, "A literal in an `if` branch is not typed against the other").
   "_diag_for_in_if_branch_literal",
-  // No bytecode to run: the compiler panics on a fused combinator's own `break x`.
-  // The snippet's stage snapshots pin the crash.
-  "_diag_fusion_combinator_break",
 
 ]);
 

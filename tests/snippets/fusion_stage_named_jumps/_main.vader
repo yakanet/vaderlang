@@ -1,0 +1,109 @@
+// fusion_stage_named_jumps — a user combinator's own `break x` / `continue x`,
+// written in a loop nested in its `for x in self`: fused, the combinator's loop
+// over its source is the source's code, whose loops carry none of its names.
+// Over an array, over `flat_map` (whose `break` leaves an inlined instance) and
+// over `take` (which runs code after its `yield`).
+//
+// Each line prints the chain consumed where it is written (fused), then the same
+// chain bound to a local first (lazy: it runs as a state machine and is the
+// reference). The two halves agree.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+spread :: fn(x: i32) -> i32[] = [x, x + 1]
+
+until_over :: fn(self: Iterator<i32>, limit: i32) -> Iterator<i32> {
+    for x in self {
+        for j in 0..<3 {
+            if x * 10 + j > limit {
+                break x
+            }
+            yield x * 10 + j
+        }
+    }
+}
+
+stop_at :: fn(self: Iterator<i32>, stop: i32) -> Iterator<i32> {
+    for x in self {
+        for j in 0..<2 {
+            if x == stop {
+                break x
+            }
+            yield x * 10 + j
+        }
+    }
+}
+
+first_two_of_odd :: fn(self: Iterator<i32>) -> Iterator<i32> {
+    for x in self {
+        for j in 0..<3 {
+            if x % 2 == 0 || j == 2 {
+                continue x
+            }
+            yield x * 10 + j
+        }
+    }
+}
+
+break_over_array :: fn() -> void {
+    fused := ""
+    for v in [1, 2, 3].until_over(21) {
+        fused = fused + " ${v}"
+    }
+    lazy := ""
+    it :: [1, 2, 3].until_over(21)
+    for v in it {
+        lazy = lazy + " ${v}"
+    }
+    println("until_over(21), break x:${fused} |${lazy}")
+}
+
+break_over_flat_map :: fn() -> void {
+    fused := ""
+    for v in [1, 3].flat_map(spread).stop_at(2) {
+        fused = fused + " ${v}"
+    }
+    lazy := ""
+    it :: [1, 3].flat_map(spread).stop_at(2)
+    for v in it {
+        lazy = lazy + " ${v}"
+    }
+    println("flat_map.stop_at(2), break x:${fused} |${lazy}")
+}
+
+continue_over_array :: fn() -> void {
+    fused := ""
+    for v in [1, 2, 3].first_two_of_odd() {
+        fused = fused + " ${v}"
+    }
+    lazy := ""
+    it :: [1, 2, 3].first_two_of_odd()
+    for v in it {
+        lazy = lazy + " ${v}"
+    }
+    println("first_two_of_odd, continue x:${fused} |${lazy}")
+}
+
+continue_over_take :: fn() -> void {
+    fused := ""
+    for v in [1, 2, 3, 4, 5].take(3).first_two_of_odd() {
+        fused = fused + " ${v}"
+    }
+    lazy := ""
+    it :: [1, 2, 3, 4, 5].take(3).first_two_of_odd()
+    for v in it {
+        lazy = lazy + " ${v}"
+    }
+    println("take(3).first_two_of_odd, continue x:${fused} |${lazy}")
+}
+
+main :: fn() -> i32 {
+    break_over_array()
+    break_over_flat_map()
+    continue_over_array()
+    continue_over_take()
+    return 0
+}

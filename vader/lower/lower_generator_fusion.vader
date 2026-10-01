@@ -541,8 +541,10 @@ fuse_source_loop :: fn(
     outer_span: Span, span: Span, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] {
     // The loop over the source is the source's consumer: its own jumps land in
-    // the source's code.
-    gen_ctx.jump_frames.push(chain_jump_frame(binding.loop_id, binding.source))
+    // the source's code, whose loops carry the outer consumer's label.
+    source_frame :: chain_jump_frame(binding.loop_id, binding.source)
+    source_frame.label_carried = false
+    gen_ctx.jump_frames.push(source_frame)
     inner_lowered :: recurse(gen_ctx, binding.inner)
     frame :: pop_jump_frame(gen_ctx)
     if inner_lowered is LoweredBlock {
@@ -552,7 +554,8 @@ fuse_source_loop :: fn(
             .element_type = chain_element_type(binding.source),
             .user_body = resumable_body(frame, inner_lowered),
         }
-        source_stmts :: emit_fused_chain(ctx, binding.source, loop_label, outer_span, inner_template, recurse)
+        emitted :: emit_fused_chain(ctx, binding.source, loop_label, outer_span, inner_template, recurse)
+        source_stmts :: named_exit_block(frame, span, emitted)
         out: LoweredStmt[]!: []
         if binding.prelude.len() > 0 {
             prelude_expr: AST.Expr: AST.BlockExpr { .span = span, .stmts = binding.prelude, .trailing = null }
