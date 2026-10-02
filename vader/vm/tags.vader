@@ -394,10 +394,9 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
      | bc.BufferNew | bc.BufferToString -> TAGS_REF
     is bc.LocalGet -> state[usize(op.slot)]
     is bc.LocalTee | bc.Retag -> top
-    is bc.RefCast -> {
-        narrowed :: top & tags_of_type(ctx, op.type_id)
-        if narrowed != 0 { narrowed } else { top }
-    }
+    // No run-time check: a target that no incoming tag reaches marks a dead path,
+    // so the cast pushes the empty set, which no arm refuses.
+    is bc.RefCast -> top & tags_of_type(ctx, op.type_id)
     is bc.Convert -> match op.target {
         .I32  -> TAGS_I32
         .I64  -> TAGS_I64
@@ -547,6 +546,20 @@ test_tags_reject_arithmetic_on_an_unset_local :: fn() -> void {
     body :: "  local.get 0\n  i32.const 1\n  i32.add\n  return\n"
     rejection :: tag_rejection("  local x i32\n", body)
     assert("may meet null" in rejection, "an unset local reads as null")
+}
+
+@test
+test_tags_accept_a_cast_no_value_reaches :: fn() -> void {
+    // `x = null ; if x != null { x + 1 }` : the cast to `i32` sits on a dead path.
+    body :: "  null.const\n  local.set 0\n  local.get 0\n  ref.cast 1\n" +
+        "  i32.const 1\n  i32.add\n  return\n"
+    assert_eq(tag_rejection("  local x any\n", body), "")
+}
+
+@test
+test_tags_reject_a_null_into_arithmetic_without_a_cast :: fn() -> void {
+    body :: "  null.const\n  local.set 0\n  local.get 0\n  i32.const 1\n  i32.add\n  return\n"
+    assert("may meet null" in tag_rejection("  local x any\n", body), "a null with no cast")
 }
 
 @test
