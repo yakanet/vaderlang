@@ -47,7 +47,16 @@ export Span :: struct {
 /// (start AND end) still distinguishes an envelope expr from its child
 /// in a hash bucket, so the start-only hash is a valid
 /// over-approximation.
-Span implements Hash -> self.start.file.hash() * 1000003 + (u64(self.start.line) << 32) + u64(self.start.column)
+///
+/// The line sits in the HIGH half and a map slots on the LOW bits, so the key is
+/// folded once more: `k ^ (k >> 32)` is invertible — distinct keys stay distinct —
+/// and it brings the line into the bits a slot reads. Without it every span of a
+/// file that shares a column lands in one probe run.
+Span implements Hash -> span_key_fold(
+    self.start.file.hash() * 1000003 + (u64(self.start.line) << 32) + u64(self.start.column),
+)
+
+span_key_fold :: fn(k: u64) -> u64 = k ^ (k >> 32)
 
 /// Structural equality over `(file, line, column)` of both ends — the
 /// full key the typed-ast side-tables need to tell an envelope expr
