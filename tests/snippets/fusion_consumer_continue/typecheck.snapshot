@@ -1,15 +1,15 @@
 # Typecheck
 
 ## tests/snippets/fusion_consumer_continue
-  FnDecl         async_enumerate_continue :: fn(i32[]) -> Async<i32>
-  FnDecl         async_enumerate_continue_lazy :: fn(i32[]) -> Async<i32>
+  FnDecl         async_indexed_continue :: fn(i32[]) -> Async<i32>
+  FnDecl         async_indexed_continue_lazy :: fn(i32[]) -> Async<i32>
   FnDecl         chain_continue       :: fn() -> void
   FnDecl         chain_continue_by_name :: fn() -> void
-  FnDecl         chars_enumerate_continue :: fn() -> void
+  FnDecl         chars_indexed_continue :: fn() -> void
   FnDecl         coalesce_continue    :: fn() -> void
   FnDecl         drop_odd             :: fn(Iterator<i32>) -> Iterator<i32>
-  FnDecl         enumerate_continue   :: fn() -> void
   FnDecl         flat_map_continue    :: fn() -> void
+  FnDecl         indexed_continue     :: fn() -> void
   FnDecl         loopless_generator_continue :: fn() -> void
   FnDecl         main                 :: fn() -> i32
   FnDecl         maybe_even           :: fn(i32) -> i32 | null
@@ -58,8 +58,8 @@
   expr 129:57   IdentExpr      :: i32
   expr 129:68   IdentExpr      :: i32
   expr 134:19   CallExpr       :: StringChars
-  expr 134:19   CallExpr       :: __genstate_enumerate<[usize, char]>!
-  expr 134:19   FieldExpr      :: fn() -> Iterator<[usize, T]>
+  expr 134:19   CallExpr       :: __genstate_indexed<[char, usize]>!
+  expr 134:19   FieldExpr      :: fn() -> Iterator<[T, usize]>
   expr 134:19   FieldExpr      :: fn() -> StringChars
   expr 134:19   StringLitExpr  :: string
   expr 135:12   BinaryExpr     :: bool
@@ -71,11 +71,11 @@
   expr 138:9    BinaryExpr     :: i32
   expr 138:9    IdentExpr      :: i32
   expr 141:11   CallExpr       :: StringChars
-  expr 141:11   CallExpr       :: __genstate_enumerate<[usize, char]>!
-  expr 141:11   FieldExpr      :: fn() -> Iterator<[usize, T]>
+  expr 141:11   CallExpr       :: __genstate_indexed<[char, usize]>!
+  expr 141:11   FieldExpr      :: fn() -> Iterator<[T, usize]>
   expr 141:11   FieldExpr      :: fn() -> StringChars
   expr 141:11   StringLitExpr  :: string
-  expr 142:19   IdentExpr      :: __genstate_enumerate<[usize, char]>!
+  expr 142:19   IdentExpr      :: __genstate_indexed<[char, usize]>!
   expr 143:12   BinaryExpr     :: bool
   expr 143:12   IdentExpr      :: char
   expr 143:9    IfExpr         :: void
@@ -87,8 +87,8 @@
   expr 148:13   StringLitExpr  :: string
   expr 148:5    CallExpr       :: void
   expr 148:5    IdentExpr      :: fn(T) -> void
-  expr 148:55   IdentExpr      :: i32
-  expr 148:66   IdentExpr      :: i32
+  expr 148:53   IdentExpr      :: i32
+  expr 148:64   IdentExpr      :: i32
   expr 151:33   SeqLitExpr     :: i32[]
   expr 151:34   BinaryExpr     :: i32
   expr 151:39   IdentExpr      :: i32
@@ -135,8 +135,8 @@
   expr 175:45   IdentExpr      :: i32
   expr 175:58   IdentExpr      :: i32
   expr 178:14   StringLitExpr  :: string
-  expr 179:19   CallExpr       :: __genstate_enumerate<[usize, i32]>!
-  expr 179:19   FieldExpr      :: fn() -> Iterator<[usize, i32]>
+  expr 179:19   CallExpr       :: __genstate_indexed<[i32, usize]>!
+  expr 179:19   FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 179:19   SeqLitExpr     :: i32[]!
   expr 180:14   CallExpr       :: i32 | null
   expr 180:14   IdentExpr      :: fn(i32) -> i32 | null
@@ -149,10 +149,10 @@
   expr 181:34   IdentExpr      :: i32
   expr 181:9    IdentExpr      :: string
   expr 183:13   StringLitExpr  :: string
-  expr 184:11   CallExpr       :: __genstate_enumerate<[usize, i32]>!
-  expr 184:11   FieldExpr      :: fn() -> Iterator<[usize, i32]>
+  expr 184:11   CallExpr       :: __genstate_indexed<[i32, usize]>!
+  expr 184:11   FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 184:11   SeqLitExpr     :: i32[]!
-  expr 185:19   IdentExpr      :: __genstate_enumerate<[usize, i32]>!
+  expr 185:19   IdentExpr      :: __genstate_indexed<[i32, usize]>!
   expr 186:14   CallExpr       :: i32 | null
   expr 186:14   IdentExpr      :: fn(i32) -> i32 | null
   expr 186:14   NullCoalesceExpr :: i32
@@ -164,10 +164,10 @@
   expr 187:32   IdentExpr      :: i32
   expr 187:9    IdentExpr      :: string
   expr 189:13   StringLitExpr  :: string
-  expr 189:40   IdentExpr      :: string
+  expr 189:38   IdentExpr      :: string
+  expr 189:48   IdentExpr      :: string
   expr 189:5    CallExpr       :: void
   expr 189:5    IdentExpr      :: fn(T) -> void
-  expr 189:50   IdentExpr      :: string
   expr 194:14   CallExpr       :: __genstate_flat_map<i32>!
   expr 194:14   FieldExpr      :: fn(fn(i32) -> U[]) -> Iterator<U>
   expr 194:14   SeqLitExpr     :: i32[]!
@@ -221,8 +221,8 @@
   expr 227:5    CallExpr       :: void
   expr 227:5    IdentExpr      :: fn(T) -> void
   expr 227:50   IdentExpr      :: i32
-  expr 22:19    CallExpr       :: __genstate_enumerate<[usize, i32]>!
-  expr 22:19    FieldExpr      :: fn() -> Iterator<[usize, i32]>
+  expr 22:19    CallExpr       :: __genstate_indexed<[i32, usize]>!
+  expr 22:19    FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 22:19    SeqLitExpr     :: i32[]!
   expr 232:14   CallExpr       :: __genstate_chain<i32>!
   expr 232:14   FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
@@ -265,8 +265,8 @@
   expr 250:5    IdentExpr      :: fn(T) -> void
   expr 250:60   IdentExpr      :: i32
   expr 250:71   IdentExpr      :: i32
-  expr 255:19   CallExpr       :: __genstate_enumerate<[usize, i32]>!
-  expr 255:19   FieldExpr      :: fn() -> Iterator<[usize, i32]>
+  expr 255:19   CallExpr       :: __genstate_indexed<[i32, usize]>!
+  expr 255:19   FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 255:19   IdentExpr      :: i32[]
   expr 256:15   CallExpr       :: Async<null>
   expr 256:15   IdentExpr      :: fn(i64) -> Async<null>
@@ -280,10 +280,10 @@
   expr 260:9    BinaryExpr     :: i32
   expr 260:9    IdentExpr      :: i32
   expr 262:12   IdentExpr      :: i32
-  expr 267:14   CallExpr       :: __genstate_enumerate<[usize, i32]>!
-  expr 267:14   FieldExpr      :: fn() -> Iterator<[usize, i32]>
+  expr 267:14   CallExpr       :: __genstate_indexed<[i32, usize]>!
+  expr 267:14   FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 267:14   IdentExpr      :: i32[]
-  expr 268:19   IdentExpr      :: __genstate_enumerate<[usize, i32]>!
+  expr 268:19   IdentExpr      :: __genstate_indexed<[i32, usize]>!
   expr 269:15   CallExpr       :: Async<null>
   expr 269:15   IdentExpr      :: fn(i64) -> Async<null>
   expr 269:9    AwaitExpr      :: null
@@ -327,20 +327,20 @@
   expr 290:14   AwaitExpr      :: i32
   expr 290:20   CallExpr       :: Async<i32>
   expr 290:20   IdentExpr      :: fn(i32[]) -> Async<i32>
-  expr 290:45   SeqLitExpr     :: i32[]
+  expr 290:43   SeqLitExpr     :: i32[]
   expr 291:13   AwaitExpr      :: i32
   expr 291:19   CallExpr       :: Async<i32>
   expr 291:19   IdentExpr      :: fn(i32[]) -> Async<i32>
-  expr 291:49   SeqLitExpr     :: i32[]
+  expr 291:47   SeqLitExpr     :: i32[]
   expr 292:13   StringLitExpr  :: string
   expr 292:5    CallExpr       :: void
   expr 292:5    IdentExpr      :: fn(T) -> void
-  expr 292:55   IdentExpr      :: i32
-  expr 292:66   IdentExpr      :: i32
-  expr 29:11    CallExpr       :: __genstate_enumerate<[usize, i32]>!
-  expr 29:11    FieldExpr      :: fn() -> Iterator<[usize, i32]>
+  expr 292:53   IdentExpr      :: i32
+  expr 292:64   IdentExpr      :: i32
+  expr 29:11    CallExpr       :: __genstate_indexed<[i32, usize]>!
+  expr 29:11    FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 29:11    SeqLitExpr     :: i32[]!
-  expr 30:19    IdentExpr      :: __genstate_enumerate<[usize, i32]>!
+  expr 30:19    IdentExpr      :: __genstate_indexed<[i32, usize]>!
   expr 31:12    BinaryExpr     :: bool
   expr 31:12    IdentExpr      :: i32
   expr 31:9     IfExpr         :: void
@@ -350,10 +350,10 @@
   expr 34:27    IdentExpr      :: usize
   expr 34:9     IdentExpr      :: string
   expr 36:13    StringLitExpr  :: string
-  expr 36:46    IdentExpr      :: string
+  expr 36:44    IdentExpr      :: string
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(T) -> void
-  expr 36:56    IdentExpr      :: string
+  expr 36:54    IdentExpr      :: string
   expr 41:14    CallExpr       :: __genstate_take<i32>!
   expr 41:14    FieldExpr      :: fn(usize) -> Iterator<i32>
   expr 41:14    SeqLitExpr     :: i32[]!

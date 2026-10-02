@@ -182,7 +182,7 @@ GenSourceBinding :: struct {
     loop_id: usize          // the loop's `ForStmt.id`, in the generator's module
     loopvar: Symbol         // the loop's binding variable
     inner:   AST.BlockExpr  // the loop body (contains the yield)
-    prelude: AST.Stmt[]     // counter `let`s ahead of this loop (take/skip/enumerate)
+    prelude: AST.Stmt[]     // state `let`s ahead of this loop (a counter, a seen-set)
 }
 
 // The inlined body of a generator combinator layer, carried on `IterChain`.
@@ -193,20 +193,21 @@ GenComboLayer :: struct {
     loop_id:     usize           // the primary loop's `ForStmt.id`, in `owner`
     loopvar:     Symbol          // the body's primary `for <loopvar> in self` variable
     inner:       AST.BlockExpr   // the primary for-loop body (contains the yield)
-    arg_sym:     Symbol | null   // the single non-self DATA param's symbol (map's `f`) ; null for a 0-arg combinator (`enumerate`) or when the non-self param is itself a source (`chain`)
+    arg_sym:     Symbol | null   // the single non-self DATA param's symbol (map's `f`) ; null for a 0-arg combinator (`indexed`) or when the non-self param is itself a source (`chain`)
     arg_expr:    AST.Expr | null // the call's non-self DATA argument (map's `f`, …) ; null as above
+    arg_slot:    Type | null     // the DATA param's type under `subst`, its argument's slot ; null as above
     output_elem: Type            // the combinator's yielded element type
     instance:    InlineInstance!    // the names this layer's body lowers under
-    prelude:     AST.Stmt[]      // counter `let`s ahead of the primary source loop (take/skip/enumerate)
+    prelude:     AST.Stmt[]      // state `let`s ahead of the primary source loop
     // Additional source loops beyond the primary `self` loop, in body order —
     // one per extra source param (`chain`'s `other`). Empty for every single-
-    // source combinator (map / filter / take / skip / enumerate / flat_map).
+    // source combinator (map / filter / take / skip / indexed / flat_map).
     extra_sources: GenSourceBinding[] = []
 }
 
 // Recognise `<recv>.gen_combinator(arg)` (UFCS) or `gen_combinator(<recv>, arg)`
 // where the callee is a `generator` fn whose body is one or more `for <lv> in
-// <param> { <inner> }` source loops (map/filter/take/skip/enumerate: one loop over
+// <param> { <inner> }` source loops (map/filter/take/skip/indexed: one loop over
 // `self` ; `chain`: two, over `self` and `other`). Returns a `Generator` chain
 // layer whose primary source is `descend_chain(<recv>)` and whose extra source
 // params fuse independently, else null (the chain falls back to the boxed path).
@@ -216,7 +217,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
     owner :: resolve_owner_typed(ctx, callee_sym.module) ?? return null
     decl :: owner.fn_decls[callee_sym.id] ?? return null
     if !fn_is_generator(decl) { return null }
-    // v1: `self` plus zero (`enumerate`) or one (map/filter/take/skip/chain) non-self param.
+    // v1: `self` plus zero (`indexed`) or one (map/filter/take/skip/chain) non-self param.
     if decl.params.len() != 1 && decl.params.len() != 2 { return null }
     loops :: extract_gen_source_loops(decl) ?? return null
 
@@ -262,6 +263,8 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
     if subst_opt is null { return null }
     arg_sym :: if arg_is_data { combinator_arg_sym(ctx, decl, owner) } else { null }
     if arg_is_data && arg_sym is null { return null }
+    arg_slot :: if arg_is_data { combinator_arg_slot(owner, callee_sym, subst_opt) } else { null }
+    if arg_is_data && arg_slot == null { return null }
 
     // Direction A: the call result is the concrete `__genstate_<fn>` struct, not
     // `Iterator<U>` — take the yielded element from the registered element.
@@ -281,7 +284,8 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterCh
         .decl = decl, .subst = subst_opt, .owner = owner,
         .loop_id = primary.loop_id, .loopvar = clone_of(instance, primary_loopvar),
         .inner = primary.inner,
-        .arg_sym = cloned_arg, .arg_expr = data_arg, .output_elem = output_elem,
+        .arg_sym = cloned_arg, .arg_expr = data_arg, .arg_slot = arg_slot,
+        .output_elem = output_elem,
         .prelude = primary.prelude, .extra_sources = cloned_extras, .instance = instance,
     }, call.span)
 }
@@ -292,16 +296,24 @@ find_source_loop :: fn(loops: GenSourceLoop[], param_index: usize) -> GenSourceL
     return null
 }
 
+// The type of a combinator's DATA param (`params[1]`) under `subst` — the slot its
+// argument is prepared for ; null when typecheck recorded no signature.
+combinator_arg_slot :: fn(owner: TypedProgram, callee: Symbol, subst: Substitution) -> Type | null {
+    signature :: fn_signature(owner, callee) ?? return null
+    return substitute(signature.params[1], subst)
+}
+
 // The symbol of a combinator's single non-self param (`decl.params[1]`), or null
-// for a 0-arg combinator (`enumerate`, whose only param is `self`).
+// for a 0-arg combinator (`indexed`, whose only param is `self`).
 combinator_arg_sym :: fn(ctx: FnLowerCtx!, decl: AST.FnDecl, owner: TypedProgram) -> Symbol | null {
     if decl.params.len() < 2 { return null }
     return lookup_local_symbol(ctx.project, owner.resolved, decl.params[1].span)
 }
 
 // One source loop of a generator combinator body, tagged with the PARAM it
-// iterates. `prelude` is the run of non-loop statements ahead of it — a leading
-// counter `let` for `take`/`skip`/`enumerate` (`i: usize = 0`), empty otherwise.
+// iterates. `prelude` is the run of non-loop statements ahead of it — the state
+// a combinator keeps across elements: `take`/`skip`/`indexed`'s counter
+// (`i: usize = 0`), `distinct`'s `seen` set ; empty for `map` / `filter`.
 GenSourceLoop :: struct {
     param_index:  usize
     loop_id:      usize
@@ -312,9 +324,9 @@ GenSourceLoop :: struct {
 
 // Split a generator combinator body into its ordered source loops. Each top-level
 // `for <lv> in <param_k> { <inner> }` statement is a source loop over param k ;
-// every other statement (a counter `let`) accrues as the `prelude` of the NEXT
+// every other statement (a state `let`) accrues as the `prelude` of the NEXT
 // loop. Null when the body dangles statements after its last loop, or has no loop
-// at all — shapes the fusion doesn't model. map/filter/take/skip/enumerate yield a
+// at all — shapes the fusion doesn't model. map/filter/take/skip/indexed yield a
 // single loop over `self` ; `chain` yields two (over `self` and `other`).
 extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
     body :: decl.body ?? return null
@@ -399,58 +411,40 @@ combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr, receiver: AST.E
 }
 
 // The instance substitution for a generator combinator: empty when non-generic,
-// else inferred by unifying the generic signature's params with the receiver +
-// arg types (`unify_params` — the same engine `infer_type_args` uses, but driven
-// from the normalised `(receiver, fn_arg)` so it works for UFCS and direct alike).
-// Null when a type param stays unbound (bail to the struct/boxed path).
+// else inferred by unifying `self`'s element pattern with the fused source's
+// element, then the data param with `fn_arg`'s type — from the normalised
+// `(receiver, fn_arg)`, so UFCS and direct calls alike. Null when a type param
+// stays unbound (bail to the struct/boxed path).
 gen_combo_subst :: fn(
     ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram, callee_sym: Symbol,
     receiver: AST.Expr, fn_arg: AST.Expr | null, source_elem: Type,
 ) -> Substitution | null {
     if decl.type_params.len() == 0 { return new_substitution() }
-    // 0-arg combinator (`enumerate`): no fn arg to infer from — `self`'s only type
-    // param IS the source element, so bind it straight from the fused source's
-    // concrete element type (`substitute` then rewrites it through the yielded
-    // element, tuple included). `source_elem` is post-fusion concrete, with no
-    // erased-head ambiguity — the same unambiguous binding the 1-arg path uses.
-    if fn_arg is null { return subst_from_concrete(decl, owner, [source_elem]) }
-    ft :: owner.decl_types[callee_sym.id]
-    if ft is FnType {
-        if ft.params.len() < 2 { return null }
-        bindings :: MutableMap<i32, Type> {}
-        order: i32[]!: []
-        // Bind the SOURCE element type-param from the post-fusion concrete
-        // `source_elem`, NOT from the receiver's (possibly erased) type. `self` is
-        // `Iterator<T>` for every combinator, so its element `T` is `params[0]`'s
-        // trait arg. This retires the old "unify arg before receiver" ordering
-        // hack (which only existed to stop an erased head binding `T = Any` first).
-        // For a concrete head `source_elem` equals the receiver's element, so the
-        // result (and the `order` / `concrete_args`) is byte-identical to the old
-        // path — see the task #25 note in project_stream_fusion_generators.
-        source_bound := false
-        if ft.params[0] is TraitType as p0 {
-            if p0.args.len() >= 1 {
-                unify_params(p0.args[0], source_elem, bindings, order, ctx)
-                source_bound = true
-            }
-        }
-        // Non-`Iterator<T>` self shouldn't occur for these combinators ; keep the
-        // receiver-unify fallback so an unexpected shape behaves as before.
-        if !source_bound {
-            unify_params(ft.params[0], default_if_free(ctx.types.expr_type(receiver)), bindings, order, ctx)
-        }
-        // Then the fn arg, for any param it introduces beyond the source element
-        // (map's `U` from `f: fn(T) -> U`). `T` is already pinned, and
-        // `unify_params` keeps the first binding, so a concrete arg just agrees.
-        unify_params(ft.params[1], default_if_free(ctx.types.expr_type(fn_arg)), bindings, order, ctx)
-        concrete_args: Type[]!: []
-        for id in order {
-            v :: bindings[id] ?? return null
-            concrete_args.push(v)
-        }
-        return subst_from_concrete(decl, owner, concrete_args)
+    signature :: fn_signature(owner, callee_sym) ?? return null
+    patterns: Type[]!: []
+    actuals: Type[]!: []
+    // The SOURCE element comes from the post-fusion concrete `source_elem`, not from
+    // the receiver's (possibly erased) type: an erased head would bind `T = Any`. It
+    // is unified with `self`'s element PATTERN, which need not be a bare `T` —
+    // `Iterator<T | null>` over `i32 | null` elements binds `T = i32`. A `self`
+    // that is not an `Iterator` (a `T[]`) unifies with the receiver's type.
+    self_element :: iterator_element_of(signature.params[0])
+    if self_element != null {
+        patterns.push(self_element)
+        actuals.push(source_elem)
+    } else {
+        patterns.push(signature.params[0])
+        actuals.push(default_if_free(ctx.types.expr_type(receiver)))
     }
-    return null
+    // Then the fn arg, for any param it introduces beyond the source element (map's
+    // `U` from `f: fn(T) -> U`) ; the first binding wins, so a concrete arg agrees.
+    if fn_arg != null {
+        patterns.push(signature.params[1])
+        actuals.push(default_if_free(ctx.types.expr_type(fn_arg)))
+    }
+    type_params :: declared_type_params(decl, owner) ?? return null
+    concrete :: unify_type_args(ctx, patterns, actuals, type_params) ?? return null
+    return subst_from_concrete(decl, owner, concrete)
 }
 
 // Emit a `Generator` chain layer: each source loop binds its loop var to every
@@ -535,12 +529,14 @@ fuse_source_loop :: fn(
 
 /// A generator call heading a chain, carried on `IterChain.gen_source`.
 GenSourceCall :: struct {
-    decl:     AST.FnDecl
-    owner:    TypedProgram
-    subst:    Substitution
+    decl:      AST.FnDecl
+    owner:     TypedProgram
+    /// The generator's declared signature ; `subst` instantiates it.
+    signature: FnType
+    subst:     Substitution
     /// The call's arguments in parameter order — a UFCS receiver first.
-    args:     AST.Expr[]
-    instance: InlineInstance!
+    args:      AST.Expr[]
+    instance:  InlineInstance!
 }
 
 // `call` as a chain source when it calls a generator with every parameter given
@@ -552,7 +548,8 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterChain 
     if !fn_is_generator(decl) || decl.body == null {
         return null
     }
-    subst :: gen_source_subst(ctx, target, call) ?? return null
+    signature :: fn_signature(owner, target.callee) ?? return null
+    subst :: gen_source_subst(ctx, target, signature, call) ?? return null
     element :: genstate_element(ctx.typed, decl, subst) ?? return null
     if element == TY_VOID {
         return null
@@ -564,7 +561,11 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterChain 
         .range_lower = null, .range_upper = null, .inclusive = false,
         .element_type = element,
         .gen_source = GenSourceCall {
-            .decl = decl, .owner = owner, .subst = subst, .args = target.args,
+            .decl = decl,
+            .owner = owner,
+            .signature = signature,
+            .subst = subst,
+            .args = target.args,
             .instance = instance,
         },
         .source = null, .span = call.span,
@@ -574,12 +575,13 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterChain 
 // The instance substitution of a generator source: each declared parameter unified
 // with its argument's type, then the result with the call's own type (a type
 // parameter only the result names). One left unbound declines.
-gen_source_subst :: fn(ctx: FnLowerCtx, target: CallTarget, call: AST.CallExpr) -> Substitution | null {
+gen_source_subst :: fn(
+    ctx: FnLowerCtx, target: CallTarget, signature: FnType, call: AST.CallExpr,
+) -> Substitution | null {
     decl :: target.decl
     if decl.type_params.len() == 0 {
         return new_substitution()
     }
-    signature :: fn_signature(target.owner, target.callee) ?? return null
     patterns: Type[]!: []
     actuals: Type[]!: []
     for k in 0..<target.args.len() {
@@ -594,15 +596,19 @@ gen_source_subst :: fn(ctx: FnLowerCtx, target: CallTarget, call: AST.CallExpr) 
 }
 
 // Each argument bound, in parameter order, to the instance's clone of the
-// parameter — the symbol the inlined body reads.
+// parameter — the symbol the inlined body reads — and prepared for that
+// parameter's slot as a call would: a `T[]` reaching an `Iterator<T>` parameter
+// is read through `Iterator.next` by the body, so it must arrive wrapped.
 bind_gen_source_operands :: fn(
     ctx: FnLowerCtx!, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
     out: LoweredStmt[]!,
 ) -> IterChain {
     gs :: chain.gen_source ?? return chain
     for k in 0..<gs.decl.params.len() {
+        slot :: substitute(gs.signature.params[k], gs.subst)
         arg :: recurse(ctx, gs.args[k])
-        out.push(bind_instance_param(ctx, gs.instance, gs.owner, gs.decl.params[k], arg, type_of(arg)))
+        value :: prepare_value_for_slot(ctx, arg, slot, span_of(arg))
+        out.push(bind_instance_param(ctx, gs.instance, gs.owner, gs.decl.params[k], value, slot))
     }
     return chain
 }

@@ -8,9 +8,9 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         offset               :: fn(i32) -> Iterator<i32>
   FnDecl         over_fused_combinator :: fn() -> i32
-  FnDecl         over_fused_enumerate :: fn() -> i32
   FnDecl         over_fused_generator :: fn() -> i32
-  FnDecl         over_lazy_enumerate  :: fn() -> i32
+  FnDecl         over_fused_indexed   :: fn() -> i32
+  FnDecl         over_lazy_indexed    :: fn() -> i32
   FnDecl         over_pairs           :: fn() -> i32
   StructDecl     Pair                 :: Pair!
   FnDecl         pair                 :: fn() -> [i32, string]
@@ -28,10 +28,10 @@
   expr 104:12   IdentExpr      :: i32
   expr 10:33    SeqLitExpr     :: [i32, string]!
   expr 10:37    StringLitExpr  :: string
-  expr 110:11   CallExpr       :: __genstate_enumerate<[usize, i32]>!
-  expr 110:11   FieldExpr      :: fn() -> Iterator<[usize, i32]>
+  expr 110:11   CallExpr       :: __genstate_indexed<[i32, usize]>!
+  expr 110:11   FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 110:11   SeqLitExpr     :: i32[]!
-  expr 111:19   IdentExpr      :: __genstate_enumerate<[usize, i32]>!
+  expr 111:19   IdentExpr      :: __genstate_indexed<[i32, usize]>!
   expr 112:14   LambdaExpr     :: fn() -> i32
   expr 112:20   BinaryExpr     :: i32
   expr 112:20   IdentExpr      :: i32
@@ -124,8 +124,8 @@
   expr 41:9     BinaryExpr     :: i32
   expr 41:9     IdentExpr      :: i32
   expr 43:12    IdentExpr      :: i32
-  expr 48:19    CallExpr       :: __genstate_enumerate<[usize, i32]>!
-  expr 48:19    FieldExpr      :: fn() -> Iterator<[usize, i32]>
+  expr 48:19    CallExpr       :: __genstate_indexed<[i32, usize]>!
+  expr 48:19    FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 48:19    SeqLitExpr     :: i32[]!
   expr 49:14    LambdaExpr     :: fn() -> i32
   expr 49:20    BinaryExpr     :: i32

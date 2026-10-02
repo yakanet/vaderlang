@@ -123,8 +123,8 @@
         int(2) :i32
         int(3) :i32
     block :void
-      let self: string[]! = keys :string[]!
-      let other: i32[]! = vals :i32[]!
+      let self: string[] = keys :string[]!
+      let other: i32[] = vals :i32[]!
       let n: usize =
         if :usize
           cond:
@@ -408,17 +408,17 @@
               __fuse_arr_21 :string[]!
             ix:
               __fuse_i_24 :usize
-        let __gen_elem_22: [usize, string] =
-          [usize, string]! {
-            _0: i :usize
-            _1: x :string
+        let __gen_elem_22: [string, usize] =
+          [string, usize]! {
+            _0: x :string
+            _1: i :usize
           }
-        let i: usize =
-          ._0 :usize
-            __gen_elem_22 :[usize, string]
         let f: string =
-          ._1 :string
-            __gen_elem_22 :[usize, string]
+          ._0 :string
+            __gen_elem_22 :[string, usize]
+        let i: usize =
+          ._1 :usize
+            __gen_elem_22 :[string, usize]
         call :void
           callee:
             std_io$println__string :void

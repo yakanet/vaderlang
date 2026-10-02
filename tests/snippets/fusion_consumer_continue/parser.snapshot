@@ -40,7 +40,7 @@
     },
     {
       "kind": "FnDecl",
-      "name": "enumerate_continue",
+      "name": "indexed_continue",
       "visibility": "private",
       "typeParams": [],
       "params": [],
@@ -74,11 +74,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "x"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "x"
+                    "name": "i"
                   }
                 ]
               },
@@ -107,7 +107,7 @@
                       }
                     ]
                   },
-                  "field": "enumerate"
+                  "field": "indexed"
                 },
                 "args": []
               }
@@ -226,7 +226,7 @@
                     }
                   ]
                 },
-                "field": "enumerate"
+                "field": "indexed"
               },
               "args": []
             }
@@ -241,11 +241,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "x"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "x"
+                    "name": "i"
                   }
                 ]
               },
@@ -337,7 +337,7 @@
                 "parts": [
                   {
                     "kind": "text",
-                    "value": "enumerate + continue, indices:"
+                    "value": "indexed + continue, indices:"
                   },
                   {
                     "kind": "interp",
@@ -1686,7 +1686,7 @@
     },
     {
       "kind": "FnDecl",
-      "name": "chars_enumerate_continue",
+      "name": "chars_indexed_continue",
       "visibility": "private",
       "typeParams": [],
       "params": [],
@@ -1720,11 +1720,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "c"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "c"
+                    "name": "i"
                   }
                 ]
               },
@@ -1749,7 +1749,7 @@
                     },
                     "args": []
                   },
-                  "field": "enumerate"
+                  "field": "indexed"
                 },
                 "args": []
               }
@@ -1865,7 +1865,7 @@
                   },
                   "args": []
                 },
-                "field": "enumerate"
+                "field": "indexed"
               },
               "args": []
             }
@@ -1880,11 +1880,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "c"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "c"
+                    "name": "i"
                   }
                 ]
               },
@@ -1977,7 +1977,7 @@
                 "parts": [
                   {
                     "kind": "text",
-                    "value": "chars.enumerate + continue, index sum: "
+                    "value": "chars.indexed + continue, index sum: "
                   },
                   {
                     "kind": "interp",
@@ -2587,11 +2587,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "x"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "x"
+                    "name": "i"
                   }
                 ]
               },
@@ -2620,7 +2620,7 @@
                       }
                     ]
                   },
-                  "field": "enumerate"
+                  "field": "indexed"
                 },
                 "args": []
               }
@@ -2754,7 +2754,7 @@
                     }
                   ]
                 },
-                "field": "enumerate"
+                "field": "indexed"
               },
               "args": []
             }
@@ -2769,11 +2769,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "x"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "x"
+                    "name": "i"
                   }
                 ]
               },
@@ -2880,7 +2880,7 @@
                 "parts": [
                   {
                     "kind": "text",
-                    "value": "enumerate + ?? continue:"
+                    "value": "indexed + ?? continue:"
                   },
                   {
                     "kind": "interp",
@@ -3897,7 +3897,7 @@
     },
     {
       "kind": "FnDecl",
-      "name": "async_enumerate_continue",
+      "name": "async_indexed_continue",
       "visibility": "private",
       "typeParams": [],
       "params": [
@@ -3953,11 +3953,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "x"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "x"
+                    "name": "i"
                   }
                 ]
               },
@@ -3969,7 +3969,7 @@
                     "kind": "IdentExpr",
                     "name": "xs"
                   },
-                  "field": "enumerate"
+                  "field": "indexed"
                 },
                 "args": []
               }
@@ -4080,7 +4080,7 @@
     },
     {
       "kind": "FnDecl",
-      "name": "async_enumerate_continue_lazy",
+      "name": "async_indexed_continue_lazy",
       "visibility": "private",
       "typeParams": [],
       "params": [
@@ -4142,7 +4142,7 @@
                   "kind": "IdentExpr",
                   "name": "xs"
                 },
-                "field": "enumerate"
+                "field": "indexed"
               },
               "args": []
             }
@@ -4157,11 +4157,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "x"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "x"
+                    "name": "i"
                   }
                 ]
               },
@@ -4293,7 +4293,7 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "enumerate_continue"
+                "name": "indexed_continue"
               },
               "args": []
             }
@@ -4348,7 +4348,7 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "chars_enumerate_continue"
+                "name": "chars_indexed_continue"
               },
               "args": []
             }
@@ -4422,7 +4422,7 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "async_enumerate_continue"
+                  "name": "async_indexed_continue"
                 },
                 "args": [
                   {
@@ -4468,7 +4468,7 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "async_enumerate_continue_lazy"
+                  "name": "async_indexed_continue_lazy"
                 },
                 "args": [
                   {
@@ -4516,7 +4516,7 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "async enumerate + continue, index sum: "
+                        "value": "async indexed + continue, index sum: "
                       },
                       {
                         "kind": "interp",

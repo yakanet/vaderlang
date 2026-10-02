@@ -35,11 +35,11 @@
             "elements": [
               {
                 "kind": "IdentExpr",
-                "name": "usize"
+                "name": "i32"
               },
               {
                 "kind": "IdentExpr",
-                "name": "i32"
+                "name": "usize"
               }
             ]
           },
@@ -61,11 +61,11 @@
               "kind": "TupleBinding",
               "elements": [
                 {
-                  "kind": "WildcardBinding"
-                },
-                {
                   "kind": "SimpleBinding",
                   "name": "x"
+                },
+                {
+                  "kind": "WildcardBinding"
                 }
               ]
             },
@@ -154,7 +154,7 @@
                         }
                       ]
                     },
-                    "field": "enumerate"
+                    "field": "indexed"
                   },
                   "args": []
                 },
@@ -182,11 +182,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "x"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "x"
+                    "name": "i"
                   }
                 ]
               },
@@ -261,7 +261,7 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "lazy enumerate.filter:"
+                        "value": "lazy indexed.filter:"
                       },
                       {
                         "kind": "interp",
@@ -300,11 +300,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "x"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "x"
+                    "name": "i"
                   }
                 ]
               },
@@ -333,7 +333,7 @@
                           }
                         ]
                       },
-                      "field": "enumerate"
+                      "field": "indexed"
                     },
                     "args": []
                   },
@@ -417,7 +417,7 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "fused enumerate.filter:"
+                        "value": "fused indexed.filter:"
                       },
                       {
                         "kind": "interp",

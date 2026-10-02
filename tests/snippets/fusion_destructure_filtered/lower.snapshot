@@ -1,11 +1,11 @@
 # Lower
 
 ## snippet
-  fn snippet$not_twenty(p: [usize, i32]) -> bool
-    let __tup_0: [usize, i32] = p :[usize, i32]
+  fn snippet$not_twenty(p: [i32, usize]) -> bool
+    let __tup_0: [i32, usize] = p :[i32, usize]
     let x: i32 =
-      ._1 :i32
-        __tup_0 :[usize, i32]
+      ._0 :i32
+        __tup_0 :[i32, usize]
     return
       neq :bool
         l:
@@ -14,14 +14,14 @@
           int(20) :i32
   fn snippet$main() -> i32
     let lazy: string = "" :string
-    let it: __genstate_filter<[usize, i32]!>! =
-      call :__genstate_filter<[usize, i32]!>!
+    let it: __genstate_filter<[i32, usize]!>! =
+      call :__genstate_filter<[i32, usize]!>!
         callee:
-          std_iter$filter___usize__i32_ :__genstate_filter<[usize, i32]!>!
+          std_iter$filter___i32__usize_ :__genstate_filter<[i32, usize]!>!
         arg0:
-          call :__genstate_enumerate<[usize, i32]>!
+          call :__genstate_indexed<[i32, usize]>!
             callee:
-              std_iter$enumerate__i32 :__genstate_enumerate<[usize, i32]>!
+              std_iter$indexed__i32 :__genstate_indexed<[i32, usize]>!
             arg0:
               call :Iterator<T>
                 callee:
@@ -32,34 +32,34 @@
                     int(20) :i32
                     int(30) :i32
         arg1:
-          not_twenty :fn([usize, i32]) -> bool
+          not_twenty :fn([i32, usize]) -> bool
     block :void
-      let __iter_1: Iterator<[usize, i32]!> = it :__genstate_filter<[usize, i32]!>!
+      let __iter_1: Iterator<[i32, usize]!> = it :__genstate_filter<[i32, usize]!>!
       loop
-        let __step_2: [[usize, i32]!, Continuation]! =
-          vcall Iterator.next :[[usize, i32]!, Continuation]!
+        let __step_2: [[i32, usize]!, Continuation]! =
+          vcall Iterator.next :[[i32, usize]!, Continuation]!
             recv:
-              __iter_1 :Iterator<[usize, i32]!>
+              __iter_1 :Iterator<[i32, usize]!>
         if :void
           cond:
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_2 :[[usize, i32]!, Continuation]!
+                  __step_2 :[[i32, usize]!, Continuation]!
               r:
                 int(1) :u8
           then:
             break
           else:
-            let __for_elem_3: [usize, i32]! =
-              ._0 :[usize, i32]!
-                __step_2 :[[usize, i32]!, Continuation]!
-            let i: usize =
-              ._0 :usize
-                __for_elem_3 :[usize, i32]!
+            let __for_elem_3: [i32, usize]! =
+              ._0 :[i32, usize]!
+                __step_2 :[[i32, usize]!, Continuation]!
             let x: i32 =
-              ._1 :i32
-                __for_elem_3 :[usize, i32]!
+              ._0 :i32
+                __for_elem_3 :[i32, usize]!
+            let i: usize =
+              ._1 :usize
+                __for_elem_3 :[i32, usize]!
             assign
               target:
                 lazy :string
@@ -148,7 +148,7 @@
           callee:
             concat_2 :string
           arg0:
-            "lazy enumerate.filter:" :string
+            "lazy indexed.filter:" :string
           arg1:
             lazy :string
     let fused: string = "" :string
@@ -158,7 +158,7 @@
           int(10) :i32
           int(20) :i32
           int(30) :i32
-      let pred: fn([usize, i32]) -> bool = not_twenty :fn([usize, i32]) -> bool
+      let pred: fn([i32, usize]) -> bool = not_twenty :fn([i32, usize]) -> bool
       let i: usize = int(0) :usize
       let __fuse_len_11: usize =
         LoweredArrayLen
@@ -170,26 +170,26 @@
               __fuse_arr_9 :i32[]!
             ix:
               __fuse_i_12 :usize
-        let x: [usize, i32] =
-          [usize, i32]! {
-            _0: i :usize
-            _1: x :i32
+        let x: [i32, usize] =
+          [i32, usize]! {
+            _0: x :i32
+            _1: i :usize
           }
         if :void
           cond:
             call :bool
               callee:
-                not_twenty :fn([usize, i32]) -> bool
+                not_twenty :fn([i32, usize]) -> bool
               arg0:
-                x :[usize, i32]
+                x :[i32, usize]
           then:
-            let __gen_elem_10: [usize, i32] = x :[usize, i32]
-            let i: usize =
-              ._0 :usize
-                __gen_elem_10 :[usize, i32]
+            let __gen_elem_10: [i32, usize] = x :[i32, usize]
             let x: i32 =
-              ._1 :i32
-                __gen_elem_10 :[usize, i32]
+              ._0 :i32
+                __gen_elem_10 :[i32, usize]
+            let i: usize =
+              ._1 :usize
+                __gen_elem_10 :[i32, usize]
             assign
               target:
                 fused :string
@@ -297,7 +297,7 @@
           callee:
             concat_2 :string
           arg0:
-            "fused enumerate.filter:" :string
+            "fused indexed.filter:" :string
           arg1:
             fused :string
     return int(0) :i32

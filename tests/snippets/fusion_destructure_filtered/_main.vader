@@ -1,4 +1,4 @@
-// fusion_destructure_filtered — `for [i, x] in xs.enumerate().filter(p)`: the
+// fusion_destructure_filtered — `for [x, i] in xs.indexed().filter(p)`: the
 // fused loop destructures each element of a layered chain, against the same
 // chain bound lazily to a local first.
 
@@ -7,22 +7,22 @@ module "snippet"
 import "std/io"
 import "std/iter"
 
-not_twenty :: fn(p: [usize, i32]) -> bool {
-    [_, x] :: p
+not_twenty :: fn(p: [i32, usize]) -> bool {
+    [x, _] :: p
     return x != 20
 }
 
 main :: fn() -> i32 {
     lazy := ""
-    it :: [10, 20, 30].enumerate().filter(not_twenty)
-    for [i, x] in it {
+    it :: [10, 20, 30].indexed().filter(not_twenty)
+    for [x, i] in it {
         lazy = lazy + " ${i}:${x}"
     }
-    println("lazy enumerate.filter:${lazy}")
+    println("lazy indexed.filter:${lazy}")
     fused := ""
-    for [i, x] in [10, 20, 30].enumerate().filter(not_twenty) {
+    for [x, i] in [10, 20, 30].indexed().filter(not_twenty) {
         fused = fused + " ${i}:${x}"
     }
-    println("fused enumerate.filter:${fused}")
+    println("fused indexed.filter:${fused}")
     return 0
 }

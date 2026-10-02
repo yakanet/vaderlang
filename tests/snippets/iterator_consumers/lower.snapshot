@@ -1145,7 +1145,7 @@
           let __coalesce_22: null | Point! =
             block :null | Point!
               let __fuse_arr_23: Point![]! = pts :Point![]!
-              let pred: fn(Point) -> bool = __lambda_snippet_2 :fn(Point) -> bool
+              let pred: fn(Point!) -> bool = __lambda_snippet_2 :fn(Point) -> bool
               let pred: fn(Point!) -> bool = __lambda_snippet_3 :fn(Point) -> bool
               let __consumed_24: null | Point! = null
               block :$exit$i119

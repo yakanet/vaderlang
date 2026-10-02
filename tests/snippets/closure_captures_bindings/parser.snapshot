@@ -510,7 +510,7 @@
     },
     {
       "kind": "FnDecl",
-      "name": "over_fused_enumerate",
+      "name": "over_fused_indexed",
       "visibility": "private",
       "typeParams": [],
       "params": [],
@@ -544,11 +544,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "x"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "x"
+                    "name": "i"
                   }
                 ]
               },
@@ -573,7 +573,7 @@
                       }
                     ]
                   },
-                  "field": "enumerate"
+                  "field": "indexed"
                 },
                 "args": []
               }
@@ -1462,7 +1462,7 @@
     },
     {
       "kind": "FnDecl",
-      "name": "over_lazy_enumerate",
+      "name": "over_lazy_indexed",
       "visibility": "private",
       "typeParams": [],
       "params": [],
@@ -1515,7 +1515,7 @@
                     }
                   ]
                 },
-                "field": "enumerate"
+                "field": "indexed"
               },
               "args": []
             }
@@ -1530,11 +1530,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "x"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "x"
+                    "name": "i"
                   }
                 ]
               },
@@ -1774,7 +1774,7 @@
                           "kind": "CallExpr",
                           "callee": {
                             "kind": "IdentExpr",
-                            "name": "over_fused_enumerate"
+                            "name": "over_fused_indexed"
                           },
                           "args": []
                         }
@@ -1810,7 +1810,7 @@
                           "kind": "CallExpr",
                           "callee": {
                             "kind": "IdentExpr",
-                            "name": "over_lazy_enumerate"
+                            "name": "over_lazy_indexed"
                           },
                           "args": []
                         }

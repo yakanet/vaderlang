@@ -135,9 +135,9 @@ const C_PARITY = new Set<string>([
   //   if_null_narrow — break / continue in divergent null-narrow branches.
   "for_loop",
   "if_null_narrow",
-  // Erasure-boundary tuple field read : `for [k, v] in zip(...)` / `enumerate()`
-  // yield erased-sibling tuples (all-`Any` from zip, `[usize, Any]` from
-  // enumerate) that the carrying array erases to `ref` ; the concrete field
+  // Erasure-boundary tuple field read : `for [k, v] in zip(...)` / `indexed()`
+  // yield erased-sibling tuples (all-`Any` from zip, `[Any, usize]` from
+  // indexed) that the carrying array erases to `ref` ; the concrete field
   // read must tag-dispatch + box/unbox (`c_emit/walker.vader::push_struct_field`).
   // The native-run oracle here is the regression guard — the snapshot/VM
   // dimensions stay green even when the native field read is wrong.
@@ -149,6 +149,13 @@ const C_PARITY = new Set<string>([
   // native run is the guard that the `into` wrap the lowerer inserts is the same
   // one the VM sees.
   "iter_coerce_method_arg",
+  // The same raw `T[]` reaching an `Iterator<T>` param of a generator INLINED
+  // into a fused loop — as a chain source, or as a combinator's data param — and
+  // a scalar reaching a union data param. Inlined, so the native run checks the
+  // fused body, not the state machine.
+  "generator_inline_arg_slots",
+  // A 0-arg combinator over `Iterator<T | null>` whose yielded value must unbox.
+  "iter_chunks_distinct_nulls",
   // Captured parameters : a `defer` / lambda body that reads or mutates one of
   // its enclosing fn's PARAMS promotes that param to a heap cell at fn entry
   // (`promote_captured_params`). Exercises cell-new over an ABI param +

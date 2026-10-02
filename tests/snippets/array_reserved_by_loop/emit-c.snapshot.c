@@ -1053,56 +1053,56 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                         snippet_show(6u, l10);
 #line 107 "tests/snippets/array_reserved_by_loop/_main.vader"
                         l11 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s0;
-#line 86 "lib/std/iter/iter.vader"
+#line 88 "lib/std/iter/iter.vader"
                         vader_array_t* _a2_arr = vader_array_new(5u, 0u, 8u, 2u);
                         l12 = (void*) _a2_arr;
 #line 112 "tests/snippets/array_reserved_by_loop/_main.vader"
                         l13 = ((vader_array_t*) l11)->length;
-#line 86 "lib/std/iter/iter.vader"
+#line 88 "lib/std/iter/iter.vader"
                         vader_array_t* _a3_arr = vader_array_repeat((vader_array_t*) l12, (size_t) l13);
                         l14 = (void*) _a3_arr;
 #line 112 "tests/snippets/array_reserved_by_loop/_main.vader"
                         l15 = ((vader_array_t*) l11)->length;
                         l16 = (size_t) 0;
-#line 87 "lib/std/iter/iter.vader"
+#line 89 "lib/std/iter/iter.vader"
                         while ((l16 < l15)) {
 #line 112 "tests/snippets/array_reserved_by_loop/_main.vader"
                             vader_array_t* _a4_slotarr = ((vader_array_t*) l11);
                             VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
                             VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l16)
                             t0 = ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l16];
-#line 309 "lib/std/iter/iter.vader"
+#line 378 "lib/std/iter/iter.vader"
                             l17 = snippet_square(t0);
-#line 88 "lib/std/iter/iter.vader"
+#line 90 "lib/std/iter/iter.vader"
                             vader_array_push_i64((vader_array_t*) l14, l17);
 #line 112 "tests/snippets/array_reserved_by_loop/_main.vader"
                             t3 = (l16 + INT64_C(1));
                             l16 = (size_t) (int64_t) t3;
-#line 87 "lib/std/iter/iter.vader"
+#line 89 "lib/std/iter/iter.vader"
 #line 112 "tests/snippets/array_reserved_by_loop/_main.vader"
-#line 87 "lib/std/iter/iter.vader"
+#line 89 "lib/std/iter/iter.vader"
                         }
 #line 112 "tests/snippets/array_reserved_by_loop/_main.vader"
                         snippet_show(7u, l14);
-#line 86 "lib/std/iter/iter.vader"
+#line 88 "lib/std/iter/iter.vader"
                         vader_array_t* _a5_arr = vader_array_new(5u, 0u, 8u, 2u);
                         t1 = (void*) _a5_arr;
                         vader_array_t* _a6_arr = vader_array_repeat((vader_array_t*) t1, (size_t) INT64_C(4));
                         l18 = (void*) _a6_arr;
 #line 113 "tests/snippets/array_reserved_by_loop/_main.vader"
                         l19 = INT32_C(0);
-#line 87 "lib/std/iter/iter.vader"
+#line 89 "lib/std/iter/iter.vader"
                         while ((l19 < INT32_C(4))) {
 #line 113 "tests/snippets/array_reserved_by_loop/_main.vader"
-#line 309 "lib/std/iter/iter.vader"
+#line 378 "lib/std/iter/iter.vader"
                             l20 = snippet_square(l19);
-#line 88 "lib/std/iter/iter.vader"
+#line 90 "lib/std/iter/iter.vader"
                             vader_array_push_i64((vader_array_t*) l18, l20);
 #line 113 "tests/snippets/array_reserved_by_loop/_main.vader"
                             l19 = (l19 + INT32_C(1));
-#line 87 "lib/std/iter/iter.vader"
+#line 89 "lib/std/iter/iter.vader"
 #line 113 "tests/snippets/array_reserved_by_loop/_main.vader"
-#line 87 "lib/std/iter/iter.vader"
+#line 89 "lib/std/iter/iter.vader"
                         }
 #line 113 "tests/snippets/array_reserved_by_loop/_main.vader"
                         snippet_show(8u, l18);

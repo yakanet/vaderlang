@@ -860,7 +860,7 @@ A `[...]` pattern applied to a value that is **neither a tuple nor an array** st
 [n, s] := p                            // p: a struct that `implements Into<[i32, string]>`
 ```
 
-Any type that ships an `Into<[...]>` impl of matching arity destructures through a `[...]` pattern: the parser desugars `[n, s] := p` to bind each leaf from the `into` body's field reads, giving `n: i32`, `s: string`. (`MutableMap` no longer uses this path — it yields plain `[K, V]` tuples directly, like `zip` / `enumerate`, so `for [k, v] in m` is an ordinary tuple destructure.)
+Any type that ships an `Into<[...]>` impl of matching arity destructures through a `[...]` pattern: the parser desugars `[n, s] := p` to bind each leaf from the `into` body's field reads, giving `n: i32`, `s: string`. (`MutableMap` no longer uses this path — it yields plain `[K, V]` tuples directly, like `zip` / `indexed`, so `for [k, v] in m` is an ordinary tuple destructure.)
 
 When the impl's `into` body is a tuple literal of plain field reads (`[self.a, self.b]`), the lowerer binds each leaf directly to the source field — no `into()` call and no transient tuple allocation. T3001 still fires when the source is a non-tuple, non-array type with no matching `Into<[...]>` impl.
 
@@ -3405,14 +3405,18 @@ An implementation provides `next` and nothing else: everything that consumes an 
 `std/iter` provides **lazy combinators** on top of `Iterator<T>`. Each is a generator (it `yield`s) returning `Iterator<U>`: nothing is materialised until a terminal drains the stream, and chains **fuse** through their `Iterator<T>` slots down to a single loop with no intermediate arrays. There is one family — no eager `T[]`-returning overloads and no `.iter()` cursor.
 
 ```vader
-map       :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U)      -> Iterator<U>
-filter    :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool)   -> Iterator<T>
-take      :: fn<T>(self: Iterator<T>, n: usize)              -> Iterator<T>
-skip      :: fn<T>(self: Iterator<T>, n: usize)              -> Iterator<T>
-enumerate :: fn<T>(self: Iterator<T>)                        -> Iterator<[usize, T]>
-flat_map  :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[])    -> Iterator<U>
-chain     :: fn<T>(self: Iterator<T>, other: Iterator<T>)    -> Iterator<T>
-zip       :: fn<T, U>(self: T[], other: U[])                 -> Iterator<[T, U]>
+map             :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U)    -> Iterator<U>
+filter          :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T>
+take            :: fn<T>(self: Iterator<T>, n: usize)            -> Iterator<T>
+skip            :: fn<T>(self: Iterator<T>, n: usize)            -> Iterator<T>
+indexed         :: fn<T>(self: Iterator<T>)                      -> Iterator<[T, usize]>
+flat_map        :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[])  -> Iterator<U>
+chain           :: fn<T>(self: Iterator<T>, other: Iterator<T>)  -> Iterator<T>
+zip             :: fn<T, U>(self: T[], other: U[])               -> Iterator<[T, U]>
+window          :: fn<T>(self: T[]!, size: usize)                -> Iterator<T[]>
+chunked         :: fn<T>(self: Iterator<T>, size: usize)         -> Iterator<T[]>
+distinct        :: fn<T: Hash & Equals>(self: Iterator<T>)       -> Iterator<T>
+filter_not_null :: fn<T>(self: Iterator<T | null>)               -> Iterator<T>
 ```
 
 **Terminals** drain the stream to a concrete value — `collect` materialises an array, the rest fold or short-circuit:
@@ -3439,8 +3443,8 @@ for x in arr.filter(p) { ... }              // a lazy chain also drives for-in d
 
 > **Shipped.** The `yield` statement parses, formats, type-checks
 > (`T3056`, `T3058`–`T3061`), and lowers to a resumable state machine. The entire
-> `std/iter` combinator family (`map` / `filter` / `take` / `skip` / `enumerate` /
-> `flat_map` / `chain` / `zip`) is authored as generators on top of it. A fused
+> `std/iter` combinator family (`map` / `filter` / `take` / `skip` / `indexed` /
+> `flat_map` / `chain` / `zip` / …) is authored as generators on top of it. A fused
 > chain inlines the generator body directly (no allocation, no boxed iterator); an
 > escaping generator falls back to the state-machine struct.
 
@@ -4210,7 +4214,7 @@ Already landed (cross-reference for B's reader):
 - Resolver self-host (`vader/resolver/` — 9 modules)
 - Reflection intrinsics `@type_of`, `@fields`, `@type_args`, `@field`, `@comptime for` loop unrolling
 - FFI VM host registry (`@extern` user imports now run on the VM via a host-side handler table)
-- Lazy iterator combinators (`map` / `filter` / `take` / `skip` / `enumerate` / `flat_map` / `chain` / `zip` — all generators in `std/iter`)
+- Lazy iterator combinators (`map` / `filter` / `take` / `skip` / `indexed` / `flat_map` / `chain` / `zip` — all generators in `std/iter`)
 - Mid-IR CFG layer + escape analysis + loop-carried-dependency check
 - Single-binary distribution (`bun build --compile` + per-OS tarballs)
 - Reference benchmark suite (`bench/`)

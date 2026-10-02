@@ -24,9 +24,9 @@ main :: fn() -> i32 {
         println("j=${x}")
     }
 
-    // enumerate — index + value pairs.
+    // indexed — value + index pairs.
     fruits :: ["apple", "banana", "cherry"]
-    for [i, f] in fruits.enumerate() {
+    for [f, i] in fruits.indexed() {
         println("${i}: ${f}")
     }
 

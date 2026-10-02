@@ -1,0 +1,13 @@
+# stdout
+sentinel 1
+sentinel 2
+sentinel 3
+sentinel 9
+pair 1:a
+pair 2:b
+offset 5000000001
+offset 5000000001
+remap s1 2
+remap s2 2
+# exit
+0

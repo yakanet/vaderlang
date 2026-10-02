@@ -489,11 +489,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "f"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "f"
+                    "name": "i"
                   }
                 ]
               },
@@ -505,7 +505,7 @@
                     "kind": "IdentExpr",
                     "name": "fruits"
                   },
-                  "field": "enumerate"
+                  "field": "indexed"
                 },
                 "args": []
               }

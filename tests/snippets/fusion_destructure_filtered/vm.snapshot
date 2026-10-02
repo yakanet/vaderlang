@@ -1,5 +1,5 @@
 # stdout
-lazy enumerate.filter: 0:10 2:30
-fused enumerate.filter: 0:10 2:30
+lazy indexed.filter: 0:10 2:30
+fused indexed.filter: 0:10 2:30
 # exit
 0

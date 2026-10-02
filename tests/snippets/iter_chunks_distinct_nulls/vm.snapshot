@@ -1,0 +1,22 @@
+# stdout
+indexed 0:a
+indexed 1:b
+indexed 2:c
+chunk [1, 2]
+chunk [3, 4]
+chunk [5]
+lazy chunk [1, 2, 3, 4]
+lazy chunk [5, 6]
+distinct 3
+distinct 1
+distinct 2
+lazy distinct to
+lazy distinct be
+lazy distinct or
+lazy distinct not
+not null 2
+not null 4
+lazy not null 10
+lazy not null 30
+# exit
+0

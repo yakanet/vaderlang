@@ -1,0 +1,39 @@
+// iter_chunks_distinct_nulls — `indexed`, `chunked`, `distinct` and
+// `filter_not_null`, each consumed by a fused `for` and bound to a local first
+// (the state-machine path). `filter_not_null` is a 0-arg combinator over
+// `Iterator<T | null>`: its `T` binds to the element minus `null`, so the value
+// it yields arrives unboxed.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+main :: fn() -> i32 {
+    for [s, i] in ["a", "b", "c"].indexed() {
+        println("indexed ${i}:${s}")
+    }
+    for c in [1, 2, 3, 4, 5].chunked(2) {
+        println("chunk ${c}")
+    }
+    chunks :: [1, 2, 3, 4, 5, 6].chunked(4)
+    for c in chunks {
+        println("lazy chunk ${c}")
+    }
+    for x in [3, 1, 3, 2, 1].distinct() {
+        println("distinct ${x}")
+    }
+    words :: ["to", "be", "or", "not", "to", "be"].distinct()
+    for w in words {
+        println("lazy distinct ${w}")
+    }
+    maybe: (i32 | null)[]: [1, null, 3, null]
+    for x in maybe.filter_not_null() {
+        println("not null ${x + 1}")
+    }
+    present :: maybe.filter_not_null()
+    for x in present {
+        println("lazy not null ${x * 10}")
+    }
+    return 0
+}

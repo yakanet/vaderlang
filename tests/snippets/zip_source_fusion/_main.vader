@@ -46,8 +46,8 @@ main :: fn() -> i32 {
         total += x
     }
     println("loop fused: ${total}")
-    for [i, pair] in zip(a, b).enumerate() {
-        println("enumerate fused: ${i} ${pair.0} ${pair.1}")
+    for [pair, i] in zip(a, b).indexed() {
+        println("indexed fused: ${i} ${pair.0} ${pair.1}")
     }
     empty: i32[]: []
     println("empty fused: ${zip(a, empty).count()}")

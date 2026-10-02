@@ -107,7 +107,7 @@
               r:
                 int(1) :usize
     return total :i32
-  fn snippet$over_fused_enumerate() -> i32
+  fn snippet$over_fused_indexed() -> i32
     let total: i32 = int(0) :i32
     block :void
       let __fuse_arr_2: i32[]! =
@@ -126,14 +126,14 @@
               __fuse_arr_2 :i32[]!
             ix:
               __fuse_i_5 :usize
-        let __gen_elem_3: [usize, i32] =
-          [usize, i32]! {
-            _0: i :usize
-            _1: x :i32
+        let __gen_elem_3: [i32, usize] =
+          [i32, usize]! {
+            _0: x :i32
+            _1: i :usize
           }
-        let i: ? =
-          LoweredCellNew
         let x: ? =
+          LoweredCellNew
+        let i: ? =
           LoweredCellNew
         let f: __lambda_env_snippet_7! =
           __lambda_env_snippet_7! {
@@ -362,12 +362,12 @@
               r:
                 int(1) :usize
     return total :i32
-  fn snippet$over_lazy_enumerate() -> i32
+  fn snippet$over_lazy_indexed() -> i32
     let total: i32 = int(0) :i32
-    let it: __genstate_enumerate<[usize, i32]>! =
-      call :__genstate_enumerate<[usize, i32]>!
+    let it: __genstate_indexed<[i32, usize]>! =
+      call :__genstate_indexed<[i32, usize]>!
         callee:
-          std_iter$enumerate__i32 :__genstate_enumerate<[usize, i32]>!
+          std_iter$indexed__i32 :__genstate_indexed<[i32, usize]>!
         arg0:
           call :Iterator<T>
             callee:
@@ -378,29 +378,29 @@
                 int(20) :i32
                 int(30) :i32
     block :void
-      let __iter_1: Iterator<[usize, i32]> = it :__genstate_enumerate<[usize, i32]>!
+      let __iter_1: Iterator<[i32, usize]> = it :__genstate_indexed<[i32, usize]>!
       loop
-        let __step_2: [[usize, i32], Continuation]! =
-          vcall Iterator.next :[[usize, i32], Continuation]!
+        let __step_2: [[i32, usize], Continuation]! =
+          vcall Iterator.next :[[i32, usize], Continuation]!
             recv:
-              __iter_1 :Iterator<[usize, i32]>
+              __iter_1 :Iterator<[i32, usize]>
         if :void
           cond:
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_2 :[[usize, i32], Continuation]!
+                  __step_2 :[[i32, usize], Continuation]!
               r:
                 int(1) :u8
           then:
             break
           else:
-            let __for_elem_3: [usize, i32] =
-              ._0 :[usize, i32]
-                __step_2 :[[usize, i32], Continuation]!
-            let i: ? =
-              LoweredCellNew
+            let __for_elem_3: [i32, usize] =
+              ._0 :[i32, usize]
+                __step_2 :[[i32, usize], Continuation]!
             let x: ? =
+              LoweredCellNew
+            let i: ? =
               LoweredCellNew
             let f: __lambda_env_snippet_23! =
               __lambda_env_snippet_23! {
@@ -573,7 +573,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        over_fused_enumerate :fn() -> i32
+                        over_fused_indexed :fn() -> i32
           ~>
             call :string
               callee:
@@ -622,7 +622,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        over_lazy_enumerate :fn() -> i32
+                        over_lazy_indexed :fn() -> i32
           ~>
             call :string
               callee:

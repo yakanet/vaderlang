@@ -1606,7 +1606,7 @@
                                   "window lazy" :string
                                 arg1:
                                   block :i32[]!
-                                    let self: __genstate_window<i32[]>! =
+                                    let self: Iterator<i32[]> =
                                       .s17 :__genstate_window<i32[]>!
                                         __self_21 :__asyncstate_snippet_2!
                                     let f: fn(i32[]) -> i32 = sum_of :fn(i32[]) -> i32
@@ -2504,7 +2504,7 @@
                                                                                                                                                                   "pairs lazy" :string
                                                                                                                                                                 arg1:
                                                                                                                                                                   block :i32[]!
-                                                                                                                                                                    let self: __genstate_pairs_until<i32>! =
+                                                                                                                                                                    let self: Iterator<i32> =
                                                                                                                                                                       .s0 :__genstate_pairs_until<i32>!
                                                                                                                                                                         __self_21 :__asyncstate_snippet_2!
                                                                                                                                                                     let f: fn(i32) -> i32 = double :fn(i32) -> i32
@@ -2680,7 +2680,7 @@
                                                                                                                                                                           arg2:
                                                                                                                                                                             cast → u64
                                                                                                                                                                               block :usize
-                                                                                                                                                                                let self: __genstate_squares<i32>! =
+                                                                                                                                                                                let self: Iterator<i32> =
                                                                                                                                                                                   .s1 :__genstate_squares<i32>!
                                                                                                                                                                                     __self_21 :__asyncstate_snippet_2!
                                                                                                                                                                                 let pred: fn(i32) -> bool = odd :fn(i32) -> bool

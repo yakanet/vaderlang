@@ -145,8 +145,8 @@
         "map fused" :string
       arg1:
         block :i32[]!
-          let self: i32[]! = a :i32[]!
-          let other: i32[]! = b :i32[]!
+          let self: i32[] = a :i32[]!
+          let other: i32[] = b :i32[]!
           let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
           let out: i32[]! =
             array :i32[]!
@@ -217,7 +217,7 @@
         "map lazy" :string
       arg1:
         block :i32[]!
-          let self: __genstate_zip<[i32, i32]>! = lazy_map :__genstate_zip<[i32, i32]>!
+          let self: Iterator<[i32, i32]> = lazy_map :__genstate_zip<[i32, i32]>!
           let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
           let out: i32[]! =
             array :i32[]!
@@ -291,8 +291,8 @@
                 arg2:
                   cast → u64
                     block :usize
-                      let self: i32[]! = a :i32[]!
-                      let other: i32[]! = b :i32[]!
+                      let self: i32[] = a :i32[]!
+                      let other: i32[] = b :i32[]!
                       let pred: fn([i32, i32]) -> bool = left_bigger :fn([i32, i32]) -> bool
                       let total: usize = int(0) :usize
                       block :void
@@ -413,7 +413,7 @@
                 arg2:
                   cast → u64
                     block :usize
-                      let self: __genstate_zip<[i32, i32]>! = lazy_filter :__genstate_zip<[i32, i32]>!
+                      let self: Iterator<[i32, i32]> = lazy_filter :__genstate_zip<[i32, i32]>!
                       let pred: fn([i32, i32]) -> bool = left_bigger :fn([i32, i32]) -> bool
                       let total: usize = int(0) :usize
                       block :void
@@ -473,8 +473,8 @@
         "take fused" :string
       arg1:
         block :i32[]!
-          let self: i32[]! = a :i32[]!
-          let other: i32[]! = b :i32[]!
+          let self: i32[] = a :i32[]!
+          let other: i32[] = b :i32[]!
           let n: usize = int(2) :usize
           let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
           let out: i32[]! =
@@ -600,8 +600,8 @@
                   __off_11 :usize
                 arg2:
                   block :bool
-                    let self: i32[]! = a :i32[]!
-                    let other: i32[]! = b :i32[]!
+                    let self: i32[] = a :i32[]!
+                    let other: i32[] = b :i32[]!
                     let pred: fn([i32, i32]) -> bool = left_bigger :fn([i32, i32]) -> bool
                     let __consumed_9: bool = false
                     block :$exit$i95
@@ -679,8 +679,8 @@
                 __off_11 :usize
     let found: [i32, i32]! | null =
       block :[i32, i32]! | null
-        let self: i32[]! = a :i32[]!
-        let other: i32[]! = b :i32[]!
+        let self: i32[] = a :i32[]!
+        let other: i32[] = b :i32[]!
         let pred: fn([i32, i32]) -> bool = left_bigger :fn([i32, i32]) -> bool
         let __consumed_12: [i32, i32]! | null = null
         block :$exit$i107
@@ -834,8 +834,8 @@
                     __off_14 :usize
     let total: i32 = int(0) :i32
     block :void
-      let self: i32[]! = a :i32[]!
-      let other: i32[]! = b :i32[]!
+      let self: i32[] = a :i32[]!
+      let other: i32[] = b :i32[]!
       let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
       block :$leave121
         let n: usize =
@@ -962,8 +962,8 @@
               arg1:
                 __off_16 :usize
     block :void
-      let self: i32[]! = a :i32[]!
-      let other: i32[]! = b :i32[]!
+      let self: i32[] = a :i32[]!
+      let other: i32[] = b :i32[]!
       let i: usize = int(0) :usize
       let n: usize =
         if :usize
@@ -997,17 +997,17 @@
                   ix:
                     i :usize
             }
-          let __gen_elem_20: [usize, [i32, i32]] =
-            [usize, [i32, i32]]! {
-              _0: i :usize
-              _1: x :[i32, i32]
+          let __gen_elem_20: [[i32, i32], usize] =
+            [[i32, i32], usize]! {
+              _0: x :[i32, i32]
+              _1: i :usize
             }
-          let i: usize =
-            ._0 :usize
-              __gen_elem_20 :[usize, [i32, i32]]
           let pair: [i32, i32]! =
-            ._1 :[i32, i32]!
-              __gen_elem_20 :[usize, [i32, i32]]
+            ._0 :[i32, i32]!
+              __gen_elem_20 :[[i32, i32], usize]
+          let i: usize =
+            ._1 :usize
+              __gen_elem_20 :[[i32, i32], usize]
           call :void
             callee:
               std_io$println__string :void
@@ -1018,7 +1018,7 @@
                     callee:
                       new_byte_buffer :Buffer
                     arg0:
-                      int(79) :usize
+                      int(77) :usize
                 let __off_19: usize = int(0) :usize
                 assign
                   target:
@@ -1032,7 +1032,7 @@
                       arg1:
                         __off_19 :usize
                       arg2:
-                        "enumerate fused: " :string
+                        "indexed fused: " :string
                 assign
                   target:
                     __off_19 :usize
@@ -1171,7 +1171,7 @@
                 arg2:
                   cast → u64
                     block :usize
-                      let self: i32[]! = a :i32[]!
+                      let self: i32[] = a :i32[]!
                       let other: i32[] = empty :i32[]
                       let total: usize = int(0) :usize
                       block :void

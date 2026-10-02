@@ -1,13 +1,13 @@
 // std/iter — lazy `generator` iterator combinators + terminals.
 //
-//   - **Combinators** `map` / `filter` / `take` / `skip` / `enumerate` /
-//     `flat_map` / `chain` / `zip` are `generator`s (bottom of this file).
-//     `arr.map(f)` / `it.enumerate()` read like a pipeline and dispatch via UFCS ;
-//     consumed by a `for` loop or a terminal (`collect` / `count` / `any_match` / …),
-//     the chain fuses to a single flat loop — no intermediate arrays, no iterator
-//     struct, no `next()` dispatch (`vader/lower/lower_iter_fusion.vader`).
-//     `enumerate` is a 0-arg combinator ; `chain` fuses two source loops ; `zip`
-//     stays `T[]`/`U[]` (its lockstep pull needs indexed access, unlike the
+//   - **Combinators** `map` / `filter` / `take` / `skip` / `indexed` /
+//     `flat_map` / `chain` / `zip` / `window` / `chunked` / `distinct` /
+//     `filter_not_null` are `generator`s. `arr.map(f)` / `it.indexed()` read like
+//     a pipeline and dispatch via UFCS ; consumed by a `for` loop or a terminal
+//     (`collect` / `count` / `any_match` / …), the chain fuses to a single flat
+//     loop — no intermediate arrays, no iterator struct, no `next()` dispatch
+//     (`vader/lower/lower_iter_fusion.vader`). `chain` fuses two source loops ;
+//     `zip` stays `T[]`/`U[]` (its lockstep pull needs indexed access, unlike the
 //     source-driven combinators). Their tuple elements destructure in `for [x, y]
 //     in`. The generator's state machine only materialises when the value escapes.
 //   - **Terminals** `collect` / `fold` / `sum` / `count` / `last` / `is_empty` /
@@ -19,6 +19,8 @@
 //     `arr[start..<end]`, `arr.clone()` (not the removed `slice` / eager `collect`).
 
 module "std/iter"
+
+import "std/collections"
 
 /// True when `arr` carries no elements. Cheap one-liner — saves the
 /// `.len() == usize(0)` boilerplate that polluted call sites.
@@ -193,17 +195,84 @@ export chain :: fn<T>(self: Iterator<T>, other: Iterator<T>) -> Iterator<T> {
     for y in other { yield y }
 }
 
-/// Lazily pair each element with its index, starting at 0. Yields `[usize, T]`
-/// tuples so callers can `for [i, x] in it.enumerate() { … }` — the destructure
-/// binds `i` and `x` per step. A 0-arg combinator: fuses over the source with no
-/// intermediate array.
+/// Lazily pair each element with its index, starting at 0 — the element first,
+/// so `for [x, i] in it.indexed() { … }` reads in the order it is yielded. A
+/// 0-arg combinator: fuses over the source with no intermediate array.
 /// @param self  source iterator (a raw array auto-coerces at the call site).
-/// @return      a lazy `Iterator([usize, T])` — `(0, self[0])`, `(1, self[1])`, …
-export enumerate :: fn<T>(self: Iterator<T>) -> Iterator<[usize, T]> {
+/// @return      a lazy `Iterator<[T, usize]>` — `[self[0], 0]`, `[self[1], 1]`, …
+export indexed :: fn<T>(self: Iterator<T>) -> Iterator<[T, usize]> {
     i: usize = 0
     for x in self {
-        yield [i, x]
+        yield [x, i]
         i += 1
+    }
+}
+
+/// The most elements `chunked` reserves up front for one chunk.
+CHUNK_RESERVE_CAP: usize: 1024
+
+/// Split `self` into consecutive runs of `size` elements ; the last run holds
+/// what remains and may be shorter. Mirrors Kotlin's `chunked(size)`.
+///
+/// Unlike `window`, each chunk is a FRESH array, not a view: the source is a
+/// lazy `Iterator`, so there is nothing to alias.
+///
+/// @param self  source iterator (a raw array auto-coerces at the call site).
+/// @param size  elements per chunk ; `size == 0` yields nothing.
+/// @return      a lazy `Iterator<T[]>` — `[x0, …, x(size-1)]`, then the next
+///              run, … , then the shorter remainder if any.
+/// @example
+///   for c in [1, 2, 3, 4, 5].chunked(2) { println("${c}") }   // [1, 2] [3, 4] [5]
+export chunked :: fn<T>(self: Iterator<T>, size: usize) -> Iterator<T[]> {
+    if size == 0 {
+        return
+    }
+    // Capped : a huge `size` over a short stream must not reserve it whole.
+    reserve :: if size < CHUNK_RESERVE_CAP { size } else { CHUNK_RESERVE_CAP }
+    chunk: T[]! = [] * reserve
+    for x in self {
+        chunk.push(x)
+        if chunk.len() == size {
+            yield chunk
+            chunk = [] * reserve
+        }
+    }
+    if chunk.len() > 0 {
+        yield chunk
+    }
+}
+
+/// Lazily yield each element of `self` the first time it occurs, in order of
+/// first occurrence. Mirrors Kotlin's `distinct()`.
+///
+/// Remembers every element seen so far, so memory grows with the number of
+/// DISTINCT elements, not with the length of the stream.
+///
+/// @param self  source iterator (a raw array auto-coerces at the call site).
+/// @return      a lazy `Iterator<T>` with every repeat dropped.
+/// @example
+///   for x in [3, 1, 3, 2, 1].distinct() { println("${x}") }   // 3 1 2
+export distinct :: fn<T: Hash & Equals>(self: Iterator<T>) -> Iterator<T> {
+    seen :: MutableSet<T> {}
+    for x in self {
+        if seen.add(x) {
+            yield x
+        }
+    }
+}
+
+/// Lazily yield the non-null elements of `self`, typed without the `null`.
+/// Mirrors Kotlin's `filterNotNull()`.
+/// @param self  source iterator over a nullable element type.
+/// @return      a lazy `Iterator<T>` — `self` with every `null` dropped.
+/// @example
+///   maybe: (i32 | null)[]: [1, null, 3]
+///   for x in maybe.filter_not_null() { println("${x + 1}") }   // 2 4
+export filter_not_null :: fn<T>(self: Iterator<T | null>) -> Iterator<T> {
+    for x in self {
+        if x != null {
+            yield x
+        }
     }
 }
 
@@ -440,10 +509,10 @@ import "std/testing"
     assert_eq(out[4], 5)
 }
 
-@test test_enumerate :: fn() -> void {
+@test test_indexed :: fn() -> void {
     idxs: usize[]!: []
     vals: string[]!: []
-    for [i, s] in ["a", "b", "c"].enumerate() {
+    for [s, i] in ["a", "b", "c"].indexed() {
         idxs.push(i)
         vals.push(s)
     }
@@ -452,6 +521,45 @@ import "std/testing"
     assert_eq(vals[0], "a")
     assert_eq(idxs[2], 2)
     assert_eq(vals[2], "c")
+}
+
+@test test_chunked :: fn() -> void {
+    chunks :: [1, 2, 3, 4, 5].chunked(2).collect()
+    assert_eq(chunks.len(), 3)
+    assert_eq(chunks[0][1], 2)
+    assert_eq(chunks[1][0], 3)
+    assert_eq(chunks[2].len(), 1)
+    assert_eq(chunks[2][0], 5)
+}
+
+@test test_chunked_exact_multiple :: fn() -> void {
+    assert_eq([1, 2, 3, 4].chunked(2).count(), 2)
+}
+
+@test test_chunked_zero_size :: fn() -> void {
+    assert_eq([1, 2, 3].chunked(0).count(), 0)
+}
+
+@test test_chunked_empty :: fn() -> void {
+    empty: i32[]: []
+    assert_eq(empty.chunked(3).count(), 0)
+}
+
+@test test_distinct :: fn() -> void {
+    out :: [3, 1, 3, 2, 1].distinct().collect()
+    assert_eq(out.len(), 3)
+    assert_eq(out[0], 3)
+    assert_eq(out[1], 1)
+    assert_eq(out[2], 2)
+}
+
+@test test_distinct_strings :: fn() -> void {
+    assert_eq(["a", "b", "a", "a"].distinct().count(), 2)
+}
+
+@test test_filter_not_null :: fn() -> void {
+    maybe: (i32 | null)[]: [1, null, 3, null]
+    assert_eq(maybe.filter_not_null().sum(), 4)
 }
 
 @test test_any_match :: fn() -> void {

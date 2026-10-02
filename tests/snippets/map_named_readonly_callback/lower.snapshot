@@ -30,7 +30,7 @@
     let ks: string[]![]! =
       block :string[]![]!
         let __fuse_arr_0: Rec![]! = rs :Rec![]!
-        let f: fn(Rec) -> string[] = keys :fn(Rec) -> string[]
+        let f: fn(Rec!) -> string[] = keys :fn(Rec) -> string[]
         let out: string[]![]! =
           @array.repeat :string[]![]!
             array :string[]![]!
@@ -203,7 +203,7 @@
     let ls: string[]![]! =
       block :string[]![]!
         let __fuse_arr_6: Rec![]! = rs :Rec![]!
-        let f: fn(Rec) -> string[]! = __lambda_snippet_0 :fn(Rec) -> string[]!
+        let f: fn(Rec!) -> string[]! = __lambda_snippet_0 :fn(Rec) -> string[]!
         let out: string[]![]! =
           @array.repeat :string[]![]!
             array :string[]![]!
@@ -332,7 +332,7 @@
     let ss: Rec![]! =
       block :Rec![]!
         let __fuse_arr_11: Rec![]! = rs :Rec![]!
-        let f: fn(Rec) -> Rec = same :fn(Rec) -> Rec
+        let f: fn(Rec!) -> Rec = same :fn(Rec) -> Rec
         let out: Rec![]! =
           @array.repeat :Rec![]!
             array :Rec![]!

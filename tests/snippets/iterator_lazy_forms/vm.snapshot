@@ -7,8 +7,8 @@ map, last: 4
 zip, count: 2
 erased filter state, count: 3
 erased generator, last: 3, is_empty: true
-enumerate.filter: 1 20
-enumerate.filter: 2 30
+indexed.filter: 1 20
+indexed.filter: 2 30
 zip.filter: 1 5
 zip.filter: 3 7
 window.map: 3

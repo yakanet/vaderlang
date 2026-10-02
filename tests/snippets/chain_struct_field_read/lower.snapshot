@@ -363,7 +363,7 @@
     let kept: Rec![]! =
       block :Rec![]!
         let __fuse_arr_19: Rec![]! = merged :Rec![]!
-        let pred: fn(Rec) -> bool = __lambda_snippet_1 :fn(Rec) -> bool
+        let pred: fn(Rec!) -> bool = __lambda_snippet_1 :fn(Rec) -> bool
         let out: Rec![]! =
           array :Rec![]!
         block :void

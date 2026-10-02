@@ -2002,10 +2002,10 @@ push_struct_field :: fn(
         recv_ptr :: object_pointer(recv, recv_val)
         concrete :: field_of(cname, recv_ptr, f.name)
         // Erasure boundary (T12). An erased-generic producer (e.g. a generic
-        // `zip` / `enumerate`) returns an erased sibling layout (some or all
+        // `zip` / `indexed`) returns an erased sibling layout (some or all
         // fields boxed), and a concrete producer hands an erased consumer its
         // concrete layout — a `filter` erased over tuples reads the steps of a
-        // concrete `enumerate`. Vader erases the carrying array / result to a
+        // concrete `indexed`. Vader erases the carrying array / result to a
         // bare `ref`, so the layout the value has only resurfaces HERE, at the
         // field read (the `local.field` / `struct.get` op carries the type_id it
         // expects). Dispatch on the runtime tag : a value of the expected type
@@ -2043,8 +2043,8 @@ push_struct_field :: fn(
 /// arity, and each field identical or erased on one side — an open `ref` in the
 /// sibling, or an open `ref` here where the sibling holds a reference. Covers
 /// the all-`Any` form (`zip` erases every field → `[Any, Any]`), partial erasure
-/// (`enumerate` keeps the concrete `usize` index, erases only the element →
-/// `[usize, Any]`), and the concrete layout an erased consumer receives from a
+/// (`indexed` keeps the concrete `usize` index, erases only the element →
+/// `[Any, usize]`), and the concrete layout an erased consumer receives from a
 /// concrete producer.
 find_layout_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
     out: i32[]!: []

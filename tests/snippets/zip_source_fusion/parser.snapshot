@@ -1160,11 +1160,11 @@
                 "elements": [
                   {
                     "kind": "SimpleBinding",
-                    "name": "i"
+                    "name": "pair"
                   },
                   {
                     "kind": "SimpleBinding",
-                    "name": "pair"
+                    "name": "i"
                   }
                 ]
               },
@@ -1197,7 +1197,7 @@
                       }
                     ]
                   },
-                  "field": "enumerate"
+                  "field": "indexed"
                 },
                 "args": []
               }
@@ -1219,7 +1219,7 @@
                       "parts": [
                         {
                           "kind": "text",
-                          "value": "enumerate fused: "
+                          "value": "indexed fused: "
                         },
                         {
                           "kind": "interp",

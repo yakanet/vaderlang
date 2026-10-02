@@ -259,7 +259,7 @@ bare_array_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 FluentCombinator :: struct {
     receiver: AST.Expr
     /// The combinator's single non-self argument (map's `f`, take's `n`), or
-    /// null for a 0-arg combinator whose only input is the source (`enumerate`).
+    /// null for a 0-arg combinator whose only input is the source (`indexed`).
     fn_arg:   AST.Expr | null
 }
 
@@ -270,8 +270,8 @@ FluentCombinator :: struct {
 combinator_effective_callee :: fn(callee: AST.Expr) -> AST.Expr =
     if callee is AST.GenericInstExpr { callee.callee } else { callee }
 
-// Recognise the fluent `it.map(f)` / `it.enumerate()` (UFCS) and the direct
-// `map(it, f)` / `enumerate(it)` shapes. Returns the receiver + optional fn arg
+// Recognise the fluent `it.map(f)` / `it.indexed()` (UFCS) and the direct
+// `map(it, f)` / `indexed(it)` shapes. Returns the receiver + optional fn arg
 // (null for a 0-arg combinator), or null when the call isn't a fusible combinator.
 unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCombinator | null {
     // An explicit type-arg call `chain<T>(a, b)` wraps the callee in a
@@ -281,7 +281,7 @@ unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCom
     // @partial: only a FieldExpr (UFCS) or IdentExpr (direct call) callee can be
     // a fusible combinator; every other Expr callee → null.
     @partial match callee {
-        // UFCS form `it.map(f)` / `it.enumerate()` : the FieldExpr resolved as a
+        // UFCS form `it.map(f)` / `it.indexed()` : the FieldExpr resolved as a
         // free-fn UFCS dispatch (the typer stashed the receiver type under its id).
         // The callee's target is the receiver ; the first arg (if any) is the transform.
         is AST.FieldExpr -> {
@@ -289,7 +289,7 @@ unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCom
             fn_arg :: if call.args.len() > 0 { call.args[0].value } else { null }
             return FluentCombinator { .receiver = callee.target, .fn_arg = fn_arg }
         }
-        // Direct-call form `map(it, f)` [2 args] or `enumerate(it)` [1 arg] :
+        // Direct-call form `map(it, f)` [2 args] or `indexed(it)` [1 arg] :
         // first arg is the receiver, the second (if any) is the transform / predicate.
         is AST.IdentExpr -> {
             if call.args.len() == 0 { return null }
@@ -409,8 +409,8 @@ bind_opaque_iter_operand :: fn(
 }
 
 // A layer's source, then each extra source (`chain`'s `other`), then its data
-// argument — bound to the combinator's own param symbol, which its inlined body
-// reads.
+// argument — prepared for its parameter's slot as a call would, and bound to the
+// combinator's own param symbol, which its inlined body reads.
 bind_layer_operands :: fn(
     ctx: FnLowerCtx!, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
     out: LoweredStmt[]!,
@@ -425,9 +425,10 @@ bind_layer_operands :: fn(
     }
     arg_expr :: layer.arg_expr
     arg_sym :: layer.arg_sym
-    if arg_expr != null && arg_sym != null {
-        arg :: recurse(ctx, arg_expr)
-        out.push(cell_aware_let(ctx, arg_sym, arg_sym.name, arg, type_of(arg), chain.span))
+    arg_slot :: layer.arg_slot
+    if arg_expr != null && arg_sym != null && arg_slot != null {
+        arg :: prepare_value_for_slot(ctx, recurse(ctx, arg_expr), arg_slot, chain.span)
+        out.push(cell_aware_let(ctx, arg_sym, arg_sym.name, arg, arg_slot, chain.span))
     }
     return IterChain {
         ...chain,

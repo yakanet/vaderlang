@@ -1,0 +1,66 @@
+// generator_inline_arg_slots — a generator inlined into a fused `for` binds each
+// parameter as a call would pass it: prepared for the parameter's declared slot,
+// under the instance's substitution.
+//   - a source generator (a `yield` after its loop) whose `Iterator<i32>`
+//     parameter receives a raw array — wrapped as an iterator ;
+//   - a combinator whose DATA parameter is an `Iterator<U>` fed a raw array, read
+//     through `next()` — wrapped the same way ;
+//   - a combinator whose DATA parameter is `i64 | null` fed an `i64` — stored in
+//     the union slot the body narrows ;
+//   - a combinator declaring its type parameters `<U, T>`, out of the order its
+//     parameters bind them.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+with_sentinel :: fn(self: Iterator<i32>, last: i32) -> Iterator<i32> {
+    for x in self {
+        yield x
+    }
+    yield last
+}
+
+pair_with :: fn<T, U>(self: Iterator<T>, other: Iterator<U>) -> Iterator<[T, U]> {
+    for x in self {
+        [y, c] :: other.next()
+        if c == .Stop {
+            return
+        }
+        yield [x, y]
+    }
+}
+
+offset_or :: fn<T>(self: Iterator<T>, d: i64 | null) -> Iterator<i64> {
+    for x in self {
+        if d == null {
+            yield 0
+        } else {
+            yield d + 1
+        }
+    }
+}
+
+remap :: fn<U, T>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
+    for x in self {
+        yield f(x)
+    }
+}
+
+main :: fn() -> i32 {
+    for x in [1, 2, 3].with_sentinel(9) {
+        println("sentinel ${x}")
+    }
+    for [x, s] in [1, 2, 3].pair_with(["a", "b"]) {
+        println("pair ${x}:${s}")
+    }
+    big: i64: 5000000000
+    for v in [1, 2].offset_or(big) {
+        println("offset ${v}")
+    }
+    for s in [1, 2].remap((x: i32) -> "s${x}") {
+        println("remap ${s} ${s.byte_len()}")
+    }
+    return 0
+}

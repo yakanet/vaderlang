@@ -43,9 +43,9 @@ over_pairs :: fn() -> i32 {
     return total
 }
 
-over_fused_enumerate :: fn() -> i32 {
+over_fused_indexed :: fn() -> i32 {
     total := 0
-    for [i, x] in [10, 20, 30].enumerate() {
+    for [x, i] in [10, 20, 30].indexed() {
         f :: () -> x * i32(i)
         total += f()
     }
@@ -104,11 +104,11 @@ over_fused_combinator :: fn() -> i32 {
     return total
 }
 
-// Bound to a local first, so the enumerate runs as a state machine.
-over_lazy_enumerate :: fn() -> i32 {
+// Bound to a local first, so the indexed runs as a state machine.
+over_lazy_indexed :: fn() -> i32 {
     total := 0
-    it :: [10, 20, 30].enumerate()
-    for [i, x] in it {
+    it :: [10, 20, 30].indexed()
+    for [x, i] in it {
         f :: () -> x * i32(i)
         total += f()
     }
@@ -119,8 +119,8 @@ main :: fn() -> i32 {
     println("array ${from_array()}")
     println("tuple ${from_tuple()}")
     println("pairs ${over_pairs()}")
-    println("fused ${over_fused_enumerate()}")
-    println("lazy ${over_lazy_enumerate()}")
+    println("fused ${over_fused_indexed()}")
+    println("lazy ${over_lazy_indexed()}")
     println("rest ${with_rest()}")
     println("reassigned ${reassigned()}")
     println("alias ${from_alias(Leaf { .v = 6 })}")

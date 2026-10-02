@@ -9,9 +9,13 @@
   __genstate_array_iter<T>
   __genstate_window<i32[]>
   __genstate_chain<i32>
-  __genstate_enumerate<[usize, char]>
-  __genstate_enumerate<[usize, i32]>
-  __genstate_enumerate<[usize, string]>
+  __genstate_indexed<[char, usize]>
+  __genstate_indexed<[i32, usize]>
+  __genstate_indexed<[string, usize]>
+  __genstate_chunked<i32[]>
+  __genstate_distinct<i32>
+  __genstate_distinct<string>
+  __genstate_filter_not_null<i32>
   __genstate_flat_map<i32>
   __genstate_filter<i32>
   __genstate_map<i32>
@@ -77,6 +81,7 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
+  MutableSet<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -88,13 +93,19 @@
   Contains<T>
   Iterator<i32[]>
   Iterator<T[]>
+  Iterator<T[]>
+  Iterator<null | T>
   Iterator<char>
   Iterator<i32>
-  Iterator<[usize, i32]>
-  Iterator<[usize, string]>
-  Iterator<[usize, T]>
+  Iterator<string>
+  Iterator<[i32, usize]>
+  Iterator<[string, usize]>
   Iterator<[T, U]>
+  Iterator<[T, usize]>
   Iterator<[K, V]>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
   Iterator<T>
   Iterator<T>
   Iterator<T>

@@ -11,18 +11,18 @@ type 8 struct __Tuple_i32_u8_99ae0d29 { _0:3,_1:9 }
 type 9 primitive u8
 type 10 struct snippet$__genstate_three { state:3 }
 type 11 struct snippet$__genstate_drop_odd { s0:2,s1:2,s2:8,s3:3,state:3 }
-type 12 struct __asyncstate_snippet_0 { s0:4,s1:3,s2:4,s3:18,s4:18,s5:18,s6:3,s7:19,s8:18,s9:3,s10:0,awaited:20,state:3 }
+type 12 struct __asyncstate_snippet_0 { s0:4,s1:3,s2:4,s3:18,s4:18,s5:18,s6:3,s7:19,s8:3,s9:18,s10:0,awaited:20,state:3 }
 type 13 union 3,14
 type 14 struct std_core$Suspended {  }
-type 15 struct __asyncstate_snippet_1 { s0:4,s1:3,s2:21,s3:22,s4:23,s5:19,s6:18,s7:3,s8:0,awaited:20,state:3 }
+type 15 struct __asyncstate_snippet_1 { s0:4,s1:3,s2:21,s3:22,s4:23,s5:19,s6:3,s7:18,s8:0,awaited:20,state:3 }
 type 16 struct __asyncstate_snippet_2 { s0:3,s1:3,s2:3,s3:3,awaited:20,state:3 }
 type 17 primitive string
 type 18 primitive usize
-type 19 struct __Tuple_usize_i32_b216d996 { _0:18,_1:3 }
+type 19 struct __Tuple_i32_usize_aeec6942 { _0:3,_1:18 }
 type 20 ref Async
-type 21 ref __genstate_enumerate
+type 21 ref __genstate_indexed
 type 22 ref Iterator
-type 23 struct __Tuple_Tuple_usize_i32_u8_b7dd5f3a { _0:19,_1:9 }
+type 23 struct __Tuple_Tuple_i32_usize_u8_6d59e2a9 { _0:19,_1:9 }
 type 24 struct std_core$Range__i32 { start:3,end:3,inclusive:25,cursor:3 }
 type 25 primitive bool
 type 26 struct std_core$Range__usize { start:18,end:18,inclusive:25,cursor:18 }
@@ -39,8 +39,8 @@ type 36 struct std_iter$__gen_state_std_iter_4 { s0:2,s1:2,s2:2,s3:8,s4:3,s5:2,s
 type 37 ref Iterator
 type 38 ref Iterator
 type 39 struct std_iter$__gen_state_std_iter_2 { s0:37,s1:18,s2:37,s3:47,s4:42,state:3 }
-type 40 struct __Tuple_Tuple_usize_char_u8_595d0357 { _0:41,_1:9 }
-type 41 struct __Tuple_usize_char_fe860b25 { _0:18,_1:42 }
+type 40 struct __Tuple_Tuple_char_usize_u8_0f30769b { _0:41,_1:9 }
+type 41 struct __Tuple_char_usize_8bd920da { _0:42,_1:18 }
 type 42 primitive char
 type 43 struct std_iter$__gen_state_std_iter_0 { s0:2,s1:18,s2:2,s3:8,s4:3,state:3 }
 type 44 fn (3) -> 4
@@ -76,14 +76,14 @@ type 73 ref Iterator
 type 74 ref __genstate_take
 type 75 ref __genstate_twice_per_round
 type 76 ref __genstate_three
-type 77 ref __genstate_enumerate
+type 77 ref __genstate_indexed
 type 78 ref __genstate_drop_odd
 type 79 ref __genstate_flat_map
 type 80 ref __genstate_chain
 type 81 ref __genstate_array_iter
 string 0 ""
 string 1 " "
-string 2 "enumerate + continue, indices:"
+string 2 "indexed + continue, indices:"
 string 3 " |"
 string 4 "take(2) + continue, visits: "
 string 5 " | "
@@ -92,13 +92,13 @@ string 7 ":"
 string 8 "loopless generator + continue:"
 string 9 "take(2) + continue y from an inner loop: "
 string 10 "fused"
-string 11 "chars.enumerate + continue, index sum: "
+string 11 "chars.indexed + continue, index sum: "
 string 12 "take(3).drop_odd():"
-string 13 "enumerate + ?? continue:"
+string 13 "indexed + ?? continue:"
 string 14 "flat_map + continue, sum: "
 string 15 "chain + continue, sum: "
 string 16 "chain + continue x from an inner loop, sum: "
-string 17 "async enumerate + continue, index sum: "
+string 17 "async indexed + continue, index sum: "
 string 18 "async deadlock: a task is suspended with nothing left to wake it"
 string 19 "\n"
 import 0 byte_len std_core$byte_len result_type=18 param_types=17 param_mutable=0 param_by_address= (string) -> usize
@@ -177,7 +177,7 @@ vtable Async.resume 16 24
 vtable Async.resume 34 48
 export main 18
 
-fn 0 snippet$enumerate_continue () -> void
+fn 0 snippet$indexed_continue () -> void
   local fused string
   local __fuse_arr_3 ref
   local i usize
@@ -185,7 +185,6 @@ fn 0 snippet$enumerate_continue () -> void
   local __fuse_i_6 usize
   local x i32
   local i usize
-  local x i32
   local __buf_1 ref
   local __off_2 usize
   local $cast_32 u64
@@ -220,38 +219,36 @@ fn 0 snippet$enumerate_continue () -> void
         local.set 5   ; x
         local.get 2   ; i
         local.set 6   ; i
-        local.get 5   ; x
-        local.set 7   ; x
         block $L3 void
-          local.get 7   ; x
+          local.get 5   ; x
           i32.const 20
           i32.eq
           if $L4 void
           else
             i64.const 21
             call 29   ; std_core$new_byte_buffer
-            local.set 8   ; __buf_1
+            local.set 7   ; __buf_1
             i64.const 0
-            local.set 9   ; __off_2
-            local.get 8   ; __buf_1
-            local.get 9   ; __off_2
+            local.set 8   ; __off_2
+            local.get 7   ; __buf_1
+            local.get 8   ; __off_2
             string.const 1   ; " "
             call 31   ; std_core$write_string_at
-            local.set 9   ; __off_2
+            local.set 8   ; __off_2
             local.get 6   ; i
             usize.to_i64
-            local.set 10   ; $cast_32
-            local.get 8   ; __buf_1
-            local.get 9   ; __off_2
-            local.get 10   ; $cast_32
+            local.set 9   ; $cast_32
+            local.get 7   ; __buf_1
+            local.get 8   ; __off_2
+            local.get 9   ; $cast_32
             call 33   ; std_core$write_unsigned
-            local.set 9   ; __off_2
-            local.get 8   ; __buf_1
-            local.get 9   ; __off_2
+            local.set 8   ; __off_2
+            local.get 7   ; __buf_1
+            local.get 8   ; __off_2
             call 30   ; std_core$finish_buffer
-            local.set 11   ; $call_34
+            local.set 10   ; $call_34
             local.get 0   ; fused
-            local.get 11   ; $call_34
+            local.get 10   ; $call_34
             call 25   ; concat_2
             local.set 0   ; fused
           end $L4
@@ -269,18 +266,18 @@ fn 0 snippet$enumerate_continue () -> void
     end $L1
   end $L0
   string.const 0   ; ""
-  local.set 11   ; $call_34
+  local.set 10   ; $call_34
   i32.const 10
   i32.const 20
   i32.const 30
   i32.const 40
   array.new 4 4   ; i32[][]
   call 35   ; std_core$[]$Into$into__i32
-  call 57   ; std_iter$enumerate__i32
-  local.set 12   ; __iter_8
+  call 57   ; std_iter$indexed__i32
+  local.set 11   ; __iter_8
   block $L5 void
     loop $L6 void
-      local.get 12   ; __iter_8
+      local.get 11   ; __iter_8
       virtual.call 1 Iterator.next
       local.set 1   ; __fuse_arr_3
       local.field 1 23 1   ; __fuse_arr_3._1
@@ -289,12 +286,14 @@ fn 0 snippet$enumerate_continue () -> void
       if $L7 void
       else
         local.field 1 23 0   ; __fuse_arr_3._0
-        local.set 8   ; __buf_1
-        local.field 8 19 0   ; __buf_1._0
+        local.set 7   ; __buf_1
+        local.field 7 19 0   ; __buf_1._0
+        ref.cast 3   ; -> i32
+        local.set 5   ; x
+        local.field 7 19 1   ; __buf_1._1
         ref.cast 18   ; -> usize
         local.set 2   ; i
-        local.field 8 19 1   ; __buf_1._1
-        ref.cast 3   ; -> i32
+        local.get 5   ; x
         i32.const 20
         i32.eq
         if $L8 void
@@ -302,38 +301,38 @@ fn 0 snippet$enumerate_continue () -> void
         end $L8
         i64.const 21
         call 29   ; std_core$new_byte_buffer
-        local.set 13   ; __buf_11
+        local.set 12   ; __buf_11
         i64.const 0
         local.set 3   ; __fuse_len_5
-        local.get 13   ; __buf_11
+        local.get 12   ; __buf_11
         local.get 3   ; __fuse_len_5
         string.const 1   ; " "
         call 31   ; std_core$write_string_at
         local.set 3   ; __fuse_len_5
         local.get 2   ; i
         usize.to_i64
-        local.set 10   ; $cast_32
-        local.get 13   ; __buf_11
+        local.set 9   ; $cast_32
+        local.get 12   ; __buf_11
         local.get 3   ; __fuse_len_5
-        local.get 10   ; $cast_32
+        local.get 9   ; $cast_32
         call 33   ; std_core$write_unsigned
         local.set 3   ; __fuse_len_5
-        local.get 13   ; __buf_11
+        local.get 12   ; __buf_11
         local.get 3   ; __fuse_len_5
         call 30   ; std_core$finish_buffer
-        local.set 14   ; $call_73
-        local.get 11   ; $call_34
-        local.get 14   ; $call_73
+        local.set 13   ; $call_73
+        local.get 10   ; $call_34
+        local.get 13   ; $call_73
         call 25   ; concat_2
-        local.set 11   ; $call_34
+        local.set 10   ; $call_34
         br $L6
       end $L7
     end $L6
   end $L5
-  string.const 2   ; "enumerate + continue, indices:"
+  string.const 2   ; "indexed + continue, indices:"
   local.get 0   ; fused
   string.const 3   ; " |"
-  local.get 11   ; $call_34
+  local.get 10   ; $call_34
   call 26   ; concat_4
   call 52   ; std_io$println__string
   return
@@ -1100,13 +1099,12 @@ fn 6 snippet$take_continue_outer () -> void
   return
 end
 
-fn 7 snippet$chars_enumerate_continue () -> void
+fn 7 snippet$chars_indexed_continue () -> void
   local fused i32
   local __fuse_iter_1 ref
   local i usize
-  local x char
-  local i usize
   local c char
+  local i usize
   local $cast_22 i32
   local __iter_5 any
   local __for_elem_7 ref
@@ -1125,30 +1123,28 @@ fn 7 snippet$chars_enumerate_continue () -> void
     loop $L1 void
       local.get 1   ; __fuse_iter_1
       call 65   ; std_string$StringChars$Iterator$next$v
-      local.set 12   ; $call_elem_63
-      local.set 11   ; $call_elem_62
-      local.get 12   ; $call_elem_63
+      local.set 11   ; $call_elem_63
+      local.set 10   ; $call_elem_62
+      local.get 11   ; $call_elem_63
       i32.const 1
       i32.eq
       if $L2 void
       else
-        local.get 11   ; $call_elem_62
-        local.set 3   ; x
+        local.get 10   ; $call_elem_62
+        local.set 3   ; c
         local.get 2   ; i
         local.set 4   ; i
-        local.get 3   ; x
-        local.set 5   ; c
         block $L3 void
-          local.get 5   ; c
+          local.get 3   ; c
           char.const 117
           i32.eq
           if $L4 void
           else
             local.get 4   ; i
             usize.to_i32
-            local.set 6   ; $cast_22
+            local.set 5   ; $cast_22
             local.get 0   ; fused
-            local.get 6   ; $cast_22
+            local.get 5   ; $cast_22
             i32.add
             local.set 0   ; fused
           end $L4
@@ -1162,14 +1158,14 @@ fn 7 snippet$chars_enumerate_continue () -> void
     end $L1
   end $L0
   i32.const 0
-  local.set 6   ; $cast_22
+  local.set 5   ; $cast_22
   string.const 10   ; "fused"
   call 63   ; std_string$chars
-  call 55   ; std_iter$enumerate__char
-  local.set 7   ; __iter_5
+  call 55   ; std_iter$indexed__char
+  local.set 6   ; __iter_5
   block $L5 void
     loop $L6 void
-      local.get 7   ; __iter_5
+      local.get 6   ; __iter_5
       virtual.call 1 Iterator.next
       local.set 1   ; __fuse_iter_1
       local.field 1 40 1   ; __fuse_iter_1._1
@@ -1178,12 +1174,14 @@ fn 7 snippet$chars_enumerate_continue () -> void
       if $L7 void
       else
         local.field 1 40 0   ; __fuse_iter_1._0
-        local.set 8   ; __for_elem_7
-        local.field 8 41 0   ; __for_elem_7._0
+        local.set 7   ; __for_elem_7
+        local.field 7 41 0   ; __for_elem_7._0
+        ref.cast 42   ; -> char
+        local.set 3   ; c
+        local.field 7 41 1   ; __for_elem_7._1
         ref.cast 18   ; -> usize
         local.set 2   ; i
-        local.field 8 41 1   ; __for_elem_7._1
-        ref.cast 42   ; -> char
+        local.get 3   ; c
         char.const 117
         i32.eq
         if $L8 void
@@ -1191,31 +1189,31 @@ fn 7 snippet$chars_enumerate_continue () -> void
         end $L8
         local.get 2   ; i
         usize.to_i32
-        local.set 9   ; $cast_46
-        local.get 6   ; $cast_22
-        local.get 9   ; $cast_46
+        local.set 8   ; $cast_46
+        local.get 5   ; $cast_22
+        local.get 8   ; $cast_46
         i32.add
-        local.set 6   ; $cast_22
+        local.set 5   ; $cast_22
         br $L6
       end $L7
     end $L6
   end $L5
-  i64.const 82
+  i64.const 80
   call 29   ; std_core$new_byte_buffer
   local.set 1   ; __fuse_iter_1
   i64.const 0
   local.set 2   ; i
   local.get 1   ; __fuse_iter_1
   local.get 2   ; i
-  string.const 11   ; "chars.enumerate + continue, index sum: "
+  string.const 11   ; "chars.indexed + continue, index sum: "
   call 31   ; std_core$write_string_at
   local.set 2   ; i
   local.get 0   ; fused
   i32.to_i64
-  local.set 10   ; $cast_55
+  local.set 9   ; $cast_55
   local.get 1   ; __fuse_iter_1
   local.get 2   ; i
-  local.get 10   ; $cast_55
+  local.get 9   ; $cast_55
   call 32   ; std_core$write_int
   local.set 2   ; i
   local.get 1   ; __fuse_iter_1
@@ -1223,12 +1221,12 @@ fn 7 snippet$chars_enumerate_continue () -> void
   string.const 5   ; " | "
   call 31   ; std_core$write_string_at
   local.set 2   ; i
-  local.get 6   ; $cast_22
+  local.get 5   ; $cast_22
   i32.to_i64
-  local.set 10   ; $cast_55
+  local.set 9   ; $cast_55
   local.get 1   ; __fuse_iter_1
   local.get 2   ; i
-  local.get 10   ; $cast_55
+  local.get 9   ; $cast_55
   call 32   ; std_core$write_int
   local.set 2   ; i
   local.get 1   ; __fuse_iter_1
@@ -1473,7 +1471,6 @@ fn 12 snippet$coalesce_continue () -> void
   local __fuse_i_7 usize
   local x i32
   local i usize
-  local x i32
   local v i32
   local __coalesce_1 any
   local __buf_2 ref
@@ -1511,55 +1508,53 @@ fn 12 snippet$coalesce_continue () -> void
         local.set 5   ; x
         local.get 2   ; i
         local.set 6   ; i
-        local.get 5   ; x
-        local.set 7   ; x
         block $L3 void
-          local.get 7   ; x
+          local.get 5   ; x
           call 11   ; snippet$maybe_even
-          local.tee 9   ; __coalesce_1
+          local.tee 8   ; __coalesce_1
           type_check 0   ; null
           if $L4 void
           else
-            local.get 9   ; __coalesce_1
+            local.get 8   ; __coalesce_1
             ref.cast 3   ; -> i32
-            local.set 8   ; v
+            local.set 7   ; v
             i64.const 42
             call 29   ; std_core$new_byte_buffer
-            local.set 10   ; __buf_2
+            local.set 9   ; __buf_2
             i64.const 0
-            local.set 11   ; __off_3
-            local.get 10   ; __buf_2
-            local.get 11   ; __off_3
+            local.set 10   ; __off_3
+            local.get 9   ; __buf_2
+            local.get 10   ; __off_3
             string.const 1   ; " "
             call 31   ; std_core$write_string_at
-            local.set 11   ; __off_3
+            local.set 10   ; __off_3
             local.get 6   ; i
             usize.to_i64
-            local.set 12   ; $cast_35
-            local.get 10   ; __buf_2
-            local.get 11   ; __off_3
-            local.get 12   ; $cast_35
+            local.set 11   ; $cast_35
+            local.get 9   ; __buf_2
+            local.get 10   ; __off_3
+            local.get 11   ; $cast_35
             call 33   ; std_core$write_unsigned
-            local.set 11   ; __off_3
-            local.get 10   ; __buf_2
-            local.get 11   ; __off_3
+            local.set 10   ; __off_3
+            local.get 9   ; __buf_2
+            local.get 10   ; __off_3
             string.const 7   ; ":"
             call 31   ; std_core$write_string_at
-            local.set 11   ; __off_3
-            local.get 8   ; v
+            local.set 10   ; __off_3
+            local.get 7   ; v
             i32.to_i64
-            local.set 13   ; $cast_39
-            local.get 10   ; __buf_2
-            local.get 11   ; __off_3
-            local.get 13   ; $cast_39
+            local.set 12   ; $cast_39
+            local.get 9   ; __buf_2
+            local.get 10   ; __off_3
+            local.get 12   ; $cast_39
             call 32   ; std_core$write_int
-            local.set 11   ; __off_3
-            local.get 10   ; __buf_2
-            local.get 11   ; __off_3
+            local.set 10   ; __off_3
+            local.get 9   ; __buf_2
+            local.get 10   ; __off_3
             call 30   ; std_core$finish_buffer
-            local.set 14   ; $call_41
+            local.set 13   ; $call_41
             local.get 0   ; fused
-            local.get 14   ; $call_41
+            local.get 13   ; $call_41
             call 25   ; concat_2
             local.set 0   ; fused
           end $L4
@@ -1577,18 +1572,18 @@ fn 12 snippet$coalesce_continue () -> void
     end $L1
   end $L0
   string.const 0   ; ""
-  local.set 14   ; $call_41
+  local.set 13   ; $call_41
   i32.const 1
   i32.const 2
   i32.const 3
   i32.const 4
   array.new 4 4   ; i32[][]
   call 35   ; std_core$[]$Into$into__i32
-  call 57   ; std_iter$enumerate__i32
-  local.set 9   ; __coalesce_1
+  call 57   ; std_iter$indexed__i32
+  local.set 8   ; __coalesce_1
   block $L5 void
     loop $L6 void
-      local.get 9   ; __coalesce_1
+      local.get 8   ; __coalesce_1
       virtual.call 1 Iterator.next
       local.set 1   ; __fuse_arr_4
       local.field 1 23 1   ; __fuse_arr_4._1
@@ -1597,68 +1592,70 @@ fn 12 snippet$coalesce_continue () -> void
       if $L7 void
       else
         local.field 1 23 0   ; __fuse_arr_4._0
-        local.set 10   ; __buf_2
-        local.field 10 19 0   ; __buf_2._0
+        local.set 9   ; __buf_2
+        local.field 9 19 0   ; __buf_2._0
+        ref.cast 3   ; -> i32
+        local.set 5   ; x
+        local.field 9 19 1   ; __buf_2._1
         ref.cast 18   ; -> usize
         local.set 2   ; i
-        local.field 10 19 1   ; __buf_2._1
-        ref.cast 3   ; -> i32
+        local.get 5   ; x
         call 11   ; snippet$maybe_even
-        local.tee 15   ; __coalesce_12
+        local.tee 14   ; __coalesce_12
         type_check 0   ; null
         if $L8 void
           br $L6
         end $L8
-        local.get 15   ; __coalesce_12
+        local.get 14   ; __coalesce_12
         ref.cast 3   ; -> i32
-        local.set 5   ; x
+        local.set 7   ; v
         i64.const 42
         call 29   ; std_core$new_byte_buffer
-        local.set 16   ; __buf_13
+        local.set 15   ; __buf_13
         i64.const 0
         local.set 3   ; __fuse_len_6
-        local.get 16   ; __buf_13
+        local.get 15   ; __buf_13
         local.get 3   ; __fuse_len_6
         string.const 1   ; " "
         call 31   ; std_core$write_string_at
         local.set 3   ; __fuse_len_6
         local.get 2   ; i
         usize.to_i64
-        local.set 12   ; $cast_35
-        local.get 16   ; __buf_13
+        local.set 11   ; $cast_35
+        local.get 15   ; __buf_13
         local.get 3   ; __fuse_len_6
-        local.get 12   ; $cast_35
+        local.get 11   ; $cast_35
         call 33   ; std_core$write_unsigned
         local.set 3   ; __fuse_len_6
-        local.get 16   ; __buf_13
+        local.get 15   ; __buf_13
         local.get 3   ; __fuse_len_6
         string.const 7   ; ":"
         call 31   ; std_core$write_string_at
         local.set 3   ; __fuse_len_6
-        local.get 5   ; x
+        local.get 7   ; v
         i32.to_i64
-        local.set 13   ; $cast_39
-        local.get 16   ; __buf_13
+        local.set 12   ; $cast_39
+        local.get 15   ; __buf_13
         local.get 3   ; __fuse_len_6
-        local.get 13   ; $cast_39
+        local.get 12   ; $cast_39
         call 32   ; std_core$write_int
         local.set 3   ; __fuse_len_6
-        local.get 16   ; __buf_13
+        local.get 15   ; __buf_13
         local.get 3   ; __fuse_len_6
         call 30   ; std_core$finish_buffer
-        local.set 17   ; $call_87
-        local.get 14   ; $call_41
-        local.get 17   ; $call_87
+        local.set 16   ; $call_87
+        local.get 13   ; $call_41
+        local.get 16   ; $call_87
         call 25   ; concat_2
-        local.set 14   ; $call_41
+        local.set 13   ; $call_41
         br $L6
       end $L7
     end $L6
   end $L5
-  string.const 13   ; "enumerate + ?? continue:"
+  string.const 13   ; "indexed + ?? continue:"
   local.get 0   ; fused
   string.const 3   ; " |"
-  local.get 14   ; $call_41
+  local.get 13   ; $call_41
   call 26   ; concat_4
   call 52   ; std_io$println__string
   return
@@ -2287,7 +2284,7 @@ fn 15 snippet$chain_continue_by_name () -> void
   return
 end
 
-fn 16 snippet$async_enumerate_continue (ref) -> any
+fn 16 snippet$async_indexed_continue (ref) -> any
   local $k_2 ref
   local $k_7 ref
   local $k_11 any
@@ -2305,8 +2302,8 @@ fn 16 snippet$async_enumerate_continue (ref) -> any
   i64.const 0
   i32.const 0
   local.get 2   ; $k_7
-  i64.const 0
   i32.const 0
+  i64.const 0
   null.const
   local.get 3   ; $k_11
   i32.const 14
@@ -2314,7 +2311,7 @@ fn 16 snippet$async_enumerate_continue (ref) -> any
   return
 end
 
-fn 17 snippet$async_enumerate_continue_lazy (ref) -> any
+fn 17 snippet$async_indexed_continue_lazy (ref) -> any
   local $k_2 ref
   local $k_3 any
   local $k_4 ref
@@ -2336,8 +2333,8 @@ fn 17 snippet$async_enumerate_continue_lazy (ref) -> any
   local.get 2   ; $k_3
   local.get 3   ; $k_4
   local.get 4   ; $k_5
-  i64.const 0
   i32.const 0
+  i64.const 0
   null.const
   local.get 5   ; $k_9
   i32.const 18
@@ -2817,11 +2814,11 @@ fn 22 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local $field_81 ref
   local $field_82 usize
   local $idx_83 i32
-  local $field_84 usize
-  local $field_85 i32
+  local $field_84 i32
+  local $field_85 usize
   local $struct_86 ref
-  local $field_88 usize
-  local $field_90 i32
+  local $field_88 i32
+  local $field_90 usize
   local $field_95 ref
   local $len_98 usize
   block $L0 void
@@ -2917,7 +2914,7 @@ fn 22 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
               local.field 0 12 1   ; arg 0.s1
               ref.cast 3   ; -> i32
               local.set 6   ; $field_35
-              local.field 0 12 8   ; arg 0.s8
+              local.field 0 12 9   ; arg 0.s9
               ref.cast 18   ; -> usize
               usize.to_i32
               local.set 7   ; $cast_37
@@ -2955,7 +2952,7 @@ fn 22 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                   i32.const 8
                   i32.eq
                   if $L11 void
-                    local.field 0 12 9   ; arg 0.s9
+                    local.field 0 12 8   ; arg 0.s8
                     ref.cast 3   ; -> i32
                     i32.const 20
                     i32.eq
@@ -3033,29 +3030,29 @@ fn 22 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                             local.get 0   ; arg 0
                             local.get 14   ; $idx_83
                             struct.set 12 6   ; __asyncstate_snippet_0.s6
-                            local.field 0 12 3   ; arg 0.s3
-                            ref.cast 18   ; -> usize
-                            local.set 15   ; $field_84
                             local.field 0 12 6   ; arg 0.s6
                             ref.cast 3   ; -> i32
+                            local.set 15   ; $field_84
+                            local.field 0 12 3   ; arg 0.s3
+                            ref.cast 18   ; -> usize
                             local.set 16   ; $field_85
                             local.get 15   ; $field_84
                             local.get 16   ; $field_85
-                            struct.new 19   ; __Tuple_usize_i32_b216d996
+                            struct.new 19   ; __Tuple_i32_usize_aeec6942
                             local.set 17   ; $struct_86
                             local.get 0   ; arg 0
                             local.get 17   ; $struct_86
                             struct.set 12 7   ; __asyncstate_snippet_0.s7
                             local.field 0 12 7   ; arg 0.s7
-                            struct.get 19 0   ; __Tuple_usize_i32_b216d996._0
-                            ref.cast 18   ; -> usize
+                            struct.get 19 0   ; __Tuple_i32_usize_aeec6942._0
+                            ref.cast 3   ; -> i32
                             local.set 18   ; $field_88
                             local.get 0   ; arg 0
                             local.get 18   ; $field_88
                             struct.set 12 8   ; __asyncstate_snippet_0.s8
                             local.field 0 12 7   ; arg 0.s7
-                            struct.get 19 1   ; __Tuple_usize_i32_b216d996._1
-                            ref.cast 3   ; -> i32
+                            struct.get 19 1   ; __Tuple_i32_usize_aeec6942._1
+                            ref.cast 18   ; -> usize
                             local.set 19   ; $field_90
                             local.get 0   ; arg 0
                             local.get 19   ; $field_90
@@ -3140,8 +3137,8 @@ fn 23 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
   local $cast_67 null
   local $cast_74 any
   local $field_80 ref
-  local $field_82 usize
-  local $field_84 i32
+  local $field_82 i32
+  local $field_84 usize
   local $vcall_99 ref
   local $field_104 ref
   local $call_112 ref
@@ -3225,7 +3222,7 @@ fn 23 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                   local.field 0 15 1   ; arg 0.s1
                   ref.cast 3   ; -> i32
                   local.set 2   ; $field_33
-                  local.field 0 15 6   ; arg 0.s6
+                  local.field 0 15 7   ; arg 0.s7
                   ref.cast 18   ; -> usize
                   usize.to_i32
                   local.set 3   ; $cast_35
@@ -3263,7 +3260,7 @@ fn 23 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                       i32.const 10
                       i32.eq
                       if $L12 void
-                        local.field 0 15 7   ; arg 0.s7
+                        local.field 0 15 6   ; arg 0.s6
                         ref.cast 3   ; -> i32
                         i32.const 20
                         i32.eq
@@ -3330,21 +3327,21 @@ fn 23 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                               i32.eq
                               if $L18 void
                                 local.field 0 15 4   ; arg 0.s4
-                                struct.get 23 0   ; __Tuple_Tuple_usize_i32_u8_b7dd5f3a._0
+                                struct.get 23 0   ; __Tuple_Tuple_i32_usize_u8_6d59e2a9._0
                                 local.set 8   ; $field_80
                                 local.get 0   ; arg 0
                                 local.get 8   ; $field_80
                                 struct.set 15 5   ; __asyncstate_snippet_1.s5
                                 local.field 0 15 5   ; arg 0.s5
-                                struct.get 19 0   ; __Tuple_usize_i32_b216d996._0
-                                ref.cast 18   ; -> usize
+                                struct.get 19 0   ; __Tuple_i32_usize_aeec6942._0
+                                ref.cast 3   ; -> i32
                                 local.set 9   ; $field_82
                                 local.get 0   ; arg 0
                                 local.get 9   ; $field_82
                                 struct.set 15 6   ; __asyncstate_snippet_1.s6
                                 local.field 0 15 5   ; arg 0.s5
-                                struct.get 19 1   ; __Tuple_usize_i32_b216d996._1
-                                ref.cast 3   ; -> i32
+                                struct.get 19 1   ; __Tuple_i32_usize_aeec6942._1
+                                ref.cast 18   ; -> usize
                                 local.set 10   ; $field_84
                                 local.get 0   ; arg 0
                                 local.get 10   ; $field_84
@@ -3359,7 +3356,7 @@ fn 23 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                                 i32.eq
                                 if $L19 void
                                   local.field 0 15 4   ; arg 0.s4
-                                  struct.get 23 1   ; __Tuple_Tuple_usize_i32_u8_b7dd5f3a._1
+                                  struct.get 23 1   ; __Tuple_Tuple_i32_usize_u8_6d59e2a9._1
                                   i32.const 1
                                   i32.eq
                                   if $L20 void
@@ -3411,7 +3408,7 @@ fn 23 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                                         struct.set 15 1   ; __asyncstate_snippet_1.s1
                                         local.field 0 15 0   ; arg 0.s0
                                         call 35   ; std_core$[]$Into$into__i32
-                                        call 57   ; std_iter$enumerate__i32
+                                        call 57   ; std_iter$indexed__i32
                                         local.set 13   ; $call_112
                                         local.get 0   ; arg 0
                                         local.get 13   ; $call_112
@@ -3504,14 +3501,14 @@ fn 24 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
         local.get 0   ; arg 0
         local.get 2   ; $field_13
         struct.set 16 3   ; __asyncstate_snippet_2.s3
-        i64.const 82
+        i64.const 80
         call 29   ; std_core$new_byte_buffer
         local.set 3   ; __buf_2
         i64.const 0
         local.set 4   ; __off_3
         local.get 3   ; __buf_2
         local.get 4   ; __off_3
-        string.const 17   ; "async enumerate + continue, index sum: "
+        string.const 17   ; "async indexed + continue, index sum: "
         call 31   ; std_core$write_string_at
         local.set 4   ; __off_3
         local.field 0 16 1   ; arg 0.s1
@@ -3578,7 +3575,7 @@ fn 24 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
             i32.const 30
             i32.const 40
             array.new 4 4   ; i32[][]
-            call 17   ; snippet$async_enumerate_continue_lazy
+            call 17   ; snippet$async_indexed_continue_lazy
             local.set 9   ; $cast_50
             local.get 0   ; arg 0
             local.get 9   ; $cast_50
@@ -3635,7 +3632,7 @@ fn 24 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                   i32.const 30
                   i32.const 40
                   array.new 4 4   ; i32[][]
-                  call 16   ; snippet$async_enumerate_continue
+                  call 16   ; snippet$async_indexed_continue
                   local.set 13   ; $cast_76
                   local.get 0   ; arg 0
                   local.get 13   ; $cast_76
@@ -3649,12 +3646,12 @@ fn 24 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                   i32.const 8
                   i32.eq
                   if $L12 void
-                    call 0   ; snippet$enumerate_continue
+                    call 0   ; snippet$indexed_continue
                     call 1   ; snippet$take_continue
                     call 3   ; snippet$two_yields_continue
                     call 5   ; snippet$loopless_generator_continue
                     call 6   ; snippet$take_continue_outer
-                    call 7   ; snippet$chars_enumerate_continue
+                    call 7   ; snippet$chars_indexed_continue
                     call 10   ; snippet$stage_continue_over_take
                     call 12   ; snippet$coalesce_continue
                     call 13   ; snippet$flat_map_continue
@@ -4966,7 +4963,7 @@ fn 54 std_iter$__gen_state_std_iter_4$Iterator$next (ref) -> ref
   return
 end
 
-fn 55 std_iter$enumerate__char (any) -> any
+fn 55 std_iter$indexed__char (any) -> any
   local $k_2 any
   local $k_3 ref
   local $k_4 char
@@ -4989,8 +4986,8 @@ end
 fn 56 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> ref
   local $add_30 usize
   local $k_35 i32
-  local $field_36 usize
-  local $field_37 char
+  local $field_36 char
+  local $field_37 usize
   local $struct_38 ref
   local $k_39 u8
   local $field_45 char
@@ -5087,21 +5084,21 @@ fn 56 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> ref
         local.get 0   ; arg 0
         local.get 2   ; $k_35
         struct.set 39 5   ; std_iter$__gen_state_std_iter_2.state
-        local.field 0 39 1   ; arg 0.s1
-        ref.cast 18   ; -> usize
-        local.set 3   ; $field_36
         local.field 0 39 4   ; arg 0.s4
         ref.cast 42   ; -> char
+        local.set 3   ; $field_36
+        local.field 0 39 1   ; arg 0.s1
+        ref.cast 18   ; -> usize
         local.set 4   ; $field_37
         local.get 3   ; $field_36
         local.get 4   ; $field_37
-        struct.new 41   ; __Tuple_usize_char_fe860b25
+        struct.new 41   ; __Tuple_char_usize_8bd920da
         local.set 5   ; $struct_38
         i32.const 0
         local.set 6   ; $k_39
         local.get 5   ; $struct_38
         local.get 6   ; $k_39
-        struct.new 40   ; __Tuple_Tuple_usize_char_u8_595d0357
+        struct.new 40   ; __Tuple_Tuple_char_usize_u8_0f30769b
         return
       end $L9
       local.field 0 39 5   ; arg 0.state
@@ -5184,7 +5181,7 @@ fn 56 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> ref
                 local.set 10   ; $k_72
                 local.get 10   ; $k_72
                 i32.const 1
-                struct.new 40   ; __Tuple_Tuple_usize_char_u8_595d0357
+                struct.new 40   ; __Tuple_Tuple_char_usize_u8_0f30769b
                 return
               end $L15
             end $L14
@@ -5199,25 +5196,25 @@ fn 56 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> ref
   local.get 0   ; arg 0
   local.get 2   ; $k_35
   struct.set 39 5   ; std_iter$__gen_state_std_iter_2.state
-  local.field 0 39 1   ; arg 0.s1
-  ref.cast 18   ; -> usize
-  local.set 3   ; $field_36
   local.field 0 39 4   ; arg 0.s4
   ref.cast 42   ; -> char
+  local.set 3   ; $field_36
+  local.field 0 39 1   ; arg 0.s1
+  ref.cast 18   ; -> usize
   local.set 4   ; $field_37
   local.get 3   ; $field_36
   local.get 4   ; $field_37
-  struct.new 41   ; __Tuple_usize_char_fe860b25
+  struct.new 41   ; __Tuple_char_usize_8bd920da
   local.set 5   ; $struct_38
   i32.const 0
   local.set 6   ; $k_39
   local.get 5   ; $struct_38
   local.get 6   ; $k_39
-  struct.new 40   ; __Tuple_Tuple_usize_char_u8_595d0357
+  struct.new 40   ; __Tuple_Tuple_char_usize_u8_0f30769b
   return
 end
 
-fn 57 std_iter$enumerate__i32 (any) -> any
+fn 57 std_iter$indexed__i32 (any) -> any
   local $k_2 any
   local $k_3 ref
   null.const
@@ -5237,8 +5234,8 @@ end
 fn 58 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
   local $add_30 usize
   local $k_35 i32
-  local $field_36 usize
-  local $field_37 i32
+  local $field_36 i32
+  local $field_37 usize
   local $struct_38 ref
   local $k_39 u8
   local $field_45 i32
@@ -5335,21 +5332,21 @@ fn 58 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
         local.get 0   ; arg 0
         local.get 2   ; $k_35
         struct.set 43 5   ; std_iter$__gen_state_std_iter_0.state
-        local.field 0 43 1   ; arg 0.s1
-        ref.cast 18   ; -> usize
-        local.set 3   ; $field_36
         local.field 0 43 4   ; arg 0.s4
         ref.cast 3   ; -> i32
+        local.set 3   ; $field_36
+        local.field 0 43 1   ; arg 0.s1
+        ref.cast 18   ; -> usize
         local.set 4   ; $field_37
         local.get 3   ; $field_36
         local.get 4   ; $field_37
-        struct.new 19   ; __Tuple_usize_i32_b216d996
+        struct.new 19   ; __Tuple_i32_usize_aeec6942
         local.set 5   ; $struct_38
         i32.const 0
         local.set 6   ; $k_39
         local.get 5   ; $struct_38
         local.get 6   ; $k_39
-        struct.new 23   ; __Tuple_Tuple_usize_i32_u8_b7dd5f3a
+        struct.new 23   ; __Tuple_Tuple_i32_usize_u8_6d59e2a9
         return
       end $L9
       local.field 0 43 5   ; arg 0.state
@@ -5432,7 +5429,7 @@ fn 58 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
                 local.set 10   ; $k_72
                 local.get 10   ; $k_72
                 i32.const 1
-                struct.new 23   ; __Tuple_Tuple_usize_i32_u8_b7dd5f3a
+                struct.new 23   ; __Tuple_Tuple_i32_usize_u8_6d59e2a9
                 return
               end $L15
             end $L14
@@ -5447,21 +5444,21 @@ fn 58 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
   local.get 0   ; arg 0
   local.get 2   ; $k_35
   struct.set 43 5   ; std_iter$__gen_state_std_iter_0.state
-  local.field 0 43 1   ; arg 0.s1
-  ref.cast 18   ; -> usize
-  local.set 3   ; $field_36
   local.field 0 43 4   ; arg 0.s4
   ref.cast 3   ; -> i32
+  local.set 3   ; $field_36
+  local.field 0 43 1   ; arg 0.s1
+  ref.cast 18   ; -> usize
   local.set 4   ; $field_37
   local.get 3   ; $field_36
   local.get 4   ; $field_37
-  struct.new 19   ; __Tuple_usize_i32_b216d996
+  struct.new 19   ; __Tuple_i32_usize_aeec6942
   local.set 5   ; $struct_38
   i32.const 0
   local.set 6   ; $k_39
   local.get 5   ; $struct_38
   local.get 6   ; $k_39
-  struct.new 23   ; __Tuple_Tuple_usize_i32_u8_b7dd5f3a
+  struct.new 23   ; __Tuple_Tuple_i32_usize_u8_6d59e2a9
   return
 end
 

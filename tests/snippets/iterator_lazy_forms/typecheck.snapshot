@@ -2,7 +2,7 @@
 
 ## tests/snippets/iterator_lazy_forms
   FnDecl         after_yield          :: fn(i32) -> Iterator<i32>
-  FnDecl         big                  :: fn([usize, i32]) -> bool
+  FnDecl         big                  :: fn([i32, usize]) -> bool
   FnDecl         both_odd             :: fn([i32, i32]) -> bool
   FnDecl         composite_sources    :: fn() -> void
   FnDecl         defaults             :: fn() -> void
@@ -54,7 +54,7 @@
   expr 18:28    IdentExpr      :: i32
   expr 19:30    BinaryExpr     :: i32
   expr 19:30    IdentExpr      :: i32
-  expr 22:15    IdentExpr      :: [usize, i32]
+  expr 22:15    IdentExpr      :: [i32, usize]
   expr 23:12    BinaryExpr     :: bool
   expr 23:12    IdentExpr      :: i32
   expr 27:15    IdentExpr      :: [i32, i32]
@@ -200,16 +200,16 @@
   expr 85:75    IdentExpr      :: fn(Iterator<i32>) -> bool
   expr 85:88    CallExpr       :: __genstate_upto<i32>!
   expr 85:88    IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 89:14    CallExpr       :: __genstate_enumerate<[usize, i32]>!
-  expr 89:14    CallExpr       :: __genstate_filter<[usize, i32]!>!
-  expr 89:14    FieldExpr      :: fn() -> Iterator<[usize, i32]>
+  expr 89:14    CallExpr       :: __genstate_filter<[i32, usize]!>!
+  expr 89:14    CallExpr       :: __genstate_indexed<[i32, usize]>!
+  expr 89:14    FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 89:14    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 89:14    SeqLitExpr     :: i32[]!
-  expr 89:46    IdentExpr      :: fn([usize, i32]) -> bool
-  expr 90:19    IdentExpr      :: __genstate_filter<[usize, i32]!>!
+  expr 89:44    IdentExpr      :: fn([i32, usize]) -> bool
+  expr 90:19    IdentExpr      :: __genstate_filter<[i32, usize]!>!
   expr 91:17    StringLitExpr  :: string
-  expr 91:38    IdentExpr      :: usize
-  expr 91:43    IdentExpr      :: i32
+  expr 91:36    IdentExpr      :: usize
+  expr 91:41    IdentExpr      :: i32
   expr 91:9     CallExpr       :: void
   expr 91:9     IdentExpr      :: fn(T) -> void
   expr 93:15    CallExpr       :: __genstate_filter<[i32, i32]!>!
