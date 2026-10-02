@@ -263,10 +263,9 @@ walk_import_decl :: fn(d: AST.ImportDecl, out: RawToken![]!) -> void {
         is AST.WildcardImport       -> {}
         is AST.DestructureImport    -> {
             for n in dest.names {
-                // The destructured name pulls the imported symbol into scope.
-                // We don't know yet if it's a fn or a type — default to
-                // Variable. Future enhancement : resolve the imported module
-                // and tag by kind.
+                // A modifier names an export of the module, dropped from the
+                // wildcard or rebound under its alias. Whether it is a fn or a
+                // type is not known here — default to Variable.
                 push_span(out, n.span, .Variable)
             }
         }

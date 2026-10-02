@@ -1,13 +1,12 @@
 // vader/lsp/actions/organize_imports — the `source.organizeImports` action.
 //
-// Rewrites the file's leading import block into the canonical form : grouped by origin (`std/` first, then `vader/`, then everything
-// else), alphabetical by path within each group, a blank line between groups,
-// and same-path destructure imports merged into one brace block with their
-// names de-duplicated and sorted.
+// Rewrites the file's leading import block into the canonical form : one list,
+// alphabetical by path, and same-path modifier lists (`import "p" { x as y }`)
+// merged into one brace block with their entries de-duplicated and sorted.
 //
-//   import "vader/diagnostics" { Span }        import "std/string" { join, split }
-//   import "std/string" { split }          →
-//   import "std/string" { join }               import "vader/diagnostics" { Span }
+//   import "vader/diagnostics" { Span as S }      import "std/string" { join as _, split as cut }
+//   import "std/string" { split as cut }      →
+//   import "std/string" { join as _ }             import "vader/diagnostics" { Span as S }
 //
 // Conservative by design (lossy = refuse, like the rewrite actions). The action
 // DECLINES — contributing nothing — when it can't transform safely :
@@ -136,9 +135,9 @@ ImportEntry :: struct {
 }
 
 render_import_block :: fn(run: AST.ImportDecl[]) -> string {
-    // Merge destructure imports by path ; collect namespace imports (dedup exact).
-    destructure: MutableMap<string, AST.ImportName[]!>: MutableMap<string, AST.ImportName[]!> {}
-    dpaths: string[]!: []
+    // Merge modifier lists by path ; collect namespace imports (dedup exact).
+    modifiers: MutableMap<string, AST.ImportName[]!>: MutableMap<string, AST.ImportName[]!> {}
+    modifier_paths: string[]!: []
     ns_entries: ImportEntry![]!: []
     ns_seen: MutableMap<string, bool>: MutableMap<string, bool> {}
 
@@ -146,12 +145,12 @@ render_import_block :: fn(run: AST.ImportDecl[]) -> string {
         im :: run[i]
         match im.binding as dst {
             is AST.DestructureImport    -> {
-                existing :: destructure[im.path]
+                existing :: modifiers[im.path]
                 if existing == null {
                     // Copy : later same-path imports push into this array, which
                     // must not alias (and mutate) the AST node's own names.
-                    destructure[im.path] = dst.names.clone()
-                    dpaths.push(im.path)
+                    modifiers[im.path] = dst.names.clone()
+                    modifier_paths.push(im.path)
                 } else {
                     for ni in 0..<dst.names.len() { existing.push(dst.names[ni]) }
                 }
@@ -174,11 +173,11 @@ render_import_block :: fn(run: AST.ImportDecl[]) -> string {
     }
 
     entries: ImportEntry![]!: []
-    for pi in 0..<dpaths.len() {
-        p :: dpaths[pi]
-        names :: destructure[p]
+    for pi in 0..<modifier_paths.len() {
+        p :: modifier_paths[pi]
+        names :: modifiers[p]
         if names != null {
-            entries.push(ImportEntry { .path = p, .text = render_destructure_import(p, names) })
+            entries.push(ImportEntry { .path = p, .text = render_modifier_import(p, names) })
         }
     }
     for i in 0..<ns_entries.len() { entries.push(ns_entries[i]) }
@@ -200,9 +199,9 @@ import_entry_less :: fn(a: ImportEntry, b: ImportEntry) -> bool {
     return compare_ascending(a.text, b.text)
 }
 
-// `import "path" { a, b, c }` — names de-duplicated + sorted. Single-line unless
-// it would exceed the 100-column soft wrap, then one name per line.
-render_destructure_import :: fn(path: string, names: AST.ImportName[]) -> string {
+// `import "path" { a as x, b as _ }` — entries de-duplicated + sorted. Single-line
+// unless it would exceed the 100-column soft wrap, then one entry per line.
+render_modifier_import :: fn(path: string, names: AST.ImportName[]) -> string {
     texts :: sorted_name_texts(names)
     single :: "import \"" + path + "\" { " + texts.join(", ") + " }"
     if single.bytes().len() <= 100 { return single }
@@ -249,7 +248,7 @@ parsed_decls :: fn(src: string) -> AST.Decl[] {
 
 @test
 test_organize_sorts_alphabetically :: fn() -> void {
-    src :: "module \"t\"\n\nimport \"vader/diagnostics\" { Span }\nimport \"std/string\" { split }\n\nx :: fn() -> i32 = 0\n"
+    src :: "module \"t\"\n\nimport \"vader/diagnostics\" { Span as S }\nimport \"std/string\" { split as cut }\n\nx :: fn() -> i32 = 0\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     assert(organize_imports_applicable(decls, ctx), "two contiguous imports organise")
@@ -261,7 +260,7 @@ test_organize_sorts_alphabetically :: fn() -> void {
     // One list, alphabetical, no blank line: `std/…` < `vader/…` here by path, not
     // by origin — which is the point. A `json` or `toolchain/…` import sorts among
     // them rather than into a nameless "other" bucket.
-    expected :: "import \"std/string\" { split }\nimport \"vader/diagnostics\" { Span }"
+    expected :: "import \"std/string\" { split as cut }\nimport \"vader/diagnostics\" { Span as S }"
     assert(r.new_text == expected, "sorts by path with no group break: got [${r.new_text}]")
 }
 
@@ -284,7 +283,7 @@ test_organize_interleaves_every_origin :: fn() -> void {
 
 @test
 test_organize_merges_same_path :: fn() -> void {
-    src :: "module \"t\"\n\nimport \"std/string\" { split }\nimport \"std/string\" { join }\n"
+    src :: "module \"t\"\n\nimport \"std/string\" { split as cut }\nimport \"std/string\" { join as _ }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     r :: organize_imports_apply(decls, ctx)
@@ -292,12 +291,12 @@ test_organize_merges_same_path :: fn() -> void {
         assert(false, "expected an edit")
         return
     }
-    assert(r.new_text == "import \"std/string\" { join, split }", "merges + sorts same-path names: got [${r.new_text}]")
+    assert(r.new_text == "import \"std/string\" { join as _, split as cut }", "merges + sorts same-path names: got [${r.new_text}]")
 }
 
 @test
 test_organize_dedups_names :: fn() -> void {
-    src :: "module \"t\"\n\nimport \"std/string\" { split, split, join }\n"
+    src :: "module \"t\"\n\nimport \"std/string\" { split as cut, split as cut, join as _ }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     r :: organize_imports_apply(decls, ctx)
@@ -305,12 +304,12 @@ test_organize_dedups_names :: fn() -> void {
         assert(false, "expected an edit")
         return
     }
-    assert(r.new_text == "import \"std/string\" { join, split }", "drops duplicate names: got [${r.new_text}]")
+    assert(r.new_text == "import \"std/string\" { join as _, split as cut }", "drops duplicate names: got [${r.new_text}]")
 }
 
 @test
 test_organize_declines_already_sorted :: fn() -> void {
-    src :: "module \"t\"\n\nimport \"std/string\" { join, split }\nimport \"vader/diagnostics\" { Span }\n"
+    src :: "module \"t\"\n\nimport \"std/string\" { join as _, split as cut }\nimport \"vader/diagnostics\" { Span as S }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     assert(organize_imports_applicable(decls, ctx), "still a valid import block")
@@ -319,7 +318,7 @@ test_organize_declines_already_sorted :: fn() -> void {
 
 @test
 test_organize_declines_interleaved_comment :: fn() -> void {
-    src :: "module \"t\"\n\nimport \"std/string\" { split }\n// keep me\nimport \"std/sort\" { sort }\n"
+    src :: "module \"t\"\n\nimport \"std/string\" { split as cut }\n// keep me\nimport \"std/sort\" { sort as _ }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     assert(!organize_imports_applicable(decls, ctx), "a comment between imports -> decline (would be dropped)")
@@ -327,7 +326,7 @@ test_organize_declines_interleaved_comment :: fn() -> void {
 
 @test
 test_organize_declines_scattered :: fn() -> void {
-    src :: "module \"t\"\n\nimport \"std/string\" { split }\n\nx :: fn() -> i32 = 0\n\nimport \"std/sort\" { sort }\n"
+    src :: "module \"t\"\n\nimport \"std/string\" { split as cut }\n\nx :: fn() -> i32 = 0\n\nimport \"std/sort\" { sort as _ }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     assert(!organize_imports_applicable(decls, ctx), "imports split by a decl -> decline")
@@ -337,7 +336,7 @@ test_organize_declines_scattered :: fn() -> void {
 test_organize_keeps_namespace_alias :: fn() -> void {
     // Out of order on purpose: sorted input now DECLINES (there is no group break
     // left to insert), so an in-order fixture would assert nothing about rendering.
-    src :: "module \"t\"\n\nP :: import \"vader/parser\"\nimport \"std/string\" { split }\n"
+    src :: "module \"t\"\n\nP :: import \"vader/parser\"\nimport \"std/string\" { split as cut }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     r :: organize_imports_apply(decls, ctx)
@@ -350,7 +349,7 @@ test_organize_keeps_namespace_alias :: fn() -> void {
 
 @test
 test_organize_roundtrip_reparses :: fn() -> void {
-    src :: "module \"t\"\n\nimport \"vader/diagnostics\" { Span }\nimport \"std/string\" { split }\nimport \"std/string\" { join }\n"
+    src :: "module \"t\"\n\nimport \"vader/diagnostics\" { Span as S }\nimport \"std/string\" { split as cut }\nimport \"std/string\" { join as _ }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     r :: organize_imports_apply(decls, ctx)

@@ -57,6 +57,16 @@ export FileWildcards :: struct {
     excludes: MutableMap<string, string[]!>
 }
 
+/// True when this file's wildcard import of `path` drops `name` through its
+/// modifier list (`name as _`, or a rename `name as other`).
+///
+/// @param path  a wildcard-imported path.
+/// @param name  an export of that module.
+export drops :: fn(self: FileWildcards, path: string, name: string) -> bool {
+    dropped :: self.excludes[path] ?? return false
+    return name in dropped
+}
+
 /// Every wildcard path of the module, files merged, in load order. For the
 /// consumers that have not moved to file scope yet — the resolver's unqualified
 /// seed (`build_wildcard_seed`, `wildcard_ambiguities`), whose own body walker
@@ -137,29 +147,29 @@ export collect_module :: fn(
     return out
 }
 
-// R2032 — a path imported BOTH as a bare wildcard (`import "p"`) AND as a
-// destructure (`import "p" { … }`) in the same file. The wildcard already
-// exposes every public name of `p`, so the destructure is redundant and
-// confusing (which binding wins for a name in both?). Flag the second form so
-// the author collapses to one. Namespace bindings (`X :: import "p"`) don't
-// conflict — they qualify, they don't inject names.
+// R2032 — a path wildcard-imported twice in the same file : bare `import "p"`
+// plus `import "p" { … }`, or two `{ … }`. Both are wildcards of `p`, so the
+// second is redundant, and two modifier lists would each hide what the other
+// drops. Flag the second import so the author collapses to one. Namespace
+// bindings (`X :: import "p"`) don't conflict — they qualify, they don't inject
+// names.
 check_import_form_conflict :: fn(decls: Decl[], diags: Diagnostic[]!) -> void {
     wildcard_of :: MutableMap<string, Span> {}
-    destructure_of :: MutableMap<string, Span> {}
+    modifiers_of :: MutableMap<string, Span> {}
     for d in decls {
         if d is ImportDecl {
             match d.binding {
                 is WildcardImport -> {
-                    if destructure_of[d.path] != null {
-                        diags.push(resolver_error(.ConflictingImportForms, d.span, "`${d.path}`"))
+                    if modifiers_of[d.path] != null {
+                        diags.push(resolver_error(.PathImportedTwice, d.span, "`${d.path}`"))
                     }
                     wildcard_of[d.path] = d.span
                 }
                 is DestructureImport -> {
-                    if wildcard_of[d.path] != null {
-                        diags.push(resolver_error(.ConflictingImportForms, d.span, "`${d.path}`"))
+                    if wildcard_of[d.path] != null || modifiers_of[d.path] != null {
+                        diags.push(resolver_error(.PathImportedTwice, d.span, "`${d.path}`"))
                     }
-                    destructure_of[d.path] = d.span
+                    modifiers_of[d.path] = d.span
                 }
                 _ -> {}
             }

@@ -203,7 +203,7 @@ export ResolverCode :: enum(CodeInfo) {
     AsBindingInConjunction       { .id = "R2029", .message = "`as` binding not allowed in a `&&` condition" },
     ConflictingImpl              { .id = "R2030", .message = "conflicting trait impl for the same type" },
     AmbiguousWildcardImport      { .id = "R2031", .message = "name is exported by several wildcard-imported modules" },
-    ConflictingImportForms       { .id = "R2032", .message = "the same path is imported both bare (wildcard) and with `{ … }` (destructure)" },
+    PathImportedTwice            { .id = "R2032", .message = "the same path is wildcard-imported twice in one file" },
     PlainNameInImportModifiers   { .id = "R2033", .message = "a plain name in an `import \"p\" { … }` modifier list — use `x as _` (exclude) or `x as y` (rename)" },
     CompilerImportFromLibrary    { .id = "R2034", .message = "a shipped library must not import the compiler" },
     UnknownTargetSelector        { .id = "R2035", .message = "unknown target selector" },

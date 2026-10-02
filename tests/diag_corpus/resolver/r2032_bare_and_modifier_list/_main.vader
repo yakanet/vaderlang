@@ -1,0 +1,12 @@
+// The same path imported both bare and with a modifier list (`{ … }`) is two
+// wildcards of it — the bare one already exposes every public name of the
+// module. R2032 flags the second import so the author collapses to one.
+module "snippet"
+
+import "std/io"
+import "std/io" { print as _ }
+
+main :: fn() -> i32 {
+    println("hi")
+    return 0
+}

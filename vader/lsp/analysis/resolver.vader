@@ -47,16 +47,16 @@ export resolve :: fn(
     if name.bytes().len() == 0 { return null }
     imp :: idx.find_import(name)
     if imp != null { return resolve_imported(state, idx, imp) }
-    // Not a destructured name — the name may be declared in a SIBLING file of
+    // Not an imported rename — the name may be declared in a SIBLING file of
     // the same folder module (every `vader/X/*.vader` shares `module "vader/X"`).
     // The per-document index only sees the open file, so search the rest of the
     // module's directory. This is the dominant cross-file case in the compiler
     // tree, and it isn't an `import` so the table lookup above never finds it.
     sib :: resolve_sibling(idx.uri, name, state.position_encoding)
     if sib != null { return sib }
-    // Still nothing — the name may be exposed by a bare `import "p"` wildcard,
-    // which binds no `ImportEntry`. Search each wildcard-imported module for a
-    // top-level decl of this name (wildcards never rename, so the name is used
+    // Still nothing — the name may be exposed by a wildcard import, which binds
+    // no `ImportEntry`. Search each wildcard-imported module for a top-level
+    // decl of this name (a rename was looked up above, so the name is used
     // verbatim). First hit wins; an ambiguous name is an R2031 compile error
     // anyway, so landing on any provider is acceptable for goto / hover.
     wild :: resolve_wildcard(state, idx, name)
@@ -89,7 +89,10 @@ export resolve :: fn(
 // one declaration of the right name beats landing on nothing; a precise answer
 // wants the dispatched declaration recorded per call site (see TODO).
 resolve_member :: fn(state: ServerState, idx: DocIndex, name: string) -> ExternalHit | null {
-    for path in idx.wildcard_paths {
+    for path in idx.wildcards.paths {
+        if idx.wildcards.drops(path, name) {
+            continue
+        }
         hit :: member_in_module(state, idx.uri, path, name)
         if hit != null {
             return hit
@@ -144,9 +147,13 @@ member_in_file :: fn(path: string, name: string, encoding: PositionEncoding) -> 
 }
 
 // Search every wildcard-imported module (`import "p"`) for a top-level decl
-// named `name`. Returns the first hit, or null when no wildcard provides it.
+// named `name`, skipping a module whose modifier list drops it. Returns the first
+// hit, or null when no wildcard provides it.
 resolve_wildcard :: fn(state: ServerState, idx: DocIndex, name: string) -> ExternalHit | null {
-    for path in idx.wildcard_paths {
+    for path in idx.wildcards.paths {
+        if idx.wildcards.drops(path, name) {
+            continue
+        }
         hit :: resolve_in_module(state, idx.uri, path, name, true)
         if hit != null { return hit }
     }
@@ -183,7 +190,7 @@ resolve_imported :: fn(state: ServerState, idx: DocIndex, imp: ImportEntry) -> E
     resolve_in_module(state, idx.uri, imp.module_path, imp.original_name, false)
 
 // Resolve `name` to a top-level decl in the module at `module_path` (as seen
-// from `from_uri`). Shared by the destructure (`resolve_imported`) and wildcard
+// from `from_uri`). Shared by the rename (`resolve_imported`) and wildcard
 // (`resolve_wildcard`) paths — the only difference is where the `name` and path
 // come from.
 /// Find `name` among the top-level decls of the module at `module_path`.

@@ -1,0 +1,11 @@
+// Two modifier lists for one path are two wildcards of it : each would hide what
+// the other drops. R2032 flags the second ; one `{ … }` holds every modifier.
+module "snippet"
+
+import "std/io" { print as _ }
+import "std/io" { eprintln as _ }
+
+main :: fn() -> i32 {
+    println("hi")
+    return 0
+}

@@ -102,9 +102,7 @@ export build_wildcard_seed :: fn(
         target :: name_index[path] ?? continue
         ex :: excludes[path]
         for [_, sym] in target.collected.symbols {
-            if !wildcard_exposable(sym.kind) { continue }
-            if sym.visibility != .Public { continue }
-            if ex != null && sym.name in ex { continue }   // `{ x as _ }` / rename source
+            if !wildcard_exposes(sym, ex) { continue }
             existing :: out[sym.name]
             if existing is null { out[sym.name] = sym }
         }
@@ -120,6 +118,21 @@ export build_wildcard_seed :: fn(
 export wildcard_exposable :: fn(k: SymbolKind) = k == .Fn || k == .Struct
     || k == .Enum || k == .Trait || k == .TypeAlias
     || k == .Const
+
+/// True when a wildcard import of `sym`'s module brings `sym` into scope : a
+/// public, wildcard-exposable export its modifier list does not drop.
+///
+/// @param sym      an export of the wildcard-imported module.
+/// @param dropped  the names the import's modifier list drops ; null for none.
+export wildcard_exposes :: fn(sym: Symbol, dropped: string[] | null) -> bool {
+    if !wildcard_exposable(sym.kind) || sym.visibility != .Public {
+        return false
+    }
+    if dropped == null {
+        return true
+    }
+    return !(sym.name in dropped)
+}
 
 /// Names that two or more of `wildcard_paths`'s modules both export — the
 /// genuine collisions a bare `import "p1"` + `import "p2"` would create. Returns
@@ -137,11 +150,9 @@ export wildcard_ambiguities :: fn(
         target :: name_index[path] ?? continue
         ex :: excludes[path]
         for [_, sym] in target.collected.symbols {
-            if !wildcard_exposable(sym.kind) { continue }
-            if sym.visibility != .Public { continue }
             // A name a `{ x as _ }` / rename modifier dropped isn't provided by
             // this path, so it can't be an ambiguity source here.
-            if ex != null && sym.name in ex { continue }
+            if !wildcard_exposes(sym, ex) { continue }
             // A name the prelude also owns is never ambiguous: the seed is
             // prelude-first fill-empty, so an unqualified reference always binds
             // the core symbol — the wildcard exports are dropped. Skip it so R2031

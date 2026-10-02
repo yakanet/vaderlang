@@ -13,8 +13,9 @@
 //     starts at the LetStmt and runs to the end of the enclosing block.
 //   * For-in loop bindings (`ForStmt.form == InFor`) — scope = loop
 //     body block.
-//   * Import bindings (`ImportDecl` destructure form) — recorded in
-//     `imports[]` for cross-file goto-def to consume.
+//   * Import renames (`import "p" { x as y }`) — recorded in `imports[]` for
+//     cross-file goto-def to consume ; the wildcard paths and the names their
+//     modifier lists drop, in `wildcards`.
 //
 //   * `as` bindings — `if x is T as y` (scoped to the then-block) and
 //     `match e as y` (scoped to the match), declared at their name token.
@@ -32,6 +33,8 @@ import "vader/diagnostics"
 import "vader/fmt"
 import "vader/lsp/protocol"
 import "toolchain/span"
+
+Rs :: import "vader/resolver"
 
 /// What kind of declaration a DeclEntry points at. Drives the hover
 /// signature template + helps clients decide on icon / styling.
@@ -105,11 +108,12 @@ export DocIndex :: struct {
     /// (which `collect_import` used to do) left goto-def with no way back to the
     /// module at all.
     namespace_aliases: MutableMap<string, string>
-    /// Paths of the file's wildcard imports (bare `import "p"`). Unlike a
-    /// destructure, a wildcard binds no named `ImportEntry` — every export of
-    /// `p` enters scope unqualified — so the cross-file resolver falls back to
-    /// these paths to locate an unqualified name (see `resolver::resolve`).
-    wildcard_paths: string[]
+    /// The file's wildcard imports — bare `import "p"`, and `import "p" { … }`,
+    /// a wildcard with modifiers — with the names each modifier list drops. A
+    /// wildcard binds no named `ImportEntry` — every export of `p` enters scope
+    /// unqualified — so the cross-file resolver falls back to these paths to
+    /// locate an unqualified name (see `resolver::resolve`).
+    wildcards: Rs.FileWildcards
     /// `break` / `continue` → the loop it targets, for goto-definition on a
     /// loop jump (the reader-clarity tool that replaced the W0004 nudge).
     loop_jumps: LoopJump[]
@@ -137,10 +141,14 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
     cmap :: scan_comments(source)
     entries: DeclEntry[]!: []
     imports: ImportEntry[]!: []
-    wildcard_paths: string[]!: []
+    wildcards :: Rs.FileWildcards { .file = uri, .paths = [], .excludes = MutableMap<string, string[]!> {} }
     namespace_aliases :: MutableMap<string, string> {}
     for d in parsed.program.decls {
-        collect_decl(d, source, cmap, entries, imports, wildcard_paths, namespace_aliases)
+        if d is ImportDecl {
+            collect_import(d, imports, wildcards, namespace_aliases)
+        } else {
+            collect_decl(d, source, cmap, entries)
+        }
     }
     return DocIndex {
         .uri            = uri,
@@ -149,7 +157,7 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
         .decls          = entries,
         .imports        = imports,
         .namespace_aliases = namespace_aliases,
-        .wildcard_paths = wildcard_paths,
+        .wildcards      = wildcards,
         .loop_jumps     = collect_loop_jumps(parsed.program.decls),
         .line_index     = new_line_index(source, encoding),
     }
@@ -429,8 +437,7 @@ export find_import :: fn(idx: DocIndex, name: string) -> ImportEntry | null {
 
 collect_decl :: fn(
     d: Decl, source: string, cmap: CommentMap,
-    entries: DeclEntry[]!, imports: ImportEntry[]!, wildcard_paths: string[]!,
-    namespace_aliases: MutableMap<string, string>!,
+    entries: DeclEntry[]!,
 ) -> void {
     match d {
         is FnDecl -> {
@@ -504,7 +511,7 @@ collect_decl :: fn(
                 ix_walk_fn_body(m, source, entries)
             }
         }
-        is ImportDecl -> { collect_import(d, imports, wildcard_paths, namespace_aliases) }
+        is ImportDecl -> {}
         is AssertDecl -> {}
     }
 }
@@ -868,7 +875,7 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
 // ---- import collection ---------------------------------------------------
 
 collect_import :: fn(
-    d: ImportDecl, imports: ImportEntry[]!, wildcard_paths: string[]!,
+    d: ImportDecl, imports: ImportEntry[]!, wildcards: Rs.FileWildcards!,
     namespace_aliases: MutableMap<string, string>!,
 ) -> void {
     match d.binding as ns {
@@ -876,22 +883,28 @@ collect_import :: fn(
         // binds no `ImportEntry`. Recorded separately: `Name.member` needs the
         // path to look the member up as an EXPORT of that module.
         is NamedNamespaceImport -> { namespace_aliases[ns.name] = d.path }
-        is WildcardImport -> { wildcard_paths.push(d.path) } // bare `import "..."` — every export enters scope unqualified
+        // bare `import "..."` — every export enters scope unqualified
+        is WildcardImport -> { wildcards.paths.push(d.path) }
+        // `import "p" { x as y, z as _ }` — the same wildcard, minus every
+        // renamed or excluded name ; `x as y` rebinds `x` under `y`. A bare name
+        // (R2033) drops nothing : the wildcard still brings it.
         is DestructureImport -> {
+            wildcards.paths.push(d.path)
+            dropped: string[]!: []
             for n in ns.names {
-                local_name := n.name
-                local_span :: n.span
-                match n.alias as alias {
-                    is null   -> {}
-                    is string -> { local_name = alias }
+                alias :: n.alias ?? continue
+                dropped.push(n.name)
+                if alias == "_" {
+                    continue
                 }
                 imports.push(ImportEntry {
-                    .local_name    = local_name,
+                    .local_name    = alias,
                     .original_name = n.name,
                     .module_path   = d.path,
-                    .name_span     = local_span,
+                    .name_span     = n.span,
                 })
             }
+            wildcards.excludes[d.path] = dropped
         }
     }
 }
@@ -1044,4 +1057,27 @@ lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclE
     }
     if !has_best { return null }
     return decls[best_idx]
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_index_modifier_list_is_a_wildcard :: fn() -> void {
+    src :: "module \"t\"\n\nimport \"std/string\" { split as cut, join as _ }\n"
+    idx :: build_index("t.vader", src, .Utf16)
+    assert_eq(idx.wildcards.paths.len(), 1)
+    assert_eq(idx.wildcards.paths[0], "std/string")
+    assert_eq(idx.imports.len(), 1)
+    assert_eq(idx.imports[0].local_name, "cut")
+    assert_eq(idx.imports[0].original_name, "split")
+}
+
+@test
+test_index_modifier_list_drops_its_names :: fn() -> void {
+    src :: "module \"t\"\n\nimport \"std/string\" { split as cut, join as _ }\n"
+    idx :: build_index("t.vader", src, .Utf16)
+    assert(Rs.drops(idx.wildcards, "std/string", "split"), "a renamed name leaves the wildcard")
+    assert(Rs.drops(idx.wildcards, "std/string", "join"), "an excluded name leaves the wildcard")
 }
