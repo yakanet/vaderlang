@@ -13,7 +13,6 @@ module "json"
 
 import "std/string"
 import "std/char"
-import "std/iter"
 import "std/string_builder"
 import "std/collections"
 import "std/numbers"
@@ -495,23 +494,39 @@ export parse :: fn(input: string) -> JsonValue | JsonError {
 
 // ---- stringify ------------------------------------------------------------
 
+// The bytes between two escapes go onto `sb` as one part, undecoded : only
+// ASCII bytes are ever escaped, so a multi-byte UTF-8 sequence passes through
+// intact.
 write_string :: fn(sb: StringBuilder!, s: string) -> void {
-    sb.append_char('"')
-    for c in s.chars() {
-        cp :: i32(c)
-        if c == '"' { sb.append("\\\"") } else
-        if c == '\\' { sb.append("\\\\") } else
-        if c == '\n' { sb.append("\\n") } else
-        if c == '\t' { sb.append("\\t") } else
-        if c == '\r' { sb.append("\\r") } else
-        if cp < 0x20 {
-            sb.append("\\u")
-            sb.append(u64(cp).to_hex().pad_start(4, '0'))
-        } else {
-            sb.append_char(c)
+    sb.append("\"")
+    b :: s.bytes()
+    run: usize = 0
+    for i in 0..<b.len() {
+        escape :: escape_of(b[i])
+        if escape == "" {
+            continue
         }
+        if run < i {
+            sb.append(b[run..<i].bytes_to_string())
+        }
+        sb.append(escape)
+        run = i + 1
     }
-    sb.append_char('"')
+    sb.append(if run == 0 { s } else { b[run..<b.len()].bytes_to_string() })
+    sb.append("\"")
+}
+
+// The JSON escape for byte `c`, or `""` when it stands for itself.
+escape_of :: fn(c: u8) -> string {
+    if c == '"'  { return "\\\"" }
+    if c == '\\' { return "\\\\" }
+    if c == '\n' { return "\\n" }
+    if c == '\t' { return "\\t" }
+    if c == '\r' { return "\\r" }
+    if c < 0x20 {
+        return "\\u" + u64(c).to_hex().pad_start(4, '0')
+    }
+    return ""
 }
 
 // Strip the trailing `.0` from integer-valued floats so `42.0` round-trips
@@ -571,12 +586,8 @@ write_object :: fn(sb: StringBuilder!, o: JsonObject, indent: i32, depth: i32) -
         return
     }
     sb.append_char('{')
-    // Snapshot keys + values in parallel so we walk the buckets once and
-    // skip the per-entry hash lookup.
-    ks :: o.entries.keys()
-    vs :: o.entries.values()
     first := true
-    for [k, v] in zip(ks, vs) {
+    for [k, v] in o.entries {
         if !first {
             sb.append_char(',')
         }
@@ -782,4 +793,23 @@ expect_number :: fn(src: string, expected: f64) -> void {
     // A modestly-nested document still parses.
     ok :: parse("[[[[[1]]]]]")
     if ok !is JsonArray { fail("expected JsonArray for shallow nesting") }
+}
+
+@test test_stringify_escapes_a_string :: fn() -> void {
+    v :: JsonString { .value = "a\"b\\c\nd\te\r\u{1}" }
+    assert_eq(stringify(v), "\"a\\\"b\\\\c\\nd\\te\\r\\u0001\"")
+}
+
+@test test_stringify_keeps_multibyte_text :: fn() -> void {
+    assert_eq(stringify(JsonString { .value = "é\n你" }), "\"é\\n你\"")
+    assert_eq(stringify(JsonString { .value = "" }), "\"\"")
+}
+
+@test test_stringify_object_in_insertion_order :: fn() -> void {
+    parsed :: parse("{\"b\": 1, \"a\": [true, null, \"x\"]}")
+    if parsed is JsonError {
+        fail(parsed.msg)
+        return
+    }
+    assert_eq(stringify(parsed), "{\"b\":1,\"a\":[true,null,\"x\"]}")
 }
