@@ -1,0 +1,45 @@
+# Typecheck
+
+## tests/snippets/async_shared_deadline
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Probe                :: Probe!
+  FnDecl         stepper              :: fn() -> Async<i32>
+  expr 19:9     BinaryExpr     :: i32
+  expr 19:9     FieldExpr      :: i32
+  expr 19:9     IdentExpr      :: Probe!
+  expr 20:12    BinaryExpr     :: bool
+  expr 20:12    CallExpr       :: i64
+  expr 20:12    IdentExpr      :: fn() -> i64
+  expr 20:26    FieldExpr      :: i64
+  expr 20:26    IdentExpr      :: Probe!
+  expr 20:9     IfExpr         :: void
+  expr 21:20    StructLitExpr  :: Suspended!
+  expr 23:16    FieldExpr      :: i32
+  expr 23:16    IdentExpr      :: Probe!
+  expr 28:11    CallExpr       :: Async<null>
+  expr 28:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 28:5     AwaitExpr      :: null
+  expr 29:11    CallExpr       :: Async<null>
+  expr 29:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 29:5     AwaitExpr      :: null
+  expr 34:27    SeqLitExpr     :: Async<i32>[]!
+  expr 35:16    StructLitExpr  :: Probe!
+  expr 35:5     CallExpr       :: void
+  expr 35:5     FieldExpr      :: fn(Async<i32>) -> void
+  expr 35:5     IdentExpr      :: Async<i32>[]!
+  expr 36:14    RangeExpr      :: Range<i32>!
+  expr 37:20    CallExpr       :: Async<i32>
+  expr 37:20    IdentExpr      :: fn() -> Async<i32>
+  expr 37:9     CallExpr       :: void
+  expr 37:9     FieldExpr      :: fn(Async<i32>) -> void
+  expr 37:9     IdentExpr      :: Async<i32>[]!
+  expr 39:11    CallExpr       :: i32[]!
+  expr 39:11    IdentExpr      :: fn(Async<T>) -> T
+  expr 39:20    CallExpr       :: Async<i32[]!>
+  expr 39:20    IdentExpr      :: fn(Async<T>[]) -> Async<T[]!>
+  expr 39:29    IdentExpr      :: Async<i32>[]!
+  expr 40:13    StringLitExpr  :: string
+  expr 40:30    IdentExpr      :: i32[]!
+  expr 40:30    IndexExpr      :: i32
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void

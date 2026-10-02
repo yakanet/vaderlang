@@ -2412,8 +2412,8 @@ void vader_gc_collect(void) {
 
 /* ---- cooperative async scheduler ------------------------------------------
  * See vader.h. A virtual `now` (ms, from 0) + a min-heap of pending wake
- * deadlines. `park` pops the nearest, optionally waits real time for it, and
- * advances `now`. Single-threaded — no locking. */
+ * deadlines. `park` waits for the nearest (real time, unless virtual), advances
+ * `now` to it and drops every timer then due. Single-threaded — no locking. */
 static int64_t  g_sched_now = 0;
 static int64_t* g_sched_heap = NULL;
 static size_t   g_sched_len = 0;
@@ -2450,9 +2450,7 @@ void vader_sched_arm(vader_i64_t deadline) {
     }
 }
 
-vader_i32_t vader_sched_park(void) {
-    if (g_sched_len == 0) { return 1; }    /* deadlock: nothing pending */
-    int64_t deadline = g_sched_heap[0];
+static void vader_sched_pop(void) {
     g_sched_heap[0] = g_sched_heap[--g_sched_len];
     size_t i = 0;                          /* sift down */
     for (;;) {
@@ -2463,20 +2461,31 @@ vader_i32_t vader_sched_park(void) {
         int64_t t = g_sched_heap[i]; g_sched_heap[i] = g_sched_heap[smallest]; g_sched_heap[smallest] = t;
         i = smallest;
     }
-    if (deadline > g_sched_now) {
-        if (!vader_sched_is_virtual()) {
-            int64_t delta = deadline - g_sched_now;
+}
+
+/* A timer already due carries nothing: the program re-drives every task after
+ * a park, so each of them sees the clock it waited for. */
+static void vader_sched_drop_due(void) {
+    while (g_sched_len > 0 && g_sched_heap[0] <= g_sched_now) { vader_sched_pop(); }
+}
+
+vader_i32_t vader_sched_park(void) {
+    vader_sched_drop_due();
+    if (g_sched_len == 0) { return 1; }    /* deadlock: nothing pending */
+    int64_t deadline = g_sched_heap[0];
+    if (!vader_sched_is_virtual()) {
+        int64_t delta = deadline - g_sched_now;
 #ifdef _WIN32
-            Sleep((DWORD) delta);
+        Sleep((DWORD) delta);
 #else
-            struct timespec ts;
-            ts.tv_sec = (time_t) (delta / 1000);
-            ts.tv_nsec = (long) ((delta % 1000) * 1000000);
-            nanosleep(&ts, NULL);
+        struct timespec ts;
+        ts.tv_sec = (time_t) (delta / 1000);
+        ts.tv_nsec = (long) ((delta % 1000) * 1000000);
+        nanosleep(&ts, NULL);
 #endif
-        }
-        g_sched_now = deadline;
     }
+    g_sched_now = deadline;
+    vader_sched_drop_due();
     return 0;
 }
 

@@ -253,6 +253,7 @@ const C_PARITY = new Set<string>([
   "async_all",         // join_all(xs): concurrent join, input-order results
   "async_try_all",     // try_join_all(xs): fallible join, first-error by input order
   "async_interleave",  // visible cooperative interleaving via println order
+  "async_shared_deadline", // timers sharing a deadline are spent by one park
   // Captured param + local surviving `await`: both promote to heap cells the
   // frame must carry across suspension (the retired M5008 case). Native run is
   // the seed-critical guard — the C-emit bug was a value-typed spilled field.

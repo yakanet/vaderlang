@@ -308,13 +308,12 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = NullVal {} }
     }
     .SchedPark -> {
+        drop_due_timers(sched_state)
         if sched_state.len() <= 1 { return HostOk { .value = I32Val(1) } }  // deadlock
-        min_i: usize = 1
-        for i in 2..<sched_state.len() { if sched_state[i] < sched_state[min_i] { min_i = i } }
-        deadline :: sched_state[min_i]
-        sched_state[min_i] = sched_state[sched_state.len() - 1]   // swap-remove
-        sched_state.remove_last()
-        if deadline > sched_state[0] { sched_state[0] = deadline }
+        nearest := sched_state[1]
+        for i in 2..<sched_state.len() { if sched_state[i] < nearest { nearest = sched_state[i] } }
+        sched_state[0] = nearest
+        drop_due_timers(sched_state)
         return HostOk { .value = I32Val(0) }
     }
     // ---- std/tty + std/env ----------------------------------------------
@@ -1101,6 +1100,20 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
     return HostOk { .value = I64Val(raw) }
 }
 
+// A timer already due carries nothing: the program re-drives every task after a
+// park, so each of them sees the clock it waited for. `state[0]` is the clock.
+drop_due_timers :: fn(state: usize[]!) -> void {
+    i: usize = 1
+    for i < state.len() {
+        if state[i] <= state[0] {
+            state[i] = state[state.len() - 1]
+            state.remove_last()
+        } else {
+            i += 1
+        }
+    }
+}
+
 // ---- comptime impurity gate -----------------------------------------------
 
 // Stable marker embedded in the Trap message the comptime impurity gate
@@ -1169,4 +1182,3 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .AbortPanic -> false
     .NotIntrinsic -> false
 }
-

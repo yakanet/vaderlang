@@ -47,10 +47,11 @@ export sched_now :: fn() -> i64
 @intrinsic
 export sched_arm :: fn(deadline: i64) -> void
 
-/// Park until the nearest armed deadline : pop it, wait for it (real time,
-/// unless `VADER_ASYNC_VIRTUAL_CLOCK` is set), and advance the clock. Returns 0
-/// once advanced, or 1 when no timer is pending — a deadlock (every task is
-/// suspended with nothing left to wake it).
-/// @return  0 = advanced to the next deadline ; 1 = deadlock (nothing armed).
+/// Park until the nearest armed deadline : wait for it (real time, unless
+/// `VADER_ASYNC_VIRTUAL_CLOCK` is set), advance the clock to it, and drop every
+/// timer then due — the caller re-drives all of its tasks after a park, so one
+/// wake serves them all.
+/// @return  0 = advanced to the next deadline ; 1 = deadlock — nothing armed,
+///          every task suspended with nothing left to wake it.
 @intrinsic
 export sched_park :: fn() -> i32

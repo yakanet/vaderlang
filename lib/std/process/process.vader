@@ -681,10 +681,10 @@ SpawnAsync implements Async<ProcessResult | ProcessError> {
             sched_arm(self.deadline)
             return Suspended {}
         }
-        // Poll at most once per POLL_MS. Without this gate, a driver that
-        // re-resumes every child each tick (`join_all([...])`) would arm a fresh
-        // timer per drive — piling up duplicates the single-pop `sched_park`
-        // never drains. Mirrors `Sleep`: stay parked until our timer fires.
+        // Poll at most once per POLL_MS. A driver that re-resumes every child
+        // each tick (`join_all([...])`) would otherwise poll the child process
+        // and arm a fresh timer on every drive. Mirrors `Sleep`: stay parked
+        // until our timer fires.
         if sched_now() < self.deadline { return Suspended {} }
         code :: spawn_poll(self.handle)
         if code == RUNNING {

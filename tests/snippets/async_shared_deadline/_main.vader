@@ -1,0 +1,42 @@
+// async_shared_deadline — three tasks sleep twice in step, so each round arms
+// three timers on one deadline. A probe counts the times `join_all` drives it —
+// once to start, then once per park — and expects 3: one park per round, not
+// one per queued timer.
+
+module "snippet"
+
+import "std/async"
+import "std/io"
+import "std/runtime"
+
+Probe :: struct {
+    until: i64
+    drives: i32 = 0
+}
+
+Probe implements Async<i32> {
+    resume :: fn(self!) -> i32 | Suspended {
+        self.drives += 1
+        if sched_now() < self.until {
+            return Suspended {}
+        }
+        return self.drives
+    }
+}
+
+stepper :: fn() -> Async<i32> {
+    await sleep(1)
+    await sleep(1)
+    return 0
+}
+
+main :: fn() -> i32 {
+    tasks: Async<i32>[]!: []
+    tasks.push(Probe { .until = 2 })
+    for _ in 0..<3 {
+        tasks.push(stepper())
+    }
+    rs :: block_on(join_all(tasks))
+    println("probe drives: ${rs[0]}")
+    return 0
+}
