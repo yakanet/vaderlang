@@ -76,7 +76,7 @@
                 __off_3 :usize
     return int(0) :i32
   struct snippet$Repeat__i32 { value: i32, remaining: i32 }
-  fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>!) -> [i32, Continuation]!
+  fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>!) -> [i32, Continuation]
     if :void
       cond:
         lte :bool

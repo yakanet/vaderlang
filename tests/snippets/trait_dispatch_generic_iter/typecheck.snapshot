@@ -37,8 +37,8 @@
   expr 44:17    IdentExpr      :: Once<T>!
   expr 44:29    DotVariantExpr :: Continuation
   expr 51:9     IdentExpr      :: bool
-  expr 52:19    CallExpr       :: [i32, Continuation]!
-  expr 52:19    FieldExpr      :: fn() -> [i32, Continuation]!
+  expr 52:19    CallExpr       :: [i32, Continuation]
+  expr 52:19    FieldExpr      :: fn() -> [i32, Continuation]
   expr 52:19    IdentExpr      :: Iterator<i32>
   expr 53:12    BinaryExpr     :: bool
   expr 53:12    IdentExpr      :: Continuation

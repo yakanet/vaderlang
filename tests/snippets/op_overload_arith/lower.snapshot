@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Vec { x: i32, y: i32 }
-  fn snippet$Vec$Add$add(self: Vec!, other: Vec) -> Vec!
+  fn snippet$Vec$Add$add(self: Vec!, other: Vec) -> Vec
     return
       Vec! {
         x:
@@ -22,7 +22,7 @@
               .y :i32
                 other :Vec
       }
-  fn snippet$Vec$Sub$sub(self: Vec!, other: Vec) -> Vec!
+  fn snippet$Vec$Sub$sub(self: Vec!, other: Vec) -> Vec
     return
       Vec! {
         x:
@@ -42,7 +42,7 @@
               .y :i32
                 other :Vec
       }
-  fn snippet$Vec$Mul$mul(self: Vec!, other: Vec) -> Vec!
+  fn snippet$Vec$Mul$mul(self: Vec!, other: Vec) -> Vec
     return
       Vec! {
         x:
@@ -62,7 +62,7 @@
               .y :i32
                 other :Vec
       }
-  fn snippet$Vec$Div$div(self: Vec!, other: Vec) -> Vec!
+  fn snippet$Vec$Div$div(self: Vec!, other: Vec) -> Vec
     return
       Vec! {
         x:
@@ -82,7 +82,7 @@
               .y :i32
                 other :Vec
       }
-  fn snippet$Vec$Rem$rem(self: Vec!, other: Vec) -> Vec!
+  fn snippet$Vec$Rem$rem(self: Vec!, other: Vec) -> Vec
     return
       Vec! {
         x:
@@ -113,42 +113,42 @@
         x: int(3) :i32
         y: int(4) :i32
       }
-    let s: Vec! =
-      call :Vec!
+    let s: Vec =
+      call :Vec
         callee:
-          snippet$Vec$Add$add :Vec!
+          snippet$Vec$Add$add :Vec
         arg0:
           a :Vec!
         arg1:
           b :Vec!
-    let d: Vec! =
-      call :Vec!
+    let d: Vec =
+      call :Vec
         callee:
-          snippet$Vec$Sub$sub :Vec!
+          snippet$Vec$Sub$sub :Vec
         arg0:
           a :Vec!
         arg1:
           b :Vec!
-    let m: Vec! =
-      call :Vec!
+    let m: Vec =
+      call :Vec
         callee:
-          snippet$Vec$Mul$mul :Vec!
+          snippet$Vec$Mul$mul :Vec
         arg0:
           a :Vec!
         arg1:
           b :Vec!
-    let q: Vec! =
-      call :Vec!
+    let q: Vec =
+      call :Vec
         callee:
-          snippet$Vec$Div$div :Vec!
+          snippet$Vec$Div$div :Vec
         arg0:
           a :Vec!
         arg1:
           b :Vec!
-    let r: Vec! =
-      call :Vec!
+    let r: Vec =
+      call :Vec
         callee:
-          snippet$Vec$Rem$rem :Vec!
+          snippet$Vec$Rem$rem :Vec
         arg0:
           a :Vec!
         arg1:
@@ -192,7 +192,7 @@
                 arg2:
                   cast → i64
                     .x :i32
-                      s :Vec!
+                      s :Vec
           assign
             target:
               __off_1 :usize
@@ -220,7 +220,7 @@
                 arg2:
                   cast → i64
                     .y :i32
-                      s :Vec!
+                      s :Vec
           assign
             target:
               __off_1 :usize
@@ -248,7 +248,7 @@
                 arg2:
                   cast → i64
                     .x :i32
-                      d :Vec!
+                      d :Vec
           assign
             target:
               __off_1 :usize
@@ -276,7 +276,7 @@
                 arg2:
                   cast → i64
                     .y :i32
-                      d :Vec!
+                      d :Vec
           assign
             target:
               __off_1 :usize
@@ -304,7 +304,7 @@
                 arg2:
                   cast → i64
                     .x :i32
-                      m :Vec!
+                      m :Vec
           assign
             target:
               __off_1 :usize
@@ -332,7 +332,7 @@
                 arg2:
                   cast → i64
                     .y :i32
-                      m :Vec!
+                      m :Vec
           assign
             target:
               __off_1 :usize
@@ -360,7 +360,7 @@
                 arg2:
                   cast → i64
                     .x :i32
-                      q :Vec!
+                      q :Vec
           assign
             target:
               __off_1 :usize
@@ -388,7 +388,7 @@
                 arg2:
                   cast → i64
                     .y :i32
-                      q :Vec!
+                      q :Vec
           assign
             target:
               __off_1 :usize
@@ -416,7 +416,7 @@
                 arg2:
                   cast → i64
                     .x :i32
-                      r :Vec!
+                      r :Vec
           assign
             target:
               __off_1 :usize
@@ -444,7 +444,7 @@
                 arg2:
                   cast → i64
                     .y :i32
-                      r :Vec!
+                      r :Vec
           assign
             target:
               __off_1 :usize

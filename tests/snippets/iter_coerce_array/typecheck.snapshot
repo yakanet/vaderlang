@@ -5,8 +5,8 @@
   FnDecl         make_iter            :: fn() -> Iterator<i32>
   FnDecl         walk                 :: fn(Iterator<i32>) -> i32
   expr 17:9     IdentExpr      :: bool
-  expr 18:19    CallExpr       :: [i32, Continuation]!
-  expr 18:19    FieldExpr      :: fn() -> [i32, Continuation]!
+  expr 18:19    CallExpr       :: [i32, Continuation]
+  expr 18:19    FieldExpr      :: fn() -> [i32, Continuation]
   expr 18:19    IdentExpr      :: Iterator<i32>
   expr 19:12    BinaryExpr     :: bool
   expr 19:12    IdentExpr      :: Continuation

@@ -24,7 +24,7 @@
               r:
                 int(1) :usize
     return out :Histogram
-  fn snippet$Histogram$Div$div(self: Histogram, k: u32) -> [Histogram, u32]!
+  fn snippet$Histogram$Div$div(self: Histogram, k: u32) -> [Histogram, u32]
     let out: Histogram =
       @array.repeat :Histogram
         array :Histogram
@@ -207,10 +207,10 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let __tup_2: [Histogram, u32]! =
-      call :[Histogram, u32]!
+    let __tup_2: [Histogram, u32] =
+      call :[Histogram, u32]
         callee:
-          snippet$Histogram$Div$div :[Histogram, u32]!
+          snippet$Histogram$Div$div :[Histogram, u32]
         arg0:
           h :Histogram
         arg1:
@@ -218,10 +218,10 @@
             int(3) :u32
     let half: Histogram =
       ._0 :Histogram
-        __tup_2 :[Histogram, u32]!
+        __tup_2 :[Histogram, u32]
     let rem: u32 =
       ._1 :u32
-        __tup_2 :[Histogram, u32]!
+        __tup_2 :[Histogram, u32]
     call :void
       callee:
         std_io$println__string :void

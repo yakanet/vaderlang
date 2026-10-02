@@ -9,8 +9,8 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         twice                :: fn(Doubler<T>) -> T
   expr 16:9     IdentExpr      :: bool
-  expr 17:19    CallExpr       :: [T, Continuation]!
-  expr 17:19    FieldExpr      :: fn() -> [T, Continuation]!
+  expr 17:19    CallExpr       :: [T, Continuation]
+  expr 17:19    FieldExpr      :: fn() -> [T, Continuation]
   expr 17:19    IdentExpr      :: Iterator<T>
   expr 18:12    BinaryExpr     :: bool
   expr 18:12    IdentExpr      :: Continuation

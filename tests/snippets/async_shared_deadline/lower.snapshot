@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Probe { until: i64, drives: i32 }
-  fn snippet$Probe$Async$resume(self: Probe!) -> i32 | Suspended!
+  fn snippet$Probe$Async$resume(self: Probe!) -> i32 | Suspended
     assign
       target:
         .drives :i32

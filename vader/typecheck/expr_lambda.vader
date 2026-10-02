@@ -111,7 +111,7 @@ pick_return :: fn(
     resolved: ResolvedModule, diags: Diagnostic[]!,
 ) -> Type | null {
     if annot !is null {
-        return type_from_expr(annot, resolved, diags)
+        return apply_readonly_default(type_from_expr(annot, resolved, diags), annot)
     }
     if expected_fn is FnType { return expected_fn.return_type }
     return null

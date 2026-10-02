@@ -1692,7 +1692,7 @@ main :: fn() -> i32 {
 
 ### Read-only by default — `!` grants mutation
 
-Every **slot** a value is reached through is read-only unless its type says otherwise. A slot is anywhere a type is **written**: a **parameter**, a **struct field**, a **return type**, or an **annotated local**. Writing a field or element through a read-only slot, or calling a method that mutates it, is rejected. Appending `!` to the **type** grants mutation:
+Every **slot** a value is reached through is read-only unless its type says otherwise. A slot is anywhere a type is **written**: a **parameter**, a **struct field**, a **return type** (free function, trait or impl member, lambda alike), or an **annotated local**. Writing a field or element through a read-only slot, or calling a method that mutates it, is rejected. Appending `!` to the **type** grants mutation:
 
 ```vader
 describe :: fn(c: Counter) -> string = "${c.label} = ${c.count}"   // reads only

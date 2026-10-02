@@ -10,8 +10,8 @@
   expr 20:15    IdentExpr      :: i32
   expr 22:11    IdentExpr      :: i32
   expr 26:14    IdentExpr      :: Iterator<T>
-  expr 27:19    CallExpr       :: [U, Continuation]!
-  expr 27:19    FieldExpr      :: fn() -> [U, Continuation]!
+  expr 27:19    CallExpr       :: [U, Continuation]
+  expr 27:19    FieldExpr      :: fn() -> [U, Continuation]
   expr 27:19    IdentExpr      :: Iterator<U>
   expr 28:12    BinaryExpr     :: bool
   expr 28:12    IdentExpr      :: Continuation

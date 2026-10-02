@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Never {  }
-  fn snippet$Never$Async$resume(self: Never!) -> i32 | Suspended!
+  fn snippet$Never$Async$resume(self: Never!) -> i32 | Suspended
     ~>
       Suspended! {
       }
@@ -39,8 +39,8 @@
       call :Async<i32>
         callee:
           outer :fn() -> Async<i32>
-    let _: i32 | Suspended! =
-      vcall Async.resume :i32 | Suspended!
+    let _: i32 | Suspended =
+      vcall Async.resume :i32 | Suspended
         recv:
           o :Async<i32>
     vcall Async.cancel :void

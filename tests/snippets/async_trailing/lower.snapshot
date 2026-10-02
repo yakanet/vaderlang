@@ -27,21 +27,21 @@
         state: int(5) :i32
       }
   fn snippet$drive(f: Async<i32>) -> i32
-    let r: i32 | Suspended! =
-      vcall Async.resume :i32 | Suspended!
+    let r: i32 | Suspended =
+      vcall Async.resume :i32 | Suspended
         recv:
           f :Async<i32>
     if :void
       cond:
         is Suspended! :bool
-          r :i32 | Suspended!
+          r :i32 | Suspended
       then:
         return
           neg :i32
             int(1) :i32
     return
       cast → i32
-        r :i32 | Suspended!
+        r :i32 | Suspended
   fn snippet$main() -> i32
     call :void
       callee:
@@ -464,7 +464,7 @@
       value:
         int(-1) :i32
   struct snippet$Ready__i32 { v: i32 }
-  fn snippet$Ready$Async$resume__i32(self: Ready<i32>!) -> i32 | Suspended!
+  fn snippet$Ready$Async$resume__i32(self: Ready<i32>!) -> i32 | Suspended
     return
       .v :i32
         self :Ready<i32>

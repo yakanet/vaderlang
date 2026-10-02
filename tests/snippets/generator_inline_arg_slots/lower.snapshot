@@ -165,16 +165,16 @@
                 __fuse_arr_6 :i32[]!
               ix:
                 __fuse_i_9 :usize
-          let __tup_0: [string, Continuation]! =
-            vcall Iterator.next :[string, Continuation]!
+          let __tup_0: [string, Continuation] =
+            vcall Iterator.next :[string, Continuation]
               recv:
                 other :Iterator<string>
           let y: string =
             ._0 :string
-              __tup_0 :[string, Continuation]!
+              __tup_0 :[string, Continuation]
           let c: Continuation =
             ._1 :Continuation
-              __tup_0 :[string, Continuation]!
+              __tup_0 :[string, Continuation]
           if :void
             cond:
               eq :bool

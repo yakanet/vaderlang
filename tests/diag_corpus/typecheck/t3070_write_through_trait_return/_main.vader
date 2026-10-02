@@ -1,0 +1,26 @@
+// A trait member's written return is read-only, like every written type: the
+// impl may hand back a frozen module const, and a caller that reaches it by
+// dispatch on the trait cannot write through it (T3070), exactly as through the
+// concrete impl.
+module "snippet"
+
+export Cfg :: struct {
+    n: i32
+}
+
+FROZEN :: Cfg { .n = 1 }
+
+export Source :: trait {
+    get :: fn(self) -> Cfg
+}
+
+Holder :: struct {}
+
+Holder implements Source {
+    get :: fn(self) -> Cfg = FROZEN
+}
+
+export probe :: fn(s: Source) -> void {
+    c :: s.get()
+    c.n = 9
+}

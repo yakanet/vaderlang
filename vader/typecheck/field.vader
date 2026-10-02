@@ -1192,11 +1192,13 @@ member_fn_type :: fn(m: AST.FnDecl, params: Type[], ret: Type) -> Type = FnType 
     .return_type    = ret,
 }
 
+// A trait member's written param / return type, with the read-only default a
+// free fn's signature takes.
 type_from_expr_opt_in :: fn(e: AST.TypeExpr | null, resolved: ResolvedModule) -> Type {
     if e is null {
         return TY_VOID
     }
-    return type_from_expr(e, resolved, [])
+    return apply_readonly_default(type_from_expr(e, resolved, []), e)
 }
 
 UfcsResult :: struct {

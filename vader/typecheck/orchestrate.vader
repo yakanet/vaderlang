@@ -2505,26 +2505,17 @@ declare_impl_return :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> Type {
-    // Explicit annotation wins.
-    if fd.return_type !is null {
-        return type_from_expr(fd.return_type, typed.resolved, diags)
-    }
-    // Trait method's return type, with `Self` substituted to `for_ty`,
-    // when the impl's matching method has no annotation. Lets
-    // `Direction implements Turnable { turn_left :: fn(self) = … }`
-    // pick up `-> Self` from `Turnable.turn_left`.
-    if trait_method !is null {
-        if trait_method.return_type !is null {
-            trait_ret :: type_from_expr(trait_method.return_type, typed.resolved, diags)
-            return substitute_self(trait_ret, for_ty)
+    // An unannotated member takes the trait method's return type, with `Self`
+    // substituted to `for_ty`: `Direction implements Turnable { turn_left :: fn(self) = … }`
+    // picks up `-> Self` from `Turnable.turn_left`.
+    if fd.return_type == null && trait_method !is null {
+        written :: trait_method.return_type
+        if written !is null {
+            trait_ret :: substitute_self(type_from_expr(written, typed.resolved, diags), for_ty)
+            return apply_readonly_default(trait_ret, written)
         }
     }
-    // Expression-bodied fns without an annotation defer to body
-    // inference ; `check_fn_body` flips `inferred_return` on Unresolved.
-    if fd.is_expression_bodied {
-        return TY_UNRESOLVED
-    }
-    return TY_VOID
+    return declare_fn_return(fd, typed.resolved, diags)
 }
 
 param_type :: fn(

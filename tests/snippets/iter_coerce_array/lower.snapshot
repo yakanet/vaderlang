@@ -5,16 +5,16 @@
     let sum: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
-      let __tup_0: [i32, Continuation]! =
-        vcall Iterator.next :[i32, Continuation]!
+      let __tup_0: [i32, Continuation] =
+        vcall Iterator.next :[i32, Continuation]
           recv:
             it :Iterator<i32>
       let v: i32 =
         ._0 :i32
-          __tup_0 :[i32, Continuation]!
+          __tup_0 :[i32, Continuation]
       let c: Continuation =
         ._1 :Continuation
-          __tup_0 :[i32, Continuation]!
+          __tup_0 :[i32, Continuation]
       ~>
         if :void
           cond:

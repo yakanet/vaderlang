@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Countdown { current: i32 }
-  fn snippet$Countdown$Iterator$next(self: Countdown!) -> [i32, Continuation]!
+  fn snippet$Countdown$Iterator$next(self: Countdown!) -> [i32, Continuation]
     if :void
       cond:
         lte :bool

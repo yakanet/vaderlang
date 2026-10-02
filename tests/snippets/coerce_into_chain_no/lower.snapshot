@@ -4,14 +4,14 @@
   struct snippet$A { value: i32 }
   struct snippet$B { value: i32 }
   struct snippet$C { value: i32 }
-  fn snippet$A$Into$into(self: A!) -> B!
+  fn snippet$A$Into$into(self: A!) -> B
     return
       B! {
         value:
           .value :i32
             self :A
       }
-  fn snippet$B$Into$into(self: B!) -> C!
+  fn snippet$B$Into$into(self: B!) -> C
     return
       C! {
         value:

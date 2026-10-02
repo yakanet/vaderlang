@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$CountDown { n: i32 }
-  fn snippet$CountDown$Async$resume(self: CountDown!) -> i32 | Suspended!
+  fn snippet$CountDown$Async$resume(self: CountDown!) -> i32 | Suspended
     if :void
       cond:
         gt :bool
@@ -121,7 +121,7 @@
               callee:
                 tag :fn(i32 | Suspended) -> string
               arg0:
-                vcall Async.resume :i32 | Suspended!
+                vcall Async.resume :i32 | Suspended
                   recv:
                     w :Async<i32>
     call :void
@@ -138,7 +138,7 @@
               callee:
                 tag :fn(i32 | Suspended) -> string
               arg0:
-                vcall Async.resume :i32 | Suspended!
+                vcall Async.resume :i32 | Suspended
                   recv:
                     w :Async<i32>
     call :void
@@ -155,7 +155,7 @@
               callee:
                 tag :fn(i32 | Suspended) -> string
               arg0:
-                vcall Async.resume :i32 | Suspended!
+                vcall Async.resume :i32 | Suspended
                   recv:
                     w :Async<i32>
     return int(0) :i32

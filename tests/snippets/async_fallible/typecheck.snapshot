@@ -17,8 +17,8 @@
   expr 20:16    IdentExpr      :: fn() -> Async<i32>
   expr 21:12    BinaryExpr     :: i32
   expr 21:12    IdentExpr      :: i32
-  expr 25:10    CallExpr       :: i32 | LoadError | Suspended!
-  expr 25:10    FieldExpr      :: fn() -> i32 | LoadError | Suspended!
+  expr 25:10    CallExpr       :: i32 | LoadError | Suspended
+  expr 25:10    FieldExpr      :: fn() -> i32 | LoadError | Suspended
   expr 25:10    IdentExpr      :: Async<i32 | LoadError>
   expr 26:13    IdentExpr      :: Suspended!
   expr 26:25    CallExpr       :: void
@@ -26,7 +26,7 @@
   expr 26:33    StringLitExpr  :: string
   expr 26:5     IfExpr         :: void
   expr 26:8     BinaryExpr     :: bool
-  expr 26:8     IdentExpr      :: i32 | LoadError | Suspended!
+  expr 26:8     IdentExpr      :: i32 | LoadError | Suspended
   expr 27:13    IdentExpr      :: LoadError!
   expr 27:30    CallExpr       :: void
   expr 27:30    IdentExpr      :: fn(T) -> void

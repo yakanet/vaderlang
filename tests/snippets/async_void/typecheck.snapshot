@@ -21,8 +21,8 @@
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(T) -> void
   expr 25:10    CallExpr       :: Async<null>
-  expr 25:10    CallExpr       :: null | Suspended!
-  expr 25:10    FieldExpr      :: fn() -> null | Suspended!
+  expr 25:10    CallExpr       :: null | Suspended
+  expr 25:10    FieldExpr      :: fn() -> null | Suspended
   expr 25:10    IdentExpr      :: fn() -> Async<void>
   expr 26:13    IdentExpr      :: Suspended!
   expr 26:25    CallExpr       :: void
@@ -30,7 +30,7 @@
   expr 26:33    StringLitExpr  :: string
   expr 26:5     IfExpr         :: void
   expr 26:8     BinaryExpr     :: bool
-  expr 26:8     IdentExpr      :: null | Suspended!
+  expr 26:8     IdentExpr      :: null | Suspended
   expr 27:13    StringLitExpr  :: string
   expr 27:5     CallExpr       :: void
   expr 27:5     IdentExpr      :: fn(T) -> void

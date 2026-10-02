@@ -5,16 +5,16 @@
     let sum: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
-      let __tup_0: [i32, Continuation]! =
-        vcall Iterator.next :[i32, Continuation]!
+      let __tup_0: [i32, Continuation] =
+        vcall Iterator.next :[i32, Continuation]
           recv:
             it :Iterator<i32>
       let v: i32 =
         ._0 :i32
-          __tup_0 :[i32, Continuation]!
+          __tup_0 :[i32, Continuation]
       let c: Continuation =
         ._1 :Continuation
-          __tup_0 :[i32, Continuation]!
+          __tup_0 :[i32, Continuation]
       ~>
         if :void
           cond:
@@ -155,7 +155,7 @@
                 __off_3 :usize
     return int(0) :i32
   struct snippet$Repeat__i32 { value: i32, remaining: i32 }
-  fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>!) -> [i32, Continuation]!
+  fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>!) -> [i32, Continuation]
     if :void
       cond:
         lte :bool
@@ -192,7 +192,7 @@
         _1: int(0) :u8
       }
   struct snippet$Once__i32 { value: i32, yielded: bool }
-  fn snippet$Once$Iterator$next__i32(self: Once<i32>!) -> [i32, Continuation]!
+  fn snippet$Once$Iterator$next__i32(self: Once<i32>!) -> [i32, Continuation]
     if :void
       cond:
         .yielded :bool

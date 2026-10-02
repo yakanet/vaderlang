@@ -181,7 +181,7 @@
       value:
         int(-1) :i32
   struct snippet$Ready__string { v: string }
-  fn snippet$Ready$Async$resume__string(self: Ready<string>!) -> string | Suspended!
+  fn snippet$Ready$Async$resume__string(self: Ready<string>!) -> string | Suspended
     return
       .v :string
         self :Ready<string>

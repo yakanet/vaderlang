@@ -31,8 +31,8 @@
   expr 31:12    IdentExpr      :: i32
   expr 35:10    CallExpr       :: Async<i32>
   expr 35:10    IdentExpr      :: fn() -> Async<i32>
-  expr 36:10    CallExpr       :: i32 | Suspended!
-  expr 36:10    FieldExpr      :: fn() -> i32 | Suspended!
+  expr 36:10    CallExpr       :: i32 | Suspended
+  expr 36:10    FieldExpr      :: fn() -> i32 | Suspended
   expr 36:10    IdentExpr      :: Async<i32>
   expr 37:5     CallExpr       :: void
   expr 37:5     FieldExpr      :: fn() -> void

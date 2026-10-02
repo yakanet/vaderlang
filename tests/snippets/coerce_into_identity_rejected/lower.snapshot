@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Foo { value: i32 }
-  fn snippet$Foo$Into$into(self: Foo!) -> Foo!
+  fn snippet$Foo$Into$into(self: Foo!) -> Foo
     return self :Foo
   fn snippet$main() -> i32
     return int(0) :i32

@@ -58,7 +58,7 @@
   expr 43:5     IdentExpr      :: fn(T) -> void
   expr 43:55    IdentExpr      :: Histogram
   expr 43:55    IndexExpr      :: u32
-  expr 44:20    BinaryExpr     :: [Histogram, u32]!
+  expr 44:20    BinaryExpr     :: [Histogram, u32]
   expr 44:20    IdentExpr      :: Histogram
   expr 44:24    CallExpr       :: u32
   expr 44:24    IdentExpr      :: type

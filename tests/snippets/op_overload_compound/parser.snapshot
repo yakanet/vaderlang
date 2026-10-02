@@ -383,7 +383,10 @@
               "kind": "SimpleBinding",
               "name": "v"
             },
-            "type": null,
+            "type": {
+              "kind": "IdentExpr",
+              "name": "Vec"
+            },
             "value": {
               "kind": "StructLitExpr",
               "typeName": {
