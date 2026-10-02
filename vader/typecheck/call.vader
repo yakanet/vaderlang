@@ -1076,7 +1076,14 @@ check_typeparam_bounds :: fn(
     }
 }
 
-lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
+/// The declaration a call's callee names: a bare or explicitly instantiated name
+/// (`f`, `f<…>`), through an import redirect, or a namespace-qualified `M.f`.
+/// Says nothing about overloads — `chosen_decl` holds the one typecheck picked.
+///
+/// @param callee  the call's callee expression.
+/// @param typed   the module the call sits in.
+/// @return        the `FnDecl`, or null when the callee is no named fn.
+export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
     // See through an explicit `f<…>` instantiation to the underlying
     // ident, so T3006 bound-checking fires on `f<i64>(…)` too.
     base: AST.Expr = callee

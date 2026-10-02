@@ -207,6 +207,10 @@ interface CompletionList {
   isIncomplete: boolean;
   items: CompletionItem[];
 }
+interface SignatureHelp {
+  signatures: { label: string }[];
+  activeParameter: number;
+}
 
 const SOURCE = `import "std/io"
 
@@ -767,6 +771,33 @@ test("lsp: enum completion in a fn-call argument slot", async () => {
   const labels = new Set(list.items.map((i) => i.label));
   expect(labels.has("Red")).toBe(true);
   expect(labels.has("Green")).toBe(true);
+  expect(labels.has("Blue")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
+const ENUM_UFCS_ARG_SOURCE = `module "lsp_test"
+
+Canvas :: struct { w: i32 }
+
+Color :: enum { Red, Green, Blue }
+
+paint :: fn(self: Canvas, c: Color) -> i32 = 0
+
+main :: fn() -> i32 {
+    canvas :: Canvas { .w = 1 }
+    return canvas.paint(.)
+}
+`;
+
+// On a UFCS call the receiver fills the first parameter, so the first WRITTEN
+// argument is the second parameter.
+test("lsp: enum completion in a UFCS call argument slot", async () => {
+  // Line 10 = `    return canvas.paint(.)` ; the `.` is at char 24, cursor at char 25.
+  const results = await driveLsp(ENUM_UFCS_ARG_SOURCE, [
+    { method: "textDocument/completion", position: { line: 10, character: 25 } },
+  ]);
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  expect(labels.has("Red")).toBe(true);
   expect(labels.has("Blue")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
@@ -1881,19 +1912,67 @@ const IF_ALIAS_SOURCE = `module "lsptest"
 
 import "std/io"
 
+value :: fn() -> i32 | string = 3
+
 main :: fn() -> i32 {
-    x: i32 | string: 3
-    if x != 0 && x is i32 as n {
+    if value() is i32 as n {
         println("\${n}")
     }
     return 0
 }
 `;
 
-// An `is T as x` alias hovers as the narrowed type, under an `&&` too.
+// An `is T as x` alias hovers as the narrowed type, not as the tested value's, and
+// a use of it jumps back to the alias.
 test("lsp: an if condition's alias hovers as the narrowed type", async () => {
   const results = await driveLsp(IF_ALIAS_SOURCE, [
-    { method: "textDocument/hover", position: { line: 6, character: 29 } },
+    { method: "textDocument/hover", position: { line: 7, character: 25 } },
+    { method: "textDocument/definition", position: { line: 8, character: 19 } },
   ]);
   expect((results[0]!.result as Hover).contents.value).toContain("```vader\ni32\n```");
+  const def = results[1]!.result as Location;
+  expect(def.range.start).toEqual({ line: 7, character: 25 });
+});
+
+const SIGNATURE_SOURCE = `module "lsptest"
+
+import "std/iter"
+
+pick :: fn(a: i32) -> i32 = a
+pick :: fn(s: string) -> i32 = 0
+
+fill :: fn(xs: i32[]!, n: i32) -> i32 = n
+
+main :: fn() -> i32 {
+    n :: pick("s")
+    total :: [1, 2, 3].fold(0, (acc: i32, x: i32) -> acc + x)
+    buf :: [0]
+    return n + total + fill( buf, 2)
+}
+`;
+
+// Signature help shows the overload typecheck chose, and on a UFCS call counts
+// the receiver as the first parameter.
+test("lsp: signature help follows the chosen overload and the UFCS receiver", async () => {
+  const results = await driveLsp(SIGNATURE_SOURCE, [
+    { method: "textDocument/signatureHelp", position: { line: 10, character: 15 } },
+    { method: "textDocument/signatureHelp", position: { line: 11, character: 33 } },
+  ]);
+  const direct = results[0]!.result as SignatureHelp;
+  expect(direct.signatures[0]!.label).toBe("pick(s: string) -> i32");
+  expect(direct.activeParameter).toBe(0);
+  const ufcs = results[1]!.result as SignatureHelp;
+  expect(ufcs.signatures[0]!.label).toBe("fold(self: Iterator<T>, init: U, f: fn(U, T) -> U) -> U");
+  expect(ufcs.activeParameter).toBe(2);
+});
+
+// A cursor in the gap before the first argument is on the first parameter, and a
+// mutable parameter renders with its `!`.
+test("lsp: signature help before the first argument", async () => {
+  const results = await driveLsp(SIGNATURE_SOURCE, [
+    { method: "textDocument/signatureHelp", position: { line: 13, character: 28 } },
+  ]);
+  const help = results[0]!.result as SignatureHelp;
+  expect(help.signatures[0]!.label).toBe("fill(xs: i32[]!, n: i32) -> i32");
+  expect(help.activeParameter).toBe(0);
 });

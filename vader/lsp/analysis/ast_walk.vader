@@ -421,10 +421,15 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
     match e {
         is AST.BlockExpr -> { binding_hv_walk_block(e, typed, st) }
         is AST.IfExpr -> {
-            alias_ty :: alias_type_in_cond(e.cond, typed, st.line, st.col)
-            if alias_ty != null {
-                st.ty = alias_ty
-                return
+            // `if v is T as x` binds `x` at the condition's head — the resolver
+            // refuses one deeper (R2029).
+            cond :: e.cond
+            if cond is AST.BinaryExpr {
+                alias_ty :: alias_type_at(cond.bind_as, typed, st.line, st.col)
+                if alias_ty != null {
+                    st.ty = alias_ty
+                    return
+                }
             }
             binding_hv_walk_block(e.then_block, typed, st)
             match e.else_branch as ei {
@@ -457,22 +462,6 @@ alias_type_at :: fn(
         return null
     }
     return typed.local_types[alias.span.hash()]
-}
-
-// `alias_type_at` for the `is T as x` tests anywhere in `cond`'s operator tree.
-alias_type_in_cond :: fn(cond: AST.Expr, typed: TypedProgram, line: i32, col: i32) -> Type | null {
-    if cond !is AST.BinaryExpr {
-        return null
-    }
-    here :: alias_type_at(cond.bind_as, typed, line, col)
-    if here != null {
-        return here
-    }
-    left :: alias_type_in_cond(cond.left, typed, line, col)
-    if left != null {
-        return left
-    }
-    return alias_type_in_cond(cond.right, typed, line, col)
 }
 
 // ---- innermost enclosing call --------------------------------------------

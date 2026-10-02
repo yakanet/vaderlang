@@ -623,7 +623,7 @@ param_default_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: Typed
 }
 
 // Declared type of the parameter slot the cursor sits in for an enclosing call
-// `f(…, .|, …)`. Only an IdentExpr callee resolves (via lookup_fn_decl).
+// `f(…, .|, …)` or `x.f(…, .|, …)` — the callee resolves via `lookup_fn_decl`.
 call_arg_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
     call :: find_enclosing_call(decls, line, col) ?? return null
     fd :: lookup_fn_decl(call.callee, typed) ?? return null
@@ -631,7 +631,7 @@ call_arg_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgr
     // Clamp into range : an incomplete arg (`f(.`) can make active_param_index
     // count "past" the only slot, and over-supplied args shouldn't index OOB —
     // either way fall back to the last parameter's type.
-    idx := active_param_index(call, line, col)
+    idx := active_param_index(call, line, col) + receiver_slots(call, typed)
     if idx < 0 { idx = 0 }
     if usize(idx) >= fd.params.len() { idx = i32(fd.params.len()) - 1 }
     return typed.param_types[fd.params[usize(idx)].span.hash()]
