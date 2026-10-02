@@ -8,6 +8,7 @@ module "vader/lsp/analysis"
 
 import "json"
 import "std/collections"
+import "std/string"
 import "vader/resolver"
 import "vader/target"
 import "vader/typecheck"
@@ -125,6 +126,13 @@ export new_state :: fn(library_root: string, vader_root: string) -> ServerState 
         .next_request_id         = 1,
     }
 }
+
+/// True for a `.virt` document — the text bytecode. The server keeps its text
+/// and answers hovers over its ops (`handle_virt_hover`), but never analyses it
+/// as Vader source.
+///
+/// @param uri  a document uri.
+export is_virt_uri :: fn(uri: string) -> bool = uri.ends_with(".virt")
 
 /// Look up the current text of `uri`, or `null` if the client never
 /// opened it (or closed it since).
@@ -267,6 +275,9 @@ export handle_did_open :: fn(self: ServerState!, params: JsonValue) -> void {
     if uri.bytes().len() == 0 { return }
     text :: get_string(td, "text")
     self.docs[uri] = text
+    if is_virt_uri(uri) {
+        return
+    }
     self.indices[uri] = build_index(uri, text, self.position_encoding)
     self.cache = null
     self.cache_prev = null
@@ -288,6 +299,9 @@ export handle_did_change :: fn(self: ServerState!, params: JsonValue) -> void {
                 first :: changes.items[0]
                 text :: get_string(first, "text")
                 self.docs[uri] = text
+                if is_virt_uri(uri) {
+                    return
+                }
                 self.indices[uri] = build_index(uri, text, self.position_encoding)
                 // Debounced (see vader/lsp/main.vader). Keep the now-stale typed
                 // cache so requests during the edit burst don't each re-typecheck ;
@@ -311,6 +325,9 @@ export handle_did_close :: fn(self: ServerState!, params: JsonValue) -> void {
     // is why the placeholders were written; `self` is `ServerState!` here, so
     // it is reachable. A blanked entry still answers as a real one.
     self.docs.remove(uri)
+    if is_virt_uri(uri) {
+        return
+    }
     self.cache = null
     self.cache_prev = null
     self.dirty.remove(uri)

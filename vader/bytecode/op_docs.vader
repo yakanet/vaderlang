@@ -1,0 +1,118 @@
+// vader/bytecode/op_docs — the reference of the text bytecode, for tools.
+//
+// `ops.md` beside this file documents every op and directive a `.virt` line can
+// start with. It is baked into the compiler, so an editor hovering an op reads it
+// from the binary. Each `###` heading names the forms its entry documents, every
+// form in backticks ; the first word of a form is the key `op_doc` looks up.
+
+module "vader/bytecode"
+
+import "std/iter"
+import "std/string"
+
+OPS_REFERENCE :: @file("ops.md")
+
+// The one entry every conversion shares : `usize.to_i32`, `i64.to_f64`, …
+CONVERSION_KEY :: "<from>.to_<to>"
+
+/// One entry of the op reference.
+export OpDoc :: struct {
+    /// The forms the entry documents, as its heading writes them
+    /// (`i32.add`, `i64.add`).
+    forms: string[]
+    /// The entry's text, in Markdown.
+    text: string
+}
+
+/// The reference entry for `head`, the first word of a `.virt` line — an op or
+/// a directive. Every conversion (`usize.to_i32`) finds the `<from>.to_<to>`
+/// entry.
+///
+/// @param head  the line's first word.
+/// @return      the entry, or null when the reference documents no such word.
+/// @example
+///   doc :: op_doc("local.get")
+///   if doc != null {
+///       println(doc.text)
+///   }
+export op_doc :: fn(head: string) -> OpDoc | null {
+    key :: if ".to_" in head { CONVERSION_KEY } else { head }
+    lines :: OPS_REFERENCE.split("\n")
+    for i in 0..<lines.len() {
+        if !lines[i].starts_with("### ") {
+            continue
+        }
+        forms :: heading_forms(lines[i])
+        if forms.any_match((form) -> form.split(" ")[0] == key) {
+            return OpDoc { .forms = forms, .text = entry_text(lines, i + 1) }
+        }
+    }
+    return null
+}
+
+// The forms a heading names : every span it writes between backticks.
+heading_forms :: fn(heading: string) -> string[] {
+    parts :: heading.split("`")
+    forms: string[]!: []
+    for i in 0..<parts.len() / 2 {
+        forms.push(parts[2 * i + 1])
+    }
+    return forms
+}
+
+// The text under a heading : its lines up to the next heading of any level.
+entry_text :: fn(lines: string[], from: usize) -> string {
+    body: string[]!: []
+    for i in from..<lines.len() {
+        if lines[i].starts_with("#") {
+            break
+        }
+        body.push(lines[i])
+    }
+    return body.join("\n").trim()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_op_doc_finds_an_op :: fn() -> void {
+    doc :: op_doc("drop")
+    if doc == null {
+        assert(false, "`drop` is documented")
+        return
+    }
+    assert_eq(doc.forms.join(" "), "drop")
+    assert_eq(doc.text, "Pop and discard the top of the stack.")
+}
+
+@test
+test_op_doc_entry_shared_by_widths :: fn() -> void {
+    doc :: op_doc("i64.add")
+    if doc == null {
+        assert(false, "`i64.add` is documented")
+        return
+    }
+    assert_eq(doc.forms.join(" "), "i32.add i64.add")
+}
+
+@test
+test_op_doc_conversion :: fn() -> void {
+    doc :: op_doc("usize.to_i32")
+    if doc == null {
+        assert(false, "a conversion is documented")
+        return
+    }
+    assert_eq(doc.forms.join(" "), CONVERSION_KEY)
+}
+
+@test
+test_op_doc_directive :: fn() -> void {
+    assert(op_doc("vtable") != null, "a module directive is documented")
+}
+
+@test
+test_op_doc_unknown_word :: fn() -> void {
+    assert(op_doc("frobnicate") == null, "an unknown word has no entry")
+}

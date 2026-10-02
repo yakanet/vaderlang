@@ -81,6 +81,10 @@
         <fileNamePatternMapping patterns="*.vader"
                                 serverId="dev.vaderlang.vader-lsp"
                                 languageId="vader"/>
+        <!-- The text bytecode: the server answers hovers over its ops only. -->
+        <fileNamePatternMapping patterns="*.virt"
+                                serverId="dev.vaderlang.vader-lsp"
+                                languageId="virt"/>
 
         <!-- Debug Adapter : `vader dap` (see vader/dap/). LSP4IJ drives the DAP
              client (breakpoints, stepping, variables) ; we only spawn the

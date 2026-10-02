@@ -189,6 +189,17 @@ dispatch :: fn(state: A.ServerState!, msg: JsonValue, shutdown_received: bool) -
         P.log_info("didClose ${doc_uri(params)}")
         return .Continue
     }
+    // A `.virt` document is the text bytecode : the server answers a hover over
+    // its ops and returns nothing for every other request.
+    if A.is_virt_uri(P.position_uri(params)) && !P.is_json_null(id) {
+        result :: if method == "textDocument/hover" {
+            H.handle_virt_hover(state, params)
+        } else {
+            JsonNull {}
+        }
+        P.write_frame(P.encode_response(id, result))
+        return .Continue
+    }
     if method == "textDocument/semanticTokens/full" {
         result :: H.handle_semantic_tokens_full(state, params)
         P.write_frame(P.encode_response(id, result))

@@ -11,12 +11,13 @@
 // filesystem). Every query for a source is bundled into one session.
 
 import { test, expect } from "bun:test";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
 import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt, hermeticEnv } from "./cli-bin.ts";
 import { pathToUri } from "./lsp-uri.ts";
+import { listSnippets } from "./snapshot.ts";
 
 ensureCliBuilt();
 
@@ -38,7 +39,8 @@ interface Query {
     | "textDocument/implementation"
     | "textDocument/references"
     | "textDocument/rename"
-    | "textDocument/prepareRename";
+    | "textDocument/prepareRename"
+    | "textDocument/semanticTokens/full";
   // `position` drives hover/definition/completion/codeAction ; `range` drives
   // inlayHint ; documentLink needs neither — it answers for the whole document,
   // and the params it ignores are harmless.
@@ -98,6 +100,7 @@ function findSeparator(buf: Uint8Array): number {
 // query in order, return one result per query (in the same order).
 async function driveLsp(
   source: string, queries: Query[], extraFiles: Record<string, string> = {},
+  fileName = "lsp-test.vader",
 ): Promise<QueryResult[]> {
   // Write the source to a real on-disk fixture under a fresh temp dir, and root
   // the session there. The resolver then discovers a bounded project (the temp
@@ -105,7 +108,7 @@ async function driveLsp(
   // `extraFiles` (relative path → content) seed sibling modules for cross-module
   // scenarios (e.g. member completion on an imported struct type).
   const dir = mkdtempSync(join(tmpdir(), "vlsp-"));
-  const file = join(dir, "lsp-test.vader");
+  const file = join(dir, fileName);
   writeFileSync(file, source);
   for (const [rel, content] of Object.entries(extraFiles)) {
     const p = join(dir, rel);
@@ -118,7 +121,9 @@ async function driveLsp(
       params: { rootUri: pathToUri(dir), capabilities: {} } },
     { jsonrpc: "2.0", method: "initialized", params: {} },
     { jsonrpc: "2.0", method: "textDocument/didOpen",
-      params: { textDocument: { uri, languageId: "vader", version: 1, text: source } } },
+      params: { textDocument: {
+        uri, languageId: fileName.endsWith(".virt") ? "virt" : "vader", version: 1, text: source,
+      } } },
   ];
   for (let i = 0; i < queries.length; i++) {
     const q = queries[i]!;
@@ -2004,4 +2009,39 @@ test("lsp: signature help before the first argument", async () => {
   const help = results[0]!.result as SignatureHelp;
   expect(help.signatures[0]!.label).toBe("fill(xs: i32[]!, n: i32) -> i32");
   expect(help.activeParameter).toBe(0);
+});
+
+// A `.virt` dump gets a hover over the first word of each line — every op and
+// directive must have an entry in `vader/bytecode/ops.md` — and nothing else
+// from the server. The heads come from the committed bytecode snapshots and
+// from the printer's arms, so an op no snippet uses is covered too.
+test("lsp: hover documents every op of the text bytecode", async () => {
+  const heads = new Set<string>();
+  for (const s of listSnippets("tests/snippets")) {
+    const path = join(s.dir, "bytecode.snapshot.virt");
+    if (!existsSync(path)) continue;
+    for (const line of readFileSync(path, "utf8").split("\n")) {
+      const head = line.trim().split(/\s+/)[0];
+      // A snapshot may close on its compile diagnostics (`[4:27] warning…`).
+      if (head && /^[a-z_][a-z0-9_.]*$/.test(head)) heads.add(head);
+    }
+  }
+  const printer = readFileSync("vader/bytecode/dump.vader", "utf8");
+  const printed = [...printer.matchAll(/-> out\.append\("([a-z_][a-z0-9_.]*)/g)].map((m) => m[1]!);
+  expect(printed.length).toBeGreaterThan(100);
+  for (const head of printed) heads.add(head);
+  const ordered = [...heads].sort();
+  const source = ordered.map((h) => `  ${h}`).join("\n") + "\n";
+  const queries: Query[] = ordered.map((_, i) => (
+    { method: "textDocument/hover", position: { line: i, character: 3 } }
+  ));
+  queries.push({ method: "textDocument/semanticTokens/full", position: { line: 0, character: 0 } });
+
+  const results = await driveLsp(source, queries, {}, "dump.virt");
+  const undocumented = ordered.filter((_, i) => results[i]!.result === null);
+  expect(undocumented).toEqual([]);
+  const hover = results[ordered.indexOf("local.get")]!.result as Hover;
+  expect(hover.contents.value).toContain("```virt\nlocal.get <slot>\n```");
+  expect(hover.contents.value).toContain("Push the value of local `<slot>`.");
+  expect(results[ordered.length]!.result).toBeNull();
 });

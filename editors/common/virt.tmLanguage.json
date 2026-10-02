@@ -45,7 +45,7 @@
     "string": {
       "name": "string.quoted.double.virt",
       "begin": "\"",
-      "end": "\"",
+      "end": "\"|$",
       "patterns": [
         {
           "name": "constant.character.escape.virt",
@@ -71,7 +71,7 @@
       "match": "^(type)\\s+([0-9]+)\\s+(\\w+)(?:\\s+([A-Za-z_]\\S*))?",
       "captures": {
         "1": {
-          "name": "keyword.other.directive.virt"
+          "name": "keyword.control.directive.virt"
         },
         "2": {
           "name": "constant.numeric.index.virt"
@@ -85,7 +85,7 @@
       }
     },
     "directive": {
-      "name": "keyword.other.directive.virt",
+      "name": "keyword.control.directive.virt",
       "match": "^(?:module|string|data|import|impl|vtable|export)\\b"
     },
     "structured": {

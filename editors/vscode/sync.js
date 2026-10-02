@@ -5,8 +5,7 @@ const path = require('node:path');
 const HERE = __dirname;
 const COMMON = path.resolve(HERE, '../common');
 
-// Where each kind of shared file lands in the extension — the same layout
-// `editors/intellij/build.gradle.kts` gives the plugin's bundle.
+// Where each kind of shared file lands in the extension.
 const destination = (name) =>
   name.endsWith('.tmLanguage.json') ? `syntaxes/${name}` :
   name.endsWith('language-configuration.json') ? name :

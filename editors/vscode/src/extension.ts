@@ -67,9 +67,16 @@ async function promptForBinaryPath(currentValue: string): Promise<string | undef
   return undefined;
 }
 
+// `vader.lsp.path` as written, before interpolation: the binary the server and
+// the debug adapter run. An emptied setting means the default, the `vader` on PATH.
+function rawBinaryPath(): string {
+  const config = vscode.workspace.getConfiguration("vader");
+  return config.get<string>("lsp.path", "vader").trim() || "vader";
+}
+
 async function startClient(attempt = 0): Promise<void> {
   const config = vscode.workspace.getConfiguration("vader");
-  const rawPath = config.get<string>("lsp.path", "vader");
+  const rawPath = rawBinaryPath();
   const command = interpolate(rawPath);
   const args = config.get<string[]>("lsp.args", ["lsp"]).map(interpolate);
 
@@ -83,7 +90,11 @@ async function startClient(attempt = 0): Promise<void> {
   };
 
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: "file", language: "vader" }],
+    // `.virt` (the text bytecode) only gets hovers over its ops from the server.
+    documentSelector: [
+      { scheme: "file", language: "vader" },
+      { scheme: "file", language: "virt" },
+    ],
     synchronize: { configurationSection: "vader" },
   };
 
@@ -133,9 +144,7 @@ async function startClient(attempt = 0): Promise<void> {
 function registerDebugAdapter(context: vscode.ExtensionContext): void {
   const factory: vscode.DebugAdapterDescriptorFactory = {
     createDebugAdapterDescriptor(): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
-      const config = vscode.workspace.getConfiguration("vader");
-      const command = interpolate(config.get<string>("lsp.path", "vader"));
-      return new vscode.DebugAdapterExecutable(command, ["dap"]);
+      return new vscode.DebugAdapterExecutable(interpolate(rawBinaryPath()), ["dap"]);
     },
   };
   context.subscriptions.push(
