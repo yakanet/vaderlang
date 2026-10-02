@@ -285,11 +285,8 @@ parse_string :: fn(p: Parser!) -> string | JsonError {
 
 /// Slow path of `parse_string` — invoked once the scanner sees a `\` byte.
 /// `sb` already carries the literal prefix that preceded the escape ;
-/// `p.pos` points at the `\`. The byte-walk + escape decode loop runs
-/// here, appending each decoded escape onto `sb`. Future work : the per-
-/// byte `peek_byte` calls still go through codepoint decoding via
-/// `string[i]` — only the `\uXXXX` escape value needs that path ; the
-/// rest could byte-scan like the fast path.
+/// `p.pos` points at the `\`. Each decoded escape and each run of raw bytes
+/// between escapes goes onto `sb` as one part.
 ///
 /// @param p   the parser (advanced past the closing quote on success).
 /// @param sb  the builder seeded with the pre-escape literal prefix.
@@ -297,12 +294,12 @@ parse_string :: fn(p: Parser!) -> string | JsonError {
 /// @error     `JsonError` on unterminated input or a bad escape.
 parse_string_with_escapes :: fn(p: Parser!, sb: StringBuilder!) -> string | JsonError {
     for !at_end(p) {
-        c :: peek_byte(p)
-        if c == '"' {
+        b :: p.bytes[p.pos]
+        if b == '"' {
             advance(p)
             return sb.to_string()
         }
-        if c == '\\' {
+        if b == '\\' {
             advance(p)
             if at_end(p) {
                 return fail(p, "unterminated escape")
@@ -333,13 +330,13 @@ parse_string_with_escapes :: fn(p: Parser!, sb: StringBuilder!) -> string | Json
                 return fail(p, "unknown escape")
             }
         } else {
-            // Raw (non-escape) character. `peek_byte` decoded the whole
-            // codepoint, so step the cursor by its UTF-8 width — `advance`
-            // moves a single byte, which would strand the cursor on a
-            // continuation byte and decode the rest of a multi-byte
-            // sequence (`é`, `你`, …) as `U+FFFD`, corrupting the string.
-            sb.append_char(c)
-            p.pos = p.pos + codepoint_byte_len(c)
+            // The bytes up to the next quote or escape, copied undecoded : a
+            // multi-byte UTF-8 sequence passes through intact.
+            run :: p.pos
+            for !at_end(p) && p.bytes[p.pos] != '"' && p.bytes[p.pos] != '\\' {
+                advance(p)
+            }
+            sb.append(p.bytes[run..<p.pos].bytes_to_string())
         }
     }
     return fail(p, "unterminated string")
