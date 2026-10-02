@@ -1464,6 +1464,11 @@ Only **fully-concrete** receivers are checked. Blanket / generic-receiver impls
 (`T implements …`, `T[] implements …`, `Range<T> implements …`) have subtler
 overlap rules and are not yet diagnosed.
 
+An array type takes impls **over a bare element type parameter** only: `T[] implements<T> …`.
+Any other array receiver — a concrete one (`i32[] implements Tag`) or a partly generic one
+(`T[][]`, `[T, i32][]`) — is **T3090**. For a concrete array, declare a distinct type
+over it (`Items :: i32[]`) and implement the trait on that.
+
 #### Bounded-generic impls
 
 When the impl introduces its own type parameters (with optional bounds), the `<T>` list follows the `implements` keyword — same position as it does after `fn` / `struct` / `trait`. This is the canonical place for any typeParam that's local to the impl (not borrowed from the for-type's struct head).

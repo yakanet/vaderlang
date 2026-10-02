@@ -1,0 +1,11 @@
+// T3090 — an impl on a concrete array type is refused; a distinct type over the
+// array (`Items :: i32[]`) carries it instead.
+module "snippet"
+
+Tag :: trait {
+    tag :: fn(self) -> i32
+}
+
+i32[] implements Tag {
+    tag :: fn(self) -> i32 = i32(self.len())
+}

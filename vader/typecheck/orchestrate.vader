@@ -809,6 +809,10 @@ merge_external_impl_methods :: fn(
         for decl in merge_module_program(loaded.module.files).decls {
             if decl is AST.ImplDecl {
                 for_ty :: type_from_expr(decl.for_type, other.resolved, diag_sink())
+                // Refused in its own module (T3090), so not registered here either.
+                if is_refused_array_impl(for_ty) {
+                    continue
+                }
                 record_struct_trait(entry_typed, for_ty, decl.trait_name)
                 record_impl_bounds(entry_typed, decl, for_ty, other.resolved)
                 // Trait args resolve in the impl owner's scope so
@@ -2165,6 +2169,9 @@ export walk_bodies :: fn(
     for decl in decls {
         if decl is AST.ImplDecl {
             for_ty :: type_from_expr(decl.for_type, typed.resolved, diag_sink())
+            if is_refused_array_impl(for_ty) {
+                continue
+            }
             record_struct_trait(typed, for_ty, decl.trait_name)
             record_impl_bounds(typed, decl, for_ty, typed.resolved)
         }
@@ -2239,6 +2246,11 @@ export walk_bodies :: fn(
 
 }
 
+// Every array type shares one set of impls, the one `T[] implements<T> …` writes
+// to, so an impl on an array is sound only when its element IS a type parameter:
+// any other element (`i32[]`, `T[][]`, `[T, i32][]`) would be read as `T[]`.
+is_refused_array_impl :: fn(t: Type) = t is ArrayType && t.element !is TypeParamType
+
 // Register every lookup table + structural check for an impl block — impl-
 // method UFCS types, iter/index element types, Into-key indexing, trait-arg
 // recording, missing-method diagnostics. Runs in `walk_bodies`' pre-pass so a
@@ -2251,6 +2263,22 @@ register_impl_metadata :: fn(
     diags: Diagnostic[]!,
 ) -> void {
     for_ty :: type_from_expr(id.for_type, typed.resolved, diags)
+    if is_refused_array_impl(for_ty) {
+        written :: display_type_key(for_ty)
+        hint :: if type_contains_type_param(for_ty) {
+            "write the impl on `T[]`"
+        } else {
+            "declare a distinct type (`Items :: ${written}`) and implement `${id.trait_name}` on it"
+        }
+        diags.push(
+            typecheck_error(
+                .ArrayImplNotOverTypeParam,
+                id.for_type.span,
+                "`${written}` — ${hint}",
+            ),
+        )
+        return
+    }
     if id.trait_name == TRAIT_INTO {
         if id.trait_args.len() == 1 {
             target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)

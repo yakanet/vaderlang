@@ -127,6 +127,7 @@ export TypecheckCode :: enum(CodeInfo) {
     IsTestOnSharedInstance          { .id = "T3087", .message = "an `is` test cannot tell apart the instances of a generic that share one body" },
     NotIterable                     { .id = "T3088", .message = "value is not iterable" },
     AmbiguousLiteralInUnion         { .id = "T3089", .message = "literal could take several members of the union" },
+    ArrayImplNotOverTypeParam       { .id = "T3090", .message = "an impl on an array type must take its element as a type parameter" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

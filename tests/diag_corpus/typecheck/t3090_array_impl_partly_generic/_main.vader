@@ -1,0 +1,11 @@
+// T3090 — an array impl whose element is not a bare type parameter (`T[][]`) is
+// refused even though it is generic: only `T[]` can carry an impl on an array.
+module "snippet"
+
+Tag :: trait {
+    tag :: fn(self) -> i32
+}
+
+T[][] implements<T> Tag {
+    tag :: fn(self) -> i32 = i32(self.len())
+}

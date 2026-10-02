@@ -604,8 +604,9 @@ export type_base_name :: fn(t: Type) -> string {
     // array (`BlockId[][]`) matches a blanket `T[] implements …` impl (registered
     // under the same `"[]"` key). Without this the blanket key is the param-named
     // `"T[]"` and never matches, which is why `in`/`*` on arrays used to need a
-    // hard-coded `is ArrayType` branch in `check_in`/`check_arith`. There are no
-    // concrete array impls (`i32[] implements …`), so the collapse can't mis-match.
+    // hard-coded `is ArrayType` branch in `check_in`/`check_arith`. An array impl
+    // whose element is not a type parameter (`i32[]`, `T[][]`) is refused (T3090),
+    // so the collapse can't mis-match.
     @partial match t {
         is StructType   -> { return t.symbol.name }
         is TraitType    -> { return t.symbol.name }
