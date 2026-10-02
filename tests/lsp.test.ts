@@ -1966,6 +1966,35 @@ test("lsp: signature help follows the chosen overload and the UFCS receiver", as
   expect(ufcs.activeParameter).toBe(2);
 });
 
+const METHOD_SIGNATURE_SOURCE = `module "lsptest"
+
+Gauge :: struct { level: i32 }
+
+Scaled :: trait {
+    scale :: fn(self, by: i32, offset: i32) -> i32
+}
+
+Gauge implements Scaled {
+    scale :: fn(self, by: i32, offset: i32) -> i32 = self.level * by + offset
+}
+
+main :: fn() -> i32 {
+    g :: Gauge { .level = 2 }
+    return g.scale(3, 4)
+}
+`;
+
+// A method call shows the impl member it dispatches to, its receiver counted as
+// the first parameter.
+test("lsp: signature help on a trait method call", async () => {
+  const results = await driveLsp(METHOD_SIGNATURE_SOURCE, [
+    { method: "textDocument/signatureHelp", position: { line: 14, character: 22 } },
+  ]);
+  const help = results[0]!.result as SignatureHelp;
+  expect(help.signatures[0]!.label).toBe("scale(self, by: i32, offset: i32) -> i32");
+  expect(help.activeParameter).toBe(2);
+});
+
 // A cursor in the gap before the first argument is on the first parameter, and a
 // mutable parameter renders with its `!`.
 test("lsp: signature help before the first argument", async () => {

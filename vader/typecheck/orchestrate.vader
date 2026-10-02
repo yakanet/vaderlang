@@ -832,6 +832,7 @@ merge_external_impl_methods :: fn(
                     entry_ext :: ImplMethod {
                         .ty = ufcs_ty,
                         .self_mutable = declares_mutable_self(m, trait_method_ext),
+                        .decl = m,
                     }
                     entry_typed.impl_methods[key] = entry_ext
                     entry_typed.impl_methods[base_key] = entry_ext
@@ -1180,6 +1181,7 @@ reset_expr_tables :: fn(typed: TypedProgram!) -> void {
     // The lowering calls the fn recorded here : a pick the settle walk left
     // behind would outlive the full walk's.
     typed.chosen_fns = MutableMap<usize, FnCandidate> {}
+    typed.chosen_impl_methods = MutableMap<usize, ImplMethod> {}
     typed.overload_result_callees = MutableMap<usize, bool> {}
     typed.local_types = MutableMap<u64, Type> {}
     // The whole narrowing machine, not table by table: a sixth table added to
@@ -2285,7 +2287,9 @@ register_impl_metadata :: fn(
         // `@intrinsic T[] implements<T> ArrayOps<T>` has NO members at all, so the
         // trait declaration is the only place the marker exists.
         entry :: ImplMethod {
-            .ty = ufcs_ty, .self_mutable = declares_mutable_self(m, trait_method),
+            .ty = ufcs_ty,
+            .self_mutable = declares_mutable_self(m, trait_method),
+            .decl = m,
         }
         typed.impl_methods[key] = entry
         typed.impl_methods[base_key] = entry
@@ -2296,9 +2300,7 @@ register_impl_metadata :: fn(
         if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 && m.name == METHOD_INTO {
             target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
             into_key :: "${display_type_key(for_ty)}::into::${display_type_key(target_ty)}"
-            typed.impl_methods[into_key] = ImplMethod {
-                .ty = ufcs_ty, .self_mutable = declares_mutable_self(m, trait_method),
-            }
+            typed.impl_methods[into_key] = entry
         }
     }
 }

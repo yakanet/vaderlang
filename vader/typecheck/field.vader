@@ -99,7 +99,7 @@ export infer_field :: fn(
 try_impl_method_ufcs :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
-    typed: TypedProgram,
+    typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> Type | null {
     // A free numeric literal receiver (`42.to_string()`) carries no impl methods
@@ -113,6 +113,7 @@ try_impl_method_ufcs :: fn(
     if impl_ufcs !is null {
         check_trait_ambiguity(e, target_ty, typed, diags)
         reject_mutating_method_on_immutable(impl_ufcs, e, target_ty, typed, diags)
+        typed.chosen_impl_methods[e.id] = impl_ufcs
         return impl_ufcs.ty
     }
     base_impl := typed.impl_methods["${type_base_name(key_ty)}::${e.field}"]
@@ -129,6 +130,7 @@ try_impl_method_ufcs :: fn(
     }
     check_trait_ambiguity(e, target_ty, typed, diags)
     reject_mutating_method_on_immutable(base_impl, e, target_ty, typed, diags)
+    typed.chosen_impl_methods[e.id] = base_impl
     return substitute_impl_method(base_impl.ty, key_ty, typed)
 }
 

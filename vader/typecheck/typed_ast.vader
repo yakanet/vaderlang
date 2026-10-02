@@ -118,6 +118,16 @@ export chosen_decl :: fn(typed: TypedProgram, callee_id: usize) -> AST.FnDecl | 
     return chosen.decl
 }
 
+/// The impl member a method call `x.m(…)` dispatched to — see
+/// `TypedProgram.chosen_impl_methods`. Null when the callee is no impl method.
+///
+/// @param typed      the module the call was checked in.
+/// @param callee_id  the call's `FieldExpr`.
+export chosen_impl_decl :: fn(typed: TypedProgram, callee_id: usize) -> AST.FnDecl | null {
+    chosen :: typed.chosen_impl_methods[callee_id] ?? return null
+    return chosen.decl
+}
+
 /// The fn typecheck chose for the call whose callee is `callee_id`, in the
 /// module that declares it — see `TypedProgram.chosen_fns`. Null when it chose
 /// none.
@@ -173,6 +183,9 @@ export ImplMethod :: struct {
     /// True when the method declares `self!` — it mutates its receiver, so it is
     /// unavailable on an immutable one (T3071).
     self_mutable: bool = false
+    /// The impl member it was declared as ; null for a method no impl member
+    /// declares (a free fn reached through `x.f()`).
+    decl:         AST.FnDecl | null = null
 }
 
 /// Per-module typechecker output. Every span-keyed side-table uses the
@@ -391,6 +404,10 @@ export TypedProgram :: struct {
     /// from a different candidate set : a search over every loaded module reaches
     /// fns this file imports only behind a namespace alias, or not at all.
     chosen_fns: MutableMap<usize, FnCandidate>
+
+    /// `FieldExpr` id → the impl method a call `x.m(…)` dispatched to. Read by
+    /// tooling: the lowerer finds the impl member from the receiver itself.
+    chosen_impl_methods: MutableMap<usize, ImplMethod>
 
     /// `"${TypeBaseName}::${methodName}" → trait names that all
     /// provide the same method on the same receiver. When the list
@@ -636,6 +653,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .index_set_value_types = MutableMap<string, Type> {},
     .ufcs_receiver_types = MutableMap<usize, Type> {},
     .chosen_fns = MutableMap<usize, FnCandidate> {},
+    .chosen_impl_methods = MutableMap<usize, ImplMethod> {},
     .impl_method_traits = MutableMap<string, string[]!> {},
     .struct_field_types = MutableMap<i32, MutableMap<string, Type>> {},
     .struct_implemented_traits = MutableMap<string, string[]!> {},
