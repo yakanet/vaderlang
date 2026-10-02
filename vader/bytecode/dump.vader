@@ -901,16 +901,11 @@ format_const_op :: fn(c: ConstOp) -> string = match c {
 
 // ---- annotation (--annotate) ----------------------------------------------
 
-// An `if`-`is` chain rather than a `match` on purpose : only ~20 of `Op`'s
-// ~128 variants annotate, and a value-returning match over the closed `Op`
-// union would demand an arm per variant AND inflate compile time ~3.5x (same
-// reason `write_op` is a statement match).
-//
-// MAINTAINER NOTE : this is a deliberately NON-exhaustive shadow of `write_op`.
-// `write_op`'s match trips T3013 when a new `Op` variant is added ; this
-// if-chain does NOT — a new index-bearing op (a `call`-like op or one with a
-// `*.type_id` operand) will silently get NO annotation until mirrored here.
-// Low-severity (debug-only view, off the parity / VM path), but add the arm.
+// A deliberately NON-exhaustive shadow of `write_op` : `write_op`'s match trips
+// T3013 when a new `Op` variant is added, this `@partial` one does not, so a new
+// index-bearing op (a `call`-like op, one with a `*.type_id` operand) gets no
+// annotation until it gets an arm here. `operand_refs` (operands.vader) is the
+// same shadow and takes the same arm.
 //
 // Every lookup is bounds-guarded via the `*_label` helpers, so the annotator
 // never traps on an out-of-range index — surfacing it as `<… #N out of range>`
@@ -930,34 +925,36 @@ format_const_op :: fn(c: ConstOp) -> string = match c {
 ///                  renders `arg N`.
 /// @param op        the op to label.
 /// @return          the label, or `""` for an op with nothing to resolve.
-export annotate_op :: fn(module: BytecodeModule, function: BcFunction, op: Op) -> string {
-    if op is StringConst  { return string_label(module, op.index) }
-    if op is ReturnLit    { if op.value is StringConst as s { return string_label(module, s.index) } return "" }
-    if op is Call         { return fn_label(module, op.function_index) }
-    if op is CallImport   { return import_label(module, op.index) }
-    if op is LocalGet     { return local_label(function, op.slot) }
-    if op is LocalSet     { return local_label(function, op.slot) }
-    if op is LocalTee     { return local_label(function, op.slot) }
-    if op is LocalField   { return "${local_label(function, op.slot)}.${field_label(module, op.type_id, op.field_index)}" }
-    if op is StructNew    { return type_label(module, op.type_id) }
-    if op is StructGet    { return "${type_label(module, op.type_id)}.${field_label(module, op.type_id, op.field_index)}" }
-    if op is StructSet    { return "${type_label(module, op.type_id)}.${field_label(module, op.type_id, op.field_index)}" }
-    if op is RefCast      { return "-> ${type_label(module, op.type_id)}" }
-    if op is Retag        { return "-> ${type_label(module, op.type_id)}" }
-    if op is TypeConst    { return type_label(module, op.type_id) }
-    if op is TypeCheck    { return type_label(module, op.type_id) }
-    if op is ArrayNew     { return "${type_label(module, op.type_id)}[]" }
-    if op is ArrayGet     { return "${type_label(module, op.type_id)}[]" }
-    if op is ArraySet     { return "${type_label(module, op.type_id)}[]" }
-    if op is ArrayPush    { return "${type_label(module, op.type_id)}[]" }
-    if op is ArraySlice   { return "${type_label(module, op.type_id)}[]" }
-    if op is CallIndirect { return type_label(module, op.type_id) }
-    if op is FnRef        { return fn_label(module, op.function_index) }
-    if op is FnAddr       { return fn_label(module, op.function_index) }
-    if op is MakeClosure  { return fn_label(module, op.function_index) }
-    if op is DataConst    { return "pool[${op.pool_index}] : ${type_label(module, op.type_id)}" }
-    return ""
-}
+export annotate_op :: fn(module: BytecodeModule, function: BcFunction, op: Op) -> string =
+    // @partial: only an op carrying a table index has a label.
+    @partial match op {
+        is StringConst  -> string_label(module, op.index)
+        is ReturnLit    -> if op.value is StringConst as s { string_label(module, s.index) } else { "" }
+        is Call         -> fn_label(module, op.function_index)
+        is CallImport   -> import_label(module, op.index)
+        is LocalGet     -> local_label(function, op.slot)
+        is LocalSet     -> local_label(function, op.slot)
+        is LocalTee     -> local_label(function, op.slot)
+        is LocalField   -> "${local_label(function, op.slot)}.${field_label(module, op.type_id, op.field_index)}"
+        is StructNew    -> type_label(module, op.type_id)
+        is StructGet    -> "${type_label(module, op.type_id)}.${field_label(module, op.type_id, op.field_index)}"
+        is StructSet    -> "${type_label(module, op.type_id)}.${field_label(module, op.type_id, op.field_index)}"
+        is RefCast      -> "-> ${type_label(module, op.type_id)}"
+        is Retag        -> "-> ${type_label(module, op.type_id)}"
+        is TypeConst    -> type_label(module, op.type_id)
+        is TypeCheck    -> type_label(module, op.type_id)
+        is ArrayNew     -> "${type_label(module, op.type_id)}[]"
+        is ArrayGet     -> "${type_label(module, op.type_id)}[]"
+        is ArraySet     -> "${type_label(module, op.type_id)}[]"
+        is ArrayPush    -> "${type_label(module, op.type_id)}[]"
+        is ArraySlice   -> "${type_label(module, op.type_id)}[]"
+        is CallIndirect -> type_label(module, op.type_id)
+        is FnRef        -> fn_label(module, op.function_index)
+        is FnAddr       -> fn_label(module, op.function_index)
+        is MakeClosure  -> fn_label(module, op.function_index)
+        is DataConst    -> "pool[${op.pool_index}] : ${type_label(module, op.type_id)}"
+        _               -> ""
+    }
 
 string_label :: fn(module: BytecodeModule, index: i32) -> string {
     if index < 0 || usize(index) >= module.strings.len() { return "<string #${index} out of range>" }

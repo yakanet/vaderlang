@@ -136,12 +136,16 @@ parse_int_list :: fn(csv: string) -> i32[]! {
 ///
 /// @param cleaned  the .virt line, already comment-stripped.
 /// @param strings  the module-wide string pool, appended to in place.
-parse_string_decl :: fn(cleaned: string, strings: string[]!) -> void {
+/// @return         `null` when a string was appended, else why it could not be.
+parse_string_decl :: fn(cleaned: string, strings: string[]!) -> DirectiveError | null {
     after :: cleaned.bytes()["string ".bytes().len()..<cleaned.bytes().len()].bytes_to_string()
     first_quote :: after.index_of('"', 0)
-    if first_quote < 0 { return }
+    if first_quote < 0 {
+        return DirectiveError { .reason = "expected `string <index> \"…\"`, got no quoted text" }
+    }
     body :: after.bytes()[usize(first_quote) + 1..<after.bytes().len() - 1].bytes_to_string()
     strings.push(decode_escapes(body))
+    return null
 }
 /// Decode a hex string (lowercase or uppercase digits) into a byte array.
 /// Odd-length input is rounded down (the bytecode writer always emits

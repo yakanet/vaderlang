@@ -1,0 +1,143 @@
+// vader/lsp/handlers/virt_definition — `textDocument/definition` over a `.virt`
+// document.
+//
+// An operand that is a table index jumps to the line declaring the entry : `call
+// 79` to `fn 79 …`, `ref.cast 25` to `type 25 …`, `string.const 3` to `string 3
+// …`, `local.get 2` to its `local` line — or to the `fn` header for a parameter,
+// which the dump leaves unnamed. A label after `br` / `br_if` / `end` jumps to the
+// `block` / `loop` / `if` opening it. `operand_refs` says what each operand of an
+// op names ; the bytecode reader says on which line each entry sits.
+
+module "vader/lsp/handlers"
+
+import "json"
+import "vader/lsp/analysis"
+import "vader/lsp/protocol"
+
+Bc :: import "vader/bytecode"
+Vm :: import "vader/vm"
+
+/// The declaration the operand under the cursor names, or null when the cursor
+/// is on anything else.
+///
+/// @param state   the server state, which holds the document and caches its
+///                read-back module.
+/// @param params  the `textDocument/definition` params.
+export handle_virt_definition :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    text :: state.source_for(uri) ?? return JsonNull {}
+    li :: new_line_index(text, state.position_encoding)
+    cursor :: word_under_cursor(text, li, params) ?? return JsonNull {}
+    if cursor.word == 0 {
+        return JsonNull {}
+    }
+    listing :: state.virt_listing_for(uri) ?? return JsonNull {}
+    function :: function_at(listing, usize(cursor.line)) ?? return JsonNull {}
+    k :: op_at(listing.functions[function].ops, usize(cursor.line)) ?? return JsonNull {}
+    head :: word_text(text, cursor.words[0])
+    target :: if head == "br" || head == "br_if" || head == "end" {
+        label :: word_text(text, cursor.words[cursor.word])
+        opener_line(text, li, listing.functions[function].ops, k, head == "end", label)
+    } else {
+        operand_line(listing, function, k, cursor.word - 1)
+    }
+    if target == null {
+        return JsonNull {}
+    }
+    target_start :: li.line_starts[target]
+    whole :: line_span(li, i32(target), target_start, line_end(text, target_start))
+    clicked :: cursor.words[cursor.word]
+    origin :: line_span(li, cursor.line, clicked.start, clicked.end)
+    return definition_json(state.definition_link_support, origin, uri, whole, whole)
+}
+
+// The function whose `fn` header is the last one at or above `line`.
+function_at :: fn(listing: Vm.VirtListing, line: usize) -> usize | null {
+    found: usize | null = null
+    for f in 0..<listing.functions.len() {
+        if listing.functions[f].header > line {
+            break
+        }
+        found = f
+    }
+    return found
+}
+
+// The line declaring what operand `operand` of op `k` of `function` names.
+operand_line :: fn(listing: Vm.VirtListing, function: usize, k: usize, operand: usize) -> usize | null {
+    lines :: listing.functions[function]
+    body :: listing.module.functions[function]
+    refs :: Bc.operand_refs(body.body[k])
+    if operand >= refs.len() {
+        return null
+    }
+    ref :: refs[operand] ?? return null
+    if ref.index < 0 {
+        return null
+    }
+    index :: usize(ref.index)
+    return match ref.kind {
+        .Function -> if index < listing.functions.len() { listing.functions[index].header } else { null }
+        .Type     -> pool_line(listing.types, index)
+        .String   -> pool_line(listing.strings, index)
+        .Import   -> pool_line(listing.imports, index)
+        .Data     -> pool_line(listing.data, index)
+        .Local    -> local_line(lines, body.signature.params.len(), index)
+    }
+}
+
+pool_line :: fn(lines: usize[], index: usize) -> usize | null = if index < lines.len() { lines[index] } else { null }
+
+// A parameter is declared by the `fn` header ; a local by its `local` line.
+local_line :: fn(lines: Vm.VirtFunctionLines, param_count: usize, slot: usize) -> usize | null {
+    if slot < param_count {
+        return lines.header
+    }
+    local :: slot - param_count
+    return if local < lines.locals.len() { lines.locals[local] } else { null }
+}
+
+// The index of the op on `line`, or null when the line holds none.
+op_at :: fn(ops: usize[], line: usize) -> usize | null {
+    for k in 0..<ops.len() {
+        if ops[k] == line {
+            return k
+        }
+    }
+    return null
+}
+
+// The `block` / `loop` / `if` line of the scope op `k` closes or branches to —
+// as the reader resolves it : walking back, the innermost scope still open, the
+// first one named `label` for a branch, whichever is innermost for an `end`.
+opener_line :: fn(
+    text: string,
+    li: LineIndex,
+    ops: usize[],
+    k: usize,
+    closes: bool,
+    label: string,
+) -> usize | null {
+    closed := 0
+    for back in 0..<k {
+        line :: ops[k - 1 - back]
+        words :: line_words(text, li.line_starts[line])
+        head :: word_text(text, words[0])
+        if head == "end" {
+            closed += 1
+            continue
+        }
+        if head != "block" && head != "loop" && head != "if" {
+            continue
+        }
+        if closed > 0 {
+            closed -= 1
+            continue
+        }
+        if closes || (words.len() > 1 && word_text(text, words[1]) == label) {
+            return line
+        }
+    }
+    return null
+}
+

@@ -2083,3 +2083,47 @@ test("lsp: an annotated dump gets no inlay hint", async () => {
   const results = await driveLsp(annotated, [wholeDocument(annotated)], {}, "dump.virt");
   expect(results[0]!.result).toEqual([]);
 }, { timeout: MEDIUM_BUILD });
+
+// An operand that is a table index jumps to the line declaring what it names; a
+// label after `br` / `br_if` / `end` jumps to the scope opening it.
+test("lsp: a .virt operand jumps to what it names", async () => {
+  const dump = await bytecodeDump("tests/snippets/json_basics/_main.vader");
+  const lines = dump.split("\n");
+  const first = (re: RegExp, from = 0) => lines.findIndex((l, i) => i >= from && re.test(l));
+  const last = (re: RegExp, before: number) => {
+    for (let i = before; i >= 0; i--) if (re.test(lines[i]!)) return i;
+    return -1;
+  };
+  // [line, operand text, expected target line]
+  const cases: [number, string, number][] = [];
+  const indexed = (op: string, directive: string) => {
+    const at = first(new RegExp(`^\\s+${op.replace(".", "\\.")} \\d+$`));
+    const n = lines[at]!.trim().split(" ")[1]!;
+    cases.push([at, n, first(new RegExp(`^${directive} ${n} `))]);
+  };
+  indexed("call", "fn");
+  indexed("string.const", "string");
+  indexed("ref.cast", "type");
+  indexed("call.import", "import");
+  // `fn 0 snippet$show (string,string)` : slot 1 is a parameter, slot 2 its first local.
+  const show = first(/^fn 0 /);
+  cases.push([first(/^\s+local\.get 1$/, show), "1", show]);
+  cases.push([first(/^\s+local\.tee 2$/, show), "2", first(/^\s+local /, show)]);
+  const branch = first(/^\s+br(_if)? \$L\d+$/);
+  const label = lines[branch]!.trim().split(" ")[1]!;
+  cases.push([branch, label, last(new RegExp(`^\\s+(block|loop|if) \\${label}( |$)`), branch)]);
+  for (const [line, , target] of cases) {
+    expect(line).toBeGreaterThanOrEqual(0);
+    expect(target).toBeGreaterThanOrEqual(0);
+  }
+
+  const queries: Query[] = cases.map(([line, operand]) => (
+    { method: "textDocument/definition", position: { line, character: lines[line]!.lastIndexOf(operand) } }
+  ));
+  queries.push({ method: "textDocument/definition", position: { line: cases[0]![0], character: 3 } });
+  const results = await driveLsp(dump, queries, {}, "dump.virt");
+  const targets = results.slice(0, cases.length).map((r) => (r.result as { range: LocationRange }).range.start.line);
+  expect(targets).toEqual(cases.map(([, , target]) => target));
+  // The op's own name names nothing.
+  expect(results[cases.length]!.result).toBeNull();
+}, { timeout: MEDIUM_BUILD });

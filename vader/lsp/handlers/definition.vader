@@ -395,11 +395,8 @@ member_in_file :: fn(
     return ExternalHit { .uri = uri, .target = d }
 }
 
-// Pick the response shape based on what the client said it could
-// consume at `initialize` time. The `target_range` widens to the
-// decl's full span — `LocationLink` separates "where to jump"
-// (`targetSelectionRange`, the name) from "what to highlight"
-// (`targetRange`, the whole decl).
+// The response for a declaration : the cursor lands on its name, and a client
+// that reads links highlights the whole declaration.
 def_response :: fn(
     state: ServerState, origin: Span | null, uri: string,
     name_span: Span, full_span: Span, origin_li: LineIndex,
@@ -407,28 +404,8 @@ def_response :: fn(
     // The target spans (`name_span` / `full_span`) live in `uri`'s file, which
     // may differ from the origin's — encode each with its own file's index.
     target_li :: state.line_index_for_path(uri_to_path(uri))
-    if state.definition_link_support {
-        return JsonArray { .items = [location_link_json(origin, uri, name_span, full_span, origin_li, target_li)] }
-    }
-    return location_json(uri, name_span.span_to_range_json(target_li))
-}
-
-// `LocationLink` carries the optional origin selection range (the clicked
-// token) plus the target's full + name ranges.
-location_link_json :: fn(
-    origin: Span | null, uri: string,
-    name_span: Span, full_span: Span,
-    origin_li: LineIndex, target_li: LineIndex,
-) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> {}
-    match origin {
-        is null -> {}
-        is Span -> {
-            obj["originSelectionRange"] = range_json(origin.span_to_range_json(origin_li))
-        }
-    }
-    obj["targetUri"]            = JsonString { .value = uri }
-    obj["targetRange"]          = range_json(full_span.span_to_range_json(target_li))
-    obj["targetSelectionRange"] = range_json(name_span.span_to_range_json(target_li))
-    return JsonObject { .entries = obj }
+    clicked :: if origin == null { null } else { origin.span_to_range_json(origin_li) }
+    full :: full_span.span_to_range_json(target_li)
+    name :: name_span.span_to_range_json(target_li)
+    return definition_json(state.definition_link_support, clicked, uri, full, name)
 }

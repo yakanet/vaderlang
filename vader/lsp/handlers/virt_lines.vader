@@ -1,0 +1,136 @@
+// vader/lsp/handlers/virt_lines — the text of one `.virt` line.
+//
+// A line is its code — a head word then its operands, separated by blanks —
+// then an optional `;` comment. No operand of an op contains a `;` or a blank,
+// so the words of an op line split on blanks and stop at the first `;` ; only a
+// `string` directive quotes text that may hold either. Offsets are bytes into
+// the whole document text ; `start` is the byte its line starts at.
+
+module "vader/lsp/handlers"
+
+import "json"
+import "vader/lsp/protocol"
+
+// The word under the cursor of a request on a `.virt` document, with the words
+// of its line.
+VirtCursor :: struct {
+    line:  i32
+    words: Range<usize>[]
+    word:  usize
+}
+
+// The word `params.position` falls inside ; null past the last line, on a blank,
+// a comment, or past the code.
+word_under_cursor :: fn(text: string, li: LineIndex, params: JsonValue) -> VirtCursor | null {
+    line :: position_line(params)
+    if line < 0 || usize(line) >= li.line_starts.len() {
+        return null
+    }
+    words :: line_words(text, li.line_starts[usize(line)])
+    word :: word_at(words, li_offset(li, line, position_character(params))) ?? return null
+    return VirtCursor {
+        .line  = line,
+        .words = words,
+        .word  = word,
+    }
+}
+
+// The words of the code of the line starting at byte `start` of `text`, each as
+// its byte range in the document text.
+line_words :: fn(text: string, start: usize) -> Range<usize>[] {
+    b :: text.bytes()
+    words: Range<usize>[]!: []
+    i := start
+    for i < b.len() && !ends_code(b[i]) {
+        if is_blank(b[i]) {
+            i += 1
+            continue
+        }
+        first :: i
+        for i < b.len() && !ends_code(b[i]) && !is_blank(b[i]) {
+            i += 1
+        }
+        words.push(first..<i)
+    }
+    return words
+}
+
+// The index of the word `cursor` falls inside, or null when it is on a blank, a
+// comment, or past the code.
+word_at :: fn(words: Range<usize>[], cursor: usize) -> usize | null {
+    for i in 0..<words.len() {
+        if cursor in words[i] {
+            return i
+        }
+    }
+    return null
+}
+
+// The byte just past the code of the line starting at `start` — after its last
+// word — or null when the line carries a `;` comment.
+code_end :: fn(text: string, start: usize) -> usize | null {
+    b :: text.bytes()
+    end := start
+    for i in start..<b.len() {
+        if ends_line(b[i]) {
+            break
+        }
+        if b[i] == ';' {
+            return null
+        }
+        if !is_blank(b[i]) {
+            end = i + 1
+        }
+    }
+    return end
+}
+
+// The byte the line starting at `start` breaks at — the end of the text for the
+// last line.
+line_end :: fn(text: string, start: usize) -> usize {
+    b :: text.bytes()
+    i := start
+    for i < b.len() && !ends_line(b[i]) {
+        i += 1
+    }
+    return i
+}
+
+// The bytes `[from, to)` of `line`, as an LSP range.
+line_span :: fn(li: LineIndex, line: i32, from: usize, to: usize) -> SpanRange = SpanRange {
+    .start_line      = line,
+    .start_character = li_character(li, line, from),
+    .end_line        = line,
+    .end_character   = li_character(li, line, to),
+}
+
+word_text :: fn(text: string, word: Range<usize>) -> string = text.bytes()[word].bytes_to_string()
+
+is_blank :: fn(c: u8) -> bool = c == ' ' || c == '\t'
+
+ends_line :: fn(c: u8) -> bool = c == '\n' || c == '\r'
+
+ends_code :: fn(c: u8) -> bool = ends_line(c) || c == ';'
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_line_words_stop_at_the_comment :: fn() -> void {
+    text :: "fn 0 m () -> void\n  struct.get 25 0   ; P.x\n"
+    words :: line_words(text, 18)
+    assert_eq(words.len(), 3)
+    assert_eq(word_text(text, words[1]), "25")
+    assert_eq(word_at(words, 32) ?? 9, 1)
+}
+
+@test
+test_code_end_after_the_last_operand :: fn() -> void {
+    assert_eq(code_end("fn 0 m () -> void\n  local.get 1  \nend\n", 18) ?? 0, 31)
+}
+
+@test
+test_code_end_on_a_commented_line :: fn() -> void {
+    assert(code_end("  local.get 1   ; x\n", 0) == null, "an annotated line gets no hint")
+}

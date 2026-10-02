@@ -33,7 +33,7 @@ export handle_virt_inlay_hint :: fn(state: ServerState!, params: JsonValue) -> J
     li :: new_line_index(text, state.position_encoding)
     for f in 0..<module.functions.len() {
         function :: module.functions[f]
-        lines :: listing.op_lines[f]
+        lines :: listing.functions[f].ops
         for k in 0..<lines.len() {
             line :: i32(lines[k])
             if line < first || line > last {
@@ -50,26 +50,6 @@ export handle_virt_inlay_hint :: fn(state: ServerState!, params: JsonValue) -> J
     return JsonArray { .items = hints }
 }
 
-// The byte offset just past the code of the line starting at byte `start` of
-// `text` — after its last non-blank byte — or null when the line already
-// carries a `;` comment. No op operand contains a `;`.
-code_end :: fn(text: string, start: usize) -> usize | null {
-    b :: text.bytes()
-    end := start
-    for i in start..<b.len() {
-        if b[i] == '\n' || b[i] == '\r' {
-            break
-        }
-        if b[i] == ';' {
-            return null
-        }
-        if b[i] != ' ' && b[i] != '\t' {
-            end = i + 1
-        }
-    }
-    return end
-}
-
 // A name after an operand : no `kind`, which is for types and parameters, and a
 // space before it so it does not read as part of the operand.
 name_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
@@ -78,18 +58,4 @@ name_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
     hint["label"] = JsonString { .value = label }
     hint["paddingLeft"] = JsonBool { .value = true }
     return JsonObject { .entries = hint }
-}
-
-// ---- tests ----------------------------------------------------------------
-
-import "std/testing"
-
-@test
-test_code_end_after_the_last_operand :: fn() -> void {
-    assert_eq(code_end("fn 0 m () -> void\n  local.get 1  \nend\n", 18) ?? 0, 31)
-}
-
-@test
-test_code_end_on_a_commented_line :: fn() -> void {
-    assert(code_end("  local.get 1   ; x\n", 0) == null, "an annotated line gets no hint")
 }

@@ -85,11 +85,31 @@ positioned :: fn(
     return null
 }
 
-/// A `.virt` dump read back, with the line each instruction came from.
+/// Where one function of a `.virt` dump sits, by 0-based line.
+export VirtFunctionLines :: struct {
+    /// The `fn N …` header — where the parameters, which the dump leaves
+    /// unnamed, are declared.
+    header: usize
+    /// Each `local` line, in slot order after the parameters.
+    locals: usize[]
+    /// Each op's line, in body order.
+    ops:    usize[]
+}
+
+/// A `.virt` dump read back, with the 0-based line every indexed entry came
+/// from — what a tool pointing back into the text needs.
 export VirtListing :: struct {
-    module:   bc.BytecodeModule
-    /// `op_lines[f][k]` is the 0-based line of op `k` in function `f`'s body.
-    op_lines: usize[][]
+    module:    bc.BytecodeModule
+    /// One per function, by function index.
+    functions: VirtFunctionLines[]
+    /// The `type N` line of each type, by type index.
+    types:     usize[]
+    /// The `string N` line of each pool string, by string index.
+    strings:   usize[]
+    /// The `import N` line of each host import, by import index.
+    imports:   usize[]
+    /// The `data N` line of each data-pool entry, by pool index.
+    data:      usize[]
 }
 
 /// Parse a full `.virt` text dump into a `BytecodeModule` ready for `emit_c`.
@@ -107,7 +127,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
 }
 
 /// Parse a full `.virt` text dump into a `BytecodeModule`, and note the line of
-/// each instruction — what a tool pointing back into the text needs.
+/// every function, local, op and pool entry.
 ///
 /// Module-level directives (`module` / `type` / `string` / `data` / `import` /
 /// `impl` / `vtable` / `export`) populate the module pools ; each `fn …` opens
@@ -146,8 +166,14 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         .param_names = [],
     }
     current_locals: bc.BcLocal[]! = []
+    current_header: usize = 0
+    current_local_lines: usize[]! = []
     current_lines: usize[]! = []
-    op_lines: usize[][]!: []
+    function_lines: VirtFunctionLines[]!: []
+    type_lines: usize[]!: []
+    string_lines: usize[]!: []
+    import_lines: usize[]!: []
+    data_lines: usize[]!: []
     in_function := false
 
     state :: ParserState {
@@ -168,6 +194,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         cleaned :: strip_comment(line)
         if cleaned.bytes().len() == 0 { continue }
         head :: head_of(cleaned)
+        here :: line_index - 1
 
         if !in_function {
             // `vader dump --stage=bytecode` appends a `# Diagnostics` report
@@ -191,12 +218,20 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
                 if failed is VirtParseError {
                     return failed
                 }
+                type_lines.push(here)
                 continue
             }
-            if head == "string" { parse_string_decl(cleaned, strings) continue }
-            // Each of the four below reports why it could not read its line. A
+            // Each pool directive below reports why it could not read its line. A
             // silent drop removed a whole pool entry and renumbered every index
             // after it — the pool analogue of the pc shift fixed for instructions.
+            if head == "string" {
+                failed :: positioned(parse_string_decl(cleaned, strings), line_index, cleaned)
+                if failed is VirtParseError {
+                    return failed
+                }
+                string_lines.push(here)
+                continue
+            }
             if head == "data" {
                 failed :: positioned(
                     parse_data_decl_bc(cleaned, data_pool, strings), line_index, cleaned,
@@ -204,6 +239,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
                 if failed is VirtParseError {
                     return failed
                 }
+                data_lines.push(here)
                 continue
             }
             if head == "import" {
@@ -213,6 +249,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
                 if failed is VirtParseError {
                     return failed
                 }
+                import_lines.push(here)
                 continue
             }
             if head == "impl" {
@@ -238,6 +275,8 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
                 current_name = read_fn_mangled_name(cleaned)
                 current_sig = parse_signature_bc(cleaned, types)
                 current_locals = []
+                current_header = here
+                current_local_lines = []
                 current_lines = []
                 state.ops = []
                 state.table = []
@@ -260,6 +299,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
 
         if head == "local" {
             current_locals.push(parse_local_decl_bc(cleaned))
+            current_local_lines.push(here)
             continue
         }
         if cleaned == "end" && state.scope_sp[0] == 0 {
@@ -274,7 +314,11 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
                 .debug      = debug,
                 .jump_table = state.table,
             })
-            op_lines.push(current_lines)
+            function_lines.push(VirtFunctionLines {
+                .header = current_header,
+                .locals = current_local_lines,
+                .ops    = current_lines,
+            })
             in_function = false
             continue
         }
@@ -292,7 +336,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         }
         state.ops.push(op)
         state.table.push(-1)
-        current_lines.push(line_index - 1)
+        current_lines.push(here)
         wire_control_flow(state, cleaned, head, pc)
     }
 
@@ -312,7 +356,14 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         .impl_table = impl_table,
         .vtables    = vtables,
     }
-    return VirtListing { .module = module, .op_lines = op_lines }
+    return VirtListing {
+        .module    = module,
+        .functions = function_lines,
+        .types     = type_lines,
+        .strings   = string_lines,
+        .imports   = import_lines,
+        .data      = data_lines,
+    }
 }
 
 // ---- module-level directive parsers ---------------------------------------
@@ -1211,8 +1262,8 @@ import "std/testing"
 // shifts every following pc, the directive case leaves a hole in a pool. Both
 // now stop the parse and name the line — see `VirtParseError`.
 
-@test test_parse_virt_listing_notes_each_op_line :: fn() -> void {
-    // A comment, a blank line and a `local` take a line but no op; a structured
+@test test_parse_virt_listing_notes_each_line :: fn() -> void {
+    // A comment, a blank line and a `local` take a line but no op ; a structured
     // `if` … `end` takes one op per line.
     lines :: [
         "module demo",
@@ -1232,10 +1283,12 @@ import "std/testing"
         assert(false, "well-formed dump should parse: ${listing.reason}")
         return
     }
-    assert_eq(listing.op_lines.len(), 1)
-    assert_eq(listing.op_lines[0].len(), listing.module.functions[0].body.len())
-    ops :: listing.op_lines[0]
+    assert_eq(listing.functions.len(), 1)
+    function :: listing.functions[0]
+    assert_eq(function.ops.len(), listing.module.functions[0].body.len())
+    ops :: function.ops
     assert_eq("${ops[0]} ${ops[1]} ${ops[2]} ${ops[3]}", "4 6 7 8")
+    assert_eq("${function.header} ${function.locals[0]} ${listing.types[0]}", "2 3 1")
 }
 
 @test test_unknown_instruction_stops_the_parse :: fn() -> void {
@@ -1260,6 +1313,17 @@ import "std/testing"
         assert("sprocket" in r.reason, "the reason should name the directive, got: ${r.reason}")
     } else {
         assert(false, "an unknown module directive must not be skipped silently")
+    }
+}
+
+@test test_unquoted_string_stops_the_parse :: fn() -> void {
+    // Dropping it would renumber every later `string.const`.
+    src :: "module demo\nstring 0 hello\nstring 1 \"world\"\n"
+    r :: parse_virt_bc(src)
+    if r is VirtParseError {
+        assert_eq(r.line_number, 2)
+    } else {
+        assert(false, "a string line without quotes must not be skipped silently")
     }
 }
 

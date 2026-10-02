@@ -106,6 +106,46 @@ export location_json :: fn(uri: string, range: SpanRange) -> JsonValue {
     return JsonObject { .entries = obj }
 }
 
+/// The answer to a definition request : a one-element `LocationLink` array when
+/// the client said at `initialize` it reads links, else a `Location` on
+/// `selection`. A link keeps "where to jump" (`selection`) apart from "what to
+/// highlight" (`full`), plus the clicked range when there is one.
+///
+/// @param link_support  the client's `textDocument.definition.linkSupport`.
+/// @param origin        the range of what was clicked, or null to let the client
+///                      pick the word under the cursor.
+/// @param uri           the target document.
+/// @param full          the whole target.
+/// @param selection     the part of it the cursor lands on.
+export definition_json :: fn(
+    link_support: bool,
+    origin: SpanRange | null,
+    uri: string,
+    full: SpanRange,
+    selection: SpanRange,
+) -> JsonValue {
+    if !link_support {
+        return location_json(uri, selection)
+    }
+    return JsonArray { .items = [location_link_json(origin, uri, full, selection)] }
+}
+
+location_link_json :: fn(
+    origin: SpanRange | null,
+    uri: string,
+    full: SpanRange,
+    selection: SpanRange,
+) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    if origin != null {
+        obj["originSelectionRange"] = range_json(origin)
+    }
+    obj["targetUri"]            = JsonString { .value = uri }
+    obj["targetRange"]          = range_json(full)
+    obj["targetSelectionRange"] = range_json(selection)
+    return JsonObject { .entries = obj }
+}
+
 // ---- params extraction ----------------------------------------------------
 
 /// `params.textDocument.uri`, or `""` when absent.
