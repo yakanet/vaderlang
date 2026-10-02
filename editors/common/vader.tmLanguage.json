@@ -18,7 +18,8 @@
     { "include": "#numbers" },
     { "include": "#operators" },
     { "include": "#functions" },
-    { "include": "#identifiers" }
+    { "include": "#identifiers" },
+    { "include": "#punctuation" }
   ],
   "repository": {
     "shebang": {
@@ -104,9 +105,10 @@
     },
     "string-interpolation": {
       "name": "meta.embedded.expression.vader",
-      "begin": "\\$\\{",
+      "begin": "(\\$)(\\{)",
       "beginCaptures": {
-        "0": { "name": "punctuation.section.embedded.begin.vader" }
+        "1": { "name": "punctuation.section.embedded.begin.vader" },
+        "2": { "name": "punctuation.section.embedded.begin.vader" }
       },
       "end": "\\}",
       "endCaptures": {
@@ -122,7 +124,8 @@
         { "include": "#numbers" },
         { "include": "#operators" },
         { "include": "#functions" },
-        { "include": "#identifiers" }
+        { "include": "#identifiers" },
+        { "include": "#punctuation" }
       ]
     },
     "chars": {
@@ -321,6 +324,14 @@
           "name": "constant.numeric.integer.vader",
           "match": "\\b[0-9][0-9_]*(?:_?(?:i8|i16|i32|i64|u8|u16|u32|u64|usize))?\\b"
         }
+      ]
+    },
+    "punctuation": {
+      "comment": "One token per bracket: an editor that pairs brackets by token (IntelliJ's TextMate support reads the first and last character of a token) loses count when two share a token.",
+      "patterns": [
+        { "name": "punctuation.bracket.round.vader", "match": "[()]" },
+        { "name": "punctuation.bracket.square.vader", "match": "[\\[\\]]" },
+        { "name": "punctuation.bracket.curly.vader", "match": "[{}]" }
       ]
     },
     "operators": {
