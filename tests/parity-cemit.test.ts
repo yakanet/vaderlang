@@ -384,6 +384,8 @@ const C_PARITY = new Set<string>([
   "fusion_take_exact",
   // A jump out of nested or unrolled loops runs the defers of each body it leaves.
   "defer_named_jump_nested_loop",
+  // A `return` computes its value before the defers it leaves run.
+  "defer_after_return_value",
   "comptime_for_jumps",
   // The lazy form of a chain: `Iterator` defaults on a generator's state, an
   // erased stage over a concrete tuple source, a local after a `yield`.

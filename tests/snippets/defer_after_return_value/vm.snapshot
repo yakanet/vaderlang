@@ -1,0 +1,16 @@
+# stdout
+work call
+defer call
+1
+1
+note void
+defer void
+work nested
+defer inner
+defer outer
+1
+await async
+defer async
+3
+# exit
+0

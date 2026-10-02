@@ -134,7 +134,6 @@ fn 5 __lambda_snippet_6 (ref) -> i32
   defer.push
   string.const 7   ; "about to boom"
   call 13   ; std_io$println__string
-  defer.pop_exec 1
   local.field 0 7 1   ; arg 0.cap_1
   struct.get 17 0   ; $Cell_i32.value
   local.set 1   ; $cell_get_6
@@ -151,6 +150,9 @@ fn 5 __lambda_snippet_6 (ref) -> i32
   local.get 1   ; $cell_get_6
   local.get 2   ; $cell_get_8
   i32.div
+  local.set 1   ; $cell_get_6
+  defer.pop_exec 1
+  local.get 1   ; $cell_get_6
   return
 end
 

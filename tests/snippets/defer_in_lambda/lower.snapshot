@@ -132,8 +132,7 @@
       arg0:
         "about to boom" :string
     block :void
-      defer.pop_exec 1
-      return
+      let __result_1: i32 =
         div :i32
           l:
             LoweredCellGet
@@ -143,6 +142,8 @@
                 LoweredCellGet
               r:
                 LoweredCellGet
+      defer.pop_exec 1
+      return __result_1 :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

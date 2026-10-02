@@ -66,46 +66,11 @@ export lower_block :: fn(
     // helpers at those sites already emitted the proper drain count,
     // so a trailing pop_exec here would be dead code.
     last_diverges :: stmts.len() > 0 && stmt_diverges(stmts[stmts.len() - 1])
-    // Sequence the block-fall-through defer drain so it runs AFTER
-    // the trailing expression has computed its value. The trailing's
-    // side-effects must land before any defer fires (their thunks
-    // may observe / mutate state visible to the parent block), and
-    // the drain must run before the value escapes the block. The
-    // only way to achieve both is to bind the trailing to a
-    // `__block_N` synthetic local, push `pop_exec`, then return an
-    // ident-ref as the new trailing.
     trailing := raw_trailing
     if defer_count > 0 && !last_diverges {
-        if raw_trailing == null {
-            stmts.push(LoweredDeferPopExec {
-                .span = block.span, .count = i32(defer_count),
-            })
-        } else if is_void(type_of(raw_trailing)) {
-            // A void trailing carries no value the drain could disturb, so it
-            // needs no temporary. Binding one anyway left a `void` local being
-            // read back onto the stack before `return`, and the VM decides
-            // "this frame returned something" from a non-empty stack — so a
-            // void fn holding a defer looked like it returned `null`. Only
-            // visible when the frame is the VM entry, which is every `@test`.
-            stmts.push(LoweredExprStmt { .span = raw_trailing.span, .expr = raw_trailing })
-            stmts.push(LoweredDeferPopExec {
-                .span = raw_trailing.span, .count = i32(defer_count),
-            })
-            trailing = null
-        } else {
-            value_type :: type_of(raw_trailing)
-            tmp_sym :: fresh_synthetic_symbol(ctx, "block")
-            stmts.push(LoweredLet {
-                .span = raw_trailing.span, .name = tmp_sym.name,
-                .symbol = tmp_sym, .type = value_type, .value = raw_trailing,
-            })
-            stmts.push(LoweredDeferPopExec {
-                .span = raw_trailing.span, .count = i32(defer_count),
-            })
-            trailing = LoweredIdent {
-                .span = raw_trailing.span, .type = value_type, .symbol = tmp_sym,
-            }
-        }
+        span :: if raw_trailing == null { block.span } else { raw_trailing.span }
+        drain :: LoweredDeferPopExec { .span = span, .count = i32(defer_count) }
+        trailing = evaluate_then_drain(ctx, raw_trailing, drain, "block", stmts)
     }
     block_type :: trailing_type(trailing)
     // Pop the BlockCtx by maintaining the stack depth
@@ -179,22 +144,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx!, stmt: Stmt, out: LoweredStmt[]!) -> void
                 out.push(leave_instance(instance, stmt.span))
                 return
             }
-            // Drain every pending defer in the enclosing scopes BEFORE
-            // the actual return op. Count = sum of `defers` across every
-            // open BlockCtx (the innermost block back up to the fn root).
-            // When the drain emits anything, bundle drain + exit into
-            // a single statement via `wrap_stmts` so the dump records
-            // `(block (pop_exec N) (return …))` shape rather than two
-            // flat sibling stmts.
-            drain: LoweredStmt[]!: []
-            drain_all_defers(ctx, stmt.span, drain)
-            exit :: lower_return(ctx, stmt)
-            if drain.len() > 0 {
-                drain.push(exit)
-                out.push(wrap_stmts(stmt.span, drain))
-            } else {
-                out.push(exit)
-            }
+            out.push(lower_return(ctx, stmt))
         }
         is YieldStmt             -> {
             if ctx.gen_inline_sink is GenInlineSink as sink {
@@ -397,15 +347,47 @@ ensure_local_symbol_index :: fn(
 }
 
 
+// `return`, after every defer pending up to the fn root.
 lower_return :: fn(ctx: FnLowerCtx!, return_stmt: ReturnStmt) -> LoweredStmt {
-    if return_stmt.value == null {
-        return LoweredReturn { .span = return_stmt.span, .value = null }
+    span :: return_stmt.span
+    value: LoweredExpr | null: if return_stmt.value == null {
+        null
+    } else {
+        prepare_value_for_slot(ctx, lower_expr(ctx, return_stmt.value), ctx.return_type, span)
     }
-    lowered :: lower_expr(ctx, return_stmt.value)
-    return LoweredReturn {
-        .span = return_stmt.span,
-        .value = prepare_value_for_slot(ctx, lowered, ctx.return_type, return_stmt.span),
+    drain :: pop_defers_to_fn_root(ctx, span)
+    if drain == null {
+        return LoweredReturn { .span = span, .value = value }
     }
+    exit: LoweredStmt[]!: []
+    read :: evaluate_then_drain(ctx, value, drain, "result", exit)
+    exit.push(LoweredReturn { .span = span, .value = read })
+    return wrap_stmts(span, exit)
+}
+
+// Evaluate `value`, then run `drain` — the pending defers — and return what reads
+// the value afterwards. A defer may observe or mutate what the value reads, so the
+// value is computed first, into a fresh local unless it is stable: the drain only
+// calls defer thunks. A void value is evaluated as a statement instead and reads
+// back as null: a `void` local read back onto the stack makes the VM take a void
+// frame for one that returned `null`.
+evaluate_then_drain :: fn(
+    ctx: FnLowerCtx!,
+    value: LoweredExpr | null,
+    drain: LoweredStmt,
+    name: string,
+    out: LoweredStmt[]!,
+) -> LoweredExpr | null {
+    read: LoweredExpr | null = null
+    if value != null {
+        if is_void(type_of(value)) {
+            out.push(LoweredExprStmt { .span = value.span, .expr = value })
+        } else {
+            read = bind_unless_stable(ctx, value, name, value.span, out)
+        }
+    }
+    out.push(drain)
+    return read
 }
 
 // True when `s` will exit its enclosing block (control flow never
@@ -415,7 +397,7 @@ stmt_diverges :: fn(s: LoweredStmt) -> bool {
     if s is LoweredReturn   { return true }
     if s is LoweredBreak    { return true }
     if s is LoweredContinue { return true }
-    // `wrap_stmts(span, [pop_exec, return])` produces a
+    // `wrap_stmts(span, [… pop_exec, return])` produces a
     // `LoweredExprStmt { expr = LoweredBlock { stmts, trailing = null } }`
     // whose inner block's last stmt is the actual return / break /
     // continue. Peek through one level so the enclosing block's
@@ -430,15 +412,15 @@ stmt_diverges :: fn(s: LoweredStmt) -> bool {
     return false
 }
 
-// Sum the `defers` count across every open BlockCtx and emit a
-// single `defer.pop_exec N` — drains everything to fn root before
-// return.
-drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]!) -> void {
+// One `defer.pop_exec N` over the defers of every open BlockCtx — all of them up
+// to the fn root, what a `return` leaves. Null when none is pending.
+pop_defers_to_fn_root :: fn(ctx: FnLowerCtx, span: Span) -> LoweredStmt | null {
     total: i32 = 0
     for b in ctx.blocks { total += i32(b.defers.len()) }
-    if total > 0 {
-        out.push(LoweredDeferPopExec { .span = span, .count = total })
+    if total == 0 {
+        return null
     }
+    return LoweredDeferPopExec { .span = span, .count = total }
 }
 
 // A `break` (`is_break`) or a `continue`, as written — unless it leaves a body a
