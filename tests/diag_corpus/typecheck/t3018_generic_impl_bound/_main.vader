@@ -1,0 +1,18 @@
+// T3018: a generic impl counts only for the arguments its bounds admit.
+// `Box<T> implements<T: Display> Display` makes `Box<i32>` render ; `Box<Point>`
+// does not implement `Display` while `Point` has none — its `to_string` would
+// reach a `Point` with nothing to dispatch to.
+module "snippet"
+
+Point :: struct { x: i32 }
+
+Box :: struct<T> { value: T }
+Box<T> implements<T: Display> Display -> "Box ${self.value}"
+
+main :: fn() -> i32 {
+    fine :: Box<i32> { .value = 1 }
+    bad :: Box<Point> { .value = Point { .x = 2 } }
+    a :: "${fine}"
+    b :: "${bad}"
+    return 0
+}

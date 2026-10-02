@@ -1062,31 +1062,18 @@ check_typeparam_bounds :: fn(
                             + "parameter `${tp.name}` of `${callee_name(c.callee)}`",
                     ),
                 )
-            } else if !satisfies_trait(bound_ty, bound_trait, typed) {
+            } else if !struct_implements_trait(bound_ty, bound_trait.symbol.name, typed) {
                 diags.push(
                     typecheck_error(
                         .TraitNotSatisfied,
                         c.span,
-                        "`${display_type(bound_ty)}` does not implement `${bound_trait.symbol.name}` (required by type parameter `${tp.name}` of `${callee_name(c.callee)}`)",
+                        "`${display_type(bound_ty)}` does not implement `${bound_trait.symbol.name}` (required by type parameter `${tp.name}` of `${callee_name(c.callee)}`)"
+                            + unmet_impl_bound_note(bound_ty, bound_trait.symbol.name, typed),
                     ),
                 )
             }
         }
     }
-}
-
-satisfies_trait :: fn(t: Type, trait_ty: TraitType, typed: TypedProgram) -> bool {
-    name :: dispatch_key(t)
-    if name == "" {
-        return false
-    }
-    bucket :: typed.struct_implemented_traits[name] ?? return false
-    for n in bucket {
-        if n == trait_ty.symbol.name {
-            return true
-        }
-    }
-    return false
 }
 
 lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {

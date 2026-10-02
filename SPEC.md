@@ -1488,6 +1488,8 @@ The angle-bracket list after `implements` introduces the typeParams *for the ent
 
 Compared to the borrowing form (`Foo<T> implements Trait<T>` without an impl-level `<T>`, where `T` aliases the struct's own type-param), the bounded form lets the impl declare *its own* `T` whose bounds are scoped to this block — the struct itself stays unbounded.
 
+**A bounded impl holds only for the arguments its bounds admit.** With `Box<T> implements<T: Display> Display`, `Box<i32>` implements `Display` and `Box<Point>` does not while `Point` has no `Display`: interpolating it is `T3018`, passing it to a `T: Display` parameter is `T3006`, and the detail names the unmet bound. A type argument that is itself a type parameter meets a bound its own bound names; a union meets it when every variant does; a distinct, through its own impl or its backing's. An array does not meet a `Display` bound there — the impl's instance reaches its argument through an erased slot, and no vtable carries an array's `Display`. An `is Trait` test still matches by the type's base, as the run-time test does. The check needs the arguments: a generic struct literal written without them (`Box { .value = p }`) is typed `Box`, and its bounds are not checked.
+
 #### Trait composition
 
 A trait can compose other traits — i.e. require its implementor to satisfy each of them — through one of two declaration shapes:

@@ -1,0 +1,16 @@
+// T3006: a type argument bound by a trait must implement it, a generic impl's
+// own bounds included — `Box<Point>` meets `T: Display` only if `Point` does.
+module "snippet"
+
+Point :: struct { x: i32 }
+
+Box :: struct<T> { value: T }
+Box<T> implements<T: Display> Display -> "Box ${self.value}"
+
+show :: fn<T: Display>(value: T) -> string = "<${value}>"
+
+main :: fn() -> i32 {
+    fine :: show(Box<i32> { .value = 1 })
+    bad :: show(Box<Point> { .value = Point { .x = 2 } })
+    return 0
+}

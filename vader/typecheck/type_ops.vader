@@ -436,16 +436,139 @@ export dispatch_key :: fn(t: Type) -> string {
 }
 
 /// True iff the nominal carrier of `t` is registered as implementing the
-/// trait named `trait_name` in `typed.struct_implemented_traits`. Returns
-/// false for shapes with no nominal name (Union, Fn, Array, …) and for
-/// nominal types that have no impl entry. Shared by `expr?` error-stripping,
-/// trait-bound widening and UFCS dispatch.
-export struct_implements_trait :: fn(t: Type, trait_name: string, typed: TypedProgram) -> bool {
+/// trait named `trait_name` in `typed.struct_implemented_traits` — every
+/// argument of a generic impl included, which is what the run-time `is Trait`
+/// test sees. False for shapes with no nominal name (union, fn, …).
+export base_implements_trait :: fn(t: Type, trait_name: string, typed: TypedProgram) -> bool {
     name :: dispatch_key(t)
-    if name == "" { return false }
+    if name == "" {
+        return false
+    }
     bucket :: typed.struct_implemented_traits[name] ?? return false
-    for n in bucket { if n == trait_name { return true } }
-    return false
+    return trait_name in bucket
+}
+
+/// True iff `t` implements the trait named `trait_name` : its nominal carrier
+/// has an impl of it (`base_implements_trait`), and a generic impl counts only
+/// for the arguments its bounds admit — `Box<T> implements<T: Display>
+/// Display` makes `Box<i32>` implement `Display`, not `Box<Point>` when `Point`
+/// has none (`TypedProgram.impl_bounds`). Shared by trait widening, the T3006 /
+/// T3018 checks and UFCS dispatch.
+export struct_implements_trait :: fn(t: Type, trait_name: string, typed: TypedProgram) -> bool {
+    if !base_implements_trait(t, trait_name, typed) {
+        return false
+    }
+    return blocking_bound(t, trait_name, typed) == null
+}
+
+/// Why `t` does not implement `trait_name` although an impl of it exists for
+/// `t`'s base : the bound its arguments leave unmet, as a detail suffix. Empty
+/// when no impl's bound is what fails.
+///
+/// @param t           the type that failed the check.
+/// @param trait_name  the trait it was checked against.
+export unmet_impl_bound_note :: fn(t: Type, trait_name: string, typed: TypedProgram) -> string {
+    unmet :: blocking_bound(t, trait_name, typed) ?? return ""
+    return (" ; its impl requires `${unmet.bound.name}: ${unmet.required}`, which "
+        + "`${display_type(unmet.arg)}` does not implement")
+}
+
+/// The type arguments a generic impl's bounds speak of : a struct's arguments,
+/// an array's element. Empty for any other type.
+///
+/// @param t  the implementing type.
+export type_arguments :: fn(t: Type) -> Type[] {
+    if t is StructType {
+        return t.args
+    }
+    if t is ArrayType {
+        return [t.element]
+    }
+    no_arguments: Type[]: []
+    return no_arguments
+}
+
+// A bound of a generic impl that one of `t`'s arguments leaves unmet.
+UnmetBound :: struct {
+    bound: ArgBound
+    required: string
+    arg: Type
+}
+
+// What keeps every generic impl of `trait_name` for `t`'s base from holding for
+// `t`'s arguments : the first impl's first unmet bound. Null when an impl holds,
+// or when no generic impl of the trait is recorded for the base.
+blocking_bound :: fn(t: Type, trait_name: string, typed: TypedProgram) -> UnmetBound | null {
+    impls :: typed.impl_bounds[dispatch_key(t)] ?? return null
+    args :: type_arguments(t)
+    if args.len() == 0 {
+        return null
+    }
+    first: UnmetBound | null = null
+    for [_, impl_] in impls {
+        if impl_.trait_name != trait_name {
+            continue
+        }
+        unmet :: first_unmet_bound(args, impl_.bounds, typed)
+        if unmet == null {
+            return null
+        }
+        if first == null {
+            first = unmet
+        }
+    }
+    return first
+}
+
+first_unmet_bound :: fn(args: Type[], bounds: ArgBound[], typed: TypedProgram) -> UnmetBound | null {
+    for bound in bounds {
+        if bound.position >= args.len() {
+            continue
+        }
+        arg :: args[bound.position]
+        for required in bound.traits {
+            if !satisfies_bound(arg, required, typed) {
+                return UnmetBound {
+                    .bound = bound,
+                    .required = required,
+                    .arg = arg,
+                }
+            }
+        }
+    }
+    return null
+}
+
+// Whether `arg`, at a bounded position of a generic impl, implements `trait_name`
+// there. The impl's instance erases that position, so what counts is what a
+// dispatch on the boxed value reaches : a type parameter through its own bound,
+// a union through every variant, a distinct through its own impl or its backing's
+// — and an array not for `Display`, which no vtable carries. A type still unknown
+// here is not held against the impl.
+satisfies_bound :: fn(arg: Type, trait_name: string, typed: TypedProgram) -> bool = match arg {
+    is TypeParamType -> {
+        bound :: typed.resolved.type_param_bounds[arg.symbol.id]
+        bound != null && bounded_trait_args(bound, trait_name, typed) != null
+    }
+    is UnionType     -> all_satisfy_bound(arg.variants, trait_name, typed)
+    is TraitType     -> arg.symbol.name == trait_name || struct_implements_trait(arg, trait_name, typed)
+    is DistinctType  -> (struct_implements_trait(arg, trait_name, typed)
+        || satisfies_bound(arg.backing, trait_name, typed))
+    is ArrayType     -> trait_name != TRAIT_DISPLAY && struct_implements_trait(arg, trait_name, typed)
+    is AnyType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType
+        | SelfType -> true
+    is PrimitiveType | StructType | EnumType | TupleType | FnType | TypeMetaType -> {
+        struct_implements_trait(arg, trait_name, typed)
+    }
+}
+
+all_satisfy_bound :: fn(types: Type[], trait_name: string, typed: TypedProgram) -> bool {
+    for t in types {
+        if !satisfies_bound(t, trait_name, typed) {
+            return false
+        }
+    }
+    return true
 }
 
 /// The trait args recorded for `t implements <trait_name>` in
@@ -646,7 +769,7 @@ export subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedPro
         kept: Type[]!: []
         for v in from.variants {
             if removed_covers(removed, v) { continue }
-            if struct_implements_trait(v, trait_name, typed) { continue }
+            if base_implements_trait(v, trait_name, typed) { continue }
             kept.push(v)
         }
         if kept.len() == 0 { return TY_NEVER }
@@ -654,7 +777,7 @@ export subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedPro
         return mk_union(kept)
     }
     if removed_covers(removed, from) { return TY_NEVER }
-    if struct_implements_trait(from, trait_name, typed) { return TY_NEVER }
+    if base_implements_trait(from, trait_name, typed) { return TY_NEVER }
     return from
 }
 

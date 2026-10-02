@@ -72,6 +72,26 @@ export imported_overloads_table_in :: fn(
     typed: TypedProgram, file: string,
 ) -> MutableMap<string, FnCandidate[]!> | null = typed.imported_fn_overloads[file]
 
+/// A bound a generic impl puts on one argument of the type it implements a trait
+/// for : `Box<T> implements<T: Display> Display` holds for `Box<X>` only when `X`
+/// implements `Display`.
+export ArgBound :: struct {
+    /// The argument's position : a struct's type arguments, an array's element
+    /// at 0.
+    position: usize
+    /// The impl's type parameter at that position, as written.
+    name: string
+    /// The traits the argument must implement.
+    traits: string[]
+}
+
+/// A generic impl, as its bounds see it : the trait it implements and the bounds
+/// it puts on the implementing type's arguments.
+export BoundedImpl :: struct {
+    trait_name: string
+    bounds: ArgBound[]
+}
+
 /// One fn a call to its name may resolve to — an overload declared here, or one
 /// a file's wildcard imports put in unqualified scope.
 ///
@@ -386,9 +406,16 @@ export TypedProgram :: struct {
     struct_field_types: MutableMap<i32, MutableMap<string, Type>>
 
     /// `"${TypeBaseName}" → trait names` for every `X implements
-    /// Trait` impl. Consumed by `type_ops.vader::is_assignable` for
-    /// trait-widening (`Cat → Animal` when `Cat implements Animal`).
+    /// Trait` impl — what the run-time `is Trait` test sees. A generic impl
+    /// counts here for every argument ; `impl_bounds` narrows it to the arguments
+    /// its bounds admit (`struct_implements_trait`).
     struct_implemented_traits: MutableMap<string, string[]!>!
+
+    /// `"${TypeBaseName}"` → impl span hash → each generic impl of that base,
+    /// with the bounds it puts on the type's arguments. Keyed by the impl's span
+    /// because an impl is recorded again at every walk of its module ; an impl
+    /// for a type without arguments puts no bound and is not recorded.
+    impl_bounds: MutableMap<string, MutableMap<u64, BoundedImpl>!>
 
     /// `Symbol.id → trait names` — the id-keyed twin of
     /// `struct_implemented_traits`, populated in lockstep by
@@ -612,6 +639,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .impl_method_traits = MutableMap<string, string[]!> {},
     .struct_field_types = MutableMap<i32, MutableMap<string, Type>> {},
     .struct_implemented_traits = MutableMap<string, string[]!> {},
+    .impl_bounds = MutableMap<string, MutableMap<u64, BoundedImpl>!> {},
     .struct_traits_by_sym = MutableMap<i32, string[]!> {},
     .struct_trait_args = MutableMap<string, MutableMap<string, Type[]!>> {},
     .current_fn_ctx  = null,

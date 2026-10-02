@@ -810,6 +810,7 @@ merge_external_impl_methods :: fn(
             if decl is AST.ImplDecl {
                 for_ty :: type_from_expr(decl.for_type, other.resolved, diag_sink())
                 record_struct_trait(entry_typed, for_ty, decl.trait_name)
+                record_impl_bounds(entry_typed, decl, for_ty, other.resolved)
                 // Trait args resolve in the impl owner's scope so
                 // cross-module impls record concrete types.
                 impl_trait_args: Type[]!: []
@@ -938,6 +939,56 @@ record_struct_trait :: fn(typed: TypedProgram!, for_ty: Type, trait_name: string
     }
     name :: type_base_name(for_ty)
     if name != "" { add_trait_unique(typed.struct_implemented_traits, name, trait_name) }
+}
+
+// The bounds `decl`'s type parameters put on the arguments of `for_ty`, the type
+// it implements its trait for — see `TypedProgram.impl_bounds`. `resolved` is
+// the impl's own module, which holds its type parameters' bounds and the scope
+// they name traits in. An impl for a type without arguments puts no bound.
+record_impl_bounds :: fn(
+    typed: TypedProgram!, decl: AST.ImplDecl, for_ty: Type, resolved: ResolvedModule,
+) -> void {
+    args :: type_arguments(for_ty)
+    if args.is_empty() {
+        return
+    }
+    bounds: ArgBound[]!: []
+    for i in 0..<args.len() {
+        arg :: args[i]
+        if arg is TypeParamType {
+            bound :: resolved.type_param_bounds[arg.symbol.id] ?? continue
+            traits: string[]!: []
+            collect_bound_traits(bound, resolved, traits)
+            bounds.push(ArgBound {
+                .position = i,
+                .name = arg.symbol.name,
+                .traits = traits,
+            })
+        }
+    }
+    entry :: BoundedImpl { .trait_name = decl.trait_name, .bounds = bounds }
+    base :: type_base_name(for_ty)
+    per_impl :: typed.impl_bounds[base]
+    if per_impl == null {
+        fresh :: MutableMap<u64, BoundedImpl> {}
+        fresh[decl.span.hash()] = entry
+        typed.impl_bounds[base] = fresh
+    } else {
+        per_impl[decl.span.hash()] = entry
+    }
+}
+
+// The traits `bound` names — one, or an `A & B` chain — resolved in `resolved`.
+collect_bound_traits :: fn(bound: AST.Expr, resolved: ResolvedModule, out: string[]!) -> void {
+    if bound is AST.BinaryExpr && bound.op == .BitAnd {
+        collect_bound_traits(bound.left, resolved, out)
+        collect_bound_traits(bound.right, resolved, out)
+        return
+    }
+    bound_type :: type_from_expr(bound, resolved, diag_sink())
+    if bound_type is TraitType {
+        out.push(bound_type.symbol.name)
+    }
 }
 
 record_struct_trait_args :: fn(
@@ -2113,6 +2164,7 @@ export walk_bodies :: fn(
         if decl is AST.ImplDecl {
             for_ty :: type_from_expr(decl.for_type, typed.resolved, diag_sink())
             record_struct_trait(typed, for_ty, decl.trait_name)
+            record_impl_bounds(typed, decl, for_ty, typed.resolved)
         }
     }
     for decl in decls {
