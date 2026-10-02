@@ -35,15 +35,9 @@ intellijPlatform {
 }
 
 tasks.processResources {
-    val grammar = layout.projectDirectory.file("../common/vader.tmLanguage.json")
-    val languageConfig = layout.projectDirectory.file("../common/language-configuration.json")
-    val vaderIcon = layout.projectDirectory.file("../common/vader.svg")
-    val virIcon = layout.projectDirectory.file("../common/vir.svg")
+    val common = layout.projectDirectory.dir("../common")
 
-    from(grammar) { into("bundle/syntaxes/") }
-    from(languageConfig) { into("bundle/") }
-    from(vaderIcon) { into("icons/") }
-    from(virIcon) { into("icons/") }
-
-    inputs.files(grammar, languageConfig, vaderIcon, virIcon)
+    from(common) { include("*.tmLanguage.json"); into("bundle/syntaxes/") }
+    from(common) { include("*language-configuration.json"); into("bundle/") }
+    from(common) { include("*.svg"); into("icons/") }
 }

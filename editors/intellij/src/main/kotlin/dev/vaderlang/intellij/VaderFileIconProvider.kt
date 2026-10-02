@@ -10,7 +10,7 @@ class VaderFileIconProvider : FileIconProvider {
     override fun getIcon(file: VirtualFile, flags: Int, project: Project?): Icon? =
         when (file.extension?.lowercase()) {
             "vader" -> VADER
-            "vir" -> VIR
+            "vir", "virt" -> VIR
             else -> null
         }
 

@@ -7,5 +7,5 @@ package-lock.json
 # editors/common/, LICENSE from the repo root).
 icons/
 syntaxes/
-language-configuration.json
+*language-configuration.json
 LICENSE

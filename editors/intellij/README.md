@@ -5,6 +5,7 @@ IntelliJ Platform plugin providing syntax highlighting **plus full LSP integrati
 ## Features
 
 - Syntax highlighting for `.vader` files via the bundled `org.jetbrains.plugins.textmate` plugin
+- Syntax highlighting and folding for `.virt` files — the text bytecode `vader dump --stage=bytecode` writes (highlighting only, no language server)
 - Grammar shared with the [VS Code extension](../vscode/) through [`editors/common/`](../common/) — single source of truth, no duplication
 - **LSP-driven semantic features** : goto-definition (with the Ctrl/Cmd-hover preview link), hover with VaderDoc, semantic tokens, diagnostics — delivered by the Vader Language Server (`vader lsp`) and wired through LSP4IJ
 
@@ -68,4 +69,4 @@ Use it to iterate without rebuilding and reinstalling each time.
 
 ## Shared grammar
 
-The TextMate grammar (`vader.tmLanguage.json`) and `language-configuration.json` are **not** stored in this folder. They live in [`editors/common/`](../common/) and are copied into the plugin resources at build time by Gradle's `processResources` task. To evolve the grammar, edit the files in `editors/common/` and rebuild.
+The TextMate grammars (`vader.tmLanguage.json`, `virt.tmLanguage.json`) and their language configurations are **not** stored in this folder. They live in [`editors/common/`](../common/) and are copied into the plugin resources at build time by Gradle's `processResources` task. To evolve the grammar, edit the files in `editors/common/` and rebuild.

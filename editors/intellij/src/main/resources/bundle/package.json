@@ -11,6 +11,12 @@
         "aliases": ["Vader", "vader"],
         "extensions": [".vader"],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "virt",
+        "aliases": ["Vader IR (text)", "virt"],
+        "extensions": [".virt"],
+        "configuration": "./virt.language-configuration.json"
       }
     ],
     "grammars": [
@@ -18,6 +24,11 @@
         "language": "vader",
         "scopeName": "source.vader",
         "path": "./syntaxes/vader.tmLanguage.json"
+      },
+      {
+        "language": "virt",
+        "scopeName": "source.virt",
+        "path": "./syntaxes/virt.tmLanguage.json"
       }
     ]
   }

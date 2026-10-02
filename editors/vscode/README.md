@@ -5,6 +5,7 @@ VS Code extension for the [Vader](../../README.md) programming language. Provide
 ## Features
 
 - Syntax highlighting for `.vader` files
+- Syntax highlighting and folding for `.virt` files — the text bytecode `vader dump --stage=bytecode` and `vader build --emit=bytecode-text` write (no language server: highlighting only)
 - Semantic tokens via the Vader Language Server (richer highlighting for keywords, types, functions, parameters, decorators, and VaderDoc `@param` / `@return` / `@error` / `@example` tags)
 - Comment toggling (`//`, `/* */`, `///`) and `///` auto-continuation on Enter
 - Bracket matching and auto-closing pairs
@@ -23,7 +24,7 @@ The extension spawns the Vader CLI to host the Language Server. Install the `vad
 
 ## Shared grammar
 
-The TextMate grammar (`vader.tmLanguage.json`) and `language-configuration.json` live in [`editors/common/`](../common/) and are copied here by `node sync.js`. `vsce package` invokes the sync via the `vscode:prepublish` hook so the packaged grammar is always current.
+The TextMate grammars (`vader.tmLanguage.json`, `virt.tmLanguage.json`) and their language configurations live in [`editors/common/`](../common/) and are copied here by `node sync.js`. `vsce package` invokes the sync via the `vscode:prepublish` hook so the packaged grammar is always current.
 
 ## Install locally
 

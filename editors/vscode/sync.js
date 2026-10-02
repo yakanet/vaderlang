@@ -5,12 +5,17 @@ const path = require('node:path');
 const HERE = __dirname;
 const COMMON = path.resolve(HERE, '../common');
 
-const files = [
-  ['vader.tmLanguage.json',     'syntaxes/vader.tmLanguage.json'],
-  ['language-configuration.json', 'language-configuration.json'],
-  ['vader.svg',                 'icons/vader.svg'],
-  ['vir.svg',                   'icons/vir.svg'],
-];
+// Where each kind of shared file lands in the extension — the same layout
+// `editors/intellij/build.gradle.kts` gives the plugin's bundle.
+const destination = (name) =>
+  name.endsWith('.tmLanguage.json') ? `syntaxes/${name}` :
+  name.endsWith('language-configuration.json') ? name :
+  name.endsWith('.svg') ? `icons/${name}` :
+  null;
+
+const files = fs.readdirSync(COMMON)
+  .map((name) => [name, destination(name)])
+  .filter(([, dst]) => dst !== null);
 
 for (const [src, dst] of files) {
   const from = path.join(COMMON, src);
