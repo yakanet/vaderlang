@@ -3,6 +3,7 @@
 
 module "vader/lower"
 
+import "std/abort"
 import "std/collections"
 
 import "toolchain/ast"
@@ -43,10 +44,14 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
         if recv_type is TraitType {
             if ctx.typed.ufcs_receiver_types[callee_field.id] is null { return null }
         }
-        // Impl-member path first (e.g. `x.to_string()` over
-        // `i32 implements Display { to_string }`).
-        member :: impl_member_or_enum(ctx, recv_type, callee_field.field)
-        if !(member is null) {
+        // A free fn typecheck chose is the call : it ranked the candidates the
+        // call site's file can see, which neither an impl member probed here nor
+        // a search over every loaded module reproduces.
+        chosen :: settled_choice(ctx, callee_field.id, callee_field.target)
+        if chosen == null {
+            // An impl member (e.g. `x.to_string()` over
+            // `i32 implements Display { to_string }`).
+            member :: impl_member_or_enum(ctx, recv_type, callee_field.field)
             if member is UfcsMember {
                 // An impl member's recorded signature is receiver-dropped, so its
                 // types line up with the call's own args from slot 0. The receiver
@@ -61,10 +66,13 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
                 }
             }
         }
-        // Free-fn UFCS : look in `resolved.fn_overloads` for a fn whose
-        // first param's nominal type matches the receiver's surface name.
-        // Covers `a.inc()` over an `inc :: fn(self: A) -> i32` free fn.
-        free :: find_free_fn_ufcs(ctx, recv_type, callee_field.field)
+        // Free-fn UFCS : the fn typecheck chose, else a fn whose first param's
+        // nominal type matches the receiver's surface name.
+        free :: if chosen != null {
+            UfcsMember { .symbol = chosen }
+        } else {
+            find_free_fn_ufcs(ctx, recv_type, callee_field.field)
+        }
         if !(free is null) {
             if free is UfcsMember {
                 // Prepare the receiver AND every argument against the free fn's
@@ -104,6 +112,34 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
     return null
 }
 
+/// The free fn typecheck chose for the UFCS call `receiver.<name>(…)` whose
+/// callee is `callee_id`, when that choice holds for the body being lowered.
+/// A body generic over its receiver was checked once for every instance, so a
+/// choice made against a type parameter says nothing of this instance : null
+/// then, and the caller searches against the concrete receiver.
+///
+/// @param callee_id  the call's `FieldExpr`.
+/// @param receiver   the receiver expression, as typecheck saw it.
+/// @return           the chosen fn, or null when there is none to hold to.
+export settled_choice :: fn(ctx: FnLowerCtx, callee_id: usize, receiver: Expr) -> Symbol | null {
+    chosen :: chosen_symbol(ctx.typed, callee_id)
+    if chosen == null {
+        // Typecheck writes the receiver slot and the choice together.
+        if ctx.typed.ufcs_receiver_types[callee_id] != null {
+            unreachable("lower_ufcs: a free-fn UFCS dispatch recorded no chosen fn")
+        }
+        return null
+    }
+    if type_contains_type_param(ctx.types.raw_expr_type(receiver)) {
+        return null
+    }
+    return chosen
+}
+
+// The free fn a UFCS call reaches by searching — for a call no typecheck chose
+// for (the lowering builds one itself), or one it chose against a type parameter
+// (`settled_choice`). This search spans every loaded module, whatever the call
+// site's file imports.
 find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsMember | null {
     // Unions have no nominal surface name ; they still dispatch UFCS to a
     // free fn whose first param is the same union (`shape.describe()` ->
@@ -116,9 +152,8 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
     if recv_name == "" && !(recv_type is UnionType) && !(recv_type is TraitType) { return null }
     // Keep the `first_param_matches` gate for eligibility, but among the eligible
     // candidates pick the one with the HIGHEST receiver specificity — a concrete
-    // union member beats a bare `T` wildcard (see `overload_specificity`). This
-    // mirrors the typer's UFCS pick (field.vader) so the two passes agree. A
-    // strict `>` keeps the first among equals : local wins over imported, which
+    // union member beats a bare `T` wildcard (see `overload_specificity`), as the
+    // typer's UFCS pick (field.vader) does. A strict `>` keeps the first among equals : local wins over imported, which
     // wins over cross-module (the buckets are scanned in that order).
     best: Symbol | null = null
     best_spec: i32 = -1

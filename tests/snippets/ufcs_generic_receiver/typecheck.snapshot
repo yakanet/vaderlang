@@ -1,0 +1,32 @@
+# Typecheck
+
+## tests/snippets/ufcs_generic_receiver
+  FnDecl         describe             :: fn(T) -> string
+  FnDecl         describe             :: fn(i32) -> string
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         show                 :: fn(T) -> string
+  expr 10:39    StringLitExpr  :: string
+  expr 10:46    IdentExpr      :: i32
+  expr 12:46    CallExpr       :: string
+  expr 12:46    FieldExpr      :: fn() -> string
+  expr 12:46    IdentExpr      :: T
+  expr 15:13    CallExpr       :: string
+  expr 15:13    IdentExpr      :: fn(T) -> string
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 16:13    CallExpr       :: string
+  expr 16:13    IdentExpr      :: fn(T) -> string
+  expr 16:18    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 17:13    CallExpr       :: string
+  expr 17:13    FieldExpr      :: fn() -> string
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 18:13    CallExpr       :: string
+  expr 18:13    FieldExpr      :: fn() -> string
+  expr 18:13    StringLitExpr  :: string
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 8:49     StringLitExpr  :: string
+  expr 8:60     IdentExpr      :: T

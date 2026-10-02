@@ -1,0 +1,11 @@
+module "snippet/aaa"
+
+import "std/io"
+
+export f :: fn(x: string) -> void {
+    println("aaa ${x}")
+}
+
+export f :: fn<T>(xs: T[]) -> void {
+    println("aaa ${xs.len()} items")
+}

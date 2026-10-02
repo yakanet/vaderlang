@@ -1,0 +1,7 @@
+# stdout
+i32 1
+generic s
+i32 1
+generic t
+# exit
+0

@@ -83,7 +83,7 @@ ConsumerCall :: struct {
 is_known_non_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> bool {
     callee :: combinator_effective_callee(call.callee)
     if callee is AST.FieldExpr {
-        decl :: ctx.typed.chosen_decls[callee.id] ?? return false
+        decl :: chosen_decl(ctx.typed, callee.id) ?? return false
         return decl.span.hash() in ctx.project.non_consumers
     }
     return false

@@ -86,7 +86,8 @@ lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
 // Non-primary overload picks display the call's *result* type on the
 // callee ident. The typer flagged these in
 // `overload_result_callees` ; rebuild the lowered ident with the
-// result type AND re-point its symbol at the picked overload.
+// result type AND re-point its symbol at the overload typecheck chose
+// (`chosen_fns`).
 //
 // The resolver binds an overloaded ident to the PRIMARY (first-declared)
 // overload ; `pick_overload` then patches the callee's expr-type to the
@@ -102,58 +103,11 @@ retype_overload_callee :: fn(
     if callee_ast is IdentExpr {
         if ctx.typed.overload_result_callees[callee_ast.id] is null { return lowered }
         if lowered is LoweredIdent {
-            symbol := lowered.symbol
-            // The picked overload's signature is the callee ident's patched
-            // type. Match it back to a Symbol so the emitted call resolves
-            // to the right body.
-            if lowered.type is FnType as picked {
-                found :: find_picked_overload_symbol(ctx, callee_ast.name, picked)
-                if found != null { symbol = found }
-            }
+            symbol :: chosen_symbol(ctx.typed, callee_ast.id) ?? lowered.symbol
             return LoweredIdent { .span = lowered.span, .type = result_type, .symbol = symbol }
         }
     }
     return lowered
-}
-
-// Find the overload SYMBOL whose param list matches `picked` — the FnType
-// `pick_overload` selected for an overloaded direct call. Matches on
-// PARAMS only :
-// imported overloads' return types are frequently unsettled (`?`) at lower
-// time, but param lists are always concrete (straight from the decl
-// signature) and uniquely identify an overload (the resolver rejects two
-// overloads with identical params). The module being lowered is tried first,
-// then the cross-module scan mirrors `find_free_fn_ufcs` — every loaded
-// module's bucket carries the candidates.
-//
-// @param name    the callee identifier name.
-// @param picked  the overload FnType typecheck selected.
-// @return        the matching overload Symbol, or null when none matches —
-//                the caller then keeps the resolver primary.
-find_picked_overload_symbol :: fn(ctx: FnLowerCtx, name: string, picked: FnType) -> Symbol | null {
-    local :: match_overload_in_bucket(ctx.typed, name, picked)
-    if local != null { return local }
-    for [_, ep] in ctx.project.evaluated.modules {
-        found :: match_overload_in_bucket(ep.typed, name, picked)
-        if found != null { return found }
-    }
-    return null
-}
-
-// The overload symbol in `typed`'s `fn_overloads[name]` bucket whose declared
-// param list matches `picked` (return type ignored — see caller). Null when
-// the bucket is absent or no overload matches.
-match_overload_in_bucket :: fn(typed: TypedProgram, name: string, picked: FnType) -> Symbol | null {
-    bucket :: typed.resolved.fn_overloads[name]
-    if bucket is Symbol[] as syms {
-        for sym in syms {
-            dt :: typed.decl_types[sym.id]
-            if dt is FnType {
-                if type_list_equals(dt.params, picked.params) { return sym }
-            }
-        }
-    }
-    return null
 }
 
 /// The parameter types of a callee's fn type.

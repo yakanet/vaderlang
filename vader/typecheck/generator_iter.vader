@@ -152,7 +152,7 @@ iterator_element_of :: fn(t: Type) -> Type | null {
 // dispatched to, the overload a direct call picked — else the one its callee
 // names.
 callee_decl :: fn(c: AST.CallExpr, typed: TypedProgram) -> AST.FnDecl | null {
-    chosen :: typed.chosen_decls[c.callee.id]
+    chosen :: chosen_decl(typed, c.callee.id)
     if chosen != null {
         return chosen
     }

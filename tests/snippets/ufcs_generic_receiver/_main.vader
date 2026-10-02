@@ -1,0 +1,20 @@
+// A UFCS call inside a body generic over its receiver : the body is checked once
+// for every `T`, so which `describe` fits is only known per instance — `i32`'s
+// own overload for `show(1)`, the generic one for `show("s")`.
+module "snippet"
+
+import "std/io"
+
+describe :: fn<T: Display>(self: T) -> string = "generic ${self}"
+
+describe :: fn(self: i32) -> string = "i32 ${self}"
+
+show :: fn<T: Display>(value: T) -> string = value.describe()
+
+main :: fn() -> i32 {
+    println(show(1))
+    println(show("s"))
+    println(1.describe())
+    println("t".describe())
+    return 0
+}

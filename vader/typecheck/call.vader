@@ -155,9 +155,9 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
 }
 
 // Record a chosen overload : patch the callee IdentExpr's type so the dump
-// shows the picked signature, keep the declaration it runs, and mark
+// shows the picked signature, keep the fn it runs, and mark
 // non-primary picks so the lowerer emits the call's result type on the callee
-// ident (imported overloads carry no primary, so they are always non-primary).
+// ident.
 commit_overload_pick :: fn(
     picked: FnCandidate,
     c: AST.CallExpr,
@@ -166,9 +166,7 @@ commit_overload_pick :: fn(
 ) -> FnType {
     ft :: picked.ty
     typed.expr_types[c.callee.id] = ft
-    if picked.decl != null {
-        typed.chosen_decls[c.callee.id] = picked.decl
-    }
+    typed.chosen_fns[c.callee.id] = picked
     if is_nonprimary_pick(ft, primary_ft) {
         typed.overload_result_callees[c.callee.id] = true
     }
@@ -217,7 +215,11 @@ collect_overload_candidates :: fn(
         for sym in bucket {
             ft :: typed.decl_types[sym.id] ?? continue
             if ft is FnType {
-                out.push(FnCandidate { .ty = ft, .decl = typed.fn_decls[sym.id] })
+                out.push(FnCandidate {
+                    .ty = ft,
+                    .symbol = sym,
+                    .decl = typed.fn_decls[sym.id],
+                })
             }
         }
     }
@@ -461,7 +463,7 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
         // receiver, which is what lines up with the curried callee type. Beats
         // re-deriving the winner from the receiver type — the same answer, and
         // one the imported half cannot give at all.
-        chosen :: typed.chosen_decls[fe.id]
+        chosen :: chosen_decl(typed, fe.id)
         if chosen is AST.FnDecl {
             return ufcs_tail_params(chosen)
         }

@@ -1,0 +1,7 @@
+module "snippet/bbb"
+
+import "std/io"
+
+export f :: fn(x: string) -> void {
+    println("bbb ${x}")
+}

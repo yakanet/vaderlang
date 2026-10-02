@@ -1,0 +1,28 @@
+// A call runs the fn typecheck chose among what the call site's file can see. A
+// module imported only behind a namespace alias provides no unqualified name : its
+// `f` and its `tag` are reached as `B.f` / `O.tag`, never by a bare `f("s")` nor by
+// `"k".tag()` — even where its signature fits the call better than the one in
+// scope. A generic overload picked from an imported module is the one instantiated,
+// not the first `f` the name binds to.
+module "snippet"
+
+B :: import "snippet/bbb"
+O :: import "snippet/other"
+import "snippet/aaa"
+import "std/io"
+
+f :: fn(x: i32) -> void {
+    println("local ${x}")
+}
+
+tag :: fn<T: Display>(self: T) -> string = "local ${self}"
+
+main :: fn() -> i32 {
+    f("s")
+    f(1)
+    f([1, 2, 3])
+    B.f("b")
+    println("k".tag())
+    println(O.tag("o"))
+    return 0
+}

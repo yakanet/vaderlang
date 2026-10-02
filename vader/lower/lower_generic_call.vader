@@ -84,7 +84,9 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) ->
     if callee_ident is IdentExpr {
         raw_sym :: resolve_ident(ctx, callee_ident.span) ?? return null
         if raw_sym is Symbol {
-            fn_sym :: follow_import_binding(ctx, raw_sym)
+            // An overloaded name binds to its first declaration ; the overload
+            // typecheck picked is the one this call instantiates.
+            fn_sym :: chosen_symbol(ctx.typed, callee_ident.id) ?? follow_import_binding(ctx, raw_sym)
             if fn_sym.kind != .Fn { return null }
             // Probe the callee's recorded signature (substituted — unchanged
             // for every call site).

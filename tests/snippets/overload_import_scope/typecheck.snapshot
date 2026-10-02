@@ -1,0 +1,59 @@
+# Typecheck
+
+## tests/snippets/overload_import_scope
+  FnDecl         f                    :: fn(i32) -> void
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         tag                  :: fn(T) -> string
+  expr 15:13    StringLitExpr  :: string
+  expr 15:22    IdentExpr      :: i32
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 18:44    StringLitExpr  :: string
+  expr 18:53    IdentExpr      :: T
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 21:7     StringLitExpr  :: string
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(i32) -> void
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T[]) -> void
+  expr 23:7     SeqLitExpr     :: i32[]
+  expr 24:5     CallExpr       :: void
+  expr 24:5     FieldExpr      :: fn(string) -> void
+  expr 24:9     StringLitExpr  :: string
+  expr 25:13    CallExpr       :: string
+  expr 25:13    FieldExpr      :: fn() -> string
+  expr 25:13    StringLitExpr  :: string
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 26:13    CallExpr       :: string
+  expr 26:13    FieldExpr      :: fn(string) -> string
+  expr 26:19    StringLitExpr  :: string
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/overload_import_scope/aaa
+  FnDecl         f                    :: fn(string) -> void
+  FnDecl         f                    :: fn(T[]) -> void
+  expr 10:13    StringLitExpr  :: string
+  expr 10:20    CallExpr       :: usize
+  expr 10:20    FieldExpr      :: fn() -> usize
+  expr 10:20    IdentExpr      :: T[]
+  expr 10:5     CallExpr       :: void
+  expr 10:5     IdentExpr      :: fn(T) -> void
+  expr 6:13     StringLitExpr  :: string
+  expr 6:20     IdentExpr      :: string
+  expr 6:5      CallExpr       :: void
+  expr 6:5      IdentExpr      :: fn(T) -> void
+
+## tests/snippets/overload_import_scope/bbb
+  FnDecl         f                    :: fn(string) -> void
+  expr 6:13     StringLitExpr  :: string
+  expr 6:20     IdentExpr      :: string
+  expr 6:5      CallExpr       :: void
+  expr 6:5      IdentExpr      :: fn(T) -> void
+
+## tests/snippets/overload_import_scope/other
+  FnDecl         tag                  :: fn(string) -> string
+  expr 3:44     StringLitExpr  :: string
+  expr 3:53     IdentExpr      :: string

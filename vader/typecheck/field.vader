@@ -238,16 +238,15 @@ try_free_fn_ufcs_dispatch :: fn(
     diags: Diagnostic[]!,
 ) -> Type | null {
     free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, e.span.start.file, typed) ?? return null
-    typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
-    chosen :: free_ufcs.decl
-    if chosen != null {
-        typed.chosen_decls[e.id] = chosen
-    }
+    first_param :: free_ufcs.winner.ty.params[0]
+    typed.ufcs_receiver_types[e.id] = first_param
+    typed.chosen_fns[e.id] = free_ufcs.winner
     // T3071 on THIS dispatch path too. A mutator declared as a free fn called via
     // UFCS — `put`, `remove`, `clear`, `append` — is the dominant stdlib style, and
     // it never reached the check while it lived only in `try_impl_method_ufcs`.
+    self_mutable :: param_mutable_at(free_ufcs.winner.ty, 0)
     reject_mutating_method_on_immutable(
-        ImplMethod { .ty = free_ufcs.curried, .self_mutable = free_ufcs.self_mutable },
+        ImplMethod { .ty = free_ufcs.curried, .self_mutable = self_mutable },
         e, target_ty, typed, diags,
     )
     // A `T[]` receiver fitting an `Iterator<T>` first param coerces through the
@@ -257,8 +256,8 @@ try_free_fn_ufcs_dispatch :: fn(
     // so without this `arr.method()` would miss the hint that `method(arr)` gets.
     // Trait widening isn't an `.into()`, so (as in `try_into`) it's excluded :
     // only the array→iterator blanket records.
-    if try_array_to_iter(target_ty, free_ufcs.first_param) {
-        typed.into_coercions[e.target.id] = free_ufcs.first_param
+    if try_array_to_iter(target_ty, first_param) {
+        typed.into_coercions[e.target.id] = first_param
     }
     return free_ufcs.curried
 }
@@ -1197,13 +1196,8 @@ type_from_expr_opt_in :: fn(e: AST.TypeExpr | null, resolved: ResolvedModule) ->
 
 UfcsResult :: struct {
     curried: Type
-    first_param: Type
-    /// True when the winning overload declares its receiver `self!` — read off the
-    /// `FnType`'s marker vector, so no `FnDecl` lookup is needed.
-    self_mutable: bool = false
-    /// The winner's declaration, when one is reachable. Null for a candidate
-    /// that came from the imported table, which carries types only.
-    decl: AST.FnDecl | null = null
+    /// The winning overload, in the module that declares it.
+    winner: FnCandidate
 }
 
 try_free_fn_ufcs_with_first :: fn(
@@ -1217,43 +1211,20 @@ try_free_fn_ufcs_with_first :: fn(
     // concrete union member beats a bare `T` wildcard (see
     // `overload_specificity` in call.vader, same module). Local and imported
     // overloads rank together ; a strict `>` keeps the first among equals, so a
-    // local overload wins a tie over an imported one (locals scanned first).
+    // local overload wins a tie over an imported one (locals come first). The
+    // imported half is the call site's FILE's, not the module's : two files of
+    // one module import different things (SPEC §"Modules").
     best: UfcsResult | null = null
     best_spec: i32 = -1
-    bucket :: typed.resolved.fn_overloads[name]
-    if bucket !is null {
-        for sym in bucket {
-            ft :: typed.decl_types[sym.id] ?? continue
-            if ft !is FnType        { continue }
-            if ft.params.len() == 0 { continue }
-            curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
-            spec :: overload_specificity(target_ty, ft.params[0])
-            if spec > best_spec {
-                best = UfcsResult {
-                    .curried = curried, .first_param = ft.params[0],
-                    .self_mutable = param_mutable_at(ft, 0),
-                    .decl = typed.fn_decls[sym.id],
-                }
-                best_spec = spec
-            }
-        }
-    }
-    // The importED half is scoped to the CALL SITE's file, not the module: two
-    // files of one module import different things (SPEC §"Modules").
-    for imported in imported_overloads_in(typed, file, name) {
-        ft :: imported.ty
+    for candidate in collect_overload_candidates(name, file, typed) {
+        ft :: candidate.ty
         if ft.params.len() == 0 {
             continue
         }
         curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
         spec :: overload_specificity(target_ty, ft.params[0])
         if spec > best_spec {
-            best = UfcsResult {
-                .curried = curried,
-                .first_param = ft.params[0],
-                .self_mutable = param_mutable_at(ft, 0),
-                .decl = imported.decl,
-            }
+            best = UfcsResult { .curried = curried, .winner = candidate }
             best_spec = spec
         }
     }

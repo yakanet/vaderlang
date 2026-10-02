@@ -1126,6 +1126,10 @@ reset_expr_tables :: fn(typed: TypedProgram!) -> void {
     typed.expr_kinds = MutableMap<usize, string> {}
     typed.node_spans = MutableMap<usize, Span> {}
     typed.ufcs_receiver_types = MutableMap<usize, Type> {}
+    // The lowering calls the fn recorded here : a pick the settle walk left
+    // behind would outlive the full walk's.
+    typed.chosen_fns = MutableMap<usize, FnCandidate> {}
+    typed.overload_result_callees = MutableMap<usize, bool> {}
     typed.local_types = MutableMap<u64, Type> {}
     // The whole narrowing machine, not table by table: a sixth table added to
     // `NarrowState` is then reset here for free instead of being silently left
@@ -1678,7 +1682,11 @@ push_renamed_imports :: fn(entry_typed: TypedProgram!) -> void {
         // so the decl travels with it exactly as a wildcard's does.
         push_overload(
             file_overload_table(entry_typed, where.start.file), local.name,
-            FnCandidate { .ty = ty, .decl = entry_typed.fn_decls[st.symbol.id] },
+            FnCandidate {
+                .ty = ty,
+                .symbol = st.symbol,
+                .decl = entry_typed.fn_decls[st.symbol.id],
+            },
         )
     }
 }
@@ -1719,7 +1727,11 @@ push_module_exported_fns :: fn(
                     // parameter names and defaults, which a UFCS call site in
                     // the importing module has no other way to reach.
                     fd :: from.fn_decls[sym.id]
-                    push_overload(table, name, FnCandidate { .ty = ty, .decl = fd })
+                    push_overload(table, name, FnCandidate {
+                        .ty = ty,
+                        .symbol = sym,
+                        .decl = fd,
+                    })
                     // And the defaults' own name resolutions travel with it —
                     // they are lowered in the CALLER's context. See
                     // `import_defaults.vader`.

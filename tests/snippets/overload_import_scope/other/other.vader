@@ -1,0 +1,3 @@
+module "snippet/other"
+
+export tag :: fn(self: string) -> string = "other ${self}"

@@ -92,7 +92,8 @@ call_target :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> CallTarget | null {
     } else if callee !is AST.IdentExpr {
         return null
     }
-    symbol :: callee_symbol(ctx, call, callee) ?? return null
+    receiver :: if callee is AST.FieldExpr { callee.target } else { callee }
+    symbol :: combinator_callee_sym(ctx, call, receiver) ?? return null
     owner :: resolve_owner_typed(ctx, symbol.module) ?? return null
     decl :: owner.fn_decls[symbol.id] ?? return null
     args: AST.Expr[]!: []
@@ -111,23 +112,6 @@ call_target :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> CallTarget | null {
         .decl = decl,
         .args = args,
     }
-}
-
-// The symbol `callee` names: a UFCS callee resolves through its receiver, an
-// ident through itself — to the overload typecheck picked, when it is not the
-// first one, which is the one the resolver binds an overloaded name to.
-callee_symbol :: fn(ctx: FnLowerCtx, call: AST.CallExpr, callee: AST.Expr) -> Symbol | null {
-    if callee is AST.IdentExpr {
-        if ctx.typed.overload_result_callees[callee.id] != null {
-            picked :: ctx.types.expr_type(callee)
-            if picked is FnType {
-                return find_picked_overload_symbol(ctx, callee.name, picked)
-            }
-            return null
-        }
-    }
-    receiver :: if callee is AST.FieldExpr { callee.target } else { callee }
-    return combinator_callee_sym(ctx, call, receiver)
 }
 
 // The declared signature of `callee`, null when typecheck recorded none.
@@ -383,17 +367,27 @@ match_source_loop :: fn(stmt: AST.Stmt, decl: AST.FnDecl) -> GenSourceLoop | nul
 }
 
 // The resolved callee symbol of a combinator call — the free-fn symbol for a UFCS
-// `recv.name(arg)` (via the receiver type) or a direct `name(recv, arg)` ident.
+// `recv.name(arg)` or a direct `name(recv, arg)` ident : the fn typecheck chose,
+// else the one the receiver type or the ident names. An overloaded name binds to
+// its first declaration, which is not the one a pick of another runs.
 combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr, receiver: AST.Expr) -> Symbol | null {
     // Unwrap an explicit type-arg wrapper (`chain<T>(...)`) to the inner callee,
     // mirroring `unpack_fluent_combinator`, so the sym resolves.
     @partial match combinator_effective_callee(call.callee) as fe {
         is AST.FieldExpr -> {
+            chosen :: settled_choice(ctx, fe.id, receiver)
+            if chosen != null {
+                return chosen
+            }
             found :: find_free_fn_ufcs(ctx, ctx.types.expr_type(receiver), fe.field)
             if found is UfcsMember { return found.symbol }
             return null
         }
         is AST.IdentExpr -> {
+            chosen :: chosen_symbol(ctx.typed, fe.id)
+            if chosen != null {
+                return chosen
+            }
             sym :: resolve_ident(ctx, fe.span) ?? return null
             // A directly-called imported combinator resolves to the `import`
             // ImportBinding ; follow it to the OWNER fn so `resolve_owner_typed`

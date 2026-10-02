@@ -415,6 +415,12 @@ const C_PARITY = new Set<string>([
   "array_display",
   // A scalar compared with a union holding its type, `null` against a zero.
   "union_scalar_equality",
+  // An overloaded call and a UFCS call run the fn typecheck chose, never one of a
+  // module imported behind a namespace alias.
+  "overload_import_scope",
+  // A UFCS call in a generic body resolved per instance, against the concrete
+  // receiver.
+  "ufcs_generic_receiver",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.
