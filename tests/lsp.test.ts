@@ -1838,3 +1838,62 @@ test("lsp: a field never masks a top-level fn of the same name", async () => {
   expect(lineOf(results[0]!.result)).toBe(9);
   expect(lineOf(results[1]!.result)).toBe(7);
 });
+
+const RANGE_LAST_SOURCE = `module "lsptest"
+
+import "std/io"
+import "std/iter"
+
+main :: fn() -> i32 {
+    match (10..=15).last() as v {
+        is i32  -> println(v)
+        is null -> println("none")
+    }
+    return 0
+}
+`;
+
+// `last` is overloaded over `T[]` and `Iterator<T>` ; a `Range` receiver resolves
+// to the `Iterator` one.
+test("lsp: hover and goto-def follow the overload typecheck chose", async () => {
+  const results = await driveLsp(RANGE_LAST_SOURCE, [
+    { method: "textDocument/hover", position: { line: 6, character: 21 } },
+    { method: "textDocument/definition", position: { line: 6, character: 21 } },
+  ]);
+  const hover = results[0]!.result as Hover;
+  expect(hover.contents.value).toContain("last :: fn<T>(it: Iterator<T>) -> T | null");
+  const loc = results[1]!.result as Location;
+  expect(loc.uri.split("/").pop()).toBe("iter.vader");
+});
+
+// A `match` header's alias hovers as the scrutinee's type, not as the `match`'s
+// `void`, and as the narrowed type inside an arm.
+test("lsp: a match header's alias hovers as its scrutinee", async () => {
+  const results = await driveLsp(RANGE_LAST_SOURCE, [
+    { method: "textDocument/hover", position: { line: 6, character: 30 } },
+    { method: "textDocument/hover", position: { line: 7, character: 27 } },
+  ]);
+  expect((results[0]!.result as Hover).contents.value).toContain("```vader\ni32 | null\n```");
+  expect((results[1]!.result as Hover).contents.value).toContain("```vader\ni32\n```");
+});
+
+const IF_ALIAS_SOURCE = `module "lsptest"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    x: i32 | string: 3
+    if x != 0 && x is i32 as n {
+        println("\${n}")
+    }
+    return 0
+}
+`;
+
+// An `is T as x` alias hovers as the narrowed type, under an `&&` too.
+test("lsp: an if condition's alias hovers as the narrowed type", async () => {
+  const results = await driveLsp(IF_ALIAS_SOURCE, [
+    { method: "textDocument/hover", position: { line: 6, character: 29 } },
+  ]);
+  expect((results[0]!.result as Hover).contents.value).toContain("```vader\ni32\n```");
+});

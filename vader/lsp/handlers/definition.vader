@@ -20,6 +20,7 @@ import "json"
 import "std/collections"
 import "vader/diagnostics"
 import "vader/types"
+import "vader/typecheck"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
 import "toolchain/span"
@@ -81,15 +82,15 @@ export handle_definition :: fn(state: ServerState!, params: JsonValue) -> JsonVa
 
 // Resolve `name` as a member of the type it is accessed ON.
 //
-// Two shapes reach here, and both carry their answer in the typed program:
+// Three shapes reach here, and all carry their answer in the typed program:
 //
+//   - `recv.name(…)` resolved to a free fn by UFCS — the fn typecheck chose.
 //   - `recv.name` — the receiver's type names the declaring struct or trait.
 //   - `.Variant`  — the dot-variant's OWN type names the enum, inferred from
 //     whatever slot it sits in.
 //
-// Returns null when the type has no declaring symbol (an array, a string: their
-// methods live on a built-in trait) — the caller then falls back to the
-// name-based search, which is right for exactly those.
+// Returns null when none answers — the caller then falls back to the name-based
+// search.
 member_by_type :: fn(
     state: ServerState!, uri: string, index: DocIndex, line: i32, character: i32,
 ) -> ExternalHit | null {
@@ -132,8 +133,15 @@ member_by_type :: fn(
     sf :: source_file_for_path(entry.module.files, file_path) ?? return null
     // LSP positions are 0-based ; the AST is 1-based.
     l :: line + 1
-    c :: character + 1
-    ty :: member_owner_type(sf, cached.result.typed, nm_span, l, c) ?? return null
+    at_cursor :: find_expr_at(sf.program.decls, l, character + 1, cached.result.typed)
+    // A UFCS call typecheck resolved names the fn it chose : the receiver's type
+    // alone does not tell `last(arr: T[])` from `last(it: Iterator<T>)`, two
+    // overloads declared side by side.
+    chosen :: chosen_member(state, cached.result.typed, at_cursor)
+    if chosen != null {
+        return chosen
+    }
+    ty :: member_owner_type(sf, cached.result.typed, nm_span, l, at_cursor) ?? return null
     sym :: type_symbol(ty)
     if sym == null {
         // A BUILT-IN receiver has no declaring symbol, so `type_symbol` — which
@@ -142,62 +150,36 @@ member_by_type :: fn(
         if ty is ArrayType {
             return array_member(state, cached, name)
         }
-        return ufcs_member(state, cached, ty, name)
+        return null
     }
     da :: sym.defined_at ?? return null
     return member_in_declaring_module(state, da.start.file, sym.name, name)
 }
 
-// `name` as the UFCS call `name(receiver, …)` — a FREE function whose first
-// parameter accepts the receiver's type.
-//
-// `s.len()` on a string has no owning declaration to point at: `len(s: string)`
-// is a free function in `primitives.vader`, not a trait member, so
-// `type_symbol` declines and there is no impl block to walk. It used to fall
-// through to the name-based lookup, which is blind to the receiver's type and
-// answered `array.vader` here — `ArrayOps.len` — because that is what the
-// folder enumeration served first.
-//
-// The FIRST PARAMETER's type is what decides, read from the owning module's
-// typed program rather than from the written syntax: `param_types` holds the
-// RESOLVED type, so an alias or an import spelling cannot make two different
-// types compare equal by their source text.
-ufcs_member :: fn(state: ServerState, cached: ProjectCache, recv: Type, name: string) -> ExternalHit | null {
-    want :: display_type(recv)
-    for [id, m] in cached.project.modules {
-        typed :: cached.result.all_modules[id] ?? continue
-        for f in m.module.files {
-            for d in f.program.decls {
-                if d is AST.FnDecl {
-                    if d.name != name || d.params.len() == 0 {
-                        continue
-                    }
-                    pt :: typed.param_types[d.params[0].span.hash()] ?? continue
-                    if display_type(pt) != want {
-                        continue
-                    }
-                    hit :: toplevel_in_file(state, f.path, name)
-                    if hit != null {
-                        return hit
-                    }
-                }
-            }
-        }
+// The fn typecheck chose for the member access `e`, as an entry of the file
+// that declares it ; null when it chose none, or when that declaration has no
+// source file to index (a generated impl).
+chosen_member :: fn(
+    state: ServerState, typed: TypedProgram, e: AST.Expr | null,
+) -> ExternalHit | null {
+    if e !is AST.FieldExpr {
+        return null
     }
-    return null
-}
-
-// The exported top-level `name` in `path`. Reads through `source_for_path` — the
-// OVERLAY first, disk second — for the same reason `member_in_file` does.
-toplevel_in_file :: fn(state: ServerState, path: string, name: string) -> ExternalHit | null {
-    src :: state.source_for_path(path)
+    decl :: chosen_decl(typed, e.id) ?? return null
+    at :: decl.name_span.start
+    src :: state.source_for_path(at.file)
     if src.bytes().len() == 0 {
         return null
     }
-    uri :: path_to_uri(path)
-    sub :: build_index(uri, src, state.position_encoding)
-    d :: sub.find_exported_toplevel(name) ?? return null
-    return ExternalHit { .uri = uri, .target = d }
+    uri :: path_to_uri(at.file)
+    index :: state.index_for(uri) ?? build_index(uri, src, state.position_encoding)
+    // By position, not by name : the overloads share it.
+    for d in index.decls {
+        if d.name_span.start.offset == at.offset {
+            return ExternalHit { .uri = uri, .target = d }
+        }
+    }
+    return null
 }
 
 // `name` as a member of one of the traits an intrinsic `T[] implements …` block
@@ -218,10 +200,7 @@ toplevel_in_file :: fn(state: ServerState, path: string, name: string) -> Extern
 // nothing sorts it: measured `array.vader` on APFS and on a container's
 // overlayfs, `primitives.vader` on the CI runner's ext4. Right on a Mac by luck,
 // wrong on CI, for four red runs.
-//
-// A `string` receiver is still not covered: `len(s: string)` is a free function
-// in `primitives.vader`, not a trait member, so there is no owning declaration
-// to point at and the fallback still decides.
+
 array_member :: fn(state: ServerState, cached: ProjectCache, name: string) -> ExternalHit | null {
     for [_, m] in cached.project.modules {
         for f in m.module.files {
@@ -244,7 +223,7 @@ array_member :: fn(state: ServerState, cached: ProjectCache, name: string) -> Ex
 // The type whose declaration owns the member under the cursor: the RECEIVER's
 // type for `recv.name`, or the expression's own type for a bare `.Variant`.
 member_owner_type :: fn(
-    sf: SourceFile, typed: TypedProgram, nm_span: Span, l: i32, c: i32,
+    sf: SourceFile, typed: TypedProgram, nm_span: Span, l: i32, at_cursor: AST.Expr | null,
 ) -> Type | null {
     recv :: find_receiver_before_dot(sf.program.decls, l, nm_span.start.column - 1, typed)
     if recv != null {
@@ -252,7 +231,7 @@ member_owner_type :: fn(
     }
     // No receiver ends at the dot — a leading-dot variant, whose type comes
     // from its context rather than from anything to its left.
-    e :: find_expr_at(sf.program.decls, l, c, typed) ?? return null
+    e :: at_cursor ?? return null
     // A match ARM's pattern is not an expression, so the smallest expression
     // containing the cursor is the whole `match`. Its type is the match's
     // RESULT — `i32` for `.Struct -> 23` — which names no enum, and the lookup

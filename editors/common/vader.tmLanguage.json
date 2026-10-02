@@ -371,14 +371,14 @@
       "patterns": [
         {
           "comment": "Function call: ident(",
-          "match": "\\b([a-z_][a-zA-Z0-9_]*)\\s*\\(",
+          "match": "\\b([a-z_][a-zA-Z0-9_]*)(?=\\s*\\()",
           "captures": {
             "1": { "name": "entity.name.function.call.vader" }
           }
         },
         {
           "comment": "Method call: .ident(",
-          "match": "\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
+          "match": "\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?=\\s*\\()",
           "captures": {
             "1": { "name": "entity.name.function.call.vader" }
           }

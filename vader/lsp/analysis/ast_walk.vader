@@ -421,6 +421,11 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
     match e {
         is AST.BlockExpr -> { binding_hv_walk_block(e, typed, st) }
         is AST.IfExpr -> {
+            alias_ty :: alias_type_in_cond(e.cond, typed, st.line, st.col)
+            if alias_ty != null {
+                st.ty = alias_ty
+                return
+            }
             binding_hv_walk_block(e.then_block, typed, st)
             match e.else_branch as ei {
                 is null            -> {}
@@ -429,10 +434,45 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
             }
         }
         is AST.MatchExpr -> {
+            // The header's alias names the scrutinee : `match f() as v` binds `v`
+            // to `f()`'s value, narrowed afterwards in each arm.
+            alias_ty :: alias_type_at(e.bind_as, typed, st.line, st.col)
+            if alias_ty != null {
+                st.ty = alias_ty
+                return
+            }
             for arm in e.arms { binding_hv_walk_expr(arm.body, typed, st) }
         }
         is AST.LambdaExpr -> { binding_hv_walk_block(e.body, typed, st) }
     }
+}
+
+// The type typecheck gave the binding `alias` when the cursor is on it — the
+// narrowed type for an `is T as x` test, the scrutinee's for a `match` header ;
+// null otherwise.
+alias_type_at :: fn(
+    alias: AST.AsBinding | null, typed: TypedProgram, line: i32, col: i32,
+) -> Type | null {
+    if alias == null || !span_contains(alias.span, line, col) {
+        return null
+    }
+    return typed.local_types[alias.span.hash()]
+}
+
+// `alias_type_at` for the `is T as x` tests anywhere in `cond`'s operator tree.
+alias_type_in_cond :: fn(cond: AST.Expr, typed: TypedProgram, line: i32, col: i32) -> Type | null {
+    if cond !is AST.BinaryExpr {
+        return null
+    }
+    here :: alias_type_at(cond.bind_as, typed, line, col)
+    if here != null {
+        return here
+    }
+    left :: alias_type_in_cond(cond.left, typed, line, col)
+    if left != null {
+        return left
+    }
+    return alias_type_in_cond(cond.right, typed, line, col)
 }
 
 // ---- innermost enclosing call --------------------------------------------
