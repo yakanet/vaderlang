@@ -137,7 +137,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) ->
 emit_generic_fn_call :: fn(
     ctx: FnLowerCtx!, call: CallExpr, type: Type, fn_sym: Symbol, ft: FnType, callee_span: Span,
 ) -> LoweredExpr | null {
-    if !type_has_param(ft) { return null }
+    if !type_contains_type_param(ft) { return null }
     // Resolve concrete type args by unifying each `ft.params[i]` (which carries
     // the generic shape) with the call arg's inferred concrete type. Each unique
     // TypeParam symbol in the fn's signature contributes one entry to
@@ -344,32 +344,14 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
             unify_params(pattern.element, concrete.element, bindings, order, ctx)
         }
     }
-    // Union param vs union arg : pair exact-equal variants first (`null`,
-    // concrete primitives), then position-match the leftovers — the
-    // "concrete first" pass stops `U | null` from spuriously binding
-    // `U = null`. Mirror of the typer's `unify_unions` (typecheck/unify.vader),
-    // so the lowerer can monomorphise a fn whose signature carries a type-param
-    // inside a union (`find_map`'s `f: fn(T) -> U | null`) the same way the
-    // typer already does — without it the instance materialises with `U`
-    // unbound and the call is unresolved at emit (GATE B1).
+    // Union param : the typer's own pairing (`union_leftovers`), against a union
+    // arg or a narrower one (`T | null` given a narrowed `i32`), so the lowerer
+    // monomorphises a fn whose signature carries a type-param inside a union
+    // (`find_map`'s `f: fn(T) -> U | null`) to the instance typecheck checked — a
+    // type-param left unbound leaves the call unresolved at emit.
     if pattern is UnionType {
-        if concrete is UnionType {
-            arg_used: bool[]!: []
-            for _ in concrete.variants { arg_used.push(false) }
-            remaining_pattern: Type[]!: []
-            for pv in pattern.variants {
-                idx :: find_unused_equal(concrete.variants, arg_used, pv)
-                if idx >= 0 { arg_used[usize(idx)] = true } else { remaining_pattern.push(pv) }
-            }
-            remaining_concrete: Type[]!: []
-            for i in 0..<concrete.variants.len() {
-                if !arg_used[i] { remaining_concrete.push(concrete.variants[i]) }
-            }
-            n :: remaining_pattern.len()
-            for i in 0..<n {
-                if i >= remaining_concrete.len() { break }
-                unify_params(remaining_pattern[i], remaining_concrete[i], bindings, order, ctx)
-            }
+        for pair in union_leftovers(pattern.variants, union_variants(concrete) ?? [concrete]) {
+            unify_params(pair.pattern, pair.actual, bindings, order, ctx)
         }
     }
     if pattern is FnType {
@@ -423,39 +405,9 @@ trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Typ
     return null
 }
 
-type_has_param :: fn(ft: FnType) -> bool {
-    for p in ft.params {
-        if type_contains_param(p) { return true }
-    }
-    return type_contains_param(ft.return_type)
-}
-
-type_contains_param :: fn(t: Type) -> bool {
-    // @partial: only a TypeParam or an arg-bearing composite can contain a type
-    // param; every other Type is a leaf with no params → false.
-    @partial match t {
-        is TypeParamType -> { return true }
-        is StructType -> {
-            for a in t.args { if type_contains_param(a) { return true } }
-            return false
-        }
-        is TraitType -> {
-            for a in t.args { if type_contains_param(a) { return true } }
-            return false
-        }
-        is ArrayType -> { return type_contains_param(t.element) }
-        is FnType -> { return type_has_param(t) }
-        is TupleType -> {
-            for e in t.elements { if type_contains_param(e) { return true } }
-            return false
-        }
-        _ -> { return false }
-    }
-}
-
 all_concrete :: fn(args: Type[]) -> bool {
     for a in args {
-        if type_contains_param(a) { return false }
+        if type_contains_type_param(a) { return false }
         if a is UnresolvedType { return false }
     }
     return true

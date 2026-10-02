@@ -156,6 +156,9 @@ const C_PARITY = new Set<string>([
   "generator_inline_arg_slots",
   // A 0-arg combinator over `Iterator<T | null>` whose yielded value must unbox.
   "iter_chunks_distinct_nulls",
+  // A type parameter left alone in a union pattern binds the union of the
+  // argument's other variants (`T | null` over `i32 | string | null`).
+  "generic_param_over_wide_union",
   // Captured parameters : a `defer` / lambda body that reads or mutates one of
   // its enclosing fn's PARAMS promotes that param to a heap cell at fn entry
   // (`promote_captured_params`). Exercises cell-new over an ABI param +

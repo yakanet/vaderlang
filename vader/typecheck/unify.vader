@@ -152,9 +152,8 @@ export unify_type_param :: fn(
             return
         }
         is UnionType -> {
-            match arg_type {
-                is UnionType -> { unify_unions(param_type, arg_type, out) }
-                _ -> {}
+            for pair in union_leftovers(param_type.variants, union_variants(arg_type) ?? [arg_type]) {
+                unify_type_param(pair.pattern, pair.actual, out)
             }
             return
         }
@@ -235,35 +234,67 @@ unify_args :: fn(p_args: Type[], a_args: Type[], out: MutableMap<i32, Type>!) ->
     for i in 0..<n { unify_type_param(p_args[i], a_args[i], out) }
 }
 
-unify_unions :: fn(pu: UnionType, au: UnionType, out: MutableMap<i32, Type>!) -> void {
-    // Pair off exact-equal variants first (`null`, concrete primitives),
-    // then position-match the leftovers. The "concrete first" pass
-    // prevents `T | null` from spuriously binding `T = null`.
-    arg_used: bool[]!: []
-    for _ in au.variants { arg_used.push(false) }
-    remaining_param: Type[]!: []
-    for pv in pu.variants {
-        idx :: find_unused_equal(au.variants, arg_used, pv)
-        if idx >= 0 { arg_used[usize(idx)] = true }
-        else { remaining_param.push(pv) }
+/// A variant of a union pattern left unmatched, and the argument type it unifies
+/// with.
+export UnionLeftover :: struct {
+    pattern: Type
+    actual:  Type
+}
+
+/// What is left to unify of a union pattern against a union argument, once the
+/// variants they share are paired off. Shared by the typer (`unify_type_param`) and
+/// the lowerer (`unify_params`) so the two bind a type parameter alike.
+///
+/// The shared variants go first so that `T | null` never binds `T = null`. A
+/// pattern variant with no type parameter that the argument lacks binds nothing,
+/// and is dropped rather than paired: the argument is narrower than the pattern
+/// (`T | null` against a narrowed `i32`). A lone type parameter left over stands
+/// for EVERY argument variant left — `T | null` against `i32 | string | null`
+/// binds `T = i32 | string`. Several leftovers on both sides pair by position.
+///
+/// @param pattern  the pattern's variants.
+/// @param actual   the argument's variants — a single one for an argument that is
+///                 not a union (`union_variants(t) ?? [t]`).
+/// @return         the pairs to unify, in pattern order.
+export union_leftovers :: fn(pattern: Type[], actual: Type[]) -> UnionLeftover[] {
+    used :: actual.len().filled(() -> false)
+    left_pattern: Type[]!: []
+    for pv in pattern {
+        idx :: find_unused_equal(actual, used, pv)
+        if idx >= 0 {
+            used[usize(idx)] = true
+        } else if type_contains_type_param(pv) {
+            left_pattern.push(pv)
+        }
     }
-    remaining_arg: Type[]!: []
-    for i in 0..<au.variants.len() {
-        if !arg_used[i] { remaining_arg.push(au.variants[i]) }
+    if left_pattern.len() == 0 {
+        return []
     }
-    m :: min(remaining_param.len(), remaining_arg.len())
-    for i in 0..<m { unify_type_param(remaining_param[i], remaining_arg[i], out) }
+    left_actual: Type[]!: []
+    for i in 0..<actual.len() {
+        if !used[i] {
+            left_actual.push(actual[i])
+        }
+    }
+    if left_pattern.len() == 1 && left_pattern[0] is TypeParamType && left_actual.len() > 1 {
+        return [UnionLeftover { .pattern = left_pattern[0], .actual = union_of(left_actual) }]
+    }
+    out: UnionLeftover[]!: []
+    for i in 0..<min(left_pattern.len(), left_actual.len()) {
+        out.push(UnionLeftover { .pattern = left_pattern[i], .actual = left_actual[i] })
+    }
+    return out
 }
 
 /// Index of the first not-yet-used entry in `types` structurally equal to
-/// `target`, or -1. Drives the "concrete first" union-variant pairing in both
-/// `unify_unions` (typer) and `unify_params`' union case (lowerer).
+/// `target`, or -1. Drives the "concrete first" union-variant pairing of
+/// `union_leftovers`.
 ///
 /// @param types   the candidate variants to scan.
 /// @param used    parallel flags — entries already paired off are skipped.
 /// @param target  the variant to find a structural match for.
 /// @return        the matching index, or -1 when none is free + equal.
-export find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
+find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
     for i in 0..<types.len() {
         if !used[i] && equals_type(types[i], target) { return i32(i) }
     }
@@ -301,4 +332,38 @@ substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[]
     out: Type[]!: []
     for t in types { out.push(substitute_map(t, subst)) }
     return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+import "std/testing"
+
+display_leftovers :: fn(pairs: UnionLeftover[]) -> string {
+    parts: string[]!: []
+    for p in pairs {
+        parts.push("${display_type(p.pattern)} <- ${display_type(p.actual)}")
+    }
+    return parts.join(", ")
+}
+
+@test
+test_union_leftovers_param_takes_every_other_variant :: fn() -> void {
+    t :: mk_type_param(fresh_type_param(1, "T"))
+    pairs :: union_leftovers([t, TY_NULL], [mk_primitive("i32"), TY_STRING, TY_NULL])
+    assert_eq(display_leftovers(pairs), "T <- i32 | string")
+}
+
+@test
+test_union_leftovers_drops_a_concrete_variant_the_argument_lacks :: fn() -> void {
+    t :: mk_type_param(fresh_type_param(1, "T"))
+    assert_eq(display_leftovers(union_leftovers([t, TY_NULL], [mk_primitive("i32")])), "T <- i32")
+}
+
+@test
+test_union_leftovers_pairs_several_params_by_position :: fn() -> void {
+    t :: mk_type_param(fresh_type_param(1, "T"))
+    u :: mk_type_param(fresh_type_param(2, "U"))
+    pairs :: union_leftovers([t, u, TY_NULL], [mk_primitive("i32"), TY_STRING, TY_NULL])
+    assert_eq(display_leftovers(pairs), "T <- i32, U <- string")
 }

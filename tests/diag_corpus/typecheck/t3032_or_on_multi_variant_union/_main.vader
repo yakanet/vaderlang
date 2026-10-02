@@ -1,9 +1,11 @@
 module "snippet"
 
 // A value combinator (`or`) handles ONE unhappy variant. A union carrying BOTH
-// `null` AND an `Error` (`i32 | Error | null`) fits neither the `T | null` nor
-// the `T | Error` overload, so `.or(d)` is a compile error (T3008) that points
-// at narrowing — not a silent leak. See docs/ERROR_HANDLING.md (Strategy A).
+// `null` AND an `Error` (`i32 | Error | null`) fits the `T | null` and the
+// `T | Error` overload equally well — `T` takes the other two variants either
+// way — so `.or(d)` is a compile error (T3032) that points at narrowing, not a
+// pick of whichever overload was declared first, which would let the other
+// unhappy variant through.
 import "std/option"
 
 Boom :: struct {}

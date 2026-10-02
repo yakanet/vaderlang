@@ -1,0 +1,39 @@
+// generic_param_over_wide_union — a type parameter left alone in a union
+// pattern stands for every variant of the argument the pattern does not name.
+//   - `filter_not_null` (`Iterator<T | null>`) over `(i32 | string | null)[]`
+//     binds `T = i32 | string` and keeps both payload kinds ;
+//   - a generic fn over `(T | null)[]` returns a value of that same union ;
+//   - `T | null` fed a plain `i32` drops the `null` the argument lacks and binds
+//     `T = i32`.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+describe :: fn(v: i32 | string) -> string = if v is i32 { "int ${v}" } else { "str ${v}" }
+
+first_present :: fn<T>(xs: (T | null)[]) -> T | null {
+    for x in xs {
+        if x != null {
+            return x
+        }
+    }
+    return null
+}
+
+or_zero :: fn<T>(x: T | null, zero: T) -> T = if x == null { zero } else { x }
+
+main :: fn() -> i32 {
+    mixed: (i32 | string | null)[]: [null, "a", 2, null, 3]
+    for v in mixed.filter_not_null() {
+        println(describe(v))
+    }
+    f :: first_present(mixed)
+    if f != null {
+        println("first ${describe(f)}")
+    }
+    n: i32: 7
+    println("or_zero ${or_zero(n, 0)}")
+    return 0
+}

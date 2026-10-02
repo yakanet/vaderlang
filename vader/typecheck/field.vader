@@ -240,6 +240,9 @@ try_free_fn_ufcs_dispatch :: fn(
     diags: Diagnostic[]!,
 ) -> Type | null {
     free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, e.span.start.file, typed) ?? return null
+    if free_ufcs.rival != null {
+        diags.push(ambiguous_overload_error(e.field, target_ty, free_ufcs.winner, free_ufcs.rival, e.field_span))
+    }
     first_param :: free_ufcs.winner.ty.params[0]
     typed.ufcs_receiver_types[e.id] = first_param
     typed.chosen_fns[e.id] = free_ufcs.winner
@@ -1200,6 +1203,8 @@ UfcsResult :: struct {
     curried: Type
     /// The winning overload, in the module that declares it.
     winner: FnCandidate
+    /// An overload ranked level with `winner` — see `is_level_rival`.
+    rival: FnCandidate | null = null
 }
 
 try_free_fn_ufcs_with_first :: fn(
@@ -1209,28 +1214,35 @@ try_free_fn_ufcs_with_first :: fn(
     typed: TypedProgram,
 ) -> UfcsResult | null {
     // Gather every overload whose first param accepts the receiver (curry
-    // succeeds), then keep the one with the HIGHEST receiver specificity — a
-    // concrete union member beats a bare `T` wildcard (see
-    // `overload_specificity` in call.vader, same module). Local and imported
-    // overloads rank together ; a strict `>` keeps the first among equals, so a
-    // local overload wins a tie over an imported one (locals come first). The
-    // imported half is the call site's FILE's, not the module's : two files of
-    // one module import different things (SPEC §"Modules").
+    // succeeds), then keep the one with the highest `overload_rank` (call.vader,
+    // same module). Local and imported overloads rank together ; a strict `>`
+    // keeps the first among equals, so a local overload wins a tie over an
+    // imported one (locals come first). The imported half is the call site's
+    // FILE's, not the module's : two files of one module import different things
+    // (SPEC §"Modules").
     best: UfcsResult | null = null
-    best_spec: i32 = -1
+    rival: FnCandidate | null = null
+    best_rank: i32 = -1
     for candidate in collect_overload_candidates(name, file, typed) {
         ft :: candidate.ty
         if ft.params.len() == 0 {
             continue
         }
         curried :: try_curry_receiver(ft, target_ty, typed) ?? continue
-        spec :: overload_specificity(target_ty, ft.params[0])
-        if spec > best_spec {
+        // The call's argument count is not known at the field: no arity rank, and
+        // overloads of different arity are not reported as rivals.
+        rank :: overload_rank(target_ty, ft.params[0], false)
+        same_arity :: best != null && best.winner.ty.params.len() == ft.params.len()
+        if rank > best_rank {
             best = UfcsResult { .curried = curried, .winner = candidate }
-            best_spec = spec
+            best_rank = rank
+            rival = null
+        } else if rank == best_rank && same_arity && best != null && is_level_rival(best.winner, candidate) {
+            rival = candidate
         }
     }
-    return best
+    found :: best ?? return null
+    return UfcsResult { ...found, .rival = rival }
 }
 
 /// A free function callable on a receiver type via UFCS — its name plus the

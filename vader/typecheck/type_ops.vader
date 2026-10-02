@@ -732,7 +732,11 @@ export types_overlap :: fn(a: Type, b: Type) -> bool {
     return equals_type_shape(a, b)
 }
 
-union_variants :: fn(t: Type) -> Type[] | null {
+/// The variants of `t` when it is a union, `null` otherwise —
+/// `union_variants(t) ?? [t]` reads any type as its list of variants.
+///
+/// @param t  the type to read.
+export union_variants :: fn(t: Type) -> Type[] | null {
     if t is UnionType { return t.variants }
     return null
 }

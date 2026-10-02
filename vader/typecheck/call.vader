@@ -48,6 +48,7 @@ pick_overload :: fn(
     c: AST.CallExpr!,
     initial: Type,
     typed: TypedProgram!,
+    diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     if c.callee !is AST.IdentExpr {
@@ -90,14 +91,12 @@ pick_overload :: fn(
     // signature is what a non-overloaded display would show.
     primary_ft :: primary_overload_ft(c.callee, typed)
     // Among candidates whose first param accepts arg0, pick the one with the
-    // HIGHEST receiver specificity (a concrete union member beats a bare `T`
-    // wildcard — see `overload_specificity`). Ties break by exact arity — this
-    // lets a named-arg / arity-disambiguated overload resolve (`size(a = 1, b =
-    // 2)` vs `size(a = 1)`) — then by declaration order (keep the first among
-    // equals). Eligibility is unchanged : only the `is_assignable` gate below.
+    // highest `overload_rank`. Eligibility is unchanged : only the
+    // `is_assignable` gate below. Ties keep the first declared, unless
+    // `is_level_rival` says the order is all that separates them.
     best: FnCandidate | null = null
-    best_spec: i32 = -1
-    best_exact := false
+    rival: FnCandidate | null = null
+    best_rank: i32 = -1
     for candidate in candidates {
         ft :: candidate.ty
         if ft.params.len() == 0 {
@@ -106,19 +105,54 @@ pick_overload :: fn(
         if !is_assignable(arg0_ty, ft.params[0]) {
             continue
         }
-        spec :: overload_specificity(arg0_ty, ft.params[0])
-        exact :: ft.params.len() == c.args.len()
-        if best == null || spec > best_spec || spec == best_spec && exact && !best_exact {
+        rank :: overload_rank(arg0_ty, ft.params[0], ft.params.len() == c.args.len())
+        if rank > best_rank {
             best = candidate
-            best_spec = spec
-            best_exact = exact
+            best_rank = rank
+            rival = null
+        } else if rank == best_rank && best != null && is_level_rival(best, candidate) {
+            rival = candidate
         }
     }
     if best == null {
         return initial
     }
+    if rival != null {
+        diags.push(ambiguous_overload_error(c.callee.name, arg0_ty, best, rival, c.callee.span))
+    }
     return commit_overload_pick(best, c, typed, primary_ft)
 }
+
+// How well a candidate whose first param accepts `arg0` fits, highest wins:
+// receiver specificity (a concrete union member beats a bare `T` wildcard — see
+// `overload_specificity`), then an exact arity (`size(a = 1, b = 2)` against
+// `size(a = 1)`), then, for a free literal, the param that is its default type —
+// the rule a literal follows into a union (`union_literal_member`), so `abs(-5)`
+// reaches the `i32` overload whatever the declaration order.
+overload_rank :: fn(arg0: Type, param0: Type, exact_arity: bool) -> i32 {
+    arity: i32: if exact_arity { 2 } else { 0 }
+    is_default :: is_free_numeric(arg0) && equals_type(default_if_free(arg0), param0)
+    literal_default: i32: if is_default { 1 } else { 0 }
+    return overload_specificity(arg0, param0) * 4 + arity + literal_default
+}
+
+// Two candidates of one rank, declared in one module: neither shadows the other,
+// so keeping the first declared would choose for the user without saying so. Two
+// identical signatures are a redefinition, already T3053 at the declaration.
+is_level_rival :: fn(best: FnCandidate, other: FnCandidate) -> bool =
+    best.symbol.module == other.symbol.module && !equals_type(best.ty, other.ty)
+
+ambiguous_overload_error :: fn(
+    name: string,
+    arg0: Type,
+    first: FnCandidate,
+    other: FnCandidate,
+    span: Span,
+) -> Diagnostic = typecheck_error(
+    .AmbiguousOverload,
+    span,
+    "`${display_type(first.ty)}` and `${display_type(other.ty)}` both accept ${display_type(arg0)} for `${name}` — narrow it with `if`/`match` first",
+)
 
 // Specificity of `param0` for a receiver `arg0`: the count of arg0's (union)
 // variants that match a CONCRETE (non-type-param) variant of param0. A pure
@@ -690,7 +724,7 @@ export infer_call :: fn(
     // has multiple fn overloads (`describe :: fn(Box) -> ... ;
     // describe :: fn(Bag) -> ...`), pre-walk the args and pick the
     // overload whose first param accepts the first arg.
-    callee_ty :: pick_overload(c, initial_callee_ty, typed, check_expr_fn)
+    callee_ty :: pick_overload(c, initial_callee_ty, typed, diags, check_expr_fn)
     // `T(x)` cast-style call : when the callee resolves to the
     // metatype (a bare type name in value position), treat the
     // call as a conversion and return the target type. This case is

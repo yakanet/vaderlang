@@ -349,7 +349,7 @@ register_nongeneric_imported_fn :: fn(ctx: FnLowerCtx!, fn_sym: Symbol) -> void 
     // Generic fns route through the GenericFnInstance harvest instead.
     fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
     if fn_ty is FnType {
-        if type_has_param(fn_ty) { return }
+        if type_contains_type_param(fn_ty) { return }
     }
     ctx.project.nongeneric_imported_fns[fn_sym.id] = true
     ctx.project.nongeneric_imported_order.push(fn_sym)
@@ -389,7 +389,7 @@ harvest_ufcs_fn_instance :: fn(
     // in foreign modules (e.g. stdlib's `len`).
     fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym) ?? return null
     if fn_ty is FnType {
-        if !type_has_param(fn_ty) {
+        if !type_contains_type_param(fn_ty) {
             // Non-generic free fn. The entry's own are lowered eagerly by
             // `lower_module` (and seeded into the seen-set) ; every non-entry
             // module is lazy, so harvest its referenced fns for

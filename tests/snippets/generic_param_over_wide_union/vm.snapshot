@@ -1,0 +1,8 @@
+# stdout
+str a
+int 2
+int 3
+first str a
+or_zero 7
+# exit
+0
