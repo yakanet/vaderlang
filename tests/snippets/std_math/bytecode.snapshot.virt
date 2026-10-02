@@ -30,7 +30,7 @@ import 4 extern floor std_math$floor header=<math.h> result_type=6 param_types=6
 import 5 extern ceil std_math$ceil header=<math.h> result_type=6 param_types=6 param_mutable=0 param_by_address= (f64) -> f64
 import 6 extern round std_math$round header=<math.h> result_type=6 param_types=6 param_mutable=0 param_by_address= (f64) -> f64
 import 7 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,11,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 10 ByteAccess
+impl 10 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32

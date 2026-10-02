@@ -481,7 +481,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv);
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv);
 
 static vader_box_t snippet_upto_stop(int32_t l0) {
     void* t0 = NULL;
@@ -549,7 +549,7 @@ static void snippet_void_consumer(void) {
     l7 = snippet_upto_stop(INT32_C(2));
 #line 30 "tests/snippets/fusion_generator_return/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l7);
+        t0 = vader_vt_std_core_Iterator__next(l7);
         l3 = t0.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__1 == INT32_C(1)) {
         } else {
@@ -615,7 +615,7 @@ static int32_t snippet_lazy_value(void) {
     l1 = snippet_upto_stop(INT32_C(3));
 #line 47 "tests/snippets/fusion_generator_return/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l1);
+        t0 = vader_vt_std_core_Iterator__next(l1);
         l2 = t0.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l2)->f__1 == INT32_C(1)) {
         } else {
@@ -725,7 +725,7 @@ static void snippet_stage_consumer(void) {
     l10 = snippet_until_negative(t2);
 #line 69 "tests/snippets/fusion_generator_return/_main.vader"
     for (;;) {
-        t2 = vader_vt_Iterator__next(l10);
+        t2 = vader_vt_std_core_Iterator__next(l10);
         l2 = t2.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l2)->f__1 == INT32_C(1)) {
         } else {
@@ -846,7 +846,7 @@ static void snippet_across_two_loops(void) {
     l14 = snippet_grid_until(INT32_C(11));
 #line 97 "tests/snippets/fusion_generator_return/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l14);
+        t0 = vader_vt_std_core_Iterator__next(l14);
         l5 = t0.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l5)->f__1 == INT32_C(1)) {
         } else {
@@ -947,7 +947,7 @@ static void snippet_relayed(void) {
     l7 = snippet_relay();
 #line 119 "tests/snippets/fusion_generator_return/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l7);
+        t0 = vader_vt_std_core_Iterator__next(l7);
         l3 = t0.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__1 == INT32_C(1)) {
         } else {
@@ -1095,7 +1095,7 @@ static void snippet_return_before_break(void) {
         l20 = snippet_counter(l4, l5);
 #line 150 "tests/snippets/fusion_generator_return/_main.vader"
         for (;;) {
-            t0 = vader_vt_Iterator__next(l20);
+            t0 = vader_vt_std_core_Iterator__next(l20);
             l21 = t0.payload.obj;
             if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l21)->f__1 == INT32_C(1)) {
             } else {
@@ -1224,7 +1224,7 @@ static void snippet_loop_labelled_exit(void) {
     l11 = snippet_labelled_exit();
 #line 181 "tests/snippets/fusion_generator_return/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l11);
+        t0 = vader_vt_std_core_Iterator__next(l11);
         l3 = t0.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__1 == INT32_C(1)) {
         } else {
@@ -1509,7 +1509,7 @@ static void* snippet___genstate_until_negative_Iterator_next(void* l0) {
                         t0 = ((vader_struct_snippet___genstate_until_negative_t*) l0)->f_state;
                         if (t0 == INT32_C(13)) {
 #line 54 "tests/snippets/fusion_generator_return/_main.vader"
-                            t2 = vader_vt_Iterator__next(((vader_struct_snippet___genstate_until_negative_t*) l0)->f_s1);
+                            t2 = vader_vt_std_core_Iterator__next(((vader_struct_snippet___genstate_until_negative_t*) l0)->f_s1);
                             l5 = t2.payload.obj;
                             ((vader_struct_snippet___genstate_until_negative_t*) l0)->f_s2 = l5;
                             VADER_WRITE_BARRIER((vader_struct_snippet___genstate_until_negative_t*) l0);
@@ -3299,7 +3299,7 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv) {
     switch (recv.tag) {
         case 4u: return vader_ref_box(snippet___genstate_upto_stop_Iterator_next(recv.payload.obj));
         case 7u: return vader_ref_box(snippet___genstate_until_negative_Iterator_next(recv.payload.obj));
@@ -3314,9 +3314,9 @@ static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
         case 29u: return vader_ref_box(std_collections___gen_state_std_collections_1_Iterator_next(recv.payload.obj));
         case 33u: return vader_ref_box(std_collections___gen_state_std_collections_2_Iterator_next(recv.payload.obj));
         case 37u: return vader_ref_box(std_collections___gen_state_std_collections_3_Iterator_next(recv.payload.obj));
-        default: vader_unreachable("vtable miss in Iterator.next");
+        default: vader_unreachable("vtable miss in std_core$Iterator.next");
     }
-    vader_unreachable("vtable miss in Iterator.next");
+    vader_unreachable("vtable miss in std_core$Iterator.next");
 }
 
 int main(int argc, char** argv) {

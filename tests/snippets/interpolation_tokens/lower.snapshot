@@ -8,7 +8,7 @@
       arg0:
         "hello " :string
       arg1:
-        vcall Display.to_string :string
+        vcall std_core$Display.to_string :string
           recv:
             unreachable("unresolved ident name") :?
   const snippet$expr: string =
@@ -18,7 +18,7 @@
       arg0:
         "result: " :string
       arg1:
-        vcall Display.to_string :string
+        vcall std_core$Display.to_string :string
           recv:
             add :?
               l:
@@ -38,7 +38,7 @@
           arg0:
             "inner " :string
           arg1:
-            vcall Display.to_string :string
+            vcall std_core$Display.to_string :string
               recv:
                 unreachable("unresolved ident y") :?
   fn concat_2(p0: string, p1: string) -> string

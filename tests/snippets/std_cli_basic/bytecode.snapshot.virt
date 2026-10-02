@@ -93,13 +93,13 @@ import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=8 pa
 import 3 bytes std_core$bytes result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 4 hash std_core$string$Hash$hash result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> u64
 import 5 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 ByteAccess
-impl 15 Index
-impl 15 IndexSet
-impl 15 Contains
-impl 15 Into
-impl 24 Display
-impl 23 Error
+impl 6 std_core$ByteAccess
+impl 15 std_core$Index
+impl 15 std_core$IndexSet
+impl 15 std_core$Contains
+impl 15 std_core$Into
+impl 24 std_core$Display
+impl 23 std_core$Error
 export main 0
 
 fn 0 snippet$main () -> i32

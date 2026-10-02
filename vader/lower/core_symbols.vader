@@ -9,6 +9,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "toolchain/ast"
 import "vader/resolver/symbol"
 import "vader/types"
 
@@ -118,40 +119,20 @@ export union_of_result_suspended :: fn(result: Type, suspended: Type) -> Type =
 
 import "vader/typecheck"
 
-/// Find the user-impl entry for `(for_type, trait_name)` in the
-/// project-wide registry. The lowerer's
-/// for-in / try / display-coerce sites consult this to dispatch
-/// through the matching impl member.
-/// @param ctx         the project context.
-/// @param for_type    the receiver type (struct / enum).
-/// @param trait_name  the trait's source-level name (e.g. `"Display"`).
-/// @return            the registered entry, or `null` when no impl
-///                    matches (defensive — earlier diagnostics should
-///                    have caught the missing impl).
-export find_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_name: string) -> ImplEntry | null {
-    for_symbol :: type_to_target_symbol(for_type) ?? return null
-    trait_symbol :: find_core_trait(ctx, trait_name)
-    match trait_symbol {
-        is null -> { return find_via_all(ctx, for_symbol, trait_name) }
-        is Symbol -> { return ctx.impls.find_user(for_symbol, trait_symbol) }
-    }
-}
+/// True when an impl of `trait_sym` is written for `for_type`'s declaration — a
+/// primitive by its name, every array as `[]`.
+///
+/// @param ctx        the project context.
+/// @param for_type   the receiver type.
+/// @param trait_sym  the trait's declaration symbol.
+export has_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_sym: Symbol) -> bool =
+    ctx.impls.impls_of(impl_base_key(for_type), trait_key_of(trait_sym)).len() > 0
 
-// Fallback path : when `find_core_trait` misses (project doesn't
-// import std/core, or the trait lives in a user module), scan the
-// registry's flat list for an entry matching `for_symbol.id` + the
-// trait's source-level name. O(N) but the registry is bounded.
-find_via_all :: fn(ctx: LowerProjectCtx, for_symbol: Symbol, trait_name: string) -> ImplEntry | null {
-    for entry in ctx.impls.all {
-        if entry.trait_symbol.name != trait_name { continue }
-        match entry.for_symbol as fs {
-            is null   -> {}
-            is Symbol -> {
-                if fs.id == for_symbol.id { return entry }
-            }
-        }
-    }
-    return null
+// The `trait_key` of the trait `impl_decl` implements, as the registry resolved
+// it. Empty when its name binds to no trait.
+impl_trait_key :: fn(ctx: LowerProjectCtx, impl_decl: ImplDecl) -> string {
+    entry :: ctx.impls.entry_of(impl_decl) ?? return ""
+    return entry.trait_key
 }
 
 // ---- tests ----------------------------------------------------------------

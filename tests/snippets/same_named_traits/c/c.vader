@@ -1,0 +1,7 @@
+module "snippet/c"
+
+export Animal :: trait {
+    legs :: fn(self) -> i32
+}
+
+export count :: fn(an: Animal) -> i32 = an.legs() + 100

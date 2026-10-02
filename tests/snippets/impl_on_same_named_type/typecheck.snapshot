@@ -1,0 +1,23 @@
+# Typecheck
+
+## tests/snippets/impl_on_same_named_type
+  FnDecl         main                 :: fn() -> i32
+  expr 12:11    StructLitExpr  :: Foo!
+  expr 12:24    StringLitExpr  :: string
+  expr 13:12    CallExpr       :: i32
+  expr 13:12    FieldExpr      :: fn(Animal) -> i32
+  expr 13:20    IdentExpr      :: Foo!
+
+## tests/snippets/impl_on_same_named_type/a
+  TraitDecl      Animal               :: Animal
+  FnDecl         count                :: fn(Animal) -> i32
+  StructDecl     Foo                  :: Foo!
+  expr 13:41    CallExpr       :: i32
+  expr 13:41    FieldExpr      :: fn() -> i32
+  expr 13:41    IdentExpr      :: Animal
+
+## tests/snippets/impl_on_same_named_type/b
+  StructDecl     Foo                  :: Foo!
+
+# Diagnostics
+[13:20] error[T3001] type mismatch: expected Animal, got Foo!

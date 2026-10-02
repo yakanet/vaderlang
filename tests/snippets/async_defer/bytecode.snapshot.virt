@@ -1,7 +1,7 @@
 module _main
 type 0 primitive null
 type 1 primitive string
-type 2 ref Async
+type 2 ref std_core$Async
 type 3 primitive i32
 type 4 struct __defer_env_snippet_1 { cap_0:11 }
 type 5 primitive void
@@ -13,14 +13,14 @@ type 10 struct __asyncstate_snippet_5 { s0:3,s1:3,awaited:14,state:3 }
 type 11 ref _
 type 12 array 13
 type 13 fn () -> 5
-type 14 ref Async
+type 14 ref std_core$Async
 type 15 primitive bool
 type 16 primitive u8
 type 17 primitive usize
 type 18 array 16
 type 19 struct std_core$Buffer {  }
 type 20 primitive i64
-type 21 ref Async
+type 21 ref std_core$Async
 type 22 struct std_async$Sleep { ms:20,deadline:20,armed:15 }
 type 23 union 0,9
 type 24 primitive isize
@@ -38,13 +38,13 @@ import 3 sched_now std_runtime$sched_now result_type=20 () -> i64
 import 4 sched_arm std_runtime$sched_arm result_type=5 param_types=20 param_mutable=0 param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=3 () -> i32
 import 6 panic std_abort$panic result_type=5 param_types=1 param_mutable=0 param_by_address= (string) -> void
-impl 7 Async
-impl 10 Async
-impl 19 ByteAccess
-impl 22 Async
-vtable Async.resume 7 4
-vtable Async.resume 10 5
-vtable Async.resume 22 12
+impl 7 std_core$Async
+impl 10 std_core$Async
+impl 19 std_core$ByteAccess
+impl 22 std_core$Async
+vtable std_core$Async.resume 7 4
+vtable std_core$Async.resume 10 5
+vtable std_core$Async.resume 22 12
 export main 1
 
 fn 0 snippet$step (string) -> any
@@ -76,7 +76,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; $k_2
   i32.const 4
   struct.new 10   ; __asyncstate_snippet_5
-  ref.cast 2   ; -> ref Async
+  ref.cast 2   ; -> ref std_core$Async
   call 11   ; std_async$run_async_main
   return
 end
@@ -236,7 +236,7 @@ fn 4 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
           i32.eq
           if $L7 void
             local.field 0 7 3   ; arg 0.awaited
-            virtual.call 1 Async.resume
+            virtual.call 1 std_core$Async.resume
             local.tee 12   ; __resumed_4
             type_check 9   ; std_core$Suspended
             if $L8 void
@@ -362,7 +362,7 @@ fn 5 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
         i32.eq
         if $L5 void
           local.field 0 10 2   ; arg 0.awaited
-          virtual.call 1 Async.resume
+          virtual.call 1 std_core$Async.resume
           local.tee 3   ; __resumed_2
           type_check 9   ; std_core$Suspended
           if $L6 void
@@ -595,7 +595,7 @@ fn 13 std_async$block_on__i32 (any) -> i32
   block $L0 void
     loop $L1 void
       local.get 0   ; arg 0
-      virtual.call 1 Async.resume
+      virtual.call 1 std_core$Async.resume
       local.tee 1   ; r
       type_check 9   ; std_core$Suspended
       if $L2 void

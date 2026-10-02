@@ -350,10 +350,7 @@ resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type
         }
         _ -> {}
     }
-    side_table_key :: display_type_key(iter_type)
-    from_typed :: ctx.typed.iter_element_types[side_table_key]
-    if !(from_typed is null) { return from_typed }
-    return TY_UNRESOLVED
+    return ctx.typed.iter_element_types[impl_base_key(iter_type)] ?? TY_UNRESOLVED
 }
 
 // Erase a concrete `__genstate_<fn>` iterator (a `generator`'s Direction-A call
@@ -389,7 +386,7 @@ build_step_call :: fn(
                 args: LoweredExpr[]!: []
                 return LoweredVirtualCall {
                     .span = span, .type = step_union,
-                    .trait_name = TRAIT_ITERATOR, .method = METHOD_NEXT,
+                    .trait_name = core_trait_key(TRAIT_ITERATOR), .method = METHOD_NEXT,
                     .receiver = iter_ref, .args = args, .param_types = [],
                 }
             }
@@ -419,12 +416,9 @@ build_step_call :: fn(
         // `find_impl_member_for`.
         owning_module := mangle_module_id(ctx.typed.resolved.display_path)
         is_gen := false
-        for entry in ctx.project.impls.all {
-            if entry.decl.trait_name != TRAIT_ITERATOR { continue }
-            if impl_targets_name(entry.decl.for_type, iter_type.symbol.name) {
-                owning_module = mangle_module_id(entry.module)
-                is_gen = entry.is_generic
-            }
+        for entry in ctx.project.impls.impls_of(impl_base_key(iter_type), core_trait_key(TRAIT_ITERATOR)) {
+            owning_module = mangle_module_id(entry.module)
+            is_gen = entry.is_generic
         }
         args :: iter_type.args
         suffix :: if is_gen { mixed_any_suffix(args) } else { args_suffix(args) }

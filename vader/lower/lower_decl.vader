@@ -53,7 +53,7 @@ lower_impl_member_list :: fn(
         params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
         return_type :: return_type_of(member, types)
         mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
-        entry :: synth_impl_entry(member, typed, mangled)
+        entry :: synth_impl_entry(member, typed, mangled, impl_trait_key(project_ctx, impl_decl))
         body :: lower_fn_body(member, typed, project_ctx, entry, subst, return_type)
         out.push(LoweredFnDecl {
             .mangled     = mangled,
@@ -207,12 +207,10 @@ lower_for_type :: fn(impl_decl: ImplDecl, typed: TypedProgram) -> Type {
     return type_from_expr(impl_decl.for_type, typed.resolved, scratch)
 }
 
-synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string) -> MonoEntry {
-    // Hand the resolver symbol down so downstream phases (DCE,
-    // fn-table indexing, vtable_entries) can route by symbol id.
-    // Was `null` previously, which left the bytecode emit unable to
-    // resolve the impl-member's fn-table slot and the impl directive
-    // unable to land in `BcModule.impl_table`.
+// The entry of an impl member : its resolver symbol, so downstream phases (DCE,
+// fn-table indexing) route by symbol id, and the vtable slot it fills in the
+// trait `trait_key`.
+synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string, trait_key: string) -> MonoEntry {
     return MonoEntry {
         .id             = 0,
         .is_main        = false,
@@ -222,6 +220,7 @@ synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string) -> 
         .subst          = new_substitution(),
         .type_arguments = [],
         .module         = typed,
+        .vtable_slot    = VtableSlot { .trait_key = trait_key, .method = member.name },
     }
 }
 

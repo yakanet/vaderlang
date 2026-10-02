@@ -89,7 +89,7 @@
         arg1:
           "|" :string
         arg2:
-          vcall Display.to_string :string
+          vcall std_core$Display.to_string :string
             recv:
               d :Display
   fn snippet$tag_1(s: string, suffix: string) -> string

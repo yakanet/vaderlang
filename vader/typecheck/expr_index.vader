@@ -60,10 +60,10 @@ export infer_index :: fn(
     if target is TypeParamType {
         bound :: typed.resolved.type_param_bounds[target.symbol.id]
         if bound != null {
-            idx_args :: bounded_trait_args(bound, TRAIT_INDEX, typed)
+            idx_args :: bounded_trait_args(bound, core_trait_key(TRAIT_INDEX), typed)
             if idx_args != null {
                 if idx_args.len() >= 2 {
-                    typed.bounded_dispatch_trait[e.id] = TRAIT_INDEX
+                    typed.bounded_dispatch_trait[e.id] = core_trait_key(TRAIT_INDEX)
                     if typed.current_fn_ctx is FnContext as fctx {
                         if fctx.fn_id != 0 {
                             typed.fn_trait_dispatches[fctx.fn_id] = true
@@ -78,7 +78,7 @@ export infer_index :: fn(
     // above, and every other type kind is not indexable.
     @partial match target {
         is StructType -> {
-            declared :: typed.index_target_types[target.symbol.name]
+            declared :: typed.index_target_types[impl_base_key(target)]
             result_ty :: resolve_index_param(target, declared, typed)
             if result_ty == null {
                 diags.push(typecheck_error(.NotIndexable, e.span,
@@ -100,19 +100,19 @@ export infer_index :: fn(
 /// bound names no such trait. Walks `A & B` intersections the same way
 /// `dispatch_bounded_method_trait` does. Shared by the `c[i]` read (Index) and
 /// the `c[i] = v` write (IndexSet, in `stmt.vader::check_assign`).
-export bounded_trait_args :: fn(bound: AST.Expr, trait_name: string, typed: TypedProgram) -> Type[] | null {
+export bounded_trait_args :: fn(bound: AST.Expr, trait_key: string, typed: TypedProgram) -> Type[] | null {
     if bound is AST.BinaryExpr {
         if bound.op == .BitAnd {
-            l :: bounded_trait_args(bound.left, trait_name, typed)
+            l :: bounded_trait_args(bound.left, trait_key, typed)
             if l != null {
                 return l
             }
-            return bounded_trait_args(bound.right, trait_name, typed)
+            return bounded_trait_args(bound.right, trait_key, typed)
         }
     }
     bound_ty :: type_from_expr(bound, typed.resolved, [])
     if bound_ty is TraitType {
-        if bound_ty.symbol.name == trait_name {
+        if trait_key_of(bound_ty.symbol) == trait_key {
             return bound_ty.args
         }
     }
@@ -125,7 +125,7 @@ export bounded_trait_args :: fn(bound: AST.Expr, trait_name: string, typed: Type
 /// sites (`stmt.vader::check_assign`).
 index_key_expected :: fn(target: Type, typed: TypedProgram) -> Type | null {
     if target is StructType {
-        return resolve_index_param(target, typed.index_key_types[target.symbol.name], typed)
+        return resolve_index_param(target, typed.index_key_types[impl_base_key(target)], typed)
     }
     return null
 }
@@ -135,7 +135,7 @@ index_key_expected :: fn(target: Type, typed: TypedProgram) -> Type | null {
 /// by `stmt.vader::check_assign` to pin a free-literal index-set value.
 index_set_value_expected :: fn(target: Type, typed: TypedProgram) -> Type | null {
     if target is StructType {
-        return resolve_index_param(target, typed.index_set_value_types[target.symbol.name], typed)
+        return resolve_index_param(target, typed.index_set_value_types[impl_base_key(target)], typed)
     }
     return null
 }

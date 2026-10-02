@@ -998,7 +998,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_Display__to_string(vader_box_t recv);
+static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv);
 
 static vader_string_t snippet_Weight_Display_to_string(uint8_t l0) {
     void* l1 = NULL;
@@ -1122,7 +1122,7 @@ static int32_t snippet_main(void) {
     std_io_println__string(t0);
 #line 49 "tests/snippets/enum_display/_main.vader"
     t3 = snippet_maybe_byte(true);
-    l1 = vader_vt_Display__to_string(t3);
+    l1 = vader_vt_std_core_Display__to_string(t3);
     t0 = concat_2(4u, l1);
     std_io_println__string(t0);
 #line 50 "tests/snippets/enum_display/_main.vader"
@@ -3612,7 +3612,7 @@ static uint32_t std_core_f32_Float32Bits_to_bits_vt(float l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_Display__to_string(vader_box_t recv) {
+static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv) {
     switch (recv.tag) {
         case 7u: return std_core____Display_to_string__Direction(recv.payload.obj);
         case 12u: return std_core_i8_Display_to_string(((int8_t) recv.payload.i));
@@ -3631,9 +3631,9 @@ static vader_string_t vader_vt_Display__to_string(vader_box_t recv) {
         case 0u: return std_core_null_Display_to_string(recv);
         case 18u: return std_core_f32_Display_to_string(((float) recv.payload.f));
         case 19u: return std_core_f64_Display_to_string(((double) recv.payload.f));
-        default: vader_unreachable("vtable miss in Display.to_string");
+        default: vader_unreachable("vtable miss in std_core$Display.to_string");
     }
-    vader_unreachable("vtable miss in Display.to_string");
+    vader_unreachable("vtable miss in std_core$Display.to_string");
 }
 
 int main(int argc, char** argv) {

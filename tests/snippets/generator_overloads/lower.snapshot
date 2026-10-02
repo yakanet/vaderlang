@@ -219,7 +219,7 @@
       let __iter_2: Iterator<string> = words :__genstate_upto_1<string>!
       loop
         let __step_3: [string, Continuation]! =
-          vcall Iterator.next :[string, Continuation]!
+          vcall std_core$Iterator.next :[string, Continuation]!
             recv:
               __iter_2 :Iterator<string>
         if :void
@@ -251,7 +251,7 @@
       let __iter_4: Iterator<i32> = numbers :__genstate_upto<i32>!
       loop
         let __step_5: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_4 :Iterator<i32>
         if :void
@@ -319,7 +319,7 @@
       let __iter_8: Iterator<f64> = halves :__genstate_upto<f64>!
       loop
         let __step_9: [f64, Continuation]! =
-          vcall Iterator.next :[f64, Continuation]!
+          vcall std_core$Iterator.next :[f64, Continuation]!
             recv:
               __iter_8 :Iterator<f64>
         if :void

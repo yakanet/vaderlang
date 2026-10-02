@@ -1,0 +1,19 @@
+# Typecheck
+
+## tests/snippets/into_across_modules
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         take                 :: fn(i32) -> i32
+  expr 12:10    StructLitExpr  :: Meters!
+  expr 13:13    StringLitExpr  :: string
+  expr 13:16    CallExpr       :: i32
+  expr 13:16    IdentExpr      :: fn(i32) -> i32
+  expr 13:21    IdentExpr      :: Meters!
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(T) -> void
+  expr 9:29     BinaryExpr     :: i32
+  expr 9:29     IdentExpr      :: i32
+
+## tests/snippets/into_across_modules/units
+  StructDecl     Meters               :: Meters!
+  expr 6:31     FieldExpr      :: i32
+  expr 6:31     IdentExpr      :: Meters

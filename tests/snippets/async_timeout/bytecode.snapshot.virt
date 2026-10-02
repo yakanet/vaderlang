@@ -1,6 +1,6 @@
 module _main
 type 0 primitive null
-type 1 ref Async
+type 1 ref std_core$Async
 type 2 primitive i32
 type 3 struct __defer_env_snippet_1 {  }
 type 4 primitive void
@@ -12,10 +12,10 @@ type 9 struct __asyncstate_snippet_3 { s0:14,s1:14,s2:16,awaited:13,state:2 }
 type 10 union 2,8
 type 11 array 12
 type 12 fn () -> 4
-type 13 ref Async
+type 13 ref std_core$Async
 type 14 union 7,15
 type 15 struct std_async$TimeoutError { ms:21 }
-type 16 ref Error
+type 16 ref std_core$Error
 type 17 primitive bool
 type 18 primitive u8
 type 19 primitive usize
@@ -24,11 +24,11 @@ type 21 primitive i64
 type 22 array 18
 type 23 struct std_async$Timeout__string { child:1,timer:25,ms:21 }
 type 24 union 7,8,15
-type 25 ref Async
-type 26 ref Async
+type 25 ref std_core$Async
+type 26 ref std_core$Async
 type 27 struct std_async$Sleep { ms:21,deadline:21,armed:17 }
 type 28 union 0,8
-type 29 ref Async
+type 29 ref std_core$Async
 type 30 primitive isize
 string 0 "work cleanup"
 string 1 "done"
@@ -45,21 +45,21 @@ import 3 sched_now std_runtime$sched_now result_type=21 () -> i64
 import 4 sched_arm std_runtime$sched_arm result_type=4 param_types=21 param_mutable=0 param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=2 () -> i32
 import 6 panic std_abort$panic result_type=4 param_types=7 param_mutable=0 param_by_address= (string) -> void
-impl 5 Async
-impl 9 Async
-impl 20 ByteAccess
-impl 23 Async
-impl 27 Async
-impl 15 Error
-vtable Async.resume 5 3
-vtable Async.resume 9 5
-vtable Async.resume 23 15
-vtable Async.resume 27 19
-vtable Async.cancel 5 4
-vtable Async.cancel 9 6
-vtable Async.cancel 23 16
-vtable Async.cancel 27 20
-vtable Error.message 15 21
+impl 5 std_core$Async
+impl 9 std_core$Async
+impl 20 std_core$ByteAccess
+impl 23 std_core$Async
+impl 27 std_core$Async
+impl 15 std_core$Error
+vtable std_core$Async.resume 5 3
+vtable std_core$Async.resume 9 5
+vtable std_core$Async.resume 23 15
+vtable std_core$Async.resume 27 19
+vtable std_core$Async.cancel 5 4
+vtable std_core$Async.cancel 9 6
+vtable std_core$Async.cancel 23 16
+vtable std_core$Async.cancel 27 20
+vtable std_core$Error.message 15 21
 export main 1
 
 fn 0 snippet$work () -> any
@@ -96,7 +96,7 @@ fn 1 snippet$main () -> i32
   local.get 3   ; $k_3
   i32.const 7
   struct.new 9   ; __asyncstate_snippet_3
-  ref.cast 26   ; -> ref Async
+  ref.cast 26   ; -> ref std_core$Async
   call 18   ; std_async$run_async_main
   return
 end
@@ -205,7 +205,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
           i32.eq
           if $L7 void
             local.field 0 5 2   ; arg 0.awaited
-            virtual.call 1 Async.resume
+            virtual.call 1 std_core$Async.resume
             local.tee 7   ; __resumed_3
             type_check 8   ; std_core$Suspended
             if $L8 void
@@ -288,7 +288,7 @@ fn 4 snippet$__asyncstate_snippet_2$Async$cancel (ref) -> void
   if $L0 void
   else
     local.field 0 5 2   ; arg 0.awaited
-    virtual.call 1 Async.cancel
+    virtual.call 1 std_core$Async.cancel
   end $L0
   block $L1 void
     loop $L2 void
@@ -380,7 +380,7 @@ fn 5 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
         local.get 2   ; $cast_14
         struct.set 9 2   ; __asyncstate_snippet_3.s2
         local.field 0 9 2   ; arg 0.s2
-        virtual.call 1 Error.message
+        virtual.call 1 std_core$Error.message
         local.set 3   ; $vcall_17
         string.const 2   ; "timed out: "
         local.get 3   ; $vcall_17
@@ -412,7 +412,7 @@ fn 5 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
           i32.eq
           if $L6 void
             local.field 0 9 1   ; arg 0.s1
-            type_check 16   ; ref Error
+            type_check 16   ; ref std_core$Error
             if $L7 void
               local.get 0   ; arg 0
               i32.const 2
@@ -443,7 +443,7 @@ fn 5 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
               i32.eq
               if $L9 void
                 local.field 0 9 3   ; arg 0.awaited
-                virtual.call 1 Async.resume
+                virtual.call 1 std_core$Async.resume
                 local.tee 6   ; __resumed_2
                 type_check 8   ; std_core$Suspended
                 if $L10 void
@@ -506,7 +506,7 @@ fn 6 snippet$__asyncstate_snippet_3$Async$cancel (ref) -> void
   if $L0 void
   else
     local.field 0 9 3   ; arg 0.awaited
-    virtual.call 1 Async.cancel
+    virtual.call 1 std_core$Async.cancel
   end $L0
   local.get 0   ; arg 0
   i32.const -1
@@ -785,12 +785,12 @@ fn 15 std_async$Timeout$Async$resume__string (ref) -> any
   local $field_12 i64
   local if_res ref
   local.field 0 23 0   ; arg 0.child
-  virtual.call 1 Async.resume
+  virtual.call 1 std_core$Async.resume
   local.tee 1   ; rc
   type_check 8   ; std_core$Suspended
   if $L0 void
     local.field 0 23 1   ; arg 0.timer
-    virtual.call 1 Async.resume
+    virtual.call 1 std_core$Async.resume
     local.tee 2   ; rt
     type_check 8   ; std_core$Suspended
     if $L1 void
@@ -820,14 +820,14 @@ fn 15 std_async$Timeout$Async$resume__string (ref) -> any
       return
     end $L1
     local.field 0 23 0   ; arg 0.child
-    virtual.call 1 Async.cancel
+    virtual.call 1 std_core$Async.cancel
     local.field 0 23 2   ; arg 0.ms
     ref.cast 21   ; -> i64
     struct.new 15   ; std_async$TimeoutError
     return
   end $L0
   local.field 0 23 1   ; arg 0.timer
-  virtual.call 1 Async.cancel
+  virtual.call 1 std_core$Async.cancel
   local.get 1   ; rc
   ref.cast 7   ; -> string
   retag 7   ; -> string
@@ -836,9 +836,9 @@ end
 
 fn 16 std_async$Timeout$Async$cancel__string (ref) -> void
   local.field 0 23 0   ; arg 0.child
-  virtual.call 1 Async.cancel
+  virtual.call 1 std_core$Async.cancel
   local.field 0 23 1   ; arg 0.timer
-  virtual.call 1 Async.cancel
+  virtual.call 1 std_core$Async.cancel
   return
 end
 
@@ -941,7 +941,7 @@ fn 22 std_async$block_on__i32 (any) -> i32
   block $L0 void
     loop $L1 void
       local.get 0   ; arg 0
-      virtual.call 1 Async.resume
+      virtual.call 1 std_core$Async.resume
       local.tee 1   ; r
       type_check 8   ; std_core$Suspended
       if $L2 void

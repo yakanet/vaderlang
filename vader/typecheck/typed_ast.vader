@@ -81,14 +81,15 @@ export ArgBound :: struct {
     position: usize
     /// The impl's type parameter at that position, as written.
     name: string
-    /// The traits the argument must implement.
+    /// The traits the argument must implement, by `trait_key`.
     traits: string[]
 }
 
 /// A generic impl, as its bounds see it : the trait it implements and the bounds
 /// it puts on the implementing type's arguments.
 export BoundedImpl :: struct {
-    trait_name: string
+    /// The trait's `trait_key`.
+    trait_key: string
     bounds: ArgBound[]
 }
 
@@ -276,10 +277,12 @@ export TypedProgram :: struct {
     /// trait's Symbol id, populated alongside `trait_decls`.
     trait_decl_owners: MutableMap<i32, ResolvedModule>
 
-    /// `for_type_display::method_name → ImplMethod`. Populated by `walk_bodies`
-    /// as it visits each `ImplDecl` ; consumed by `field.vader::infer_field` for
-    /// the `x.method()` dispatch path when `x` is not a struct with a member
-    /// named `method`.
+    /// `type::method_name → ImplMethod`, under two keys per member: the impl's
+    /// own type (`impl_type_key`, arguments included) and its base
+    /// (`impl_base_key`); plus `into_impl_key` for an `Into` impl. Written by
+    /// `record_impl_members` ; consumed by `field.vader::infer_field` for the
+    /// `x.method()` dispatch path when `x` is not a struct with a member named
+    /// `method`.
     impl_methods: MutableMap<string, ImplMethod>
 
     /// Flow-sensitive narrowing state — the five tables `narrow.vader` owns.
@@ -361,25 +364,26 @@ export TypedProgram :: struct {
     /// its entries does not count the module's files.
     imported_fn_overloads: MutableMap<string, MutableMap<string, FnCandidate[]!>!>
 
-    /// `display_type(for_ty) → element` for every `X implements
-    /// Iterator<T>` impl reached during type-checking. Consumed by
+    /// `impl_base_key(for_ty) → element` for every `X implements
+    /// Iterator<T>` impl reached during type-checking — the impl's own `T`,
+    /// which a reader substitutes against the instance's arguments. Consumed by
     /// `stmt.vader::for_in_element` so `for c in some_iter` binds
     /// `c` to T.
     iter_element_types: MutableMap<string, Type>
 
-    /// `display_type(for_ty) → T` for every `X implements Index<I, T>`
+    /// `impl_base_key(for_ty) → T` for every `X implements Index<I, T>`
     /// impl. Consumed by `expr_index.vader` so `m[k]` returns T when
     /// `m` is a user struct with an Index impl.
     index_target_types: MutableMap<string, Type>
 
-    /// `display_type(for_ty) → K` for every `X implements Index<K, _>`
+    /// `impl_base_key(for_ty) → K` for every `X implements Index<K, _>`
     /// or `X implements IndexSet<K, _>` impl. Consumed by
     /// `expr_index.vader` / `stmt.vader` to pin a free-literal index key
     /// (`m[9000000000]`) to the resolved key type instead of letting it
     /// default to i32 and silently truncate.
     index_key_types: MutableMap<string, Type>
 
-    /// `display_type(for_ty) → V` for every `X implements IndexSet<K, V>`
+    /// `impl_base_key(for_ty) → V` for every `X implements IndexSet<K, V>`
     /// impl. Consumed by `stmt.vader::check_assign` to pin a free-literal
     /// index-set value (`m[k] = 9000000000`) to the declared value type.
     /// Distinct from `index_target_types` (which records the nullable
@@ -409,8 +413,8 @@ export TypedProgram :: struct {
     /// tooling: the lowerer finds the impl member from the receiver itself.
     chosen_impl_methods: MutableMap<usize, ImplMethod>
 
-    /// `"${TypeBaseName}::${methodName}" → trait names that all
-    /// provide the same method on the same receiver. When the list
+    /// `"${impl_base_key}::${methodName}" → the `trait_key`s of every trait
+    /// providing the same method on the same receiver. When the list
     /// has 2+ entries, an unqualified `x.method()` is ambiguous —
     /// `field.vader` emits T3032.
     impl_method_traits: MutableMap<string, string[]!>!
@@ -422,31 +426,30 @@ export TypedProgram :: struct {
     /// nominal references.
     struct_field_types: MutableMap<i32, MutableMap<string, Type>>
 
-    /// `"${TypeBaseName}" → trait names` for every `X implements
-    /// Trait` impl — what the run-time `is Trait` test sees. A generic impl
+    /// `impl_base_key → trait_key`s for every `X implements Trait` impl — what
+    /// the run-time `is Trait` test sees. A generic impl
     /// counts here for every argument ; `impl_bounds` narrows it to the arguments
     /// its bounds admit (`struct_implements_trait`).
     struct_implemented_traits: MutableMap<string, string[]!>!
 
-    /// `"${TypeBaseName}"` → impl span hash → each generic impl of that base,
+    /// `impl_base_key` → impl span hash → each generic impl of that base,
     /// with the bounds it puts on the type's arguments. Keyed by the impl's span
     /// because an impl is recorded again at every walk of its module ; an impl
     /// for a type without arguments puts no bound and is not recorded.
     impl_bounds: MutableMap<string, MutableMap<u64, BoundedImpl>!>
 
-    /// `Symbol.id → trait names` — the id-keyed twin of
-    /// `struct_implemented_traits`, populated in lockstep by
+    /// `Symbol.id → trait_key`s — the twin of `struct_implemented_traits` for
+    /// the types that have a declaration, populated in lockstep by
     /// `record_struct_trait`. Symbol ids are project-global-unique (one
-    /// shared `SymbolFactory`), so this keys runtime `is Trait` membership
-    /// without the base-name collision hazard. Threaded to the bytecode
+    /// shared `SymbolFactory`). Threaded to the bytecode
     /// emitter (via `LoweredProject.trait_membership`) to seed `impl_table`
     /// rows per interned struct tag — replacing the lowering force-hook's
     /// membership role.
     struct_traits_by_sym: MutableMap<i32, string[]!>!
 
-    /// Per-impl trait args, keyed by `${struct_name}` then `${trait_name}`.
+    /// Per-impl trait args, keyed by `impl_base_key` then `trait_key`.
     /// `Hello implements Greeter(i32)` records
-    /// `struct_trait_args["Hello"]["Greeter"] = [i32]`. Consumed by
+    /// `struct_trait_args[base of Hello]["main.Greeter"] = [i32]`. Consumed by
     /// `unify.vader::unify_type_param` so a generic fn parametrised by
     /// `fn<T>(g: Greeter<T>)` called as `f(Hello {})` can bind T → i32.
     struct_trait_args: MutableMap<string, MutableMap<string, Type[]!>>
@@ -528,10 +531,10 @@ export TypedProgram :: struct {
     /// \`WORDS!\`` is actionable rather than a dead end.
     const_decls: MutableMap<i32, ConstDecl>
 
-    /// FieldExpr.id → resolved trait name. Populated when a
+    /// FieldExpr.id → the resolved trait's `trait_key`. Populated when a
     /// `x.method()` call dispatches via a TypeParam bound (`T: Hash`
     /// resolves `.hash` through the Hash trait). The lower consumes
-    /// this to emit `vcall Hash.hash` on erased-to-Any receivers
+    /// this to emit `vcall std/core.Hash.hash` on erased-to-Any receivers
     /// instead of a direct field-call to an unresolved member.
     bounded_dispatch_trait: MutableMap<usize, string>
 

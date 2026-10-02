@@ -73,6 +73,7 @@ surface_stdlib_impl_externs :: fn(
     if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
+    impl_trait :: impl_trait_key(project_ctx, impl_decl)
     // An impl whose trait was reached by a VIRTUAL dispatch must place EVERY
     // implementor in the vtable — the boxed receiver tag picks the impl at
     // runtime, so no single concrete mangle was recorded. This is the only path
@@ -93,7 +94,7 @@ surface_stdlib_impl_externs :: fn(
     //
     // Both fire only for a virtually-dispatched trait, so a snippet that never
     // virtually dispatches the trait surfaces nothing (no drift).
-    vtable_gate :: project_ctx.virtually_dispatched_traits.contains(impl_decl.trait_name) &&
+    vtable_gate :: project_ctx.virtually_dispatched_traits.contains(impl_trait) &&
         vtable_receiver_eligible(self_type, project_ctx)
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
@@ -111,7 +112,7 @@ surface_stdlib_impl_externs :: fn(
         types :: make_entry_types(typed, new_substitution())
         params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
         return_type :: return_type_of(member, types)
-        entry :: synth_impl_entry(member, typed, mangled)
+        entry :: synth_impl_entry(member, typed, mangled, impl_trait)
         // Bodyless (`@intrinsic`) → extern import (Vader VM dispatches via
         // host.vader). With-body (e.g. `i32 implements Hash -> u64(self)`) →
         // materialise the real fn so a devirtualised concrete call resolves
@@ -168,6 +169,7 @@ surface_array_blanket_members :: fn(
     out: LoweredDecl[]!: []
     if impl_decl.type_params.len() == 0 { return out }
     if !(strip_mut_marker(impl_decl.for_type) is ArrayTypeExpr) { return out }
+    impl_trait :: impl_trait_key(project_ctx, impl_decl)
     for member in impl_decl.members {
         // A bodyless `@intrinsic` member (`T[] implements ArrayOps`) has no body to
         // lower — the lowerer emits the dedicated array op at the call site. Skip it
@@ -189,7 +191,7 @@ surface_array_blanket_members :: fn(
             types :: make_entry_types(typed, subst)
             params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
             return_type :: return_type_of(member, types)
-            entry :: synth_impl_entry(member, typed, mangled)
+            entry :: synth_impl_entry(member, typed, mangled, impl_trait)
             body :: lower_fn_body(member, typed, project_ctx, entry, subst, return_type)
             out.push(LoweredFnDecl {
                 .mangled     = mangled,

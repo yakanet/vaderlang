@@ -1,0 +1,5 @@
+module "snippet/farm"
+
+export Animal :: trait {
+    legs :: fn(self) -> i32
+}

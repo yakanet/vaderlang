@@ -99,55 +99,55 @@ import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=17 p
 import 2 bytes std_core$bytes result_type=17 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 3 hash std_core$string$Hash$hash result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> u64
 import 4 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=1,17,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 ByteAccess
-impl 23 Index
-impl 23 IndexSet
-impl 23 Contains
-impl 23 Into
-impl 24 Index
-impl 24 IndexSet
-impl 24 Contains
-impl 24 Into
-impl 26 Index
-impl 26 IndexSet
-impl 26 Contains
-impl 26 Into
-impl 28 Index
-impl 28 IndexSet
-impl 28 Contains
-impl 28 Into
-impl 30 Index
-impl 30 IndexSet
-impl 30 Contains
-impl 30 Into
-impl 32 Index
-impl 32 IndexSet
-impl 32 Contains
-impl 32 Into
-impl 34 Index
-impl 34 IndexSet
-impl 34 Contains
-impl 34 Into
-impl 36 Index
-impl 36 IndexSet
-impl 36 Contains
-impl 36 Into
-vtable Display.to_string 9 9
-vtable Display.to_string 10 10
-vtable Display.to_string 1 11
-vtable Display.to_string 7 12
-vtable Display.to_string 11 13
-vtable Display.to_string 4 14
-vtable Display.to_string 12 15
-vtable Display.to_string 13 16
-vtable Display.to_string 8 17
-vtable Display.to_string 5 18
-vtable Display.to_string 3 19
-vtable Display.to_string 14 20
-vtable Display.to_string 2 21
-vtable Display.to_string 0 22
-vtable Display.to_string 15 23
-vtable Display.to_string 16 24
+impl 6 std_core$ByteAccess
+impl 23 std_core$Index
+impl 23 std_core$IndexSet
+impl 23 std_core$Contains
+impl 23 std_core$Into
+impl 24 std_core$Index
+impl 24 std_core$IndexSet
+impl 24 std_core$Contains
+impl 24 std_core$Into
+impl 26 std_core$Index
+impl 26 std_core$IndexSet
+impl 26 std_core$Contains
+impl 26 std_core$Into
+impl 28 std_core$Index
+impl 28 std_core$IndexSet
+impl 28 std_core$Contains
+impl 28 std_core$Into
+impl 30 std_core$Index
+impl 30 std_core$IndexSet
+impl 30 std_core$Contains
+impl 30 std_core$Into
+impl 32 std_core$Index
+impl 32 std_core$IndexSet
+impl 32 std_core$Contains
+impl 32 std_core$Into
+impl 34 std_core$Index
+impl 34 std_core$IndexSet
+impl 34 std_core$Contains
+impl 34 std_core$Into
+impl 36 std_core$Index
+impl 36 std_core$IndexSet
+impl 36 std_core$Contains
+impl 36 std_core$Into
+vtable std_core$Display.to_string 9 9
+vtable std_core$Display.to_string 10 10
+vtable std_core$Display.to_string 1 11
+vtable std_core$Display.to_string 7 12
+vtable std_core$Display.to_string 11 13
+vtable std_core$Display.to_string 4 14
+vtable std_core$Display.to_string 12 15
+vtable std_core$Display.to_string 13 16
+vtable std_core$Display.to_string 8 17
+vtable std_core$Display.to_string 5 18
+vtable std_core$Display.to_string 3 19
+vtable std_core$Display.to_string 14 20
+vtable std_core$Display.to_string 2 21
+vtable std_core$Display.to_string 0 22
+vtable std_core$Display.to_string 15 23
+vtable std_core$Display.to_string 16 24
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -198,7 +198,7 @@ fn 0 snippet$main () -> i32
     local.get 0   ; $arr_0
     string.const 1   ; "y"
     call 73   ; std_collections$MutableMap$Index$at__string__u8
-    virtual.call 1 Display.to_string
+    virtual.call 1 std_core$Display.to_string
     local.tee 4   ; __p_0
     call.import 0   ; std_core$byte_len
     local.set 5   ; $call_22
@@ -355,7 +355,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; $arr_1
     string.const 11   ; "accent"
     call 61   ; std_collections$MutableMap$Index$at__string__char
-    virtual.call 1 Display.to_string
+    virtual.call 1 std_core$Display.to_string
     local.set 10   ; $vcall_97
     string.const 13   ; "char first="
     local.get 4   ; __p_0

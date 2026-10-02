@@ -9,10 +9,10 @@ type 6 struct std_core$Range__usize { start:7,end:7,inclusive:3,cursor:7 }
 type 7 primitive usize
 type 8 struct __Tuple_usize_u8_de11f1ad { _0:7,_1:5 }
 type 9 array 1
-impl 2 Contains
-impl 2 Iterator
-impl 6 Contains
-impl 6 Iterator
+impl 2 std_core$Contains
+impl 2 std_core$Iterator
+impl 6 std_core$Contains
+impl 6 std_core$Iterator
 
 fn 0 snippet$add (i32,i32) -> i32
   local.get 0   ; arg 0

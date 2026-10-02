@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 array 1
-type 3 ref Iterator
+type 3 ref std_core$Iterator
 type 4 primitive void
 type 5 struct snippet$__genstate_until_over { s0:3,s1:1,s2:3,s3:6,s4:1,s5:1,state:1 }
 type 6 struct __Tuple_i32_u8_99ae0d29 { _0:1,_1:7 }
@@ -40,7 +40,7 @@ type 37 struct std_collections$__gen_state_std_collections_3 { s0:36,s1:14,s2:14
 type 38 array 12
 type 39 array 10
 type 40 ref __genstate_until_over
-type 41 ref Iterator
+type 41 ref std_core$Iterator
 type 42 ref __genstate_flat_map
 type 43 ref __genstate_stop_at
 type 44 ref __genstate_first_two_of_odd
@@ -57,47 +57,47 @@ string 7 "\n"
 import 0 byte_len std_core$byte_len result_type=14 param_types=10 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=19 param_types=10 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=23 param_types=1,19,14 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 5 Iterator
-impl 8 Iterator
-impl 9 Iterator
-impl 11 Contains
-impl 11 Iterator
-impl 13 Contains
-impl 13 Iterator
-impl 16 ByteAccess
-impl 18 Iterator
-impl 21 Iterator
-impl 22 Iterator
-impl 24 Index
-impl 24 IndexSet
-impl 24 Contains
-impl 24 Into
-impl 25 Iterator
-impl 28 Index
-impl 28 IndexSet
-impl 28 Contains
-impl 28 Into
-impl 29 Iterator
-impl 32 Index
-impl 32 IndexSet
-impl 32 Contains
-impl 32 Into
-impl 33 Iterator
-impl 36 Contains
-impl 36 Into
-impl 37 Iterator
-vtable Iterator.next 5 9
-vtable Iterator.next 8 10
-vtable Iterator.next 9 11
-vtable Iterator.next 11 14
-vtable Iterator.next 13 15
-vtable Iterator.next 18 31
-vtable Iterator.next 21 36
-vtable Iterator.next 22 38
-vtable Iterator.next 25 39
-vtable Iterator.next 29 40
-vtable Iterator.next 33 41
-vtable Iterator.next 37 42
+impl 5 std_core$Iterator
+impl 8 std_core$Iterator
+impl 9 std_core$Iterator
+impl 11 std_core$Contains
+impl 11 std_core$Iterator
+impl 13 std_core$Contains
+impl 13 std_core$Iterator
+impl 16 std_core$ByteAccess
+impl 18 std_core$Iterator
+impl 21 std_core$Iterator
+impl 22 std_core$Iterator
+impl 24 std_core$Index
+impl 24 std_core$IndexSet
+impl 24 std_core$Contains
+impl 24 std_core$Into
+impl 25 std_core$Iterator
+impl 28 std_core$Index
+impl 28 std_core$IndexSet
+impl 28 std_core$Contains
+impl 28 std_core$Into
+impl 29 std_core$Iterator
+impl 32 std_core$Index
+impl 32 std_core$IndexSet
+impl 32 std_core$Contains
+impl 32 std_core$Into
+impl 33 std_core$Iterator
+impl 36 std_core$Contains
+impl 36 std_core$Into
+impl 37 std_core$Iterator
+vtable std_core$Iterator.next 5 9
+vtable std_core$Iterator.next 8 10
+vtable std_core$Iterator.next 9 11
+vtable std_core$Iterator.next 11 14
+vtable std_core$Iterator.next 13 15
+vtable std_core$Iterator.next 18 31
+vtable std_core$Iterator.next 21 36
+vtable std_core$Iterator.next 22 38
+vtable std_core$Iterator.next 25 39
+vtable std_core$Iterator.next 29 40
+vtable std_core$Iterator.next 33 41
+vtable std_core$Iterator.next 37 42
 export main 8
 
 fn 0 snippet$spread (i32) -> ref
@@ -282,7 +282,7 @@ fn 4 snippet$break_over_array () -> void
   block $L8 void
     loop $L9 void
       local.get 11   ; __iter_5
-      virtual.call 1 Iterator.next
+      virtual.call 1 std_core$Iterator.next
       local.set 1   ; __fuse_arr_2
       local.field 1 6 1   ; __fuse_arr_2._1
       i32.const 1
@@ -474,7 +474,7 @@ fn 5 snippet$break_over_flat_map () -> void
   block $L11 void
     loop $L12 void
       local.get 14   ; $call_58
-      virtual.call 1 Iterator.next
+      virtual.call 1 std_core$Iterator.next
       local.set 1   ; __fuse_arr_2
       local.field 1 6 1   ; __fuse_arr_2._1
       i32.const 1
@@ -647,7 +647,7 @@ fn 6 snippet$continue_over_array () -> void
   block $L9 void
     loop $L10 void
       local.get 12   ; __iter_5
-      virtual.call 1 Iterator.next
+      virtual.call 1 std_core$Iterator.next
       local.set 1   ; __fuse_arr_2
       local.field 1 6 1   ; __fuse_arr_2._1
       i32.const 1
@@ -850,7 +850,7 @@ fn 7 snippet$continue_over_take () -> void
   block $L12 void
     loop $L13 void
       local.get 14   ; __iter_5
-      virtual.call 1 Iterator.next
+      virtual.call 1 std_core$Iterator.next
       local.set 1   ; __fuse_arr_2
       local.field 1 6 1   ; __fuse_arr_2._1
       i32.const 1
@@ -1180,7 +1180,7 @@ fn 9 snippet$__genstate_until_over$Iterator$next (ref) -> ref
                   i32.eq
                   if $L22 void
                     local.field 0 5 2   ; arg 0.s2
-                    virtual.call 1 Iterator.next
+                    virtual.call 1 std_core$Iterator.next
                     local.set 14   ; $vcall_103
                     local.get 0   ; arg 0
                     local.get 14   ; $vcall_103
@@ -1509,7 +1509,7 @@ fn 10 snippet$__genstate_stop_at$Iterator$next (ref) -> ref
                   i32.eq
                   if $L22 void
                     local.field 0 8 2   ; arg 0.s2
-                    virtual.call 1 Iterator.next
+                    virtual.call 1 std_core$Iterator.next
                     local.set 12   ; $vcall_99
                     local.get 0   ; arg 0
                     local.get 12   ; $vcall_99
@@ -1845,7 +1845,7 @@ fn 11 snippet$__genstate_first_two_of_odd$Iterator$next (ref) -> ref
                   i32.eq
                   if $L23 void
                     local.field 0 9 1   ; arg 0.s1
-                    virtual.call 1 Iterator.next
+                    virtual.call 1 std_core$Iterator.next
                     local.set 11   ; $vcall_106
                     local.get 0   ; arg 0
                     local.get 11   ; $vcall_106
@@ -2935,7 +2935,7 @@ fn 36 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
               i32.eq
               if $L19 void
                 local.field 0 21 2   ; arg 0.s2
-                virtual.call 1 Iterator.next
+                virtual.call 1 std_core$Iterator.next
                 local.set 14   ; $vcall_91
                 local.get 0   ; arg 0
                 local.get 14   ; $vcall_91
@@ -3211,7 +3211,7 @@ fn 38 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> ref
           i32.eq
           if $L18 void
             local.field 0 22 3   ; arg 0.s3
-            virtual.call 1 Iterator.next
+            virtual.call 1 std_core$Iterator.next
             local.set 8   ; $vcall_78
             local.get 0   ; arg 0
             local.get 8   ; $vcall_78

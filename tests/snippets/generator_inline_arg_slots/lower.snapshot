@@ -27,7 +27,7 @@
         let __iter_0: Iterator<i32> = self :Iterator<i32>
         loop
           let __step_1: [i32, Continuation]! =
-            vcall Iterator.next :[i32, Continuation]!
+            vcall std_core$Iterator.next :[i32, Continuation]!
               recv:
                 __iter_0 :Iterator<i32>
           if :void
@@ -166,7 +166,7 @@
               ix:
                 __fuse_i_9 :usize
           let __tup_0: [string, Continuation] =
-            vcall Iterator.next :[string, Continuation]
+            vcall std_core$Iterator.next :[string, Continuation]
               recv:
                 other :Iterator<string>
           let y: string =
@@ -772,7 +772,7 @@
                                                           .s3 :[i32, Continuation]!
                                                             __self_2 :__genstate_with_sentinel!
                                                         value:
-                                                          vcall Iterator.next :[i32, Continuation]!
+                                                          vcall std_core$Iterator.next :[i32, Continuation]!
                                                             recv:
                                                               .s2 :Iterator<i32>
                                                                 __self_2 :__genstate_with_sentinel!

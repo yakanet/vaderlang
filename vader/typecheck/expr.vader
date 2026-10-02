@@ -238,7 +238,7 @@ check_interpolated_part :: fn(
         is EnumType      -> ("`${type.symbol.name}` does not implement it ; add `@displayable` to "
             + "render its variant names, or implement `Display`")
         _                -> ("`${display_type(type)}` does not implement it"
-            + unmet_impl_bound_note(type, TRAIT_DISPLAY, typed))
+            + unmet_impl_bound_note(type, core_trait_key(TRAIT_DISPLAY), typed))
     }
     diags.push(typecheck_error(.InterpolationRequiresDisplay, part.span, detail))
 }
@@ -247,8 +247,8 @@ check_interpolated_part :: fn(
 // distinct's backing, the elements of an array, every variant of a union, a
 // type parameter's bound.
 has_display :: fn(t: Type, typed: TypedProgram) -> bool = match t {
-    is PrimitiveType | StructType | EnumType -> struct_implements_trait(t, TRAIT_DISPLAY, typed)
-    is DistinctType  -> (struct_implements_trait(t, TRAIT_DISPLAY, typed)
+    is PrimitiveType | StructType | EnumType -> struct_implements_trait(t, core_trait_key(TRAIT_DISPLAY), typed)
+    is DistinctType  -> (struct_implements_trait(t, core_trait_key(TRAIT_DISPLAY), typed)
         || has_display(t.backing, typed))
     is ArrayType     -> has_display(t.element, typed)
     is UnionType     -> all_display(t.variants, typed)
@@ -275,7 +275,7 @@ bound_names_display :: fn(bound: AST.Expr | null, typed: TypedProgram) -> bool {
     if bound == null {
         return false
     }
-    return bounded_trait_args(bound, TRAIT_DISPLAY, typed) != null
+    return bounded_trait_args(bound, core_trait_key(TRAIT_DISPLAY), typed) != null
 }
 
 // The first enum `t` holds as a union variant, looking through array elements.

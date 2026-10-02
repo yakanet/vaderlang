@@ -7,7 +7,7 @@
       let __iter_0: Iterator<i32> = it :Iterator<i32>
       loop
         let __step_1: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_0 :Iterator<i32>
         if :void

@@ -41,10 +41,10 @@
         callee:
           outer :fn() -> Async<i32>
     let _: i32 | Suspended =
-      vcall Async.resume :i32 | Suspended
+      vcall std_core$Async.resume :i32 | Suspended
         recv:
           o :Async<i32>
-    vcall Async.cancel :void
+    vcall std_core$Async.cancel :void
       recv:
         o :Async<i32>
     call :void
@@ -198,7 +198,7 @@
                                   int(5) :i32
                             then:
                               let __resumed_3: Any | Suspended! =
-                                vcall Async.resume :Any | Suspended!
+                                vcall std_core$Async.resume :Any | Suspended!
                                   recv:
                                     .awaited :Async<Any>
                                       __self_2 :__asyncstate_snippet_2!
@@ -285,7 +285,7 @@
             __self_2 :__asyncstate_snippet_2!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_2 :__asyncstate_snippet_2!
@@ -470,7 +470,7 @@
                                   int(5) :i32
                             then:
                               let __resumed_3: Any | Suspended! =
-                                vcall Async.resume :Any | Suspended!
+                                vcall std_core$Async.resume :Any | Suspended!
                                   recv:
                                     .awaited :Async<Any>
                                       __self_2 :__asyncstate_snippet_5!
@@ -551,7 +551,7 @@
             __self_2 :__asyncstate_snippet_5!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_2 :__asyncstate_snippet_5!

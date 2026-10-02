@@ -1,8 +1,8 @@
 module _main
 type 0 primitive null
-type 1 ref Async
+type 1 ref std_core$Async
 type 2 primitive bool
-type 3 ref Async
+type 3 ref std_core$Async
 type 4 primitive void
 type 5 primitive i32
 type 6 struct __asyncstate_snippet_0 { s0:2,s1:5,s2:5,awaited:13,state:5 }
@@ -12,7 +12,7 @@ type 9 struct std_core$Suspended { wake_at:17 }
 type 10 struct snippet$Ready__i32 { v:5 }
 type 11 union 5,9
 type 12 primitive string
-type 13 ref Async
+type 13 ref std_core$Async
 type 14 primitive u8
 type 15 primitive usize
 type 16 struct std_core$Buffer {  }
@@ -27,11 +27,11 @@ string 4 "\n"
 import 0 byte_len std_core$byte_len result_type=15 param_types=12 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=18 param_types=12 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=5,18,15 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 Async
-impl 10 Async
-impl 16 ByteAccess
-vtable Async.resume 6 4
-vtable Async.resume 10 5
+impl 6 std_core$Async
+impl 10 std_core$Async
+impl 16 std_core$ByteAccess
+vtable std_core$Async.resume 6 4
+vtable std_core$Async.resume 10 5
 export main 3
 
 fn 0 snippet$fetch () -> any
@@ -60,7 +60,7 @@ fn 2 snippet$report (any) -> void
   local __off_1 usize
   local $cast_20 i64
   local.get 0   ; arg 0
-  virtual.call 1 Async.resume
+  virtual.call 1 std_core$Async.resume
   local.tee 1   ; r
   type_check 9   ; std_core$Suspended
   if $L0 void
@@ -181,7 +181,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         i32.eq
         if $L5 void
           local.field 0 6 3   ; arg 0.awaited
-          virtual.call 1 Async.resume
+          virtual.call 1 std_core$Async.resume
           local.tee 5   ; __resumed_2
           type_check 9   ; std_core$Suspended
           if $L6 void

@@ -51,23 +51,23 @@ import 0 byte_len std_core$byte_len result_type=6 param_types=4 param_mutable=0 
 import 1 bytes_to_string std_core$bytes_to_string result_type=4 param_types=19 param_mutable=0 param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=19 param_types=4 param_mutable=0 param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=2,19,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 8 ByteAccess
-vtable Display.to_string 11 15
-vtable Display.to_string 12 16
-vtable Display.to_string 2 17
-vtable Display.to_string 9 18
-vtable Display.to_string 13 19
-vtable Display.to_string 7 20
-vtable Display.to_string 14 21
-vtable Display.to_string 15 22
-vtable Display.to_string 10 23
-vtable Display.to_string 6 24
-vtable Display.to_string 3 25
-vtable Display.to_string 16 26
-vtable Display.to_string 4 27
-vtable Display.to_string 0 28
-vtable Display.to_string 17 29
-vtable Display.to_string 18 30
+impl 8 std_core$ByteAccess
+vtable std_core$Display.to_string 11 15
+vtable std_core$Display.to_string 12 16
+vtable std_core$Display.to_string 2 17
+vtable std_core$Display.to_string 9 18
+vtable std_core$Display.to_string 13 19
+vtable std_core$Display.to_string 7 20
+vtable std_core$Display.to_string 14 21
+vtable std_core$Display.to_string 15 22
+vtable std_core$Display.to_string 10 23
+vtable std_core$Display.to_string 6 24
+vtable std_core$Display.to_string 3 25
+vtable std_core$Display.to_string 16 26
+vtable std_core$Display.to_string 4 27
+vtable std_core$Display.to_string 0 28
+vtable std_core$Display.to_string 17 29
+vtable std_core$Display.to_string 18 30
 export main 8
 
 fn 0 snippet$skip_two () -> void
@@ -590,7 +590,7 @@ fn 6 snippet$headed () -> void
     end $L8
   end $L7
   local.get 7   ; __consumed_2
-  virtual.call 1 Display.to_string
+  virtual.call 1 std_core$Display.to_string
   local.set 8   ; $vcall_74
   string.const 7   ; "found "
   local.get 8   ; $vcall_74

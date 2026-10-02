@@ -37,8 +37,8 @@ import "std/abort"
 // ---- state-struct synthesis + entry ---------------------------------------
 
 // Build one `$Async$<method>` vtable member of the state struct : the mangle +
-// synthetic `Symbol` + `LoweredFnDecl` with `self: state_ty` as param[0] — the
-// shape `collect_vtable_entries` keys on. Shared by `resume` and `cancel`, which
+// synthetic `Symbol` + `LoweredFnDecl` with `self: state_ty` as param[0] and
+// its `Async` vtable slot — what `collect_vtable_entries` reads. Shared by `resume` and `cancel`, which
 // differ only in method name, return type, and body (both take the same
 // `self_sym` — each references it only inside its own body, so the shared symbol
 // resolves to each fn's own param slot).
@@ -55,7 +55,10 @@ mk_async_method_decl :: fn(
         .mangled = mangled,
         .params = [LoweredParam { .name = "self", .symbol = self_sym, .type = state_ty }],
         .return_type = return_ty, .body = body,
-        .origin = synth_mono_entry(fn_ctx, sym),
+        .origin = MonoEntry {
+            ...synth_mono_entry(fn_ctx, sym),
+            .vtable_slot = VtableSlot { .trait_key = core_trait_key(TRAIT_ASYNC), .method = method },
+        },
     }
 }
 
@@ -258,7 +261,7 @@ async_main_driver :: fn(
     let_r :: LoweredLet {
         .span = span, .name = r_sym.name, .symbol = r_sym, .type = resume_ty,
         .value = LoweredVirtualCall {
-            .span = span, .type = resume_ty, .trait_name = TRAIT_ASYNC, .method = METHOD_RESUME,
+            .span = span, .type = resume_ty, .trait_name = core_trait_key(TRAIT_ASYNC), .method = METHOD_RESUME,
             .receiver = LoweredCast { .span = span, .type = async_ty, .value = construct },
             .args = [], .param_types = [],
         },

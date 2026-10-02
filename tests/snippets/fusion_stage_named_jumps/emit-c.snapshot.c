@@ -497,7 +497,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv);
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv);
 
 static void* snippet_spread(int32_t l0) {
     int32_t l1;
@@ -661,7 +661,7 @@ static void snippet_break_over_array(void) {
     l11 = snippet_until_over(t2, INT32_C(21));
 #line 58 "tests/snippets/fusion_stage_named_jumps/_main.vader"
     for (;;) {
-        t2 = vader_vt_Iterator__next(l11);
+        t2 = vader_vt_std_core_Iterator__next(l11);
         l1 = t2.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l1)->f__1 == INT32_C(1)) {
         } else {
@@ -777,7 +777,7 @@ static void snippet_break_over_flat_map(void) {
     l14 = snippet_stop_at(t3, INT32_C(2));
 #line 71 "tests/snippets/fusion_stage_named_jumps/_main.vader"
     for (;;) {
-        t3 = vader_vt_Iterator__next(l14);
+        t3 = vader_vt_std_core_Iterator__next(l14);
         l1 = t3.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l1)->f__1 == INT32_C(1)) {
         } else {
@@ -886,7 +886,7 @@ static void snippet_continue_over_array(void) {
     l12 = snippet_first_two_of_odd(t3);
 #line 84 "tests/snippets/fusion_stage_named_jumps/_main.vader"
     for (;;) {
-        t3 = vader_vt_Iterator__next(l12);
+        t3 = vader_vt_std_core_Iterator__next(l12);
         l1 = t3.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l1)->f__1 == INT32_C(1)) {
         } else {
@@ -1023,7 +1023,7 @@ static void snippet_continue_over_take(void) {
     l14 = snippet_first_two_of_odd(t4);
 #line 97 "tests/snippets/fusion_stage_named_jumps/_main.vader"
     for (;;) {
-        t3 = vader_vt_Iterator__next(l14);
+        t3 = vader_vt_std_core_Iterator__next(l14);
         l1 = t3.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l1)->f__1 == INT32_C(1)) {
         } else {
@@ -1215,7 +1215,7 @@ static void* snippet___genstate_until_over_Iterator_next(void* l0) {
                                 t0 = ((vader_struct_snippet___genstate_until_over_t*) l0)->f_state;
                                 if (t0 == INT32_C(17)) {
 #line 19 "tests/snippets/fusion_stage_named_jumps/_main.vader"
-                                    t2 = vader_vt_Iterator__next(((vader_struct_snippet___genstate_until_over_t*) l0)->f_s2);
+                                    t2 = vader_vt_std_core_Iterator__next(((vader_struct_snippet___genstate_until_over_t*) l0)->f_s2);
                                     l14 = t2.payload.obj;
                                     ((vader_struct_snippet___genstate_until_over_t*) l0)->f_s3 = l14;
                                     VADER_WRITE_BARRIER((vader_struct_snippet___genstate_until_over_t*) l0);
@@ -1412,7 +1412,7 @@ static void* snippet___genstate_stop_at_Iterator_next(void* l0) {
                                 t0 = ((vader_struct_snippet___genstate_stop_at_t*) l0)->f_state;
                                 if (t0 == INT32_C(17)) {
 #line 30 "tests/snippets/fusion_stage_named_jumps/_main.vader"
-                                    t2 = vader_vt_Iterator__next(((vader_struct_snippet___genstate_stop_at_t*) l0)->f_s2);
+                                    t2 = vader_vt_std_core_Iterator__next(((vader_struct_snippet___genstate_stop_at_t*) l0)->f_s2);
                                     l12 = t2.payload.obj;
                                     ((vader_struct_snippet___genstate_stop_at_t*) l0)->f_s3 = l12;
                                     VADER_WRITE_BARRIER((vader_struct_snippet___genstate_stop_at_t*) l0);
@@ -1618,7 +1618,7 @@ static void* snippet___genstate_first_two_of_odd_Iterator_next(void* l0) {
                                 t0 = ((vader_struct_snippet___genstate_first_two_of_odd_t*) l0)->f_state;
                                 if (t0 == INT32_C(17)) {
 #line 41 "tests/snippets/fusion_stage_named_jumps/_main.vader"
-                                    t3 = vader_vt_Iterator__next(((vader_struct_snippet___genstate_first_two_of_odd_t*) l0)->f_s1);
+                                    t3 = vader_vt_std_core_Iterator__next(((vader_struct_snippet___genstate_first_two_of_odd_t*) l0)->f_s1);
                                     l11 = t3.payload.obj;
                                     ((vader_struct_snippet___genstate_first_two_of_odd_t*) l0)->f_s2 = l11;
                                     VADER_WRITE_BARRIER((vader_struct_snippet___genstate_first_two_of_odd_t*) l0);
@@ -2395,7 +2395,7 @@ static void* std_iter___gen_state_std_iter_0_Iterator_next(void* l0) {
                         t0 = ((vader_struct_std_iter___gen_state_std_iter_0_t*) l0)->f_state;
                         if (t0 == INT32_C(15)) {
 #line 286 "lib/std/iter/iter.vader"
-                            t4 = vader_vt_Iterator__next(((vader_struct_std_iter___gen_state_std_iter_0_t*) l0)->f_s2);
+                            t4 = vader_vt_std_core_Iterator__next(((vader_struct_std_iter___gen_state_std_iter_0_t*) l0)->f_s2);
                             l14 = t4.payload.obj;
                             ((vader_struct_std_iter___gen_state_std_iter_0_t*) l0)->f_s3 = l14;
                             VADER_WRITE_BARRIER((vader_struct_std_iter___gen_state_std_iter_0_t*) l0);
@@ -2581,7 +2581,7 @@ static void* std_iter___gen_state_std_iter_1_Iterator_next(void* l0) {
                 t0 = ((vader_struct_std_iter___gen_state_std_iter_1_t*) l0)->f_state;
                 if (t0 == INT32_C(14)) {
 #line 388 "lib/std/iter/iter.vader"
-                    t4 = vader_vt_Iterator__next(((vader_struct_std_iter___gen_state_std_iter_1_t*) l0)->f_s3);
+                    t4 = vader_vt_std_core_Iterator__next(((vader_struct_std_iter___gen_state_std_iter_1_t*) l0)->f_s3);
                     l8 = t4.payload.obj;
                     ((vader_struct_std_iter___gen_state_std_iter_1_t*) l0)->f_s4 = l8;
                     VADER_WRITE_BARRIER((vader_struct_std_iter___gen_state_std_iter_1_t*) l0);
@@ -3247,7 +3247,7 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv) {
     switch (recv.tag) {
         case 5u: return vader_ref_box(snippet___genstate_until_over_Iterator_next(recv.payload.obj));
         case 8u: return vader_ref_box(snippet___genstate_stop_at_Iterator_next(recv.payload.obj));
@@ -3261,9 +3261,9 @@ static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
         case 29u: return vader_ref_box(std_collections___gen_state_std_collections_1_Iterator_next(recv.payload.obj));
         case 33u: return vader_ref_box(std_collections___gen_state_std_collections_2_Iterator_next(recv.payload.obj));
         case 37u: return vader_ref_box(std_collections___gen_state_std_collections_3_Iterator_next(recv.payload.obj));
-        default: vader_unreachable("vtable miss in Iterator.next");
+        default: vader_unreachable("vtable miss in std_core$Iterator.next");
     }
-    vader_unreachable("vtable miss in Iterator.next");
+    vader_unreachable("vtable miss in std_core$Iterator.next");
 }
 
 int main(int argc, char** argv) {

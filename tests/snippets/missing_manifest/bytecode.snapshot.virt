@@ -46,9 +46,9 @@ import 5 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=2 pa
 import 6 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=12 param_types=1,1 param_mutable=0,0 param_by_address= (string,string) -> any
 import 7 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=2 param_types=13 param_mutable=0 param_by_address= (pointer) -> i32
 import 8 extern fread system_posix$sys_fread header=<stdio.h> result_type=4 param_types=5,4,4,13 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-impl 6 ByteAccess
-impl 9 Error
-vtable Error.message 9 11
+impl 6 std_core$ByteAccess
+impl 9 std_core$Error
+vtable std_core$Error.message 9 11
 export main 2
 
 fn 0 snippet$describe (string) -> string
@@ -92,7 +92,7 @@ fn 1 snippet$catch_all (string) -> string
   if $L0 void
     local.get 1   ; r
     ref.cast 9   ; -> std_io$IOError
-    virtual.call 1 Error.message
+    virtual.call 1 std_core$Error.message
     local.set 2   ; $vcall_8
     string.const 4   ; "caught by trait: "
     local.get 2   ; $vcall_8

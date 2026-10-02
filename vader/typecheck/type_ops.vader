@@ -429,47 +429,62 @@ export default_if_free :: fn(t: Type) -> Type {
 
 /// Dispatch key for trait-impl side-tables (`struct_implemented_traits`,
 /// `struct_trait_args`). Defaults Free* first so a `7` literal keys the
-/// same as `i32` for impls like `i32 implements Doubler`. Returns `""`
-/// for types with no nominal name — callers gate on the empty sentinel.
-export dispatch_key :: fn(t: Type) -> string {
-    return type_base_name(default_if_free(t))
+/// same as `i32` for impls like `i32 implements Doubler`.
+export dispatch_key :: fn(t: Type) -> string = impl_base_key(default_if_free(t))
+
+/// The impl tables' key for a type itself, arguments included (`Wrapper<i32>`) —
+/// its `canonical_key` without the mutability an impl is not registered under.
+export impl_type_key :: fn(t: Type) -> string = canonical_key(strip_mutability(t))
+
+/// The `impl_methods` key of a `source implements Into<target>` impl, so several
+/// `Into` impls of one source don't collide.
+///
+/// @param source  the implementing type.
+/// @param target  the `Into` argument.
+into_impl_key :: fn(source: Type, target: Type) -> string =
+    "${impl_type_key(source)}::into::${impl_type_key(target)}"
+
+/// The `into` member registered for converting `source` into `target` — the
+/// impl a coercion between the two goes through. Null when none converts them.
+///
+/// @param typed   the module the coercion is written in ; its table carries the
+///                impls of every module it sees.
+/// @param source  the converted value's type.
+/// @param target  the type it converts into.
+export into_impl_method :: fn(typed: TypedProgram, source: Type, target: Type) -> ImplMethod | null =
+    typed.impl_methods[into_impl_key(source, target)]
+
+/// True iff the base of `t` is registered as implementing `trait_key` in
+/// `typed.struct_implemented_traits` — every argument of a
+/// generic impl included, which is what the run-time `is Trait` test sees.
+export base_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool {
+    bucket :: typed.struct_implemented_traits[dispatch_key(t)] ?? return false
+    return trait_key in bucket
 }
 
-/// True iff the nominal carrier of `t` is registered as implementing the
-/// trait named `trait_name` in `typed.struct_implemented_traits` — every
-/// argument of a generic impl included, which is what the run-time `is Trait`
-/// test sees. False for shapes with no nominal name (union, fn, …).
-export base_implements_trait :: fn(t: Type, trait_name: string, typed: TypedProgram) -> bool {
-    name :: dispatch_key(t)
-    if name == "" {
-        return false
-    }
-    bucket :: typed.struct_implemented_traits[name] ?? return false
-    return trait_name in bucket
-}
-
-/// True iff `t` implements the trait named `trait_name` : its nominal carrier
+/// True iff `t` implements `trait_key` : its nominal carrier
 /// has an impl of it (`base_implements_trait`), and a generic impl counts only
 /// for the arguments its bounds admit — `Box<T> implements<T: Display>
 /// Display` makes `Box<i32>` implement `Display`, not `Box<Point>` when `Point`
 /// has none (`TypedProgram.impl_bounds`). Shared by trait widening, the T3006 /
 /// T3018 checks and UFCS dispatch.
-export struct_implements_trait :: fn(t: Type, trait_name: string, typed: TypedProgram) -> bool {
-    if !base_implements_trait(t, trait_name, typed) {
+export struct_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool {
+    if !base_implements_trait(t, trait_key, typed) {
         return false
     }
-    return blocking_bound(t, trait_name, typed) == null
+    return blocking_bound(t, trait_key, typed) == null
 }
 
-/// Why `t` does not implement `trait_name` although an impl of it exists for
-/// `t`'s base : the bound its arguments leave unmet, as a detail suffix. Empty
-/// when no impl's bound is what fails.
+/// Why `t` does not implement `trait_key` although an impl of it exists for `t`'s
+/// base : the bound its arguments leave unmet, as a detail suffix. Empty when no
+/// impl's bound is what fails.
 ///
-/// @param t           the type that failed the check.
-/// @param trait_name  the trait it was checked against.
-export unmet_impl_bound_note :: fn(t: Type, trait_name: string, typed: TypedProgram) -> string {
-    unmet :: blocking_bound(t, trait_name, typed) ?? return ""
-    return (" ; its impl requires `${unmet.bound.name}: ${unmet.required}`, which "
+/// @param t          the type that failed the check.
+/// @param trait_key  the trait it was checked against.
+export unmet_impl_bound_note :: fn(t: Type, trait_key: string, typed: TypedProgram) -> string {
+    unmet :: blocking_bound(t, trait_key, typed) ?? return ""
+    required :: trait_key_name(unmet.required)
+    return (" ; its impl requires `${unmet.bound.name}: ${required}`, which "
         + "`${display_type(unmet.arg)}` does not implement")
 }
 
@@ -495,10 +510,10 @@ UnmetBound :: struct {
     arg: Type
 }
 
-// What keeps every generic impl of `trait_name` for `t`'s base from holding for
+// What keeps every generic impl of `trait_key` for `t`'s base from holding for
 // `t`'s arguments : the first impl's first unmet bound. Null when an impl holds,
 // or when no generic impl of the trait is recorded for the base.
-blocking_bound :: fn(t: Type, trait_name: string, typed: TypedProgram) -> UnmetBound | null {
+blocking_bound :: fn(t: Type, trait_key: string, typed: TypedProgram) -> UnmetBound | null {
     impls :: typed.impl_bounds[dispatch_key(t)] ?? return null
     args :: type_arguments(t)
     if args.len() == 0 {
@@ -506,7 +521,7 @@ blocking_bound :: fn(t: Type, trait_name: string, typed: TypedProgram) -> UnmetB
     }
     first: UnmetBound | null = null
     for [_, impl_] in impls {
-        if impl_.trait_name != trait_name {
+        if impl_.trait_key != trait_key {
             continue
         }
         unmet :: first_unmet_bound(args, impl_.bounds, typed)
@@ -539,51 +554,49 @@ first_unmet_bound :: fn(args: Type[], bounds: ArgBound[], typed: TypedProgram) -
     return null
 }
 
-// Whether `arg`, at a bounded position of a generic impl, implements `trait_name`
+// Whether `arg`, at a bounded position of a generic impl, implements `trait_key`
 // there. The impl's instance erases that position, so what counts is what a
 // dispatch on the boxed value reaches : a type parameter through its own bound,
 // a union through every variant, a distinct through its own impl or its backing's
 // — and an array not for `Display`, which no vtable carries. A type still unknown
 // here is not held against the impl.
-satisfies_bound :: fn(arg: Type, trait_name: string, typed: TypedProgram) -> bool = match arg {
+satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool = match arg {
     is TypeParamType -> {
         bound :: typed.resolved.type_param_bounds[arg.symbol.id]
-        bound != null && bounded_trait_args(bound, trait_name, typed) != null
+        bound != null && bounded_trait_args(bound, trait_key, typed) != null
     }
-    is UnionType     -> all_satisfy_bound(arg.variants, trait_name, typed)
-    is TraitType     -> arg.symbol.name == trait_name || struct_implements_trait(arg, trait_name, typed)
-    is DistinctType  -> (struct_implements_trait(arg, trait_name, typed)
-        || satisfies_bound(arg.backing, trait_name, typed))
-    is ArrayType     -> trait_name != TRAIT_DISPLAY && struct_implements_trait(arg, trait_name, typed)
+    is UnionType     -> all_satisfy_bound(arg.variants, trait_key, typed)
+    is TraitType     -> trait_key_of(arg.symbol) == trait_key || struct_implements_trait(arg, trait_key, typed)
+    is DistinctType  -> (struct_implements_trait(arg, trait_key, typed)
+        || satisfies_bound(arg.backing, trait_key, typed))
+    is ArrayType     -> trait_key != core_trait_key(TRAIT_DISPLAY) && struct_implements_trait(arg, trait_key, typed)
     is AnyType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType
         | SelfType -> true
     is PrimitiveType | StructType | EnumType | TupleType | FnType | TypeMetaType -> {
-        struct_implements_trait(arg, trait_name, typed)
+        struct_implements_trait(arg, trait_key, typed)
     }
 }
 
-all_satisfy_bound :: fn(types: Type[], trait_name: string, typed: TypedProgram) -> bool {
+all_satisfy_bound :: fn(types: Type[], trait_key: string, typed: TypedProgram) -> bool {
     for t in types {
-        if !satisfies_bound(t, trait_name, typed) {
+        if !satisfies_bound(t, trait_key, typed) {
             return false
         }
     }
     return true
 }
 
-/// The trait args recorded for `t implements <trait_name>` in
+/// The trait args recorded for `t implements <trait_key>` in
 /// `struct_trait_args` (`Hello implements Greeter(i32)` →
 /// `[i32]`), or `null` when no concrete impl is registered for `t`'s
 /// nominal carrier. Shared by the typecheck's `unify_struct_to_trait_args`
 /// and the lowerer's trait-param monomorphisation.
-export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> Type[] | null {
-    name :: dispatch_key(t)
-    if name == "" { return null }
-    per_struct :: typed.struct_trait_args[name] ?? return null
-    return per_struct[trait_name]
+export lookup_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
+    per_struct :: typed.struct_trait_args[dispatch_key(t)] ?? return null
+    return per_struct[trait_key]
 }
 
-/// The trait args for `t implements <trait_name>`, with a GENERIC impl's recorded
+/// The trait args for `t implements <trait>`, with a GENERIC impl's recorded
 /// args resolved against `t`'s concrete instance args. A generic impl records the
 /// impl's own type-params (`FilterIterator<T> implements Iterator<T>` → `[T]`), so
 /// a concrete `FilterIterator<i32>` needs `[T]` substituted by `[i32]` (via the
@@ -591,16 +604,16 @@ export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedP
 /// when `t` isn't a struct instance or its decl is unavailable. Mirrors
 /// `field.vader::substitute_trait_typeparams`; the source of truth for binding a
 /// combinator/terminal's `Iterator<T>` param `T` from a concrete receiver.
-export resolve_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> Type[] | null {
+export resolve_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
     // A `generator`'s `<fn>$State<E>` implements `Iterator<E>` — its trait args ARE
     // its own type args (the concrete element carried per instance). The synthetic
     // struct has no `struct_decl`, so the generic-substitution path below can't apply.
-    if trait_name == TRAIT_ITERATOR {
+    if trait_key == core_trait_key(TRAIT_ITERATOR) {
         if is_gen_state_struct(t) {
             if t is StructType { return t.args }
         }
     }
-    raw :: lookup_struct_trait_args(t, trait_name, typed) ?? return null
+    raw :: lookup_struct_trait_args(t, trait_key, typed) ?? return null
     if t is StructType {
         struct_decl :: typed.struct_decls[t.symbol.id] ?? return raw
         out: Type[]!: []
@@ -768,12 +781,12 @@ export subtract_type :: fn(from: Type, removed: Type) -> Type {
 /// A non-trait `removed` delegates to plain `subtract_type`.
 export subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedProgram) -> Type {
     if !(removed is TraitType) { return subtract_type(from, removed) }
-    trait_name :: removed.symbol.name
+    trait_key :: trait_key_of(removed.symbol)
     if from is UnionType {
         kept: Type[]!: []
         for v in from.variants {
             if removed_covers(removed, v) { continue }
-            if base_implements_trait(v, trait_name, typed) { continue }
+            if base_implements_trait(v, trait_key, typed) { continue }
             kept.push(v)
         }
         if kept.len() == 0 { return TY_NEVER }
@@ -781,7 +794,7 @@ export subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedPro
         return mk_union(kept)
     }
     if removed_covers(removed, from) { return TY_NEVER }
-    if base_implements_trait(from, trait_name, typed) { return TY_NEVER }
+    if base_implements_trait(from, trait_key, typed) { return TY_NEVER }
     return from
 }
 

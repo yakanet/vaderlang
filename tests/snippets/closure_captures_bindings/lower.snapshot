@@ -381,7 +381,7 @@
       let __iter_1: Iterator<[i32, usize]> = it :__genstate_indexed<[i32, usize]>!
       loop
         let __step_2: [[i32, usize], Continuation]! =
-          vcall Iterator.next :[[i32, usize], Continuation]!
+          vcall std_core$Iterator.next :[[i32, usize], Continuation]!
             recv:
               __iter_1 :Iterator<[i32, usize]>
         if :void
@@ -1418,7 +1418,7 @@
                                                       .s4 :[i32, Continuation]!
                                                         __self_3 :__genstate_scaled!
                                                     value:
-                                                      vcall Iterator.next :[i32, Continuation]!
+                                                      vcall std_core$Iterator.next :[i32, Continuation]!
                                                         recv:
                                                           .s3 :Iterator<i32>
                                                             __self_3 :__genstate_scaled!

@@ -1,0 +1,6 @@
+# stdout
+int 1
+str x
+int 1 str x
+# exit
+0

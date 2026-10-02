@@ -242,10 +242,10 @@ lower_index :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type) -> LoweredExpr 
     // (`try_lower_virtual_call`). The entry only says the index dispatches : in
     // `c[i] op= v` one node is read AND written, so it may name `IndexSet`.
     if ctx.typed.bounded_dispatch_trait[expr.id] != null {
-        ctx.project.virtually_dispatched_traits.add(TRAIT_INDEX)
+        ctx.project.virtually_dispatched_traits.add(core_trait_key(TRAIT_INDEX))
         return LoweredVirtualCall {
             .span = expr.span, .type = type,
-            .trait_name = TRAIT_INDEX, .method = METHOD_AT,
+            .trait_name = core_trait_key(TRAIT_INDEX), .method = METHOD_AT,
             .receiver = lower_expr(ctx, expr.target),
             .args = [lower_expr(ctx, expr.index)], .param_types = [],
         }
@@ -255,7 +255,7 @@ lower_index :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type) -> LoweredExpr 
     // ArrayType (built-in path above) and for Range-typed indices
     // (slicing handled above).
     if !is_range && array_backing(target_type) == null {
-        member :: find_trait_impl_member(ctx, target_type, TRAIT_INDEX)
+        member :: find_trait_impl_member(ctx, target_type, core_trait_key(TRAIT_INDEX))
         if member is UfcsMember {
             args: LoweredExpr[]!: []
             args.push(lower_expr(ctx, expr.target))
@@ -401,12 +401,12 @@ try_lower_index_set_assign :: fn(
             // As there, the entry only says the index dispatches : `c[i] op= v`
             // reads the same node, which may have recorded `Index` last.
             if ctx.typed.bounded_dispatch_trait[target.id] != null {
-                ctx.project.virtually_dispatched_traits.add(TRAIT_INDEX_SET)
+                ctx.project.virtually_dispatched_traits.add(core_trait_key(TRAIT_INDEX_SET))
                 return LoweredExprStmt {
                     .span = span,
                     .expr = LoweredVirtualCall {
                         .span = span, .type = TY_VOID,
-                        .trait_name = TRAIT_INDEX_SET, .method = METHOD_SET_AT,
+                        .trait_name = core_trait_key(TRAIT_INDEX_SET), .method = METHOD_SET_AT,
                         .receiver = lower_expr(ctx, target.target),
                         .args = [lower_expr(ctx, target.index), value], .param_types = [],
                     },
@@ -421,7 +421,7 @@ try_lower_index_set_assign :: fn(
             // indexes). The old `synth_set_at_symbol` minted a bare `set_at` symbol
             // that no fn-table slot matched, so the call was silently dropped and
             // `m[k] = v` became a no-op (the value leaked onto the stack).
-            member :: find_trait_impl_member(ctx, target_type, TRAIT_INDEX_SET) ?? return null
+            member :: find_trait_impl_member(ctx, target_type, core_trait_key(TRAIT_INDEX_SET)) ?? return null
             if member is UfcsMember {
                 // Build `set_at(target, index, value)` direct call.
                 receiver :: lower_expr(ctx, target.target)

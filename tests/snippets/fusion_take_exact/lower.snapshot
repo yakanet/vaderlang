@@ -99,7 +99,7 @@
       let __iter_4: Iterator<i32> = it :__genstate_take<i32>!
       loop
         let __step_5: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_4 :Iterator<i32>
         if :void
@@ -410,7 +410,7 @@
       let __iter_5: Iterator<i32> = it :__genstate_take<i32>!
       loop
         let __step_6: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_5 :Iterator<i32>
         if :void
@@ -672,7 +672,7 @@
       let __iter_2: Iterator<i32> = it :__genstate_take<i32>!
       loop
         let __step_3: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_2 :Iterator<i32>
         if :void

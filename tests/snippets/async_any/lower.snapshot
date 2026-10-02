@@ -101,7 +101,7 @@
                           int(3) :i32
                     then:
                       let __resumed_2: Any | Suspended! =
-                        vcall Async.resume :Any | Suspended!
+                        vcall std_core$Async.resume :Any | Suspended!
                           recv:
                             .awaited :Async<Any>
                               __self_1 :__asyncstate_snippet_0!
@@ -167,7 +167,7 @@
             __self_1 :__asyncstate_snippet_0!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_1 :__asyncstate_snippet_0!
@@ -310,7 +310,7 @@
                                   int(5) :i32
                             then:
                               let __resumed_3: Any | Suspended! =
-                                vcall Async.resume :Any | Suspended!
+                                vcall std_core$Async.resume :Any | Suspended!
                                   recv:
                                     .awaited :Async<Any>
                                       __self_2 :__asyncstate_snippet_3!
@@ -393,7 +393,7 @@
             __self_2 :__asyncstate_snippet_3!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_2 :__asyncstate_snippet_3!
@@ -496,7 +496,7 @@
                         arg0:
                           "all failed: " :string
                         arg1:
-                          vcall Error.message :string
+                          vcall std_core$Error.message :string
                             recv:
                               .s2 :Error
                                 __self_1 :__asyncstate_snippet_4!
@@ -598,7 +598,7 @@
                                       int(6) :i32
                                 then:
                                   let __resumed_2: Any | Suspended! =
-                                    vcall Async.resume :Any | Suspended!
+                                    vcall std_core$Async.resume :Any | Suspended!
                                       recv:
                                         .awaited :Async<Any>
                                           __self_1 :__asyncstate_snippet_4!
@@ -670,7 +670,7 @@
             __self_1 :__asyncstate_snippet_4!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_1 :__asyncstate_snippet_4!

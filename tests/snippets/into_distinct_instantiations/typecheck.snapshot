@@ -1,0 +1,32 @@
+# Typecheck
+
+## tests/snippets/into_distinct_instantiations
+  StructDecl     Box                  :: Box<T>!
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         take_int             :: fn(Box<i32>) -> i32
+  FnDecl         take_string          :: fn(Box<string>) -> string
+  StructDecl     UserId               :: UserId!
+  expr 13:36    StructLitExpr  :: Box<i32>!
+  expr 13:56    FieldExpr      :: i32
+  expr 13:56    IdentExpr      :: UserId
+  expr 17:39    StructLitExpr  :: Box<string>!
+  expr 17:62    StringLitExpr  :: string
+  expr 17:70    FieldExpr      :: i32
+  expr 17:70    IdentExpr      :: UserId
+  expr 20:47    FieldExpr      :: string
+  expr 20:47    IdentExpr      :: Box<string>
+  expr 22:38    BinaryExpr     :: i32
+  expr 22:38    FieldExpr      :: i32
+  expr 22:38    IdentExpr      :: Box<i32>
+  expr 25:10    StructLitExpr  :: UserId!
+  expr 26:13    CallExpr       :: string
+  expr 26:13    IdentExpr      :: fn(Box<string>) -> string
+  expr 26:25    IdentExpr      :: UserId!
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 27:13    StringLitExpr  :: string
+  expr 27:16    CallExpr       :: i32
+  expr 27:16    IdentExpr      :: fn(Box<i32>) -> i32
+  expr 27:25    IdentExpr      :: UserId!
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void

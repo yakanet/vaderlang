@@ -17,7 +17,7 @@
       let __iter_0: Iterator<i32> = outer :__genstate_each_then<i32>!
       loop
         let __step_1: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_0 :Iterator<i32>
         if :void
@@ -47,7 +47,7 @@
               let __iter_2: Iterator<string> = inner :__genstate_each_then<string>!
               loop
                 let __step_3: [string, Continuation]! =
-                  vcall Iterator.next :[string, Continuation]!
+                  vcall std_core$Iterator.next :[string, Continuation]!
                     recv:
                       __iter_2 :Iterator<string>
                 if :void

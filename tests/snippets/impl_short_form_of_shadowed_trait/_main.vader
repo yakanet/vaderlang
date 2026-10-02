@@ -1,0 +1,16 @@
+// A short-form impl (`Type implements Trait -> expr`) fills the trait its
+// module sees. Two modules each declare an `Animal`; `zoo`'s has a default for
+// `kind`, `shapes`'s does not — reading the wrong one drops the default and
+// prints 4 instead of 24.
+module "snippet"
+
+import "std/io"
+
+S :: import "snippet/shapes"
+Z :: import "snippet/zoo"
+
+main :: fn() -> i32 {
+    d :: Z.Dog { .name = "rex" }
+    println("${Z.describe(d) + S.zero()}")
+    return 0
+}

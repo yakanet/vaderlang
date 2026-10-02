@@ -136,7 +136,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_Async__resume(vader_box_t recv);
+static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv);
 
 static vader_box_t snippet_fetch(void) {
     void* t0 = NULL;
@@ -187,7 +187,7 @@ static void snippet_report(vader_box_t l0) {
     };
     vader_gc_top = &gc_frame;
 #line 25 "tests/snippets/async_fallible/_main.vader"
-    l1 = vader_vt_Async__resume(l0);
+    l1 = vader_vt_std_core_Async__resume(l0);
 #line 26 "tests/snippets/async_fallible/_main.vader"
     if (l1.tag == 9u) {
         std_io_println__string(1u);
@@ -268,7 +268,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
         } else {
             t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
             if (t0 == INT32_C(3)) {
-                l5 = vader_vt_Async__resume(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
+                l5 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
                 if (l5.tag == 9u) {
                     t2 = l5.payload.obj;
                     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -574,13 +574,13 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_Async__resume(vader_box_t recv) {
+static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
         case 6u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         case 10u: return snippet_Ready_Async_resume__i32(recv.payload.obj);
-        default: vader_unreachable("vtable miss in Async.resume");
+        default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
-    vader_unreachable("vtable miss in Async.resume");
+    vader_unreachable("vtable miss in std_core$Async.resume");
 }
 
 int main(int argc, char** argv) {

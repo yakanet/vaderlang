@@ -101,11 +101,12 @@ ImplMemberMatch :: struct {
 resolve_impl_member :: fn(ctx: FnLowerCtx!, target_type: Type, key: string, by_trait: bool) -> UfcsMember | null {
     target_name :: type_surface_name(target_type)
     if target_name == "" { return null }
+    target :: impl_base_key(target_type)
     fallback: ImplMemberMatch | null = null
     for entry in ctx.project.impls.all {
         decl :: entry.decl
-        if !impl_targets_name(decl.for_type, target_name) { continue }
-        m :: select_member(decl, key, by_trait) ?? continue
+        if entry.target != target { continue }
+        m :: select_member(entry, key, by_trait) ?? continue
         if !impl_is_intrinsic(decl) {
             return build_ufcs_member(ctx, target_type, target_name, m.name, entry, is_identity_member(m))
         }
@@ -119,11 +120,13 @@ resolve_impl_member :: fn(ctx: FnLowerCtx!, target_type: Type, key: string, by_t
 }
 
 // Pick the impl member for `resolve_impl_member`'s scan. `by_trait` selects the
-// key's meaning: the sole member of an impl of trait `key` (single-method traits
-// `Index` / `IndexSet`), else the member whose name matches `key`.
-select_member :: fn(decl: ImplDecl, key: string, by_trait: bool) -> FnDecl | null {
+// key's meaning: the sole member of an impl of the trait whose `trait_key` is
+// `key` (single-method traits `Index` / `IndexSet`), else the member whose name
+// matches `key`.
+select_member :: fn(entry: ImplEntry, key: string, by_trait: bool) -> FnDecl | null {
+    decl :: entry.decl
     if by_trait {
-        if decl.trait_name != key { return null }
+        if entry.trait_key != key { return null }
         if decl.members.len() == 0 { return null }
         return decl.members[0]
     }
@@ -137,13 +140,14 @@ select_member :: fn(decl: ImplDecl, key: string, by_trait: bool) -> FnDecl | nul
 find_impl_member_for :: fn(ctx: FnLowerCtx!, target_type: Type, method_name: string) -> UfcsMember | null =
     resolve_impl_member(ctx, target_type, method_name, false)
 
-/// Resolve the sole method member of `target_type`'s impl of `trait_name`,
-/// reading the method's name FROM the impl instead of hard-coding a call-site
-/// literal. Dispatches on trait identity, exactly like the typechecker's index
-/// routing (`vader/typecheck/orchestrate.vader`, `TRAIT_INDEX` / `TRAIT_INDEX_SET`),
-/// so a rename of the trait's method can't drift a hard-coded name.
-find_trait_impl_member :: fn(ctx: FnLowerCtx!, target_type: Type, trait_name: string) -> UfcsMember | null =
-    resolve_impl_member(ctx, target_type, trait_name, true)
+/// Resolve the sole method member of `target_type`'s impl of `trait_key` (a
+/// `trait_key`), reading the method's name FROM the impl instead of hard-coding
+/// a call-site literal. Dispatches on trait identity, exactly like the
+/// typechecker's index routing (`vader/typecheck/orchestrate.vader`,
+/// `TRAIT_INDEX` / `TRAIT_INDEX_SET`), so a rename of the trait's method can't
+/// drift a hard-coded name.
+find_trait_impl_member :: fn(ctx: FnLowerCtx!, target_type: Type, trait_key: string) -> UfcsMember | null =
+    resolve_impl_member(ctx, target_type, trait_key, true)
 
 /// Build the `UfcsMember` for `method_name` on `entry`'s impl of `target_type` :
 /// the deterministic mangle, plus the side-tables that surface / materialise it.
@@ -242,11 +246,11 @@ build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string
 // guessing a slot type.
 impl_member_arg_types :: fn(ctx: FnLowerCtx, recv_type: Type, method_name: string) -> Type[] {
     entry_typed :: ctx.project.typed.modules[ctx.project.loaded.entry] ?? return []
-    direct :: entry_typed.impl_methods["${display_type_key(recv_type)}::${method_name}"]
+    direct :: entry_typed.impl_methods["${impl_type_key(recv_type)}::${method_name}"]
     if direct is ImplMethod {
         if direct.ty is FnType as ft { return ft.params }
     }
-    base :: entry_typed.impl_methods["${type_base_name(recv_type)}::${method_name}"]
+    base :: entry_typed.impl_methods["${impl_base_key(recv_type)}::${method_name}"]
     if base is ImplMethod {
         if base.ty is FnType as ft { return ft.params }
     }
@@ -292,23 +296,6 @@ type_surface_name :: fn(t: Type) -> string = match t {
     is FreeFloatType      -> ""
     is NeverType          -> ""
     is AnyType            -> ""
-}
-
-
-impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
-    // @partial: only Ident / GenericInst<Ident> / ArrayTypeExpr name an impl
-    // target; every other Expr → false.
-    @partial match for_type {
-        is IdentExpr -> { return for_type.name == name }
-        is GenericInstExpr -> {
-            if for_type.callee is IdentExpr as inner { return inner.name == name }
-            return false
-        }
-        // Blanket array impl (`T[] implements ...`) — its for_type is an
-        // ArrayTypeExpr ; `type_surface_name` maps every array to `"[]"`.
-        is ArrayTypeExpr -> { return name == "[]" }
-        _ -> { return false }
-    }
 }
 
 
@@ -459,20 +446,15 @@ try_array_iter_coercion :: fn(
 try_emit_into_coercion :: fn(
     ctx: FnLowerCtx!, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
 ) -> LoweredExpr | null {
-    // Built-in array→Iterator coercion ; arrays have no nominal surface
-    // name, so it must precede the name-keyed impl scan below.
+    // Built-in array→Iterator coercion ; an array has no surface name to
+    // mangle the member with, so it must precede the impl scan below.
     array_iter :: try_array_iter_coercion(ctx, arg, arg_type, target_type, span)
     if array_iter != null { return array_iter }
     src_name :: type_surface_name(arg_type)
     if src_name == "" { return null }
-    // Find `Source implements Into<Target> { into }`. The decl carries
-    // `trait_name = "Into"` and a single trait_arg the surface name of
-    // which must equal target_type's surface name.
-    target_name :: type_surface_name(target_type)
-    if target_name == "" { return null }
     // Identity-coercion guard : `T(value)` where `value: T` is a no-op
     // ; never inject `into(self)` against the surrounding type.
-    if src_name == target_name { return null }
+    if equals_type(arg_type, target_type) { return null }
     // Representation-unwrap guard : `P(value)` where `value : X` and `X :: P`
     // EXTRACTS the backing, it does not convert — the two share a repr, so there
     // is nothing to run. Without this, a newtype that implements `Into<P>` cannot
@@ -483,13 +465,18 @@ try_emit_into_coercion :: fn(
             return null
         }
     }
-    for entry in ctx.project.impls.all {
+    // The typechecker chose the `into` member when it accepted the coercion ;
+    // find its impl rather than choosing again. The registry answers first :
+    // most coerced types have no `Into` impl, and the typechecker's key builds
+    // both types' full keys.
+    candidates :: ctx.project.impls.impls_of(impl_base_key(arg_type), core_trait_key(TRAIT_INTO))
+    if candidates.len() == 0 { return null }
+    chosen :: into_impl_method(ctx.typed, arg_type, target_type) ?? return null
+    member :: chosen.decl ?? return null
+    for entry in candidates {
         decl :: entry.decl
-        if decl.trait_name != TRAIT_INTO { continue }
-        if !impl_targets_name(decl.for_type, src_name) { continue }
-        if !impl_trait_first_arg_is(decl, target_name) { continue }
         for m in decl.members {
-            if m.name != METHOD_INTO { continue }
+            if m.span != member.span { continue }
             // Resolve to the impl member's materialised mangle so emit binds the
             // call — the bare `into` placeholder resolves to neither symbol id nor
             // mangle. The mangle mirrors `impl_member_mangled` (the materialiser's

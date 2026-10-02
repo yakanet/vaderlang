@@ -13,7 +13,7 @@ type 10 struct __Tuple_usize_u8_de11f1ad { _0:9,_1:7 }
 type 11 struct std_core$Buffer {  }
 type 12 primitive i64
 type 13 primitive u64
-type 14 ref Iterator
+type 14 ref std_core$Iterator
 type 15 struct std_core$__gen_state_std_core_0 { s0:2,s1:9,s2:9,state:1 }
 type 16 array 7
 type 17 primitive void
@@ -36,7 +36,7 @@ type 33 struct std_collections$MutableSet__i32 { inner:21 }
 type 34 struct std_collections$__gen_state_std_collections_3 { s0:33,s1:9,s2:9,state:1 }
 type 35 array 5
 type 36 array 3
-type 37 ref Iterator
+type 37 ref std_core$Iterator
 type 38 ref __genstate_flat_map
 type 39 ref __genstate_array_iter
 string 0 "count="
@@ -56,39 +56,39 @@ string 13 "\n"
 import 0 byte_len std_core$byte_len result_type=9 param_types=3 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=16 param_types=3 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=20 param_types=1,16,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 4 Contains
-impl 4 Iterator
-impl 8 Contains
-impl 8 Iterator
-impl 11 ByteAccess
-impl 15 Iterator
-impl 19 Iterator
-impl 21 Index
-impl 21 IndexSet
-impl 21 Contains
-impl 21 Into
-impl 22 Iterator
-impl 25 Index
-impl 25 IndexSet
-impl 25 Contains
-impl 25 Into
-impl 26 Iterator
-impl 29 Index
-impl 29 IndexSet
-impl 29 Contains
-impl 29 Into
-impl 30 Iterator
-impl 33 Contains
-impl 33 Into
-impl 34 Iterator
-vtable Iterator.next 4 3
-vtable Iterator.next 8 4
-vtable Iterator.next 15 21
-vtable Iterator.next 19 27
-vtable Iterator.next 22 28
-vtable Iterator.next 26 29
-vtable Iterator.next 30 30
-vtable Iterator.next 34 31
+impl 4 std_core$Contains
+impl 4 std_core$Iterator
+impl 8 std_core$Contains
+impl 8 std_core$Iterator
+impl 11 std_core$ByteAccess
+impl 15 std_core$Iterator
+impl 19 std_core$Iterator
+impl 21 std_core$Index
+impl 21 std_core$IndexSet
+impl 21 std_core$Contains
+impl 21 std_core$Into
+impl 22 std_core$Iterator
+impl 25 std_core$Index
+impl 25 std_core$IndexSet
+impl 25 std_core$Contains
+impl 25 std_core$Into
+impl 26 std_core$Iterator
+impl 29 std_core$Index
+impl 29 std_core$IndexSet
+impl 29 std_core$Contains
+impl 29 std_core$Into
+impl 30 std_core$Iterator
+impl 33 std_core$Contains
+impl 33 std_core$Into
+impl 34 std_core$Iterator
+vtable std_core$Iterator.next 4 3
+vtable std_core$Iterator.next 8 4
+vtable std_core$Iterator.next 15 21
+vtable std_core$Iterator.next 19 27
+vtable std_core$Iterator.next 22 28
+vtable std_core$Iterator.next 26 29
+vtable std_core$Iterator.next 30 30
+vtable std_core$Iterator.next 34 31
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -436,7 +436,7 @@ fn 0 snippet$main () -> i32
   block $L13 void
     loop $L14 void
       local.get 15   ; $call_170
-      virtual.call 1 Iterator.next
+      virtual.call 1 std_core$Iterator.next
       local.set 0   ; nums
       local.field 0 6 1   ; nums._1
       i32.const 1
@@ -1561,7 +1561,7 @@ fn 27 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
               i32.eq
               if $L19 void
                 local.field 0 19 2   ; arg 0.s2
-                virtual.call 1 Iterator.next
+                virtual.call 1 std_core$Iterator.next
                 local.set 14   ; $vcall_91
                 local.get 0   ; arg 0
                 local.get 14   ; $vcall_91

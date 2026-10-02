@@ -319,9 +319,9 @@ static void vader_host_std_abort_panic(vader_string_t a0) {
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_Error__message(vader_box_t recv);
-static vader_box_t vader_vt_Async__resume(vader_box_t recv);
-static void vader_vt_Async__cancel(vader_box_t recv);
+static vader_string_t vader_vt_std_core_Error__message(vader_box_t recv);
+static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv);
+static void vader_vt_std_core_Async__cancel(vader_box_t recv);
 
 static vader_string_t snippet_Outage_Error_message(void* l0) {
     vader_string_t l1 = 0;
@@ -471,7 +471,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                 } else {
                     t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                     if (t0 == INT32_C(6)) {
-                        l4 = vader_vt_Async__resume(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
+                        l4 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
                         if (l4.tag == 9u) {
                             t4 = l4.payload.obj;
                             { vader_box_t __vret = vader_ref_box(t4); vader_gc_top = gc_frame.prev; return __vret; }
@@ -521,7 +521,7 @@ static void snippet___asyncstate_snippet_0_Async_cancel(void* l0) {
 #line 14 "tests/snippets/async_try_all/_main.vader"
     if (((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited.tag == 0u) {
     } else {
-        vader_vt_Async__cancel(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
+        vader_vt_std_core_Async__cancel(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
     }
     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(-1);
     { vader_gc_top = gc_frame.prev; return; }
@@ -576,7 +576,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
             VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_1_t*) l0);
 #line 20 "tests/snippets/async_try_all/_main.vader"
 #line 32 "tests/snippets/async_try_all/_main.vader"
-            l3 = vader_vt_Error__message(((vader_struct___asyncstate_snippet_1_t*) l0)->f_s5);
+            l3 = vader_vt_std_core_Error__message(((vader_struct___asyncstate_snippet_1_t*) l0)->f_s5);
             t1 = concat_2(2u, l3);
             std_io_println__string(t1);
 #line 20 "tests/snippets/async_try_all/_main.vader"
@@ -694,7 +694,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                                                     } else {
                                                         t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
                                                         if (t0 == INT32_C(14)) {
-                                                            l16 = vader_vt_Async__resume(((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited);
+                                                            l16 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited);
                                                             if (l16.tag == 9u) {
                                                                 t4 = l16.payload.obj;
                                                                 { vader_box_t __vret = vader_ref_box(t4); vader_gc_top = gc_frame.prev; return __vret; }
@@ -728,7 +728,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                                                                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_1_t*) l0);
 #line 20 "tests/snippets/async_try_all/_main.vader"
 #line 27 "tests/snippets/async_try_all/_main.vader"
-                                                                    l22 = vader_vt_Error__message(((vader_struct___asyncstate_snippet_1_t*) l0)->f_s2);
+                                                                    l22 = vader_vt_std_core_Error__message(((vader_struct___asyncstate_snippet_1_t*) l0)->f_s2);
                                                                     t1 = concat_2(7u, l22);
                                                                     std_io_println__string(t1);
 #line 20 "tests/snippets/async_try_all/_main.vader"
@@ -755,7 +755,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                                                                         } else {
                                                                             t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
                                                                             if (t0 == INT32_C(19)) {
-                                                                                l24 = vader_vt_Async__resume(((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited);
+                                                                                l24 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited);
                                                                                 if (l24.tag == 9u) {
                                                                                     t4 = l24.payload.obj;
                                                                                     { vader_box_t __vret = vader_ref_box(t4); vader_gc_top = gc_frame.prev; return __vret; }
@@ -826,7 +826,7 @@ static void snippet___asyncstate_snippet_1_Async_cancel(void* l0) {
 #line 20 "tests/snippets/async_try_all/_main.vader"
     if (((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited.tag == 0u) {
     } else {
-        vader_vt_Async__cancel(((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited);
+        vader_vt_std_core_Async__cancel(((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited);
     }
     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(-1);
     { vader_gc_top = gc_frame.prev; return; }
@@ -1118,7 +1118,7 @@ static vader_box_t std_async_JoinAll_Async_resume__Any(void* l0) {
             VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
             t1 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l4);
-            l5 = vader_vt_Async__resume(t1);
+            l5 = vader_vt_std_core_Async__resume(t1);
 #line 127 "lib/std/async/async.vader"
             if (l5.tag == 9u) {
 #line 128 "lib/std/async/async.vader"
@@ -1204,7 +1204,7 @@ static void std_async_JoinAll_Async_cancel__Any(void* l0) {
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
         t0 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l3);
-        vader_vt_Async__cancel(t0);
+        vader_vt_std_core_Async__cancel(t0);
         t1 = (l3 + INT64_C(1));
         l3 = (size_t) (int64_t) t1;
     }
@@ -1300,7 +1300,7 @@ static int32_t std_async_block_on__i32(vader_box_t l0) {
 #line 80 "lib/std/async/async.vader"
     for (;;) {
 #line 81 "lib/std/async/async.vader"
-        l1 = vader_vt_Async__resume(l0);
+        l1 = vader_vt_std_core_Async__resume(l0);
 #line 82 "lib/std/async/async.vader"
         if (l1.tag == 9u) {
 #line 83 "lib/std/async/async.vader"
@@ -1856,34 +1856,34 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_Error__message(vader_box_t recv) {
+static vader_string_t vader_vt_std_core_Error__message(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet_Outage_Error_message(recv.payload.obj);
-        default: vader_unreachable("vtable miss in Error.message");
+        default: vader_unreachable("vtable miss in std_core$Error.message");
     }
-    vader_unreachable("vtable miss in Error.message");
+    vader_unreachable("vtable miss in std_core$Error.message");
 }
 
-static vader_box_t vader_vt_Async__resume(vader_box_t recv) {
+static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
         case 7u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         case 11u: return snippet___asyncstate_snippet_1_Async_resume(recv.payload.obj);
         case 24u: return std_async_TryJoinAll_Async_resume__i32__Any(recv.payload.obj);
         case 28u: return std_async_JoinAll_Async_resume__Any(recv.payload.obj);
         case 33u: return std_async_Sleep_Async_resume(recv.payload.obj);
-        default: vader_unreachable("vtable miss in Async.resume");
+        default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
-    vader_unreachable("vtable miss in Async.resume");
+    vader_unreachable("vtable miss in std_core$Async.resume");
 }
 
-static void vader_vt_Async__cancel(vader_box_t recv) {
+static void vader_vt_std_core_Async__cancel(vader_box_t recv) {
     switch (recv.tag) {
         case 7u: snippet___asyncstate_snippet_0_Async_cancel(recv.payload.obj); return;
         case 11u: snippet___asyncstate_snippet_1_Async_cancel(recv.payload.obj); return;
         case 24u: std_async_TryJoinAll_Async_cancel__i32__Any(recv.payload.obj); return;
         case 28u: std_async_JoinAll_Async_cancel__Any(recv.payload.obj); return;
         case 33u: std_async_Sleep_Async_cancel(recv.payload.obj); return;
-        default: vader_unreachable("vtable miss in Async.cancel");
+        default: vader_unreachable("vtable miss in std_core$Async.cancel");
     }
 }
 

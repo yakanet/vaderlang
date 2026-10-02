@@ -88,7 +88,7 @@
                         __off_4 :usize
                       arg2:
                         cast → i64
-                          vcall Shape.area :i32
+                          vcall snippet$Shape.area :i32
                             recv:
                               s :Shape
                 ~>

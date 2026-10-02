@@ -6,7 +6,7 @@
     let cont: bool = true
     loop while (cont :bool)
       let __tup_0: [i32, Continuation] =
-        vcall Iterator.next :[i32, Continuation]
+        vcall std_core$Iterator.next :[i32, Continuation]
           recv:
             it :Iterator<i32>
       let v: i32 =

@@ -291,12 +291,16 @@ walk_impl_decl :: fn(self: ResolveState!, d: AST.ImplDecl) -> void {
     self.auto_bind_for_type_params(d.for_type)
     self.walk_expr(d.for_type)
     for ta in d.trait_args { self.walk_expr(ta) }
-    // R2007 / R2009 on the trait name live in the project-level
-    // orchestrator (`vader/typecheck/orchestrate.vader`) — the body
-    // walker doesn't see core-auto-loaded symbols (Into / Display /
-    // Iterator / Field) so it would over-fire on every snippet that
-    // implements a std/core trait. The orchestrator has the project
-    // view it needs to consult `find_trait_decl_in_project` instead.
+    // The symbol the trait name binds to — a local trait, or an import — so later
+    // passes follow the binding instead of looking the name up again. A name the
+    // scope doesn't bind stays unrecorded: R2007 / R2009 on it come from the
+    // short-impl pass that runs before this walk
+    // (`vader/typecheck/orchestrate.vader::materialize_all_sams_pre_resolve`).
+    trait_sym :: self.scope.lookup(d.trait_name)
+    if trait_sym != null {
+        self.idents[d.trait_name_span.hash()] = trait_sym
+        self.check_wildcard_ambiguity(d.trait_name, d.trait_name_span, trait_sym)
+    }
     // Skip only SAM short-impl synthetics — their body is the user's
     // expression and their params never got minted, so walking would
     // cascade R2006 on `self`. Default-method clones are also
@@ -609,16 +613,16 @@ has_reassignment :: fn(self: ResolveState, syms: Symbol[]) -> bool {
 // means the reference bound to a local / param / this module's own decl / a
 // destructure import (all same-module) — those shadow the wildcard and are
 // unambiguous. A cross-module `s` whose name is in `ambiguous` is the real clash.
-check_wildcard_ambiguity :: fn(self: ResolveState!, x: AST.IdentExpr, s: Symbol) -> void {
+check_wildcard_ambiguity :: fn(self: ResolveState!, name: string, span: Span, s: Symbol) -> void {
     if s.module == self.module_path { return }
-    mods :: self.ambiguous[x.name] ?? return
+    mods :: self.ambiguous[name] ?? return
     list := ""
     for i in 0..<mods.len() {
         if i > 0 { list = list + ", " }
         list = list + mods[i]
     }
-    self.diags.push(resolver_error(.AmbiguousWildcardImport, x.span,
-        "`${x.name}` is exported by ${list} — qualify it with a namespace import (`Ns :: import \"…\"` then `Ns.${x.name}`) or destructure the one you mean"))
+    self.diags.push(resolver_error(.AmbiguousWildcardImport, span,
+        "`${name}` is exported by ${list} — qualify it with a namespace import (`Ns :: import \"…\"` then `Ns.${name}`) or destructure the one you mean"))
 }
 
 walk_expr :: fn(self: ResolveState!, e: AST.Expr) -> void {
@@ -628,7 +632,7 @@ walk_expr :: fn(self: ResolveState!, e: AST.Expr) -> void {
             match v {
                 is Symbol -> {
                     self.idents[e.span.hash()] = v
-                    self.check_wildcard_ambiguity(e, v)
+                    self.check_wildcard_ambiguity(e.name, e.span, v)
                 }
                 // R2006 — caller must seed `core_symbols` via
                 // `resolve_module_with_collected_dp_seeded` ; otherwise

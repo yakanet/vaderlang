@@ -1,0 +1,15 @@
+// An `Into` impl declared in another module coerces like a local one: the
+// external impls go through the same registration as the module's own, which
+// is what records the target-keyed `Into` entry.
+module "snippet"
+
+import "snippet/units"
+import "std/io"
+
+take :: fn(x: i32) -> i32 = x + 1
+
+main :: fn() -> i32 {
+    m :: Meters { .v = 41 }
+    println("${take(m)}")
+    return 0
+}

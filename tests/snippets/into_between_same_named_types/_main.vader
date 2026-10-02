@@ -1,0 +1,18 @@
+// An `Into` impl converts to the type its module names, not to whatever type
+// shares that name at the call site. `feet.Length` converts into
+// `metres.Length`; both are `Length`, and reading the impl by name passed the
+// value through unconverted (2 instead of 42).
+module "snippet"
+
+import "std/io"
+
+F :: import "snippet/feet"
+M :: import "snippet/metres"
+
+take :: fn(l: M.Length) -> i32 = l.metres
+
+main :: fn() -> i32 {
+    f :: F.Length { .feet = 2 }
+    println("${take(f)}")
+    return 0
+}

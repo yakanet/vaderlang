@@ -902,7 +902,7 @@ export infer_call :: fn(
             }
             want :: substitute_map(callee_ty.params[i], bindings)
             if want is TraitType {
-                if struct_implements_trait(default_if_free(got), want.symbol.name, typed) {
+                if struct_implements_trait(default_if_free(got), trait_key_of(want.symbol), typed) {
                     typed.expr_types[c.args[i].value.id] = want
                 }
             }
@@ -1096,13 +1096,13 @@ check_typeparam_bounds :: fn(
                             + "parameter `${tp.name}` of `${callee_name(c.callee)}`",
                     ),
                 )
-            } else if !struct_implements_trait(bound_ty, bound_trait.symbol.name, typed) {
+            } else if !struct_implements_trait(bound_ty, trait_key_of(bound_trait.symbol), typed) {
                 diags.push(
                     typecheck_error(
                         .TraitNotSatisfied,
                         c.span,
                         "`${display_type(bound_ty)}` does not implement `${bound_trait.symbol.name}` (required by type parameter `${tp.name}` of `${callee_name(c.callee)}`)"
-                            + unmet_impl_bound_note(bound_ty, bound_trait.symbol.name, typed),
+                            + unmet_impl_bound_note(bound_ty, trait_key_of(bound_trait.symbol), typed),
                     ),
                 )
             }
@@ -1239,7 +1239,7 @@ unify_struct_to_trait_args :: fn(
     // Resolve (not just look up) so a GENERIC impl's `[T]` args are substituted by
     // the concrete receiver instance (`FilterIterator<i32>` → `[i32]`), binding the
     // param's `T` to `i32` instead of the impl's own `T`.
-    impl_args :: resolve_struct_trait_args(arg, param.symbol.name, typed) ?? return
+    impl_args :: resolve_struct_trait_args(arg, trait_key_of(param.symbol), typed) ?? return
     n :: min(param.args.len(), impl_args.len())
     for i in 0..<n {
         unify_type_param(param.args[i], impl_args[i], out)

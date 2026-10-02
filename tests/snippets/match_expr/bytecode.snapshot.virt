@@ -13,10 +13,10 @@ type 10 struct __Tuple_usize_u8_de11f1ad { _0:9,_1:7 }
 string 0 "positive"
 string 1 "non-positive"
 string 2 "nothing"
-impl 4 Contains
-impl 4 Iterator
-impl 8 Contains
-impl 8 Iterator
+impl 4 std_core$Contains
+impl 4 std_core$Iterator
+impl 8 std_core$Contains
+impl 8 std_core$Iterator
 
 fn 0 snippet$classify (any) -> string
   local __scrut_0 any

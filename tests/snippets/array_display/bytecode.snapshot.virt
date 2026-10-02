@@ -64,34 +64,34 @@ import 0 byte_len std_core$byte_len result_type=12 param_types=2 param_mutable=0
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=28 param_mutable=0 param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=28 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=23 param_types=3,28,12 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 1 Display
-impl 4 Display
-impl 13 ByteAccess
-vtable Display.to_string 1 0
-vtable Display.to_string 4 2
-vtable Display.to_string 16 14
-vtable Display.to_string 8 15
-vtable Display.to_string 17 16
-vtable Display.to_string 18 17
-vtable Display.to_string 19 18
-vtable Display.to_string 20 19
-vtable Display.to_string 6 20
-vtable Display.to_string 21 21
-vtable Display.to_string 22 22
-vtable Display.to_string 3 23
-vtable Display.to_string 14 24
-vtable Display.to_string 23 25
-vtable Display.to_string 11 26
-vtable Display.to_string 24 27
-vtable Display.to_string 25 28
-vtable Display.to_string 15 29
-vtable Display.to_string 12 30
-vtable Display.to_string 10 31
-vtable Display.to_string 26 32
-vtable Display.to_string 2 33
-vtable Display.to_string 0 34
-vtable Display.to_string 27 35
-vtable Display.to_string 7 36
+impl 1 std_core$Display
+impl 4 std_core$Display
+impl 13 std_core$ByteAccess
+vtable std_core$Display.to_string 1 0
+vtable std_core$Display.to_string 4 2
+vtable std_core$Display.to_string 16 14
+vtable std_core$Display.to_string 8 15
+vtable std_core$Display.to_string 17 16
+vtable std_core$Display.to_string 18 17
+vtable std_core$Display.to_string 19 18
+vtable std_core$Display.to_string 20 19
+vtable std_core$Display.to_string 6 20
+vtable std_core$Display.to_string 21 21
+vtable std_core$Display.to_string 22 22
+vtable std_core$Display.to_string 3 23
+vtable std_core$Display.to_string 14 24
+vtable std_core$Display.to_string 23 25
+vtable std_core$Display.to_string 11 26
+vtable std_core$Display.to_string 24 27
+vtable std_core$Display.to_string 25 28
+vtable std_core$Display.to_string 15 29
+vtable std_core$Display.to_string 12 30
+vtable std_core$Display.to_string 10 31
+vtable std_core$Display.to_string 26 32
+vtable std_core$Display.to_string 2 33
+vtable std_core$Display.to_string 0 34
+vtable std_core$Display.to_string 27 35
+vtable std_core$Display.to_string 7 36
 export main 1
 
 fn 0 snippet$Point$Display$to_string (ref) -> string
@@ -249,7 +249,7 @@ end
 fn 2 snippet$Box$Display$to_string (ref) -> string
   local $vcall_3 string
   local.field 0 4 0   ; arg 0.value
-  virtual.call 1 Display.to_string
+  virtual.call 1 std_core$Display.to_string
   local.set 1   ; $vcall_3
   string.const 7   ; "Box "
   local.get 1   ; $vcall_3
@@ -260,7 +260,7 @@ end
 fn 3 snippet$show__Box (any) -> string
   local $vcall_2 string
   local.get 0   ; arg 0
-  virtual.call 1 Display.to_string
+  virtual.call 1 std_core$Display.to_string
   local.set 1   ; $vcall_2
   string.const 8   ; "<"
   local.get 1   ; $vcall_2

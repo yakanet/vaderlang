@@ -290,7 +290,7 @@
           arg0:
             "byte " :string
           arg1:
-            vcall Display.to_string :string
+            vcall std_core$Display.to_string :string
               recv:
                 call :null | u8
                   callee:

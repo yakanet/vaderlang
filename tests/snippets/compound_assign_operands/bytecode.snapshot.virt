@@ -48,15 +48,15 @@ import 0 byte_len std_core$byte_len result_type=1 param_types=10 param_mutable=0
 import 1 bytes std_core$bytes result_type=19 param_types=10 param_mutable=0 param_by_address= (string) -> ref
 import 2 at std_core$string$Index$at result_type=20 param_types=10,1 param_mutable=0,0 param_by_address= (string,usize) -> char
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=21 param_types=4,19,1 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 3 Index
-impl 3 IndexSet
-impl 6 Index
-impl 7 Stepper
-impl 16 ByteAccess
-vtable Index.at 3 2
-vtable Index.at 6 4
-vtable Index.at 10 24
-vtable IndexSet.set_at 3 3
+impl 3 std_core$Index
+impl 3 std_core$IndexSet
+impl 6 std_core$Index
+impl 7 snippet$Stepper
+impl 16 std_core$ByteAccess
+vtable std_core$Index.at 3 2
+vtable std_core$Index.at 6 4
+vtable std_core$Index.at 10 24
+vtable std_core$IndexSet.set_at 3 3
 export main 7
 
 fn 0 snippet$slot (usize) -> usize
@@ -731,14 +731,14 @@ fn 9 snippet$bump_nth__Cell (ref,usize) -> void
   call 0   ; snippet$slot
   local.tee 2   ; __place_operand_0
   local.get 0   ; arg 0
-  virtual.call 2 Index.at
+  virtual.call 2 std_core$Index.at
   i32.const 100
   i32.add
   local.set 3   ; $add_6
   local.get 2   ; __place_operand_0
   local.get 3   ; $add_6
   local.get 0   ; arg 0
-  virtual.call 3 IndexSet.set_at
+  virtual.call 3 std_core$IndexSet.set_at
   return
 end
 

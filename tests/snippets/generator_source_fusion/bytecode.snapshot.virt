@@ -1,10 +1,10 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 ref Iterator
+type 2 ref std_core$Iterator
 type 3 primitive bool
 type 4 array 1
-type 5 ref Async
+type 5 ref std_core$Async
 type 6 primitive string
 type 7 primitive void
 type 8 struct snippet$__genstate_pairs_until { s0:1,s1:1,s2:1,s3:1,state:1 }
@@ -16,7 +16,7 @@ type 13 union 1,14
 type 14 struct std_core$Suspended { wake_at:28 }
 type 15 struct __asyncstate_snippet_2 { s0:18,s1:19,s2:20,s3:1,s4:16,s5:20,s6:1,s7:1,s8:1,s9:1,s10:1,s11:21,s12:1,s13:1,s14:1,s15:1,s16:4,s17:22,s18:1,s19:1,awaited:17,state:1 }
 type 16 fn (1) -> 3
-type 17 ref Async
+type 17 ref std_core$Async
 type 18 ref __genstate_pairs_until
 type 19 ref __genstate_squares
 type 20 union 1,0
@@ -30,10 +30,10 @@ type 27 struct std_core$Buffer {  }
 type 28 primitive i64
 type 29 primitive u64
 type 30 array 10
-type 31 ref Async
+type 31 ref std_core$Async
 type 32 struct std_async$Sleep { ms:28,deadline:28,armed:3 }
 type 33 union 0,14
-type 34 ref Iterator
+type 34 ref std_core$Iterator
 type 35 struct std_iter$__gen_state_std_iter_0 { s0:4,s1:25,s2:25,s3:25,s4:25,state:1 }
 type 36 struct __Tuple_Array_i32_u8_0f73abee { _0:4,_1:10 }
 type 37 struct std_collections$MutableMap__i32__bool { ekeys:4,evals:51,index:4,mask:25,size:25,tombs:25 }
@@ -74,47 +74,47 @@ import 3 sched_arm std_runtime$sched_arm result_type=7 param_types=28 param_muta
 import 4 sched_park std_runtime$sched_park result_type=1 () -> i32
 import 5 panic std_abort$panic result_type=7 param_types=6 param_mutable=0 param_by_address= (string) -> void
 import 6 extern write system_posix$sys_write header=<unistd.h> result_type=53 param_types=1,30,25 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 8 Iterator
-impl 11 Iterator
-impl 12 Async
-impl 15 Async
-impl 23 Contains
-impl 23 Iterator
-impl 24 Contains
-impl 24 Iterator
-impl 27 ByteAccess
-impl 32 Async
-impl 35 Iterator
-impl 37 Index
-impl 37 IndexSet
-impl 37 Contains
-impl 37 Into
-impl 38 Iterator
-impl 41 Index
-impl 41 IndexSet
-impl 41 Contains
-impl 41 Into
-impl 42 Iterator
-impl 45 Index
-impl 45 IndexSet
-impl 45 Contains
-impl 45 Into
-impl 46 Iterator
-impl 49 Contains
-impl 49 Into
-impl 50 Iterator
-vtable Iterator.next 8 8
-vtable Iterator.next 11 9
-vtable Iterator.next 23 14
-vtable Iterator.next 24 15
-vtable Iterator.next 35 38
-vtable Iterator.next 38 39
-vtable Iterator.next 42 40
-vtable Iterator.next 46 41
-vtable Iterator.next 50 42
-vtable Async.resume 12 10
-vtable Async.resume 15 12
-vtable Async.resume 32 32
+impl 8 std_core$Iterator
+impl 11 std_core$Iterator
+impl 12 std_core$Async
+impl 15 std_core$Async
+impl 23 std_core$Contains
+impl 23 std_core$Iterator
+impl 24 std_core$Contains
+impl 24 std_core$Iterator
+impl 27 std_core$ByteAccess
+impl 32 std_core$Async
+impl 35 std_core$Iterator
+impl 37 std_core$Index
+impl 37 std_core$IndexSet
+impl 37 std_core$Contains
+impl 37 std_core$Into
+impl 38 std_core$Iterator
+impl 41 std_core$Index
+impl 41 std_core$IndexSet
+impl 41 std_core$Contains
+impl 41 std_core$Into
+impl 42 std_core$Iterator
+impl 45 std_core$Index
+impl 45 std_core$IndexSet
+impl 45 std_core$Contains
+impl 45 std_core$Into
+impl 46 std_core$Iterator
+impl 49 std_core$Contains
+impl 49 std_core$Into
+impl 50 std_core$Iterator
+vtable std_core$Iterator.next 8 8
+vtable std_core$Iterator.next 11 9
+vtable std_core$Iterator.next 23 14
+vtable std_core$Iterator.next 24 15
+vtable std_core$Iterator.next 35 38
+vtable std_core$Iterator.next 38 39
+vtable std_core$Iterator.next 42 40
+vtable std_core$Iterator.next 46 41
+vtable std_core$Iterator.next 50 42
+vtable std_core$Async.resume 12 10
+vtable std_core$Async.resume 15 12
+vtable std_core$Async.resume 32 32
 export main 7
 
 fn 0 snippet$pairs_until (i32,i32) -> any
@@ -340,7 +340,7 @@ fn 7 snippet$main () -> i32
   local.get 8   ; $k_20
   i32.const 37
   struct.new 15   ; __asyncstate_snippet_2
-  ref.cast 5   ; -> ref Async
+  ref.cast 5   ; -> ref std_core$Async
   call 31   ; std_async$run_async_main
   return
 end
@@ -964,7 +964,7 @@ fn 10 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                 i32.eq
                 if $L13 void
                   local.field 0 12 8   ; arg 0.awaited
-                  virtual.call 1 Async.resume
+                  virtual.call 1 std_core$Async.resume
                   local.tee 15   ; __resumed_3
                   type_check 14   ; std_core$Suspended
                   if $L14 void
@@ -1353,7 +1353,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
         i32.eq
         if $L5 void
           local.field 0 15 20   ; arg 0.awaited
-          virtual.call 1 Async.resume
+          virtual.call 1 std_core$Async.resume
           local.tee 9   ; __resumed_22
           type_check 14   ; std_core$Suspended
           if $L6 void
@@ -1503,7 +1503,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
               block $L14 void
                 loop $L15 void
                   local.get 27   ; __iter_0
-                  virtual.call 1 Iterator.next
+                  virtual.call 1 std_core$Iterator.next
                   local.set 28   ; __step_1
                   local.field 28 36 1   ; __step_1._1
                   i32.const 1
@@ -2074,7 +2074,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                               block $L64 void
                                                                                 loop $L65 void
                                                                                   local.get 58   ; __iter_0
-                                                                                  virtual.call 1 Iterator.next
+                                                                                  virtual.call 1 std_core$Iterator.next
                                                                                   local.set 59   ; __step_1
                                                                                   local.field 59 9 1   ; __step_1._1
                                                                                   i32.const 1
@@ -2168,7 +2168,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                               block $L71 void
                                                                                 loop $L72 void
                                                                                   local.get 70   ; __iter_0
-                                                                                  virtual.call 1 Iterator.next
+                                                                                  virtual.call 1 std_core$Iterator.next
                                                                                   local.set 71   ; __step_1
                                                                                   local.field 71 9 1   ; __step_1._1
                                                                                   i32.const 1
@@ -2961,7 +2961,7 @@ fn 33 std_async$block_on__i32 (any) -> i32
   block $L0 void
     loop $L1 void
       local.get 0   ; arg 0
-      virtual.call 1 Async.resume
+      virtual.call 1 std_core$Async.resume
       local.tee 1   ; r
       type_check 14   ; std_core$Suspended
       if $L2 void

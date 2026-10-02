@@ -918,7 +918,7 @@
       let __iter_1: Iterator<[i32, usize]!> = pairs :__genstate_filter<[i32, usize]!>!
       loop
         let __step_2: [[i32, usize]!, Continuation]! =
-          vcall Iterator.next :[[i32, usize]!, Continuation]!
+          vcall std_core$Iterator.next :[[i32, usize]!, Continuation]!
             recv:
               __iter_1 :Iterator<[i32, usize]!>
         if :void
@@ -1039,7 +1039,7 @@
       let __iter_7: Iterator<[i32, i32]!> = zipped :__genstate_filter<[i32, i32]!>!
       loop
         let __step_8: [[i32, i32]!, Continuation]! =
-          vcall Iterator.next :[[i32, i32]!, Continuation]!
+          vcall std_core$Iterator.next :[[i32, i32]!, Continuation]!
             recv:
               __iter_7 :Iterator<[i32, i32]!>
         if :void
@@ -1158,7 +1158,7 @@
       let __iter_12: Iterator<i32> = windows :__genstate_map<i32>!
       loop
         let __step_13: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_12 :Iterator<i32>
         if :void
@@ -1240,7 +1240,7 @@
       let __iter_0: Iterator<i32> = ay :__genstate_after_yield<i32>!
       loop
         let __step_1: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_0 :Iterator<i32>
         if :void
@@ -1335,7 +1335,7 @@
       let __iter_4: Iterator<i32> = rl :__genstate_relay<i32>!
       loop
         let __step_5: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_4 :Iterator<i32>
         if :void

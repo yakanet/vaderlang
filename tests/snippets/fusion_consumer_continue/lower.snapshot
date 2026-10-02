@@ -133,7 +133,7 @@
       let __iter_8: Iterator<[i32, usize]> = it :__genstate_indexed<[i32, usize]>!
       loop
         let __step_9: [[i32, usize], Continuation]! =
-          vcall Iterator.next :[[i32, usize], Continuation]!
+          vcall std_core$Iterator.next :[[i32, usize], Continuation]!
             recv:
               __iter_8 :Iterator<[i32, usize]>
         if :void
@@ -335,7 +335,7 @@
       let __iter_3: Iterator<i32> = it :__genstate_take<i32>!
       loop
         let __step_4: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_3 :Iterator<i32>
         if :void
@@ -609,7 +609,7 @@
       let __iter_2: Iterator<i32> = it :__genstate_twice_per_round<i32>!
       loop
         let __step_3: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_2 :Iterator<i32>
         if :void
@@ -1010,7 +1010,7 @@
           let __iter_2: Iterator<i32> = it :__genstate_three<i32>!
           loop
             let __step_3: [i32, Continuation]! =
-              vcall Iterator.next :[i32, Continuation]!
+              vcall std_core$Iterator.next :[i32, Continuation]!
                 recv:
                   __iter_2 :Iterator<i32>
             if :void
@@ -1260,7 +1260,7 @@
       let __iter_6: Iterator<i32> = it :__genstate_take<i32>!
       loop :y
         let __step_7: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_6 :Iterator<i32>
         if :void
@@ -1473,7 +1473,7 @@
       let __iter_5: Iterator<[char, usize]> = it :__genstate_indexed<[char, usize]>!
       loop
         let __step_6: [[char, usize], Continuation]! =
-          vcall Iterator.next :[[char, usize], Continuation]!
+          vcall std_core$Iterator.next :[[char, usize], Continuation]!
             recv:
               __iter_5 :Iterator<[char, usize]>
         if :void
@@ -1774,7 +1774,7 @@
       let __iter_5: Iterator<i32> = it :__genstate_drop_odd<i32>!
       loop
         let __step_6: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_5 :Iterator<i32>
         if :void
@@ -2050,7 +2050,7 @@
       let __iter_9: Iterator<[i32, usize]> = it :__genstate_indexed<[i32, usize]>!
       loop
         let __step_10: [[i32, usize], Continuation]! =
-          vcall Iterator.next :[[i32, usize], Continuation]!
+          vcall std_core$Iterator.next :[[i32, usize], Continuation]!
             recv:
               __iter_9 :Iterator<[i32, usize]>
         if :void
@@ -2284,7 +2284,7 @@
       let __iter_3: Iterator<i32> = it :__genstate_flat_map<i32>!
       loop
         let __step_4: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_3 :Iterator<i32>
         if :void
@@ -2508,7 +2508,7 @@
       let __iter_6: Iterator<i32> = it :__genstate_chain<i32>!
       loop
         let __step_7: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_6 :Iterator<i32>
         if :void
@@ -2808,7 +2808,7 @@
       let __iter_9: Iterator<i32> = it :__genstate_chain<i32>!
       loop :x
         let __step_10: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_9 :Iterator<i32>
         if :void
@@ -3537,7 +3537,7 @@
                                                                   .s2 :[i32, Continuation]!
                                                                     __self_2 :__genstate_drop_odd!
                                                                 value:
-                                                                  vcall Iterator.next :[i32, Continuation]!
+                                                                  vcall std_core$Iterator.next :[i32, Continuation]!
                                                                     recv:
                                                                       .s1 :Iterator<i32>
                                                                         __self_2 :__genstate_drop_odd!
@@ -3822,7 +3822,7 @@
                                                       int(10) :i32
                                                 then:
                                                   let __resumed_7: Any | Suspended! =
-                                                    vcall Async.resume :Any | Suspended!
+                                                    vcall std_core$Async.resume :Any | Suspended!
                                                       recv:
                                                         .awaited :Async<Any>
                                                           __self_6 :__asyncstate_snippet_0!
@@ -4008,7 +4008,7 @@
             __self_6 :__asyncstate_snippet_0!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_6 :__asyncstate_snippet_0!
@@ -4257,7 +4257,7 @@
                                                               int(12) :i32
                                                         then:
                                                           let __resumed_6: Any | Suspended! =
-                                                            vcall Async.resume :Any | Suspended!
+                                                            vcall std_core$Async.resume :Any | Suspended!
                                                               recv:
                                                                 .awaited :Async<Any>
                                                                   __self_5 :__asyncstate_snippet_1!
@@ -4398,7 +4398,7 @@
                                                                               .s4 :[[i32, usize], Continuation]!
                                                                                 __self_5 :__asyncstate_snippet_1!
                                                                             value:
-                                                                              vcall Iterator.next :[[i32, usize], Continuation]!
+                                                                              vcall std_core$Iterator.next :[[i32, usize], Continuation]!
                                                                                 recv:
                                                                                   .s3 :Iterator<[i32, usize]>
                                                                                     __self_5 :__asyncstate_snippet_1!
@@ -4481,7 +4481,7 @@
             __self_5 :__asyncstate_snippet_1!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_5 :__asyncstate_snippet_1!
@@ -4636,7 +4636,7 @@
                           int(3) :i32
                     then:
                       let __resumed_5: Any | Suspended! =
-                        vcall Async.resume :Any | Suspended!
+                        vcall std_core$Async.resume :Any | Suspended!
                           recv:
                             .awaited :Async<Any>
                               __self_4 :__asyncstate_snippet_2!
@@ -4727,7 +4727,7 @@
                                       int(6) :i32
                                 then:
                                   let __resumed_6: Any | Suspended! =
-                                    vcall Async.resume :Any | Suspended!
+                                    vcall std_core$Async.resume :Any | Suspended!
                                       recv:
                                         .awaited :Async<Any>
                                           __self_4 :__asyncstate_snippet_2!
@@ -4846,7 +4846,7 @@
             __self_4 :__asyncstate_snippet_2!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_4 :__asyncstate_snippet_2!

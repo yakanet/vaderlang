@@ -85,7 +85,10 @@ push_generator_decls :: fn(
         .mangled = next_mangled,
         .params = [LoweredParam { .name = "self", .symbol = self_sym, .type = state_ty }],
         .return_type = step_type, .body = next_body,
-        .origin = synth_mono_entry(fn_ctx, next_sym),
+        .origin = MonoEntry {
+            ...synth_mono_entry(fn_ctx, next_sym),
+            .vtable_slot = VtableSlot { .trait_key = core_trait_key(TRAIT_ITERATOR), .method = METHOD_NEXT },
+        },
     }
     state_decl :: LoweredStructDecl {
         .mangled = "${module_seg}$${state_sym.name}",

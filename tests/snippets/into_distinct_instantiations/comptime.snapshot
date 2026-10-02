@@ -1,0 +1,28 @@
+# Comptime
+
+## tests/snippets/into_distinct_instantiations
+
+## generic instances
+  __genstate_array_iter<T>
+  Box<i32>
+  Box<string>
+  Box<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Async<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayOps<T>

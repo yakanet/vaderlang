@@ -570,8 +570,8 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv);
-static vader_box_t vader_vt_Async__resume(vader_box_t recv);
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv);
+static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv);
 
 static vader_box_t snippet_pairs_until(int32_t l0, int32_t l1) {
     void* t0 = NULL;
@@ -1131,7 +1131,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                         } else {
                             t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                             if (t0 == INT32_C(7)) {
-                                l15 = vader_vt_Async__resume(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
+                                l15 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
                                 if (l15.tag == 14u) {
                                     t3 = l15.payload.obj;
                                     { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
@@ -1349,7 +1349,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
         } else {
             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
             if (t0 == INT32_C(3)) {
-                l9 = vader_vt_Async__resume(((vader_struct___asyncstate_snippet_2_t*) l0)->f_awaited);
+                l9 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_2_t*) l0)->f_awaited);
                 if (l9.tag == 14u) {
                     t3 = l9.payload.obj;
                     { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
@@ -1443,7 +1443,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                         l26 = (void*) _a3_arr;
 #line 378 "lib/std/iter/iter.vader"
                         for (;;) {
-                            t4 = vader_vt_Iterator__next(l27);
+                            t4 = vader_vt_std_core_Iterator__next(l27);
                             l28 = t4.payload.obj;
                             if (((vader_struct___Tuple_Array_i32_u8_0f73abee_t*) l28)->f__1 == INT32_C(1)) {
                             } else {
@@ -1749,7 +1749,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                                         l57 = (void*) _a7_arr;
 #line 378 "lib/std/iter/iter.vader"
                                                                                                                                                         for (;;) {
-                                                                                                                                                            t4 = vader_vt_Iterator__next(l58);
+                                                                                                                                                            t4 = vader_vt_std_core_Iterator__next(l58);
                                                                                                                                                             l59 = t4.payload.obj;
                                                                                                                                                             if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l59)->f__1 == INT32_C(1)) {
                                                                                                                                                             } else {
@@ -1806,7 +1806,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                                         l69 = (size_t) 0;
 #line 372 "lib/std/iter/iter.vader"
                                                                                                                                                         for (;;) {
-                                                                                                                                                            t4 = vader_vt_Iterator__next(l70);
+                                                                                                                                                            t4 = vader_vt_std_core_Iterator__next(l70);
                                                                                                                                                             l71 = t4.payload.obj;
                                                                                                                                                             if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l71)->f__1 == INT32_C(1)) {
                                                                                                                                                             } else {
@@ -2388,7 +2388,7 @@ static int32_t std_async_block_on__i32(vader_box_t l0) {
 #line 80 "lib/std/async/async.vader"
     for (;;) {
 #line 81 "lib/std/async/async.vader"
-        l1 = vader_vt_Async__resume(l0);
+        l1 = vader_vt_std_core_Async__resume(l0);
 #line 82 "lib/std/async/async.vader"
         if (l1.tag == 14u) {
 #line 83 "lib/std/async/async.vader"
@@ -3244,7 +3244,7 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv) {
     switch (recv.tag) {
         case 8u: return vader_ref_box(snippet___genstate_pairs_until_Iterator_next(recv.payload.obj));
         case 11u: return vader_ref_box(snippet___genstate_squares_Iterator_next(recv.payload.obj));
@@ -3255,19 +3255,19 @@ static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
         case 42u: return vader_ref_box(std_collections___gen_state_std_collections_1_Iterator_next(recv.payload.obj));
         case 46u: return vader_ref_box(std_collections___gen_state_std_collections_2_Iterator_next(recv.payload.obj));
         case 50u: return vader_ref_box(std_collections___gen_state_std_collections_3_Iterator_next(recv.payload.obj));
-        default: vader_unreachable("vtable miss in Iterator.next");
+        default: vader_unreachable("vtable miss in std_core$Iterator.next");
     }
-    vader_unreachable("vtable miss in Iterator.next");
+    vader_unreachable("vtable miss in std_core$Iterator.next");
 }
 
-static vader_box_t vader_vt_Async__resume(vader_box_t recv) {
+static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
         case 12u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         case 15u: return snippet___asyncstate_snippet_2_Async_resume(recv.payload.obj);
         case 32u: return std_async_Sleep_Async_resume(recv.payload.obj);
-        default: vader_unreachable("vtable miss in Async.resume");
+        default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
-    vader_unreachable("vtable miss in Async.resume");
+    vader_unreachable("vtable miss in std_core$Async.resume");
 }
 
 int main(int argc, char** argv) {

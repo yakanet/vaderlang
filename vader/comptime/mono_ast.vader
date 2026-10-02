@@ -54,4 +54,15 @@ export MonoEntry :: struct {
     /// Module the origin decl lives in — needed for resolver-table
     /// lookups (TypedProgram side-tables are per-module).
     module: TypedProgram | null
+
+    /// The vtable slot this fn fills when it is an impl member ; null for every
+    /// other fn. The vtables are built from it.
+    vtable_slot: VtableSlot | null = null
+}
+
+/// The vtable slot an impl member fills : its trait's `trait_key` and the
+/// method a `vcall` names — together the key `"${trait}.${method}"`.
+export VtableSlot :: struct {
+    trait_key:  string
+    method: string
 }

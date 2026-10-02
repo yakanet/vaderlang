@@ -203,7 +203,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv);
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv);
 
 static int32_t snippet_main(void) {
     vader_string_t l0 = 0;
@@ -240,7 +240,7 @@ static int32_t snippet_main(void) {
     l1 = snippet_each_then__i32(t0, INT32_C(9));
 #line 22 "tests/snippets/fusion_generic_generator_nested/_main.vader"
     for (;;) {
-        t1 = vader_vt_Iterator__next(l1);
+        t1 = vader_vt_std_core_Iterator__next(l1);
         l2 = t1.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l2)->f__1 == INT32_C(1)) {
         } else {
@@ -252,7 +252,7 @@ static int32_t snippet_main(void) {
             l4 = snippet_each_then__string(t0, 2u);
 #line 24 "tests/snippets/fusion_generic_generator_nested/_main.vader"
             for (;;) {
-                t1 = vader_vt_Iterator__next(l4);
+                t1 = vader_vt_std_core_Iterator__next(l4);
                 l5 = t1.payload.obj;
                 if (((vader_struct___Tuple_string_u8_b910c566_t*) l5)->f__1 == INT32_C(1)) {
                 } else {
@@ -1100,15 +1100,15 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv) {
     switch (recv.tag) {
         case 4u: return vader_ref_box(snippet___gen_state_snippet_0_Iterator_next(recv.payload.obj));
         case 10u: return vader_ref_box(snippet___gen_state_snippet_1_Iterator_next(recv.payload.obj));
         case 13u: return vader_ref_box(std_core_Range_Iterator_next__i32(recv.payload.obj));
         case 15u: return vader_ref_box(std_core_Range_Iterator_next__usize(recv.payload.obj));
-        default: vader_unreachable("vtable miss in Iterator.next");
+        default: vader_unreachable("vtable miss in std_core$Iterator.next");
     }
-    vader_unreachable("vtable miss in Iterator.next");
+    vader_unreachable("vtable miss in std_core$Iterator.next");
 }
 
 int main(int argc, char** argv) {

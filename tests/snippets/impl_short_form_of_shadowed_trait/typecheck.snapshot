@@ -1,0 +1,32 @@
+# Typecheck
+
+## tests/snippets/impl_short_form_of_shadowed_trait
+  FnDecl         main                 :: fn() -> i32
+  expr 13:10    StructLitExpr  :: Dog!
+  expr 13:26    StringLitExpr  :: string
+  expr 14:13    StringLitExpr  :: string
+  expr 14:16    BinaryExpr     :: i32
+  expr 14:16    CallExpr       :: i32
+  expr 14:16    FieldExpr      :: fn(Animal) -> i32
+  expr 14:27    IdentExpr      :: Dog!
+  expr 14:32    CallExpr       :: i32
+  expr 14:32    FieldExpr      :: fn() -> i32
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/impl_short_form_of_shadowed_trait/shapes
+  TraitDecl      Animal               :: Animal
+  FnDecl         zero                 :: fn() -> i32
+
+## tests/snippets/impl_short_form_of_shadowed_trait/zoo
+  TraitDecl      Animal               :: Animal
+  FnDecl         describe             :: fn(Animal) -> i32
+  StructDecl     Dog                  :: Dog!
+  expr 12:43    BinaryExpr     :: i32
+  expr 12:43    BinaryExpr     :: i32
+  expr 12:43    CallExpr       :: i32
+  expr 12:43    FieldExpr      :: fn() -> i32
+  expr 12:43    IdentExpr      :: Animal
+  expr 12:59    CallExpr       :: i32
+  expr 12:59    FieldExpr      :: fn() -> i32
+  expr 12:59    IdentExpr      :: Animal

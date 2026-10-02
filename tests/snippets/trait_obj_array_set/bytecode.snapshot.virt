@@ -11,15 +11,15 @@ type 8 array 4
 type 9 primitive void
 type 10 primitive isize
 type 11 array 12
-type 12 ref Shape
+type 12 ref snippet$Shape
 string 0 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=3 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=8 param_types=3 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 2 Shape
-impl 6 ByteAccess
-vtable Shape.area 2 1
-vtable Shape.area 1 0
+impl 2 snippet$Shape
+impl 6 std_core$ByteAccess
+vtable snippet$Shape.area 2 1
+vtable snippet$Shape.area 1 0
 export main 2
 
 fn 0 snippet$Square$Shape$area (i32) -> i32
@@ -62,27 +62,27 @@ fn 2 snippet$main () -> i32
   local s any
   local __off_4 usize
   local $cast_26 i64
-  array.new 11 0   ; ref Shape[][]
+  array.new 11 0   ; ref snippet$Shape[][]
   local.tee 0   ; shapes
   i32.const 2
-  array.push 12   ; ref Shape[]
+  array.push 12   ; ref snippet$Shape[]
   i32.const 10
   struct.new 2   ; snippet$Circle
   local.set 1   ; $struct_5
   local.get 0   ; shapes
   local.get 1   ; $struct_5
-  array.push 12   ; ref Shape[]
+  array.push 12   ; ref snippet$Shape[]
   local.get 0   ; shapes
   i32.const 0
   i32.const 5
-  array.set 11   ; ref Shape[][]
+  array.set 11   ; ref snippet$Shape[][]
   i32.const 4
   struct.new 2   ; snippet$Circle
   local.set 1   ; $struct_5
   local.get 0   ; shapes
   i32.const 1
   local.get 1   ; $struct_5
-  array.set 11   ; ref Shape[][]
+  array.set 11   ; ref snippet$Shape[][]
   local.get 0   ; shapes
   array.len
   local.set 2   ; __for_len_1
@@ -96,7 +96,7 @@ fn 2 snippet$main () -> i32
       if $L2 void
         local.get 0   ; shapes
         local.get 3   ; __for_i_2
-        array.get 11   ; ref Shape[][]
+        array.get 11   ; ref snippet$Shape[][]
         local.set 4   ; s
         i64.const 20
         call 4   ; std_core$new_byte_buffer
@@ -104,7 +104,7 @@ fn 2 snippet$main () -> i32
         i64.const 0
         local.set 5   ; __off_4
         local.get 4   ; s
-        virtual.call 1 Shape.area
+        virtual.call 1 snippet$Shape.area
         i32.to_i64
         local.set 6   ; $cast_26
         local.get 1   ; $struct_5

@@ -40,7 +40,7 @@
               arg0:
                 "write failed: " :string
               arg1:
-                vcall Error.message :string
+                vcall std_core$Error.message :string
                   recv:
                     cast → Error
                       written :IOError | null

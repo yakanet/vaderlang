@@ -1,0 +1,29 @@
+# Comptime
+
+## tests/snippets/impl_short_form_of_shadowed_trait
+
+## tests/snippets/impl_short_form_of_shadowed_trait/shapes
+
+## tests/snippets/impl_short_form_of_shadowed_trait/zoo
+
+## generic instances
+  __genstate_array_iter<T>
+  Into<Target>
+  Add<Rhs, Out>
+  ArrayOps<T>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Async<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>

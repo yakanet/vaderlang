@@ -59,24 +59,24 @@ import 0 byte_len std_core$byte_len result_type=8 param_types=2 param_mutable=0 
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 param_mutable=0 param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=6,7,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 9 ByteAccess
-vtable Display.to_string 7 20
-vtable Display.to_string 12 21
-vtable Display.to_string 13 22
-vtable Display.to_string 6 23
-vtable Display.to_string 10 24
-vtable Display.to_string 14 25
-vtable Display.to_string 1 26
-vtable Display.to_string 15 27
-vtable Display.to_string 16 28
-vtable Display.to_string 11 29
-vtable Display.to_string 8 30
-vtable Display.to_string 3 31
-vtable Display.to_string 17 32
-vtable Display.to_string 2 33
-vtable Display.to_string 0 34
-vtable Display.to_string 18 35
-vtable Display.to_string 19 36
+impl 9 std_core$ByteAccess
+vtable std_core$Display.to_string 7 20
+vtable std_core$Display.to_string 12 21
+vtable std_core$Display.to_string 13 22
+vtable std_core$Display.to_string 6 23
+vtable std_core$Display.to_string 10 24
+vtable std_core$Display.to_string 14 25
+vtable std_core$Display.to_string 1 26
+vtable std_core$Display.to_string 15 27
+vtable std_core$Display.to_string 16 28
+vtable std_core$Display.to_string 11 29
+vtable std_core$Display.to_string 8 30
+vtable std_core$Display.to_string 3 31
+vtable std_core$Display.to_string 17 32
+vtable std_core$Display.to_string 2 33
+vtable std_core$Display.to_string 0 34
+vtable std_core$Display.to_string 18 35
+vtable std_core$Display.to_string 19 36
 export main 3
 
 fn 0 snippet$Weight$Display$to_string (u8) -> string
@@ -253,7 +253,7 @@ fn 3 snippet$main () -> i32
   call 70   ; std_io$println__string
   bool.const true
   call 2   ; snippet$maybe_byte
-  virtual.call 1 Display.to_string
+  virtual.call 1 std_core$Display.to_string
   local.set 1   ; $call_2
   string.const 3   ; "byte "
   local.get 1   ; $call_2

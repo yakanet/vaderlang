@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 primitive string
-type 3 ref Display
+type 3 ref std_core$Display
 type 4 primitive bool
 type 5 primitive u8
 type 6 primitive usize
@@ -65,23 +65,23 @@ import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_mutable=0 
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=18 param_mutable=0 param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=18 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,18,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 7 ByteAccess
-vtable Display.to_string 10 15
-vtable Display.to_string 11 16
-vtable Display.to_string 1 17
-vtable Display.to_string 8 18
-vtable Display.to_string 12 19
-vtable Display.to_string 5 20
-vtable Display.to_string 13 21
-vtable Display.to_string 14 22
-vtable Display.to_string 9 23
-vtable Display.to_string 6 24
-vtable Display.to_string 4 25
-vtable Display.to_string 15 26
-vtable Display.to_string 2 27
-vtable Display.to_string 0 28
-vtable Display.to_string 16 29
-vtable Display.to_string 17 30
+impl 7 std_core$ByteAccess
+vtable std_core$Display.to_string 10 15
+vtable std_core$Display.to_string 11 16
+vtable std_core$Display.to_string 1 17
+vtable std_core$Display.to_string 8 18
+vtable std_core$Display.to_string 12 19
+vtable std_core$Display.to_string 5 20
+vtable std_core$Display.to_string 13 21
+vtable std_core$Display.to_string 14 22
+vtable std_core$Display.to_string 9 23
+vtable std_core$Display.to_string 6 24
+vtable std_core$Display.to_string 4 25
+vtable std_core$Display.to_string 15 26
+vtable std_core$Display.to_string 2 27
+vtable std_core$Display.to_string 0 28
+vtable std_core$Display.to_string 16 29
+vtable std_core$Display.to_string 17 30
 export main 3
 
 fn 0 snippet$pick (i32,string) -> string
@@ -127,7 +127,7 @@ end
 fn 1 snippet$tag (any,string) -> string
   local $vcall_3 string
   local.get 0   ; arg 0
-  virtual.call 1 Display.to_string
+  virtual.call 1 std_core$Display.to_string
   local.set 2   ; $vcall_3
   local.get 1   ; arg 1
   string.const 1   ; "|"

@@ -65,8 +65,8 @@ import 9 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 pa
 import 10 extern fread system_posix$sys_fread header=<stdio.h> result_type=7 param_types=10,7,7,18 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
 import 11 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=7 param_types=10,7,7,18 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
 import 12 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=4 param_mutable=0 param_by_address= (string) -> i32
-impl 8 ByteAccess
-impl 12 Error
+impl 8 std_core$ByteAccess
+impl 12 std_core$Error
 export main 0
 
 fn 0 snippet$main () -> i32

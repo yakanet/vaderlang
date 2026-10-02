@@ -67,9 +67,9 @@ import 2 bytes_to_string std_core$bytes_to_string result_type=1 param_types=10 p
 import 3 bytes std_core$bytes result_type=10 param_types=1 param_mutable=0 param_by_address= (string) -> ref
 import 4 at std_core$string$Index$at result_type=9 param_types=1,6 param_mutable=0,0 param_by_address= (string,usize) -> char
 import 5 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=3,10,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 7 ByteAccess
-impl 12 Error
-impl 14 Display
+impl 7 std_core$ByteAccess
+impl 12 std_core$Error
+impl 14 std_core$Display
 export main 1
 
 fn 0 snippet$show_decode (string,string) -> void

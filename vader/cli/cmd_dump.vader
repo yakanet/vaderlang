@@ -20,6 +20,7 @@ import "vader/parser"
 import "vader/resolver"
 import "vader/target"
 import "vader/typecheck"
+import "vader/types"
 import "vader/comptime"
 import "vader/lower"
 import "vader/bytecode"
@@ -181,9 +182,9 @@ run_resolver_stage :: fn(
 // everything outside the entry's subtree) stay loaded for import targets but
 // aren't surfaced in the dump. `ResolvedModule.path` is the first file's path.
 resolve_loaded_project :: fn(project: LoadedProject!, scope: string[]) -> ResolvedProject {
-    materialize_all_sams_pre_resolve(project)
     core_seed :: build_core_seed(project)
     mod_index :: module_index_by_name(project)
+    materialize_all_sams_pre_resolve(project, mod_index, core_seed)
     modules: ResolvedModule[]!: []
     resolved_by_id :: MutableMap<string, ResolvedModule> {}
     for [id, lm] in project.modules {

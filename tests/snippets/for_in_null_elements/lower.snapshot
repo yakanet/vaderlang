@@ -185,7 +185,7 @@
       let __iter_5: Iterator<i32 | null> = it :__genstate_maybe<i32 | null>!
       loop
         let __step_6: [i32 | null, Continuation]! =
-          vcall Iterator.next :[i32 | null, Continuation]!
+          vcall std_core$Iterator.next :[i32 | null, Continuation]!
             recv:
               __iter_5 :Iterator<i32 | null>
         if :void

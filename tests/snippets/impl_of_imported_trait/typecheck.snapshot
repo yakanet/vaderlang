@@ -1,0 +1,17 @@
+# Typecheck
+
+## tests/snippets/impl_of_imported_trait
+  StructDecl     Foo                  :: Foo!
+  FnDecl         main                 :: fn() -> i32
+  expr 12:32    FieldExpr      :: i32
+  expr 12:32    IdentExpr      :: Foo
+  expr 16:11    StructLitExpr  :: Foo!
+  expr 17:13    StringLitExpr  :: string
+  expr 17:16    CallExpr       :: i32
+  expr 17:16    FieldExpr      :: fn() -> i32
+  expr 17:16    IdentExpr      :: Foo!
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/impl_of_imported_trait/score
+  TraitDecl      Scored               :: Scored

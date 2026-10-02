@@ -50,11 +50,11 @@ import 0 byte_len std_core$byte_len result_type=9 param_types=3 param_mutable=0 
 import 1 bytes std_core$bytes result_type=13 param_types=3 param_mutable=0 param_by_address= (string) -> ref
 import 2 hash std_core$string$Hash$hash result_type=12 param_types=3 param_mutable=0 param_by_address= (string) -> u64
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=2,13,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 10 ByteAccess
-impl 15 Index
-impl 15 IndexSet
-impl 15 Contains
-impl 15 Into
+impl 10 std_core$ByteAccess
+impl 15 std_core$Index
+impl 15 std_core$IndexSet
+impl 15 std_core$Contains
+impl 15 std_core$Into
 export main 1
 
 fn 0 snippet$pair () -> ref

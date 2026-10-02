@@ -67,7 +67,7 @@
       let __iter_0: Iterator<usize> = it :__genstate_map<usize>!
       loop
         let __step_1: [usize, Continuation]! =
-          vcall Iterator.next :[usize, Continuation]!
+          vcall std_core$Iterator.next :[usize, Continuation]!
             recv:
               __iter_0 :Iterator<usize>
         if :void

@@ -241,7 +241,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx!, slot_index: i32) -> 
         is EnumType      -> { return BcPrimitive { .val = val_type_of_primitive_name(t.repr) } }
         is DistinctType  -> { return bc_type_of_with_ctx(t.backing, ctx, slot_index) }
         is StructType    -> { return BcRef { .trait_name = t.symbol.name } }
-        is TraitType     -> { return BcRef { .trait_name = t.symbol.name } }
+        is TraitType     -> { return BcRef { .trait_name = trait_key_of(t.symbol) } }
         is ArrayType     -> { return BcArray { .element = intern_type(t.element, ctx) } }
         is UnionType     -> {
             variant_indices: i32[]!: []

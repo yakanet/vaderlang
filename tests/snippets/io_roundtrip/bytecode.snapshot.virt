@@ -16,7 +16,7 @@ type 13 union 10,7
 type 14 primitive isize
 type 15 union 16,0
 type 16 primitive pointer
-type 17 ref Error
+type 17 ref std_core$Error
 string 0 "/vader_io_roundtrip.txt"
 string 1 "hello from vader"
 string 2 "exists: "
@@ -61,8 +61,8 @@ import 9 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 pa
 import 10 extern fread system_posix$sys_fread header=<stdio.h> result_type=5 param_types=7,5,5,16 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
 import 11 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=7,5,5,16 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
 import 12 extern access system_posix$sys_access header=<unistd.h> result_type=1 param_types=2,1 param_mutable=0,0 param_by_address= (string,i32) -> i32
-impl 6 ByteAccess
-impl 10 Error
+impl 6 std_core$ByteAccess
+impl 10 std_core$Error
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -115,7 +115,7 @@ fn 0 snippet$main () -> i32
     call 18   ; std_io$println__string
   else
     local.get 4   ; contents
-    type_check 17   ; ref Error
+    type_check 17   ; ref std_core$Error
     if $L1 void
       string.const 4   ; "read failed"
       call 18   ; std_io$println__string

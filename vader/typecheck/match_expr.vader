@@ -304,7 +304,7 @@ export infer_match :: fn(
     // (a silent mis-compile). Any match that CONTRIBUTES A VALUE
     // must enumerate every variant or opt out with `@partial`. This includes the
     // `return`-per-arm form (every arm diverges → result_ty is `never`), which is
-    // the dominant compiler style and the one that hid the `type_base_name` /
+    // the dominant compiler style and the one that hid the `impl_base_key` /
     // `bc_type_of` footguns — so `never` is NOT exempt. Only a genuine void
     // statement match (`_ -> {}`, side-effects only) and open scrutinees
     // (i32 / string / …) stay out of scope.

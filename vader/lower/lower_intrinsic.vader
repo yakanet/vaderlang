@@ -366,33 +366,12 @@ try_fold_satisfies :: fn(
     if !(target_or_null is null) && !(trait_or_null is null) {
         match arg_ty_or_unresolved(trait_or_null) as tt {
             is TraitType -> {
-                value = impl_exists_for(ctx, arg_ty_or_unresolved(target_or_null), tt.symbol)
+                value = has_impl_for(ctx.project, arg_ty_or_unresolved(target_or_null), tt.symbol)
             }
             _            -> {}
         }
     }
     return LoweredBoolLit { .span = intrinsic.span, .type = type, .value = value }
-}
-
-/// Check whether a user impl of `trait_sym` exists for `target_ty`: a struct
-/// or enum target resolves through `has_user`, a primitive target falls
-/// back to a name-match scan over the registry's flat entry list (those
-/// impls carry `for_symbol = null`).
-impl_exists_for :: fn(ctx: FnLowerCtx, target_ty: Type, trait_sym: Symbol) -> bool {
-    target_sym :: type_to_target_symbol(target_ty)
-    if target_sym is Symbol {
-        return ctx.project.impls.has_user(target_sym, trait_sym)
-    }
-    if target_ty is PrimitiveType {
-        for entry in ctx.project.impls.all {
-            if entry.for_symbol is Symbol { continue }
-            if entry.trait_symbol.id != trait_sym.id { continue }
-            if entry.decl.for_type is IdentExpr as id {
-                if id.name == target_ty.name { return true }
-            }
-        }
-    }
-    return false
 }
 
 arg_ty_or_unresolved :: fn(t: Type | null) -> Type {

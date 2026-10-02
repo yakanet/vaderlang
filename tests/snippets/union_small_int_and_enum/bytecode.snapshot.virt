@@ -50,44 +50,44 @@ import 0 byte_len std_core$byte_len result_type=15 param_types=2 param_mutable=0
 import 1 bytes std_core$bytes result_type=24 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 2 hash std_core$string$Hash$hash result_type=18 param_types=2 param_mutable=0 param_by_address= (string) -> u64
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=21 param_types=7,24,15 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 8 Shower
-impl 16 ByteAccess
-impl 28 Contains
-impl 28 Into
-impl 29 Index
-impl 29 IndexSet
-impl 29 Contains
-impl 29 Into
-impl 32 Contains
-impl 32 Into
-vtable Shower.shown 8 5
-vtable Equals.equals 19 44
-vtable Equals.equals 20 45
-vtable Equals.equals 7 46
-vtable Equals.equals 17 47
-vtable Equals.equals 21 48
-vtable Equals.equals 3 49
-vtable Equals.equals 22 50
-vtable Equals.equals 5 51
-vtable Equals.equals 18 52
-vtable Equals.equals 15 53
-vtable Equals.equals 25 54
-vtable Equals.equals 26 55
-vtable Equals.equals 14 56
-vtable Equals.equals 23 57
-vtable Equals.equals 2 58
-vtable Hash.hash 19 14
-vtable Hash.hash 20 15
-vtable Hash.hash 7 16
-vtable Hash.hash 17 17
-vtable Hash.hash 21 18
-vtable Hash.hash 3 19
-vtable Hash.hash 22 20
-vtable Hash.hash 5 21
-vtable Hash.hash 18 22
-vtable Hash.hash 15 23
-vtable Hash.hash 23 24
-vtable Hash.hash 2 59
+impl 8 snippet$Shower
+impl 16 std_core$ByteAccess
+impl 28 std_core$Contains
+impl 28 std_core$Into
+impl 29 std_core$Index
+impl 29 std_core$IndexSet
+impl 29 std_core$Contains
+impl 29 std_core$Into
+impl 32 std_core$Contains
+impl 32 std_core$Into
+vtable snippet$Shower.shown 8 5
+vtable std_core$Equals.equals 19 44
+vtable std_core$Equals.equals 20 45
+vtable std_core$Equals.equals 7 46
+vtable std_core$Equals.equals 17 47
+vtable std_core$Equals.equals 21 48
+vtable std_core$Equals.equals 3 49
+vtable std_core$Equals.equals 22 50
+vtable std_core$Equals.equals 5 51
+vtable std_core$Equals.equals 18 52
+vtable std_core$Equals.equals 15 53
+vtable std_core$Equals.equals 25 54
+vtable std_core$Equals.equals 26 55
+vtable std_core$Equals.equals 14 56
+vtable std_core$Equals.equals 23 57
+vtable std_core$Equals.equals 2 58
+vtable std_core$Hash.hash 19 14
+vtable std_core$Hash.hash 20 15
+vtable std_core$Hash.hash 7 16
+vtable std_core$Hash.hash 17 17
+vtable std_core$Hash.hash 21 18
+vtable std_core$Hash.hash 3 19
+vtable std_core$Hash.hash 22 20
+vtable std_core$Hash.hash 5 21
+vtable std_core$Hash.hash 18 22
+vtable std_core$Hash.hash 15 23
+vtable std_core$Hash.hash 23 24
+vtable std_core$Hash.hash 2 59
 export main 6
 
 fn 0 snippet$show_byte (any) -> string
@@ -381,7 +381,7 @@ fn 6 snippet$main (ref) -> i32
   i32.const 14
   retag 3   ; -> u8
   local.get 2   ; local
-  virtual.call 2 Shower.shown
+  virtual.call 2 snippet$Shower.shown
   call 38   ; std_io$println__string
   string.const 7   ; "x"
   retag 2   ; -> string
@@ -915,7 +915,7 @@ fn 30 std_collections$rehash__Any__bool (ref,usize) -> void
         local.field 0 29 0   ; arg 0.ekeys
         local.get 4   ; e
         array.get 33   ; ref[][]
-        virtual.call 1 Hash.hash
+        virtual.call 1 std_core$Hash.hash
         local.tee 6   ; perturb
         local.get 3   ; __for_discard_0
         call 27   ; std_collections$first_slot
@@ -1081,7 +1081,7 @@ fn 32 std_collections$put__Any__bool (ref,any,bool) -> void
     call 30   ; std_collections$rehash__Any__bool
   end $L0
   local.get 1   ; arg 1
-  virtual.call 1 Hash.hash
+  virtual.call 1 std_core$Hash.hash
   local.set 6   ; perturb
   local.field 0 29 3   ; arg 0.mask
   ref.cast 15   ; -> usize
@@ -1129,7 +1129,7 @@ fn 32 std_collections$put__Any__bool (ref,any,bool) -> void
           local.set 8   ; $idx_54
           local.get 1   ; arg 1
           local.get 8   ; $idx_54
-          virtual.call 2 Equals.equals
+          virtual.call 2 std_core$Equals.equals
           if $L9 void
             local.field 0 29 1   ; arg 0.evals
             local.get 4   ; $field_4
@@ -1219,7 +1219,7 @@ fn 33 std_collections$contains_key__Any__bool (ref,any) -> bool
     return.lit bool.const false
   end $L0
   local.get 1   ; arg 1
-  virtual.call 1 Hash.hash
+  virtual.call 1 std_core$Hash.hash
   local.set 2   ; perturb
   local.field 0 29 3   ; arg 0.mask
   ref.cast 15   ; -> usize
@@ -1255,7 +1255,7 @@ fn 33 std_collections$contains_key__Any__bool (ref,any) -> bool
           local.set 5   ; $idx_27
           local.get 1   ; arg 1
           local.get 5   ; $idx_27
-          virtual.call 2 Equals.equals
+          virtual.call 2 std_core$Equals.equals
           if $L5 void
             return.lit bool.const true
           end $L5

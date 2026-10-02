@@ -158,7 +158,7 @@
                                   int(5) :i32
                             then:
                               let __resumed_3: Any | Suspended! =
-                                vcall Async.resume :Any | Suspended!
+                                vcall std_core$Async.resume :Any | Suspended!
                                   recv:
                                     .awaited :Async<Any>
                                       __self_2 :__asyncstate_snippet_2!
@@ -294,7 +294,7 @@
             __self_2 :__asyncstate_snippet_2!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_2 :__asyncstate_snippet_2!
@@ -531,7 +531,7 @@
                                           int(7) :i32
                                     then:
                                       let __resumed_7: Any | Suspended! =
-                                        vcall Async.resume :Any | Suspended!
+                                        vcall std_core$Async.resume :Any | Suspended!
                                           recv:
                                             .awaited :Async<Any>
                                               __self_6 :__asyncstate_snippet_3!
@@ -611,7 +611,7 @@
             __self_6 :__asyncstate_snippet_3!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_6 :__asyncstate_snippet_3!

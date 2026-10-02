@@ -12,11 +12,11 @@ type 9 struct std_core$Range__usize { start:10,end:10,inclusive:6,cursor:10 }
 type 10 primitive usize
 type 11 struct __Tuple_usize_u8_de11f1ad { _0:10,_1:8 }
 string 0 "point"
-impl 1 Display
-impl 4 Contains
-impl 4 Iterator
-impl 9 Contains
-impl 9 Iterator
+impl 1 snippet$Display
+impl 4 std_core$Contains
+impl 4 std_core$Iterator
+impl 9 std_core$Contains
+impl 9 std_core$Iterator
 
 fn 0 snippet$Point$Display$to_string (ref) -> string
   return.lit string.const 0   ; "point"

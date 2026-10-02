@@ -526,7 +526,7 @@
       let __iter_25: Iterator<i32> = bursts :__genstate_flat_map<i32>!
       loop
         let __step_26: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_25 :Iterator<i32>
         if :void

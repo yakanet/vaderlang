@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 primitive string
 type 2 primitive i64
-type 3 ref Async
+type 3 ref std_core$Async
 type 4 primitive i32
 type 5 struct __defer_env_snippet_1 { cap_0:12 }
 type 6 primitive void
@@ -14,15 +14,15 @@ type 11 union 4,9
 type 12 ref _
 type 13 array 14
 type 14 fn () -> 6
-type 15 ref Async
+type 15 ref std_core$Async
 type 16 primitive bool
 type 17 primitive u8
 type 18 primitive usize
 type 19 array 17
 type 20 struct std_core$Buffer {  }
 type 21 struct std_async$Race__string { children:26,wake_at:27 }
-type 22 ref Async
-type 23 ref Async
+type 22 ref std_core$Async
+type 23 ref std_core$Async
 type 24 struct std_async$Sleep { ms:2,deadline:2,armed:16 }
 type 25 union 0,9
 type 26 array 3
@@ -43,19 +43,19 @@ import 3 sched_now std_runtime$sched_now result_type=2 () -> i64
 import 4 sched_arm std_runtime$sched_arm result_type=6 param_types=2 param_mutable=0 param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=4 () -> i32
 import 6 panic std_abort$panic result_type=6 param_types=1 param_mutable=0 param_by_address= (string) -> void
-impl 7 Async
-impl 10 Async
-impl 20 ByteAccess
-impl 21 Async
-impl 24 Async
-vtable Async.resume 7 3
-vtable Async.resume 10 5
-vtable Async.resume 21 11
-vtable Async.resume 24 16
-vtable Async.cancel 7 4
-vtable Async.cancel 10 6
-vtable Async.cancel 21 12
-vtable Async.cancel 24 17
+impl 7 std_core$Async
+impl 10 std_core$Async
+impl 20 std_core$ByteAccess
+impl 21 std_core$Async
+impl 24 std_core$Async
+vtable std_core$Async.resume 7 3
+vtable std_core$Async.resume 10 5
+vtable std_core$Async.resume 21 11
+vtable std_core$Async.resume 24 16
+vtable std_core$Async.cancel 7 4
+vtable std_core$Async.cancel 10 6
+vtable std_core$Async.cancel 21 12
+vtable std_core$Async.cancel 24 17
 export main 1
 
 fn 0 snippet$leg (string,i64) -> any
@@ -89,7 +89,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; $k_2
   i32.const 4
   struct.new 10   ; __asyncstate_snippet_3
-  ref.cast 23   ; -> ref Async
+  ref.cast 23   ; -> ref std_core$Async
   call 14   ; std_async$run_async_main
   return
 end
@@ -212,7 +212,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
           i32.eq
           if $L7 void
             local.field 0 7 5   ; arg 0.awaited
-            virtual.call 1 Async.resume
+            virtual.call 1 std_core$Async.resume
             local.tee 8   ; __resumed_4
             type_check 9   ; std_core$Suspended
             if $L8 void
@@ -298,7 +298,7 @@ fn 4 snippet$__asyncstate_snippet_2$Async$cancel (ref) -> void
   if $L0 void
   else
     local.field 0 7 5   ; arg 0.awaited
-    virtual.call 1 Async.cancel
+    virtual.call 1 std_core$Async.cancel
   end $L0
   block $L1 void
     loop $L2 void
@@ -406,7 +406,7 @@ fn 5 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
         i32.eq
         if $L5 void
           local.field 0 10 2   ; arg 0.awaited
-          virtual.call 1 Async.resume
+          virtual.call 1 std_core$Async.resume
           local.tee 4   ; __resumed_2
           type_check 9   ; std_core$Suspended
           if $L6 void
@@ -439,7 +439,7 @@ fn 5 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
             local.set 7   ; $call_36
             local.get 6   ; $call_33
             local.get 7   ; $call_36
-            array.new 26 2   ; ref Async[][]
+            array.new 26 2   ; ref std_core$Async[][]
             call 19   ; std_async$race__string
             local.set 8   ; $cast_39
             local.get 0   ; arg 0
@@ -474,7 +474,7 @@ fn 6 snippet$__asyncstate_snippet_3$Async$cancel (ref) -> void
   if $L0 void
   else
     local.field 0 10 2   ; arg 0.awaited
-    virtual.call 1 Async.cancel
+    virtual.call 1 std_core$Async.cancel
   end $L0
   local.get 0   ; arg 0
   i32.const -1
@@ -634,8 +634,8 @@ fn 11 std_async$Race$Async$resume__string (ref) -> any
         if $L3 void
           local.field 0 21 0   ; arg 0.children
           local.get 4   ; i
-          array.get 26   ; ref Async[][]
-          virtual.call 1 Async.resume
+          array.get 26   ; ref std_core$Async[][]
+          virtual.call 1 std_core$Async.resume
           local.tee 5   ; r
           type_check 9   ; std_core$Suspended
           if $L4 void
@@ -665,8 +665,8 @@ fn 11 std_async$Race$Async$resume__string (ref) -> any
                   if $L8 void
                     local.field 0 21 0   ; arg 0.children
                     local.get 8   ; j
-                    array.get 26   ; ref Async[][]
-                    virtual.call 1 Async.cancel
+                    array.get 26   ; ref std_core$Async[][]
+                    virtual.call 1 std_core$Async.cancel
                   end $L8
                   local.get 8   ; j
                   i64.const 1
@@ -721,8 +721,8 @@ fn 12 std_async$Race$Async$cancel__string (ref) -> void
       if $L2 void
         local.get 1   ; __for_arr_0
         local.get 3   ; __for_i_2
-        array.get 26   ; ref Async[][]
-        virtual.call 1 Async.cancel
+        array.get 26   ; ref std_core$Async[][]
+        virtual.call 1 std_core$Async.cancel
         local.get 3   ; __for_i_2
         i64.const 1
         i64.add
@@ -816,7 +816,7 @@ fn 18 std_async$block_on__i32 (any) -> i32
   block $L0 void
     loop $L1 void
       local.get 0   ; arg 0
-      virtual.call 1 Async.resume
+      virtual.call 1 std_core$Async.resume
       local.tee 1   ; r
       type_check 9   ; std_core$Suspended
       if $L2 void

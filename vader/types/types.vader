@@ -336,6 +336,60 @@ export TRAIT_CONTAINS   :: @type_name(Contains)
 export TRAIT_INDEX      :: @type_name(Index)
 export TRAIT_INDEX_SET  :: @type_name(IndexSet)
 
+/// `impl_base_key` of a nominal declaration — the symbol ids are unique across
+/// every kind, so the id alone names it.
+///
+/// @param sym  the declaration's symbol — not an import binding.
+export declaration_key :: fn(sym: Symbol) -> string = "#${sym.id}"
+
+/// Mangle a module display path into a name-fragment usable in a mangled
+/// symbol: `/` and `.` both become `_`, every other byte passes through.
+/// Centralised here so the lowerer's name-mangling sites, the trait keys and the
+/// CLI's entry-point name share one scheme and can't drift — a mismatch would
+/// desync the VM's `export main <index>` directive from the emitted fn name.
+///
+/// @param module_id  the module display path (e.g. `"std/string"`).
+/// @return           the mangled fragment (e.g. `"std_string"`).
+export mangle_module_id :: fn(module_id: string) -> string {
+    src :: module_id.bytes()
+    out: u8[]!: [] * src.len()
+    for b in src {
+        if b == '/' || b == '.' {
+            out.push('_')
+        } else {
+            out.push(b)
+        }
+    }
+    return out.bytes_to_string()
+}
+
+/// A trait's identity across modules, named the way the bytecode names a struct
+/// or a fn : its declaring module's mangled name, then its own —
+/// `"std_core$Display"`, `"a$Animal"`. Two traits with the same name in
+/// different modules get different keys. It keys the trait side of the impl
+/// tables, and the trait half of a vtable key (`"std_core$Display.to_string"`).
+///
+/// @param trait_sym  the trait's declaration symbol — not an import binding.
+export trait_key_of :: fn(trait_sym: Symbol) -> string =
+    "${mangle_module_id(trait_sym.module_name)}\$${trait_sym.name}"
+
+/// The `trait_key` of a `std/core` trait, from its `TRAIT_*` name.
+///
+/// @param name  a `TRAIT_*` constant.
+export core_trait_key :: fn(name: string) -> string = "std_core\$${name}"
+
+/// The trait name inside a `trait_key` — what a message shows the user.
+///
+/// @param key  a `trait_key`.
+export trait_key_name :: fn(key: string) -> string {
+    b :: key.bytes()
+    start := b.len()
+    for start > 0 && b[start - 1] != '$' {
+        start -= 1
+    }
+    return b[start..<b.len()].bytes_to_string()
+}
+
 /// Names of stdlib core structs the compiler refers to by symbol.
 export STRUCT_RANGE          :: @type_name(Range)
 
@@ -560,11 +614,10 @@ export display_type :: fn(t: Type) -> string {
 
 /// Render `t` WITHOUT any mutability marker — the key form.
 ///
-/// Every side-table keyed on a rendered type (`impl_methods`, the `Into` target
-/// key) must use this: a receiver's mutability is not part of what an impl is
-/// registered under, so rendering it would look up `"Cfg!::bump"` where
-/// registration wrote `"Cfg::bump"` and the whole impl dispatch would miss —
-/// silently, since a miss just means "no such method".
+/// Every side-table keyed on a rendered type must use this: mutability is not
+/// part of what such a table is keyed on, so rendering it would look up
+/// `"Cfg!"` where registration wrote `"Cfg"` and the lookup would miss —
+/// silently, since a miss just means "nothing recorded".
 export display_type_key :: fn(t: Type) -> string {
     // Fast path, and it reaches FURTHER than `display_type`'s : with the
     // mutability marker off, a nominal type with no args renders to the name it
@@ -590,15 +643,17 @@ export display_type_key :: fn(t: Type) -> string {
     return sb.to_string()
 }
 
-/// Base name of a nominal type — strips type-args. Used as the lookup
-/// key for impl-side tables (`impl_methods`, `iter_element_types`,
-/// `index_target_types`) so generic instantiations dispatch through
-/// the same entry as the underlying impl.
-export type_base_name :: fn(t: Type) -> string {
-    // @partial: only nominal types (Struct/Trait/Enum/Distinct) carry a symbol
-    // name ; every other Type variant (PrimitiveType, TupleType, FnType,
-    // UnionType, …) has no nominal base name, so its full display is the correct
-    // lookup key.
+/// The impl tables' key for a type's BASE — the declaration a nominal type
+/// instantiates (`Foo<i32>` and `Foo<T>` alike), as `#<symbol id>`, so two
+/// same-named types from different modules never share an entry. Keys
+/// `impl_methods`, `iter_element_types`, `index_*_types`, the trait membership
+/// tables and the registry's `ImplEntry.target`, so generic instantiations
+/// dispatch through the same entry as the underlying impl.
+export impl_base_key :: fn(t: Type) -> string {
+    // @partial: only nominal types (Struct/Trait/Enum/Distinct) have a
+    // declaration ; every other Type variant (PrimitiveType, TupleType, FnType,
+    // UnionType, …) is its own base, so its rendering is the key — a primitive
+    // is unique by name.
     //
     // ArrayType collapses to the element-independent key `"[]"` so a CONCRETE
     // array (`BlockId[][]`) matches a blanket `T[] implements …` impl (registered
@@ -608,11 +663,8 @@ export type_base_name :: fn(t: Type) -> string {
     // whose element is not a type parameter (`i32[]`, `T[][]`) is refused (T3090),
     // so the collapse can't mis-match.
     @partial match t {
-        is StructType   -> { return t.symbol.name }
-        is TraitType    -> { return t.symbol.name }
-        is EnumType     -> { return t.symbol.name }
-        is DistinctType -> { return t.symbol.name }
-        is ArrayType    -> { return "[]" }
+        is StructType | TraitType | EnumType | DistinctType -> { return declaration_key(t.symbol) }
+        is ArrayType -> { return "[]" }
         // A KEY, so the mutability-free rendering : a tuple / fn / union receiver
         // must key the same whether or not its slot is mutable, else registration
         // and lookup drift and the dispatch misses in silence.

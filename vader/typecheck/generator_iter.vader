@@ -104,8 +104,8 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
         tp.generator_states = states
         for [_, state] in states {
             state_ty :: mk_struct(state.symbol, [], immutable = false)
-            record_struct_trait(tp, state_ty, TRAIT_ITERATOR)
-            record_struct_trait_args(tp, state_ty, TRAIT_ITERATOR, [state.element])
+            record_struct_trait(tp, state_ty, core_trait_key(TRAIT_ITERATOR))
+            record_struct_trait_args(tp, state_ty, core_trait_key(TRAIT_ITERATOR), [state.element])
         }
     }
 }
@@ -143,7 +143,7 @@ export generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, co
 /// substituted return yields the concrete element.
 iterator_element_of :: fn(t: Type) -> Type | null {
     if t is TraitType {
-        if t.symbol.name == TRAIT_ITERATOR && t.args.len() > 0 { return t.args[0] }
+        if trait_key_of(t.symbol) == core_trait_key(TRAIT_ITERATOR) && t.args.len() > 0 { return t.args[0] }
     }
     return null
 }

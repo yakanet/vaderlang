@@ -1,0 +1,5 @@
+module "snippet/score"
+
+export Scored :: trait {
+    score :: fn(self) -> i32
+}

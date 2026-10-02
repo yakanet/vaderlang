@@ -147,16 +147,17 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
             for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
             // Record the dispatched trait so every primitive implementor is
             // surfaced into the vtable — see `virtually_dispatched_traits`.
-            ctx.project.virtually_dispatched_traits.add(tt.symbol.name)
+            trait_key :: trait_key_of(tt.symbol)
+            ctx.project.virtually_dispatched_traits.add(trait_key)
             return LoweredVirtualCall {
                 .span = call.span, .type = type,
-                .trait_name = tt.symbol.name, .method = callee_field.field,
+                .trait_name = trait_key, .method = callee_field.field,
                 .receiver = receiver, .args = args,
                 .param_types = param_types_of(ctx.types.expr_type(call.callee)),
             }
         }
         // TypeParam-bounded receiver erased to Any : typer recorded
-        // the resolving trait name in `bounded_dispatch_trait` ; route
+        // the resolving trait's key in `bounded_dispatch_trait` ; route
         // through the runtime vtable so the boxed value's tag picks
         // the right impl at runtime.
         if type_of(receiver) is AnyType {
@@ -190,7 +191,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
                 // `equals` is `@intrinsic` on primitives ; `not_equals` is the
                 // trait default `!self.equals(...)`, which on a primitive is
                 // exactly `!=` — both reduce to a comparison primop here.
-                if tname_opt == TRAIT_EQUALS && call.args.len() > 0 {
+                if tname_opt == core_trait_key(TRAIT_EQUALS) && call.args.len() > 0 {
                     name :: callee_field.field
                     if name == METHOD_EQUALS || name == METHOD_NOT_EQUALS {
                         cmp_op :: if name == METHOD_EQUALS { LoweredBinaryOp.Eq } else { LoweredBinaryOp.Neq }
@@ -215,12 +216,6 @@ module_impl_decls :: fn(ctx: FnLowerCtx, module: string) -> Decl[] {
         if e.module == module { out.push(e.decl) }
     }
     return out
-}
-
-impl_trait_first_arg_is :: fn(decl: ImplDecl, name: string) -> bool {
-    if decl.trait_args.len() == 0 { return false }
-    arg :: decl.trait_args[0]
-    return impl_targets_name(arg, name)
 }
 
 // Detect `<namespace_ident>.<member>(args)`. The target ident's

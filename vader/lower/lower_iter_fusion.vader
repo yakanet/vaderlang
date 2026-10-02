@@ -170,21 +170,25 @@ opaque_iter_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
     t :: ctx.types.expr_type(expr)
     if !(t is StructType) { return null }
     if is_gen_state_struct(t) { return null }
-    if !struct_implements_trait(t, TRAIT_ITERATOR, ctx.typed) { return null }
+    if !struct_implements_trait(t, core_trait_key(TRAIT_ITERATOR), ctx.typed) { return null }
     elem :: opaque_iter_element(ctx, t) ?? return null
     return mk_opaque_iter_chain(expr, elem, span_of(expr))
 }
 
 // The element type of a concrete iterator struct: the typecheck's authoritative
-// `iter_element_types` side table first (keyed by display name), then the sole
-// type arg (`Range<T>`, a user iterator).
+// `iter_element_types` side table first — the impl's own element, substituted
+// against the instance's arguments — then the sole type arg (`Range<T>`, a user
+// iterator).
 opaque_iter_element :: fn(ctx: FnLowerCtx, t: Type) -> Type | null {
-    side :: ctx.typed.iter_element_types[display_type_key(t)]
-    if !(side is null) { return side }
+    side :: ctx.typed.iter_element_types[impl_base_key(t)]
     if t is StructType {
+        if side != null {
+            decl :: ctx.typed.struct_decls[t.symbol.id] ?? return side
+            return substitute_by_name(side, decl.type_params, t.args)
+        }
         if t.args.len() > 0 { return t.args[0] }
     }
-    return null
+    return side
 }
 
 // Descend a fusible iterator chain. `as_source` is true when `expr` sits UNDER a

@@ -34,7 +34,7 @@
       let __iter_0: Iterator<i32> = it :__genstate_count_up<i32>!
       loop
         let __step_1: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_0 :Iterator<i32>
         if :void
@@ -114,7 +114,7 @@
       let __iter_4: Iterator<i32> = p :__genstate_pairs<i32>!
       loop
         let __step_5: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_4 :Iterator<i32>
         if :void

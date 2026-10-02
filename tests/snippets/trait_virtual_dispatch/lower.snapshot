@@ -25,7 +25,7 @@
             self :NetErr
   fn snippet$report(e: Error) -> string
     return
-      vcall Error.message :string
+      vcall std_core$Error.message :string
         recv:
           e :Error
   fn snippet$main() -> i32

@@ -271,6 +271,14 @@ const C_PARITY = new Set<string>([
   "async_cancel_defer",
   // `join_all` resumes a child only once its reported `wake_at` has passed.
   "async_join_all_due_children",
+  // An impl reached across modules: an `Into` declared elsewhere, an impl of an
+  // imported trait — both registered by identity, not by name.
+  "into_across_modules",
+  "impl_of_imported_trait",
+  "impl_short_form_of_shadowed_trait",
+  "into_between_same_named_types",
+  "into_distinct_instantiations",
+  "impl_on_concrete_instantiations",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
   // defer runs on teardown, the winner's at its own completion.
   "async_race",

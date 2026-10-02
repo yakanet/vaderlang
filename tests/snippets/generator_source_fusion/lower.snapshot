@@ -980,7 +980,7 @@
                                           int(7) :i32
                                     then:
                                       let __resumed_3: Any | Suspended! =
-                                        vcall Async.resume :Any | Suspended!
+                                        vcall std_core$Async.resume :Any | Suspended!
                                           recv:
                                             .awaited :Async<Any>
                                               __self_2 :__asyncstate_snippet_0!
@@ -1203,7 +1203,7 @@
             __self_2 :__asyncstate_snippet_0!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_2 :__asyncstate_snippet_0!
@@ -1384,7 +1384,7 @@
                           int(3) :i32
                     then:
                       let __resumed_22: Any | Suspended! =
-                        vcall Async.resume :Any | Suspended!
+                        vcall std_core$Async.resume :Any | Suspended!
                           recv:
                             .awaited :Async<Any>
                               __self_21 :__asyncstate_snippet_2!
@@ -1618,7 +1618,7 @@
                                         let __iter_0: Iterator<i32[]> = self :Iterator<i32[]>
                                         loop
                                           let __step_1: [i32[], Continuation]! =
-                                            vcall Iterator.next :[i32[], Continuation]!
+                                            vcall std_core$Iterator.next :[i32[], Continuation]!
                                               recv:
                                                 __iter_0 :Iterator<i32[]>
                                           if :void
@@ -2516,7 +2516,7 @@
                                                                                                                                                                         let __iter_0: Iterator<i32> = self :Iterator<i32>
                                                                                                                                                                         loop
                                                                                                                                                                           let __step_1: [i32, Continuation]! =
-                                                                                                                                                                            vcall Iterator.next :[i32, Continuation]!
+                                                                                                                                                                            vcall std_core$Iterator.next :[i32, Continuation]!
                                                                                                                                                                               recv:
                                                                                                                                                                                 __iter_0 :Iterator<i32>
                                                                                                                                                                           if :void
@@ -2691,7 +2691,7 @@
                                                                                                                                                                                     let __iter_0: Iterator<i32> = self :Iterator<i32>
                                                                                                                                                                                     loop
                                                                                                                                                                                       let __step_1: [i32, Continuation]! =
-                                                                                                                                                                                        vcall Iterator.next :[i32, Continuation]!
+                                                                                                                                                                                        vcall std_core$Iterator.next :[i32, Continuation]!
                                                                                                                                                                                           recv:
                                                                                                                                                                                             __iter_0 :Iterator<i32>
                                                                                                                                                                                       if :void
@@ -2909,7 +2909,7 @@
             __self_21 :__asyncstate_snippet_2!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_21 :__asyncstate_snippet_2!

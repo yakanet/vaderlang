@@ -59,7 +59,7 @@
             arg0:
               block :string
                 let __p_0: string =
-                  vcall Display.to_string :string
+                  vcall std_core$Display.to_string :string
                     recv:
                       call :null | u8
                         callee:
@@ -353,7 +353,7 @@
                 arg2:
                   " accent=" :string
                 arg3:
-                  vcall Display.to_string :string
+                  vcall std_core$Display.to_string :string
                     recv:
                       call :char | null
                         callee:

@@ -1,6 +1,6 @@
 module _main
 type 0 primitive null
-type 1 ref Iterator
+type 1 ref std_core$Iterator
 type 2 primitive i32
 type 3 primitive string
 type 4 struct std_core$Range__i32 { start:2,end:2,inclusive:5,cursor:2 }
@@ -25,15 +25,15 @@ string 3 "\n"
 import 0 byte_len std_core$byte_len result_type=9 param_types=3 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=15 param_types=3 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=2,15,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 4 Contains
-impl 4 Iterator
-impl 8 Contains
-impl 8 Iterator
-impl 11 ByteAccess
-impl 14 Iterator
-vtable Iterator.next 4 4
-vtable Iterator.next 8 5
-vtable Iterator.next 14 21
+impl 4 std_core$Contains
+impl 4 std_core$Iterator
+impl 8 std_core$Contains
+impl 8 std_core$Iterator
+impl 11 std_core$ByteAccess
+impl 14 std_core$Iterator
+vtable std_core$Iterator.next 4 4
+vtable std_core$Iterator.next 8 5
+vtable std_core$Iterator.next 14 21
 export main 2
 
 fn 0 snippet$walk (any) -> i32
@@ -50,7 +50,7 @@ fn 0 snippet$walk (any) -> i32
       local.get 2   ; cont
       if $L2 void
         local.get 0   ; arg 0
-        virtual.call 1 Iterator.next
+        virtual.call 1 std_core$Iterator.next
         local.set 3   ; __tup_0
         local.field 3 6 0   ; __tup_0._0
         ref.cast 2   ; -> i32

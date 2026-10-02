@@ -329,7 +329,7 @@ T[] implements<T: Equals> Contains<T> {
 /// empty-LHS form `[] * n` is the preallocation primitive (length 0, capacity `n`
 /// — the `with_capacity` replacement). `*` on an array dispatches here through the
 /// normal trait lookup : a concrete array matches this blanket via the `"[]"`
-/// impl-key (`type_base_name`), and the lowerer devirtualises BOTH forms to the
+/// impl-key (`impl_base_key`), and the lowerer devirtualises BOTH forms to the
 /// `array.repeat` intrinsic, which preserves the preallocation form and shallow
 /// ref-element semantics. The body is the logical repeat fallback for any path the
 /// devirt can't statically reach. The return is `T[]` (the body builds a fresh

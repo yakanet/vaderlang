@@ -22,6 +22,7 @@ bc :: import "vader/bytecode"
 
 import "std/io"
 import "std/string"
+import "vader/types"
 
 // Maximum frame depth — guards against runaway recursion (the
 // callee-frame allocation could otherwise grow unbounded). Picked
@@ -408,19 +409,21 @@ primitive_kind_at :: fn(types: bc.BcType[], type_id: i32) -> string {
 }
 
 /// Build the host import mangle for an `@intrinsic` primitive impl member from
-/// the receiver kind + a `"Trait.method"` vtable key — e.g.
-/// `("string", "Hash.hash")` → `"std_core$string$Hash$hash"`. The mangle
+/// the receiver kind + a `"<trait_key>.method"` vtable key — e.g.
+/// `("string", "std/core.Hash.hash")` → `"std_core$string$Hash$hash"`. The mangle
 /// grammar itself lives in `bytecode/intrinsic_manifest::primitive_member_mangle` ;
 /// this only splits the vtable key. Returns "" when the kind is empty or the
 /// key has no `.`.
 intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
     if kind == "" { return "" }
-    dot :: vtable_key.index_of('.', 0)
+    // `std/core.Display.to_string` : the method follows the LAST dot — a trait
+    // key carries its own.
+    dot :: vtable_key.last_index_of('.', 0)
     if dot < 0 { return "" }
     kb :: vtable_key.bytes()
-    trait_name :: kb[0..<usize(dot)].bytes_to_string()
+    trait_key :: kb[0..<usize(dot)].bytes_to_string()
     method :: kb[usize(dot) + 1..<kb.len()].bytes_to_string()
-    return bc.primitive_member_mangle(kind, trait_name, method)
+    return bc.primitive_member_mangle(kind, trait_key_name(trait_key), method)
 }
 
 /// Build the argv argument for a `fn(argv: string[]) -> i32` entry point.

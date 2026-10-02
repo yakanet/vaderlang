@@ -101,7 +101,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_Error__message(vader_box_t recv);
+static vader_string_t vader_vt_std_core_Error__message(vader_box_t recv);
 
 static vader_string_t snippet_ParseErr_Error_message(void* l0) {
     vader_string_t l1 = 0;
@@ -142,7 +142,7 @@ static vader_string_t snippet_report(vader_box_t l0) {
     };
     vader_gc_top = &gc_frame;
 #line 16 "tests/snippets/trait_virtual_dispatch/_main.vader"
-    t0 = vader_vt_Error__message(l0);
+    t0 = vader_vt_std_core_Error__message(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -300,13 +300,13 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_Error__message(vader_box_t recv) {
+static vader_string_t vader_vt_std_core_Error__message(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet_ParseErr_Error_message(recv.payload.obj);
         case 3u: return snippet_NetErr_Error_message(recv.payload.obj);
-        default: vader_unreachable("vtable miss in Error.message");
+        default: vader_unreachable("vtable miss in std_core$Error.message");
     }
-    vader_unreachable("vtable miss in Error.message");
+    vader_unreachable("vtable miss in std_core$Error.message");
 }
 
 int main(int argc, char** argv) {

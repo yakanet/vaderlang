@@ -47,31 +47,31 @@ string 17 "\n"
 import 0 byte_len std_core$byte_len result_type=13 param_types=14 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=17 param_types=14 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=26 param_types=1,17,13 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 15 ByteAccess
-impl 2 Index
-impl 2 IndexSet
-impl 2 Contains
-impl 2 Into
-impl 4 Index
-impl 4 IndexSet
-impl 4 Contains
-impl 4 Into
-impl 6 Index
-impl 6 IndexSet
-impl 6 Contains
-impl 6 Into
-impl 8 Index
-impl 8 IndexSet
-impl 8 Contains
-impl 8 Into
-impl 10 Index
-impl 10 IndexSet
-impl 10 Contains
-impl 10 Into
-impl 12 Index
-impl 12 IndexSet
-impl 12 Contains
-impl 12 Into
+impl 15 std_core$ByteAccess
+impl 2 std_core$Index
+impl 2 std_core$IndexSet
+impl 2 std_core$Contains
+impl 2 std_core$Into
+impl 4 std_core$Index
+impl 4 std_core$IndexSet
+impl 4 std_core$Contains
+impl 4 std_core$Into
+impl 6 std_core$Index
+impl 6 std_core$IndexSet
+impl 6 std_core$Contains
+impl 6 std_core$Into
+impl 8 std_core$Index
+impl 8 std_core$IndexSet
+impl 8 std_core$Contains
+impl 8 std_core$Into
+impl 10 std_core$Index
+impl 10 std_core$IndexSet
+impl 10 std_core$Contains
+impl 10 std_core$Into
+impl 12 std_core$Index
+impl 12 std_core$IndexSet
+impl 12 std_core$Contains
+impl 12 std_core$Into
 export main 0
 
 fn 0 snippet$main () -> i32

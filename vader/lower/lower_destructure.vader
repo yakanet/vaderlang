@@ -6,6 +6,7 @@ module "vader/lower"
 import "toolchain/ast"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
+import "vader/typecheck"
 import "vader/types"
 import "toolchain/span"
 
@@ -70,13 +71,8 @@ emit_let_binding_leaves :: fn(
 // the zero-alloc inline case — and null otherwise (the caller then falls back
 // to the `_<i>` tuple-field path). Mirror of the typer's `into_tuple_target`.
 into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type) -> string[] | null {
-    surface :: type_surface_name(target_type)
-    if surface == "" { return null }
-    for entry in ctx.project.impls.all {
-        decl :: entry.decl
-        if decl.trait_name != TRAIT_INTO { continue }
-        if !impl_targets_name(decl.for_type, surface) { continue }
-        for m in decl.members {
+    for entry in ctx.project.impls.impls_of(impl_base_key(target_type), core_trait_key(TRAIT_INTO)) {
+        for m in entry.decl.members {
             if m.name != METHOD_INTO { continue }
             names :: seq_self_field_names(m)
             if names != null { return names }

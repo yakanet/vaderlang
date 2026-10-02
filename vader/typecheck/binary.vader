@@ -156,7 +156,7 @@ check_arith :: fn(
     // `instant + 5`). An ARRAY operand likewise : `[lhs] * n` (array repeat /
     // preallocation) dispatches through the declared `T[] implements<T> Mul<usize>`
     // (std/core) via the trait-impl lookup below — a concrete array matches the
-    // blanket through the `"[]"` base key (`type_base_name`), and the lowerer
+    // blanket through the `"[]"` base key (`impl_base_key`), and the lowerer
     // devirtualises to the `array.repeat` intrinsic (`lower_binary`). Skip the
     // numeric path for all three so they reach the lookup ; a missing/mismatched
     // impl is then a clean error (`instant + instant`, `[…] * <non-usize>`).
@@ -304,7 +304,7 @@ check_operator_rhs :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> FnType | null {
-    base :: type_base_name(recv)
+    base :: impl_base_key(recv)
     method_impl :: typed.impl_methods["${base}::${method_name}"]
     method :: if method_impl !is null { method_impl.ty } else { null }
     if method is FnType {
@@ -418,7 +418,7 @@ check_compare :: fn(
 }
 
 has_impl_method :: fn(t: Type, name: string, typed: TypedProgram) -> bool {
-    base :: type_base_name(t)
+    base :: impl_base_key(t)
     if base == "" {
         return false
     }
@@ -451,7 +451,7 @@ push_trait_missing :: fn(e: AST.BinaryExpr, t: Type, trait_name: string, diags: 
 /// (a runtime crash instead of a compile error).
 check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram!, diags: Diagnostic[]!) -> Type {
     // Arrays support `in` via the blanket `T[] implements<T: Equals> Contains<T>`,
-    // matched through the `"[]"` base key (`type_base_name`) — no array special-case
+    // matched through the `"[]"` base key (`impl_base_key`) — no array special-case
     // needed (it used to be required because the element-specific `[string]` key
     // never matched the generic blanket).
     if has_impl_method(right, METHOD_CONTAINS, typed) {
@@ -593,7 +593,7 @@ first_incomparable_element :: fn(t: TupleType, typed: TypedProgram) -> Type | nu
             }
             is ArrayType | FnType | TypeParamType -> { return el }
             is StructType -> {
-                if !struct_implements_trait(el, TRAIT_EQUALS, typed) {
+                if !struct_implements_trait(el, core_trait_key(TRAIT_EQUALS), typed) {
                     return el
                 }
             }

@@ -226,7 +226,7 @@
               let __iter_0: Iterator<[i32, i32]> = self :Iterator<[i32, i32]>
               loop
                 let __step_1: [[i32, i32], Continuation]! =
-                  vcall Iterator.next :[[i32, i32], Continuation]!
+                  vcall std_core$Iterator.next :[[i32, i32], Continuation]!
                     recv:
                       __iter_0 :Iterator<[i32, i32]>
                 if :void
@@ -421,7 +421,7 @@
                           let __iter_0: Iterator<[i32, i32]> = self :Iterator<[i32, i32]>
                           loop
                             let __step_1: [[i32, i32], Continuation]! =
-                              vcall Iterator.next :[[i32, i32], Continuation]!
+                              vcall std_core$Iterator.next :[[i32, i32], Continuation]!
                                 recv:
                                   __iter_0 :Iterator<[i32, i32]>
                             if :void

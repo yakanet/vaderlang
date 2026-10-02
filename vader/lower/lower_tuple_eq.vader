@@ -90,7 +90,7 @@ tuple_element_eq :: fn(
         return tuple_field_conjunction(ctx, l, r, elem_ty, span)
     }
     if elem_ty is StructType {
-        member :: resolve_op_member(ctx, elem_ty, TRAIT_EQUALS, METHOD_EQUALS) ?? return null
+        member :: resolve_op_member(ctx, elem_ty, core_trait_key(TRAIT_EQUALS), METHOD_EQUALS) ?? return null
         return build_member_call_or_inline(member, [l, r], TY_BOOL, span)
     }
     return LoweredBinary {

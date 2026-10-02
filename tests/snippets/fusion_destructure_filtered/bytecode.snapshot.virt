@@ -14,15 +14,15 @@ type 11 struct std_core$Buffer {  }
 type 12 primitive i64
 type 13 primitive u64
 type 14 array 2
-type 15 ref Iterator
+type 15 ref std_core$Iterator
 type 16 struct std_core$__gen_state_std_core_0 { s0:14,s1:3,s2:3,state:2 }
 type 17 array 8
 type 18 primitive void
 type 19 ref _
-type 20 ref Iterator
+type 20 ref std_core$Iterator
 type 21 struct std_iter$__gen_state_std_iter_0 { s0:15,s1:3,s2:15,s3:7,s4:2,state:2 }
 type 22 struct __Tuple_Tuple_i32_usize_u8_6d59e2a9 { _0:1,_1:8 }
-type 23 ref Iterator
+type 23 ref std_core$Iterator
 type 24 fn (19) -> 4
 type 25 struct std_iter$__genstate_filter { s0:23,s1:24,s2:23,s3:26,s4:19,state:2 }
 type 26 struct __Tuple_Any_u8_d7d23c9c { _0:19,_1:8 }
@@ -43,7 +43,7 @@ type 40 struct std_collections$MutableSet__i32 { inner:28 }
 type 41 struct std_collections$__gen_state_std_collections_3 { s0:40,s1:3,s2:3,state:2 }
 type 42 array 4
 type 43 array 5
-type 44 ref Iterator
+type 44 ref std_core$Iterator
 type 45 ref __genstate_indexed
 type 46 fn (1) -> 4
 type 47 ref __genstate_filter
@@ -57,41 +57,41 @@ string 5 "\n"
 import 0 byte_len std_core$byte_len result_type=3 param_types=5 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=17 param_types=5 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=27 param_types=2,17,3 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 Contains
-impl 6 Iterator
-impl 9 Contains
-impl 9 Iterator
-impl 11 ByteAccess
-impl 16 Iterator
-impl 21 Iterator
-impl 25 Iterator
-impl 28 Index
-impl 28 IndexSet
-impl 28 Contains
-impl 28 Into
-impl 29 Iterator
-impl 32 Index
-impl 32 IndexSet
-impl 32 Contains
-impl 32 Into
-impl 33 Iterator
-impl 36 Index
-impl 36 IndexSet
-impl 36 Contains
-impl 36 Into
-impl 37 Iterator
-impl 40 Contains
-impl 40 Into
-impl 41 Iterator
-vtable Iterator.next 6 3
-vtable Iterator.next 9 4
-vtable Iterator.next 16 21
-vtable Iterator.next 21 26
-vtable Iterator.next 25 28
-vtable Iterator.next 29 29
-vtable Iterator.next 33 30
-vtable Iterator.next 37 31
-vtable Iterator.next 41 32
+impl 6 std_core$Contains
+impl 6 std_core$Iterator
+impl 9 std_core$Contains
+impl 9 std_core$Iterator
+impl 11 std_core$ByteAccess
+impl 16 std_core$Iterator
+impl 21 std_core$Iterator
+impl 25 std_core$Iterator
+impl 28 std_core$Index
+impl 28 std_core$IndexSet
+impl 28 std_core$Contains
+impl 28 std_core$Into
+impl 29 std_core$Iterator
+impl 32 std_core$Index
+impl 32 std_core$IndexSet
+impl 32 std_core$Contains
+impl 32 std_core$Into
+impl 33 std_core$Iterator
+impl 36 std_core$Index
+impl 36 std_core$IndexSet
+impl 36 std_core$Contains
+impl 36 std_core$Into
+impl 37 std_core$Iterator
+impl 40 std_core$Contains
+impl 40 std_core$Into
+impl 41 std_core$Iterator
+vtable std_core$Iterator.next 6 3
+vtable std_core$Iterator.next 9 4
+vtable std_core$Iterator.next 16 21
+vtable std_core$Iterator.next 21 26
+vtable std_core$Iterator.next 25 28
+vtable std_core$Iterator.next 29 29
+vtable std_core$Iterator.next 33 30
+vtable std_core$Iterator.next 37 31
+vtable std_core$Iterator.next 41 32
 export main 1
 
 fn 0 snippet$not_twenty (ref) -> bool
@@ -137,7 +137,7 @@ fn 1 snippet$main () -> i32
   block $L0 void
     loop $L1 void
       local.get 3   ; __iter_1
-      virtual.call 1 Iterator.next
+      virtual.call 1 std_core$Iterator.next
       local.set 1   ; $call_7
       local.field 1 22 1   ; $call_7._1
       i32.const 1
@@ -1247,7 +1247,7 @@ fn 26 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
           i32.eq
           if $L13 void
             local.field 0 21 2   ; arg 0.s2
-            virtual.call 1 Iterator.next
+            virtual.call 1 std_core$Iterator.next
             local.set 8   ; $vcall_60
             local.get 0   ; arg 0
             local.get 8   ; $vcall_60
@@ -1509,7 +1509,7 @@ fn 28 std_iter$__genstate_filter$Iterator$next (ref) -> ref
             i32.eq
             if $L16 void
               local.field 0 25 2   ; arg 0.s2
-              virtual.call 1 Iterator.next
+              virtual.call 1 std_core$Iterator.next
               local.set 6   ; $vcall_67
               local.get 0   ; arg 0
               local.get 6   ; $vcall_67

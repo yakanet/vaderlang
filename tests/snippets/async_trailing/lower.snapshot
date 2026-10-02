@@ -28,7 +28,7 @@
       }
   fn snippet$drive(f: Async<i32>) -> i32
     let r: i32 | Suspended =
-      vcall Async.resume :i32 | Suspended
+      vcall std_core$Async.resume :i32 | Suspended
         recv:
           f :Async<i32>
     if :void
@@ -198,7 +198,7 @@
                       int(2) :i32
                 then:
                   let __resumed_2: Any | Suspended! =
-                    vcall Async.resume :Any | Suspended!
+                    vcall std_core$Async.resume :Any | Suspended!
                       recv:
                         .awaited :Async<Any>
                           __self_1 :__asyncstate_snippet_0!
@@ -262,7 +262,7 @@
             __self_1 :__asyncstate_snippet_0!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_1 :__asyncstate_snippet_0!
@@ -329,7 +329,7 @@
                       int(2) :i32
                 then:
                   let __resumed_3: Any | Suspended! =
-                    vcall Async.resume :Any | Suspended!
+                    vcall std_core$Async.resume :Any | Suspended!
                       recv:
                         .awaited :Async<Any>
                           __self_2 :__asyncstate_snippet_1!
@@ -391,7 +391,7 @@
                               int(4) :i32
                         then:
                           let __resumed_4: Any | Suspended! =
-                            vcall Async.resume :Any | Suspended!
+                            vcall std_core$Async.resume :Any | Suspended!
                               recv:
                                 .awaited :Async<Any>
                                   __self_2 :__asyncstate_snippet_1!
@@ -455,7 +455,7 @@
             __self_2 :__asyncstate_snippet_1!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_2 :__asyncstate_snippet_1!

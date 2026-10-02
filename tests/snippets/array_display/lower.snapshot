@@ -251,7 +251,7 @@
         arg0:
           "Box " :string
         arg1:
-          vcall Display.to_string :string
+          vcall std_core$Display.to_string :string
             recv:
               .value :Any
                 self :Box<Any>
@@ -263,7 +263,7 @@
         arg0:
           "<" :string
         arg1:
-          vcall Display.to_string :string
+          vcall std_core$Display.to_string :string
             recv:
               value :Any
         arg2:

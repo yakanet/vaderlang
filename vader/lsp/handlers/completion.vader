@@ -293,8 +293,7 @@ member_completion :: fn(state: ServerState!, uri: string, line0: i32, dot_col: i
     sym :: type_symbol(recv_type)
     if sym != null {
         for impl_ in cached.result.impls.all {
-            fs :: impl_.for_symbol ?? continue
-            if fs.id != sym.id { continue }
+            if impl_.target != declaration_key(sym) { continue }
             for m in impl_.decl.members {
                 if seen[m.name] != null { continue }
                 seen[m.name] = true

@@ -1,7 +1,7 @@
 module _main
 type 0 primitive null
 type 1 struct snippet$Tally { base:3 }
-type 2 ref Iterator
+type 2 ref std_core$Iterator
 type 3 primitive i32
 type 4 primitive string
 type 5 struct std_core$Range__i32 { start:3,end:3,inclusive:6,cursor:3 }
@@ -43,38 +43,38 @@ string 4 "\n"
 import 0 byte_len std_core$byte_len result_type=10 param_types=4 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=16 param_types=4 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=3,16,10 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 1 Adder
-impl 5 Contains
-impl 5 Iterator
-impl 9 Contains
-impl 9 Iterator
-impl 12 ByteAccess
-impl 15 Iterator
-impl 19 Index
-impl 19 IndexSet
-impl 19 Contains
-impl 19 Into
-impl 20 Iterator
-impl 23 Index
-impl 23 IndexSet
-impl 23 Contains
-impl 23 Into
-impl 24 Iterator
-impl 27 Index
-impl 27 IndexSet
-impl 27 Contains
-impl 27 Into
-impl 28 Iterator
-impl 31 Contains
-impl 31 Into
-impl 32 Iterator
-vtable Iterator.next 5 3
-vtable Iterator.next 9 4
-vtable Iterator.next 15 20
-vtable Iterator.next 20 24
-vtable Iterator.next 24 25
-vtable Iterator.next 28 26
-vtable Iterator.next 32 27
+impl 1 snippet$Adder
+impl 5 std_core$Contains
+impl 5 std_core$Iterator
+impl 9 std_core$Contains
+impl 9 std_core$Iterator
+impl 12 std_core$ByteAccess
+impl 15 std_core$Iterator
+impl 19 std_core$Index
+impl 19 std_core$IndexSet
+impl 19 std_core$Contains
+impl 19 std_core$Into
+impl 20 std_core$Iterator
+impl 23 std_core$Index
+impl 23 std_core$IndexSet
+impl 23 std_core$Contains
+impl 23 std_core$Into
+impl 24 std_core$Iterator
+impl 27 std_core$Index
+impl 27 std_core$IndexSet
+impl 27 std_core$Contains
+impl 27 std_core$Into
+impl 28 std_core$Iterator
+impl 31 std_core$Contains
+impl 31 std_core$Into
+impl 32 std_core$Iterator
+vtable std_core$Iterator.next 5 3
+vtable std_core$Iterator.next 9 4
+vtable std_core$Iterator.next 15 20
+vtable std_core$Iterator.next 20 24
+vtable std_core$Iterator.next 24 25
+vtable std_core$Iterator.next 28 26
+vtable std_core$Iterator.next 32 27
 export main 1
 
 fn 0 snippet$Tally$Adder$add_all (ref,any) -> i32
@@ -90,7 +90,7 @@ fn 0 snippet$Tally$Adder$add_all (ref,any) -> i32
   block $L0 void
     loop $L1 void
       local.get 3   ; __iter_0
-      virtual.call 1 Iterator.next
+      virtual.call 1 std_core$Iterator.next
       local.set 4   ; __step_1
       local.field 4 7 1   ; __step_1._1
       i32.const 1
@@ -180,7 +180,7 @@ fn 1 snippet$main () -> i32
   block $L3 void
     loop $L4 void
       local.get 5   ; b
-      virtual.call 1 Iterator.next
+      virtual.call 1 std_core$Iterator.next
       local.set 4   ; __fuse_arr_0
       local.field 4 7 1   ; __fuse_arr_0._1
       i32.const 1
@@ -248,7 +248,7 @@ fn 1 snippet$main () -> i32
   block $L9 void
     loop $L10 void
       local.get 5   ; b
-      virtual.call 1 Iterator.next
+      virtual.call 1 std_core$Iterator.next
       local.set 1   ; ys
       local.field 1 7 1   ; ys._1
       i32.const 1

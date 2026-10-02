@@ -243,7 +243,7 @@ lower_project_impl :: fn(
     // `BcModule.impl_table` is always empty and `impl TYPE_ID TRAIT_NAME`
     // directives never land in the .virt — the runtime falls back to
     // mangle-keyed dispatch.
-    project.vtable_entries = collect_vtable_entries(project, loaded, typed)
+    project.vtable_entries = collect_vtable_entries(project)
     // Devirtualize calls through a fn-value local (`let f = named_fn ; … f(x) …`) to
     // direct calls to the concrete fn — kills the erased-fn-value indirect+boxed
     // dispatch (the `.map(f).filter(p)` iterator-fusion regression). The direct

@@ -155,7 +155,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv);
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv);
 
 static vader_box_t snippet_countdown(int32_t l0) {
     vader_box_t l1 = vader_box_null();
@@ -219,7 +219,7 @@ static int32_t snippet_main(void) {
 #line 16 "tests/snippets/fusion_recursive_generator/_main.vader"
         l7 = snippet_countdown((l1 - INT32_C(1)));
         for (;;) {
-            t0 = vader_vt_Iterator__next(l7);
+            t0 = vader_vt_std_core_Iterator__next(l7);
             l3 = t0.payload.obj;
             if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__1 == INT32_C(1)) {
             } else {
@@ -245,7 +245,7 @@ static int32_t snippet_main(void) {
     l7 = snippet_countdown(INT32_C(3));
 #line 29 "tests/snippets/fusion_recursive_generator/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l7);
+        t0 = vader_vt_std_core_Iterator__next(l7);
         l3 = t0.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l3)->f__1 == INT32_C(1)) {
         } else {
@@ -372,7 +372,7 @@ static void* snippet___genstate_countdown_Iterator_next(void* l0) {
                 t0 = ((vader_struct_snippet___genstate_countdown_t*) l0)->f_state;
                 if (t0 == INT32_C(13)) {
 #line 16 "tests/snippets/fusion_recursive_generator/_main.vader"
-                    t2 = vader_vt_Iterator__next(((vader_struct_snippet___genstate_countdown_t*) l0)->f_s3);
+                    t2 = vader_vt_std_core_Iterator__next(((vader_struct_snippet___genstate_countdown_t*) l0)->f_s3);
                     l6 = t2.payload.obj;
                     ((vader_struct_snippet___genstate_countdown_t*) l0)->f_s4 = l6;
                     VADER_WRITE_BARRIER((vader_struct_snippet___genstate_countdown_t*) l0);
@@ -924,14 +924,14 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv) {
     switch (recv.tag) {
         case 3u: return vader_ref_box(snippet___genstate_countdown_Iterator_next(recv.payload.obj));
         case 7u: return vader_ref_box(std_core_Range_Iterator_next__i32(recv.payload.obj));
         case 9u: return vader_ref_box(std_core_Range_Iterator_next__usize(recv.payload.obj));
-        default: vader_unreachable("vtable miss in Iterator.next");
+        default: vader_unreachable("vtable miss in std_core$Iterator.next");
     }
-    vader_unreachable("vtable miss in Iterator.next");
+    vader_unreachable("vtable miss in std_core$Iterator.next");
 }
 
 int main(int argc, char** argv) {

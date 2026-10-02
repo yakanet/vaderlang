@@ -23,7 +23,7 @@
       }
   fn snippet$main() -> i32
     let r: null | Suspended =
-      vcall Async.resume :null | Suspended
+      vcall std_core$Async.resume :null | Suspended
         recv:
           call :Async<null>
             callee:
@@ -146,7 +146,7 @@
                       int(2) :i32
                 then:
                   let __resumed_4: Any | Suspended! =
-                    vcall Async.resume :Any | Suspended!
+                    vcall std_core$Async.resume :Any | Suspended!
                       recv:
                         .awaited :Async<Any>
                           __self_3 :__asyncstate_snippet_0!
@@ -210,7 +210,7 @@
             __self_3 :__asyncstate_snippet_0!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_3 :__asyncstate_snippet_0!
@@ -273,7 +273,7 @@
                       int(2) :i32
                 then:
                   let __resumed_2: Any | Suspended! =
-                    vcall Async.resume :Any | Suspended!
+                    vcall std_core$Async.resume :Any | Suspended!
                       recv:
                         .awaited :Async<Any>
                           __self_1 :__asyncstate_snippet_1!
@@ -337,7 +337,7 @@
             __self_1 :__asyncstate_snippet_1!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_1 :__asyncstate_snippet_1!

@@ -1186,7 +1186,7 @@
             slot :fn(usize) -> usize
           arg0:
             i :usize
-      vcall IndexSet.set_at :void
+      vcall std_core$IndexSet.set_at :void
         recv:
           c :Cell!
         arg0:
@@ -1194,7 +1194,7 @@
         arg1:
           add :i32
             l:
-              vcall Index.at :i32
+              vcall std_core$Index.at :i32
                 recv:
                   c :Cell!
                 arg0:

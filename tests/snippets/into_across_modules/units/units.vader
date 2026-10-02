@@ -1,0 +1,7 @@
+module "snippet/units"
+
+export Meters :: struct { v: i32 }
+
+Meters implements Into<i32> {
+    into :: fn(self) -> i32 = self.v
+}

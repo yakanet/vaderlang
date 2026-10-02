@@ -1,0 +1,14 @@
+// Two modules each declare a `Foo`; only `snippet/a`'s implements `Animal`.
+// An impl belongs to the type it is declared for, not to its name: passing
+// `snippet/b`'s `Foo` where an `Animal` is expected is a type error. It used to
+// typecheck — the impl tables were keyed by type name — and fail at run time
+// with no vtable entry.
+module "snippet"
+
+A :: import "snippet/a"
+B :: import "snippet/b"
+
+main :: fn() -> i32 {
+    fb :: B.Foo { .s = "no legs" }
+    return A.count(fb)
+}

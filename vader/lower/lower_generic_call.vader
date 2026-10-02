@@ -390,7 +390,7 @@ trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Typ
         if concrete.symbol.name == tt.symbol.name { return concrete.args }
         return null
     }
-    recorded :: lookup_struct_trait_args(concrete, tt.symbol.name, ctx.typed)
+    recorded :: lookup_struct_trait_args(concrete, trait_key_of(tt.symbol), ctx.typed)
     if recorded != null {
         if all_concrete(recorded) { return recorded }
     }

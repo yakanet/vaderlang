@@ -141,7 +141,7 @@
                     arg0:
                       "err " :string
                     arg1:
-                      vcall Error.message :string
+                      vcall std_core$Error.message :string
                         recv:
                           cast → Error
                             e :Error | string

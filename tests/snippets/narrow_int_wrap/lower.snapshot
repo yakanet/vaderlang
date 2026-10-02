@@ -1127,7 +1127,7 @@
           arg0:
             "cast in a union: " :string
           arg1:
-            vcall Display.to_string :string
+            vcall std_core$Display.to_string :string
               recv:
                 index :string | u8
                   on:

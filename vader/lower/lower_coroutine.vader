@@ -228,7 +228,7 @@ gb_drive_state :: fn(gb: GenBuild!, target_field: string, target_type: Type, con
         .span = gb.span, .name = r_sym.name, .symbol = r_sym, .type = gb.resume_erased_ty,
         .value = LoweredVirtualCall {
             .span = gb.span, .type = gb.resume_erased_ty,
-            .trait_name = TRAIT_ASYNC, .method = METHOD_RESUME,
+            .trait_name = core_trait_key(TRAIT_ASYNC), .method = METHOD_RESUME,
             .receiver = gb_awaited_field(gb), .args = [], .param_types = [],
         },
     }
@@ -603,7 +603,7 @@ gb_cancel_body :: fn(gb: GenBuild) -> LoweredBlock {
     // admitting null — sound because the drive path never observes it null.
     child_cancel :: LoweredVirtualCall {
         .span = gb.span, .type = TY_VOID,
-        .trait_name = TRAIT_ASYNC, .method = METHOD_CANCEL,
+        .trait_name = core_trait_key(TRAIT_ASYNC), .method = METHOD_CANCEL,
         .receiver = gb_awaited_field(gb), .args = [], .param_types = [],
     }
     guard :: LoweredIf {

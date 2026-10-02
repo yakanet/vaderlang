@@ -1,0 +1,5 @@
+module "snippet/zoo"
+
+export Animal :: trait {
+    legs :: fn(self) -> i32
+}

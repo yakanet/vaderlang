@@ -37,7 +37,7 @@ import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_mutable=0,
 import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=9 param_mutable=0 param_by_address= (ref) -> string
 import 3 bytes std_core$bytes result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 4 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=1,9,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 ByteAccess
+impl 6 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32

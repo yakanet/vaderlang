@@ -1,0 +1,12 @@
+// Two wildcard imports each export an `Animal` trait ; an impl that names
+// `Animal` is ambiguous (R2031), as any other unqualified use of it is.
+module "snippet"
+
+import "snippet/farm"
+import "snippet/zoo"
+
+Dog :: struct { name: string }
+
+Dog implements Animal -> 4
+
+main :: fn() -> i32 = 0

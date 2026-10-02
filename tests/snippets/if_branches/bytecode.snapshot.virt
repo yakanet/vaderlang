@@ -12,10 +12,10 @@ type 9 struct __Tuple_usize_u8_de11f1ad { _0:8,_1:6 }
 string 0 "positive"
 string 1 "negative"
 string 2 "zero"
-impl 3 Contains
-impl 3 Iterator
-impl 7 Contains
-impl 7 Iterator
+impl 3 std_core$Contains
+impl 3 std_core$Iterator
+impl 7 std_core$Contains
+impl 7 std_core$Iterator
 
 fn 0 snippet$classify (i32) -> string
   local if_res string

@@ -1055,7 +1055,7 @@
               arg0:
                 "replaced-" :string
               arg1:
-                vcall Display.to_string :string
+                vcall std_core$Display.to_string :string
                   recv:
                     add :{integer}
                       l:

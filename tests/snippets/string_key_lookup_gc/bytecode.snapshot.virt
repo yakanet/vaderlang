@@ -32,17 +32,17 @@ import 3 hash std_core$string$Hash$hash result_type=8 param_types=2 param_mutabl
 import 4 collect std_runtime$collect result_type=10 () -> void
 import 5 collections std_runtime$collections result_type=1 () -> i32
 import 6 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=1,9,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 ByteAccess
-impl 12 Index
-impl 12 IndexSet
-impl 12 Contains
-impl 12 Into
-impl 13 Contains
-impl 13 Into
-impl 14 Index
-impl 14 IndexSet
-impl 14 Contains
-impl 14 Into
+impl 6 std_core$ByteAccess
+impl 12 std_core$Index
+impl 12 std_core$IndexSet
+impl 12 std_core$Contains
+impl 12 std_core$Into
+impl 13 std_core$Contains
+impl 13 std_core$Into
+impl 14 std_core$Index
+impl 14 std_core$IndexSet
+impl 14 std_core$Contains
+impl 14 std_core$Into
 export main 0
 
 fn 0 snippet$main () -> i32

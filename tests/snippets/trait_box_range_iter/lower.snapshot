@@ -68,7 +68,7 @@
     let cont: bool = true
     loop while (cont :bool)
       let __tup_0: [i32, Continuation] =
-        vcall Iterator.next :[i32, Continuation]
+        vcall std_core$Iterator.next :[i32, Continuation]
           recv:
             it :Iterator<i32>
       let c: Continuation =
@@ -101,11 +101,11 @@
     return n :i32
   fn snippet$invoke__i32(g: Greeter<i32>) -> i32
     return
-      vcall Greeter.greet :i32
+      vcall snippet$Greeter.greet :i32
         recv:
           g :Greeter<i32>
   fn snippet$twice__i32(x: Doubler<i32>) -> i32
     return
-      vcall Doubler.doubled :i32
+      vcall snippet$Doubler.doubled :i32
         recv:
           x :Doubler<i32>

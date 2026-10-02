@@ -22,7 +22,7 @@ type 19 struct images_ppm$ScanInt { value:18,pos:5,found:3 }
 type 20 primitive isize
 type 21 union 22,0
 type 22 primitive pointer
-type 23 ref Error
+type 23 ref std_core$Error
 string 0 "/vader_ppm_roundtrip.ppm"
 string 1 "encode failed"
 string 2 "write failed: "
@@ -88,12 +88,12 @@ import 8 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=21 par
 import 9 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=22 param_mutable=0 param_by_address= (pointer) -> i32
 import 10 extern fread system_posix$sys_fread header=<stdio.h> result_type=5 param_types=8,5,5,22 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
 import 11 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=8,5,5,22 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-impl 6 ByteAccess
-impl 11 Error
-impl 16 Error
-impl 14 Display
-vtable Error.message 11 16
-vtable Error.message 16 25
+impl 6 std_core$ByteAccess
+impl 11 std_core$Error
+impl 16 std_core$Error
+impl 14 std_core$Display
+vtable std_core$Error.message 11 16
+vtable std_core$Error.message 16 25
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -146,10 +146,10 @@ fn 0 snippet$main () -> i32
   local.get 3   ; $cast_28
   call 8   ; std_io$write_file_bytes
   local.tee 2   ; enc
-  type_check 23   ; ref Error
+  type_check 23   ; ref std_core$Error
   if $L1 void
     local.get 2   ; enc
-    virtual.call 1 Error.message
+    virtual.call 1 std_core$Error.message
     local.set 4   ; $vcall_34
     string.const 2   ; "write failed: "
     local.get 4   ; $vcall_34
@@ -164,10 +164,10 @@ fn 0 snippet$main () -> i32
   i64.const 16777216
   call 9   ; std_io$read_file_bytes
   local.tee 2   ; enc
-  type_check 23   ; ref Error
+  type_check 23   ; ref std_core$Error
   if $L2 void
     local.get 2   ; enc
-    virtual.call 1 Error.message
+    virtual.call 1 std_core$Error.message
     local.set 0   ; path
     string.const 5   ; "read failed: "
     local.get 0   ; path

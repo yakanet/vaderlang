@@ -15,7 +15,7 @@ type 12 union 0,2
 type 13 primitive isize
 type 14 union 15,0
 type 15 primitive pointer
-type 16 ref Error
+type 16 ref std_core$Error
 string 0 "/vader_héllo_zoé_日本.txt"
 string 1 "write failed: "
 string 2 "read failed: "
@@ -64,9 +64,9 @@ import 10 extern fread system_posix$sys_fread header=<stdio.h> result_type=5 par
 import 11 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=7,5,5,15 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
 import 12 extern access system_posix$sys_access header=<unistd.h> result_type=1 param_types=2,1 param_mutable=0,0 param_by_address= (string,i32) -> i32
 import 13 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_mutable=0 param_by_address= (string) -> i32
-impl 6 ByteAccess
-impl 10 Error
-vtable Error.message 10 17
+impl 6 std_core$ByteAccess
+impl 10 std_core$Error
+vtable std_core$Error.message 10 17
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -91,10 +91,10 @@ fn 0 snippet$main () -> i32
   local.get 1   ; $arr_9
   call 7   ; std_io$write_file_bytes
   local.tee 2   ; written
-  type_check 16   ; ref Error
+  type_check 16   ; ref std_core$Error
   if $L0 void
     local.get 2   ; written
-    virtual.call 1 Error.message
+    virtual.call 1 std_core$Error.message
     local.set 3   ; $vcall_15
     string.const 1   ; "write failed: "
     local.get 3   ; $vcall_15
@@ -106,10 +106,10 @@ fn 0 snippet$main () -> i32
   i64.const 16777216
   call 8   ; std_io$read_file_bytes
   local.tee 2   ; written
-  type_check 16   ; ref Error
+  type_check 16   ; ref std_core$Error
   if $L1 void
     local.get 2   ; written
-    virtual.call 1 Error.message
+    virtual.call 1 std_core$Error.message
     local.set 3   ; $vcall_15
     string.const 2   ; "read failed: "
     local.get 3   ; $vcall_15

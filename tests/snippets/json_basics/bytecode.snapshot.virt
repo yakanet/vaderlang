@@ -128,19 +128,19 @@ import 2 bytes_to_string std_core$bytes_to_string result_type=1 param_types=10 p
 import 3 bytes std_core$bytes result_type=10 param_types=1 param_mutable=0 param_by_address= (string) -> ref
 import 4 hash std_core$string$Hash$hash result_type=13 param_types=1 param_mutable=0 param_by_address= (string) -> u64
 import 5 extern write system_posix$sys_write header=<unistd.h> result_type=42 param_types=3,10,7 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 20 ByteAccess
-impl 46 Iterator
-impl 32 Display
-impl 48 Index
-impl 48 IndexSet
-impl 48 Contains
-impl 48 Into
-impl 25 Error
-impl 41 Index
-impl 41 IndexSet
-impl 41 Contains
-impl 41 Into
-impl 45 Error
+impl 20 std_core$ByteAccess
+impl 46 std_core$Iterator
+impl 32 std_core$Display
+impl 48 std_core$Index
+impl 48 std_core$IndexSet
+impl 48 std_core$Contains
+impl 48 std_core$Into
+impl 25 std_core$Error
+impl 41 std_core$Index
+impl 41 std_core$IndexSet
+impl 41 std_core$Contains
+impl 41 std_core$Into
+impl 45 std_core$Error
 export main 1
 
 fn 0 snippet$show (string,string) -> void

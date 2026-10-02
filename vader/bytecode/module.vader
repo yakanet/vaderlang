@@ -208,7 +208,7 @@ export VtableEntry :: struct {
 
 /// One `(trait, method) → entries[]` row of the vtable table.
 export VtableRow :: struct {
-    key: string                      // "<Trait>.<method>"
+    key: string                      // "<trait_key>.<method>", `std/core.Display.to_string`
     entries: VtableEntry[]!
 }
 

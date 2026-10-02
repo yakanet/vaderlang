@@ -1,0 +1,29 @@
+// One source with an `Into` impl per instantiation of the same generic target :
+// each coercion goes through the impl of its own target, `Box<string>` or
+// `Box<i32>`, not the first impl whose target is a `Box`.
+module "snippet"
+
+import "std/io"
+
+Box :: struct<T> { value: T }
+
+UserId :: struct { value: i32 }
+
+UserId implements Into<Box<i32>> {
+    into :: fn(self) -> Box<i32> = Box<i32> { .value = self.value }
+}
+
+UserId implements Into<Box<string>> {
+    into :: fn(self) -> Box<string> = Box<string> { .value = "user_${self.value}" }
+}
+
+take_string :: fn(b: Box<string>) -> string = b.value
+
+take_int :: fn(b: Box<i32>) -> i32 = b.value + 1
+
+main :: fn() -> i32 {
+    u :: UserId { .value = 42 }
+    println(take_string(u))
+    println("${take_int(u)}")
+    return 0
+}

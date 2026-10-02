@@ -109,14 +109,14 @@ try_impl_method_ufcs :: fn(
     // would. `default_if_free` is the identity on concrete types, so concrete
     // receivers are unaffected.
     key_ty :: default_if_free(target_ty)
-    impl_ufcs :: typed.impl_methods["${display_type_key(key_ty)}::${e.field}"]
+    impl_ufcs :: typed.impl_methods["${impl_type_key(key_ty)}::${e.field}"]
     if impl_ufcs !is null {
         check_trait_ambiguity(e, target_ty, typed, diags)
         reject_mutating_method_on_immutable(impl_ufcs, e, target_ty, typed, diags)
         typed.chosen_impl_methods[e.id] = impl_ufcs
         return impl_ufcs.ty
     }
-    base_impl := typed.impl_methods["${type_base_name(key_ty)}::${e.field}"]
+    base_impl := typed.impl_methods["${impl_base_key(key_ty)}::${e.field}"]
     if base_impl is null {
         // Array-backed distinct newtype (`BigInt :: i32[]`) : its base name is the
         // newtype's, not `[]`, so try the array-blanket key so `bigint.push(x)`
@@ -184,14 +184,14 @@ try_typeparam_bound_method :: fn(
         return null
     }
     bound :: typed.resolved.type_param_bounds[target_ty.symbol.id] ?? return null
-    // Find the trait carrying `e.field` AND record its name so the
-    // lower can emit `vcall Trait.method` once the receiver gets
+    // Find the trait carrying `e.field` AND record its `trait_key` so the
+    // lower can emit `vcall <trait_key>.method` once the receiver gets
     // erased to Any post-monomorphization.
-    trait_name :: dispatch_bounded_method_trait(bound, e.field, typed)
-    if trait_name == "" {
+    trait_key :: dispatch_bounded_method_trait(bound, e.field, typed)
+    if trait_key == "" {
         return null
     }
-    typed.bounded_dispatch_trait[e.id] = trait_name
+    typed.bounded_dispatch_trait[e.id] = trait_key
     // Attribute the dispatch to the enclosing fn so the lowerer keeps its
     // generic instances concrete (no Any-erasure) — see `fn_trait_dispatches`.
     if typed.current_fn_ctx is FnContext as fctx {
@@ -224,7 +224,7 @@ dispatch_bounded_method_trait :: fn(
         if try_trait_method(bound_ty, name, typed) is null {
             return ""
         }
-        return bound_ty.symbol.name
+        return trait_key_of(bound_ty.symbol)
     }
     return ""
 }
@@ -843,16 +843,19 @@ check_trait_ambiguity :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> void {
-    base_key :: "${type_base_name(target_ty)}::${e.field}"
-    traits :: typed.impl_method_traits[base_key] ?? return
+    traits :: typed.impl_method_traits["${dispatch_key(target_ty)}::${e.field}"] ?? return
     if traits.len() < 2 {
         return
+    }
+    names: string[]!: []
+    for t in traits {
+        names.push(trait_key_name(t))
     }
     diags.push(
         typecheck_error(
             .AmbiguousOverload,
             e.field_span,
-            "`${e.field}` on ${display_type(target_ty)} is ambiguous between traits: ${traits.join(", ")}",
+            "`${e.field}` on ${display_type(target_ty)} is ambiguous between traits: ${names.join(", ")}",
         ),
     )
 }
@@ -1063,9 +1066,9 @@ try_default_trait_method :: fn(
     name: string,
     typed: TypedProgram,
 ) -> Type | null {
-    trait_names :: typed.struct_implemented_traits[target_ty.symbol.name] ?? return null
-    for trait_name in trait_names {
-        trait_id :: find_trait_id_by_name(trait_name, typed) ?? continue
+    traits :: typed.struct_implemented_traits[impl_base_key(target_ty)] ?? return null
+    for trait_key in traits {
+        trait_id :: find_trait_id(trait_key, typed) ?? continue
         decl :: typed.trait_decls[trait_id] ?? continue
         owner :: typed.trait_decl_owners[trait_id]
         owner_resolved: ResolvedModule = typed.resolved
@@ -1086,7 +1089,7 @@ try_default_trait_method :: fn(
             // recorded impl args, so a default naming the trait's `T`
             // reports the impl's argument instead.
             sub_self :: substitute_self(member_fn_type(m, params, ret), target_ty)
-            return substitute_trait_typeparams(sub_self, decl, trait_name, target_ty, typed)
+            return substitute_trait_typeparams(sub_self, decl, trait_key, target_ty, typed)
         }
     }
     return null
@@ -1095,15 +1098,15 @@ try_default_trait_method :: fn(
 substitute_trait_typeparams :: fn(
     t: Type,
     trait_decl: AST.TraitDecl,
-    trait_name: string,
+    trait_key: string,
     target_ty: StructType,
     typed: TypedProgram,
 ) -> Type {
     if trait_decl.type_params.len() == 0 {
         return t
     }
-    per_struct :: typed.struct_trait_args[target_ty.symbol.name] ?? return t
-    impl_args :: per_struct[trait_name] ?? return t
+    per_struct :: typed.struct_trait_args[impl_base_key(target_ty)] ?? return t
+    impl_args :: per_struct[trait_key] ?? return t
     // The impl args might themselves reference TypeParams from the
     // implementing struct (`Range<T> implements Iterator<T>` records
     // `[T]` where T is Range's). Resolve those against the receiver's
@@ -1121,13 +1124,16 @@ substitute_trait_typeparams :: fn(
     return substitute_by_name(t, trait_decl.type_params, resolved_args)
 }
 
-/// Find a trait's global symbol id by name in the project-wide `trait_decls`
-/// registry (cross-published, so it includes core + every imported module's
-/// traits). Replaces the old `symbols`/`core_symbols` name scan — trait
-/// dispatch only needs the id (to index `trait_decls` / `trait_decl_owners`).
-find_trait_id_by_name :: fn(name: string, typed: TypedProgram) -> i32 | null {
+// The symbol id of the trait whose `trait_key` is `key`, searched in the
+// project-wide `trait_decls` (cross-published : core and every imported module).
+find_trait_id :: fn(key: string, typed: TypedProgram) -> i32 | null {
+    name :: trait_key_name(key)
     for [id, decl] in typed.trait_decls {
-        if decl.name == name {
+        if decl.name != name {
+            continue
+        }
+        owner :: typed.trait_decl_owners[id] ?? typed.resolved
+        if "${mangle_module_id(owner.display_path)}\$${decl.name}" == key {
             return id
         }
     }

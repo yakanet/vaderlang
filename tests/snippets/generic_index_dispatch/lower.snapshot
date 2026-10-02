@@ -263,13 +263,13 @@
     return int(0) :i32
   fn snippet$read_nth__Cell(c: Cell!, i: usize) -> i32
     ~>
-      vcall Index.at :i32
+      vcall std_core$Index.at :i32
         recv:
           c :Cell!
         arg0:
           i :usize
   fn snippet$write_nth__Cell(c: Cell!, i: usize, v: i32) -> void
-    vcall IndexSet.set_at :void
+    vcall std_core$IndexSet.set_at :void
       recv:
         c :Cell!
       arg0:

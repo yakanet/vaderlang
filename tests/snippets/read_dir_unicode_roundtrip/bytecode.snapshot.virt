@@ -19,7 +19,7 @@ type 16 ref _
 type 17 primitive isize
 type 18 union 19,0
 type 19 primitive pointer
-type 20 ref Error
+type 20 ref std_core$Error
 type 21 struct $Cell_CPointer { value:19 }
 type 22 fn () -> 8
 string 0 "vader_rd_café_日本.txt"
@@ -77,9 +77,9 @@ import 13 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 p
 import 14 extern fread system_posix$sys_fread header=<stdio.h> result_type=5 param_types=7,5,5,19 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
 import 15 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=7,5,5,19 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
 import 16 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_mutable=0 param_by_address= (string) -> i32
-impl 6 ByteAccess
-impl 10 Error
-vtable Error.message 10 19
+impl 6 std_core$ByteAccess
+impl 10 std_core$Error
+vtable std_core$Error.message 10 19
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -107,10 +107,10 @@ fn 0 snippet$main () -> i32
   local.get 2   ; $arr_8
   call 8   ; std_io$write_file_bytes
   local.tee 3   ; written
-  type_check 20   ; ref Error
+  type_check 20   ; ref std_core$Error
   if $L0 void
     local.get 3   ; written
-    virtual.call 1 Error.message
+    virtual.call 1 std_core$Error.message
     local.set 4   ; $vcall_14
     string.const 2   ; "write failed: "
     local.get 4   ; $vcall_14

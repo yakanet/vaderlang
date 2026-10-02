@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/into_between_same_named_types
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         take                 :: fn(Length) -> i32
+  expr 12:34    FieldExpr      :: i32
+  expr 12:34    IdentExpr      :: Length
+  expr 15:10    StructLitExpr  :: Length!
+  expr 16:13    StringLitExpr  :: string
+  expr 16:16    CallExpr       :: i32
+  expr 16:16    IdentExpr      :: fn(Length) -> i32
+  expr 16:21    IdentExpr      :: Length!
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/into_between_same_named_types/feet
+  StructDecl     Length               :: Length!
+  expr 8:36     StructLitExpr  :: Length!
+  expr 8:57     BinaryExpr     :: i32
+  expr 8:57     FieldExpr      :: i32
+  expr 8:57     IdentExpr      :: Length
+
+## tests/snippets/into_between_same_named_types/metres
+  StructDecl     Length               :: Length!

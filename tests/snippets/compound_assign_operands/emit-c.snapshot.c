@@ -223,8 +223,8 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_Index__at(vader_box_t recv, vader_box_t a0);
-static void vader_vt_IndexSet__set_at(vader_box_t recv, vader_box_t a0, vader_box_t a1);
+static vader_box_t vader_vt_std_core_Index__at(vader_box_t recv, vader_box_t a0);
+static void vader_vt_std_core_IndexSet__set_at(vader_box_t recv, vader_box_t a0, vader_box_t a1);
 
 static size_t snippet_slot(size_t l0) {
     void* l1 = NULL;
@@ -720,9 +720,9 @@ static void snippet_bump_nth__Cell(void* l0, size_t l1) {
     vader_gc_top = &gc_frame;
 #line 52 "tests/snippets/compound_assign_operands/_main.vader"
     l2 = snippet_slot(l1);
-    t0 = vader_vt_Index__at(vader_ref_box(l0), vader_box_i64(1u, (int64_t)(uint64_t) l2));
+    t0 = vader_vt_std_core_Index__at(vader_ref_box(l0), vader_box_i64(1u, (int64_t)(uint64_t) l2));
     l3 = (((int32_t) t0.payload.i) + INT32_C(100));
-    vader_vt_IndexSet__set_at(vader_ref_box(l0), vader_box_i64(1u, (int64_t)(uint64_t) l2), vader_box_i32(4u, l3));
+    vader_vt_std_core_IndexSet__set_at(vader_ref_box(l0), vader_box_i64(1u, (int64_t)(uint64_t) l2), vader_box_i32(4u, l3));
 #line 51 "tests/snippets/compound_assign_operands/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -1046,20 +1046,20 @@ static uint32_t std_core_string_Index_at_vt(vader_string_t l0, size_t l1) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_Index__at(vader_box_t recv, vader_box_t a0) {
+static vader_box_t vader_vt_std_core_Index__at(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 3u: return vader_box_i32(4u, snippet_Cell_Index_at(recv.payload.obj, ((size_t) a0.payload.i)));
         case 6u: return vader_ref_box(snippet_Shelf_Index_at(recv.payload.obj, ((size_t) a0.payload.i)));
         case 10u: return vader_box_i32(20u, (int32_t) std_core_string_Index_at_vt(recv.payload.s, ((size_t) a0.payload.i)));
-        default: vader_unreachable("vtable miss in Index.at");
+        default: vader_unreachable("vtable miss in std_core$Index.at");
     }
-    vader_unreachable("vtable miss in Index.at");
+    vader_unreachable("vtable miss in std_core$Index.at");
 }
 
-static void vader_vt_IndexSet__set_at(vader_box_t recv, vader_box_t a0, vader_box_t a1) {
+static void vader_vt_std_core_IndexSet__set_at(vader_box_t recv, vader_box_t a0, vader_box_t a1) {
     switch (recv.tag) {
         case 3u: snippet_Cell_IndexSet_set_at(recv.payload.obj, ((size_t) a0.payload.i), ((int32_t) a1.payload.i)); return;
-        default: vader_unreachable("vtable miss in IndexSet.set_at");
+        default: vader_unreachable("vtable miss in std_core$IndexSet.set_at");
     }
 }
 

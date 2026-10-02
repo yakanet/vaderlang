@@ -122,17 +122,17 @@ export check_project_with_bodies :: fn(
             .all_modules = MutableMap<string, TypedProgram!> {},
         }
     }
-    // Phase A0 : materialise single-abstract-method sugar
-    // (`Type implements Trait -> expr`) project-wide so the resolver
-    // (run next) walks bodies with `self` / `other` / … properly
-    // bound — synthesising trait-method params on the SAM members
-    // happens here, not after resolve.
-    materialize_all_sams_pre_resolve(project)
     // Build the core_symbols seed once — every per-module resolve gets
     // the same map so the body-walker can fire R2006 unconditionally on
     // unresolved idents instead of deferring to typecheck.
     core_seed :: build_core_seed(project)
     mod_index :: module_index_by_name(project)
+    // Phase A0 : materialise single-abstract-method sugar
+    // (`Type implements Trait -> expr`) project-wide so the resolver
+    // (run next) walks bodies with `self` / `other` / … properly
+    // bound — synthesising trait-method params on the SAM members
+    // happens here, not after resolve.
+    materialize_all_sams_pre_resolve(project, mod_index, core_seed)
     // Both aggregates rebuild an array / a map per call, so bind them once and
     // hand the same pair to the seed and the ambiguity scan.
     entry_paths :: all_wildcard_paths(entry_loaded.collected)
@@ -435,11 +435,7 @@ export check_project_with_bodies :: fn(
     for d in entry_typed.resolved.diags {
         diags.push(d)
     }
-    impls :: build_impl_registry(
-        merge_module_program(entry_loaded.module.files).decls,
-        entry_typed.resolved,
-        core_seed,
-    )
+    impls :: build_impl_registry(merge_module_program(entry_loaded.module.files).decls, entry_typed.resolved)
     // Every directly-imported non-stdlib module gets its own `## <path>`
     // section in the dump.
     others: TypedProgram![]: collect_direct_imports(entry_loaded, project, per_module)
@@ -791,10 +787,11 @@ fn_signature_key :: fn(fd: AST.FnDecl, resolved: ResolvedModule) -> string | nul
 // ---- cross-module table merges --------------------------------------------
 
 // Each module mints its own Symbol ids ; the entries don't collide.
-// Walk every non-entry module's `ImplDecl`s and register their UFCS
-// method signatures in the entry's `impl_methods` table. Lets
-// `sb.to_string()` (where the impl lives in `std/string_builder`)
-// dispatch through the same path as local impls.
+// Walk every non-entry module's `ImplDecl`s and record them in the entry's
+// impl tables — the same writers as the module's own pre-pass, so
+// `sb.to_string()` (where the impl lives in `std/string_builder`) dispatches
+// through the same path as a local impl. Diagnostics are discarded : each
+// module reports its own impls.
 merge_external_impl_methods :: fn(
     entry_typed: TypedProgram!,
     project: LoadedProject,
@@ -809,43 +806,14 @@ merge_external_impl_methods :: fn(
         for decl in merge_module_program(loaded.module.files).decls {
             if decl is AST.ImplDecl {
                 for_ty :: type_from_expr(decl.for_type, other.resolved, diag_sink())
+                trait_sym :: impl_trait_symbol(decl, other.resolved) ?? continue
                 // Refused in its own module (T3090), so not registered here either.
                 if is_refused_array_impl(for_ty) {
                     continue
                 }
-                record_struct_trait(entry_typed, for_ty, decl.trait_name)
-                record_impl_bounds(entry_typed, decl, for_ty, other.resolved)
-                // Trait args resolve in the impl owner's scope so
-                // cross-module impls record concrete types.
-                impl_trait_args: Type[]!: []
-                for ta in decl.trait_args {
-                    impl_trait_args.push(type_from_expr(ta, other.resolved, diag_sink()))
-                }
-                record_struct_trait_args(
-                    entry_typed,
-                    for_ty,
-                    decl.trait_name,
-                    impl_trait_args,
-                )
-                trait_decl_ext :: lookup_trait_decl(decl.trait_name, entry_typed)
-                for m in decl.members {
-                    key :: "${display_type_key(for_ty)}::${m.name}"
-                    base_key :: "${type_base_name(for_ty)}::${m.name}"
-                    trait_method_ext :: lookup_trait_method(trait_decl_ext, m.name)
-                    ufcs_ty :: ufcs_method_type(m, for_ty, trait_method_ext, other, diag_sink())
-                    entry_ext :: ImplMethod {
-                        .ty = ufcs_ty,
-                        .self_mutable = declares_mutable_self(m, trait_method_ext),
-                        .decl = m,
-                    }
-                    entry_typed.impl_methods[key] = entry_ext
-                    entry_typed.impl_methods[base_key] = entry_ext
-                    record_impl_trait(entry_typed, base_key, decl.trait_name)
-                }
-                // Index Iterator/Into/Index/IndexSet element/key/target
-                // types — shared with the local pre-pass (diags discarded
-                // here; cross-module impls re-check in their own module).
-                index_impl_metadata(entry_typed, decl, for_ty, other.resolved, diag_sink())
+                trait_key :: trait_key_of(trait_sym)
+                record_impl_membership(entry_typed, decl, for_ty, trait_key, other.resolved)
+                record_impl_members(entry_typed, decl, for_ty, trait_sym, trait_key, other, diag_sink())
             }
         }
     }
@@ -853,97 +821,59 @@ merge_external_impl_methods :: fn(
 
 diag_sink :: fn() -> Diagnostic[]! { return [] }
 
-// `Into<Iterator<T>>` is the for-in coercion entry point — pull T
-// out of the `Iterator<T>` arg so `for x in X` binds x to T.
-// Returns null when the arg isn't shaped like `Iterator<T>`.
-into_iterator_element :: fn(
-    arg: AST.TypeExpr,
-    resolved: ResolvedModule,
-) -> Type | null {
-    if arg !is AST.GenericInstExpr       { return null }
-    if arg.callee !is AST.IdentExpr      { return null }
-    if arg.callee.name != TRAIT_ITERATOR { return null }
-    if arg.type_args.len() != 1          { return null }
-    return type_from_expr(arg.type_args[0], resolved, diag_sink())
-}
-
 // Index an impl's `Iterator` / `Into` / `Index` / `IndexSet` trait args into the
 // typed program's element / key / target side-tables, so `for x in X`, `m[k]`
-// and `m[k] = v` pin their types. Shared by the external-impl import loop and
-// the local `register_impl_metadata` pre-pass — one source so the two passes
-// can't index the same impl differently. `resolved` scopes the trait-arg
-// resolution ; `diags` sinks any resolution error (throwaway for the external
-// path, real for the local one).
-index_impl_metadata :: fn(
-    typed: TypedProgram!,
-    id: AST.ImplDecl,
-    for_ty: Type,
-    resolved: ResolvedModule,
-    diags: Diagnostic[]!,
-) -> void {
-    base_key :: type_base_name(for_ty)
-    if id.trait_name == TRAIT_ITERATOR && id.trait_args.len() == 1 {
-        elem :: type_from_expr(id.trait_args[0], resolved, diags)
-        typed.iter_element_types[base_key] = elem
+// and `m[k] = v` pin their types. `trait_key` is the impl's resolved trait, so a
+// user trait that happens to be named `Index` indexes nothing.
+index_impl_metadata :: fn(typed: TypedProgram!, for_ty: Type, trait_key: string, trait_args: Type[]) -> void {
+    base_key :: impl_base_key(for_ty)
+    if trait_key == core_trait_key(TRAIT_ITERATOR) && trait_args.len() == 1 {
+        typed.iter_element_types[base_key] = trait_args[0]
     }
-    if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 {
-        elem :: into_iterator_element(id.trait_args[0], resolved)
+    if trait_key == core_trait_key(TRAIT_INTO) && trait_args.len() == 1 {
+        elem :: iterator_element_of(trait_args[0])
         if elem != null {
             typed.iter_element_types[base_key] = elem
         }
     }
-    if id.trait_name == TRAIT_INDEX && id.trait_args.len() == 2 {
-        key_ty :: type_from_expr(id.trait_args[0], resolved, diags)
-        result_ty :: type_from_expr(id.trait_args[1], resolved, diags)
-        typed.index_key_types[base_key] = key_ty
-        typed.index_target_types[base_key] = result_ty
+    if trait_key == core_trait_key(TRAIT_INDEX) && trait_args.len() == 2 {
+        typed.index_key_types[base_key] = trait_args[0]
+        typed.index_target_types[base_key] = trait_args[1]
     }
-    if id.trait_name == TRAIT_INDEX_SET && id.trait_args.len() == 2 {
-        key_ty :: type_from_expr(id.trait_args[0], resolved, diags)
-        value_ty :: type_from_expr(id.trait_args[1], resolved, diags)
-        typed.index_key_types[base_key] = key_ty
-        typed.index_set_value_types[base_key] = value_ty
+    if trait_key == core_trait_key(TRAIT_INDEX_SET) && trait_args.len() == 2 {
+        typed.index_key_types[base_key] = trait_args[0]
+        typed.index_set_value_types[base_key] = trait_args[1]
     }
 }
 
-// Append `trait_name` to `m[key]`'s bucket unless already present. Shared by
-// the three trait-membership recorders (`record_impl_trait` + both maps of
-// `record_struct_trait`), generic over the key type so the id-keyed and
-// name-keyed maps use one form.
-add_trait_unique :: fn<K>(m: MutableMap<K, string[]!>!, key: K, trait_name: string) -> void {
+// Append `trait_key` to `m[key]`'s bucket unless already present.
+// Shared by the three trait-membership recorders (`record_impl_members` + both
+// maps of `record_struct_trait`), generic over the key type so the id-keyed and
+// base-keyed maps use one form.
+add_trait_unique :: fn<K>(m: MutableMap<K, string[]!>!, key: K, trait_key: string) -> void {
     bucket :: m[key]
     if bucket == null {
-        m[key] = [trait_name]
+        m[key] = [trait_key]
         return
     }
     for n in bucket {
-        if n == trait_name {
+        if n == trait_key {
             return
         }
     }
-    bucket.push(trait_name)
+    bucket.push(trait_key)
     m[key] = bucket
 }
 
-// Append `trait_name` to the impl-method-trait bucket for `base_key`.
-// Two distinct traits providing the same method on the same receiver
-// make `x.method()` ambiguous (T3032).
-record_impl_trait :: fn(typed: TypedProgram!, base_key: string, trait_name: string) -> void {
-    add_trait_unique(typed.impl_method_traits, base_key, trait_name)
-}
-
-record_struct_trait :: fn(typed: TypedProgram!, for_ty: Type, trait_name: string) -> void {
-    // Two membership maps populated in lockstep: the id-keyed twin (project-
-    // global-unique symbol ids → collision-free, drives the runtime `is Trait`
-    // impl_table rows via the emitter) and the name-keyed map (base-name
-    // lookups by the typecheck consumers). Structs / enums / distincts carry a
-    // symbol id ; the name form additionally covers primitives.
+record_struct_trait :: fn(typed: TypedProgram!, for_ty: Type, trait_key: string) -> void {
+    // Two membership maps populated in lockstep: the symbol-id map drives the
+    // runtime `is Trait` impl_table rows via the emitter, the `impl_base_key` map
+    // answers the typecheck consumers and also covers primitives and arrays.
     target :: type_to_target_symbol(for_ty)
     if target is Symbol {
-        add_trait_unique(typed.struct_traits_by_sym, target.id, trait_name)
+        add_trait_unique(typed.struct_traits_by_sym, target.id, trait_key)
     }
-    name :: type_base_name(for_ty)
-    if name != "" { add_trait_unique(typed.struct_implemented_traits, name, trait_name) }
+    add_trait_unique(typed.struct_implemented_traits, impl_base_key(for_ty), trait_key)
 }
 
 // The bounds `decl`'s type parameters put on the arguments of `for_ty`, the type
@@ -951,7 +881,7 @@ record_struct_trait :: fn(typed: TypedProgram!, for_ty: Type, trait_name: string
 // the impl's own module, which holds its type parameters' bounds and the scope
 // they name traits in. An impl for a type without arguments puts no bound.
 record_impl_bounds :: fn(
-    typed: TypedProgram!, decl: AST.ImplDecl, for_ty: Type, resolved: ResolvedModule,
+    typed: TypedProgram!, decl: AST.ImplDecl, for_ty: Type, trait_key: string, resolved: ResolvedModule,
 ) -> void {
     args :: type_arguments(for_ty)
     if args.is_empty() {
@@ -971,8 +901,8 @@ record_impl_bounds :: fn(
             })
         }
     }
-    entry :: BoundedImpl { .trait_name = decl.trait_name, .bounds = bounds }
-    base :: type_base_name(for_ty)
+    entry :: BoundedImpl { .trait_key = trait_key, .bounds = bounds }
+    base :: impl_base_key(for_ty)
     per_impl :: typed.impl_bounds[base]
     if per_impl == null {
         fresh :: MutableMap<u64, BoundedImpl> {}
@@ -983,8 +913,12 @@ record_impl_bounds :: fn(
     }
 }
 
-// The traits `bound` names — one, or an `A & B` chain — resolved in `resolved`.
-collect_bound_traits :: fn(bound: AST.Expr, resolved: ResolvedModule, out: string[]!) -> void {
+/// The `trait_key`s of the traits `bound` names — one, or an `A & B` chain.
+///
+/// @param bound     a type parameter's bound.
+/// @param resolved  the module that declares the type parameter.
+/// @param out       receives one key per trait, left to right.
+export collect_bound_traits :: fn(bound: AST.Expr, resolved: ResolvedModule, out: string[]!) -> void {
     if bound is AST.BinaryExpr && bound.op == .BitAnd {
         collect_bound_traits(bound.left, resolved, out)
         collect_bound_traits(bound.right, resolved, out)
@@ -992,30 +926,27 @@ collect_bound_traits :: fn(bound: AST.Expr, resolved: ResolvedModule, out: strin
     }
     bound_type :: type_from_expr(bound, resolved, diag_sink())
     if bound_type is TraitType {
-        out.push(bound_type.symbol.name)
+        out.push(trait_key_of(bound_type.symbol))
     }
 }
 
 record_struct_trait_args :: fn(
     typed: TypedProgram!,
     for_ty: Type,
-    trait_name: string,
+    trait_key: string,
     // Mutable because that is what `struct_trait_args` stores : a generic
     // argument takes no read-only default (see `apply_readonly_default`).
     args: Type[]!,
 ) -> void {
-    name :: type_base_name(for_ty)
-    if name == "" {
-        return
-    }
-    per_struct :: typed.struct_trait_args[name]
+    base :: impl_base_key(for_ty)
+    per_struct :: typed.struct_trait_args[base]
     match per_struct {
         is null -> {
             fresh :: MutableMap<string, Type[]!> {}
-            fresh[trait_name] = args
-            typed.struct_trait_args[name] = fresh
+            fresh[trait_key] = args
+            typed.struct_trait_args[base] = fresh
         }
-        _       -> { per_struct[trait_name] = args }
+        _       -> { per_struct[trait_key] = args }
     }
 }
 
@@ -1025,13 +956,27 @@ record_struct_trait_args :: fn(
 // Display from `std/core`. Emits R2016 when the short impl form
 // (`Type implements Trait -> expr`) targets a trait with != 1
 // required method.
-export materialize_all_sams_pre_resolve :: fn(project: LoadedProject!) -> void {
+export materialize_all_sams_pre_resolve :: fn(
+    project: LoadedProject!,
+    name_index: MutableMap<string, LoadedModule>,
+    core_seed: MutableMap<string, Symbol>,
+) -> void {
     for [_, loaded] in project.modules {
-        for decl in merge_module_program(loaded.module.files).decls {
+        decls :: merge_module_program(loaded.module.files).decls
+        if !has_impl_decl(decls) {
+            continue
+        }
+        seed :: build_wildcard_seed(
+            name_index,
+            all_wildcard_paths(loaded.collected),
+            all_wildcard_excludes(loaded.collected),
+            core_seed,
+        )
+        for decl in decls {
             if decl !is AST.ImplDecl {
                 continue
             }
-            found :: find_named_decl_in_project(decl.trait_name, project)
+            found :: find_impl_trait_decl(decl.trait_name, loaded, seed, name_index, project)
             if found.trait_decl is null {
                 if found.other_kind != "" {
                     project.diags.push(
@@ -1111,41 +1056,75 @@ check_short_impl_arity :: fn(
     return !fired
 }
 
-/// Project-wide trait-name lookup. Single walk discriminates
-/// "found as trait" from "found as non-trait" so the impl-resolution
-/// path can emit R2007 vs R2009 without a second traversal.
-NamedDeclLookup :: struct {
-    trait_decl: AST.TraitDecl | null
-    /// Empty when no decl named `name` was found ; otherwise one of
-    /// `"struct"` / `"enum"` / `"alias"`. Only meaningful when
-    /// `trait_decl is null` ; the trait branch wins.
-    other_kind: string
+// True when `decls` declares at least one impl.
+has_impl_decl :: fn(decls: AST.Decl[]) -> bool {
+    for d in decls {
+        if d is AST.ImplDecl {
+            return true
+        }
+    }
+    return false
 }
 
-find_named_decl_in_project :: fn(
+// The declaration of the trait an impl in `loaded` names. Runs before the
+// resolver, so it walks the scope the resolver will build : the module's own
+// names and imports, then `seed` (the prelude and the wildcard imports).
+find_impl_trait_decl :: fn(
     name: string,
+    loaded: LoadedModule,
+    seed: MutableMap<string, Symbol>,
+    name_index: MutableMap<string, LoadedModule>,
     project: LoadedProject,
 ) -> NamedDeclLookup {
-    other: string = ""
-    for [_, loaded] in project.modules {
-        for decl in merge_module_program(loaded.module.files).decls {
-            if decl is AST.TraitDecl {
-                if decl.name == name {
-                    return NamedDeclLookup { .trait_decl = decl, .other_kind = "" }
-                }
-            }
-            if other == "" {
-                if decl is AST.StructDecl { if decl.name == name      { other = "struct" } }
-                if decl is AST.EnumDecl   { if decl.name == name      { other = "enum" } }
-                if decl is AST.TypeAliasDecl {
-                    if decl.name == name {
-                        other = "alias"
-                    }
-                }
+    unresolved :: NamedDeclLookup { .trait_decl = null, .other_kind = "" }
+    sym :: name_in_module_scope(name, loaded, seed, name_index) ?? return unresolved
+    if sym.kind != .Trait {
+        // @partial: only a type declaration is reported by its kind ; any other
+        // binding reads as an unresolved type name.
+        other_kind :: @partial match sym.kind {
+            .Struct    -> "struct"
+            .Enum      -> "enum"
+            .TypeAlias -> "alias"
+            _          -> ""
+        }
+        return NamedDeclLookup { .trait_decl = null, .other_kind = other_kind }
+    }
+    owner :: project.modules[sym.module] ?? return unresolved
+    for decl in merge_module_program(owner.module.files).decls {
+        if decl is AST.TraitDecl {
+            if decl.name == sym.name {
+                return NamedDeclLookup { .trait_decl = decl, .other_kind = "" }
             }
         }
     }
-    return NamedDeclLookup { .trait_decl = null, .other_kind = other }
+    return unresolved
+}
+
+// The symbol `name` binds to in `loaded`'s scope, an import followed to the
+// declaration it names. Null when the name binds to nothing.
+name_in_module_scope :: fn(
+    name: string,
+    loaded: LoadedModule,
+    seed: MutableMap<string, Symbol>,
+    name_index: MutableMap<string, LoadedModule>,
+) -> Symbol | null {
+    own :: loaded.collected.symbols[name] ?? return seed[name]
+    if own.kind != .ImportBinding {
+        return own
+    }
+    info :: loaded.collected.imports[own.id] ?? return null
+    imported :: info.imported_name ?? return null
+    target :: name_index[info.path] ?? return null
+    return target.collected.symbols[imported]
+}
+
+// What an impl's trait name binds to : the trait, or — so the impl reports R2009
+// rather than R2007 — the kind of the other type it names.
+NamedDeclLookup :: struct {
+    trait_decl: AST.TraitDecl | null
+    /// `"struct"` / `"enum"` / `"alias"` when the name binds to that kind of
+    /// declaration ; empty otherwise. Only meaningful when `trait_decl` is null.
+    other_kind: string
 }
 
 // An expression-bodied fn with no explicit return annotation — the only fn
@@ -2169,11 +2148,11 @@ export walk_bodies :: fn(
     for decl in decls {
         if decl is AST.ImplDecl {
             for_ty :: type_from_expr(decl.for_type, typed.resolved, diag_sink())
+            trait_sym :: impl_trait_symbol(decl, typed.resolved) ?? continue
             if is_refused_array_impl(for_ty) {
                 continue
             }
-            record_struct_trait(typed, for_ty, decl.trait_name)
-            record_impl_bounds(typed, decl, for_ty, typed.resolved)
+            record_impl_membership(typed, decl, for_ty, trait_key_of(trait_sym), typed.resolved)
         }
     }
     for decl in decls {
@@ -2251,12 +2230,12 @@ export walk_bodies :: fn(
 // any other element (`i32[]`, `T[][]`, `[T, i32][]`) would be read as `T[]`.
 is_refused_array_impl :: fn(t: Type) = t is ArrayType && t.element !is TypeParamType
 
-// Register every lookup table + structural check for an impl block — impl-
-// method UFCS types, iter/index element types, Into-key indexing, trait-arg
-// recording, missing-method diagnostics. Runs in `walk_bodies`' pre-pass so a
-// forward reference from an earlier fn body resolves. Excludes
-// `record_struct_trait` (the pre-pass' first loop seeds that for every impl
-// up front) and the member body walk (deferred to the main pass).
+// Register every lookup table + structural check for an impl block of this
+// module — `record_impl_members`, the member parameter types, the impl
+// diagnostics. Runs in `walk_bodies`' pre-pass so a forward reference from an
+// earlier fn body resolves. Excludes `record_impl_membership` (the pre-pass'
+// first loop seeds that for every impl up front) and the member body walk
+// (deferred to the main pass).
 register_impl_metadata :: fn(
     id: AST.ImplDecl,
     typed: TypedProgram!,
@@ -2279,7 +2258,9 @@ register_impl_metadata :: fn(
         )
         return
     }
-    if id.trait_name == TRAIT_INTO {
+    trait_sym :: impl_trait_symbol(id, typed.resolved) ?? return
+    trait_key :: trait_key_of(trait_sym)
+    if trait_key == core_trait_key(TRAIT_INTO) {
         if id.trait_args.len() == 1 {
             target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
             if equals_type(for_ty, target_ty) {
@@ -2294,41 +2275,73 @@ register_impl_metadata :: fn(
             }
         }
     }
-    // Index Iterator/Into/Index/IndexSet element/key/target types — shared with
-    // the external-impl import loop so the two passes can't diverge.
-    index_impl_metadata(typed, id, for_ty, typed.resolved, diags)
-    check_impl_missing_methods(id, typed, diags)
-    local_impl_trait_args: Type[]!: []
-    for ta in id.trait_args {
-        local_impl_trait_args.push(type_from_expr(ta, typed.resolved, diags))
-    }
-    record_struct_trait_args(typed, for_ty, id.trait_name, local_impl_trait_args)
-    trait_decl :: lookup_trait_decl(id.trait_name, typed)
+    check_impl_missing_methods(id, trait_sym, typed, diags)
+    trait_decl :: typed.trait_decls[trait_sym.id]
     for m in id.members {
+        declare_impl_method_for_trait(m, for_ty, lookup_trait_method(trait_decl, m.name), typed, diags)
+    }
+    record_impl_members(typed, id, for_ty, trait_sym, trait_key, typed, diags)
+}
+
+// The trait membership an impl declares — `is Trait`, trait widening, the bounds
+// its type parameters put on the arguments. Recorded for every impl before
+// anything else, so a member type that widens to a later-declared impl resolves.
+// The one writer for the module's own impls and for every other module's.
+//
+// `owner` is the module that declares `decl` : it resolves the type parameters'
+// bounds.
+record_impl_membership :: fn(
+    typed: TypedProgram!, decl: AST.ImplDecl, for_ty: Type, trait_key: string, owner: ResolvedModule,
+) -> void {
+    record_struct_trait(typed, for_ty, trait_key)
+    record_impl_bounds(typed, decl, for_ty, trait_key, owner)
+}
+
+// The lookup tables an impl's members feed : the element / key types of its
+// `Iterator` / `Index` / `IndexSet` / `Into` trait, its trait arguments, and one
+// UFCS entry per member, plus the target-keyed `Into` entry. The one writer for
+// the module's own impls and for every other module's.
+//
+// `owner` is the module that declares `decl` : it resolves the trait arguments
+// and the member signatures. `diags` sinks resolution errors — discarded for
+// another module's impl, which reports in its own module.
+record_impl_members :: fn(
+    typed: TypedProgram!,
+    decl: AST.ImplDecl,
+    for_ty: Type,
+    trait_sym: Symbol,
+    trait_key: string,
+    owner: TypedProgram,
+    diags: Diagnostic[]!,
+) -> void {
+    trait_args: Type[]!: []
+    for ta in decl.trait_args {
+        trait_args.push(type_from_expr(ta, owner.resolved, diags))
+    }
+    index_impl_metadata(typed, for_ty, trait_key, trait_args)
+    record_struct_trait_args(typed, for_ty, trait_key, trait_args)
+    trait_decl :: typed.trait_decls[trait_sym.id]
+    is_into :: trait_key == core_trait_key(TRAIT_INTO) && trait_args.len() == 1
+    for m in decl.members {
         trait_method :: lookup_trait_method(trait_decl, m.name)
-        declare_impl_method_for_trait(m, for_ty, trait_method, typed, diags)
-        key :: "${display_type_key(for_ty)}::${m.name}"
-        base_key :: "${type_base_name(for_ty)}::${m.name}"
-        ufcs_ty :: ufcs_method_type(m, for_ty, trait_method, typed, diags)
+        base_key :: "${impl_base_key(for_ty)}::${m.name}"
         // `self!` is read from the impl member when it declares one, else from the
         // trait's own signature — a blanket impl like
         // `@intrinsic T[] implements<T> ArrayOps<T>` has NO members at all, so the
         // trait declaration is the only place the marker exists.
         entry :: ImplMethod {
-            .ty = ufcs_ty,
+            .ty = ufcs_method_type(m, for_ty, trait_method, owner, diags),
             .self_mutable = declares_mutable_self(m, trait_method),
             .decl = m,
         }
-        typed.impl_methods[key] = entry
+        typed.impl_methods["${impl_type_key(for_ty)}::${m.name}"] = entry
         typed.impl_methods[base_key] = entry
-        record_impl_trait(typed, base_key, id.trait_name)
+        add_trait_unique(typed.impl_method_traits, base_key, trait_key)
         // `Into<T>` impls are indexed under a target-qualified key so
         // multiple `Into` impls for the same source (e.g. `Into<i32>` +
         // `Into<string>`) don't collide.
-        if id.trait_name == TRAIT_INTO && id.trait_args.len() == 1 && m.name == METHOD_INTO {
-            target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
-            into_key :: "${display_type_key(for_ty)}::into::${display_type_key(target_ty)}"
-            typed.impl_methods[into_key] = entry
+        if is_into && m.name == METHOD_INTO {
+            typed.impl_methods[into_impl_key(for_ty, trait_args[0])] = entry
         }
     }
 }
@@ -2369,10 +2382,11 @@ walk_fn_body :: fn(
 // trait declares a default body for it.
 check_impl_missing_methods :: fn(
     id: AST.ImplDecl,
+    trait_sym: Symbol,
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> void {
-    trait_decl :: lookup_trait_decl(id.trait_name, typed) ?? return
+    trait_decl :: typed.trait_decls[trait_sym.id] ?? return
     for required in trait_decl.members {
         if required.body is null {
             if !impl_has_method(id, required.name) {
@@ -2396,29 +2410,6 @@ lookup_trait_method :: fn(td: AST.TraitDecl | null, name: string) -> AST.FnDecl 
     for m in td.members {
         if m.name == name {
             return m
-        }
-    }
-    return null
-}
-
-lookup_trait_decl :: fn(name: string, typed: TypedProgram) -> AST.TraitDecl | null {
-    for sym in typed.resolved.symbols {
-        if sym.name != name {
-            continue
-        }
-        td :: typed.trait_decls[sym.id]
-        if td != null {
-            return td
-        }
-    }
-    // Cross-module fallback : `Direction implements Display { … }`
-    // references `Display` without an explicit import binding, so the
-    // local-symbol walk above misses it. `cross_publish_trait_decls`
-    // already copies every trait decl into every typed program's
-    // `trait_decls` map ; scan it directly by name.
-    for [_, d] in typed.trait_decls {
-        if d.name == name {
-            return d
         }
     }
     return null

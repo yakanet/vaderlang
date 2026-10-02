@@ -1,0 +1,17 @@
+# Typecheck
+
+## tests/snippets/impl_trait_not_in_scope
+  StructDecl     Dog                  :: Dog!
+  FnDecl         main                 :: fn() -> i32
+  expr 16:13    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 17:12    CallExpr       :: i32
+  expr 17:12    FieldExpr      :: fn() -> i32
+
+## tests/snippets/impl_trait_not_in_scope/shapes
+  TraitDecl      Animal               :: Animal
+  FnDecl         zero                 :: fn() -> i32
+
+# Diagnostics
+[13:16] error[R2007] unresolved type name: `Animal`

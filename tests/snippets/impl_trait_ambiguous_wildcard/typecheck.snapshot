@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/impl_trait_ambiguous_wildcard
+  StructDecl     Dog                  :: Dog!
+  FnDecl         main                 :: fn() -> i32
+
+## tests/snippets/impl_trait_ambiguous_wildcard/farm
+  TraitDecl      Animal               :: Animal
+
+## tests/snippets/impl_trait_ambiguous_wildcard/zoo
+  TraitDecl      Animal               :: Animal
+
+# Diagnostics
+[10:16] error[R2031] name is exported by several wildcard-imported modules: `Animal` is exported by snippet/farm, snippet/zoo — qualify it with a namespace import (`Ns :: import "…"` then `Ns.Animal`) or destructure the one you mean

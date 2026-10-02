@@ -1,0 +1,9 @@
+module "snippet/feet"
+
+M :: import "snippet/metres"
+
+export Length :: struct { feet: i32 }
+
+Length implements Into<M.Length> {
+    into :: fn(self) -> M.Length = M.Length { .metres = self.feet + 40 }
+}

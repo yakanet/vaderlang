@@ -31,7 +31,7 @@ data 1 u64 hex"00000000000000000000000000000010000000000000000000000000000000140
 import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=12 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,12,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 ByteAccess
+impl 6 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32

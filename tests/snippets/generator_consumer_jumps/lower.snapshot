@@ -768,7 +768,7 @@
             arg0:
               "found " :string
             arg1:
-              vcall Display.to_string :string
+              vcall std_core$Display.to_string :string
                 recv:
                   block :i32 | null
                     let xs: i32[] =

@@ -978,7 +978,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_Display__to_string(vader_box_t recv);
+static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv);
 
 static void snippet_skip_two(void) {
     int32_t l0;
@@ -1335,7 +1335,7 @@ static void snippet_headed(void) {
 #line 332 "lib/std/iter/iter.vader"
     } end_103: ;
 #line 103 "tests/snippets/generator_consumer_jumps/_main.vader"
-    l8 = vader_vt_Display__to_string(l7);
+    l8 = vader_vt_std_core_Display__to_string(l7);
     t0 = concat_2(8u, l8);
     std_io_println__string(t0);
 #line 96 "tests/snippets/generator_consumer_jumps/_main.vader"
@@ -3610,7 +3610,7 @@ static uint32_t std_core_f32_Float32Bits_to_bits_vt(float l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_Display__to_string(vader_box_t recv) {
+static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv) {
     switch (recv.tag) {
         case 11u: return std_core_i8_Display_to_string(((int8_t) recv.payload.i));
         case 12u: return std_core_i16_Display_to_string(((int16_t) recv.payload.i));
@@ -3628,9 +3628,9 @@ static vader_string_t vader_vt_Display__to_string(vader_box_t recv) {
         case 0u: return std_core_null_Display_to_string(recv);
         case 17u: return std_core_f32_Display_to_string(((float) recv.payload.f));
         case 18u: return std_core_f64_Display_to_string(((double) recv.payload.f));
-        default: vader_unreachable("vtable miss in Display.to_string");
+        default: vader_unreachable("vtable miss in std_core$Display.to_string");
     }
-    vader_unreachable("vtable miss in Display.to_string");
+    vader_unreachable("vtable miss in std_core$Display.to_string");
 }
 
 int main(int argc, char** argv) {

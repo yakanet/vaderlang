@@ -369,7 +369,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv);
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv);
 
 static int32_t snippet_Tally_Adder_add_all(void* l0, vader_box_t l1) {
     int32_t l2, l5;
@@ -385,7 +385,7 @@ static int32_t snippet_Tally_Adder_add_all(void* l0, vader_box_t l1) {
 #line 38 "tests/snippets/iter_coerce_method_arg/_main.vader"
     l3 = l1;
     for (;;) {
-        t0 = vader_vt_Iterator__next(l3);
+        t0 = vader_vt_std_core_Iterator__next(l3);
         l4 = t0.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l4)->f__1 == INT32_C(1)) {
         } else {
@@ -462,7 +462,7 @@ static int32_t snippet_main(void) {
     }
 #line 21 "tests/snippets/iter_coerce_method_arg/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l5);
+        t0 = vader_vt_std_core_Iterator__next(l5);
         l4 = t0.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l4)->f__1 == INT32_C(1)) {
         } else {
@@ -504,7 +504,7 @@ static int32_t snippet_main(void) {
     }
 #line 21 "tests/snippets/iter_coerce_method_arg/_main.vader"
     for (;;) {
-        t0 = vader_vt_Iterator__next(l5);
+        t0 = vader_vt_std_core_Iterator__next(l5);
         l1 = t0.payload.obj;
         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) l1)->f__1 == INT32_C(1)) {
         } else {
@@ -1649,7 +1649,7 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv) {
     switch (recv.tag) {
         case 5u: return vader_ref_box(std_core_Range_Iterator_next__i32(recv.payload.obj));
         case 9u: return vader_ref_box(std_core_Range_Iterator_next__usize(recv.payload.obj));
@@ -1658,9 +1658,9 @@ static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
         case 24u: return vader_ref_box(std_collections___gen_state_std_collections_1_Iterator_next(recv.payload.obj));
         case 28u: return vader_ref_box(std_collections___gen_state_std_collections_2_Iterator_next(recv.payload.obj));
         case 32u: return vader_ref_box(std_collections___gen_state_std_collections_3_Iterator_next(recv.payload.obj));
-        default: vader_unreachable("vtable miss in Iterator.next");
+        default: vader_unreachable("vtable miss in std_core$Iterator.next");
     }
-    vader_unreachable("vtable miss in Iterator.next");
+    vader_unreachable("vtable miss in std_core$Iterator.next");
 }
 
 int main(int argc, char** argv) {

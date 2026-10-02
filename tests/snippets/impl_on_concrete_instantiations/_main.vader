@@ -1,0 +1,24 @@
+// An impl written for a concrete instantiation applies to those arguments only :
+// `Box<i32>` and `Box<string>` each get their own `Display`.
+module "snippet"
+
+import "std/io"
+
+Box :: struct<T> { value: T }
+
+Box<i32> implements Display {
+    to_string :: fn(self) -> string = "int ${self.value}"
+}
+
+Box<string> implements Display {
+    to_string :: fn(self) -> string = "str ${self.value}"
+}
+
+main :: fn() -> i32 {
+    a :: Box<i32> { .value = 1 }
+    b :: Box<string> { .value = "x" }
+    println(a.to_string())
+    println(b.to_string())
+    println("${a} ${b}")
+    return 0
+}

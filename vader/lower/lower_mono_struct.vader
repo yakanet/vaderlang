@@ -426,7 +426,7 @@ materialize_impl_members_for :: fn(
         if module_loaded is LoadedModule {
             for d in module_decls(module_loaded) {
                 if d is ImplDecl {
-                    if !is_generic_impl_for(d, inst.symbol.name) { continue }
+                    if !impl_applies_to_instance(project_ctx, d, inst) { continue }
                     materialize_impl_for_instance(
                         d, inst, mt, owner_typed, project_ctx, project,
                     )
@@ -436,7 +436,7 @@ materialize_impl_members_for :: fn(
                     // those bound-trait impls for the concrete args so
                     // the vtable carries the matching entries.
                     materialize_bound_trait_impls(
-                        d, inst, project_ctx, project, loaded, typed, diags,
+                        d, inst, mt, project_ctx, project, loaded, typed, diags,
                     )
                 }
             }
@@ -444,11 +444,18 @@ materialize_impl_members_for :: fn(
     }
 }
 
-is_generic_impl_for :: fn(impl_decl: ImplDecl, struct_name: string) -> bool {
-    if impl_decl.for_type is GenericInstExpr as gi {
-        if gi.callee is IdentExpr as id { return id.name == struct_name }
+// True when `impl_decl` is written for the struct `inst` instantiates : a generic
+// impl of its declaration, or a concrete instantiation (`Box<i32> implements …`)
+// of exactly its arguments.
+impl_applies_to_instance :: fn(project_ctx: LowerProjectCtx, impl_decl: ImplDecl, inst: GenericInstance) -> bool {
+    if !(impl_decl.for_type is GenericInstExpr) {
+        return false
     }
-    return false
+    entry :: project_ctx.impls.entry_of(impl_decl) ?? return false
+    if entry.is_generic {
+        return entry.target == declaration_key(inst.symbol)
+    }
+    return equals_type(entry.for_type, mk_struct(inst.symbol, inst.args, false))
 }
 
 materialize_impl_for_instance :: fn(
@@ -489,6 +496,7 @@ materialize_impl_for_instance :: fn(
     suffix :: if is_empty_substitution(subst) { args_suffix(erased_args) } else { mixed_any_suffix(inst.args) }
     types :: make_entry_types(impl_typed, subst)
     impl_key_prefix :: impl_decl.span.hash()
+    impl_trait :: impl_trait_key(project_ctx, impl_decl)
     for member in impl_decl.members {
         // Erasure dedupe : every concrete-args instance of the same
         // (impl_decl, member) collapses to one emission. The first
@@ -519,6 +527,7 @@ materialize_impl_for_instance :: fn(
             .subst          = subst,
             .type_arguments = inst.args,
             .module         = impl_typed,
+            .vtable_slot    = VtableSlot { .trait_key = impl_trait, .method = member.name },
         }
         synth_start :: project_ctx.synth_decls.len()
         // A `generator` impl member (e.g. `Into::into` yielding its elements)
@@ -553,55 +562,31 @@ materialize_impl_for_instance :: fn(
 /// `collect_vtable_entries` builds from the materialised member fns.
 /// Deduped per `(type, trait)` ; no-op for unbounded type params.
 materialize_bound_trait_impls :: fn(
-    impl_decl: ImplDecl, inst: GenericInstance,
+    impl_decl: ImplDecl, inst: GenericInstance, impl_typed: TypedProgram,
     project_ctx: LowerProjectCtx!, project: LoweredProject,
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {
     for i in 0..<impl_decl.type_params.len() {
         if i >= inst.args.len() { break }
         bound :: impl_decl.type_params[i].bound ?? continue
-        type_name :: type_surface_name(inst.args[i])
-        if type_name == "" { continue }
-        trait_names: string[]!: []
-        flatten_trait_bound(bound, trait_names)
-        for trait_name in trait_names {
-            materialize_bound_impl(type_name, trait_name, project_ctx, project, loaded, typed, diags)
+        target :: impl_base_key(inst.args[i])
+        traits: string[]!: []
+        collect_bound_traits(bound, impl_typed.resolved, traits)
+        for trait_key in traits {
+            materialize_bound_impl(target, trait_key, project_ctx, project, loaded, typed, diags)
         }
     }
 }
 
-// Flatten a type-param bound expression into the list of trait names it
-// names. `Comparable & Step` is a `BinaryExpr(BitAnd, ...)` ; a single
-// bound is a bare `IdentExpr` ; a generic bound (`Iterator<T>`) takes the
-// callee name.
-flatten_trait_bound :: fn(bound: TypeExpr, out: string[]!) -> void {
-    match bound {
-        is IdentExpr  -> { out.push(bound.name) }
-        is BinaryExpr -> {
-            if bound.op == .BitAnd {
-                flatten_trait_bound(bound.left, out)
-                flatten_trait_bound(bound.right, out)
-            }
-        }
-        is GenericInstExpr -> {
-            match bound.callee as cid {
-                is IdentExpr -> { out.push(cid.name) }
-                _            -> {}
-            }
-        }
-        _ -> {}
-    }
-}
-
-// Find the non-generic `<type_name> implements <trait_name>` impl across
-// loaded modules and lower its members (SAM + default bodies) so the
-// vtable picks them up. Deduped per `(type_name, trait_name)`.
+// Find the non-generic impl of `trait_key` for `target` (an `impl_base_key`)
+// across loaded modules and lower its members (SAM + default
+// bodies) so the vtable picks them up. Deduped per `(target, trait)`.
 materialize_bound_impl :: fn(
-    type_name: string, trait_name: string,
+    target: string, trait_key: string,
     project_ctx: LowerProjectCtx!, project: LoweredProject,
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {
-    dedupe_key :: "boundimpl::${type_name}::${trait_name}"
+    dedupe_key :: "boundimpl::${target}::${trait_key}"
     if project_ctx.materialized_impl_keys.contains(dedupe_key) { return }
     for [module_id, mt] in typed.modules {
         module_loaded :: loaded.modules[module_id] ?? continue
@@ -609,8 +594,8 @@ materialize_bound_impl :: fn(
             decls :: module_decls(module_loaded)
             for d in decls {
                 if d is ImplDecl {
-                    if d.trait_name != trait_name { continue }
-                    if !impl_targets_name(d.for_type, type_name) { continue }
+                    entry :: project_ctx.impls.entry_of(d) ?? continue
+                    if entry.trait_key != trait_key || entry.target != target { continue }
                     // Generic / concrete-instantiation impls go through the
                     // struct-instance path ; this targets the non-generic
                     // primitive (or plain struct) impls.

@@ -61,7 +61,7 @@
             arg0:
               "caught by trait: " :string
             arg1:
-              vcall Error.message :string
+              vcall std_core$Error.message :string
                 recv:
                   e :Error
     return

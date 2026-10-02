@@ -1036,7 +1036,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_Display__to_string(vader_box_t recv);
+static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv);
 
 static vader_string_t snippet_Point_Display_to_string(void* l0) {
     void* l1 = NULL;
@@ -1181,7 +1181,7 @@ static vader_string_t snippet_Box_Display_to_string(void* l0) {
     };
     vader_gc_top = &gc_frame;
 #line 13 "tests/snippets/array_display/_main.vader"
-    l1 = vader_vt_Display__to_string(((vader_struct_snippet_Box_t*) l0)->f_value);
+    l1 = vader_vt_std_core_Display__to_string(((vader_struct_snippet_Box_t*) l0)->f_value);
     t0 = concat_2(8u, l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1196,7 +1196,7 @@ static vader_string_t snippet_show__Box(vader_box_t l0) {
     };
     vader_gc_top = &gc_frame;
 #line 15 "tests/snippets/array_display/_main.vader"
-    l1 = vader_vt_Display__to_string(l0);
+    l1 = vader_vt_std_core_Display__to_string(l0);
     t0 = concat_3(9u, l1, 10u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -4180,7 +4180,7 @@ static uint32_t std_core_f32_Float32Bits_to_bits_vt(float l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_Display__to_string(vader_box_t recv) {
+static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet_Point_Display_to_string(recv.payload.obj);
         case 4u: return snippet_Box_Display_to_string(recv.payload.obj);
@@ -4207,9 +4207,9 @@ static vader_string_t vader_vt_Display__to_string(vader_box_t recv) {
         case 0u: return std_core_null_Display_to_string(recv);
         case 27u: return std_core_f32_Display_to_string(((float) recv.payload.f));
         case 7u: return std_core_f64_Display_to_string(((double) recv.payload.f));
-        default: vader_unreachable("vtable miss in Display.to_string");
+        default: vader_unreachable("vtable miss in std_core$Display.to_string");
     }
-    vader_unreachable("vtable miss in Display.to_string");
+    vader_unreachable("vtable miss in std_core$Display.to_string");
 }
 
 int main(int argc, char** argv) {

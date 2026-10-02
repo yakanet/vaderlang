@@ -25,6 +25,7 @@ import "toolchain/span"
 /// `struct_type` is translated to its type-table index and `fn_symbol`
 /// to its fn-table index at emit time.
 export LoweredVtableEntry :: struct {
+    /// The trait's `trait_key`.
     trait_name:  string
     method_name: string
     struct_type: Type
@@ -115,7 +116,7 @@ export LoweredProject :: struct {
     /// value at each read site (`inline` bucket). Scalars also land here as
     /// a safety net for any reference `lower_ident` didn't fold.
     const_inline:   MutableMap<i32, LoweredExpr>
-    /// `Symbol.id → trait names` — the frontend's authoritative trait
+    /// `Symbol.id → trait_key`s — the frontend's authoritative trait
     /// membership (from `TypedProgram.struct_traits_by_sym`), threaded to the
     /// bytecode emitter to seed `is Trait` impl_table rows per interned struct
     /// tag. Replaces the `materialize_trait_check_impls` hook's membership role.
@@ -413,7 +414,8 @@ export LoweredCall :: struct {
 
 /// Virtual dispatch on a trait-typed receiver — the runtime indexes a
 /// per-(trait, method) vtable by the receiver's type tag to pick the impl
-/// fn. `trait_name` and `method` together key the vtable.
+/// fn. `trait_name` (the trait's `trait_key`) and `method` together key the
+/// vtable.
 export LoweredVirtualCall :: struct {
     span:       Span
     type:       Type

@@ -1,0 +1,18 @@
+// An impl names its trait the way any other name is resolved : `Animal` is
+// declared in `snippet/shapes`, but this module only reaches it as `S.Animal`,
+// so the bare name is unresolved (R2007) rather than found elsewhere in the
+// project.
+module "snippet"
+
+import "std/io"
+
+S :: import "snippet/shapes"
+
+Dog :: struct { name: string }
+
+Dog implements Animal -> 4
+
+main :: fn() -> i32 {
+    println("ok")
+    return S.zero()
+}

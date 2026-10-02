@@ -1,7 +1,7 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 ref Iterator
+type 2 ref std_core$Iterator
 type 3 struct snippet$__genstate_countdown { s0:1,s1:1,s2:1,s3:2,s4:4,s5:1,state:1 }
 type 4 struct __Tuple_i32_u8_99ae0d29 { _0:1,_1:5 }
 type 5 primitive u8
@@ -25,15 +25,15 @@ string 4 "\n"
 import 0 byte_len std_core$byte_len result_type=10 param_types=6 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=14 param_types=6 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=1,14,10 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 3 Iterator
-impl 7 Contains
-impl 7 Iterator
-impl 9 Contains
-impl 9 Iterator
-impl 12 ByteAccess
-vtable Iterator.next 3 2
-vtable Iterator.next 7 5
-vtable Iterator.next 9 6
+impl 3 std_core$Iterator
+impl 7 std_core$Contains
+impl 7 std_core$Iterator
+impl 9 std_core$Contains
+impl 9 std_core$Iterator
+impl 12 std_core$ByteAccess
+vtable std_core$Iterator.next 3 2
+vtable std_core$Iterator.next 7 5
+vtable std_core$Iterator.next 9 6
 export main 1
 
 fn 0 snippet$countdown (i32) -> any
@@ -108,7 +108,7 @@ fn 1 snippet$main () -> i32
     block $L1 void
       loop $L2 void
         local.get 7   ; __iter_0
-        virtual.call 1 Iterator.next
+        virtual.call 1 std_core$Iterator.next
         local.set 3   ; __buf_0
         local.field 3 4 1   ; __buf_0._1
         i32.const 1
@@ -157,7 +157,7 @@ fn 1 snippet$main () -> i32
   block $L4 void
     loop $L5 void
       local.get 7   ; __iter_0
-      virtual.call 1 Iterator.next
+      virtual.call 1 std_core$Iterator.next
       local.set 3   ; __buf_0
       local.field 3 4 1   ; __buf_0._1
       i32.const 1
@@ -385,7 +385,7 @@ fn 2 snippet$__genstate_countdown$Iterator$next (ref) -> ref
           i32.eq
           if $L16 void
             local.field 0 3 3   ; arg 0.s3
-            virtual.call 1 Iterator.next
+            virtual.call 1 std_core$Iterator.next
             local.set 6   ; $vcall_68
             local.get 0   ; arg 0
             local.get 6   ; $vcall_68

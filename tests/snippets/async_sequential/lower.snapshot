@@ -30,7 +30,7 @@
         callee:
           mix :fn() -> Async<string>
     let r: string | Suspended =
-      vcall Async.resume :string | Suspended
+      vcall std_core$Async.resume :string | Suspended
         recv:
           frame :Async<string>
     if :void
@@ -57,7 +57,7 @@
             cast → string
               r :string | Suspended
     let again: string | Suspended =
-      vcall Async.resume :string | Suspended
+      vcall std_core$Async.resume :string | Suspended
         recv:
           frame :Async<string>
     if :void
@@ -249,7 +249,7 @@
                           int(3) :i32
                     then:
                       let __resumed_6: Any | Suspended! =
-                        vcall Async.resume :Any | Suspended!
+                        vcall std_core$Async.resume :Any | Suspended!
                           recv:
                             .awaited :Async<Any>
                               __self_5 :__asyncstate_snippet_0!
@@ -334,7 +334,7 @@
                                       int(6) :i32
                                 then:
                                   let __resumed_7: Any | Suspended! =
-                                    vcall Async.resume :Any | Suspended!
+                                    vcall std_core$Async.resume :Any | Suspended!
                                       recv:
                                         .awaited :Async<Any>
                                           __self_5 :__asyncstate_snippet_0!
@@ -398,7 +398,7 @@
             __self_5 :__asyncstate_snippet_0!
       then:
       else:
-        vcall Async.cancel :void
+        vcall std_core$Async.cancel :void
           recv:
             .awaited :Async<Any>
               __self_5 :__asyncstate_snippet_0!

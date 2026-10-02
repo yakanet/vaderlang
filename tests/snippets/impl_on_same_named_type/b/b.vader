@@ -1,0 +1,3 @@
+module "snippet/b"
+
+export Foo :: struct { s: string }

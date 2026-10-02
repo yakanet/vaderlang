@@ -1,6 +1,6 @@
 module _main
 type 0 primitive null
-type 1 ref Iterator
+type 1 ref std_core$Iterator
 type 2 primitive i32
 type 3 struct snippet$__genstate_maybe { state:2 }
 type 4 struct __Tuple_Union_i32_null_u8_9381f7b1 { _0:5,_1:6 }
@@ -28,15 +28,15 @@ string 4 "\n"
 import 0 byte_len std_core$byte_len result_type=12 param_types=7 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=16 param_types=7 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=2,16,12 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 3 Iterator
-impl 8 Contains
-impl 8 Iterator
-impl 11 Contains
-impl 11 Iterator
-impl 14 ByteAccess
-vtable Iterator.next 3 2
-vtable Iterator.next 8 4
-vtable Iterator.next 11 5
+impl 3 std_core$Iterator
+impl 8 std_core$Contains
+impl 8 std_core$Iterator
+impl 11 std_core$Contains
+impl 11 std_core$Iterator
+impl 14 std_core$ByteAccess
+vtable std_core$Iterator.next 3 2
+vtable std_core$Iterator.next 8 4
+vtable std_core$Iterator.next 11 5
 export main 1
 
 fn 0 snippet$maybe () -> any
@@ -180,7 +180,7 @@ fn 1 snippet$main () -> i32
   block $L4 void
     loop $L5 void
       local.get 6   ; x
-      virtual.call 1 Iterator.next
+      virtual.call 1 std_core$Iterator.next
       local.set 3   ; __for_arr_0
       local.field 3 4 1   ; __for_arr_0._1
       i32.const 1

@@ -556,7 +556,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!
         // NO `is BcStruct` guard here, unlike the impl table: a vtable dispatches
         // on any receiver shape — `i32 implements Display` pins a `BcPrimitive`
         // slot — and requiring a struct drops those rows into a runtime
-        // "vtable miss in Display.to_string".
+        // "vtable miss in std/core.Display.to_string".
         receiver_idx :: receiver_slot
         existing :: rows_by_key[key]
         if existing is usize {

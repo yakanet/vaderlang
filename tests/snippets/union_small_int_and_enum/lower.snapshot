@@ -462,7 +462,7 @@
       callee:
         std_io$println__string :void
       arg0:
-        vcall Shower.shown :string
+        vcall snippet$Shower.shown :string
           recv:
             shower :Shower
           arg0:

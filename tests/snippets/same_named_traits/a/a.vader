@@ -1,0 +1,11 @@
+module "snippet/a"
+
+export Animal :: trait {
+    legs :: fn(self) -> i32
+}
+
+export Foo :: struct { x: i32 }
+
+Foo implements Animal {
+    legs :: fn(self) -> i32 = 4
+}

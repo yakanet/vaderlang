@@ -807,10 +807,10 @@ check_assign :: fn(
         if target_arr_ty is TypeParamType {
             bound :: typed.resolved.type_param_bounds[target_arr_ty.symbol.id]
             if bound != null {
-                set_args :: bounded_trait_args(bound, TRAIT_INDEX_SET, typed)
+                set_args :: bounded_trait_args(bound, core_trait_key(TRAIT_INDEX_SET), typed)
                 if set_args != null {
                     if set_args.len() >= 2 {
-                        typed.bounded_dispatch_trait[ix.id] = TRAIT_INDEX_SET
+                        typed.bounded_dispatch_trait[ix.id] = core_trait_key(TRAIT_INDEX_SET)
                         if typed.current_fn_ctx is FnContext as fctx {
                             if fctx.fn_id != 0 {
                                 typed.fn_trait_dispatches[fctx.fn_id] = true
@@ -2354,7 +2354,7 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
                 }
                 return TY_UNRESOLVED
             }
-            elem :: typed.iter_element_types[iter_ty.symbol.name]
+            elem :: typed.iter_element_types[impl_base_key(iter_ty)]
             if elem == null {
                 if iter_ty.args.len() >= 1 {
                     return iter_ty.args[0]
@@ -2370,15 +2370,15 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             return substitute_by_name(elem, decl.type_params, iter_ty.args)
         }
         // A distinct or an enum keeps its own `Iterator` impl, recorded under its
-        // name ; a distinct without one iterates through its backing.
+        // declaration ; a distinct without one iterates through its backing.
         is DistinctType -> {
-            own :: typed.iter_element_types[type_base_name(iter_ty)]
+            own :: typed.iter_element_types[impl_base_key(iter_ty)]
             if own != null {
                 return own
             }
             return for_in_element(iter_ty.backing, typed)
         }
-        is EnumType -> { return typed.iter_element_types[type_base_name(iter_ty)] ?? TY_UNRESOLVED }
+        is EnumType -> { return typed.iter_element_types[impl_base_key(iter_ty)] ?? TY_UNRESOLVED }
         is TraitType  -> {
             // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
             // result stored as the trait) carries its element as the sole type arg.
@@ -2530,7 +2530,7 @@ assign_tuple :: fn(
 // impl body (`into_tuple_fields`) to bind each leaf zero-alloc.
 into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Type | null {
     if declared is StructType {
-        into_args :: lookup_struct_trait_args(declared, TRAIT_INTO, typed) ?? return null
+        into_args :: lookup_struct_trait_args(declared, core_trait_key(TRAIT_INTO), typed) ?? return null
         if into_args.len() != 1 {
             return null
         }

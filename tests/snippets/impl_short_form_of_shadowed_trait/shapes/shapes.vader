@@ -1,0 +1,8 @@
+module "snippet/shapes"
+
+export Animal :: trait {
+    legs :: fn(self) -> i32
+    kind :: fn(self) -> i32
+}
+
+export zero :: fn() -> i32 = 0

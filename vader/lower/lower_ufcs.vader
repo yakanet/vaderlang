@@ -306,18 +306,18 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
             // param wants — `it: Iterator<i32>` into `map(self: Iterator<T>, …)`.
             // The first param's generic `T` unifies with the receiver's concrete
             // arg (the typer already validated this and recorded the free-fn
-            // resolution) ; re-confirm structurally by trait name. Mirrors the
+            // resolution) ; re-confirm by trait identity. Mirrors the
             // typer's `receiver_fits_first_param`, keeping the two passes aligned.
             if recv_type is TraitType {
-                if recv_type.symbol.name == first.symbol.name { return true }
+                if recv_type.symbol.id == first.symbol.id { return true }
             }
-            if find_impl_for(ctx.project, recv_type, first.symbol.name) != null { return true }
+            if has_impl_for(ctx.project, recv_type, first.symbol) { return true }
             // Direction A : a `generator`'s synthetic `<fn>$State` result impls
             // `Iterator<U>` via the typecheck-side registry (`register_generator_
             // iter_impls`), not the AST-derived `ImplRegistry`. Consult it so the
             // lowerer agrees with what typecheck resolved (chained generator
             // combinators on a concrete `__genstate` receiver).
-            if struct_implements_trait(recv_type, first.symbol.name, ctx.typed) { return true }
+            if struct_implements_trait(recv_type, trait_key_of(first.symbol), ctx.typed) { return true }
             // A raw array fits an `Iterator<T>` first param via the blanket
             // `T[] implements Into<Iterator<T>>` — the receiver is wrapped in
             // `.into()` at the call site (see `try_lower_ufcs_call`). Mirrors

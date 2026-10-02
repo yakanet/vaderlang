@@ -1,0 +1,12 @@
+module "snippet/zoo"
+
+export Animal :: trait {
+    legs :: fn(self) -> i32
+    kind :: fn(self) -> i32 { return 2 }
+}
+
+export Dog :: struct { name: string }
+
+Dog implements Animal -> 4
+
+export describe :: fn(a: Animal) -> i32 = a.kind() * 10 + a.legs()

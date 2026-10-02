@@ -185,7 +185,7 @@
       let __iter_5: Iterator<i32> = it :__genstate_until_over<i32>!
       loop
         let __step_6: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_5 :Iterator<i32>
         if :void
@@ -439,7 +439,7 @@
       let __iter_5: Iterator<i32> = it :__genstate_stop_at<i32>!
       loop
         let __step_6: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_5 :Iterator<i32>
         if :void
@@ -669,7 +669,7 @@
       let __iter_5: Iterator<i32> = it :__genstate_first_two_of_odd<i32>!
       loop
         let __step_6: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_5 :Iterator<i32>
         if :void
@@ -941,7 +941,7 @@
       let __iter_5: Iterator<i32> = it :__genstate_first_two_of_odd<i32>!
       loop
         let __step_6: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_5 :Iterator<i32>
         if :void
@@ -1430,7 +1430,7 @@
                                                                                   .s3 :[i32, Continuation]!
                                                                                     __self_2 :__genstate_until_over!
                                                                                 value:
-                                                                                  vcall Iterator.next :[i32, Continuation]!
+                                                                                  vcall std_core$Iterator.next :[i32, Continuation]!
                                                                                     recv:
                                                                                       .s2 :Iterator<i32>
                                                                                         __self_2 :__genstate_until_over!
@@ -1849,7 +1849,7 @@
                                                                                   .s3 :[i32, Continuation]!
                                                                                     __self_2 :__genstate_stop_at!
                                                                                 value:
-                                                                                  vcall Iterator.next :[i32, Continuation]!
+                                                                                  vcall std_core$Iterator.next :[i32, Continuation]!
                                                                                     recv:
                                                                                       .s2 :Iterator<i32>
                                                                                         __self_2 :__genstate_stop_at!
@@ -2280,7 +2280,7 @@
                                                                                   .s2 :[i32, Continuation]!
                                                                                     __self_2 :__genstate_first_two_of_odd!
                                                                                 value:
-                                                                                  vcall Iterator.next :[i32, Continuation]!
+                                                                                  vcall std_core$Iterator.next :[i32, Continuation]!
                                                                                     recv:
                                                                                       .s1 :Iterator<i32>
                                                                                         __self_2 :__genstate_first_two_of_odd!

@@ -44,10 +44,7 @@ export check_module :: fn(
     factory: SymbolFactory!,
     diags: Diagnostic[]!,
 ) -> CheckResult {
-    // Standalone single-module check : no project-wide core seed available
-    // (core traits, if any, are already in `resolved.symbols`). Pass an empty
-    // core table.
-    impls :: build_impl_registry(program.decls, resolved, MutableMap<string, Symbol> {})
+    impls :: build_impl_registry(program.decls, resolved)
     typed :: new_typed_program(resolved)
     declare_module(program.decls, resolved, typed, factory, diags)
     return CheckResult {

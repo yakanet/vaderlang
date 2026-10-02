@@ -395,11 +395,11 @@ build_display_to_string_call :: fn(
     // Erased Display dispatch (generic-`T` receiver) : record the trait so
     // every primitive `Display` impl enters the vtable (the boxed tag picks
     // the impl at runtime). See `virtually_dispatched_traits`.
-    ctx.project.virtually_dispatched_traits.add(TRAIT_DISPLAY)
+    ctx.project.virtually_dispatched_traits.add(core_trait_key(TRAIT_DISPLAY))
     return LoweredVirtualCall {
         .span        = span,
         .type        = string_type,
-        .trait_name  = TRAIT_DISPLAY,
+        .trait_name  = core_trait_key(TRAIT_DISPLAY),
         .method      = METHOD_TO_STRING,
         .receiver    = value,
         .args        = no_args,

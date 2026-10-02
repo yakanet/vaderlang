@@ -176,7 +176,7 @@
           let __iter_0: Iterator<i32> = self :Iterator<i32>
           loop
             let __step_1: [i32, Continuation]! =
-              vcall Iterator.next :[i32, Continuation]!
+              vcall std_core$Iterator.next :[i32, Continuation]!
                 recv:
                   __iter_0 :Iterator<i32>
             if :void
@@ -271,7 +271,7 @@
       let __iter_8: Iterator<i32[]> = chunks :__genstate_chunked<i32[]>!
       loop
         let __step_9: [i32[], Continuation]! =
-          vcall Iterator.next :[i32[], Continuation]!
+          vcall std_core$Iterator.next :[i32[], Continuation]!
             recv:
               __iter_8 :Iterator<i32[]>
         if :void
@@ -425,7 +425,7 @@
       let __iter_15: Iterator<string> = words :__genstate_distinct<string>!
       loop
         let __step_16: [string, Continuation]! =
-          vcall Iterator.next :[string, Continuation]!
+          vcall std_core$Iterator.next :[string, Continuation]!
             recv:
               __iter_15 :Iterator<string>
         if :void
@@ -556,7 +556,7 @@
       let __iter_22: Iterator<i32> = present :__genstate_filter_not_null<i32>!
       loop
         let __step_23: [i32, Continuation]! =
-          vcall Iterator.next :[i32, Continuation]!
+          vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
               __iter_22 :Iterator<i32>
         if :void

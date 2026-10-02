@@ -29,7 +29,7 @@ string 4 "\n"
 import 0 byte_len std_core$byte_len result_type=13 param_types=10 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=16 param_types=10 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=1,16,13 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 14 ByteAccess
+impl 14 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32

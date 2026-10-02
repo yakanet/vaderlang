@@ -1,0 +1,13 @@
+// `snippet/a` and `snippet/c` each declare a trait named `Animal`, and only
+// `snippet/a`'s is implemented. A trait is identified by its declaration, not
+// its name: `A.Foo` does not implement `C.Animal`. It used to typecheck — the
+// trait side of the impl tables was keyed by name — and dispatch to `a`'s impl.
+module "snippet"
+
+A :: import "snippet/a"
+C :: import "snippet/c"
+
+main :: fn() -> i32 {
+    f :: A.Foo { .x = 1 }
+    return C.count(f)
+}

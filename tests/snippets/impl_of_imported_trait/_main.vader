@@ -1,0 +1,19 @@
+// An impl of a trait declared in another module: the impl's trait name is
+// resolved through the import, so the impl registers and `fa.score()` reaches
+// its member.
+module "snippet"
+
+import "snippet/score"
+import "std/io"
+
+Foo :: struct { x: i32 }
+
+Foo implements Scored {
+    score :: fn(self) -> i32 = self.x
+}
+
+main :: fn() -> i32 {
+    fa :: Foo { .x = 7 }
+    println("${fa.score()}")
+    return 0
+}

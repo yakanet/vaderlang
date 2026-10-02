@@ -569,8 +569,8 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv);
-static vader_box_t vader_vt_Async__resume(vader_box_t recv);
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv);
+static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv);
 
 static vader_box_t snippet_even(int32_t l0) {
     vader_box_t l1;
@@ -1536,7 +1536,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                 } else {
                     t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
-                        l10 = vader_vt_Async__resume(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
+                        l10 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
                         if (l10.tag == 15u) {
                             t2 = l10.payload.obj;
                             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -1693,7 +1693,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                     } else {
                         t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
                         if (t0 == INT32_C(7)) {
-                            l10 = vader_vt_Async__resume(((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited);
+                            l10 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited);
                             if (l10.tag == 15u) {
                                 t4 = l10.payload.obj;
                                 { vader_box_t __vret = vader_ref_box(t4); vader_gc_top = gc_frame.prev; return __vret; }
@@ -1839,7 +1839,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
         } else {
             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
             if (t0 == INT32_C(3)) {
-                l6 = vader_vt_Async__resume(((vader_struct___asyncstate_snippet_2_t*) l0)->f_awaited);
+                l6 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_2_t*) l0)->f_awaited);
                 if (l6.tag == 15u) {
                     t2 = l6.payload.obj;
                     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -1885,7 +1885,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                     } else {
                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                         if (t0 == INT32_C(6)) {
-                            l13 = vader_vt_Async__resume(((vader_struct___asyncstate_snippet_2_t*) l0)->f_awaited);
+                            l13 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_2_t*) l0)->f_awaited);
                             if (l13.tag == 15u) {
                                 t2 = l13.payload.obj;
                                 { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -1956,7 +1956,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                             if (t0 == INT32_C(15)) {
 #line 110 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                                                t3 = vader_vt_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s17);
+                                                                t3 = vader_vt_std_core_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s17);
                                                                 l20 = t3.payload.obj;
                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s18 = l20;
                                                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
@@ -2035,7 +2035,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                     if (t0 == INT32_C(25)) {
 #line 106 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                                                                                        t3 = vader_vt_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13);
+                                                                                                        t3 = vader_vt_std_core_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13);
                                                                                                         l27 = t3.payload.obj;
                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14 = l27;
                                                                                                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
@@ -2114,7 +2114,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                             if (t0 == INT32_C(35)) {
 #line 102 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                                                                                                                                t3 = vader_vt_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s9);
+                                                                                                                                                t3 = vader_vt_std_core_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s9);
                                                                                                                                                 l34 = t3.payload.obj;
                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s10 = l34;
                                                                                                                                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
@@ -2193,7 +2193,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                                                     if (t0 == INT32_C(45)) {
 #line 98 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                                                                                                                                                                        t3 = vader_vt_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5);
+                                                                                                                                                                                        t3 = vader_vt_std_core_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5);
                                                                                                                                                                                         l41 = t3.payload.obj;
                                                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6 = l41;
                                                                                                                                                                                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
@@ -2272,7 +2272,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                                                                                             if (t0 == INT32_C(55)) {
 #line 94 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                                                                                                                                                                                                                t3 = vader_vt_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s1);
+                                                                                                                                                                                                                                t3 = vader_vt_std_core_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s1);
                                                                                                                                                                                                                                 l48 = t3.payload.obj;
                                                                                                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s2 = l48;
                                                                                                                                                                                                                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
@@ -2746,7 +2746,7 @@ static int32_t std_async_block_on__i32(vader_box_t l0) {
 #line 80 "lib/std/async/async.vader"
     for (;;) {
 #line 81 "lib/std/async/async.vader"
-        l1 = vader_vt_Async__resume(l0);
+        l1 = vader_vt_std_core_Async__resume(l0);
 #line 82 "lib/std/async/async.vader"
         if (l1.tag == 15u) {
 #line 83 "lib/std/async/async.vader"
@@ -3441,7 +3441,7 @@ static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vade
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
+static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv) {
     switch (recv.tag) {
         case 6u: return vader_ref_box(snippet___genstate_evens_Iterator_next(recv.payload.obj));
         case 9u: return vader_ref_box(snippet___genstate_evens_with_tail_Iterator_next(recv.payload.obj));
@@ -3454,20 +3454,20 @@ static vader_box_t vader_vt_Iterator__next(vader_box_t recv) {
         case 42u: return vader_ref_box(std_collections___gen_state_std_collections_1_Iterator_next(recv.payload.obj));
         case 46u: return vader_ref_box(std_collections___gen_state_std_collections_2_Iterator_next(recv.payload.obj));
         case 50u: return vader_ref_box(std_collections___gen_state_std_collections_3_Iterator_next(recv.payload.obj));
-        default: vader_unreachable("vtable miss in Iterator.next");
+        default: vader_unreachable("vtable miss in std_core$Iterator.next");
     }
-    vader_unreachable("vtable miss in Iterator.next");
+    vader_unreachable("vtable miss in std_core$Iterator.next");
 }
 
-static vader_box_t vader_vt_Async__resume(vader_box_t recv) {
+static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
         case 13u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         case 16u: return snippet___asyncstate_snippet_1_Async_resume(recv.payload.obj);
         case 17u: return snippet___asyncstate_snippet_2_Async_resume(recv.payload.obj);
         case 35u: return std_async_Sleep_Async_resume(recv.payload.obj);
-        default: vader_unreachable("vtable miss in Async.resume");
+        default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
-    vader_unreachable("vtable miss in Async.resume");
+    vader_unreachable("vtable miss in std_core$Async.resume");
 }
 
 int main(int argc, char** argv) {
