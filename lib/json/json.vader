@@ -494,18 +494,15 @@ export parse :: fn(input: string) -> JsonValue | JsonError {
 
 // ---- stringify ------------------------------------------------------------
 
-// The bytes between two escapes go onto `sb` as one part, undecoded : only
-// ASCII bytes are ever escaped, so a multi-byte UTF-8 sequence passes through
-// intact.
-write_string :: fn(sb: StringBuilder!, s: string) -> void {
+// `s` quoted, then `close` — `"` after a value, `":` after an object key. The
+// bytes between two escapes go onto `sb` as one part, undecoded : only ASCII
+// bytes are ever escaped, so a multi-byte UTF-8 sequence passes through intact.
+write_string :: fn(sb: StringBuilder!, s: string, close: string) -> void {
     sb.append("\"")
     b :: s.bytes()
     run: usize = 0
     for i in 0..<b.len() {
-        escape :: escape_of(b[i])
-        if escape == "" {
-            continue
-        }
+        escape :: escape_of(b[i]) ?? continue
         if run < i {
             sb.append(b[run..<i].bytes_to_string())
         }
@@ -513,20 +510,18 @@ write_string :: fn(sb: StringBuilder!, s: string) -> void {
         run = i + 1
     }
     sb.append(if run == 0 { s } else { b[run..<b.len()].bytes_to_string() })
-    sb.append("\"")
+    sb.append(close)
 }
 
-// The JSON escape for byte `c`, or `""` when it stands for itself.
-escape_of :: fn(c: u8) -> string {
-    if c == '"'  { return "\\\"" }
-    if c == '\\' { return "\\\\" }
-    if c == '\n' { return "\\n" }
-    if c == '\t' { return "\\t" }
-    if c == '\r' { return "\\r" }
-    if c < 0x20 {
-        return "\\u" + u64(c).to_hex().pad_start(4, '0')
-    }
-    return ""
+// The JSON escape for byte `c`, or null when it stands for itself.
+escape_of :: fn(c: u8) -> string | null = match c {
+    '"'       -> "\\\""
+    '\\'      -> "\\\\"
+    '\n'      -> "\\n"
+    '\t'      -> "\\t"
+    '\r'      -> "\\r"
+    0..=0x1F  -> "\\u" + u64(c).to_hex().pad_start(4, '0')
+    _         -> null
 }
 
 // Strip the trailing `.0` from integer-valued floats so `42.0` round-trips
@@ -547,7 +542,7 @@ write_value :: fn(sb: StringBuilder!, v: JsonValue, indent: i32, depth: i32) -> 
             }
         }
         is JsonNumber -> { write_number(sb, v.value) }
-        is JsonString -> { write_string(sb, v.value) }
+        is JsonString -> { write_string(sb, v.value, "\"") }
         is JsonArray  -> { write_array(sb, v, indent, depth) }
         is JsonObject -> { write_object(sb, v, indent, depth) }
     }
@@ -557,7 +552,7 @@ write_indent :: fn(sb: StringBuilder!, indent: i32, depth: i32) -> void {
     if indent <= 0 {
         return
     }
-    sb.append_char('\n')
+    sb.append("\n")
     sb.append_repeated(' ', indent * depth)
 }
 
@@ -566,18 +561,18 @@ write_array :: fn(sb: StringBuilder!, a: JsonArray, indent: i32, depth: i32) -> 
         sb.append("[]")
         return
     }
-    sb.append_char('[')
+    sb.append("[")
     first := true
     for item in a.items {
         if !first {
-            sb.append_char(',')
+            sb.append(",")
         }
         write_indent(sb, indent, depth + 1)
         write_value(sb, item, indent, depth + 1)
         first = false
     }
     write_indent(sb, indent, depth)
-    sb.append_char(']')
+    sb.append("]")
 }
 
 write_object :: fn(sb: StringBuilder!, o: JsonObject, indent: i32, depth: i32) -> void {
@@ -585,23 +580,22 @@ write_object :: fn(sb: StringBuilder!, o: JsonObject, indent: i32, depth: i32) -
         sb.append("{}")
         return
     }
-    sb.append_char('{')
+    sb.append("{")
     first := true
     for [k, v] in o.entries {
         if !first {
-            sb.append_char(',')
+            sb.append(",")
         }
         write_indent(sb, indent, depth + 1)
-        write_string(sb, k)
-        sb.append(":")
+        write_string(sb, k, "\":")
         if indent > 0 {
-            sb.append_char(' ')
+            sb.append(" ")
         }
         write_value(sb, v, indent, depth + 1)
         first = false
     }
     write_indent(sb, indent, depth)
-    sb.append_char('}')
+    sb.append("}")
 }
 
 /// Serialise `v` to a compact JSON string — no spaces, no newlines, the
