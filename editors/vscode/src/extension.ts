@@ -90,7 +90,7 @@ async function startClient(attempt = 0): Promise<void> {
   };
 
   const clientOptions: LanguageClientOptions = {
-    // `.virt` (the text bytecode) only gets hovers over its ops from the server.
+    // `.virt` (the text bytecode) only gets hovers and inlay hints from the server.
     documentSelector: [
       { scheme: "file", language: "vader" },
       { scheme: "file", language: "virt" },

@@ -133,6 +133,14 @@ export cursor_field :: fn(params: JsonValue, key: string) -> i32 {
     return get_number(pos, key)
 }
 
+/// `params.range.<bound>.<key>` (a 0-based coordinate), or `0` when absent.
+///
+/// @param params  request params carrying a `range`.
+/// @param bound   `"start"` or `"end"`.
+/// @param key     `"line"` or `"character"`.
+export range_field :: fn(params: JsonValue, bound: string, key: string) -> i32 =
+    get_number(get_field(get_field(params, "range"), bound), key)
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

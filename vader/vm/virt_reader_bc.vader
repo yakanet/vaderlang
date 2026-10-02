@@ -85,7 +85,29 @@ positioned :: fn(
     return null
 }
 
+/// A `.virt` dump read back, with the line each instruction came from.
+export VirtListing :: struct {
+    module:   bc.BytecodeModule
+    /// `op_lines[f][k]` is the 0-based line of op `k` in function `f`'s body.
+    op_lines: usize[][]
+}
+
 /// Parse a full `.virt` text dump into a `BytecodeModule` ready for `emit_c`.
+///
+/// @param source  the full `.virt` text (UTF-8).
+/// @return        the reconstructed module, or the first line that defeated the
+///                reader — never a partial module.
+/// @error         `VirtParseError` as `parse_virt_listing` reports it.
+export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError {
+    listing :: parse_virt_listing(source)
+    if listing is VirtParseError {
+        return listing
+    }
+    return listing.module
+}
+
+/// Parse a full `.virt` text dump into a `BytecodeModule`, and note the line of
+/// each instruction — what a tool pointing back into the text needs.
 ///
 /// Module-level directives (`module` / `type` / `string` / `data` / `import` /
 /// `impl` / `vtable` / `export`) populate the module pools ; each `fn …` opens
@@ -94,8 +116,8 @@ positioned :: fn(
 /// back to the `$main`-suffix heuristic) and flagged `is_main`.
 ///
 /// @param source  the full `.virt` text (UTF-8).
-/// @return        the reconstructed module, or the first line that defeated the
-///                reader — never a partial module.
+/// @return        the reconstructed module with its op lines, or the first line
+///                that defeated the reader — never a partial module.
 /// @error         `VirtParseError` on an unrecognised module directive; a
 ///                RECOGNISED directive whose payload doesn't parse (an unknown
 ///                type kind, a malformed struct field, a non-numeric index, a
@@ -103,7 +125,7 @@ positioned :: fn(
 ///                instruction whose operands don't parse. Each would otherwise
 ///                yield a module missing an operation or a pool entry, with
 ///                every index after it shifted.
-export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError {
+export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError {
     module_name := ""
     strings: string[]!: []
     types: bc.BcType[]!: []
@@ -124,6 +146,8 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
         .param_names = [],
     }
     current_locals: bc.BcLocal[]! = []
+    current_lines: usize[]! = []
+    op_lines: usize[][]!: []
     in_function := false
 
     state :: ParserState {
@@ -214,6 +238,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
                 current_name = read_fn_mangled_name(cleaned)
                 current_sig = parse_signature_bc(cleaned, types)
                 current_locals = []
+                current_lines = []
                 state.ops = []
                 state.table = []
                 state.scope_sp[0] = 0
@@ -249,6 +274,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
                 .debug      = debug,
                 .jump_table = state.table,
             })
+            op_lines.push(current_lines)
             in_function = false
             continue
         }
@@ -266,6 +292,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
         }
         state.ops.push(op)
         state.table.push(-1)
+        current_lines.push(line_index - 1)
         wire_control_flow(state, cleaned, head, pc)
     }
 
@@ -274,7 +301,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
         functions[usize(main_index)].is_main = true
     }
 
-    return bc.BytecodeModule {
+    module :: bc.BytecodeModule {
         .name       = module_name,
         .types      = types,
         .strings    = strings,
@@ -285,6 +312,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
         .impl_table = impl_table,
         .vtables    = vtables,
     }
+    return VirtListing { .module = module, .op_lines = op_lines }
 }
 
 // ---- module-level directive parsers ---------------------------------------
@@ -1182,6 +1210,33 @@ import "std/testing"
 // carried on, handing back a module that looked complete: the instruction case
 // shifts every following pc, the directive case leaves a hole in a pool. Both
 // now stop the parse and name the line — see `VirtParseError`.
+
+@test test_parse_virt_listing_notes_each_op_line :: fn() -> void {
+    // A comment, a blank line and a `local` take a line but no op; a structured
+    // `if` … `end` takes one op per line.
+    lines :: [
+        "module demo",
+        "type 0 primitive i32",
+        "fn 0 main () -> i32",
+        "  local x i32",
+        "  i32.const 1   ; one",
+        "",
+        r"  if $L0 void",
+        r"  end $L0",
+        "  return",
+        "end",
+        "export main 0",
+    ]
+    listing :: parse_virt_listing(lines.join("\n"))
+    if listing is VirtParseError {
+        assert(false, "well-formed dump should parse: ${listing.reason}")
+        return
+    }
+    assert_eq(listing.op_lines.len(), 1)
+    assert_eq(listing.op_lines[0].len(), listing.module.functions[0].body.len())
+    ops :: listing.op_lines[0]
+    assert_eq("${ops[0]} ${ops[1]} ${ops[2]} ${ops[3]}", "4 6 7 8")
+}
 
 @test test_unknown_instruction_stops_the_parse :: fn() -> void {
     // `frobnicate` on line 5, between two real ops, is what a stale dump looks

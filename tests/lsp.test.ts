@@ -15,7 +15,7 @@ import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
-import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt, hermeticEnv } from "./cli-bin.ts";
+import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt, hermeticEnv, runCli } from "./cli-bin.ts";
 import { pathToUri } from "./lsp-uri.ts";
 import { listSnippets } from "./snapshot.ts";
 
@@ -2045,3 +2045,41 @@ test("lsp: hover documents every op of the text bytecode", async () => {
   expect(hover.contents.value).toContain("Push the value of local `<slot>`.");
   expect(results[ordered.length]!.result).toBeNull();
 });
+
+// A plain dump writes bare table indices. Each op carrying one gets, as an inlay
+// hint after its last operand, the label `--annotate` writes as a `;` comment —
+// so the hints over the plain dump are exactly the annotated dump's comments.
+async function bytecodeDump(entry: string, ...flags: string[]): Promise<string> {
+  const run = await runCli(["dump", "--stage=bytecode", ...flags, entry]);
+  expect(run.exit).toBe(0);
+  return run.stdout;
+}
+
+function wholeDocument(text: string): Query {
+  const end = { line: text.split("\n").length, character: 0 };
+  return { method: "textDocument/inlayHint", range: { start: { line: 0, character: 0 }, end } };
+}
+
+test("lsp: inlay hints over a plain dump name what --annotate names", async () => {
+  const entry = "tests/snippets/json_basics/_main.vader";
+  const plain = await bytecodeDump(entry);
+  const annotated = (await bytecodeDump(entry, "--annotate")).split("\n");
+  const plainLines = plain.split("\n");
+  expect(annotated.length).toBe(plainLines.length);
+  const expected: string[] = [];
+  annotated.forEach((line, i) => {
+    const at = line.indexOf("   ; ");
+    if (at >= 0) expected.push(`${i}:${plainLines[i]!.length}:${line.slice(at + 5)}`);
+  });
+  expect(expected.length).toBeGreaterThan(100);
+
+  const results = await driveLsp(plain, [wholeDocument(plain)], {}, "dump.virt");
+  const hints = results[0]!.result as { position: Position; label: string }[];
+  expect(hints.map((h) => `${h.position.line}:${h.position.character}:${h.label}`)).toEqual(expected);
+}, { timeout: MEDIUM_BUILD });
+
+test("lsp: an annotated dump gets no inlay hint", async () => {
+  const annotated = await bytecodeDump("tests/snippets/json_basics/_main.vader", "--annotate");
+  const results = await driveLsp(annotated, [wholeDocument(annotated)], {}, "dump.virt");
+  expect(results[0]!.result).toEqual([]);
+}, { timeout: MEDIUM_BUILD });

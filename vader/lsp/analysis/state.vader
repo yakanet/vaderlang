@@ -16,6 +16,8 @@ import "vader/diagnostics"
 import "vader/lsp/protocol"
 import "std/io"
 
+Vm :: import "vader/vm"
+
 /// Cached load+typecheck of one project, keyed by the entry file path it was
 /// built for. Reused across typed requests (hover, diagnostics, inlay,
 /// signature) within a quiescent edit window — `load_project` + the multi-
@@ -108,6 +110,11 @@ export ServerState :: struct {
     /// Monotonic id for server-INITIATED requests (the `*/refresh` pushes). The
     /// client's response is ignored, so uniqueness is the only requirement.
     next_request_id:            i64
+    /// uri → an open `.virt` document read back by the bytecode reader. Filled on
+    /// the first request that needs it, dropped on every didOpen / didChange /
+    /// didClose of that document : a large dump takes a noticeable fraction of a
+    /// second to read, and the editor asks for hints on every scroll.
+    virt_listings:              MutableMap<string, Vm.VirtListing | Vm.VirtParseError>
 }
 
 export new_state :: fn(library_root: string, vader_root: string) -> ServerState {
@@ -124,15 +131,30 @@ export new_state :: fn(library_root: string, vader_root: string) -> ServerState 
         .position_encoding       = .Utf16,
         .inlay_refresh_support   = false,
         .next_request_id         = 1,
+        .virt_listings           = MutableMap<string, Vm.VirtListing | Vm.VirtParseError> {},
     }
 }
 
 /// True for a `.virt` document — the text bytecode. The server keeps its text
-/// and answers hovers over its ops (`handle_virt_hover`), but never analyses it
-/// as Vader source.
+/// and answers hovers and inlay hints over its ops (`handle_virt_hover`,
+/// `handle_virt_inlay_hint`), but never analyses it as Vader source.
 ///
 /// @param uri  a document uri.
 export is_virt_uri :: fn(uri: string) -> bool = uri.ends_with(".virt")
+
+/// The open `.virt` document at `uri` read back by the bytecode reader ; null
+/// when no such document is open or the reader refuses it. Read once per
+/// version of the document — a refusal is cached too.
+///
+/// @param uri  a `.virt` document uri.
+export virt_listing_for :: fn(self: ServerState!, uri: string) -> Vm.VirtListing | null {
+    if self.virt_listings[uri] == null {
+        text :: self.source_for(uri) ?? return null
+        self.virt_listings[uri] = Vm.parse_virt_listing(text)
+    }
+    listing :: self.virt_listings[uri]
+    return if listing is Vm.VirtListing { listing } else { null }
+}
 
 /// Look up the current text of `uri`, or `null` if the client never
 /// opened it (or closed it since).
@@ -276,6 +298,7 @@ export handle_did_open :: fn(self: ServerState!, params: JsonValue) -> void {
     text :: get_string(td, "text")
     self.docs[uri] = text
     if is_virt_uri(uri) {
+        self.virt_listings.remove(uri)
         return
     }
     self.indices[uri] = build_index(uri, text, self.position_encoding)
@@ -300,6 +323,7 @@ export handle_did_change :: fn(self: ServerState!, params: JsonValue) -> void {
                 text :: get_string(first, "text")
                 self.docs[uri] = text
                 if is_virt_uri(uri) {
+                    self.virt_listings.remove(uri)
                     return
                 }
                 self.indices[uri] = build_index(uri, text, self.position_encoding)
@@ -326,6 +350,7 @@ export handle_did_close :: fn(self: ServerState!, params: JsonValue) -> void {
     // it is reachable. A blanked entry still answers as a real one.
     self.docs.remove(uri)
     if is_virt_uri(uri) {
+        self.virt_listings.remove(uri)
         return
     }
     self.cache = null

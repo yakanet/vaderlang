@@ -38,8 +38,8 @@ export handle_code_action :: fn(state: ServerState!, params: JsonValue) -> JsonV
     if sf is null { return JsonArray { .items = [] } }
 
     // LSP positions are 0-based ; the AST is 1-based. Anchor on the range start.
-    line :: range_start_field(params, "line") + 1
-    col  :: range_start_field(params, "character") + 1
+    line :: range_field(params, "start", "line") + 1
+    col  :: range_field(params, "start", "character") + 1
     ctx :: ActionCtx { .source = sf.content }
     li :: new_line_index(sf.content, state.position_encoding)
 
@@ -78,11 +78,4 @@ code_action_json :: fn(r: ActionResult, uri: string, li: LineIndex) -> JsonValue
     obj["kind"]  = JsonString { .value = r.kind }
     obj["edit"]  = JsonObject { .entries = workspace_edit }
     return JsonObject { .entries = obj }
-}
-
-// Read `params.range.start.<key>` (0-based LSP coordinate), or 0 when absent.
-range_start_field :: fn(params: JsonValue, key: string) -> i32 {
-    rng :: get_field(params, "range")
-    start :: get_field(rng, "start")
-    return get_number(start, key)
 }

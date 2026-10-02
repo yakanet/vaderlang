@@ -1,0 +1,95 @@
+// vader/lsp/handlers/virt_inlay_hint — `textDocument/inlayHint` over a `.virt`
+// document.
+//
+// A plain dump writes table indices (`call 79`, `local.get 1`, `ref.cast 25`).
+// Each op carrying one gets the name behind it as a hint after its last operand
+// — the label `vader dump --annotate` writes as a `;` comment, from the same
+// `annotate_op`. A line that already carries a comment gets none, and a document
+// the bytecode reader refuses gets none at all.
+
+module "vader/lsp/handlers"
+
+import "json"
+import "std/collections"
+import "vader/lsp/analysis"
+import "vader/lsp/protocol"
+
+Bc :: import "vader/bytecode"
+
+/// The hints for the lines of `params.range` in a `.virt` document : one per op
+/// whose table indices resolve to a name. Always an array, possibly empty.
+///
+/// @param state   the server state, which holds the document and caches its
+///                read-back module.
+/// @param params  the `textDocument/inlayHint` params.
+export handle_virt_inlay_hint :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
+    hints: JsonValue[]!: []
+    uri :: position_uri(params)
+    text :: state.source_for(uri) ?? return JsonArray { .items = hints }
+    listing :: state.virt_listing_for(uri) ?? return JsonArray { .items = hints }
+    first :: range_field(params, "start", "line")
+    last :: range_field(params, "end", "line")
+    module :: listing.module
+    li :: new_line_index(text, state.position_encoding)
+    for f in 0..<module.functions.len() {
+        function :: module.functions[f]
+        lines :: listing.op_lines[f]
+        for k in 0..<lines.len() {
+            line :: i32(lines[k])
+            if line < first || line > last {
+                continue
+            }
+            label :: Bc.annotate_op(module, function, function.body[k])
+            if label == "" {
+                continue
+            }
+            end :: code_end(text, li.line_starts[lines[k]]) ?? continue
+            hints.push(name_hint(line, li_character(li, line, end), label))
+        }
+    }
+    return JsonArray { .items = hints }
+}
+
+// The byte offset just past the code of the line starting at byte `start` of
+// `text` — after its last non-blank byte — or null when the line already
+// carries a `;` comment. No op operand contains a `;`.
+code_end :: fn(text: string, start: usize) -> usize | null {
+    b :: text.bytes()
+    end := start
+    for i in start..<b.len() {
+        if b[i] == '\n' || b[i] == '\r' {
+            break
+        }
+        if b[i] == ';' {
+            return null
+        }
+        if b[i] != ' ' && b[i] != '\t' {
+            end = i + 1
+        }
+    }
+    return end
+}
+
+// A name after an operand : no `kind`, which is for types and parameters, and a
+// space before it so it does not read as part of the operand.
+name_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
+    hint :: MutableMap<string, JsonValue> {}
+    hint["position"] = position_json(line, character)
+    hint["label"] = JsonString { .value = label }
+    hint["paddingLeft"] = JsonBool { .value = true }
+    return JsonObject { .entries = hint }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_code_end_after_the_last_operand :: fn() -> void {
+    assert_eq(code_end("fn 0 m () -> void\n  local.get 1  \nend\n", 18) ?? 0, 31)
+}
+
+@test
+test_code_end_on_a_commented_line :: fn() -> void {
+    assert(code_end("  local.get 1   ; x\n", 0) == null, "an annotated line gets no hint")
+}
