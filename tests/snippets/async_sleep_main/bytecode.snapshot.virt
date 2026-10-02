@@ -3,7 +3,7 @@ type 0 primitive null
 type 1 primitive i32
 type 2 struct __asyncstate_snippet_0 { s0:0,s1:0,awaited:6,state:1 }
 type 3 union 1,4
-type 4 struct std_core$Suspended {  }
+type 4 struct std_core$Suspended { wake_at:13 }
 type 5 primitive string
 type 6 ref Async
 type 7 primitive bool
@@ -106,7 +106,8 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
           local.tee 2   ; __resumed_3
           type_check 4   ; std_core$Suspended
           if $L6 void
-            struct.new 4   ; std_core$Suspended
+            local.get 2   ; __resumed_3
+            ref.cast 4   ; -> std_core$Suspended
             return
           end $L6
           local.get 2   ; __resumed_3
@@ -155,7 +156,8 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                 local.tee 5   ; __resumed_4
                 type_check 4   ; std_core$Suspended
                 if $L10 void
-                  struct.new 4   ; std_core$Suspended
+                  local.get 5   ; __resumed_4
+                  ref.cast 4   ; -> std_core$Suspended
                   return
                 end $L10
                 local.get 5   ; __resumed_4
@@ -194,6 +196,7 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                     i32.const 7
                     struct.set 2 3   ; __asyncstate_snippet_0.state
                   else
+                    i64.const 0
                     struct.new 4   ; std_core$Suspended
                     return
                   end $L12
@@ -386,6 +389,8 @@ fn 8 std_async$Sleep$Async$resume (ref) -> any
   if $L1 void
     return.lit null.const
   end $L1
+  local.field 0 16 1   ; arg 0.deadline
+  ref.cast 13   ; -> i64
   struct.new 4   ; std_core$Suspended
   return
 end

@@ -269,6 +269,8 @@ const C_PARITY = new Set<string>([
   // LIFO and recursively tears down the awaited child, without finishing the body.
   // Native run guards the synthesised `$Async$cancel` method + drain loop.
   "async_cancel_defer",
+  // `join_all` resumes a child only once its reported `wake_at` has passed.
+  "async_join_all_due_children",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
   // defer runs on teardown, the winner's at its own completion.
   "async_race",

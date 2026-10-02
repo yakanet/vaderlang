@@ -3,7 +3,7 @@ type 0 primitive null
 type 1 primitive i32
 type 2 struct __asyncstate_snippet_0 { s0:1,s1:1,awaited:9,state:1 }
 type 3 union 1,4
-type 4 struct std_core$Suspended {  }
+type 4 struct std_core$Suspended { wake_at:13 }
 type 5 struct snippet$Box__i32 { v:1 }
 type 6 primitive void
 type 7 ref Async
@@ -126,7 +126,8 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
           local.tee 6   ; __resumed_4
           type_check 4   ; std_core$Suspended
           if $L6 void
-            struct.new 4   ; std_core$Suspended
+            local.get 6   ; __resumed_4
+            ref.cast 4   ; -> std_core$Suspended
             return
           end $L6
           local.get 6   ; __resumed_4
@@ -154,6 +155,7 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
             i32.const 3
             struct.set 2 3   ; __asyncstate_snippet_0.state
           else
+            i64.const 0
             struct.new 4   ; std_core$Suspended
             return
           end $L7

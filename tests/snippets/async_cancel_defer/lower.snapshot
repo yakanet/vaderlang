@@ -5,6 +5,7 @@
   fn snippet$Never$Async$resume(self: Never!) -> i32 | Suspended
     ~>
       Suspended! {
+        wake_at: int(0) :i64
       }
   fn snippet$Never$Async$cancel(self: Never!) -> void
     ~>
@@ -207,8 +208,8 @@
                                     __resumed_3 :Any | Suspended!
                                 then:
                                   return
-                                    Suspended! {
-                                    }
+                                    cast → Suspended!
+                                      __resumed_3 :Any | Suspended!
                                 else:
                                   assign
                                     target:
@@ -274,6 +275,7 @@
                                     else:
                                       return
                                         Suspended! {
+                                          wake_at: int(0) :i64
                                         }
   fn snippet$__asyncstate_snippet_2$Async$cancel(self: __asyncstate_snippet_2!) -> void
     if :void
@@ -478,8 +480,8 @@
                                     __resumed_3 :Any | Suspended!
                                 then:
                                   return
-                                    Suspended! {
-                                    }
+                                    cast → Suspended!
+                                      __resumed_3 :Any | Suspended!
                                 else:
                                   assign
                                     target:
@@ -539,6 +541,7 @@
                                     else:
                                       return
                                         Suspended! {
+                                          wake_at: int(0) :i64
                                         }
   fn snippet$__asyncstate_snippet_5$Async$cancel(self: __asyncstate_snippet_5!) -> void
     if :void

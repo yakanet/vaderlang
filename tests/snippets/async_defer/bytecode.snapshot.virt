@@ -8,7 +8,7 @@ type 5 primitive void
 type 6 struct __defer_env_snippet_3 { cap_0:11 }
 type 7 struct __asyncstate_snippet_4 { s0:11,s1:0,__defers:12,awaited:14,state:3 }
 type 8 union 3,9
-type 9 struct std_core$Suspended {  }
+type 9 struct std_core$Suspended { wake_at:20 }
 type 10 struct __asyncstate_snippet_5 { s0:3,s1:3,awaited:14,state:3 }
 type 11 ref _
 type 12 array 13
@@ -240,7 +240,8 @@ fn 4 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
             local.tee 12   ; __resumed_4
             type_check 9   ; std_core$Suspended
             if $L8 void
-              struct.new 9   ; std_core$Suspended
+              local.get 12   ; __resumed_4
+              ref.cast 9   ; -> std_core$Suspended
               return
             end $L8
             local.get 12   ; __resumed_4
@@ -287,6 +288,7 @@ fn 4 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
                 i32.const 6
                 struct.set 7 4   ; __asyncstate_snippet_4.state
               else
+                i64.const 0
                 struct.new 9   ; std_core$Suspended
                 return
               end $L10
@@ -364,7 +366,8 @@ fn 5 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
           local.tee 3   ; __resumed_2
           type_check 9   ; std_core$Suspended
           if $L6 void
-            struct.new 9   ; std_core$Suspended
+            local.get 3   ; __resumed_2
+            ref.cast 9   ; -> std_core$Suspended
             return
           end $L6
           local.get 3   ; __resumed_2
@@ -392,6 +395,7 @@ fn 5 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
             i32.const 3
             struct.set 10 3   ; __asyncstate_snippet_5.state
           else
+            i64.const 0
             struct.new 9   ; std_core$Suspended
             return
           end $L7
@@ -580,6 +584,8 @@ fn 12 std_async$Sleep$Async$resume (ref) -> any
   if $L1 void
     return.lit null.const
   end $L1
+  local.field 0 22 1   ; arg 0.deadline
+  ref.cast 20   ; -> i64
   struct.new 9   ; std_core$Suspended
   return
 end

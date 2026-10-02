@@ -679,18 +679,20 @@ SpawnAsync implements Async<ProcessResult | ProcessError> {
             }
             self.deadline = sched_now() + POLL_MS
             sched_arm(self.deadline)
-            return Suspended {}
+            return Suspended { .wake_at = self.deadline }
         }
-        // Poll at most once per POLL_MS. A driver that re-resumes every child
-        // each tick (`join_all([...])`) would otherwise poll the child process
-        // and arm a fresh timer on every drive. Mirrors `Sleep`: stay parked
-        // until our timer fires.
-        if sched_now() < self.deadline { return Suspended {} }
+        // Poll at most once per POLL_MS. A driver may resume us before our
+        // timer fires (`timeout` drives its child on every wake), and would
+        // otherwise poll the child process and arm a fresh timer each time.
+        // Mirrors `Sleep`: stay parked until our timer fires.
+        if sched_now() < self.deadline {
+            return Suspended { .wake_at = self.deadline }
+        }
         code :: spawn_poll(self.handle)
         if code == RUNNING {
             self.deadline = sched_now() + POLL_MS
             sched_arm(self.deadline)
-            return Suspended {}
+            return Suspended { .wake_at = self.deadline }
         }
         // Done — take both pipes (stdout first, then stderr, which frees the
         // slot) before deciding success vs signal.

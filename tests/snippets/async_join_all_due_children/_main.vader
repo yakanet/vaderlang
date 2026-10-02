@@ -1,0 +1,36 @@
+// `join_all` resumes a child only once the `wake_at` it reported has passed.
+// Three tasks sleep 1, 4 and 9 ms, three times each: every sleep costs two
+// resumes (the one that arms it, the one that finds it due), 18 in all, however
+// many wakes the other tasks cause in between.
+module "snippet"
+
+import "std/async"
+import "std/io"
+
+RESUMES: i64[]!: [0]
+
+// An awaitable counting the resumes it forwards to `inner`.
+Counted :: struct {
+    inner: Async<null>
+}
+
+Counted implements Async<null> {
+    resume :: fn(self) -> null | Suspended {
+        RESUMES[0] += 1
+        return self.inner.resume()
+    }
+}
+
+task :: fn(ms: i64) -> Async<i64> {
+    for _ in 0..<3 {
+        await Counted { .inner = sleep(ms) }
+    }
+    return ms
+}
+
+main :: fn() -> i32 {
+    done :: await join_all([task(1), task(4), task(9)])
+    println("${done[0]} ${done[1]} ${done[2]}")
+    println("resumes: ${RESUMES[0]}")
+    return 0
+}

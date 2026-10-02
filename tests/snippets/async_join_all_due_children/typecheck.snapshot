@@ -1,0 +1,46 @@
+# Typecheck
+
+## tests/snippets/async_join_all_due_children
+  StructDecl     Counted              :: Counted!
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      RESUMES              :: i64[]!
+  FnDecl         task                 :: fn(i64) -> Async<i64>
+  expr 10:18    SeqLitExpr     :: i64[]!
+  expr 19:9     BinaryExpr     :: i64
+  expr 19:9     IdentExpr      :: i64[]!
+  expr 19:9     IndexExpr      :: i64
+  expr 20:16    CallExpr       :: null | Suspended
+  expr 20:16    FieldExpr      :: Async<null>
+  expr 20:16    FieldExpr      :: fn() -> null | Suspended
+  expr 20:16    IdentExpr      :: Counted
+  expr 25:14    RangeExpr      :: Range<i32>!
+  expr 26:15    StructLitExpr  :: Counted!
+  expr 26:34    CallExpr       :: Async<null>
+  expr 26:34    IdentExpr      :: fn(i64) -> Async<null>
+  expr 26:40    IdentExpr      :: i64
+  expr 26:9     AwaitExpr      :: Counted!
+  expr 28:12    IdentExpr      :: i64
+  expr 32:13    AwaitExpr      :: i64[]!
+  expr 32:19    CallExpr       :: Async<i64[]!>
+  expr 32:19    IdentExpr      :: fn(Async<T>[]) -> Async<T[]!>
+  expr 32:28    SeqLitExpr     :: Async<i64>[]
+  expr 32:29    CallExpr       :: Async<i64>
+  expr 32:29    IdentExpr      :: fn(i64) -> Async<i64>
+  expr 32:38    CallExpr       :: Async<i64>
+  expr 32:38    IdentExpr      :: fn(i64) -> Async<i64>
+  expr 32:47    CallExpr       :: Async<i64>
+  expr 32:47    IdentExpr      :: fn(i64) -> Async<i64>
+  expr 33:13    StringLitExpr  :: string
+  expr 33:16    IdentExpr      :: i64[]!
+  expr 33:16    IndexExpr      :: i64
+  expr 33:27    IdentExpr      :: i64[]!
+  expr 33:27    IndexExpr      :: i64
+  expr 33:38    IdentExpr      :: i64[]!
+  expr 33:38    IndexExpr      :: i64
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 34:13    StringLitExpr  :: string
+  expr 34:25    IdentExpr      :: i64[]!
+  expr 34:25    IndexExpr      :: i64
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(T) -> void

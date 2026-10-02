@@ -11,7 +11,7 @@ type 8 struct snippet$Bag { items:7 }
 type 9 ref Async
 type 10 struct __asyncstate_snippet_0 { s0:7,s1:5,s2:7,s3:15,s4:15,s5:1,s6:0,awaited:16,state:1 }
 type 11 union 5,12
-type 12 struct std_core$Suspended {  }
+type 12 struct std_core$Suspended { wake_at:2 }
 type 13 struct __asyncstate_snippet_1 { s0:7,s1:7,s2:5,s3:5,awaited:16,state:1 }
 type 14 union 1,12
 type 15 primitive usize
@@ -642,7 +642,8 @@ fn 12 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
           local.tee 2   ; __resumed_5
           type_check 12   ; std_core$Suspended
           if $L6 void
-            struct.new 12   ; std_core$Suspended
+            local.get 2   ; __resumed_5
+            ref.cast 12   ; -> std_core$Suspended
             return
           end $L6
           local.get 2   ; __resumed_5
@@ -785,6 +786,7 @@ fn 12 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                       i32.const 8
                       struct.set 10 8   ; __asyncstate_snippet_0.state
                     else
+                      i64.const 0
                       struct.new 12   ; std_core$Suspended
                       return
                     end $L13
@@ -893,7 +895,8 @@ fn 13 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
           local.tee 4   ; __resumed_7
           type_check 12   ; std_core$Suspended
           if $L6 void
-            struct.new 12   ; std_core$Suspended
+            local.get 4   ; __resumed_7
+            ref.cast 12   ; -> std_core$Suspended
             return
           end $L6
           local.get 4   ; __resumed_7
@@ -1098,6 +1101,7 @@ fn 13 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
               i32.const 4
               struct.set 13 5   ; __asyncstate_snippet_1.state
             else
+              i64.const 0
               struct.new 12   ; std_core$Suspended
               return
             end $L8
@@ -1342,6 +1346,8 @@ fn 21 std_async$Sleep$Async$resume (ref) -> any
   if $L1 void
     return.lit null.const
   end $L1
+  local.field 0 22 1   ; arg 0.deadline
+  ref.cast 2   ; -> i64
   struct.new 12   ; std_core$Suspended
   return
 end

@@ -3,7 +3,7 @@ type 0 primitive null
 type 1 struct snippet$CountDown { n:3 }
 type 2 union 3,4
 type 3 primitive i32
-type 4 struct std_core$Suspended {  }
+type 4 struct std_core$Suspended { wake_at:13 }
 type 5 primitive void
 type 6 ref Async
 type 7 primitive string
@@ -47,6 +47,7 @@ fn 0 snippet$CountDown$Async$resume (ref) -> any
     local.get 0   ; arg 0
     local.get 1   ; $sub_6
     struct.set 1 0   ; snippet$CountDown.n
+    i64.const 0
     struct.new 4   ; std_core$Suspended
     return
   end $L0
@@ -208,7 +209,8 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
           local.tee 5   ; __resumed_2
           type_check 4   ; std_core$Suspended
           if $L6 void
-            struct.new 4   ; std_core$Suspended
+            local.get 5   ; __resumed_2
+            ref.cast 4   ; -> std_core$Suspended
             return
           end $L6
           local.get 5   ; __resumed_2
@@ -250,6 +252,7 @@ fn 4 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
               i32.const 4
               struct.set 8 4   ; __asyncstate_snippet_0.state
             else
+              i64.const 0
               struct.new 4   ; std_core$Suspended
               return
             end $L8

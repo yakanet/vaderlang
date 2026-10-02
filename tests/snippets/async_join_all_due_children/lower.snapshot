@@ -1,0 +1,636 @@
+# Lower
+
+## snippet
+  struct snippet$Counted { inner: Async<null> }
+  fn snippet$Counted$Async$resume(self: Counted!) -> null | Suspended
+    assign
+      target:
+        index :i64
+          on:
+            RESUMES :i64[]!
+          ix:
+            int(0) :i32
+      value:
+        add :i64
+          l:
+            index :i64
+              on:
+                RESUMES :i64[]!
+              ix:
+                int(0) :i32
+          r:
+            int(1) :i64
+    return
+      vcall Async.resume :null | Suspended
+        recv:
+          .inner :Async<null>
+            self :Counted
+  fn snippet$Counted$Async$cancel(self: Counted!) -> void
+  fn snippet$task(ms: i64) -> Async<i64>
+    return
+      __asyncstate_snippet_0! {
+        s0: ms :i64
+        s1: int(0) :i32
+        s2: null
+        awaited: null
+        state: int(7) :i32
+      }
+  fn snippet$main() -> i32
+    return
+      call :i32
+        callee:
+          run_async_main :i32
+        arg0:
+          cast → Async<i32>
+            __asyncstate_snippet_1! {
+              s0: null
+              s1: null
+              awaited: null
+              state: int(4) :i32
+            }
+  struct __asyncstate_snippet_0 { s0: i64, s1: i32, s2: Counted!, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> i64 | Suspended!
+    loop :dispatch$
+      if :void
+        cond:
+          eq :bool
+            l:
+              .state :i32
+                __self_1 :__asyncstate_snippet_0!
+            r:
+              int(0) :i32
+        then:
+          assign
+            target:
+              .state :i32
+                __self_1 :__asyncstate_snippet_0!
+            value:
+              int(-1) :i32
+        else:
+          if :void
+            cond:
+              eq :bool
+                l:
+                  .state :i32
+                    __self_1 :__asyncstate_snippet_0!
+                r:
+                  int(1) :i32
+            then:
+              assign
+                target:
+                  .state :i32
+                    __self_1 :__asyncstate_snippet_0!
+                value:
+                  int(-1) :i32
+              return
+                .s0 :i64
+                  __self_1 :__asyncstate_snippet_0!
+            else:
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      .state :i32
+                        __self_1 :__asyncstate_snippet_0!
+                    r:
+                      int(2) :i32
+                then:
+                  assign
+                    target:
+                      .state :i32
+                        __self_1 :__asyncstate_snippet_0!
+                    value:
+                      int(1) :i32
+                else:
+                  if :void
+                    cond:
+                      eq :bool
+                        l:
+                          .state :i32
+                            __self_1 :__asyncstate_snippet_0!
+                        r:
+                          int(3) :i32
+                    then:
+                      if :void
+                        cond:
+                          lt :bool
+                            l:
+                              .s1 :i32
+                                __self_1 :__asyncstate_snippet_0!
+                            r:
+                              int(3) :i32
+                        then:
+                          assign
+                            target:
+                              .state :i32
+                                __self_1 :__asyncstate_snippet_0!
+                            value:
+                              int(6) :i32
+                        else:
+                          assign
+                            target:
+                              .state :i32
+                                __self_1 :__asyncstate_snippet_0!
+                            value:
+                              int(2) :i32
+                    else:
+                      if :void
+                        cond:
+                          eq :bool
+                            l:
+                              .state :i32
+                                __self_1 :__asyncstate_snippet_0!
+                            r:
+                              int(4) :i32
+                        then:
+                          .s2 :Counted!
+                            __self_1 :__asyncstate_snippet_0!
+                          assign
+                            target:
+                              .s1 :i32
+                                __self_1 :__asyncstate_snippet_0!
+                            value:
+                              add :i32
+                                l:
+                                  .s1 :i32
+                                    __self_1 :__asyncstate_snippet_0!
+                                r:
+                                  int(1) :i32
+                          assign
+                            target:
+                              .state :i32
+                                __self_1 :__asyncstate_snippet_0!
+                            value:
+                              int(3) :i32
+                        else:
+                          if :void
+                            cond:
+                              eq :bool
+                                l:
+                                  .state :i32
+                                    __self_1 :__asyncstate_snippet_0!
+                                r:
+                                  int(5) :i32
+                            then:
+                              let __resumed_2: Any | Suspended! =
+                                vcall Async.resume :Any | Suspended!
+                                  recv:
+                                    .awaited :Async<Any>
+                                      __self_1 :__asyncstate_snippet_0!
+                              if :void
+                                cond:
+                                  is Suspended! :bool
+                                    __resumed_2 :Any | Suspended!
+                                then:
+                                  return
+                                    cast → Suspended!
+                                      __resumed_2 :Any | Suspended!
+                                else:
+                                  assign
+                                    target:
+                                      .s2 :Counted!
+                                        __self_1 :__asyncstate_snippet_0!
+                                    value:
+                                      cast → Counted!
+                                        __resumed_2 :Any | Suspended!
+                                  assign
+                                    target:
+                                      .state :i32
+                                        __self_1 :__asyncstate_snippet_0!
+                                    value:
+                                      int(4) :i32
+                            else:
+                              if :void
+                                cond:
+                                  eq :bool
+                                    l:
+                                      .state :i32
+                                        __self_1 :__asyncstate_snippet_0!
+                                    r:
+                                      int(6) :i32
+                                then:
+                                  assign
+                                    target:
+                                      .awaited :Async<Any>
+                                        __self_1 :__asyncstate_snippet_0!
+                                    value:
+                                      cast → Async<Any>
+                                        Counted! {
+                                          inner:
+                                            call :Async<null>
+                                              callee:
+                                                sleep :fn(i64) -> Async<null>
+                                              arg0:
+                                                .s0 :i64
+                                                  __self_1 :__asyncstate_snippet_0!
+                                        }
+                                  assign
+                                    target:
+                                      .state :i32
+                                        __self_1 :__asyncstate_snippet_0!
+                                    value:
+                                      int(5) :i32
+                                else:
+                                  if :void
+                                    cond:
+                                      eq :bool
+                                        l:
+                                          .state :i32
+                                            __self_1 :__asyncstate_snippet_0!
+                                        r:
+                                          int(7) :i32
+                                    then:
+                                      assign
+                                        target:
+                                          .s1 :i32
+                                            __self_1 :__asyncstate_snippet_0!
+                                        value:
+                                          int(0) :i32
+                                      assign
+                                        target:
+                                          .state :i32
+                                            __self_1 :__asyncstate_snippet_0!
+                                        value:
+                                          int(3) :i32
+                                    else:
+                                      return
+                                        Suspended! {
+                                          wake_at: int(0) :i64
+                                        }
+  fn snippet$__asyncstate_snippet_0$Async$cancel(self: __asyncstate_snippet_0!) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_1 :__asyncstate_snippet_0!
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_1 :__asyncstate_snippet_0!
+    assign
+      target:
+        .state :i32
+          __self_1 :__asyncstate_snippet_0!
+      value:
+        int(-1) :i32
+  struct __asyncstate_snippet_1 { s0: i64[]!, s1: i64[]!, awaited: Async<Any>, state: i32 }
+  fn snippet$__asyncstate_snippet_1$Async$resume(self: __asyncstate_snippet_1!) -> i32 | Suspended!
+    loop :dispatch$
+      if :void
+        cond:
+          eq :bool
+            l:
+              .state :i32
+                __self_5 :__asyncstate_snippet_1!
+            r:
+              int(0) :i32
+        then:
+          assign
+            target:
+              .state :i32
+                __self_5 :__asyncstate_snippet_1!
+            value:
+              int(-1) :i32
+        else:
+          if :void
+            cond:
+              eq :bool
+                l:
+                  .state :i32
+                    __self_5 :__asyncstate_snippet_1!
+                r:
+                  int(1) :i32
+            then:
+              assign
+                target:
+                  .state :i32
+                    __self_5 :__asyncstate_snippet_1!
+                value:
+                  int(-1) :i32
+              return int(0) :i32
+            else:
+              if :void
+                cond:
+                  eq :bool
+                    l:
+                      .state :i32
+                        __self_5 :__asyncstate_snippet_1!
+                    r:
+                      int(2) :i32
+                then:
+                  assign
+                    target:
+                      .s1 :i64[]!
+                        __self_5 :__asyncstate_snippet_1!
+                    value:
+                      .s0 :i64[]!
+                        __self_5 :__asyncstate_snippet_1!
+                  call :void
+                    callee:
+                      std_io$println__string :void
+                    arg0:
+                      block :string
+                        let __buf_1: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              int(62) :usize
+                        let __off_2: usize = int(0) :usize
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                index :i64
+                                  on:
+                                    .s1 :i64[]!
+                                      __self_5 :__asyncstate_snippet_1!
+                                  ix:
+                                    int(0) :i32
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                " " :string
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                index :i64
+                                  on:
+                                    .s1 :i64[]!
+                                      __self_5 :__asyncstate_snippet_1!
+                                  ix:
+                                    int(1) :i32
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                " " :string
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                index :i64
+                                  on:
+                                    .s1 :i64[]!
+                                      __self_5 :__asyncstate_snippet_1!
+                                  ix:
+                                    int(2) :i32
+                        ~>
+                          call :string
+                            callee:
+                              finish_buffer :string
+                            arg0:
+                              __buf_1 :Buffer
+                            arg1:
+                              __off_2 :usize
+                  call :void
+                    callee:
+                      std_io$println__string :void
+                    arg0:
+                      block :string
+                        let __buf_3: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              int(29) :usize
+                        let __off_4: usize = int(0) :usize
+                        assign
+                          target:
+                            __off_4 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_3 :Buffer
+                              arg1:
+                                __off_4 :usize
+                              arg2:
+                                "resumes: " :string
+                        assign
+                          target:
+                            __off_4 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_3 :Buffer
+                              arg1:
+                                __off_4 :usize
+                              arg2:
+                                index :i64
+                                  on:
+                                    RESUMES :i64[]!
+                                  ix:
+                                    int(0) :i32
+                        ~>
+                          call :string
+                            callee:
+                              finish_buffer :string
+                            arg0:
+                              __buf_3 :Buffer
+                            arg1:
+                              __off_4 :usize
+                  assign
+                    target:
+                      .state :i32
+                        __self_5 :__asyncstate_snippet_1!
+                    value:
+                      int(1) :i32
+                else:
+                  if :void
+                    cond:
+                      eq :bool
+                        l:
+                          .state :i32
+                            __self_5 :__asyncstate_snippet_1!
+                        r:
+                          int(3) :i32
+                    then:
+                      let __resumed_6: Any | Suspended! =
+                        vcall Async.resume :Any | Suspended!
+                          recv:
+                            .awaited :Async<Any>
+                              __self_5 :__asyncstate_snippet_1!
+                      if :void
+                        cond:
+                          is Suspended! :bool
+                            __resumed_6 :Any | Suspended!
+                        then:
+                          return
+                            cast → Suspended!
+                              __resumed_6 :Any | Suspended!
+                        else:
+                          assign
+                            target:
+                              .s0 :i64[]!
+                                __self_5 :__asyncstate_snippet_1!
+                            value:
+                              cast → i64[]!
+                                __resumed_6 :Any | Suspended!
+                          assign
+                            target:
+                              .state :i32
+                                __self_5 :__asyncstate_snippet_1!
+                            value:
+                              int(2) :i32
+                    else:
+                      if :void
+                        cond:
+                          eq :bool
+                            l:
+                              .state :i32
+                                __self_5 :__asyncstate_snippet_1!
+                            r:
+                              int(4) :i32
+                        then:
+                          assign
+                            target:
+                              .awaited :Async<Any>
+                                __self_5 :__asyncstate_snippet_1!
+                            value:
+                              cast → Async<Any>
+                                call :Async<i64[]!>
+                                  callee:
+                                    std_async$join_all__i64 :Async<i64[]!>
+                                  arg0:
+                                    array :Async<i64>[]
+                                      call :Async<i64>
+                                        callee:
+                                          task :fn(i64) -> Async<i64>
+                                        arg0:
+                                          int(1) :i64
+                                      call :Async<i64>
+                                        callee:
+                                          task :fn(i64) -> Async<i64>
+                                        arg0:
+                                          int(4) :i64
+                                      call :Async<i64>
+                                        callee:
+                                          task :fn(i64) -> Async<i64>
+                                        arg0:
+                                          int(9) :i64
+                          assign
+                            target:
+                              .state :i32
+                                __self_5 :__asyncstate_snippet_1!
+                            value:
+                              int(3) :i32
+                        else:
+                          return
+                            Suspended! {
+                              wake_at: int(0) :i64
+                            }
+  fn snippet$__asyncstate_snippet_1$Async$cancel(self: __asyncstate_snippet_1!) -> void
+    if :void
+      cond:
+        is null :bool
+          .awaited :Async<Any>
+            __self_5 :__asyncstate_snippet_1!
+      then:
+      else:
+        vcall Async.cancel :void
+          recv:
+            .awaited :Async<Any>
+              __self_5 :__asyncstate_snippet_1!
+    assign
+      target:
+        .state :i32
+          __self_5 :__asyncstate_snippet_1!
+      value:
+        int(-1) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

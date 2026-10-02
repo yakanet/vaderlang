@@ -27,6 +27,7 @@
       then:
         return
           Suspended! {
+            wake_at: int(0) :i64
           }
     return
       .drives :i32
@@ -195,8 +196,8 @@
                             __resumed_3 :Any | Suspended!
                         then:
                           return
-                            Suspended! {
-                            }
+                            cast → Suspended!
+                              __resumed_3 :Any | Suspended!
                         else:
                           assign
                             target:
@@ -277,8 +278,8 @@
                                         __resumed_4 :Any | Suspended!
                                     then:
                                       return
-                                        Suspended! {
-                                        }
+                                        cast → Suspended!
+                                          __resumed_4 :Any | Suspended!
                                     else:
                                       assign
                                         target:
@@ -323,6 +324,7 @@
                                     else:
                                       return
                                         Suspended! {
+                                          wake_at: int(0) :i64
                                         }
   fn snippet$__asyncstate_snippet_0$Async$cancel(self: __asyncstate_snippet_0!) -> void
     if :void

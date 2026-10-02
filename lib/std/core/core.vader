@@ -204,7 +204,13 @@ export Error :: trait {
 /// unambiguous because `Suspended` is a distinct nominal type — where
 /// `Iterator.next` carries the same information BESIDE the element instead, in
 /// its `Continuation`.
-export Suspended :: struct {}
+export Suspended :: struct {
+    /// The scheduler time (`sched_now`, in ms) before which resuming again cannot
+    /// make progress — a driver holding several awaitables re-drives this one only
+    /// once the clock reaches it. `0`, the default, means unknown: re-drive it on
+    /// every wake. A coroutine reports the value of the child it is parked on.
+    wake_at: i64 = 0
+}
 
 /// The awaitable produced by calling an `async fn` — `await e` unwraps
 /// `Async<T>` to `T`. Each `async fn`'s synthesised state struct implements

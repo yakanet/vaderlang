@@ -227,8 +227,8 @@
                             __resumed_2 :Any | Suspended!
                         then:
                           return
-                            Suspended! {
-                            }
+                            cast → Suspended!
+                              __resumed_2 :Any | Suspended!
                         else:
                           assign
                             target:
@@ -273,6 +273,7 @@
                         else:
                           return
                             Suspended! {
+                              wake_at: int(0) :i64
                             }
   fn snippet$__asyncstate_snippet_10$Async$cancel(self: __asyncstate_snippet_10!) -> void
     if :void
@@ -418,8 +419,8 @@
                                 __resumed_3 :Any | Suspended!
                             then:
                               return
-                                Suspended! {
-                                }
+                                cast → Suspended!
+                                  __resumed_3 :Any | Suspended!
                             else:
                               assign
                                 target:
@@ -481,6 +482,7 @@
                                 else:
                                   return
                                     Suspended! {
+                                      wake_at: int(0) :i64
                                     }
   fn snippet$__asyncstate_snippet_13$Async$cancel(self: __asyncstate_snippet_13!) -> void
     if :void
@@ -644,8 +646,8 @@
                             __resumed_10 :Any | Suspended!
                         then:
                           return
-                            Suspended! {
-                            }
+                            cast → Suspended!
+                              __resumed_10 :Any | Suspended!
                         else:
                           assign
                             target:
@@ -817,6 +819,7 @@
                             else:
                               return
                                 Suspended! {
+                                  wake_at: int(0) :i64
                                 }
   fn snippet$__asyncstate_snippet_14$Async$cancel(self: __asyncstate_snippet_14!) -> void
     if :void

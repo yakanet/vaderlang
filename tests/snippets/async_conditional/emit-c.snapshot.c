@@ -19,6 +19,7 @@ struct vader_struct___asyncstate_snippet_0_t {
 };
 struct vader_struct_std_core_Suspended_t {
     vader_obj_header_t header;
+    int64_t f_wake_at;
 };
 struct vader_struct_snippet_Ready__i32_t {
     vader_obj_header_t header;
@@ -246,9 +247,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
             if (t0 == INT32_C(3)) {
                 l5 = vader_vt_Async__resume(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
                 if (l5.tag == 6u) {
-                    vader_struct_std_core_Suspended_t* _a0_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
-                    vader_obj_header_init(_a0_obj, 6u);
-                    t2 = (void*) _a0_obj;
+                    t2 = l5.payload.obj;
                     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                 }
                 l6 = ((int32_t) l5.payload.i);
@@ -288,9 +287,10 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
 #line 14 "tests/snippets/async_conditional/_main.vader"
                                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(6);
                             } else {
-                                vader_struct_std_core_Suspended_t* _a1_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
-                                vader_obj_header_init(_a1_obj, 6u);
-                                t2 = (void*) _a1_obj;
+                                vader_struct_std_core_Suspended_t* _a0_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
+                                vader_obj_header_init(_a0_obj, 6u);
+                                _a0_obj->f_wake_at = INT64_C(0);
+                                t2 = (void*) _a0_obj;
                                 { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                             }
                         }

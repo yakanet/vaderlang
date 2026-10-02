@@ -10,6 +10,7 @@
   JoinAll<T>
   JoinAll<T>
   JoinAll<T>
+  JoinAll<T>
   TryJoinAll<U, E>
   TryJoinAll<U, E>
   TryJoinAll<U, E>
@@ -29,7 +30,6 @@
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
-  MutableMap<usize, E | U>
   MutableMap<usize, T>
   MutableMap<usize, T>
   MutableMap<K, V>
@@ -59,17 +59,16 @@
   MutableMap<T, bool>
   MutableMap<K, V>
   Div<Rhs, Out>
-  MutableSet<i32>
-  MutableSet<usize>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
   Rem<Rhs, Out>
+  MutableSet<i32>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
@@ -86,6 +85,7 @@
   Async<T | TimeoutError>
   Async<i32>
   Async<null>
+  Async<T>
   Async<T>
   Async<T>
   Async<T>

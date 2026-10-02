@@ -202,18 +202,24 @@ gb_store_awaited :: fn(gb: GenBuild, awaited: LoweredExpr) -> LoweredStmt =
         .value = LoweredCast { .span = gb.span, .type = gb.async_any_ty, .value = awaited },
     }
 
-// `return Suspended {}` — the coroutine parked itself (a child wasn't ready).
-gb_suspend_return :: fn(gb: GenBuild) -> LoweredStmt =
-    LoweredReturn {
+// `return Suspended { .wake_at = 0 }` — a coroutine resumed after it completed.
+// Drivers retire a finished child and never resume it, so only a stray resume
+// lands here; `0` (unknown) keeps such a driver from waiting on it forever.
+gb_suspend_return :: fn(gb: GenBuild) -> LoweredStmt {
+    wake_at :: LoweredIntLit { .span = gb.span, .type = mk_primitive("i64"), .value = 0 }
+    fields :: [LoweredStructLitField { .name = "wake_at", .value = wake_at }]
+    return LoweredReturn {
         .span = gb.span,
-        .value = LoweredStructLit { .span = gb.span, .type = gb.suspended_ty, .fields = [] },
+        .value = build_core_struct_lit(gb.fn_ctx, gb.suspended_ty, fields, gb.span),
     }
+}
 
 // The re-entrant drive state for one `await`. On every resume it drives the
-// stored child once ; a `Suspended` result re-parks this coroutine (the child
-// advances on the NEXT resume), a completed result binds into `target_field`
-// and falls through to `cont`. The child's value is read back through its own
-// `resume`'s return channel — no external injection (Model A).
+// stored child once ; a `Suspended` result re-parks this coroutine, returned
+// as-is so the child's `wake_at` reaches the driver (the child advances on the
+// NEXT resume), a completed result binds into `target_field` and falls through
+// to `cont`. The child's value is read back through its own `resume`'s return
+// channel — no external injection (Model A).
 gb_drive_state :: fn(gb: GenBuild!, target_field: string, target_type: Type, cont: i64) -> LoweredStmt[]! {
     r_sym :: fresh_synthetic_symbol(gb.fn_ctx, "resumed")
     r_ref :: LoweredIdent { .span = gb.span, .type = gb.resume_erased_ty, .symbol = r_sym }
@@ -226,13 +232,17 @@ gb_drive_state :: fn(gb: GenBuild!, target_field: string, target_type: Type, con
             .receiver = gb_awaited_field(gb), .args = [], .param_types = [],
         },
     }
-    // if r is Suspended { return Suspended } else { self.<field> = cast(r); state = cont }
+    // if r is Suspended { return r } else { self.<field> = cast(r); state = cont }
+    parked :: LoweredReturn {
+        .span = gb.span,
+        .value = LoweredCast { .span = gb.span, .type = gb.suspended_ty, .value = r_ref },
+    }
     branch :: LoweredIf {
         .span = gb.span, .type = TY_VOID,
         .cond = LoweredTypeCheck {
             .span = gb.span, .type = TY_BOOL, .value = r_ref, .check_type = gb.suspended_ty,
         },
-        .then_block = gb_block(gb, [gb_suspend_return(gb)]),
+        .then_block = gb_block(gb, [parked]),
         .else_block = gb_block(gb, [
             LoweredAssign {
                 .span = gb.span, .target = gb_field(gb, target_field, target_type),

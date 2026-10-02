@@ -42,7 +42,7 @@ Sleep implements Async<null> {
             sched_arm(self.deadline)
         }
         if sched_now() >= self.deadline { return null }
-        return Suspended {}
+        return Suspended { .wake_at = self.deadline }
     }
 }
 
@@ -89,30 +89,53 @@ export block_on :: fn<T>(root: Async<T>) -> T {
     }
 }
 
+// ---- wake times -----------------------------------------------------------
+
+// Later than any wake time — the starting point of `earlier`.
+NEVER: i64: 0x7FFF_FFFF_FFFF_FFFF
+
+// The earlier of two `Suspended.wake_at` values. An unknown one (`0`) wins, so a
+// driver holding it reports unknown too.
+earlier :: fn(a: i64, b: i64) = if a < b { a } else { b }
+
 // ---- join_all -------------------------------------------------------------
 
 /// Concurrent join of a group of awaitables (Model A : one awaitable that drives
-/// every child on each `resume`). Children make progress together — their timers
+/// its children on each `resume`). Children make progress together — their timers
 /// all sit on the one scheduler heap and fire in deadline order — and their
-/// results are returned in INPUT order once every one completes. No cancellation
-/// in v1, so `join_all` waits for every child (failure latency = the slowest child).
+/// results are returned in INPUT order once every one completes. A `resume` drives
+/// only the children whose `wake_at` has passed. No cancellation in v1, so
+/// `join_all` waits for every child (failure latency = the slowest child).
 JoinAll :: struct<T> {
     children: Async<T>[]
     /// Completed results keyed by input index ; an index is present iff its
     /// child is done. `results.len() == children.len()` ⇒ all joined.
     results:  MutableMap<usize, T>
+    /// The `wake_at` each child last reported, by input index ; `NEVER` once it
+    /// is done.
+    wake_at:  i64[]!
 }
 
 JoinAll<T> implements Async<T[]> {
     resume :: fn(self!) -> T[] | Suspended {
         n :: self.children.len()
+        now :: sched_now()
+        next: i64 = NEVER
         for i in 0..<n {
-            if i in self.results { continue }
-            r :: self.children[i].resume()
-            if r is Suspended { continue }
-            self.results[i] = r
+            if self.wake_at[i] <= now {
+                r :: self.children[i].resume()
+                if r is Suspended {
+                    self.wake_at[i] = r.wake_at
+                } else {
+                    self.results[i] = r
+                    self.wake_at[i] = NEVER
+                }
+            }
+            next = earlier(next, self.wake_at[i])
         }
-        if self.results.len() != n { return Suspended {} }
+        if self.results.len() != n {
+            return Suspended { .wake_at = next }
+        }
         out: T[]!: []
         for i in 0..<n {
             v :: self.results[i]
@@ -132,9 +155,13 @@ JoinAll<T> implements Async<T[]> {
 ///
 /// @param xs  the awaitables to join.
 /// @return    an awaitable of the results, index-aligned with `xs`.
-export join_all :: fn<T>(xs: Async<T>[]) -> Async<T[]!> = JoinAll<T> {
+export join_all :: fn<T>(xs: Async<T>[]) -> Async<T[]!> = new_join_all(xs)
+
+// The driver behind `join_all` and `try_join_all`: nothing joined, every child due.
+new_join_all :: fn<T>(xs: Async<T>[]) = JoinAll<T> {
     .children = xs,
     .results = MutableMap<usize, T> {},
+    .wake_at = [0] * xs.len(),
 }
 
 // ---- try_join_all (fallible join, first-error) ----------------------------
@@ -151,7 +178,7 @@ TryJoinAll :: struct<U, E> {
 TryJoinAll<U, E> implements Async<(U | E)[] | Error> {
     resume :: fn(self!) -> (U | E)[] | Error | Suspended {
         r :: self.inner.resume()
-        if r is Suspended { return Suspended {} }
+        if r is Suspended { return r }
         for v in r {
             if v is Error { return v }   // first error, by input order
         }
@@ -172,32 +199,40 @@ TryJoinAll<U, E> implements Async<(U | E)[] | Error> {
 /// @param xs  the fallible awaitables to join.
 /// @return    the results in input order, or the first `Error`.
 export try_join_all :: fn<U, E>(xs: Async<U | E>[]) -> Async<(U | E)[] | Error> =
-    TryJoinAll<U, E> {
-        .inner = JoinAll<U | E> { .children = xs, .results = MutableMap<usize, U | E> {} },
-    }
+    TryJoinAll<U, E> { .inner = new_join_all(xs) }
 
 // ---- race -----------------------------------------------------------------
 
-/// The awaitable backing `race` : drives every child on each `resume` and, the
-/// moment one settles (value OR error — `race` does not distinguish), cancels
-/// all the others and completes with its result. Deterministic tie-break : the
-/// lowest input index wins within a tick.
+/// The awaitable backing `race` : drives every child whose `wake_at` has passed on
+/// each `resume` and, the moment one settles (value OR error — `race` does not
+/// distinguish), cancels all the others and completes with its result.
+/// Deterministic tie-break : the lowest input index wins within a tick.
 Race :: struct<T> {
     children: Async<T>[]
+    /// The `wake_at` each child last reported, by input index.
+    wake_at:  i64[]!
 }
 
 Race<T> implements Async<T> {
-    resume :: fn(self) -> T | Suspended {
+    resume :: fn(self!) -> T | Suspended {
         n :: self.children.len()
+        now :: sched_now()
+        next: i64 = NEVER
         for i in 0..<n {
-            r :: self.children[i].resume()
-            if r is Suspended { continue }
-            for j in 0..<n {
-                if j != i { self.children[j].cancel() }
+            if self.wake_at[i] <= now {
+                r :: self.children[i].resume()
+                if r is Suspended {
+                    self.wake_at[i] = r.wake_at
+                } else {
+                    for j in 0..<n {
+                        if j != i { self.children[j].cancel() }
+                    }
+                    return r
+                }
             }
-            return r
+            next = earlier(next, self.wake_at[i])
         }
-        return Suspended {}
+        return Suspended { .wake_at = next }
     }
     cancel :: fn(self) -> void {
         for c in self.children { c.cancel() }
@@ -210,7 +245,10 @@ Race<T> implements Async<T> {
 ///
 /// @param xs  the awaitables to race.
 /// @return    an awaitable of the first to settle.
-export race :: fn<T>(xs: Async<T>[]) -> Async<T> = Race<T> { .children = xs }
+export race :: fn<T>(xs: Async<T>[]) -> Async<T> = Race<T> {
+    .children = xs,
+    .wake_at = [0] * xs.len(),
+}
 
 // ---- join_any -------------------------------------------------------------
 
@@ -219,35 +257,43 @@ export race :: fn<T>(xs: Async<T>[]) -> Async<T> = Race<T> { .children = xs }
 /// SUCCESS (cancelling the losers), or — if every child fails — the last error.
 JoinAny :: struct<U, E> {
     children: Async<U | E>[]
-    /// Indices whose child has already settled as an error (skipped on re-drive).
-    /// A pure set — the error value itself is kept in `last`.
-    errors:   MutableSet<usize>
+    /// The `wake_at` each child last reported, by input index ; `NEVER` once it
+    /// settled as an error.
+    wake_at:  i64[]!
+    /// How many children settled as an error.
+    failed:   usize = 0
     /// The most recent error — returned if every child ends up failing.
-    last:     (U | E) | null
+    last:     (U | E) | null = null
 }
 
 JoinAny<U, E> implements Async<U | E> {
     resume :: fn(self!) -> (U | E) | Suspended {
         n :: self.children.len()
+        now :: sched_now()
+        next: i64 = NEVER
         for i in 0..<n {
-            if i in self.errors { continue }
-            r :: self.children[i].resume()
-            if r is Suspended { continue }
-            if r is Error {
-                self.errors.add(i)
-                self.last = r
-                continue
+            if self.wake_at[i] <= now {
+                r :: self.children[i].resume()
+                if r is Suspended {
+                    self.wake_at[i] = r.wake_at
+                } else if r is Error {
+                    self.wake_at[i] = NEVER
+                    self.failed += 1
+                    self.last = r
+                } else {
+                    for j in 0..<n {
+                        if j != i { self.children[j].cancel() }
+                    }
+                    return r
+                }
             }
-            for j in 0..<n {
-                if j != i { self.children[j].cancel() }
-            }
-            return r
+            next = earlier(next, self.wake_at[i])
         }
-        if self.errors.len() == n {
+        if self.failed == n {
             l :: self.last
             if l != null { return l }
         }
-        return Suspended {}
+        return Suspended { .wake_at = next }
     }
     cancel :: fn(self) -> void {
         for c in self.children { c.cancel() }
@@ -262,7 +308,7 @@ JoinAny<U, E> implements Async<U | E> {
 /// @param xs  the fallible awaitables to race for a success.
 /// @return    the first successful result, or the last error if all fail.
 export join_any :: fn<U, E>(xs: Async<U | E>[]) -> Async<U | E> =
-    JoinAny<U, E> { .children = xs, .errors = MutableSet<usize> {}, .last = null }
+    JoinAny<U, E> { .children = xs, .wake_at = [0] * xs.len() }
 
 // ---- timeout --------------------------------------------------------------
 
@@ -292,7 +338,9 @@ Timeout<T> implements Async<T | TimeoutError> {
         rc :: self.child.resume()
         if rc is Suspended {
             rt :: self.timer.resume()
-            if rt is Suspended { return Suspended {} }
+            if rt is Suspended {
+                return if rc.wake_at <= rt.wake_at { rc } else { rt }
+            }
             // Timer fired first — cancel the pending child, report the timeout.
             self.child.cancel()
             return TimeoutError { .ms = self.ms }

@@ -3,7 +3,7 @@ type 0 primitive null
 type 1 struct snippet$Never {  }
 type 2 union 3,4
 type 3 primitive i32
-type 4 struct std_core$Suspended {  }
+type 4 struct std_core$Suspended { wake_at:19 }
 type 5 primitive void
 type 6 ref Async
 type 7 struct __defer_env_snippet_1 {  }
@@ -18,7 +18,8 @@ type 15 primitive u8
 type 16 primitive usize
 type 17 array 15
 type 18 struct std_core$Buffer {  }
-type 19 primitive isize
+type 19 primitive i64
+type 20 primitive isize
 string 0 "never cancelled"
 string 1 "done"
 string 2 "inner cleanup"
@@ -28,7 +29,7 @@ string 5 "outer body (unreached)"
 string 6 "\n"
 import 0 byte_len std_core$byte_len result_type=16 param_types=11 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=17 param_types=11 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=3,17,16 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=20 param_types=3,17,16 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 1 Async
 impl 8 Async
 impl 10 Async
@@ -42,6 +43,7 @@ vtable Async.cancel 10 10
 export main 4
 
 fn 0 snippet$Never$Async$resume (ref) -> any
+  i64.const 0
   struct.new 4   ; std_core$Suspended
   return
 end
@@ -220,7 +222,8 @@ fn 6 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
             local.tee 8   ; __resumed_3
             type_check 4   ; std_core$Suspended
             if $L8 void
-              struct.new 4   ; std_core$Suspended
+              local.get 8   ; __resumed_3
+              ref.cast 4   ; -> std_core$Suspended
               return
             end $L8
             local.get 8   ; __resumed_3
@@ -270,6 +273,7 @@ fn 6 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                 i32.const 6
                 struct.set 8 5   ; __asyncstate_snippet_2.state
               else
+                i64.const 0
                 struct.new 4   ; std_core$Suspended
                 return
               end $L10
@@ -465,7 +469,8 @@ fn 9 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
             local.tee 8   ; __resumed_3
             type_check 4   ; std_core$Suspended
             if $L8 void
-              struct.new 4   ; std_core$Suspended
+              local.get 8   ; __resumed_3
+              ref.cast 4   ; -> std_core$Suspended
               return
             end $L8
             local.get 8   ; __resumed_3
@@ -510,6 +515,7 @@ fn 9 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
                 i32.const 6
                 struct.set 10 4   ; __asyncstate_snippet_5.state
               else
+                i64.const 0
                 struct.new 4   ; std_core$Suspended
                 return
               end $L10

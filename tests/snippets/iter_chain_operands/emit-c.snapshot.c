@@ -958,31 +958,31 @@ static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, uint8_t
     int32_t l2, l3;
     bool t0;
     int32_t t1;
-#line 272 "lib/std/core/core.vader"
+#line 278 "lib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_inclusive;
     if (t0) {
         l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
         l1 = std_core_i32_Comparable_gt(l2, l3);
-#line 273 "lib/std/core/core.vader"
+#line 279 "lib/std/core/core.vader"
     } else {
         l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
         l1 = std_core_i32_Comparable_gte(l2, l3);
-#line 272 "lib/std/core/core.vader"
+#line 278 "lib/std/core/core.vader"
     }
-#line 276 "lib/std/core/core.vader"
+#line 282 "lib/std/core/core.vader"
     if (l1) {
         t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         *__o1 = (uint8_t) 1; *__o0 = t1; return;
     }
-#line 277 "lib/std/core/core.vader"
+#line 283 "lib/std/core/core.vader"
     l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
-#line 278 "lib/std/core/core.vader"
+#line 284 "lib/std/core/core.vader"
     t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
     l3 = std_core_i32_Step_step(t1);
     ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor = l3;
-#line 279 "lib/std/core/core.vader"
+#line 285 "lib/std/core/core.vader"
     *__o1 = (uint8_t) 0; *__o0 = l2; return;
 }
 

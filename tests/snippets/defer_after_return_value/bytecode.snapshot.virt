@@ -12,7 +12,7 @@ type 9 struct __defer_env_snippet_7 {  }
 type 10 struct __defer_env_snippet_9 {  }
 type 11 struct __asyncstate_snippet_10 { s0:1,s1:0,awaited:18,state:2 }
 type 12 union 2,13
-type 13 struct std_core$Suspended {  }
+type 13 struct std_core$Suspended { wake_at:24 }
 type 14 struct __defer_env_snippet_12 {  }
 type 15 struct __asyncstate_snippet_13 { s0:2,__defers:19,awaited:18,state:2 }
 type 16 struct __asyncstate_snippet_14 { s0:2,s1:2,awaited:18,state:2 }
@@ -268,7 +268,8 @@ fn 14 snippet$__asyncstate_snippet_10$Async$resume (ref) -> any
           local.tee 3   ; __resumed_2
           type_check 13   ; std_core$Suspended
           if $L6 void
-            struct.new 13   ; std_core$Suspended
+            local.get 3   ; __resumed_2
+            ref.cast 13   ; -> std_core$Suspended
             return
           end $L6
           local.get 3   ; __resumed_2
@@ -296,6 +297,7 @@ fn 14 snippet$__asyncstate_snippet_10$Async$resume (ref) -> any
             i32.const 3
             struct.set 11 3   ; __asyncstate_snippet_10.state
           else
+            i64.const 0
             struct.new 13   ; std_core$Suspended
             return
           end $L7
@@ -414,7 +416,8 @@ fn 16 snippet$__asyncstate_snippet_13$Async$resume (ref) -> any
           local.tee 7   ; __resumed_3
           type_check 13   ; std_core$Suspended
           if $L7 void
-            struct.new 13   ; std_core$Suspended
+            local.get 7   ; __resumed_3
+            ref.cast 13   ; -> std_core$Suspended
             return
           end $L7
           local.get 7   ; __resumed_3
@@ -460,6 +463,7 @@ fn 16 snippet$__asyncstate_snippet_13$Async$resume (ref) -> any
               i32.const 5
               struct.set 15 3   ; __asyncstate_snippet_13.state
             else
+              i64.const 0
               struct.new 13   ; std_core$Suspended
               return
             end $L9
@@ -567,7 +571,8 @@ fn 17 snippet$__asyncstate_snippet_14$Async$resume (ref) -> any
           local.tee 6   ; __resumed_10
           type_check 13   ; std_core$Suspended
           if $L6 void
-            struct.new 13   ; std_core$Suspended
+            local.get 6   ; __resumed_10
+            ref.cast 13   ; -> std_core$Suspended
             return
           end $L6
           local.get 6   ; __resumed_10
@@ -656,6 +661,7 @@ fn 17 snippet$__asyncstate_snippet_14$Async$resume (ref) -> any
               i32.const 4
               struct.set 16 3   ; __asyncstate_snippet_14.state
             else
+              i64.const 0
               struct.new 13   ; std_core$Suspended
               return
             end $L8
@@ -885,6 +891,8 @@ fn 24 std_async$Sleep$Async$resume (ref) -> any
   if $L1 void
     return.lit null.const
   end $L1
+  local.field 0 27 1   ; arg 0.deadline
+  ref.cast 24   ; -> i64
   struct.new 13   ; std_core$Suspended
   return
 end
