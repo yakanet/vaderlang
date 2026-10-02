@@ -48,15 +48,19 @@ export Span :: struct {
 /// in a hash bucket, so the start-only hash is a valid
 /// over-approximation.
 ///
-/// The line sits in the HIGH half and a map slots on the LOW bits, so the key is
-/// folded once more: `k ^ (k >> 32)` is invertible — distinct keys stay distinct —
-/// and it brings the line into the bits a slot reads. Without it every span of a
-/// file that shares a column lands in one probe run.
-Span implements Hash -> span_key_fold(
+/// A map slots on the LOW bits, and the raw key's are mostly the column. The key
+/// goes through `span_key_mix`, a bijection: keys stay distinct (the typed-ast
+/// side-tables use them as identities) and every bit reaches the low ones.
+Span implements Hash -> span_key_mix(
     self.start.file.hash() * 1000003 + (u64(self.start.line) << 32) + u64(self.start.column),
 )
 
-span_key_fold :: fn(k: u64) -> u64 = k ^ (k >> 32)
+// The fmix64 finaliser of MurmurHash3.
+span_key_mix :: fn(k: u64) -> u64 {
+    a :: (k ^ (k >> 33)) * 0xff51afd7ed558ccd
+    b :: (a ^ (a >> 33)) * 0xc4ceb9fe1a85ec53
+    return b ^ (b >> 33)
+}
 
 /// Structural equality over `(file, line, column)` of both ends — the
 /// full key the typed-ast side-tables need to tell an envelope expr

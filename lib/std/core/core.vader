@@ -51,8 +51,8 @@ export Comparable :: trait {
     gte :: fn(self, other: Self) -> bool { return self.compare(other) >= 0 }
 }
 
-/// Hash codes for `MutableMap` / `MutableSet` keys. Must be consistent
-/// with `Equals` — `a.equals(b) == true` implies `a.hash() == b.hash()`.
+/// Hash codes for `MutableMap` / `MutableSet` keys — equal values (`Equals`), equal hashes.
+/// A map slots on the LOW bits: a key that packs fields into high ones must mix them down.
 export Hash :: trait {
     hash :: fn(self) -> u64
 }
