@@ -48,9 +48,9 @@ export Span :: struct {
 /// in a hash bucket, so the start-only hash is a valid
 /// over-approximation.
 ///
-/// A map slots on the LOW bits, and the raw key's are mostly the column. The key
-/// goes through `span_key_mix`, a bijection: keys stay distinct (the typed-ast
-/// side-tables use them as identities) and every bit reaches the low ones.
+/// A map's first probe reads the LOW bits, and the raw key's are mostly the column.
+/// The key goes through `span_key_mix`, a bijection: keys stay distinct (the
+/// typed-ast side-tables use them as identities) and every bit reaches the low ones.
 Span implements Hash -> span_key_mix(
     self.start.file.hash() * 1000003 + (u64(self.start.line) << 32) + u64(self.start.column),
 )

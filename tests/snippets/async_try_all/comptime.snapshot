@@ -57,6 +57,7 @@
   MutableMap<K, V>
   ArrayOps<T>
   Sub<Rhs, Out>
+  Mul<Rhs, Out>
   MutableSet<i32>
   MutableSet<usize>
   MutableSet<T>
@@ -67,7 +68,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>

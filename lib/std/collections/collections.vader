@@ -30,7 +30,7 @@
 // MutableMap<K, V> — compact open-addressed hash map. Live entries live in two
 // dense parallel arrays (`ekeys[i]` ↔ `evals[i]`) in insertion order; a sparse
 // `index` of `i32` maps a hash slot to an entry position (1-based; 0 = empty,
-// -1 = tombstone). Lookup hashes the key, probes the index (linear) skipping
+// -1 = tombstone). Lookup hashes the key, probes the index (`next_slot`) skipping
 // tombstones, and compares via `Equals`. Insert appends to the dense arrays
 // (reusing a slot freed by `remove`); `remove` swaps the last entry into the
 // hole and tombstones the index slot. The index doubles + rehashes past 0.75.
@@ -77,7 +77,13 @@ export MutableMap :: struct<K: Hash & Equals, V> {
 // `Hash & Equals` constraint is auto-inherited from the struct decl above by
 // the typecheck `inherit-bounds` pass when the first param is `MutableMap<K, V>`.
 
-slot_for :: fn(h: u64, mask: usize) -> usize = usize(h) & mask
+first_slot :: fn(h: u64, mask: usize) -> usize = usize(h) & mask
+
+// The probe step after a collision. `perturb` starts as the full hash and loses five
+// bits before each step, which brings the high bits into play; once it reaches 0,
+// `5 * s + 1` visits every slot of a power-of-two table. Every walk of the index
+// takes exactly this sequence, or a key stops being found.
+next_slot :: fn(s: usize, perturb: u64, mask: usize) -> usize = (s * 5 + usize(perturb) + 1) & mask
 
 // Lazy-initialise the index on first insert. No-op once allocated, so cheap to
 // call from every mutating entry point. Mirrors the old `ensure_buckets`.
@@ -98,8 +104,12 @@ rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>!, new_count: usize) -> 
     for 0..<new_count { fresh.push(EMPTY_SLOT) }
     new_mask :: new_count - 1
     for e in 0..<self.size {
-        s: usize = slot_for(self.ekeys[e].hash(), new_mask)
-        for fresh[s] != EMPTY_SLOT { s = (s + 1) & new_mask }
+        perturb := self.ekeys[e].hash()
+        s := first_slot(perturb, new_mask)
+        for fresh[s] != EMPTY_SLOT {
+            perturb = perturb >> 5
+            s = next_slot(s, perturb, new_mask)
+        }
         fresh[s] = i32(e + 1)
     }
     self.index = fresh
@@ -135,7 +145,8 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>!, key: K, value: V) -> voi
         for (self.size + 1) * 4 > new_count * 3 { new_count = new_count * 2 }
         self.rehash(new_count)
     }
-    s: usize = slot_for(key.hash(), self.mask)
+    perturb := key.hash()
+    s := first_slot(perturb, self.mask)
     first_tomb: i64 = -1
     for self.index[s] != EMPTY_SLOT {
         if self.index[s] == TOMB_SLOT {
@@ -144,7 +155,8 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>!, key: K, value: V) -> voi
             ei :: usize(self.index[s]) - 1
             if self.ekeys[ei].equals(key) { self.evals[ei] = value  return }
         }
-        s = (s + 1) & self.mask
+        perturb = perturb >> 5
+        s = next_slot(s, perturb, self.mask)
     }
     target :: if first_tomb >= 0 { usize(first_tomb) } else { s }
     if first_tomb >= 0 { self.tombs = self.tombs - 1 }   // reused a tombstone slot
@@ -172,13 +184,15 @@ export clear :: fn<K, V>(self: MutableMap<K, V>!) -> void {
 /// @return      `V` when present, `null` otherwise.
 get :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> V | null {
     if self.index.len() == 0 { return null }
-    s: usize = slot_for(key.hash(), self.mask)
+    perturb := key.hash()
+    s := first_slot(perturb, self.mask)
     for self.index[s] != EMPTY_SLOT {
         if self.index[s] != TOMB_SLOT {
             ei :: usize(self.index[s]) - 1
             if self.ekeys[ei].equals(key) { return self.evals[ei] }
         }
-        s = (s + 1) & self.mask
+        perturb = perturb >> 5
+        s = next_slot(s, perturb, self.mask)
     }
     return null
 }
@@ -189,13 +203,15 @@ get :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> V | null {
 /// @param key   key to test.
 contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool {
     if self.index.len() == 0 { return false }
-    s: usize = slot_for(key.hash(), self.mask)
+    perturb := key.hash()
+    s := first_slot(perturb, self.mask)
     for self.index[s] != EMPTY_SLOT {
         if self.index[s] != TOMB_SLOT {
             ei :: usize(self.index[s]) - 1
             if self.ekeys[ei].equals(key) { return true }
         }
-        s = (s + 1) & self.mask
+        perturb = perturb >> 5
+        s = next_slot(s, perturb, self.mask)
     }
     return false
 }
@@ -203,10 +219,12 @@ contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool 
 // Find the index slot whose stored value equals `want` (a 1-based entry pos),
 // probing from `key`'s hash. Used by `remove` to re-point a swapped entry.
 slot_holding :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, want: i32) -> usize {
-    s: usize = slot_for(key.hash(), self.mask)
+    perturb := key.hash()
+    s := first_slot(perturb, self.mask)
     for self.index[s] != EMPTY_SLOT {
         if self.index[s] == want { return s }
-        s = (s + 1) & self.mask
+        perturb = perturb >> 5
+        s = next_slot(s, perturb, self.mask)
     }
     return self.index.len()
 }
@@ -219,7 +237,8 @@ slot_holding :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, want: i3
 /// @return      `true` when an entry was removed, `false` when `key` was absent.
 export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>!, key: K) -> bool {
     if self.index.len() == 0 { return false }
-    s: usize = slot_for(key.hash(), self.mask)
+    perturb := key.hash()
+    s := first_slot(perturb, self.mask)
     for self.index[s] != EMPTY_SLOT {
         if self.index[s] != TOMB_SLOT {
             ei :: usize(self.index[s]) - 1
@@ -237,7 +256,8 @@ export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>!, key: K) -> boo
                 return true
             }
         }
-        s = (s + 1) & self.mask
+        perturb = perturb >> 5
+        s = next_slot(s, perturb, self.mask)
     }
     return false
 }

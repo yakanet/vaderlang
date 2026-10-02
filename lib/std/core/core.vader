@@ -52,7 +52,7 @@ export Comparable :: trait {
 }
 
 /// Hash codes for `MutableMap` / `MutableSet` keys — equal values (`Equals`), equal hashes.
-/// A map slots on the LOW bits: a key that packs fields into high ones must mix them down.
+/// A map's first probe reads the LOW bits; a key varying only in high ones should mix them down.
 export Hash :: trait {
     hash :: fn(self) -> u64
 }
