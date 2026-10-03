@@ -22,6 +22,7 @@ import "toolchain/span"
 import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
+import "std/abort"
 
 // ---- instances --------------------------------------------------------------
 

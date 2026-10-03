@@ -20,6 +20,7 @@
 module "vader/vm"
 
 bc :: import "vader/bytecode"
+import "std/string_builder"
 
 /// Why a module was refused at load time — the first defect found.
 export VerifyError :: struct {

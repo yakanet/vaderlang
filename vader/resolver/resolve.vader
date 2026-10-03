@@ -21,6 +21,7 @@ import "vader/resolver/symbol"
 import "vader/types"
 
 import "vader/diagnostics"
+import "vader/parser"
 
 /// One resolver output entry per source module.
 ///
@@ -100,78 +101,124 @@ export ResolvedProject :: struct {
     modules: ResolvedModule[]
 }
 
-/// Single-module entry point. The parser produces one Program per file ;
-/// the CLI passes its display path so symbol records carry it. Multi-file
-/// modules merge at the layout level (not yet — TODO when the loader lands).
+/// Resolve a one-file module on its own : its declarations and the builtins,
+/// no prelude and no import followed — the entry unit tests use.
 ///
-/// The root scope seeds builtins (i32/string/Self/…) merged with the user
-/// module's top-level decls — user names shadow builtins via insertion order.
-/// `symbols` excludes builtins so the resolved-ast dump stays focused on
-/// user code ; `idents` includes them because the body walker resolves
-/// every IdentExpr against the full root scope.
+/// @param program      the file's program.
+/// @param module_path  the module's id, also its display path.
+/// @param factory      mints the module's symbols.
 export resolve_module :: fn(program: Program, module_path: string, factory: SymbolFactory!) -> ResolvedModule {
     collected :: collect_module_no_index(program, module_path, factory)
-    return resolve_module_with_collected_dp(program, module_path, module_path, factory, collected)
-}
-
-/// Variant accepting an explicit `display_path` alongside the filesystem
-/// `module_path`. The orchestrator threads this from
-/// `LoadedModule.module.display_path` so dump + mangling stay stable.
-export resolve_module_with_collected_dp :: fn(
-    program: Program, module_path: string, display_path: string, factory: SymbolFactory!,
-    collected: CollectedModule,
-) -> ResolvedModule {
-    empty_seed :: MutableMap<string, Symbol> {}
-    no_ambiguity :: MutableMap<string, string[]!> {}
-    return resolve_module_with_collected_dp_seeded(
-        program, module_path, display_path, factory, collected, empty_seed, no_ambiguity,
+    file :: SourceFile {
+        .path       = program.file,
+        .content    = "",
+        .program    = program,
+        .id_factory = new_node_id_factory(),
+    }
+    return resolve_module_files(
+        [file],
+        module_path,
+        module_path,
+        factory,
+        collected,
+        MutableMap<string, LoadedModule> {},
+        MutableMap<string, Symbol> {},
     )
 }
 
-/// `resolve_module_with_collected_dp` + a pre-resolve `core_seed` for R2006
-/// emission at the body-walker stage. The seed is folded into the root scope
-/// under the same shadow-by-insertion-order rule as user symbols : builtin <
-/// user < core_seed (in practice user symbols already shadow core_seed
-/// names like `Range` / `Display` when both are present). The seed may be
-/// extended per-module with a wildcard import's public fns (built by
-/// `build_wildcard_seed`) via the same fill-empty merge, so the prelude still
-/// wins. With the seed populated, the resolver body-walker can fire R2006
-/// unconditionally on any unresolved IdentExpr instead of deferring to the
-/// typechecker.
-export resolve_module_with_collected_dp_seeded :: fn(
-    program: Program, module_path: string, display_path: string, factory: SymbolFactory!,
-    collected: CollectedModule, core_seed: MutableMap<string, Symbol>,
-    ambiguous: MutableMap<string, string[]!>,
+/// Resolve every file of a module, each in its own scope. The module's
+/// declarations are shared by all its files, but a file sees only the imports it
+/// wrote (SPEC §"Modules") : its own bindings, and the exports its own wildcard
+/// imports bring — R2031 is judged on those alone.
+///
+/// @param files         the module's source files.
+/// @param module_path   the module's id in the project.
+/// @param display_path  the module's path as diagnostics show it.
+/// @param factory       mints the builtin symbols.
+/// @param collected     the module's collected view, one `FileImports` per file.
+/// @param name_index    module name → loaded module, to read wildcard targets.
+/// @param core_seed     the shared core-prelude seed from `build_core_seed`.
+/// @return              the module's resolution, every file's merged.
+export resolve_module_files :: fn(
+    files: SourceFile[], module_path: string, display_path: string, factory: SymbolFactory!,
+    collected: CollectedModule, name_index: MutableMap<string, LoadedModule>,
+    core_seed: MutableMap<string, Symbol>,
 ) -> ResolvedModule {
-    root :: make_builtin_scope(factory)
-    user_syms :: collected.symbols.values()
-    for sym in user_syms { root[sym.name] = sym }
-    // Core symbols seed — only fills slots not already taken by the
-    // module's own decls. User code can still shadow `Range` / `Display`
-    // by declaring its own.
-    for [name, cs] in core_seed {
-        existing :: root[name]
-        if existing is null { root[name] = cs }
+    builtins :: make_builtin_scope(factory)
+    scopes :: MutableMap<string, FileScope> {}
+    programs: Program[]!: []
+    for file in files {
+        imports :: file_imports(collected, file.program.file)
+        scopes[file.program.file] = FileScope {
+            .root      = file_root_scope(builtins, collected, imports, name_index, core_seed),
+            .ambiguous = wildcard_ambiguities(name_index, imports.paths, imports.excludes, core_seed),
+        }
+        programs.push(file.program)
     }
-    file :: resolve_program(program, root, module_path, factory, ambiguous)
+    resolved :: resolve_module_programs(programs, scopes, module_path, factory)
     return ResolvedModule {
         .path             = module_path,
         .display_path     = display_path,
-        .symbols          = sort_by_name(user_syms),
-        .idents           = file.idents,
-        .immutable_locals = file.immutable_locals,
-        .immutable_borrows = file.immutable_borrows,
-        .rebind_free      = file.rebind_free,
+        .symbols          = sort_by_name(collected.symbols.values()),
+        .idents           = resolved.idents,
+        .immutable_locals = resolved.immutable_locals,
+        .immutable_borrows = resolved.immutable_borrows,
+        .rebind_free      = resolved.rebind_free,
         .fn_overloads     = collected.fn_overloads,
         .imports_to       = MutableMap<i32, Symbol> {},
         .alias_types      = MutableMap<i32, Type> {},
         .alias_decls      = MutableMap<i32, TypeAliasDecl> {},
-        .type_param_bounds = file.type_param_bounds,
-        .diags            = file.diags,
+        .type_param_bounds = resolved.type_param_bounds,
+        .diags            = resolved.diags,
         .deprecated_messages = MutableMap<i32, string> {},
         .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> {},
         .namespace_private_members = MutableMap<i32, MutableMap<string, bool>> {},
     }
+}
+
+/// The imports `file` of the module wrote ; none when the module did not
+/// collect that file.
+///
+/// @param collected  the module's collected view.
+/// @param file       a file's path, as its `Program.file` carries it.
+export file_imports :: fn(collected: CollectedModule, file: string) -> FileImports {
+    for imports in collected.files {
+        if imports.file == file {
+            return imports
+        }
+    }
+    return FileImports { .file = file }
+}
+
+/// The unqualified names a file of the module sees at its top level : the
+/// builtins, the module's own declarations, the file's import bindings, then —
+/// only where nothing else answers — the core prelude, then the exports of the
+/// file's wildcard imports.
+///
+/// @param builtins    the builtin scope, shared by the module's files.
+/// @param collected   the module's collected view.
+/// @param imports     the file's imports.
+/// @param name_index  module name → loaded module, to read wildcard targets.
+/// @param core_seed   the shared core-prelude seed.
+export file_root_scope :: fn(
+    builtins: MutableMap<string, Symbol>, collected: CollectedModule, imports: FileImports,
+    name_index: MutableMap<string, LoadedModule>, core_seed: MutableMap<string, Symbol>,
+) -> MutableMap<string, Symbol> {
+    root :: MutableMap<string, Symbol> {}
+    for [name, sym] in builtins { root[name] = sym }
+    for [name, sym] in collected.symbols {
+        if sym.kind != .ImportBinding {
+            root[name] = sym
+        }
+    }
+    for [name, sym] in imports.bindings { root[name] = sym }
+    for [name, sym] in core_seed {
+        if root[name] == null {
+            root[name] = sym
+        }
+    }
+    seed_wildcard_exports(root, name_index, imports.paths, imports.excludes)
+    return root
 }
 
 sort_by_name :: fn(syms: Symbol[]) -> Symbol[] {

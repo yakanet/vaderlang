@@ -28,6 +28,7 @@ import "vader/diagnostics"
 AST :: import "toolchain/ast"
 import "vader/types"
 import "vader/resolver/symbol"
+import "toolchain/span"
 
 // Inspect the callee : when it's a bare ident whose `fn_overloads`
 // bucket has 2+ entries, pre-walk arg[0] and pick the overload whose
@@ -1173,7 +1174,7 @@ reject_indirect_callbacks :: fn(
         return
     }
     decl :: lookup_callee_fn_decl(c.callee, typed) ?? return
-    if !decorators_have(decl.decorators, "extern") {
+    if !AST.decorators_have(decl.decorators, "extern") {
         return
     }
     n :: min(c.args.len(), callee_ty.params.len())

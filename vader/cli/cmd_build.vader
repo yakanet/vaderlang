@@ -30,6 +30,7 @@ import "vader/pipeline"
 import "vader/diagnostics"
 import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 Prof :: import "vader/profile"
+import "std/sort"
 
 // ----------------------------------------------------------- build
 

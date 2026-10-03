@@ -143,7 +143,7 @@ decl_detail :: fn(d: DeclEntry, decls: AST.Decl[], typed: TypedProgram | null) -
 // wildcard binds no named `ImportEntry`), so enumerate each wildcard-imported
 // module's exports via the project cache's memoized name index, filtered through
 // the resolver's own `wildcard_exposes` predicate (one source of truth for
-// "what a wildcard exposes", shared with `core_seed::build_wildcard_seed`). Icon
+// "what a wildcard exposes", shared with `core_seed::seed_wildcard_exports`). Icon
 // falls back to the casing heuristic, as for renamed imports. `seen` dedups
 // against the scope + renamed names already offered.
 append_wildcard_completions :: fn(

@@ -35,6 +35,7 @@ import "vader/lsp/protocol"
 import "toolchain/span"
 
 Rs :: import "vader/resolver"
+import "std/collections"
 
 /// What kind of declaration a DeclEntry points at. Drives the hover
 /// signature template + helps clients decide on icon / styling.
@@ -113,7 +114,7 @@ export DocIndex :: struct {
     /// wildcard binds no named `ImportEntry` — every export of `p` enters scope
     /// unqualified — so the cross-file resolver falls back to these paths to
     /// locate an unqualified name (see `resolver::resolve`).
-    wildcards: Rs.FileWildcards
+    wildcards: Rs.FileImports
     /// `break` / `continue` → the loop it targets, for goto-definition on a
     /// loop jump (the reader-clarity tool that replaced the W0004 nudge).
     loop_jumps: LoopJump[]
@@ -141,7 +142,7 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
     cmap :: scan_comments(source)
     entries: DeclEntry[]!: []
     imports: ImportEntry[]!: []
-    wildcards :: Rs.FileWildcards { .file = uri, .paths = [], .excludes = MutableMap<string, string[]!> {} }
+    wildcards :: Rs.FileImports { .file = uri }
     namespace_aliases :: MutableMap<string, string> {}
     for d in parsed.program.decls {
         if d is ImportDecl {
@@ -875,7 +876,7 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
 // ---- import collection ---------------------------------------------------
 
 collect_import :: fn(
-    d: ImportDecl, imports: ImportEntry[]!, wildcards: Rs.FileWildcards!,
+    d: ImportDecl, imports: ImportEntry[]!, wildcards: Rs.FileImports!,
     namespace_aliases: MutableMap<string, string>!,
 ) -> void {
     match d.binding as ns {

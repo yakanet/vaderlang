@@ -15,6 +15,7 @@
 module "vader/midir"
 
 import "std/collections"
+import "vader/resolver/symbol"
 
 /// Top-level entry — apply all CFG-level optimisations to every fn in
 /// the project. Pure : returns a fresh CFGProject sharing unchanged

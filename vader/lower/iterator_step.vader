@@ -11,6 +11,7 @@
 module "vader/lower"
 
 import "vader/types"
+import "toolchain/span"
 
 /// How this project's `Iterator<T>.next` hands a step back.
 export StepShape :: struct {

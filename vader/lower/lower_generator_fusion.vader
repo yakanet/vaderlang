@@ -22,6 +22,7 @@ import "vader/resolver/symbol"
 import "vader/types"
 import "vader/typecheck"
 import "toolchain/span"
+import "std/abort"
 
 // The element the `generator` `decl` yields, from the typecheck-side registry
 // (`generator_state_of`) substituted by the call's instance subst. Null when the

@@ -27,13 +27,14 @@ import "std/iter"
 import "vader/diagnostics"
 import "vader/types"
 import "vader/lower"
+import "toolchain/ast"
+import "vader/comptime"
 import "vader/bytecode" {
     VtableEntry as BcVtableEntry,
     ImplEntry as BcImplEntry,
 }
 import "vader/resolver/symbol"
 import "toolchain/span"
-AST :: import "toolchain/ast"
 
 // ============================================================================
 // CFG-input reserve helpers (mirror bytecode/emit reserve_fn / etc. for CFG
@@ -208,7 +209,7 @@ c_struct_of :: fn(origin: MonoEntry) -> string {
 /// @return        the signature with the by-address vector filled.
 with_by_address :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature {
     d :: origin.decl
-    if d !is AST.FnDecl {
+    if d !is FnDecl {
         return sig
     }
     flags: bool[]!: []

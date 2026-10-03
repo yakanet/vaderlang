@@ -11,6 +11,8 @@ module "vader/midir"
 
 import "std/collections"
 import "vader/types"
+import "toolchain/span"
+import "vader/lower"
 
 // ---- the nullable struct case ---------------------------------------------
 //

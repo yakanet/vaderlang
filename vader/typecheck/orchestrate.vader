@@ -26,12 +26,12 @@ import "toolchain/span"
 // files[0].
 // `Span.hash()` is file-aware, so idents from sibling files at the same
 // (line, column) no longer collide in the merged per-module map.
-merge_module_program :: fn(files: SourceFile[]) -> Program {
+merge_module_program :: fn(files: SourceFile[]) -> AST.Program {
     first :: files[0].program
     if files.len() == 1 {
         return first
     }
-    return Program {
+    return AST.Program {
         .file = first.file,
         .span = first.span,
         .id = first.id,
@@ -85,7 +85,7 @@ export check_file :: fn(
 /// result carries the same `TypedProgram` + `ImplRegistry` as
 /// `check_module`, just with `expr_types` / `local_types` populated.
 export check_module_with_bodies :: fn(
-    program: Program,
+    program: AST.Program,
     resolved: ResolvedModule!,
     factory: SymbolFactory!,
     diags: Diagnostic[]!,
@@ -133,18 +133,14 @@ export check_project_with_bodies :: fn(
     // bound — synthesising trait-method params on the SAM members
     // happens here, not after resolve.
     materialize_all_sams_pre_resolve(project, mod_index, core_seed)
-    // Both aggregates rebuild an array / a map per call, so bind them once and
-    // hand the same pair to the seed and the ambiguity scan.
-    entry_paths :: all_wildcard_paths(entry_loaded.collected)
-    entry_excludes :: all_wildcard_excludes(entry_loaded.collected)
-    entry_rm :: resolve_module_with_collected_dp_seeded(
-        merge_module_program(entry_loaded.module.files),
+    entry_rm :: resolve_module_files(
+        entry_loaded.module.files,
         project.entry,
         entry_loaded.module.display_path,
         project.factory,
         entry_loaded.collected,
-        build_wildcard_seed(mod_index, entry_paths, entry_excludes, core_seed),
-        wildcard_ambiguities(mod_index, entry_paths, entry_excludes, core_seed),
+        mod_index,
+        core_seed,
     )
     entry_typed :: new_typed_program(entry_rm)
     entry_typed.dump_types = dump_types
@@ -156,16 +152,14 @@ export check_project_with_bodies :: fn(
         if id == project.entry {
             continue
         }
-        other_paths :: all_wildcard_paths(other.collected)
-        other_excludes :: all_wildcard_excludes(other.collected)
-        rm :: resolve_module_with_collected_dp_seeded(
-            merge_module_program(other.module.files),
+        rm :: resolve_module_files(
+            other.module.files,
             id,
             other.module.display_path,
             project.factory,
             other.collected,
-            build_wildcard_seed(mod_index, other_paths, other_excludes, core_seed),
-            wildcard_ambiguities(mod_index, other_paths, other_excludes, core_seed),
+            mod_index,
+            core_seed,
         )
         typed :: new_typed_program(rm)
         typed.dump_types = dump_types
@@ -344,12 +338,12 @@ export check_project_with_bodies :: fn(
         }
         other_typed :: per_module[id]
         if other_typed != null {
-            populate_imported_fn_overloads(other_typed, lm.collected.wildcards, typed_by_name)
+            populate_imported_fn_overloads(other_typed, lm.collected.files, typed_by_name)
         }
     }
     settle_external_expr_bodied_returns(project, per_module)
     populate_external_types(entry_typed, project, per_module)
-    populate_imported_fn_overloads(entry_typed, entry_loaded.collected.wildcards, typed_by_name)
+    populate_imported_fn_overloads(entry_typed, entry_loaded.collected.files, typed_by_name)
     merge_struct_decls(entry_typed, per_module)
     merge_external_impl_methods(entry_typed, project, per_module)
     // Coherence : at most one impl per (concrete type, trait, trait-args) across
@@ -415,7 +409,7 @@ export check_project_with_bodies :: fn(
         // ahead of the settled `fn(i64) -> i64` — no `clear` needed. (That
         // stale-ahead ordering is what `pick_overload` first-matched into `?` →
         // `any` → wide-int compares truncated to `i32.lt`, the `abs` bug.)
-        populate_imported_fn_overloads(other_typed, other.collected.wildcards, typed_by_name)
+        populate_imported_fn_overloads(other_typed, other.collected.files, typed_by_name)
         merge_external_impl_methods(other_typed, project, per_module)
         other_decls :: merge_module_program(other.module.files).decls
         if has_expr_bodied_fn(other_decls) {
@@ -962,63 +956,74 @@ export materialize_all_sams_pre_resolve :: fn(
     core_seed: MutableMap<string, Symbol>,
 ) -> void {
     for [_, loaded] in project.modules {
-        decls :: merge_module_program(loaded.module.files).decls
-        if !has_impl_decl(decls) {
+        for file in loaded.module.files {
+            materialize_file_sams(project, loaded, file, name_index, core_seed)
+        }
+    }
+}
+
+// The SAM impls of one file : its trait names resolve in that file's scope, with
+// the imports the file wrote.
+materialize_file_sams :: fn(
+    project: LoadedProject!,
+    loaded: LoadedModule!,
+    file: SourceFile,
+    name_index: MutableMap<string, LoadedModule>,
+    core_seed: MutableMap<string, Symbol>,
+) -> void {
+    decls :: file.program.decls
+    if !has_impl_decl(decls) {
+        return
+    }
+    imports :: file_imports(loaded.collected, file.program.file)
+    no_builtins :: MutableMap<string, Symbol> {}
+    scope :: file_root_scope(no_builtins, loaded.collected, imports, name_index, core_seed)
+    for decl in decls {
+        if decl !is AST.ImplDecl {
             continue
         }
-        seed :: build_wildcard_seed(
-            name_index,
-            all_wildcard_paths(loaded.collected),
-            all_wildcard_excludes(loaded.collected),
-            core_seed,
-        )
-        for decl in decls {
-            if decl !is AST.ImplDecl {
-                continue
+        found :: find_impl_trait_decl(decl.trait_name, loaded, scope, name_index, project)
+        if found.trait_decl is null {
+            if found.other_kind != "" {
+                project.diags.push(
+                    resolver_error(
+                        .TraitNameNotATrait,
+                        decl.trait_name_span,
+                        "`${decl.trait_name}` is a ${found.other_kind}",
+                    ),
+                )
+            } else {
+                project.diags.push(
+                    resolver_error(
+                        .UnresolvedTypeName,
+                        decl.trait_name_span,
+                        "`${decl.trait_name}`",
+                    ),
+                )
             }
-            found :: find_impl_trait_decl(decl.trait_name, loaded, seed, name_index, project)
-            if found.trait_decl is null {
-                if found.other_kind != "" {
-                    project.diags.push(
-                        resolver_error(
-                            .TraitNameNotATrait,
-                            decl.trait_name_span,
-                            "`${decl.trait_name}` is a ${found.other_kind}",
-                        ),
-                    )
-                } else {
-                    project.diags.push(
-                        resolver_error(
-                            .UnresolvedTypeName,
-                            decl.trait_name_span,
-                            "`${decl.trait_name}`",
-                        ),
-                    )
-                }
-                continue
-            }
-            trait_decl :: found.trait_decl
-            check_short_impl_arity(decl, trait_decl, project.diags)
-            // `@intrinsic <T> implements <Trait>` arrives with an empty
-            // `members` list — synthesise body-less FnDecls from the
-            // trait's methods so the rest of the pipeline (declare /
-            // ufcs / walk_fn_body) sees them.
-            materialize_intrinsic_members(decl, trait_decl)
-            // Always materialise the SAM rename — `check_short_impl_arity`
-            // already marked invalid synthetics as `materialized=true` so
-            // body-walk + body-typecheck skip them, but the rename still
-            // lets the T3036 "missing method" loop credit the SAM-named
-            // slot. Without the rename, both required methods would be
-            // flagged missing instead of just the unprovided one.
-            materialize_sam_members(decl, trait_decl, loaded.node_id_factory)
-            // Default-bodied trait methods get cloned into the impl
-            // (body + signature substituted). Bodies carry the
-            // materialised-span marker + IDs minted from the host
-            // module's factory so cloned nodes contribute distinct
-            // expr_types entries in the typecheck dump (rendered as
-            // `undefined:undefined`).
-            materialize_default_members(decl, trait_decl, loaded.node_id_factory)
+            continue
         }
+        trait_decl :: found.trait_decl
+        check_short_impl_arity(decl, trait_decl, project.diags)
+        // `@intrinsic <T> implements <Trait>` arrives with an empty
+        // `members` list — synthesise body-less FnDecls from the
+        // trait's methods so the rest of the pipeline (declare /
+        // ufcs / walk_fn_body) sees them.
+        materialize_intrinsic_members(decl, trait_decl)
+        // Always materialise the SAM rename — `check_short_impl_arity`
+        // already marked invalid synthetics as `materialized=true` so
+        // body-walk + body-typecheck skip them, but the rename still
+        // lets the T3036 "missing method" loop credit the SAM-named
+        // slot. Without the rename, both required methods would be
+        // flagged missing instead of just the unprovided one.
+        materialize_sam_members(decl, trait_decl, loaded.node_id_factory)
+        // Default-bodied trait methods get cloned into the impl
+        // (body + signature substituted). Bodies carry the
+        // materialised-span marker + IDs minted from the host
+        // module's factory so cloned nodes contribute distinct
+        // expr_types entries in the typecheck dump (rendered as
+        // `undefined:undefined`).
+        materialize_default_members(decl, trait_decl, loaded.node_id_factory)
     }
 }
 
@@ -1072,12 +1077,12 @@ has_impl_decl :: fn(decls: AST.Decl[]) -> bool {
 find_impl_trait_decl :: fn(
     name: string,
     loaded: LoadedModule,
-    seed: MutableMap<string, Symbol>,
+    scope: MutableMap<string, Symbol>,
     name_index: MutableMap<string, LoadedModule>,
     project: LoadedProject,
 ) -> NamedDeclLookup {
     unresolved :: NamedDeclLookup { .trait_decl = null, .other_kind = "" }
-    sym :: name_in_module_scope(name, loaded, seed, name_index) ?? return unresolved
+    sym :: name_in_file_scope(name, loaded, scope, name_index) ?? return unresolved
     if sym.kind != .Trait {
         // @partial: only a type declaration is reported by its kind ; any other
         // binding reads as an unresolved type name.
@@ -1100,15 +1105,15 @@ find_impl_trait_decl :: fn(
     return unresolved
 }
 
-// The symbol `name` binds to in `loaded`'s scope, an import followed to the
-// declaration it names. Null when the name binds to nothing.
-name_in_module_scope :: fn(
+// The symbol `name` binds to in a file's `scope` (`file_root_scope`), an import
+// followed to the declaration it names. Null when the name binds to nothing.
+name_in_file_scope :: fn(
     name: string,
     loaded: LoadedModule,
-    seed: MutableMap<string, Symbol>,
+    scope: MutableMap<string, Symbol>,
     name_index: MutableMap<string, LoadedModule>,
 ) -> Symbol | null {
-    own :: loaded.collected.symbols[name] ?? return seed[name]
+    own :: scope[name] ?? return null
     if own.kind != .ImportBinding {
         return own
     }
@@ -1644,7 +1649,7 @@ settle_external_expr_bodied_returns :: fn(
 // divergence SPEC §UFCS rules out ("resolves … exactly as `foo(x)` would").
 populate_imported_fn_overloads :: fn(
     entry_typed: TypedProgram!,
-    wildcards: FileWildcards[],
+    wildcards: FileImports[],
     typed_by_name: MutableMap<string, TypedProgram!>,
 ) -> void {
     // Loop-invariant : the prelude is the same module for every file.
@@ -1750,7 +1755,7 @@ push_module_exported_fns :: fn(
         for sym in bucket {
             // Only EXPORTED fns are reachable cross-module — a private fn is not
             // importable, so it must not enter another module's UFCS/prefix pool
-            // (mirrors `build_wildcard_seed`'s Public filter + the destructure
+            // (mirrors `seed_wildcard_exports`'s Public filter + the destructure
             // R2008 check). Without this, a module's private helpers leaked as
             // cross-module UFCS candidates.
             if sym.visibility != .Public {

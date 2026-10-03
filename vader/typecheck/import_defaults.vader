@@ -24,7 +24,8 @@ module "vader/typecheck"
 import "std/collections"
 import "vader/resolver"
 
-AST :: import "vader/parser"
+AST :: import "toolchain/ast"
+import "vader/resolver/symbol"
 
 /// Publish the resolutions for every identifier inside `fd`'s default values.
 ///

@@ -23,6 +23,7 @@ import "std/string_builder"
 import "vader/bytecode"
 import "vader/lower"
 import "vader/types"
+import "toolchain/span"
 
 export EscapeStats :: struct {
     total_allocs: i32

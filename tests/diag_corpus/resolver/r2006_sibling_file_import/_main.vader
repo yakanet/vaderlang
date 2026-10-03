@@ -1,0 +1,13 @@
+// Imports are FILE-scoped (SPEC §"Modules") : a name a sibling file of the same
+// module imports is not in scope here. `other.vader` wildcard-imports
+// `std/string` and binds the namespace `Text` ; this file imports neither, so
+// both `trim` and `Text` are unresolved (R2006). The module's own declaration
+// `from_sibling`, by contrast, is shared by every file.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    _ :: trim("  a  ")
+    _ :: Text.trim("  b  ")
+    return from_sibling()
+}

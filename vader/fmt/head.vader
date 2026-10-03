@@ -11,6 +11,7 @@ module "vader/fmt"
 import "std/string"
 p :: import "toolchain/ast"
 import "toolchain/span"
+import "vader/parser"
 
 /// Longest const, field or variant head shown before it is cut with ` …` : a
 /// table written over many lines is a value, not a signature. A union alias is

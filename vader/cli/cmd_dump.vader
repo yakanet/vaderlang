@@ -27,6 +27,8 @@ import "vader/bytecode"
 import "vader/midir"
 import "vader/pipeline"
 import "vader/diagnostics"
+import "std/collections"
+import "toolchain/ast"
 import "vader/c_emit" {
     EmitOptions as CEmitOptions,
     default_emit_options as default_c_emit_options,
@@ -191,17 +193,14 @@ resolve_loaded_project :: fn(project: LoadedProject!, scope: string[]) -> Resolv
         if !module_in_scope(lm.module.display_path, scope) {
             continue
         }
-        // One rebuild each, shared by the seed and the ambiguity scan.
-        mod_paths :: all_wildcard_paths(lm.collected)
-        mod_excludes :: all_wildcard_excludes(lm.collected)
-        rm :: resolve_module_with_collected_dp_seeded(
-            lm.module.files[0].program,
+        rm :: resolve_module_files(
+            lm.module.files,
             lm.module.files[0].path,
             lm.module.display_path,
             project.factory,
             lm.collected,
-            build_wildcard_seed(mod_index, mod_paths, mod_excludes, core_seed),
-            wildcard_ambiguities(mod_index, mod_paths, mod_excludes, core_seed),
+            mod_index,
+            core_seed,
         )
         modules.push(rm)
         resolved_by_id[id] = rm

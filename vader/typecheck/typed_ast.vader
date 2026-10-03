@@ -260,16 +260,16 @@ export TypedProgram :: struct {
     /// while it mints struct types ; consumed by `field.vader` so it
     /// can walk a struct's field list to type `obj.f` accesses without
     /// re-walking the program AST.
-    struct_decls: MutableMap<i32, StructDecl>
+    struct_decls: MutableMap<i32, AST.StructDecl>
 
     /// `TraitDecl` keyed by the symbol's id. Same shape as
     /// `struct_decls` ; consumed by orchestrate's T3036 check.
-    trait_decls: MutableMap<i32, TraitDecl>
+    trait_decls: MutableMap<i32, AST.TraitDecl>
 
     /// `Symbol.id → FnDecl` for every top-level fn (and impl method).
     /// Lets call-site code reach the fn's `type_params` (with bounds)
     /// without re-walking the AST. Populated at `declare_module` time.
-    fn_decls: MutableMap<i32, FnDecl>
+    fn_decls: MutableMap<i32, AST.FnDecl>
 
     /// Owner module of each trait — used when resolving trait method
     /// signatures so cross-module `Iterator<T>.next` types `T` against
@@ -485,7 +485,7 @@ export TypedProgram :: struct {
     /// declaration of the same C symbol — the linker would otherwise
     /// silently bind both call sites to one prototype, producing UB at
     /// mismatched ABIs.
-    extern_symbols: MutableMap<string, FnDecl>
+    extern_symbols: MutableMap<string, AST.FnDecl>
 
     /// In-fn type aliases : `t :: i32` inside a fn body. Keyed by the
     /// binding's `Symbol.id` (resolver-minted Local), value is the
@@ -529,7 +529,7 @@ export TypedProgram :: struct {
     /// Const Symbol.id → its declaration, for the span of its written type. A module
     /// const IS reopenable now (a mutable one gets a writable global), so `annotate
     /// \`WORDS!\`` is actionable rather than a dead end.
-    const_decls: MutableMap<i32, ConstDecl>
+    const_decls: MutableMap<i32, AST.ConstDecl>
 
     /// FieldExpr.id → the resolved trait's `trait_key`. Populated when a
     /// `x.method()` call dispatches via a TypeParam bound (`T: Hash`
@@ -635,9 +635,9 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .impl_method_decl_types = MutableMap<u64, Type> {},
     .param_types     = MutableMap<u64, Type> {},
     .type_expr_types = MutableMap<u64, Type> {},
-    .struct_decls    = MutableMap<i32, StructDecl> {},
-    .trait_decls     = MutableMap<i32, TraitDecl> {},
-    .fn_decls        = MutableMap<i32, FnDecl> {},
+    .struct_decls    = MutableMap<i32, AST.StructDecl> {},
+    .trait_decls     = MutableMap<i32, AST.TraitDecl> {},
+    .fn_decls        = MutableMap<i32, AST.FnDecl> {},
     .trait_decl_owners = MutableMap<i32, ResolvedModule> {},
     .impl_methods    = MutableMap<string, ImplMethod> {},
     .narrow          = NarrowState {},
@@ -667,13 +667,13 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .node_spans      = MutableMap<usize, Span> {},
     .dump_types      = false,
     .generator_states = MutableMap<u64, GeneratorState> {},
-    .extern_symbols  = MutableMap<string, FnDecl> {},
+    .extern_symbols  = MutableMap<string, AST.FnDecl> {},
     .let_type_aliases = MutableMap<i32, Type> {},
     .local_init_callee = MutableMap<i32, Symbol> {},
     .loop_var_iterable = MutableMap<i32, AST.Expr> {},
     .local_annotation = MutableMap<i32, AST.TypeExpr> {},
     .local_init_index = MutableMap<i32, AST.Expr> {},
-    .const_decls = MutableMap<i32, ConstDecl> {},
+    .const_decls = MutableMap<i32, AST.ConstDecl> {},
     .bounded_dispatch_trait = MutableMap<usize, string> {},
     .fn_trait_dispatches = MutableMap<usize, bool> {},
     .fn_display_dispatches = MutableMap<usize, bool> {},
@@ -701,7 +701,7 @@ export empty_typed_program :: fn() -> TypedProgram {
         .fn_overloads = MutableMap<string, Symbol[]!> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
-        .alias_decls = MutableMap<i32, TypeAliasDecl> {},
+        .alias_decls = MutableMap<i32, AST.TypeAliasDecl> {},
         .type_param_bounds = MutableMap<i32, AST.Expr> {},
         .diags = [],
         .deprecated_messages = MutableMap<i32, string> {},
@@ -726,7 +726,7 @@ fresh_module :: fn() -> ResolvedModule {
         .fn_overloads = MutableMap<string, Symbol[]!> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
-        .alias_decls = MutableMap<i32, TypeAliasDecl> {},
+        .alias_decls = MutableMap<i32, AST.TypeAliasDecl> {},
         .type_param_bounds = MutableMap<i32, AST.Expr> {},
         .diags = [],
         .deprecated_messages = MutableMap<i32, string> {},

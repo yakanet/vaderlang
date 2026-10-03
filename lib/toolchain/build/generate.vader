@@ -35,6 +35,7 @@ import "std/string"
 import "std/string_builder"
 import "vader/diagnostics"
 Parse :: import "vader/parser"
+import "vader/resolver"
 
 // ---- the contract ---------------------------------------------------------
 

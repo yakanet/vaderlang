@@ -24,6 +24,8 @@
 module "vader/c_emit"
 
 import "vader/c_emit/c_ast"
+import "vader/bytecode"
+vm :: import "vader/bytecode"
 
 /// One loop's lifted array state. `opener_pc` names the locals, so nested
 /// regions cannot collide.

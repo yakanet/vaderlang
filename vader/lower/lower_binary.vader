@@ -8,6 +8,7 @@ import "std/collections"
 import "toolchain/ast"
 import "vader/typecheck"
 import "vader/types"
+import "toolchain/span"
 
 // Peel a narrowing `LoweredCast` off a type-check operand. `lower_ident`
 // inserts such a cast (`LoweredCast { value: LoweredIdent : <union> }`) when the

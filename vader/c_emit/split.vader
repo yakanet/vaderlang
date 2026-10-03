@@ -34,6 +34,7 @@ import "std/sort"
 import "std/string"
 import "vader/bytecode"
 import "vader/c_emit/c_ast"
+import "vader/text"
 
 /// A program emitted as several C translation units. `header` is the shared
 /// `.h`, `globals` the data-globals `.c`, and `units` the function `.c` bodies —

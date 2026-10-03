@@ -27,6 +27,7 @@ import "std/collections"
 import "vader/diagnostics"
 import "toolchain/span"
 import "std/abort"
+import "vader/comptime"
 
 // ---- element type ---------------------------------------------------------
 

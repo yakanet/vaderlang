@@ -18,6 +18,7 @@ import "vader/pipeline"
 import "vader/diagnostics"
 import "vader/vm"
 Prof :: import "vader/profile"
+import "vader/lower"
 
 
 

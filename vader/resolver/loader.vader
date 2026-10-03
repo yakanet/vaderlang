@@ -81,7 +81,7 @@ export LoadedModule :: struct {
     /// referenced: a helper called only from another platform's body is not dead
     /// code, and reporting it as such is a false positive on exactly the code
     /// this mechanism exists to enable.
-    discarded_bodies: AST.FnDecl[] = []
+    discarded_bodies: FnDecl[] = []
 }
 
 /// Build the module graph rooted at `entry_path`. Returns the loaded
@@ -610,9 +610,6 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
             }
         }
     }
-    // Not `merge_bucket_map` : `CollectedModule.fn_overloads` is declared
-    // read-only at the map level, so it cannot fill that helper's `!` slot
-    // (T3077). Widening the field's type reaches well past this pass.
     for [name, bucket] in src.fn_overloads {
         existing :: dst.fn_overloads[name]
         match existing {
@@ -631,7 +628,7 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
     // those imports, because imports are file-scoped (SPEC §"Modules"). Merging
     // them would let one file's `{ x as _ }` silence a sibling's plain wildcard
     // of the same path.
-    dst.wildcards.push_all(src.wildcards)
+    dst.files.push_all(src.files)
 }
 
 

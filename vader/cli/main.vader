@@ -14,6 +14,8 @@ import "vader/version"
 import "vader/lower"
 import "vader/bytecode"
 TTY :: import "std/tty"
+import "toolchain/ast"
+import "vader/pipeline"
 
 // Every invocation is `vader <action> <options>`: the action comes first and
 // owns the whole tail. There is no global option zone ahead of it — the old

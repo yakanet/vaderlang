@@ -33,28 +33,31 @@ export CollectedModule :: struct {
     /// Raw `import "path"` entries in source order — the loader uses
     /// these to walk the module graph transitively.
     import_paths: string[]!
-    /// Wildcard surface, ONE ENTRY PER FILE of the module. Imports are
+    /// Import surface, ONE ENTRY PER FILE of the module. Imports are
     /// file-scoped (SPEC §"Modules": "names bound in one file of a multi-file
     /// module are not visible in sibling files"), so `merge_collected` appends
-    /// an entry rather than unioning the paths — a sibling file's modifier list
-    /// must not bind this one. Consumers that are still module-wide read the
-    /// merged view through `all_wildcard_paths` / `all_wildcard_excludes`.
-    wildcards: FileWildcards[]!
+    /// an entry rather than unioning them — a sibling file's imports must not
+    /// bind this one.
+    files: FileImports[]!
 }
 
-/// One file's wildcard-import surface — the `import "p"` and `import "p" { … }`
-/// forms it wrote, which are the only ones that inject unqualified names.
-export FileWildcards :: struct {
+/// One file's imports : the wildcard paths its `import "p"` / `import "p" { … }`
+/// forms inject unqualified, and the names its other forms bind.
+export FileImports :: struct {
     /// The file's source path, exactly as `Program.file` and every span minted
     /// in it carry it. It is the key a per-file overload table is looked up by.
     file:     string
     /// Paths this file wildcard-imports, in source order. Every public export
     /// of each becomes callable in THIS file (prefix + UFCS).
-    paths:    string[]!
+    paths:    string[]! = []
     /// Per-path exclusions from a `import "p" { x as _, y as z }` modifier list
     /// — every listed source name (both `as _` and rename sources) is removed
     /// from that path's wildcard. Renames rebind via `imports`.
-    excludes: MutableMap<string, string[]!>
+    excludes: MutableMap<string, string[]!> = MutableMap<string, string[]!> {}
+    /// The import bindings this file mints — namespace aliases and renames — by
+    /// local name. `CollectedModule.symbols` keeps one binding per name for the
+    /// whole module ; this keeps the file's own.
+    bindings: MutableMap<string, Symbol> = MutableMap<string, Symbol> {}
 }
 
 /// True when this file's wildcard import of `path` drops `name` through its
@@ -62,54 +65,9 @@ export FileWildcards :: struct {
 ///
 /// @param path  a wildcard-imported path.
 /// @param name  an export of that module.
-export drops :: fn(self: FileWildcards, path: string, name: string) -> bool {
+export drops :: fn(self: FileImports, path: string, name: string) -> bool {
     dropped :: self.excludes[path] ?? return false
     return name in dropped
-}
-
-/// Every wildcard path of the module, files merged, in load order. For the
-/// consumers that have not moved to file scope yet — the resolver's unqualified
-/// seed (`build_wildcard_seed`, `wildcard_ambiguities`), whose own body walker
-/// is `files[0]`-only anyway (TODO §1.13d).
-export all_wildcard_paths :: fn(self: CollectedModule) -> string[]! {
-    out: string[]!: []
-    for fw in self.wildcards {
-        out.push_all(fw.paths)
-    }
-    return out
-}
-
-/// The module-wide union of every file's exclusions, keyed by path. Sibling to
-/// `all_wildcard_paths` and carrying the same caveat: the union is only correct
-/// for a single-file module.
-export all_wildcard_excludes :: fn(self: CollectedModule) -> MutableMap<string, string[]!> {
-    out :: MutableMap<string, string[]!> {}
-    for fw in self.wildcards {
-        merge_bucket_map(out, fw.excludes)
-    }
-    return out
-}
-
-/// Append every bucket of `src` onto `dst`'s, creating the bucket when `dst`
-/// has no entry for that key — the "append, never replace" rule, in one place.
-///
-/// `merge_collected`'s overload table wants the same thing but cannot call this:
-/// `CollectedModule.fn_overloads` is read-only at the map level, so it does not
-/// fit the `!` slot below (T3077), and widening that field reaches past the
-/// resolver. It keeps its own copy of the loop until then.
-///
-/// @param dst  the map being merged into, mutated in place.
-/// @param src  the map whose buckets are appended ; left untouched.
-merge_bucket_map :: fn<K, V>(dst: MutableMap<K, V[]!>!, src: MutableMap<K, V[]!>) -> void {
-    for [key, values] in src {
-        existing :: dst[key]
-        if existing is null {
-            dst[key] = values
-        } else {
-            existing.push_all(values)
-            dst[key] = existing
-        }
-    }
 }
 
 /// Mint top-level symbols for `program`. Order of insertion mirrors source
@@ -127,22 +85,23 @@ export collect_module :: fn(
     factory: SymbolFactory!,
     index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[]!,
 ) -> CollectedModule {
-    // One `FileWildcards` per collect_module call — this pass sees exactly one
+    // One `FileImports` per collect_module call — this pass sees exactly one
     // file, and `collect_files` appends each file's entry into the merged view.
     out :: CollectedModule {
         .symbols      = MutableMap<string, Symbol> {},
         .fn_overloads = MutableMap<string, Symbol[]!> {},
         .imports      = new_import_table(),
         .import_paths = [],
-        .wildcards    = [
-            FileWildcards {
-                .file = program.file, .paths = [], .excludes = MutableMap<string, string[]!> {},
-            },
-        ],
+        .files        = [FileImports { .file = program.file }],
     }
     check_import_form_conflict(program.decls, diags)
     for d in program.decls {
         out.collect_decl(d, module_path, module_name, factory, index, paths, diags)
+    }
+    for [name, sym] in out.symbols {
+        if sym.kind == .ImportBinding {
+            out.files[0].bindings[name] = sym
+        }
     }
     return out
 }
@@ -285,9 +244,14 @@ add_named :: fn(
 /// R2002 ; the path itself is run through `diagnose_import_path` for
 /// R2001 / R2024 / R2025 / R2028.
 collect_import :: fn(
-    self: CollectedModule!, d: ImportDecl, module_path: string,
-    module_name: string, factory: SymbolFactory!,
-    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[]!,
+    self: CollectedModule!,
+    d: ImportDecl,
+    module_path: string,
+    module_name: string,
+    factory: SymbolFactory!,
+    index: MutableMap<string, DiscoveredModule>,
+    paths: IncludePath[],
+    diags: Diagnostic[]!,
 ) -> void {
     if d.path == "" {
         diags.push(resolver_error(.EmptyImportPath, d.span, ""))
@@ -308,14 +272,14 @@ collect_import :: fn(
             // bare `import "p"` — wildcard : record the path so the resolver
             // seeds every public fn of `p` into this FILE's scope. No name
             // binding (the path is also in `import_paths` above).
-            self.wildcards[0].paths.push(d.path)
+            self.files[0].paths.push(d.path)
         }
         is DestructureImport -> {
             // `import "p" { … }` — WILDCARD of p PLUS per-name modifiers:
             //   `x as _` excludes x ; `x as y` excludes x under its own name and
             //   binds it as y. A plain name (no `as`) is an error — the wildcard
             //   already brings every export.
-            self.wildcards[0].paths.push(d.path)
+            self.files[0].paths.push(d.path)
             // `import "p" {}` — an empty modifier list is just the bare wildcard.
             if b.names.len() == 0 {
                 diags.push(warning(.EmptyImportModifierList, d.span, "`${d.path}`"))
@@ -337,7 +301,7 @@ collect_import :: fn(
                     }
                 }
             }
-            self.wildcards[0].excludes[d.path] = excluded
+            self.files[0].excludes[d.path] = excluded
         }
     }
 }
@@ -524,9 +488,9 @@ import "x" { keep as kept, drop as _ }
     factory :: SymbolFactory {}
     collected :: collect_module_no_index(parsed.program, "test", factory)
     // The path becomes a wildcard, and both modifier source names are excluded.
-    // One file collected, so its `FileWildcards` entry is the only one.
-    assert(collected.wildcards[0].paths.len() == 1, "the path is a wildcard")
-    ex :: collected.wildcards[0].excludes["x"]
+    // One file collected, so its `FileImports` entry is the only one.
+    assert(collected.files[0].paths.len() == 1, "the path is a wildcard")
+    ex :: collected.files[0].excludes["x"]
     match ex {
         is string[] -> { assert(ex.len() == 2, "both `keep` and `drop` excluded") }
         is null     -> { assert(false, "excludes recorded for x") }

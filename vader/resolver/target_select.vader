@@ -16,18 +16,18 @@
 // Spans are NOT rewritten. The merged node keeps the declaration's own span as
 // its identity — what `rename` and `references` target — while the grafted body
 // keeps the spans it was parsed with, so a diagnostic inside it names the file it
-// was written in, and it resolves against that file's imports once the resolver
-// moves to file-scoped ones (TODO §1.13d).
+// was written in, and the resolver walks it against that file's imports
+// (`walk_body`).
 
 module "vader/resolver"
 
 import "std/collections"
 import "std/string"
-import "toolchain/ast"
 import "toolchain/span"
 import "vader/diagnostics"
 import "std/target"
 import "vader/target"
+AST :: import "toolchain/ast"
 
 // Whether THIS body's code is still present anywhere in the selected files. The
 // merged node keeps the winner's body verbatim, spans included, so the body's own
@@ -166,14 +166,13 @@ export select_target_bodies :: fn(
             }
         }
         // Spans are NOT rewritten — each declaration keeps the ones it was parsed
-        // with, so diagnostics name the file it was written in and file-scoped
-        // import resolution stays correct once the resolver moves to file scope
-        // (TODO §1.13d).
+        // with, so diagnostics name the file it was written in and its body
+        // resolves against that file's imports.
         out.push(
             SourceFile {
                 .path = f.path,
                 .content = f.content,
-                .program = Program {
+                .program = AST.Program {
                     .file = f.program.file,
                     .span = f.program.span,
                     .id = f.program.id,

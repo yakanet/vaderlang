@@ -18,6 +18,7 @@ import "vader/diagnostics"
 import "vader/resolver/symbol"
 import "vader/types"
 import "std/collections"
+import "std/string"
 
 // The `<fn>$State` naming convention — one source of truth shared by the symbol
 // mint (`gen_state_symbol`) and the lower-side recognition

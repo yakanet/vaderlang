@@ -1,0 +1,9 @@
+// The sibling whose imports must not reach `_main.vader`.
+
+module "snippet"
+
+import "std/string"
+
+Text :: import "std/string"
+
+from_sibling :: fn() -> i32 = i32(trim(" c ").byte_len() + Text.trim(" d ").byte_len())

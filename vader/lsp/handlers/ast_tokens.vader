@@ -84,8 +84,8 @@ push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken![]!) -> void {
 /// constant. Seeding also gets shadowing right for free — `Scope.lookup` walks
 /// innermost-out, so a local shadowing a const name still resolves to the local.
 ///
-/// Sibling-file and imported names remain unresolved (they need the project-wide
-/// module graph, TODO §1.13d) and keep the `Variable` fallback.
+/// Sibling-file and imported names remain unresolved (they need the project's
+/// module graph) and keep the `Variable` fallback.
 refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken![]!, source: string) -> void {
     factory :: SymbolFactory {}
     collected :: collect_module_no_index(program, uri, factory)
@@ -93,7 +93,7 @@ refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken![]!, 
     for sym in collected.symbols.values() {
         seed[sym.name] = sym
     }
-    resolved :: resolve_program(program, seed, uri, factory, MutableMap<string, string[]!> {})
+    resolved :: resolve_program(program, seed, uri, factory)
     // `idents` is keyed by `Span.hash()` = (file, line, **codepoint column**),
     // matching the resolver/parser columns. RawTokens now carry only byte
     // offsets (`col` is 0 until the later `reencode_columns` pass), so derive

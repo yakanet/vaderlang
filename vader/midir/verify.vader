@@ -26,6 +26,8 @@ import "std/collections"
 import "toolchain/span"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
+import "vader/types"
+import "vader/typecheck"
 
 // ---- resolution tables ----------------------------------------------------
 

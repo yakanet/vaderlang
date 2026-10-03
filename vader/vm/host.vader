@@ -446,7 +446,7 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
     }
     debug.output_sink(i32(fd) - 1, bytes_to_string(bs))
     // `WriteFile` answers a bool, `write` a byte count.
-    if bc_single_result(info.signature) == .Bool {
+    if bc.bc_single_result(info.signature) == .Bool {
         return HostOk { .value = BoolVal(true) }
     }
     return HostOk { .value = I64Val(i64(count)) }
@@ -573,7 +573,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             // of the stack temporary the native shim spills to.
             w :: extern_word(v, at_pc, info.extern_name, i)
             if w is Trap { return w }
-            width :: usize(size_of_val_type(params[i]))
+            width :: usize(bc.size_of_val_type(params[i]))
             if width == 0 || width > 8 {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: `@c_pointer` on a ${bc.val_type_name(params[i])} parameter is not covered" }
             }
@@ -630,14 +630,14 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
 
     // Bound once: an `@extern` returns one value or none, and re-asking costs a
     // call with two length tests where reading a field used to be free.
-    result :: bc_single_result(info.signature)
+    result :: bc.bc_single_result(info.signature)
     // `vader_ffi.h` has a `double` trampoline and no `float` one: a callee
     // returning `float` leaves only the low half of the result register
     // meaningful, so reading 64 bits of it would give an arbitrary value.
     if result == .F32 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a `f32` result is not covered" }
     }
-    desc[0] = if ffi_result_is_opt(types, bc_single_result_type(info.signature), .String) {
+    desc[0] = if ffi_result_is_opt(types, bc.bc_single_result_type(info.signature), .String) {
         u8(FFI_STR_OPT)
     } else {
         u8(ffi_result_class(result))
@@ -659,7 +659,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     // frame is empty, `vader_array_bytes` reports a NULL pointer, and the
     // runtime's `fview.len < nargs * 8` guard reads `0 < 0` — so `getpid()`
     // wrote its result to address 0 and the interpreter took SIGSEGV.
-    if frame.len() == 0 && bc_single_result(info.signature) != .Void {
+    if frame.len() == 0 && bc.bc_single_result(info.signature) != .Void {
         push_little_endian(frame, 0, 8)
     }
 
@@ -705,7 +705,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     }
     // `<pointer> | null`: NULL is C's "absent", and nothing downstream can tell
     // a null pointer from a pointer whose value is 0.
-    if ffi_result_is_opt(types, bc_single_result_type(info.signature), .Pointer)
+    if ffi_result_is_opt(types, bc.bc_single_result_type(info.signature), .Pointer)
         && read_little_endian(frame, 0, 8, false) == 0 {
         return HostOk { .value = NullVal {} }
     }

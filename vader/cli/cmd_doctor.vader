@@ -29,6 +29,7 @@ TTY :: import "std/tty"
 import "vader/pipeline"
 import "vader/resolver"
 import "vader/version"
+import "std/collections"
 
 // ---- the report -----------------------------------------------------------
 

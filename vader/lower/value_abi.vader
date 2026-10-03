@@ -28,6 +28,8 @@ import "std/collections"
 import "std/string_builder"
 import "vader/types"
 import "vader/typecheck"
+import "toolchain/span"
+import "vader/resolver/symbol"
 
 /// Widest payload that crosses in registers rather than through memory.
 ///

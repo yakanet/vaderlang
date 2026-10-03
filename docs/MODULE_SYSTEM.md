@@ -787,3 +787,10 @@ and the situation shouldn't arise (`collectModuleSymbols` should
 either keep per-file symbol tables or fire R2011 on duplicates).
 Same arbitrage : refactor to file-scoped, or revise the spec.
 
+**Resolved for imports** (2026-10-03) : refactored to file-scoped.
+`CollectedModule.files` keeps one `FileImports` per file — its wildcard
+paths, its exclusions and its import bindings — and
+`resolve_module_files` resolves each file against a root built from its
+own entry. A `@target` body grafted from a sibling file resolves against
+the imports of the file it was written in.
+

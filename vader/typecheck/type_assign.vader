@@ -16,6 +16,7 @@ module "vader/typecheck"
 
 import "vader/types"
 import "toolchain/span"
+import "vader/diagnostics"
 
 /// Whether `from` can flow into a slot expecting `to` without explicit coercion.
 ///

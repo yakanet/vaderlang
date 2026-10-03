@@ -1545,7 +1545,7 @@ walk_levels :: fn(e: AST.Expr, typed: TypedProgram, budget: i32) -> bool {
 ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32) -> bool {
     sym :: typed.resolved.idents[ident.span.hash()] ?? return false
     // A module-level const needs no table, and holds cross-module for free:
-    // `build_wildcard_seed` seeds the ORIGINAL symbol, kind included.
+    // `seed_wildcard_exports` seeds the ORIGINAL symbol, kind included.
     if sym.kind == .Const {
         // ... except for the ONE shape that gets real storage : a mutable array of
         // value elements is emitted as a fixed-capacity global, so an element write

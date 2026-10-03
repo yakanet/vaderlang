@@ -1,0 +1,14 @@
+// A `@target` body written in another file of the module resolves against the
+// imports of THAT file (SPEC §"Modules" : imports are file-scoped), not those
+// of the declaration it is grafted onto. Here the declaration imports
+// `std/string` and uses `trim` ; the body in `other.vader`, selected on every
+// operating system, imports nothing — so its `trim` is unresolved (R2006).
+
+module "snippet"
+
+import "std/string"
+
+@target
+shout :: fn(s: string) -> string = s.trim()
+
+main :: fn() -> i32 = i32(shout(" a ").byte_len())

@@ -23,6 +23,16 @@ export new_scope :: fn(root: MutableMap<string, Symbol>) -> Scope {
     return Scope { .frames = [root] }
 }
 
+/// Replace the root frame, returning the one it replaces — the inner frames stay.
+///
+/// @param root  the new root frame.
+/// @return      the previous root frame, to put back.
+export swap_root :: fn(self: Scope!, root: MutableMap<string, Symbol>) -> MutableMap<string, Symbol> {
+    previous :: self.frames[0]
+    self.frames[0] = root
+    return previous
+}
+
 /// Open a fresh inner scope. Subsequent `bind` calls land here until the
 /// matching `pop`.
 export push :: fn(self: Scope!) -> void {

@@ -86,7 +86,7 @@ is_i32_tag :: fn(t: StackTag) = t == .I32 || t == .Char || t == .I64
 /// `I32` holding raw bits, so widening it must ZERO-extend rather than
 /// sign-extend. Any other source tag or target falls through to the boxed path
 /// unchanged.
-convert_int_fast :: fn(frame: Frame!, target: ConvertTarget, from_name: string) -> bool {
+convert_int_fast :: fn(frame: Frame!, target: bc.ConvertTarget, from_name: string) -> bool {
     if target != .I32 && target != .I64 {
         return false
     }
