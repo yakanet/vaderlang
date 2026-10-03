@@ -40,7 +40,8 @@ interface Query {
     | "textDocument/references"
     | "textDocument/rename"
     | "textDocument/prepareRename"
-    | "textDocument/semanticTokens/full";
+    | "textDocument/semanticTokens/full"
+    | "textDocument/signatureHelp";
   // `position` drives hover/definition/completion/codeAction ; `range` drives
   // inlayHint ; documentLink needs neither — it answers for the whole document,
   // and the params it ignores are harmless.
