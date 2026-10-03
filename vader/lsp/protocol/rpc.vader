@@ -66,6 +66,14 @@ export encode_response :: fn(id: JsonValue, result: JsonValue) -> string {
     return stringify(JsonObject { .entries = obj })
 }
 
+/// Encode a successful response whose `result` is already JSON text — for a
+/// result too large to build as a `JsonValue` tree first.
+///
+/// @param id      the request's id, echoed verbatim.
+/// @param result  the result, as JSON text.
+export encode_response_text :: fn(id: JsonValue, result: string) -> string =
+    "{\"jsonrpc\":\"2.0\",\"id\":${stringify(id)},\"result\":${result}}"
+
 /// Encode an error response : `{ jsonrpc, id, error: { code, message } }`.
 /// `code` is the JSON-RPC standard code (cf. SPEC §JSON-RPC error codes).
 export encode_error :: fn(id: JsonValue, code: i32, message: string) -> string {

@@ -115,6 +115,10 @@ export ServerState :: struct {
     /// didClose of that document : a large dump takes a noticeable fraction of a
     /// second to read, and the editor asks for hints on every scroll.
     virt_listings:              MutableMap<string, Vm.VirtListing | Vm.VirtParseError>
+    /// uri → the line index of an open `.virt` document, rebuilt on every didOpen
+    /// / didChange : each request on it converts a position, and indexing a large
+    /// dump costs milliseconds.
+    virt_line_indices:          MutableMap<string, LineIndex>
 }
 
 export new_state :: fn(library_root: string, vader_root: string) -> ServerState {
@@ -132,6 +136,7 @@ export new_state :: fn(library_root: string, vader_root: string) -> ServerState 
         .inlay_refresh_support   = false,
         .next_request_id         = 1,
         .virt_listings           = MutableMap<string, Vm.VirtListing | Vm.VirtParseError> {},
+        .virt_line_indices       = MutableMap<string, LineIndex> {},
     }
 }
 
@@ -142,6 +147,13 @@ export new_state :: fn(library_root: string, vader_root: string) -> ServerState 
 /// @param uri  a document uri.
 export is_virt_uri :: fn(uri: string) -> bool = uri.ends_with(".virt")
 
+/// The line index of the open `.virt` document at `uri` — its text is the
+/// index's `source` ; null when no such document is open.
+///
+/// @param uri  a `.virt` document uri.
+export virt_line_index_for :: fn(self: ServerState, uri: string) -> LineIndex | null =
+    self.virt_line_indices[uri]
+
 /// The open `.virt` document at `uri` read back by the bytecode reader ; null
 /// when no such document is open or the reader refuses it. Read once per
 /// version of the document — a refusal is cached too.
@@ -149,8 +161,8 @@ export is_virt_uri :: fn(uri: string) -> bool = uri.ends_with(".virt")
 /// @param uri  a `.virt` document uri.
 export virt_listing_for :: fn(self: ServerState!, uri: string) -> Vm.VirtListing | null {
     if self.virt_listings[uri] == null {
-        text :: self.source_for(uri) ?? return null
-        self.virt_listings[uri] = Vm.parse_virt_listing(text)
+        li :: self.virt_line_indices[uri] ?? return null
+        self.virt_listings[uri] = Vm.parse_virt_listing(li.source)
     }
     listing :: self.virt_listings[uri]
     return if listing is Vm.VirtListing { listing } else { null }
@@ -289,6 +301,13 @@ doc_overlay :: fn(self: ServerState) -> MutableMap<string, string> {
     return overlay
 }
 
+// A `.virt` document's text arrived : index its lines now, read it back on the
+// first request that needs the module.
+track_virt_document :: fn(self: ServerState!, uri: string, text: string) -> void {
+    self.virt_listings.remove(uri)
+    self.virt_line_indices[uri] = new_line_index(text, self.position_encoding)
+}
+
 /// `textDocument/didOpen` handler. Params shape :
 ///   { textDocument: { uri, languageId, version, text } }
 export handle_did_open :: fn(self: ServerState!, params: JsonValue) -> void {
@@ -298,7 +317,7 @@ export handle_did_open :: fn(self: ServerState!, params: JsonValue) -> void {
     text :: get_string(td, "text")
     self.docs[uri] = text
     if is_virt_uri(uri) {
-        self.virt_listings.remove(uri)
+        track_virt_document(self, uri, text)
         return
     }
     self.indices[uri] = build_index(uri, text, self.position_encoding)
@@ -323,7 +342,7 @@ export handle_did_change :: fn(self: ServerState!, params: JsonValue) -> void {
                 text :: get_string(first, "text")
                 self.docs[uri] = text
                 if is_virt_uri(uri) {
-                    self.virt_listings.remove(uri)
+                    track_virt_document(self, uri, text)
                     return
                 }
                 self.indices[uri] = build_index(uri, text, self.position_encoding)
@@ -350,6 +369,7 @@ export handle_did_close :: fn(self: ServerState!, params: JsonValue) -> void {
     // it is reachable. A blanked entry still answers as a real one.
     self.docs.remove(uri)
     if is_virt_uri(uri) {
+        self.virt_line_indices.remove(uri)
         self.virt_listings.remove(uri)
         return
     }

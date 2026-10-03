@@ -21,12 +21,12 @@ VirtCursor :: struct {
 
 // The word `params.position` falls inside ; null past the last line, on a blank,
 // a comment, or past the code.
-word_under_cursor :: fn(text: string, li: LineIndex, params: JsonValue) -> VirtCursor | null {
+word_under_cursor :: fn(li: LineIndex, params: JsonValue) -> VirtCursor | null {
     line :: position_line(params)
     if line < 0 || usize(line) >= li.line_starts.len() {
         return null
     }
-    words :: line_words(text, li.line_starts[usize(line)])
+    words :: line_words(li.source, li.line_starts[usize(line)])
     word :: word_at(words, li_offset(li, line, position_character(params))) ?? return null
     return VirtCursor {
         .line  = line,

@@ -10,27 +10,31 @@
 module "vader/lsp/handlers"
 
 import "json"
-import "std/collections"
+import "std/string_builder"
 import "vader/lsp/analysis"
 import "vader/lsp/protocol"
 
 Bc :: import "vader/bytecode"
 
-/// The hints for the lines of `params.range` in a `.virt` document : one per op
-/// whose table indices resolve to a name. Always an array, possibly empty.
+/// The hints for the lines of `params.range` in a `.virt` document — one per op
+/// whose table indices resolve to a name — as the JSON text of the response's
+/// `result`, always an array. Written straight to text : a client asking for a
+/// whole dump gets hundreds of thousands, whose `JsonValue` tree would cost far
+/// more than finding them.
 ///
 /// @param state   the server state, which holds the document and caches its
 ///                read-back module.
 /// @param params  the `textDocument/inlayHint` params.
-export handle_virt_inlay_hint :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
-    hints: JsonValue[]!: []
+export handle_virt_inlay_hint :: fn(state: ServerState!, params: JsonValue) -> string {
     uri :: position_uri(params)
-    text :: state.source_for(uri) ?? return JsonArray { .items = hints }
-    listing :: state.virt_listing_for(uri) ?? return JsonArray { .items = hints }
+    li :: state.virt_line_index_for(uri) ?? return "[]"
+    listing :: state.virt_listing_for(uri) ?? return "[]"
     first :: range_field(params, "start", "line")
     last :: range_field(params, "end", "line")
     module :: listing.module
-    li :: new_line_index(text, state.position_encoding)
+    sb :: StringBuilder {}
+    sb.append("[")
+    empty := true
     for f in 0..<module.functions.len() {
         function :: module.functions[f]
         lines :: listing.functions[f].ops
@@ -43,19 +47,22 @@ export handle_virt_inlay_hint :: fn(state: ServerState!, params: JsonValue) -> J
             if label == "" {
                 continue
             }
-            end :: code_end(text, li.line_starts[lines[k]]) ?? continue
-            hints.push(name_hint(line, li_character(li, line, end), label))
+            end :: code_end(li.source, li.line_starts[lines[k]]) ?? continue
+            if !empty {
+                sb.append(",")
+            }
+            write_name_hint(sb, line, li_character(li, line, end), label)
+            empty = false
         }
     }
-    return JsonArray { .items = hints }
+    sb.append("]")
+    return sb.to_string()
 }
 
 // A name after an operand : no `kind`, which is for types and parameters, and a
 // space before it so it does not read as part of the operand.
-name_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
-    hint :: MutableMap<string, JsonValue> {}
-    hint["position"] = position_json(line, character)
-    hint["label"] = JsonString { .value = label }
-    hint["paddingLeft"] = JsonBool { .value = true }
-    return JsonObject { .entries = hint }
+write_name_hint :: fn(sb: StringBuilder!, line: i32, character: i32, label: string) -> void {
+    sb.append("{\"position\":{\"line\":${line},\"character\":${character}},\"label\":")
+    sb.append(stringify(JsonString { .value = label }))
+    sb.append(",\"paddingLeft\":true}")
 }

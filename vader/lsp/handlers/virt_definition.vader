@@ -25,9 +25,9 @@ Vm :: import "vader/vm"
 /// @param params  the `textDocument/definition` params.
 export handle_virt_definition :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    text :: state.source_for(uri) ?? return JsonNull {}
-    li :: new_line_index(text, state.position_encoding)
-    cursor :: word_under_cursor(text, li, params) ?? return JsonNull {}
+    li :: state.virt_line_index_for(uri) ?? return JsonNull {}
+    text :: li.source
+    cursor :: word_under_cursor(li, params) ?? return JsonNull {}
     if cursor.word == 0 {
         return JsonNull {}
     }
@@ -37,7 +37,7 @@ export handle_virt_definition :: fn(state: ServerState!, params: JsonValue) -> J
     head :: word_text(text, cursor.words[0])
     target :: if head == "br" || head == "br_if" || head == "end" {
         label :: word_text(text, cursor.words[cursor.word])
-        opener_line(text, li, listing.functions[function].ops, k, head == "end", label)
+        opener_line(li, listing.functions[function].ops, k, head == "end", label)
     } else {
         operand_line(listing, function, k, cursor.word - 1)
     }
@@ -111,13 +111,13 @@ op_at :: fn(ops: usize[], line: usize) -> usize | null {
 // as the reader resolves it : walking back, the innermost scope still open, the
 // first one named `label` for a branch, whichever is innermost for an `end`.
 opener_line :: fn(
-    text: string,
     li: LineIndex,
     ops: usize[],
     k: usize,
     closes: bool,
     label: string,
 ) -> usize | null {
+    text :: li.source
     closed := 0
     for back in 0..<k {
         line :: ops[k - 1 - back]

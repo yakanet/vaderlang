@@ -18,13 +18,12 @@ Bc :: import "vader/bytecode"
 /// @param state   the server state, which holds the document's text.
 /// @param params  the `textDocument/hover` params.
 export handle_virt_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    text :: state.source_for(position_uri(params)) ?? return JsonNull {}
-    li :: new_line_index(text, state.position_encoding)
-    cursor :: word_under_cursor(text, li, params) ?? return JsonNull {}
+    li :: state.virt_line_index_for(position_uri(params)) ?? return JsonNull {}
+    cursor :: word_under_cursor(li, params) ?? return JsonNull {}
     if cursor.word != 0 {
         return JsonNull {}
     }
-    doc :: Bc.op_doc(word_text(text, cursor.words[0])) ?? return JsonNull {}
+    doc :: Bc.op_doc(word_text(li.source, cursor.words[0])) ?? return JsonNull {}
     return markdown_hover("```virt\n${doc.forms.join("\n")}\n```\n\n${doc.text}")
 }
 
