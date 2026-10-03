@@ -25,6 +25,7 @@ import "std/string_builder"
 import "std/numbers"
 import "std/string"
 import "std/collections"
+import "std/iter"
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
 /// string carries a trailing newline ; pipe to stdout directly. This is the
@@ -91,8 +92,7 @@ write_data_pool :: fn(sb: StringBuilder!, data_pool: BcDataEntry[], strings: str
     // build for pools without one (`string[]` / primitive tables) so a dump
     // over a large `module.strings` stays free.
     str_index :: if data_pool_has_aggregate(data_pool) { build_string_index(strings) } else { MutableMap<string, i32> {} }
-    for i in 0..<data_pool.len() {
-        e :: data_pool[i]
+    for [e, i] in data_pool.indexed() {
         if e is BcStrData {
             out :: StringBuilder {}
             out.append("data ${i} ${storage_class(e.mutable)}str")
