@@ -585,21 +585,16 @@ merge_collected :: fn(dst: CollectedModule!, src: CollectedModule, diags: Diagno
         match existing {
             is null -> { dst.symbols[name] = sym }
             is Symbol -> {
-                // Two cross-file collisions are legitimate. Fn-vs-fn goes
-                // to `fn_overloads` below — the primary slot keeps its
-                // first-wins binding (`add_fn_symbol`'s policy), the
-                // overloads land in the bucket. ImportBinding-vs-Import-
-                // Binding is normal usage (two files of one module each
-                // importing `MutableMap`); `bind_import` checks the per-file
-                // scope, so the module-wide table only needs one slot to
-                // carry the binding to the wire pass.
+                // Fn-vs-fn is legitimate : it goes to `fn_overloads` below —
+                // the primary slot keeps its first-wins binding
+                // (`add_fn_symbol`'s policy), the overloads land in the bucket.
+                // Import bindings never meet here : they stay in each file's
+                // `FileImports`.
                 //
-                // Every other non-fn kind duplicated across files breaks the
+                // Every other kind duplicated across files breaks the
                 // one-module-owns-one-declaration invariant: R2026 (module
                 // redesign, decision #28).
-                fn_pair     :: existing.kind == .Fn && sym.kind == .Fn
-                import_pair :: existing.kind == .ImportBinding && sym.kind == .ImportBinding
-                if !fn_pair && !import_pair {
+                if existing.kind != .Fn || sym.kind != .Fn {
                     span :: match sym.defined_at as s {
                         is Span -> s
                         is null -> zero_span("")

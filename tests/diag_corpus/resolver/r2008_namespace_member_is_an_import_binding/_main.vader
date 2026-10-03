@@ -1,0 +1,13 @@
+// An import binding of a module is its own, never a member : `snippet/lib`
+// renames `trim` to `tidy` for its own use, so `L.tidy` through a namespace
+// alias is as unreachable as an unexported declaration (R2008).
+
+module "snippet"
+
+L :: import "snippet/lib"
+
+main :: fn() -> i32 {
+    _ :: L.tidy(" a ")
+    _ :: L.shout("b")
+    return 0
+}

@@ -1,0 +1,8 @@
+// snippet/lib_b — owns the trait, not the type.
+
+module "snippet/lib_b"
+
+/// One method.
+export Bar :: trait {
+    baz :: fn(self) -> i32
+}

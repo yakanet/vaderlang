@@ -1,0 +1,8 @@
+// snippet/lib — renames an import for its own use, exports one fn.
+
+module "snippet/lib"
+
+import "std/string" { trim as tidy }
+
+/// The trimmed text.
+export shout :: fn(s: string) -> string = tidy(s)

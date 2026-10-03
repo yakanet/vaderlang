@@ -1,0 +1,5 @@
+module "snippet"
+
+import "std/string" { trim as tidy }
+
+third :: fn() -> string = " c ".tidy() + tidy(" d ")

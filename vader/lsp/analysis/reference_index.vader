@@ -103,8 +103,8 @@ export build_reference_index :: fn(project: LoadedProject!, result: CheckResult)
     for [id, typed] in result.all_modules {
         mod :: project.modules[id] ?? continue
 
-        // Top-level declaration + import sites from the module's symbol table.
-        for sym in typed.resolved.symbols {
+        // Top-level declaration + import sites from the module's symbol tables.
+        for sym in typed.resolved.symbols + typed.resolved.import_bindings {
             da :: sym.defined_at ?? continue
             h :: da.hash()
             if seen[h] != null { continue }

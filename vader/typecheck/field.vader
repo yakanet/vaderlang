@@ -513,7 +513,7 @@ report_namespace_alias_method :: fn(
         if try_curry_receiver(ft, target_ty, typed) == null {
             continue
         }
-        alias :: symbol_by_id(sym_id, typed) ?? continue
+        alias :: import_binding_by_id(sym_id, typed) ?? continue
         // The alias, not the module: `mod_id` is the target's FOLDER, which is
         // not what the import spelled (R2008 on a namespace member is likewise
         // module-free). The repair is the qualified call, so that is the detail.

@@ -1,0 +1,9 @@
+module "snippet"
+
+import "std/string" { trim as tidy }
+
+tidy :: fn(x: i32) -> i32 = x * 2
+
+twice :: fn(x: i32) -> i32 = tidy(x)
+
+fourth :: fn() -> string = " e ".tidy()

@@ -680,15 +680,19 @@ check_module_fn_redefinitions :: fn(
             group.push(decl)
         }
     }
-    // Signature keys of the module's EXPLICITLY-imported free fns, by imported
-    // name — a local fn with the SAME name AND signature as one it imports would
-    // otherwise silently shadow it (resolver-modules-3, CASE C).
-    imported_keys :: imported_fn_sig_keys(loaded, tp, per_module)
+    // The module's EXPLICITLY-imported free fns — a module fn with the SAME name
+    // AND signature as one of them would otherwise silently shadow it
+    // (resolver-modules-3, CASE C).
+    imported :: imported_fn_sigs(loaded, tp, per_module)
+    imported_names :: MutableSet<string> {}
+    for sig in imported {
+        imported_names.add(sig.local)
+    }
+    // Signature keys of the module's fns, by name, where there is something to
+    // check : ≥2 decls (a possible in-module redefinition) or a same-named import.
+    module_keys :: MutableMap<string, MutableMap<string, bool>> {}
     for [name, group] in by_name {
-        imp :: imported_keys[name]
-        // Resolve signatures only when there's something to check : ≥2 local
-        // decls (a possible in-module redefinition) or a same-named import.
-        if group.len() < 2 && imp == null {
+        if group.len() < 2 && !(name in imported_names) {
             continue
         }
         seen :: MutableMap<string, bool> {}
@@ -706,38 +710,47 @@ check_module_fn_redefinitions :: fn(
             } else {
                 seen[key] = true
             }
-            // Same name + signature as an explicitly-imported free fn.
-            if imp != null && imp[key] != null {
-                diags.push(
-                    typecheck_error(
-                        .DuplicateFnDefinition,
-                        fd.span,
-                        "`${name}` has the same signature as an imported function of the same name",
-                    ),
-                )
-            }
+        }
+        module_keys[name] = seen
+    }
+    // Reported on the import : it belongs to one file, the fn to the module.
+    for sig in imported {
+        keys :: module_keys[sig.local] ?? continue
+        if keys[sig.key] != null {
+            diags.push(
+                typecheck_error(
+                    .DuplicateFnDefinition,
+                    sig.span,
+                    "`${sig.local}` has the same signature as a function of this module",
+                ),
+            )
         }
     }
 }
 
-// Signature keys of `loaded`'s explicitly-imported free fns, keyed by the LOCAL
-// binding name each introduces. Reads each import binding's target FnType from
-// the owning module's `decl_types` — import-scoped, NOT the broad
-// `imported_fn_overloads` branch-b scan (which surfaces every co-loaded module's
-// fns and would false-positive on ones this module never imported). Iterates
-// `collected.imports` (keyed by Symbol id) rather than `resolved.symbols`,
-// because a coexisting local fn OVERWRITES the import's `symbols` slot (F2a) —
-// the CASE C scenario — while the ImportInfo survives here. Keys by
-// `info.local` (the alias for a renamed `foo as bar`), NOT the source name : a
-// wrapper like `is_int :: fn(..) = ty_is_int(..)` over `import { is_int as
-// ty_is_int }` must NOT be flagged — its local binding is `ty_is_int`, which no
-// local fn shares.
-imported_fn_sig_keys :: fn(
+// An explicitly-imported free fn of a module : the local name its import binds,
+// the signature key of its target, and where the import is written.
+ImportedFnSig :: struct {
+    local: string
+    key:   string
+    span:  Span
+}
+
+// The explicitly-imported free fns of `loaded`, one per import. Reads each
+// binding's target FnType from the owning module's `decl_types` — import-scoped,
+// NOT the broad `imported_fn_overloads` branch-b scan (which surfaces every
+// co-loaded module's fns and would false-positive on ones this module never
+// imported). Iterates `collected.imports` (keyed by Symbol id), which holds the
+// bindings of every file of the module, and keeps `info.local` (the alias for a
+// renamed `foo as bar`), NOT the source name : a wrapper like
+// `is_int :: fn(..) = ty_is_int(..)` over `import { is_int as ty_is_int }` must
+// NOT be flagged — its local binding is `ty_is_int`, which no module fn shares.
+imported_fn_sigs :: fn(
     loaded: LoadedModule,
     tp: TypedProgram,
     per_module: MutableMap<string, TypedProgram!>,
-) -> MutableMap<string, MutableMap<string, bool>> {
-    out :: MutableMap<string, MutableMap<string, bool>> {}
+) -> ImportedFnSig[] {
+    out: ImportedFnSig[]!: []
     targets :: tp.import_targets
     if targets !is ImportTargetTable {
         return out
@@ -751,16 +764,11 @@ imported_fn_sig_keys :: fn(
         owner :: per_module[st.module_id] ?? continue
         ty :: owner.decl_types[st.symbol.id]
         if ty is FnType {
-            key :: canonical_args_key(ty.params)
-            bucket :: out[info.local]
-            if bucket == null {
-                fresh :: MutableMap<string, bool> {}
-                fresh[key] = true
-                out[info.local] = fresh
-            } else {
-                bucket[key] = true
-                out[info.local] = bucket
-            }
+            out.push(ImportedFnSig {
+                .local = info.local,
+                .key   = canonical_args_key(ty.params),
+                .span  = info.binding_span,
+            })
         }
     }
     return out
@@ -1717,7 +1725,7 @@ push_renamed_imports :: fn(entry_typed: TypedProgram!) -> void {
         if ty !is FnType {
             continue
         }
-        local :: symbol_by_id(sym_id, entry_typed) ?? continue
+        local :: import_binding_by_id(sym_id, entry_typed) ?? continue
         where :: local.defined_at ?? continue
         // A renamed import binds the same declaration under a new local name,
         // so the decl travels with it exactly as a wildcard's does.
@@ -2058,6 +2066,15 @@ build_namespace_private_names :: fn(
     for [name, sym] in loaded.collected.symbols {
         if sym.visibility == .Private {
             out[name] = true
+        }
+    }
+    // An import binding of the module is its own, never a member : `P.name`
+    // naming one is as unreachable as an unexported declaration.
+    for imports in loaded.collected.files {
+        for [name, _] in imports.bindings {
+            if loaded.collected.symbols[name] == null {
+                out[name] = true
+            }
         }
     }
     cache[mod_id] = out

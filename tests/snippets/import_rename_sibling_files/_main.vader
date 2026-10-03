@@ -1,0 +1,19 @@
+// Import bindings belong to the file that writes them. This file renames
+// `trim` to `tidy` ; `other.vader` declares its own fn `tidy(i32)` next to the
+// same rename, and `third.vader` renames `trim` to `tidy` again. Nothing
+// clashes, across files or within one : the module fn keeps the bare name with
+// each rename as an overload of it, and each file reaches its own rename by
+// UFCS.
+
+module "snippet"
+
+import "std/io"
+import "std/string" { trim as tidy }
+
+main :: fn() -> i32 {
+    println(tidy("  a  "))
+    println(" b ".tidy())
+    println(third())
+    println(fourth())
+    return twice(3) - 6
+}

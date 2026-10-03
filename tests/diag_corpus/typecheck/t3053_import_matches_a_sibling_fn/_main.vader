@@ -1,0 +1,9 @@
+// An import with the same name and signature as a fn of the module is a
+// redefinition (T3053), reported on the import : it belongs to this file, while
+// `double` belongs to the module — declared in `other.vader`, which stays clean.
+
+module "snippet"
+
+import "snippet/lib" { twice as double }
+
+main :: fn() -> i32 = double(3) - 6

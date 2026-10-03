@@ -1,0 +1,14 @@
+// The orphan rule follows a renamed trait : this module owns neither `Foo`
+// (from `snippet/lib_a`) nor `Bar` (from `snippet/lib_b`, imported here as
+// `B`), so bridging them is an orphan impl (R2018).
+
+module "snippet"
+
+import "snippet/lib_a"
+import "snippet/lib_b" { Bar as B }
+
+Foo implements B {
+    baz :: fn(self) -> i32 = self.value
+}
+
+main :: fn() -> i32 = 0

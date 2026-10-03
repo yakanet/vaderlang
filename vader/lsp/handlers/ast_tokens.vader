@@ -76,9 +76,9 @@ push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken![]!) -> void {
 /// Walk every ident through the body-resolver and override matching Phase-1
 /// tokens with the symbol-kind-derived TokenType + modifiers.
 ///
-/// The root scope is SEEDED with the file's own top-level decls
-/// (`collect_module_no_index` — the mono-file collector, no module index or
-/// loader needed). Without the seed a top-level name never resolves from a body,
+/// The root scope is SEEDED with the file's own top-level decls and import
+/// bindings (`file_root_scope` over `collect_module_no_index` — the mono-file
+/// collector, no module index or loader needed). Without the seed a top-level name never resolves from a body,
 /// so every reference to this file's consts / fns / types fell to the `Variable`
 /// catch-all: a module const then read as a reassignable local rather than a
 /// constant. Seeding also gets shadowing right for free — `Scope.lookup` walks
@@ -89,10 +89,8 @@ push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken![]!) -> void {
 refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken![]!, source: string) -> void {
     factory :: SymbolFactory {}
     collected :: collect_module_no_index(program, uri, factory)
-    seed :: MutableMap<string, Symbol> {}
-    for sym in collected.symbols.values() {
-        seed[sym.name] = sym
-    }
+    none :: MutableMap<string, Symbol> {}
+    seed :: file_root_scope(none, collected, collected.files[0], MutableMap<string, LoadedModule> {}, none)
     resolved :: resolve_program(program, seed, uri, factory)
     // `idents` is keyed by `Span.hash()` = (file, line, **codepoint column**),
     // matching the resolver/parser columns. RawTokens now carry only byte

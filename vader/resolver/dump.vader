@@ -25,7 +25,7 @@ export dump_project :: fn(p: ResolvedProject) -> string {
     for m in p.modules {
         sb.append("\n\n## ")
         sb.append(m.path)
-        for s in m.symbols {
+        for s in sort_by_name(m.symbols + m.import_bindings) {
             sb.append("\n  ")
             sb.append(s.kind.label.pad_end(16, ' '))
             sb.append_char(' ')

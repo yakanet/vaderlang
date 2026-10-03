@@ -168,12 +168,11 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
             }
         }
     }
-    // Imported free fn — `import "p" { name }` registers `name` in
-    // `symbols` as an ImportBinding but not in `fn_overloads`. Follow
-    // the import target to the source symbol and probe its signature.
-    for candidate in ctx.typed.resolved.symbols {
+    // Imported free fn — `import "p" { x as name }` binds `name` in
+    // `import_bindings`, not in `fn_overloads`. Follow the import target to
+    // the source symbol and probe its signature.
+    for candidate in ctx.typed.resolved.import_bindings {
         if candidate.name != name { continue }
-        if candidate.kind != .ImportBinding { continue }
         target :: follow_import_binding(ctx, candidate)
         if target.kind == .Fn {
             if !first_param_matches(ctx, target, recv_type) { continue }

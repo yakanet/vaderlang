@@ -1,0 +1,8 @@
+// snippet/lib_a — owns the type, not the trait.
+
+module "snippet/lib_a"
+
+/// A value with one field.
+export Foo :: struct {
+    value: i32
+}

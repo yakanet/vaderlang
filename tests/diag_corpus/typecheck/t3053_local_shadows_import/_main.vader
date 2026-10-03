@@ -1,11 +1,13 @@
 // F2b / resolver-modules-3 CASE C : a local free fn with the SAME name AND full
 // signature as one it explicitly imports is a genuine duplicate — T3053 — not a
-// silent shadow. (A DIFFERENT signature would coexist as an overload; a renamed
-// `import { helper as h }` would not collide, since the local binding is `h`.)
+// silent shadow. It is reported on the import, which belongs to this file, not
+// on the fn, which belongs to the module. (A DIFFERENT signature would coexist
+// as an overload; a renamed `import { helper as h }` would not collide, since
+// the local binding is `h`.)
 module "snippet"
 
-import "snippet/lib" { helper as helper }
+import "snippet/lib" { helper as helper }     // T3053 — same signature as `helper` below
 
-helper :: fn(x: i32) -> i32 = x + 1     // T3053 — same signature as the import
+helper :: fn(x: i32) -> i32 = x + 1
 
 main :: fn() -> i32 = helper(5)

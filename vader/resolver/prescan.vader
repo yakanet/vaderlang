@@ -41,9 +41,10 @@ export run_orphan_rule_check_for_module :: fn(
     diags: Diagnostic[]!,
 ) -> void {
     for file in loaded.module.files {
+        bindings :: file_imports(loaded.collected, file.program.file).bindings
         for decl in file.program.decls {
             if decl is AST.ImplDecl {
-                check_orphan_rule(decl, module_id, loaded.collected.symbols,
+                check_orphan_rule(decl, module_id, loaded.collected.symbols, bindings,
                     idents, wire_targets, diags)
             }
         }
@@ -52,11 +53,11 @@ export run_orphan_rule_check_for_module :: fn(
 
 check_orphan_rule :: fn(
     decl: AST.ImplDecl, module_id: string,
-    module_symbols: MutableMap<string, Symbol>,
+    module_symbols: MutableMap<string, Symbol>, bindings: MutableMap<string, Symbol>,
     idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
     diags: Diagnostic[]!,
 ) -> void {
-    trait_sym :: lookup_trait_sym(decl, module_symbols, wire_targets) ?? return
+    trait_sym :: lookup_trait_sym(decl, module_symbols, bindings, wire_targets) ?? return
     if trait_sym.kind != .Trait { return }
     for_sym :: for_type_owner_sym(decl.for_type, idents, wire_targets)
     for_is_primitive := false
@@ -72,13 +73,19 @@ check_orphan_rule :: fn(
     }
 }
 
+// The trait an impl names : a declaration of the module, else an import binding
+// of the impl's file.
 lookup_trait_sym :: fn(
     decl: AST.ImplDecl,
     module_symbols: MutableMap<string, Symbol>,
+    bindings: MutableMap<string, Symbol>,
     wire_targets: ImportTargetTable,
 ) -> Symbol | null {
-    raw :: module_symbols[decl.trait_name] ?? return null
-    return resolve_import_redirect(raw, wire_targets)
+    if module_symbols[decl.trait_name] is Symbol as declared {
+        return resolve_import_redirect(declared, wire_targets)
+    }
+    bound :: bindings[decl.trait_name] ?? return null
+    return resolve_import_redirect(bound, wire_targets)
 }
 
 for_type_owner_sym :: fn(

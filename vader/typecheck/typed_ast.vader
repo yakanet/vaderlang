@@ -155,16 +155,17 @@ export imported_overloads_in :: fn(
     return table[name] ?? []
 }
 
-/// Find a resolved symbol by id. The sibling of `lookup_const_symbol` for the
-/// tables keyed by `Symbol.id` (import targets, namespace bindings) rather than
-/// by name — same linear scan, same negligible cost at module scale.
+/// Find an import binding of the module by id — the key of the tables that map
+/// a binding to what it names (`import_targets`).
 ///
-/// @param sym_id  the id to look up, as it appears in an id-keyed table.
-/// @param typed   the typechecked program carrying the resolved symbol table.
-/// @return        the matching `Symbol`, or `null` when the id is not local.
-export symbol_by_id :: fn(sym_id: i32, typed: TypedProgram) -> Symbol | null {
-    for symbol in typed.resolved.symbols {
-        if symbol.id == sym_id { return symbol }
+/// @param sym_id  the binding's id, as an id-keyed table carries it.
+/// @param typed   the typechecked program carrying the resolved bindings.
+/// @return        the binding, or `null` when the id is not one of the module's.
+export import_binding_by_id :: fn(sym_id: i32, typed: TypedProgram) -> Symbol | null {
+    for binding in typed.resolved.import_bindings {
+        if binding.id == sym_id {
+            return binding
+        }
     }
     return null
 }

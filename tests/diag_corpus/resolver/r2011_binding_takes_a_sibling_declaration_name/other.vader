@@ -1,0 +1,7 @@
+module "snippet"
+
+Tidy :: struct {
+    x: i32
+}
+
+make :: fn() -> Tidy = Tidy { .x = 1 }

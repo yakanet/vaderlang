@@ -1,0 +1,6 @@
+// snippet/lib — exports one fn.
+
+module "snippet/lib"
+
+/// Twice `x`.
+export twice :: fn(x: i32) -> i32 = x * 2

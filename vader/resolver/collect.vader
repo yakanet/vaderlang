@@ -21,7 +21,9 @@ import "vader/resolver/symbol"
 import "toolchain/span"
 
 /// Output of one module's collect pass.
-/// `symbols` is keyed by local name ; `fn_overloads` carries every fn
+/// `symbols` holds the module's declarations, keyed by name — every file of the
+/// module shares them ; a file's import bindings are its own (`files`).
+/// `fn_overloads` carries every fn
 /// declaration grouped by name (length > 1 only for actual overloads).
 /// `imports` records each ImportBinding's source `(path, imported_name)`
 /// keyed by Symbol.id — consumed by the wire pass to resolve each
@@ -55,8 +57,8 @@ export FileImports :: struct {
     /// from that path's wildcard. Renames rebind via `imports`.
     excludes: MutableMap<string, string[]!> = MutableMap<string, string[]!> {}
     /// The import bindings this file mints — namespace aliases and renames — by
-    /// local name. `CollectedModule.symbols` keeps one binding per name for the
-    /// whole module ; this keeps the file's own.
+    /// local name. Their only home : `CollectedModule.symbols` holds the
+    /// declarations alone.
     bindings: MutableMap<string, Symbol> = MutableMap<string, Symbol> {}
 }
 
@@ -97,11 +99,6 @@ export collect_module :: fn(
     check_import_form_conflict(program.decls, diags)
     for d in program.decls {
         out.collect_decl(d, module_path, module_name, factory, index, paths, diags)
-    }
-    for [name, sym] in out.symbols {
-        if sym.kind == .ImportBinding {
-            out.files[0].bindings[name] = sym
-        }
     }
     return out
 }
@@ -181,12 +178,11 @@ add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, module_name
     if d.name == "main" { visibility = .Public }
 
     existing :: self.symbols[d.name]
-    // A fn overloads another fn, and coexists with a same-named import (a
-    // potential free-fn overload — a same-signature clash is caught by T3053).
-    // Colliding with a TYPE or CONST is a genuine duplicate → R2004. Return
-    // before bucketing so the conflicting fn isn't orphaned in fn_overloads.
+    // A fn overloads another fn. Colliding with a TYPE or CONST is a genuine
+    // duplicate → R2004. Return before bucketing so the conflicting fn isn't
+    // orphaned in fn_overloads.
     if existing is Symbol {
-        if existing.kind != .Fn && existing.kind != .ImportBinding {
+        if existing.kind != .Fn {
             diags.push(resolver_error(.DuplicateTopLevelSymbol, d.name_span,
                 "`${d.name}` already declared in this module"))
             return
@@ -203,17 +199,10 @@ add_fn :: fn(self: CollectedModule!, d: FnDecl, module_path: string, module_name
         }
     }
 
-    match existing {
-        is null -> { self.symbols[d.name] = sym }
-        is Symbol -> {
-            // Local fn coexisting with a same-named import : local takes
-            // the primary slot so unqualified refs resolve to it.
-            if existing.kind == .ImportBinding {
-                self.symbols[d.name] = sym
-            }
-            // For two fn decls with the same name, the FIRST wins as primary.
-            // The overload set already saw both.
-        }
+    // For two fn decls with the same name, the FIRST wins as primary. The
+    // overload set already saw both.
+    if existing == null {
+        self.symbols[d.name] = sym
     }
 }
 
@@ -306,56 +295,35 @@ collect_import :: fn(
     }
 }
 
+// Bind `local` to an import in the file's own bindings. A clash with a
+// declaration of the module is judged once every file is collected
+// (`binding_clashes`) ; here only import against import.
 bind_import :: fn(
     self: CollectedModule!, local: string, span: Span,
     import_path: string, imported_name: string | null,
     module_path: string, factory: SymbolFactory!,
     diags: Diagnostic[]!,
 ) -> void {
-    existing :: self.symbols[local]
-    match existing {
-        is Symbol -> {
-            if existing.kind == .ImportBinding {
-                // Import↔import : silent only for a TRUE re-import — identical
-                // source (same path AND same imported name), e.g. the same name
-                // imported twice or a duplicated wildcard path. A DIFFERENT source
-                // binding the same local name (two modules' `foo`, or a destructure
-                // shadowing a namespace alias) is a genuine collision: R2011, no
-                // silent first-wins (SPEC §Imports).
-                prev :: self.imports[existing.id]
-                if prev != null && !(prev.path == import_path && names_equal(prev.imported_name, imported_name)) {
-                    diags.push(resolver_error(.DuplicateImportBinding, span, "`${local}`"))
-                }
-            } else if existing.kind == .Fn {
-                // fn↔import : coexist (order-independent with `add_fn`). The
-                // import may be a free-fn overload of the local fn — a different
-                // signature dispatched by receiver type via UFCS ; a genuine
-                // same-signature clash is caught at typecheck (T3053). Record the
-                // ImportInfo so wire + imported overloads see it, but leave the fn
-                // in the primary name slot.
-                sym :: factory.make(.ImportBinding, local, module_path, module_path, .Private, span)
-                self.imports[sym.id] = ImportInfo {
-                    .path = import_path,
-                    .imported_name = imported_name,
-                    .local = local,
-                    .binding_span = span,
-                }
-            } else {
-                // type / const ↔ import : genuine duplicate.
-                diags.push(resolver_error(.DuplicateImportBinding, span,
-                    "`${local}`"))
-            }
+    existing :: self.files[0].bindings[local]
+    if existing != null {
+        // Silent only for a TRUE re-import — identical source (same path AND
+        // same imported name), e.g. the same name imported twice or a duplicated
+        // wildcard path. A DIFFERENT source binding the same local name (two
+        // modules' `foo`, or a rename shadowing a namespace alias) is a genuine
+        // collision: R2011, no silent first-wins (SPEC §Imports).
+        prev :: self.imports[existing.id]
+        if prev != null && !(prev.path == import_path && names_equal(prev.imported_name, imported_name)) {
+            diags.push(resolver_error(.DuplicateImportBinding, span, "`${local}`"))
         }
-        is null   -> {
-            sym :: factory.make(.ImportBinding, local, module_path, module_path, .Private, span)
-            self.symbols[local] = sym
-            self.imports[sym.id] = ImportInfo {
-                .path = import_path,
-                .imported_name = imported_name,
-                .local = local,
-                .binding_span = span,
-            }
-        }
+        return
+    }
+    sym :: factory.make(.ImportBinding, local, module_path, module_path, .Private, span)
+    self.files[0].bindings[local] = sym
+    self.imports[sym.id] = ImportInfo {
+        .path          = import_path,
+        .imported_name = imported_name,
+        .local         = local,
+        .binding_span  = span,
     }
 }
 
@@ -495,14 +463,15 @@ import "x" { keep as kept, drop as _ }
         is string[] -> { assert(ex.len() == 2, "both `keep` and `drop` excluded") }
         is null     -> { assert(false, "excludes recorded for x") }
     }
-    // The rename `keep as kept` binds `kept` as an import-binding.
-    kept :: collected.symbols["kept"]
+    // The rename `keep as kept` binds `kept` as an import-binding of the file.
+    kept :: collected.files[0].bindings["kept"]
     match kept {
         is Symbol -> { assert(kept.kind == .ImportBinding, "rename binds an import-binding") }
         is null   -> { assert(false, "kept should be a rename binding") }
     }
+    assert(collected.symbols["kept"] == null, "a binding is not a declaration of the module")
     // The pure exclusion `drop as _` binds nothing.
-    assert(collected.symbols["drop"] == null, "`drop as _` binds no name")
+    assert(collected.files[0].bindings["drop"] == null, "`drop as _` binds no name")
 }
 
 @test

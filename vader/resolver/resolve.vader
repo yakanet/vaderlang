@@ -36,7 +36,13 @@ export ResolvedModule :: struct {
     /// `path` keeps the filesystem identity (folder), since it's the
     /// stable key for cross-module side-tables.
     display_path: string
+    /// The module's declarations ; a file's import bindings are in
+    /// `import_bindings`.
     symbols: Symbol[]
+    /// Every file's import bindings — namespace aliases and renames — in file
+    /// order. Two files may each bind the same name ; a binding's span names its
+    /// file.
+    import_bindings: Symbol[] = []
     idents:  MutableMap<u64, Symbol>
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
     /// Consumed by stmt.vader::check_assign to surface T3041.
@@ -147,6 +153,8 @@ export resolve_module_files :: fn(
     builtins :: make_builtin_scope(factory)
     scopes :: MutableMap<string, FileScope> {}
     programs: Program[]!: []
+    bindings: Symbol[]!: []
+    clashes: Diagnostic[]!: []
     for file in files {
         imports :: file_imports(collected, file.program.file)
         scopes[file.program.file] = FileScope {
@@ -154,12 +162,18 @@ export resolve_module_files :: fn(
             .ambiguous = wildcard_ambiguities(name_index, imports.paths, imports.excludes, core_seed),
         }
         programs.push(file.program)
+        for [_, binding] in imports.bindings {
+            bindings.push(binding)
+        }
+        clashes.push_all(binding_clashes(collected, imports))
     }
     resolved :: resolve_module_programs(programs, scopes, module_path, factory)
+    resolved.diags.push_all(clashes)
     return ResolvedModule {
         .path             = module_path,
         .display_path     = display_path,
         .symbols          = sort_by_name(collected.symbols.values()),
+        .import_bindings  = bindings,
         .idents           = resolved.idents,
         .immutable_locals = resolved.immutable_locals,
         .immutable_borrows = resolved.immutable_borrows,
@@ -190,10 +204,12 @@ export file_imports :: fn(collected: CollectedModule, file: string) -> FileImpor
     return FileImports { .file = file }
 }
 
-/// The unqualified names a file of the module sees at its top level : the
-/// builtins, the module's own declarations, the file's import bindings, then —
-/// only where nothing else answers — the core prelude, then the exports of the
-/// file's wildcard imports.
+/// The unqualified names a file of the module sees at its top level, each layer
+/// over the one before : the builtins, the file's import bindings, the module's
+/// own declarations, then — only where nothing else answers — the core prelude
+/// and the exports of the file's wildcard imports. A binding never takes the
+/// name of a declaration : a module fn keeps it, the import staying an overload
+/// reachable by UFCS, and any other clash is R2011 (`binding_clashes`).
 ///
 /// @param builtins    the builtin scope, shared by the module's files.
 /// @param collected   the module's collected view.
@@ -206,12 +222,8 @@ export file_root_scope :: fn(
 ) -> MutableMap<string, Symbol> {
     root :: MutableMap<string, Symbol> {}
     for [name, sym] in builtins { root[name] = sym }
-    for [name, sym] in collected.symbols {
-        if sym.kind != .ImportBinding {
-            root[name] = sym
-        }
-    }
     for [name, sym] in imports.bindings { root[name] = sym }
+    for [name, sym] in collected.symbols { root[name] = sym }
     for [name, sym] in core_seed {
         if root[name] == null {
             root[name] = sym
@@ -219,6 +231,20 @@ export file_root_scope :: fn(
     }
     seed_wildcard_exports(root, name_index, imports.paths, imports.excludes)
     return root
+}
+
+// R2011 for each import binding of a file that takes the name of a module
+// declaration other than a fn, in whichever file the declaration sits.
+binding_clashes :: fn(collected: CollectedModule, imports: FileImports) -> Diagnostic[] {
+    out: Diagnostic[]!: []
+    for [name, binding] in imports.bindings {
+        declared :: collected.symbols[name] ?? continue
+        span :: binding.defined_at ?? continue
+        if declared.kind != .Fn {
+            out.push(resolver_error(.DuplicateImportBinding, span, "`${name}`"))
+        }
+    }
+    return out
 }
 
 sort_by_name :: fn(syms: Symbol[]) -> Symbol[] {

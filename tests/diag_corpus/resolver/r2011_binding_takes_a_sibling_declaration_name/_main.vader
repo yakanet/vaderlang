@@ -1,0 +1,10 @@
+// An import binding cannot take the name of a type or const the module
+// declares, even in another file : `other.vader` declares the struct `Tidy`, so
+// renaming `trim` to `Tidy` here is R2011 — the cross-file twin of the same
+// clash within one file. A module fn of that name would coexist instead.
+
+module "snippet"
+
+import "std/string" { trim as Tidy }
+
+main :: fn() -> i32 = make().x
