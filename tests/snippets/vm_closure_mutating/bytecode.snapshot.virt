@@ -40,9 +40,9 @@ end
 fn 1 __lambda_snippet_0 (ref) -> i32
   local $field_1 any
   local $add_5 i32
-  local.field 0 2 0   ; arg 0.cap_0
+  local.field 0 2 0   ; arg 0 __lambda_env_snippet_1.cap_0
   local.set 1   ; $field_1
-  local.field 0 2 0   ; arg 0.cap_0
+  local.field 0 2 0   ; arg 0 __lambda_env_snippet_1.cap_0
   struct.get 4 0   ; $Cell_i32.value
   i32.const 1
   i32.add
@@ -50,7 +50,7 @@ fn 1 __lambda_snippet_0 (ref) -> i32
   local.get 1   ; $field_1
   local.get 2   ; $add_5
   struct.set 4 0   ; $Cell_i32.value
-  local.field 0 2 0   ; arg 0.cap_0
+  local.field 0 2 0   ; arg 0 __lambda_env_snippet_1.cap_0
   struct.get 4 0   ; $Cell_i32.value
   return
 end

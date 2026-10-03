@@ -41,7 +41,7 @@ export main 0
 fn 0 snippet$main () -> i32
   local $call_2 string
   string.const 1   ; ""
-  retag 2   ; -> string
+  retag 2   ; string
   call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 0   ; "sha256-empty="
@@ -49,7 +49,7 @@ fn 0 snippet$main () -> i32
   call 1   ; concat_2
   call 5   ; std_io$println__string
   string.const 3   ; "abc"
-  retag 2   ; -> string
+  retag 2   ; string
   call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 2   ; "sha256-abc="
@@ -57,7 +57,7 @@ fn 0 snippet$main () -> i32
   call 1   ; concat_2
   call 5   ; std_io$println__string
   string.const 5   ; "The quick brown fox jumps over the lazy dog"
-  retag 2   ; -> string
+  retag 2   ; string
   call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 4   ; "sha256-quick="
@@ -65,7 +65,7 @@ fn 0 snippet$main () -> i32
   call 1   ; concat_2
   call 5   ; std_io$println__string
   string.const 7   ; "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
-  retag 2   ; -> string
+  retag 2   ; string
   call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 6   ; "sha256-long="
@@ -133,7 +133,7 @@ fn 2 std_core$utf8_encode (char) -> ref
   local.get 0   ; arg 0
   char.to_i32
   local.set 1   ; cp
-  array.new 6 0   ; u8[][]
+  array.new 6 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 128
@@ -146,7 +146,7 @@ fn 2 std_core$utf8_encode (char) -> ref
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
-    array.push 4   ; u8[]
+    array.push 4   ; u8
   else
     local.get 1   ; cp
     i32.const 2048
@@ -165,7 +165,7 @@ fn 2 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 4   ; u8[]
+      array.push 4   ; u8
       local.get 1   ; cp
       i32.const 63
       i32.bitand
@@ -179,7 +179,7 @@ fn 2 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 4   ; u8[]
+      array.push 4   ; u8
     else
       local.get 1   ; cp
       i32.const 65536
@@ -198,7 +198,7 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 4   ; u8[]
+        array.push 4   ; u8
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -214,7 +214,7 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 4   ; u8[]
+        array.push 4   ; u8
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -228,7 +228,7 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 4   ; u8[]
+        array.push 4   ; u8
       else
         local.get 1   ; cp
         i32.const 18
@@ -243,7 +243,7 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 4   ; u8[]
+        array.push 4   ; u8
         local.get 1   ; cp
         i32.const 12
         u32.shr
@@ -259,7 +259,7 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 4   ; u8[]
+        array.push 4   ; u8
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -275,7 +275,7 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 4   ; u8[]
+        array.push 4   ; u8
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -289,7 +289,7 @@ fn 2 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 4   ; u8[]
+        array.push 4   ; u8
       end $L2
     end $L1
   end $L0
@@ -328,7 +328,7 @@ fn 3 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 6   ; u8[][]
+      array.slice 6   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -470,7 +470,7 @@ fn 7 crypto$md5 (string) -> string
         i64.const 64
         i64.mul
         local.set 8   ; block_offset
-        array.new 14 0   ; u32[][]
+        array.new 14 0   ; u32[]
         local.set 9   ; m
         i64.const 0
         local.set 10   ; i
@@ -492,8 +492,8 @@ fn 7 crypto$md5 (string) -> string
               local.set 12   ; $add_32
               local.get 5   ; msg
               local.get 12   ; $add_32
-              array.get 6   ; u8[][]
-              ref.cast 4   ; -> u8
+              array.get 6   ; u8[]
+              ref.cast 4   ; u8
               u8.to_i32
               local.set 13   ; byte0
               local.get 10   ; i
@@ -508,8 +508,8 @@ fn 7 crypto$md5 (string) -> string
               local.set 15   ; $add_40
               local.get 5   ; msg
               local.get 15   ; $add_40
-              array.get 6   ; u8[][]
-              ref.cast 4   ; -> u8
+              array.get 6   ; u8[]
+              ref.cast 4   ; u8
               u8.to_i32
               local.set 16   ; byte1
               local.get 10   ; i
@@ -524,8 +524,8 @@ fn 7 crypto$md5 (string) -> string
               local.set 18   ; $add_48
               local.get 5   ; msg
               local.get 18   ; $add_48
-              array.get 6   ; u8[][]
-              ref.cast 4   ; -> u8
+              array.get 6   ; u8[]
+              ref.cast 4   ; u8
               u8.to_i32
               local.set 19   ; byte2
               local.get 10   ; i
@@ -540,8 +540,8 @@ fn 7 crypto$md5 (string) -> string
               local.set 21   ; $add_56
               local.get 5   ; msg
               local.get 21   ; $add_56
-              array.get 6   ; u8[][]
-              ref.cast 4   ; -> u8
+              array.get 6   ; u8[]
+              ref.cast 4   ; u8
               u8.to_i32
               local.set 22   ; byte3
               local.get 16   ; byte1
@@ -571,7 +571,7 @@ fn 7 crypto$md5 (string) -> string
               local.set 28   ; $call_69
               local.get 9   ; m
               local.get 28   ; $call_69
-              array.push 11 9   ; u32[]
+              array.push 11 9   ; u32 m
               local.get 10   ; i
               i64.const 1
               i64.add
@@ -692,7 +692,7 @@ fn 7 crypto$md5 (string) -> string
               local.get 34   ; f
               i32.add
               local.set 42   ; $add_123
-              data.const 0 14   ; pool[0] : u32[]
+              data.const 0 14   ; pool[0] u32[]
               local.get 33   ; j
               load_slot_i32
               local.set 43   ; $idx_125
@@ -715,7 +715,7 @@ fn 7 crypto$md5 (string) -> string
               local.set 32   ; d
               local.get 30   ; b
               local.set 31   ; c
-              data.const 1 14   ; pool[1] : u32[]
+              data.const 1 14   ; pool[1] u32[]
               local.get 33   ; j
               load_slot_i32
               local.set 47   ; $idx_132
@@ -764,7 +764,7 @@ fn 7 crypto$md5 (string) -> string
       end $L2
     end $L1
   end $L0
-  array.new 15 0   ; string[][]
+  array.new 15 0   ; string[]
   struct.new 12   ; std_string_builder$StringBuilder
   local.tee 5   ; msg
   local.get 1   ; a0
@@ -789,7 +789,7 @@ fn 8 crypto$hex_of_bytes (ref) -> string
   local __for_len_1 usize
   local __for_i_2 usize
   local b u8
-  array.new 15 0   ; string[][]
+  array.new 15 0   ; string[]
   struct.new 12   ; std_string_builder$StringBuilder
   local.set 1   ; sb
   local.get 0   ; arg 0
@@ -806,8 +806,8 @@ fn 8 crypto$hex_of_bytes (ref) -> string
       if $L2 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 6   ; u8[][]
-        ref.cast 4   ; -> u8
+        array.get 6   ; u8[]
+        ref.cast 4   ; u8
         local.set 5   ; b
         local.get 1   ; sb
         local.get 5   ; b
@@ -929,7 +929,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
   i32.const -1694144372
   i32.const 528734635
   i32.const 1541459225
-  array.new 14 8   ; u32[][]
+  array.new 14 8   ; u32[]
   local.set 2   ; h
   local.get 1   ; data
   call 16   ; crypto$pad_sha256_bytes
@@ -950,7 +950,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
         i64.const 64
         i64.mul
         local.set 5   ; block_offset
-        array.new 14 0   ; u32[][]
+        array.new 14 0   ; u32[]
         local.set 6   ; w
         i64.const 0
         local.set 7   ; i
@@ -972,8 +972,8 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.set 9   ; $add_36
               local.get 1   ; data
               local.get 9   ; $add_36
-              array.get 6   ; u8[][]
-              ref.cast 4   ; -> u8
+              array.get 6   ; u8[]
+              ref.cast 4   ; u8
               u8.to_i32
               local.set 10   ; b0
               local.get 7   ; i
@@ -988,8 +988,8 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.set 12   ; $add_44
               local.get 1   ; data
               local.get 12   ; $add_44
-              array.get 6   ; u8[][]
-              ref.cast 4   ; -> u8
+              array.get 6   ; u8[]
+              ref.cast 4   ; u8
               u8.to_i32
               local.set 13   ; b1
               local.get 7   ; i
@@ -1004,8 +1004,8 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.set 15   ; $add_52
               local.get 1   ; data
               local.get 15   ; $add_52
-              array.get 6   ; u8[][]
-              ref.cast 4   ; -> u8
+              array.get 6   ; u8[]
+              ref.cast 4   ; u8
               u8.to_i32
               local.set 16   ; b2
               local.get 7   ; i
@@ -1020,8 +1020,8 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.set 18   ; $add_60
               local.get 1   ; data
               local.get 18   ; $add_60
-              array.get 6   ; u8[][]
-              ref.cast 4   ; -> u8
+              array.get 6   ; u8[]
+              ref.cast 4   ; u8
               u8.to_i32
               local.set 19   ; b3
               local.get 10   ; b0
@@ -1049,7 +1049,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.set 24   ; $call_73
               local.get 6   ; w
               local.get 24   ; $call_73
-              array.push 11 6   ; u32[]
+              array.push 11 6   ; u32 w
               local.get 7   ; i
               i64.const 1
               i64.add
@@ -1149,7 +1149,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.set 44   ; $call_116
               local.get 6   ; w
               local.get 44   ; $call_116
-              array.push 11   ; u32[]
+              array.push 11   ; u32
               local.get 25   ; j
               i64.const 1
               i64.add
@@ -1233,7 +1233,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
               local.get 58   ; ch_efg
               i32.add
               local.set 59   ; $add_158
-              data.const 2 14   ; pool[2] : u32[]
+              data.const 2 14   ; pool[2] u32[]
               local.get 46   ; t
               load_slot_i32
               local.set 60   ; $idx_160
@@ -1442,7 +1442,7 @@ fn 9 crypto$sha256_bytes (any) -> ref
       end $L2
     end $L1
   end $L0
-  array.new 6 0   ; u8[][]
+  array.new 6 0   ; u8[]
   local.set 1   ; data
   i64.const 0
   local.set 3   ; blocks
@@ -1489,7 +1489,7 @@ fn 10 crypto$pad_md5 (string) -> ref
   call 20   ; std_iter$clone__u8
   local.tee 1   ; ib
   i32.const 128
-  array.push 4   ; u8[]
+  array.push 4   ; u8
   block $L0 void
     loop $L1 void
       local.get 1   ; ib
@@ -1501,7 +1501,7 @@ fn 10 crypto$pad_md5 (string) -> ref
       if $L2 void
         local.get 1   ; ib
         i32.const 0
-        array.push 4   ; u8[]
+        array.push 4   ; u8
         br $L1
       end $L2
     end $L1
@@ -1530,7 +1530,7 @@ fn 10 crypto$pad_md5 (string) -> ref
         local.set 5   ; b
         local.get 1   ; ib
         local.get 5   ; b
-        array.push 4   ; u8[]
+        array.push 4   ; u8
         local.get 3   ; k
         i32.const 1
         i32.add
@@ -1646,12 +1646,12 @@ fn 15 crypto$to_bytes (any) -> ref
   type_check 2   ; string
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> string
+    ref.cast 2   ; string
     call.import 2   ; std_core$bytes
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 6   ; -> u8[]
+  ref.cast 6   ; u8[]
   return
 end
 
@@ -1671,7 +1671,7 @@ fn 16 crypto$pad_sha256_bytes (ref) -> ref
   call 20   ; std_iter$clone__u8
   local.tee 2   ; out
   i32.const 128
-  array.push 4   ; u8[]
+  array.push 4   ; u8
   block $L0 void
     loop $L1 void
       local.get 2   ; out
@@ -1683,7 +1683,7 @@ fn 16 crypto$pad_sha256_bytes (ref) -> ref
       if $L2 void
         local.get 2   ; out
         i32.const 0
-        array.push 4   ; u8[]
+        array.push 4   ; u8
         br $L1
       end $L2
     end $L1
@@ -1712,7 +1712,7 @@ fn 16 crypto$pad_sha256_bytes (ref) -> ref
         local.set 5   ; b
         local.get 2   ; out
         local.get 5   ; b
-        array.push 4   ; u8[]
+        array.push 4   ; u8
         local.get 3   ; k
         i32.const 1
         i32.sub
@@ -1760,7 +1760,7 @@ fn 18 crypto$append_u32_be (ref,u32) -> void
   local.set 2   ; $cast_6
   local.get 0   ; arg 0
   local.get 2   ; $cast_6
-  array.push 4   ; u8[]
+  array.push 4   ; u8
   local.get 1   ; arg 1
   i32.const 16
   u32.shr
@@ -1772,7 +1772,7 @@ fn 18 crypto$append_u32_be (ref,u32) -> void
   local.set 2   ; $cast_6
   local.get 0   ; arg 0
   local.get 2   ; $cast_6
-  array.push 4   ; u8[]
+  array.push 4   ; u8
   local.get 1   ; arg 1
   i32.const 8
   u32.shr
@@ -1784,7 +1784,7 @@ fn 18 crypto$append_u32_be (ref,u32) -> void
   local.set 2   ; $cast_6
   local.get 0   ; arg 0
   local.get 2   ; $cast_6
-  array.push 4   ; u8[]
+  array.push 4   ; u8
   local.get 1   ; arg 1
   i32.const 255
   i32.bitand
@@ -1794,14 +1794,14 @@ fn 18 crypto$append_u32_be (ref,u32) -> void
   local.set 2   ; $cast_6
   local.get 0   ; arg 0
   local.get 2   ; $cast_6
-  array.push 4   ; u8[]
+  array.push 4   ; u8
   return
 end
 
 fn 19 std_iter$clone__u32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
-  array.new 14 0   ; u32[][]
+  array.new 14 0   ; u32[]
   local.set 1   ; $arr_1
   local.get 0   ; arg 0
   array.len
@@ -1819,7 +1819,7 @@ end
 fn 20 std_iter$clone__u8 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
-  array.new 6 0   ; u8[][]
+  array.new 6 0   ; u8[]
   local.set 1   ; $arr_1
   local.get 0   ; arg 0
   array.len
@@ -1837,7 +1837,7 @@ end
 fn 21 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 12 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 2   ; std_core$utf8_encode
@@ -1845,7 +1845,7 @@ fn 21 std_string_builder$append_char (ref,char) -> void
   local.set 3   ; $call_4
   local.get 2   ; $field_2
   local.get 3   ; $call_4
-  array.push 2   ; string[]
+  array.push 2   ; string
   return
 end
 
@@ -1858,7 +1858,7 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 12 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -1870,15 +1870,15 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 12 0   ; arg 0.parts
+    local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
     i32.const 0
-    array.get 15   ; string[][]
-    ref.cast 2   ; -> string
+    array.get 15   ; string[]
+    ref.cast 2   ; string
     return
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 12 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1892,8 +1892,8 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L4 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 15   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 15   ; string[]
+        ref.cast 2   ; string
         call.import 0   ; std_core$byte_len
         local.set 5   ; $call_23
         local.get 1   ; n
@@ -1913,7 +1913,7 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 12 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2
@@ -1927,8 +1927,8 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L7 void
         local.get 6   ; __for_arr_3
         local.get 5   ; $call_23
-        array.get 15   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 15   ; string[]
+        ref.cast 2   ; string
         local.set 7   ; p
         local.get 2   ; __for_arr_0
         local.get 3   ; __for_len_1

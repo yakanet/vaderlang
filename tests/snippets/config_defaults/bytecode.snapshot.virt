@@ -37,7 +37,7 @@ fn 0 snippet$setting (string) -> any
   string.eq
   if $L0 void
     i32.const 80
-    retag 3   ; -> i32
+    retag 3   ; i32
     return
   end $L0
   local.get 0   ; arg 0
@@ -45,7 +45,7 @@ fn 0 snippet$setting (string) -> any
   string.eq
   if $L1 void
     i32.const 25
-    retag 3   ; -> i32
+    retag 3   ; i32
     return
   end $L1
   return.lit null.const
@@ -63,7 +63,7 @@ fn 1 snippet$resolve (string) -> i32
     local.set 2   ; if_res
   else
     local.get 1   ; __coalesce_0
-    ref.cast 3   ; -> i32
+    ref.cast 3   ; i32
     local.set 2   ; if_res
   end $L0
   local.get 2   ; if_res
@@ -89,8 +89,8 @@ fn 2 snippet$first_present (ref) -> i32
       if $L2 void
         local.get 1   ; __for_arr_0
         local.get 3   ; __for_i_2
-        array.get 4   ; string[][]
-        ref.cast 1   ; -> string
+        array.get 4   ; string[]
+        ref.cast 1   ; string
         call 0   ; snippet$setting
         local.tee 4   ; __coalesce_3
         type_check 0   ; null
@@ -102,7 +102,7 @@ fn 2 snippet$first_present (ref) -> i32
           br $L1
         end $L3
         local.get 4   ; __coalesce_3
-        ref.cast 3   ; -> i32
+        ref.cast 3   ; i32
         return
       end $L2
     end $L1
@@ -135,15 +135,15 @@ fn 3 snippet$sum_prefix (ref) -> i32
       if $L2 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 4   ; string[][]
-        ref.cast 1   ; -> string
+        array.get 4   ; string[]
+        ref.cast 1   ; string
         call 0   ; snippet$setting
         local.tee 5   ; __coalesce_3
         type_check 0   ; null
         if $L3 void
         else
           local.get 5   ; __coalesce_3
-          ref.cast 3   ; -> i32
+          ref.cast 3   ; i32
           local.set 6   ; if_res
           local.get 1   ; total
           local.get 6   ; if_res
@@ -174,7 +174,7 @@ fn 4 snippet$required (string) -> i32
     return
   end $L0
   local.get 1   ; __coalesce_0
-  ref.cast 3   ; -> i32
+  ref.cast 3   ; i32
   return
 end
 
@@ -207,8 +207,8 @@ fn 5 snippet$count_missing (ref) -> i32
       if $L2 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 4   ; string[][]
-        ref.cast 1   ; -> string
+        array.get 4   ; string[]
+        ref.cast 1   ; string
         local.tee 5   ; k
         call 0   ; snippet$setting
         local.tee 7   ; __coalesce_3
@@ -225,7 +225,7 @@ fn 5 snippet$count_missing (ref) -> i32
           br $L1
         end $L3
         local.get 7   ; __coalesce_3
-        ref.cast 3   ; -> i32
+        ref.cast 3   ; i32
         local.set 6   ; present
         local.get 5   ; k
         local.tee 8   ; __p_4
@@ -333,7 +333,7 @@ fn 6 snippet$main () -> i32
   string.const 6   ; "depth"
   string.const 1   ; "height"
   string.const 0   ; "width"
-  array.new 4 3   ; string[][]
+  array.new 4 3   ; string[]
   call 2   ; snippet$first_present
   i32.to_i64
   local.set 2   ; $cast_9
@@ -360,7 +360,7 @@ fn 6 snippet$main () -> i32
   string.const 1   ; "height"
   string.const 6   ; "depth"
   string.const 0   ; "width"
-  array.new 4 4   ; string[][]
+  array.new 4 4   ; string[]
   call 3   ; snippet$sum_prefix
   i32.to_i64
   local.set 2   ; $cast_9
@@ -423,7 +423,7 @@ fn 6 snippet$main () -> i32
   string.const 0   ; "width"
   string.const 6   ; "depth"
   string.const 1   ; "height"
-  array.new 4 3   ; string[][]
+  array.new 4 3   ; string[]
   call 5   ; snippet$count_missing
   i32.to_i64
   local.set 2   ; $cast_9
@@ -445,7 +445,7 @@ fn 6 snippet$main () -> i32
     local.set 4   ; if_res
   else
     local.get 3   ; __coalesce_10
-    ref.cast 3   ; -> i32
+    ref.cast 3   ; i32
     local.set 4   ; if_res
   end $L0
   local.get 4   ; if_res
@@ -682,7 +682,7 @@ fn 12 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

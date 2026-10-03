@@ -52,7 +52,7 @@ fn 0 snippet$continue_outer () -> void
         struct.new 15   ; $Cell_i32
         local.tee 1   ; v
         struct.new 3   ; __defer_env_snippet_1
-        make_closure 3 16   ; __defer_snippet_0
+        make_closure 3 16   ; __defer_snippet_0 fn
         defer.push
         i32.const 0
         local.set 2   ; w
@@ -68,9 +68,9 @@ fn 0 snippet$continue_outer () -> void
               local.get 1   ; v
               local.get 3   ; w
               struct.new 4   ; __defer_env_snippet_3
-              make_closure 4 16   ; __defer_snippet_2
+              make_closure 4 16   ; __defer_snippet_2 fn
               defer.push
-              local.field 3 15 0   ; w.value
+              local.field 3 15 0   ; w $Cell_i32.value
               i32.const 1
               i32.eq
               if $L6 void
@@ -91,7 +91,7 @@ fn 0 snippet$continue_outer () -> void
               string.const 0   ; "  body "
               call 10   ; std_core$write_string_at
               local.set 5   ; __off_5
-              local.field 1 15 0   ; v.value
+              local.field 1 15 0   ; v $Cell_i32.value
               i32.to_i64
               local.set 6   ; $cast_29
               local.get 4   ; __buf_4
@@ -104,7 +104,7 @@ fn 0 snippet$continue_outer () -> void
               string.const 1   ; "."
               call 10   ; std_core$write_string_at
               local.set 5   ; __off_5
-              local.field 3 15 0   ; w.value
+              local.field 3 15 0   ; w $Cell_i32.value
               i32.to_i64
               local.set 7   ; $cast_34
               local.get 4   ; __buf_4
@@ -160,7 +160,7 @@ fn 1 snippet$break_outer () -> void
         struct.new 15   ; $Cell_i32
         local.tee 1   ; v
         struct.new 5   ; __defer_env_snippet_5
-        make_closure 5 16   ; __defer_snippet_4
+        make_closure 5 16   ; __defer_snippet_4 fn
         defer.push
         i32.const 0
         local.set 2   ; w
@@ -176,9 +176,9 @@ fn 1 snippet$break_outer () -> void
               local.get 1   ; v
               local.get 3   ; w
               struct.new 6   ; __defer_env_snippet_7
-              make_closure 6 16   ; __defer_snippet_6
+              make_closure 6 16   ; __defer_snippet_6 fn
               defer.push
-              local.field 1 15 0   ; v.value
+              local.field 1 15 0   ; v $Cell_i32.value
               i32.const 1
               i32.eq
               if $L6 void
@@ -195,7 +195,7 @@ fn 1 snippet$break_outer () -> void
               string.const 0   ; "  body "
               call 10   ; std_core$write_string_at
               local.set 5   ; __off_5
-              local.field 1 15 0   ; v.value
+              local.field 1 15 0   ; v $Cell_i32.value
               i32.to_i64
               local.set 6   ; $cast_27
               local.get 4   ; __buf_4
@@ -208,7 +208,7 @@ fn 1 snippet$break_outer () -> void
               string.const 1   ; "."
               call 10   ; std_core$write_string_at
               local.set 5   ; __off_5
-              local.field 3 15 0   ; w.value
+              local.field 3 15 0   ; w $Cell_i32.value
               i32.to_i64
               local.set 7   ; $cast_32
               local.get 4   ; __buf_4
@@ -267,7 +267,7 @@ fn 3 __defer_snippet_0 (ref) -> void
   string.const 6   ; "  outer defer "
   call 10   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 3 0   ; arg 0.cap_0
+  local.field 0 3 0   ; arg 0 __defer_env_snippet_1.cap_0
   struct.get 15 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
@@ -297,7 +297,7 @@ fn 4 __defer_snippet_2 (ref) -> void
   string.const 7   ; "  inner defer "
   call 10   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 4 0   ; arg 0.cap_0
+  local.field 0 4 0   ; arg 0 __defer_env_snippet_3.cap_0
   struct.get 15 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
@@ -311,7 +311,7 @@ fn 4 __defer_snippet_2 (ref) -> void
   string.const 1   ; "."
   call 10   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 4 1   ; arg 0.cap_1
+  local.field 0 4 1   ; arg 0 __defer_env_snippet_3.cap_1
   struct.get 15 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
@@ -341,7 +341,7 @@ fn 5 __defer_snippet_4 (ref) -> void
   string.const 6   ; "  outer defer "
   call 10   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 5 0   ; arg 0.cap_0
+  local.field 0 5 0   ; arg 0 __defer_env_snippet_5.cap_0
   struct.get 15 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
@@ -371,7 +371,7 @@ fn 6 __defer_snippet_6 (ref) -> void
   string.const 7   ; "  inner defer "
   call 10   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 6 0   ; arg 0.cap_0
+  local.field 0 6 0   ; arg 0 __defer_env_snippet_7.cap_0
   struct.get 15 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
@@ -385,7 +385,7 @@ fn 6 __defer_snippet_6 (ref) -> void
   string.const 1   ; "."
   call 10   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 6 1   ; arg 0.cap_1
+  local.field 0 6 1   ; arg 0 __defer_env_snippet_7.cap_1
   struct.get 15 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
@@ -606,7 +606,7 @@ fn 12 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 13   ; u8[][]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

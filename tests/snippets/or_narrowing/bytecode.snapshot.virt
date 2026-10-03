@@ -57,15 +57,15 @@ fn 1 snippet$furry_name (any) -> string
   type_check 5   ; snippet$Dog
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 5   ; -> snippet$Dog
+    ref.cast 5   ; snippet$Dog
     struct.get 5 0   ; snippet$Dog.name
-    ref.cast 7   ; -> string
+    ref.cast 7   ; string
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    ref.cast 4   ; -> snippet$Cat
+    ref.cast 4   ; snippet$Cat
     struct.get 4 0   ; snippet$Cat.name
-    ref.cast 7   ; -> string
+    ref.cast 7   ; string
     local.set 1   ; if_res
   end $L0
   local.get 1   ; if_res
@@ -73,8 +73,8 @@ fn 1 snippet$furry_name (any) -> string
 end
 
 fn 2 snippet$bird_name (ref) -> string
-  local.field 0 3 0   ; arg 0.name
-  ref.cast 7   ; -> string
+  local.field 0 3 0   ; arg 0 snippet$Bird.name
+  ref.cast 7   ; string
   return
 end
 
@@ -105,7 +105,7 @@ fn 3 snippet$describe (i32) -> string
     return
   end $L1
   local.get 1   ; p
-  ref.cast 3   ; -> snippet$Bird
+  ref.cast 3   ; snippet$Bird
   call 2   ; snippet$bird_name
   local.set 3   ; $call_10
   string.const 4   ; "bird "
@@ -148,15 +148,15 @@ fn 5 snippet$furry_or_bird (any) -> string
   type_check 4   ; snippet$Cat
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 4   ; -> snippet$Cat
+    ref.cast 4   ; snippet$Cat
     struct.get 4 0   ; snippet$Cat.name
-    ref.cast 7   ; -> string
+    ref.cast 7   ; string
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    ref.cast 3   ; -> snippet$Bird
+    ref.cast 3   ; snippet$Bird
     struct.get 3 0   ; snippet$Bird.name
-    ref.cast 7   ; -> string
+    ref.cast 7   ; string
     local.set 1   ; if_res
   end $L0
   local.get 1   ; if_res
@@ -244,7 +244,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 12   ; u8[][]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -31,9 +31,9 @@ fn 0 snippet$unwrap (any) -> i32
     unreachable
   end $L0
   local.get 0   ; arg 0
-  ref.cast 2   ; -> snippet$Box
+  ref.cast 2   ; snippet$Box
   struct.get 2 0   ; snippet$Box.v
-  ref.cast 3   ; -> i32
+  ref.cast 3   ; i32
   return
 end
 
@@ -48,9 +48,9 @@ fn 1 snippet$unwrap_logged (any) -> i32
     unreachable
   end $L0
   local.get 0   ; arg 0
-  ref.cast 2   ; -> snippet$Box
+  ref.cast 2   ; snippet$Box
   struct.get 2 0   ; snippet$Box.v
-  ref.cast 3   ; -> i32
+  ref.cast 3   ; i32
   return
 end
 
@@ -314,7 +314,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

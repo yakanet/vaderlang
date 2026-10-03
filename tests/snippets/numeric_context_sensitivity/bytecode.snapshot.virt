@@ -313,8 +313,8 @@ fn 0 snippet$main () -> i32
   string.const 4   ; "counter: n="
   call 5   ; std_core$write_string_at
   local.set 5   ; __off_1
-  local.field 4 4 0   ; __buf_0.n
-  ref.cast 2   ; -> usize
+  local.field 4 4 0   ; __buf_0 snippet$Counter.n
+  ref.cast 2   ; usize
   usize.to_i64
   local.set 1   ; h64
   local.get 11   ; __buf_6
@@ -327,8 +327,8 @@ fn 0 snippet$main () -> i32
   string.const 5   ; " delta="
   call 5   ; std_core$write_string_at
   local.set 5   ; __off_1
-  local.field 4 4 1   ; __buf_0.delta
-  ref.cast 5   ; -> isize
+  local.field 4 4 1   ; __buf_0 snippet$Counter.delta
+  ref.cast 5   ; isize
   isize.to_i64
   local.set 0   ; d64
   local.get 11   ; __buf_6
@@ -359,7 +359,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 12 5   ; i32[][]
+  array.new 12 5   ; i32[]
   local.tee 4   ; __buf_0
   array.len
   i64.const 1
@@ -368,7 +368,7 @@ fn 0 snippet$main () -> i32
   local.get 4   ; __buf_0
   i64.const 0
   local.get 3   ; usz
-  array.slice 12   ; i32[][]
+  array.slice 12   ; i32[]
   local.set 4   ; __buf_0
   i64.const 33
   call 3   ; std_core$new_byte_buffer
@@ -713,7 +713,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

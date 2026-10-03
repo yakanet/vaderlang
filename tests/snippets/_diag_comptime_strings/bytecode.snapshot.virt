@@ -28,22 +28,22 @@ fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $cast_13 u64
-  data.const 0 10   ; pool[0] : string[]
+  data.const 0 10   ; pool[0] string[]
   i32.const 1
-  array.get 10   ; string[][]
-  ref.cast 2   ; -> string
+  array.get 10   ; string[]
+  ref.cast 2   ; string
   call 7   ; std_io$println__string
-  data.const 1 10   ; pool[1] : string[]
+  data.const 1 10   ; pool[1] string[]
   i32.const 0
-  array.get 10   ; string[][]
-  ref.cast 2   ; -> string
+  array.get 10   ; string[]
+  ref.cast 2   ; string
   call 7   ; std_io$println__string
   i64.const 20
   call 2   ; std_core$new_byte_buffer
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
-  data.const 0 10   ; pool[0] : string[]
+  data.const 0 10   ; pool[0] string[]
   array.len
   usize.to_i64
   local.set 2   ; $cast_13
@@ -218,7 +218,7 @@ fn 5 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

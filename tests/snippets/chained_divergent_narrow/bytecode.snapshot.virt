@@ -47,9 +47,9 @@ fn 0 snippet$params_of (any) -> i32
     return
   end $L2
   local.get 0   ; arg 0
-  ref.cast 2   ; -> snippet$FnLike
+  ref.cast 2   ; snippet$FnLike
   struct.get 2 0   ; snippet$FnLike.params
-  ref.cast 6   ; -> i32
+  ref.cast 6   ; i32
   return
 end
 
@@ -311,7 +311,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 12   ; u8[][]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

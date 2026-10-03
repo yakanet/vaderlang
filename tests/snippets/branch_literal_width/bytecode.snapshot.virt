@@ -32,7 +32,7 @@ fn 0 snippet$main () -> i32
   local big i64
   local wide i64
   i32.const 65
-  array.new 7 1   ; u8[][]
+  array.new 7 1   ; u8[]
   local.tee 0   ; out
   array.len
   i64.const 0
@@ -45,8 +45,8 @@ fn 0 snippet$main () -> i32
     local.set 2   ; $sub_9
     local.get 0   ; out
     local.get 2   ; $sub_9
-    array.get 7   ; u8[][]
-    ref.cast 3   ; -> u8
+    array.get 7   ; u8[]
+    ref.cast 3   ; u8
     local.set 1   ; last
   else
     char.const 40
@@ -64,7 +64,7 @@ fn 0 snippet$main () -> i32
   end $L1
   local.get 3   ; if_res
   call 8   ; std_io$println__string
-  array.new 7 0   ; u8[][]
+  array.new 7 0   ; u8[]
   local.tee 0   ; out
   array.len
   i64.const 0
@@ -72,8 +72,8 @@ fn 0 snippet$main () -> i32
   if $L2 void
     local.get 0   ; out
     i32.const 0
-    array.get 7   ; u8[][]
-    ref.cast 3   ; -> u8
+    array.get 7   ; u8[]
+    ref.cast 3   ; u8
     local.set 1   ; last
   else
     char.const 40
@@ -106,8 +106,8 @@ fn 0 snippet$main () -> i32
     local.set 4   ; $sub_38
     local.get 0   ; out
     local.get 4   ; $sub_38
-    array.get 7   ; u8[][]
-    ref.cast 3   ; -> u8
+    array.get 7   ; u8[]
+    ref.cast 3   ; u8
     local.set 1   ; last
   end $L4
   local.get 1   ; last
@@ -365,7 +365,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -159,9 +159,9 @@ fn 0 snippet$show (string,string) -> void
   type_check 26   ; json$JsonError
   if $L0 void
     local.get 2   ; parsed
-    ref.cast 26   ; -> json$JsonError
+    ref.cast 26   ; json$JsonError
     struct.get 26 0   ; json$JsonError.msg
-    ref.cast 1   ; -> string
+    ref.cast 1   ; string
     local.set 3   ; $field_7
     local.get 0   ; arg 0
     string.const 0   ; ": error: "
@@ -173,7 +173,7 @@ fn 0 snippet$show (string,string) -> void
     type_check 30   ; json$JsonString
     if $L1 void
       local.get 2   ; parsed
-      ref.cast 30   ; -> json$JsonString
+      ref.cast 30   ; json$JsonString
       call 52   ; json$stringify
       local.set 3   ; $field_7
       local.get 0   ; arg 0
@@ -186,7 +186,7 @@ fn 0 snippet$show (string,string) -> void
       type_check 28   ; json$JsonNumber
       if $L2 void
         local.get 2   ; parsed
-        ref.cast 28   ; -> json$JsonNumber
+        ref.cast 28   ; json$JsonNumber
         call 52   ; json$stringify
         local.set 3   ; $field_7
         local.get 0   ; arg 0
@@ -199,7 +199,7 @@ fn 0 snippet$show (string,string) -> void
         type_check 25   ; json$JsonBool
         if $L3 void
           local.get 2   ; parsed
-          ref.cast 25   ; -> json$JsonBool
+          ref.cast 25   ; json$JsonBool
           call 52   ; json$stringify
           local.set 3   ; $field_7
           local.get 0   ; arg 0
@@ -212,7 +212,7 @@ fn 0 snippet$show (string,string) -> void
           type_check 27   ; json$JsonNull
           if $L4 void
             local.get 2   ; parsed
-            ref.cast 27   ; -> json$JsonNull
+            ref.cast 27   ; json$JsonNull
             call 52   ; json$stringify
             local.set 3   ; $field_7
             local.get 0   ; arg 0
@@ -225,7 +225,7 @@ fn 0 snippet$show (string,string) -> void
             type_check 24   ; json$JsonArray
             if $L5 void
               local.get 2   ; parsed
-              ref.cast 24   ; -> json$JsonArray
+              ref.cast 24   ; json$JsonArray
               call 52   ; json$stringify
               local.set 3   ; $field_7
               local.get 0   ; arg 0
@@ -238,7 +238,7 @@ fn 0 snippet$show (string,string) -> void
               type_check 29   ; json$JsonObject
               if $L6 void
                 local.get 2   ; parsed
-                ref.cast 29   ; -> json$JsonObject
+                ref.cast 29   ; json$JsonObject
                 call 52   ; json$stringify
                 local.set 3   ; $field_7
                 local.get 0   ; arg 0
@@ -391,35 +391,35 @@ fn 4 std_core$parse_f64 (string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; parts
-  ref.cast 15   ; -> std_core$DecimalParts
+  ref.cast 15   ; std_core$DecimalParts
   struct.get 15 3   ; std_core$DecimalParts.too_many_digits
-  ref.cast 5   ; -> bool
+  ref.cast 5   ; bool
   if $L1 void
     local.get 1   ; parts
-    ref.cast 15   ; -> std_core$DecimalParts
+    ref.cast 15   ; std_core$DecimalParts
     struct.get 15 0   ; std_core$DecimalParts.w
-    ref.cast 12   ; -> u64
+    ref.cast 12   ; u64
     local.set 2   ; $field_8
     local.get 1   ; parts
-    ref.cast 15   ; -> std_core$DecimalParts
+    ref.cast 15   ; std_core$DecimalParts
     struct.get 15 1   ; std_core$DecimalParts.q
-    ref.cast 3   ; -> i32
+    ref.cast 3   ; i32
     local.set 3   ; $field_10
     local.get 2   ; $field_8
     local.get 3   ; $field_10
     call 11   ; std_core$eisel_lemire
     local.set 2   ; $field_8
     local.get 1   ; parts
-    ref.cast 15   ; -> std_core$DecimalParts
+    ref.cast 15   ; std_core$DecimalParts
     struct.get 15 0   ; std_core$DecimalParts.w
-    ref.cast 12   ; -> u64
+    ref.cast 12   ; u64
     i64.const 1
     i64.add
     local.set 4   ; $add_16
     local.get 1   ; parts
-    ref.cast 15   ; -> std_core$DecimalParts
+    ref.cast 15   ; std_core$DecimalParts
     struct.get 15 1   ; std_core$DecimalParts.q
-    ref.cast 3   ; -> i32
+    ref.cast 3   ; i32
     local.set 3   ; $field_10
     local.get 4   ; $add_16
     local.get 3   ; $field_10
@@ -430,35 +430,35 @@ fn 4 std_core$parse_f64 (string) -> any
     i64.ne
     if $L2 void
       local.get 1   ; parts
-      ref.cast 15   ; -> std_core$DecimalParts
+      ref.cast 15   ; std_core$DecimalParts
       struct.get 15 2   ; std_core$DecimalParts.negative
-      ref.cast 5   ; -> bool
+      ref.cast 5   ; bool
       local.set 5   ; $field_23
       local.get 0   ; arg 0
       local.get 5   ; $field_23
       call 12   ; std_core$parse_f64_slow
-      retag 9   ; -> f64
+      retag 9   ; f64
       return
     end $L2
   end $L1
   local.get 1   ; parts
-  ref.cast 15   ; -> std_core$DecimalParts
+  ref.cast 15   ; std_core$DecimalParts
   struct.get 15 0   ; std_core$DecimalParts.w
-  ref.cast 12   ; -> u64
+  ref.cast 12   ; u64
   local.set 2   ; $field_8
   local.get 1   ; parts
-  ref.cast 15   ; -> std_core$DecimalParts
+  ref.cast 15   ; std_core$DecimalParts
   struct.get 15 1   ; std_core$DecimalParts.q
-  ref.cast 3   ; -> i32
+  ref.cast 3   ; i32
   local.set 3   ; $field_10
   local.get 2   ; $field_8
   local.get 3   ; $field_10
   call 11   ; std_core$eisel_lemire
   local.set 2   ; $field_8
   local.get 1   ; parts
-  ref.cast 15   ; -> std_core$DecimalParts
+  ref.cast 15   ; std_core$DecimalParts
   struct.get 15 2   ; std_core$DecimalParts.negative
-  ref.cast 5   ; -> bool
+  ref.cast 5   ; bool
   if $L3 void
     i64.const 1
     i64.const 63
@@ -471,7 +471,7 @@ fn 4 std_core$parse_f64 (string) -> any
   end $L3
   local.get 2   ; $field_8
   call 109   ; std_core$u64$BitsFloat$from_bits_vt
-  retag 9   ; -> f64
+  retag 9   ; f64
   return
 end
 
@@ -699,7 +699,7 @@ fn 9 std_core$utf8_encode (char) -> ref
   local.get 0   ; arg 0
   char.to_i32
   local.set 1   ; cp
-  array.new 13 0   ; u8[][]
+  array.new 13 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 128
@@ -712,7 +712,7 @@ fn 9 std_core$utf8_encode (char) -> ref
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
-    array.push 6   ; u8[]
+    array.push 6   ; u8
   else
     local.get 1   ; cp
     i32.const 2048
@@ -731,7 +731,7 @@ fn 9 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 6   ; u8[]
+      array.push 6   ; u8
       local.get 1   ; cp
       i32.const 63
       i32.bitand
@@ -745,7 +745,7 @@ fn 9 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 6   ; u8[]
+      array.push 6   ; u8
     else
       local.get 1   ; cp
       i32.const 65536
@@ -764,7 +764,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 6   ; u8[]
+        array.push 6   ; u8
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -780,7 +780,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 6   ; u8[]
+        array.push 6   ; u8
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -794,7 +794,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 6   ; u8[]
+        array.push 6   ; u8
       else
         local.get 1   ; cp
         i32.const 18
@@ -809,7 +809,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 6   ; u8[]
+        array.push 6   ; u8
         local.get 1   ; cp
         i32.const 12
         u32.shr
@@ -825,7 +825,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 6   ; u8[]
+        array.push 6   ; u8
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -841,7 +841,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 6   ; u8[]
+        array.push 6   ; u8
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -855,7 +855,7 @@ fn 9 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 6   ; u8[]
+        array.push 6   ; u8
       end $L2
     end $L1
   end $L0
@@ -1569,28 +1569,28 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
     i64.const 0
     local.set 3   ; sign
   end $L0
-  local.field 2 16 0   ; p.d
+  local.field 2 16 0   ; p std_core$SlowParts.d
   call 17   ; std_core$is_zero
   if $L1 void
     local.get 3   ; sign
     call 109   ; std_core$u64$BitsFloat$from_bits_vt
     return
   end $L1
-  local.field 2 16 0   ; p.d
+  local.field 2 16 0   ; p std_core$SlowParts.d
   local.set 4   ; m
   i32.const 0
   local.set 5   ; b_exp
   bool.const false
   local.set 6   ; sticky
-  local.field 2 16 1   ; p.e
-  ref.cast 3   ; -> i32
+  local.field 2 16 1   ; p std_core$SlowParts.e
+  ref.cast 3   ; i32
   i32.const 0
   i32.ge
   if $L2 void
     i32.const 0
     local.set 7   ; _k
-    local.field 2 16 1   ; p.e
-    ref.cast 3   ; -> i32
+    local.field 2 16 1   ; p std_core$SlowParts.e
+    ref.cast 3   ; i32
     local.set 8   ; __for_hi_0
     block $L3 void
       loop $L4 void
@@ -1610,12 +1610,12 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
         end $L5
       end $L4
     end $L3
-    local.field 2 16 1   ; p.e
-    ref.cast 3   ; -> i32
+    local.field 2 16 1   ; p std_core$SlowParts.e
+    ref.cast 3   ; i32
     local.set 5   ; b_exp
   else
-    local.field 2 16 1   ; p.e
-    ref.cast 3   ; -> i32
+    local.field 2 16 1   ; p std_core$SlowParts.e
+    ref.cast 3   ; i32
     i32.neg
     local.tee 7   ; _k
     i32.const 4
@@ -1623,7 +1623,7 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
     i32.const 64
     i32.add
     local.set 8   ; __for_hi_0
-    local.field 2 16 0   ; p.d
+    local.field 2 16 0   ; p std_core$SlowParts.d
     local.get 8   ; __for_hi_0
     call 18   ; std_core$shl
     local.set 4   ; m
@@ -1639,10 +1639,10 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
           i32.const 5
           call 28   ; std_core$BigInt$Div$div
           local.set 10   ; __tup_1
-          local.field 10 19 0   ; __tup_1._0
+          local.field 10 19 0   ; __tup_1 __Tuple_Array_u32_u32_6fc96a7e._0
           local.set 4   ; m
-          local.field 10 19 1   ; __tup_1._1
-          ref.cast 18   ; -> u32
+          local.field 10 19 1   ; __tup_1 __Tuple_Array_u32_u32_6fc96a7e._1
+          ref.cast 18   ; u32
           i32.const 0
           i32.ne
           if $L9 void
@@ -1657,8 +1657,8 @@ fn 12 std_core$parse_f64_slow (string,bool) -> f64
         end $L8
       end $L7
     end $L6
-    local.field 2 16 1   ; p.e
-    ref.cast 3   ; -> i32
+    local.field 2 16 1   ; p std_core$SlowParts.e
+    ref.cast 3   ; i32
     local.get 8   ; __for_hi_0
     i32.sub
     local.set 5   ; b_exp
@@ -1842,7 +1842,7 @@ fn 15 std_core$pf_product (i32,u64) -> (u64,u64)
   i32.mul
   i32.to_i64
   local.set 3   ; idx
-  data.const 0 51   ; pool[0] : u64[]
+  data.const 0 51   ; pool[0] u64[]
   local.get 3   ; idx
   load_slot_i64
   local.set 4   ; $idx_9
@@ -1857,7 +1857,7 @@ fn 15 std_core$pf_product (i32,u64) -> (u64,u64)
   i64.const 511
   i64.eq
   if $L0 void
-    data.const 0 51   ; pool[0] : u64[]
+    data.const 0 51   ; pool[0] u64[]
     local.set 6   ; $data_const_22
     local.get 3   ; idx
     i64.const 1
@@ -1931,7 +1931,7 @@ fn 16 std_core$sd_scan (string) -> ref
     local.set 2   ; i
   end $L1
   i32.const 0
-  array.new 17 1   ; u32[][]
+  array.new 17 1   ; u32[]
   local.set 4   ; d
   i32.const 0
   local.set 5   ; e
@@ -2237,8 +2237,8 @@ fn 17 std_core$is_zero (ref) -> bool
       if $L2 void
         local.get 0   ; arg 0
         local.get 1   ; i
-        array.get 17   ; u32[][]
-        ref.cast 18   ; -> u32
+        array.get 17   ; u32[]
+        ref.cast 18   ; u32
         i32.const 0
         i32.ne
         if $L3 void
@@ -2267,7 +2267,7 @@ fn 18 std_core$shl (ref,i32) -> ref
   local $cast_38 u64
   local v u64
   local $cast_43 u32
-  array.new 17 0   ; u32[][]
+  array.new 17 0   ; u32[]
   local.set 2   ; out
   i64.const 0
   local.set 3   ; _z
@@ -2284,7 +2284,7 @@ fn 18 std_core$shl (ref,i32) -> ref
       if $L2 void
         local.get 2   ; out
         i32.const 0
-        array.push 18 2   ; u32[]
+        array.push 18 2   ; u32 out
         local.get 3   ; _z
         i64.const 1
         i64.add
@@ -2313,12 +2313,12 @@ fn 18 std_core$shl (ref,i32) -> ref
         if $L6 void
           local.get 0   ; arg 0
           local.get 3   ; _z
-          array.get 17   ; u32[][]
-          ref.cast 18   ; -> u32
+          array.get 17   ; u32[]
+          ref.cast 18   ; u32
           local.set 6   ; $idx_24
           local.get 2   ; out
           local.get 6   ; $idx_24
-          array.push 18 2   ; u32[]
+          array.push 18 2   ; u32 out
           local.get 3   ; _z
           i64.const 1
           i64.add
@@ -2345,8 +2345,8 @@ fn 18 std_core$shl (ref,i32) -> ref
       if $L9 void
         local.get 0   ; arg 0
         local.get 3   ; _z
-        array.get 17   ; u32[][]
-        ref.cast 18   ; -> u32
+        array.get 17   ; u32[]
+        ref.cast 18   ; u32
         u32.to_i64
         local.set 7   ; $cast_35
         local.get 5   ; bit_shift
@@ -2369,7 +2369,7 @@ fn 18 std_core$shl (ref,i32) -> ref
         local.set 12   ; $cast_43
         local.get 2   ; out
         local.get 12   ; $cast_43
-        array.push 18   ; u32[]
+        array.push 18   ; u32
         local.get 11   ; v
         i64.const 32
         u64.shr
@@ -2389,7 +2389,7 @@ fn 18 std_core$shl (ref,i32) -> ref
   if $L10 void
     local.get 2   ; out
     local.get 6   ; $idx_24
-    array.push 18   ; u32[]
+    array.push 18   ; u32
   end $L10
   local.get 2   ; out
   return
@@ -2419,8 +2419,8 @@ fn 19 std_core$bit_len (ref) -> i32
         local.set 2   ; $cast_8
         local.get 0   ; arg 0
         local.get 2   ; $cast_8
-        array.get 17   ; u32[][]
-        ref.cast 18   ; -> u32
+        array.get 17   ; u32[]
+        ref.cast 18   ; u32
         i32.const 0
         i32.ne
         if $L3 void
@@ -2433,8 +2433,8 @@ fn 19 std_core$bit_len (ref) -> i32
           local.set 4   ; $cast_15
           local.get 0   ; arg 0
           local.get 4   ; $cast_15
-          array.get 17   ; u32[][]
-          ref.cast 18   ; -> u32
+          array.get 17   ; u32[]
+          ref.cast 18   ; u32
           call 23   ; std_core$clz32
           local.set 5   ; $call_17
           i32.const 32
@@ -2638,7 +2638,7 @@ fn 22 std_core$mul_add_small (ref,u32,u32) -> ref
   local $cast_16 u64
   local v u64
   local $cast_22 u32
-  array.new 17 0   ; u32[][]
+  array.new 17 0   ; u32[]
   local.set 3   ; $arr_3
   local.get 0   ; arg 0
   array.len
@@ -2663,8 +2663,8 @@ fn 22 std_core$mul_add_small (ref,u32,u32) -> ref
       if $L2 void
         local.get 0   ; arg 0
         local.get 4   ; $len_4
-        array.get 17   ; u32[][]
-        ref.cast 18   ; -> u32
+        array.get 17   ; u32[]
+        ref.cast 18   ; u32
         u32.to_i64
         local.set 7   ; $cast_15
         local.get 1   ; arg 1
@@ -2682,7 +2682,7 @@ fn 22 std_core$mul_add_small (ref,u32,u32) -> ref
         local.set 10   ; $cast_22
         local.get 3   ; $arr_3
         local.get 10   ; $cast_22
-        array.push 18 3   ; u32[]
+        array.push 18 3   ; u32 $arr_3
         local.get 9   ; v
         i64.const 32
         u64.shr
@@ -2708,7 +2708,7 @@ fn 22 std_core$mul_add_small (ref,u32,u32) -> ref
         local.set 10   ; $cast_22
         local.get 3   ; $arr_3
         local.get 10   ; $cast_22
-        array.push 18 3   ; u32[]
+        array.push 18 3   ; u32 $arr_3
         local.get 5   ; carry
         i64.const 32
         u64.shr
@@ -2865,8 +2865,8 @@ fn 25 std_core$any_below (ref,i32) -> bool
       if $L2 void
         local.get 0   ; arg 0
         local.get 4   ; i
-        array.get 17   ; u32[][]
-        ref.cast 18   ; -> u32
+        array.get 17   ; u32[]
+        ref.cast 18   ; u32
         i32.const 0
         i32.ne
         if $L3 void
@@ -2914,8 +2914,8 @@ fn 25 std_core$any_below (ref,i32) -> bool
     local.set 4   ; i
     local.get 0   ; arg 0
     local.get 4   ; i
-    array.get 17   ; u32[][]
-    ref.cast 18   ; -> u32
+    array.get 17   ; u32[]
+    ref.cast 18   ; u32
     local.get 7   ; $cast_28
     i32.bitand
     i32.const 0
@@ -2939,8 +2939,8 @@ fn 26 std_core$limb (ref,usize) -> u64
   if $L0 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    array.get 17   ; u32[][]
-    ref.cast 18   ; -> u32
+    array.get 17   ; u32[]
+    ref.cast 18   ; u32
     u32.to_i64
     local.set 3   ; if_res
   else
@@ -2971,7 +2971,7 @@ fn 28 std_core$BigInt$Div$div (ref,u32) -> ref
   local $cast_22 u32
   local $cast_23 u64
   local out ref
-  array.new 17 0   ; u32[][]
+  array.new 17 0   ; u32[]
   local.set 2   ; msb
   i64.const 0
   local.set 3   ; rem
@@ -2996,8 +2996,8 @@ fn 28 std_core$BigInt$Div$div (ref,u32) -> ref
         local.set 6   ; $cast_15
         local.get 0   ; arg 0
         local.get 6   ; $cast_15
-        array.get 17   ; u32[][]
-        ref.cast 18   ; -> u32
+        array.get 17   ; u32[]
+        ref.cast 18   ; u32
         u32.to_i64
         local.set 7   ; $cast_17
         local.get 5   ; $shl_14
@@ -3014,7 +3014,7 @@ fn 28 std_core$BigInt$Div$div (ref,u32) -> ref
         local.set 10   ; $cast_22
         local.get 2   ; msb
         local.get 10   ; $cast_22
-        array.push 18 2   ; u32[]
+        array.push 18 2   ; u32 msb
         local.get 1   ; arg 1
         u32.to_i64
         local.set 11   ; $cast_23
@@ -3030,7 +3030,7 @@ fn 28 std_core$BigInt$Div$div (ref,u32) -> ref
       end $L2
     end $L1
   end $L0
-  array.new 17 0   ; u32[][]
+  array.new 17 0   ; u32[]
   local.set 12   ; out
   local.get 2   ; msb
   array.len
@@ -3049,12 +3049,12 @@ fn 28 std_core$BigInt$Div$div (ref,u32) -> ref
         local.set 6   ; $cast_15
         local.get 2   ; msb
         local.get 6   ; $cast_15
-        array.get 17   ; u32[][]
-        ref.cast 18   ; -> u32
+        array.get 17   ; u32[]
+        ref.cast 18   ; u32
         local.set 10   ; $cast_22
         local.get 12   ; out
         local.get 10   ; $cast_22
-        array.push 18 12   ; u32[]
+        array.push 18 12   ; u32 out
         local.get 4   ; i
         i32.const 1
         i32.sub
@@ -3153,11 +3153,11 @@ fn 30 std_core$format_f64 (f64) -> string
   local.get 1   ; bits
   call 31   ; std_core$d2d
   local.set 6   ; d
-  local.field 6 20 0   ; d.mantissa
-  ref.cast 12   ; -> u64
+  local.field 6 20 0   ; d std_core$Dec64.mantissa
+  ref.cast 12   ; u64
   local.set 1   ; bits
-  local.field 6 20 1   ; d.exp
-  ref.cast 3   ; -> i32
+  local.field 6 20 1   ; d std_core$Dec64.exp
+  ref.cast 3   ; i32
   local.set 7   ; $field_36
   local.get 1   ; bits
   local.get 7   ; $field_36
@@ -3300,11 +3300,11 @@ fn 31 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.mul
     local.set 15   ; $cast_74
-    data.const 1 51   ; pool[1] : u64[]
+    data.const 1 51   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 51   ; pool[1] : u64[]
+    data.const 1 51   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -3321,14 +3321,14 @@ fn 31 std_core$d2d (u64,u64) -> ref
     local.get 7   ; mm_shift
     call 37   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
-    local.field 17 21 0   ; $data_const_80._0
-    ref.cast 12   ; -> u64
+    local.field 17 21 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
+    ref.cast 12   ; u64
     local.set 8   ; vr
-    local.field 17 21 1   ; $data_const_80._1
-    ref.cast 12   ; -> u64
+    local.field 17 21 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
+    ref.cast 12   ; u64
     local.set 9   ; vp
-    local.field 17 21 2   ; $data_const_80._2
-    ref.cast 12   ; -> u64
+    local.field 17 21 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
+    ref.cast 12   ; u64
     local.set 10   ; vm
     local.get 13   ; $call_57
     i32.const 21
@@ -3414,11 +3414,11 @@ fn 31 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.mul
     local.set 15   ; $cast_74
-    data.const 2 51   ; pool[2] : u64[]
+    data.const 2 51   ; pool[2] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 2 51   ; pool[2] : u64[]
+    data.const 2 51   ; pool[2] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -3435,14 +3435,14 @@ fn 31 std_core$d2d (u64,u64) -> ref
     local.get 7   ; mm_shift
     call 37   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
-    local.field 17 21 0   ; $data_const_80._0
-    ref.cast 12   ; -> u64
+    local.field 17 21 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
+    ref.cast 12   ; u64
     local.set 8   ; vr
-    local.field 17 21 1   ; $data_const_80._1
-    ref.cast 12   ; -> u64
+    local.field 17 21 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
+    ref.cast 12   ; u64
     local.set 9   ; vp
-    local.field 17 21 2   ; $data_const_80._2
-    ref.cast 12   ; -> u64
+    local.field 17 21 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
+    ref.cast 12   ; u64
     local.set 10   ; vm
     local.get 13   ; $call_57
     i32.const 1
@@ -4589,7 +4589,7 @@ fn 48 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 13   ; u8[][]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -4660,7 +4660,7 @@ fn 51 json$parse (string) -> any
   type_check 26   ; json$JsonError
   if $L0 void
     local.get 2   ; v
-    ref.cast 26   ; -> json$JsonError
+    ref.cast 26   ; json$JsonError
     return
   end $L0
   local.get 1   ; p
@@ -4680,7 +4680,7 @@ end
 
 fn 52 json$stringify (any) -> string
   local sb ref
-  array.new 48 0   ; string[][]
+  array.new 48 0   ; string[]
   struct.new 33   ; std_string_builder$StringBuilder
   local.tee 1   ; sb
   local.get 0   ; arg 0
@@ -4744,11 +4744,11 @@ fn 54 json$parse_value (ref,i32) -> any
     type_check 26   ; json$JsonError
     if $L3 void
       local.get 3   ; s
-      ref.cast 26   ; -> json$JsonError
+      ref.cast 26   ; json$JsonError
       return
     end $L3
     local.get 3   ; s
-    ref.cast 1   ; -> string
+    ref.cast 1   ; string
     struct.new 30   ; json$JsonString
     return
   end $L2
@@ -4763,11 +4763,11 @@ fn 54 json$parse_value (ref,i32) -> any
     type_check 26   ; json$JsonError
     if $L5 void
       local.get 3   ; s
-      ref.cast 26   ; -> json$JsonError
+      ref.cast 26   ; json$JsonError
       return
     end $L5
     local.get 3   ; s
-    ref.cast 29   ; -> json$JsonObject
+    ref.cast 29   ; json$JsonObject
     return
   end $L4
   local.get 2   ; c
@@ -4781,11 +4781,11 @@ fn 54 json$parse_value (ref,i32) -> any
     type_check 26   ; json$JsonError
     if $L7 void
       local.get 3   ; s
-      ref.cast 26   ; -> json$JsonError
+      ref.cast 26   ; json$JsonError
       return
     end $L7
     local.get 3   ; s
-    ref.cast 24   ; -> json$JsonArray
+    ref.cast 24   ; json$JsonArray
     return
   end $L6
   local.get 2   ; c
@@ -4808,11 +4808,11 @@ fn 54 json$parse_value (ref,i32) -> any
     type_check 26   ; json$JsonError
     if $L10 void
       local.get 3   ; s
-      ref.cast 26   ; -> json$JsonError
+      ref.cast 26   ; json$JsonError
       return
     end $L10
     local.get 3   ; s
-    ref.cast 25   ; -> json$JsonBool
+    ref.cast 25   ; json$JsonBool
     return
   end $L9
   local.get 2   ; c
@@ -4825,11 +4825,11 @@ fn 54 json$parse_value (ref,i32) -> any
     type_check 26   ; json$JsonError
     if $L12 void
       local.get 3   ; s
-      ref.cast 26   ; -> json$JsonError
+      ref.cast 26   ; json$JsonError
       return
     end $L12
     local.get 3   ; s
-    ref.cast 27   ; -> json$JsonNull
+    ref.cast 27   ; json$JsonNull
     return
   end $L11
   local.get 2   ; c
@@ -4851,11 +4851,11 @@ fn 54 json$parse_value (ref,i32) -> any
     type_check 26   ; json$JsonError
     if $L15 void
       local.get 3   ; s
-      ref.cast 26   ; -> json$JsonError
+      ref.cast 26   ; json$JsonError
       return
     end $L15
     local.get 3   ; s
-    ref.cast 28   ; -> json$JsonNumber
+    ref.cast 28   ; json$JsonNumber
     return
   end $L14
   local.get 0   ; arg 0
@@ -4890,11 +4890,11 @@ end
 fn 56 json$at_end (ref) -> bool
   local $field_1 usize
   local $field_2 usize
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   local.set 1   ; $field_1
-  local.field 0 32 3   ; arg 0.eof
-  ref.cast 7   ; -> usize
+  local.field 0 32 3   ; arg 0 json$Parser.eof
+  ref.cast 7   ; usize
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
@@ -4904,8 +4904,8 @@ end
 
 fn 57 json$fail (ref,string) -> ref
   local $field_2 usize
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   local.get 2   ; $field_2
@@ -4928,9 +4928,9 @@ fn 58 json$write_value (ref,any,i32,i32) -> void
     type_check 25   ; json$JsonBool
     if $L1 void
       local.get 1   ; arg 1
-      ref.cast 25   ; -> json$JsonBool
+      ref.cast 25   ; json$JsonBool
       struct.get 25 0   ; json$JsonBool.value
-      ref.cast 5   ; -> bool
+      ref.cast 5   ; bool
       if $L2 void
         local.get 0   ; arg 0
         string.const 3   ; "true"
@@ -4945,9 +4945,9 @@ fn 58 json$write_value (ref,any,i32,i32) -> void
       type_check 28   ; json$JsonNumber
       if $L3 void
         local.get 1   ; arg 1
-        ref.cast 28   ; -> json$JsonNumber
+        ref.cast 28   ; json$JsonNumber
         struct.get 28 0   ; json$JsonNumber.value
-        ref.cast 9   ; -> f64
+        ref.cast 9   ; f64
         local.set 4   ; $field_13
         local.get 0   ; arg 0
         local.get 4   ; $field_13
@@ -4957,9 +4957,9 @@ fn 58 json$write_value (ref,any,i32,i32) -> void
         type_check 30   ; json$JsonString
         if $L4 void
           local.get 1   ; arg 1
-          ref.cast 30   ; -> json$JsonString
+          ref.cast 30   ; json$JsonString
           struct.get 30 0   ; json$JsonString.value
-          ref.cast 1   ; -> string
+          ref.cast 1   ; string
           local.set 5   ; $field_16
           local.get 0   ; arg 0
           local.get 5   ; $field_16
@@ -4970,7 +4970,7 @@ fn 58 json$write_value (ref,any,i32,i32) -> void
           type_check 24   ; json$JsonArray
           if $L5 void
             local.get 1   ; arg 1
-            ref.cast 24   ; -> json$JsonArray
+            ref.cast 24   ; json$JsonArray
             local.set 6   ; $cast_19
             local.get 0   ; arg 0
             local.get 6   ; $cast_19
@@ -4982,7 +4982,7 @@ fn 58 json$write_value (ref,any,i32,i32) -> void
             type_check 29   ; json$JsonObject
             if $L6 void
               local.get 1   ; arg 1
-              ref.cast 29   ; -> json$JsonObject
+              ref.cast 29   ; json$JsonObject
               local.set 6   ; $cast_19
               local.get 0   ; arg 0
               local.get 6   ; $cast_19
@@ -5004,11 +5004,11 @@ fn 59 json$peek_byte (ref) -> char
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   local.set 1   ; $field_1
-  local.field 0 32 3   ; arg 0.eof
-  ref.cast 7   ; -> usize
+  local.field 0 32 3   ; arg 0 json$Parser.eof
+  ref.cast 7   ; usize
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
@@ -5016,10 +5016,10 @@ fn 59 json$peek_byte (ref) -> char
   if $L0 void
     return.lit char.const 0
   end $L0
-  local.field 0 32 1   ; arg 0.bytes
+  local.field 0 32 1   ; arg 0 json$Parser.bytes
   local.set 3   ; $field_5
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   local.set 1   ; $field_1
   local.get 3   ; $field_5
   local.get 1   ; $field_1
@@ -5043,17 +5043,17 @@ fn 60 json$parse_string (ref) -> any
     local.get 0   ; arg 0
     char.const 34
     call 71   ; json$expect_byte
-    ref.cast 26   ; -> json$JsonError
+    ref.cast 26   ; json$JsonError
     return
   end $L0
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   local.set 1   ; start
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   local.set 2   ; scan
-  local.field 0 32 3   ; arg 0.eof
-  ref.cast 7   ; -> usize
+  local.field 0 32 3   ; arg 0 json$Parser.eof
+  ref.cast 7   ; usize
   local.set 3   ; __for_hi_0
   block $L1 void
     loop $L2 void
@@ -5061,10 +5061,10 @@ fn 60 json$parse_string (ref) -> any
       local.get 3   ; __for_hi_0
       u64.lt
       if $L3 void
-        local.field 0 32 1   ; arg 0.bytes
+        local.field 0 32 1   ; arg 0 json$Parser.bytes
         local.get 2   ; scan
-        array.get 13   ; u8[][]
-        ref.cast 6   ; -> u8
+        array.get 13   ; u8[]
+        ref.cast 6   ; u8
         local.tee 4   ; b
         i32.const 34
         i32.eq
@@ -5076,25 +5076,25 @@ fn 60 json$parse_string (ref) -> any
           local.get 0   ; arg 0
           local.get 5   ; $add_21
           struct.set 32 2   ; json$Parser.pos
-          local.field 0 32 1   ; arg 0.bytes
+          local.field 0 32 1   ; arg 0 json$Parser.bytes
           local.get 1   ; start
           local.get 2   ; scan
-          array.slice 13   ; u8[][]
+          array.slice 13   ; u8[]
           call.import 2   ; std_core$bytes_to_string
-          retag 1   ; -> string
+          retag 1   ; string
           return
         end $L4
         local.get 4   ; b
         i32.const 92
         i32.eq
         if $L5 void
-          array.new 48 0   ; string[][]
+          array.new 48 0   ; string[]
           struct.new 33   ; std_string_builder$StringBuilder
           local.set 6   ; sb
-          local.field 0 32 1   ; arg 0.bytes
+          local.field 0 32 1   ; arg 0 json$Parser.bytes
           local.get 1   ; start
           local.get 2   ; scan
-          array.slice 13   ; u8[][]
+          array.slice 13   ; u8[]
           call.import 2   ; std_core$bytes_to_string
           local.set 7   ; $call_32
           local.get 6   ; sb
@@ -5141,14 +5141,14 @@ fn 61 json$parse_object (ref,i32) -> any
     local.get 0   ; arg 0
     char.const 123
     call 71   ; json$expect_byte
-    ref.cast 26   ; -> json$JsonError
+    ref.cast 26   ; json$JsonError
     return
   end $L0
-  array.new 48 0   ; string[][]
+  array.new 48 0   ; string[]
   local.set 2   ; $arr_9
-  array.new 50 0   ; ref[][]
+  array.new 50 0   ; ref[]
   local.set 3   ; $arr_10
-  array.new 45 0   ; i32[][]
+  array.new 45 0   ; i32[]
   local.set 4   ; $arr_11
   local.get 2   ; $arr_9
   local.get 3   ; $arr_10
@@ -5195,7 +5195,7 @@ fn 61 json$parse_object (ref,i32) -> any
         type_check 26   ; json$JsonError
         if $L6 void
           local.get 6   ; key
-          ref.cast 26   ; -> json$JsonError
+          ref.cast 26   ; json$JsonError
           return
         end $L6
         local.get 0   ; arg 0
@@ -5208,7 +5208,7 @@ fn 61 json$parse_object (ref,i32) -> any
           local.get 0   ; arg 0
           char.const 58
           call 71   ; json$expect_byte
-          ref.cast 26   ; -> json$JsonError
+          ref.cast 26   ; json$JsonError
           return
         end $L7
         local.get 1   ; arg 1
@@ -5222,11 +5222,11 @@ fn 61 json$parse_object (ref,i32) -> any
         type_check 26   ; json$JsonError
         if $L8 void
           local.get 8   ; value
-          ref.cast 26   ; -> json$JsonError
+          ref.cast 26   ; json$JsonError
           return
         end $L8
         local.get 6   ; key
-        ref.cast 1   ; -> string
+        ref.cast 1   ; string
         local.set 9   ; $cast_44
         local.get 8   ; value
         local.set 10   ; $cast_45
@@ -5292,10 +5292,10 @@ fn 62 json$parse_array (ref,i32) -> any
     local.get 0   ; arg 0
     char.const 91
     call 71   ; json$expect_byte
-    ref.cast 26   ; -> json$JsonError
+    ref.cast 26   ; json$JsonError
     return
   end $L0
-  array.new 42 0   ; union[][]
+  array.new 42 0   ; union[]
   local.set 2   ; items
   local.get 0   ; arg 0
   call 55   ; json$skip_ws
@@ -5337,14 +5337,14 @@ fn 62 json$parse_array (ref,i32) -> any
         type_check 26   ; json$JsonError
         if $L6 void
           local.get 5   ; v
-          ref.cast 26   ; -> json$JsonError
+          ref.cast 26   ; json$JsonError
           return
         end $L6
         local.get 5   ; v
         local.set 6   ; $cast_27
         local.get 2   ; items
         local.get 6   ; $cast_27
-        array.push 31   ; union[]
+        array.push 31   ; union
         local.get 0   ; arg 0
         call 55   ; json$skip_ws
         local.get 0   ; arg 0
@@ -5436,8 +5436,8 @@ fn 65 json$parse_number (ref) -> any
   local $field_93 ref
   local $field_94 usize
   local parsed any
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   local.set 1   ; start
   local.get 0   ; arg 0
   call 59   ; json$peek_byte
@@ -5680,22 +5680,22 @@ fn 65 json$parse_number (ref) -> any
       end $L27
     end $L26
   end $L20
-  local.field 0 32 1   ; arg 0.bytes
+  local.field 0 32 1   ; arg 0 json$Parser.bytes
   local.set 5   ; $field_93
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   local.set 6   ; $field_94
   local.get 5   ; $field_93
   local.get 1   ; start
   local.get 6   ; $field_94
-  array.slice 13   ; u8[][]
+  array.slice 13   ; u8[]
   call.import 2   ; std_core$bytes_to_string
   call 79   ; std_string$parse_float
   local.tee 7   ; parsed
   type_check 9   ; f64
   if $L30 void
     local.get 7   ; parsed
-    ref.cast 9   ; -> f64
+    ref.cast 9   ; f64
     struct.new 28   ; json$JsonNumber
     return
   end $L30
@@ -5712,8 +5712,8 @@ end
 
 fn 66 json$advance (ref) -> void
   local $add_3 usize
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   i64.const 1
   i64.add
   local.set 1   ; $add_3
@@ -5736,7 +5736,7 @@ fn 67 json$write_object (ref,ref,i32,i32) -> void
   local v any
   local $add_36 i32
   local $add_42 i32
-  local.field 1 29 0   ; arg 1.entries
+  local.field 1 29 0   ; arg 1 json$JsonObject.entries
   call 100   ; std_collections$len__string__Any
   i64.const 0
   i64.eq
@@ -5751,14 +5751,14 @@ fn 67 json$write_object (ref,ref,i32,i32) -> void
   call 89   ; std_string_builder$append
   bool.const true
   local.set 4   ; first
-  local.field 1 29 0   ; arg 1.entries
+  local.field 1 29 0   ; arg 1 json$JsonObject.entries
   local.set 5   ; __iter_src_0
-  local.field 5 43 0   ; __iter_src_0.ekeys
+  local.field 5 43 0   ; __iter_src_0 std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.ekeys
   local.set 6   ; __iter_ekeys_1
-  local.field 5 43 1   ; __iter_src_0.evals
+  local.field 5 43 1   ; __iter_src_0 std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.evals
   local.set 7   ; __iter_evals_2
-  local.field 5 43 4   ; __iter_src_0.size
-  ref.cast 7   ; -> usize
+  local.field 5 43 4   ; __iter_src_0 std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.size
+  ref.cast 7   ; usize
   local.set 8   ; __iter_size_3
   i64.const 0
   local.set 9   ; __iter_pos_4
@@ -5771,12 +5771,12 @@ fn 67 json$write_object (ref,ref,i32,i32) -> void
       else
         local.get 6   ; __iter_ekeys_1
         local.get 9   ; __iter_pos_4
-        array.get 48   ; string[][]
-        ref.cast 1   ; -> string
+        array.get 48   ; string[]
+        ref.cast 1   ; string
         local.set 10   ; $idx_23
         local.get 7   ; __iter_evals_2
         local.get 9   ; __iter_pos_4
-        array.get 42   ; union[][]
+        array.get 42   ; union[]
         local.set 11   ; $idx_24
         local.get 10   ; $idx_23
         local.set 12   ; k
@@ -5846,7 +5846,7 @@ fn 68 json$write_array (ref,ref,i32,i32) -> void
   local item any
   local $add_24 i32
   local $add_26 i32
-  local.field 1 24 0   ; arg 1.items
+  local.field 1 24 0   ; arg 1 json$JsonArray.items
   array.len
   i64.const 0
   i64.eq
@@ -5861,7 +5861,7 @@ fn 68 json$write_array (ref,ref,i32,i32) -> void
   call 89   ; std_string_builder$append
   bool.const true
   local.set 4   ; first
-  local.field 1 24 0   ; arg 1.items
+  local.field 1 24 0   ; arg 1 json$JsonArray.items
   local.tee 5   ; __for_arr_0
   array.len
   local.set 6   ; __for_len_1
@@ -5875,7 +5875,7 @@ fn 68 json$write_array (ref,ref,i32,i32) -> void
       if $L3 void
         local.get 5   ; __for_arr_0
         local.get 7   ; __for_i_2
-        array.get 42   ; union[][]
+        array.get 42   ; union[]
         local.set 8   ; item
         local.get 4   ; first
         bool.not
@@ -5950,8 +5950,8 @@ fn 69 json$write_string (ref,string,string) -> void
       if $L2 void
         local.get 3   ; b
         local.get 5   ; i
-        array.get 13   ; u8[][]
-        ref.cast 6   ; -> u8
+        array.get 13   ; u8[]
+        ref.cast 6   ; u8
         call 75   ; json$escape_of
         local.tee 8   ; __coalesce_0
         type_check 0   ; null
@@ -5963,7 +5963,7 @@ fn 69 json$write_string (ref,string,string) -> void
           br $L1
         end $L3
         local.get 8   ; __coalesce_0
-        ref.cast 1   ; -> string
+        ref.cast 1   ; string
         local.set 7   ; escape
         local.get 4   ; run
         local.get 5   ; i
@@ -5972,7 +5972,7 @@ fn 69 json$write_string (ref,string,string) -> void
           local.get 3   ; b
           local.get 4   ; run
           local.get 5   ; i
-          array.slice 13   ; u8[][]
+          array.slice 13   ; u8[]
           call.import 2   ; std_core$bytes_to_string
           local.set 9   ; $call_23
           local.get 0   ; arg 0
@@ -6007,7 +6007,7 @@ fn 69 json$write_string (ref,string,string) -> void
     local.get 3   ; b
     local.get 4   ; run
     local.get 5   ; i
-    array.slice 13   ; u8[][]
+    array.slice 13   ; u8[]
     call.import 2   ; std_core$bytes_to_string
     local.set 7   ; escape
   end $L5
@@ -6078,15 +6078,15 @@ fn 72 json$parse_string_with_escapes (ref,ref) -> any
       call 56   ; json$at_end
       bool.not
       if $L2 void
-        local.field 0 32 1   ; arg 0.bytes
+        local.field 0 32 1   ; arg 0 json$Parser.bytes
         local.set 2   ; $field_4
-        local.field 0 32 2   ; arg 0.pos
-        ref.cast 7   ; -> usize
+        local.field 0 32 2   ; arg 0 json$Parser.pos
+        ref.cast 7   ; usize
         local.set 3   ; $field_5
         local.get 2   ; $field_4
         local.get 3   ; $field_5
-        array.get 13   ; u8[][]
-        ref.cast 6   ; -> u8
+        array.get 13   ; u8[]
+        ref.cast 6   ; u8
         local.tee 4   ; b
         i32.const 34
         i32.eq
@@ -6095,7 +6095,7 @@ fn 72 json$parse_string_with_escapes (ref,ref) -> any
           call 66   ; json$advance
           local.get 1   ; arg 1
           call 92   ; std_string_builder$StringBuilder$Display$to_string
-          retag 1   ; -> string
+          retag 1   ; string
           return
         end $L3
         local.get 4   ; b
@@ -6216,8 +6216,8 @@ fn 72 json$parse_string_with_escapes (ref,ref) -> any
             end $L7
           end $L6
         else
-          local.field 0 32 2   ; arg 0.pos
-          ref.cast 7   ; -> usize
+          local.field 0 32 2   ; arg 0 json$Parser.pos
+          ref.cast 7   ; usize
           local.set 8   ; run
           block $L16 void
             loop $L17 void
@@ -6225,15 +6225,15 @@ fn 72 json$parse_string_with_escapes (ref,ref) -> any
               call 56   ; json$at_end
               bool.not
               if $L18 void
-                local.field 0 32 1   ; arg 0.bytes
+                local.field 0 32 1   ; arg 0 json$Parser.bytes
                 local.set 10   ; $field_59
-                local.field 0 32 2   ; arg 0.pos
-                ref.cast 7   ; -> usize
+                local.field 0 32 2   ; arg 0 json$Parser.pos
+                ref.cast 7   ; usize
                 local.set 11   ; $field_60
                 local.get 10   ; $field_59
                 local.get 11   ; $field_60
-                array.get 13   ; u8[][]
-                ref.cast 6   ; -> u8
+                array.get 13   ; u8[]
+                ref.cast 6   ; u8
                 i32.const 34
                 i32.ne
                 local.set 9   ; and_res
@@ -6243,15 +6243,15 @@ fn 72 json$parse_string_with_escapes (ref,ref) -> any
               end $L18
               local.get 9   ; and_res
               if $L19 void
-                local.field 0 32 1   ; arg 0.bytes
+                local.field 0 32 1   ; arg 0 json$Parser.bytes
                 local.set 13   ; $field_66
-                local.field 0 32 2   ; arg 0.pos
-                ref.cast 7   ; -> usize
+                local.field 0 32 2   ; arg 0 json$Parser.pos
+                ref.cast 7   ; usize
                 local.set 14   ; $field_67
                 local.get 13   ; $field_66
                 local.get 14   ; $field_67
-                array.get 13   ; u8[][]
-                ref.cast 6   ; -> u8
+                array.get 13   ; u8[]
+                ref.cast 6   ; u8
                 i32.const 92
                 i32.ne
                 local.set 12   ; and_res
@@ -6267,15 +6267,15 @@ fn 72 json$parse_string_with_escapes (ref,ref) -> any
               end $L20
             end $L17
           end $L16
-          local.field 0 32 1   ; arg 0.bytes
+          local.field 0 32 1   ; arg 0 json$Parser.bytes
           local.set 15   ; $field_72
-          local.field 0 32 2   ; arg 0.pos
-          ref.cast 7   ; -> usize
+          local.field 0 32 2   ; arg 0 json$Parser.pos
+          ref.cast 7   ; usize
           local.set 16   ; $field_73
           local.get 15   ; $field_72
           local.get 8   ; run
           local.get 16   ; $field_73
-          array.slice 13   ; u8[][]
+          array.slice 13   ; u8[]
           call.import 2   ; std_core$bytes_to_string
           local.set 17   ; $call_75
           local.get 1   ; arg 1
@@ -6302,13 +6302,13 @@ fn 73 json$match_keyword (ref,string) -> bool
   local.get 1   ; arg 1
   call.import 0   ; std_core$byte_len
   local.set 2   ; n
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   local.get 2   ; n
   i64.add
   local.set 3   ; $add_5
-  local.field 0 32 3   ; arg 0.eof
-  ref.cast 7   ; -> usize
+  local.field 0 32 3   ; arg 0 json$Parser.eof
+  ref.cast 7   ; usize
   local.set 4   ; $field_6
   local.get 3   ; $add_5
   local.get 4   ; $field_6
@@ -6324,17 +6324,17 @@ fn 73 json$match_keyword (ref,string) -> bool
       local.get 2   ; n
       u64.lt
       if $L3 void
-        local.field 0 32 1   ; arg 0.bytes
+        local.field 0 32 1   ; arg 0 json$Parser.bytes
         local.set 5   ; $field_12
-        local.field 0 32 2   ; arg 0.pos
-        ref.cast 7   ; -> usize
+        local.field 0 32 2   ; arg 0 json$Parser.pos
+        ref.cast 7   ; usize
         local.get 3   ; $add_5
         i64.add
         local.set 4   ; $field_6
         local.get 5   ; $field_12
         local.get 4   ; $field_6
-        array.get 13   ; u8[][]
-        ref.cast 6   ; -> u8
+        array.get 13   ; u8[]
+        ref.cast 6   ; u8
         local.set 6   ; $idx_15
         local.get 1   ; arg 1
         local.get 3   ; $add_5
@@ -6354,8 +6354,8 @@ fn 73 json$match_keyword (ref,string) -> bool
       end $L3
     end $L2
   end $L1
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   local.get 2   ; n
   i64.add
   local.set 2   ; n
@@ -6396,7 +6396,7 @@ fn 75 json$escape_of (u8) -> any
   i32.eq
   if $L0 void
     string.const 64   ; "\\\""
-    retag 1   ; -> string
+    retag 1   ; string
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
@@ -6404,7 +6404,7 @@ fn 75 json$escape_of (u8) -> any
     i32.eq
     if $L1 void
       string.const 65   ; "\\\\"
-      retag 1   ; -> string
+      retag 1   ; string
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
@@ -6412,7 +6412,7 @@ fn 75 json$escape_of (u8) -> any
       i32.eq
       if $L2 void
         string.const 66   ; "\\n"
-        retag 1   ; -> string
+        retag 1   ; string
         local.set 1   ; if_res
       else
         local.get 0   ; arg 0
@@ -6420,7 +6420,7 @@ fn 75 json$escape_of (u8) -> any
         i32.eq
         if $L3 void
           string.const 67   ; "\\t"
-          retag 1   ; -> string
+          retag 1   ; string
           local.set 1   ; if_res
         else
           local.get 0   ; arg 0
@@ -6428,7 +6428,7 @@ fn 75 json$escape_of (u8) -> any
           i32.eq
           if $L4 void
             string.const 68   ; "\\r"
-            retag 1   ; -> string
+            retag 1   ; string
             local.set 1   ; if_res
           else
             local.get 0   ; arg 0
@@ -6455,7 +6455,7 @@ fn 75 json$escape_of (u8) -> any
               string.const 69   ; "\\u"
               local.get 3   ; $call_28
               call 3   ; concat_2
-              retag 1   ; -> string
+              retag 1   ; string
               local.set 1   ; if_res
             else
               null.const
@@ -6500,27 +6500,27 @@ fn 76 json$decode_unicode_escape (ref,ref) -> bool
   local.get 3   ; hi
   call 84   ; std_string$is_high_surrogate
   if $L2 void
-    local.field 0 32 2   ; arg 0.pos
-    ref.cast 7   ; -> usize
+    local.field 0 32 2   ; arg 0 json$Parser.pos
+    ref.cast 7   ; usize
     i64.const 2
     i64.add
     local.set 4   ; $add_15
-    local.field 0 32 3   ; arg 0.eof
-    ref.cast 7   ; -> usize
+    local.field 0 32 3   ; arg 0 json$Parser.eof
+    ref.cast 7   ; usize
     local.set 5   ; $field_16
     local.get 4   ; $add_15
     local.get 5   ; $field_16
     u64.le
     if $L3 void
-      local.field 0 32 1   ; arg 0.bytes
+      local.field 0 32 1   ; arg 0 json$Parser.bytes
       local.set 7   ; $field_19
-      local.field 0 32 2   ; arg 0.pos
-      ref.cast 7   ; -> usize
+      local.field 0 32 2   ; arg 0 json$Parser.pos
+      ref.cast 7   ; usize
       local.set 4   ; $add_15
       local.get 7   ; $field_19
       local.get 4   ; $add_15
-      array.get 13   ; u8[][]
-      ref.cast 6   ; -> u8
+      array.get 13   ; u8[]
+      ref.cast 6   ; u8
       i32.const 92
       i32.eq
       local.set 6   ; and_res
@@ -6530,17 +6530,17 @@ fn 76 json$decode_unicode_escape (ref,ref) -> bool
     end $L3
     local.get 6   ; and_res
     if $L4 void
-      local.field 0 32 1   ; arg 0.bytes
+      local.field 0 32 1   ; arg 0 json$Parser.bytes
       local.set 7   ; $field_19
-      local.field 0 32 2   ; arg 0.pos
-      ref.cast 7   ; -> usize
+      local.field 0 32 2   ; arg 0 json$Parser.pos
+      ref.cast 7   ; usize
       i64.const 1
       i64.add
       local.set 4   ; $add_15
       local.get 7   ; $field_19
       local.get 4   ; $add_15
-      array.get 13   ; u8[][]
-      ref.cast 6   ; -> u8
+      array.get 13   ; u8[]
+      ref.cast 6   ; u8
       i32.const 117
       i32.eq
       local.set 6   ; and_res
@@ -6550,11 +6550,11 @@ fn 76 json$decode_unicode_escape (ref,ref) -> bool
     end $L4
     local.get 6   ; and_res
     if $L5 void
-      local.field 0 32 2   ; arg 0.pos
-      ref.cast 7   ; -> usize
+      local.field 0 32 2   ; arg 0 json$Parser.pos
+      ref.cast 7   ; usize
       local.set 4   ; $add_15
-      local.field 0 32 2   ; arg 0.pos
-      ref.cast 7   ; -> usize
+      local.field 0 32 2   ; arg 0 json$Parser.pos
+      ref.cast 7   ; usize
       i64.const 2
       i64.add
       local.set 5   ; $field_16
@@ -6602,13 +6602,13 @@ fn 77 json$read_hex4 (ref) -> i32
   local v i32
   local $field_15 ref
   local d i32
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   i64.const 4
   i64.add
   local.set 1   ; $add_3
-  local.field 0 32 3   ; arg 0.eof
-  ref.cast 7   ; -> usize
+  local.field 0 32 3   ; arg 0 json$Parser.eof
+  ref.cast 7   ; usize
   local.set 2   ; $field_4
   local.get 1   ; $add_3
   local.get 2   ; $field_4
@@ -6628,10 +6628,10 @@ fn 77 json$read_hex4 (ref) -> i32
       i64.const 4
       u64.lt
       if $L3 void
-        local.field 0 32 1   ; arg 0.bytes
+        local.field 0 32 1   ; arg 0 json$Parser.bytes
         local.set 4   ; $field_15
-        local.field 0 32 2   ; arg 0.pos
-        ref.cast 7   ; -> usize
+        local.field 0 32 2   ; arg 0 json$Parser.pos
+        ref.cast 7   ; usize
         local.get 1   ; $add_3
         i64.add
         local.set 2   ; $field_4
@@ -6661,8 +6661,8 @@ fn 77 json$read_hex4 (ref) -> i32
       end $L3
     end $L2
   end $L1
-  local.field 0 32 2   ; arg 0.pos
-  ref.cast 7   ; -> usize
+  local.field 0 32 2   ; arg 0 json$Parser.pos
+  ref.cast 7   ; usize
   i64.const 4
   i64.add
   local.set 1   ; $add_3
@@ -6687,8 +6687,8 @@ fn 78 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  array.get 13   ; u8[][]
-  ref.cast 6   ; -> u8
+  array.get 13   ; u8[]
+  ref.cast 6   ; u8
   local.tee 3   ; b
   i32.const 128
   u32.lt
@@ -6726,8 +6726,8 @@ fn 78 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 13   ; u8[][]
-    ref.cast 6   ; -> u8
+    array.get 13   ; u8[]
+    ref.cast 6   ; u8
     local.set 5   ; b1
     local.get 3   ; b
     u8.to_i32
@@ -6765,8 +6765,8 @@ fn 78 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 13   ; u8[][]
-    ref.cast 6   ; -> u8
+    array.get 13   ; u8[]
+    ref.cast 6   ; u8
     local.set 5   ; b1
     local.get 1   ; arg 1
     i64.const 2
@@ -6774,8 +6774,8 @@ fn 78 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 13   ; u8[][]
-    ref.cast 6   ; -> u8
+    array.get 13   ; u8[]
+    ref.cast 6   ; u8
     local.set 8   ; b2
     local.get 3   ; b
     u8.to_i32
@@ -6820,8 +6820,8 @@ fn 78 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 13   ; u8[][]
-  ref.cast 6   ; -> u8
+  array.get 13   ; u8[]
+  ref.cast 6   ; u8
   local.set 5   ; b1
   local.get 1   ; arg 1
   i64.const 2
@@ -6829,8 +6829,8 @@ fn 78 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 13   ; u8[][]
-  ref.cast 6   ; -> u8
+  array.get 13   ; u8[]
+  ref.cast 6   ; u8
   local.set 8   ; b2
   local.get 1   ; arg 1
   i64.const 3
@@ -6838,8 +6838,8 @@ fn 78 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 13   ; u8[][]
-  ref.cast 6   ; -> u8
+  array.get 13   ; u8[]
+  ref.cast 6   ; u8
   local.set 9   ; b3
   local.get 3   ; b
   u8.to_i32
@@ -6897,8 +6897,8 @@ fn 79 std_string$parse_float (string) -> any
     return
   end $L0
   local.get 1   ; r
-  ref.cast 9   ; -> f64
-  retag 9   ; -> f64
+  ref.cast 9   ; f64
+  retag 9   ; f64
   return
 end
 
@@ -6932,7 +6932,7 @@ fn 81 std_string$pad_start (string,usize,char) -> string
     local.get 0   ; arg 0
     return
   end $L0
-  array.new 48 0   ; string[][]
+  array.new 48 0   ; string[]
   struct.new 33   ; std_string_builder$StringBuilder
   local.set 4   ; sb
   block $L1 void
@@ -7166,16 +7166,16 @@ fn 88 std_char$is_white_char (char) -> bool
 end
 
 fn 89 std_string_builder$append (ref,string) -> void
-  local.field 0 33 0   ; arg 0.parts
+  local.field 0 33 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.get 1   ; arg 1
-  array.push 1   ; string[]
+  array.push 1   ; string
   return
 end
 
 fn 90 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 33 0   ; arg 0.parts
+  local.field 0 33 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 9   ; std_core$utf8_encode
@@ -7183,7 +7183,7 @@ fn 90 std_string_builder$append_char (ref,char) -> void
   local.set 3   ; $call_4
   local.get 2   ; $field_2
   local.get 3   ; $call_4
-  array.push 1   ; string[]
+  array.push 1   ; string
   return
 end
 
@@ -7202,9 +7202,9 @@ fn 91 std_string_builder$append_repeated (ref,char,i32) -> void
       local.get 2   ; arg 2
       i32.lt
       if $L2 void
-        local.field 0 33 0   ; arg 0.parts
+        local.field 0 33 0   ; arg 0 std_string_builder$StringBuilder.parts
         local.get 3   ; s
-        array.push 1   ; string[]
+        array.push 1   ; string
         local.get 4   ; _
         i32.const 1
         i32.add
@@ -7225,7 +7225,7 @@ fn 92 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 33 0   ; arg 0.parts
+  local.field 0 33 0   ; arg 0 std_string_builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -7237,15 +7237,15 @@ fn 92 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 33 0   ; arg 0.parts
+    local.field 0 33 0   ; arg 0 std_string_builder$StringBuilder.parts
     i32.const 0
-    array.get 48   ; string[][]
-    ref.cast 1   ; -> string
+    array.get 48   ; string[]
+    ref.cast 1   ; string
     return
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 33 0   ; arg 0.parts
+  local.field 0 33 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -7259,8 +7259,8 @@ fn 92 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L4 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 48   ; string[][]
-        ref.cast 1   ; -> string
+        array.get 48   ; string[]
+        ref.cast 1   ; string
         call.import 0   ; std_core$byte_len
         local.set 5   ; $call_23
         local.get 1   ; n
@@ -7280,7 +7280,7 @@ fn 92 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 33 0   ; arg 0.parts
+  local.field 0 33 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2
@@ -7294,8 +7294,8 @@ fn 92 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L7 void
         local.get 6   ; __for_arr_3
         local.get 5   ; $call_23
-        array.get 48   ; string[][]
-        ref.cast 1   ; -> string
+        array.get 48   ; string[]
+        ref.cast 1   ; string
         local.set 7   ; p
         local.get 2   ; __for_arr_0
         local.get 3   ; __for_len_1
@@ -7361,12 +7361,12 @@ end
 fn 96 std_collections$ensure_index__string__Any (ref) -> void
   local idx ref
   local __for_discard_0 usize
-  local.field 0 49 2   ; arg 0.index
+  local.field 0 49 2   ; arg 0 std_collections$MutableMap__string__Any.index
   array.len
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 45 0   ; i32[][]
+    array.new 45 0   ; i32[]
     i64.const 16
     array.repeat
     local.set 1   ; idx
@@ -7380,7 +7380,7 @@ fn 96 std_collections$ensure_index__string__Any (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 3 1   ; i32[]
+          array.push 3 1   ; i32 idx
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -7409,7 +7409,7 @@ fn 97 std_collections$rehash__string__Any (ref,usize) -> void
   local perturb u64
   local s usize
   local $cast_33 i32
-  array.new 45 0   ; i32[][]
+  array.new 45 0   ; i32[]
   local.get 1   ; arg 1
   array.repeat
   local.set 2   ; fresh
@@ -7423,7 +7423,7 @@ fn 97 std_collections$rehash__string__Any (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 3 2   ; i32[]
+        array.push 3 2   ; i32 fresh
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -7438,8 +7438,8 @@ fn 97 std_collections$rehash__string__Any (ref,usize) -> void
   local.set 3   ; __for_discard_0
   i64.const 0
   local.set 4   ; e
-  local.field 0 49 4   ; arg 0.size
-  ref.cast 7   ; -> usize
+  local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
+  ref.cast 7   ; usize
   local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
@@ -7447,10 +7447,10 @@ fn 97 std_collections$rehash__string__Any (ref,usize) -> void
       local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
-        local.field 0 49 0   ; arg 0.ekeys
+        local.field 0 49 0   ; arg 0 std_collections$MutableMap__string__Any.ekeys
         local.get 4   ; e
-        array.get 48   ; string[][]
-        ref.cast 1   ; -> string
+        array.get 48   ; string[]
+        ref.cast 1   ; string
         call 110   ; std_core$string$Hash$hash_vt
         local.tee 6   ; perturb
         local.get 3   ; __for_discard_0
@@ -7510,41 +7510,41 @@ fn 98 std_collections$write_entry__string__Any (ref,string,any) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
-  local.field 0 49 4   ; arg 0.size
-  ref.cast 7   ; -> usize
+  local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
+  ref.cast 7   ; usize
   local.set 3   ; $field_3
-  local.field 0 49 0   ; arg 0.ekeys
+  local.field 0 49 0   ; arg 0 std_collections$MutableMap__string__Any.ekeys
   array.len
   local.set 4   ; $len_5
   local.get 3   ; $field_3
   local.get 4   ; $len_5
   u64.lt
   if $L0 void
-    local.field 0 49 0   ; arg 0.ekeys
+    local.field 0 49 0   ; arg 0 std_collections$MutableMap__string__Any.ekeys
     local.set 5   ; $field_7
-    local.field 0 49 4   ; arg 0.size
-    ref.cast 7   ; -> usize
+    local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
+    ref.cast 7   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 1   ; arg 1
-    array.set 48   ; string[][]
-    local.field 0 49 1   ; arg 0.evals
+    array.set 48   ; string[]
+    local.field 0 49 1   ; arg 0 std_collections$MutableMap__string__Any.evals
     local.set 5   ; $field_7
-    local.field 0 49 4   ; arg 0.size
-    ref.cast 7   ; -> usize
+    local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
+    ref.cast 7   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 2   ; arg 2
-    array.set 50   ; ref[][]
+    array.set 50   ; ref[]
   else
-    local.field 0 49 0   ; arg 0.ekeys
+    local.field 0 49 0   ; arg 0 std_collections$MutableMap__string__Any.ekeys
     local.get 1   ; arg 1
-    array.push 1   ; string[]
-    local.field 0 49 1   ; arg 0.evals
+    array.push 1   ; string
+    local.field 0 49 1   ; arg 0 std_collections$MutableMap__string__Any.evals
     local.get 2   ; arg 2
-    array.push 22   ; ref[]
+    array.push 22   ; ref
   end $L0
   return
 end
@@ -7559,11 +7559,11 @@ fn 99 std_collections$put__string__Any (ref,string,any) -> void
   local $cast_74 i32
   local.get 0   ; arg 0
   call 96   ; std_collections$ensure_index__string__Any
-  local.field 0 49 4   ; arg 0.size
-  ref.cast 7   ; -> usize
+  local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
+  ref.cast 7   ; usize
   local.set 3   ; $field_3
-  local.field 0 49 5   ; arg 0.tombs
-  ref.cast 7   ; -> usize
+  local.field 0 49 5   ; arg 0 std_collections$MutableMap__string__Any.tombs
+  ref.cast 7   ; usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -7573,8 +7573,8 @@ fn 99 std_collections$put__string__Any (ref,string,any) -> void
   i64.const 4
   i64.mul
   local.set 3   ; $field_3
-  local.field 0 49 3   ; arg 0.mask
-  ref.cast 7   ; -> usize
+  local.field 0 49 3   ; arg 0 std_collections$MutableMap__string__Any.mask
+  ref.cast 7   ; usize
   i64.const 1
   i64.add
   i64.const 3
@@ -7588,8 +7588,8 @@ fn 99 std_collections$put__string__Any (ref,string,any) -> void
     local.set 3   ; $field_3
     block $L1 void
       loop $L2 void
-        local.field 0 49 4   ; arg 0.size
-        ref.cast 7   ; -> usize
+        local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
+        ref.cast 7   ; usize
         i64.const 1
         i64.add
         i64.const 4
@@ -7618,8 +7618,8 @@ fn 99 std_collections$put__string__Any (ref,string,any) -> void
   local.get 1   ; arg 1
   call 110   ; std_core$string$Hash$hash_vt
   local.set 6   ; perturb
-  local.field 0 49 3   ; arg 0.mask
-  ref.cast 7   ; -> usize
+  local.field 0 49 3   ; arg 0 std_collections$MutableMap__string__Any.mask
+  ref.cast 7   ; usize
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
@@ -7630,13 +7630,13 @@ fn 99 std_collections$put__string__Any (ref,string,any) -> void
   local.set 7   ; first_tomb
   block $L4 void
     loop $L5 void
-      local.field 0 49 2   ; arg 0.index
+      local.field 0 49 2   ; arg 0 std_collections$MutableMap__string__Any.index
       local.get 3   ; $field_3
       load_slot_i32
       i32.const 0
       i32.ne
       if $L6 void
-        local.field 0 49 2   ; arg 0.index
+        local.field 0 49 2   ; arg 0 std_collections$MutableMap__string__Any.index
         local.get 3   ; $field_3
         load_slot_i32
         i32.const -1
@@ -7651,24 +7651,24 @@ fn 99 std_collections$put__string__Any (ref,string,any) -> void
             local.set 7   ; first_tomb
           end $L8
         else
-          local.field 0 49 2   ; arg 0.index
+          local.field 0 49 2   ; arg 0 std_collections$MutableMap__string__Any.index
           local.get 3   ; $field_3
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; $field_4
-          local.field 0 49 0   ; arg 0.ekeys
+          local.field 0 49 0   ; arg 0 std_collections$MutableMap__string__Any.ekeys
           local.get 4   ; $field_4
-          array.get 48   ; string[][]
-          ref.cast 1   ; -> string
+          array.get 48   ; string[]
+          ref.cast 1   ; string
           local.get 1   ; arg 1
           string.eq
           if $L9 void
-            local.field 0 49 1   ; arg 0.evals
+            local.field 0 49 1   ; arg 0 std_collections$MutableMap__string__Any.evals
             local.get 4   ; $field_4
             local.get 2   ; arg 2
-            array.set 50   ; ref[][]
+            array.set 50   ; ref[]
             return
           end $L9
         end $L7
@@ -7676,8 +7676,8 @@ fn 99 std_collections$put__string__Any (ref,string,any) -> void
         i64.const 5
         u64.shr
         local.set 6   ; perturb
-        local.field 0 49 3   ; arg 0.mask
-        ref.cast 7   ; -> usize
+        local.field 0 49 3   ; arg 0 std_collections$MutableMap__string__Any.mask
+        ref.cast 7   ; usize
         local.set 5   ; $mul_24
         local.get 3   ; $field_3
         local.get 6   ; perturb
@@ -7703,8 +7703,8 @@ fn 99 std_collections$put__string__Any (ref,string,any) -> void
   i64.const 0
   i64.ge
   if $L11 void
-    local.field 0 49 5   ; arg 0.tombs
-    ref.cast 7   ; -> usize
+    local.field 0 49 5   ; arg 0 std_collections$MutableMap__string__Any.tombs
+    ref.cast 7   ; usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -7716,10 +7716,10 @@ fn 99 std_collections$put__string__Any (ref,string,any) -> void
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call 98   ; std_collections$write_entry__string__Any
-  local.field 0 49 2   ; arg 0.index
+  local.field 0 49 2   ; arg 0 std_collections$MutableMap__string__Any.index
   local.set 8   ; $field_70
-  local.field 0 49 4   ; arg 0.size
-  ref.cast 7   ; -> usize
+  local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
+  ref.cast 7   ; usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -7728,8 +7728,8 @@ fn 99 std_collections$put__string__Any (ref,string,any) -> void
   local.get 4   ; $field_4
   local.get 9   ; $cast_74
   store_slot_i32
-  local.field 0 49 4   ; arg 0.size
-  ref.cast 7   ; -> usize
+  local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
+  ref.cast 7   ; usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -7740,8 +7740,8 @@ fn 99 std_collections$put__string__Any (ref,string,any) -> void
 end
 
 fn 100 std_collections$len__string__Any (ref) -> usize
-  local.field 0 49 4   ; arg 0.size
-  ref.cast 7   ; -> usize
+  local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
+  ref.cast 7   ; usize
   return
 end
 
@@ -7817,7 +7817,7 @@ fn 101 std_numbers$to_compact_str (f64) -> string
     local.get 3   ; __buf_0
     i64.const 0
     local.get 4   ; __off_1
-    array.slice 13   ; u8[][]
+    array.slice 13   ; u8[]
     call.import 2   ; std_core$bytes_to_string
     return
   end $L3
@@ -7840,7 +7840,7 @@ fn 102 std_numbers$to_hex (u64) -> string
   if $L0 void
     return.lit string.const 74   ; "0"
   end $L0
-  array.new 52 0   ; char[][]
+  array.new 52 0   ; char[]
   local.set 1   ; rev
   i64.const 16
   local.set 2   ; base
@@ -7859,7 +7859,7 @@ fn 102 std_numbers$to_hex (u64) -> string
         local.set 4   ; $call_12
         local.get 1   ; rev
         local.get 4   ; $call_12
-        array.push 4 1   ; char[]
+        array.push 4 1   ; char rev
         local.get 3   ; x
         local.get 2   ; base
         u64.div
@@ -7868,7 +7868,7 @@ fn 102 std_numbers$to_hex (u64) -> string
       end $L3
     end $L2
   end $L1
-  array.new 48 0   ; string[][]
+  array.new 48 0   ; string[]
   struct.new 33   ; std_string_builder$StringBuilder
   local.set 5   ; sb
   local.get 1   ; rev

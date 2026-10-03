@@ -30,18 +30,18 @@ fn 0 snippet$type_id_of (any) -> i32
   type_check 4   ; snippet$StructVal
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 4   ; -> snippet$StructVal
+    ref.cast 4   ; snippet$StructVal
     struct.get 4 0   ; snippet$StructVal.type_id
-    ref.cast 5   ; -> i32
+    ref.cast 5   ; i32
     return
   end $L0
   local.get 0   ; arg 0
   type_check 2   ; snippet$ArrayVal
   if $L1 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$ArrayVal
+    ref.cast 2   ; snippet$ArrayVal
     struct.get 2 0   ; snippet$ArrayVal.type_id
-    ref.cast 5   ; -> i32
+    ref.cast 5   ; i32
     return
   end $L1
   i32.const 1
@@ -54,7 +54,7 @@ fn 1 snippet$first_item (any) -> i32
   type_check 2   ; snippet$ArrayVal
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$ArrayVal
+    ref.cast 2   ; snippet$ArrayVal
     struct.get 2 1   ; snippet$ArrayVal.items
     i32.const 0
     load_slot_i32
@@ -74,7 +74,7 @@ fn 2 snippet$main () -> i32
   local $cast_23 i64
   i32.const 1
   i32.const 2
-  array.new 7 2   ; i32[][]
+  array.new 7 2   ; i32[]
   local.set 0   ; $arr_3
   i32.const 100
   local.get 0   ; $arr_3
@@ -82,7 +82,7 @@ fn 2 snippet$main () -> i32
   local.set 1   ; s
   i32.const 42
   i32.const 43
-  array.new 7 2   ; i32[][]
+  array.new 7 2   ; i32[]
   local.set 0   ; $arr_3
   i32.const 200
   local.get 0   ; $arr_3
@@ -391,7 +391,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 12   ; u8[][]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -36,7 +36,7 @@ fn 0 snippet$inspect (any) -> string
   type_check 2   ; i32
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> i32
+    ref.cast 2   ; i32
     i32.const 100
     i32.gt
     local.set 2   ; and_res
@@ -59,7 +59,7 @@ fn 0 snippet$inspect (any) -> string
       type_check 3   ; string
       if $L3 void
         local.get 0   ; arg 0
-        ref.cast 3   ; -> string
+        ref.cast 3   ; string
         local.set 3   ; if_res
       else
         unreachable
@@ -156,15 +156,15 @@ fn 3 snippet$main () -> i32
   local $call_4 string
   local $call_7 string
   i32.const 250
-  retag 2   ; -> i32
+  retag 2   ; i32
   call 0   ; snippet$inspect
   local.set 0   ; $call_1
   i32.const 40
-  retag 2   ; -> i32
+  retag 2   ; i32
   call 0   ; snippet$inspect
   local.set 1   ; $call_4
   string.const 9   ; "sealed"
-  retag 3   ; -> string
+  retag 3   ; string
   call 0   ; snippet$inspect
   local.set 2   ; $call_7
   local.get 0   ; $call_1
@@ -175,12 +175,12 @@ fn 3 snippet$main () -> i32
   call 4   ; concat_5
   call 9   ; std_io$println__string
   i32.const 40
-  retag 2   ; -> i32
+  retag 2   ; i32
   bool.const true
   call 1   ; snippet$wave_through
   local.set 0   ; $call_1
   i32.const 40
-  retag 2   ; -> i32
+  retag 2   ; i32
   bool.const false
   call 1   ; snippet$wave_through
   local.set 1   ; $call_4
@@ -377,7 +377,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

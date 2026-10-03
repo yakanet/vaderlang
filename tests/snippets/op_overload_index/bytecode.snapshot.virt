@@ -34,7 +34,7 @@ fn 0 snippet$Cell$Index$at (ref,string) -> i32
   local __for_i_2 usize
   i32.const 0
   local.set 2   ; i
-  local.field 0 1 0   ; arg 0.keys
+  local.field 0 1 0   ; arg 0 snippet$Cell.keys
   local.tee 3   ; __for_arr_0
   array.len
   local.set 4   ; __for_len_1
@@ -48,12 +48,12 @@ fn 0 snippet$Cell$Index$at (ref,string) -> i32
       if $L2 void
         local.get 3   ; __for_arr_0
         local.get 5   ; __for_i_2
-        array.get 5   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 5   ; string[]
+        ref.cast 2   ; string
         local.get 1   ; arg 1
         string.eq
         if $L3 void
-          local.field 0 1 1   ; arg 0.vals
+          local.field 0 1 1   ; arg 0 snippet$Cell.vals
           local.get 2   ; i
           load_slot_i32
           return
@@ -80,7 +80,7 @@ fn 1 snippet$Cell$IndexSet$set_at (ref,string,i32) -> void
   local __for_i_2 usize
   i32.const 0
   local.set 3   ; i
-  local.field 0 1 0   ; arg 0.keys
+  local.field 0 1 0   ; arg 0 snippet$Cell.keys
   local.tee 4   ; __for_arr_0
   array.len
   local.set 5   ; __for_len_1
@@ -94,12 +94,12 @@ fn 1 snippet$Cell$IndexSet$set_at (ref,string,i32) -> void
       if $L2 void
         local.get 4   ; __for_arr_0
         local.get 6   ; __for_i_2
-        array.get 5   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 5   ; string[]
+        ref.cast 2   ; string
         local.get 1   ; arg 1
         string.eq
         if $L3 void
-          local.field 0 1 1   ; arg 0.vals
+          local.field 0 1 1   ; arg 0 snippet$Cell.vals
           local.get 3   ; i
           local.get 2   ; arg 2
           store_slot_i32
@@ -117,12 +117,12 @@ fn 1 snippet$Cell$IndexSet$set_at (ref,string,i32) -> void
       end $L2
     end $L1
   end $L0
-  local.field 0 1 0   ; arg 0.keys
+  local.field 0 1 0   ; arg 0 snippet$Cell.keys
   local.get 1   ; arg 1
-  array.push 2   ; string[]
-  local.field 0 1 1   ; arg 0.vals
+  array.push 2   ; string
+  local.field 0 1 1   ; arg 0 snippet$Cell.vals
   local.get 2   ; arg 2
-  array.push 3   ; i32[]
+  array.push 3   ; i32
   return
 end
 
@@ -131,9 +131,9 @@ fn 2 snippet$main () -> i32
   local $arr_1 ref
   local __off_1 usize
   local $cast_19 i64
-  array.new 5 0   ; string[][]
+  array.new 5 0   ; string[]
   local.set 0   ; $arr_0
-  array.new 6 0   ; i32[][]
+  array.new 6 0   ; i32[]
   local.set 1   ; $arr_1
   local.get 0   ; $arr_0
   local.get 1   ; $arr_1
@@ -412,7 +412,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

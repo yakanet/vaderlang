@@ -143,11 +143,11 @@ fn 0 snippet$main () -> i32
   local.get 2   ; __off_1
   call 3   ; std_core$finish_buffer
   call 38   ; std_io$println__string
-  array.new 25 0   ; ref[][]
+  array.new 25 0   ; ref[]
   local.set 1   ; __buf_0
-  array.new 26 0   ; i32[][]
+  array.new 26 0   ; i32[]
   local.set 4   ; $arr_22
-  array.new 26 0   ; i32[][]
+  array.new 26 0   ; i32[]
   local.set 5   ; $arr_23
   local.get 1   ; __buf_0
   local.get 4   ; $arr_22
@@ -180,7 +180,7 @@ fn 0 snippet$main () -> i32
     local.set 7   ; if_res
   else
     local.get 6   ; __coalesce_2
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     local.set 7   ; if_res
   end $L0
   local.get 7   ; if_res
@@ -207,7 +207,7 @@ fn 0 snippet$main () -> i32
     local.set 7   ; if_res
   else
     local.get 6   ; __coalesce_2
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     local.set 7   ; if_res
   end $L1
   local.get 7   ; if_res
@@ -234,7 +234,7 @@ fn 0 snippet$main () -> i32
     local.set 7   ; if_res
   else
     local.get 6   ; __coalesce_2
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     local.set 7   ; if_res
   end $L2
   local.get 7   ; if_res
@@ -249,11 +249,11 @@ fn 0 snippet$main () -> i32
   local.get 2   ; __off_1
   call 3   ; std_core$finish_buffer
   call 38   ; std_io$println__string
-  array.new 15 0   ; u8[][]
+  array.new 15 0   ; u8[]
   local.set 1   ; __buf_0
-  array.new 27 0   ; string[][]
+  array.new 27 0   ; string[]
   local.set 4   ; $arr_22
-  array.new 26 0   ; i32[][]
+  array.new 26 0   ; i32[]
   local.set 5   ; $arr_23
   local.get 1   ; __buf_0
   local.get 4   ; $arr_22
@@ -284,7 +284,7 @@ fn 0 snippet$main () -> i32
     local.set 9   ; __p_9
   else
     local.get 6   ; __coalesce_2
-    ref.cast 2   ; -> string
+    ref.cast 2   ; string
     local.set 9   ; __p_9
   end $L3
   local.get 1   ; __buf_0
@@ -297,7 +297,7 @@ fn 0 snippet$main () -> i32
     local.set 10   ; __p_10
   else
     local.get 6   ; __coalesce_2
-    ref.cast 2   ; -> string
+    ref.cast 2   ; string
     local.set 10   ; __p_10
   end $L4
   local.get 9   ; __p_9
@@ -755,12 +755,12 @@ end
 fn 25 std_collections$ensure_index__Any__i32 (ref) -> void
   local idx ref
   local __for_discard_0 usize
-  local.field 0 20 2   ; arg 0.index
+  local.field 0 20 2   ; arg 0 std_collections$MutableMap__Any__i32.index
   array.len
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 26 0   ; i32[][]
+    array.new 26 0   ; i32[]
     i64.const 16
     array.repeat
     local.set 1   ; idx
@@ -774,7 +774,7 @@ fn 25 std_collections$ensure_index__Any__i32 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1 1   ; i32[]
+          array.push 1 1   ; i32 idx
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -798,12 +798,12 @@ end
 fn 26 std_collections$ensure_index__snippet_HttpStatus__string (ref) -> void
   local idx ref
   local __for_discard_0 usize
-  local.field 0 22 2   ; arg 0.index
+  local.field 0 22 2   ; arg 0 std_collections$MutableMap__HttpStatus__string.index
   array.len
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 26 0   ; i32[][]
+    array.new 26 0   ; i32[]
     i64.const 16
     array.repeat
     local.set 1   ; idx
@@ -817,7 +817,7 @@ fn 26 std_collections$ensure_index__snippet_HttpStatus__string (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1 1   ; i32[]
+          array.push 1 1   ; i32 idx
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -846,7 +846,7 @@ fn 27 std_collections$rehash__Any__i32 (ref,usize) -> void
   local perturb u64
   local s usize
   local $cast_33 i32
-  array.new 26 0   ; i32[][]
+  array.new 26 0   ; i32[]
   local.get 1   ; arg 1
   array.repeat
   local.set 2   ; fresh
@@ -860,7 +860,7 @@ fn 27 std_collections$rehash__Any__i32 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1 2   ; i32[]
+        array.push 1 2   ; i32 fresh
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -875,8 +875,8 @@ fn 27 std_collections$rehash__Any__i32 (ref,usize) -> void
   local.set 3   ; __for_discard_0
   i64.const 0
   local.set 4   ; e
-  local.field 0 20 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 20 4   ; arg 0 std_collections$MutableMap__Any__i32.size
+  ref.cast 5   ; usize
   local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
@@ -884,9 +884,9 @@ fn 27 std_collections$rehash__Any__i32 (ref,usize) -> void
       local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
-        local.field 0 20 0   ; arg 0.ekeys
+        local.field 0 20 0   ; arg 0 std_collections$MutableMap__Any__i32.ekeys
         local.get 4   ; e
-        array.get 25   ; ref[][]
+        array.get 25   ; ref[]
         virtual.call 1 std_core$Hash.hash
         local.tee 6   ; perturb
         local.get 3   ; __for_discard_0
@@ -950,7 +950,7 @@ fn 28 std_collections$rehash__snippet_HttpStatus__string (ref,usize) -> void
   local perturb u64
   local s usize
   local $cast_33 i32
-  array.new 26 0   ; i32[][]
+  array.new 26 0   ; i32[]
   local.get 1   ; arg 1
   array.repeat
   local.set 2   ; fresh
@@ -964,7 +964,7 @@ fn 28 std_collections$rehash__snippet_HttpStatus__string (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1 2   ; i32[]
+        array.push 1 2   ; i32 fresh
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -979,8 +979,8 @@ fn 28 std_collections$rehash__snippet_HttpStatus__string (ref,usize) -> void
   local.set 3   ; __for_discard_0
   i64.const 0
   local.set 4   ; e
-  local.field 0 22 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 22 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
+  ref.cast 5   ; usize
   local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
@@ -988,9 +988,9 @@ fn 28 std_collections$rehash__snippet_HttpStatus__string (ref,usize) -> void
       local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
-        local.field 0 22 0   ; arg 0.ekeys
+        local.field 0 22 0   ; arg 0 std_collections$MutableMap__HttpStatus__string.ekeys
         local.get 4   ; e
-        array.get 15   ; u8[][]
+        array.get 15   ; u8[]
         call 13   ; std_core$u8$Hash$hash
         local.tee 6   ; perturb
         local.get 3   ; __for_discard_0
@@ -1050,41 +1050,41 @@ fn 29 std_collections$write_entry__Any__i32 (ref,any,i32) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
-  local.field 0 20 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 20 4   ; arg 0 std_collections$MutableMap__Any__i32.size
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
-  local.field 0 20 0   ; arg 0.ekeys
+  local.field 0 20 0   ; arg 0 std_collections$MutableMap__Any__i32.ekeys
   array.len
   local.set 4   ; $len_5
   local.get 3   ; $field_3
   local.get 4   ; $len_5
   u64.lt
   if $L0 void
-    local.field 0 20 0   ; arg 0.ekeys
+    local.field 0 20 0   ; arg 0 std_collections$MutableMap__Any__i32.ekeys
     local.set 5   ; $field_7
-    local.field 0 20 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 20 4   ; arg 0 std_collections$MutableMap__Any__i32.size
+    ref.cast 5   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 1   ; arg 1
-    array.set 25   ; ref[][]
-    local.field 0 20 1   ; arg 0.evals
+    array.set 25   ; ref[]
+    local.field 0 20 1   ; arg 0 std_collections$MutableMap__Any__i32.evals
     local.set 5   ; $field_7
-    local.field 0 20 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 20 4   ; arg 0 std_collections$MutableMap__Any__i32.size
+    ref.cast 5   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 2   ; arg 2
     store_slot_i32
   else
-    local.field 0 20 0   ; arg 0.ekeys
+    local.field 0 20 0   ; arg 0 std_collections$MutableMap__Any__i32.ekeys
     local.get 1   ; arg 1
-    array.push 19   ; ref[]
-    local.field 0 20 1   ; arg 0.evals
+    array.push 19   ; ref
+    local.field 0 20 1   ; arg 0 std_collections$MutableMap__Any__i32.evals
     local.get 2   ; arg 2
-    array.push 1   ; i32[]
+    array.push 1   ; i32
   end $L0
   return
 end
@@ -1093,41 +1093,41 @@ fn 30 std_collections$write_entry__snippet_HttpStatus__string (ref,u8,string) ->
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
-  local.field 0 22 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 22 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
-  local.field 0 22 0   ; arg 0.ekeys
+  local.field 0 22 0   ; arg 0 std_collections$MutableMap__HttpStatus__string.ekeys
   array.len
   local.set 4   ; $len_5
   local.get 3   ; $field_3
   local.get 4   ; $len_5
   u64.lt
   if $L0 void
-    local.field 0 22 0   ; arg 0.ekeys
+    local.field 0 22 0   ; arg 0 std_collections$MutableMap__HttpStatus__string.ekeys
     local.set 5   ; $field_7
-    local.field 0 22 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 22 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
+    ref.cast 5   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 1   ; arg 1
-    array.set 15   ; u8[][]
-    local.field 0 22 1   ; arg 0.evals
+    array.set 15   ; u8[]
+    local.field 0 22 1   ; arg 0 std_collections$MutableMap__HttpStatus__string.evals
     local.set 5   ; $field_7
-    local.field 0 22 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 22 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
+    ref.cast 5   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 2   ; arg 2
-    array.set 27   ; string[][]
+    array.set 27   ; string[]
   else
-    local.field 0 22 0   ; arg 0.ekeys
+    local.field 0 22 0   ; arg 0 std_collections$MutableMap__HttpStatus__string.ekeys
     local.get 1   ; arg 1
-    array.push 4   ; u8[]
-    local.field 0 22 1   ; arg 0.evals
+    array.push 4   ; u8
+    local.field 0 22 1   ; arg 0 std_collections$MutableMap__HttpStatus__string.evals
     local.get 2   ; arg 2
-    array.push 2   ; string[]
+    array.push 2   ; string
   end $L0
   return
 end
@@ -1143,11 +1143,11 @@ fn 31 std_collections$put__Any__i32 (ref,any,i32) -> void
   local $cast_74 i32
   local.get 0   ; arg 0
   call 25   ; std_collections$ensure_index__Any__i32
-  local.field 0 20 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 20 4   ; arg 0 std_collections$MutableMap__Any__i32.size
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
-  local.field 0 20 5   ; arg 0.tombs
-  ref.cast 5   ; -> usize
+  local.field 0 20 5   ; arg 0 std_collections$MutableMap__Any__i32.tombs
+  ref.cast 5   ; usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -1157,8 +1157,8 @@ fn 31 std_collections$put__Any__i32 (ref,any,i32) -> void
   i64.const 4
   i64.mul
   local.set 3   ; $field_3
-  local.field 0 20 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 20 3   ; arg 0 std_collections$MutableMap__Any__i32.mask
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   i64.const 3
@@ -1172,8 +1172,8 @@ fn 31 std_collections$put__Any__i32 (ref,any,i32) -> void
     local.set 3   ; $field_3
     block $L1 void
       loop $L2 void
-        local.field 0 20 4   ; arg 0.size
-        ref.cast 5   ; -> usize
+        local.field 0 20 4   ; arg 0 std_collections$MutableMap__Any__i32.size
+        ref.cast 5   ; usize
         i64.const 1
         i64.add
         i64.const 4
@@ -1202,8 +1202,8 @@ fn 31 std_collections$put__Any__i32 (ref,any,i32) -> void
   local.get 1   ; arg 1
   virtual.call 1 std_core$Hash.hash
   local.set 6   ; perturb
-  local.field 0 20 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 20 3   ; arg 0 std_collections$MutableMap__Any__i32.mask
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
@@ -1214,13 +1214,13 @@ fn 31 std_collections$put__Any__i32 (ref,any,i32) -> void
   local.set 7   ; first_tomb
   block $L4 void
     loop $L5 void
-      local.field 0 20 2   ; arg 0.index
+      local.field 0 20 2   ; arg 0 std_collections$MutableMap__Any__i32.index
       local.get 3   ; $field_3
       load_slot_i32
       i32.const 0
       i32.ne
       if $L6 void
-        local.field 0 20 2   ; arg 0.index
+        local.field 0 20 2   ; arg 0 std_collections$MutableMap__Any__i32.index
         local.get 3   ; $field_3
         load_slot_i32
         i32.const -1
@@ -1235,22 +1235,22 @@ fn 31 std_collections$put__Any__i32 (ref,any,i32) -> void
             local.set 7   ; first_tomb
           end $L8
         else
-          local.field 0 20 2   ; arg 0.index
+          local.field 0 20 2   ; arg 0 std_collections$MutableMap__Any__i32.index
           local.get 3   ; $field_3
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; $field_4
-          local.field 0 20 0   ; arg 0.ekeys
+          local.field 0 20 0   ; arg 0 std_collections$MutableMap__Any__i32.ekeys
           local.get 4   ; $field_4
-          array.get 25   ; ref[][]
+          array.get 25   ; ref[]
           local.set 8   ; $idx_54
           local.get 1   ; arg 1
           local.get 8   ; $idx_54
           virtual.call 2 std_core$Equals.equals
           if $L9 void
-            local.field 0 20 1   ; arg 0.evals
+            local.field 0 20 1   ; arg 0 std_collections$MutableMap__Any__i32.evals
             local.get 4   ; $field_4
             local.get 2   ; arg 2
             store_slot_i32
@@ -1261,8 +1261,8 @@ fn 31 std_collections$put__Any__i32 (ref,any,i32) -> void
         i64.const 5
         u64.shr
         local.set 6   ; perturb
-        local.field 0 20 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 20 3   ; arg 0 std_collections$MutableMap__Any__i32.mask
+        ref.cast 5   ; usize
         local.set 5   ; $mul_24
         local.get 3   ; $field_3
         local.get 6   ; perturb
@@ -1288,8 +1288,8 @@ fn 31 std_collections$put__Any__i32 (ref,any,i32) -> void
   i64.const 0
   i64.ge
   if $L11 void
-    local.field 0 20 5   ; arg 0.tombs
-    ref.cast 5   ; -> usize
+    local.field 0 20 5   ; arg 0 std_collections$MutableMap__Any__i32.tombs
+    ref.cast 5   ; usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -1301,10 +1301,10 @@ fn 31 std_collections$put__Any__i32 (ref,any,i32) -> void
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call 29   ; std_collections$write_entry__Any__i32
-  local.field 0 20 2   ; arg 0.index
+  local.field 0 20 2   ; arg 0 std_collections$MutableMap__Any__i32.index
   local.set 9   ; $field_70
-  local.field 0 20 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 20 4   ; arg 0 std_collections$MutableMap__Any__i32.size
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -1313,8 +1313,8 @@ fn 31 std_collections$put__Any__i32 (ref,any,i32) -> void
   local.get 4   ; $field_4
   local.get 10   ; $cast_74
   store_slot_i32
-  local.field 0 20 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 20 4   ; arg 0 std_collections$MutableMap__Any__i32.size
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -1334,11 +1334,11 @@ fn 32 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
   local $cast_74 i32
   local.get 0   ; arg 0
   call 26   ; std_collections$ensure_index__snippet_HttpStatus__string
-  local.field 0 22 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 22 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
-  local.field 0 22 5   ; arg 0.tombs
-  ref.cast 5   ; -> usize
+  local.field 0 22 5   ; arg 0 std_collections$MutableMap__HttpStatus__string.tombs
+  ref.cast 5   ; usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -1348,8 +1348,8 @@ fn 32 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
   i64.const 4
   i64.mul
   local.set 3   ; $field_3
-  local.field 0 22 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 22 3   ; arg 0 std_collections$MutableMap__HttpStatus__string.mask
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   i64.const 3
@@ -1363,8 +1363,8 @@ fn 32 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
     local.set 3   ; $field_3
     block $L1 void
       loop $L2 void
-        local.field 0 22 4   ; arg 0.size
-        ref.cast 5   ; -> usize
+        local.field 0 22 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
+        ref.cast 5   ; usize
         i64.const 1
         i64.add
         i64.const 4
@@ -1393,8 +1393,8 @@ fn 32 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
   local.get 1   ; arg 1
   call 13   ; std_core$u8$Hash$hash
   local.set 6   ; perturb
-  local.field 0 22 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 22 3   ; arg 0 std_collections$MutableMap__HttpStatus__string.mask
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
@@ -1405,13 +1405,13 @@ fn 32 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
   local.set 7   ; first_tomb
   block $L4 void
     loop $L5 void
-      local.field 0 22 2   ; arg 0.index
+      local.field 0 22 2   ; arg 0 std_collections$MutableMap__HttpStatus__string.index
       local.get 3   ; $field_3
       load_slot_i32
       i32.const 0
       i32.ne
       if $L6 void
-        local.field 0 22 2   ; arg 0.index
+        local.field 0 22 2   ; arg 0 std_collections$MutableMap__HttpStatus__string.index
         local.get 3   ; $field_3
         load_slot_i32
         i32.const -1
@@ -1426,23 +1426,23 @@ fn 32 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
             local.set 7   ; first_tomb
           end $L8
         else
-          local.field 0 22 2   ; arg 0.index
+          local.field 0 22 2   ; arg 0 std_collections$MutableMap__HttpStatus__string.index
           local.get 3   ; $field_3
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; $field_4
-          local.field 0 22 0   ; arg 0.ekeys
+          local.field 0 22 0   ; arg 0 std_collections$MutableMap__HttpStatus__string.ekeys
           local.get 4   ; $field_4
-          array.get 15   ; u8[][]
+          array.get 15   ; u8[]
           local.get 1   ; arg 1
           i32.eq
           if $L9 void
-            local.field 0 22 1   ; arg 0.evals
+            local.field 0 22 1   ; arg 0 std_collections$MutableMap__HttpStatus__string.evals
             local.get 4   ; $field_4
             local.get 2   ; arg 2
-            array.set 27   ; string[][]
+            array.set 27   ; string[]
             return
           end $L9
         end $L7
@@ -1450,8 +1450,8 @@ fn 32 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
         i64.const 5
         u64.shr
         local.set 6   ; perturb
-        local.field 0 22 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 22 3   ; arg 0 std_collections$MutableMap__HttpStatus__string.mask
+        ref.cast 5   ; usize
         local.set 5   ; $mul_24
         local.get 3   ; $field_3
         local.get 6   ; perturb
@@ -1477,8 +1477,8 @@ fn 32 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
   i64.const 0
   i64.ge
   if $L11 void
-    local.field 0 22 5   ; arg 0.tombs
-    ref.cast 5   ; -> usize
+    local.field 0 22 5   ; arg 0 std_collections$MutableMap__HttpStatus__string.tombs
+    ref.cast 5   ; usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -1490,10 +1490,10 @@ fn 32 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call 30   ; std_collections$write_entry__snippet_HttpStatus__string
-  local.field 0 22 2   ; arg 0.index
+  local.field 0 22 2   ; arg 0 std_collections$MutableMap__HttpStatus__string.index
   local.set 8   ; $field_70
-  local.field 0 22 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 22 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -1502,8 +1502,8 @@ fn 32 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
   local.get 4   ; $field_4
   local.get 9   ; $cast_74
   store_slot_i32
-  local.field 0 22 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 22 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -1519,7 +1519,7 @@ fn 33 std_collections$get__Any__i32 (ref,any) -> any
   local ei usize
   local $idx_27 any
   local $field_33 usize
-  local.field 0 20 2   ; arg 0.index
+  local.field 0 20 2   ; arg 0 std_collections$MutableMap__Any__i32.index
   array.len
   i64.const 0
   i64.eq
@@ -1529,8 +1529,8 @@ fn 33 std_collections$get__Any__i32 (ref,any) -> any
   local.get 1   ; arg 1
   virtual.call 1 std_core$Hash.hash
   local.set 2   ; perturb
-  local.field 0 20 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 20 3   ; arg 0 std_collections$MutableMap__Any__i32.mask
+  ref.cast 5   ; usize
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
@@ -1538,37 +1538,37 @@ fn 33 std_collections$get__Any__i32 (ref,any) -> any
   local.set 3   ; $field_9
   block $L1 void
     loop $L2 void
-      local.field 0 20 2   ; arg 0.index
+      local.field 0 20 2   ; arg 0 std_collections$MutableMap__Any__i32.index
       local.get 3   ; $field_9
       load_slot_i32
       i32.const 0
       i32.ne
       if $L3 void
-        local.field 0 20 2   ; arg 0.index
+        local.field 0 20 2   ; arg 0 std_collections$MutableMap__Any__i32.index
         local.get 3   ; $field_9
         load_slot_i32
         i32.const -1
         i32.ne
         if $L4 void
-          local.field 0 20 2   ; arg 0.index
+          local.field 0 20 2   ; arg 0 std_collections$MutableMap__Any__i32.index
           local.get 3   ; $field_9
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; ei
-          local.field 0 20 0   ; arg 0.ekeys
+          local.field 0 20 0   ; arg 0 std_collections$MutableMap__Any__i32.ekeys
           local.get 4   ; ei
-          array.get 25   ; ref[][]
+          array.get 25   ; ref[]
           local.set 5   ; $idx_27
           local.get 1   ; arg 1
           local.get 5   ; $idx_27
           virtual.call 2 std_core$Equals.equals
           if $L5 void
-            local.field 0 20 1   ; arg 0.evals
+            local.field 0 20 1   ; arg 0 std_collections$MutableMap__Any__i32.evals
             local.get 4   ; ei
             load_slot_i32
-            retag 1   ; -> i32
+            retag 1   ; i32
             return
           end $L5
         end $L4
@@ -1576,8 +1576,8 @@ fn 33 std_collections$get__Any__i32 (ref,any) -> any
         i64.const 5
         u64.shr
         local.set 2   ; perturb
-        local.field 0 20 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 20 3   ; arg 0 std_collections$MutableMap__Any__i32.mask
+        ref.cast 5   ; usize
         local.set 6   ; $field_33
         local.get 3   ; $field_9
         local.get 2   ; perturb
@@ -1596,7 +1596,7 @@ fn 34 std_collections$get__snippet_HttpStatus__string (ref,u8) -> any
   local $field_9 usize
   local ei usize
   local $field_33 usize
-  local.field 0 22 2   ; arg 0.index
+  local.field 0 22 2   ; arg 0 std_collections$MutableMap__HttpStatus__string.index
   array.len
   i64.const 0
   i64.eq
@@ -1606,8 +1606,8 @@ fn 34 std_collections$get__snippet_HttpStatus__string (ref,u8) -> any
   local.get 1   ; arg 1
   call 13   ; std_core$u8$Hash$hash
   local.set 2   ; perturb
-  local.field 0 22 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 22 3   ; arg 0 std_collections$MutableMap__HttpStatus__string.mask
+  ref.cast 5   ; usize
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
@@ -1615,36 +1615,36 @@ fn 34 std_collections$get__snippet_HttpStatus__string (ref,u8) -> any
   local.set 3   ; $field_9
   block $L1 void
     loop $L2 void
-      local.field 0 22 2   ; arg 0.index
+      local.field 0 22 2   ; arg 0 std_collections$MutableMap__HttpStatus__string.index
       local.get 3   ; $field_9
       load_slot_i32
       i32.const 0
       i32.ne
       if $L3 void
-        local.field 0 22 2   ; arg 0.index
+        local.field 0 22 2   ; arg 0 std_collections$MutableMap__HttpStatus__string.index
         local.get 3   ; $field_9
         load_slot_i32
         i32.const -1
         i32.ne
         if $L4 void
-          local.field 0 22 2   ; arg 0.index
+          local.field 0 22 2   ; arg 0 std_collections$MutableMap__HttpStatus__string.index
           local.get 3   ; $field_9
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; ei
-          local.field 0 22 0   ; arg 0.ekeys
+          local.field 0 22 0   ; arg 0 std_collections$MutableMap__HttpStatus__string.ekeys
           local.get 4   ; ei
-          array.get 15   ; u8[][]
+          array.get 15   ; u8[]
           local.get 1   ; arg 1
           i32.eq
           if $L5 void
-            local.field 0 22 1   ; arg 0.evals
+            local.field 0 22 1   ; arg 0 std_collections$MutableMap__HttpStatus__string.evals
             local.get 4   ; ei
-            array.get 27   ; string[][]
-            ref.cast 2   ; -> string
-            retag 2   ; -> string
+            array.get 27   ; string[]
+            ref.cast 2   ; string
+            retag 2   ; string
             return
           end $L5
         end $L4
@@ -1652,8 +1652,8 @@ fn 34 std_collections$get__snippet_HttpStatus__string (ref,u8) -> any
         i64.const 5
         u64.shr
         local.set 2   ; perturb
-        local.field 0 22 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 22 3   ; arg 0 std_collections$MutableMap__HttpStatus__string.mask
+        ref.cast 5   ; usize
         local.set 5   ; $field_33
         local.get 3   ; $field_9
         local.get 2   ; perturb
@@ -1668,8 +1668,8 @@ fn 34 std_collections$get__snippet_HttpStatus__string (ref,u8) -> any
 end
 
 fn 35 std_collections$len__snippet_HttpStatus__string (ref) -> usize
-  local.field 0 22 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 22 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
+  ref.cast 5   ; usize
   return
 end
 
@@ -1704,7 +1704,7 @@ fn 36 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 15   ; u8[][]
+      array.slice 15   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

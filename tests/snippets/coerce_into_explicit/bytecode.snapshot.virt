@@ -22,8 +22,8 @@ impl 6 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$UserId$Into$into (ref) -> i32
-  local.field 0 1 0   ; arg 0.value
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$UserId.value
+  ref.cast 2   ; i32
   return
 end
 
@@ -41,8 +41,8 @@ fn 1 snippet$UserId$Into$into_1 (ref) -> string
   string.const 0   ; "user_"
   call 6   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 1 0   ; arg 0.value
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$UserId.value
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0
@@ -305,7 +305,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

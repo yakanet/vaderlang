@@ -86,7 +86,7 @@ fn 3 snippet$main () -> i32
   string.const 0   ; "forwarded: "
   call 8   ; std_core$write_string_at
   local.set 1   ; __off_1
-  fn.ref 4 2   ; __lambda_snippet_0
+  fn.ref 4 2   ; __lambda_snippet_0 fn
   call 1   ; snippet$forwards
   i32.to_i64
   local.set 2   ; $cast_9
@@ -330,7 +330,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -23,11 +23,11 @@ export main 4
 fn 0 default_type_param$N$Adder$add_to (ref,ref) -> i32
   local $field_2 i32
   local $field_3 i32
-  local.field 0 1 0   ; arg 0.v
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 default_type_param$N.v
+  ref.cast 2   ; i32
   local.set 2   ; $field_2
-  local.field 1 1 0   ; arg 1.v
-  ref.cast 2   ; -> i32
+  local.field 1 1 0   ; arg 1 default_type_param$N.v
+  ref.cast 2   ; i32
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
@@ -53,8 +53,8 @@ fn 1 default_type_param$N$Adder$twice (ref,ref) -> i32
 end
 
 fn 2 default_type_param$Tick$Counter$current (ref) -> i32
-  local.field 0 3 0   ; arg 0.c
-  ref.cast 2   ; -> i32
+  local.field 0 3 0   ; arg 0 default_type_param$Tick.c
+  ref.cast 2   ; i32
   return
 end
 
@@ -318,7 +318,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

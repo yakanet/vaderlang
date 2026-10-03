@@ -43,7 +43,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 13 5   ; i32[][]
+  array.new 13 5   ; i32[]
   local.set 0   ; arr
   i32.const 1
   i32.to_i64
@@ -54,7 +54,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; arr
   local.get 1   ; $cast_8
   local.get 2   ; $cast_10
-  array.slice 13   ; i32[][]
+  array.slice 13   ; i32[]
   local.set 3   ; s1
   i64.const 29
   call 2   ; std_core$new_byte_buffer
@@ -135,7 +135,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; arr
   local.get 1   ; $cast_8
   local.get 2   ; $cast_10
-  array.slice 13   ; i32[][]
+  array.slice 13   ; i32[]
   local.set 3   ; s1
   i64.const 29
   call 2   ; std_core$new_byte_buffer
@@ -211,16 +211,16 @@ fn 0 snippet$main () -> i32
   i32.const 2
   struct.new_stack 3   ; std_core$Range__i32
   local.set 4   ; __buf_0
-  local.field 4 3 0   ; __buf_0.start
-  ref.cast 1   ; -> i32
+  local.field 4 3 0   ; __buf_0 std_core$Range__i32.start
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 1   ; $cast_8
-  local.field 4 3 1   ; __buf_0.end
-  ref.cast 1   ; -> i32
+  local.field 4 3 1   ; __buf_0 std_core$Range__i32.end
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 2   ; $cast_10
-  local.field 4 3 2   ; __buf_0.inclusive
-  ref.cast 4   ; -> bool
+  local.field 4 3 2   ; __buf_0 std_core$Range__i32.inclusive
+  ref.cast 4   ; bool
   if $L6 void
     i64.const 1
     local.set 7   ; __off_6
@@ -235,7 +235,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; arr
   local.get 1   ; $cast_8
   local.get 2   ; $cast_10
-  array.slice 13   ; i32[][]
+  array.slice 13   ; i32[]
   local.set 3   ; s1
   i64.const 29
   call 2   ; std_core$new_byte_buffer
@@ -308,7 +308,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; arr
   i64.const 0
   i64.const 3
-  array.slice 13   ; i32[][]
+  array.slice 13   ; i32[]
   local.set 3   ; s1
   i64.const 29
   call 2   ; std_core$new_byte_buffer
@@ -387,7 +387,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; arr
   local.get 1   ; $cast_8
   local.get 2   ; $cast_10
-  array.slice 13   ; i32[][]
+  array.slice 13   ; i32[]
   local.set 0   ; arr
   i64.const 29
   call 2   ; std_core$new_byte_buffer
@@ -706,7 +706,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

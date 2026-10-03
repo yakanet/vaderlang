@@ -55,7 +55,7 @@ fn 1 snippet$unwrap_or (any,i32) -> i32
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 2   ; -> i64
+  ref.cast 2   ; i64
   i64.to_i32
   return
 end
@@ -65,13 +65,13 @@ fn 2 snippet$main () -> i32
   local $unop_9 i32
   i64.const 10
   i64.const 20
-  array.new 1 2   ; i64[][]
+  array.new 1 2   ; i64[]
   local.set 0   ; ids
   i32.const 1
   i32.neg
   local.set 1   ; $unop_9
   i64.const 12
-  retag 2   ; -> i64
+  retag 2   ; i64
   local.get 1   ; $unop_9
   call 1   ; snippet$unwrap_or
   local.set 1   ; $unop_9

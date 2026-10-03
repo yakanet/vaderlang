@@ -169,7 +169,7 @@ fn 3 snippet$main () -> i32
   i32.add
   local.set 0   ; go
   bool.const true
-  retag 2   ; -> bool
+  retag 2   ; bool
   call 2   ; snippet$kind
   local.set 1   ; stop
   local.get 0   ; go
@@ -177,7 +177,7 @@ fn 3 snippet$main () -> i32
   i32.add
   local.set 0   ; go
   string.const 0   ; "x"
-  retag 5   ; -> string
+  retag 5   ; string
   call 2   ; snippet$kind
   local.set 1   ; stop
   local.get 0   ; go

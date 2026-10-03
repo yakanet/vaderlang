@@ -77,7 +77,7 @@ fn 1 snippet$main () -> i32
   local __p_5 string
   local $call_66 usize
   local $mul_94 i32
-  array.new 1 0   ; i32[][]
+  array.new 1 0   ; i32[]
   i64.const 9
   array.repeat
   local.set 0   ; numbers
@@ -91,7 +91,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 0   ; numbers
         local.get 1   ; i
-        array.push 2 0   ; i32[]
+        array.push 2 0   ; i32 numbers
         local.get 1   ; i
         i32.const 1
         i32.add
@@ -167,7 +167,7 @@ fn 1 snippet$main () -> i32
   local.get 3   ; __off_1
   call 4   ; std_core$finish_buffer
   call 10   ; std_io$println__string
-  array.new 12 0   ; string[][]
+  array.new 12 0   ; string[]
   i64.const 9
   array.repeat
   local.set 0   ; numbers
@@ -203,7 +203,7 @@ fn 1 snippet$main () -> i32
         local.set 6   ; $call_55
         local.get 0   ; numbers
         local.get 6   ; $call_55
-        array.push 3   ; string[]
+        array.push 3   ; string
         local.get 1   ; i
         i32.const 1
         i32.add
@@ -214,13 +214,13 @@ fn 1 snippet$main () -> i32
   end $L3
   local.get 0   ; numbers
   i32.const 0
-  array.get 12   ; string[][]
-  ref.cast 3   ; -> string
+  array.get 12   ; string[]
+  ref.cast 3   ; string
   local.set 6   ; $call_55
   local.get 0   ; numbers
   i32.const 8
-  array.get 12   ; string[][]
-  ref.cast 3   ; -> string
+  array.get 12   ; string[]
+  ref.cast 3   ; string
   local.set 7   ; __p_5
   local.get 6   ; $call_55
   call.import 0   ; std_core$byte_len
@@ -277,7 +277,7 @@ fn 1 snippet$main () -> i32
   local.get 3   ; __off_1
   call 4   ; std_core$finish_buffer
   call 10   ; std_io$println__string
-  array.new 1 0   ; i32[][]
+  array.new 1 0   ; i32[]
   i64.const 9
   array.repeat
   local.set 0   ; numbers
@@ -295,7 +295,7 @@ fn 1 snippet$main () -> i32
         local.set 9   ; $mul_94
         local.get 0   ; numbers
         local.get 9   ; $mul_94
-        array.push 2 0   ; i32[]
+        array.push 2 0   ; i32 numbers
         local.get 1   ; i
         i32.const 1
         i32.add
@@ -650,7 +650,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -525,8 +525,8 @@ emit_slot_decls :: fn(
 /// Per-op C emit — the function-body walker's dispatch. Exhaustive over
 /// every `Op` variant (no `_`), each with a real emit, so adding an
 /// opcode trips T3013 here and forces a conscious decision — mirroring
-/// `vader/bytecode/dump.vader::write_op`. The arm order tracks `write_op`
-/// so the two stay diffable. The only `todo(...)` calls are malformed-
+/// `vader/bytecode/dump.vader::write_op_refs`. The arm order tracks it so the
+/// two stay diffable. The only `todo(...)` calls are malformed-
 /// bytecode guards inside a handler (e.g. `struct.new` on a non-struct
 /// type), never a not-yet-ported placeholder.
 emit_op :: fn(s: FnState!, pc: i32, op: vm.Op) -> void {

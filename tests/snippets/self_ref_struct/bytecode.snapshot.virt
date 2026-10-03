@@ -46,8 +46,8 @@ fn 0 snippet$main () -> i32
   string.const 0   ; "head.value = "
   call 4   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 3 0   ; tail.value
-  ref.cast 1   ; -> i32
+  local.field 0 3 0   ; tail snippet$Node__i32.value
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 3   ; $cast_18
   local.get 1   ; __buf_0
@@ -267,7 +267,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -32,8 +32,8 @@ fn 0 snippet$main () -> i32
   struct.new 2   ; __Tuple_i32_string_d0b3dcb6
   call 1   ; snippet$swap__i32__string
   local.set 0   ; s
-  local.field 0 4 0   ; s._0
-  ref.cast 3   ; -> string
+  local.field 0 4 0   ; s __Tuple_string_i32_4ccf6d4f._0
+  ref.cast 3   ; string
   local.tee 1   ; __p_0
   call.import 0   ; std_core$byte_len
   local.set 2   ; $call_8
@@ -59,8 +59,8 @@ fn 0 snippet$main () -> i32
   string.const 2   ; " second="
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_8
-  local.field 0 4 1   ; s._1
-  ref.cast 1   ; -> i32
+  local.field 0 4 1   ; s __Tuple_string_i32_4ccf6d4f._1
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 4   ; $cast_20
   local.get 3   ; __buf_1
@@ -78,11 +78,11 @@ end
 fn 1 snippet$swap__i32__string (ref) -> ref
   local $field_1 string
   local $field_2 i32
-  local.field 0 2 1   ; arg 0._1
-  ref.cast 3   ; -> string
+  local.field 0 2 1   ; arg 0 __Tuple_i32_string_d0b3dcb6._1
+  ref.cast 3   ; string
   local.set 1   ; $field_1
-  local.field 0 2 0   ; arg 0._0
-  ref.cast 1   ; -> i32
+  local.field 0 2 0   ; arg 0 __Tuple_i32_string_d0b3dcb6._0
+  ref.cast 1   ; i32
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
@@ -295,7 +295,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

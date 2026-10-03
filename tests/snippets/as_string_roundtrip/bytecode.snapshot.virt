@@ -36,7 +36,7 @@ fn 0 snippet$main () -> i32
   call.import 2   ; std_core$bytes
   i64.const 1
   i64.const 4
-  array.slice 5   ; u8[][]
+  array.slice 5   ; u8[]
   call.import 1   ; std_core$bytes_to_string
   call 5   ; std_io$println__string
   string.const 3   ; ""
@@ -152,7 +152,7 @@ fn 3 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 5   ; u8[][]
+      array.slice 5   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

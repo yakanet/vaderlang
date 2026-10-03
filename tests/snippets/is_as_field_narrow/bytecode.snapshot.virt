@@ -22,13 +22,13 @@ impl 8 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$probe (ref) -> i32
-  local.field 0 1 0   ; arg 0.payload
+  local.field 0 1 0   ; arg 0 snippet$Wrapper.payload
   type_check 4   ; snippet$Inner
   if $L0 void
-    local.field 0 1 0   ; arg 0.payload
-    ref.cast 4   ; -> snippet$Inner
+    local.field 0 1 0   ; arg 0 snippet$Wrapper.payload
+    ref.cast 4   ; snippet$Inner
     struct.get 4 0   ; snippet$Inner.kind
-    ref.cast 2   ; -> i32
+    ref.cast 2   ; i32
     return
   end $L0
   i32.const 1
@@ -297,7 +297,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

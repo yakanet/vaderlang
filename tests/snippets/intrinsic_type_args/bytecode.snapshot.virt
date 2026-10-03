@@ -36,7 +36,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; $type_const_1
   local.get 0   ; $type_const_0
   local.get 1   ; $type_const_1
-  array.new 11 2   ; ref[][]
+  array.new 11 2   ; ref[]
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -50,7 +50,7 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 11   ; ref[][]
+        array.get 11   ; ref[]
         local.set 0   ; $type_const_0
         i64.const 34
         call 2   ; std_core$new_byte_buffer
@@ -83,7 +83,7 @@ fn 0 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  array.new 11 0   ; ref[][]
+  array.new 11 0   ; ref[]
   local.set 2   ; __for_arr_0
   i64.const 38
   call 2   ; std_core$new_byte_buffer
@@ -285,7 +285,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

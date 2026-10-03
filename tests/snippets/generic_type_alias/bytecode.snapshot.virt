@@ -31,7 +31,7 @@ fn 0 snippet$main () -> i32
   local $cast_15 i64
   local $cast_48 string
   i32.const 42
-  retag 1   ; -> i32
+  retag 1   ; i32
   local.set 0   ; x
   null.const
   local.set 1   ; y
@@ -55,7 +55,7 @@ fn 0 snippet$main () -> i32
       call 4   ; std_core$write_string_at
       local.set 3   ; __off_1
       local.get 0   ; x
-      ref.cast 1   ; -> i32
+      ref.cast 1   ; i32
       i32.to_i64
       local.set 4   ; $cast_15
       local.get 2   ; __buf_0
@@ -91,7 +91,7 @@ fn 0 snippet$main () -> i32
       call 4   ; std_core$write_string_at
       local.set 3   ; __off_1
       local.get 1   ; y
-      ref.cast 1   ; -> i32
+      ref.cast 1   ; i32
       i32.to_i64
       local.set 4   ; $cast_15
       local.get 2   ; __buf_0
@@ -108,7 +108,7 @@ fn 0 snippet$main () -> i32
     end $L3
   end $L2
   string.const 4   ; "hello"
-  retag 2   ; -> string
+  retag 2   ; string
   local.tee 0   ; x
   type_check 1   ; i32
   if $L4 void
@@ -123,7 +123,7 @@ fn 0 snippet$main () -> i32
     call 4   ; std_core$write_string_at
     local.set 3   ; __off_1
     local.get 0   ; x
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     i32.to_i64
     local.set 4   ; $cast_15
     local.get 2   ; __buf_0
@@ -140,7 +140,7 @@ fn 0 snippet$main () -> i32
     type_check 2   ; string
     if $L5 void
       local.get 0   ; x
-      ref.cast 2   ; -> string
+      ref.cast 2   ; string
       local.set 5   ; $cast_48
       string.const 6   ; "pair str   = "
       local.get 5   ; $cast_48
@@ -358,7 +358,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

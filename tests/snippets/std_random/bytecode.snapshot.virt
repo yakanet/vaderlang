@@ -274,7 +274,7 @@ fn 0 snippet$main () -> i32
   i32.const 6
   i32.const 7
   i32.const 8
-  array.new 14 8   ; i32[][]
+  array.new 14 8   ; i32[]
   local.set 1   ; b
   local.get 0   ; a
   local.get 1   ; b
@@ -727,7 +727,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -805,11 +805,11 @@ fn 12 random$next_u64 (ref) -> u64
   local $field_2 u64
   local $field_13 u64
   local $call_22 u64
-  local.field 0 11 0   ; arg 0.s0
-  ref.cast 8   ; -> u64
+  local.field 0 11 0   ; arg 0 random$Rng.s0
+  ref.cast 8   ; u64
   local.set 1   ; $field_1
-  local.field 0 11 1   ; arg 0.s1
-  ref.cast 8   ; -> u64
+  local.field 0 11 1   ; arg 0 random$Rng.s1
+  ref.cast 8   ; u64
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
@@ -818,26 +818,26 @@ fn 12 random$next_u64 (ref) -> u64
   i64.const 17
   call 19   ; random$rotl
   local.set 1   ; $field_1
-  local.field 0 11 0   ; arg 0.s0
-  ref.cast 8   ; -> u64
+  local.field 0 11 0   ; arg 0 random$Rng.s0
+  ref.cast 8   ; u64
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
   i64.add
   call 18   ; random$mask64
   local.set 1   ; $field_1
-  local.field 0 11 1   ; arg 0.s1
-  ref.cast 8   ; -> u64
+  local.field 0 11 1   ; arg 0 random$Rng.s1
+  ref.cast 8   ; u64
   local.set 2   ; $field_2
-  local.field 0 11 0   ; arg 0.s0
-  ref.cast 8   ; -> u64
+  local.field 0 11 0   ; arg 0 random$Rng.s0
+  ref.cast 8   ; u64
   local.set 3   ; $field_13
   local.get 2   ; $field_2
   local.get 3   ; $field_13
   i64.bitxor
   local.set 2   ; $field_2
-  local.field 0 11 0   ; arg 0.s0
-  ref.cast 8   ; -> u64
+  local.field 0 11 0   ; arg 0 random$Rng.s0
+  ref.cast 8   ; u64
   i64.const 49
   call 19   ; random$rotl
   local.get 2   ; $field_2

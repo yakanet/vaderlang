@@ -931,7 +931,7 @@ fn 33 std_core$utf8_encode (char) -> ref
   local.get 0   ; arg 0
   char.to_i32
   local.set 1   ; cp
-  array.new 18 0   ; u8[][]
+  array.new 18 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 128
@@ -944,7 +944,7 @@ fn 33 std_core$utf8_encode (char) -> ref
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
-    array.push 5   ; u8[]
+    array.push 5   ; u8
   else
     local.get 1   ; cp
     i32.const 2048
@@ -963,7 +963,7 @@ fn 33 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 5   ; u8[]
+      array.push 5   ; u8
       local.get 1   ; cp
       i32.const 63
       i32.bitand
@@ -977,7 +977,7 @@ fn 33 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 5   ; u8[]
+      array.push 5   ; u8
     else
       local.get 1   ; cp
       i32.const 65536
@@ -996,7 +996,7 @@ fn 33 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -1012,7 +1012,7 @@ fn 33 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -1026,7 +1026,7 @@ fn 33 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
       else
         local.get 1   ; cp
         i32.const 18
@@ -1041,7 +1041,7 @@ fn 33 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
         local.get 1   ; cp
         i32.const 12
         u32.shr
@@ -1057,7 +1057,7 @@ fn 33 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -1073,7 +1073,7 @@ fn 33 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -1087,7 +1087,7 @@ fn 33 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
       end $L2
     end $L1
   end $L0
@@ -1171,12 +1171,12 @@ fn 34 std_core$format_f32 (f32) -> string
   local.get 1   ; bits
   call 36   ; std_core$f2d
   local.set 6   ; d
-  local.field 6 19 0   ; d.mantissa
-  ref.cast 14   ; -> u32
+  local.field 6 19 0   ; d std_core$FloatDec32.mantissa
+  ref.cast 14   ; u32
   u32.to_i64
   local.set 7   ; $cast_36
-  local.field 6 19 1   ; d.exp
-  ref.cast 1   ; -> i32
+  local.field 6 19 1   ; d std_core$FloatDec32.exp
+  ref.cast 1   ; i32
   local.set 8   ; $field_37
   local.get 7   ; $cast_36
   local.get 8   ; $field_37
@@ -1260,11 +1260,11 @@ fn 35 std_core$format_f64 (f64) -> string
   local.get 1   ; bits
   call 38   ; std_core$d2d
   local.set 6   ; d
-  local.field 6 20 0   ; d.mantissa
-  ref.cast 9   ; -> u64
+  local.field 6 20 0   ; d std_core$Dec64.mantissa
+  ref.cast 9   ; u64
   local.set 1   ; bits
-  local.field 6 20 1   ; d.exp
-  ref.cast 1   ; -> i32
+  local.field 6 20 1   ; d std_core$Dec64.exp
+  ref.cast 1   ; i32
   local.set 7   ; $field_36
   local.get 1   ; bits
   local.get 7   ; $field_36
@@ -2078,11 +2078,11 @@ fn 38 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.mul
     local.set 15   ; $cast_74
-    data.const 0 23   ; pool[0] : u64[]
+    data.const 0 23   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 23   ; pool[0] : u64[]
+    data.const 0 23   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2099,14 +2099,14 @@ fn 38 std_core$d2d (u64,u64) -> ref
     local.get 7   ; mm_shift
     call 50   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
-    local.field 17 21 0   ; $data_const_80._0
-    ref.cast 9   ; -> u64
+    local.field 17 21 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
+    ref.cast 9   ; u64
     local.set 8   ; vr
-    local.field 17 21 1   ; $data_const_80._1
-    ref.cast 9   ; -> u64
+    local.field 17 21 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
+    ref.cast 9   ; u64
     local.set 9   ; vp
-    local.field 17 21 2   ; $data_const_80._2
-    ref.cast 9   ; -> u64
+    local.field 17 21 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
+    ref.cast 9   ; u64
     local.set 10   ; vm
     local.get 13   ; $call_57
     i32.const 21
@@ -2192,11 +2192,11 @@ fn 38 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.mul
     local.set 15   ; $cast_74
-    data.const 1 23   ; pool[1] : u64[]
+    data.const 1 23   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 23   ; pool[1] : u64[]
+    data.const 1 23   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2213,14 +2213,14 @@ fn 38 std_core$d2d (u64,u64) -> ref
     local.get 7   ; mm_shift
     call 50   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
-    local.field 17 21 0   ; $data_const_80._0
-    ref.cast 9   ; -> u64
+    local.field 17 21 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
+    ref.cast 9   ; u64
     local.set 8   ; vr
-    local.field 17 21 1   ; $data_const_80._1
-    ref.cast 9   ; -> u64
+    local.field 17 21 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
+    ref.cast 9   ; u64
     local.set 9   ; vp
-    local.field 17 21 2   ; $data_const_80._2
-    ref.cast 9   ; -> u64
+    local.field 17 21 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
+    ref.cast 9   ; u64
     local.set 10   ; vm
     local.get 13   ; $call_57
     i32.const 1
@@ -2619,7 +2619,7 @@ fn 42 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
   local $data_const_3 ref
   local $cast_4 usize
   local $idx_5 u64
-  data.const 2 23   ; pool[2] : u64[]
+  data.const 2 23   ; pool[2] u64[]
   local.set 3   ; $data_const_3
   local.get 1   ; arg 1
   i32.to_i64
@@ -2658,7 +2658,7 @@ fn 45 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
   local $data_const_3 ref
   local $cast_4 usize
   local $idx_5 u64
-  data.const 3 23   ; pool[3] : u64[]
+  data.const 3 23   ; pool[3] u64[]
   local.set 3   ; $data_const_3
   local.get 1   ; arg 1
   i32.to_i64
@@ -3551,7 +3551,7 @@ fn 62 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 18   ; u8[][]
+      array.slice 18   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

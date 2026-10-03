@@ -48,7 +48,7 @@ fn 0 snippet$describe (any) -> string
     call 7   ; std_core$write_string_at
     local.set 3   ; __off_1
     local.get 0   ; arg 0
-    ref.cast 2   ; -> i32
+    ref.cast 2   ; i32
     i32.to_i64
     local.set 4   ; $cast_11
     local.get 2   ; __buf_0
@@ -62,7 +62,7 @@ fn 0 snippet$describe (any) -> string
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    ref.cast 3   ; -> string
+    ref.cast 3   ; string
     local.set 5   ; $cast_15
     string.const 1   ; "str "
     local.get 5   ; $cast_15
@@ -83,13 +83,13 @@ fn 1 snippet$main () -> i32
   local $cast_41 i64
   null.const
   string.const 2   ; "a"
-  retag 3   ; -> string
+  retag 3   ; string
   i32.const 2
-  retag 2   ; -> i32
+  retag 2   ; i32
   null.const
   i32.const 3
-  retag 2   ; -> i32
-  array.new 15 5   ; union[][]
+  retag 2   ; i32
+  array.new 15 5   ; union[]
   local.tee 0   ; mixed
   local.tee 1   ; __fuse_arr_0
   array.len
@@ -104,7 +104,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 1   ; __fuse_arr_0
         local.get 3   ; __fuse_i_2
-        array.get 15   ; union[][]
+        array.get 15   ; union[]
         local.tee 4   ; x
         type_check 0   ; null
         bool.not
@@ -146,7 +146,7 @@ fn 1 snippet$main () -> i32
   call 7   ; std_core$write_string_at
   local.set 2   ; __fuse_len_1
   i32.const 7
-  retag 2   ; -> i32
+  retag 2   ; i32
   i32.const 0
   call 3   ; snippet$or_zero__i32
   i32.to_i64
@@ -182,7 +182,7 @@ fn 2 snippet$first_present__i32___string (ref) -> any
       if $L2 void
         local.get 1   ; __for_arr_0
         local.get 3   ; __for_i_2
-        array.get 4   ; union[][]
+        array.get 4   ; union[]
         local.tee 4   ; x
         type_check 0   ; null
         bool.not
@@ -210,7 +210,7 @@ fn 3 snippet$or_zero__i32 (any,i32) -> i32
     local.set 2   ; if_res
   else
     local.get 0   ; arg 0
-    ref.cast 2   ; -> i32
+    ref.cast 2   ; i32
     local.set 2   ; if_res
   end $L0
   local.get 2   ; if_res
@@ -422,7 +422,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 12   ; u8[][]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

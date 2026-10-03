@@ -25,16 +25,16 @@ export main 2
 
 fn 0 snippet$count_match (ref) -> i32
   local if_res i32
-  local.field 0 1 0   ; arg 0.inner
+  local.field 0 1 0   ; arg 0 snippet$Outer.inner
   struct.get 4 0   ; snippet$Inner.flag
   type_check 0   ; null
   if $L0 void
     i32.const 0
     local.set 1   ; if_res
   else
-    local.field 0 1 0   ; arg 0.inner
+    local.field 0 1 0   ; arg 0 snippet$Outer.inner
     struct.get 4 0   ; snippet$Inner.flag
-    ref.cast 2   ; -> i32
+    ref.cast 2   ; i32
     i32.const 1
     i32.add
     local.set 1   ; if_res
@@ -44,7 +44,7 @@ fn 0 snippet$count_match (ref) -> i32
 end
 
 fn 1 snippet$unwrap (ref) -> i32
-  local.field 0 1 0   ; arg 0.inner
+  local.field 0 1 0   ; arg 0 snippet$Outer.inner
   struct.get 4 0   ; snippet$Inner.flag
   type_check 0   ; null
   if $L0 void
@@ -52,9 +52,9 @@ fn 1 snippet$unwrap (ref) -> i32
     i32.neg
     return
   end $L0
-  local.field 0 1 0   ; arg 0.inner
+  local.field 0 1 0   ; arg 0 snippet$Outer.inner
   struct.get 4 0   ; snippet$Inner.flag
-  ref.cast 2   ; -> i32
+  ref.cast 2   ; i32
   return
 end
 
@@ -65,7 +65,7 @@ fn 2 snippet$main () -> i32
   local __off_1 usize
   local $cast_16 i64
   i32.const 42
-  retag 2   ; -> i32
+  retag 2   ; i32
   struct.new 4   ; snippet$Inner
   struct.new 1   ; snippet$Outer
   local.set 0   ; set
@@ -373,7 +373,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -30,7 +30,7 @@ fn 0 snippet$main () -> i32
   i32.const 5
   i32.const 7
   i32.const 11
-  array.new 6 5   ; i32[][]
+  array.new 6 5   ; i32[]
   local.tee 0   ; primes
   i32.const 7
   call 2   ; std_core$[]$Contains$contains__i32
@@ -148,8 +148,8 @@ fn 3 std_core$[]$Contains$contains__u8 (ref,u8) -> bool
       if $L2 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 7   ; u8[][]
-        ref.cast 4   ; -> u8
+        array.get 7   ; u8[]
+        ref.cast 4   ; u8
         local.get 1   ; arg 1
         i32.eq
         if $L3 void
@@ -197,7 +197,7 @@ fn 4 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

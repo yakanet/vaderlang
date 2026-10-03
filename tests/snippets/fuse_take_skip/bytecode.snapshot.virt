@@ -39,7 +39,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 10 5   ; i32[][]
+  array.new 10 5   ; i32[]
   local.set 0   ; __fuse_arr_2
   i64.const 3
   local.set 1   ; n
@@ -112,7 +112,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 10 5   ; i32[][]
+  array.new 10 5   ; i32[]
   local.set 0   ; __fuse_arr_2
   i64.const 0
   local.set 1   ; n
@@ -177,7 +177,7 @@ fn 0 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 10 5   ; i32[][]
+  array.new 10 5   ; i32[]
   local.set 0   ; __fuse_arr_2
   i64.const 2
   local.set 1   ; n
@@ -484,7 +484,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

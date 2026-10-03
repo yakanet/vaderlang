@@ -32,7 +32,7 @@ fn 0 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 10 3   ; i32[][]
+  array.new 10 3   ; i32[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -312,7 +312,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

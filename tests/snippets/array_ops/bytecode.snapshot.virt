@@ -11,14 +11,14 @@ fn 0 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 2 3   ; i32[][]
+  array.new 2 3   ; i32[]
   local.tee 0   ; xs
   i32.const 1
   i32.const 99
   store_slot_i32
   local.get 0   ; xs
   i32.const 40
-  array.push 1   ; i32[]
+  array.push 1   ; i32
   local.get 0   ; xs
   i32.const 0
   load_slot_i32

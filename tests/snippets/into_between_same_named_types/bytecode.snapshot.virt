@@ -20,8 +20,8 @@ impl 10 std_core$Into
 export main 1
 
 fn 0 snippet$take (ref) -> i32
-  local.field 0 1 0   ; arg 0.metres
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet_metres$Length.metres
+  ref.cast 2   ; i32
   return
 end
 
@@ -245,7 +245,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -305,8 +305,8 @@ fn 8 std_io$println__string (string) -> void
 end
 
 fn 9 snippet_feet$Length$Into$into (ref) -> ref
-  local.field 0 10 0   ; arg 0.feet
-  ref.cast 2   ; -> i32
+  local.field 0 10 0   ; arg 0 snippet_feet$Length.feet
+  ref.cast 2   ; i32
   i32.const 40
   i32.add
   struct.new 1   ; snippet_metres$Length

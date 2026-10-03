@@ -49,9 +49,9 @@ fn 0 snippet$describe (any) -> string
   type_check 2   ; snippet$Circle
   if $L0 void
     local.get 1   ; __scrut_0
-    ref.cast 2   ; -> snippet$Circle
+    ref.cast 2   ; snippet$Circle
     struct.get 2 0   ; snippet$Circle.r
-    ref.cast 7   ; -> u8
+    ref.cast 7   ; u8
     i32.const 0
     i32.eq
     local.set 2   ; and_res
@@ -68,9 +68,9 @@ fn 0 snippet$describe (any) -> string
     type_check 2   ; snippet$Circle
     if $L2 void
       local.get 1   ; __scrut_0
-      ref.cast 2   ; -> snippet$Circle
+      ref.cast 2   ; snippet$Circle
       struct.get 2 1   ; snippet$Circle.tag
-      ref.cast 4   ; -> string
+      ref.cast 4   ; string
       string.const 1   ; "unit"
       string.eq
       local.set 2   ; and_res
@@ -81,9 +81,9 @@ fn 0 snippet$describe (any) -> string
     local.get 2   ; and_res
     if $L3 void
       local.get 1   ; __scrut_0
-      ref.cast 2   ; -> snippet$Circle
+      ref.cast 2   ; snippet$Circle
       struct.get 2 0   ; snippet$Circle.r
-      ref.cast 7   ; -> u8
+      ref.cast 7   ; u8
       local.set 4   ; r
       i64.const 34
       call 3   ; std_core$new_byte_buffer
@@ -112,9 +112,9 @@ fn 0 snippet$describe (any) -> string
       type_check 2   ; snippet$Circle
       if $L4 void
         local.get 1   ; __scrut_0
-        ref.cast 2   ; -> snippet$Circle
+        ref.cast 2   ; snippet$Circle
         struct.get 2 0   ; snippet$Circle.r
-        ref.cast 7   ; -> u8
+        ref.cast 7   ; u8
         local.set 4   ; r
         i64.const 29
         call 3   ; std_core$new_byte_buffer
@@ -143,9 +143,9 @@ fn 0 snippet$describe (any) -> string
         type_check 3   ; snippet$Square
         if $L5 void
           local.get 1   ; __scrut_0
-          ref.cast 3   ; -> snippet$Square
+          ref.cast 3   ; snippet$Square
           struct.get 3 1   ; snippet$Square.mark
-          ref.cast 9   ; -> char
+          ref.cast 9   ; char
           char.const 120
           i32.eq
           local.set 2   ; and_res
@@ -156,9 +156,9 @@ fn 0 snippet$describe (any) -> string
         local.get 2   ; and_res
         if $L6 void
           local.get 1   ; __scrut_0
-          ref.cast 3   ; -> snippet$Square
+          ref.cast 3   ; snippet$Square
           struct.get 3 0   ; snippet$Square.side
-          ref.cast 8   ; -> i64
+          ref.cast 8   ; i64
           i64.const 10
           i64.gt
           local.set 2   ; and_res
@@ -169,7 +169,7 @@ fn 0 snippet$describe (any) -> string
         local.get 2   ; and_res
         if $L7 void
           local.get 1   ; __scrut_0
-          ref.cast 3   ; -> snippet$Square
+          ref.cast 3   ; snippet$Square
           drop
           string.const 4   ; "big crossed square"
           local.set 3   ; if_res
@@ -178,9 +178,9 @@ fn 0 snippet$describe (any) -> string
           type_check 3   ; snippet$Square
           if $L8 void
             local.get 1   ; __scrut_0
-            ref.cast 3   ; -> snippet$Square
+            ref.cast 3   ; snippet$Square
             struct.get 3 0   ; snippet$Square.side
-            ref.cast 8   ; -> i64
+            ref.cast 8   ; i64
             i64.const 1
             i64.eq
             local.set 2   ; and_res
@@ -227,7 +227,7 @@ fn 1 snippet$main () -> i32
   local $cast_45 i64
   i32.const 10
   i32.const 99
-  array.new 16 2   ; i32[][]
+  array.new 16 2   ; i32[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -248,8 +248,8 @@ fn 1 snippet$main () -> i32
         local.tee 4   ; p
         type_check 6   ; snippet$P
         if $L3 void
-          local.field 4 6 0   ; p.x
-          ref.cast 5   ; -> i32
+          local.field 4 6 0   ; p snippet$P.x
+          ref.cast 5   ; i32
           i32.const 10
           i32.eq
           local.set 5   ; and_res
@@ -259,8 +259,8 @@ fn 1 snippet$main () -> i32
         end $L3
         local.get 5   ; and_res
         if $L4 void
-          local.field 4 6 1   ; p.name
-          ref.cast 4   ; -> string
+          local.field 4 6 1   ; p snippet$P.name
+          ref.cast 4   ; string
           local.tee 6   ; __p_5
           call.import 0   ; std_core$byte_len
           local.set 7   ; $call_24
@@ -664,7 +664,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 13   ; u8[][]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

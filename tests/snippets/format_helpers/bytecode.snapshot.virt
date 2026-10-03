@@ -297,7 +297,7 @@ fn 7 std_core$utf8_encode (char) -> ref
   local.get 0   ; arg 0
   char.to_i32
   local.set 1   ; cp
-  array.new 8 0   ; u8[][]
+  array.new 8 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 128
@@ -310,7 +310,7 @@ fn 7 std_core$utf8_encode (char) -> ref
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
-    array.push 5   ; u8[]
+    array.push 5   ; u8
   else
     local.get 1   ; cp
     i32.const 2048
@@ -329,7 +329,7 @@ fn 7 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 5   ; u8[]
+      array.push 5   ; u8
       local.get 1   ; cp
       i32.const 63
       i32.bitand
@@ -343,7 +343,7 @@ fn 7 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 5   ; u8[]
+      array.push 5   ; u8
     else
       local.get 1   ; cp
       i32.const 65536
@@ -362,7 +362,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -378,7 +378,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -392,7 +392,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
       else
         local.get 1   ; cp
         i32.const 18
@@ -407,7 +407,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
         local.get 1   ; cp
         i32.const 12
         u32.shr
@@ -423,7 +423,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -439,7 +439,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -453,7 +453,7 @@ fn 7 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 5   ; u8[]
+        array.push 5   ; u8
       end $L2
     end $L1
   end $L0
@@ -492,7 +492,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -563,7 +563,7 @@ fn 11 std_string$pad_start (string,usize,char) -> string
     local.get 0   ; arg 0
     return
   end $L0
-  array.new 13 0   ; string[][]
+  array.new 13 0   ; string[]
   struct.new 12   ; std_string_builder$StringBuilder
   local.set 4   ; sb
   block $L1 void
@@ -603,7 +603,7 @@ fn 12 std_string$pad_end (string,usize,char) -> string
     local.get 0   ; arg 0
     return
   end $L0
-  array.new 13 0   ; string[][]
+  array.new 13 0   ; string[]
   struct.new 12   ; std_string_builder$StringBuilder
   local.tee 4   ; sb
   local.get 0   ; arg 0
@@ -683,7 +683,7 @@ fn 14 std_numbers$to_hex (u64) -> string
   if $L0 void
     return.lit string.const 14   ; "0"
   end $L0
-  array.new 14 0   ; char[][]
+  array.new 14 0   ; char[]
   local.set 1   ; rev
   i64.const 16
   local.set 2   ; base
@@ -702,7 +702,7 @@ fn 14 std_numbers$to_hex (u64) -> string
         local.set 4   ; $call_12
         local.get 1   ; rev
         local.get 4   ; $call_12
-        array.push 3 1   ; char[]
+        array.push 3 1   ; char rev
         local.get 3   ; x
         local.get 2   ; base
         u64.div
@@ -711,7 +711,7 @@ fn 14 std_numbers$to_hex (u64) -> string
       end $L3
     end $L2
   end $L1
-  array.new 13 0   ; string[][]
+  array.new 13 0   ; string[]
   struct.new 12   ; std_string_builder$StringBuilder
   local.set 5   ; sb
   local.get 1   ; rev
@@ -766,7 +766,7 @@ fn 15 std_numbers$to_bin (u64) -> string
   if $L0 void
     return.lit string.const 14   ; "0"
   end $L0
-  array.new 14 0   ; char[][]
+  array.new 14 0   ; char[]
   local.set 1   ; rev
   i64.const 2
   local.set 2   ; two
@@ -786,11 +786,11 @@ fn 15 std_numbers$to_bin (u64) -> string
         if $L4 void
           local.get 1   ; rev
           char.const 48
-          array.push 3 1   ; char[]
+          array.push 3 1   ; char rev
         else
           local.get 1   ; rev
           char.const 49
-          array.push 3 1   ; char[]
+          array.push 3 1   ; char rev
         end $L4
         local.get 3   ; x
         local.get 2   ; two
@@ -800,7 +800,7 @@ fn 15 std_numbers$to_bin (u64) -> string
       end $L3
     end $L2
   end $L1
-  array.new 13 0   ; string[][]
+  array.new 13 0   ; string[]
   struct.new 12   ; std_string_builder$StringBuilder
   local.set 4   ; sb
   local.get 1   ; rev
@@ -870,7 +870,7 @@ end
 fn 17 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 12 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 7   ; std_core$utf8_encode
@@ -878,14 +878,14 @@ fn 17 std_string_builder$append_char (ref,char) -> void
   local.set 3   ; $call_4
   local.get 2   ; $field_2
   local.get 3   ; $call_4
-  array.push 2   ; string[]
+  array.push 2   ; string
   return
 end
 
 fn 18 std_string_builder$append (ref,string) -> void
-  local.field 0 12 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.get 1   ; arg 1
-  array.push 2   ; string[]
+  array.push 2   ; string
   return
 end
 
@@ -898,7 +898,7 @@ fn 19 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 12 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -910,15 +910,15 @@ fn 19 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 12 0   ; arg 0.parts
+    local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
     i32.const 0
-    array.get 13   ; string[][]
-    ref.cast 2   ; -> string
+    array.get 13   ; string[]
+    ref.cast 2   ; string
     return
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 12 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -932,8 +932,8 @@ fn 19 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L4 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 13   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 13   ; string[]
+        ref.cast 2   ; string
         call.import 0   ; std_core$byte_len
         local.set 5   ; $call_23
         local.get 1   ; n
@@ -953,7 +953,7 @@ fn 19 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 12 0   ; arg 0.parts
+  local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2
@@ -967,8 +967,8 @@ fn 19 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L7 void
         local.get 6   ; __for_arr_3
         local.get 5   ; $call_23
-        array.get 13   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 13   ; string[]
+        ref.cast 2   ; string
         local.set 7   ; p
         local.get 2   ; __for_arr_0
         local.get 3   ; __for_len_1

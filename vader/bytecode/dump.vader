@@ -618,9 +618,10 @@ write_body_with_scopes :: fn(sb: StringBuilder!, module: BytecodeModule, functio
             continue
         }
         write_indent(sb, depth)
-        write_op(sb, op)
+        refs: (OperandRef | null)[]!: []
+        write_op_refs(sb, refs, op)
         if annotate {
-            comment :: annotate_op(module, function_decl, op)
+            comment :: annotate_refs(module, function_decl, refs)
             if comment != "" { sb.append("   ; ${comment}") }
         }
         sb.append_char('\n')
@@ -722,16 +723,30 @@ f64_const_operands :: fn(v: f64) -> string {
     return "${v} ${bits}"
 }
 
-// Append an op's `.virt` mnemonic to `out` (no scope labels — control-flow
-// ops render bare here ; callers that need labels handle those themselves
-// and delegate the rest). A STATEMENT match, not a value-returning one : a
-// value match desugars to nested if-expressions whose per-arm result is
-// teed up through an `if_res` chain, which makes a 128-arm exhaustive match
-// compile ~3.5x larger. Appending in place sidesteps that entirely while
-// staying exhaustive (a new op with no arm trips T3013 — no `_` wildcard).
-// The single canonical op→text table, shared by `dump_bytecode` and
-// `vader/vm/virt_writer` (which imports this).
+/// Append `op`'s `.virt` mnemonic to `out` — no scope labels : control-flow ops
+/// render bare, and callers that need labels handle those themselves.
+///
+/// @param out  the text being written.
+/// @param op   the op to print.
 export write_op :: fn(out: StringBuilder!, op: Op) -> void {
+    refs: (OperandRef | null)[]!: []
+    write_op_refs(out, refs, op)
+}
+
+// The single canonical op→text table, shared by `dump_bytecode` and
+// `vader/vm/virt_writer` (through `write_op`). A STATEMENT match, not a
+// value-returning one : a value match desugars to nested if-expressions whose
+// per-arm result is teed up through an `if_res` chain, which makes a 128-arm
+// exhaustive match compile ~3.5x larger. Appending in place sidesteps that
+// entirely while staying exhaustive (a new op with no arm trips T3013 — no `_`
+// wildcard).
+//
+// An op whose operands are table indices prints them through `printed`, which
+// writes each operand's number from the `OperandRef` saying what it names and
+// pushes that ref onto `refs` : the text and the refs cannot disagree, and
+// `operand_refs` / `annotate_op` read the refs. `refs` gets one entry per
+// printed operand up to the last index — null for a word that names nothing.
+write_op_refs :: fn(out: StringBuilder!, refs: (OperandRef | null)[]!, op: Op) -> void {
     match op {
         is I32Const                 -> out.append("i32.const ${op.value}")
         is I64Const                 -> out.append("i64.const ${op.value}")
@@ -739,21 +754,29 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
         is BoolConst                -> out.append("bool.const ${op.value}")
         is CharConst                -> out.append("char.const ${u32(op.value)}")
         is NullConst                -> out.append("null.const")
-        is StringConst              -> out.append("string.const ${op.index}")
-        is LocalGet                 -> out.append("local.get ${op.slot}")
-        is LocalSet                 -> out.append("local.set ${op.slot}")
-        is LocalTee                 -> out.append("local.tee ${op.slot}")
-        is LocalField               -> out.append("local.field ${op.slot} ${op.type_id} ${op.field_index}")
+        is StringConst              -> printed(out, refs, "string.const", [refer(.String, op.index)])
+        is LocalGet                 -> printed(out, refs, "local.get", [refer(.Local, op.slot)])
+        is LocalSet                 -> printed(out, refs, "local.set", [refer(.Local, op.slot)])
+        is LocalTee                 -> printed(out, refs, "local.tee", [refer(.Local, op.slot)])
+        is LocalField               -> printed(out, refs, "local.field", [
+            refer(.Local, op.slot), refer(.Type, op.type_id), refer_field(op.type_id, op.field_index),
+        ])
         is Return                   -> out.append("return")
-        is ReturnLit                -> out.append("return.lit ${format_const_op(op.value)}")
+        is ReturnLit                -> {
+            out.append("return.lit ")
+            refs.push(null)
+            write_op_refs(out, refs, op.value)
+        }
         is Drop                     -> out.append("drop")
-        is Call                     -> out.append("call ${op.function_index}")
-        is CallImport               -> out.append("call.import ${op.index}")
-        is CallIndirect             -> out.append("call.indirect ${op.type_id}")
+        is Call                     -> printed(out, refs, "call", [refer(.Function, op.function_index)])
+        is CallImport               -> printed(out, refs, "call.import", [refer(.Import, op.index)])
+        is CallIndirect             -> printed(out, refs, "call.indirect", [refer(.Type, op.type_id)])
         is VirtualCall              -> out.append("virtual.call ${op.parameter_count} ${op.vtable_key}")
-        is FnRef                    -> out.append("fn.ref ${op.function_index} ${op.type_id}")
-        is FnAddr                   -> out.append("fn.addr ${op.function_index}")
-        is MakeClosure              -> out.append("make_closure ${op.function_index} ${op.env_type_id}")
+        is FnRef                    -> printed(out, refs, "fn.ref", [refer(.Function, op.function_index), refer(.Type, op.type_id)])
+        is FnAddr                   -> printed(out, refs, "fn.addr", [refer(.Function, op.function_index)])
+        is MakeClosure              -> printed(out, refs, "make_closure", [
+            refer(.Function, op.function_index), refer(.Type, op.env_type_id),
+        ])
         is If                       -> out.append("if")
         is Else                     -> out.append("else")
         is End                      -> out.append("end")
@@ -762,31 +785,37 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
         is Branch                   -> out.append("br")
         is BranchIf                 -> out.append("br_if")
         is BoolNot                  -> out.append("bool.not")
-        is StructNew                -> if op.stack { out.append("struct.new_stack ${op.type_id}") } else { out.append("struct.new ${op.type_id}") }
-        is StructGet                -> out.append("struct.get ${op.type_id} ${op.field_index}")
-        is StructSet                -> if op.stack { out.append("struct.set_stack ${op.type_id} ${op.field_index}") } else { out.append("struct.set ${op.type_id} ${op.field_index}") }
-        is ArrayNew                 -> out.append("array.new ${op.type_id} ${op.length}")
+        is StructNew                -> printed(out, refs, if op.stack { "struct.new_stack" } else { "struct.new" }, [refer(.Type, op.type_id)])
+        is StructGet                -> printed(out, refs, "struct.get", [refer(.Type, op.type_id), refer_field(op.type_id, op.field_index)])
+        is StructSet                -> printed(out, refs, if op.stack { "struct.set_stack" } else { "struct.set" }, [
+            refer(.Type, op.type_id), refer_field(op.type_id, op.field_index),
+        ])
+        is ArrayNew                 -> {
+            printed(out, refs, "array.new", [refer(.Type, op.type_id)])
+            out.append(" ${op.length}")
+        }
         is ArrayLen                 -> out.append("array.len")
         // The cache slot is written only when the lift was proven — `.virt`
         // integers are non-negative by convention, and an absent token is how
         // the format already spells "no hint".
-        is ArrayPush                -> out.append(
-            if op.cache_slot >= 0 { "array.push ${op.type_id} ${op.cache_slot}" }
-            else { "array.push ${op.type_id}" },
-        )
-        is ArrayGet                 -> out.append("array.get ${op.type_id}")
-        is ArraySet                 -> out.append("array.set ${op.type_id}")
-        is ArraySlice               -> out.append("array.slice ${op.type_id}")
+        is ArrayPush                -> if op.cache_slot >= 0 {
+            printed(out, refs, "array.push", [refer(.Type, op.type_id), refer(.Local, op.cache_slot)])
+        } else {
+            printed(out, refs, "array.push", [refer(.Type, op.type_id)])
+        }
+        is ArrayGet                 -> printed(out, refs, "array.get", [refer(.Type, op.type_id)])
+        is ArraySet                 -> printed(out, refs, "array.set", [refer(.Type, op.type_id)])
+        is ArraySlice               -> printed(out, refs, "array.slice", [refer(.Type, op.type_id)])
         is ArrayRepeat              -> out.append("array.repeat")
         is ArrayPushAll             -> out.append("array.push_all")
         is ArrayCopy                -> out.append("array.copy")
         is ArrayRemoveLast          -> out.append("array.remove_last")
         is ArrayClear               -> out.append("array.clear")
-        is DataConst                -> out.append("data.const ${op.pool_index} ${op.type_id}")
-        is TypeConst                -> out.append("type.const ${op.type_id}")
-        is TypeCheck                -> out.append("type_check ${op.type_id}")
-        is RefCast                  -> out.append("ref.cast ${op.type_id}")
-        is Retag                    -> out.append("retag ${op.type_id}")
+        is DataConst                -> printed(out, refs, "data.const", [refer(.Data, op.pool_index), refer(.Type, op.type_id)])
+        is TypeConst                -> printed(out, refs, "type.const", [refer(.Type, op.type_id)])
+        is TypeCheck                -> printed(out, refs, "type_check", [refer(.Type, op.type_id)])
+        is RefCast                  -> printed(out, refs, "ref.cast", [refer(.Type, op.type_id)])
+        is Retag                    -> printed(out, refs, "retag", [refer(.Type, op.type_id)])
         is Unreachable              -> out.append("unreachable")
         is Convert                  -> out.append("${op.from_name}.to_${convert_target_name(op.target)}")
         is SizeOfType               -> out.append("intrinsic size_of.type")
@@ -887,37 +916,19 @@ export write_op :: fn(out: StringBuilder!, op: Op) -> void {
     }
 }
 
-/// Render a `ConstOp` in its native text form (e.g. `i32.const 42`).
-/// Used by `write_op`'s standalone const arms + its `ReturnLit` inner op.
-format_const_op :: fn(c: ConstOp) -> string = match c {
-    is I32Const     -> "i32.const ${c.value}"
-    is I64Const     -> "i64.const ${c.value}"
-    is F64Const     -> "f64.const ${f64_const_operands(c.value)}"
-    is BoolConst    -> "bool.const ${c.value}"
-    is CharConst    -> "char.const ${u32(c.value)}"
-    is StringConst  -> "string.const ${c.index}"
-    is NullConst    -> "null.const"
-}
-
 // ---- annotation (--annotate) ----------------------------------------------
 
-// A deliberately NON-exhaustive shadow of `write_op` : `write_op`'s match trips
-// T3013 when a new `Op` variant is added, this `@partial` one does not, so a new
-// index-bearing op (a `call`-like op, one with a `*.type_id` operand) gets no
-// annotation until it gets an arm here. `operand_refs` (operands.vader) is the
-// same shadow and takes the same arm.
-//
 // Every lookup is bounds-guarded via the `*_label` helpers, so the annotator
 // never traps on an out-of-range index — surfacing it as `<… #N out of range>`
 // is itself the signal we want when reading the invalid bytecode this view
 // exists to debug.
 
-/// Resolve an op's table-index operands against the module's side tables into
-/// a short, human/AI-facing label — the string literal behind `string.const`,
-/// the callee mangle behind `call`, the receiver+field behind `local.field`, the
-/// type name behind `ref.cast`, … — or `""` when the op carries nothing worth
-/// resolving. `dump_bytecode_annotated` appends it as a trailing `; …` ; the
-/// language server shows it as an inlay hint on a plain dump.
+/// A short, human/AI-facing label for `op` : the names its table-index
+/// operands point at, in printed order — the string literal behind
+/// `string.const`, the callee behind `call`, the type behind `ref.cast`, a field
+/// glued to its struct (`json$JsonError.msg`) — or `""` when none of its
+/// operands is an index. `dump_bytecode_annotated` appends it as a trailing
+/// `; …` ; the language server shows it as an inlay hint on a plain dump.
 ///
 /// @param module    the module the op's indices point into.
 /// @param function  the function whose body holds the op — its locals name the
@@ -926,35 +937,40 @@ format_const_op :: fn(c: ConstOp) -> string = match c {
 /// @param op        the op to label.
 /// @return          the label, or `""` for an op with nothing to resolve.
 export annotate_op :: fn(module: BytecodeModule, function: BcFunction, op: Op) -> string =
-    // @partial: only an op carrying a table index has a label.
-    @partial match op {
-        is StringConst  -> string_label(module, op.index)
-        is ReturnLit    -> if op.value is StringConst as s { string_label(module, s.index) } else { "" }
-        is Call         -> fn_label(module, op.function_index)
-        is CallImport   -> import_label(module, op.index)
-        is LocalGet     -> local_label(function, op.slot)
-        is LocalSet     -> local_label(function, op.slot)
-        is LocalTee     -> local_label(function, op.slot)
-        is LocalField   -> "${local_label(function, op.slot)}.${field_label(module, op.type_id, op.field_index)}"
-        is StructNew    -> type_label(module, op.type_id)
-        is StructGet    -> "${type_label(module, op.type_id)}.${field_label(module, op.type_id, op.field_index)}"
-        is StructSet    -> "${type_label(module, op.type_id)}.${field_label(module, op.type_id, op.field_index)}"
-        is RefCast      -> "-> ${type_label(module, op.type_id)}"
-        is Retag        -> "-> ${type_label(module, op.type_id)}"
-        is TypeConst    -> type_label(module, op.type_id)
-        is TypeCheck    -> type_label(module, op.type_id)
-        is ArrayNew     -> "${type_label(module, op.type_id)}[]"
-        is ArrayGet     -> "${type_label(module, op.type_id)}[]"
-        is ArraySet     -> "${type_label(module, op.type_id)}[]"
-        is ArrayPush    -> "${type_label(module, op.type_id)}[]"
-        is ArraySlice   -> "${type_label(module, op.type_id)}[]"
-        is CallIndirect -> type_label(module, op.type_id)
-        is FnRef        -> fn_label(module, op.function_index)
-        is FnAddr       -> fn_label(module, op.function_index)
-        is MakeClosure  -> fn_label(module, op.function_index)
-        is DataConst    -> "pool[${op.pool_index}] : ${type_label(module, op.type_id)}"
-        _               -> ""
+    annotate_refs(module, function, operand_refs(op))
+
+// The names `refs` point at, separated by blanks ; a field is glued to the
+// struct type before it (`json$JsonError.msg`).
+annotate_refs :: fn(module: BytecodeModule, function: BcFunction, refs: (OperandRef | null)[]) -> string {
+    if refs.len() == 0 {
+        return ""
     }
+    sb :: StringBuilder {}
+    empty := true
+    for ref in refs {
+        if ref == null {
+            continue
+        }
+        if ref.kind == .Field {
+            sb.append(".")
+        } else if !empty {
+            sb.append(" ")
+        }
+        sb.append(ref_label(module, function, ref))
+        empty = false
+    }
+    return sb.to_string()
+}
+
+ref_label :: fn(module: BytecodeModule, function: BcFunction, ref: OperandRef) -> string = match ref.kind {
+    .Function -> fn_label(module, ref.index)
+    .Type     -> type_label(module, ref.index)
+    .String   -> string_label(module, ref.index)
+    .Import   -> import_label(module, ref.index)
+    .Data     -> "pool[${ref.index}]"
+    .Local    -> local_label(function, ref.index)
+    .Field    -> field_label(module, ref.owner, ref.index)
+}
 
 string_label :: fn(module: BytecodeModule, index: i32) -> string {
     if index < 0 || usize(index) >= module.strings.len() { return "<string #${index} out of range>" }

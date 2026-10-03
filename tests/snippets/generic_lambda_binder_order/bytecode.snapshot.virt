@@ -31,17 +31,17 @@ fn 0 snippet$main () -> i32
   local filled_in usize
   local __off_1 usize
   local $cast_15 u64
-  fn.ref 1 5   ; __lambda_snippet_0
+  fn.ref 1 5   ; __lambda_snippet_0 fn
   local.set 0   ; $fn_ref_0
-  fn.ref 2 6   ; __lambda_snippet_1
+  fn.ref 2 6   ; __lambda_snippet_1 fn
   local.set 1   ; $fn_ref_1
   local.get 0   ; $fn_ref_0
   local.get 1   ; $fn_ref_1
   call 5   ; snippet$zip_with__string
   local.set 2   ; empty
-  fn.ref 3 5   ; __lambda_snippet_2
+  fn.ref 3 5   ; __lambda_snippet_2 fn
   local.set 0   ; $fn_ref_0
-  fn.ref 4 6   ; __lambda_snippet_3
+  fn.ref 4 6   ; __lambda_snippet_3 fn
   local.set 1   ; $fn_ref_1
   local.get 0   ; $fn_ref_0
   local.get 1   ; $fn_ref_1
@@ -86,7 +86,7 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 __lambda_snippet_0 () -> ref
-  array.new 2 0   ; string[][]
+  array.new 2 0   ; string[]
   return
 end
 
@@ -99,7 +99,7 @@ end
 fn 3 __lambda_snippet_2 () -> ref
   string.const 2   ; "ab"
   string.const 3   ; "cde"
-  array.new 2 2   ; string[][]
+  array.new 2 2   ; string[]
   return
 end
 
@@ -133,8 +133,8 @@ fn 5 snippet$zip_with__string (ref,ref) -> usize
       if $L2 void
         local.get 3   ; __for_arr_0
         local.get 5   ; __for_i_2
-        array.get 2   ; string[][]
-        ref.cast 3   ; -> string
+        array.get 2   ; string[]
+        ref.cast 3   ; string
         local.get 1   ; arg 1
         call.indirect 6   ; fn
         local.set 6   ; $call_ind_14
@@ -370,7 +370,7 @@ fn 12 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

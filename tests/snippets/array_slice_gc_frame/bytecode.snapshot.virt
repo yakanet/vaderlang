@@ -48,10 +48,10 @@ fn 0 snippet$leaf (ref,ref) -> i32
         local.get 1   ; arg 1
         local.get 4   ; $cast_9
         local.get 5   ; $cast_11
-        array.slice 2   ; i32[][]
+        array.slice 2   ; i32[]
         local.set 6   ; s
-        local.field 0 1 0   ; arg 0.v
-        ref.cast 3   ; -> i32
+        local.field 0 1 0   ; arg 0 snippet$Foo.v
+        ref.cast 3   ; i32
         local.set 7   ; $field_14
         local.get 2   ; acc
         local.get 7   ; $field_14
@@ -88,7 +88,7 @@ fn 1 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 2 5   ; i32[][]
+  array.new 2 5   ; i32[]
   local.set 0   ; arr
   i32.const 7
   struct.new 1   ; snippet$Foo
@@ -339,7 +339,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

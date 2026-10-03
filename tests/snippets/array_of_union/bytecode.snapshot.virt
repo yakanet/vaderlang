@@ -28,17 +28,17 @@ fn 0 snippet$main () -> i32
   local __off_1 usize
   local $cast_14 u64
   local cell any
-  array.new 12 0   ; union[][]
+  array.new 12 0   ; union[]
   local.tee 0   ; arr
   null.const
-  array.push 4   ; union[]
+  array.push 4   ; union
   i32.const 42
   null.const
   struct.new 3   ; snippet$Node__i32
   local.set 1   ; $struct_5
   local.get 0   ; arr
   local.get 1   ; $struct_5
-  array.push 4   ; union[]
+  array.push 4   ; union
   i64.const 26
   call 2   ; std_core$new_byte_buffer
   local.set 1   ; $struct_5
@@ -64,7 +64,7 @@ fn 0 snippet$main () -> i32
   call 8   ; std_io$println__string
   local.get 0   ; arr
   i32.const 1
-  array.get 12   ; union[][]
+  array.get 12   ; union[]
   local.tee 4   ; cell
   type_check 0   ; null
   if $L0 void
@@ -257,7 +257,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -64,11 +64,11 @@ fn 0 snippet$main () -> i32
   local.get 1   ; __off_1
   call 5   ; std_core$finish_buffer
   call 27   ; std_io$println__string
-  array.new 8 0   ; u8[][]
+  array.new 8 0   ; u8[]
   local.set 0   ; __buf_0
-  array.new 12 0   ; i64[][]
+  array.new 12 0   ; i64[]
   local.set 3   ; $arr_15
-  array.new 13 0   ; i32[][]
+  array.new 13 0   ; i32[]
   local.set 4   ; $arr_16
   local.get 0   ; __buf_0
   local.get 3   ; $arr_15
@@ -78,11 +78,11 @@ fn 0 snippet$main () -> i32
   i64.const 0
   struct.new 10   ; std_collections$MutableMap__Status__i64
   local.set 0   ; __buf_0
-  array.new 8 0   ; u8[][]
+  array.new 8 0   ; u8[]
   local.set 3   ; $arr_15
-  array.new 12 0   ; i64[][]
+  array.new 12 0   ; i64[]
   local.set 4   ; $arr_16
-  array.new 13 0   ; i32[][]
+  array.new 13 0   ; i32[]
   local.set 5   ; $arr_24
   local.get 3   ; $arr_15
   local.get 4   ; $arr_16
@@ -123,7 +123,7 @@ fn 0 snippet$main () -> i32
     local.set 2   ; $call_6
   else
     local.get 6   ; __coalesce_2
-    ref.cast 3   ; -> i64
+    ref.cast 3   ; i64
     local.set 2   ; $call_6
   end $L0
   local.get 4   ; $arr_16
@@ -147,7 +147,7 @@ fn 0 snippet$main () -> i32
     local.set 2   ; $call_6
   else
     local.get 6   ; __coalesce_2
-    ref.cast 3   ; -> i64
+    ref.cast 3   ; i64
     local.set 2   ; $call_6
   end $L1
   local.get 4   ; $arr_16
@@ -171,7 +171,7 @@ fn 0 snippet$main () -> i32
     local.set 2   ; $call_6
   else
     local.get 6   ; __coalesce_2
-    ref.cast 3   ; -> i64
+    ref.cast 3   ; i64
     local.set 2   ; $call_6
   end $L2
   local.get 4   ; $arr_16
@@ -443,12 +443,12 @@ end
 fn 15 std_collections$ensure_index__snippet_alpha_Status__i64 (ref) -> void
   local idx ref
   local __for_discard_0 usize
-  local.field 0 10 2   ; arg 0.index
+  local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
   array.len
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 13 0   ; i32[][]
+    array.new 13 0   ; i32[]
     i64.const 16
     array.repeat
     local.set 1   ; idx
@@ -462,7 +462,7 @@ fn 15 std_collections$ensure_index__snippet_alpha_Status__i64 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1 1   ; i32[]
+          array.push 1 1   ; i32 idx
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -486,12 +486,12 @@ end
 fn 16 std_collections$ensure_index__snippet_beta_Status__i64 (ref) -> void
   local idx ref
   local __for_discard_0 usize
-  local.field 0 10 2   ; arg 0.index
+  local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
   array.len
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 13 0   ; i32[][]
+    array.new 13 0   ; i32[]
     i64.const 16
     array.repeat
     local.set 1   ; idx
@@ -505,7 +505,7 @@ fn 16 std_collections$ensure_index__snippet_beta_Status__i64 (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1 1   ; i32[]
+          array.push 1 1   ; i32 idx
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -534,7 +534,7 @@ fn 17 std_collections$rehash__snippet_alpha_Status__i64 (ref,usize) -> void
   local perturb u64
   local s usize
   local $cast_33 i32
-  array.new 13 0   ; i32[][]
+  array.new 13 0   ; i32[]
   local.get 1   ; arg 1
   array.repeat
   local.set 2   ; fresh
@@ -548,7 +548,7 @@ fn 17 std_collections$rehash__snippet_alpha_Status__i64 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1 2   ; i32[]
+        array.push 1 2   ; i32 fresh
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -563,8 +563,8 @@ fn 17 std_collections$rehash__snippet_alpha_Status__i64 (ref,usize) -> void
   local.set 3   ; __for_discard_0
   i64.const 0
   local.set 4   ; e
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+  ref.cast 5   ; usize
   local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
@@ -572,9 +572,9 @@ fn 17 std_collections$rehash__snippet_alpha_Status__i64 (ref,usize) -> void
       local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
-        local.field 0 10 0   ; arg 0.ekeys
+        local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
         local.get 4   ; e
-        array.get 8   ; u8[][]
+        array.get 8   ; u8[]
         call 8   ; std_core$u8$Hash$hash
         local.tee 6   ; perturb
         local.get 3   ; __for_discard_0
@@ -638,7 +638,7 @@ fn 18 std_collections$rehash__snippet_beta_Status__i64 (ref,usize) -> void
   local perturb u64
   local s usize
   local $cast_33 i32
-  array.new 13 0   ; i32[][]
+  array.new 13 0   ; i32[]
   local.get 1   ; arg 1
   array.repeat
   local.set 2   ; fresh
@@ -652,7 +652,7 @@ fn 18 std_collections$rehash__snippet_beta_Status__i64 (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1 2   ; i32[]
+        array.push 1 2   ; i32 fresh
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -667,8 +667,8 @@ fn 18 std_collections$rehash__snippet_beta_Status__i64 (ref,usize) -> void
   local.set 3   ; __for_discard_0
   i64.const 0
   local.set 4   ; e
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+  ref.cast 5   ; usize
   local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
@@ -676,9 +676,9 @@ fn 18 std_collections$rehash__snippet_beta_Status__i64 (ref,usize) -> void
       local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
-        local.field 0 10 0   ; arg 0.ekeys
+        local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
         local.get 4   ; e
-        array.get 8   ; u8[][]
+        array.get 8   ; u8[]
         call 8   ; std_core$u8$Hash$hash
         local.tee 6   ; perturb
         local.get 3   ; __for_discard_0
@@ -738,41 +738,41 @@ fn 19 std_collections$write_entry__snippet_alpha_Status__i64 (ref,u8,i64) -> voi
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
-  local.field 0 10 0   ; arg 0.ekeys
+  local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
   array.len
   local.set 4   ; $len_5
   local.get 3   ; $field_3
   local.get 4   ; $len_5
   u64.lt
   if $L0 void
-    local.field 0 10 0   ; arg 0.ekeys
+    local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
     local.set 5   ; $field_7
-    local.field 0 10 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+    ref.cast 5   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 1   ; arg 1
-    array.set 8   ; u8[][]
-    local.field 0 10 1   ; arg 0.evals
+    array.set 8   ; u8[]
+    local.field 0 10 1   ; arg 0 std_collections$MutableMap__Status__i64.evals
     local.set 5   ; $field_7
-    local.field 0 10 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+    ref.cast 5   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 2   ; arg 2
     store_slot_i64
   else
-    local.field 0 10 0   ; arg 0.ekeys
+    local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
     local.get 1   ; arg 1
-    array.push 2   ; u8[]
-    local.field 0 10 1   ; arg 0.evals
+    array.push 2   ; u8
+    local.field 0 10 1   ; arg 0 std_collections$MutableMap__Status__i64.evals
     local.get 2   ; arg 2
-    array.push 3   ; i64[]
+    array.push 3   ; i64
   end $L0
   return
 end
@@ -781,41 +781,41 @@ fn 20 std_collections$write_entry__snippet_beta_Status__i64 (ref,u8,i64) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
-  local.field 0 10 0   ; arg 0.ekeys
+  local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
   array.len
   local.set 4   ; $len_5
   local.get 3   ; $field_3
   local.get 4   ; $len_5
   u64.lt
   if $L0 void
-    local.field 0 10 0   ; arg 0.ekeys
+    local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
     local.set 5   ; $field_7
-    local.field 0 10 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+    ref.cast 5   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 1   ; arg 1
-    array.set 8   ; u8[][]
-    local.field 0 10 1   ; arg 0.evals
+    array.set 8   ; u8[]
+    local.field 0 10 1   ; arg 0 std_collections$MutableMap__Status__i64.evals
     local.set 5   ; $field_7
-    local.field 0 10 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+    ref.cast 5   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 2   ; arg 2
     store_slot_i64
   else
-    local.field 0 10 0   ; arg 0.ekeys
+    local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
     local.get 1   ; arg 1
-    array.push 2   ; u8[]
-    local.field 0 10 1   ; arg 0.evals
+    array.push 2   ; u8
+    local.field 0 10 1   ; arg 0 std_collections$MutableMap__Status__i64.evals
     local.get 2   ; arg 2
-    array.push 3   ; i64[]
+    array.push 3   ; i64
   end $L0
   return
 end
@@ -830,11 +830,11 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   local $cast_74 i32
   local.get 0   ; arg 0
   call 15   ; std_collections$ensure_index__snippet_alpha_Status__i64
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
-  local.field 0 10 5   ; arg 0.tombs
-  ref.cast 5   ; -> usize
+  local.field 0 10 5   ; arg 0 std_collections$MutableMap__Status__i64.tombs
+  ref.cast 5   ; usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -844,8 +844,8 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   i64.const 4
   i64.mul
   local.set 3   ; $field_3
-  local.field 0 10 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   i64.const 3
@@ -859,8 +859,8 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
     local.set 3   ; $field_3
     block $L1 void
       loop $L2 void
-        local.field 0 10 4   ; arg 0.size
-        ref.cast 5   ; -> usize
+        local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+        ref.cast 5   ; usize
         i64.const 1
         i64.add
         i64.const 4
@@ -889,8 +889,8 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   local.get 1   ; arg 1
   call 8   ; std_core$u8$Hash$hash
   local.set 6   ; perturb
-  local.field 0 10 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
@@ -901,13 +901,13 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   local.set 7   ; first_tomb
   block $L4 void
     loop $L5 void
-      local.field 0 10 2   ; arg 0.index
+      local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
       local.get 3   ; $field_3
       load_slot_i32
       i32.const 0
       i32.ne
       if $L6 void
-        local.field 0 10 2   ; arg 0.index
+        local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
         local.get 3   ; $field_3
         load_slot_i32
         i32.const -1
@@ -922,20 +922,20 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
             local.set 7   ; first_tomb
           end $L8
         else
-          local.field 0 10 2   ; arg 0.index
+          local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
           local.get 3   ; $field_3
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; $field_4
-          local.field 0 10 0   ; arg 0.ekeys
+          local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
           local.get 4   ; $field_4
-          array.get 8   ; u8[][]
+          array.get 8   ; u8[]
           local.get 1   ; arg 1
           i32.eq
           if $L9 void
-            local.field 0 10 1   ; arg 0.evals
+            local.field 0 10 1   ; arg 0 std_collections$MutableMap__Status__i64.evals
             local.get 4   ; $field_4
             local.get 2   ; arg 2
             store_slot_i64
@@ -946,8 +946,8 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
         i64.const 5
         u64.shr
         local.set 6   ; perturb
-        local.field 0 10 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
+        ref.cast 5   ; usize
         local.set 5   ; $mul_24
         local.get 3   ; $field_3
         local.get 6   ; perturb
@@ -973,8 +973,8 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   i64.const 0
   i64.ge
   if $L11 void
-    local.field 0 10 5   ; arg 0.tombs
-    ref.cast 5   ; -> usize
+    local.field 0 10 5   ; arg 0 std_collections$MutableMap__Status__i64.tombs
+    ref.cast 5   ; usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -986,10 +986,10 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call 19   ; std_collections$write_entry__snippet_alpha_Status__i64
-  local.field 0 10 2   ; arg 0.index
+  local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
   local.set 8   ; $field_70
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -998,8 +998,8 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   local.get 4   ; $field_4
   local.get 9   ; $cast_74
   store_slot_i32
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -1019,11 +1019,11 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   local $cast_74 i32
   local.get 0   ; arg 0
   call 16   ; std_collections$ensure_index__snippet_beta_Status__i64
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
-  local.field 0 10 5   ; arg 0.tombs
-  ref.cast 5   ; -> usize
+  local.field 0 10 5   ; arg 0 std_collections$MutableMap__Status__i64.tombs
+  ref.cast 5   ; usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -1033,8 +1033,8 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   i64.const 4
   i64.mul
   local.set 3   ; $field_3
-  local.field 0 10 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   i64.const 3
@@ -1048,8 +1048,8 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
     local.set 3   ; $field_3
     block $L1 void
       loop $L2 void
-        local.field 0 10 4   ; arg 0.size
-        ref.cast 5   ; -> usize
+        local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+        ref.cast 5   ; usize
         i64.const 1
         i64.add
         i64.const 4
@@ -1078,8 +1078,8 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   local.get 1   ; arg 1
   call 8   ; std_core$u8$Hash$hash
   local.set 6   ; perturb
-  local.field 0 10 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
@@ -1090,13 +1090,13 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   local.set 7   ; first_tomb
   block $L4 void
     loop $L5 void
-      local.field 0 10 2   ; arg 0.index
+      local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
       local.get 3   ; $field_3
       load_slot_i32
       i32.const 0
       i32.ne
       if $L6 void
-        local.field 0 10 2   ; arg 0.index
+        local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
         local.get 3   ; $field_3
         load_slot_i32
         i32.const -1
@@ -1111,20 +1111,20 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
             local.set 7   ; first_tomb
           end $L8
         else
-          local.field 0 10 2   ; arg 0.index
+          local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
           local.get 3   ; $field_3
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; $field_4
-          local.field 0 10 0   ; arg 0.ekeys
+          local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
           local.get 4   ; $field_4
-          array.get 8   ; u8[][]
+          array.get 8   ; u8[]
           local.get 1   ; arg 1
           i32.eq
           if $L9 void
-            local.field 0 10 1   ; arg 0.evals
+            local.field 0 10 1   ; arg 0 std_collections$MutableMap__Status__i64.evals
             local.get 4   ; $field_4
             local.get 2   ; arg 2
             store_slot_i64
@@ -1135,8 +1135,8 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
         i64.const 5
         u64.shr
         local.set 6   ; perturb
-        local.field 0 10 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
+        ref.cast 5   ; usize
         local.set 5   ; $mul_24
         local.get 3   ; $field_3
         local.get 6   ; perturb
@@ -1162,8 +1162,8 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   i64.const 0
   i64.ge
   if $L11 void
-    local.field 0 10 5   ; arg 0.tombs
-    ref.cast 5   ; -> usize
+    local.field 0 10 5   ; arg 0 std_collections$MutableMap__Status__i64.tombs
+    ref.cast 5   ; usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -1175,10 +1175,10 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call 20   ; std_collections$write_entry__snippet_beta_Status__i64
-  local.field 0 10 2   ; arg 0.index
+  local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
   local.set 8   ; $field_70
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -1187,8 +1187,8 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   local.get 4   ; $field_4
   local.get 9   ; $cast_74
   store_slot_i32
-  local.field 0 10 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -1203,7 +1203,7 @@ fn 23 std_collections$get__snippet_alpha_Status__i64 (ref,u8) -> any
   local $field_9 usize
   local ei usize
   local $field_33 usize
-  local.field 0 10 2   ; arg 0.index
+  local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
   array.len
   i64.const 0
   i64.eq
@@ -1213,8 +1213,8 @@ fn 23 std_collections$get__snippet_alpha_Status__i64 (ref,u8) -> any
   local.get 1   ; arg 1
   call 8   ; std_core$u8$Hash$hash
   local.set 2   ; perturb
-  local.field 0 10 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
+  ref.cast 5   ; usize
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
@@ -1222,35 +1222,35 @@ fn 23 std_collections$get__snippet_alpha_Status__i64 (ref,u8) -> any
   local.set 3   ; $field_9
   block $L1 void
     loop $L2 void
-      local.field 0 10 2   ; arg 0.index
+      local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
       local.get 3   ; $field_9
       load_slot_i32
       i32.const 0
       i32.ne
       if $L3 void
-        local.field 0 10 2   ; arg 0.index
+        local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
         local.get 3   ; $field_9
         load_slot_i32
         i32.const -1
         i32.ne
         if $L4 void
-          local.field 0 10 2   ; arg 0.index
+          local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
           local.get 3   ; $field_9
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; ei
-          local.field 0 10 0   ; arg 0.ekeys
+          local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
           local.get 4   ; ei
-          array.get 8   ; u8[][]
+          array.get 8   ; u8[]
           local.get 1   ; arg 1
           i32.eq
           if $L5 void
-            local.field 0 10 1   ; arg 0.evals
+            local.field 0 10 1   ; arg 0 std_collections$MutableMap__Status__i64.evals
             local.get 4   ; ei
             load_slot_i64
-            retag 3   ; -> i64
+            retag 3   ; i64
             return
           end $L5
         end $L4
@@ -1258,8 +1258,8 @@ fn 23 std_collections$get__snippet_alpha_Status__i64 (ref,u8) -> any
         i64.const 5
         u64.shr
         local.set 2   ; perturb
-        local.field 0 10 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
+        ref.cast 5   ; usize
         local.set 5   ; $field_33
         local.get 3   ; $field_9
         local.get 2   ; perturb
@@ -1278,7 +1278,7 @@ fn 24 std_collections$get__snippet_beta_Status__i64 (ref,u8) -> any
   local $field_9 usize
   local ei usize
   local $field_33 usize
-  local.field 0 10 2   ; arg 0.index
+  local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
   array.len
   i64.const 0
   i64.eq
@@ -1288,8 +1288,8 @@ fn 24 std_collections$get__snippet_beta_Status__i64 (ref,u8) -> any
   local.get 1   ; arg 1
   call 8   ; std_core$u8$Hash$hash
   local.set 2   ; perturb
-  local.field 0 10 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
+  ref.cast 5   ; usize
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
@@ -1297,35 +1297,35 @@ fn 24 std_collections$get__snippet_beta_Status__i64 (ref,u8) -> any
   local.set 3   ; $field_9
   block $L1 void
     loop $L2 void
-      local.field 0 10 2   ; arg 0.index
+      local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
       local.get 3   ; $field_9
       load_slot_i32
       i32.const 0
       i32.ne
       if $L3 void
-        local.field 0 10 2   ; arg 0.index
+        local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
         local.get 3   ; $field_9
         load_slot_i32
         i32.const -1
         i32.ne
         if $L4 void
-          local.field 0 10 2   ; arg 0.index
+          local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
           local.get 3   ; $field_9
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; ei
-          local.field 0 10 0   ; arg 0.ekeys
+          local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
           local.get 4   ; ei
-          array.get 8   ; u8[][]
+          array.get 8   ; u8[]
           local.get 1   ; arg 1
           i32.eq
           if $L5 void
-            local.field 0 10 1   ; arg 0.evals
+            local.field 0 10 1   ; arg 0 std_collections$MutableMap__Status__i64.evals
             local.get 4   ; ei
             load_slot_i64
-            retag 3   ; -> i64
+            retag 3   ; i64
             return
           end $L5
         end $L4
@@ -1333,8 +1333,8 @@ fn 24 std_collections$get__snippet_beta_Status__i64 (ref,u8) -> any
         i64.const 5
         u64.shr
         local.set 2   ; perturb
-        local.field 0 10 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
+        ref.cast 5   ; usize
         local.set 5   ; $field_33
         local.get 3   ; $field_9
         local.get 2   ; perturb
@@ -1379,7 +1379,7 @@ fn 25 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

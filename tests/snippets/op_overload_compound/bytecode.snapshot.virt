@@ -27,21 +27,21 @@ fn 0 snippet$Vec$Add$add (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_6 i32
-  local.field 0 1 0   ; arg 0.x
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$Vec.x
+  ref.cast 2   ; i32
   local.set 2   ; $field_2
-  local.field 1 1 0   ; arg 1.x
-  ref.cast 2   ; -> i32
+  local.field 1 1 0   ; arg 1 snippet$Vec.x
+  ref.cast 2   ; i32
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
   i32.add
   local.set 2   ; $field_2
-  local.field 0 1 1   ; arg 0.y
-  ref.cast 2   ; -> i32
+  local.field 0 1 1   ; arg 0 snippet$Vec.y
+  ref.cast 2   ; i32
   local.set 3   ; $field_3
-  local.field 1 1 1   ; arg 1.y
-  ref.cast 2   ; -> i32
+  local.field 1 1 1   ; arg 1 snippet$Vec.y
+  ref.cast 2   ; i32
   local.set 4   ; $field_6
   local.get 3   ; $field_3
   local.get 4   ; $field_6
@@ -57,21 +57,21 @@ fn 1 snippet$Vec$Sub$sub (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_6 i32
-  local.field 0 1 0   ; arg 0.x
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$Vec.x
+  ref.cast 2   ; i32
   local.set 2   ; $field_2
-  local.field 1 1 0   ; arg 1.x
-  ref.cast 2   ; -> i32
+  local.field 1 1 0   ; arg 1 snippet$Vec.x
+  ref.cast 2   ; i32
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
   i32.sub
   local.set 2   ; $field_2
-  local.field 0 1 1   ; arg 0.y
-  ref.cast 2   ; -> i32
+  local.field 0 1 1   ; arg 0 snippet$Vec.y
+  ref.cast 2   ; i32
   local.set 3   ; $field_3
-  local.field 1 1 1   ; arg 1.y
-  ref.cast 2   ; -> i32
+  local.field 1 1 1   ; arg 1 snippet$Vec.y
+  ref.cast 2   ; i32
   local.set 4   ; $field_6
   local.get 3   ; $field_3
   local.get 4   ; $field_6
@@ -149,8 +149,8 @@ fn 2 snippet$main () -> i32
   string.const 1   ; "  v=("
   call 6   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 1 1 0   ; v.x
-  ref.cast 2   ; -> i32
+  local.field 1 1 0   ; v snippet$Vec.x
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 4   ; $cast_31
   local.get 2   ; $struct_18
@@ -163,8 +163,8 @@ fn 2 snippet$main () -> i32
   string.const 2   ; ","
   call 6   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 1 1 1   ; v.y
-  ref.cast 2   ; -> i32
+  local.field 1 1 1   ; v snippet$Vec.y
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 4   ; $cast_31
   local.get 2   ; $struct_18
@@ -389,7 +389,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

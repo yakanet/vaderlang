@@ -28,8 +28,8 @@ export main 3
 
 fn 0 snippet$ParseErr$Error$message (ref) -> string
   local $field_2 string
-  local.field 0 1 0   ; arg 0.msg
-  ref.cast 2   ; -> string
+  local.field 0 1 0   ; arg 0 snippet$ParseErr.msg
+  ref.cast 2   ; string
   local.set 1   ; $field_2
   string.const 0   ; "parse: "
   local.get 1   ; $field_2
@@ -39,8 +39,8 @@ end
 
 fn 1 snippet$NetErr$Error$message (ref) -> string
   local $field_2 string
-  local.field 0 3 0   ; arg 0.reason
-  ref.cast 2   ; -> string
+  local.field 0 3 0   ; arg 0 snippet$NetErr.reason
+  ref.cast 2   ; string
   local.set 1   ; $field_2
   string.const 1   ; "net: "
   local.get 1   ; $field_2
@@ -126,7 +126,7 @@ fn 5 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

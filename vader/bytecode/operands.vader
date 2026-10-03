@@ -1,18 +1,22 @@
 // vader/bytecode/operands — what the printed operands of an op point at.
 //
-// `write_op` (dump.vader) prints an op as its name then its operands ; the ones
-// that are table indices name a function, a type, a pool string, a host import,
-// a data-pool entry or a local slot. `operand_refs` says which, in the order
-// `write_op` prints them, so a tool reading a `.virt` line can follow an operand
-// to the entry it names. Like `annotate_op`, it is a `@partial` shadow of
-// `write_op` : a new index-bearing op points at nothing until it gets an arm here.
+// `write_op_refs` (dump.vader) prints an op as its name then its operands ; an
+// operand that is a table index is printed from an `OperandRef` saying what it
+// names — a function, a type, a struct field, a pool string, a host import, a
+// data-pool entry or a local slot. `operand_refs` collects those refs, so a tool
+// reading a `.virt` line can follow an operand to the entry it names ;
+// `annotate_op` renders them.
 
 module "vader/bytecode"
+
+import "std/string_builder"
 
 /// What a table-index operand names.
 export OperandKind :: enum {
     Function,
     Type,
+    /// A field of a struct type (`OperandRef.owner`).
+    Field,
     String,
     Import,
     Data,
@@ -20,56 +24,46 @@ export OperandKind :: enum {
 }
 
 /// One table-index operand : the table it indexes, and the index — a slot for
-/// `.Local`.
+/// `.Local`, a field position for `.Field`.
 export OperandRef :: struct {
     kind:  OperandKind
     index: i32
+    /// For `.Field`, the struct type the field belongs to.
+    owner: i32 = -1
 }
 
 /// The operands `write_op` prints after `op`'s name, in order, each with what it
-/// points at — null for an operand that is a plain value (a field index, a
-/// length, a count).
+/// points at — null for a word that names nothing (the inner op name of a
+/// `return.lit`).
 ///
 /// @param op  the op whose operands to describe.
-/// @return    one entry per printed operand ; empty for an op whose operands
-///            point at nothing.
-export operand_refs :: fn(op: Op) -> (OperandRef | null)[] =
-    // @partial: only an op carrying a table index has an operand to follow.
-    @partial match op {
-        is StringConst  -> [refer(.String, op.index)]
-        is ReturnLit    -> if op.value is StringConst as s { [null, refer(.String, s.index)] } else { [] }
-        is Call         -> [refer(.Function, op.function_index)]
-        is CallImport   -> [refer(.Import, op.index)]
-        is CallIndirect -> [refer(.Type, op.type_id)]
-        is FnRef        -> [refer(.Function, op.function_index), refer(.Type, op.type_id)]
-        is FnAddr       -> [refer(.Function, op.function_index)]
-        is MakeClosure  -> [refer(.Function, op.function_index), refer(.Type, op.env_type_id)]
-        is LocalGet     -> [refer(.Local, op.slot)]
-        is LocalSet     -> [refer(.Local, op.slot)]
-        is LocalTee     -> [refer(.Local, op.slot)]
-        is LocalField   -> [refer(.Local, op.slot), refer(.Type, op.type_id), null]
-        is StructNew    -> [refer(.Type, op.type_id)]
-        is StructGet    -> [refer(.Type, op.type_id), null]
-        is StructSet    -> [refer(.Type, op.type_id), null]
-        is ArrayNew     -> [refer(.Type, op.type_id), null]
-        // `write_op` prints the cache slot only when the push was proven to use one.
-        is ArrayPush    -> if op.cache_slot >= 0 { [refer(.Type, op.type_id), refer(.Local, op.cache_slot)] } else { [refer(.Type, op.type_id)] }
-        is ArrayGet     -> [refer(.Type, op.type_id)]
-        is ArraySet     -> [refer(.Type, op.type_id)]
-        is ArraySlice   -> [refer(.Type, op.type_id)]
-        is DataConst    -> [refer(.Data, op.pool_index), refer(.Type, op.type_id)]
-        is TypeConst    -> [refer(.Type, op.type_id)]
-        is TypeCheck    -> [refer(.Type, op.type_id)]
-        is RefCast      -> [refer(.Type, op.type_id)]
-        is Retag        -> [refer(.Type, op.type_id)]
-        _               -> []
-    }
+/// @return    one entry per printed operand, up to the last index ; empty for an
+///            op whose operands point at nothing.
+export operand_refs :: fn(op: Op) -> (OperandRef | null)[] {
+    refs: (OperandRef | null)[]!: []
+    write_op_refs(StringBuilder {}, refs, op)
+    return refs
+}
 
-refer :: fn(kind: OperandKind, index: i32) -> OperandRef | null = OperandRef { .kind = kind, .index = index }
+// Print `mnemonic` then the number of each operand, noting what each names.
+printed :: fn(out: StringBuilder!, refs: (OperandRef | null)[]!, mnemonic: string, operands: OperandRef[]) -> void {
+    out.append(mnemonic)
+    for operand in operands {
+        out.append(" ${operand.index}")
+        refs.push(operand)
+    }
+}
+
+refer :: fn(kind: OperandKind, index: i32) -> OperandRef = OperandRef { .kind = kind, .index = index }
+
+refer_field :: fn(owner: i32, index: i32) -> OperandRef = OperandRef {
+    .kind  = .Field,
+    .index = index,
+    .owner = owner,
+}
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/string"
 import "std/testing"
 
 @test
@@ -82,58 +76,11 @@ test_operand_refs_of_a_field_read :: fn() -> void {
         return
     }
     assert(first.kind == .Type && first.index == 7, "`struct.get 7 2` names type 7")
-    assert(refs[1] == null, "a field index is a plain value")
+    second :: refs[1]
+    assert(second != null && second.kind == .Field && second.index == 2, "then field 2 of it")
 }
 
 @test
 test_operand_refs_of_a_plain_op :: fn() -> void {
     assert_eq(operand_refs(Drop {}).len(), 0)
-}
-
-// `operand_refs` must follow the order `write_op` prints : every index it names
-// is the printed word at its position. Each op takes distinct indices, so a
-// swapped pair shows.
-@test
-test_operand_refs_follow_the_printed_order :: fn() -> void {
-    ops: Op[]: [
-        StringConst { .index = 3 },
-        ReturnLit { .value = StringConst { .index = 4 } },
-        Call { .function_index = 5 },
-        CallImport { .index = 6 },
-        CallIndirect { .type_id = 7 },
-        FnRef { .function_index = 8, .type_id = 9 },
-        FnAddr { .function_index = 10 },
-        MakeClosure { .function_index = 11, .env_type_id = 12 },
-        LocalGet { .slot = 13 },
-        LocalSet { .slot = 14 },
-        LocalTee { .slot = 15 },
-        LocalField { .slot = 16, .type_id = 17, .field_index = 1 },
-        StructNew { .type_id = 18, .stack = false },
-        StructGet { .type_id = 19, .field_index = 1 },
-        StructSet { .type_id = 20, .field_index = 1, .stack = false },
-        ArrayNew { .type_id = 21, .length = 2 },
-        ArrayPush { .type_id = 22, .cache_slot = 23 },
-        ArrayGet { .type_id = 24 },
-        ArraySet { .type_id = 25 },
-        ArraySlice { .type_id = 26 },
-        DataConst { .pool_index = 27, .type_id = 28 },
-        TypeConst { .type_id = 29 },
-        TypeCheck { .type_id = 30 },
-        RefCast { .type_id = 31 },
-        Retag { .type_id = 32 },
-    ]
-    for op in ops {
-        sb :: StringBuilder {}
-        write_op(sb, op)
-        printed :: sb.to_string()
-        words :: printed.split(" ")
-        refs :: operand_refs(op)
-        assert(refs.len() > 0, "`${printed}` names something")
-        for i in 0..<refs.len() {
-            ref :: refs[i]
-            if ref != null {
-                assert(words[i + 1] == "${ref.index}", "`${printed}` operand ${i}")
-            }
-        }
-    }
 }

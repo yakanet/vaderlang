@@ -26,8 +26,8 @@ impl 7 std_core$ByteAccess
 export main 4
 
 fn 0 snippet$UserId$Into$into (ref) -> i32
-  local.field 0 1 0   ; arg 0.value
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$UserId.value
+  ref.cast 2   ; i32
   return
 end
 
@@ -45,8 +45,8 @@ fn 1 snippet$UserId$Into$into_1 (ref) -> string
   string.const 0   ; "user_"
   call 8   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 1 0   ; arg 0.value
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$UserId.value
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0
@@ -165,8 +165,8 @@ fn 4 snippet$main () -> i32
   local.get 4   ; n
   struct.new_stack 4   ; snippet$Pair
   local.set 0   ; u
-  local.field 0 4 0   ; u.tag
-  ref.cast 3   ; -> string
+  local.field 0 4 0   ; u snippet$Pair.tag
+  ref.cast 3   ; string
   local.tee 5   ; $call_38
   call.import 0   ; std_core$byte_len
   local.set 2   ; __off_1
@@ -192,8 +192,8 @@ fn 4 snippet$main () -> i32
   string.const 5   ; " n="
   call 8   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 4 1   ; u.n
-  ref.cast 2   ; -> i32
+  local.field 0 4 1   ; u snippet$Pair.n
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_12
   local.get 1   ; __buf_0
@@ -413,7 +413,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

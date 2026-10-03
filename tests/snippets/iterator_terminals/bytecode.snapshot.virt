@@ -26,8 +26,8 @@ export main 1
 fn 0 snippet$Countdown$Iterator$next$v (ref) -> (i32,u8)
   local v i32
   local $sub_11 i32
-  local.field 0 1 0   ; arg 0.remaining
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$Countdown.remaining
+  ref.cast 2   ; i32
   i32.const 0
   i32.le
   if $L0 void
@@ -35,11 +35,11 @@ fn 0 snippet$Countdown$Iterator$next$v (ref) -> (i32,u8)
     i32.const 1
     return
   end $L0
-  local.field 0 1 0   ; arg 0.remaining
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$Countdown.remaining
+  ref.cast 2   ; i32
   local.set 1   ; v
-  local.field 0 1 0   ; arg 0.remaining
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$Countdown.remaining
+  ref.cast 2   ; i32
   i32.const 1
   i32.sub
   local.set 2   ; $sub_11
@@ -94,7 +94,7 @@ fn 1 snippet$main () -> i32
       i32.le
       if $L5 void
         local.get 1   ; _
-        retag 2   ; -> i32
+        retag 2   ; i32
         local.set 2   ; __scrut_2
         local.get 1   ; _
         i32.const 1
@@ -110,7 +110,7 @@ fn 1 snippet$main () -> i32
   type_check 2   ; i32
   if $L6 void
     local.get 3   ; v
-    ref.cast 2   ; -> i32
+    ref.cast 2   ; i32
     call 12   ; std_io$println__i32
   else
     local.get 2   ; __scrut_2
@@ -490,7 +490,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

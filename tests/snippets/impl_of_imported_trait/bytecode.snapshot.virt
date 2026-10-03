@@ -19,8 +19,8 @@ impl 6 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$Foo$Scored$score (ref) -> i32
-  local.field 0 1 0   ; arg 0.x
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$Foo.x
+  ref.cast 2   ; i32
   return
 end
 
@@ -243,7 +243,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

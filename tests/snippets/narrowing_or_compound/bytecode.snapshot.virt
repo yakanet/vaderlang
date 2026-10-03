@@ -37,9 +37,9 @@ fn 0 snippet$null_or_positive (any) -> bool
     local.set 1   ; or_res
   else
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$P
+    ref.cast 2   ; snippet$P
     struct.get 2 0   ; snippet$P.a
-    ref.cast 8   ; -> i32
+    ref.cast 8   ; i32
     i32.const 0
     i32.gt
     local.set 1   ; or_res
@@ -71,9 +71,9 @@ fn 1 snippet$first_two (any,bool) -> i32
   local.get 2   ; or_res
   if $L2 void
     local.get 0   ; arg 0
-    ref.cast 5   ; -> snippet$A
+    ref.cast 5   ; snippet$A
     struct.get 5 0   ; snippet$A.n
-    ref.cast 8   ; -> i32
+    ref.cast 8   ; i32
     return
   end $L2
   return.lit i32.const 0
@@ -95,9 +95,9 @@ fn 2 snippet$neither (any) -> string
   bool.not
   if $L1 void
     local.get 0   ; arg 0
-    ref.cast 7   ; -> snippet$C
+    ref.cast 7   ; snippet$C
     struct.get 7 0   ; snippet$C.s
-    ref.cast 9   ; -> string
+    ref.cast 9   ; string
     return
   end $L1
   return.lit string.const 0   ; "-"
@@ -486,7 +486,7 @@ fn 11 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 14   ; u8[][]
+      array.slice 14   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

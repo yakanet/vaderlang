@@ -66,9 +66,9 @@ fn 2 snippet$main () -> i32
   string.const 0   ; "a"
   string.const 1   ; "b"
   string.const 2   ; "c"
-  array.new 17 3   ; string[][]
+  array.new 17 3   ; string[]
   local.set 0   ; labels
-  array.new 18 0   ; fn[][]
+  array.new 18 0   ; fn[]
   local.set 1   ; $arr_5
   local.get 0   ; labels
   array.len
@@ -90,15 +90,15 @@ fn 2 snippet$main () -> i32
       if $L2 void
         local.get 0   ; labels
         local.get 3   ; __for_i_2
-        array.get 17   ; string[][]
-        ref.cast 10   ; -> string
+        array.get 17   ; string[]
+        ref.cast 10   ; string
         struct.new 20   ; $Cell_string
         struct.new 3   ; __lambda_env_snippet_1
-        make_closure 3 19   ; __lambda_snippet_0
+        make_closure 3 19   ; __lambda_snippet_0 fn
         local.set 4   ; $closure_19
         local.get 1   ; $arr_5
         local.get 4   ; $closure_19
-        array.push 19   ; fn[]
+        array.push 19   ; fn
         local.get 3   ; __for_i_2
         i64.const 1
         i64.add
@@ -121,7 +121,7 @@ fn 2 snippet$main () -> i32
       if $L5 void
         local.get 0   ; labels
         local.get 3   ; __for_i_2
-        array.get 18   ; fn[][]
+        array.get 18   ; fn[]
         call.indirect 19   ; fn
         local.get 3   ; __for_i_2
         i64.const 1
@@ -143,7 +143,7 @@ fn 2 snippet$main () -> i32
         struct.new 21   ; $Cell_i32
         local.tee 6   ; i
         struct.new 5   ; __defer_env_snippet_3
-        make_closure 4 19   ; __defer_snippet_2
+        make_closure 4 19   ; __defer_snippet_2 fn
         defer.push
         i64.const 33
         call 10   ; std_core$new_byte_buffer
@@ -155,7 +155,7 @@ fn 2 snippet$main () -> i32
         string.const 3   ; "range body i="
         call 12   ; std_core$write_string_at
         local.set 2   ; $len_6
-        local.field 6 21 0   ; i.value
+        local.field 6 21 0   ; i $Cell_i32.value
         i32.to_i64
         local.set 7   ; $cast_48
         local.get 0   ; labels
@@ -176,7 +176,7 @@ fn 2 snippet$main () -> i32
       end $L8
     end $L7
   end $L6
-  array.new 18 0   ; fn[][]
+  array.new 18 0   ; fn[]
   i64.const 3
   array.repeat
   local.set 0   ; labels
@@ -192,11 +192,11 @@ fn 2 snippet$main () -> i32
         call 0   ; snippet$tenfold
         struct.new 21   ; $Cell_i32
         struct.new 6   ; __lambda_env_snippet_5
-        make_closure 5 19   ; __lambda_snippet_4
+        make_closure 5 19   ; __lambda_snippet_4 fn
         local.set 1   ; $arr_5
         local.get 0   ; labels
         local.get 1   ; $arr_5
-        array.push 19   ; fn[]
+        array.push 19   ; fn
         local.get 5   ; i
         i32.const 1
         i32.add
@@ -218,7 +218,7 @@ fn 2 snippet$main () -> i32
       if $L14 void
         local.get 0   ; labels
         local.get 3   ; __for_i_2
-        array.get 18   ; fn[][]
+        array.get 18   ; fn[]
         call.indirect 19   ; fn
         local.get 3   ; __for_i_2
         i64.const 1
@@ -242,7 +242,7 @@ fn 2 snippet$main () -> i32
           local.get 5   ; i
           struct.new 21   ; $Cell_i32
           struct.new 7   ; __defer_env_snippet_7
-          make_closure 6 19   ; __defer_snippet_6
+          make_closure 6 19   ; __defer_snippet_6 fn
           defer.push
           defer.pop_exec 1
         end $L18
@@ -263,7 +263,7 @@ end
 
 fn 3 __lambda_snippet_0 (ref) -> void
   local $cell_get_3 string
-  local.field 0 3 0   ; arg 0.cap_0
+  local.field 0 3 0   ; arg 0 __lambda_env_snippet_1.cap_0
   struct.get 20 0   ; $Cell_string.value
   local.set 1   ; $cell_get_3
   string.const 4   ; "thunk "
@@ -287,7 +287,7 @@ fn 4 __defer_snippet_2 (ref) -> void
   string.const 5   ; "range defer i="
   call 12   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 5 0   ; arg 0.cap_0
+  local.field 0 5 0   ; arg 0 __defer_env_snippet_3.cap_0
   struct.get 21 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
@@ -317,7 +317,7 @@ fn 5 __lambda_snippet_4 (ref) -> void
   string.const 6   ; "mapped "
   call 12   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 6 0   ; arg 0.cap_0
+  local.field 0 6 0   ; arg 0 __lambda_env_snippet_5.cap_0
   struct.get 21 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
@@ -347,7 +347,7 @@ fn 6 __defer_snippet_6 (ref) -> void
   string.const 7   ; "filtered defer z="
   call 12   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 7 0   ; arg 0.cap_0
+  local.field 0 7 0   ; arg 0 __defer_env_snippet_7.cap_0
   struct.get 21 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
@@ -377,7 +377,7 @@ fn 7 __lambda_snippet_9 (ref) -> void
   string.const 8   ; "nested n="
   call 12   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 8 0   ; arg 0.cap_0
+  local.field 0 8 0   ; arg 0 __lambda_env_snippet_10.cap_0
   struct.get 22 0   ; $Cell_i64.value
   local.set 3   ; $cell_get_9
   local.get 1   ; __buf_0
@@ -605,7 +605,7 @@ fn 14 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 15   ; u8[][]
+      array.slice 15   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -34,16 +34,16 @@ fn 0 snippet$main () -> i32
   local __off_4 usize
   local $cast_29 i64
   i32.const 1
-  retag 1   ; -> i32
+  retag 1   ; i32
   i32.const 2
-  retag 1   ; -> i32
+  retag 1   ; i32
   i32.const 3
-  retag 1   ; -> i32
-  array.new 11 3   ; union[][]
+  retag 1   ; i32
+  array.new 11 3   ; union[]
   local.tee 0   ; xs
   string.const 0   ; "hi"
-  retag 2   ; -> string
-  array.push 12   ; union[]
+  retag 2   ; string
+  array.push 12   ; union
   local.get 0   ; xs
   array.len
   local.set 1   ; __for_len_1
@@ -57,12 +57,12 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 0   ; xs
         local.get 2   ; __for_i_2
-        array.get 11   ; union[][]
+        array.get 11   ; union[]
         local.tee 3   ; x
         type_check 2   ; string
         if $L3 void
           local.get 3   ; x
-          ref.cast 2   ; -> string
+          ref.cast 2   ; string
           local.set 4   ; s
           string.const 1   ; "str "
           local.get 4   ; s
@@ -73,7 +73,7 @@ fn 0 snippet$main () -> i32
           type_check 1   ; i32
           if $L4 void
             local.get 3   ; x
-            ref.cast 1   ; -> i32
+            ref.cast 1   ; i32
             local.set 5   ; n
             i64.const 24
             call 2   ; std_core$new_byte_buffer
@@ -109,16 +109,16 @@ fn 0 snippet$main () -> i32
   end $L0
   i32.const 10
   i32.const 20
-  array.new 10 2   ; i32[][]
+  array.new 10 2   ; i32[]
   local.tee 0   ; xs
   i32.const 0
-  array.get 11   ; union[][]
+  array.get 11   ; union[]
   type_check 1   ; i32
   if $L5 void
     local.get 0   ; xs
     i32.const 0
-    array.get 11   ; union[][]
-    ref.cast 1   ; -> i32
+    array.get 11   ; union[]
+    ref.cast 1   ; i32
     local.set 5   ; n
     i64.const 26
     call 2   ; std_core$new_byte_buffer
@@ -351,7 +351,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

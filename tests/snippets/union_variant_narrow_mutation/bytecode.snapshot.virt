@@ -35,24 +35,24 @@ fn 0 snippet$fill (any) -> usize
   type_check 2   ; i32[]
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> i32[]
+    ref.cast 2   ; i32[]
     i32.const 30
-    array.push 3   ; i32[]
+    array.push 3   ; i32
     local.get 0   ; arg 0
-    ref.cast 2   ; -> i32[]
+    ref.cast 2   ; i32[]
     i32.const 40
-    array.push 3   ; i32[]
+    array.push 3   ; i32
     local.get 0   ; arg 0
-    ref.cast 2   ; -> i32[]
+    ref.cast 2   ; i32[]
     array.len
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 4   ; -> string[]
+  ref.cast 4   ; string[]
   string.const 0   ; "added"
-  array.push 5   ; string[]
+  array.push 5   ; string
   local.get 0   ; arg 0
-  ref.cast 4   ; -> string[]
+  ref.cast 4   ; string[]
   array.len
   return
 end
@@ -69,7 +69,7 @@ fn 1 snippet$total (any) -> usize
     i32.const 0
     local.set 1   ; sum
     local.get 0   ; arg 0
-    ref.cast 2   ; -> i32[]
+    ref.cast 2   ; i32[]
     local.tee 2   ; __for_arr_0
     array.len
     local.set 3   ; __for_len_1
@@ -102,7 +102,7 @@ fn 1 snippet$total (any) -> usize
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 4   ; -> string[]
+  ref.cast 4   ; string[]
   array.len
   return
 end
@@ -117,11 +117,11 @@ fn 2 snippet$main () -> i32
   local $cast_38 i64
   i32.const 10
   i32.const 20
-  array.new 2 2   ; i32[][]
+  array.new 2 2   ; i32[]
   local.set 0   ; nums
   string.const 1   ; "a"
   string.const 2   ; "b"
-  array.new 4 2   ; string[][]
+  array.new 4 2   ; string[]
   local.set 1   ; words
   i64.const 52
   call 4   ; std_core$new_byte_buffer
@@ -162,8 +162,8 @@ fn 2 snippet$main () -> i32
   call 11   ; std_io$println__string
   local.get 1   ; words
   i32.const 2
-  array.get 4   ; string[][]
-  ref.cast 5   ; -> string
+  array.get 4   ; string[]
+  ref.cast 5   ; string
   local.tee 5   ; __p_2
   call.import 0   ; std_core$byte_len
   local.set 3   ; __off_1
@@ -549,7 +549,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

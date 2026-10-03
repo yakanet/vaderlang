@@ -38,15 +38,15 @@ end
 fn 1 snippet$Circle$Shape$area (ref) -> i32
   local $field_2 i32
   local $field_4 i32
-  local.field 0 2 0   ; arg 0.r
-  ref.cast 1   ; -> i32
+  local.field 0 2 0   ; arg 0 snippet$Circle.r
+  ref.cast 1   ; i32
   local.set 1   ; $field_2
   i32.const 3
   local.get 1   ; $field_2
   i32.mul
   local.set 1   ; $field_2
-  local.field 0 2 0   ; arg 0.r
-  ref.cast 1   ; -> i32
+  local.field 0 2 0   ; arg 0 snippet$Circle.r
+  ref.cast 1   ; i32
   local.set 2   ; $field_4
   local.get 1   ; $field_2
   local.get 2   ; $field_4
@@ -62,27 +62,27 @@ fn 2 snippet$main () -> i32
   local s any
   local __off_4 usize
   local $cast_26 i64
-  array.new 11 0   ; ref snippet$Shape[][]
+  array.new 11 0   ; ref snippet$Shape[]
   local.tee 0   ; shapes
   i32.const 2
-  array.push 12   ; ref snippet$Shape[]
+  array.push 12   ; ref snippet$Shape
   i32.const 10
   struct.new 2   ; snippet$Circle
   local.set 1   ; $struct_5
   local.get 0   ; shapes
   local.get 1   ; $struct_5
-  array.push 12   ; ref snippet$Shape[]
+  array.push 12   ; ref snippet$Shape
   local.get 0   ; shapes
   i32.const 0
   i32.const 5
-  array.set 11   ; ref snippet$Shape[][]
+  array.set 11   ; ref snippet$Shape[]
   i32.const 4
   struct.new 2   ; snippet$Circle
   local.set 1   ; $struct_5
   local.get 0   ; shapes
   i32.const 1
   local.get 1   ; $struct_5
-  array.set 11   ; ref snippet$Shape[][]
+  array.set 11   ; ref snippet$Shape[]
   local.get 0   ; shapes
   array.len
   local.set 2   ; __for_len_1
@@ -96,7 +96,7 @@ fn 2 snippet$main () -> i32
       if $L2 void
         local.get 0   ; shapes
         local.get 3   ; __for_i_2
-        array.get 11   ; ref snippet$Shape[][]
+        array.get 11   ; ref snippet$Shape[]
         local.set 4   ; s
         i64.const 20
         call 4   ; std_core$new_byte_buffer
@@ -317,7 +317,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

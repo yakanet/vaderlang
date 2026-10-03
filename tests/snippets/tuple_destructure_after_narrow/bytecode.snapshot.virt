@@ -64,13 +64,13 @@ fn 1 snippet$main () -> i32
     return
   end $L1
   local.get 0   ; $call_1
-  ref.cast 11   ; -> __Tuple_i32_i32_3103e027
+  ref.cast 11   ; __Tuple_i32_i32_3103e027
   local.set 1   ; __tup_0
-  local.field 1 11 0   ; __tup_0._0
-  ref.cast 2   ; -> i32
+  local.field 1 11 0   ; __tup_0 __Tuple_i32_i32_3103e027._0
+  ref.cast 2   ; i32
   local.set 2   ; a
-  local.field 1 11 1   ; __tup_0._1
-  ref.cast 2   ; -> i32
+  local.field 1 11 1   ; __tup_0 __Tuple_i32_i32_3103e027._1
+  ref.cast 2   ; i32
   local.set 3   ; b
   i64.const 45
   call 3   ; std_core$new_byte_buffer
@@ -318,7 +318,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

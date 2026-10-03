@@ -29,20 +29,20 @@ fn 0 snippet$main () -> i32
   local __off_1 usize
   local $cast_14 u64
   local $cast_29 i64
-  data.const 0 12   ; pool[0] : snippet$Spec[]
+  data.const 0 12   ; pool[0] snippet$Spec[]
   i32.const 1
-  array.get 12   ; snippet$Spec[][]
+  array.get 12   ; snippet$Spec[]
   struct.get 3 0   ; snippet$Spec.name
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   call 8   ; std_io$println__string
   i64.const 20
   call 2   ; std_core$new_byte_buffer
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
-  data.const 0 12   ; pool[0] : snippet$Spec[]
+  data.const 0 12   ; pool[0] snippet$Spec[]
   i32.const 1
-  array.get 12   ; snippet$Spec[][]
+  array.get 12   ; snippet$Spec[]
   struct.get 3 1   ; snippet$Spec.args
   array.len
   usize.to_i64
@@ -61,12 +61,12 @@ fn 0 snippet$main () -> i32
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
-  data.const 0 12   ; pool[0] : snippet$Spec[]
+  data.const 0 12   ; pool[0] snippet$Spec[]
   i32.const 1
-  array.get 12   ; snippet$Spec[][]
+  array.get 12   ; snippet$Spec[]
   struct.get 3 1   ; snippet$Spec.args
   i32.const 1
-  array.get 4   ; u8[][]
+  array.get 4   ; u8[]
   u8.to_i32
   i32.to_i64
   local.set 3   ; $cast_29
@@ -358,7 +358,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 4   ; u8[][]
+      array.slice 4   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

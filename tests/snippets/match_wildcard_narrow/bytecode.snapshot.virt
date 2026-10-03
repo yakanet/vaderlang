@@ -35,9 +35,9 @@ fn 0 snippet$greet_wildcard (any) -> string
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$Cat
+    ref.cast 2   ; snippet$Cat
     struct.get 2 0   ; snippet$Cat.name
-    ref.cast 4   ; -> string
+    ref.cast 4   ; string
     local.set 2   ; $field_7
     string.const 1   ; "hello "
     local.get 2   ; $field_7
@@ -61,9 +61,9 @@ fn 1 snippet$greet_binding (any) -> string
     local.set 2   ; if_res
   else
     local.get 1   ; pet
-    ref.cast 2   ; -> snippet$Cat
+    ref.cast 2   ; snippet$Cat
     struct.get 2 0   ; snippet$Cat.name
-    ref.cast 4   ; -> string
+    ref.cast 4   ; string
     local.set 3   ; $field_8
     string.const 2   ; "howdy "
     local.get 3   ; $field_8
@@ -160,7 +160,7 @@ fn 4 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

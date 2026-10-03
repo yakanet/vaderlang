@@ -27,7 +27,7 @@ fn 0 snippet$fetch (bool) -> any
   local.get 0   ; arg 0
   if $L0 void
     i32.const 20
-    retag 6   ; -> i32
+    retag 6   ; i32
     return
   end $L0
   struct.new 1   ; snippet$Boom
@@ -47,7 +47,7 @@ fn 1 snippet$halve (i32) -> any
   local.get 0   ; arg 0
   i32.const 2
   i32.div
-  retag 6   ; -> i32
+  retag 6   ; i32
   return
 end
 
@@ -60,7 +60,7 @@ fn 2 snippet$main () -> i32
   bool.const true
   call 0   ; snippet$fetch
   local.set 0   ; $call_1
-  fn.ref 3 13   ; __lambda_snippet_0
+  fn.ref 3 13   ; __lambda_snippet_0 fn
   local.set 1   ; $fn_ref_2
   local.get 0   ; $call_1
   local.get 1   ; $fn_ref_2
@@ -91,7 +91,7 @@ fn 2 snippet$main () -> i32
   bool.const false
   call 0   ; snippet$fetch
   local.set 0   ; $call_1
-  fn.ref 4 13   ; __lambda_snippet_1
+  fn.ref 4 13   ; __lambda_snippet_1 fn
   local.set 1   ; $fn_ref_2
   local.get 0   ; $call_1
   local.get 1   ; $fn_ref_2
@@ -324,7 +324,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -391,7 +391,7 @@ fn 12 std_option$or__i32 (any,i32) -> i32
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 6   ; -> i32
+  ref.cast 6   ; i32
   return
 end
 
@@ -403,7 +403,7 @@ fn 13 std_option$and_then__i32__i32 (any,ref) -> any
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 6   ; -> i32
+  ref.cast 6   ; i32
   local.get 1   ; arg 1
   call.indirect 13   ; fn
   return

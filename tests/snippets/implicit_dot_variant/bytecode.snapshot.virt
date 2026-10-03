@@ -65,7 +65,7 @@ fn 1 snippet$main () -> i32
   call 9   ; std_io$println__string
   i32.const 0
   i32.const 2
-  array.new 9 2   ; u8[][]
+  array.new 9 2   ; u8[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -79,7 +79,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 0   ; __for_arr_0
         local.get 2   ; __for_i_2
-        array.get 9   ; u8[][]
+        array.get 9   ; u8[]
         call 0   ; snippet$show_day
         call 9   ; std_io$println__string
         local.get 2   ; __for_i_2
@@ -106,9 +106,9 @@ fn 1 snippet$main () -> i32
     call 5   ; std_core$write_string_at
     local.set 1   ; __for_len_1
     local.get 3   ; m
-    ref.cast 4   ; -> snippet$Some
+    ref.cast 4   ; snippet$Some
     struct.get 4 0   ; snippet$Some.value
-    ref.cast 3   ; -> i32
+    ref.cast 3   ; i32
     i32.to_i64
     local.set 4   ; $cast_31
     local.get 0   ; __for_arr_0
@@ -145,9 +145,9 @@ fn 1 snippet$main () -> i32
     call 5   ; std_core$write_string_at
     local.set 1   ; __for_len_1
     local.get 3   ; m
-    ref.cast 4   ; -> snippet$Some
+    ref.cast 4   ; snippet$Some
     struct.get 4 0   ; snippet$Some.value
-    ref.cast 3   ; -> i32
+    ref.cast 3   ; i32
     i32.to_i64
     local.set 4   ; $cast_31
     local.get 0   ; __for_arr_0
@@ -377,7 +377,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

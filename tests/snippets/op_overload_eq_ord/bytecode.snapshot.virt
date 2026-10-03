@@ -30,11 +30,11 @@ export main 2
 fn 0 snippet$Money$Equals$equals (ref,ref) -> bool
   local $field_2 i32
   local $field_3 i32
-  local.field 0 1 0   ; arg 0.amount
-  ref.cast 3   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$Money.amount
+  ref.cast 3   ; i32
   local.set 2   ; $field_2
-  local.field 1 1 0   ; arg 1.amount
-  ref.cast 3   ; -> i32
+  local.field 1 1 0   ; arg 1 snippet$Money.amount
+  ref.cast 3   ; i32
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
@@ -45,11 +45,11 @@ end
 fn 1 snippet$Money$Comparable$compare (ref,ref) -> i32
   local $field_2 i32
   local $field_3 i32
-  local.field 0 1 0   ; arg 0.amount
-  ref.cast 3   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$Money.amount
+  ref.cast 3   ; i32
   local.set 2   ; $field_2
-  local.field 1 1 0   ; arg 1.amount
-  ref.cast 3   ; -> i32
+  local.field 1 1 0   ; arg 1 snippet$Money.amount
+  ref.cast 3   ; i32
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
@@ -59,11 +59,11 @@ fn 1 snippet$Money$Comparable$compare (ref,ref) -> i32
     i32.neg
     return
   end $L0
-  local.field 0 1 0   ; arg 0.amount
-  ref.cast 3   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$Money.amount
+  ref.cast 3   ; i32
   local.set 2   ; $field_2
-  local.field 1 1 0   ; arg 1.amount
-  ref.cast 3   ; -> i32
+  local.field 1 1 0   ; arg 1 snippet$Money.amount
+  ref.cast 3   ; i32
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
@@ -308,7 +308,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

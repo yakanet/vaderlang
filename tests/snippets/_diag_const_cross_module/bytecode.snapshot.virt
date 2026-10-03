@@ -150,11 +150,11 @@ fn 3 std_core$format_f64 (f64) -> string
   local.get 1   ; bits
   call 4   ; std_core$d2d
   local.set 6   ; d
-  local.field 6 8 0   ; d.mantissa
-  ref.cast 7   ; -> u64
+  local.field 6 8 0   ; d std_core$Dec64.mantissa
+  ref.cast 7   ; u64
   local.set 1   ; bits
-  local.field 6 8 1   ; d.exp
-  ref.cast 1   ; -> i32
+  local.field 6 8 1   ; d std_core$Dec64.exp
+  ref.cast 1   ; i32
   local.set 7   ; $field_36
   local.get 1   ; bits
   local.get 7   ; $field_36
@@ -297,11 +297,11 @@ fn 4 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.mul
     local.set 15   ; $cast_74
-    data.const 0 14   ; pool[0] : u64[]
+    data.const 0 14   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 14   ; pool[0] : u64[]
+    data.const 0 14   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -318,14 +318,14 @@ fn 4 std_core$d2d (u64,u64) -> ref
     local.get 7   ; mm_shift
     call 10   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
-    local.field 17 9 0   ; $data_const_80._0
-    ref.cast 7   ; -> u64
+    local.field 17 9 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
+    ref.cast 7   ; u64
     local.set 8   ; vr
-    local.field 17 9 1   ; $data_const_80._1
-    ref.cast 7   ; -> u64
+    local.field 17 9 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
+    ref.cast 7   ; u64
     local.set 9   ; vp
-    local.field 17 9 2   ; $data_const_80._2
-    ref.cast 7   ; -> u64
+    local.field 17 9 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
+    ref.cast 7   ; u64
     local.set 10   ; vm
     local.get 13   ; $call_57
     i32.const 21
@@ -411,11 +411,11 @@ fn 4 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.mul
     local.set 15   ; $cast_74
-    data.const 1 14   ; pool[1] : u64[]
+    data.const 1 14   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 14   ; pool[1] : u64[]
+    data.const 1 14   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -432,14 +432,14 @@ fn 4 std_core$d2d (u64,u64) -> ref
     local.get 7   ; mm_shift
     call 10   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
-    local.field 17 9 0   ; $data_const_80._0
-    ref.cast 7   ; -> u64
+    local.field 17 9 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
+    ref.cast 7   ; u64
     local.set 8   ; vr
-    local.field 17 9 1   ; $data_const_80._1
-    ref.cast 7   ; -> u64
+    local.field 17 9 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
+    ref.cast 7   ; u64
     local.set 9   ; vp
-    local.field 17 9 2   ; $data_const_80._2
-    ref.cast 7   ; -> u64
+    local.field 17 9 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
+    ref.cast 7   ; u64
     local.set 10   ; vm
     local.get 13   ; $call_57
     i32.const 1
@@ -1760,7 +1760,7 @@ fn 23 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

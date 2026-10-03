@@ -26,13 +26,13 @@ export main 0
 fn 0 snippet$main () -> i32
   local boom i32
   struct.new 2   ; __defer_env_snippet_1
-  make_closure 1 12   ; __defer_snippet_0
+  make_closure 1 12   ; __defer_snippet_0 fn
   defer.push
   struct.new 4   ; __defer_env_snippet_3
-  make_closure 2 12   ; __defer_snippet_2
+  make_closure 2 12   ; __defer_snippet_2 fn
   defer.push
   struct.new 5   ; __defer_env_snippet_5
-  make_closure 3 12   ; __defer_snippet_4
+  make_closure 3 12   ; __defer_snippet_4 fn
   defer.push
   string.const 0   ; "starting"
   call 7   ; std_io$println__string
@@ -124,7 +124,7 @@ fn 5 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

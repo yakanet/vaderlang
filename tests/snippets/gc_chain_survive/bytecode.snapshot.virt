@@ -109,16 +109,16 @@ fn 0 snippet$main () -> i32
           type_check 3   ; snippet$Node
           if $L8 void
             local.get 0   ; head
-            ref.cast 3   ; -> snippet$Node
+            ref.cast 3   ; snippet$Node
             struct.get 3 0   ; snippet$Node.value
-            ref.cast 1   ; -> i32
+            ref.cast 1   ; i32
             local.set 6   ; $field_40
             local.get 1   ; i
             local.get 6   ; $field_40
             i32.add
             local.set 1   ; i
             local.get 0   ; head
-            ref.cast 3   ; -> snippet$Node
+            ref.cast 3   ; snippet$Node
             struct.get 3 1   ; snippet$Node.next
             local.set 0   ; head
           else
@@ -404,7 +404,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

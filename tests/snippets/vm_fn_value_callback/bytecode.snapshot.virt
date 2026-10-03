@@ -19,7 +19,7 @@ fn 1 snippet$apply (ref,i32) -> i32
 end
 
 fn 2 snippet$main () -> i32
-  fn.ref 0 2   ; snippet$triple
+  fn.ref 0 2   ; snippet$triple fn
   i32.const 7
   call 1   ; snippet$apply
   return

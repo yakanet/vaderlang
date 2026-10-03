@@ -97,7 +97,7 @@ fn 1 snippet$main () -> i32
   i32.const 0
   i32.const 1
   i32.const 2
-  array.new 10 3   ; u8[][]
+  array.new 10 3   ; u8[]
   local.tee 0   ; statuses
   local.tee 1   ; __for_arr_0
   array.len
@@ -112,20 +112,20 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 1   ; __for_arr_0
         local.get 3   ; __for_i_2
-        array.get 10   ; u8[][]
+        array.get 10   ; u8[]
         local.tee 4   ; s
         call 2   ; snippet$HttpStatus$Display$to_string
         local.set 5   ; __p_3
-        data.const 1 15   ; pool[1] : snippet$StatusInfo[]
+        data.const 1 15   ; pool[1] snippet$StatusInfo[]
         local.set 6   ; $data_const_15
         local.get 4   ; s
         u8.to_i64
         local.set 7   ; $cast_16
         local.get 6   ; $data_const_15
         local.get 7   ; $cast_16
-        array.get 15   ; snippet$StatusInfo[][]
+        array.get 15   ; snippet$StatusInfo[]
         struct.get 4 0   ; snippet$StatusInfo.reason
-        ref.cast 2   ; -> string
+        ref.cast 2   ; string
         local.set 8   ; __p_4
         local.get 4   ; s
         call 0   ; snippet$describe
@@ -154,15 +154,15 @@ fn 1 snippet$main () -> i32
         local.set 15   ; __buf_6
         i64.const 0
         local.set 16   ; __off_7
-        data.const 0 14   ; pool[0] : u16[]
+        data.const 0 14   ; pool[0] u16[]
         local.set 17   ; $data_const_33
         local.get 4   ; s
         u8.to_i64
         local.set 18   ; $cast_34
         local.get 17   ; $data_const_33
         local.get 18   ; $cast_34
-        array.get 14   ; u16[][]
-        ref.cast 13   ; -> u16
+        array.get 14   ; u16[]
+        ref.cast 13   ; u16
         u16.to_i32
         i32.to_i64
         local.set 19   ; $cast_37
@@ -216,7 +216,7 @@ fn 1 snippet$main () -> i32
   i32.const 0
   i32.const 1
   i32.const 2
-  array.new 10 3   ; u8[][]
+  array.new 10 3   ; u8[]
   local.tee 1   ; __for_arr_0
   array.len
   local.set 2   ; __for_len_1
@@ -230,18 +230,18 @@ fn 1 snippet$main () -> i32
       if $L5 void
         local.get 1   ; __for_arr_0
         local.get 3   ; __for_i_2
-        array.get 10   ; u8[][]
+        array.get 10   ; u8[]
         local.set 4   ; s
-        data.const 2 15   ; pool[2] : snippet$StatusInfo[]
+        data.const 2 15   ; pool[2] snippet$StatusInfo[]
         local.set 6   ; $data_const_15
         local.get 4   ; s
         u8.to_i64
         local.set 7   ; $cast_16
         local.get 6   ; $data_const_15
         local.get 7   ; $cast_16
-        array.get 15   ; snippet$StatusInfo[][]
+        array.get 15   ; snippet$StatusInfo[]
         struct.get 4 0   ; snippet$StatusInfo.reason
-        ref.cast 2   ; -> string
+        ref.cast 2   ; string
         local.tee 5   ; __p_3
         call.import 0   ; std_core$byte_len
         local.set 10   ; $call_23
@@ -307,7 +307,7 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __for_len_1
   local.get 0   ; statuses
   i32.const 1
-  array.get 10   ; u8[][]
+  array.get 10   ; u8[]
   i32.const 1
   i32.eq
   local.set 20   ; $eq_101
@@ -674,7 +674,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

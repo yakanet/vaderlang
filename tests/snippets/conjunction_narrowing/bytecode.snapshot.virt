@@ -30,9 +30,9 @@ fn 0 snippet$classify (any) -> string
   type_check 2   ; snippet$Circle
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$Circle
+    ref.cast 2   ; snippet$Circle
     struct.get 2 0   ; snippet$Circle.radius
-    ref.cast 5   ; -> i32
+    ref.cast 5   ; i32
     i32.const 0
     i32.gt
     local.set 1   ; and_res
@@ -53,9 +53,9 @@ fn 0 snippet$classify (any) -> string
     call 5   ; std_core$write_string_at
     local.set 3   ; __off_1
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$Circle
+    ref.cast 2   ; snippet$Circle
     struct.get 2 0   ; snippet$Circle.radius
-    ref.cast 5   ; -> i32
+    ref.cast 5   ; i32
     i32.to_i64
     local.set 4   ; $cast_17
     local.get 2   ; __buf_0
@@ -292,7 +292,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

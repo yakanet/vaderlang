@@ -76,10 +76,10 @@ fn 0 snippet$main () -> i32
   type_check 11   ; std_io$IOError
   if $L0 void
     local.get 1   ; wrote
-    ref.cast 11   ; -> std_io$IOError
+    ref.cast 11   ; std_io$IOError
     local.set 2   ; e
-    local.field 2 11 0   ; e.msg
-    ref.cast 2   ; -> string
+    local.field 2 11 0   ; e std_io$IOError.msg
+    ref.cast 2   ; string
     local.set 3   ; $field_11
     string.const 2   ; "setup failed: "
     local.get 3   ; $field_11
@@ -96,7 +96,7 @@ fn 0 snippet$main () -> i32
     string.const 4   ; "matched CPointer"
     call 12   ; std_io$println__string
     local.get 1   ; wrote
-    ref.cast 4   ; -> pointer
+    ref.cast 4   ; pointer
     call.import 1   ; snippet$c_fclose
     drop
   else
@@ -122,7 +122,7 @@ fn 0 snippet$main () -> i32
     string.const 8   ; "unexpectedly opened"
     call 12   ; std_io$println__string
     local.get 1   ; wrote
-    ref.cast 4   ; -> pointer
+    ref.cast 4   ; pointer
     call.import 1   ; snippet$c_fclose
     drop
   else
@@ -232,7 +232,7 @@ fn 5 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -270,7 +270,7 @@ fn 6 std_io$temp_dir_of (any) -> string
     local.set 1   ; e
   else
     local.get 2   ; __coalesce_0
-    ref.cast 2   ; -> string
+    ref.cast 2   ; string
     local.set 1   ; e
   end $L0
   local.get 1   ; e
@@ -340,7 +340,7 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
     array.len
     local.set 2   ; __for_len_1
     local.get 4   ; f
-    ref.cast 4   ; -> pointer
+    ref.cast 4   ; pointer
     local.set 5   ; $cast_28
     local.get 1   ; arg 1
     i64.const 1
@@ -359,7 +359,7 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
       call 8   ; std_io$last_io_error
       local.set 6   ; err
       local.get 4   ; f
-      ref.cast 4   ; -> pointer
+      ref.cast 4   ; pointer
       call.import 10   ; system_posix$sys_fclose
       drop
       local.get 6   ; err
@@ -367,7 +367,7 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
     end $L6
   end $L5
   local.get 4   ; f
-  ref.cast 4   ; -> pointer
+  ref.cast 4   ; pointer
   call.import 10   ; system_posix$sys_fclose
   i32.const 0
   i32.ne
@@ -578,8 +578,8 @@ fn 10 std_io$without_trailing_sep (string) -> string
         else
           local.get 1   ; b
           local.get 5   ; last
-          array.get 7   ; u8[][]
-          ref.cast 5   ; -> u8
+          array.get 7   ; u8[]
+          ref.cast 5   ; u8
           i32.const 47
           i32.ne
           local.set 6   ; or_res
@@ -593,8 +593,8 @@ fn 10 std_io$without_trailing_sep (string) -> string
           local.set 7   ; $sub_23
           local.get 1   ; b
           local.get 7   ; $sub_23
-          array.get 7   ; u8[][]
-          ref.cast 5   ; -> u8
+          array.get 7   ; u8[]
+          ref.cast 5   ; u8
           i32.const 58
           i32.eq
           if $L5 void
@@ -628,7 +628,7 @@ fn 10 std_io$without_trailing_sep (string) -> string
   local.get 1   ; b
   i64.const 0
   local.get 2   ; trailing
-  array.slice 7   ; u8[][]
+  array.slice 7   ; u8[]
   call.import 4   ; std_core$bytes_to_string
   return
 end

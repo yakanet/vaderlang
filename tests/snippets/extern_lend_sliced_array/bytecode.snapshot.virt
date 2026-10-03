@@ -44,7 +44,7 @@ fn 1 snippet$main () -> i32
   i32.const 2
   i32.const 8
   i32.const 4
-  array.new 5 8   ; i32[][]
+  array.new 5 8   ; i32[]
   local.set 0   ; ys
   i32.const 2
   i32.to_i64
@@ -55,7 +55,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; ys
   local.get 1   ; $cast_11
   local.get 2   ; $cast_13
-  array.slice 5   ; i32[][]
+  array.slice 5   ; i32[]
   local.set 3   ; early
   fn.addr 0   ; snippet$churn
   call.import 0   ; snippet$slice_set_cb
@@ -139,7 +139,7 @@ fn 1 snippet$main () -> i32
   i32.const 2
   i32.const 8
   i32.const 4
-  array.new 5 8   ; i32[][]
+  array.new 5 8   ; i32[]
   local.set 0   ; ys
   i32.const 2
   i32.to_i64
@@ -150,7 +150,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; ys
   local.get 1   ; $cast_11
   local.get 2   ; $cast_13
-  array.slice 5   ; i32[][]
+  array.slice 5   ; i32[]
   local.set 3   ; early
   local.get 0   ; ys
   i64.const 8
@@ -432,7 +432,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

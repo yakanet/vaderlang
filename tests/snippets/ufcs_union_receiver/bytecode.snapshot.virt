@@ -43,9 +43,9 @@ fn 0 snippet$describe (any) -> string
     call 6   ; std_core$write_string_at
     local.set 3   ; __off_3
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$Circle
+    ref.cast 2   ; snippet$Circle
     struct.get 2 0   ; snippet$Circle.radius
-    ref.cast 5   ; -> i32
+    ref.cast 5   ; i32
     i32.to_i64
     local.set 4   ; $cast_12
     local.get 2   ; __buf_2
@@ -77,9 +77,9 @@ fn 0 snippet$describe (any) -> string
       call 6   ; std_core$write_string_at
       local.set 3   ; __off_3
       local.get 0   ; arg 0
-      ref.cast 3   ; -> snippet$Square
+      ref.cast 3   ; snippet$Square
       struct.get 3 0   ; snippet$Square.side
-      ref.cast 5   ; -> i32
+      ref.cast 5   ; i32
       i32.to_i64
       local.set 4   ; $cast_12
       local.get 2   ; __buf_2
@@ -112,14 +112,14 @@ fn 1 snippet$area (any) -> i32
   type_check 2   ; snippet$Circle
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$Circle
+    ref.cast 2   ; snippet$Circle
     struct.get 2 0   ; snippet$Circle.radius
-    ref.cast 5   ; -> i32
+    ref.cast 5   ; i32
     local.set 1   ; if_res
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$Circle
+    ref.cast 2   ; snippet$Circle
     struct.get 2 0   ; snippet$Circle.radius
-    ref.cast 5   ; -> i32
+    ref.cast 5   ; i32
     local.set 2   ; $field_6
     local.get 1   ; if_res
     local.get 2   ; $field_6
@@ -132,14 +132,14 @@ fn 1 snippet$area (any) -> i32
     type_check 3   ; snippet$Square
     if $L1 void
       local.get 0   ; arg 0
-      ref.cast 3   ; -> snippet$Square
+      ref.cast 3   ; snippet$Square
       struct.get 3 0   ; snippet$Square.side
-      ref.cast 5   ; -> i32
+      ref.cast 5   ; i32
       local.set 2   ; $field_6
       local.get 0   ; arg 0
-      ref.cast 3   ; -> snippet$Square
+      ref.cast 3   ; snippet$Square
       struct.get 3 0   ; snippet$Square.side
-      ref.cast 5   ; -> i32
+      ref.cast 5   ; i32
       local.set 3   ; $field_14
       local.get 2   ; $field_6
       local.get 3   ; $field_14
@@ -425,7 +425,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

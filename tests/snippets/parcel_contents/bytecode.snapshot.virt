@@ -33,9 +33,9 @@ end
 fn 1 snippet$first_of_batch () -> ref
   i32.const 77
   struct.new 1   ; snippet$Gift
-  array.new 12 1   ; snippet$Gift[][]
+  array.new 12 1   ; snippet$Gift[]
   i32.const 0
-  array.get 12   ; snippet$Gift[][]
+  array.get 12   ; snippet$Gift[]
   return
 end
 
@@ -63,8 +63,8 @@ fn 2 snippet$main () -> i32
   string.const 0   ; "unwrapped: "
   call 6   ; std_core$write_string_at
   local.set 4   ; __off_1
-  local.field 0 1 0   ; a.value
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; a snippet$Gift.value
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 5   ; $cast_15
   local.get 3   ; __buf_0
@@ -77,8 +77,8 @@ fn 2 snippet$main () -> i32
   string.const 1   ; " scratch: "
   call 6   ; std_core$write_string_at
   local.set 4   ; __off_1
-  local.field 1 1 0   ; scratch.value
-  ref.cast 2   ; -> i32
+  local.field 1 1 0   ; scratch snippet$Gift.value
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 5   ; $cast_15
   local.get 3   ; __buf_0
@@ -91,8 +91,8 @@ fn 2 snippet$main () -> i32
   string.const 2   ; " batch: "
   call 6   ; std_core$write_string_at
   local.set 4   ; __off_1
-  local.field 2 1 0   ; b.value
-  ref.cast 2   ; -> i32
+  local.field 2 1 0   ; b snippet$Gift.value
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 5   ; $cast_15
   local.get 3   ; __buf_0
@@ -312,7 +312,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

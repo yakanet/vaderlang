@@ -26,7 +26,7 @@ export main 2
 fn 0 snippet$push_pet (ref,any) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  array.push 2   ; union[]
+  array.push 2   ; union
   return
 end
 
@@ -37,9 +37,9 @@ fn 1 snippet$describe (any) -> string
   type_check 3   ; snippet_types$Cat
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 3   ; -> snippet_types$Cat
+    ref.cast 3   ; snippet_types$Cat
     struct.get 3 0   ; snippet_types$Cat.name
-    ref.cast 6   ; -> string
+    ref.cast 6   ; string
     local.set 1   ; if_res
     string.const 0   ; "cat "
     local.get 1   ; if_res
@@ -50,9 +50,9 @@ fn 1 snippet$describe (any) -> string
     type_check 4   ; snippet_types$Dog
     if $L1 void
       local.get 0   ; arg 0
-      ref.cast 4   ; -> snippet_types$Dog
+      ref.cast 4   ; snippet_types$Dog
       struct.get 4 0   ; snippet_types$Dog.name
-      ref.cast 6   ; -> string
+      ref.cast 6   ; string
       local.set 2   ; $field_10
       string.const 1   ; "dog "
       local.get 2   ; $field_10
@@ -71,7 +71,7 @@ fn 2 snippet$main () -> i32
   local $struct_3 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  array.new 1 0   ; union[][]
+  array.new 1 0   ; union[]
   local.set 0   ; pets
   string.const 2   ; "Whiskers"
   struct.new 3   ; snippet_types$Cat
@@ -98,7 +98,7 @@ fn 2 snippet$main () -> i32
       if $L2 void
         local.get 0   ; pets
         local.get 3   ; __for_i_2
-        array.get 1   ; union[][]
+        array.get 1   ; union[]
         call 1   ; snippet$describe
         call 6   ; std_io$println__string
         local.get 3   ; __for_i_2
@@ -172,7 +172,7 @@ fn 4 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

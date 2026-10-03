@@ -41,13 +41,13 @@ fn 0 snippet$main () -> i32
   local __off_5 usize
   local $cast_34 u64
   local $field_57 string
-  array.new 5 0   ; snippet$Inner[][]
+  array.new 5 0   ; snippet$Inner[]
   local.set 0   ; $arr_1
   string.const 0   ; "x"
   local.get 0   ; $arr_1
   struct.new 4   ; snippet$Item
   local.set 0   ; $arr_1
-  array.new 5 0   ; snippet$Inner[][]
+  array.new 5 0   ; snippet$Inner[]
   local.set 1   ; $arr_4
   string.const 1   ; "y"
   local.get 1   ; $arr_4
@@ -55,9 +55,9 @@ fn 0 snippet$main () -> i32
   local.set 1   ; $arr_4
   local.get 0   ; $arr_1
   local.get 1   ; $arr_4
-  array.new 13 2   ; snippet$Item[][]
+  array.new 13 2   ; snippet$Item[]
   local.set 0   ; $arr_1
-  data.const 0 13   ; pool[0] : snippet$Item[]
+  data.const 0 13   ; pool[0] snippet$Item[]
   i64.const 0
   local.get 0   ; $arr_1
   i64.const 0
@@ -76,10 +76,10 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 0   ; $arr_1
         local.get 3   ; __for_i_2
-        array.get 13   ; snippet$Item[][]
+        array.get 13   ; snippet$Item[]
         local.set 1   ; $arr_4
-        local.field 1 4 0   ; $arr_4.name
-        ref.cast 2   ; -> string
+        local.field 1 4 0   ; $arr_4 snippet$Item.name
+        ref.cast 2   ; string
         local.tee 4   ; __p_3
         call.import 0   ; std_core$byte_len
         local.set 5   ; $call_23
@@ -100,7 +100,7 @@ fn 0 snippet$main () -> i32
         string.const 2   ; " inner="
         call 5   ; std_core$write_string_at
         local.set 7   ; __off_5
-        local.field 1 4 1   ; $arr_4.inner
+        local.field 1 4 1   ; $arr_4 snippet$Item.inner
         array.len
         usize.to_i64
         local.set 8   ; $cast_34
@@ -121,13 +121,13 @@ fn 0 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  array.new 5 0   ; snippet$Inner[][]
+  array.new 5 0   ; snippet$Inner[]
   local.set 0   ; $arr_1
   string.const 3   ; "keep"
   local.get 0   ; $arr_1
   struct.new 4   ; snippet$Item
   local.set 0   ; $arr_1
-  array.new 5 0   ; snippet$Inner[][]
+  array.new 5 0   ; snippet$Inner[]
   local.set 1   ; $arr_4
   string.const 4   ; "overwrite"
   local.get 1   ; $arr_4
@@ -135,9 +135,9 @@ fn 0 snippet$main () -> i32
   local.set 1   ; $arr_4
   local.get 0   ; $arr_1
   local.get 1   ; $arr_4
-  array.new 13 2   ; snippet$Item[][]
+  array.new 13 2   ; snippet$Item[]
   local.set 0   ; $arr_1
-  data.const 0 13   ; pool[0] : snippet$Item[]
+  data.const 0 13   ; pool[0] snippet$Item[]
   i64.const 1
   local.get 0   ; $arr_1
   i64.const 1
@@ -145,15 +145,15 @@ fn 0 snippet$main () -> i32
   array.copy
   local.get 0   ; $arr_1
   i32.const 0
-  array.get 13   ; snippet$Item[][]
+  array.get 13   ; snippet$Item[]
   struct.get 4 0   ; snippet$Item.name
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   local.set 4   ; __p_3
   local.get 0   ; $arr_1
   i32.const 1
-  array.get 13   ; snippet$Item[][]
+  array.get 13   ; snippet$Item[]
   struct.get 4 0   ; snippet$Item.name
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   local.set 9   ; $field_57
   local.get 4   ; __p_3
   string.const 5   ; " then "
@@ -378,7 +378,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

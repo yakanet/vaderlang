@@ -38,8 +38,8 @@ fn 0 snippet$main () -> i32
   i32.const 7
   struct.new 3   ; snippet$Pair
   local.set 0   ; p
-  local.field 0 3 0   ; p.quot
-  ref.cast 6   ; -> char
+  local.field 0 3 0   ; p snippet$Pair.quot
+  ref.cast 6   ; char
   call 7   ; std_core$char$Display$to_string
   local.tee 1   ; __p_0
   call.import 1   ; std_core$byte_len
@@ -66,8 +66,8 @@ fn 0 snippet$main () -> i32
   string.const 1   ; " rem="
   call 4   ; std_core$write_string_at
   local.set 2   ; $call_8
-  local.field 0 3 1   ; p.rem
-  ref.cast 1   ; -> i32
+  local.field 0 3 1   ; p snippet$Pair.rem
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 4   ; $cast_20
   local.get 3   ; __buf_1
@@ -94,8 +94,8 @@ fn 0 snippet$main () -> i32
   string.const 2   ; "after quot="
   call 4   ; std_core$write_string_at
   local.set 2   ; $call_8
-  local.field 0 3 0   ; p.quot
-  ref.cast 6   ; -> char
+  local.field 0 3 0   ; p snippet$Pair.quot
+  ref.cast 6   ; char
   char.const 0
   i32.eq
   local.set 5   ; $eq_35
@@ -109,8 +109,8 @@ fn 0 snippet$main () -> i32
   string.const 1   ; " rem="
   call 4   ; std_core$write_string_at
   local.set 2   ; $call_8
-  local.field 0 3 1   ; p.rem
-  ref.cast 1   ; -> i32
+  local.field 0 3 1   ; p snippet$Pair.rem
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 4   ; $cast_20
   local.get 3   ; __buf_1
@@ -330,7 +330,7 @@ fn 8 std_core$utf8_encode (char) -> ref
   local.get 0   ; arg 0
   char.to_i32
   local.set 1   ; cp
-  array.new 11 0   ; u8[][]
+  array.new 11 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 128
@@ -343,7 +343,7 @@ fn 8 std_core$utf8_encode (char) -> ref
     local.set 3   ; $cast_7
     local.get 2   ; out
     local.get 3   ; $cast_7
-    array.push 8   ; u8[]
+    array.push 8   ; u8
   else
     local.get 1   ; cp
     i32.const 2048
@@ -362,7 +362,7 @@ fn 8 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 8   ; u8[]
+      array.push 8   ; u8
       local.get 1   ; cp
       i32.const 63
       i32.bitand
@@ -376,7 +376,7 @@ fn 8 std_core$utf8_encode (char) -> ref
       local.set 3   ; $cast_7
       local.get 2   ; out
       local.get 3   ; $cast_7
-      array.push 8   ; u8[]
+      array.push 8   ; u8
     else
       local.get 1   ; cp
       i32.const 65536
@@ -395,7 +395,7 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 8   ; u8
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -411,7 +411,7 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 8   ; u8
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -425,7 +425,7 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 8   ; u8
       else
         local.get 1   ; cp
         i32.const 18
@@ -440,7 +440,7 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 8   ; u8
         local.get 1   ; cp
         i32.const 12
         u32.shr
@@ -456,7 +456,7 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 8   ; u8
         local.get 1   ; cp
         i32.const 6
         u32.shr
@@ -472,7 +472,7 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 8   ; u8
         local.get 1   ; cp
         i32.const 63
         i32.bitand
@@ -486,7 +486,7 @@ fn 8 std_core$utf8_encode (char) -> ref
         local.set 3   ; $cast_7
         local.get 2   ; out
         local.get 3   ; $cast_7
-        array.push 8   ; u8[]
+        array.push 8   ; u8
       end $L2
     end $L1
   end $L0
@@ -525,7 +525,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

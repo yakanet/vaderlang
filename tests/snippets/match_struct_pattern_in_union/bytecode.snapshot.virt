@@ -39,14 +39,14 @@ fn 0 snippet$describe (any) -> string
     type_check 2   ; snippet$Point
     if $L1 void
       local.get 0   ; arg 0
-      ref.cast 2   ; -> snippet$Point
+      ref.cast 2   ; snippet$Point
       struct.get 2 0   ; snippet$Point.x
-      ref.cast 4   ; -> i32
+      ref.cast 4   ; i32
       local.set 2   ; x
       local.get 0   ; arg 0
-      ref.cast 2   ; -> snippet$Point
+      ref.cast 2   ; snippet$Point
       struct.get 2 1   ; snippet$Point.y
-      ref.cast 4   ; -> i32
+      ref.cast 4   ; i32
       local.set 3   ; y
       i64.const 44
       call 3   ; std_core$new_byte_buffer
@@ -313,7 +313,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

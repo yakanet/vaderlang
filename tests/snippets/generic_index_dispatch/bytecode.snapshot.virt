@@ -30,14 +30,14 @@ vtable std_core$IndexSet.set_at 1 1
 export main 2
 
 fn 0 snippet$Cell$Index$at (ref,usize) -> i32
-  local.field 0 1 0   ; arg 0.slots
+  local.field 0 1 0   ; arg 0 snippet$Cell.slots
   local.get 1   ; arg 1
   load_slot_i32
   return
 end
 
 fn 1 snippet$Cell$IndexSet$set_at (ref,usize,i32) -> void
-  local.field 0 1 0   ; arg 0.slots
+  local.field 0 1 0   ; arg 0 snippet$Cell.slots
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   store_slot_i32
@@ -52,7 +52,7 @@ fn 2 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 6 3   ; i32[][]
+  array.new 6 3   ; i32[]
   struct.new 1   ; snippet$Cell
   local.set 0   ; cell
   i64.const 32
@@ -382,7 +382,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -76,21 +76,21 @@ end
 fn 1 snippet$Repeat$Iterator$next__i32$v (ref) -> (i32,u8)
   local v i32
   local $sub_11 i32
-  local.field 0 2 1   ; arg 0.remaining
-  ref.cast 1   ; -> i32
+  local.field 0 2 1   ; arg 0 snippet$Repeat__i32.remaining
+  ref.cast 1   ; i32
   i32.const 0
   i32.le
   if $L0 void
-    local.field 0 2 0   ; arg 0.value
-    ref.cast 1   ; -> i32
+    local.field 0 2 0   ; arg 0 snippet$Repeat__i32.value
+    ref.cast 1   ; i32
     i32.const 1
     return
   end $L0
-  local.field 0 2 0   ; arg 0.value
-  ref.cast 1   ; -> i32
+  local.field 0 2 0   ; arg 0 snippet$Repeat__i32.value
+  ref.cast 1   ; i32
   local.set 1   ; v
-  local.field 0 2 1   ; arg 0.remaining
-  ref.cast 1   ; -> i32
+  local.field 0 2 1   ; arg 0 snippet$Repeat__i32.remaining
+  ref.cast 1   ; i32
   i32.const 1
   i32.sub
   local.set 2   ; $sub_11
@@ -292,7 +292,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

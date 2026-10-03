@@ -43,16 +43,16 @@ fn 1 snippet$main () -> i32
   local $cast_17 i64
   call 0   ; snippet$make_record
   local.set 0   ; __tup_0
-  local.field 0 1 0   ; __tup_0._0
+  local.field 0 1 0   ; __tup_0 __Tuple_Tuple_i32_string_bool_9252dc35._0
   struct.get 2 0   ; __Tuple_i32_string_d0b3dcb6._0
-  ref.cast 3   ; -> i32
+  ref.cast 3   ; i32
   local.set 1   ; id
-  local.field 0 1 0   ; __tup_0._0
+  local.field 0 1 0   ; __tup_0 __Tuple_Tuple_i32_string_bool_9252dc35._0
   struct.get 2 1   ; __Tuple_i32_string_d0b3dcb6._1
-  ref.cast 4   ; -> string
+  ref.cast 4   ; string
   local.set 2   ; label
-  local.field 0 1 1   ; __tup_0._1
-  ref.cast 5   ; -> bool
+  local.field 0 1 1   ; __tup_0 __Tuple_Tuple_i32_string_bool_9252dc35._1
+  ref.cast 5   ; bool
   local.set 3   ; active
   i64.const 23
   call 3   ; std_core$new_byte_buffer
@@ -323,7 +323,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

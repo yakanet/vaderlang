@@ -76,7 +76,7 @@ fn 1 snippet$main () -> i32
   i32.const -1
   i32.const 0
   i32.const 127
-  array.new 11 4   ; i8[][]
+  array.new 11 4   ; i8[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -90,7 +90,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 0   ; __for_arr_0
         local.get 2   ; __for_i_2
-        array.get 11   ; i8[][]
+        array.get 11   ; i8[]
         local.tee 3   ; l
         call 0   ; snippet$name
         local.tee 4   ; __p_3
@@ -342,7 +342,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

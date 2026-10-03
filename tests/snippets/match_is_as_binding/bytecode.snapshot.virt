@@ -49,9 +49,9 @@ fn 0 snippet$show (any) -> string
       call 5   ; std_core$write_string_at
       local.set 3   ; __off_1
       local.get 0   ; arg 0
-      ref.cast 2   ; -> snippet$P
+      ref.cast 2   ; snippet$P
       struct.get 2 0   ; snippet$P.x
-      ref.cast 5   ; -> i32
+      ref.cast 5   ; i32
       i32.to_i64
       local.set 4   ; $cast_14
       local.get 2   ; __buf_0
@@ -68,9 +68,9 @@ fn 0 snippet$show (any) -> string
       type_check 3   ; snippet$Q
       if $L2 void
         local.get 0   ; arg 0
-        ref.cast 3   ; -> snippet$Q
+        ref.cast 3   ; snippet$Q
         struct.get 3 0   ; snippet$Q.y
-        ref.cast 4   ; -> string
+        ref.cast 4   ; string
         local.set 5   ; $field_20
         string.const 2   ; "Q.y = "
         local.get 5   ; $field_20
@@ -305,7 +305,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

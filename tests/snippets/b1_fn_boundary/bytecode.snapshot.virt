@@ -40,18 +40,18 @@ fn 1 snippet$find (any,i32) -> any
     type_check 3   ; snippet$Node
     if $L1 void
       local.get 0   ; arg 0
-      ref.cast 3   ; -> snippet$Node
+      ref.cast 3   ; snippet$Node
       struct.get 3 0   ; snippet$Node.value
-      ref.cast 1   ; -> i32
+      ref.cast 1   ; i32
       local.get 1   ; arg 1
       i32.eq
       if $L2 void
         local.get 0   ; arg 0
-        ref.cast 3   ; -> snippet$Node
+        ref.cast 3   ; snippet$Node
         local.set 2   ; if_res
       else
         local.get 0   ; arg 0
-        ref.cast 3   ; -> snippet$Node
+        ref.cast 3   ; snippet$Node
         struct.get 3 1   ; snippet$Node.next
         local.get 1   ; arg 1
         call 1   ; snippet$find
@@ -78,7 +78,7 @@ fn 2 snippet$length (any) -> i32
     type_check 3   ; snippet$Node
     if $L1 void
       local.get 0   ; arg 0
-      ref.cast 3   ; -> snippet$Node
+      ref.cast 3   ; snippet$Node
       struct.get 3 1   ; snippet$Node.next
       call 2   ; snippet$length
       local.set 2   ; $call_8
@@ -161,9 +161,9 @@ fn 3 snippet$main () -> i32
       call 7   ; std_core$write_string_at
       local.set 2   ; __off_1
       local.get 5   ; h
-      ref.cast 3   ; -> snippet$Node
+      ref.cast 3   ; snippet$Node
       struct.get 3 0   ; snippet$Node.value
-      ref.cast 1   ; -> i32
+      ref.cast 1   ; i32
       i32.to_i64
       local.set 3   ; $cast_16
       local.get 1   ; __buf_0
@@ -204,9 +204,9 @@ fn 3 snippet$main () -> i32
       call 7   ; std_core$write_string_at
       local.set 2   ; __off_1
       local.get 4   ; __scrut_2
-      ref.cast 3   ; -> snippet$Node
+      ref.cast 3   ; snippet$Node
       struct.get 3 0   ; snippet$Node.value
-      ref.cast 1   ; -> i32
+      ref.cast 1   ; i32
       i32.to_i64
       local.set 3   ; $cast_16
       local.get 1   ; __buf_0
@@ -430,7 +430,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

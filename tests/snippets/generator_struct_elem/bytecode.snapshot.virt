@@ -47,22 +47,22 @@ fn 0 snippet$main () -> i32
   local.set 1   ; $struct_5
   local.get 0   ; $struct_2
   local.get 1   ; $struct_5
-  array.new 5 2   ; snippet$Decl[][]
+  array.new 5 2   ; snippet$Decl[]
   struct.new_stack 4   ; snippet$FileMod
   local.set 0   ; $struct_2
-  array.new 5 0   ; snippet$Decl[][]
+  array.new 5 0   ; snippet$Decl[]
   struct.new_stack 4   ; snippet$FileMod
   local.set 1   ; $struct_5
   string.const 2   ; "c"
   i32.const 3
   struct.new_stack 3   ; snippet$Decl
-  array.new 5 1   ; snippet$Decl[][]
+  array.new 5 1   ; snippet$Decl[]
   struct.new_stack 4   ; snippet$FileMod
   local.set 2   ; $struct_14
   local.get 0   ; $struct_2
   local.get 1   ; $struct_5
   local.get 2   ; $struct_14
-  array.new 6 3   ; snippet$FileMod[][]
+  array.new 6 3   ; snippet$FileMod[]
   local.tee 0   ; $struct_2
   array.len
   local.set 3   ; __fuse_len_4
@@ -76,7 +76,7 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 0   ; $struct_2
         local.get 4   ; __fuse_i_5
-        array.get 6   ; snippet$FileMod[][]
+        array.get 6   ; snippet$FileMod[]
         struct.get 4 0   ; snippet$FileMod.decls
         local.tee 1   ; $struct_5
         array.len
@@ -91,10 +91,10 @@ fn 0 snippet$main () -> i32
             if $L5 void
               local.get 1   ; $struct_5
               local.get 6   ; __for_i_2
-              array.get 5   ; snippet$Decl[][]
+              array.get 5   ; snippet$Decl[]
               local.set 2   ; $struct_14
-              local.field 2 3 0   ; $struct_14.name
-              ref.cast 2   ; -> string
+              local.field 2 3 0   ; $struct_14 snippet$Decl.name
+              ref.cast 2   ; string
               local.tee 7   ; __p_0
               call.import 0   ; std_core$byte_len
               local.set 8   ; $call_38
@@ -115,8 +115,8 @@ fn 0 snippet$main () -> i32
               string.const 3   ; "="
               call 4   ; std_core$write_string_at
               local.set 10   ; __off_2
-              local.field 2 3 1   ; $struct_14.id
-              ref.cast 1   ; -> i32
+              local.field 2 3 1   ; $struct_14 snippet$Decl.id
+              ref.cast 1   ; i32
               i32.to_i64
               local.set 11   ; $cast_48
               local.get 9   ; __buf_1
@@ -352,7 +352,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

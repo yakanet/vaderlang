@@ -34,14 +34,14 @@ fn 0 snippet$main () -> i32
   call 1   ; snippet$empty_of__i32
   local.tee 0   ; numbers
   i32.const 7
-  array.push 1   ; i32[]
+  array.push 1   ; i32
   local.get 0   ; numbers
   i32.const 8
-  array.push 1   ; i32[]
+  array.push 1   ; i32
   call 2   ; snippet$empty_of__string
   local.tee 1   ; words
   string.const 0   ; "hi"
-  array.push 4   ; string[]
+  array.push 4   ; string
   i64.const 69
   call 4   ; std_core$new_byte_buffer
   local.set 2   ; __buf_0
@@ -97,8 +97,8 @@ fn 0 snippet$main () -> i32
   call 11   ; std_io$println__string
   local.get 1   ; words
   i32.const 0
-  array.get 3   ; string[][]
-  ref.cast 4   ; -> string
+  array.get 3   ; string[]
+  ref.cast 4   ; string
   local.tee 6   ; __p_2
   call.import 0   ; std_core$byte_len
   local.set 3   ; __off_1
@@ -141,12 +141,12 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 snippet$empty_of__i32 () -> ref
-  array.new 2 0   ; i32[][]
+  array.new 2 0   ; i32[]
   return
 end
 
 fn 2 snippet$empty_of__string () -> ref
-  array.new 3 0   ; string[][]
+  array.new 3 0   ; string[]
   return
 end
 
@@ -441,7 +441,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -50,11 +50,11 @@ end
 
 fn 1 snippet$main () -> i32
   i32.const 42
-  retag 2   ; -> i32
+  retag 2   ; i32
   call 0   ; snippet$describe
   call 5   ; std_io$println__string
   string.const 3   ; "hi"
-  retag 3   ; -> string
+  retag 3   ; string
   call 0   ; snippet$describe
   call 5   ; std_io$println__string
   null.const
@@ -123,7 +123,7 @@ fn 3 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 6   ; u8[][]
+      array.slice 6   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -28,7 +28,7 @@ fn 0 snippet$main () -> i32
   i32.const 10
   struct.new 12   ; $Cell_i32
   struct.new 2   ; __lambda_env_snippet_1
-  make_closure 1 13   ; __lambda_snippet_0
+  make_closure 1 13   ; __lambda_snippet_0 fn
   local.set 0   ; add
   i64.const 20
   call 3   ; std_core$new_byte_buffer
@@ -72,7 +72,7 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 __lambda_snippet_0 (ref,i32) -> i32
-  local.field 0 2 0   ; arg 0.cap_0
+  local.field 0 2 0   ; arg 0 __lambda_env_snippet_1.cap_0
   struct.get 12 0   ; $Cell_i32.value
   local.get 1   ; arg 1
   i32.add
@@ -269,7 +269,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

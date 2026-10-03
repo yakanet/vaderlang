@@ -33,49 +33,49 @@ fn 0 snippet$main () -> i32
   local $field_10 string
   i32.const 1
   local.set 0   ; c
-  data.const 0 10   ; pool[0] : snippet_codes$Info[]
+  data.const 0 10   ; pool[0] snippet_codes$Info[]
   local.set 1   ; $data_const_2
   local.get 0   ; c
   u8.to_i64
   local.set 2   ; $cast_3
   local.get 1   ; $data_const_2
   local.get 2   ; $cast_3
-  array.get 10   ; snippet_codes$Info[][]
+  array.get 10   ; snippet_codes$Info[]
   struct.get 8 0   ; snippet_codes$Info.id
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   local.set 3   ; $field_5
-  data.const 0 10   ; pool[0] : snippet_codes$Info[]
+  data.const 0 10   ; pool[0] snippet_codes$Info[]
   local.set 1   ; $data_const_2
   local.get 0   ; c
   u8.to_i64
   local.set 2   ; $cast_3
   local.get 1   ; $data_const_2
   local.get 2   ; $cast_3
-  array.get 10   ; snippet_codes$Info[][]
+  array.get 10   ; snippet_codes$Info[]
   struct.get 8 1   ; snippet_codes$Info.message
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   local.set 4   ; $field_10
   local.get 3   ; $field_5
   string.const 0   ; ": "
   local.get 4   ; $field_10
   call 1   ; concat_3
   call 5   ; std_io$println__string
-  data.const 0 10   ; pool[0] : snippet_codes$Info[]
+  data.const 0 10   ; pool[0] snippet_codes$Info[]
   local.set 1   ; $data_const_2
   local.get 0   ; c
   u8.to_i64
   local.set 2   ; $cast_3
   local.get 1   ; $data_const_2
   local.get 2   ; $cast_3
-  array.get 10   ; snippet_codes$Info[][]
+  array.get 10   ; snippet_codes$Info[]
   struct.get 8 0   ; snippet_codes$Info.id
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   call 5   ; std_io$println__string
   string.const 1   ; "a"
   string.const 2   ; "b"
   struct.new_stack 8   ; snippet_codes$Info
   struct.get 8 1   ; snippet_codes$Info.message
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   call 5   ; std_io$println__string
   return.lit i32.const 0
 end
@@ -181,7 +181,7 @@ fn 3 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 5   ; u8[][]
+      array.slice 5   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

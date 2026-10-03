@@ -28,7 +28,7 @@ end
 
 fn 1 snippet$main () -> i32
   i32.const 42
-  retag 2   ; -> i32
+  retag 2   ; i32
   call 0   ; snippet$classify
   return
 end

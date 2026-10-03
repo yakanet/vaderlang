@@ -47,7 +47,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; $struct_2
   local.get 1   ; $struct_5
   local.get 2   ; $struct_8
-  array.new 11 3   ; __Tuple_i32_string_d0b3dcb6[][]
+  array.new 11 3   ; __Tuple_i32_string_d0b3dcb6[]
   local.tee 0   ; $struct_2
   array.len
   local.set 3   ; __for_len_1
@@ -61,10 +61,10 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 0   ; $struct_2
         local.get 4   ; __for_i_2
-        array.get 11   ; __Tuple_i32_string_d0b3dcb6[][]
+        array.get 11   ; __Tuple_i32_string_d0b3dcb6[]
         local.set 1   ; $struct_5
-        local.field 1 10 1   ; $struct_5._1
-        ref.cast 2   ; -> string
+        local.field 1 10 1   ; $struct_5 __Tuple_i32_string_d0b3dcb6._1
+        ref.cast 2   ; string
         local.tee 5   ; __p_3
         call.import 0   ; std_core$byte_len
         local.set 6   ; $call_22
@@ -75,8 +75,8 @@ fn 0 snippet$main () -> i32
         local.set 2   ; $struct_8
         i64.const 0
         local.set 7   ; __off_5
-        local.field 1 10 0   ; $struct_5._0
-        ref.cast 1   ; -> i32
+        local.field 1 10 0   ; $struct_5 __Tuple_i32_string_d0b3dcb6._0
+        ref.cast 1   ; i32
         i32.to_i64
         local.set 8   ; $cast_29
         local.get 2   ; $struct_8
@@ -314,7 +314,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

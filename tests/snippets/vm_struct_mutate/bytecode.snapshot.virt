@@ -11,7 +11,7 @@ fn 0 snippet$main () -> i32
   local.tee 0   ; c
   i32.const 100
   struct.set_stack 2 0   ; snippet$Counter.value
-  local.field 0 2 0   ; c.value
-  ref.cast 1   ; -> i32
+  local.field 0 2 0   ; c snippet$Counter.value
+  ref.cast 1   ; i32
   return
 end

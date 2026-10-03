@@ -39,16 +39,16 @@ fn 0 snippet$describe (u8) -> string
   local $call_7 usize
   local $data_const_13 ref
   local $field_27 bool
-  data.const 0 13   ; pool[0] : snippet$StatusInfo[]
+  data.const 0 13   ; pool[0] snippet$StatusInfo[]
   local.set 1   ; $data_const_1
   local.get 0   ; arg 0
   u8.to_i64
   local.set 2   ; $cast_2
   local.get 1   ; $data_const_1
   local.get 2   ; $cast_2
-  array.get 13   ; snippet$StatusInfo[][]
+  array.get 13   ; snippet$StatusInfo[]
   struct.get 4 1   ; snippet$StatusInfo.reason
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   local.tee 3   ; __p_0
   call.import 0   ; std_core$byte_len
   local.set 4   ; $call_7
@@ -59,16 +59,16 @@ fn 0 snippet$describe (u8) -> string
   local.set 1   ; $data_const_1
   i64.const 0
   local.set 4   ; $call_7
-  data.const 0 13   ; pool[0] : snippet$StatusInfo[]
+  data.const 0 13   ; pool[0] snippet$StatusInfo[]
   local.set 5   ; $data_const_13
   local.get 0   ; arg 0
   u8.to_i64
   local.set 2   ; $cast_2
   local.get 5   ; $data_const_13
   local.get 2   ; $cast_2
-  array.get 13   ; snippet$StatusInfo[][]
+  array.get 13   ; snippet$StatusInfo[]
   struct.get 4 0   ; snippet$StatusInfo.code
-  ref.cast 3   ; -> i32
+  ref.cast 3   ; i32
   i32.to_i64
   local.set 2   ; $cast_2
   local.get 1   ; $data_const_1
@@ -91,16 +91,16 @@ fn 0 snippet$describe (u8) -> string
   string.const 1   ; " retry="
   call 5   ; std_core$write_string_at
   local.set 4   ; $call_7
-  data.const 0 13   ; pool[0] : snippet$StatusInfo[]
+  data.const 0 13   ; pool[0] snippet$StatusInfo[]
   local.set 5   ; $data_const_13
   local.get 0   ; arg 0
   u8.to_i64
   local.set 2   ; $cast_2
   local.get 5   ; $data_const_13
   local.get 2   ; $cast_2
-  array.get 13   ; snippet$StatusInfo[][]
+  array.get 13   ; snippet$StatusInfo[]
   struct.get 4 2   ; snippet$StatusInfo.retry
-  ref.cast 5   ; -> bool
+  ref.cast 5   ; bool
   local.set 6   ; $field_27
   local.get 1   ; $data_const_1
   local.get 4   ; $call_7
@@ -124,7 +124,7 @@ fn 1 snippet$main () -> i32
   i32.const 0
   i32.const 1
   i32.const 2
-  array.new 10 3   ; u8[][]
+  array.new 10 3   ; u8[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -138,7 +138,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 0   ; __for_arr_0
         local.get 2   ; __for_i_2
-        array.get 10   ; u8[][]
+        array.get 10   ; u8[]
         call 0   ; snippet$describe
         call 11   ; std_io$println__string
         local.get 2   ; __for_i_2
@@ -149,27 +149,27 @@ fn 1 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  data.const 0 13   ; pool[0] : snippet$StatusInfo[]
+  data.const 0 13   ; pool[0] snippet$StatusInfo[]
   local.set 0   ; __for_arr_0
   i32.const 1
   u8.to_i64
   local.set 3   ; $cast_17
   local.get 0   ; __for_arr_0
   local.get 3   ; $cast_17
-  array.get 13   ; snippet$StatusInfo[][]
+  array.get 13   ; snippet$StatusInfo[]
   struct.get 4 1   ; snippet$StatusInfo.reason
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   local.set 4   ; __p_3
-  data.const 1 13   ; pool[1] : snippet$StatusInfo[]
+  data.const 1 13   ; pool[1] snippet$StatusInfo[]
   local.set 0   ; __for_arr_0
   i32.const 1
   u8.to_i64
   local.set 3   ; $cast_17
   local.get 0   ; __for_arr_0
   local.get 3   ; $cast_17
-  array.get 13   ; snippet$StatusInfo[][]
+  array.get 13   ; snippet$StatusInfo[]
   struct.get 4 1   ; snippet$StatusInfo.reason
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   local.set 5   ; __p_4
   local.get 4   ; __p_3
   call.import 0   ; std_core$byte_len
@@ -561,7 +561,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

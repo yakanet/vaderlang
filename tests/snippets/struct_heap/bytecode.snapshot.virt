@@ -19,11 +19,11 @@ fn 1 snippet$main () -> i32
   i32.const 4
   call 0   ; snippet$make
   local.set 0   ; p
-  local.field 0 2 0   ; p.x
-  ref.cast 1   ; -> i32
+  local.field 0 2 0   ; p snippet$Point.x
+  ref.cast 1   ; i32
   local.set 1   ; $field_4
-  local.field 0 2 1   ; p.y
-  ref.cast 1   ; -> i32
+  local.field 0 2 1   ; p snippet$Point.y
+  ref.cast 1   ; i32
   local.set 2   ; $field_5
   local.get 1   ; $field_4
   local.get 2   ; $field_5

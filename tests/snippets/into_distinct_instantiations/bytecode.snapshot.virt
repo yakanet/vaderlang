@@ -22,8 +22,8 @@ impl 8 std_core$ByteAccess
 export main 4
 
 fn 0 snippet$UserId$Into$into (ref) -> ref
-  local.field 0 1 0   ; arg 0.value
-  ref.cast 5   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$UserId.value
+  ref.cast 5   ; i32
   struct.new 2   ; snippet$Box__i32
   return
 end
@@ -42,8 +42,8 @@ fn 1 snippet$UserId$Into$into_1 (ref) -> ref
   string.const 0   ; "user_"
   call 8   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 1 0   ; arg 0.value
-  ref.cast 5   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$UserId.value
+  ref.cast 5   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0
@@ -59,14 +59,14 @@ fn 1 snippet$UserId$Into$into_1 (ref) -> ref
 end
 
 fn 2 snippet$take_string (ref) -> string
-  local.field 0 3 0   ; arg 0.value
-  ref.cast 4   ; -> string
+  local.field 0 3 0   ; arg 0 snippet$Box__string.value
+  ref.cast 4   ; string
   return
 end
 
 fn 3 snippet$take_int (ref) -> i32
-  local.field 0 2 0   ; arg 0.value
-  ref.cast 5   ; -> i32
+  local.field 0 2 0   ; arg 0 snippet$Box__i32.value
+  ref.cast 5   ; i32
   i32.const 1
   i32.add
   return
@@ -310,7 +310,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

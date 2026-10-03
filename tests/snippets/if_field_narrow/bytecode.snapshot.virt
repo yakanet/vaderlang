@@ -33,7 +33,7 @@ fn 1 snippet$report (ref) -> void
   local __buf_0 ref
   local __off_1 usize
   local $cast_13 i64
-  local.field 0 3 0   ; arg 0.items
+  local.field 0 3 0   ; arg 0 snippet$Bag.items
   type_check 0   ; null
   bool.not
   if $L0 void
@@ -47,7 +47,7 @@ fn 1 snippet$report (ref) -> void
     string.const 0   ; "count="
     call 7   ; std_core$write_string_at
     local.set 2   ; __off_1
-    local.field 0 3 0   ; arg 0.items
+    local.field 0 3 0   ; arg 0 snippet$Bag.items
     call 0   ; snippet$count
     i32.to_i64
     local.set 3   ; $cast_13
@@ -68,14 +68,14 @@ fn 1 snippet$report (ref) -> void
 end
 
 fn 2 snippet$total (ref) -> i32
-  local.field 0 3 0   ; arg 0.items
+  local.field 0 3 0   ; arg 0 snippet$Bag.items
   type_check 0   ; null
   if $L0 void
     i32.const 1
     i32.neg
     return
   end $L0
-  local.field 0 3 0   ; arg 0.items
+  local.field 0 3 0   ; arg 0 snippet$Bag.items
   call 0   ; snippet$count
   return
 end
@@ -89,7 +89,7 @@ fn 3 snippet$main () -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 1 3   ; i32[][]
+  array.new 1 3   ; i32[]
   struct.new 3   ; snippet$Bag
   local.set 0   ; full
   null.const
@@ -353,7 +353,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

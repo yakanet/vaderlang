@@ -24,12 +24,12 @@ fn 0 snippet$byte_count (any) -> usize
   type_check 2   ; string
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> string
+    ref.cast 2   ; string
     call.import 0   ; std_core$byte_len
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 3   ; -> u8[]
+  ref.cast 3   ; u8[]
   array.len
   return
 end
@@ -43,7 +43,7 @@ fn 1 snippet$main () -> i32
   i32.const 2
   i32.const 3
   i32.const 4
-  array.new 3 4   ; u8[][]
+  array.new 3 4   ; u8[]
   local.set 0   ; a
   i64.const 62
   call 3   ; std_core$new_byte_buffer
@@ -51,7 +51,7 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   string.const 0   ; "hi"
-  retag 2   ; -> string
+  retag 2   ; string
   call 0   ; snippet$byte_count
   usize.to_i64
   local.set 3   ; $cast_13
@@ -270,7 +270,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 3   ; u8[][]
+      array.slice 3   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

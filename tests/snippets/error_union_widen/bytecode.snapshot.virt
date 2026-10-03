@@ -47,8 +47,8 @@ fn 0 snippet$A$Error$message (ref) -> string
   string.const 0   ; "a:"
   call 9   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 1 0   ; arg 0.a
-  ref.cast 8   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$A.a
+  ref.cast 8   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0
@@ -76,8 +76,8 @@ fn 1 snippet$B$Error$message (ref) -> string
   string.const 1   ; "b:"
   call 9   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 3 0   ; arg 0.b
-  ref.cast 8   ; -> i32
+  local.field 0 3 0   ; arg 0 snippet$B.b
+  ref.cast 8   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0
@@ -108,7 +108,7 @@ fn 4 snippet$tail_string (any) -> string
     return.lit string.const 2   ; "was-error"
   end $L0
   local.get 0   ; arg 0
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   call 3   ; snippet$only_string
   return
 end
@@ -118,7 +118,7 @@ fn 5 snippet$main () -> i32
   local e any
   local $vcall_7 string
   string.const 3   ; "hello"
-  retag 2   ; -> string
+  retag 2   ; string
   call 2   ; snippet$widen
   local.tee 0   ; __scrut_0
   local.set 1   ; e
@@ -137,7 +137,7 @@ fn 5 snippet$main () -> i32
     type_check 2   ; string
     if $L1 void
       local.get 1   ; e
-      ref.cast 2   ; -> string
+      ref.cast 2   ; string
       local.set 2   ; $vcall_7
       string.const 5   ; "str "
       local.get 2   ; $vcall_7
@@ -148,7 +148,7 @@ fn 5 snippet$main () -> i32
     end $L1
   end $L0
   string.const 6   ; "plain"
-  retag 2   ; -> string
+  retag 2   ; string
   call 4   ; snippet$tail_string
   call 13   ; std_io$println__string
   return.lit i32.const 0
@@ -359,7 +359,7 @@ fn 11 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 13   ; u8[][]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

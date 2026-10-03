@@ -45,8 +45,8 @@ fn 1 snippet$combine (i32,i32,i32) -> i32
 end
 
 fn 2 snippet$scale (ref,i32,i32) -> i32
-  local.field 0 3 0   ; arg 0.v
-  ref.cast 2   ; -> i32
+  local.field 0 3 0   ; arg 0 snippet$Box.v
+  ref.cast 2   ; i32
   local.get 1   ; arg 1
   i32.mul
   local.get 2   ; arg 2

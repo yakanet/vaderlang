@@ -54,9 +54,9 @@ fn 1 snippet$main () -> i32
   i32.const 69
   i32.const 14
   i32.const 90
-  array.new 10 20   ; i32[][]
+  array.new 10 20   ; i32[]
   local.set 0   ; $arr_20
-  fn.ref 0 11   ; snippet$ascending
+  fn.ref 0 11   ; snippet$ascending fn
   local.set 1   ; $fn_ref_21
   local.get 0   ; $arr_20
   local.get 1   ; $fn_ref_21
@@ -294,7 +294,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -644,7 +644,7 @@ end
 fn 12 std_iter$clone__i32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
-  array.new 10 0   ; i32[][]
+  array.new 10 0   ; i32[]
   local.set 1   ; $arr_1
   local.get 0   ; arg 0
   array.len

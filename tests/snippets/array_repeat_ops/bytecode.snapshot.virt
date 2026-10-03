@@ -14,7 +14,7 @@ fn 0 snippet$main () -> i32
   i32.const 0
   local.set 0   ; pass
   i32.const 0
-  array.new 2 1   ; i32[][]
+  array.new 2 1   ; i32[]
   i32.const 3
   array.repeat
   local.tee 1   ; zeros
@@ -52,7 +52,7 @@ fn 0 snippet$main () -> i32
     local.set 0   ; pass
   end $L2
   i32.const 1
-  array.new 2 1   ; i32[][]
+  array.new 2 1   ; i32[]
   i32.const 4
   array.repeat
   local.tee 1   ; zeros
@@ -91,7 +91,7 @@ fn 0 snippet$main () -> i32
   end $L5
   i32.const 7
   i32.const 9
-  array.new 2 2   ; i32[][]
+  array.new 2 2   ; i32[]
   i32.const 2
   array.repeat
   local.tee 1   ; zeros
@@ -152,7 +152,7 @@ fn 0 snippet$main () -> i32
     i32.add
     local.set 0   ; pass
   end $L10
-  array.new 2 0   ; i32[][]
+  array.new 2 0   ; i32[]
   i32.const 8
   array.repeat
   local.tee 1   ; zeros
@@ -175,7 +175,7 @@ fn 0 snippet$main () -> i32
       if $L14 void
         local.get 1   ; zeros
         local.get 3   ; i
-        array.push 1 1   ; i32[]
+        array.push 1 1   ; i32 zeros
         local.get 3   ; i
         i32.const 1
         i32.add
@@ -221,11 +221,11 @@ fn 0 snippet$main () -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 2 3   ; i32[][]
+  array.new 2 3   ; i32[]
   local.set 1   ; zeros
   i32.const 4
   i32.const 5
-  array.new 2 2   ; i32[][]
+  array.new 2 2   ; i32[]
   local.set 4   ; extra
   local.get 1   ; zeros
   local.get 4   ; extra
@@ -278,7 +278,7 @@ fn 0 snippet$main () -> i32
   end $L21
   i32.const 8
   i32.const 9
-  array.new 2 2   ; i32[][]
+  array.new 2 2   ; i32[]
   local.tee 1   ; zeros
   local.get 1   ; zeros
   array.push_all
@@ -341,14 +341,14 @@ fn 0 snippet$main () -> i32
     local.set 0   ; pass
   end $L26
   i32.const 0
-  array.new 2 1   ; i32[][]
+  array.new 2 1   ; i32[]
   i32.const 5
   array.repeat
   local.set 1   ; zeros
   i32.const 11
   i32.const 22
   i32.const 33
-  array.new 2 3   ; i32[][]
+  array.new 2 3   ; i32[]
   i64.const 0
   local.get 1   ; zeros
   i64.const 1
@@ -417,7 +417,7 @@ fn 0 snippet$main () -> i32
   i32.const 2
   i32.const 3
   i32.const 4
-  array.new 2 4   ; i32[][]
+  array.new 2 4   ; i32[]
   local.tee 1   ; zeros
   i64.const 0
   local.get 1   ; zeros
@@ -473,7 +473,7 @@ fn 0 snippet$main () -> i32
   end $L35
   i32.const 100
   i32.const 200
-  array.new 2 2   ; i32[][]
+  array.new 2 2   ; i32[]
   local.tee 1   ; zeros
   array.remove_last
   local.tee 5   ; last
@@ -481,7 +481,7 @@ fn 0 snippet$main () -> i32
   bool.not
   if $L36 void
     local.get 5   ; last
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     i32.const 200
     i32.eq
     local.set 2   ; and_res
@@ -519,7 +519,7 @@ fn 0 snippet$main () -> i32
     i32.add
     local.set 0   ; pass
   end $L39
-  array.new 2 0   ; i32[][]
+  array.new 2 0   ; i32[]
   array.remove_last
   type_check 0   ; null
   if $L40 void
@@ -532,12 +532,12 @@ fn 0 snippet$main () -> i32
   i32.const 2
   i32.const 3
   i32.const 4
-  array.new 2 4   ; i32[][]
+  array.new 2 4   ; i32[]
   local.tee 1   ; zeros
   array.clear
   local.get 1   ; zeros
   i32.const 42
-  array.push 1   ; i32[]
+  array.push 1   ; i32
   local.get 1   ; zeros
   array.len
   i64.const 1

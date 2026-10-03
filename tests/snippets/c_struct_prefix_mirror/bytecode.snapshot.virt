@@ -70,8 +70,8 @@ fn 0 snippet$main () -> i32
   string.const 1   ; "epoch="
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 0 3 0   ; tv.tv_sec
-  ref.cast 6   ; -> i64
+  local.field 0 3 0   ; tv snippet$TimeVal.tv_sec
+  ref.cast 6   ; i64
   i64.const 1600000000
   i64.gt
   local.set 5   ; $gt_25
@@ -308,7 +308,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

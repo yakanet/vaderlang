@@ -22,7 +22,7 @@ impl 9 std_core$ByteAccess
 export main 3
 
 fn 0 snippet$new_row () -> ref
-  array.new 1 0   ; i32[][]
+  array.new 1 0   ; i32[]
   return
 end
 
@@ -55,7 +55,7 @@ fn 1 snippet$fill (ref) -> void
             if $L5 void
               local.get 0   ; arg 0
               local.get 1   ; i
-              array.get 3   ; i32[][][]
+              array.get 3   ; i32[][]
               local.set 4   ; $idx_10
               local.get 1   ; i
               usize.to_i32
@@ -71,7 +71,7 @@ fn 1 snippet$fill (ref) -> void
               local.set 7   ; $add_15
               local.get 4   ; $idx_10
               local.get 7   ; $add_15
-              array.push 2   ; i32[]
+              array.push 2   ; i32
               local.get 3   ; j
               i64.const 1
               i64.add
@@ -116,7 +116,7 @@ fn 2 snippet$mismatches (ref) -> i32
       if $L2 void
         local.get 0   ; arg 0
         local.get 2   ; i
-        array.get 3   ; i32[][][]
+        array.get 3   ; i32[][]
         local.tee 4   ; row
         array.len
         i64.const 9
@@ -190,7 +190,7 @@ fn 3 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $cast_12 i64
-  fn.ref 4 6   ; __lambda_snippet_0
+  fn.ref 4 6   ; __lambda_snippet_0 fn
   local.set 0   ; $fn_ref_1
   i64.const 40
   local.get 0   ; $fn_ref_1
@@ -220,7 +220,7 @@ fn 3 snippet$main () -> i32
   local.get 2   ; __off_1
   call 8   ; std_core$finish_buffer
   call 13   ; std_io$println__string
-  fn.ref 0 6   ; snippet$new_row
+  fn.ref 0 6   ; snippet$new_row fn
   local.set 0   ; $fn_ref_1
   i64.const 40
   local.get 0   ; $fn_ref_1
@@ -254,7 +254,7 @@ fn 3 snippet$main () -> i32
 end
 
 fn 4 __lambda_snippet_0 () -> ref
-  array.new 1 0   ; i32[][]
+  array.new 1 0   ; i32[]
   return
 end
 
@@ -262,7 +262,7 @@ fn 5 snippet$build__i32__ (usize,ref) -> ref
   local out ref
   local __for_discard_0 usize
   local $call_ind_8 ref
-  array.new 3 0   ; i32[][][]
+  array.new 3 0   ; i32[][]
   local.get 0   ; arg 0
   array.repeat
   local.set 2   ; out
@@ -279,7 +279,7 @@ fn 5 snippet$build__i32__ (usize,ref) -> ref
         local.set 4   ; $call_ind_8
         local.get 2   ; out
         local.get 4   ; $call_ind_8
-        array.push 1   ; i32[][]
+        array.push 1   ; i32[]
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -497,7 +497,7 @@ fn 11 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

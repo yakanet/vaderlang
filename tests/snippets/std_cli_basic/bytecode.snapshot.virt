@@ -111,7 +111,7 @@ fn 0 snippet$main () -> i32
   local $idx_52 string
   local $call_62 bool
   local __for_i_18 usize
-  array.new 16 0   ; cli$ValueSpec[][]
+  array.new 16 0   ; cli$ValueSpec[]
   local.set 0   ; $arr_6
   string.const 0   ; "verbose"
   string.const 1   ; "Say more"
@@ -122,7 +122,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; $arr_6
   struct.new 12   ; cli$FlagSpec
   local.set 0   ; $arr_6
-  array.new 16 0   ; cli$ValueSpec[][]
+  array.new 16 0   ; cli$ValueSpec[]
   local.set 1   ; $arr_14
   string.const 4   ; "out"
   string.const 5   ; "Where to write"
@@ -135,12 +135,12 @@ fn 0 snippet$main () -> i32
   local.set 1   ; $arr_14
   local.get 0   ; $arr_6
   local.get 1   ; $arr_14
-  array.new 11 2   ; cli$FlagSpec[][]
+  array.new 11 2   ; cli$FlagSpec[]
   local.set 0   ; $arr_6
   string.const 8   ; "--verbose"
   string.const 9   ; "--out=/tmp/x"
   string.const 10   ; "extra"
-  array.new 10 3   ; string[][]
+  array.new 10 3   ; string[]
   local.get 0   ; $arr_6
   call 15   ; cli$parse
   local.set 1   ; $arr_14
@@ -154,7 +154,7 @@ fn 0 snippet$main () -> i32
   string.const 11   ; "errors="
   call 9   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 1 13 2   ; $arr_14.errors
+  local.field 1 13 2   ; $arr_14 cli$ParsedArgs.errors
   array.len
   usize.to_i64
   local.set 4   ; $cast_34
@@ -177,7 +177,7 @@ fn 0 snippet$main () -> i32
   string.const 12   ; "positionals="
   call 9   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 1 13 1   ; $arr_14.positionals
+  local.field 1 13 1   ; $arr_14 cli$ParsedArgs.positionals
   array.len
   usize.to_i64
   local.set 4   ; $cast_34
@@ -190,10 +190,10 @@ fn 0 snippet$main () -> i32
   local.get 3   ; __off_1
   call 8   ; std_core$finish_buffer
   call 14   ; std_io$println__string
-  local.field 1 13 1   ; $arr_14.positionals
+  local.field 1 13 1   ; $arr_14 cli$ParsedArgs.positionals
   i32.const 0
-  array.get 10   ; string[][]
-  ref.cast 2   ; -> string
+  array.get 10   ; string[]
+  ref.cast 2   ; string
   local.set 5   ; $idx_52
   string.const 13   ; "first="
   local.get 5   ; $idx_52
@@ -265,7 +265,7 @@ fn 0 snippet$main () -> i32
   call 14   ; std_io$println__string
   string.const 21   ; "file.vader"
   string.const 8   ; "--verbose"
-  array.new 10 2   ; string[][]
+  array.new 10 2   ; string[]
   local.get 0   ; $arr_6
   call 15   ; cli$parse
   local.set 1   ; $arr_14
@@ -302,7 +302,7 @@ fn 0 snippet$main () -> i32
   string.const 23   ; "after_positionals="
   call 9   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 1 13 1   ; $arr_14.positionals
+  local.field 1 13 1   ; $arr_14 cli$ParsedArgs.positionals
   array.len
   usize.to_i64
   local.set 4   ; $cast_34
@@ -318,7 +318,7 @@ fn 0 snippet$main () -> i32
   string.const 24   ; "-V"
   string.const 25   ; "-o"
   string.const 26   ; "/tmp/y"
-  array.new 10 3   ; string[][]
+  array.new 10 3   ; string[]
   local.get 0   ; $arr_6
   call 15   ; cli$parse
   local.set 1   ; $arr_14
@@ -355,7 +355,7 @@ fn 0 snippet$main () -> i32
   call 1   ; concat_2
   call 14   ; std_io$println__string
   string.const 29   ; "--nope"
-  array.new 10 1   ; string[][]
+  array.new 10 1   ; string[]
   local.get 0   ; $arr_6
   call 15   ; cli$parse
   local.set 1   ; $arr_14
@@ -369,7 +369,7 @@ fn 0 snippet$main () -> i32
   string.const 30   ; "unknown_errors="
   call 9   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 1 13 2   ; $arr_14.errors
+  local.field 1 13 2   ; $arr_14 cli$ParsedArgs.errors
   array.len
   usize.to_i64
   local.set 4   ; $cast_34
@@ -382,7 +382,7 @@ fn 0 snippet$main () -> i32
   local.get 3   ; __off_1
   call 8   ; std_core$finish_buffer
   call 14   ; std_io$println__string
-  local.field 1 13 2   ; $arr_14.errors
+  local.field 1 13 2   ; $arr_14 cli$ParsedArgs.errors
   local.tee 1   ; $arr_14
   array.len
   local.set 3   ; __off_1
@@ -396,8 +396,8 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 1   ; $arr_14
         local.get 7   ; __for_i_18
-        array.get 10   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 10   ; string[]
+        ref.cast 2   ; string
         local.set 5   ; $idx_52
         string.const 31   ; "err="
         local.get 5   ; $idx_52
@@ -413,7 +413,7 @@ fn 0 snippet$main () -> i32
   end $L0
   string.const 32   ; "--out"
   string.const 8   ; "--verbose"
-  array.new 10 2   ; string[][]
+  array.new 10 2   ; string[]
   local.get 0   ; $arr_6
   call 15   ; cli$parse
   local.set 0   ; $arr_6
@@ -427,7 +427,7 @@ fn 0 snippet$main () -> i32
   string.const 33   ; "forgotten_errors="
   call 9   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 0 13 2   ; $arr_6.errors
+  local.field 0 13 2   ; $arr_6 cli$ParsedArgs.errors
   array.len
   usize.to_i64
   local.set 4   ; $cast_34
@@ -1027,7 +1027,7 @@ fn 12 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -1121,11 +1121,11 @@ fn 15 cli$parse (ref,ref) -> ref
   local negative_number bool
   local and_res bool
   local $call_141 string
-  array.new 10 0   ; string[][]
+  array.new 10 0   ; string[]
   local.set 2   ; $arr_2
-  array.new 10 0   ; string[][]
+  array.new 10 0   ; string[]
   local.set 3   ; $arr_3
-  array.new 20 0   ; i32[][]
+  array.new 20 0   ; i32[]
   local.set 4   ; $arr_4
   local.get 2   ; $arr_2
   local.get 3   ; $arr_3
@@ -1135,9 +1135,9 @@ fn 15 cli$parse (ref,ref) -> ref
   i64.const 0
   struct.new 15   ; std_collections$MutableMap__string__string
   local.set 2   ; $arr_2
-  array.new 10 0   ; string[][]
+  array.new 10 0   ; string[]
   local.set 3   ; $arr_3
-  array.new 10 0   ; string[][]
+  array.new 10 0   ; string[]
   local.set 4   ; $arr_4
   local.get 0   ; arg 0
   array.len
@@ -1152,8 +1152,8 @@ fn 15 cli$parse (ref,ref) -> ref
       if $L2 void
         local.get 0   ; arg 0
         local.get 6   ; i
-        array.get 10   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 10   ; string[]
+        ref.cast 2   ; string
         local.tee 7   ; a
         string.const 39   ; "--"
         string.eq
@@ -1200,7 +1200,7 @@ fn 15 cli$parse (ref,ref) -> ref
             local.get 10   ; ab
             local.get 11   ; if_res
             local.get 12   ; $len_40
-            array.slice 8   ; u8[][]
+            array.slice 8   ; u8[]
             call.import 2   ; std_core$bytes_to_string
             local.tee 13   ; body
             char.const 61
@@ -1223,7 +1223,7 @@ fn 15 cli$parse (ref,ref) -> ref
               local.get 15   ; bb
               i64.const 0
               local.get 17   ; $cast_54
-              array.slice 8   ; u8[][]
+              array.slice 8   ; u8[]
               call.import 2   ; std_core$bytes_to_string
               local.set 16   ; name
             end $L7
@@ -1245,7 +1245,7 @@ fn 15 cli$parse (ref,ref) -> ref
               local.get 15   ; bb
               local.get 19   ; $add_63
               local.get 20   ; $len_64
-              array.slice 8   ; u8[][]
+              array.slice 8   ; u8[]
               call.import 2   ; std_core$bytes_to_string
               local.set 18   ; inline_value
             end $L8
@@ -1262,7 +1262,7 @@ fn 15 cli$parse (ref,ref) -> ref
               local.set 22   ; $call_71
               local.get 4   ; $arr_4
               local.get 22   ; $call_71
-              array.push 2   ; string[]
+              array.push 2   ; string
               local.get 6   ; i
               i64.const 1
               i64.add
@@ -1270,7 +1270,7 @@ fn 15 cli$parse (ref,ref) -> ref
               br $L1
             end $L9
             local.get 21   ; spec
-            ref.cast 12   ; -> cli$FlagSpec
+            ref.cast 12   ; cli$FlagSpec
             struct.get 12 5   ; cli$FlagSpec.kind
             i32.const 0
             i32.eq
@@ -1280,9 +1280,9 @@ fn 15 cli$parse (ref,ref) -> ref
               i64.lt
               if $L11 void
                 local.get 21   ; spec
-                ref.cast 12   ; -> cli$FlagSpec
+                ref.cast 12   ; cli$FlagSpec
                 struct.get 12 0   ; cli$FlagSpec.name
-                ref.cast 2   ; -> string
+                ref.cast 2   ; string
                 local.set 23   ; $field_81
                 local.get 2   ; $arr_2
                 local.get 23   ; $field_81
@@ -1304,9 +1304,9 @@ fn 15 cli$parse (ref,ref) -> ref
                 local.get 24   ; or_res
                 if $L13 void
                   local.get 21   ; spec
-                  ref.cast 12   ; -> cli$FlagSpec
+                  ref.cast 12   ; cli$FlagSpec
                   struct.get 12 0   ; cli$FlagSpec.name
-                  ref.cast 2   ; -> string
+                  ref.cast 2   ; string
                   local.set 25   ; $field_90
                   local.get 2   ; $arr_2
                   local.get 25   ; $field_90
@@ -1321,7 +1321,7 @@ fn 15 cli$parse (ref,ref) -> ref
                   local.set 26   ; $call_93
                   local.get 4   ; $arr_4
                   local.get 26   ; $call_93
-                  array.push 2   ; string[]
+                  array.push 2   ; string
                 end $L13
               end $L11
               local.get 6   ; i
@@ -1335,7 +1335,7 @@ fn 15 cli$parse (ref,ref) -> ref
             i64.ge
             if $L14 void
               local.get 21   ; spec
-              ref.cast 12   ; -> cli$FlagSpec
+              ref.cast 12   ; cli$FlagSpec
               local.get 7   ; a
               local.get 18   ; inline_value
               local.get 2   ; $arr_2
@@ -1354,11 +1354,11 @@ fn 15 cli$parse (ref,ref) -> ref
             u64.ge
             if $L15 void
               local.get 21   ; spec
-              ref.cast 12   ; -> cli$FlagSpec
+              ref.cast 12   ; cli$FlagSpec
               call 20   ; cli$value_placeholder
               local.set 27   ; $call_107
               local.get 21   ; spec
-              ref.cast 12   ; -> cli$FlagSpec
+              ref.cast 12   ; cli$FlagSpec
               call 20   ; cli$value_placeholder
               local.set 28   ; $call_111
               local.get 7   ; a
@@ -1374,7 +1374,7 @@ fn 15 cli$parse (ref,ref) -> ref
               local.set 29   ; $call_112
               local.get 4   ; $arr_4
               local.get 29   ; $call_112
-              array.push 2   ; string[]
+              array.push 2   ; string
               local.get 6   ; i
               i64.const 1
               i64.add
@@ -1387,8 +1387,8 @@ fn 15 cli$parse (ref,ref) -> ref
             local.set 30   ; $add_116
             local.get 0   ; arg 0
             local.get 30   ; $add_116
-            array.get 10   ; string[][]
-            ref.cast 2   ; -> string
+            array.get 10   ; string[]
+            ref.cast 2   ; string
             local.tee 31   ; next
             string.const 40   ; "-"
             call 32   ; std_string$starts_with
@@ -1402,7 +1402,7 @@ fn 15 cli$parse (ref,ref) -> ref
               local.set 32   ; looks_like_flag
             end $L16
             local.get 21   ; spec
-            ref.cast 12   ; -> cli$FlagSpec
+            ref.cast 12   ; cli$FlagSpec
             struct.get 12 5   ; cli$FlagSpec.kind
             i32.const 2
             i32.eq
@@ -1439,7 +1439,7 @@ fn 15 cli$parse (ref,ref) -> ref
               local.set 35   ; $call_141
               local.get 4   ; $arr_4
               local.get 35   ; $call_141
-              array.push 2   ; string[]
+              array.push 2   ; string
               local.get 6   ; i
               i64.const 1
               i64.add
@@ -1447,7 +1447,7 @@ fn 15 cli$parse (ref,ref) -> ref
               br $L1
             end $L19
             local.get 21   ; spec
-            ref.cast 12   ; -> cli$FlagSpec
+            ref.cast 12   ; cli$FlagSpec
             local.get 7   ; a
             local.get 31   ; next
             local.get 2   ; $arr_2
@@ -1471,12 +1471,12 @@ fn 15 cli$parse (ref,ref) -> ref
       if $L22 void
         local.get 0   ; arg 0
         local.get 6   ; i
-        array.get 10   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 10   ; string[]
+        ref.cast 2   ; string
         local.set 7   ; a
         local.get 3   ; $arr_3
         local.get 7   ; a
-        array.push 2 3   ; string[]
+        array.push 2 3   ; string $arr_3
         local.get 6   ; i
         i64.const 1
         i64.add
@@ -1494,7 +1494,7 @@ end
 
 fn 16 cli$bool_flag (ref,string) -> bool
   local v any
-  local.field 0 13 0   ; arg 0.flags
+  local.field 0 13 0   ; arg 0 cli$ParsedArgs.flags
   local.get 1   ; arg 1
   call 23   ; std_collections$MutableMap$Index$at__string__string
   local.tee 2   ; v
@@ -1506,7 +1506,7 @@ fn 16 cli$bool_flag (ref,string) -> bool
   type_check 2   ; string
   if $L1 void
     local.get 2   ; v
-    ref.cast 2   ; -> string
+    ref.cast 2   ; string
     string.const 36   ; "true"
     string.eq
     return
@@ -1516,7 +1516,7 @@ end
 
 fn 17 cli$string_flag (ref,string,string) -> string
   local v any
-  local.field 0 13 0   ; arg 0.flags
+  local.field 0 13 0   ; arg 0 cli$ParsedArgs.flags
   local.get 1   ; arg 1
   call 23   ; std_collections$MutableMap$Index$at__string__string
   local.tee 3   ; v
@@ -1529,7 +1529,7 @@ fn 17 cli$string_flag (ref,string,string) -> string
   type_check 2   ; string
   if $L1 void
     local.get 3   ; v
-    ref.cast 2   ; -> string
+    ref.cast 2   ; string
     return
   end $L1
   unreachable
@@ -1557,12 +1557,12 @@ fn 18 cli$find_spec (ref,string,bool) -> any
       if $L2 void
         local.get 3   ; __for_arr_0
         local.get 5   ; __for_i_2
-        array.get 11   ; cli$FlagSpec[][]
+        array.get 11   ; cli$FlagSpec[]
         local.set 6   ; s
         local.get 2   ; arg 2
         if $L3 void
-          local.field 6 12 0   ; s.name
-          ref.cast 2   ; -> string
+          local.field 6 12 0   ; s cli$FlagSpec.name
+          ref.cast 2   ; string
           local.get 1   ; arg 1
           string.eq
           local.set 7   ; and_res
@@ -1578,8 +1578,8 @@ fn 18 cli$find_spec (ref,string,bool) -> any
         local.get 2   ; arg 2
         bool.not
         if $L5 void
-          local.field 6 12 2   ; s.alias
-          ref.cast 2   ; -> string
+          local.field 6 12 2   ; s cli$FlagSpec.alias
+          ref.cast 2   ; string
           string.const 3   ; ""
           string.ne
           local.set 8   ; and_res
@@ -1589,8 +1589,8 @@ fn 18 cli$find_spec (ref,string,bool) -> any
         end $L5
         local.get 8   ; and_res
         if $L6 void
-          local.field 6 12 2   ; s.alias
-          ref.cast 2   ; -> string
+          local.field 6 12 2   ; s cli$FlagSpec.alias
+          ref.cast 2   ; string
           local.get 1   ; arg 1
           string.eq
           local.set 9   ; and_res
@@ -1617,7 +1617,7 @@ end
 fn 19 cli$record_str_flag (ref,string,string,ref,ref) -> void
   local and_res bool
   local $call_15 string
-  local.field 0 12 6   ; arg 0.values
+  local.field 0 12 6   ; arg 0 cli$FlagSpec.values
   array.len
   i64.const 0
   u64.gt
@@ -1646,10 +1646,10 @@ fn 19 cli$record_str_flag (ref,string,string,ref,ref) -> void
     local.set 6   ; $call_15
     local.get 4   ; arg 4
     local.get 6   ; $call_15
-    array.push 2   ; string[]
+    array.push 2   ; string
     return
   end $L1
-  local.field 0 12 5   ; arg 0.kind
+  local.field 0 12 5   ; arg 0 cli$FlagSpec.kind
   i32.const 2
   i32.eq
   if $L2 void
@@ -1671,11 +1671,11 @@ fn 19 cli$record_str_flag (ref,string,string,ref,ref) -> void
     local.set 6   ; $call_15
     local.get 4   ; arg 4
     local.get 6   ; $call_15
-    array.push 2   ; string[]
+    array.push 2   ; string
     return
   end $L3
-  local.field 0 12 0   ; arg 0.name
-  ref.cast 2   ; -> string
+  local.field 0 12 0   ; arg 0 cli$FlagSpec.name
+  ref.cast 2   ; string
   local.set 6   ; $call_15
   local.get 3   ; arg 3
   local.get 6   ; $call_15
@@ -1687,16 +1687,16 @@ end
 fn 20 cli$value_placeholder (ref) -> string
   local if_res string
   local $field_7 string
-  local.field 0 12 3   ; arg 0.value_name
-  ref.cast 2   ; -> string
+  local.field 0 12 3   ; arg 0 cli$FlagSpec.value_name
+  ref.cast 2   ; string
   string.const 3   ; ""
   string.eq
   if $L0 void
     string.const 55   ; "<value>"
     local.set 1   ; if_res
   else
-    local.field 0 12 3   ; arg 0.value_name
-    ref.cast 2   ; -> string
+    local.field 0 12 3   ; arg 0 cli$FlagSpec.value_name
+    ref.cast 2   ; string
     local.set 2   ; $field_7
     string.const 56   ; "<"
     local.get 2   ; $field_7
@@ -1712,7 +1712,7 @@ fn 21 cli$accepts_value (ref,string) -> bool
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local.field 0 12 6   ; arg 0.values
+  local.field 0 12 6   ; arg 0 cli$FlagSpec.values
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1726,9 +1726,9 @@ fn 21 cli$accepts_value (ref,string) -> bool
       if $L2 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 16   ; cli$ValueSpec[][]
+        array.get 16   ; cli$ValueSpec[]
         struct.get 17 0   ; cli$ValueSpec.name
-        ref.cast 2   ; -> string
+        ref.cast 2   ; string
         local.get 1   ; arg 1
         string.eq
         if $L3 void
@@ -1751,16 +1751,16 @@ fn 22 cli$value_list (ref) -> string
   local __for_arr_0 ref
   local __for_i_2 usize
   local $field_15 string
-  array.new 10 0   ; string[][]
+  array.new 10 0   ; string[]
   local.set 1   ; $arr_1
-  local.field 0 12 6   ; arg 0.values
+  local.field 0 12 6   ; arg 0 cli$FlagSpec.values
   array.len
   local.set 2   ; $len_3
   local.get 1   ; $arr_1
   local.get 2   ; $len_3
   array.repeat
   local.set 1   ; $arr_1
-  local.field 0 12 6   ; arg 0.values
+  local.field 0 12 6   ; arg 0 cli$FlagSpec.values
   local.tee 3   ; __for_arr_0
   array.len
   local.set 2   ; $len_3
@@ -1774,13 +1774,13 @@ fn 22 cli$value_list (ref) -> string
       if $L2 void
         local.get 3   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 16   ; cli$ValueSpec[][]
+        array.get 16   ; cli$ValueSpec[]
         struct.get 17 0   ; cli$ValueSpec.name
-        ref.cast 2   ; -> string
+        ref.cast 2   ; string
         local.set 5   ; $field_15
         local.get 1   ; $arr_1
         local.get 5   ; $field_15
-        array.push 2 1   ; string[]
+        array.push 2 1   ; string $arr_1
         local.get 4   ; __for_i_2
         i64.const 1
         i64.add
@@ -1841,12 +1841,12 @@ end
 fn 27 std_collections$ensure_index__string__string (ref) -> void
   local idx ref
   local __for_discard_0 usize
-  local.field 0 15 2   ; arg 0.index
+  local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
   array.len
   i64.const 0
   i64.eq
   if $L0 void
-    array.new 20 0   ; i32[][]
+    array.new 20 0   ; i32[]
     i64.const 16
     array.repeat
     local.set 1   ; idx
@@ -1860,7 +1860,7 @@ fn 27 std_collections$ensure_index__string__string (ref) -> void
         if $L3 void
           local.get 1   ; idx
           i32.const 0
-          array.push 1 1   ; i32[]
+          array.push 1 1   ; i32 idx
           local.get 2   ; __for_discard_0
           i64.const 1
           i64.add
@@ -1889,7 +1889,7 @@ fn 28 std_collections$rehash__string__string (ref,usize) -> void
   local perturb u64
   local s usize
   local $cast_33 i32
-  array.new 20 0   ; i32[][]
+  array.new 20 0   ; i32[]
   local.get 1   ; arg 1
   array.repeat
   local.set 2   ; fresh
@@ -1903,7 +1903,7 @@ fn 28 std_collections$rehash__string__string (ref,usize) -> void
       if $L2 void
         local.get 2   ; fresh
         i32.const 0
-        array.push 1 2   ; i32[]
+        array.push 1 2   ; i32 fresh
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -1918,8 +1918,8 @@ fn 28 std_collections$rehash__string__string (ref,usize) -> void
   local.set 3   ; __for_discard_0
   i64.const 0
   local.set 4   ; e
-  local.field 0 15 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 15 4   ; arg 0 std_collections$MutableMap__string__string.size
+  ref.cast 5   ; usize
   local.set 5   ; __for_hi_1
   block $L3 void
     loop $L4 void
@@ -1927,10 +1927,10 @@ fn 28 std_collections$rehash__string__string (ref,usize) -> void
       local.get 5   ; __for_hi_1
       u64.lt
       if $L5 void
-        local.field 0 15 0   ; arg 0.ekeys
+        local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
         local.get 4   ; e
-        array.get 10   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 10   ; string[]
+        ref.cast 2   ; string
         call 46   ; std_core$string$Hash$hash_vt
         local.tee 6   ; perturb
         local.get 3   ; __for_discard_0
@@ -1990,41 +1990,41 @@ fn 29 std_collections$write_entry__string__string (ref,string,string) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
-  local.field 0 15 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 15 4   ; arg 0 std_collections$MutableMap__string__string.size
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
-  local.field 0 15 0   ; arg 0.ekeys
+  local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
   array.len
   local.set 4   ; $len_5
   local.get 3   ; $field_3
   local.get 4   ; $len_5
   u64.lt
   if $L0 void
-    local.field 0 15 0   ; arg 0.ekeys
+    local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
     local.set 5   ; $field_7
-    local.field 0 15 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 15 4   ; arg 0 std_collections$MutableMap__string__string.size
+    ref.cast 5   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 1   ; arg 1
-    array.set 10   ; string[][]
-    local.field 0 15 1   ; arg 0.evals
+    array.set 10   ; string[]
+    local.field 0 15 1   ; arg 0 std_collections$MutableMap__string__string.evals
     local.set 5   ; $field_7
-    local.field 0 15 4   ; arg 0.size
-    ref.cast 5   ; -> usize
+    local.field 0 15 4   ; arg 0 std_collections$MutableMap__string__string.size
+    ref.cast 5   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
     local.get 2   ; arg 2
-    array.set 10   ; string[][]
+    array.set 10   ; string[]
   else
-    local.field 0 15 0   ; arg 0.ekeys
+    local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
     local.get 1   ; arg 1
-    array.push 2   ; string[]
-    local.field 0 15 1   ; arg 0.evals
+    array.push 2   ; string
+    local.field 0 15 1   ; arg 0 std_collections$MutableMap__string__string.evals
     local.get 2   ; arg 2
-    array.push 2   ; string[]
+    array.push 2   ; string
   end $L0
   return
 end
@@ -2039,11 +2039,11 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
   local $cast_74 i32
   local.get 0   ; arg 0
   call 27   ; std_collections$ensure_index__string__string
-  local.field 0 15 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 15 4   ; arg 0 std_collections$MutableMap__string__string.size
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
-  local.field 0 15 5   ; arg 0.tombs
-  ref.cast 5   ; -> usize
+  local.field 0 15 5   ; arg 0 std_collections$MutableMap__string__string.tombs
+  ref.cast 5   ; usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -2053,8 +2053,8 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
   i64.const 4
   i64.mul
   local.set 3   ; $field_3
-  local.field 0 15 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 15 3   ; arg 0 std_collections$MutableMap__string__string.mask
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   i64.const 3
@@ -2068,8 +2068,8 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
     local.set 3   ; $field_3
     block $L1 void
       loop $L2 void
-        local.field 0 15 4   ; arg 0.size
-        ref.cast 5   ; -> usize
+        local.field 0 15 4   ; arg 0 std_collections$MutableMap__string__string.size
+        ref.cast 5   ; usize
         i64.const 1
         i64.add
         i64.const 4
@@ -2098,8 +2098,8 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
   local.get 1   ; arg 1
   call 46   ; std_core$string$Hash$hash_vt
   local.set 6   ; perturb
-  local.field 0 15 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 15 3   ; arg 0 std_collections$MutableMap__string__string.mask
+  ref.cast 5   ; usize
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
@@ -2110,13 +2110,13 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
   local.set 7   ; first_tomb
   block $L4 void
     loop $L5 void
-      local.field 0 15 2   ; arg 0.index
+      local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
       local.get 3   ; $field_3
       load_slot_i32
       i32.const 0
       i32.ne
       if $L6 void
-        local.field 0 15 2   ; arg 0.index
+        local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
         local.get 3   ; $field_3
         load_slot_i32
         i32.const -1
@@ -2131,24 +2131,24 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
             local.set 7   ; first_tomb
           end $L8
         else
-          local.field 0 15 2   ; arg 0.index
+          local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
           local.get 3   ; $field_3
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; $field_4
-          local.field 0 15 0   ; arg 0.ekeys
+          local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
           local.get 4   ; $field_4
-          array.get 10   ; string[][]
-          ref.cast 2   ; -> string
+          array.get 10   ; string[]
+          ref.cast 2   ; string
           local.get 1   ; arg 1
           string.eq
           if $L9 void
-            local.field 0 15 1   ; arg 0.evals
+            local.field 0 15 1   ; arg 0 std_collections$MutableMap__string__string.evals
             local.get 4   ; $field_4
             local.get 2   ; arg 2
-            array.set 10   ; string[][]
+            array.set 10   ; string[]
             return
           end $L9
         end $L7
@@ -2156,8 +2156,8 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
         i64.const 5
         u64.shr
         local.set 6   ; perturb
-        local.field 0 15 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 15 3   ; arg 0 std_collections$MutableMap__string__string.mask
+        ref.cast 5   ; usize
         local.set 5   ; $mul_24
         local.get 3   ; $field_3
         local.get 6   ; perturb
@@ -2183,8 +2183,8 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
   i64.const 0
   i64.ge
   if $L11 void
-    local.field 0 15 5   ; arg 0.tombs
-    ref.cast 5   ; -> usize
+    local.field 0 15 5   ; arg 0 std_collections$MutableMap__string__string.tombs
+    ref.cast 5   ; usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -2196,10 +2196,10 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call 29   ; std_collections$write_entry__string__string
-  local.field 0 15 2   ; arg 0.index
+  local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
   local.set 8   ; $field_70
-  local.field 0 15 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 15 4   ; arg 0 std_collections$MutableMap__string__string.size
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -2208,8 +2208,8 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
   local.get 4   ; $field_4
   local.get 9   ; $cast_74
   store_slot_i32
-  local.field 0 15 4   ; arg 0.size
-  ref.cast 5   ; -> usize
+  local.field 0 15 4   ; arg 0 std_collections$MutableMap__string__string.size
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -2224,7 +2224,7 @@ fn 31 std_collections$get__string__string (ref,string) -> any
   local $field_9 usize
   local ei usize
   local $field_33 usize
-  local.field 0 15 2   ; arg 0.index
+  local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
   array.len
   i64.const 0
   i64.eq
@@ -2234,8 +2234,8 @@ fn 31 std_collections$get__string__string (ref,string) -> any
   local.get 1   ; arg 1
   call 46   ; std_core$string$Hash$hash_vt
   local.set 2   ; perturb
-  local.field 0 15 3   ; arg 0.mask
-  ref.cast 5   ; -> usize
+  local.field 0 15 3   ; arg 0 std_collections$MutableMap__string__string.mask
+  ref.cast 5   ; usize
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
@@ -2243,37 +2243,37 @@ fn 31 std_collections$get__string__string (ref,string) -> any
   local.set 3   ; $field_9
   block $L1 void
     loop $L2 void
-      local.field 0 15 2   ; arg 0.index
+      local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
       local.get 3   ; $field_9
       load_slot_i32
       i32.const 0
       i32.ne
       if $L3 void
-        local.field 0 15 2   ; arg 0.index
+        local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
         local.get 3   ; $field_9
         load_slot_i32
         i32.const -1
         i32.ne
         if $L4 void
-          local.field 0 15 2   ; arg 0.index
+          local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
           local.get 3   ; $field_9
           load_slot_i32
           i32.to_i64
           i64.const 1
           i64.sub
           local.set 4   ; ei
-          local.field 0 15 0   ; arg 0.ekeys
+          local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
           local.get 4   ; ei
-          array.get 10   ; string[][]
-          ref.cast 2   ; -> string
+          array.get 10   ; string[]
+          ref.cast 2   ; string
           local.get 1   ; arg 1
           string.eq
           if $L5 void
-            local.field 0 15 1   ; arg 0.evals
+            local.field 0 15 1   ; arg 0 std_collections$MutableMap__string__string.evals
             local.get 4   ; ei
-            array.get 10   ; string[][]
-            ref.cast 2   ; -> string
-            retag 2   ; -> string
+            array.get 10   ; string[]
+            ref.cast 2   ; string
+            retag 2   ; string
             return
           end $L5
         end $L4
@@ -2281,8 +2281,8 @@ fn 31 std_collections$get__string__string (ref,string) -> any
         i64.const 5
         u64.shr
         local.set 2   ; perturb
-        local.field 0 15 3   ; arg 0.mask
-        ref.cast 5   ; -> usize
+        local.field 0 15 3   ; arg 0 std_collections$MutableMap__string__string.mask
+        ref.cast 5   ; usize
         local.set 5   ; $field_33
         local.get 3   ; $field_9
         local.get 2   ; perturb
@@ -2516,12 +2516,12 @@ fn 34 std_string$parse_int (string) -> any
     local.get 4   ; acc
     i64.neg
     i64.to_i32
-    retag 1   ; -> i32
+    retag 1   ; i32
     return
   end $L11
   local.get 4   ; acc
   i64.to_i32
-  retag 1   ; -> i32
+  retag 1   ; i32
   return
 end
 
@@ -2553,8 +2553,8 @@ fn 36 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  array.get 8   ; u8[][]
-  ref.cast 4   ; -> u8
+  array.get 8   ; u8[]
+  ref.cast 4   ; u8
   local.tee 3   ; b
   i32.const 128
   u32.lt
@@ -2592,8 +2592,8 @@ fn 36 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 8   ; u8[][]
-    ref.cast 4   ; -> u8
+    array.get 8   ; u8[]
+    ref.cast 4   ; u8
     local.set 5   ; b1
     local.get 3   ; b
     u8.to_i32
@@ -2631,8 +2631,8 @@ fn 36 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 8   ; u8[][]
-    ref.cast 4   ; -> u8
+    array.get 8   ; u8[]
+    ref.cast 4   ; u8
     local.set 5   ; b1
     local.get 1   ; arg 1
     i64.const 2
@@ -2640,8 +2640,8 @@ fn 36 std_string$utf8_decode (ref,usize) -> char
     local.set 4   ; $add_21
     local.get 0   ; arg 0
     local.get 4   ; $add_21
-    array.get 8   ; u8[][]
-    ref.cast 4   ; -> u8
+    array.get 8   ; u8[]
+    ref.cast 4   ; u8
     local.set 8   ; b2
     local.get 3   ; b
     u8.to_i32
@@ -2686,8 +2686,8 @@ fn 36 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 8   ; u8[][]
-  ref.cast 4   ; -> u8
+  array.get 8   ; u8[]
+  ref.cast 4   ; u8
   local.set 5   ; b1
   local.get 1   ; arg 1
   i64.const 2
@@ -2695,8 +2695,8 @@ fn 36 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 8   ; u8[][]
-  ref.cast 4   ; -> u8
+  array.get 8   ; u8[]
+  ref.cast 4   ; u8
   local.set 8   ; b2
   local.get 1   ; arg 1
   i64.const 3
@@ -2704,8 +2704,8 @@ fn 36 std_string$utf8_decode (ref,usize) -> char
   local.set 2   ; n
   local.get 0   ; arg 0
   local.get 2   ; n
-  array.get 8   ; u8[][]
-  ref.cast 4   ; -> u8
+  array.get 8   ; u8[]
+  ref.cast 4   ; u8
   local.set 9   ; b3
   local.get 3   ; b
   u8.to_i32
@@ -2778,7 +2778,7 @@ fn 38 std_string$join (ref,string) -> string
   local i usize
   local __for_hi_0 usize
   local $idx_12 string
-  array.new 10 0   ; string[][]
+  array.new 10 0   ; string[]
   struct.new 24   ; std_string_builder$StringBuilder
   local.set 2   ; sb
   i64.const 0
@@ -2802,8 +2802,8 @@ fn 38 std_string$join (ref,string) -> string
         end $L3
         local.get 0   ; arg 0
         local.get 3   ; i
-        array.get 10   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 10   ; string[]
+        ref.cast 2   ; string
         local.set 5   ; $idx_12
         local.get 2   ; sb
         local.get 5   ; $idx_12
@@ -2840,9 +2840,9 @@ fn 39 std_string$is_utf8_continuation (u8) -> bool
 end
 
 fn 40 std_string_builder$append (ref,string) -> void
-  local.field 0 24 0   ; arg 0.parts
+  local.field 0 24 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.get 1   ; arg 1
-  array.push 2   ; string[]
+  array.push 2   ; string
   return
 end
 
@@ -2855,7 +2855,7 @@ fn 41 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_3 ref
   local p string
   local $call_40 usize
-  local.field 0 24 0   ; arg 0.parts
+  local.field 0 24 0   ; arg 0 std_string_builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -2867,15 +2867,15 @@ fn 41 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 24 0   ; arg 0.parts
+    local.field 0 24 0   ; arg 0 std_string_builder$StringBuilder.parts
     i32.const 0
-    array.get 10   ; string[][]
-    ref.cast 2   ; -> string
+    array.get 10   ; string[]
+    ref.cast 2   ; string
     return
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 24 0   ; arg 0.parts
+  local.field 0 24 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -2889,8 +2889,8 @@ fn 41 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L4 void
         local.get 2   ; __for_arr_0
         local.get 4   ; __for_i_2
-        array.get 10   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 10   ; string[]
+        ref.cast 2   ; string
         call.import 0   ; std_core$byte_len
         local.set 5   ; $call_23
         local.get 1   ; n
@@ -2910,7 +2910,7 @@ fn 41 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 24 0   ; arg 0.parts
+  local.field 0 24 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2
@@ -2924,8 +2924,8 @@ fn 41 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L7 void
         local.get 6   ; __for_arr_3
         local.get 5   ; $call_23
-        array.get 10   ; string[][]
-        ref.cast 2   ; -> string
+        array.get 10   ; string[]
+        ref.cast 2   ; string
         local.set 7   ; p
         local.get 2   ; __for_arr_0
         local.get 3   ; __for_len_1

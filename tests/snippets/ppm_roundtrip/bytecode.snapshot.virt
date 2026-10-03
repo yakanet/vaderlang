@@ -124,7 +124,7 @@ fn 0 snippet$main () -> i32
   i32.const 127
   i32.const 1
   i32.const 254
-  array.new 8 12   ; u8[][]
+  array.new 8 12   ; u8[]
   local.set 1   ; px
   i32.const 2
   i32.const 2
@@ -140,7 +140,7 @@ fn 0 snippet$main () -> i32
     return.lit i32.const 1
   end $L0
   local.get 2   ; enc
-  ref.cast 8   ; -> u8[]
+  ref.cast 8   ; u8[]
   local.set 3   ; $cast_28
   local.get 0   ; path
   local.get 3   ; $cast_28
@@ -176,7 +176,7 @@ fn 0 snippet$main () -> i32
     return.lit i32.const 1
   end $L2
   local.get 2   ; enc
-  ref.cast 8   ; -> u8[]
+  ref.cast 8   ; u8[]
   call 19   ; images_ppm$decode
   local.tee 2   ; enc
   type_check 16   ; images_ppm$PpmError
@@ -186,16 +186,16 @@ fn 0 snippet$main () -> i32
     return.lit i32.const 1
   end $L3
   local.get 2   ; enc
-  ref.cast 14   ; -> images_ppm$Ppm
+  ref.cast 14   ; images_ppm$Ppm
   struct.get 14 0   ; images_ppm$Ppm.width
-  ref.cast 18   ; -> u32
+  ref.cast 18   ; u32
   i32.const 2
   i32.eq
   if $L4 void
     local.get 2   ; enc
-    ref.cast 14   ; -> images_ppm$Ppm
+    ref.cast 14   ; images_ppm$Ppm
     struct.get 14 1   ; images_ppm$Ppm.height
-    ref.cast 18   ; -> u32
+    ref.cast 18   ; u32
     i32.const 2
     i32.eq
     local.set 5   ; ok
@@ -206,9 +206,9 @@ fn 0 snippet$main () -> i32
   local.get 5   ; ok
   if $L5 void
     local.get 2   ; enc
-    ref.cast 14   ; -> images_ppm$Ppm
+    ref.cast 14   ; images_ppm$Ppm
     struct.get 14 2   ; images_ppm$Ppm.maxval
-    ref.cast 18   ; -> u32
+    ref.cast 18   ; u32
     i32.const 255
     i32.eq
     local.set 6   ; and_res
@@ -219,7 +219,7 @@ fn 0 snippet$main () -> i32
   local.get 6   ; and_res
   if $L6 void
     local.get 2   ; enc
-    ref.cast 14   ; -> images_ppm$Ppm
+    ref.cast 14   ; images_ppm$Ppm
     struct.get 14 3   ; images_ppm$Ppm.pixels
     array.len
     i64.const 12
@@ -232,7 +232,7 @@ fn 0 snippet$main () -> i32
   i64.const 0
   local.set 7   ; i
   local.get 2   ; enc
-  ref.cast 14   ; -> images_ppm$Ppm
+  ref.cast 14   ; images_ppm$Ppm
   struct.get 14 3   ; images_ppm$Ppm.pixels
   array.len
   local.set 8   ; __for_hi_0
@@ -243,16 +243,16 @@ fn 0 snippet$main () -> i32
       u64.lt
       if $L9 void
         local.get 2   ; enc
-        ref.cast 14   ; -> images_ppm$Ppm
+        ref.cast 14   ; images_ppm$Ppm
         struct.get 14 3   ; images_ppm$Ppm.pixels
         local.get 7   ; i
-        array.get 8   ; u8[][]
-        ref.cast 4   ; -> u8
+        array.get 8   ; u8[]
+        ref.cast 4   ; u8
         local.set 9   ; $idx_90
         local.get 1   ; px
         local.get 7   ; i
-        array.get 8   ; u8[][]
-        ref.cast 4   ; -> u8
+        array.get 8   ; u8[]
+        ref.cast 4   ; u8
         local.set 10   ; $idx_91
         local.get 9   ; $idx_90
         local.get 10   ; $idx_91
@@ -270,7 +270,7 @@ fn 0 snippet$main () -> i32
     end $L8
   end $L7
   local.get 2   ; enc
-  ref.cast 14   ; -> images_ppm$Ppm
+  ref.cast 14   ; images_ppm$Ppm
   call 26   ; images_ppm$Ppm$Display$to_string
   call 17   ; std_io$println__string
   local.get 5   ; ok
@@ -555,7 +555,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
     array.len
     local.set 2   ; __for_len_1
     local.get 4   ; f
-    ref.cast 22   ; -> pointer
+    ref.cast 22   ; pointer
     local.set 5   ; $cast_28
     local.get 1   ; arg 1
     i64.const 1
@@ -574,7 +574,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
       call 12   ; std_io$last_io_error
       local.set 6   ; err
       local.get 4   ; f
-      ref.cast 22   ; -> pointer
+      ref.cast 22   ; pointer
       call.import 9   ; system_posix$sys_fclose
       drop
       local.get 6   ; err
@@ -582,7 +582,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
     end $L6
   end $L5
   local.get 4   ; f
-  ref.cast 22   ; -> pointer
+  ref.cast 22   ; pointer
   call.import 9   ; system_posix$sys_fclose
   i32.const 0
   i32.ne
@@ -617,10 +617,10 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
     call 12   ; std_io$last_io_error
     return
   end $L0
-  array.new 8 0   ; u8[][]
+  array.new 8 0   ; u8[]
   local.set 3   ; out
   i32.const 0
-  array.new 8 1   ; u8[][]
+  array.new 8 1   ; u8[]
   i64.const 65536
   array.repeat
   local.set 4   ; chunk
@@ -630,7 +630,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
       array.len
       local.set 5   ; $len_16
       local.get 2   ; f
-      ref.cast 22   ; -> pointer
+      ref.cast 22   ; pointer
       local.set 6   ; $cast_17
       local.get 4   ; chunk
       i64.const 1
@@ -644,7 +644,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
         local.get 4   ; chunk
         i64.const 0
         local.get 7   ; n
-        array.slice 8   ; u8[][]
+        array.slice 8   ; u8[]
         local.set 8   ; $slice_23
         local.get 3   ; out
         local.get 8   ; $slice_23
@@ -656,7 +656,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
       u64.gt
       if $L4 void
         local.get 2   ; f
-        ref.cast 22   ; -> pointer
+        ref.cast 22   ; pointer
         call.import 9   ; system_posix$sys_fclose
         drop
         string.const 17   ; "file too large"
@@ -679,7 +679,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
       u64.lt
       if $L5 void
         local.get 2   ; f
-        ref.cast 22   ; -> pointer
+        ref.cast 22   ; pointer
         call.import 7   ; system_posix$sys_ferror
         i32.const 0
         i32.ne
@@ -692,7 +692,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
           local.set 13   ; err
         end $L6
         local.get 2   ; f
-        ref.cast 22   ; -> pointer
+        ref.cast 22   ; pointer
         call.import 9   ; system_posix$sys_fclose
         drop
         local.get 13   ; err
@@ -700,7 +700,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
         bool.not
         if $L7 void
           local.get 13   ; err
-          ref.cast 11   ; -> std_io$IOError
+          ref.cast 11   ; std_io$IOError
           return
         end $L7
         local.get 3   ; out
@@ -710,7 +710,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
     end $L2
   end $L1
   local.get 2   ; f
-  ref.cast 22   ; -> pointer
+  ref.cast 22   ; pointer
   call.import 9   ; system_posix$sys_fclose
   drop
   string.const 17   ; "file too large"
@@ -757,7 +757,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -795,7 +795,7 @@ fn 11 std_io$temp_dir_of (any) -> string
     local.set 1   ; e
   else
     local.get 2   ; __coalesce_0
-    ref.cast 2   ; -> string
+    ref.cast 2   ; string
     local.set 1   ; e
   end $L0
   local.get 1   ; e
@@ -1008,8 +1008,8 @@ fn 14 std_io$without_trailing_sep (string) -> string
         else
           local.get 1   ; b
           local.get 5   ; last
-          array.get 8   ; u8[][]
-          ref.cast 4   ; -> u8
+          array.get 8   ; u8[]
+          ref.cast 4   ; u8
           i32.const 47
           i32.ne
           local.set 6   ; or_res
@@ -1023,8 +1023,8 @@ fn 14 std_io$without_trailing_sep (string) -> string
           local.set 7   ; $sub_23
           local.get 1   ; b
           local.get 7   ; $sub_23
-          array.get 8   ; u8[][]
-          ref.cast 4   ; -> u8
+          array.get 8   ; u8[]
+          ref.cast 4   ; u8
           i32.const 58
           i32.eq
           if $L5 void
@@ -1058,7 +1058,7 @@ fn 14 std_io$without_trailing_sep (string) -> string
   local.get 1   ; b
   i64.const 0
   local.get 2   ; trailing
-  array.slice 8   ; u8[][]
+  array.slice 8   ; u8[]
   call.import 2   ; std_core$bytes_to_string
   return
 end
@@ -1175,8 +1175,8 @@ fn 15 std_io$describe_io_error_kind (u8) -> string
 end
 
 fn 16 std_io$IOError$Error$message (ref) -> string
-  local.field 0 11 0   ; arg 0.msg
-  ref.cast 2   ; -> string
+  local.field 0 11 0   ; arg 0 std_io$IOError.msg
+  ref.cast 2   ; string
   return
 end
 
@@ -1200,16 +1200,16 @@ fn 18 images_ppm$encode (ref) -> any
   local $cast_26 usize
   local $cast_28 usize
   local $arr_80 ref
-  local.field 0 14 2   ; arg 0.maxval
-  ref.cast 18   ; -> u32
+  local.field 0 14 2   ; arg 0 images_ppm$Ppm.maxval
+  ref.cast 18   ; u32
   i32.const 0
   i32.eq
   if $L0 void
     bool.const true
     local.set 1   ; or_res
   else
-    local.field 0 14 2   ; arg 0.maxval
-    ref.cast 18   ; -> u32
+    local.field 0 14 2   ; arg 0 images_ppm$Ppm.maxval
+    ref.cast 18   ; u32
     i32.const 65535
     u32.gt
     local.set 1   ; or_res
@@ -1226,8 +1226,8 @@ fn 18 images_ppm$encode (ref) -> any
     string.const 34   ; "ppm: maxval must be in 1..=65535, got "
     call 5   ; std_core$write_string_at
     local.set 3   ; __off_1
-    local.field 0 14 2   ; arg 0.maxval
-    ref.cast 18   ; -> u32
+    local.field 0 14 2   ; arg 0 images_ppm$Ppm.maxval
+    ref.cast 18   ; u32
     u32.to_i64
     local.set 4   ; $cast_18
     local.get 2   ; __buf_0
@@ -1241,16 +1241,16 @@ fn 18 images_ppm$encode (ref) -> any
     struct.new 16   ; images_ppm$PpmError
     return
   end $L1
-  local.field 0 14 2   ; arg 0.maxval
-  ref.cast 18   ; -> u32
+  local.field 0 14 2   ; arg 0 images_ppm$Ppm.maxval
+  ref.cast 18   ; u32
   call 20   ; images_ppm$bytes_per_sample
   local.set 3   ; __off_1
-  local.field 0 14 0   ; arg 0.width
-  ref.cast 18   ; -> u32
+  local.field 0 14 0   ; arg 0 images_ppm$Ppm.width
+  ref.cast 18   ; u32
   u32.to_i64
   local.set 5   ; $cast_26
-  local.field 0 14 1   ; arg 0.height
-  ref.cast 18   ; -> u32
+  local.field 0 14 1   ; arg 0 images_ppm$Ppm.height
+  ref.cast 18   ; u32
   u32.to_i64
   local.set 6   ; $cast_28
   local.get 5   ; $cast_26
@@ -1261,7 +1261,7 @@ fn 18 images_ppm$encode (ref) -> any
   local.get 3   ; __off_1
   i64.mul
   local.set 3   ; __off_1
-  local.field 0 14 3   ; arg 0.pixels
+  local.field 0 14 3   ; arg 0 images_ppm$Ppm.pixels
   array.len
   local.get 3   ; __off_1
   i64.ne
@@ -1276,7 +1276,7 @@ fn 18 images_ppm$encode (ref) -> any
     string.const 35   ; "ppm: pixels is "
     call 5   ; std_core$write_string_at
     local.set 5   ; $cast_26
-    local.field 0 14 3   ; arg 0.pixels
+    local.field 0 14 3   ; arg 0 images_ppm$Ppm.pixels
     array.len
     usize.to_i64
     local.set 4   ; $cast_18
@@ -1314,8 +1314,8 @@ fn 18 images_ppm$encode (ref) -> any
   string.const 37   ; "P6\n"
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 0 14 0   ; arg 0.width
-  ref.cast 18   ; -> u32
+  local.field 0 14 0   ; arg 0 images_ppm$Ppm.width
+  ref.cast 18   ; u32
   u32.to_i64
   local.set 4   ; $cast_18
   local.get 2   ; __buf_0
@@ -1328,8 +1328,8 @@ fn 18 images_ppm$encode (ref) -> any
   string.const 38   ; " "
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 0 14 1   ; arg 0.height
-  ref.cast 18   ; -> u32
+  local.field 0 14 1   ; arg 0 images_ppm$Ppm.height
+  ref.cast 18   ; u32
   u32.to_i64
   local.set 4   ; $cast_18
   local.get 2   ; __buf_0
@@ -1342,8 +1342,8 @@ fn 18 images_ppm$encode (ref) -> any
   string.const 33   ; "\n"
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 0 14 2   ; arg 0.maxval
-  ref.cast 18   ; -> u32
+  local.field 0 14 2   ; arg 0 images_ppm$Ppm.maxval
+  ref.cast 18   ; u32
   u32.to_i64
   local.set 4   ; $cast_18
   local.get 2   ; __buf_0
@@ -1361,12 +1361,12 @@ fn 18 images_ppm$encode (ref) -> any
   call 4   ; std_core$finish_buffer
   call.import 3   ; std_core$bytes
   local.set 2   ; __buf_0
-  array.new 8 0   ; u8[][]
+  array.new 8 0   ; u8[]
   local.set 7   ; $arr_80
   local.get 2   ; __buf_0
   array.len
   local.set 3   ; __off_1
-  local.field 0 14 3   ; arg 0.pixels
+  local.field 0 14 3   ; arg 0 images_ppm$Ppm.pixels
   array.len
   local.set 5   ; $cast_26
   local.get 3   ; __off_1
@@ -1379,7 +1379,7 @@ fn 18 images_ppm$encode (ref) -> any
   local.tee 7   ; $arr_80
   local.get 2   ; __buf_0
   array.push_all
-  local.field 0 14 3   ; arg 0.pixels
+  local.field 0 14 3   ; arg 0 images_ppm$Ppm.pixels
   local.set 2   ; __buf_0
   local.get 7   ; $arr_80
   local.get 2   ; __buf_0
@@ -1413,8 +1413,8 @@ fn 19 images_ppm$decode (ref) -> any
   else
     local.get 0   ; arg 0
     i32.const 0
-    array.get 8   ; u8[][]
-    ref.cast 4   ; -> u8
+    array.get 8   ; u8[]
+    ref.cast 4   ; u8
     i32.const 80
     i32.ne
     local.set 1   ; or_res
@@ -1426,8 +1426,8 @@ fn 19 images_ppm$decode (ref) -> any
   else
     local.get 0   ; arg 0
     i32.const 1
-    array.get 8   ; u8[][]
-    ref.cast 4   ; -> u8
+    array.get 8   ; u8[]
+    ref.cast 4   ; u8
     i32.const 54
     i32.ne
     local.set 1   ; or_res
@@ -1446,16 +1446,16 @@ fn 19 images_ppm$decode (ref) -> any
   local.get 2   ; p0
   call 22   ; images_ppm$scan_uint
   local.set 3   ; w
-  local.field 3 19 2   ; w.found
-  ref.cast 3   ; -> bool
+  local.field 3 19 2   ; w images_ppm$ScanInt.found
+  ref.cast 3   ; bool
   bool.not
   if $L3 void
     string.const 40   ; "ppm: missing or invalid width"
     struct.new 16   ; images_ppm$PpmError
     return
   end $L3
-  local.field 3 19 1   ; w.pos
-  ref.cast 5   ; -> usize
+  local.field 3 19 1   ; w images_ppm$ScanInt.pos
+  ref.cast 5   ; usize
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
@@ -1465,16 +1465,16 @@ fn 19 images_ppm$decode (ref) -> any
   local.get 2   ; p0
   call 22   ; images_ppm$scan_uint
   local.set 4   ; h
-  local.field 4 19 2   ; h.found
-  ref.cast 3   ; -> bool
+  local.field 4 19 2   ; h images_ppm$ScanInt.found
+  ref.cast 3   ; bool
   bool.not
   if $L4 void
     string.const 41   ; "ppm: missing or invalid height"
     struct.new 16   ; images_ppm$PpmError
     return
   end $L4
-  local.field 4 19 1   ; h.pos
-  ref.cast 5   ; -> usize
+  local.field 4 19 1   ; h images_ppm$ScanInt.pos
+  ref.cast 5   ; usize
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
@@ -1484,24 +1484,24 @@ fn 19 images_ppm$decode (ref) -> any
   local.get 2   ; p0
   call 22   ; images_ppm$scan_uint
   local.set 5   ; mv
-  local.field 5 19 2   ; mv.found
-  ref.cast 3   ; -> bool
+  local.field 5 19 2   ; mv images_ppm$ScanInt.found
+  ref.cast 3   ; bool
   bool.not
   if $L5 void
     string.const 42   ; "ppm: missing or invalid maxval"
     struct.new 16   ; images_ppm$PpmError
     return
   end $L5
-  local.field 5 19 0   ; mv.value
-  ref.cast 18   ; -> u32
+  local.field 5 19 0   ; mv images_ppm$ScanInt.value
+  ref.cast 18   ; u32
   i32.const 0
   i32.eq
   if $L6 void
     bool.const true
     local.set 1   ; or_res
   else
-    local.field 5 19 0   ; mv.value
-    ref.cast 18   ; -> u32
+    local.field 5 19 0   ; mv images_ppm$ScanInt.value
+    ref.cast 18   ; u32
     i32.const 65535
     u32.gt
     local.set 1   ; or_res
@@ -1518,8 +1518,8 @@ fn 19 images_ppm$decode (ref) -> any
     string.const 34   ; "ppm: maxval must be in 1..=65535, got "
     call 5   ; std_core$write_string_at
     local.set 2   ; p0
-    local.field 5 19 0   ; mv.value
-    ref.cast 18   ; -> u32
+    local.field 5 19 0   ; mv images_ppm$ScanInt.value
+    ref.cast 18   ; u32
     u32.to_i64
     local.set 7   ; $cast_62
     local.get 6   ; __buf_0
@@ -1533,8 +1533,8 @@ fn 19 images_ppm$decode (ref) -> any
     struct.new 16   ; images_ppm$PpmError
     return
   end $L7
-  local.field 5 19 1   ; mv.pos
-  ref.cast 5   ; -> usize
+  local.field 5 19 1   ; mv images_ppm$ScanInt.pos
+  ref.cast 5   ; usize
   local.set 2   ; p0
   local.get 0   ; arg 0
   array.len
@@ -1546,13 +1546,13 @@ fn 19 images_ppm$decode (ref) -> any
     bool.const true
     local.set 1   ; or_res
   else
-    local.field 5 19 1   ; mv.pos
-    ref.cast 5   ; -> usize
+    local.field 5 19 1   ; mv images_ppm$ScanInt.pos
+    ref.cast 5   ; usize
     local.set 2   ; p0
     local.get 0   ; arg 0
     local.get 2   ; p0
-    array.get 8   ; u8[][]
-    ref.cast 4   ; -> u8
+    array.get 8   ; u8[]
+    ref.cast 4   ; u8
     call 23   ; images_ppm$is_ws_byte
     bool.not
     local.set 1   ; or_res
@@ -1563,21 +1563,21 @@ fn 19 images_ppm$decode (ref) -> any
     struct.new 16   ; images_ppm$PpmError
     return
   end $L9
-  local.field 5 19 1   ; mv.pos
-  ref.cast 5   ; -> usize
+  local.field 5 19 1   ; mv images_ppm$ScanInt.pos
+  ref.cast 5   ; usize
   i64.const 1
   i64.add
   local.set 2   ; p0
-  local.field 5 19 0   ; mv.value
-  ref.cast 18   ; -> u32
+  local.field 5 19 0   ; mv images_ppm$ScanInt.value
+  ref.cast 18   ; u32
   call 20   ; images_ppm$bytes_per_sample
   local.set 8   ; $len_67
-  local.field 3 19 0   ; w.value
-  ref.cast 18   ; -> u32
+  local.field 3 19 0   ; w images_ppm$ScanInt.value
+  ref.cast 18   ; u32
   u32.to_i64
   local.set 9   ; $cast_85
-  local.field 4 19 0   ; h.value
-  ref.cast 18   ; -> u32
+  local.field 4 19 0   ; h images_ppm$ScanInt.value
+  ref.cast 18   ; u32
   u32.to_i64
   local.set 10   ; $cast_87
   local.get 9   ; $cast_85
@@ -1633,7 +1633,7 @@ fn 19 images_ppm$decode (ref) -> any
     struct.new 16   ; images_ppm$PpmError
     return
   end $L10
-  array.new 8 0   ; u8[][]
+  array.new 8 0   ; u8[]
   local.get 9   ; $cast_85
   array.repeat
   local.set 6   ; __buf_0
@@ -1643,19 +1643,19 @@ fn 19 images_ppm$decode (ref) -> any
   local.get 0   ; arg 0
   local.get 2   ; p0
   local.get 8   ; $len_67
-  array.slice 8   ; u8[][]
+  array.slice 8   ; u8[]
   local.set 11   ; $slice_116
   local.get 6   ; __buf_0
   local.get 11   ; $slice_116
   array.push_all
-  local.field 3 19 0   ; w.value
-  ref.cast 18   ; -> u32
+  local.field 3 19 0   ; w images_ppm$ScanInt.value
+  ref.cast 18   ; u32
   local.set 12   ; $field_117
-  local.field 4 19 0   ; h.value
-  ref.cast 18   ; -> u32
+  local.field 4 19 0   ; h images_ppm$ScanInt.value
+  ref.cast 18   ; u32
   local.set 13   ; $field_118
-  local.field 5 19 0   ; mv.value
-  ref.cast 18   ; -> u32
+  local.field 5 19 0   ; mv images_ppm$ScanInt.value
+  ref.cast 18   ; u32
   local.set 14   ; $field_119
   local.get 12   ; $field_117
   local.get 13   ; $field_118
@@ -1699,8 +1699,8 @@ fn 21 images_ppm$skip_ws (ref,usize) -> usize
       if $L2 void
         local.get 0   ; arg 0
         local.get 3   ; p
-        array.get 8   ; u8[][]
-        ref.cast 4   ; -> u8
+        array.get 8   ; u8[]
+        ref.cast 4   ; u8
         local.tee 4   ; b
         i32.const 35
         i32.eq
@@ -1713,8 +1713,8 @@ fn 21 images_ppm$skip_ws (ref,usize) -> usize
               if $L6 void
                 local.get 0   ; arg 0
                 local.get 3   ; p
-                array.get 8   ; u8[][]
-                ref.cast 4   ; -> u8
+                array.get 8   ; u8[]
+                ref.cast 4   ; u8
                 i32.const 10
                 i32.ne
                 local.set 5   ; and_res
@@ -1777,8 +1777,8 @@ fn 22 images_ppm$scan_uint (ref,usize) -> ref
       if $L2 void
         local.get 0   ; arg 0
         local.get 3   ; p
-        array.get 8   ; u8[][]
-        ref.cast 4   ; -> u8
+        array.get 8   ; u8[]
+        ref.cast 4   ; u8
         call 24   ; images_ppm$is_digit_byte
         local.set 5   ; and_res
       else
@@ -1789,8 +1789,8 @@ fn 22 images_ppm$scan_uint (ref,usize) -> ref
       if $L3 void
         local.get 0   ; arg 0
         local.get 3   ; p
-        array.get 8   ; u8[][]
-        ref.cast 4   ; -> u8
+        array.get 8   ; u8[]
+        ref.cast 4   ; u8
         i32.const 48
         i32.sub
         i32.const 255
@@ -1924,8 +1924,8 @@ fn 24 images_ppm$is_digit_byte (u8) -> bool
 end
 
 fn 25 images_ppm$PpmError$Error$message (ref) -> string
-  local.field 0 16 0   ; arg 0.msg
-  ref.cast 2   ; -> string
+  local.field 0 16 0   ; arg 0 images_ppm$PpmError.msg
+  ref.cast 2   ; string
   return
 end
 
@@ -1934,8 +1934,8 @@ fn 26 images_ppm$Ppm$Display$to_string (ref) -> string
   local $call_10 usize
   local __buf_1 ref
   local $cast_19 u64
-  local.field 0 14 2   ; arg 0.maxval
-  ref.cast 18   ; -> u32
+  local.field 0 14 2   ; arg 0 images_ppm$Ppm.maxval
+  ref.cast 18   ; u32
   call 20   ; images_ppm$bytes_per_sample
   i64.const 1
   i64.eq
@@ -1961,8 +1961,8 @@ fn 26 images_ppm$Ppm$Display$to_string (ref) -> string
   string.const 47   ; "Ppm "
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_10
-  local.field 0 14 0   ; arg 0.width
-  ref.cast 18   ; -> u32
+  local.field 0 14 0   ; arg 0 images_ppm$Ppm.width
+  ref.cast 18   ; u32
   u32.to_i64
   local.set 4   ; $cast_19
   local.get 3   ; __buf_1
@@ -1975,8 +1975,8 @@ fn 26 images_ppm$Ppm$Display$to_string (ref) -> string
   string.const 48   ; "x"
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_10
-  local.field 0 14 1   ; arg 0.height
-  ref.cast 18   ; -> u32
+  local.field 0 14 1   ; arg 0 images_ppm$Ppm.height
+  ref.cast 18   ; u32
   u32.to_i64
   local.set 4   ; $cast_19
   local.get 3   ; __buf_1
@@ -1989,8 +1989,8 @@ fn 26 images_ppm$Ppm$Display$to_string (ref) -> string
   string.const 49   ; " maxval="
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_10
-  local.field 0 14 2   ; arg 0.maxval
-  ref.cast 18   ; -> u32
+  local.field 0 14 2   ; arg 0 images_ppm$Ppm.maxval
+  ref.cast 18   ; u32
   u32.to_i64
   local.set 4   ; $cast_19
   local.get 3   ; __buf_1
@@ -2003,7 +2003,7 @@ fn 26 images_ppm$Ppm$Display$to_string (ref) -> string
   string.const 50   ; " ("
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_10
-  local.field 0 14 3   ; arg 0.pixels
+  local.field 0 14 3   ; arg 0 images_ppm$Ppm.pixels
   array.len
   usize.to_i64
   local.set 4   ; $cast_19

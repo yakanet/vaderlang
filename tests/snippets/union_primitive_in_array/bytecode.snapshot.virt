@@ -42,7 +42,7 @@ fn 0 snippet$show (any) -> string
     call 5   ; std_core$write_string_at
     local.set 3   ; __off_1
     local.get 0   ; arg 0
-    ref.cast 2   ; -> i32
+    ref.cast 2   ; i32
     i32.to_i64
     local.set 4   ; $cast_11
     local.get 2   ; __buf_0
@@ -56,7 +56,7 @@ fn 0 snippet$show (any) -> string
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    ref.cast 3   ; -> string
+    ref.cast 3   ; string
     local.set 5   ; $cast_15
     string.const 1   ; "text "
     local.get 5   ; $cast_15
@@ -72,23 +72,23 @@ fn 1 snippet$main () -> i32
   local __for_len_1 usize
   local __for_i_2 usize
   i32.const 4
-  retag 2   ; -> i32
+  retag 2   ; i32
   string.const 2   ; "four"
-  retag 3   ; -> string
-  array.new 11 2   ; union[][]
+  retag 3   ; string
+  array.new 11 2   ; union[]
   local.tee 0   ; cells
   i32.const 1
   i32.const 6
-  retag 2   ; -> i32
-  array.set 11   ; union[][]
+  retag 2   ; i32
+  array.set 11   ; union[]
   local.get 0   ; cells
   i32.const 5
-  retag 2   ; -> i32
-  array.push 1   ; union[]
+  retag 2   ; i32
+  array.push 1   ; union
   local.get 0   ; cells
   string.const 3   ; "five"
-  retag 3   ; -> string
-  array.push 1   ; union[]
+  retag 3   ; string
+  array.push 1   ; union
   local.get 0   ; cells
   array.len
   local.set 1   ; __for_len_1
@@ -102,7 +102,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 0   ; cells
         local.get 2   ; __for_i_2
-        array.get 11   ; union[][]
+        array.get 11   ; union[]
         call 0   ; snippet$show
         call 9   ; std_io$println__string
         local.get 2   ; __for_i_2
@@ -321,7 +321,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -28,8 +28,8 @@ impl 10 std_core$ByteAccess
 export main 10
 
 fn 0 snippet$A$Widget$base (ref) -> i32
-  local.field 0 1 0   ; arg 0.a
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$A.a
+  ref.cast 2   ; i32
   return
 end
 
@@ -93,13 +93,13 @@ fn 4 snippet$A$Widget$pair (ref) -> ref
   local.set 2   ; $add_4
   local.get 1   ; $call_1
   local.get 2   ; $add_4
-  array.new 6 2   ; i32[][]
+  array.new 6 2   ; i32[]
   return
 end
 
 fn 5 snippet$B$Widget$base (ref) -> i32
-  local.field 0 7 0   ; arg 0.b
-  ref.cast 2   ; -> i32
+  local.field 0 7 0   ; arg 0 snippet$B.b
+  ref.cast 2   ; i32
   return
 end
 
@@ -163,7 +163,7 @@ fn 9 snippet$B$Widget$pair (ref) -> ref
   local.set 2   ; $add_4
   local.get 1   ; $call_1
   local.get 2   ; $add_4
-  array.new 6 2   ; i32[][]
+  array.new 6 2   ; i32[]
   return
 end
 
@@ -182,7 +182,7 @@ fn 10 snippet$main () -> i32
   local.get 0   ; a
   call 1   ; snippet$A$Widget$boxed
   struct.get 3 0   ; snippet$Box.v
-  ref.cast 2   ; -> i32
+  ref.cast 2   ; i32
   i32.const 101
   i32.ne
   if $L0 void
@@ -192,7 +192,7 @@ fn 10 snippet$main () -> i32
   local.get 1   ; b
   call 6   ; snippet$B$Widget$boxed
   struct.get 3 0   ; snippet$Box.v
-  ref.cast 2   ; -> i32
+  ref.cast 2   ; i32
   i32.const 102
   i32.ne
   if $L1 void
@@ -487,7 +487,7 @@ fn 16 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

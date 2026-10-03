@@ -56,7 +56,7 @@ fn 1 snippet$main () -> i32
   i32.const 2
   i32.const 8
   i32.const 4
-  array.new 5 8   ; i32[][]
+  array.new 5 8   ; i32[]
   local.tee 0   ; xs
   i64.const 8
   call.import 1   ; snippet$lend_fill_array
@@ -127,8 +127,8 @@ fn 1 snippet$main () -> i32
   string.const 1   ; "mirror="
   call 5   ; std_core$write_string_at
   local.set 5   ; __off_1
-  local.field 0 7 0   ; xs.quot
-  ref.cast 1   ; -> i32
+  local.field 0 7 0   ; xs snippet$Div.quot
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 7   ; $cast_46
   local.get 6   ; __buf_2
@@ -141,8 +141,8 @@ fn 1 snippet$main () -> i32
   string.const 2   ; " "
   call 5   ; std_core$write_string_at
   local.set 5   ; __off_1
-  local.field 0 7 1   ; xs.rem
-  ref.cast 1   ; -> i32
+  local.field 0 7 1   ; xs snippet$Div.rem
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 7   ; $cast_46
   local.get 6   ; __buf_2
@@ -393,7 +393,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 12   ; u8[][]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

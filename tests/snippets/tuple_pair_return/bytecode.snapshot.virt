@@ -45,8 +45,8 @@ fn 1 snippet$main () -> i32
   string.const 1   ; "first  = "
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 1 0   ; p._0
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; p __Tuple_i32_string_d0b3dcb6._0
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_10
   local.get 1   ; __buf_0
@@ -58,8 +58,8 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
   call 9   ; std_io$println__string
-  local.field 0 1 1   ; p._1
-  ref.cast 3   ; -> string
+  local.field 0 1 1   ; p __Tuple_i32_string_d0b3dcb6._1
+  ref.cast 3   ; string
   local.set 4   ; $field_14
   string.const 2   ; "second = "
   local.get 4   ; $field_14
@@ -273,7 +273,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

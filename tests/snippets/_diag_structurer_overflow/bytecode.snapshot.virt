@@ -16,7 +16,7 @@ fn 0 snippet$run (any,bool,bool) -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 6 3   ; i32[][]
+  array.new 6 3   ; i32[]
   local.set 3   ; items
   i32.const 0
   local.set 4   ; base
@@ -24,18 +24,18 @@ fn 0 snippet$run (any,bool,bool) -> i32
   type_check 2   ; snippet$Pair
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$Pair
+    ref.cast 2   ; snippet$Pair
     struct.get 2 0   ; snippet$Pair.a
-    ref.cast 5   ; -> i32
+    ref.cast 5   ; i32
     local.set 4   ; base
   else
     local.get 0   ; arg 0
     type_check 3   ; snippet$Wrap
     if $L1 void
       local.get 0   ; arg 0
-      ref.cast 3   ; -> snippet$Wrap
+      ref.cast 3   ; snippet$Wrap
       struct.get 3 0   ; snippet$Wrap.b
-      ref.cast 5   ; -> i32
+      ref.cast 5   ; i32
       local.set 4   ; base
     else
       unreachable

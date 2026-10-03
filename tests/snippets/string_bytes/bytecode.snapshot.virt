@@ -76,8 +76,8 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 1   ; __for_arr_0
         local.get 3   ; __for_i_2
-        array.get 7   ; u8[][]
-        ref.cast 3   ; -> u8
+        array.get 7   ; u8[]
+        ref.cast 3   ; u8
         u8.to_i32
         local.set 4   ; $cast_14
         local.get 0   ; sum
@@ -131,8 +131,8 @@ fn 0 snippet$main () -> i32
       if $L5 void
         local.get 1   ; __for_arr_0
         local.get 3   ; __for_i_2
-        array.get 7   ; u8[][]
-        ref.cast 3   ; -> u8
+        array.get 7   ; u8[]
+        ref.cast 3   ; u8
         local.set 6   ; b
         i64.const 20
         call 2   ; std_core$new_byte_buffer
@@ -245,8 +245,8 @@ fn 0 snippet$main () -> i32
   string.const 12   ; "d"
   call.import 2   ; std_core$bytes
   i32.const 0
-  array.get 7   ; u8[][]
-  ref.cast 3   ; -> u8
+  array.get 7   ; u8[]
+  ref.cast 3   ; u8
   u8.to_i64
   local.set 5   ; $cast_25
   local.get 1   ; __for_arr_0
@@ -336,8 +336,8 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __for_len_1
   local.get 1   ; __for_arr_0
   i32.const 0
-  array.get 7   ; u8[][]
-  ref.cast 3   ; -> u8
+  array.get 7   ; u8[]
+  ref.cast 3   ; u8
   u8.to_i64
   local.set 5   ; $cast_25
   local.get 7   ; __buf_8
@@ -352,8 +352,8 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __for_len_1
   local.get 1   ; __for_arr_0
   i32.const 1
-  array.get 7   ; u8[][]
-  ref.cast 3   ; -> u8
+  array.get 7   ; u8[]
+  ref.cast 3   ; u8
   u8.to_i64
   local.set 5   ; $cast_25
   local.get 7   ; __buf_8
@@ -368,8 +368,8 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __for_len_1
   local.get 1   ; __for_arr_0
   i32.const 2
-  array.get 7   ; u8[][]
-  ref.cast 3   ; -> u8
+  array.get 7   ; u8[]
+  ref.cast 3   ; u8
   u8.to_i64
   local.set 5   ; $cast_25
   local.get 7   ; __buf_8
@@ -387,7 +387,7 @@ fn 0 snippet$main () -> i32
   call.import 2   ; std_core$bytes
   i64.const 1
   i64.const 4
-  array.slice 7   ; u8[][]
+  array.slice 7   ; u8[]
   local.set 1   ; __for_arr_0
   i64.const 102
   call 2   ; std_core$new_byte_buffer
@@ -415,8 +415,8 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __for_len_1
   local.get 1   ; __for_arr_0
   i32.const 0
-  array.get 7   ; u8[][]
-  ref.cast 3   ; -> u8
+  array.get 7   ; u8[]
+  ref.cast 3   ; u8
   u8.to_i64
   local.set 5   ; $cast_25
   local.get 7   ; __buf_8
@@ -431,8 +431,8 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __for_len_1
   local.get 1   ; __for_arr_0
   i32.const 1
-  array.get 7   ; u8[][]
-  ref.cast 3   ; -> u8
+  array.get 7   ; u8[]
+  ref.cast 3   ; u8
   u8.to_i64
   local.set 5   ; $cast_25
   local.get 7   ; __buf_8
@@ -447,8 +447,8 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __for_len_1
   local.get 1   ; __for_arr_0
   i32.const 2
-  array.get 7   ; u8[][]
-  ref.cast 3   ; -> u8
+  array.get 7   ; u8[]
+  ref.cast 3   ; u8
   u8.to_i64
   local.set 5   ; $cast_25
   local.get 7   ; __buf_8
@@ -637,7 +637,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

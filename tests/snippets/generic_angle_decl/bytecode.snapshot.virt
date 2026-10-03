@@ -113,8 +113,8 @@ fn 2 snippet$main () -> i32
   string.const 3   ; "b = "
   call 9   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 1 5 0   ; __buf_0.value
-  ref.cast 3   ; -> i32
+  local.field 1 5 0   ; __buf_0 snippet$Box__i32.value
+  ref.cast 3   ; i32
   i32.to_i64
   local.set 3   ; $cast_10
   local.get 4   ; __buf_4
@@ -139,9 +139,9 @@ fn 2 snippet$main () -> i32
   string.const 4   ; "nested = "
   call 9   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 1 4 0   ; __buf_0.value
+  local.field 1 4 0   ; __buf_0 snippet$Box__Box_i32_.value
   struct.get 5 0   ; snippet$Box__i32.value
-  ref.cast 3   ; -> i32
+  ref.cast 3   ; i32
   i32.to_i64
   local.set 3   ; $cast_10
   local.get 4   ; __buf_4
@@ -416,7 +416,7 @@ fn 12 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 12   ; u8[][]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

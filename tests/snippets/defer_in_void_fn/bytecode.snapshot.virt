@@ -31,7 +31,7 @@ end
 
 fn 1 snippet$void_trailing () -> void
   struct.new 5   ; __defer_env_snippet_1
-  make_closure 4 14   ; __defer_snippet_0
+  make_closure 4 14   ; __defer_snippet_0 fn
   defer.push
   string.const 0   ; "body last"
   call 13   ; std_io$println__string
@@ -41,7 +41,7 @@ end
 
 fn 2 snippet$value_trailing () -> i32
   struct.new 6   ; __defer_env_snippet_3
-  make_closure 5 14   ; __defer_snippet_2
+  make_closure 5 14   ; __defer_snippet_2 fn
   defer.push
   i32.const 1
   call 0   ; snippet$fallible
@@ -297,7 +297,7 @@ fn 11 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 12   ; u8[][]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

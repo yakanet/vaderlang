@@ -59,7 +59,7 @@ fn 0 snippet$main () -> i32
   local.get 1   ; $struct_2
   local.get 2   ; $struct_5
   local.get 3   ; $struct_8
-  array.new 13 3   ; std_core$Field[][]
+  array.new 13 3   ; std_core$Field[]
   local.tee 1   ; $struct_2
   array.len
   local.set 4   ; __for_len_1
@@ -73,10 +73,10 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 1   ; $struct_2
         local.get 5   ; __for_i_2
-        array.get 13   ; std_core$Field[][]
+        array.get 13   ; std_core$Field[]
         local.set 2   ; $struct_5
-        local.field 2 10 0   ; $struct_5.name
-        ref.cast 2   ; -> string
+        local.field 2 10 0   ; $struct_5 std_core$Field.name
+        ref.cast 2   ; string
         local.tee 6   ; __p_3
         call.import 0   ; std_core$byte_len
         local.set 7   ; $call_21
@@ -97,7 +97,7 @@ fn 0 snippet$main () -> i32
         string.const 3   ; " size="
         call 4   ; std_core$write_string_at
         local.set 8   ; __off_5
-        local.field 2 10 1   ; $struct_5.type
+        local.field 2 10 1   ; $struct_5 std_core$Field.type
         intrinsic size_of.type
         usize.to_i64
         local.set 9   ; $cast_32
@@ -132,7 +132,7 @@ fn 0 snippet$main () -> i32
   local.set 2   ; $struct_5
   local.get 1   ; $struct_2
   local.get 2   ; $struct_5
-  array.new 13 2   ; std_core$Field[][]
+  array.new 13 2   ; std_core$Field[]
   local.tee 1   ; $struct_2
   array.len
   local.set 4   ; __for_len_1
@@ -146,10 +146,10 @@ fn 0 snippet$main () -> i32
       if $L5 void
         local.get 1   ; $struct_2
         local.get 5   ; __for_i_2
-        array.get 13   ; std_core$Field[][]
+        array.get 13   ; std_core$Field[]
         local.set 2   ; $struct_5
-        local.field 2 10 0   ; $struct_5.name
-        ref.cast 2   ; -> string
+        local.field 2 10 0   ; $struct_5 std_core$Field.name
+        ref.cast 2   ; string
         local.tee 6   ; __p_3
         call.import 0   ; std_core$byte_len
         local.set 7   ; $call_21
@@ -175,7 +175,7 @@ fn 0 snippet$main () -> i32
         string.const 3   ; " size="
         call 4   ; std_core$write_string_at
         local.set 8   ; __off_5
-        local.field 2 10 1   ; $struct_5.type
+        local.field 2 10 1   ; $struct_5 std_core$Field.type
         intrinsic size_of.type
         usize.to_i64
         local.set 9   ; $cast_32
@@ -373,7 +373,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

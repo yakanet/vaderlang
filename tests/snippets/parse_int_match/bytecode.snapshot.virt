@@ -202,35 +202,35 @@ fn 3 std_core$parse_f64 (string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; parts
-  ref.cast 9   ; -> std_core$DecimalParts
+  ref.cast 9   ; std_core$DecimalParts
   struct.get 9 3   ; std_core$DecimalParts.too_many_digits
-  ref.cast 3   ; -> bool
+  ref.cast 3   ; bool
   if $L1 void
     local.get 1   ; parts
-    ref.cast 9   ; -> std_core$DecimalParts
+    ref.cast 9   ; std_core$DecimalParts
     struct.get 9 0   ; std_core$DecimalParts.w
-    ref.cast 10   ; -> u64
+    ref.cast 10   ; u64
     local.set 2   ; $field_8
     local.get 1   ; parts
-    ref.cast 9   ; -> std_core$DecimalParts
+    ref.cast 9   ; std_core$DecimalParts
     struct.get 9 1   ; std_core$DecimalParts.q
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     local.set 3   ; $field_10
     local.get 2   ; $field_8
     local.get 3   ; $field_10
     call 5   ; std_core$eisel_lemire
     local.set 2   ; $field_8
     local.get 1   ; parts
-    ref.cast 9   ; -> std_core$DecimalParts
+    ref.cast 9   ; std_core$DecimalParts
     struct.get 9 0   ; std_core$DecimalParts.w
-    ref.cast 10   ; -> u64
+    ref.cast 10   ; u64
     i64.const 1
     i64.add
     local.set 4   ; $add_16
     local.get 1   ; parts
-    ref.cast 9   ; -> std_core$DecimalParts
+    ref.cast 9   ; std_core$DecimalParts
     struct.get 9 1   ; std_core$DecimalParts.q
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     local.set 3   ; $field_10
     local.get 4   ; $add_16
     local.get 3   ; $field_10
@@ -241,35 +241,35 @@ fn 3 std_core$parse_f64 (string) -> any
     i64.ne
     if $L2 void
       local.get 1   ; parts
-      ref.cast 9   ; -> std_core$DecimalParts
+      ref.cast 9   ; std_core$DecimalParts
       struct.get 9 2   ; std_core$DecimalParts.negative
-      ref.cast 3   ; -> bool
+      ref.cast 3   ; bool
       local.set 5   ; $field_23
       local.get 0   ; arg 0
       local.get 5   ; $field_23
       call 6   ; std_core$parse_f64_slow
-      retag 7   ; -> f64
+      retag 7   ; f64
       return
     end $L2
   end $L1
   local.get 1   ; parts
-  ref.cast 9   ; -> std_core$DecimalParts
+  ref.cast 9   ; std_core$DecimalParts
   struct.get 9 0   ; std_core$DecimalParts.w
-  ref.cast 10   ; -> u64
+  ref.cast 10   ; u64
   local.set 2   ; $field_8
   local.get 1   ; parts
-  ref.cast 9   ; -> std_core$DecimalParts
+  ref.cast 9   ; std_core$DecimalParts
   struct.get 9 1   ; std_core$DecimalParts.q
-  ref.cast 1   ; -> i32
+  ref.cast 1   ; i32
   local.set 3   ; $field_10
   local.get 2   ; $field_8
   local.get 3   ; $field_10
   call 5   ; std_core$eisel_lemire
   local.set 2   ; $field_8
   local.get 1   ; parts
-  ref.cast 9   ; -> std_core$DecimalParts
+  ref.cast 9   ; std_core$DecimalParts
   struct.get 9 2   ; std_core$DecimalParts.negative
-  ref.cast 3   ; -> bool
+  ref.cast 3   ; bool
   if $L3 void
     i64.const 1
     i64.const 63
@@ -282,7 +282,7 @@ fn 3 std_core$parse_f64 (string) -> any
   end $L3
   local.get 2   ; $field_8
   call 31   ; std_core$u64$BitsFloat$from_bits_vt
-  retag 7   ; -> f64
+  retag 7   ; f64
   return
 end
 
@@ -992,28 +992,28 @@ fn 6 std_core$parse_f64_slow (string,bool) -> f64
     i64.const 0
     local.set 3   ; sign
   end $L0
-  local.field 2 11 0   ; p.d
+  local.field 2 11 0   ; p std_core$SlowParts.d
   call 11   ; std_core$is_zero
   if $L1 void
     local.get 3   ; sign
     call 31   ; std_core$u64$BitsFloat$from_bits_vt
     return
   end $L1
-  local.field 2 11 0   ; p.d
+  local.field 2 11 0   ; p std_core$SlowParts.d
   local.set 4   ; m
   i32.const 0
   local.set 5   ; b_exp
   bool.const false
   local.set 6   ; sticky
-  local.field 2 11 1   ; p.e
-  ref.cast 1   ; -> i32
+  local.field 2 11 1   ; p std_core$SlowParts.e
+  ref.cast 1   ; i32
   i32.const 0
   i32.ge
   if $L2 void
     i32.const 0
     local.set 7   ; _k
-    local.field 2 11 1   ; p.e
-    ref.cast 1   ; -> i32
+    local.field 2 11 1   ; p std_core$SlowParts.e
+    ref.cast 1   ; i32
     local.set 8   ; __for_hi_0
     block $L3 void
       loop $L4 void
@@ -1033,12 +1033,12 @@ fn 6 std_core$parse_f64_slow (string,bool) -> f64
         end $L5
       end $L4
     end $L3
-    local.field 2 11 1   ; p.e
-    ref.cast 1   ; -> i32
+    local.field 2 11 1   ; p std_core$SlowParts.e
+    ref.cast 1   ; i32
     local.set 5   ; b_exp
   else
-    local.field 2 11 1   ; p.e
-    ref.cast 1   ; -> i32
+    local.field 2 11 1   ; p std_core$SlowParts.e
+    ref.cast 1   ; i32
     i32.neg
     local.tee 7   ; _k
     i32.const 4
@@ -1046,7 +1046,7 @@ fn 6 std_core$parse_f64_slow (string,bool) -> f64
     i32.const 64
     i32.add
     local.set 8   ; __for_hi_0
-    local.field 2 11 0   ; p.d
+    local.field 2 11 0   ; p std_core$SlowParts.d
     local.get 8   ; __for_hi_0
     call 12   ; std_core$shl
     local.set 4   ; m
@@ -1062,10 +1062,10 @@ fn 6 std_core$parse_f64_slow (string,bool) -> f64
           i32.const 5
           call 22   ; std_core$BigInt$Div$div
           local.set 10   ; __tup_1
-          local.field 10 14 0   ; __tup_1._0
+          local.field 10 14 0   ; __tup_1 __Tuple_Array_u32_u32_6fc96a7e._0
           local.set 4   ; m
-          local.field 10 14 1   ; __tup_1._1
-          ref.cast 13   ; -> u32
+          local.field 10 14 1   ; __tup_1 __Tuple_Array_u32_u32_6fc96a7e._1
+          ref.cast 13   ; u32
           i32.const 0
           i32.ne
           if $L9 void
@@ -1080,8 +1080,8 @@ fn 6 std_core$parse_f64_slow (string,bool) -> f64
         end $L8
       end $L7
     end $L6
-    local.field 2 11 1   ; p.e
-    ref.cast 1   ; -> i32
+    local.field 2 11 1   ; p std_core$SlowParts.e
+    ref.cast 1   ; i32
     local.get 8   ; __for_hi_0
     i32.sub
     local.set 5   ; b_exp
@@ -1265,7 +1265,7 @@ fn 9 std_core$pf_product (i32,u64) -> (u64,u64)
   i32.mul
   i32.to_i64
   local.set 3   ; idx
-  data.const 0 22   ; pool[0] : u64[]
+  data.const 0 22   ; pool[0] u64[]
   local.get 3   ; idx
   load_slot_i64
   local.set 4   ; $idx_9
@@ -1280,7 +1280,7 @@ fn 9 std_core$pf_product (i32,u64) -> (u64,u64)
   i64.const 511
   i64.eq
   if $L0 void
-    data.const 0 22   ; pool[0] : u64[]
+    data.const 0 22   ; pool[0] u64[]
     local.set 6   ; $data_const_22
     local.get 3   ; idx
     i64.const 1
@@ -1354,7 +1354,7 @@ fn 10 std_core$sd_scan (string) -> ref
     local.set 2   ; i
   end $L1
   i32.const 0
-  array.new 12 1   ; u32[][]
+  array.new 12 1   ; u32[]
   local.set 4   ; d
   i32.const 0
   local.set 5   ; e
@@ -1660,8 +1660,8 @@ fn 11 std_core$is_zero (ref) -> bool
       if $L2 void
         local.get 0   ; arg 0
         local.get 1   ; i
-        array.get 12   ; u32[][]
-        ref.cast 13   ; -> u32
+        array.get 12   ; u32[]
+        ref.cast 13   ; u32
         i32.const 0
         i32.ne
         if $L3 void
@@ -1690,7 +1690,7 @@ fn 12 std_core$shl (ref,i32) -> ref
   local $cast_38 u64
   local v u64
   local $cast_43 u32
-  array.new 12 0   ; u32[][]
+  array.new 12 0   ; u32[]
   local.set 2   ; out
   i64.const 0
   local.set 3   ; _z
@@ -1707,7 +1707,7 @@ fn 12 std_core$shl (ref,i32) -> ref
       if $L2 void
         local.get 2   ; out
         i32.const 0
-        array.push 13 2   ; u32[]
+        array.push 13 2   ; u32 out
         local.get 3   ; _z
         i64.const 1
         i64.add
@@ -1736,12 +1736,12 @@ fn 12 std_core$shl (ref,i32) -> ref
         if $L6 void
           local.get 0   ; arg 0
           local.get 3   ; _z
-          array.get 12   ; u32[][]
-          ref.cast 13   ; -> u32
+          array.get 12   ; u32[]
+          ref.cast 13   ; u32
           local.set 6   ; $idx_24
           local.get 2   ; out
           local.get 6   ; $idx_24
-          array.push 13 2   ; u32[]
+          array.push 13 2   ; u32 out
           local.get 3   ; _z
           i64.const 1
           i64.add
@@ -1768,8 +1768,8 @@ fn 12 std_core$shl (ref,i32) -> ref
       if $L9 void
         local.get 0   ; arg 0
         local.get 3   ; _z
-        array.get 12   ; u32[][]
-        ref.cast 13   ; -> u32
+        array.get 12   ; u32[]
+        ref.cast 13   ; u32
         u32.to_i64
         local.set 7   ; $cast_35
         local.get 5   ; bit_shift
@@ -1792,7 +1792,7 @@ fn 12 std_core$shl (ref,i32) -> ref
         local.set 12   ; $cast_43
         local.get 2   ; out
         local.get 12   ; $cast_43
-        array.push 13   ; u32[]
+        array.push 13   ; u32
         local.get 11   ; v
         i64.const 32
         u64.shr
@@ -1812,7 +1812,7 @@ fn 12 std_core$shl (ref,i32) -> ref
   if $L10 void
     local.get 2   ; out
     local.get 6   ; $idx_24
-    array.push 13   ; u32[]
+    array.push 13   ; u32
   end $L10
   local.get 2   ; out
   return
@@ -1842,8 +1842,8 @@ fn 13 std_core$bit_len (ref) -> i32
         local.set 2   ; $cast_8
         local.get 0   ; arg 0
         local.get 2   ; $cast_8
-        array.get 12   ; u32[][]
-        ref.cast 13   ; -> u32
+        array.get 12   ; u32[]
+        ref.cast 13   ; u32
         i32.const 0
         i32.ne
         if $L3 void
@@ -1856,8 +1856,8 @@ fn 13 std_core$bit_len (ref) -> i32
           local.set 4   ; $cast_15
           local.get 0   ; arg 0
           local.get 4   ; $cast_15
-          array.get 12   ; u32[][]
-          ref.cast 13   ; -> u32
+          array.get 12   ; u32[]
+          ref.cast 13   ; u32
           call 17   ; std_core$clz32
           local.set 5   ; $call_17
           i32.const 32
@@ -2061,7 +2061,7 @@ fn 16 std_core$mul_add_small (ref,u32,u32) -> ref
   local $cast_16 u64
   local v u64
   local $cast_22 u32
-  array.new 12 0   ; u32[][]
+  array.new 12 0   ; u32[]
   local.set 3   ; $arr_3
   local.get 0   ; arg 0
   array.len
@@ -2086,8 +2086,8 @@ fn 16 std_core$mul_add_small (ref,u32,u32) -> ref
       if $L2 void
         local.get 0   ; arg 0
         local.get 4   ; $len_4
-        array.get 12   ; u32[][]
-        ref.cast 13   ; -> u32
+        array.get 12   ; u32[]
+        ref.cast 13   ; u32
         u32.to_i64
         local.set 7   ; $cast_15
         local.get 1   ; arg 1
@@ -2105,7 +2105,7 @@ fn 16 std_core$mul_add_small (ref,u32,u32) -> ref
         local.set 10   ; $cast_22
         local.get 3   ; $arr_3
         local.get 10   ; $cast_22
-        array.push 13 3   ; u32[]
+        array.push 13 3   ; u32 $arr_3
         local.get 9   ; v
         i64.const 32
         u64.shr
@@ -2131,7 +2131,7 @@ fn 16 std_core$mul_add_small (ref,u32,u32) -> ref
         local.set 10   ; $cast_22
         local.get 3   ; $arr_3
         local.get 10   ; $cast_22
-        array.push 13 3   ; u32[]
+        array.push 13 3   ; u32 $arr_3
         local.get 5   ; carry
         i64.const 32
         u64.shr
@@ -2288,8 +2288,8 @@ fn 19 std_core$any_below (ref,i32) -> bool
       if $L2 void
         local.get 0   ; arg 0
         local.get 4   ; i
-        array.get 12   ; u32[][]
-        ref.cast 13   ; -> u32
+        array.get 12   ; u32[]
+        ref.cast 13   ; u32
         i32.const 0
         i32.ne
         if $L3 void
@@ -2337,8 +2337,8 @@ fn 19 std_core$any_below (ref,i32) -> bool
     local.set 4   ; i
     local.get 0   ; arg 0
     local.get 4   ; i
-    array.get 12   ; u32[][]
-    ref.cast 13   ; -> u32
+    array.get 12   ; u32[]
+    ref.cast 13   ; u32
     local.get 7   ; $cast_28
     i32.bitand
     i32.const 0
@@ -2362,8 +2362,8 @@ fn 20 std_core$limb (ref,usize) -> u64
   if $L0 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    array.get 12   ; u32[][]
-    ref.cast 13   ; -> u32
+    array.get 12   ; u32[]
+    ref.cast 13   ; u32
     u32.to_i64
     local.set 3   ; if_res
   else
@@ -2394,7 +2394,7 @@ fn 22 std_core$BigInt$Div$div (ref,u32) -> ref
   local $cast_22 u32
   local $cast_23 u64
   local out ref
-  array.new 12 0   ; u32[][]
+  array.new 12 0   ; u32[]
   local.set 2   ; msb
   i64.const 0
   local.set 3   ; rem
@@ -2419,8 +2419,8 @@ fn 22 std_core$BigInt$Div$div (ref,u32) -> ref
         local.set 6   ; $cast_15
         local.get 0   ; arg 0
         local.get 6   ; $cast_15
-        array.get 12   ; u32[][]
-        ref.cast 13   ; -> u32
+        array.get 12   ; u32[]
+        ref.cast 13   ; u32
         u32.to_i64
         local.set 7   ; $cast_17
         local.get 5   ; $shl_14
@@ -2437,7 +2437,7 @@ fn 22 std_core$BigInt$Div$div (ref,u32) -> ref
         local.set 10   ; $cast_22
         local.get 2   ; msb
         local.get 10   ; $cast_22
-        array.push 13 2   ; u32[]
+        array.push 13 2   ; u32 msb
         local.get 1   ; arg 1
         u32.to_i64
         local.set 11   ; $cast_23
@@ -2453,7 +2453,7 @@ fn 22 std_core$BigInt$Div$div (ref,u32) -> ref
       end $L2
     end $L1
   end $L0
-  array.new 12 0   ; u32[][]
+  array.new 12 0   ; u32[]
   local.set 12   ; out
   local.get 2   ; msb
   array.len
@@ -2472,12 +2472,12 @@ fn 22 std_core$BigInt$Div$div (ref,u32) -> ref
         local.set 6   ; $cast_15
         local.get 2   ; msb
         local.get 6   ; $cast_15
-        array.get 12   ; u32[][]
-        ref.cast 13   ; -> u32
+        array.get 12   ; u32[]
+        ref.cast 13   ; u32
         local.set 10   ; $cast_22
         local.get 12   ; out
         local.get 10   ; $cast_22
-        array.push 13 12   ; u32[]
+        array.push 13 12   ; u32 out
         local.get 4   ; i
         i32.const 1
         i32.sub
@@ -2526,7 +2526,7 @@ fn 23 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 15   ; u8[][]
+      array.slice 15   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -2707,12 +2707,12 @@ fn 26 std_string$parse_int (string) -> any
     local.get 4   ; acc
     i64.neg
     i64.to_i32
-    retag 1   ; -> i32
+    retag 1   ; i32
     return
   end $L11
   local.get 4   ; acc
   i64.to_i32
-  retag 1   ; -> i32
+  retag 1   ; i32
   return
 end
 
@@ -2731,8 +2731,8 @@ fn 27 std_string$parse_float (string) -> any
     return
   end $L0
   local.get 1   ; r
-  ref.cast 7   ; -> f64
-  retag 7   ; -> f64
+  ref.cast 7   ; f64
+  retag 7   ; f64
   return
 end
 

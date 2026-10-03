@@ -33,7 +33,7 @@ fn 1 snippet$main () -> i32
   local __buf_1 ref
   local __off_2 usize
   local $cast_21 u64
-  array.new 11 0   ; i32[][]
+  array.new 11 0   ; i32[]
   local.set 0   ; kept
   i32.const 0
   local.set 1   ; x
@@ -50,7 +50,7 @@ fn 1 snippet$main () -> i32
           local.set 2   ; x
           local.get 0   ; kept
           local.get 2   ; x
-          array.push 1 0   ; i32[]
+          array.push 1 0   ; i32 kept
         end $L3
         local.get 1   ; x
         i32.const 1
@@ -260,7 +260,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

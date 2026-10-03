@@ -81,17 +81,17 @@ fn 0 snippet$main () -> i32
   call 2   ; concat_2
   struct.new 19   ; $Cell_string
   local.set 0   ; path
-  local.field 0 19 0   ; path.value
+  local.field 0 19 0   ; path $Cell_string.value
   string.const 1   ; "0123456789"
   call 9   ; std_io$write_file_string
   local.tee 1   ; wrote
   type_check 12   ; std_io$IOError
   if $L0 void
     local.get 1   ; wrote
-    ref.cast 12   ; -> std_io$IOError
+    ref.cast 12   ; std_io$IOError
     local.set 2   ; e
-    local.field 2 12 0   ; e.msg
-    ref.cast 4   ; -> string
+    local.field 2 12 0   ; e std_io$IOError.msg
+    ref.cast 4   ; string
     local.set 3   ; $field_13
     string.const 2   ; "setup failed: "
     local.get 3   ; $field_13
@@ -101,16 +101,16 @@ fn 0 snippet$main () -> i32
   end $L0
   local.get 0   ; path
   struct.new 2   ; __defer_env_snippet_1
-  make_closure 1 20   ; __defer_snippet_0
+  make_closure 1 20   ; __defer_snippet_0 fn
   defer.push
-  local.field 0 19 0   ; path.value
+  local.field 0 19 0   ; path $Cell_string.value
   i64.const 16777216
   call 11   ; std_io$read_file_string
   local.tee 1   ; wrote
   type_check 4   ; string
   if $L1 void
     local.get 1   ; wrote
-    ref.cast 4   ; -> string
+    ref.cast 4   ; string
     local.set 3   ; $field_13
     i64.const 34
     call 4   ; std_core$new_byte_buffer
@@ -136,14 +136,14 @@ fn 0 snippet$main () -> i32
     call 5   ; std_core$finish_buffer
     call 20   ; std_io$println__string
   end $L1
-  local.field 0 19 0   ; path.value
+  local.field 0 19 0   ; path $Cell_string.value
   i64.const 16777216
   call 11   ; std_io$read_file_string
   local.tee 1   ; wrote
   type_check 4   ; string
   if $L2 void
     local.get 1   ; wrote
-    ref.cast 4   ; -> string
+    ref.cast 4   ; string
     local.set 3   ; $field_13
     i64.const 34
     call 4   ; std_core$new_byte_buffer
@@ -169,18 +169,18 @@ fn 0 snippet$main () -> i32
     call 5   ; std_core$finish_buffer
     call 20   ; std_io$println__string
   end $L2
-  local.field 0 19 0   ; path.value
+  local.field 0 19 0   ; path $Cell_string.value
   i64.const 4
   call 11   ; std_io$read_file_string
   type_check 12   ; std_io$IOError
   if $L3 void
-    local.field 0 19 0   ; path.value
+    local.field 0 19 0   ; path $Cell_string.value
     i64.const 4
     call 11   ; std_io$read_file_string
-    ref.cast 12   ; -> std_io$IOError
+    ref.cast 12   ; std_io$IOError
     local.set 2   ; e
-    local.field 2 12 0   ; e.msg
-    ref.cast 4   ; -> string
+    local.field 2 12 0   ; e std_io$IOError.msg
+    ref.cast 4   ; string
     local.set 3   ; $field_13
     string.const 5   ; "explicit 4:   "
     local.get 3   ; $field_13
@@ -192,7 +192,7 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 __defer_snippet_0 (ref) -> void
-  local.field 0 2 0   ; arg 0.cap_0
+  local.field 0 2 0   ; arg 0 __defer_env_snippet_1.cap_0
   struct.get 19 0   ; $Cell_string.value
   call 10   ; std_io$remove_file
   drop
@@ -424,13 +424,13 @@ fn 11 std_io$read_file_string (string,usize) -> any
   type_check 12   ; std_io$IOError
   if $L0 void
     local.get 2   ; r
-    ref.cast 12   ; -> std_io$IOError
+    ref.cast 12   ; std_io$IOError
     return
   end $L0
   local.get 2   ; r
-  ref.cast 10   ; -> u8[]
+  ref.cast 10   ; u8[]
   call.import 2   ; std_core$bytes_to_string
-  retag 4   ; -> string
+  retag 4   ; string
   return
 end
 
@@ -465,7 +465,7 @@ fn 12 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -503,7 +503,7 @@ fn 13 std_io$temp_dir_of (any) -> string
     local.set 1   ; e
   else
     local.get 2   ; __coalesce_0
-    ref.cast 4   ; -> string
+    ref.cast 4   ; string
     local.set 1   ; e
   end $L0
   local.get 1   ; e
@@ -573,7 +573,7 @@ fn 14 std_io$write_file_bytes (string,ref) -> any
     array.len
     local.set 2   ; __for_len_1
     local.get 4   ; f
-    ref.cast 18   ; -> pointer
+    ref.cast 18   ; pointer
     local.set 5   ; $cast_28
     local.get 1   ; arg 1
     i64.const 1
@@ -592,7 +592,7 @@ fn 14 std_io$write_file_bytes (string,ref) -> any
       call 15   ; std_io$last_io_error
       local.set 6   ; err
       local.get 4   ; f
-      ref.cast 18   ; -> pointer
+      ref.cast 18   ; pointer
       call.import 9   ; system_posix$sys_fclose
       drop
       local.get 6   ; err
@@ -600,7 +600,7 @@ fn 14 std_io$write_file_bytes (string,ref) -> any
     end $L6
   end $L5
   local.get 4   ; f
-  ref.cast 18   ; -> pointer
+  ref.cast 18   ; pointer
   call.import 9   ; system_posix$sys_fclose
   i32.const 0
   i32.ne
@@ -775,10 +775,10 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
     call 15   ; std_io$last_io_error
     return
   end $L0
-  array.new 10 0   ; u8[][]
+  array.new 10 0   ; u8[]
   local.set 3   ; out
   i32.const 0
-  array.new 10 1   ; u8[][]
+  array.new 10 1   ; u8[]
   i64.const 65536
   array.repeat
   local.set 4   ; chunk
@@ -788,7 +788,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
       array.len
       local.set 5   ; $len_16
       local.get 2   ; f
-      ref.cast 18   ; -> pointer
+      ref.cast 18   ; pointer
       local.set 6   ; $cast_17
       local.get 4   ; chunk
       i64.const 1
@@ -802,7 +802,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
         local.get 4   ; chunk
         i64.const 0
         local.get 7   ; n
-        array.slice 10   ; u8[][]
+        array.slice 10   ; u8[]
         local.set 8   ; $slice_23
         local.get 3   ; out
         local.get 8   ; $slice_23
@@ -814,7 +814,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
       u64.gt
       if $L4 void
         local.get 2   ; f
-        ref.cast 18   ; -> pointer
+        ref.cast 18   ; pointer
         call.import 9   ; system_posix$sys_fclose
         drop
         string.const 17   ; "file too large"
@@ -837,7 +837,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
       u64.lt
       if $L5 void
         local.get 2   ; f
-        ref.cast 18   ; -> pointer
+        ref.cast 18   ; pointer
         call.import 7   ; system_posix$sys_ferror
         i32.const 0
         i32.ne
@@ -850,7 +850,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
           local.set 13   ; err
         end $L6
         local.get 2   ; f
-        ref.cast 18   ; -> pointer
+        ref.cast 18   ; pointer
         call.import 9   ; system_posix$sys_fclose
         drop
         local.get 13   ; err
@@ -858,7 +858,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
         bool.not
         if $L7 void
           local.get 13   ; err
-          ref.cast 12   ; -> std_io$IOError
+          ref.cast 12   ; std_io$IOError
           return
         end $L7
         local.get 3   ; out
@@ -868,7 +868,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
     end $L2
   end $L1
   local.get 2   ; f
-  ref.cast 18   ; -> pointer
+  ref.cast 18   ; pointer
   call.import 9   ; system_posix$sys_fclose
   drop
   string.const 17   ; "file too large"
@@ -943,8 +943,8 @@ fn 18 std_io$without_trailing_sep (string) -> string
         else
           local.get 1   ; b
           local.get 5   ; last
-          array.get 10   ; u8[][]
-          ref.cast 6   ; -> u8
+          array.get 10   ; u8[]
+          ref.cast 6   ; u8
           i32.const 47
           i32.ne
           local.set 6   ; or_res
@@ -958,8 +958,8 @@ fn 18 std_io$without_trailing_sep (string) -> string
           local.set 7   ; $sub_23
           local.get 1   ; b
           local.get 7   ; $sub_23
-          array.get 10   ; u8[][]
-          ref.cast 6   ; -> u8
+          array.get 10   ; u8[]
+          ref.cast 6   ; u8
           i32.const 58
           i32.eq
           if $L5 void
@@ -993,7 +993,7 @@ fn 18 std_io$without_trailing_sep (string) -> string
   local.get 1   ; b
   i64.const 0
   local.get 2   ; trailing
-  array.slice 10   ; u8[][]
+  array.slice 10   ; u8[]
   call.import 2   ; std_core$bytes_to_string
   return
 end

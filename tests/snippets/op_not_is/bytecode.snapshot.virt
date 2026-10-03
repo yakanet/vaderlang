@@ -40,9 +40,9 @@ fn 0 snippet$describe (any) -> string
   bool.not
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 3   ; -> snippet$Dog
+    ref.cast 3   ; snippet$Dog
     struct.get 3 0   ; snippet$Dog.sound
-    ref.cast 4   ; -> string
+    ref.cast 4   ; string
     local.set 1   ; $field_5
     string.const 0   ; "dog says "
     local.get 1   ; $field_5
@@ -50,9 +50,9 @@ fn 0 snippet$describe (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 2   ; -> snippet$Cat
+  ref.cast 2   ; snippet$Cat
   struct.get 2 0   ; snippet$Cat.name
-  ref.cast 4   ; -> string
+  ref.cast 4   ; string
   local.set 1   ; $field_5
   string.const 1   ; "cat "
   local.get 1   ; $field_5
@@ -80,7 +80,7 @@ fn 1 snippet$stringify (any) -> string
     call 8   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
-    ref.cast 6   ; -> i32
+    ref.cast 6   ; i32
     i32.to_i64
     local.set 3   ; $cast_11
     local.get 1   ; __buf_0
@@ -94,7 +94,7 @@ fn 1 snippet$stringify (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 4   ; -> string
+  ref.cast 4   ; string
   local.set 4   ; $cast_15
   string.const 3   ; "str "
   local.get 4   ; $cast_15
@@ -109,9 +109,9 @@ fn 2 snippet$unwrap_or (any,string) -> string
   bool.not
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$Cat
+    ref.cast 2   ; snippet$Cat
     struct.get 2 0   ; snippet$Cat.name
-    ref.cast 4   ; -> string
+    ref.cast 4   ; string
     local.set 2   ; $field_6
     string.const 1   ; "cat "
     local.get 2   ; $field_6
@@ -141,11 +141,11 @@ fn 4 snippet$main () -> i32
   call 0   ; snippet$describe
   call 12   ; std_io$println__string
   i32.const 42
-  retag 6   ; -> i32
+  retag 6   ; i32
   call 1   ; snippet$stringify
   call 12   ; std_io$println__string
   string.const 6   ; "hello"
-  retag 4   ; -> string
+  retag 4   ; string
   call 1   ; snippet$stringify
   call 12   ; std_io$println__string
   string.const 7   ; "garfield"
@@ -383,7 +383,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 13   ; u8[][]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

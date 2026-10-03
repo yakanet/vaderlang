@@ -13,7 +13,7 @@ fn 0 snippet$main () -> i32
   i32.const 50
   struct.new 6   ; $Cell_i32
   struct.new 2   ; __lambda_env_snippet_1
-  make_closure 1 4   ; __lambda_snippet_0
+  make_closure 1 4   ; __lambda_snippet_0 fn
   struct.new 3   ; snippet$Adder
   struct.get 3 0   ; snippet$Adder.f
   local.set 0   ; $field_7
@@ -24,7 +24,7 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 __lambda_snippet_0 (ref,i32) -> i32
-  local.field 0 2 0   ; arg 0.cap_0
+  local.field 0 2 0   ; arg 0 __lambda_env_snippet_1.cap_0
   struct.get 6 0   ; $Cell_i32.value
   local.get 1   ; arg 1
   i32.add

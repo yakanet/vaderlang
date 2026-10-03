@@ -42,8 +42,8 @@ fn 0 snippet$main () -> i32
   string.const 0   ; "a.id = "
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 0 9 0   ; a.id
-  ref.cast 1   ; -> i32
+  local.field 0 9 0   ; a snippet_mod_a$Box.id
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 4   ; $cast_12
   local.get 2   ; __buf_0
@@ -55,8 +55,8 @@ fn 0 snippet$main () -> i32
   local.get 3   ; __off_1
   call 3   ; std_core$finish_buffer
   call 8   ; std_io$println__string
-  local.field 1 10 0   ; b.label
-  ref.cast 2   ; -> string
+  local.field 1 10 0   ; b snippet_mod_b$Box.label
+  ref.cast 2   ; string
   local.set 5   ; $field_16
   string.const 1   ; "b.label = "
   local.get 5   ; $field_16
@@ -270,7 +270,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

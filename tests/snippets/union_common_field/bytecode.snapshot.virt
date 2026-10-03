@@ -32,9 +32,9 @@ fn 0 snippet$main () -> i32
   i32.const 3
   struct.new_stack 3   ; snippet$Cat
   local.tee 0   ; a
-  ref.cast 3   ; -> snippet$Cat
+  ref.cast 3   ; snippet$Cat
   struct.get 3 0   ; snippet$Cat.name
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   local.set 1   ; $field_6
   string.const 1   ; "name = "
   local.get 1   ; $field_6
@@ -51,9 +51,9 @@ fn 0 snippet$main () -> i32
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; a
-  ref.cast 3   ; -> snippet$Cat
+  ref.cast 3   ; snippet$Cat
   struct.get 3 1   ; snippet$Cat.age
-  ref.cast 1   ; -> i32
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 4   ; $cast_17
   local.get 2   ; __buf_0
@@ -69,9 +69,9 @@ fn 0 snippet$main () -> i32
   i32.const 7
   struct.new_stack 4   ; snippet$Dog
   local.tee 0   ; a
-  ref.cast 3   ; -> snippet$Cat
+  ref.cast 3   ; snippet$Cat
   struct.get 3 0   ; snippet$Cat.name
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   local.set 1   ; $field_6
   string.const 1   ; "name = "
   local.get 1   ; $field_6
@@ -88,9 +88,9 @@ fn 0 snippet$main () -> i32
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; a
-  ref.cast 3   ; -> snippet$Cat
+  ref.cast 3   ; snippet$Cat
   struct.get 3 1   ; snippet$Cat.age
-  ref.cast 1   ; -> i32
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 4   ; $cast_17
   local.get 2   ; __buf_0
@@ -310,7 +310,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

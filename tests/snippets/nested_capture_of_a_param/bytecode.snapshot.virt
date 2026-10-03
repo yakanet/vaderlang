@@ -80,7 +80,7 @@ fn 2 snippet$shared_cell (i32) -> void
   string.const 0   ; "n="
   call 16   ; std_core$write_string_at
   local.set 4   ; __off_2
-  local.field 2 20 0   ; n.value
+  local.field 2 20 0   ; n $Cell_i32.value
   i32.to_i64
   local.set 5   ; $cast_16
   local.get 3   ; mid
@@ -122,7 +122,7 @@ end
 
 fn 5 __lambda_snippet_2 (ref) -> void
   local $cell_get_3 string
-  local.field 0 4 0   ; arg 0.cap_0
+  local.field 0 4 0   ; arg 0 __lambda_env_snippet_3.cap_0
   struct.get 19 0   ; $Cell_string.value
   local.set 1   ; $cell_get_3
   string.const 3   ; "inner sees "
@@ -133,7 +133,7 @@ fn 5 __lambda_snippet_2 (ref) -> void
 end
 
 fn 6 __lambda_snippet_0 (ref) -> void
-  local.field 0 5 0   ; arg 0.cap_0
+  local.field 0 5 0   ; arg 0 __lambda_env_snippet_1.cap_0
   struct.new 4   ; __lambda_env_snippet_3
   call 5   ; __lambda_snippet_2
   string.const 4   ; "mid ran"
@@ -143,7 +143,7 @@ end
 
 fn 7 __defer_snippet_6 (ref) -> void
   local $cell_get_3 string
-  local.field 0 6 0   ; arg 0.cap_0
+  local.field 0 6 0   ; arg 0 __defer_env_snippet_7.cap_0
   struct.get 19 0   ; $Cell_string.value
   local.set 1   ; $cell_get_3
   string.const 5   ; "deferred sees "
@@ -154,9 +154,9 @@ fn 7 __defer_snippet_6 (ref) -> void
 end
 
 fn 8 __lambda_snippet_4 (ref) -> void
-  local.field 0 7 0   ; arg 0.cap_0
+  local.field 0 7 0   ; arg 0 __lambda_env_snippet_5.cap_0
   struct.new 6   ; __defer_env_snippet_7
-  make_closure 7 21   ; __defer_snippet_6
+  make_closure 7 21   ; __defer_snippet_6 fn
   defer.push
   string.const 6   ; "body ran"
   call 20   ; std_io$println__string
@@ -168,12 +168,12 @@ fn 9 __lambda_snippet_10 (ref) -> void
   local $field_1 any
   local $cell_get_3 i32
   local $cell_get_5 i32
-  local.field 0 8 0   ; arg 0.cap_0
+  local.field 0 8 0   ; arg 0 __lambda_env_snippet_11.cap_0
   local.set 1   ; $field_1
-  local.field 0 8 0   ; arg 0.cap_0
+  local.field 0 8 0   ; arg 0 __lambda_env_snippet_11.cap_0
   struct.get 20 0   ; $Cell_i32.value
   local.set 2   ; $cell_get_3
-  local.field 0 8 1   ; arg 0.cap_1
+  local.field 0 8 1   ; arg 0 __lambda_env_snippet_11.cap_1
   struct.get 20 0   ; $Cell_i32.value
   local.set 3   ; $cell_get_5
   local.get 2   ; $cell_get_3
@@ -190,17 +190,17 @@ fn 10 __lambda_snippet_8 (ref) -> void
   local $field_1 any
   local $field_2 any
   local $add_9 i32
-  local.field 0 9 0   ; arg 0.cap_0
+  local.field 0 9 0   ; arg 0 __lambda_env_snippet_9.cap_0
   local.set 1   ; $field_1
-  local.field 0 9 1   ; arg 0.cap_1
+  local.field 0 9 1   ; arg 0 __lambda_env_snippet_9.cap_1
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
   struct.new 8   ; __lambda_env_snippet_11
   call 9   ; __lambda_snippet_10
-  local.field 0 9 0   ; arg 0.cap_0
+  local.field 0 9 0   ; arg 0 __lambda_env_snippet_9.cap_0
   local.set 1   ; $field_1
-  local.field 0 9 0   ; arg 0.cap_0
+  local.field 0 9 0   ; arg 0 __lambda_env_snippet_9.cap_0
   struct.get 20 0   ; $Cell_i32.value
   i32.const 1
   i32.add
@@ -225,7 +225,7 @@ fn 11 __defer_snippet_14 (ref) -> void
   string.const 7   ; "deferred sees n="
   call 16   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 10 0   ; arg 0.cap_0
+  local.field 0 10 0   ; arg 0 __defer_env_snippet_15.cap_0
   struct.get 20 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
@@ -244,13 +244,13 @@ end
 fn 12 __lambda_snippet_12 (ref) -> void
   local $field_4 any
   local $cell_get_6 i32
-  local.field 0 11 0   ; arg 0.cap_0
+  local.field 0 11 0   ; arg 0 __lambda_env_snippet_13.cap_0
   struct.new 10   ; __defer_env_snippet_15
-  make_closure 11 21   ; __defer_snippet_14
+  make_closure 11 21   ; __defer_snippet_14 fn
   defer.push
-  local.field 0 11 0   ; arg 0.cap_0
+  local.field 0 11 0   ; arg 0 __lambda_env_snippet_13.cap_0
   local.set 1   ; $field_4
-  local.field 0 11 1   ; arg 0.cap_1
+  local.field 0 11 1   ; arg 0 __lambda_env_snippet_13.cap_1
   struct.get 20 0   ; $Cell_i32.value
   local.set 2   ; $cell_get_6
   local.get 1   ; $field_4
@@ -465,7 +465,7 @@ fn 18 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 17   ; u8[][]
+      array.slice 17   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

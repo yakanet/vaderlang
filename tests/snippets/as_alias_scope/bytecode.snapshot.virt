@@ -44,7 +44,7 @@ end
 
 fn 2 snippet$if_form (any) -> i32
   local $fn_ref_1 ref
-  fn.ref 6 4   ; __lambda_snippet_0
+  fn.ref 6 4   ; __lambda_snippet_0 fn
   local.set 1   ; $fn_ref_1
   local.get 0   ; arg 0
   local.get 1   ; $fn_ref_1
@@ -54,7 +54,7 @@ end
 
 fn 3 snippet$match_form (any) -> i32
   local cb ref
-  fn.ref 7 4   ; __lambda_snippet_1
+  fn.ref 7 4   ; __lambda_snippet_1 fn
   local.set 1   ; cb
   local.get 0   ; arg 0
   local.get 1   ; cb
@@ -66,7 +66,7 @@ fn 4 snippet$defer_form (any) -> i32
   local.get 0   ; arg 0
   struct.new 16   ; $Cell_Union<Struct#snippet.Leaf<>|Struct#snippet.Pair<>>
   struct.new 7   ; __defer_env_snippet_3
-  make_closure 8 17   ; __defer_snippet_2
+  make_closure 8 17   ; __defer_snippet_2 fn
   defer.push
   defer.pop_exec 1
   return.lit i32.const 3
@@ -162,7 +162,7 @@ fn 6 __lambda_snippet_0 (any) -> void
   if $L0 void
     local.get 0   ; arg 0
     call 0   ; snippet$unwrap
-    ref.cast 2   ; -> snippet$Leaf
+    ref.cast 2   ; snippet$Leaf
     local.set 1   ; lf
     i64.const 23
     call 10   ; std_core$new_byte_buffer
@@ -174,8 +174,8 @@ fn 6 __lambda_snippet_0 (any) -> void
     string.const 3   ; "lf="
     call 12   ; std_core$write_string_at
     local.set 3   ; __off_1
-    local.field 1 2 0   ; lf.v
-    ref.cast 6   ; -> i32
+    local.field 1 2 0   ; lf snippet$Leaf.v
+    ref.cast 6   ; i32
     i32.to_i64
     local.set 4   ; $cast_14
     local.get 2   ; __buf_0
@@ -215,9 +215,9 @@ fn 7 __lambda_snippet_1 (any) -> void
     call 12   ; std_core$write_string_at
     local.set 4   ; __off_4
     local.get 2   ; s
-    ref.cast 2   ; -> snippet$Leaf
+    ref.cast 2   ; snippet$Leaf
     struct.get 2 0   ; snippet$Leaf.v
-    ref.cast 6   ; -> i32
+    ref.cast 6   ; i32
     i32.to_i64
     local.set 5   ; $cast_14
     local.get 3   ; __buf_3
@@ -244,9 +244,9 @@ fn 7 __lambda_snippet_1 (any) -> void
       call 12   ; std_core$write_string_at
       local.set 4   ; __off_4
       local.get 2   ; s
-      ref.cast 3   ; -> snippet$Pair
+      ref.cast 3   ; snippet$Pair
       struct.get 3 0   ; snippet$Pair.l
-      ref.cast 6   ; -> i32
+      ref.cast 6   ; i32
       i32.to_i64
       local.set 5   ; $cast_14
       local.get 3   ; __buf_3
@@ -270,15 +270,15 @@ fn 8 __defer_snippet_2 (ref) -> void
   local __buf_0 ref
   local __off_1 usize
   local $cast_18 i64
-  local.field 0 7 0   ; arg 0.cap_0
+  local.field 0 7 0   ; arg 0 __defer_env_snippet_3.cap_0
   struct.get 16 0   ; $Cell_Union<Struct#snippet.Leaf<>|Struct#snippet.Pair<>>.value
   call 0   ; snippet$unwrap
   type_check 2   ; snippet$Leaf
   if $L0 void
-    local.field 0 7 0   ; arg 0.cap_0
+    local.field 0 7 0   ; arg 0 __defer_env_snippet_3.cap_0
     struct.get 16 0   ; $Cell_Union<Struct#snippet.Leaf<>|Struct#snippet.Pair<>>.value
     call 0   ; snippet$unwrap
-    ref.cast 2   ; -> snippet$Leaf
+    ref.cast 2   ; snippet$Leaf
     local.set 1   ; df
     i64.const 23
     call 10   ; std_core$new_byte_buffer
@@ -290,8 +290,8 @@ fn 8 __defer_snippet_2 (ref) -> void
     string.const 5   ; "df="
     call 12   ; std_core$write_string_at
     local.set 3   ; __off_1
-    local.field 1 2 0   ; df.v
-    ref.cast 6   ; -> i32
+    local.field 1 2 0   ; df snippet$Leaf.v
+    ref.cast 6   ; i32
     i32.to_i64
     local.set 4   ; $cast_18
     local.get 2   ; __buf_0
@@ -512,7 +512,7 @@ fn 14 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 14   ; u8[][]
+      array.slice 14   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

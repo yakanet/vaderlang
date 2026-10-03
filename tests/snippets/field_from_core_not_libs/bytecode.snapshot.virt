@@ -15,7 +15,7 @@ fn 0 snippet$count_fields (ref) -> i32
 end
 
 fn 1 snippet$main () -> i32
-  array.new 1 0   ; std_core$Field[][]
+  array.new 1 0   ; std_core$Field[]
   call 0   ; snippet$count_fields
   return
 end

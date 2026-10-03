@@ -20,13 +20,13 @@ fn 0 snippet$main () -> i32
   local.get 1   ; $struct_3
   struct.new_stack 3   ; snippet$Outer
   local.set 0   ; $struct_1
-  local.field 0 3 0   ; $struct_1.lhs
+  local.field 0 3 0   ; $struct_1 snippet$Outer.lhs
   struct.get 2 0   ; snippet$Inner.v
-  ref.cast 1   ; -> i32
+  ref.cast 1   ; i32
   local.set 2   ; $field_7
-  local.field 0 3 1   ; $struct_1.rhs
+  local.field 0 3 1   ; $struct_1 snippet$Outer.rhs
   struct.get 2 0   ; snippet$Inner.v
-  ref.cast 1   ; -> i32
+  ref.cast 1   ; i32
   local.set 3   ; $field_9
   local.get 2   ; $field_7
   local.get 3   ; $field_9

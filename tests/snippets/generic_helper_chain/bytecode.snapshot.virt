@@ -40,9 +40,9 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __buf_0
   i64.const 0
   local.set 3   ; __off_1
-  local.field 0 5 0   ; a.value
+  local.field 0 5 0   ; a snippet$Box__Box_i32_.value
   struct.get 3 0   ; snippet$Box__i32.value
-  ref.cast 1   ; -> i32
+  ref.cast 1   ; i32
   i32.to_i64
   local.set 4   ; $cast_13
   local.get 2   ; __buf_0
@@ -54,9 +54,9 @@ fn 0 snippet$main () -> i32
   local.get 3   ; __off_1
   call 9   ; std_core$finish_buffer
   call 13   ; std_io$println__string
-  local.field 1 6 0   ; b.value
+  local.field 1 6 0   ; b snippet$Box__Box_string_.value
   struct.get 4 0   ; snippet$Box__string.value
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   call 13   ; std_io$println__string
   return.lit i32.const 0
 end
@@ -289,7 +289,7 @@ fn 11 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 13   ; u8[][]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -37,7 +37,7 @@ fn 0 snippet$scale (u64) -> any
   i64.mul
   i64.const 2
   i64.add
-  retag 1   ; -> u64
+  retag 1   ; u64
   return
 end
 
@@ -52,7 +52,7 @@ fn 1 snippet$show (u64) -> i32
   type_check 1   ; u64
   if $L0 void
     local.get 2   ; n
-    ref.cast 1   ; -> u64
+    ref.cast 1   ; u64
     u64.to_i32
     return
   end $L0
@@ -347,7 +347,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

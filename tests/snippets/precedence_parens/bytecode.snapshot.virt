@@ -25,7 +25,7 @@ fn 0 snippet$main () -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 3 3   ; i32[][]
+  array.new 3 3   ; i32[]
   local.get 0   ; a
   call 1   ; std_core$[]$Contains$contains__i32
   bool.const true

@@ -36,7 +36,7 @@ fn 0 snippet$charge (i32) -> void
   struct.new 13   ; $Cell_i32
   local.tee 1   ; amount
   struct.new 3   ; __defer_env_snippet_1
-  make_closure 3 14   ; __defer_snippet_0
+  make_closure 3 14   ; __defer_snippet_0 fn
   defer.push
   i64.const 29
   call 6   ; std_core$new_byte_buffer
@@ -48,7 +48,7 @@ fn 0 snippet$charge (i32) -> void
   string.const 0   ; "charging "
   call 8   ; std_core$write_string_at
   local.set 3   ; __off_2
-  local.field 1 13 0   ; amount.value
+  local.field 1 13 0   ; amount $Cell_i32.value
   i32.to_i64
   local.set 4   ; $cast_13
   local.get 2   ; __buf_1
@@ -67,7 +67,7 @@ end
 
 fn 1 snippet$reserve () -> void
   struct.new 4   ; __defer_env_snippet_3
-  make_closure 4 14   ; __defer_snippet_2
+  make_closure 4 14   ; __defer_snippet_2 fn
   defer.push
   string.const 2   ; "reserve inventory"
   call 12   ; std_io$println__string
@@ -96,7 +96,7 @@ fn 3 __defer_snippet_0 (ref) -> void
   string.const 3   ; "refund "
   call 8   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 3 0   ; arg 0.cap_0
+  local.field 0 3 0   ; arg 0 __defer_env_snippet_1.cap_0
   struct.get 13 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
@@ -323,7 +323,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

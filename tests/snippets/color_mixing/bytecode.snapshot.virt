@@ -25,11 +25,11 @@ fn 0 snippet$Color$Add$add (ref,ref) -> ref
   local $field_3 i32
   local $field_8 i32
   local $field_13 i32
-  local.field 0 1 0   ; arg 0.r
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$Rgb.r
+  ref.cast 2   ; i32
   local.set 2   ; $field_2
-  local.field 1 1 0   ; arg 1.r
-  ref.cast 2   ; -> i32
+  local.field 1 1 0   ; arg 1 snippet$Rgb.r
+  ref.cast 2   ; i32
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
@@ -37,11 +37,11 @@ fn 0 snippet$Color$Add$add (ref,ref) -> ref
   i32.const 2
   i32.div
   local.set 2   ; $field_2
-  local.field 0 1 1   ; arg 0.g
-  ref.cast 2   ; -> i32
+  local.field 0 1 1   ; arg 0 snippet$Rgb.g
+  ref.cast 2   ; i32
   local.set 3   ; $field_3
-  local.field 1 1 1   ; arg 1.g
-  ref.cast 2   ; -> i32
+  local.field 1 1 1   ; arg 1 snippet$Rgb.g
+  ref.cast 2   ; i32
   local.set 4   ; $field_8
   local.get 3   ; $field_3
   local.get 4   ; $field_8
@@ -49,11 +49,11 @@ fn 0 snippet$Color$Add$add (ref,ref) -> ref
   i32.const 2
   i32.div
   local.set 3   ; $field_3
-  local.field 0 1 2   ; arg 0.b
-  ref.cast 2   ; -> i32
+  local.field 0 1 2   ; arg 0 snippet$Rgb.b
+  ref.cast 2   ; i32
   local.set 4   ; $field_8
-  local.field 1 1 2   ; arg 1.b
-  ref.cast 2   ; -> i32
+  local.field 1 1 2   ; arg 1 snippet$Rgb.b
+  ref.cast 2   ; i32
   local.set 5   ; $field_13
   local.get 4   ; $field_8
   local.get 5   ; $field_13
@@ -95,8 +95,8 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __buf_0
   i64.const 0
   local.set 3   ; __off_1
-  local.field 1 1 0   ; blue.r
-  ref.cast 2   ; -> i32
+  local.field 1 1 0   ; blue snippet$Rgb.r
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 4   ; $cast_18
   local.get 2   ; __buf_0
@@ -109,8 +109,8 @@ fn 1 snippet$main () -> i32
   string.const 0   ; " "
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 1 1 1   ; blue.g
-  ref.cast 2   ; -> i32
+  local.field 1 1 1   ; blue snippet$Rgb.g
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 4   ; $cast_18
   local.get 2   ; __buf_0
@@ -123,8 +123,8 @@ fn 1 snippet$main () -> i32
   string.const 0   ; " "
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 1 1 2   ; blue.b
-  ref.cast 2   ; -> i32
+  local.field 1 1 2   ; blue snippet$Rgb.b
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 4   ; $cast_18
   local.get 2   ; __buf_0
@@ -196,7 +196,7 @@ fn 1 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 0   ; red
   struct.get 1 0   ; snippet$Rgb.r
-  ref.cast 2   ; -> i32
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 4   ; $cast_18
   local.get 1   ; blue
@@ -429,7 +429,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

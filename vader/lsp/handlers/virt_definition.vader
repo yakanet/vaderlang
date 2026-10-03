@@ -83,6 +83,8 @@ operand_line :: fn(listing: Vm.VirtListing, function: usize, k: usize, operand: 
         .Import   -> pool_line(listing.imports, index)
         .Data     -> pool_line(listing.data, index)
         .Local    -> local_line(lines, body.signature.params.len(), index)
+        // A field is declared by its struct type's line.
+        .Field    -> if ref.owner >= 0 { pool_line(listing.types, usize(ref.owner)) } else { null }
     }
 }
 

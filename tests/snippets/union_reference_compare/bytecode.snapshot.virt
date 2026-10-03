@@ -34,9 +34,9 @@ fn 0 snippet$pick (i32) -> any
   i32.const 0
   i32.eq
   if $L0 void
-    data.const 0 14   ; pool[0] : snippet$Circle[]
+    data.const 0 14   ; pool[0] snippet$Circle[]
     i64.const 0
-    array.get 14   ; snippet$Circle[][]
+    array.get 14   ; snippet$Circle[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -52,7 +52,7 @@ fn 0 snippet$pick (i32) -> any
   i32.eq
   if $L2 void
     i64.const 7
-    retag 4   ; -> i64
+    retag 4   ; i64
     return
   end $L2
   return.lit null.const
@@ -65,9 +65,9 @@ fn 1 snippet$main () -> i32
   local $eq_13 bool
   local $call_36 any
   local $call_38 any
-  data.const 0 14   ; pool[0] : snippet$Circle[]
+  data.const 0 14   ; pool[0] snippet$Circle[]
   i64.const 0
-  array.get 14   ; snippet$Circle[][]
+  array.get 14   ; snippet$Circle[]
   local.set 0   ; shared
   i64.const 21
   call 3   ; std_core$new_byte_buffer
@@ -306,7 +306,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

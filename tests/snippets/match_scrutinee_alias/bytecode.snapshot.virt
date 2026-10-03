@@ -60,14 +60,14 @@ fn 1 snippet$area (i32) -> i32
   type_check 3   ; snippet$Circle
   if $L0 void
     local.get 2   ; s
-    ref.cast 3   ; -> snippet$Circle
+    ref.cast 3   ; snippet$Circle
     struct.get 3 0   ; snippet$Circle.radius
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     local.set 3   ; if_res
     local.get 2   ; s
-    ref.cast 3   ; -> snippet$Circle
+    ref.cast 3   ; snippet$Circle
     struct.get 3 0   ; snippet$Circle.radius
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     local.set 4   ; $field_9
     local.get 3   ; if_res
     local.get 4   ; $field_9
@@ -80,14 +80,14 @@ fn 1 snippet$area (i32) -> i32
     type_check 5   ; snippet$Square
     if $L1 void
       local.get 2   ; s
-      ref.cast 5   ; -> snippet$Square
+      ref.cast 5   ; snippet$Square
       struct.get 5 0   ; snippet$Square.side
-      ref.cast 1   ; -> i32
+      ref.cast 1   ; i32
       local.set 4   ; $field_9
       local.get 2   ; s
-      ref.cast 5   ; -> snippet$Square
+      ref.cast 5   ; snippet$Square
       struct.get 5 0   ; snippet$Square.side
-      ref.cast 1   ; -> i32
+      ref.cast 1   ; i32
       local.set 5   ; $field_17
       local.get 4   ; $field_9
       local.get 5   ; $field_17
@@ -121,9 +121,9 @@ fn 2 snippet$describe (i32) -> string
   type_check 3   ; snippet$Circle
   if $L0 void
     local.get 2   ; s
-    ref.cast 3   ; -> snippet$Circle
+    ref.cast 3   ; snippet$Circle
     struct.get 3 0   ; snippet$Circle.radius
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     i32.const 10
     i32.gt
     local.set 3   ; and_res
@@ -505,7 +505,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

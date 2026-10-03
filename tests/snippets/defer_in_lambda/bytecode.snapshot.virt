@@ -88,7 +88,7 @@ end
 
 fn 2 __defer_snippet_4 (ref) -> void
   local $cell_get_3 string
-  local.field 0 4 0   ; arg 0.cap_0
+  local.field 0 4 0   ; arg 0 __defer_env_snippet_5.cap_0
   struct.get 16 0   ; $Cell_string.value
   local.set 1   ; $cell_get_3
   string.const 4   ; "uses outer "
@@ -100,11 +100,11 @@ end
 
 fn 3 __lambda_snippet_0 (ref) -> void
   struct.new 2   ; __defer_env_snippet_3
-  make_closure 1 18   ; __defer_snippet_2
+  make_closure 1 18   ; __defer_snippet_2 fn
   defer.push
-  local.field 0 5 0   ; arg 0.cap_0
+  local.field 0 5 0   ; arg 0 __lambda_env_snippet_1.cap_0
   struct.new 4   ; __defer_env_snippet_5
-  make_closure 2 18   ; __defer_snippet_4
+  make_closure 2 18   ; __defer_snippet_4 fn
   defer.push
   string.const 5   ; "lambda body"
   call 13   ; std_io$println__string
@@ -114,7 +114,7 @@ end
 
 fn 4 __defer_snippet_8 (ref) -> void
   local $cell_get_3 string
-  local.field 0 6 0   ; arg 0.cap_0
+  local.field 0 6 0   ; arg 0 __defer_env_snippet_9.cap_0
   struct.get 16 0   ; $Cell_string.value
   local.set 1   ; $cell_get_3
   string.const 6   ; "panic defer in lambda saw "
@@ -128,19 +128,19 @@ fn 5 __lambda_snippet_6 (ref) -> i32
   local $cell_get_6 i32
   local $cell_get_8 i32
   local $cell_get_10 i32
-  local.field 0 7 0   ; arg 0.cap_0
+  local.field 0 7 0   ; arg 0 __lambda_env_snippet_7.cap_0
   struct.new 6   ; __defer_env_snippet_9
-  make_closure 4 18   ; __defer_snippet_8
+  make_closure 4 18   ; __defer_snippet_8 fn
   defer.push
   string.const 7   ; "about to boom"
   call 13   ; std_io$println__string
-  local.field 0 7 1   ; arg 0.cap_1
+  local.field 0 7 1   ; arg 0 __lambda_env_snippet_7.cap_1
   struct.get 17 0   ; $Cell_i32.value
   local.set 1   ; $cell_get_6
-  local.field 0 7 1   ; arg 0.cap_1
+  local.field 0 7 1   ; arg 0 __lambda_env_snippet_7.cap_1
   struct.get 17 0   ; $Cell_i32.value
   local.set 2   ; $cell_get_8
-  local.field 0 7 1   ; arg 0.cap_1
+  local.field 0 7 1   ; arg 0 __lambda_env_snippet_7.cap_1
   struct.get 17 0   ; $Cell_i32.value
   local.set 3   ; $cell_get_10
   local.get 2   ; $cell_get_8
@@ -361,7 +361,7 @@ fn 11 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 14   ; u8[][]
+      array.slice 14   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

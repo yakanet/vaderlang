@@ -46,7 +46,7 @@ fn 0 snippet$main () -> i32
   i32.const 4
   i32.const 5
   i32.const 6
-  array.new 11 6   ; i32[][]
+  array.new 11 6   ; i32[]
   local.tee 0   ; xs
   local.set 2   ; __fuse_arr_0
   bool.const false
@@ -227,7 +227,7 @@ fn 0 snippet$main () -> i32
           call 8   ; __lambda_snippet_7
           if $L20 void
             local.get 6   ; x
-            retag 1   ; -> i32
+            retag 1   ; i32
             local.set 8   ; f
             br $L16
           end $L20
@@ -259,7 +259,7 @@ fn 0 snippet$main () -> i32
     call 14   ; std_core$write_string_at
     local.set 3   ; __fuse_len_0
     local.get 8   ; f
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     i32.to_i64
     local.set 9   ; $cast_122
     local.get 2   ; __fuse_arr_0
@@ -297,7 +297,7 @@ fn 0 snippet$main () -> i32
             call 10   ; __lambda_snippet_9
             if $L27 void
               local.get 11   ; x
-              retag 1   ; -> i32
+              retag 1   ; i32
               local.set 10   ; __consumed_13
               br $L22
             end $L27
@@ -331,7 +331,7 @@ fn 0 snippet$main () -> i32
     call 14   ; std_core$write_string_at
     local.set 3   ; __fuse_len_0
     local.get 8   ; f
-    ref.cast 1   ; -> i32
+    ref.cast 1   ; i32
     i32.to_i64
     local.set 9   ; $cast_122
     local.get 0   ; xs
@@ -640,7 +640,7 @@ fn 17 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

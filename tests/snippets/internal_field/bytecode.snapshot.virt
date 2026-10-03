@@ -21,8 +21,8 @@ export main 1
 
 fn 0 snippet$bump (ref) -> void
   local $add_3 i32
-  local.field 0 1 1   ; arg 0.count
-  ref.cast 3   ; -> i32
+  local.field 0 1 1   ; arg 0 snippet$Counter.count
+  ref.cast 3   ; i32
   i32.const 1
   i32.add
   local.set 1   ; $add_3
@@ -47,8 +47,8 @@ fn 1 snippet$main () -> i32
   call 0   ; snippet$bump
   local.get 0   ; c
   call 0   ; snippet$bump
-  local.field 0 1 0   ; c.label
-  ref.cast 4   ; -> string
+  local.field 0 1 0   ; c snippet$Counter.label
+  ref.cast 4   ; string
   local.tee 1   ; __p_0
   call.import 0   ; std_core$byte_len
   local.set 2   ; $call_7
@@ -69,8 +69,8 @@ fn 1 snippet$main () -> i32
   string.const 1   ; ": "
   call 5   ; std_core$write_string_at
   local.set 2   ; $call_7
-  local.field 0 1 1   ; c.count
-  ref.cast 3   ; -> i32
+  local.field 0 1 1   ; c snippet$Counter.count
+  ref.cast 3   ; i32
   i32.to_i64
   local.set 4   ; $cast_17
   local.get 3   ; __buf_1
@@ -290,7 +290,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

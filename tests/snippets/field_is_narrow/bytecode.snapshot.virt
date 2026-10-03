@@ -27,16 +27,16 @@ impl 9 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$convert (ref) -> i32
-  local.field 0 1 0   ; arg 0.body
+  local.field 0 1 0   ; arg 0 snippet$Decl.body
   type_check 0   ; null
   if $L0 void
     i32.const 1
     i32.neg
     return
   end $L0
-  local.field 0 1 0   ; arg 0.body
+  local.field 0 1 0   ; arg 0 snippet$Decl.body
   struct.get 4 0   ; snippet$Block.span
-  ref.cast 2   ; -> i32
+  ref.cast 2   ; i32
   return
 end
 
@@ -45,9 +45,9 @@ fn 1 snippet$kind_span (ref,any) -> i32
   type_check 4   ; snippet$Block
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 4   ; -> snippet$Block
+    ref.cast 4   ; snippet$Block
     struct.get 4 0   ; snippet$Block.span
-    ref.cast 2   ; -> i32
+    ref.cast 2   ; i32
     return
   end $L0
   local.get 0   ; arg 0
@@ -342,7 +342,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[][]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -61,7 +61,7 @@ fn 3 snippet$main () -> i32
   string.const 0   ; "inc(5) = "
   call 13   ; std_core$write_string_at
   local.set 1   ; __off_1
-  fn.ref 4 1   ; __lambda_snippet_0
+  fn.ref 4 1   ; __lambda_snippet_0 fn
   i32.const 5
   call 0   ; snippet$call_it
   i32.to_i64
@@ -85,7 +85,7 @@ fn 3 snippet$main () -> i32
   string.const 1   ; "dbl(5) = "
   call 13   ; std_core$write_string_at
   local.set 1   ; __off_1
-  fn.ref 5 1   ; __lambda_snippet_1
+  fn.ref 5 1   ; __lambda_snippet_1 fn
   i32.const 5
   call 0   ; snippet$call_it
   i32.to_i64
@@ -109,7 +109,7 @@ fn 3 snippet$main () -> i32
   string.const 2   ; "sqr(5) = "
   call 13   ; std_core$write_string_at
   local.set 1   ; __off_1
-  fn.ref 6 1   ; __lambda_snippet_2
+  fn.ref 6 1   ; __lambda_snippet_2 fn
   i32.const 5
   call 0   ; snippet$call_it
   i32.to_i64
@@ -133,7 +133,7 @@ fn 3 snippet$main () -> i32
   string.const 3   ; "add(3, 4) = "
   call 13   ; std_core$write_string_at
   local.set 1   ; __off_1
-  fn.ref 7 3   ; __lambda_snippet_3
+  fn.ref 7 3   ; __lambda_snippet_3 fn
   i32.const 3
   i32.const 4
   call 1   ; snippet$call_two
@@ -158,7 +158,7 @@ fn 3 snippet$main () -> i32
   string.const 4   ; "forty_two() = "
   call 13   ; std_core$write_string_at
   local.set 1   ; __off_1
-  fn.ref 8 4   ; __lambda_snippet_4
+  fn.ref 8 4   ; __lambda_snippet_4 fn
   call 2   ; snippet$call_none
   i32.to_i64
   local.set 2   ; $cast_10
@@ -171,7 +171,7 @@ fn 3 snippet$main () -> i32
   local.get 1   ; __off_1
   call 12   ; std_core$finish_buffer
   call 17   ; std_io$println__string
-  fn.ref 9 1   ; __lambda_snippet_5
+  fn.ref 9 1   ; __lambda_snippet_5 fn
   i32.const 3
   call 0   ; snippet$call_it
   local.set 3   ; r
@@ -446,7 +446,7 @@ fn 15 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

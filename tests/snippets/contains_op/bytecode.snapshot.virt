@@ -50,8 +50,8 @@ fn 0 snippet$DigitSet$Contains$contains (ref,i32) -> bool
   local.get 1   ; arg 1
   i32.shl
   local.set 3   ; mask
-  local.field 0 1 0   ; arg 0.bits
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$DigitSet.bits
+  ref.cast 2   ; i32
   local.get 3   ; mask
   i32.bitand
   i32.const 0
@@ -173,8 +173,8 @@ end
 
 fn 3 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local $field_2 i32
-  local.field 0 5 0   ; arg 0.start
-  ref.cast 2   ; -> i32
+  local.field 0 5 0   ; arg 0 std_core$Range__i32.start
+  ref.cast 2   ; i32
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   local.get 2   ; $field_2
@@ -182,19 +182,19 @@ fn 3 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   if $L0 void
     return.lit bool.const false
   end $L0
-  local.field 0 5 2   ; arg 0.inclusive
-  ref.cast 3   ; -> bool
+  local.field 0 5 2   ; arg 0 std_core$Range__i32.inclusive
+  ref.cast 3   ; bool
   if $L1 void
-    local.field 0 5 1   ; arg 0.end
-    ref.cast 2   ; -> i32
+    local.field 0 5 1   ; arg 0 std_core$Range__i32.end
+    ref.cast 2   ; i32
     local.set 2   ; $field_2
     local.get 1   ; arg 1
     local.get 2   ; $field_2
     call 7   ; std_core$i32$Comparable$lte
     return
   end $L1
-  local.field 0 5 1   ; arg 0.end
-  ref.cast 2   ; -> i32
+  local.field 0 5 1   ; arg 0 std_core$Range__i32.end
+  ref.cast 2   ; i32
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   local.get 2   ; $field_2
@@ -313,7 +313,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

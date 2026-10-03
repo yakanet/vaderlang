@@ -30,7 +30,7 @@ fn 0 snippet$main () -> i32
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
-  data.const 0 12   ; pool[0] : u32[]
+  data.const 0 12   ; pool[0] u32[]
   i32.const 3
   load_slot_i32
   u32.to_i64
@@ -357,7 +357,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

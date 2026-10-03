@@ -26,7 +26,7 @@ fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $cast_15 i64
-  array.new 5 0   ; i32[][]
+  array.new 5 0   ; i32[]
   i32.const 0
   struct.new 2   ; snippet$Stack__i32
   local.tee 0   ; s
@@ -112,11 +112,11 @@ end
 
 fn 1 snippet$Stack$Stackable$push__i32 (ref,i32) -> void
   local $add_5 i32
-  local.field 0 2 0   ; arg 0.data
+  local.field 0 2 0   ; arg 0 snippet$Stack__i32.data
   local.get 1   ; arg 1
-  array.push 1   ; i32[]
-  local.field 0 2 1   ; arg 0.size
-  ref.cast 1   ; -> i32
+  array.push 1   ; i32
+  local.field 0 2 1   ; arg 0 snippet$Stack__i32.size
+  ref.cast 1   ; i32
   i32.const 1
   i32.add
   local.set 2   ; $add_5
@@ -129,18 +129,18 @@ end
 fn 2 snippet$Stack$Stackable$pop__i32 (ref) -> i32
   local $sub_3 i32
   local $field_4 ref
-  local.field 0 2 1   ; arg 0.size
-  ref.cast 1   ; -> i32
+  local.field 0 2 1   ; arg 0 snippet$Stack__i32.size
+  ref.cast 1   ; i32
   i32.const 1
   i32.sub
   local.set 1   ; $sub_3
   local.get 0   ; arg 0
   local.get 1   ; $sub_3
   struct.set 2 1   ; snippet$Stack__i32.size
-  local.field 0 2 0   ; arg 0.data
+  local.field 0 2 0   ; arg 0 snippet$Stack__i32.data
   local.set 2   ; $field_4
-  local.field 0 2 1   ; arg 0.size
-  ref.cast 1   ; -> i32
+  local.field 0 2 1   ; arg 0 snippet$Stack__i32.size
+  ref.cast 1   ; i32
   local.set 1   ; $sub_3
   local.get 2   ; $field_4
   local.get 1   ; $sub_3
@@ -149,8 +149,8 @@ fn 2 snippet$Stack$Stackable$pop__i32 (ref) -> i32
 end
 
 fn 3 snippet$Stack$Stackable$len__i32 (ref) -> i32
-  local.field 0 2 1   ; arg 0.size
-  ref.cast 1   ; -> i32
+  local.field 0 2 1   ; arg 0 snippet$Stack__i32.size
+  ref.cast 1   ; i32
   return
 end
 
@@ -359,7 +359,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

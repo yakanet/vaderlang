@@ -51,7 +51,7 @@ end
 
 fn 2 snippet$run_id__i32 (i32) -> i32
   local id ref
-  fn.ref 3 2   ; __lambda_snippet_0
+  fn.ref 3 2   ; __lambda_snippet_0 fn
   local.set 1   ; id
   local.get 0   ; arg 0
   local.get 1   ; id
@@ -254,7 +254,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

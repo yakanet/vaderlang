@@ -215,8 +215,8 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
 end
 
 fn 6 snippet_units$Meters$Into$into (ref) -> i32
-  local.field 0 9 0   ; arg 0.v
-  ref.cast 1   ; -> i32
+  local.field 0 9 0   ; arg 0 snippet_units$Meters.v
+  ref.cast 1   ; i32
   return
 end
 
@@ -251,7 +251,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[][]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

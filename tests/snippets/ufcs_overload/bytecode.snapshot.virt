@@ -19,8 +19,8 @@ impl 7 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$inc (ref) -> i32
-  local.field 0 1 0   ; arg 0.x
-  ref.cast 2   ; -> i32
+  local.field 0 1 0   ; arg 0 snippet$A.x
+  ref.cast 2   ; i32
   i32.const 1
   i32.add
   return
@@ -78,13 +78,13 @@ fn 1 snippet$main () -> i32
 end
 
 fn 2 snippet$inc_1 (ref) -> i32
-  local.field 0 3 0   ; arg 0.y
-  ref.cast 2   ; -> i32
+  local.field 0 3 0   ; arg 0 snippet$B.y
+  ref.cast 2   ; i32
   i32.const 100
   i32.add
   return
-  local.field 0 3 0   ; arg 0.y
-  ref.cast 2   ; -> i32
+  local.field 0 3 0   ; arg 0 snippet$B.y
+  ref.cast 2   ; i32
   i32.const 100
   i32.add
   return
@@ -280,7 +280,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[][]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -92,7 +92,7 @@ fn 2 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 5   ; u8[][]
+      array.slice 5   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

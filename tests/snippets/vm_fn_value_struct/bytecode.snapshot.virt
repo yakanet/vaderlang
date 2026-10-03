@@ -14,7 +14,7 @@ end
 
 fn 1 snippet$main () -> i32
   local $field_3 ref
-  fn.ref 0 3   ; snippet$mul
+  fn.ref 0 3   ; snippet$mul fn
   struct.new 2   ; snippet$Calculator
   struct.get 2 0   ; snippet$Calculator.op
   local.set 0   ; $field_3

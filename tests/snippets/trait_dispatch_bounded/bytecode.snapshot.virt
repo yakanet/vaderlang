@@ -34,7 +34,7 @@ fn 0 snippet$main () -> i32
   i32.const 2
   i32.const 5
   i32.const 2
-  array.new 2 6   ; i32[][]
+  array.new 2 6   ; i32[]
   local.set 0   ; nums
   i64.const 20
   call 4   ; std_core$new_byte_buffer
@@ -60,7 +60,7 @@ fn 0 snippet$main () -> i32
   string.const 0   ; "foo"
   string.const 2   ; "baz"
   string.const 0   ; "foo"
-  array.new 3 5   ; string[][]
+  array.new 3 5   ; string[]
   local.set 0   ; nums
   i64.const 20
   call 4   ; std_core$new_byte_buffer
@@ -172,8 +172,8 @@ fn 2 snippet$count_matching__string (ref,string) -> i32
       if $L2 void
         local.get 3   ; __for_arr_0
         local.get 5   ; __for_i_2
-        array.get 3   ; string[][]
-        ref.cast 4   ; -> string
+        array.get 3   ; string[]
+        ref.cast 4   ; string
         local.tee 6   ; x
         call 15   ; std_core$string$Hash$hash_vt
         local.set 7   ; $call_12
@@ -407,7 +407,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[][]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

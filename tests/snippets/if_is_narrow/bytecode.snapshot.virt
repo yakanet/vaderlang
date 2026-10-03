@@ -39,9 +39,9 @@ fn 0 snippet$direct (any) -> string
   type_check 2   ; snippet$Cat
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$Cat
+    ref.cast 2   ; snippet$Cat
     struct.get 2 0   ; snippet$Cat.name
-    ref.cast 4   ; -> string
+    ref.cast 4   ; string
     local.set 1   ; $field_4
     string.const 0   ; "cat "
     local.get 1   ; $field_4
@@ -49,9 +49,9 @@ fn 0 snippet$direct (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 3   ; -> snippet$Dog
+  ref.cast 3   ; snippet$Dog
   struct.get 3 0   ; snippet$Dog.sound
-  ref.cast 4   ; -> string
+  ref.cast 4   ; string
   local.set 1   ; $field_4
   string.const 1   ; "dog says "
   local.get 1   ; $field_4
@@ -66,9 +66,9 @@ fn 1 snippet$negated (any) -> string
   bool.not
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 3   ; -> snippet$Dog
+    ref.cast 3   ; snippet$Dog
     struct.get 3 0   ; snippet$Dog.sound
-    ref.cast 4   ; -> string
+    ref.cast 4   ; string
     local.set 1   ; $field_5
     string.const 1   ; "dog says "
     local.get 1   ; $field_5
@@ -76,9 +76,9 @@ fn 1 snippet$negated (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 2   ; -> snippet$Cat
+  ref.cast 2   ; snippet$Cat
   struct.get 2 0   ; snippet$Cat.name
-  ref.cast 4   ; -> string
+  ref.cast 4   ; string
   local.set 1   ; $field_5
   string.const 0   ; "cat "
   local.get 1   ; $field_5
@@ -95,9 +95,9 @@ fn 2 snippet$cascade (any) -> string
   type_check 2   ; snippet$Cat
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; -> snippet$Cat
+    ref.cast 2   ; snippet$Cat
     struct.get 2 0   ; snippet$Cat.name
-    ref.cast 4   ; -> string
+    ref.cast 4   ; string
     local.set 1   ; $field_4
     string.const 0   ; "cat "
     local.get 1   ; $field_4
@@ -108,9 +108,9 @@ fn 2 snippet$cascade (any) -> string
   type_check 3   ; snippet$Dog
   if $L1 void
     local.get 0   ; arg 0
-    ref.cast 3   ; -> snippet$Dog
+    ref.cast 3   ; snippet$Dog
     struct.get 3 0   ; snippet$Dog.sound
-    ref.cast 4   ; -> string
+    ref.cast 4   ; string
     local.set 1   ; $field_4
     string.const 1   ; "dog says "
     local.get 1   ; $field_4
@@ -128,9 +128,9 @@ fn 2 snippet$cascade (any) -> string
   call 8   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; arg 0
-  ref.cast 6   ; -> snippet$Pig
+  ref.cast 6   ; snippet$Pig
   struct.get 6 0   ; snippet$Pig.weight
-  ref.cast 8   ; -> i32
+  ref.cast 8   ; i32
   i32.to_i64
   local.set 4   ; $cast_20
   local.get 2   ; __buf_0
@@ -168,7 +168,7 @@ fn 3 snippet$primitive_is (any) -> string
     call 8   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
-    ref.cast 8   ; -> i32
+    ref.cast 8   ; i32
     i32.to_i64
     local.set 3   ; $cast_10
     local.get 1   ; __buf_0
@@ -182,7 +182,7 @@ fn 3 snippet$primitive_is (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 4   ; -> string
+  ref.cast 4   ; string
   local.set 4   ; $cast_14
   string.const 5   ; "str "
   local.get 4   ; $cast_14
@@ -212,11 +212,11 @@ fn 4 snippet$main () -> i32
   call 2   ; snippet$cascade
   call 12   ; std_io$println__string
   i32.const 42
-  retag 8   ; -> i32
+  retag 8   ; i32
   call 3   ; snippet$primitive_is
   call 12   ; std_io$println__string
   string.const 10   ; "hello"
-  retag 4   ; -> string
+  retag 4   ; string
   call 3   ; snippet$primitive_is
   call 12   ; std_io$println__string
   return.lit i32.const 0
@@ -427,7 +427,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 13   ; u8[][]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

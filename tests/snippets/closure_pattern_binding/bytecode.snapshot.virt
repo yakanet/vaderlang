@@ -37,7 +37,7 @@ fn 0 snippet$greet (any) -> void
   local.get 0   ; arg 0
   struct.new 15   ; $Cell_Union<i32|Struct#snippet.P<>>
   local.set 1   ; v
-  local.field 1 15 0   ; v.value
+  local.field 1 15 0   ; v $Cell_Union<i32|Struct#snippet.P<>>.value
   local.tee 2   ; __scrut_0
   type_check 3   ; snippet$P
   if $L0 void
@@ -95,7 +95,7 @@ fn 1 snippet$main () -> i32
   struct.new 3   ; snippet$P
   call 0   ; snippet$greet
   i32.const 21
-  retag 2   ; -> i32
+  retag 2   ; i32
   call 0   ; snippet$greet
   return.lit i32.const 0
 end
@@ -103,13 +103,13 @@ end
 fn 2 __lambda_snippet_0 (ref) -> i32
   local $cast_3 i32
   local $cast_6 i32
-  local.field 0 5 0   ; arg 0.cap_0
+  local.field 0 5 0   ; arg 0 __lambda_env_snippet_1.cap_0
   struct.get 15 0   ; $Cell_Union<i32|Struct#snippet.P<>>.value
-  ref.cast 2   ; -> i32
+  ref.cast 2   ; i32
   local.set 1   ; $cast_3
-  local.field 0 5 0   ; arg 0.cap_0
+  local.field 0 5 0   ; arg 0 __lambda_env_snippet_1.cap_0
   struct.get 15 0   ; $Cell_Union<i32|Struct#snippet.P<>>.value
-  ref.cast 2   ; -> i32
+  ref.cast 2   ; i32
   local.set 2   ; $cast_6
   local.get 1   ; $cast_3
   local.get 2   ; $cast_6
@@ -119,11 +119,11 @@ end
 
 fn 3 __lambda_snippet_2 (ref) -> string
   local $field_5 string
-  local.field 0 6 0   ; arg 0.cap_0
+  local.field 0 6 0   ; arg 0 __lambda_env_snippet_3.cap_0
   struct.get 15 0   ; $Cell_Union<i32|Struct#snippet.P<>>.value
-  ref.cast 3   ; -> snippet$P
+  ref.cast 3   ; snippet$P
   struct.get 3 0   ; snippet$P.name
-  ref.cast 7   ; -> string
+  ref.cast 7   ; string
   local.set 1   ; $field_5
   string.const 3   ; "HELLO "
   local.get 1   ; $field_5
@@ -336,7 +336,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 13   ; u8[][]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

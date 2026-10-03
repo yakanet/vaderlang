@@ -11,7 +11,7 @@ fn 0 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 2 3   ; i32[][]
+  array.new 2 3   ; i32[]
   local.tee 0   ; arr
   i32.const 1
   i32.const 99

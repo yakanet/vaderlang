@@ -75,8 +75,8 @@ fn 2 std_string$trim (string) -> string
       if $L2 void
         local.get 1   ; sb
         local.get 3   ; lo
-        array.get 6   ; u8[][]
-        ref.cast 4   ; -> u8
+        array.get 6   ; u8[]
+        ref.cast 4   ; u8
         call 3   ; std_string$is_white_byte
         local.set 4   ; and_res
       else
@@ -105,8 +105,8 @@ fn 2 std_string$trim (string) -> string
         local.set 5   ; $sub_18
         local.get 1   ; sb
         local.get 5   ; $sub_18
-        array.get 6   ; u8[][]
-        ref.cast 4   ; -> u8
+        array.get 6   ; u8[]
+        ref.cast 4   ; u8
         call 3   ; std_string$is_white_byte
         local.set 4   ; and_res
       else
@@ -126,7 +126,7 @@ fn 2 std_string$trim (string) -> string
   local.get 1   ; sb
   local.get 3   ; lo
   local.get 2   ; n
-  array.slice 6   ; u8[][]
+  array.slice 6   ; u8[]
   call.import 1   ; std_core$bytes_to_string
   return
 end
@@ -200,7 +200,7 @@ fn 4 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 6   ; u8[][]
+      array.slice 6   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

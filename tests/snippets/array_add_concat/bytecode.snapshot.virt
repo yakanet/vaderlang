@@ -49,10 +49,10 @@ fn 0 snippet$main () -> i32
   local $call_104 usize
   i32.const 1
   i32.const 2
-  array.new 10 2   ; i32[][]
+  array.new 10 2   ; i32[]
   local.set 0   ; a
   i32.const 3
-  array.new 10 1   ; i32[][]
+  array.new 10 1   ; i32[]
   local.set 1   ; b
   local.get 0   ; a
   local.get 1   ; b
@@ -148,7 +148,7 @@ fn 0 snippet$main () -> i32
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
   call 11   ; std_io$println__string
-  array.new 10 0   ; i32[][]
+  array.new 10 0   ; i32[]
   local.set 2   ; joined
   i64.const 73
   call 2   ; std_core$new_byte_buffer
@@ -208,7 +208,7 @@ fn 0 snippet$main () -> i32
   call 3   ; std_core$finish_buffer
   call 11   ; std_io$println__string
   i32.const 4
-  array.new 10 1   ; i32[][]
+  array.new 10 1   ; i32[]
   local.set 2   ; joined
   i64.const 28
   call 2   ; std_core$new_byte_buffer
@@ -237,24 +237,24 @@ fn 0 snippet$main () -> i32
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
   call 11   ; std_io$println__string
-  data.const 0 11   ; pool[0] : snippet$Item[]
+  data.const 0 11   ; pool[0] snippet$Item[]
   local.set 0   ; a
-  data.const 1 11   ; pool[1] : snippet$Item[]
+  data.const 1 11   ; pool[1] snippet$Item[]
   local.set 1   ; b
   local.get 0   ; a
   local.get 1   ; b
   call 8   ; std_core$[]$Add$add__Item
   local.tee 0   ; a
   i32.const 0
-  array.get 11   ; snippet$Item[][]
+  array.get 11   ; snippet$Item[]
   struct.get 3 0   ; snippet$Item.name
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   local.set 7   ; __p_8
   local.get 0   ; a
   i32.const 1
-  array.get 11   ; snippet$Item[][]
+  array.get 11   ; snippet$Item[]
   struct.get 3 0   ; snippet$Item.name
-  ref.cast 2   ; -> string
+  ref.cast 2   ; string
   local.set 8   ; __p_9
   local.get 7   ; __p_8
   call.import 0   ; std_core$byte_len
@@ -304,7 +304,7 @@ fn 0 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; a
   i32.const 0
-  array.get 11   ; snippet$Item[][]
+  array.get 11   ; snippet$Item[]
   struct.get 3 1   ; snippet$Item.inner
   array.len
   usize.to_i64
@@ -331,7 +331,7 @@ fn 0 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; a
   i32.const 1
-  array.get 11   ; snippet$Item[][]
+  array.get 11   ; snippet$Item[]
   struct.get 3 1   ; snippet$Item.inner
   array.len
   usize.to_i64
@@ -612,7 +612,7 @@ fn 7 std_core$[]$Add$add__i32 (ref,ref) -> ref
   local $arr_2 ref
   local $len_3 usize
   local $len_4 usize
-  array.new 10 0   ; i32[][]
+  array.new 10 0   ; i32[]
   local.set 2   ; $arr_2
   local.get 0   ; arg 0
   array.len
@@ -641,7 +641,7 @@ fn 8 std_core$[]$Add$add__Item (ref,ref) -> ref
   local $arr_2 ref
   local $len_3 usize
   local $len_4 usize
-  array.new 11 0   ; snippet$Item[][]
+  array.new 11 0   ; snippet$Item[]
   local.set 2   ; $arr_2
   local.get 0   ; arg 0
   array.len
@@ -697,7 +697,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 12   ; u8[][]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

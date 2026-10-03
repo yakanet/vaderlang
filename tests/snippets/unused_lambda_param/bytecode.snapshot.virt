@@ -34,7 +34,7 @@ fn 1 snippet$main () -> i32
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
-  fn.ref 2 2   ; __lambda_snippet_0
+  fn.ref 2 2   ; __lambda_snippet_0 fn
   local.set 2   ; $fn_ref_6
   i32.const 5
   local.get 2   ; $fn_ref_6
@@ -55,7 +55,7 @@ fn 1 snippet$main () -> i32
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
-  fn.ref 3 2   ; __lambda_snippet_1
+  fn.ref 3 2   ; __lambda_snippet_1 fn
   local.set 2   ; $fn_ref_6
   i32.const 5
   local.get 2   ; $fn_ref_6
@@ -275,7 +275,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 8   ; u8[][]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
