@@ -55,6 +55,11 @@ export Printer :: struct {
     // force their single-line form and never explode — used by `flat_width`
     // to MEASURE a construct before deciding its real layout.
     flat: bool = false
+    // Width that follows on the same line once the NEXT delimited construct
+    // closes — the ` ?? return …` after a call. That construct counts it in its
+    // fit test (`fits_inline`), which clears it before the construct's own
+    // children are emitted.
+    trailing: usize = 0
 }
 
 /// How `emit_block_expr` lays out a block body (see `Printer.block_mode`).
@@ -1415,12 +1420,42 @@ emit_defer_stmt :: fn(self: Printer!, s: p.DeferStmt) -> void {
 // `left ?? fallback` — the fallback is a value expression or a divergent
 // statement (`return` / `break` / `continue`).
 emit_null_coalesce :: fn(self: Printer!, e: p.NullCoalesceExpr) -> void {
+    // A left operand that closes on a delimiter decides its layout knowing the
+    // ` ?? …` that shares its last line, and explodes rather than run past
+    // `MAX_LINE`.
+    if !self.flat && e.left is p.CallExpr | p.StructLitExpr | p.SeqLitExpr | p.IntrinsicCallExpr {
+        self.trailing = coalesce_tail_width(self.source, e.fallback)
+    }
     self.emit_expr(e.left)
     self.write(" ?? ")
-    match e.fallback as fallback {
+    self.emit_coalesce_fallback(e.fallback)
+}
+
+emit_coalesce_fallback :: fn(self: Printer!, fallback: p.CoalesceFallback) -> void {
+    match fallback {
         is p.ReturnStmt | p.BreakStmt | p.ContinueStmt -> self.emit_stmt(fallback)
         is p.Expr -> self.emit_expr(fallback)
     }
+}
+
+// Width of ` ?? ` and the fallback's first line, laid out on its own : all of a
+// short fallback, the head of one that explodes (`return Foo {`).
+coalesce_tail_width :: fn(source: string, fallback: p.CoalesceFallback) -> usize {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.write(" ?? ")
+    sub.emit_coalesce_fallback(fallback)
+    return first_line_len(sub.finish())
+}
+
+// Whether a delimited construct stays on one line : always in `flat` mode or when
+// empty, never with a source trailing comma, else when its flat form and the
+// `trailing` width after it fit within `MAX_LINE`.
+fits_inline :: fn(self: Printer!, x: p.Expr, empty: bool, trailing_comma: bool) -> bool {
+    trailing :: self.trailing
+    self.trailing = 0
+    return self.flat
+        || empty
+        || (!trailing_comma && self.column + flat_width(self.source, x) + trailing <= usize(MAX_LINE))
 }
 
 // ============================================================================
@@ -1559,9 +1594,7 @@ emit_ident :: fn(self: Printer!, x: p.IdentExpr) -> void {
 }
 
 emit_call :: fn(self: Printer!, x: p.CallExpr) -> void {
-    inline :: self.flat
-        || x.args.len() == 0
-        || (!x.trailing_comma && self.column + flat_width(self.source, x) <= usize(MAX_LINE))
+    inline :: self.fits_inline(x, x.args.len() == 0, x.trailing_comma)
     self.emit_postfix_target(x.callee)
     self.emit_comma_list(x.args, "(", ")", false, inline, emit_call_arg)
 }
@@ -2194,9 +2227,7 @@ emit_struct_lit :: fn(self: Printer!, x: p.StructLitExpr) -> void {
     // otherwise stay single-line iff it fits within `MAX_LINE` at the current
     // column. `flat` mode (measuring) always renders single-line. An empty
     // literal collapses to `Type {}`.
-    inline :: self.flat
-        || x.items.len() == 0
-        || (!x.trailing_comma && self.column + flat_width(self.source, x) <= usize(MAX_LINE))
+    inline :: self.fits_inline(x, x.items.len() == 0, x.trailing_comma)
     self.emit_type_expr(x.type_name)
     self.emit_comma_list(x.items, " {", "}", true, inline, emit_struct_lit_item)
 }
@@ -2235,9 +2266,7 @@ flat_stmt_width :: fn(source: string, st: p.Stmt) -> usize {
 }
 
 emit_seq_lit :: fn(self: Printer!, x: p.SeqLitExpr) -> void {
-    inline :: self.flat
-        || x.elements.len() == 0
-        || (!x.trailing_comma && self.column + flat_width(self.source, x) <= usize(MAX_LINE))
+    inline :: self.fits_inline(x, x.elements.len() == 0, x.trailing_comma)
     self.emit_comma_list(x.elements, "[", "]", false, inline, emit_expr_item)
 }
 
@@ -2299,9 +2328,7 @@ emit_generic_inst :: fn(self: Printer!, x: p.GenericInstExpr) -> void {
 }
 
 emit_intrinsic_call :: fn(self: Printer!, x: p.IntrinsicCallExpr) -> void {
-    inline :: self.flat
-        || x.args.len() == 0
-        || (!x.trailing_comma && self.column + flat_width(self.source, x) <= usize(MAX_LINE))
+    inline :: self.fits_inline(x, x.args.len() == 0, x.trailing_comma)
     self.write("@")
     self.write(x.name)
     self.emit_comma_list(x.args, "(", ")", false, inline, emit_expr_item)

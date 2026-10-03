@@ -507,6 +507,74 @@ for (const { name, source } of TRAILING_COMMENTS) {
   }, { timeout: MEDIUM_BUILD });
 }
 
+// ---------------------------------------------------------------------------
+// Line fit across `??`. A call before `?? return …` decides whether it fits
+// counting what follows it on the line, so a binding too wide for one line
+// explodes the call's arguments instead of running past 100 columns. Unlike
+// the groups above, `source` is NOT canonical : `expected` is what fmt makes
+// of it, and must itself be a fixed point.
+// ---------------------------------------------------------------------------
+const COALESCE_FIT: { name: string; source: string; expected?: string }[] = [
+  {
+    // 110 columns as one line : the arguments go one per line.
+    name: "too_wide_explodes_the_call",
+    source: `module "reg/coalesce_fit_wide"
+
+f :: fn(a: i32, b: i32, c: i32) -> i32 | null = null
+
+g :: fn(first_parameter: i32, second_parameter: i32, third_parameter: i32) -> i32 | null {
+    long_result_name :: f(first_parameter, second_parameter + third_parameter, third_parameter) ?? return null
+    return long_result_name
+}
+`,
+    expected: `module "reg/coalesce_fit_wide"
+
+f :: fn(a: i32, b: i32, c: i32) -> i32 | null = null
+
+g :: fn(first_parameter: i32, second_parameter: i32, third_parameter: i32) -> i32 | null {
+    long_result_name :: f(
+        first_parameter,
+        second_parameter + third_parameter,
+        third_parameter,
+    ) ?? return null
+    return long_result_name
+}
+`,
+  },
+  {
+    // Exactly 100 columns, and a fallback that explodes on its own : only its
+    // head \`return Foo {\` shares the call's line, so the call stays inline.
+    // Already canonical — no \`expected\`.
+    name: "fitting_lines_stay",
+    source: `module "reg/coalesce_fit_stays"
+
+Foo :: struct {
+    a: i32
+    b: i32
+}
+
+f :: fn(a: i32, b: i32, c: i32) -> i32 | null = null
+
+g :: fn(first_parameter: i32, second_parameter: i32, third_parameter: i32) -> Foo | null {
+    at_exactly_one_hundred_columns_wide :: f(first_parameter, second_parameter, 1000) ?? return null
+    with_struct :: f(at_exactly_one_hundred_columns_wide, second_parameter, 1) ?? return Foo {
+        .a = 1,
+        .b = 2,
+    }
+    return Foo { .a = with_struct, .b = 0 }
+}
+`,
+  },
+];
+
+for (const { name, source, expected } of COALESCE_FIT) {
+  test(`fmt line fit across ?? : ${name}`, async () => {
+    const want = expected ?? source;
+    expect(await fmtString(source, `.tmp-fmt-coalesce-${name}`)).toBe(want);
+    expect(await fmtString(want, ".tmp-fmt-roundtrip")).toBe(want);
+  }, { timeout: MEDIUM_BUILD });
+}
+
 for (const name of SNIPPETS) {
   test(`fmt idempotency : ${name}`, async () => {
     const path = join("tests", "snippets", name, "_main.vader");

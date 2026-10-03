@@ -138,13 +138,7 @@ const_head :: fn(h: Printer!, d: p.ConstDecl) -> string {
 // The cut backs off to a UTF-8 lead byte, so it never splits a character.
 cut_head :: fn(text: string, limit: usize) -> string {
     bytes :: text.bytes()
-    end := bytes.len()
-    for i in 0..<bytes.len() {
-        if bytes[i] == '\n' {
-            end = i
-            break
-        }
-    }
+    end := first_line_len(text)
     if end == bytes.len() && end <= limit {
         return text
     }
@@ -155,6 +149,17 @@ cut_head :: fn(text: string, limit: usize) -> string {
         }
     }
     return bytes[0..<end].bytes_to_string().trim() + " …"
+}
+
+// Byte length of `text`'s first line — all of it when it holds no newline.
+first_line_len :: fn(text: string) -> usize {
+    bytes :: text.bytes()
+    for i in 0..<bytes.len() {
+        if bytes[i] == '\n' {
+            return i
+        }
+    }
+    return bytes.len()
 }
 
 // ---- tests ----------------------------------------------------------------
