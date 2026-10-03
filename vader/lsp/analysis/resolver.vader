@@ -1,20 +1,19 @@
 // vader/lsp/analysis/resolver — cross-file goto-def + hover support.
 //
 // When a click falls on a name that doesn't resolve in the current
-// document, we check whether the name was imported. If so, we map the
-// `import "..."` path back to an absolute file (or directory of
-// files), parse + index each candidate, and return the location of
-// the matching exported decl in the source module.
-//
-// Scope: the host shim seeds `library_root` and `vader_root` so
-// `std/<...>` and `vader/<...>` imports resolve. Project-relative
-// imports (`./mod`, `../lib/foo`) resolve relative to the importing
-// file's path (extracted from its `file://` URI).
+// document, we look for it where the compiler would : the other files of the
+// document's module, the file's import bindings, the prelude, then the
+// wildcard imports. A module is found as the loader finds it — `search_roots`
+// gives the roots in the loader's order and `resolve_lazy` the folder whose
+// files declare that module — and each candidate file is parsed + indexed to
+// locate the decl.
 
 module "vader/lsp/analysis"
 
+import "std/collections"
 import "std/io"
 import "std/string"
+import "vader/diagnostics"
 import "vader/resolver"
 import "vader/lsp/protocol"
 
@@ -26,13 +25,11 @@ export ExternalHit :: struct {
     target: DeclEntry
 }
 
-/// Resolve `name` against `idx`'s import table. Returns the
-/// `ExternalHit` for the source decl, or `null` when :
-///   - `name` isn't an imported name in this document ;
-///   - the import path doesn't map to a known root (`library_root` /
-///     `vader_root` unset, relative outside the project, …) ;
-///   - the candidate file(s) parsed but didn't export the original
-///     name.
+/// Resolve `name`, which the document `idx` does not declare, the way the
+/// compiler resolves an unqualified name in that file : a declaration of the
+/// module in another of its files, then an import binding of the file, then the
+/// prelude, then a wildcard import. Null when none holds it.
+///
 /// @param allow_member  whether to fall back to a MEMBER search when the name is
 ///                      not a top-level one anywhere. Only true when the cursor
 ///                      actually follows a dot: without the gate the search
@@ -45,23 +42,34 @@ export resolve :: fn(
     state: ServerState, idx: DocIndex, name: string, allow_member: bool = false,
 ) -> ExternalHit | null {
     if name.bytes().len() == 0 { return null }
+    roots :: document_roots(state, idx.uri) ?? return null
+    // A declaration of the module wins over every import of the file : the
+    // per-document index only sees the open file, so search the module's other
+    // files. The dominant cross-file case in the compiler tree, and no import
+    // leads there.
+    module :: roots.entry
+    if module != null {
+        sibling :: first_in_files(state, module.files, uri_to_path(idx.uri), (sub: DocIndex) -> sub.find_toplevel(name))
+        if sibling != null { return sibling }
+    }
     imp :: idx.find_import(name)
-    if imp != null { return resolve_imported(state, idx, imp) }
-    // Not an imported rename — the name may be declared in a SIBLING file of
-    // the same folder module (every `vader/X/*.vader` shares `module "vader/X"`).
-    // The per-document index only sees the open file, so search the rest of the
-    // module's directory. This is the dominant cross-file case in the compiler
-    // tree, and it isn't an `import` so the table lookup above never finds it.
-    sib :: resolve_sibling(idx.uri, name, state.position_encoding)
-    if sib != null { return sib }
-    // Still nothing — the name may be exposed by a wildcard import, which binds
-    // no `ImportEntry`. Search each wildcard-imported module for a top-level
-    // decl of this name (a rename was looked up above, so the name is used
-    // verbatim). First hit wins; an ambiguous name is an R2031 compile error
-    // anyway, so landing on any provider is acceptable for goto / hover.
-    wild :: resolve_wildcard(state, idx, name)
-    if wild != null {
-        return wild
+    if imp != null {
+        original :: imp.imported_name ?? return null
+        return find_in_module(state, roots.paths, imp.path, original, false)
+    }
+    // The prelude answers where nothing of the file does, ahead of any wildcard.
+    prelude :: find_in_module(state, roots.paths, PRELUDE_MODULE, name, true)
+    if prelude != null { return prelude }
+    // A wildcard import binds no `ImportEntry` — search each wildcard-imported
+    // module for an export of this name. First hit wins ; a name two of them
+    // export is an R2031 compile error anyway, so any provider is acceptable for
+    // goto / hover.
+    for path in idx.wildcards.paths {
+        if idx.wildcards.drops(path, name) {
+            continue
+        }
+        hit :: find_in_module(state, roots.paths, path, name, true)
+        if hit != null { return hit }
     }
     if !allow_member {
         return null
@@ -71,378 +79,157 @@ export resolve :: fn(
     // name that a module EXPORTS, and a member is neither: a trait method lives
     // in its trait's body, a field in its struct's. Measured dead for `push`,
     // `len`, `push_all` and `e.cond` — the form most of this tree is written in.
-    return resolve_member(state, idx, name)
+    return resolve_member(state, roots.paths, idx, name)
 }
 
+// The module every file sees without importing it.
+PRELUDE_MODULE :: "std/core"
+
 // Search for a member named `name`: first the wildcard-imported modules, then
-// `std/core`.
+// the prelude.
 //
-// `std/core` is searched even though nothing imports it — it IS the prelude, and
-// it is where the methods of the BUILT-IN receivers live (`i32[]`, `string`,
-// `MutableMap`). A user struct's methods come through the wildcard pass or the
-// in-document index; the built-ins have no import to follow, which is why they
-// were the ones that failed.
+// The prelude is searched even though nothing imports it — it is where the
+// methods of the BUILT-IN receivers live (`i32[]`, `string`, `MutableMap`). A
+// user struct's methods come through the wildcard pass or the in-document index;
+// the built-ins have no import to follow, which is why they were the ones that
+// failed.
 //
 // First hit wins, and that is a real limitation rather than an oversight: two
 // types can declare `to_string` or a `name` field, and telling them apart needs
 // the receiver's TYPE, which lives in the typechecker and not here. Landing on
 // one declaration of the right name beats landing on nothing; a precise answer
 // wants the dispatched declaration recorded per call site (see TODO).
-resolve_member :: fn(state: ServerState, idx: DocIndex, name: string) -> ExternalHit | null {
+resolve_member :: fn(
+    state: ServerState, paths: IncludePath[], idx: DocIndex, name: string,
+) -> ExternalHit | null {
     for path in idx.wildcards.paths {
         if idx.wildcards.drops(path, name) {
             continue
         }
-        hit :: member_in_module(state, idx.uri, path, name)
+        hit :: member_in_module(state, paths, path, name)
         if hit != null {
             return hit
         }
     }
-    return member_in_module(state, idx.uri, "std/core", name)
+    return member_in_module(state, paths, PRELUDE_MODULE, name)
 }
 
-// `resolve_in_module`'s shape, looking for a member instead of a top-level decl.
+// `find_in_module`'s shape, looking for a member instead of a top-level decl.
 member_in_module :: fn(
-    state: ServerState, from_uri: string, module_path: string, name: string,
+    state: ServerState, paths: IncludePath[], module_path: string, name: string,
 ) -> ExternalHit | null {
-    abs :: module_path_to_absolute(module_path, import_roots(state, from_uri), from_uri)
-    if abs.bytes().len() == 0 {
-        return null
-    }
-    if is_dir(abs) {
-        files :: read_dir(abs)
-        match files {
-            is IOError -> { return null }
-            is string[] -> {
-                for fname in files {
-                    if !fname.ends_with_vader() {
-                        continue
-                    }
-                    hit :: member_in_file(path_join(abs, fname), name, state.position_encoding)
-                    if hit != null {
-                        return hit
-                    }
-                }
-                return null
-            }
-        }
-    }
-    return member_in_file(ensure_vader_ext(abs), name, state.position_encoding)
+    module :: module_named(module_path, paths) ?? return null
+    return first_in_files(state, module.files, "", (sub: DocIndex) -> sub.find_member(name))
 }
 
-member_in_file :: fn(path: string, name: string, encoding: PositionEncoding) -> ExternalHit | null {
-    src_or :: read_file_string(path)
-    match src_or {
-        is IOError -> { return null }
-        is string -> {
-            uri :: path_to_uri(path)
-            sub :: build_index(uri, src_or, encoding)
-            d :: sub.find_member(name) ?? return null
-            return ExternalHit { .uri = uri, .target = d }
-        }
-    }
-}
-
-// Search every wildcard-imported module (`import "p"`) for a top-level decl
-// named `name`, skipping a module whose modifier list drops it. Returns the first
-// hit, or null when no wildcard provides it.
-resolve_wildcard :: fn(state: ServerState, idx: DocIndex, name: string) -> ExternalHit | null {
-    for path in idx.wildcards.paths {
-        if idx.wildcards.drops(path, name) {
-            continue
-        }
-        hit :: resolve_in_module(state, idx.uri, path, name, true)
-        if hit != null { return hit }
-    }
-    return null
-}
-
-// Search the `*.vader` siblings of `from_uri`'s directory for a top-level
-// decl named `name`. Returns the first hit, or null. Skips the open file
-// itself (its own decls are handled by the in-document index).
-resolve_sibling :: fn(from_uri: string, name: string, encoding: PositionEncoding) -> ExternalHit | null {
-    from_path :: uri_to_path(from_uri)
-    if from_path.bytes().len() == 0 { return null }
-    dir :: dirname_path(from_path)
-    files :: read_dir(dir)
-    match files {
-        is IOError  -> { return null }
-        is string[] -> {
-            for fname in files {
-                if !fname.ends_with_vader() { continue }
-                full :: path_join(dir, fname)
-                if full == from_path { continue }
-                hit :: lookup_in_file(full, name, encoding, false)
-                match hit {
-                    is ExternalHit -> { return hit }
-                    is null -> {}
-                }
-            }
-            return null
-        }
-    }
-}
-
-resolve_imported :: fn(state: ServerState, idx: DocIndex, imp: ImportEntry) -> ExternalHit | null =
-    resolve_in_module(state, idx.uri, imp.module_path, imp.original_name, false)
-
-// Resolve `name` to a top-level decl in the module at `module_path` (as seen
-// from `from_uri`). Shared by the rename (`resolve_imported`) and wildcard
-// (`resolve_wildcard`) paths — the only difference is where the `name` and path
-// come from.
-/// Find `name` among the top-level decls of the module at `module_path`.
+/// Find `name` among the top-level decls of the module `module_path` names, as
+/// seen from the document `from_uri`.
 ///
 /// Exported for the namespace-alias path in `handlers/definition`: `AST.Foo` has
 /// no receiver type to key on, so resolving `Foo` as an export of `AST`'s module
 /// is the only route to it.
 ///
+/// @param state          carries `--library-root`, searched first.
+/// @param from_uri       the document the import is written in.
+/// @param module_path    the module name, as the `import` spells it.
+/// @param name           the decl to find.
 /// @param exported_only  true for a wildcard or an alias, which expose only the
-///                       public surface; false for a same-module sibling.
-export resolve_in_module :: fn(state: ServerState, from_uri: string, module_path: string, name: string, exported_only: bool) -> ExternalHit | null {
-    abs :: module_path_to_absolute(module_path, import_roots(state, from_uri), from_uri)
-    if abs.bytes().len() == 0 { return null }
+///                       public surface; false for a rename binding.
+export resolve_in_module :: fn(
+    state: ServerState, from_uri: string, module_path: string, name: string, exported_only: bool,
+) -> ExternalHit | null {
+    roots :: document_roots(state, from_uri) ?? return null
+    return find_in_module(state, roots.paths, module_path, name, exported_only)
+}
 
-    // Folder-form module : every `*.vader` file under the dir is
-    // merged into one logical module. Walk them, return on first hit.
-    if is_dir(abs) {
-        files :: read_dir(abs)
-        match files {
-            is IOError -> { return null }
-            is string[] -> {
-                for fname in files {
-                    if !fname.ends_with_vader() { continue }
-                    full :: path_join(abs, fname)
-                    hit :: lookup_in_file(full, name, state.position_encoding, exported_only)
-                    match hit {
-                        is ExternalHit -> { return hit }
-                        is null -> {}
-                    }
-                }
-                return null
-            }
+// Resolve `name` to a top-level decl of the module `module_path` names, its
+// files read in the order the loader reads them. A wildcard or an alias exposes
+// only the module's public surface ; a rename may name a private decl, which
+// still deserves the jump.
+find_in_module :: fn(
+    state: ServerState, paths: IncludePath[], module_path: string, name: string, exported_only: bool,
+) -> ExternalHit | null {
+    module :: module_named(module_path, paths) ?? return null
+    return first_in_files(state, module.files, "", (sub: DocIndex) -> if exported_only {
+        sub.find_exported_toplevel(name)
+    } else {
+        sub.find_toplevel(name)
+    })
+}
+
+/// The first of `files` whose index answers `query`, each read through the
+/// overlay — the open document's unsaved text first, the disk second.
+///
+/// The overlay is not optional : `def_response` encodes the returned span with
+/// `line_index_for_path`, which reads the overlay too, so reading the disk here
+/// would pair one text's offsets with another text's line index. The file being
+/// edited is usually the first one searched.
+///
+/// @param state  the server state, for the overlay and the position encoding.
+/// @param files  the candidate files, in search order.
+/// @param skip   a file to pass over — the document already searched — or `""`.
+/// @param query  the decl to look for in one file's index.
+export first_in_files :: fn(
+    state: ServerState, files: string[], skip: string, query: fn(DocIndex) -> DeclEntry | null,
+) -> ExternalHit | null {
+    for file in files {
+        if file == skip {
+            continue
         }
-    }
-
-    // File-form module : single `<abs>.vader`.
-    with_ext :: ensure_vader_ext(abs)
-    return lookup_in_file(with_ext, name, state.position_encoding, exported_only)
-}
-
-// Read `path` from disk, parse + index it, hunt for `name` among the
-// top-level decls. Returns `null` when the file doesn't exist, fails
-// to read, or doesn't export `name`. The returned URI is `file://`
-// + the absolute path so editors jump correctly.
-lookup_in_file :: fn(path: string, name: string, encoding: PositionEncoding, exported_only: bool) -> ExternalHit | null {
-    src_or :: read_file_string(path)
-    match src_or {
-        is IOError -> { return null }
-        is string -> {
-            uri :: path_to_uri(path)
-            sub :: build_index(uri, src_or, encoding)
-            // A wildcard exposes only the module's public surface, so restrict to
-            // exported decls there; a same-module sibling sees private decls too.
-            d :: if exported_only { sub.find_exported_toplevel(name) } else { sub.find_toplevel(name) }
-            if d == null { return null }
-            return ExternalHit { .uri = uri, .target = d }
+        src :: state.source_for_path(file)
+        if src.bytes().len() == 0 {
+            continue
         }
+        uri :: path_to_uri(file)
+        found :: query(build_index(uri, src, state.position_encoding)) ?? continue
+        return ExternalHit { .uri = uri, .target = found }
     }
+    return null
 }
 
-// ---- path resolution -----------------------------------------------------
+// ---- module resolution ----------------------------------------------------
 
-/// The roots an import resolves against, found ONCE per request.
+/// Where the document `uri` looks for modules : the loader's roots for a load
+/// from that file (`search_roots`), each made absolute, and the module the
+/// document belongs to. Null for a URI that names no file.
 ///
-/// Every field is derived from the same `vader.json` walk-up, so they are found
-/// together or not at all. Resolving them per import declaration is what this
-/// type exists to prevent: `document_link` answers one request with a link per
-/// import, and the library root costs a manifest read + JSON parse to find.
-export ImportRoots :: struct {
-    /// Directory holding the importing file's `vader.json`, or `""`.
-    project: string
-    /// The library root serving this project, or `""` — see `import_roots`.
-    library: string
-    /// The compiler's own source root, or `""`.
-    vader:   string
-}
-
-/// Find the roots `raw` import paths resolve against, for one request.
+/// Absolute because a target becomes a URI, and `path_to_uri("lib/…")` reads as
+/// root-absolute to the editor ("file not found") — the loader falls back to a
+/// cwd-relative `lib` when no bundle sits beside the binary.
 ///
-/// One walk-up feeds all three: the project root comes from the importing file's
-/// `vader.json`, and both others are derived from it unless the host seeded them
-/// (`--library-root` / `--vader-root`).
+/// @param state  carries the host's roots, searched first (`include_flags`).
+/// @param uri    the document's URI.
+export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | null {
+    path :: uri_to_path(uri)
+    if path.bytes().len() == 0 {
+        return null
+    }
+    discard: Diagnostic[]!: []
+    roots :: search_roots(path, state.include_flags, discard)
+    paths: IncludePath[]!: []
+    for root in roots.paths {
+        paths.push(IncludePath { ...root, .dir = absolute_path(root.dir) })
+    }
+    return SearchRoots { ...roots, .paths = paths }
+}
+
+/// The module `name` names when searched in `paths` — the folder of the first
+/// root whose files declare it, with those files in the loader's order. Null
+/// when no root holds it.
 ///
-/// @param state     for the host-seeded roots, which win when present.
-/// @param from_uri  the importing document's URI.
-export import_roots :: fn(state: ServerState, from_uri: string) -> ImportRoots {
-    project :: manifest_root_of(from_uri)
-    return ImportRoots {
-        .project = project,
-        .library = library_root_under(state, project),
-        .vader   = if state.vader_root.bytes().len() > 0 {
-            state.vader_root
-        } else if project.bytes().len() > 0 {
-            path_join(project, "vader")
-        } else {
-            ""
-        },
-    }
+/// @param name   the module name, as an `import` spells it.
+/// @param paths  the roots, from `document_roots`.
+export module_named :: fn(name: string, paths: IncludePath[]) -> DiscoveredModule | null {
+    index :: MutableMap<string, DiscoveredModule> {}
+    discard: Diagnostic[]!: []
+    return resolve_lazy(name, paths, index, discard)
 }
 
-/// Map an `import "<raw>"` module path to an absolute filesystem path (file or
-/// directory), using `roots` and the importing file's directory for `./` paths.
-/// Returns `""` for unresolvable / unknown-root paths — the caller treats that as
-/// "couldn't resolve". Shared with `handlers/document_link` for clickable import
-/// links.
-///
-/// @param raw       the module path exactly as written in the `import`.
-/// @param roots     from `import_roots`, hoisted by callers that loop.
-/// @param from_uri  the importing document's URI — only `./` paths need it.
-export module_path_to_absolute :: fn(raw: string, roots: ImportRoots, from_uri: string) -> string {
-    if raw.starts_with("./") || raw.starts_with("../") {
-        from_path :: uri_to_path(from_uri)
-        if from_path.bytes().len() == 0 { return "" }
-        // Join with the file's parent dir.
-        dir :: dirname_path(from_path)
-        return path_join(dir, raw)
+// `path` made absolute against the working directory, the base a relative root
+// is read from.
+absolute_path :: fn(path: string) -> string {
+    if path.starts_with("/") || (path.byte_len() > 1 && path.bytes()[1] == ':') {
+        return path
     }
-    // Any non-relative name may be a toolchain namespace: `lib/` hosts every one
-    // the toolchain ships, so gating on `std/` would lose the clickable import
-    // path for `toolchain/*`, `json/*` and every namespace the library split adds.
-    // Probed rather than assumed — an unconditional join would point a link at
-    // `<lib>/myapp/foo` for a project-local import, which is worse than answering
-    // "unknown".
-    //
-    // ⚠️ The PROJECT is probed first, and the order is the point. Since the split,
-    // `json` / `cli` / `regex` / `semver` / `random` / `crypto` / `base64` are
-    // ordinary top-level names a project may also declare, and the compiler
-    // resolves such a name through the project root — which
-    // `project_include_paths` searches ahead of the cwd-relative library fallback.
-    // Probing the library first made the editor disagree with the compiler in
-    // exactly the colliding case: ctrl-click landed in the toolchain's file while
-    // the build used the project's.
-    if roots.project.bytes().len() > 0 {
-        own :: path_join(roots.project, raw)
-        if exists(own) { return own }
-    }
-    if roots.library.bytes().len() > 0 {
-        candidate :: path_join(roots.library, raw)
-        if exists(candidate) { return candidate }
-    }
-    if raw.starts_with("vader/") {
-        if roots.vader.bytes().len() == 0 { return "" }
-        // `vader/X` strips the `vader/` prefix because the root already
-        // points at the `vader/` directory.
-        rb :: raw.bytes()
-        suffix :: rb[6..<rb.len()].bytes_to_string()
-        return path_join(roots.vader, suffix)
-    }
-    // Unrecognised prefix — likely a third-party / project-root import.
-    // Project-root resolution would need the workspace root from the
-    // LSP `initialize` params ; that's a follow-up.
-    return ""
-}
-
-// The directory holding the importing file's `vader.json`, or "" when it has none.
-manifest_root_of :: fn(from_uri: string) -> string {
-    from_path :: uri_to_path(from_uri)
-    if from_path.bytes().len() == 0 { return "" }
-    return find_manifest_root(from_path) ?? ""
-}
-
-// The library root serving `project_root` : the host-seeded `--library-root` when
-// present, else the first of the project's own `includePaths` to hold the marker,
-// else the exe-sidecar / cwd probe the project loader uses
-// (`default_library_root`). Editors don't pass `--library-root`, so the derived
-// roots are what actually fire.
-//
-// Asked of the manifest and settled by MARKER, exactly as the loader does — a
-// first cut joined `LIBRARY_ROOT_DIR` here, guessing the root by its NAME, which
-// is the class of bug `ModuleOrigin` exists to end.
-//
-// Keeping the answer ABSOLUTE is load-bearing: `default_library_root()` falls back
-// to the RELATIVE "lib" (the exe-sidecar probe misses — the LSP exe lives in
-// `build/`), and a relative root leaks into the target as `path_to_uri("lib/…") →
-// file:///lib/…`, which the editor reads as root-absolute → "file not found".
-library_root_under :: fn(state: ServerState, project_root: string) -> string {
-    if state.library_root.bytes().len() > 0 { return state.library_root }
-    if project_root.bytes().len() > 0 {
-        for p in read_manifest(project_root).include_paths {
-            dir :: join_path(project_root, p)
-            if origin_of_root(dir) == .Toolchain { return dir }
-        }
-    }
-    return default_library_root()
-}
-
-/// Drop the last path segment. Returns the input verbatim when no separator is
-/// present.
-///
-/// Exported for `handlers/definition`, which needs a declaring symbol's FOLDER:
-/// a module is a folder, so an `implements` block may sit in any file of it.
-///
-/// @param p  a `/`-separated path.
-/// @return   everything before the last separator, or `p` unchanged.
-export dirname_path :: fn(p: string) -> string {
-    pb :: p.bytes()
-    n :: pb.len()
-    if n == 0 { return p }
-    i: i32 = i32(n) - 1
-    sep: u8: '/'
-    for i >= 0 {
-        if pb[usize(i)] == sep {
-            if i == 0 { return "/" }
-            return pb[0..<usize(i)].bytes_to_string()
-        }
-        i = i - 1
-    }
-    return p
-}
-
-// Simple POSIX-style join. Falls back to bare concatenation if `a` is
-// empty. Doesn't normalise `..` segments — the OS resolves those at
-// read-time.
-/// Join two path segments with a single `/`. Exported alongside
-/// `dirname_path` for the folder walk in `handlers/definition`.
-export path_join :: fn(a: string, b: string) -> string {
-    ab :: a.bytes()
-    bb :: b.bytes()
-    if ab.len() == 0 { return b }
-    if bb.len() == 0 { return a }
-    sep: u8: '/'
-    a_ends_sep :: ab[ab.len() - 1] == sep
-    b_starts_sep :: bb[0] == sep
-    if a_ends_sep && b_starts_sep {
-        return a + bb[1..<bb.len()].bytes_to_string()
-    }
-    if a_ends_sep || b_starts_sep {
-        return a + b
-    }
-    return a + "/" + b
-}
-
-/// Append `.vader` to `p` when it doesn't already end in it. Shared with
-/// `handlers/document_link` to resolve a file-form module's source.
-export ensure_vader_ext :: fn(p: string) -> string {
-    suffix :: ".vader"
-    if p.ends_with_vader() { return p }
-    return p + suffix
-}
-
-// String helper — `s.ends_with(".vader")`. We avoid the stdlib
-// `ends_with` because the public surface might rename or repackage it ;
-// keeping this inline keeps the resolver standalone.
-/// True when `s` names a `.vader` file. Exported for the same folder walk.
-export ends_with_vader :: fn(s: string) -> bool {
-    sb :: s.bytes()
-    n :: sb.len()
-    suffix :: ".vader"
-    sufb :: suffix.bytes()
-    sn :: sufb.len()
-    if n < sn { return false }
-    for i in 0..<sn {
-        if sb[n - sn + i] != sufb[i] {
-            return false
-        }
-    }
-    return true
+    return join_path(current_working_directory(), path)
 }

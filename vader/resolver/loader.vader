@@ -150,33 +150,21 @@ export load_project_with_overlay :: fn(
     }
     modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[]!: []
-    project_root :: find_manifest_root(entry)
-    // Read the project manifest once (the LSP re-loads on every didOpen).
-    manifest :: match project_root {
-        is string -> read_manifest(project_root)
-        is null   -> Manifest { .include_paths = [] }
-    }
-    entry_folder :: entry_folder_of(entry)
-    plain_roots :: project_include_paths(project_root, manifest, include_path_flags)
-    // Generated modules are a property of the PROJECT, not of whoever asked for
-    // the load: derived here, every command sees them — `run`, `test`, `lint`,
-    // `dump` and the LSP, not only the `vader build` that produced them.
-    generated_root :: generated_root_for(project_root)
+    roots :: search_roots(entry, include_path_flags, loader_diags)
+    project_root :: roots.project_root
 
     // Lazy import-driven resolution (see `lazy.vader`). No eager scan : `index`
     // is a cache filled on demand by `resolve_lazy`, which path-maps each module
-    // name to a folder under the include-paths. Load ORDER — and thus symbol-id
+    // name to a folder under `roots.paths`. Load ORDER — and thus symbol-id
     // assignment — is driven solely by the import BFS in `drain_load_queue`, not
     // by discovery, so the self-compile is byte-identical regardless of how the
-    // include-paths are sourced. The include-paths (built once the entry's
-    // namespace is known) are : the entry folder rooted at its declared module
-    // name, then `plain_roots` (manifest dir + `vader.json includePaths` +
-    // binary-adjacent stdlib default ; GCC `-I` style, first match wins).
+    // include-paths are sourced.
     index: MutableMap<string, DiscoveredModule>: MutableMap<string, DiscoveredModule> {}
 
-    entry_module :: seed_entry(entry_folder, loader_diags)
+    entry_module :: roots.entry
     match entry_module {
         is null -> {
+            entry_folder :: entry_folder_of(entry)
             // The class is "module not found", but the fix is a line the
             // developer has to write, so the detail says which line and where.
             loader_diags.push(resolver_error(.ModuleNotFound, zero_span(entry),
@@ -189,8 +177,7 @@ export load_project_with_overlay :: fn(
             }
         }
         is DiscoveredModule -> {
-            bases :: include_paths(
-                entry_module.name, entry_module.folder, plain_roots, generated_root)
+            bases :: roots.paths
             // Re-resolve the entry through the generic path now that the roots
             // exist. `paths[0]` is the entry's own folder rooted at its declared
             // name, so this finds the same primary — and then applies the merge
@@ -248,6 +235,57 @@ export load_project_with_overlay :: fn(
                 .diags = loader_diags,
             }
         }
+    }
+}
+
+/// Where a load from one entry file looks for modules — what `load_project`
+/// reads, and what the language server reads to follow an import the same way.
+export SearchRoots :: struct {
+    /// The folder holding the project's `vader.json`, or null outside a project.
+    project_root: string | null
+    /// The module the entry's folder declares, or null when no file of it
+    /// declares one.
+    entry:        DiscoveredModule | null
+    /// The roots an `import "name"` is searched in, first match wins
+    /// (`resolve_lazy`) : the entry's folder rooted at its declared name, the
+    /// plain roots, then the generated tree. Without an entry module, the plain
+    /// roots alone.
+    paths:        IncludePath[]
+}
+
+/// Find the roots a load from `entry` searches, in the order it searches them.
+///
+/// @param entry               the entry file's path, `/`-separated.
+/// @param include_path_flags  roots the caller names, searched before the
+///                            project's own.
+/// @param diags               R2020 / R2022 from scanning the entry's folder.
+/// @return                    the project, the entry module and the ordered roots.
+export search_roots :: fn(
+    entry: string, include_path_flags: string[], diags: Diagnostic[]!,
+) -> SearchRoots {
+    project_root :: find_manifest_root(entry)
+    manifest :: match project_root {
+        is string -> read_manifest(project_root)
+        is null   -> Manifest { .include_paths = [] }
+    }
+    entry_folder :: entry_folder_of(entry)
+    plain :: project_include_paths(project_root, manifest, include_path_flags)
+    // Generated modules are a property of the PROJECT, not of whoever asked for
+    // the load: derived here, every command sees them — `run`, `test`, `lint`,
+    // `dump` and the LSP, not only the `vader build` that produced them.
+    generated :: generated_root_for(project_root)
+    // The entry's declared name is what roots its namespace at its own folder,
+    // so the include-paths cannot be built before this scan.
+    module :: seed_entry(entry_folder, diags)
+    paths: IncludePath[]: if module == null {
+        plain
+    } else {
+        include_paths(module.name, module.folder, plain, generated)
+    }
+    return SearchRoots {
+        .project_root = project_root,
+        .entry        = module,
+        .paths        = paths,
     }
 }
 
@@ -476,11 +514,9 @@ project_include_paths :: fn(
     // inconsistency: `--include-paths lib` and `vader.json includePaths: ["lib"]`
     // name the same directory and would answer differently.
     for p in flag_paths { roots.push(plain_root(p, origin_of_root(p))) }
-    // One probe, read twice. `default_library_root()` is `sidecar_root()` with a
-    // cwd fallback, so calling both listed the SAME bundled root twice — position 1
-    // and last. Not a cost worth naming (one syscall); it is that a duplicate root
-    // is a duplicate answer, and the fallback below must fire only when there is no
-    // bundle to fall back from.
+    // One probe, read twice : the bundled root is listed once, and the cwd
+    // fallback below fires only when there is no bundle — a duplicate root is a
+    // duplicate answer.
     bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     if bundled != null {
         roots.push(plain_root(bundled, .Toolchain))

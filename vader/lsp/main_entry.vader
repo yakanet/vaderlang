@@ -10,20 +10,15 @@ module "vader/lsp"
 
 import "cli"
 import "std/io"
-// `parse` alone is ambiguous ACROSS THIS MODULE: the sibling `main.vader` needs
-// `std/json`'s and drops `std/cli`'s (`{ parse as _ }`), and the resolver seeds
-// unqualified names per MODULE, not per file — so the two files cannot each get
-// the `parse` they want from the bare name. Qualify this one. The wildcard above
-// stays: `ParsedArgs`, `string_flag` and `errors` are all still reached from it.
+// `parse` is qualified for the seed compiler that builds stage1 : it resolves
+// unqualified names per MODULE, where the sibling `main.vader` drops `cli`'s
+// `parse` (`{ parse as _ }`) to keep `json`'s.
 CLI :: import "cli"
-
 
 main :: fn(argv: string[]) -> i32 {
     // argv[0] is the binary path ; the rest is parsed against `LSP_FLAGS` — the
     // same array the unified CLI's `lsp` action uses, so both entry points
-    // accept exactly the same flags and reject the same typos. The host shim
-    // seeds the two roots so cross-file goto-def can resolve `std/*` / `vader/*`
-    // imports to absolute paths.
+    // accept exactly the same flags and reject the same typos.
     parsed :: CLI.parse(argv[1..<argv.len()], LSP_FLAGS)
     if parsed.errors.len() > 0 {
         for e in parsed.errors {
@@ -31,5 +26,5 @@ main :: fn(argv: string[]) -> i32 {
         }
         return 1
     }
-    return run_server(parsed.string_flag("library-root", ""), parsed.string_flag("vader-root", ""))
+    return run_server(parsed.string_flag("library-root", ""))
 }

@@ -34,12 +34,7 @@ H :: import "vader/lsp/handlers"
 export LSP_FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "library-root",
-        .help = "Filesystem root of lib/, for cross-file goto-def",
-        .value_name = "path",
-    },
-    FlagSpec {
-        .name = "vader-root",
-        .help = "Filesystem root of the compiler tree, same purpose",
+        .help = "A library root searched before the project's own",
         .value_name = "path",
     },
     // Accepted and ignored. `vscode-languageclient` APPENDS `--stdio` to the
@@ -59,18 +54,16 @@ export LSP_FLAGS: FlagSpec[]: [
 
 /// LSP server entry. Blocks reading frames until EOF or `exit` notification.
 ///
-/// Takes its two roots decoded rather than scanning argv: they are declared on
-/// the `lsp` action in `vader/cli/spec.vader` and parsed by `std/cli`, like every
-/// other flag. This function used to walk `args` looking for the two prefixes
-/// itself and ignore everything else, so a mistyped root was a silent fallback
-/// to the empty string — and the server would come up resolving nothing.
+/// Takes its root decoded rather than scanning argv: it is declared on the `lsp`
+/// action in `vader/cli/spec.vader` and parsed by `std/cli`, like every other
+/// flag, so a mistyped one is an error rather than a silent fallback to the
+/// empty string.
 ///
-/// @param library_root  filesystem root of `lib/`, seeded by the host shim.
-///                     Empty when the client didn't supply one.
-/// @param vader_root   filesystem root of the compiler tree, same contract.
-/// @return             0 on a clean `exit` notification, 1 on an abnormal one.
-export run_server :: fn(library_root: string, vader_root: string) -> i32 {
-    state :: A.new_state(library_root, vader_root)
+/// @param library_root  a library root searched before the project's own ;
+///                      empty when the client named none.
+/// @return              0 on a clean `exit` notification, 1 on an abnormal one.
+export run_server :: fn(library_root: string) -> i32 {
+    state :: A.new_state(library_root)
     // Unbuffered stdin so `poll_pending` reflects the bytes actually queued on
     // the pipe (the debounce relies on it). Must run before any `read_frame`.
     shutdown_received := false

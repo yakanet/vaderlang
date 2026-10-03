@@ -82,14 +82,11 @@ export ServerState :: struct {
     /// vader/lsp/main.vader). Decouples the per-keystroke typecheck from the
     /// quiescent-window typecheck — the whole point of the debounce.
     dirty:                      MutableMap<string, bool>
-    /// Absolute path to the standard-library root (the dir that
-    /// contains `std/io/io.vader` etc.). Empty when the host didn't
-    /// supply `--library-root` — cross-file goto-def on `std/*`
-    /// imports degrades to `null` then.
-    library_root:                string
-    /// Absolute path to the self-host Vader source root (the dir that
-    /// contains `lsp/`, `parser/`, `fmt/`, …). Empty when missing.
-    vader_root:                 string
+    /// The roots the host names, searched before a project's own — what the
+    /// loader takes as `--include-paths`, for the index and the typed project
+    /// alike : `--library-root` alone, when given. Empty otherwise, and the roots
+    /// are then the ones `vader build` would search for the same file.
+    include_flags:              string[]
     /// True when the client advertised
     /// `capabilities.textDocument.definition.linkSupport = true` in
     /// `initialize`. Drives the definition response shape — `LocationLink[]`
@@ -121,7 +118,7 @@ export ServerState :: struct {
     virt_line_indices:          MutableMap<string, LineIndex>
 }
 
-export new_state :: fn(library_root: string, vader_root: string) -> ServerState {
+export new_state :: fn(library_root: string) -> ServerState {
     return ServerState {
         .docs                    = MutableMap<string, string> {},
         .cache                   = null,
@@ -129,8 +126,7 @@ export new_state :: fn(library_root: string, vader_root: string) -> ServerState 
         .union_cache             = null,
         .indices                 = MutableMap<string, DocIndex> {},
         .dirty                   = MutableMap<string, bool> {},
-        .library_root             = library_root,
-        .vader_root              = vader_root,
+        .include_flags           = if library_root.bytes().len() > 0 { [library_root] } else { [] },
         .definition_link_support = false,
         .position_encoding       = .Utf16,
         .inlay_refresh_support   = false,
@@ -237,7 +233,7 @@ export typed_project_for :: fn(self: ServerState!, file_path: string) -> Project
     }
     // dump_types = false : the LSP reads expr_types (hover/defs) but never the
     // dump-only expr_kinds / node_spans tables.
-    fc :: check_file(file_path, doc_overlay(self), [], false)
+    fc :: check_file(file_path, doc_overlay(self), self.include_flags, false)
     entry :: ProjectCache {
         .entry_path = file_path, .project = fc.project, .result = fc.result, .diags = fc.diags,
         .module_name_index = module_index_by_name(fc.project),
@@ -266,7 +262,7 @@ export union_project_for :: fn(self: ServerState!, file_path: string) -> LoadedP
             return cached.project
         }
     }
-    project :: load_project_with_overlay(file_path, doc_overlay(self), [], AllTargets {})
+    project :: load_project_with_overlay(file_path, doc_overlay(self), self.include_flags, AllTargets {})
     self.union_cache = UnionCache { .entry_path = file_path, .project = project }
     return project
 }

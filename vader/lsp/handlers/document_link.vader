@@ -1,11 +1,10 @@
 // vader/lsp/handlers/document_link — `textDocument/documentLink` handler.
 //
 // Makes each `import "path"` clickable : the quoted path string links to the
-// imported module's source so Ctrl/Cmd-click jumps straight there. Targets
-// resolve through `module_path_to_absolute` — the same `std/` / `vader/` / `./`
-// resolution that cross-file goto-def uses (resolver.vader) — and folder
-// modules link to the first `.vader` file inside. Imports whose path doesn't
-// map to a known root (project-root / third-party prefixes) simply get no link.
+// imported module's source so Ctrl/Cmd-click jumps straight there. A module is
+// found as the loader finds it (`module_named` over `document_roots`, shared with
+// cross-file goto-def in resolver.vader), and the link targets its first file in
+// the loader's order. An import no root holds simply gets no link.
 //
 // The link range covers the path text *between* the quotes. It is recovered by
 // re-parsing the document and scanning each `import` decl's source span for the
@@ -38,14 +37,12 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
     // only, no resolve) to walk the import decls. documentLink isn't hot.
     parsed :: parse_source(idx.source, uri)
     links: JsonValue[]!: []
-    // Once, not per import: the roots come from one `vader.json` walk-up, and the
-    // library root costs a manifest read + JSON parse to find. Resolving them
-    // inside the loop cost that per import declaration — 8 manifest parses for a
-    // compiler file, for one request.
-    roots :: import_roots(state, uri)
+    // Once, not per import: finding the roots walks up to `vader.json`, reads it
+    // and scans the document's folder.
+    roots :: document_roots(state, uri) ?? return JsonArray { .items = [] }
     for d in parsed.program.decls {
         if d is ImportDecl {
-            link :: import_link(d, idx.source, roots, uri, idx.line_index)
+            link :: import_link(d, idx.source, roots.paths, idx.line_index)
             if link != null { links.push(link) }
         }
     }
@@ -54,31 +51,17 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
 
 // ---- link construction ---------------------------------------------------
 
-// One `DocumentLink` for an import, or null when the path can't be resolved to
-// an on-disk file (unknown root prefix, missing module, empty directory).
-import_link :: fn(imp: ImportDecl, source: string, roots: ImportRoots, from_uri: string, li: LineIndex) -> JsonValue | null {
-    abs :: module_path_to_absolute(imp.path, roots, from_uri)
-    if abs == "" { return null }
-    target :: representative_file(abs)
-    if target == "" { return null }
+// One `DocumentLink` for an import, or null when no root holds its module.
+import_link :: fn(imp: ImportDecl, source: string, paths: IncludePath[], li: LineIndex) -> JsonValue | null {
+    module :: module_named(imp.path, paths) ?? return null
+    if module.files.len() == 0 {
+        return null
+    }
     range :: path_string_range(imp, source, li) ?? return null
     obj :: MutableMap<string, JsonValue> {}
     obj["range"]  = range_json(range)
-    obj["target"] = JsonString { .value = path_to_uri(target) }
+    obj["target"] = JsonString { .value = path_to_uri(module.files[0]) }
     return JsonObject { .entries = obj }
-}
-
-// A clickable target file for a resolved import root. Folder-form modules
-// (`std/io`) link to their first `.vader` file by sorted name ; file-form
-// modules (`./helper`) link to `<path>.vader`. Returns "" when nothing on
-// disk matches. `list_vader_files` handles both shapes — sorted `.vader`
-// files under a directory, or the single file when `abs` already names one.
-representative_file :: fn(abs: string) -> string {
-    files :: list_vader_files(abs)
-    if files.len() > 0 { return files[0] }
-    with_ext :: ensure_vader_ext(abs)
-    if exists(with_ext) { return with_ext }
-    return ""
 }
 
 // LSP range covering the path text inside the quotes of `import "<path>"`.

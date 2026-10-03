@@ -57,7 +57,7 @@ async function diagnosticsFor(source: string): Promise<Diag[]> {
   for (const r of requests) { const f = frame(r); stdin.set(f, off); off += f.byteLength; }
 
   const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
+    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`],
     cwd: process.cwd(), env: hermeticEnv(), stdin: "pipe", stdout: "pipe", stderr: "pipe",
   });
   const killer = setTimeout(() => { try { proc.kill(9); } catch {} }, MEDIUM_BUILD);

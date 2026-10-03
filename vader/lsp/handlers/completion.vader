@@ -70,9 +70,9 @@ export handle_completion :: fn(state: ServerState!, params: JsonValue) -> JsonVa
             }
 
             for imp in idx.imports {
-                if seen[imp.local_name] != null { continue }
-                seen[imp.local_name] = true
-                items.push(completion_item(imp.local_name, import_ci_kind(imp.local_name), "import \"${imp.module_path}\""))
+                if seen[imp.local] != null { continue }
+                seen[imp.local] = true
+                items.push(completion_item(imp.local, import_ci_kind(imp.local), "import \"${imp.path}\""))
             }
 
             // Names a wildcard import brings into scope — the index records only

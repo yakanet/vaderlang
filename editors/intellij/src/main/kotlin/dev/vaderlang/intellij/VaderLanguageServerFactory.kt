@@ -44,9 +44,9 @@ private class VaderConnectionProvider(project: Project) : OSProcessStreamConnect
         val configured = VaderSettings.getInstance().lspPath.trim()
         val binary = if (configured.isNotEmpty()) configured else "vader"
         val cmd = GeneralCommandLine(binary, "lsp")
-        // Spawn from the project root so the server's stdlib probe
-        // (`default_stdlib_root` → `<cwd>/stdlib` fallback) resolves the
-        // workspace stdlib, mirroring how the VSCode client launches it.
+        // Spawn from the project root so the server's library probe (its
+        // `<cwd>/lib` fallback) resolves the workspace library, mirroring how the
+        // VSCode client launches it.
         // Without this the process inherits the IDE's cwd and every `std/*`
         // import fails to resolve.
         project.basePath?.let { cmd.withWorkDirectory(it) }

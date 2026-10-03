@@ -100,7 +100,8 @@ function findSeparator(buf: Uint8Array): number {
 // query in order, return one result per query (in the same order).
 async function driveLsp(
   source: string, queries: Query[], extraFiles: Record<string, string> = {},
-  fileName = "lsp-test.vader",
+  fileName = "lsp-test.vader", serverArgs: string[] = [],
+  openedFiles: Record<string, string> = {},
 ): Promise<QueryResult[]> {
   // Write the source to a real on-disk fixture under a fresh temp dir, and root
   // the session there. The resolver then discovers a bounded project (the temp
@@ -120,6 +121,12 @@ async function driveLsp(
     { jsonrpc: "2.0", id: 1, method: "initialize",
       params: { rootUri: pathToUri(dir), capabilities: {} } },
     { jsonrpc: "2.0", method: "initialized", params: {} },
+    // `openedFiles` (relative path → text) are open in the editor with text the
+    // disk does not have — unsaved edits.
+    ...Object.entries(openedFiles).map(([rel, text]) => ({
+      jsonrpc: "2.0", method: "textDocument/didOpen",
+      params: { textDocument: { uri: pathToUri(join(dir, rel)), languageId: "vader", version: 1, text } },
+    })),
     { jsonrpc: "2.0", method: "textDocument/didOpen",
       params: { textDocument: {
         uri, languageId: fileName.endsWith(".virt") ? "virt" : "vader", version: 1, text: source,
@@ -158,8 +165,11 @@ async function driveLsp(
     offset += f.byteLength;
   }
 
+  // No root flag by default, as an editor launches it : the server then searches
+  // what `vader build` would for the same file, the checkout's `lib/` reached as
+  // the cwd fallback.
   const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
+    cmd: [CLI_BIN, "lsp", ...serverArgs],
     cwd: process.cwd(),
     env: hermeticEnv(),
     stdin: "pipe",
@@ -1181,12 +1191,11 @@ main :: fn() -> i32 {
   expect(results[0]!.result).toBeNull();
 }, { timeout: MEDIUM_BUILD });
 
-// Cross-file goto-def : the indexer scans `import { ... }` bindings, the
-// resolver maps `std/*` / `vader/*` module paths to absolute file
-// paths via `library_root` / `vader_root` (seeded by the host shim),
-// opens the source file, and returns the LSP Location pointing at the
-// origin's name_span. Hover renders the source decl's signature + doc
-// the same way.
+// Cross-file goto-def : the indexer reads the file's imports as the compiler
+// collects them, the resolver finds each module where the loader would (the
+// project's roots, `--library-root` first), opens the source file, and returns
+// the LSP Location pointing at the origin's name_span. Hover renders the source
+// decl's signature + doc the same way.
 
 const CROSSFILE_SOURCE = `import "std/io"
 import "std/collections"
@@ -1291,7 +1300,7 @@ main :: fn() -> i32 {
     offset += f.byteLength;
   }
   const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
+    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`],
     cwd: process.cwd(),
     env: hermeticEnv(),
     stdin: "pipe", stdout: "pipe", stderr: "pipe",
@@ -1356,7 +1365,7 @@ test("lsp: initialize advertises definition + hover providers", async () => {
   }
 
   const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`, `--vader-root=${process.cwd()}/vader`],
+    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`],
     cwd: process.cwd(),
     env: hermeticEnv(),
     stdin: "pipe",
@@ -1387,12 +1396,10 @@ test("lsp: initialize advertises definition + hover providers", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: documentLink resolves an import to every shipped namespace", async () => {
-  // REASON: `module_path_to_absolute` used to gate on `std/` and `vader/`, so
-  // every namespace the library split created — `toolchain/*`, `json`, `regex`
-  // and the rest — mapped to NOTHING: no clickable import path. It now probes the
-  // library root for any non-relative name. This is that function's only caller,
-  // and the repo's first documentLink test, so the capability announced in
-  // `lifecycle.vader` was until now entirely unexercised.
+  // REASON: every namespace the library ships — `toolchain/*`, `json`, `regex`
+  // and the rest, not only `std/` and `vader/` — must resolve to a clickable
+  // import path. The server finds a module where the loader would, so each
+  // import below lands in the library root.
   //
   // Ordered by what each line proves, and the source's line numbers are the
   // assertion keys — documentLink answers for the whole document at once.
@@ -1436,6 +1443,35 @@ test("lsp: a project module outranks a shipped namespace of the same name", asyn
   const target = links.find((l) => l.range.start.line === 2)?.target ?? "";
   expect(target).toContain("/json/json.vader");
   expect(target).not.toContain("/lib/json/");
+}, MEDIUM_BUILD);
+
+test("lsp: goto-def into a sibling file reads its unsaved text", async () => {
+  // The sibling is open with lines its saved copy lacks : the jump must land on
+  // the declaration where the editor shows it, not where the disk has it.
+  const source = 'module "t"\n\nmain :: fn() -> i32 = helper()\n';
+  const saved = 'module "t"\n\nhelper :: fn() -> i32 = 0\n';
+  const edited = 'module "t"\n\n\n\n\n\nhelper :: fn() -> i32 = 0\n';
+  const [res] = await driveLsp(
+    source,
+    [{ method: "textDocument/definition", position: { line: 2, character: 23 } }],
+    { "helper.vader": saved }, "lsp-test.vader", [], { "helper.vader": edited },
+  );
+  const loc = res!.result as Location;
+  expect(loc.uri).toMatch(/helper\.vader$/);
+  expect(loc.range.start.line).toBe(6);
+}, MEDIUM_BUILD);
+
+test("lsp: --library-root is searched before the project", async () => {
+  // The flag is the server's `--include-paths`: like a root the loader is handed,
+  // it outranks the project's own, so the shipped `json` wins the collision above.
+  const source = 'module "t"\n\nimport "json"\n\nmain :: fn() -> i32 = 0\n';
+  const [res] = await driveLsp(source, [{ method: "textDocument/documentLink" }], {
+    "vader.json": '{ "name": "collide" }\n',
+    "json/json.vader": 'module "json"\n\nexport mine :: fn() -> i32 = 1\n',
+  }, "lsp-test.vader", [`--library-root=${process.cwd()}/lib`]);
+  const links = (res!.result as { range: { start: { line: number } }, target: string }[]) ?? [];
+  const target = links.find((l) => l.range.start.line === 2)?.target ?? "";
+  expect(target).toContain("/lib/json/");
 }, MEDIUM_BUILD);
 
 // `textDocument/implementation` over a `@target` group. The property under test

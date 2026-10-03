@@ -239,7 +239,8 @@ if [ "$dist" = 1 ]; then
   # WHOLE rather than namespace by namespace — a named list silently stops
   # shipping the next namespace added, which is exactly how `toolchain/` came to
   # be missing from a bundle while the checkout was fine.
-  # `default_library_root` probes `<exe>/lib` with the `std/io/io.vader` marker.
+  # The loader's library probe (`sidecar_root`) finds `<exe>/lib` by the
+  # `std/io/io.vader` marker.
   #
   # The compiler's sources go to `src/`, NOT into `lib/`: they must ship (a
   # `build.vader` is compiled, and an import resolves from source), but the

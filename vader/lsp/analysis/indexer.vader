@@ -13,9 +13,10 @@
 //     starts at the LetStmt and runs to the end of the enclosing block.
 //   * For-in loop bindings (`ForStmt.form == InFor`) — scope = loop
 //     body block.
-//   * Import renames (`import "p" { x as y }`) — recorded in `imports[]` for
-//     cross-file goto-def to consume ; the wildcard paths and the names their
-//     modifier lists drop, in `wildcards`.
+//   * Imports, as the compiler collects them (`collect_module_no_index`) :
+//     renames (`import "p" { x as y }`) in `imports[]` for cross-file goto-def,
+//     namespace aliases in `namespace_aliases`, the wildcard paths and the
+//     names their modifier lists drop in `wildcards`.
 //
 //   * `as` bindings — `if x is T as y` (scoped to the then-block) and
 //     `match e as y` (scoped to the match), declared at their name token.
@@ -35,6 +36,7 @@ import "vader/lsp/protocol"
 import "toolchain/span"
 
 Rs :: import "vader/resolver"
+import "vader/resolver/symbol"
 import "std/collections"
 
 /// What kind of declaration a DeclEntry points at. Drives the hover
@@ -86,32 +88,24 @@ export DeclEntry :: struct {
     exported:   bool
 }
 
-/// One imported name : `import "<module>" { name [as alias], ... }`.
-export ImportEntry :: struct {
-    local_name:    string
-    original_name: string
-    module_path:   string
-    name_span:     Span
-}
-
 /// Per-document index, rebuilt on every didOpen / didChange.
 export DocIndex :: struct {
     uri:     string
     source:  string
     tokens:  Token[]
     decls:   DeclEntry[]
-    imports: ImportEntry[]
+    /// The file's renames — `import "p" { x as y }` binds `local` `y` to `p`'s
+    /// `imported_name` `x`.
+    imports: Rs.ImportInfo[]
     /// Namespace alias → module path, from `Name :: import "p"`.
     ///
-    /// Kept because `Name.member` is the ONLY spelling allowed once an alias is
-    /// taken (T3078), and it resolved to nothing: the alias names a module, not
-    /// a value, so no receiver type can be read off it. Discarding the binding
-    /// (which `collect_import` used to do) left goto-def with no way back to the
-    /// module at all.
+    /// `Name.member` is the ONLY spelling allowed once an alias is taken (T3078),
+    /// and the alias names a module, not a value, so no receiver type can be read
+    /// off it : this binding is goto-def's one way back to the module.
     namespace_aliases: MutableMap<string, string>
     /// The file's wildcard imports — bare `import "p"`, and `import "p" { … }`,
     /// a wildcard with modifiers — with the names each modifier list drops. A
-    /// wildcard binds no named `ImportEntry` — every export of `p` enters scope
+    /// wildcard binds no rename — every export of `p` enters scope
     /// unqualified — so the cross-file resolver falls back to these paths to
     /// locate an unqualified name (see `resolver::resolve`).
     wildcards: Rs.FileImports
@@ -141,14 +135,20 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
     parsed :: parse_source(source, uri)
     cmap :: scan_comments(source)
     entries: DeclEntry[]!: []
-    imports: ImportEntry[]!: []
-    wildcards :: Rs.FileImports { .file = uri }
-    namespace_aliases :: MutableMap<string, string> {}
     for d in parsed.program.decls {
-        if d is ImportDecl {
-            collect_import(d, imports, wildcards, namespace_aliases)
-        } else {
+        if d !is ImportDecl {
             collect_decl(d, source, cmap, entries)
+        }
+    }
+    collected :: Rs.collect_module_no_index(parsed.program, uri, SymbolFactory {})
+    imports: Rs.ImportInfo[]!: []
+    namespace_aliases :: MutableMap<string, string> {}
+    for [_, info] in collected.imports {
+        // A namespace alias names the module itself : no imported name.
+        if info.imported_name == null {
+            namespace_aliases[info.local] = info.path
+        } else {
+            imports.push(info)
         }
     }
     return DocIndex {
@@ -158,7 +158,7 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
         .decls          = entries,
         .imports        = imports,
         .namespace_aliases = namespace_aliases,
-        .wildcards      = wildcards,
+        .wildcards      = collected.files[0],
         .loop_jumps     = collect_loop_jumps(parsed.program.decls),
         .line_index     = new_line_index(source, encoding),
     }
@@ -426,10 +426,10 @@ export find_member :: fn(idx: DocIndex, name: string) -> DeclEntry | null {
     return null
 }
 
-/// Find the import entry whose local name matches. Returns null on miss.
-export find_import :: fn(idx: DocIndex, name: string) -> ImportEntry | null {
+/// Find the rename that binds `name` in this file. Returns null on miss.
+export find_import :: fn(idx: DocIndex, name: string) -> Rs.ImportInfo | null {
     for i in idx.imports {
-        if i.local_name == name { return i }
+        if i.local == name { return i }
     }
     return null
 }
@@ -873,43 +873,6 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
     }
 }
 
-// ---- import collection ---------------------------------------------------
-
-collect_import :: fn(
-    d: ImportDecl, imports: ImportEntry[]!, wildcards: Rs.FileImports!,
-    namespace_aliases: MutableMap<string, string>!,
-) -> void {
-    match d.binding as ns {
-        // `Name :: import "..."` — the name is a namespace, not a value, so it
-        // binds no `ImportEntry`. Recorded separately: `Name.member` needs the
-        // path to look the member up as an EXPORT of that module.
-        is NamedNamespaceImport -> { namespace_aliases[ns.name] = d.path }
-        // bare `import "..."` — every export enters scope unqualified
-        is WildcardImport -> { wildcards.paths.push(d.path) }
-        // `import "p" { x as y, z as _ }` — the same wildcard, minus every
-        // renamed or excluded name ; `x as y` rebinds `x` under `y`. A bare name
-        // (R2033) drops nothing : the wildcard still brings it.
-        is DestructureImport -> {
-            wildcards.paths.push(d.path)
-            dropped: string[]!: []
-            for n in ns.names {
-                alias :: n.alias ?? continue
-                dropped.push(n.name)
-                if alias == "_" {
-                    continue
-                }
-                imports.push(ImportEntry {
-                    .local_name    = alias,
-                    .original_name = n.name,
-                    .module_path   = d.path,
-                    .name_span     = n.span,
-                })
-            }
-            wildcards.excludes[d.path] = dropped
-        }
-    }
-}
-
 // ---- signature helpers ---------------------------------------------------
 
 // Slice up to the end of the current line — used for local-binding
@@ -1071,8 +1034,8 @@ test_index_modifier_list_is_a_wildcard :: fn() -> void {
     assert_eq(idx.wildcards.paths.len(), 1)
     assert_eq(idx.wildcards.paths[0], "std/string")
     assert_eq(idx.imports.len(), 1)
-    assert_eq(idx.imports[0].local_name, "cut")
-    assert_eq(idx.imports[0].original_name, "split")
+    assert_eq(idx.imports[0].local, "cut")
+    assert_eq(idx.imports[0].imported_name ?? "", "split")
 }
 
 @test

@@ -343,54 +343,16 @@ follows_a_dot :: fn(source: string, offset: usize) -> bool {
 member_in_declaring_module :: fn(
     state: ServerState, path: string, owner: string, name: string,
 ) -> ExternalHit | null {
-    here :: member_in_file(state, path, owner, name)
+    query :: (sub: DocIndex) -> sub.find_member_of(owner, name)
+    here :: first_in_files(state, [path], "", query)
     if here != null {
         return here
     }
-    folder :: dirname_path(path)
-    if folder.bytes().len() == 0 {
-        return null
-    }
-    files :: read_dir(folder)
-    match files {
-        is IOError  -> { return null }
-        is string[] -> {
-            for fname in files {
-                if !fname.ends_with_vader() {
-                    continue
-                }
-                full :: path_join(folder, fname)
-                if full == path {
-                    continue
-                }
-                hit :: member_in_file(state, full, owner, name)
-                if hit != null {
-                    return hit
-                }
-            }
-            return null
-        }
-    }
-}
-
-// Reads through `source_for_path` — the OVERLAY first, disk second — and not
-// `read_file_string`. `def_response` encodes the returned span with
-// `line_index_for_path`, which is overlay-backed, so reading the disk here
-// pairs one text's offsets with another text's line index. That is not a corner
-// case: the first file this path targets is usually the one being edited, and
-// five unsaved lines inserted above a struct sent `o.name` to the wrong
-// declaration entirely.
-member_in_file :: fn(
-    state: ServerState, path: string, owner: string, name: string,
-) -> ExternalHit | null {
-    src :: state.source_for_path(path)
-    if src.bytes().len() == 0 {
-        return null
-    }
-    uri :: path_to_uri(path)
-    sub :: build_index(uri, src, state.position_encoding)
-    d :: sub.find_member_of(owner, name) ?? return null
-    return ExternalHit { .uri = uri, .target = d }
+    // The module's files as the loader reads them : those of the folder that
+    // declare its module, in order.
+    discard: Diagnostic[]!: []
+    module :: seed_entry(dir_of(path), discard) ?? return null
+    return first_in_files(state, module.files, path, query)
 }
 
 // The response for a declaration : the cursor lands on its name, and a client

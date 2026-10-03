@@ -23,7 +23,6 @@ module "vader/resolver"
 import "std/env"
 import "std/io"
 import "std/path"
-import "std/sort"
 import "std/string"
 import "toolchain/ast"
 import "vader/parser"
@@ -197,39 +196,10 @@ export find_manifest_root :: fn(start: string) -> string | null {
 
 // ----------------------------------------------------- source-file loading
 
-export list_vader_files :: fn(root_path: string) -> string[] {
-    if !exists(root_path) {
-        return []
-    }
-    if !is_dir(root_path) {
-        if root_path.ends_with(".vader") {
-            return [root_path]
-        }
-        return []
-    }
-    raw :: try_read_dir(root_path) ?? return []
-    files: string[]!: []
-    for name in raw {
-        if !name.ends_with(".vader") {
-            continue
-        }
-        files.push(join_path(root_path, name))
-    }
-    return sort(files, (a: string, b: string) -> compare_ascending(a, b))
-}
-
 try_read :: fn(path: string) -> string | null {
     result :: read_file_string(path)
     if result is string {
         return result
-    }
-    return null
-}
-
-try_read_dir :: fn(path: string) -> string[] | null {
-    result :: read_dir(path)
-    if result is string[] as ss {
-        return ss
     }
     return null
 }
@@ -333,18 +303,15 @@ export home_root :: fn(subdir: string, marker: string) -> string | null {
     return null
 }
 
-/// Library root, resolved next to the executable (then cwd) — see `resolve_sidecar`.
+/// Marker proving a candidate directory really is a library root.
 ///
 /// `lib/` hosts every namespace the toolchain ships, `std/` among them — it is not
 /// the stdlib's own directory, which is why the name says library and not stdlib.
 /// The marker is `std/io/io.vader` : `std/io` is a folder module, so the bare
 /// `std/io.vader` file does not exist. A stale marker silently defeats the
-/// exe-sidecar branch and forces every binary onto the `<cwd>/lib` fallback, so a
-/// `dist/` bundle cannot find its own stdlib unless it is run from a directory
-/// that happens to hold one.
-export default_library_root :: fn() = resolve_sidecar(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
-
-/// Marker proving a candidate directory really is a library root.
+/// exe-sidecar probe (`sidecar_root`) and forces every binary onto the
+/// `<cwd>/lib` fallback, so a `dist/` bundle cannot find its own stdlib unless it
+/// is run from a directory that happens to hold one.
 export LIBRARY_ROOT_MARKER :: "std/io/io.vader"
 
 /// `.Toolchain` when `dir` holds the library marker, else `.Build`.
