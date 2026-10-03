@@ -125,10 +125,7 @@ return_source :: fn(instrs: Instruction[], returned: LocalId) -> ReturnSource | 
     n :: instrs.len()
     for i in 0..<n {
         ins :: instrs[n - 1 - i]
-        d :: dst_of(ins)
-        if d == null {
-            continue
-        }
+        d :: dst_of(ins) ?? continue
         if d != returned {
             continue
         }

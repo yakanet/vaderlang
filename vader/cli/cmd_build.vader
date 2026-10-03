@@ -209,10 +209,7 @@ build_bytecode_text :: fn(
 // diagnostics go to stderr ; returns null when an error-severity diagnostic
 // blocks the build, so the caller emits nothing and exits non-zero.
 emit_c_source :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null, verify: bool) -> string | null {
-    b :: prepared_module(file, release, include_path_flags, target, verify)
-    if b is null {
-        return null
-    }
+    b :: prepared_module(file, release, include_path_flags, target, verify) ?? return null
     // Designate the program entry by mangled name (same source as the bytecode
     // stage's `export main N`) so the `main()` shim resolves the entry module's
     // `main` even when a multi-module input (the compiler imports `vader/lsp`,
@@ -322,10 +319,7 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
     // The CLI keeps its own C emission — it handles a `.virt` input and prints
     // diagnostics through `flush_build_diags` — but the LINK is shared with
     // `vader/pipeline`, so the two cannot drift on flags.
-    c_src :: emit_c_for_input(file, release, include_path_flags, target, verify)
-    if c_src is null {
-        return 1
-    }
+    c_src :: emit_c_for_input(file, release, include_path_flags, target, verify) ?? return 1
     return link_native(c_src, out, cc, release, ldflags, "")
 }
 
@@ -335,10 +329,7 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
 // function TU per Vader module, then compile them concurrently and link. The
 // `.c` set is kept on failure for inspection.
 build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], target: Target | null, cc_jobs: i32, verify: bool) -> i32 {
-    prog :: emit_c_program_for(file, release, include_path_flags, out, target, verify)
-    if prog is null {
-        return 1
-    }
+    prog :: emit_c_program_for(file, release, include_path_flags, out, target, verify) ?? return 1
     if write_split_files(out, prog) != 0 {
         return 1
     }
@@ -433,10 +424,7 @@ emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[]
         eprintln("vader build: split needs a `.vader` front end; `.virt` takes the single TU")
         return null
     }
-    b :: prepared_module(file, release, include_path_flags, target, verify)
-    if b is null {
-        return null
-    }
+    b :: prepared_module(file, release, include_path_flags, target, verify) ?? return null
     // The `#include` name is the header's basename (split TUs sit next to it) —
     // `filename` via `to_posix` also handles `\` on Windows.
     header_name :: "${canonicalise(out).filename()}.split.h"
@@ -472,10 +460,7 @@ emit_c_for_targets :: fn(
 ) -> i32 {
     mods: CfgBytecode[]!: []
     for t in targets {
-        b :: prepared_module(file, release, include_path_flags, t, verify)
-        if b is null {
-            return 1
-        }
+        b :: prepared_module(file, release, include_path_flags, t, verify) ?? return 1
         mods.push(b)
     }
     universe :: union_of_string_pools(mods)

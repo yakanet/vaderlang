@@ -41,4 +41,4 @@
   expr 28:23    StringLitExpr  :: string
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(T) -> void
-  expr 701:64   IdentExpr      :: usize
+  expr 695:64   IdentExpr      :: usize

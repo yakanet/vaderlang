@@ -44,7 +44,9 @@ lookup_subst :: fn(self: Subst, name: string) -> AST.TypeExpr | null {
 /// Walk `expr` and return a fresh TypeExpr tree with substitutions
 /// applied. The input is untouched ; every visited node is reconstructed
 /// (allocation cost is the trade-off for not having structuredClone or
-/// in-place mutation).
+/// in-place mutation). Rebuilt nodes list their fields rather than spread the
+/// source, so a field added without a default breaks the build here instead of
+/// being copied unsubstituted.
 // @partial: only type-position Expr variants are reconstructed; all value-level
 // variants pass through unchanged (a type-position walker never reaches them — see
 // the trailing `_ -> expr` comment).
@@ -132,14 +134,9 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
     }
 }
 
-clone_ident :: fn(e: AST.IdentExpr) -> AST.IdentExpr {
-    return AST.IdentExpr {
-        .span = e.span,
-        .id = AST.UNASSIGNED_NODE_ID,
-        .name = e.name,
-        .implicit_dot = e.implicit_dot,
-        .is_type_param_intro = e.is_type_param_intro,
-    }
+clone_ident :: fn(e: AST.IdentExpr) -> AST.IdentExpr = AST.IdentExpr {
+    ...e,
+    .id = AST.UNASSIGNED_NODE_ID,
 }
 
 // ---- tests ----------------------------------------------------------------

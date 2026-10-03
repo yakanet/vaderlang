@@ -322,7 +322,7 @@ static vader_string_t std_io_temp_dir(void) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 914 "lib/std/io/io.vader"
+#line 908 "lib/std/io/io.vader"
     t0 = vader_host_std_env_get_env(10u);
     t1 = std_io_temp_dir_of(t0);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -338,7 +338,7 @@ static vader_box_t std_io_write_file_string(vader_string_t l0, vader_string_t l1
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 713 "lib/std/io/io.vader"
+#line 707 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
     t0 = std_io_write_file_bytes(l0, l2);
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -353,15 +353,15 @@ static vader_box_t std_io_remove_file(vader_string_t l0) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 679 "lib/std/io/io.vader"
+#line 673 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_unlink(l0);
     if (t0 != INT32_C(0)) {
-#line 680 "lib/std/io/io.vader"
+#line 674 "lib/std/io/io.vader"
         t1 = std_io_last_io_error(11u);
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 679 "lib/std/io/io.vader"
+#line 673 "lib/std/io/io.vader"
     }
-#line 682 "lib/std/io/io.vader"
+#line 676 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
 }
 
@@ -425,50 +425,49 @@ static vader_string_t std_io_temp_dir_of(vader_box_t l0) {
         vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 923 "lib/std/io/io.vader"
+#line 917 "lib/std/io/io.vader"
     l2 = l0;
     if (l2.tag == 0u) {
         l1 = 0u;
     } else {
         l1 = l2.payload.s;
     }
-#line 924 "lib/std/io/io.vader"
+#line 918 "lib/std/io/io.vader"
     if (l1 == 0u) {
-#line 925 "lib/std/io/io.vader"
+#line 919 "lib/std/io/io.vader"
         { vader_gc_top = gc_frame.prev; return 12u; }
-#line 924 "lib/std/io/io.vader"
+#line 918 "lib/std/io/io.vader"
     }
-#line 927 "lib/std/io/io.vader"
+#line 921 "lib/std/io/io.vader"
     t0 = std_io_without_trailing_sep(l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t std_io_write_file_bytes(vader_string_t l0, void* l1) {
     size_t l2, l3;
-    vader_box_t l4 = vader_box_null();
-    void* l5;
+    void* l4;
+    vader_box_t l5 = vader_box_null();
     void* l6 = NULL;
     uint8_t t0;
     void* t1 = NULL;
     int64_t t2;
     size_t t3;
-    void* t4;
-    int32_t t5;
-    vader_box_t* gc_roots[1] = { &l4 };
+    int32_t t4;
+    vader_box_t* gc_roots[1] = { &l5 };
     void** gc_raw_roots[3] = { &l1, &l6, &t1 };
     vader_string_t* gc_atom_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 543 "lib/std/io/io.vader"
+#line 540 "lib/std/io/io.vader"
     l2 = vader_host_std_core_byte_len(l0);
     l3 = (size_t) 0;
     while ((l3 < l2)) {
         t0 = vader_host_std_core_byte_at(l0, l3);
-#line 544 "lib/std/io/io.vader"
+#line 541 "lib/std/io/io.vader"
         if (t0 == INT32_C(0)) {
-#line 545 "lib/std/io/io.vader"
+#line 542 "lib/std/io/io.vader"
             vader_struct_std_io_IOError_t* _a0_obj = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t));
             vader_obj_header_init(_a0_obj, 11u);
             _a0_obj->f_msg = 13u;
@@ -476,52 +475,47 @@ static vader_box_t std_io_write_file_bytes(vader_string_t l0, void* l1) {
             _a0_obj->f_code = INT32_C(0);
             t1 = (void*) _a0_obj;
             { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 544 "lib/std/io/io.vader"
+#line 541 "lib/std/io/io.vader"
         }
-#line 543 "lib/std/io/io.vader"
+#line 540 "lib/std/io/io.vader"
         t2 = (l3 + INT64_C(1));
         l3 = (size_t) (int64_t) t2;
     }
-#line 548 "lib/std/io/io.vader"
-    l4 = vader_host_system_posix_sys_fopen(l0, 14u);
-#line 549 "lib/std/io/io.vader"
-    if (l4.tag == 0u) {
-#line 550 "lib/std/io/io.vader"
+#line 545 "lib/std/io/io.vader"
+    l5 = vader_host_system_posix_sys_fopen(l0, 14u);
+    if (l5.tag == 0u) {
         t1 = std_io_last_io_error(15u);
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 549 "lib/std/io/io.vader"
     }
-#line 552 "lib/std/io/io.vader"
+    l4 = ((void*) (intptr_t) l5.payload.i);
+#line 546 "lib/std/io/io.vader"
     t3 = ((vader_array_t*) l1)->length;
     if ((t3 > INT64_C(0))) {
-#line 553 "lib/std/io/io.vader"
+#line 547 "lib/std/io/io.vader"
         l2 = ((vader_array_t*) l1)->length;
-        l5 = ((void*) (intptr_t) l4.payload.i);
-        l2 = vader_host_system_posix_sys_fwrite(l1, (size_t) 1, l2, l5);
-#line 554 "lib/std/io/io.vader"
+        l2 = vader_host_system_posix_sys_fwrite(l1, (size_t) 1, l2, l4);
+#line 548 "lib/std/io/io.vader"
         l3 = ((vader_array_t*) l1)->length;
         if (l2 != l3) {
-#line 556 "lib/std/io/io.vader"
+#line 550 "lib/std/io/io.vader"
             l6 = std_io_last_io_error(16u);
-#line 557 "lib/std/io/io.vader"
-            t4 = ((void*) (intptr_t) l4.payload.i);
-            vader_host_system_posix_sys_fclose(t4);
-#line 558 "lib/std/io/io.vader"
-            { vader_box_t __vret = vader_ref_box(l6); vader_gc_top = gc_frame.prev; return __vret; }
-#line 554 "lib/std/io/io.vader"
-        }
+#line 551 "lib/std/io/io.vader"
+            vader_host_system_posix_sys_fclose(l4);
 #line 552 "lib/std/io/io.vader"
+            { vader_box_t __vret = vader_ref_box(l6); vader_gc_top = gc_frame.prev; return __vret; }
+#line 548 "lib/std/io/io.vader"
+        }
+#line 546 "lib/std/io/io.vader"
     }
-#line 561 "lib/std/io/io.vader"
-    t4 = ((void*) (intptr_t) l4.payload.i);
-    t5 = vader_host_system_posix_sys_fclose(t4);
-    if (t5 != INT32_C(0)) {
-#line 562 "lib/std/io/io.vader"
+#line 555 "lib/std/io/io.vader"
+    t4 = vader_host_system_posix_sys_fclose(l4);
+    if (t4 != INT32_C(0)) {
+#line 556 "lib/std/io/io.vader"
         t1 = std_io_last_io_error(17u);
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 561 "lib/std/io/io.vader"
+#line 555 "lib/std/io/io.vader"
     }
-#line 564 "lib/std/io/io.vader"
+#line 558 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
 }
 
@@ -657,20 +651,20 @@ static vader_string_t std_io_without_trailing_sep(vader_string_t l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 1000 "lib/std/io/io.vader"
+#line 994 "lib/std/io/io.vader"
     l1 = vader_host_std_core_bytes(l0);
-#line 1001 "lib/std/io/io.vader"
+#line 995 "lib/std/io/io.vader"
     l2 = (size_t) 0;
-#line 1002 "lib/std/io/io.vader"
+#line 996 "lib/std/io/io.vader"
     l3 = (size_t) 0;
     l4 = ((vader_array_t*) l1)->length;
     for (;;) {
         if ((l3 < l4)) {
-#line 1003 "lib/std/io/io.vader"
+#line 997 "lib/std/io/io.vader"
             t0 = ((vader_array_t*) l1)->length;
             t1 = ((t0 - INT64_C(1)) - l3);
             l5 = (size_t) (int64_t) t1;
-#line 1004 "lib/std/io/io.vader"
+#line 998 "lib/std/io/io.vader"
             if (l5 == INT64_C(0)) {
                 l6 = true;
             } else {
@@ -682,7 +676,7 @@ static vader_string_t std_io_without_trailing_sep(vader_string_t l0) {
                 l6 = t3 != INT32_C(47);
             }
             if (l6) {
-#line 1008 "lib/std/io/io.vader"
+#line 1002 "lib/std/io/io.vader"
             } else {
                 t1 = (l5 - INT64_C(1));
                 l7 = (size_t) (int64_t) t1;
@@ -692,29 +686,29 @@ static vader_string_t std_io_without_trailing_sep(vader_string_t l0) {
                 t2 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l7, 5u);
                 t3 = ((uint8_t) t2.payload.i);
                 if (t3 == INT32_C(58)) {
-#line 1011 "lib/std/io/io.vader"
+#line 1005 "lib/std/io/io.vader"
                 } else {
                     t1 = (l2 + INT64_C(1));
                     l2 = (size_t) (int64_t) t1;
-#line 1002 "lib/std/io/io.vader"
+#line 996 "lib/std/io/io.vader"
                     t1 = (l3 + INT64_C(1));
                     l3 = (size_t) (int64_t) t1;
                     continue;
-#line 1008 "lib/std/io/io.vader"
-                }
-#line 1004 "lib/std/io/io.vader"
-            }
 #line 1002 "lib/std/io/io.vader"
+                }
+#line 998 "lib/std/io/io.vader"
+            }
+#line 996 "lib/std/io/io.vader"
         }
         break;
     }
-#line 1013 "lib/std/io/io.vader"
+#line 1007 "lib/std/io/io.vader"
     if (l2 == INT64_C(0)) {
-#line 1014 "lib/std/io/io.vader"
+#line 1008 "lib/std/io/io.vader"
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
-#line 1013 "lib/std/io/io.vader"
+#line 1007 "lib/std/io/io.vader"
     }
-#line 1016 "lib/std/io/io.vader"
+#line 1010 "lib/std/io/io.vader"
     t0 = ((vader_array_t*) l1)->length;
     t1 = (t0 - l2);
     l2 = (size_t) (int64_t) t1;

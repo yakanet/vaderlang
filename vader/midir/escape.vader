@@ -96,7 +96,7 @@ export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
             }
             functions.push(annotated)
         }
-        modules[m.module_id] = CFGModule { .module_id = m.module_id, .display_path = m.display_path, .functions = functions, .externs = m.externs, .struct_decls = m.struct_decls }
+        modules[m.module_id] = CFGModule { ...m, .functions = functions }
     }
     return AnnotatedProject { .project = CFGProject { ...p, .modules = modules }, .stats = EscapeStats { .total_allocs = total_allocs, .stack_promoted = stack_promoted, .heap_sites = heap_sites } }
 }
@@ -176,7 +176,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
                         continue
                     }
                     block_mutated = true
-                    new_instrs.push(InstrStructNew { .span = ins.span, .dst = ins.dst, .type = ins.type, .fields = ins.fields, .stack = new_stack })
+                    new_instrs.push(InstrStructNew { ...ins, .stack = new_stack })
                 }
                 is InstrArrayNew -> {
                     if !alloc_locals.contains(ins.dst) {
@@ -189,7 +189,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
                         continue
                     }
                     block_mutated = true
-                    new_instrs.push(InstrArrayNew { .span = ins.span, .dst = ins.dst, .type = ins.type, .length = ins.length, .elements = ins.elements, .stack = new_stack })
+                    new_instrs.push(InstrArrayNew { ...ins, .stack = new_stack })
                 }
                 is InstrFieldSet -> {
                     barrierless :: stack_origin.contains(ins.target)
@@ -198,7 +198,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
                         continue
                     }
                     block_mutated = true
-                    new_instrs.push(InstrFieldSet { .span = ins.span, .target = ins.target, .field = ins.field, .value = ins.value, .barrierless = barrierless })
+                    new_instrs.push(InstrFieldSet { ...ins, .barrierless = barrierless })
                 }
                 _ -> { new_instrs.push(ins) }
             }
@@ -208,7 +208,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
             continue
         }
         mutated = true
-        new_blocks.push(BasicBlock { .id = b.id, .instructions = new_instrs, .terminator = b.terminator, .span = b.span })
+        new_blocks.push(BasicBlock { ...b, .instructions = new_instrs })
     }
     if !mutated { return fn_ }
     return CFGFunction { ...fn_, .blocks = new_blocks }

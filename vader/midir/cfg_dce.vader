@@ -25,13 +25,7 @@ export eliminate_dead_cfg :: fn(p: CFGProject!) -> CFGProject {
     for [module_id, m] in p.modules {
         new_fns: CFGFunction[]!: []
         for f in m.functions { new_fns.push(optimise_function(f)) }
-        new_modules[module_id] = CFGModule {
-            .module_id    = m.module_id,
-            .display_path = m.display_path,
-            .functions    = new_fns,
-            .externs      = m.externs,
-            .struct_decls = m.struct_decls,
-        }
+        new_modules[module_id] = CFGModule { ...m, .functions = new_fns }
     }
     return CFGProject { ...p, .modules = new_modules }
 }
@@ -50,10 +44,8 @@ fold_moves :: fn(f: CFGFunction) -> CFGFunction {
     new_blocks: BasicBlock[]!: []
     for b in f.blocks {
         new_blocks.push(BasicBlock {
-            .id           = b.id,
+            ...b,
             .instructions = fold_moves_in_block(b, f.locals, use_count, param_locals),
-            .terminator   = b.terminator,
-            .span         = b.span,
         })
     }
     return CFGFunction { ...f, .blocks = new_blocks }
@@ -217,6 +209,8 @@ remap_locals :: fn(m: i32[], ls: LocalId[]) -> LocalId[] {
     return out
 }
 
+// Each rebuild lists its fields instead of spreading `ins`: an operand added
+// without a default then breaks the build here rather than escaping the remap.
 remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
     if ins is InstrConst {
         return InstrConst { .span = ins.span, .dst = remap_local(m, ins.dst), .value = ins.value, .type = ins.type }
@@ -385,6 +379,7 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
     return ins
 }
 
+// Fields listed, not spread — same reason as `remap_instr`.
 remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
     if t is TermBranch          { return t }
     if t is TermUnreachable     { return t }
@@ -408,73 +403,64 @@ remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
 /// first. Returns the input unchanged when the variant has no dst.
 with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction {
     if ins is InstrConst {
-        return InstrConst { .span = ins.span, .dst = new_dst, .value = ins.value, .type = ins.type }
+        return InstrConst { ...ins, .dst = new_dst }
     }
     if ins is InstrMove {
-        return InstrMove { .span = ins.span, .dst = new_dst, .src = ins.src }
+        return InstrMove { ...ins, .dst = new_dst }
     }
     if ins is InstrBinOp {
-        return InstrBinOp { .span = ins.span, .dst = new_dst, .op = ins.op, .lhs = ins.lhs, .rhs = ins.rhs, .type = ins.type }
+        return InstrBinOp { ...ins, .dst = new_dst }
     }
     if ins is InstrUnOp {
-        return InstrUnOp { .span = ins.span, .dst = new_dst, .op = ins.op, .operand = ins.operand, .type = ins.type }
+        return InstrUnOp { ...ins, .dst = new_dst }
     }
     if ins is InstrFieldGet {
-        return InstrFieldGet { .span = ins.span, .dst = new_dst, .target = ins.target, .field = ins.field, .type = ins.type }
+        return InstrFieldGet { ...ins, .dst = new_dst }
     }
     if ins is InstrArrayGet {
-        return InstrArrayGet { .span = ins.span, .dst = new_dst, .target = ins.target, .index = ins.index, .type = ins.type, .bounds_safe = ins.bounds_safe }
+        return InstrArrayGet { ...ins, .dst = new_dst }
     }
     if ins is InstrArrayLen {
-        return InstrArrayLen { .span = ins.span, .dst = new_dst, .target = ins.target }
+        return InstrArrayLen { ...ins, .dst = new_dst }
     }
     if ins is InstrArraySlice {
-        return InstrArraySlice { .span = ins.span, .dst = new_dst, .target = ins.target, .lo = ins.lo, .hi = ins.hi, .type = ins.type }
+        return InstrArraySlice { ...ins, .dst = new_dst }
     }
     if ins is InstrStringSlice {
-        return InstrStringSlice {
-            .span = ins.span, .dst = new_dst, .type = ins.type,
-            .target = ins.target, .lo = ins.lo, .hi = ins.hi,
-        }
+        return InstrStringSlice { ...ins, .dst = new_dst }
     }
     if ins is InstrStructNew {
-        return InstrStructNew { .span = ins.span, .dst = new_dst, .type = ins.type, .fields = ins.fields, .stack = ins.stack }
+        return InstrStructNew { ...ins, .dst = new_dst }
     }
     if ins is InstrArrayNew {
-        return InstrArrayNew {
-            .span = ins.span, .dst = new_dst, .type = ins.type,
-            .elements = ins.elements, .length = ins.length, .stack = ins.stack,
-        }
+        return InstrArrayNew { ...ins, .dst = new_dst }
     }
     if ins is InstrDataConst {
-        return InstrDataConst { .span = ins.span, .dst = new_dst, .pool_index = ins.pool_index, .type = ins.type }
+        return InstrDataConst { ...ins, .dst = new_dst }
     }
     if ins is InstrTypeCheck {
-        return InstrTypeCheck { .span = ins.span, .dst = new_dst, .value = ins.value, .check_type = ins.check_type }
+        return InstrTypeCheck { ...ins, .dst = new_dst }
     }
     if ins is InstrTypeConst {
-        return InstrTypeConst { .span = ins.span, .dst = new_dst, .value_type = ins.value_type, .type = ins.type }
+        return InstrTypeConst { ...ins, .dst = new_dst }
     }
     if ins is InstrCast {
-        return InstrCast { .span = ins.span, .dst = new_dst, .value = ins.value, .type = ins.type }
+        return InstrCast { ...ins, .dst = new_dst }
     }
     if ins is InstrCellNew {
-        return InstrCellNew { .span = ins.span, .dst = new_dst, .value = ins.value, .value_type = ins.value_type }
+        return InstrCellNew { ...ins, .dst = new_dst }
     }
     if ins is InstrCellGet {
-        return InstrCellGet { .span = ins.span, .dst = new_dst, .cell = ins.cell, .value_type = ins.value_type }
+        return InstrCellGet { ...ins, .dst = new_dst }
     }
     if ins is InstrMakeClosure {
-        return InstrMakeClosure {
-            .span = ins.span, .dst = new_dst, .fn_symbol = ins.fn_symbol,
-            .env = ins.env, .env_type = ins.env_type, .type = ins.type,
-        }
+        return InstrMakeClosure { ...ins, .dst = new_dst }
     }
     if ins is InstrFnRef {
-        return InstrFnRef { .span = ins.span, .dst = new_dst, .fn_symbol = ins.fn_symbol, .type = ins.type }
+        return InstrFnRef { ...ins, .dst = new_dst }
     }
     if ins is InstrFnAddr {
-        return InstrFnAddr { .span = ins.span, .dst = new_dst, .fn_symbol = ins.fn_symbol, .type = ins.type }
+        return InstrFnAddr { ...ins, .dst = new_dst }
     }
     return ins
 }

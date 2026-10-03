@@ -193,10 +193,9 @@ export coalesce_slots :: fn(function: BcFunction!) -> BcFunction! {
     }
 
     return BcFunction {
-        .name = function.name, .is_main = function.is_main,
-        .signature = function.signature, .locals = new_locals,
-        .body = new_body, .debug = function.debug,
-        .jump_table = function.jump_table,
+        ...function,
+        .locals = new_locals,
+        .body = new_body,
     }
 }
 

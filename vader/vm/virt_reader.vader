@@ -896,8 +896,7 @@ roundtrip_op_text :: fn(op: bc.Op) -> string {
     sb :: StringBuilder {}
     bc.write_op(sb, op)
     text :: "${sb}"
-    parsed :: parse_op_line(text, head_of(text))
-    if parsed is null { return "PARSE-FAIL: ${text}" }
+    parsed :: parse_op_line(text, head_of(text)) ?? return "PARSE-FAIL: ${text}"
     sb2 :: StringBuilder {}
     bc.write_op(sb2, parsed)
     return "${sb2}"

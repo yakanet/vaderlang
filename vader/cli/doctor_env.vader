@@ -78,10 +78,7 @@ ENV_TOGGLES: EnvToggle[]: [
 check_environment :: fn() -> Check[] {
     out: Check[]!: []
     for name in GC_BYTE_VARS {
-        raw :: get_env(name)
-        if raw == null {
-            continue
-        }
+        raw :: get_env(name) ?? continue
         if raw == "" {
             continue
         }
@@ -96,10 +93,7 @@ check_environment :: fn() -> Check[] {
         out.push(gc_ratio_check(ratio))
     }
     for toggle in ENV_TOGGLES {
-        raw :: get_env(toggle.name)
-        if raw == null {
-            continue
-        }
+        raw :: get_env(toggle.name) ?? continue
         if !is_toggle_on(raw) {
             continue
         }

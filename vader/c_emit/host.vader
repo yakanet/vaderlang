@@ -163,10 +163,7 @@ signedness_assert :: fn(
     c_name: string,
     c_field: string,
 ) -> CTopLevel | null {
-    v :: c_field_val_type(f, types)
-    if v == null {
-        return null
-    }
+    v :: c_field_val_type(f, types) ?? return null
     if !is_integer_val(v) {
         return null
     }

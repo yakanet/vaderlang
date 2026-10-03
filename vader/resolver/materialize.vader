@@ -119,15 +119,10 @@ substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: Stam
     out: AST.FnParam![]!: []
     for p in params {
         out.push(AST.FnParam {
+            ...p,
             .span = next_clone_span(stamp),
             .id = AST.UNASSIGNED_NODE_ID,
-            .name = p.name,
             .ty = substitute_opt_type(p.ty, subst),
-            .default_value = p.default_value,
-            .variadic = p.variadic, .mutable = p.mutable,
-            // Carried over: a rebuilt param that dropped them would lose an
-            // `@c_pointer` and silently change the ABI.
-            .decorators = p.decorators,
         })
     }
     return out
@@ -154,15 +149,10 @@ substitute_params_disambiguated :: fn(
     for p in params {
         span :: if p.name == "self" { self_span } else { synth_clone_span(factory) }
         out.push(AST.FnParam {
+            ...p,
             .span = span,
             .id = AST.UNASSIGNED_NODE_ID,
-            .name = p.name,
             .ty = substitute_opt_type(p.ty, subst),
-            .default_value = p.default_value,
-            .variadic = p.variadic, .mutable = p.mutable,
-            // Carried over: a rebuilt param that dropped them would lose an
-            // `@c_pointer` and silently change the ABI.
-            .decorators = p.decorators,
         })
     }
     return out
@@ -285,15 +275,9 @@ substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam![]! 
     out: AST.FnParam![]!: []
     for p in params {
         out.push(AST.FnParam {
-            .span = p.span,
+            ...p,
             .id = AST.UNASSIGNED_NODE_ID,
-            .name = p.name,
             .ty = substitute_opt_type(p.ty, subst),
-            .default_value = p.default_value,
-            .variadic = p.variadic, .mutable = p.mutable,
-            // Carried over: a rebuilt param that dropped them would lose an
-            // `@c_pointer` and silently change the ABI.
-            .decorators = p.decorators,
         })
     }
     return out

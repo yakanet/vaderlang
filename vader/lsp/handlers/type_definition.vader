@@ -32,24 +32,18 @@ export handle_type_definition :: fn(state: ServerState!, params: JsonValue) -> J
     if file_path == "" { return JsonNull {} }
 
     cached :: typed_project_for(state, file_path)
-    entry :: cached.project.modules[cached.project.entry]
-    if entry is null { return JsonNull {} }
-    sf :: source_file_for_path(entry.module.files, file_path)
-    if sf is null { return JsonNull {} }
+    entry :: cached.project.modules[cached.project.entry] ?? return JsonNull {}
+    sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonNull {}
 
     // LSP positions are 0-based ; the Vader AST is 1-based.
     found :: find_expr_at(
         sf.program.decls, cursor_field(params, "line") + 1,
         cursor_field(params, "character") + 1, cached.result.typed,
-    )
-    if found is null { return JsonNull {} }
-    ty :: cached.result.typed.expr_types[found.id]
-    if ty is null { return JsonNull {} }
+    ) ?? return JsonNull {}
+    ty :: cached.result.typed.expr_types[found.id] ?? return JsonNull {}
 
-    sym :: type_symbol(ty)
-    if sym == null { return JsonNull {} }
-    da :: sym.defined_at
-    if da == null { return JsonNull {} }
+    sym :: type_symbol(ty) ?? return JsonNull {}
+    da :: sym.defined_at ?? return JsonNull {}
     li :: state.line_index_for_path(da.start.file)
     return location_json(path_to_uri(da.start.file), da.span_to_range_json(li))
 }

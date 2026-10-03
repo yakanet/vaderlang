@@ -327,10 +327,7 @@ pc_body_unsafe :: fn(b: LoweredBlock, sym: i32, pctx: BcePurityCtx!) -> bool {
             return true
         }
     }
-    t :: b.trailing
-    if t == null {
-        return false
-    }
+    t :: b.trailing ?? return false
     return pc_expr_unsafe_skipping_push(t, sym, pctx)
 }
 
@@ -371,10 +368,7 @@ pc_expr_unsafe_skipping_push :: fn(e: LoweredExpr, sym: i32, pctx: BcePurityCtx!
         if pc_body_unsafe(e.then_block, sym, pctx) {
             return true
         }
-        eb :: e.else_block
-        if eb == null {
-            return false
-        }
+        eb :: e.else_block ?? return false
         return pc_body_unsafe(eb, sym, pctx)
     }
     return bce_expr_unsafe(e, sym, pctx)

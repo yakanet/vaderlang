@@ -32,10 +32,8 @@ export handle_code_action :: fn(state: ServerState!, params: JsonValue) -> JsonV
     if file_path == "" { return JsonArray { .items = [] } }
 
     cached :: typed_project_for(state, file_path)
-    entry :: cached.project.modules[cached.project.entry]
-    if entry is null { return JsonArray { .items = [] } }
-    sf :: source_file_for_path(entry.module.files, file_path)
-    if sf is null { return JsonArray { .items = [] } }
+    entry :: cached.project.modules[cached.project.entry] ?? return JsonArray { .items = [] }
+    sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonArray { .items = [] }
 
     // LSP positions are 0-based ; the AST is 1-based. Anchor on the range start.
     line :: range_field(params, "start", "line") + 1

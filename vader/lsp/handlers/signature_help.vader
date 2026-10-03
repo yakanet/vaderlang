@@ -33,19 +33,15 @@ export handle_signature_help :: fn(state: ServerState!, params: JsonValue) -> Js
     cached :: typed_project_for(state, file_path)
     project :: cached.project
     result :: cached.result
-    entry :: project.modules[project.entry]
-    if entry is null { return JsonNull {} }
-    sf :: source_file_for_path(entry.module.files, file_path)
-    if sf is null { return JsonNull {} }
+    entry :: project.modules[project.entry] ?? return JsonNull {}
+    sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonNull {}
 
     // LSP positions are 0-based ; AST spans are 1-based.
     target_line :: line + 1
     target_col  :: char + 1
-    call :: find_enclosing_call(sf.program.decls, target_line, target_col)
-    if call is null { return JsonNull {} }
+    call :: find_enclosing_call(sf.program.decls, target_line, target_col) ?? return JsonNull {}
 
-    sig :: build_signature(call, result.typed)
-    if sig is null { return JsonNull {} }
+    sig :: build_signature(call, result.typed) ?? return JsonNull {}
     active :: active_param_index(call, target_line, target_col) + receiver_slots(call, result.typed)
 
     sigs: JsonValue[]: [sig]

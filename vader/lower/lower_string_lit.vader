@@ -59,8 +59,7 @@ lower_concat_chain :: fn(ctx: FnLowerCtx!, operands: LoweredExpr[]!, span: Span)
     if n == 1 {
         return leaves[0]
     }
-    sym :: get_or_create_concat(ctx, i32(n))
-    if sym == null { return unreachable_buffer("concat_${n} unresolved") }
+    sym :: get_or_create_concat(ctx, i32(n)) ?? return unreachable_buffer("concat_${n} unresolved")
     return mk_lowered_call(sym, leaves, string_type, span)
 }
 

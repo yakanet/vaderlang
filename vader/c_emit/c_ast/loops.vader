@@ -194,10 +194,7 @@ is_empty :: fn(block: CBlock) -> bool = leading_directives(block.body) == block.
 
 // Whether control can fall off the end of `statements`.
 end_is_reachable :: fn(statements: CStatement[]) -> bool {
-    tail :: tail_statement(statements)
-    if tail == null {
-        return true
-    }
+    tail :: tail_statement(statements) ?? return true
     // @partial: every other statement hands control to the next one.
     return @partial match tail {
         is CContinue | CBreak -> tail.condition != null

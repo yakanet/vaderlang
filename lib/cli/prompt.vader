@@ -78,10 +78,7 @@ new_key_reader :: fn() = KeyReader { .pending = [], .at = 0 }
 // The next press, reading a fresh burst when the queue is empty.
 next_press :: fn(reader: KeyReader!) -> KeyPress | PromptError {
     for reader.at >= reader.pending.len() {
-        burst :: TTY.read_keys(64)
-        if burst == null {
-            return input_closed()
-        }
+        burst :: TTY.read_keys(64) ?? return input_closed()
         reader.pending = decode_burst(burst)
         reader.at = 0
     }

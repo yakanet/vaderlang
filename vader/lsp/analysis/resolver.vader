@@ -137,10 +137,7 @@ member_in_file :: fn(path: string, name: string, encoding: PositionEncoding) -> 
         is string -> {
             uri :: path_to_uri(path)
             sub :: build_index(uri, src_or, encoding)
-            d :: sub.find_member(name)
-            if d == null {
-                return null
-            }
+            d :: sub.find_member(name) ?? return null
             return ExternalHit { .uri = uri, .target = d }
         }
     }

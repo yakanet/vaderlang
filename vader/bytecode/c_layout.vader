@@ -121,10 +121,7 @@ c_field_width_at :: fn(f: BcField, types: BcType[], depth: i32) -> i64 | null {
     if depth >= NEST_CAP {
         return null
     }
-    nested :: nested_mirror(f, types)
-    if nested == null {
-        return null
-    }
+    nested :: nested_mirror(f, types) ?? return null
     inner :: c_struct_layout_at(nested.fields, types, depth + 1)
     if inner.unknown_field != null {
         return null
@@ -142,16 +139,10 @@ c_field_align_at :: fn(f: BcField, types: BcType[], depth: i32) -> i64 | null {
     if depth >= NEST_CAP {
         return null
     }
-    nested :: nested_mirror(f, types)
-    if nested == null {
-        return null
-    }
+    nested :: nested_mirror(f, types) ?? return null
     strictest: i64 = 1
     for inner_f in nested.fields {
-        a :: c_field_align_at(inner_f, types, depth + 1)
-        if a == null {
-            return null
-        }
+        a :: c_field_align_at(inner_f, types, depth + 1) ?? return null
         if a > strictest {
             strictest = a
         }

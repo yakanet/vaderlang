@@ -58,10 +58,7 @@ bce_fn_pure :: fn(pctx: BcePurityCtx!, fd: LoweredFnDecl) -> bool {
     if cached != null {
         return cached
     }
-    body :: fd.body
-    if body == null {
-        return false
-    }
+    body :: fd.body ?? return false
     // Stamp impure BEFORE walking : a re-entrant (recursive) query hits this and
     // gets `false` — a cycle can't be proven pure. The real verdict overwrites it
     // below, so no non-cyclic caller ever reads the sentinel.

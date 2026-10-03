@@ -318,10 +318,7 @@ export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> str
 /// @param name     canonical flag name (not an alias).
 /// @param default  value returned when `name` is absent or somehow unparseable.
 export int_flag :: fn(self: ParsedArgs, name: string, default: i32) -> i32 {
-    v :: self.flags[name]
-    if v == null {
-        return default
-    }
+    v :: self.flags[name] ?? return default
     n :: parse_int(v)
     if n is ParseError {
         return default

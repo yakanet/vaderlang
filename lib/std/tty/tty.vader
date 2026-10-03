@@ -94,8 +94,7 @@ is_tty :: fn(stream: Stream = .Stdout) -> bool {
 /// `NO_COLOR` value disables color regardless of its content.
 export should_colorize :: fn() -> bool {
     if !(is_tty(.Stdout) || is_tty(.Stderr)) { return false }
-    no_color :: get_env("NO_COLOR")
-    if no_color == null { return true }
+    no_color :: get_env("NO_COLOR") ?? return true
     return no_color == ""
 }
 

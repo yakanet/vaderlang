@@ -165,10 +165,7 @@ entry_index_for_file :: fn(
 // Reads the lowered fn's origin AST `FnDecl` for its span's file — the same
 // `LoweredFnDecl` / `origin.decl is FnDecl` shape `find_tests` walks.
 named_file_main_mangled :: fn(lowered: LoweredProject, file: Path) -> string {
-    md :: lowered.modules[lowered.entry]
-    if md == null {
-        return ""
-    }
+    md :: lowered.modules[lowered.entry] ?? return ""
     named_base :: canonicalise(file).filename()
     for d in md.decls {
         if d is LoweredFnDecl {

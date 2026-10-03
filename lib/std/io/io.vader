@@ -434,10 +434,7 @@ export read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError
 
 @target(.Linux, .Darwin)
 read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
-    f :: sys_fopen(path, "rb")
-    if f == null {
-        return last_io_error("cannot open file")
-    }
+    f :: sys_fopen(path, "rb") ?? return last_io_error("cannot open file")
     // Read to end of file in chunks rather than sizing it first: `fseek` +
     // `ftell` would need `SEEK_END`, and a size taken up front is a lie on
     // anything that is not a regular file.
@@ -545,10 +542,7 @@ write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
             return IOError { .msg = "path contains a NUL byte" }
         }
     }
-    f :: sys_fopen(path, "wb")
-    if f == null {
-        return last_io_error("open failed")
-    }
+    f :: sys_fopen(path, "wb") ?? return last_io_error("open failed")
     if content.len() > 0 {
         n :: sys_fwrite(content, 1, content.len(), f)
         if n != content.len() {

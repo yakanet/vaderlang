@@ -291,8 +291,10 @@ is_mutable_slot :: fn(t: Type) -> bool = type_grants_mutation(t)
 /// (Vader structs are by-value). Collapses the identical field-by-field rebuild
 /// each `BcPeepholeOut`-returning pass in Pass 3 would otherwise repeat inline.
 with_peephole_out :: fn(f: BcFunction, out: BcPeepholeOut) -> BcFunction! = BcFunction {
-    .name = f.name, .is_main = f.is_main, .signature = f.signature, .locals = f.locals,
-    .body = out.body, .debug = out.debug, .jump_table = out.jump_table,
+    ...f,
+    .body = out.body,
+    .debug = out.debug,
+    .jump_table = out.jump_table,
 }
 
 // A `type_check` on an instance of a generic struct compares tags, which only

@@ -238,8 +238,7 @@ emit_let_leaf_array :: fn(
 ) -> void {
     match leaf {
         is SimpleBinding -> {
-            symbol :: resolve_binding(ctx, leaf.name_span)
-            if symbol is null { return }
+            symbol :: resolve_binding(ctx, leaf.name_span) ?? return
             out.push(cell_aware_let(ctx, symbol, leaf.name, access, elem_type, leaf.span))
         }
         is TupleBinding -> {
@@ -270,8 +269,7 @@ emit_let_leaf :: fn(
             })
         }
         is SimpleBinding -> {
-            symbol :: resolve_binding(ctx, leaf.name_span)
-            if symbol is null { return }
+            symbol :: resolve_binding(ctx, leaf.name_span) ?? return
             elem_type :: tuple_or_array_element_type(target_type, index, ctx, leaf)
             access :: build_leaf_access(target, target_type, elem_type, leaf.span, index, field_names)
             out.push(cell_aware_let(ctx, symbol, leaf.name, access, elem_type, leaf.span))

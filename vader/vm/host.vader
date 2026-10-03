@@ -817,10 +817,7 @@ mirrored_struct_fields :: fn(types: bc.BcType[], param_types: i32[], i: usize) -
 
 /// A mirrored field's own value class, for the sign of the read-back.
 field_val_type :: fn(types: bc.BcType[], f: bc.BcField) -> bc.ValType {
-    v :: bc.c_field_val_type(f, types)
-    if v == null {
-        return .I64
-    }
+    v :: bc.c_field_val_type(f, types) ?? return .I64
     return v
 }
 
@@ -853,10 +850,7 @@ read_back_mirror :: fn(
             }
             continue
         }
-        width :: bc.c_field_width(fields[j], types)
-        if width == null {
-            continue
-        }
+        width :: bc.c_field_width(fields[j], types) ?? continue
         signed :: !bc.is_unsigned_val(field_val_type(types, fields[j]))
         written :: read_little_endian(frame, base + usize(layout.offsets[j]), usize(width), signed)
         target.fields[j] = retyped_int(target.fields[j], written)
@@ -898,10 +892,7 @@ serialise_mirror :: fn(
             if t is Trap { return t }
             continue
         }
-        width :: bc.c_field_width(fields[j], types)
-        if width == null {
-            continue
-        }
+        width :: bc.c_field_width(fields[j], types) ?? continue
         field :: sv.fields[j]
         cell :: if field is I64Val || field is I32Val || field is BoolVal || field is CharVal {
             read_scalar_word(field, at_pc, "")

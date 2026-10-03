@@ -340,17 +340,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
     // Same for imports.
     new_imports: BcImport[]!: []
     for imp in ctx.imports {
-        new_imports.push(BcImport {
-            .extern_name  = imp.extern_name,
-            .mangled_name = imp.mangled_name,
-            .signature    = remap_signature(imp.signature, remap),
-            .is_extern    = imp.is_extern,
-            // Carried over — a dropped header resurrects the synthesised
-            // prototype and its conflict.
-            .c_header     = imp.c_header,
-            .c_variadic_fixed = imp.c_variadic_fixed,
-            .c_library    = imp.c_library,
-        })
+        new_imports.push(BcImport { ...imp, .signature = remap_signature(imp.signature, remap) })
     }
     ctx.imports = new_imports
 }

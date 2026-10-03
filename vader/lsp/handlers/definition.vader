@@ -73,8 +73,7 @@ export handle_definition :: fn(state: ServerState!, params: JsonValue) -> JsonVa
                     // declined — the receiver has no declaring symbol (an array,
                     // a string), so its methods live on a built-in trait with no
                     // type to key on.
-                    ext :: resolve(state, idx, nm, after_dot)
-                    if ext == null { return JsonNull {} }
+                    ext :: resolve(state, idx, nm, after_dot) ?? return JsonNull {}
                     return def_response(state, origin, ext.uri, ext.target.name_span, ext.target.full_span, idx.line_index)
                 }
             }
@@ -249,10 +248,7 @@ member_owner_type :: fn(
 // Whether the identifier under the cursor starts a member access. Shared by the
 // typed lookup and the name-based fallback so both agree on what a member is.
 cursor_follows_a_dot :: fn(index: DocIndex, line: i32, character: i32) -> bool {
-    sp :: index.span_at(line, character)
-    if sp == null {
-        return false
-    }
+    sp :: index.span_at(line, character) ?? return false
     return follows_a_dot(index.source, sp.start.offset)
 }
 

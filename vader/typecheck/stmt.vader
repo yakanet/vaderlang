@@ -172,10 +172,7 @@ stmt_has_await :: fn(s: AST.Stmt) -> bool = @partial match s {
         // @partial: only expr-carrying statements can hold an `await`; break /
         // continue / defer / yield can't reach one in a coroutine body.
 
-        rv :: s.value
-        if rv == null {
-            return false
-        }
+        rv :: s.value ?? return false
         return expr_has_await(rv)
     }
     is AST.ForStmt               -> { return for_form_has_await(s.form) || block_has_await(s.body) }
@@ -1167,10 +1164,7 @@ annotate_hint :: fn(root_param: Symbol | null) -> string {
     if root_param is null {
         return ""
     }
-    at :: root_param.defined_at
-    if at is null {
-        return " — annotate `${root_param.name}!`"
-    }
+    at :: root_param.defined_at ?? return " — annotate `${root_param.name}!`"
     return " — annotate `${root_param.name}!` at ${at.start.file}:${at.start.line}:${at.start.column}"
 }
 
@@ -2213,12 +2207,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             } else {
                 narrow_for_field(typed, inner.field_key, inner.static_ty)
             }
-            return BlockNarrow {
-                .sym_id = inner.sym_id,
-                .static_ty = inner.static_ty,
-                .else_ty = subtract_type(current, inner.else_ty),
-                .field_key = inner.field_key,
-            }
+            return BlockNarrow { ...inner, .else_ty = subtract_type(current, inner.else_ty) }
         }
     }
     if cond !is AST.BinaryExpr {

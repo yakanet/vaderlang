@@ -428,8 +428,7 @@ struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) 
 // synthetic only when the resolver wrote none — defensive against
 // cascading diagnostics.
 resolve_pattern_symbol :: fn(ctx: FnLowerCtx!, name_span: Span, name: string) -> Symbol {
-    found :: resolve_binding(ctx, name_span)
-    if found == null { return fresh_synthetic_symbol(ctx, name) }
+    found :: resolve_binding(ctx, name_span) ?? return fresh_synthetic_symbol(ctx, name)
     return found
 }
 

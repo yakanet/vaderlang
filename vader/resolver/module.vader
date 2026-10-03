@@ -322,10 +322,7 @@ export TOOLCHAIN_HOME_VAR :: "VADER_HOME"
 /// @param marker  file proving the candidate really is that resource.
 /// @return        the resolved root, or null when unset or unusable.
 export home_root :: fn(subdir: string, marker: string) -> string | null {
-    home :: get_env(TOOLCHAIN_HOME_VAR)
-    if home == null {
-        return null
-    }
+    home :: get_env(TOOLCHAIN_HOME_VAR) ?? return null
     if home == "" {
         return null
     }

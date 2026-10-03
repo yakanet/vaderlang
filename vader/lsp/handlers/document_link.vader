@@ -33,8 +33,7 @@ import "toolchain/span"
 ///                never indexed or carries no resolvable imports.
 export handle_document_link :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    idx :: state.index_for(uri)
-    if idx == null { return JsonArray { .items = [] } }
+    idx :: state.index_for(uri) ?? return JsonArray { .items = [] }
     // The index keeps the source but not the AST ; re-parse (lexer + parser
     // only, no resolve) to walk the import decls. documentLink isn't hot.
     parsed :: parse_source(idx.source, uri)

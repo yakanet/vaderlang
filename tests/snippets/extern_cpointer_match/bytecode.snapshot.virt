@@ -287,8 +287,8 @@ end
 fn 7 std_io$write_file_bytes (string,ref) -> any
   local __for_len_1 usize
   local __for_i_2 usize
-  local f any
-  local $cast_28 pointer
+  local f pointer
+  local __coalesce_3 any
   local err ref
   local.get 0   ; arg 0
   call.import 2   ; std_core$byte_len
@@ -324,13 +324,16 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
   local.get 0   ; arg 0
   string.const 14   ; "wb"
   call.import 9   ; system_posix$sys_fopen
-  local.tee 4   ; f
+  local.tee 5   ; __coalesce_3
   type_check 0   ; null
   if $L4 void
     string.const 15   ; "open failed"
     call 8   ; std_io$last_io_error
     return
   end $L4
+  local.get 5   ; __coalesce_3
+  ref.cast 4   ; pointer
+  local.set 4   ; f
   local.get 1   ; arg 1
   array.len
   i64.const 0
@@ -339,13 +342,10 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
     local.get 1   ; arg 1
     array.len
     local.set 2   ; __for_len_1
-    local.get 4   ; f
-    ref.cast 4   ; pointer
-    local.set 5   ; $cast_28
     local.get 1   ; arg 1
     i64.const 1
     local.get 2   ; __for_len_1
-    local.get 5   ; $cast_28
+    local.get 4   ; f
     call.import 11   ; system_posix$sys_fwrite
     local.set 2   ; __for_len_1
     local.get 1   ; arg 1
@@ -359,7 +359,6 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
       call 8   ; std_io$last_io_error
       local.set 6   ; err
       local.get 4   ; f
-      ref.cast 4   ; pointer
       call.import 10   ; system_posix$sys_fclose
       drop
       local.get 6   ; err
@@ -367,7 +366,6 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
     end $L6
   end $L5
   local.get 4   ; f
-  ref.cast 4   ; pointer
   call.import 10   ; system_posix$sys_fclose
   i32.const 0
   i32.ne

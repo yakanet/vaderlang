@@ -113,10 +113,7 @@ cf_is_concat_call :: fn(ctx: FnLowerCtx, call: LoweredCall) -> bool {
     if !(callee is LoweredIdent) {
         return false
     }
-    sym :: ctx.project.concat_fn_syms[i32(call.args.len())]
-    if sym == null {
-        return false
-    }
+    sym :: ctx.project.concat_fn_syms[i32(call.args.len())] ?? return false
     return sym.id == callee.symbol.id
 }
 

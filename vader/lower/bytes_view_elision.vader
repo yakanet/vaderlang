@@ -148,10 +148,7 @@ bve_collect_misses :: fn(ctx: BveCtx, project_ctx: LowerProjectCtx!) -> void {
 /// recorded `.bytes()` local, escaped, or its receiver is reassigned. Returning
 /// the ident lets each rewrite site skip a second `candidates` lookup.
 bve_valid_receiver :: fn(ctx: BveCtx, bs_id: i32) -> LoweredIdent | null {
-    x :: ctx.candidates[bs_id]
-    if x == null {
-        return null
-    }
+    x :: ctx.candidates[bs_id] ?? return null
     if ctx.disq.contains(bs_id) {
         return null
     }

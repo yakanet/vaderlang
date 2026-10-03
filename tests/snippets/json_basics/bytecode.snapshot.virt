@@ -378,98 +378,84 @@ fn 3 concat_2 (string,string) -> string
 end
 
 fn 4 std_core$parse_f64 (string) -> any
-  local parts any
+  local parts ref
+  local __coalesce_0 any
   local $field_8 u64
-  local $field_10 i32
-  local $add_16 u64
-  local $field_23 bool
+  local $field_9 i32
+  local $add_14 u64
+  local $field_19 bool
   local.get 0   ; arg 0
   call 10   ; std_core$scan_decimal
-  local.tee 1   ; parts
+  local.tee 2   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
     return.lit null.const
   end $L0
-  local.get 1   ; parts
+  local.get 2   ; __coalesce_0
   ref.cast 15   ; std_core$DecimalParts
-  struct.get 15 3   ; std_core$DecimalParts.too_many_digits
+  local.set 1   ; parts
+  local.field 1 15 3   ; parts std_core$DecimalParts.too_many_digits
   ref.cast 5   ; bool
   if $L1 void
-    local.get 1   ; parts
-    ref.cast 15   ; std_core$DecimalParts
-    struct.get 15 0   ; std_core$DecimalParts.w
+    local.field 1 15 0   ; parts std_core$DecimalParts.w
     ref.cast 12   ; u64
-    local.set 2   ; $field_8
-    local.get 1   ; parts
-    ref.cast 15   ; std_core$DecimalParts
-    struct.get 15 1   ; std_core$DecimalParts.q
+    local.set 3   ; $field_8
+    local.field 1 15 1   ; parts std_core$DecimalParts.q
     ref.cast 3   ; i32
-    local.set 3   ; $field_10
-    local.get 2   ; $field_8
-    local.get 3   ; $field_10
+    local.set 4   ; $field_9
+    local.get 3   ; $field_8
+    local.get 4   ; $field_9
     call 11   ; std_core$eisel_lemire
-    local.set 2   ; $field_8
-    local.get 1   ; parts
-    ref.cast 15   ; std_core$DecimalParts
-    struct.get 15 0   ; std_core$DecimalParts.w
+    local.set 3   ; $field_8
+    local.field 1 15 0   ; parts std_core$DecimalParts.w
     ref.cast 12   ; u64
     i64.const 1
     i64.add
-    local.set 4   ; $add_16
-    local.get 1   ; parts
-    ref.cast 15   ; std_core$DecimalParts
-    struct.get 15 1   ; std_core$DecimalParts.q
+    local.set 5   ; $add_14
+    local.field 1 15 1   ; parts std_core$DecimalParts.q
     ref.cast 3   ; i32
-    local.set 3   ; $field_10
-    local.get 4   ; $add_16
-    local.get 3   ; $field_10
+    local.set 4   ; $field_9
+    local.get 5   ; $add_14
+    local.get 4   ; $field_9
     call 11   ; std_core$eisel_lemire
-    local.set 4   ; $add_16
-    local.get 2   ; $field_8
-    local.get 4   ; $add_16
+    local.set 5   ; $add_14
+    local.get 3   ; $field_8
+    local.get 5   ; $add_14
     i64.ne
     if $L2 void
-      local.get 1   ; parts
-      ref.cast 15   ; std_core$DecimalParts
-      struct.get 15 2   ; std_core$DecimalParts.negative
+      local.field 1 15 2   ; parts std_core$DecimalParts.negative
       ref.cast 5   ; bool
-      local.set 5   ; $field_23
+      local.set 6   ; $field_19
       local.get 0   ; arg 0
-      local.get 5   ; $field_23
+      local.get 6   ; $field_19
       call 12   ; std_core$parse_f64_slow
       retag 9   ; f64
       return
     end $L2
   end $L1
-  local.get 1   ; parts
-  ref.cast 15   ; std_core$DecimalParts
-  struct.get 15 0   ; std_core$DecimalParts.w
+  local.field 1 15 0   ; parts std_core$DecimalParts.w
   ref.cast 12   ; u64
-  local.set 2   ; $field_8
-  local.get 1   ; parts
-  ref.cast 15   ; std_core$DecimalParts
-  struct.get 15 1   ; std_core$DecimalParts.q
+  local.set 3   ; $field_8
+  local.field 1 15 1   ; parts std_core$DecimalParts.q
   ref.cast 3   ; i32
-  local.set 3   ; $field_10
-  local.get 2   ; $field_8
-  local.get 3   ; $field_10
+  local.set 4   ; $field_9
+  local.get 3   ; $field_8
+  local.get 4   ; $field_9
   call 11   ; std_core$eisel_lemire
-  local.set 2   ; $field_8
-  local.get 1   ; parts
-  ref.cast 15   ; std_core$DecimalParts
-  struct.get 15 2   ; std_core$DecimalParts.negative
+  local.set 3   ; $field_8
+  local.field 1 15 2   ; parts std_core$DecimalParts.negative
   ref.cast 5   ; bool
   if $L3 void
     i64.const 1
     i64.const 63
     i64.shl
-    local.set 4   ; $add_16
-    local.get 2   ; $field_8
-    local.get 4   ; $add_16
+    local.set 5   ; $add_14
+    local.get 3   ; $field_8
+    local.get 5   ; $add_14
     i64.bitor
-    local.set 2   ; $field_8
+    local.set 3   ; $field_8
   end $L3
-  local.get 2   ; $field_8
+  local.get 3   ; $field_8
   call 109   ; std_core$u64$BitsFloat$from_bits_vt
   retag 9   ; f64
   return
@@ -6883,10 +6869,10 @@ fn 78 std_string$utf8_decode (ref,usize) -> char
 end
 
 fn 79 std_string$parse_float (string) -> any
-  local r any
+  local __coalesce_0 any
   local.get 0   ; arg 0
   call 4   ; std_core$parse_f64
-  local.tee 1   ; r
+  local.tee 1   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
     string.const 70   ; "parse_float: invalid float `"
@@ -6896,7 +6882,7 @@ fn 79 std_string$parse_float (string) -> any
     struct.new 47   ; std_string$ParseError
     return
   end $L0
-  local.get 1   ; r
+  local.get 1   ; __coalesce_0
   ref.cast 9   ; f64
   retag 9   ; f64
   return

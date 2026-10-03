@@ -234,15 +234,7 @@ append_statement :: fn(s: FnState!, statement: CStatement) -> void {
 ///
 /// @param node  the return ; its `pops_frame` is set here.
 return_statement :: fn(s: FnState!, node: CReturn) -> void {
-    append_statement(
-        s,
-        CReturn {
-            .stores        = node.stores,
-            .value         = node.value,
-            .snapshot_type = node.snapshot_type,
-            .pops_frame    = !s.no_frame,
-        },
-    )
+    append_statement(s, CReturn { ...node, .pops_frame = !s.no_frame })
 }
 
 // A node the walk has opened and not closed yet (`open_if`, `open_scope`).

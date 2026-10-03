@@ -308,12 +308,7 @@ spawn_poll :: fn(handle: i64) -> i32 {
         // released by `spawn_take_stderr` and nothing holds them after that.
         sys_close(i32(c.out_h))
         sys_close(i32(c.err_h))
-        CHILDREN[usize(handle)] = Child {
-            .in_use = true, .done = true, .exit_code = SIGNALED,
-            .out = c.out, .err = c.err, .proc = c.proc,
-            .out_h = c.out_h, .err_h = c.err_h,
-            .out_eof = true, .err_eof = true,
-        }
+        CHILDREN[usize(handle)] = finished(c, SIGNALED)
         return SIGNALED
     }
     // Reaped. Drain once more: the child can write and exit between the drain
@@ -330,12 +325,7 @@ spawn_poll :: fn(handle: i64) -> i32 {
     // are the terminating signal, zero when the child exited normally, and the
     // exit code is the next byte up.
     code :: if (st[0] & 0x7F) == 0 { (st[0] >> 8) & 0xFF } else { SIGNALED }
-    CHILDREN[usize(handle)] = Child {
-        .in_use = true, .done = true, .exit_code = code,
-        .out = c.out, .err = c.err, .proc = c.proc,
-        .out_h = c.out_h, .err_h = c.err_h,
-        .out_eof = true, .err_eof = true,
-    }
+    CHILDREN[usize(handle)] = finished(c, code)
     return code
 }
 
@@ -348,10 +338,22 @@ spawn_poll :: fn(handle: i64) -> i32 {
 /// @param out_eof  whether stdout is drained and closed.
 /// @param err_eof  likewise for stderr.
 with_eof :: fn(c: Child, out_eof: bool, err_eof: bool) -> Child = Child {
-    .in_use = c.in_use, .done = c.done, .exit_code = c.exit_code,
-    .out = c.out, .err = c.err, .proc = c.proc,
-    .out_h = c.out_h, .err_h = c.err_h,
-    .out_eof = out_eof, .err_eof = err_eof,
+    ...c,
+    .out_eof = out_eof,
+    .err_eof = err_eof,
+}
+
+/// The same slot, reaped: `code` recorded and both pipes drained.
+///
+/// @param c     the slot as it stands.
+/// @param code  the exit code, or `SIGNALED`.
+finished :: fn(c: Child, code: i32) -> Child = Child {
+    ...c,
+    .in_use = true,
+    .done = true,
+    .exit_code = code,
+    .out_eof = true,
+    .err_eof = true,
 }
 
 @target(.Linux, .Darwin)
@@ -593,12 +595,7 @@ spawn_poll :: fn(handle: i64) -> i32 {
     } else {
         i32(code[0])
     }
-    CHILDREN[usize(handle)] = Child {
-        .in_use = true, .done = true, .exit_code = exit_code,
-        .out = c.out, .err = c.err, .proc = c.proc,
-        .out_h = c.out_h, .err_h = c.err_h,
-        .out_eof = true, .err_eof = true,
-    }
+    CHILDREN[usize(handle)] = finished(c, exit_code)
     return exit_code
 }
 

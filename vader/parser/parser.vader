@@ -1771,10 +1771,7 @@ reject_removed_const :: fn(p: Parser!) -> void {
 // consumed so the rest of the arm still parses, and diagnosed only when a name
 // follows — a missing one is already `expect`'s error.
 reject_arm_binding :: fn(p: Parser!) -> void {
-    as_tok :: p.match_kind(.KwAs)
-    if as_tok == null {
-        return
-    }
+    as_tok :: p.match_kind(.KwAs) ?? return
     name_tok :: p.expect(.Ident, "binding name after `as`")
     if name_tok.kind == .Ident {
         p.error(
@@ -1827,8 +1824,7 @@ parse_type_postfix :: fn(p: Parser!) -> TypeExpr {
             }
             continue
         }
-        bang :: p.parse_type_mut_marker()
-        if bang == null { break }
+        bang :: p.parse_type_mut_marker() ?? break
         // `T!!` says the same thing twice about one level — accepting it would let
         // two markers stack into nested `MutableTypeExpr` nodes that no pass can
         // tell apart from one. Report and keep the first.
@@ -3960,10 +3956,7 @@ first_enum :: fn(src: string) -> EnumDecl | null {
 }
 
 first_variant_value :: fn(src: string) -> i64 | null {
-    e :: first_enum(src)
-    if e == null {
-        return null
-    }
+    e :: first_enum(src) ?? return null
     return e.variants[0].value
 }
 

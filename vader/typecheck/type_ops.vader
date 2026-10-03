@@ -524,10 +524,7 @@ blocking_bound :: fn(t: Type, trait_key: string, typed: TypedProgram) -> UnmetBo
         if impl_.trait_key != trait_key {
             continue
         }
-        unmet :: first_unmet_bound(args, impl_.bounds, typed)
-        if unmet == null {
-            return null
-        }
+        unmet :: first_unmet_bound(args, impl_.bounds, typed) ?? return null
         if first == null {
             first = unmet
         }

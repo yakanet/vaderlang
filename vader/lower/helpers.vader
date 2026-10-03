@@ -254,10 +254,7 @@ export prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) 
     stmts: LoweredStmt[]!: []
     stmts.push_all(prefix)
     stmts.push_all(block.stmts)
-    return LoweredBlock {
-        .span = block.span, .type = block.type,
-        .stmts = stmts, .trailing = block.trailing,
-    }
+    return LoweredBlock { ...block, .stmts = stmts }
 }
 
 // The step of `lp` as a block, for a predicate that folds over blocks.

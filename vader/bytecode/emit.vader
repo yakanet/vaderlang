@@ -520,9 +520,9 @@ export propagate_const_single_use :: fn(function: BcFunction!) -> BcFunction! {
     }
     new_jt :: remap_jump_table(function.jump_table, old_to_new, new_body.len())
     return BcFunction {
-        .name = function.name, .is_main = function.is_main,
-        .signature = function.signature, .locals = function.locals,
-        .body = new_body, .debug = new_debug,
+        ...function,
+        .body = new_body,
+        .debug = new_debug,
         .jump_table = new_jt,
     }
 }
@@ -675,9 +675,11 @@ export drop_dead_stores :: fn(function: BcFunction!) -> BcFunction! {
         if !dead[q] { new_locals.push(function.locals[q - param_count]) }
     }
     return BcFunction {
-        .name = function.name, .is_main = function.is_main,
-        .signature = function.signature, .locals = new_locals,
-        .body = out, .debug = new_debug, .jump_table = new_jt,
+        ...function,
+        .locals = new_locals,
+        .body = out,
+        .debug = new_debug,
+        .jump_table = new_jt,
     }
 }
 

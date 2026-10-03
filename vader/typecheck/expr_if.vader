@@ -315,11 +315,9 @@ detect_is_narrow :: fn(
         if cond.op == .Not {
             inner :: detect_is_narrow(cond.operand, typed, diags) ?? return null
             return IsNarrow {
-                .sym_id    = inner.sym_id,
-                .static_ty = inner.static_ty,
-                .then_ty   = inner.else_ty,
-                .else_ty   = inner.then_ty,
-                .field_key = inner.field_key,
+                ...inner,
+                .then_ty = inner.else_ty,
+                .else_ty = inner.then_ty,
             }
         }
     }

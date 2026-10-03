@@ -260,8 +260,7 @@ load_baked_target :: fn(
     overlay: MutableMap<string, string>, factory: SymbolFactory!,
     node_factory: NodeIdFactory!, target: Target,
 ) -> void {
-    std_target :: resolve_lazy("std/target", bases, index, diags)
-    if std_target is null { return }
+    std_target :: resolve_lazy("std/target", bases, index, diags) ?? return
     if !has_module(modules, std_target.folder) {
         pre: DiscoveredModule[]!: [std_target]
         drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory, target)

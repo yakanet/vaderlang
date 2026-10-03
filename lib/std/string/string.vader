@@ -501,8 +501,7 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
 /// @return    the parsed float.
 /// @error     `ParseError` on malformed input.
 export parse_float :: fn(s: string) -> f64 | ParseError {
-    r :: parse_f64(s)
-    if r == null { return ParseError { .msg = "parse_float: invalid float `${s}`" } }
+    r :: parse_f64(s) ?? return ParseError { .msg = "parse_float: invalid float `${s}`" }
     return r
 }
 

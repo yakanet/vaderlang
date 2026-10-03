@@ -93,10 +93,7 @@ target_group_name_at :: fn(
     project: LoadedProject, file_path: string, line: i32, col: i32,
 ) -> string {
     for [_, lm] in project.modules {
-        sf :: source_file_for_path(lm.module.files, file_path)
-        if sf == null {
-            continue
-        }
+        sf :: source_file_for_path(lm.module.files, file_path) ?? continue
         for d in sf.program.decls {
             if d is AST.FnDecl {
                 if !has_target_decorator(d.decorators) {

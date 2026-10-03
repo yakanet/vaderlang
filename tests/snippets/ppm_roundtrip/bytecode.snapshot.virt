@@ -502,8 +502,8 @@ end
 fn 8 std_io$write_file_bytes (string,ref) -> any
   local __for_len_1 usize
   local __for_i_2 usize
-  local f any
-  local $cast_28 pointer
+  local f pointer
+  local __coalesce_3 any
   local err ref
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -539,13 +539,16 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
   local.get 0   ; arg 0
   string.const 11   ; "wb"
   call.import 8   ; system_posix$sys_fopen
-  local.tee 4   ; f
+  local.tee 5   ; __coalesce_3
   type_check 0   ; null
   if $L4 void
     string.const 12   ; "open failed"
     call 12   ; std_io$last_io_error
     return
   end $L4
+  local.get 5   ; __coalesce_3
+  ref.cast 22   ; pointer
+  local.set 4   ; f
   local.get 1   ; arg 1
   array.len
   i64.const 0
@@ -554,13 +557,10 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
     local.get 1   ; arg 1
     array.len
     local.set 2   ; __for_len_1
-    local.get 4   ; f
-    ref.cast 22   ; pointer
-    local.set 5   ; $cast_28
     local.get 1   ; arg 1
     i64.const 1
     local.get 2   ; __for_len_1
-    local.get 5   ; $cast_28
+    local.get 4   ; f
     call.import 11   ; system_posix$sys_fwrite
     local.set 2   ; __for_len_1
     local.get 1   ; arg 1
@@ -574,7 +574,6 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
       call 12   ; std_io$last_io_error
       local.set 6   ; err
       local.get 4   ; f
-      ref.cast 22   ; pointer
       call.import 9   ; system_posix$sys_fclose
       drop
       local.get 6   ; err
@@ -582,7 +581,6 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
     end $L6
   end $L5
   local.get 4   ; f
-  ref.cast 22   ; pointer
   call.import 9   ; system_posix$sys_fclose
   i32.const 0
   i32.ne
@@ -595,68 +593,66 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
 end
 
 fn 9 std_io$read_file_bytes (string,usize) -> any
-  local f any
+  local f pointer
+  local __coalesce_0 any
   local out ref
   local chunk ref
-  local $len_16 usize
-  local $cast_17 pointer
+  local $len_18 usize
   local n usize
-  local $slice_23 ref
+  local $slice_24 ref
   local $k_28 string
   local $k_29 u8
   local $k_30 i32
   local $len_32 usize
-  local err any
   local.get 0   ; arg 0
   string.const 15   ; "rb"
   call.import 8   ; system_posix$sys_fopen
-  local.tee 2   ; f
+  local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
     string.const 16   ; "cannot open file"
     call 12   ; std_io$last_io_error
     return
   end $L0
+  local.get 3   ; __coalesce_0
+  ref.cast 22   ; pointer
+  local.set 2   ; f
   array.new 8 0   ; u8[]
-  local.set 3   ; out
+  local.set 4   ; out
   i32.const 0
   array.new 8 1   ; u8[]
   i64.const 65536
   array.repeat
-  local.set 4   ; chunk
+  local.set 5   ; chunk
   block $L1 void
     loop $L2 void
-      local.get 4   ; chunk
+      local.get 5   ; chunk
       array.len
-      local.set 5   ; $len_16
-      local.get 2   ; f
-      ref.cast 22   ; pointer
-      local.set 6   ; $cast_17
-      local.get 4   ; chunk
+      local.set 6   ; $len_18
+      local.get 5   ; chunk
       i64.const 1
-      local.get 5   ; $len_16
-      local.get 6   ; $cast_17
+      local.get 6   ; $len_18
+      local.get 2   ; f
       call.import 10   ; system_posix$sys_fread
       local.tee 7   ; n
       i64.const 0
       u64.gt
       if $L3 void
-        local.get 4   ; chunk
+        local.get 5   ; chunk
         i64.const 0
         local.get 7   ; n
         array.slice 8   ; u8[]
-        local.set 8   ; $slice_23
-        local.get 3   ; out
-        local.get 8   ; $slice_23
+        local.set 8   ; $slice_24
+        local.get 4   ; out
+        local.get 8   ; $slice_24
         array.push_all
       end $L3
-      local.get 3   ; out
+      local.get 4   ; out
       array.len
       local.get 1   ; arg 1
       u64.gt
       if $L4 void
         local.get 2   ; f
-        ref.cast 22   ; pointer
         call.import 9   ; system_posix$sys_fclose
         drop
         string.const 17   ; "file too large"
@@ -671,7 +667,7 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
         struct.new 11   ; std_io$IOError
         return
       end $L4
-      local.get 4   ; chunk
+      local.get 5   ; chunk
       array.len
       local.set 12   ; $len_32
       local.get 7   ; n
@@ -679,38 +675,35 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
       u64.lt
       if $L5 void
         local.get 2   ; f
-        ref.cast 22   ; pointer
         call.import 7   ; system_posix$sys_ferror
         i32.const 0
         i32.ne
         if $L6 void
           string.const 18   ; "read failed"
           call 12   ; std_io$last_io_error
-          local.set 13   ; err
+          local.set 3   ; __coalesce_0
         else
           null.const
-          local.set 13   ; err
+          local.set 3   ; __coalesce_0
         end $L6
         local.get 2   ; f
-        ref.cast 22   ; pointer
         call.import 9   ; system_posix$sys_fclose
         drop
-        local.get 13   ; err
+        local.get 3   ; __coalesce_0
         type_check 0   ; null
         bool.not
         if $L7 void
-          local.get 13   ; err
+          local.get 3   ; __coalesce_0
           ref.cast 11   ; std_io$IOError
           return
         end $L7
-        local.get 3   ; out
+        local.get 4   ; out
         return
       end $L5
       br $L2
     end $L2
   end $L1
   local.get 2   ; f
-  ref.cast 22   ; pointer
   call.import 9   ; system_posix$sys_fclose
   drop
   string.const 17   ; "file too large"

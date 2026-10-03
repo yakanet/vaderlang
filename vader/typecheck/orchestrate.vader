@@ -31,13 +31,7 @@ merge_module_program :: fn(files: SourceFile[]) -> AST.Program {
     if files.len() == 1 {
         return first
     }
-    return AST.Program {
-        .file = first.file,
-        .span = first.span,
-        .id = first.id,
-        .module = first.module,
-        .decls = concat_file_decls(files),
-    }
+    return AST.Program { ...first, .decls = concat_file_decls(files) }
 }
 
 /// Load + typecheck one entry file, returning the project, the typed result,

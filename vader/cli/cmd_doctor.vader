@@ -393,10 +393,7 @@ resolve_program :: fn(name: string) -> string | null {
         }
         return null
     }
-    raw :: get_env("PATH")
-    if raw == null {
-        return null
-    }
+    raw :: get_env("PATH") ?? return null
     separator :: if ";" in raw { ";" } else { ":" }
     for dir in raw.split(separator) {
         // POSIX reads an empty entry as the working directory; so does this.

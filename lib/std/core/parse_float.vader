@@ -181,8 +181,7 @@ export eisel_lemire :: fn(w0: u64, q: i32) -> u64 {
 /// @param s  the decimal float text.
 /// @return   the parsed `f64`, or `null` when `s` is not a decimal float.
 export parse_f64 :: fn(s: string) -> f64 | null {
-    parts :: scan_decimal(s)
-    if parts == null { return null }
+    parts :: scan_decimal(s) ?? return null
     // > 19 significant digits : the truncated `w` fast-paths correctly unless
     // `w` and `w + 1` straddle a rounding boundary — then the dropped digits
     // decide, and only the exact slow path can round correctly.
