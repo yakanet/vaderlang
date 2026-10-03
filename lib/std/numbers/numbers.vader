@@ -156,6 +156,9 @@ export to_bin :: fn(self: u64) -> string {
     return sb.to_string()
 }
 
+// 2^53 : every whole `f64` of smaller magnitude is an exact `i64`.
+EXACT_INTEGER_LIMIT: f64: 9007199254740992.0
+
 /// Format a float in the most compact decimal form — strips a trailing
 /// `.0` from integer-valued floats so `10.0` becomes `"10"`. Otherwise
 /// behaves like the default `Display` impl on `f64`. Matches
@@ -166,10 +169,18 @@ export to_bin :: fn(self: u64) -> string {
 ///   `(10.0).to_compact_str()    // "10"`
 ///   `(3.14).to_compact_str()    // "3.14"`
 ///   `(0.5).to_compact_str()     // "0.5"`
+///   `(-0.0).to_compact_str()    // "0"`
 ///
 /// @param self  the float to render.
 /// @return      the compact decimal representation.
 export to_compact_str :: fn(self: f64) -> string {
+    // A whole number below 2^53 is exactly an `i64`, whose text is the float's
+    // without the `.0` — and printing it as one skips the float formatter. The
+    // range test runs first : it is false for NaN and ±inf, which `i64` cannot
+    // hold. `-0.0` prints `0`, as `JSON.stringify` does.
+    if self > -EXACT_INTEGER_LIMIT && self < EXACT_INTEGER_LIMIT && self == f64(i64(self)) {
+        return "${i64(self)}"
+    }
     s :: "${self}"
     if s.ends_with(".0") {
         sb :: s.bytes()
@@ -211,4 +222,19 @@ import "std/testing"
     assert_eq(strip_numeric_text("1_000",   10),  "1000")
     assert_eq(strip_numeric_text("3.14",    10),  "3.14")
     assert_eq(strip_numeric_text("42",      10),  "42")     // fast path
+}
+
+@test test_to_compact_str_whole_numbers :: fn() -> void {
+    assert_eq((42.0).to_compact_str(), "42")
+    assert_eq((-7.0).to_compact_str(), "-7")
+    assert_eq((-0.0).to_compact_str(), "0")
+    assert_eq((9007199254740991.0).to_compact_str(), "9007199254740991")
+    assert_eq((9007199254740992.0).to_compact_str(), "9007199254740992")
+    assert_eq((1e21).to_compact_str(), "1e+21")
+}
+
+@test test_to_compact_str_fractions :: fn() -> void {
+    assert_eq((0.5).to_compact_str(), "0.5")
+    assert_eq((-2.5e-7).to_compact_str(), "-2.5e-7")
+    assert_eq((1.0 / 0.0).to_compact_str(), "${1.0 / 0.0}")
 }
