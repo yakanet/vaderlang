@@ -59,7 +59,7 @@ dump_function :: fn(fn_: CFGFunction, sb: StringBuilder!) -> void {
         l :: fn_.locals[i]
         sb.append("    %${i} ${l.name}: ${display_type(l.type)}")
         if l.symbol !is null {
-            sb.append(" (${kind_name(l.symbol.kind)} ${l.symbol.name})")
+            sb.append(" (${l.symbol.kind.label} ${l.symbol.name})")
         }
         sb.append("\n")
     }

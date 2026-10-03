@@ -11,43 +11,29 @@ import "vader/diagnostics"
 import "toolchain/ast"
 import "toolchain/span"
 
-// SymbolKind values are kept as i32 (rather than an enum) so an empty list
-// of new variants can be added without touching every match site. Each kind
-// has a stable display name returned by `kind_name`.
-export SymbolKind :: enum(i32) {
-    Fn,
-    Struct,
-    Enum,
-    Trait,
-    Impl,
-    TypeAlias,
-    Const,
-    ImportBinding,
-    Param,
-    TypeParam,
-    Local,
-    Binding,
-    BuiltinType,
-    BuiltinFn,
-    Synthetic,
+/// What a kind of symbol carries besides its identity.
+export SymbolKindInfo :: struct {
+    /// Stable display name, as dumps and diagnostics print it.
+    label: string
 }
 
-export kind_name :: fn(k: SymbolKind) -> string = match k {
-    .Fn            -> "fn"
-    .Struct        -> "struct"
-    .Enum          -> "enum"
-    .Trait         -> "trait"
-    .Impl          -> "impl"
-    .TypeAlias     -> "type-alias"
-    .Const         -> "const"
-    .ImportBinding -> "import-binding"
-    .Param         -> "param"
-    .TypeParam     -> "type-param"
-    .Local         -> "local"
-    .Binding       -> "binding"
-    .BuiltinType   -> "builtin-type"
-    .BuiltinFn     -> "builtin-fn"
-    .Synthetic     -> "synthetic"
+/// What a symbol names ; `kind.label` is its display name.
+export SymbolKind :: enum(SymbolKindInfo) {
+    Fn            { .label = "fn" },
+    Struct        { .label = "struct" },
+    Enum          { .label = "enum" },
+    Trait         { .label = "trait" },
+    Impl          { .label = "impl" },
+    TypeAlias     { .label = "type-alias" },
+    Const         { .label = "const" },
+    ImportBinding { .label = "import-binding" },
+    Param         { .label = "param" },
+    TypeParam     { .label = "type-param" },
+    Local         { .label = "local" },
+    Binding       { .label = "binding" },
+    BuiltinType   { .label = "builtin-type" },
+    BuiltinFn     { .label = "builtin-fn" },
+    Synthetic     { .label = "synthetic" },
 }
 
 export Symbol :: struct {

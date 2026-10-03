@@ -121,23 +121,13 @@ refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken![]!, 
     }
 }
 
-/// Map a `SymbolKind` to the LSP token type the wire format expects.
-/// Falls back to `Variable` for kinds without a meaningful LSP analogue.
-token_type_of_symbol :: fn(k: SymbolKind) -> TokenType {
-    if k == .Fn            { return .Function }
-    if k == .Struct        { return .Type }
-    if k == .Enum          { return .Type }
-    if k == .Trait         { return .Type }
-    if k == .TypeAlias     { return .Type }
-    if k == .BuiltinType   { return .Type }
-    if k == .TypeParam     { return .Type }
-    if k == .BuiltinFn     { return .Function }
-    if k == .Param         { return .Parameter }
-    if k == .Local         { return .Variable }
-    if k == .Binding       { return .Variable }
-    if k == .Const         { return .Variable }
-    if k == .ImportBinding { return .Variable }
-    return .Variable
+/// Map a `SymbolKind` to the LSP token type the wire format expects ; a kind
+/// without a meaningful LSP analogue reads as a `Variable`.
+token_type_of_symbol :: fn(k: SymbolKind) -> TokenType = match k {
+    .Fn | .BuiltinFn                                                  -> .Function
+    .Struct | .Enum | .Trait | .TypeAlias | .BuiltinType | .TypeParam -> .Type
+    .Param                                                            -> .Parameter
+    .Local | .Binding | .Const | .ImportBinding | .Impl | .Synthetic  -> .Variable
 }
 
 /// Modifier bitmask for a symbol kind — `0` for kinds carrying none.

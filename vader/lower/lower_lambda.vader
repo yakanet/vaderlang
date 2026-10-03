@@ -269,8 +269,7 @@ export synth_mono_entry :: fn(ctx: FnLowerCtx!, symbol: Symbol) -> MonoEntry {
 /// Shared with `lower_defer` since defer-lift synthesises the same
 /// shapes (env struct + lifted fn).
 export stub_decl_for :: fn(symbol: Symbol) -> AST.Decl {
-    kind_value :: i32(symbol.kind)
-    if kind_value == i32(SymbolKind.Struct) {
+    if symbol.kind == .Struct {
         struct_decl: AST.Decl: AST.StructDecl { .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID, .name = symbol.name, .name_span = empty_span(), .visibility = .Private, .type_params = [], .fields = [], .decorators = [] }
         return struct_decl
     }

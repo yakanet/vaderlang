@@ -27,7 +27,7 @@ export dump_project :: fn(p: ResolvedProject) -> string {
         sb.append(m.path)
         for s in m.symbols {
             sb.append("\n  ")
-            sb.append(kind_name(s.kind).pad_end(16, ' '))
+            sb.append(s.kind.label.pad_end(16, ' '))
             sb.append_char(' ')
             sb.append(visibility_name(s.visibility).pad_end(8, ' '))
             sb.append_char(' ')
