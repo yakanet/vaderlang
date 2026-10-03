@@ -1,0 +1,23 @@
+// A struct whose impl is `Source<i64>` handed to a `Source<i32>` slot — T3001.
+// Widening a struct into a trait checks the impl's trait arguments, not only
+// that some impl of the trait exists.
+module "snippet"
+
+Source :: trait<T> {
+    get :: fn(self) -> T
+}
+
+Cell :: struct<T> {
+    value: T
+}
+
+Cell<T> implements Source<T> {
+    get :: fn(self) -> T = self.value
+}
+
+read :: fn(s: Source<i32>) -> i32 = s.get()
+
+main :: fn() -> i32 {
+    big :: Cell<i64> { .value = 3_000_000_000 }
+    return read(big)
+}

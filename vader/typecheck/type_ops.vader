@@ -475,6 +475,30 @@ export struct_implements_trait :: fn(t: Type, trait_key: string, typed: TypedPro
     return blocking_bound(t, trait_key, typed) == null
 }
 
+/// True iff `t` implements `wanted` at `wanted`'s own arguments, not merely some
+/// instance of it : `Cell<i64>` implements `Source<i64>`, which is no
+/// `Source<i32>`. The arguments compare without mutability, since the recorded
+/// impl arguments carry no read-only default. A trait written without arguments,
+/// or an impl with none recorded, is decided by `struct_implements_trait` alone.
+///
+/// @param t       the implementing type.
+/// @param wanted  the trait instance a slot asks for.
+/// @param typed   the module asking ; its tables carry every impl it sees.
+export implements_trait_instance :: fn(t: Type, wanted: TraitType, typed: TypedProgram) -> bool {
+    key :: trait_key_of(wanted.symbol)
+    if !struct_implements_trait(t, key, typed) {
+        return false
+    }
+    if wanted.args.len() == 0 {
+        return true
+    }
+    impl_args :: resolve_struct_trait_args(t, key, typed) ?? return true
+    return struct_args_compatible(
+        strip_mutability_each(impl_args),
+        strip_mutability_each(wanted.args),
+    )
+}
+
 /// Why `t` does not implement `trait_key` although an impl of it exists for `t`'s
 /// base : the bound its arguments leave unmet, as a detail suffix. Empty when no
 /// impl's bound is what fails.

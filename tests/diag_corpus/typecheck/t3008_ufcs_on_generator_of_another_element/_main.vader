@@ -1,0 +1,11 @@
+// `.sum()` is declared on `Iterator<i32>` only ; a chain yielding `i64` matches
+// no overload — T3008.
+module "snippet"
+
+import "std/iter"
+
+main :: fn() -> i32 {
+    big: i64: 3_000_000_000
+    total :: (0..<3).map(x -> i64(x) + big).sum()
+    return i32(total)
+}

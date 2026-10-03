@@ -592,8 +592,13 @@ resolve_struct_field :: fn(
     }
     decl :: typed.struct_decls[st.symbol.id]
     if decl is null {
-        // declare_module didn't index the struct decl (cross-module
-        // reference before wire.vader lands, typically).
+        // A generator's state struct has no declaration and no field the source
+        // can name : a member that reached here is a method no overload took.
+        if is_gen_state_struct(st) {
+            report_gen_state_member(e, st, typed, diags)
+        }
+        // Otherwise a placeholder struct for an enum or a type alias
+        // (`type_from_symbol`), whose misses are reported on their own path.
         return TY_UNRESOLVED
     }
     // T3054 : reject reads (and assignment LHS, which types through here too)
@@ -615,6 +620,31 @@ resolve_struct_field :: fn(
     }
     substituted :: substitute_struct_field(found, decl, st)
     return narrow_field_if_active(e, substituted, typed)
+}
+
+// A member no overload took on a generator's result, named for the
+// `Iterator<E>` the source declared rather than the synthetic state struct.
+report_gen_state_member :: fn(
+    e: AST.FieldExpr,
+    st: StructType,
+    typed: TypedProgram,
+    diags: Diagnostic[]!,
+) -> void {
+    receiver := display_type(st)
+    if st.args.len() == 1 {
+        receiver = "Iterator<${display_type(st.args[0])}>"
+    }
+    if ufcs_name_has_candidates(e.field, e.span.start.file, typed) {
+        diags.push(
+            typecheck_error(
+                .NotIndexable,
+                e.span,
+                "no `${e.field}` overload accepts a receiver of type `${receiver}`",
+            ),
+        )
+        return
+    }
+    diags.push(typecheck_error(.FieldDoesNotExist, e.field_span, "`${e.field}` on `${receiver}`"))
 }
 
 /// Declared (pre-narrow, type-arg-substituted) type of a struct-field
