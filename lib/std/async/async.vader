@@ -276,15 +276,22 @@ JoinAny<U, E> implements Async<U | E> {
                 r :: self.children[i].resume()
                 if r is Suspended {
                     self.wake_at[i] = r.wake_at
-                } else if r is Error {
-                    self.wake_at[i] = NEVER
-                    self.failed += 1
-                    self.last = r
                 } else {
-                    for j in 0..<n {
-                        if j != i { self.children[j].cancel() }
+                    // Bound before the `is Error` test, which narrows `r` to the
+                    // trait : `settled` keeps the child's own `U | E`.
+                    settled :: r
+                    if r is Error {
+                        self.wake_at[i] = NEVER
+                        self.failed += 1
+                        self.last = settled
+                    } else {
+                        for j in 0..<n {
+                            if j != i {
+                                self.children[j].cancel()
+                            }
+                        }
+                        return r
                     }
-                    return r
                 }
             }
             next = earlier(next, self.wake_at[i])

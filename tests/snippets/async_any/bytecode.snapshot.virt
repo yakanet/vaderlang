@@ -752,10 +752,10 @@ fn 15 std_async$JoinAny$Async$resume__string__Any (ref) -> any
   local r any
   local $field_19 ref
   local $field_21 i64
-  local $add_27 usize
-  local $cast_28 any
+  local settled any
+  local $add_29 usize
   local j usize
-  local $idx_39 i64
+  local $idx_40 i64
   local.field 0 25 0   ; arg 0 std_async$JoinAny__string__Any.children
   array.len
   local.set 1   ; n
@@ -796,6 +796,8 @@ fn 15 std_async$JoinAny$Async$resume__string__Any (ref) -> any
           store_slot_i64
         else
           local.get 5   ; r
+          local.set 8   ; settled
+          local.get 5   ; r
           type_check 17   ; ref std_core$Error
           if $L4 void
             local.field 0 25 1   ; arg 0 std_async$JoinAny__string__Any.wake_at
@@ -806,14 +808,12 @@ fn 15 std_async$JoinAny$Async$resume__string__Any (ref) -> any
             ref.cast 20   ; usize
             i64.const 1
             i64.add
-            local.set 8   ; $add_27
+            local.set 9   ; $add_29
             local.get 0   ; arg 0
-            local.get 8   ; $add_27
+            local.get 9   ; $add_29
             struct.set 25 2   ; std_async$JoinAny__string__Any.failed
-            local.get 5   ; r
-            local.set 9   ; $cast_28
             local.get 0   ; arg 0
-            local.get 9   ; $cast_28
+            local.get 8   ; settled
             struct.set 25 3   ; std_async$JoinAny__string__Any.last
           else
             i64.const 0
@@ -847,9 +847,9 @@ fn 15 std_async$JoinAny$Async$resume__string__Any (ref) -> any
       local.field 0 25 1   ; arg 0 std_async$JoinAny__string__Any.wake_at
       local.get 4   ; i
       load_slot_i64
-      local.set 11   ; $idx_39
+      local.set 11   ; $idx_40
       local.get 3   ; next
-      local.get 11   ; $idx_39
+      local.get 11   ; $idx_40
       call 19   ; std_async$earlier
       local.set 3   ; next
       local.get 4   ; i

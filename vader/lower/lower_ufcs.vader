@@ -215,36 +215,6 @@ ufcs_specificity :: fn(ctx: FnLowerCtx, recv_type: Type, sym: Symbol) -> i32 {
     return overload_specificity(recv_type, params[0])
 }
 
-// Specificity of `param0` for a receiver `arg0`: the count of arg0's (union)
-// variants that match a CONCRETE (non-type-param) variant of param0. A pure
-// wildcard `T` scores 0; each union member pinned to a concrete receiver variant
-// scores 1. Ranks `T | Boom` above `T | null` for an `i32 | Boom` receiver. A
-// copy of the typecheck-side helper (call.vader) — the lower module can't import
-// it, so the two must stay in sync.
-overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
-    if param0 is TypeParamType { return 0 }
-    if param0 is UnionType {
-        // `const` earns its keep here : the two branches join a read-only field and
-        // a fresh literal, and an inferred `::` join is not a plain array — the
-        // for-in below then falls to the iterator path and the lowerer panics on an
-        // unresolved `next`. Pinning the slot read-only keeps it one array type.
-        arg_vars: Type[]: if arg0 is UnionType as au { au.variants } else { [arg0] }
-        score: i32 = 0
-        for av in arg_vars {
-            for pv in param0.variants {
-                if pv is TypeParamType { continue }
-                if is_assignable(av, pv) {
-                    score = score + 1
-                    break
-                }
-            }
-        }
-        return score
-    }
-    if is_assignable(arg0, param0) { return 1 }
-    return 0
-}
-
 // Declared param types of a UFCS-resolved free fn, receiver slot first. Empty
 // when the symbol carries no fn type — arg preparation then leaves the call alone.
 ufcs_param_types :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type[] {
@@ -284,7 +254,8 @@ build_ufcs_args :: fn(
 
 first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool {
     // Mirror the typer's `receiver_fits_first_param` (field.vader): lead with
-    // general assignability, then the TypeParam wildcard and trait-widening.
+    // assignability to the param with its type parameters erased, then
+    // trait-widening.
     // Keeping the two copies structurally aligned is what stops the recurring
     // drift between typer and lower (a union-first-param UFCS once mis-lowered to
     // a field-access → midir panic). The leading `is_assignable` subsumes
@@ -294,8 +265,9 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
     if fn_ty is FnType {
         if fn_ty.params.len() == 0 { return false }
         first :: fn_ty.params[0]
-        if is_assignable(recv_type, first) { return true }
-        if first is TypeParamType { return true }
+        if is_assignable(recv_type, erase_type_params(first)) {
+            return true
+        }
         // Trait-typed first param (`filter(it: Iterator<T>, …)`) matches a
         // concrete receiver that implements the trait (`StringChars`
         // implements `Iterator<char>`). Consult the project-wide impl
@@ -325,7 +297,7 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
             // UFCS call, lowerer can't resolve it → `a.any_match(p)` mis-lowered to a
             // field-access on a primitive). Use the same predicate the typer
             // does so the two passes can't drift again.
-            return try_array_to_iter(recv_type, first)
+            return try_array_to_iter(recv_type, erase_type_params(first))
         }
         // Lower-only escape for post-monomorphization generic erasure: an erased
         // `Struct<Any>` receiver into `Struct<i32>` shares a surface name, but

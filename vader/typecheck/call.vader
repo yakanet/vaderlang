@@ -103,7 +103,11 @@ pick_overload :: fn(
         if ft.params.len() == 0 {
             continue
         }
-        if !is_assignable(arg0_ty, ft.params[0]) {
+        // A type parameter argument fits through its bound (`it: I` with
+        // `I: Iterator<i32>` against `Iterator<T>`).
+        pattern :: erase_type_params(ft.params[0])
+        fits_bound :: arg0_ty is TypeParamType && try_trait_widen(arg0_ty, pattern, typed)
+        if !is_assignable(arg0_ty, pattern) && !fits_bound {
             continue
         }
         rank :: overload_rank(arg0_ty, ft.params[0], ft.params.len() == c.args.len())
@@ -155,11 +159,16 @@ ambiguous_overload_error :: fn(
     "`${display_type(first.ty)}` and `${display_type(other.ty)}` both accept ${display_type(arg0)} for `${name}` — narrow it with `if`/`match` first",
 )
 
-// Specificity of `param0` for a receiver `arg0`: the count of arg0's (union)
-// variants that match a CONCRETE (non-type-param) variant of param0. A pure
-// wildcard `T` scores 0; each union member pinned to a concrete receiver variant
-// scores 1. Ranks `T | Boom` above `T | null` for an `i32 | Boom` receiver.
-overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
+/// Specificity of `param0` for a receiver `arg0` : the count of `arg0`'s (union)
+/// variants that match a CONCRETE (non-type-param) variant of `param0`. A bare `T`
+/// scores 0 ; each union member pinned to a concrete receiver variant scores 1, so
+/// `T | Boom` ranks above `T | null` for an `i32 | Boom` receiver. The lowerer's
+/// UFCS resolution ranks with it too, so both passes pick the same candidate.
+///
+/// @param arg0    the receiver's, or the first argument's, type.
+/// @param param0  a candidate's declared first parameter.
+/// @return        the score ; the highest wins.
+export overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
     if param0 is TypeParamType {
         return 0
     }
@@ -175,7 +184,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
                 if pv is TypeParamType {
                     continue
                 }
-                if is_assignable(av, pv) {
+                if is_assignable(av, erase_type_params(pv)) {
                     score = score + 1
                     break
                 }
@@ -183,7 +192,7 @@ overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         }
         return score
     }
-    if is_assignable(arg0, param0) {
+    if is_assignable(arg0, erase_type_params(param0)) {
         return 1
     }
     return 0

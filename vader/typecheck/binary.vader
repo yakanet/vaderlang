@@ -325,7 +325,10 @@ check_operator_rhs :: fn(
     method :: if method_impl !is null { method_impl.ty } else { null }
     if method is FnType {
         if method.params.len() > 0 {
-            rhs :: substitute_self_in(method.params[0], recv)
+            // The impl's own parameters are free here : `Rhs = Vec<T>` takes a
+            // `Vec<i32>` right operand. Erased before `Self` becomes `recv`, which
+            // may name the enclosing fn's parameters, held opaque.
+            rhs :: substitute_self_in(erase_type_params(method.params[0]), recv)
             if !is_assignable(operand, rhs) {
                 push_operand_mismatch(recv, operand, rhs, op_label, span, diags)
             }
@@ -374,15 +377,8 @@ check_bounded_operator :: fn(
         return null
     }
     mark_trait_dispatch(typed)
-    if specialised.params.len() > 0 {
-        want :: specialised.params[0]
-        // `want` is `recv` itself for the default `Rhs = Self`. The same type
-        // parameter is the only operand that fits it : assignability would let
-        // any concrete type through.
-        fits :: equals_type(operand, want) || want !is TypeParamType && is_assignable(operand, want)
-        if !fits {
-            push_operand_mismatch(recv, operand, want, op_label, span, diags)
-        }
+    if specialised.params.len() > 0 && !is_assignable(operand, specialised.params[0]) {
+        push_operand_mismatch(recv, operand, specialised.params[0], op_label, span, diags)
     }
     return specialised
 }

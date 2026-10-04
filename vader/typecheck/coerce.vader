@@ -53,9 +53,9 @@ export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
     if expected !is TraitType                 { return false }
     if expected.symbol.name != TRAIT_ITERATOR { return false }
     if expected.args.len() != 1               { return false }
-    // Element compatibility : TypeParam slot accepts anything ;
-    // primitive/struct/etc. must equal.
-    if expected.args[0] is TypeParamType      { return true }
+    // An erased parameter (`erase_type_params`) accepts any element ; anything
+    // else, a type parameter included, must be the array's own.
+    if expected.args[0] is UnresolvedType     { return true }
     return equals_type(got.element, expected.args[0])
 }
 
@@ -89,7 +89,24 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
     if expected !is TraitType {
         return false
     }
+    if got is TypeParamType {
+        return bound_widens_into(got, expected, typed)
+    }
     return implements_trait_instance(got, expected, typed)
+}
+
+// A type parameter is the traits its bound names : `x: T` with `T: Display` fits a
+// `Display` slot, `T: Iterator<i32>` an `Iterator<i32>` one.
+bound_widens_into :: fn(param: TypeParamType, wanted: TraitType, typed: TypedProgram) -> bool {
+    bound :: typed.resolved.type_param_bounds[param.symbol.id] ?? return false
+    bound_args :: bounded_trait_args(bound, trait_key_of(wanted.symbol), typed) ?? return false
+    if wanted.args.len() == 0 || bound_args.len() == 0 {
+        return true
+    }
+    return struct_args_compatible(
+        strip_mutability_each(bound_args),
+        strip_mutability_each(wanted.args),
+    )
 }
 
 // ---- tests ----------------------------------------------------------------

@@ -598,11 +598,11 @@ The flow is bidirectional:
 - **Top-down (slot expected)** — typed lets, struct-field defaults, fn-arg slots, struct-lit field values, return-type-annotated `return …`, indexed `arr[i]` (slot is the impl's `I` type), comparison/arithmetic where one side has a concrete numeric type. The literal repins to the expected width.
 - **Unary `-`, `~`** — the operand inherits the operator's outer expected type, so `g: i64 = -50` lowers the inner `50` as `i64`, not `i32`.
 - **Generic call sites** — after type-parameter unification, FreeInt args adopt the substituted concrete width. Works through plain calls, generic UFCS, and namespace imports.
-
-A **type parameter is not a numeric context**. Inside a generic body, a free literal into a slot typed `T` — `s: T = 0`, `return 'a'`, `pick(x, 0)` where `pick` takes two `T`, `f(2.5)` through a parameter `f: fn(T) -> T`, the right operand of `x > 0` with `T: Comparable` — is rejected (T3001, T3017 on an operator): no bound says `T` is numeric, and `0` is no value of a `T = string` instance. A call through a fn-typed parameter binds none of the enclosing fn's type parameters; a local holding a generic fn (`g :: identity`) still binds its own at each call.
 - **Cross-branch in `if`** — when one branch of an if-expression produces a concrete numeric type and the other is a Free literal, the Free side repins to match (so `if c { 0 } else { width: usize }` types to `usize`, not `{integer} | usize`).
 
 When no context applies, the literal falls back to its **default** (`i32` for integers, `f64` for floats). The default is what `x := 42` records.
+
+A type parameter is **not** a numeric context: inside a generic body, a free literal never fits a slot typed `T` (§Generics, *Type parameters are opaque in their body*).
 
 ### Type coercion via `Into`
 
@@ -1407,6 +1407,29 @@ make_buffer :: fn<N: i32>() -> FixedArray<u8, N> { ... }
 **Bound enforcement and trait-method dispatch on type parameters**: both wired since Layer 7e. The typechecker:
 - Resolves `key.hash()` inside a generic body where `key: K` and `K: Hash` to the trait method statically, then mono-substitutes it to the concrete type's impl member. An operator on such a parameter goes the same way (`a + b` with `T: Add`, `a < b` with `T: Comparable` — see *Operator overloading*).
 - At every call site of a generic fn, walks the call-site type-args against each type-param's angle-bracketed bound (`<T: Trait>`). Any concrete type lacking an explicit `T implements Trait` impl yields T3006 ("trait not satisfied").
+
+**Type parameters are opaque in their body.** A generic body must hold for every instance, so it knows nothing of `T` beyond its bound: only a `T` fits a slot typed `T`, and a `T` fits only a slot that names it (`T`, or a union such as `T | null`). Each of these is rejected (T3001; T3020 on a `return`; T3017 on an operator's right operand), because a `T = string` instance would receive an integer or hand one out:
+
+```vader
+widen :: fn<T>(x: T) -> i64 {
+    n: i64: x            // a T is no i64
+    return n
+}
+
+narrow :: fn<T>(x: T) -> T {
+    y: i64: 5
+    return y             // nor is an i64 a T
+}
+
+zero :: fn<T: Add>(x: T) -> T {
+    s: T: 0              // nor is a free literal
+    return s.add(x)
+}
+```
+
+The same holds for `pick(x, 0)` where `pick` takes two `T`, for `f(2.5)` through a parameter `f: fn(T) -> T`, and for `x > 0` with `T: Comparable`. A call through a fn-typed parameter binds none of the enclosing fn's type parameters; a local holding a generic fn (`g :: identity`) still binds its own at each call.
+
+Matching an argument against a signature that nothing has instantiated yet is a different question, where a type parameter is still free: choosing an overload, choosing the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>`), and checking the fields of a generic struct literal written without type arguments (`Box { .value = [4, 5] }`). A free literal still needs a type to land on, and such a literal binds none: `Box { .value = 0 }` is T3001 — write `Box<i32> { .value = 0 }`.
 
 **Limitations (MVP)**:
 - **No "associated functions"** (static methods on a type) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap<K, V> { ... }` for struct-literal construction. Post-MVP candidate.

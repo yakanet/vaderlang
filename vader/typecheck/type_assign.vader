@@ -1,5 +1,5 @@
 // Assignability dispatch + per-variant fns. The dispatcher does the
-// symmetric pre-checks (Unresolved, Never, equals, TypeParam wildcard),
+// symmetric pre-checks (Unresolved, Never, equals, opaque TypeParam),
 // then routes to one of the per-variant fns via a single `match from`.
 //
 // All variants pass through `check_common` last : `to is Union` element-wise
@@ -39,13 +39,12 @@ export is_assignable :: fn(from: Type, to: Type) -> bool {
     if mutability_widens(from, to) { return false }
     if equals_type(from, to) { return true }
 
-    // TypeParam wildcard — accepts any concrete type. Lets a generic
-    // `fn<K, V>(self: MutableMap<K, V>)` fn accept a concrete
-    // `MutableMap<string, i32>` receiver via UFCS dispatch.
-    if from is TypeParamType { return true }
-    // A free literal fits no type parameter : no bound says `T` is numeric, and a
-    // `0` reaching a `T = string` instance is a run-time fault.
-    if to is TypeParamType { return !is_free_numeric(from) }
+    // A type parameter is opaque : the body must hold for every instance, so only
+    // the same parameter fits it (`y: i64` returned as a `T` is a `T = string`
+    // instance returning an integer), and it fits nothing but a union naming it
+    // (`check_common` below). Matching an argument against a signature nothing has
+    // instantiated yet is another question, asked on `erase_type_params(param)`.
+    if to is TypeParamType { return false }
 
     // @partial: variants with a bespoke rule are listed; everything else shares check_common.
     return @partial match from {
@@ -136,8 +135,8 @@ export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type) -> bool 
 /// forbidden). The element is **covariant** into a `const` (read-only) target
 /// but **invariant** into a mutable one : covariance on a mutable array is
 /// unsound (arrays are reference-aliased — SPEC §Arrays — so a write through a
-/// widened alias would violate the source element type). TypeParam / Unresolved
-/// elements stay wildcards (accepted both ways by `is_assignable`).
+/// widened alias would violate the source element type). Unresolved elements
+/// stay wildcards (accepted both ways by `is_assignable`).
 export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool {
     if to is ArrayType {
         if self.immutable && !to.immutable { return false }
@@ -149,8 +148,8 @@ export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool 
         }
         // Mutable target : element must be INVARIANT. Bidirectional
         // assignability = invariance for concrete types, while the
-        // TypeParam / Unresolved wildcard (true both ways in `is_assignable`)
-        // survives. A covariant `i32[]` → `(i32 | string)[]` is rejected here —
+        // Unresolved wildcard (true both ways in `is_assignable`) survives.
+        // A covariant `i32[]` → `(i32 | string)[]` is rejected here —
         // a write `b[0] = "hi"` through the alias would corrupt the shared i32
         // buffer. Fresh literals sidestep this : they adopt the target element
         // type in `infer_against_array`, so the init is reflexive.
@@ -163,8 +162,7 @@ export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool 
     return check_common(from, to)
 }
 
-/// `from is FnType`. Params contravariant, return covariant. TypeParam
-/// on either side is a wildcard (MVP — bound enforcement lives in unify).
+/// `from is FnType`. Params contravariant, return covariant.
 export is_assignable_fn :: fn(from: Type, self: FnType, to: Type) -> bool {
     match to {
         is FnType -> {
@@ -386,10 +384,8 @@ is_assignable_free_literal :: fn(from: Type, to: Type) -> bool {
 
 // ---- helpers shared by struct/fn/array variants ---------------------------
 
-/// Single-arg compatibility used by Fn → Fn and Array → Array. The
-/// TypeParam wildcard is already handled symmetrically by
-/// `is_assignable` itself ; this alias documents the variance intent
-/// at the call site.
+/// Single-arg compatibility used by Fn → Fn and Array → Array. An alias of
+/// `is_assignable` that documents the variance intent at the call site.
 export fn_param_compatible :: fn(a: Type, b: Type) -> bool {
     return is_assignable(a, b)
 }
@@ -402,10 +398,9 @@ export fn_param_compatible :: fn(a: Type, b: Type) -> bool {
 /// generic container — `MutableMap<i32, i32>` → `MutableMap<i32, i32 | string>`
 /// would let a write through the widened alias corrupt the shared `i32` backing,
 /// the exact reference-aliasing hole `is_assignable_array` closes for a mutable
-/// array element. TypeParam / Unresolved args stay wildcards (true both ways in
-/// `is_assignable`), so generic code is unaffected ; only a concrete widen/narrow
-/// between differing args is rejected. The equal-arg fast path keeps the dominant
-/// `Foo<T>` → `Foo<T>` case single-pass.
+/// array element. Unresolved args stay wildcards (true both ways in
+/// `is_assignable`) ; a type parameter matches only itself. The equal-arg fast
+/// path keeps the dominant `Foo<T>` → `Foo<T>` case single-pass.
 export struct_args_compatible :: fn(a: Type[], b: Type[]) -> bool {
     if a.len() != b.len() { return false }
     for i in 0..<a.len() {
@@ -419,6 +414,7 @@ export struct_args_compatible :: fn(a: Type[], b: Type[]) -> bool {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/resolver/symbol"
 
 @test
 test_assignable_identity :: fn() -> void {
@@ -497,4 +493,32 @@ test_array_unresolved_element_wildcard :: fn() -> void {
     i32_arr:        Type: mk_array(mk_primitive("i32"), false)
     assert(is_assignable(unresolved_arr, i32_arr), "?[] → i32[] (mutable — wildcard)")
     assert(is_assignable(i32_arr, unresolved_arr), "i32[] → ?[] (mutable — wildcard)")
+}
+
+type_param_named :: fn(name: string) -> Type {
+    factory :: SymbolFactory {}
+    return mk_type_param(factory.make(.TypeParam, name, "test", "test", .Private, null))
+}
+
+@test
+test_type_param_is_opaque :: fn() -> void {
+    // A generic body holds for every instance at once : only `T` fits a `T`, and a
+    // `T` fits only a slot that names it.
+    t :: type_param_named("T")
+    i64_t: Type: mk_primitive("i64")
+    assert(is_assignable(t, t), "T → T")
+    assert(!is_assignable(i64_t, t), "i64 ↛ T")
+    assert(!is_assignable(t, i64_t), "T ↛ i64")
+    assert(!is_assignable(TY_FREE_INT, t), "{integer} ↛ T")
+    assert(is_assignable(t, mk_union([t, TY_NULL])), "T → T | null")
+}
+
+@test
+test_erased_type_param_fits_any_argument :: fn() -> void {
+    // Matching against a signature nothing has instantiated yet erases its
+    // parameters first.
+    t :: type_param_named("T")
+    i32_arr: Type: mk_array(mk_primitive("i32"), false)
+    assert(!is_assignable(i32_arr, mk_array(t, false)), "i32[] ↛ T[]")
+    assert(is_assignable(i32_arr, erase_type_params(mk_array(t, false))), "i32[] → erased T[]")
 }

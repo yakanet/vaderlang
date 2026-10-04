@@ -815,15 +815,15 @@ static void std_io_println__string(vader_string_t l0) {
 }
 
 static vader_box_t std_async_JoinAny_Async_resume__string__Any(void* l0) {
-    size_t l1, l4, l8, l10;
+    size_t l1, l4, l9, l10;
     int64_t l2, l3, l7, l11;
-    vader_box_t l5 = vader_box_null(), l9 = vader_box_null();
+    vader_box_t l5 = vader_box_null(), l8 = vader_box_null();
     void* l6 = NULL;
     int64_t t0;
     vader_box_t t1 = vader_box_null();
     void* t2 = NULL;
     size_t t3;
-    vader_box_t* gc_roots[3] = { &l5, &l9, &t1 };
+    vader_box_t* gc_roots[3] = { &l5, &l8, &t1 };
     void** gc_raw_roots[3] = { &l0, &l6, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -859,47 +859,52 @@ static vader_box_t std_async_JoinAny_Async_resume__string__Any(void* l0) {
                 VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
                 ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4] = (int64_t) l7;
 #line 277 "lib/std/async/async.vader"
-#line 279 "lib/std/async/async.vader"
-            } else if ((l5.tag == 17u) || (l5.tag == 1u)) {
-#line 280 "lib/std/async/async.vader"
-                vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_wake_at);
-                VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
-                VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l4)
-                ((int64_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l4] = (int64_t) INT64_C(9223372036854775807);
-#line 281 "lib/std/async/async.vader"
-                t3 = ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_failed;
-                t0 = (t3 + INT64_C(1));
-                l8 = (size_t) (int64_t) t0;
-                ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_failed = l8;
 #line 282 "lib/std/async/async.vader"
-                l9 = l5;
-                ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_last = l9;
-                VADER_WRITE_BARRIER((vader_struct_std_async_JoinAny__string__Any_t*) l0);
-#line 279 "lib/std/async/async.vader"
-#line 284 "lib/std/async/async.vader"
             } else {
-                l10 = (size_t) 0;
-                while ((l10 < l1)) {
-#line 285 "lib/std/async/async.vader"
-                    if (l10 != l4) {
-                        vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_children);
-                        VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
-                        VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l10)
-                        t1 = vader_array_ref_load_box(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l10);
-                        vader_vt_std_core_Async__cancel(t1);
-                    }
+                l8 = l5;
+#line 283 "lib/std/async/async.vader"
+                if ((l5.tag == 17u) || (l5.tag == 1u)) {
 #line 284 "lib/std/async/async.vader"
-                    t0 = (l10 + INT64_C(1));
-                    l10 = (size_t) (int64_t) t0;
+                    vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_wake_at);
+                    VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+                    VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l4)
+                    ((int64_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l4] = (int64_t) INT64_C(9223372036854775807);
+#line 285 "lib/std/async/async.vader"
+                    t3 = ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_failed;
+                    t0 = (t3 + INT64_C(1));
+                    l9 = (size_t) (int64_t) t0;
+                    ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_failed = l9;
+#line 286 "lib/std/async/async.vader"
+                    ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_last = l8;
+                    VADER_WRITE_BARRIER((vader_struct_std_async_JoinAny__string__Any_t*) l0);
+#line 283 "lib/std/async/async.vader"
+#line 288 "lib/std/async/async.vader"
+                } else {
+                    l10 = (size_t) 0;
+                    while ((l10 < l1)) {
+#line 289 "lib/std/async/async.vader"
+                        if (l10 != l4) {
+#line 290 "lib/std/async/async.vader"
+                            vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_children);
+                            VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
+                            VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l10)
+                            t1 = vader_array_ref_load_box(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l10);
+                            vader_vt_std_core_Async__cancel(t1);
+#line 289 "lib/std/async/async.vader"
+                        }
+#line 288 "lib/std/async/async.vader"
+                        t0 = (l10 + INT64_C(1));
+                        l10 = (size_t) (int64_t) t0;
+                    }
+#line 293 "lib/std/async/async.vader"
+                    { vader_box_t __vret = l5; vader_gc_top = gc_frame.prev; return __vret; }
+#line 283 "lib/std/async/async.vader"
                 }
-#line 287 "lib/std/async/async.vader"
-                { vader_box_t __vret = l5; vader_gc_top = gc_frame.prev; return __vret; }
-#line 279 "lib/std/async/async.vader"
-            }
 #line 277 "lib/std/async/async.vader"
+            }
 #line 275 "lib/std/async/async.vader"
         }
-#line 290 "lib/std/async/async.vader"
+#line 297 "lib/std/async/async.vader"
         vader_array_t* _a5_slotarr = ((vader_array_t*) ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_wake_at);
         VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l4)
@@ -909,24 +914,24 @@ static vader_box_t std_async_JoinAny_Async_resume__string__Any(void* l0) {
         t0 = (l4 + INT64_C(1));
         l4 = (size_t) (int64_t) t0;
     }
-#line 292 "lib/std/async/async.vader"
+#line 299 "lib/std/async/async.vader"
     t3 = ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_failed;
     if (t3 == l1) {
-#line 293 "lib/std/async/async.vader"
+#line 300 "lib/std/async/async.vader"
         l5 = ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_last;
-#line 294 "lib/std/async/async.vader"
+#line 301 "lib/std/async/async.vader"
         if (!(l5.tag == 0u)) {
             { vader_box_t __vret = l5; vader_gc_top = gc_frame.prev; return __vret; }
         }
-#line 296 "lib/std/async/async.vader"
+#line 303 "lib/std/async/async.vader"
         vader_struct_std_core_Suspended_t* _a6_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
         vader_obj_header_init(_a6_obj, 7u);
         _a6_obj->f_wake_at = l3;
         t2 = (void*) _a6_obj;
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
-#line 292 "lib/std/async/async.vader"
+#line 299 "lib/std/async/async.vader"
     }
-#line 296 "lib/std/async/async.vader"
+#line 303 "lib/std/async/async.vader"
     vader_struct_std_core_Suspended_t* _a7_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
     vader_obj_header_init(_a7_obj, 7u);
     _a7_obj->f_wake_at = l3;
@@ -943,7 +948,7 @@ static void std_async_JoinAny_Async_cancel__string__Any(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 299 "lib/std/async/async.vader"
+#line 306 "lib/std/async/async.vader"
     l1 = ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_children;
     l2 = ((vader_array_t*) l1)->length;
     l3 = (size_t) 0;
@@ -956,7 +961,7 @@ static void std_async_JoinAny_Async_cancel__string__Any(void* l0) {
         t1 = (l3 + INT64_C(1));
         l3 = (size_t) (int64_t) t1;
     }
-#line 298 "lib/std/async/async.vader"
+#line 305 "lib/std/async/async.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -1074,7 +1079,7 @@ static vader_box_t std_async_join_any__string__Any(void* l0) {
     void** gc_raw_roots[3] = { &l0, &l1, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 311 "lib/std/async/async.vader"
+#line 318 "lib/std/async/async.vader"
     vader_array_t* _a0_arr = vader_array_new(33u, 1u, 8u, 24u);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int64_t) INT64_C(0);
     l1 = (void*) _a0_arr;

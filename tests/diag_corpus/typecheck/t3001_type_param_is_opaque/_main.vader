@@ -1,0 +1,21 @@
+// A type parameter is opaque inside its generic body — T3001 both ways, T3020 on
+// the return. The body must hold for every instance : an `i64` is no value of a
+// `T = string` one, and a `T` may not be one.
+module "snippet"
+
+widen :: fn<T>(x: T) -> i64 {
+    n: i64: x
+    return n
+}
+
+narrow :: fn<T>(x: T) -> T {
+    y: i64: 5
+    return y
+}
+
+main :: fn() -> i32 {
+    if widen(1) == narrow(2) {
+        return 1
+    }
+    return 0
+}

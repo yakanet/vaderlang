@@ -110,8 +110,15 @@ check_field :: fn(
             "field `${f.name}` already provided in this struct literal"))
     }
     provided.push(f.name)
-    if is_assignable(got, expected) { return }
-    if try_into(got, expected, typed, f.value.id) { return }
+    // A literal written without type arguments (`Box { .value = [4, 5] }`) binds
+    // none of its struct's parameters, so its fields match them as a pattern —
+    // except a free literal, which needs a type to land on and gets none
+    // (`Box { .value = 0 }` ; `Box<i32> { … }` gives it one).
+    unbound_args :: decl is AST.StructDecl && st.args.len() < decl.type_params.len()
+    as_pattern :: unbound_args && !is_free_numeric(got)
+    want :: if as_pattern { erase_type_params(expected) } else { expected }
+    if is_assignable(got, want)               { return }
+    if try_into(got, want, typed, f.value.id) { return }
     diags.push(typecheck_error(.TypeMismatch, f.span,
         "expected ${display_type(expected)}, got ${display_type(got)}"))
 }

@@ -797,34 +797,34 @@ static vader_box_t std_async_Timeout_Async_resume__string(void* l0) {
         vader_gc_top, 3u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 338 "lib/std/async/async.vader"
+#line 345 "lib/std/async/async.vader"
     l1 = vader_vt_std_core_Async__resume(((vader_struct_std_async_Timeout__string_t*) l0)->f_child);
-#line 339 "lib/std/async/async.vader"
+#line 346 "lib/std/async/async.vader"
     if (!(l1.tag == 8u)) {
-#line 349 "lib/std/async/async.vader"
+#line 356 "lib/std/async/async.vader"
         vader_vt_std_core_Async__cancel(((vader_struct_std_async_Timeout__string_t*) l0)->f_timer);
-#line 350 "lib/std/async/async.vader"
+#line 357 "lib/std/async/async.vader"
         t0 = l1.payload.s;
         t1 = vader_box_string(7u, t0);
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 339 "lib/std/async/async.vader"
-    }
-#line 340 "lib/std/async/async.vader"
-    l2 = vader_vt_std_core_Async__resume(((vader_struct_std_async_Timeout__string_t*) l0)->f_timer);
-#line 341 "lib/std/async/async.vader"
-    if (!(l2.tag == 8u)) {
-#line 345 "lib/std/async/async.vader"
-        vader_vt_std_core_Async__cancel(((vader_struct_std_async_Timeout__string_t*) l0)->f_child);
 #line 346 "lib/std/async/async.vader"
+    }
+#line 347 "lib/std/async/async.vader"
+    l2 = vader_vt_std_core_Async__resume(((vader_struct_std_async_Timeout__string_t*) l0)->f_timer);
+#line 348 "lib/std/async/async.vader"
+    if (!(l2.tag == 8u)) {
+#line 352 "lib/std/async/async.vader"
+        vader_vt_std_core_Async__cancel(((vader_struct_std_async_Timeout__string_t*) l0)->f_child);
+#line 353 "lib/std/async/async.vader"
         t2 = ((vader_struct_std_async_Timeout__string_t*) l0)->f_ms;
         vader_struct_std_async_TimeoutError_t* _a0_obj = (vader_struct_std_async_TimeoutError_t*) vader_gc_alloc(sizeof(vader_struct_std_async_TimeoutError_t));
         vader_obj_header_init(_a0_obj, 15u);
         _a0_obj->f_ms = t2;
         t3 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
-#line 341 "lib/std/async/async.vader"
+#line 348 "lib/std/async/async.vader"
     }
-#line 342 "lib/std/async/async.vader"
+#line 349 "lib/std/async/async.vader"
     t3 = l1.payload.obj;
     l3 = ((vader_struct_std_core_Suspended_t*) t3)->f_wake_at;
     t3 = l2.payload.obj;
@@ -841,11 +841,11 @@ static void std_async_Timeout_Async_cancel__string(void* l0) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 353 "lib/std/async/async.vader"
+#line 360 "lib/std/async/async.vader"
     vader_vt_std_core_Async__cancel(((vader_struct_std_async_Timeout__string_t*) l0)->f_child);
-#line 354 "lib/std/async/async.vader"
+#line 361 "lib/std/async/async.vader"
     vader_vt_std_core_Async__cancel(((vader_struct_std_async_Timeout__string_t*) l0)->f_timer);
-#line 352 "lib/std/async/async.vader"
+#line 359 "lib/std/async/async.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -929,7 +929,7 @@ static vader_string_t std_async_TimeoutError_Error_message(void* l0) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 323 "lib/std/async/async.vader"
+#line 330 "lib/std/async/async.vader"
     l1 = std_core_new_byte_buffer((size_t) 48);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 6u);
@@ -977,7 +977,7 @@ static vader_box_t std_async_timeout__string(int64_t l0, vader_box_t l1) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 366 "lib/std/async/async.vader"
+#line 373 "lib/std/async/async.vader"
     l2 = std_async_sleep(l0);
     vader_struct_std_async_Timeout__string_t* _a0_obj = (vader_struct_std_async_Timeout__string_t*) vader_gc_alloc(sizeof(vader_struct_std_async_Timeout__string_t));
     vader_obj_header_init(_a0_obj, 23u);

@@ -2489,9 +2489,8 @@ assign_tuple :: fn(
         return
     }
     // Skip the diagnostic when the value type is unresolved (upstream
-    // error already fired) or a bare type-param (generic body —
-    // checked per instance, not at the definition).
-    if declared !is UnresolvedType && declared !is TypeParamType {
+    // error already fired).
+    if declared !is UnresolvedType {
         diags.push(
             typecheck_error(
                 .TypeMismatch,

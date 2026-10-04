@@ -305,9 +305,9 @@ member_completion :: fn(state: ServerState!, uri: string, line0: i32, dot_col: i
     // Free-fn UFCS methods — a free `fn(self: T, …)` called as `recv.f(…)`, e.g.
     // `mint :: fn(self: NodeIdFactory)` invoked `f.mint()`. Not in an impl block,
     // so the loop above misses them ; match every free fn whose first param fits.
-    // Skipped for UnresolvedType / TypeParamType receivers : is_assignable matches
-    // those against EVERY free fn (type_assign.vader), so the loop would be noise —
-    // a bound type param's real methods come from the bound walk just below.
+    // Skipped for UnresolvedType / TypeParamType receivers : an Unresolved one fits
+    // EVERY free fn, so the loop would be noise — and a bound type param's real
+    // methods come from the bound walk just below.
     if !(recv_type is UnresolvedType) && !(recv_type is TypeParamType) {
         // `sf.program.file`, not `file_path` : the overload table is keyed by
         // the path the parser stamped into the file's spans, and only that form
