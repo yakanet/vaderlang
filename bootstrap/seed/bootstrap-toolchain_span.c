@@ -1,5 +1,7 @@
 #include "bootstrap.split.h"
 
+static uint64_t toolchain_span_span_key_mix(uint64_t l0);
+
 vader_string_t toolchain_span_Span_Display_to_string(void* l0) {
     void* l1 = NULL;
     size_t l2;
@@ -17,15 +19,15 @@ vader_string_t toolchain_span_Span_Display_to_string(void* l0) {
     t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_line;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core_write_int(l1, l2, l3);
-    l2 = std_core_write_string_at(l1, l2, 294u);
+    l2 = std_core_write_string_at(l1, l2, 316u);
     t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_column;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core_write_int(l1, l2, l3);
-    l2 = std_core_write_string_at(l1, l2, 245u);
+    l2 = std_core_write_string_at(l1, l2, 263u);
     t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_end)->f_line;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core_write_int(l1, l2, l3);
-    l2 = std_core_write_string_at(l1, l2, 294u);
+    l2 = std_core_write_string_at(l1, l2, 316u);
     t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_end)->f_column;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core_write_int(l1, l2, l3);
@@ -63,25 +65,17 @@ bool toolchain_span_Span_Equals_equals(void* l0, void* l1) {
     if (l4) {
         l5 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_end)->f_column;
         l6 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l1)->f_end)->f_column;
-        l4 = l5 == l6;
-    } else {
-        l4 = false;
+        return l5 == l6;
     }
-    return l4;
+    return false;
 }
 
 uint64_t toolchain_span_Span_Hash_hash(void* l0) {
     uint64_t l1, l2;
-    vader_string_t t0 = 0;
+    vader_string_t t0;
     uint64_t t1;
     int64_t t2;
     int32_t t3;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
     t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_file;
     t1 = std_core_string_Hash_hash_vt(t0);
     t2 = (t1 * INT64_C(1000003));
@@ -94,7 +88,8 @@ uint64_t toolchain_span_Span_Hash_hash(void* l0) {
     t3 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_column;
     t2 = ((int64_t) (int32_t) t3);
     l2 = (uint64_t) (int64_t) t2;
-    { uint64_t __vret = (uint64_t) (int64_t) (l1 + l2); vader_gc_top = gc_frame.prev; return __vret; }
+    t1 = toolchain_span_span_key_mix((uint64_t) (int64_t) (l1 + l2));
+    return t1;
 }
 
 void* toolchain_span_empty_span(void) {
@@ -105,21 +100,21 @@ void* toolchain_span_empty_span(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_toolchain_span_Position_t* _a0_obj = (vader_struct_toolchain_span_Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Position_t));
-    vader_obj_header_init(_a0_obj, 463u);
-    _a0_obj->f_file = 340u;
+    vader_obj_header_init(_a0_obj, 486u);
+    _a0_obj->f_file = 362u;
     _a0_obj->f_offset = (size_t) 0;
     _a0_obj->f_line = INT32_C(1);
     _a0_obj->f_column = INT32_C(1);
     l0 = (void*) _a0_obj;
     vader_struct_toolchain_span_Position_t* _a1_obj = (vader_struct_toolchain_span_Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Position_t));
-    vader_obj_header_init(_a1_obj, 463u);
-    _a1_obj->f_file = 340u;
+    vader_obj_header_init(_a1_obj, 486u);
+    _a1_obj->f_file = 362u;
     _a1_obj->f_offset = (size_t) 1;
     _a1_obj->f_line = INT32_C(1);
     _a1_obj->f_column = INT32_C(2);
     l1 = (void*) _a1_obj;
     vader_struct_toolchain_span_Span_t* _a2_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
-    vader_obj_header_init(_a2_obj, 464u);
+    vader_obj_header_init(_a2_obj, 487u);
     _a2_obj->f_start = l0;
     _a2_obj->f_end = l1;
     t0 = (void*) _a2_obj;
@@ -134,13 +129,26 @@ bool toolchain_span_has_source_position(void* l0) {
         return false;
     }
     t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_file;
-    if (t0 == 340u) {
+    if (t0 == 362u) {
         return false;
     }
     t0 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_file;
-    if (t0 == 338u) {
-        return false;
+    if (!(t0 == 360u)) {
+        t1 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_line;
+        return (t1 > INT32_C(0));
     }
-    t1 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) l0)->f_start)->f_line;
-    return (t1 > INT32_C(0));
+    return false;
+}
+
+static uint64_t toolchain_span_span_key_mix(uint64_t l0) {
+    uint64_t l1, l2;
+    int64_t t0;
+    l1 = (l0 >> INT64_C(33));
+    t0 = ((l0 ^ l1) * INT64_C(-49064778989728563));
+    l1 = (uint64_t) (int64_t) t0;
+    l2 = (l1 >> INT64_C(33));
+    t0 = ((l1 ^ l2) * INT64_C(-4265267296055464877));
+    l1 = (uint64_t) (int64_t) t0;
+    l2 = (l1 >> INT64_C(33));
+    return (uint64_t) (int64_t) (l1 ^ l2);
 }
