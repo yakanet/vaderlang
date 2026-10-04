@@ -25,8 +25,6 @@ TransportError implements Error {
     message :: fn(self) -> string { return self.msg }
 }
 
-is_ascii_space :: fn(c: char) -> bool { return c == ' ' || c == '\t' }
-
 /// Read one JSON-RPC frame from stdin. Returns the raw JSON body as a
 /// UTF-8 string ; the caller parses it. Blocks until a complete frame
 /// arrives. Returns `TransportError` on malformed headers, missing
@@ -62,7 +60,7 @@ export read_frame :: fn() -> string | TransportError {
                             } else {
                                 if line.starts_with("Content-Length:") {
                                     raw :: line_bytes[15..<line_bytes.len()].bytes_to_string()
-                                    trimmed :: trim_ascii(raw)
+                                    trimmed :: raw.trim()
                                     parsed :: trimmed.parse_int()
                                     match parsed {
                                         is ParseError -> { return TransportError { .msg = "malformed Content-Length: ${trimmed}" } }
@@ -90,24 +88,6 @@ export read_frame :: fn() -> string | TransportError {
         is IOError -> { return TransportError { .msg = "EOF in body" } }
         is string -> { return body }
     }
-}
-
-/// Trim leading + trailing ASCII whitespace (space, tab). Inlined here
-/// rather than imported from `std/string` because `std/string.trim`
-/// recognises additional codepoints we don't care about for HTTP-style
-/// header values.
-trim_ascii :: fn(s: string) -> string {
-    sb :: s.bytes()
-    n :: sb.len()
-    start: usize = 0
-    end := n
-    for start < end {
-        if is_ascii_space(s.char_at_byte(start)) { start = start + 1 } else { break }
-    }
-    for end > start {
-        if is_ascii_space(s.char_at_byte(end - 1)) { end = end - 1 } else { break }
-    }
-    return sb[start..<end].bytes_to_string()
 }
 
 

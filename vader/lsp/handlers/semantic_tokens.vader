@@ -23,20 +23,7 @@ import "vader/lexer"
 import "vader/fmt"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
-
-// ASCII-aware predicates used by the inner scanners. They operate on
-// `char` rather than `u8` so the source reads with the character itself
-// (`c == '@'`, `c in 'A'..='Z'`) — the comment text is short so the
-// per-step UTF-8 decode cost is irrelevant. For the full-source scanner
-// in `vader/fmt/comments` the byte-level path is kept for throughput.
-
-is_ident_char :: fn(c: char) -> bool {
-    return c in 'A'..='Z' || c in 'a'..='z' || c in '0'..='9' || c == '_'
-}
-
-is_ascii_space :: fn(c: char) -> bool {
-    return c == ' ' || c == '\t'
-}
+import "vader/text"
 
 // ---- handler --------------------------------------------------------------
 
@@ -228,8 +215,7 @@ make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
 // from `comment.line.documentation.vader` ; only the tag fragments
 // receive semantic-token treatment.
 collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]!) -> void {
-    text :: c.text
-    text_bytes :: text.bytes()
+    text_bytes :: c.text.bytes()
     n :: text_bytes.len()
     i: usize = 0
     line :: c.line - 1   // 0-based
@@ -238,13 +224,12 @@ collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]!) -> void {
     // encoding, so an indented doc line and a multi-byte narrative before the tag
     // (`/// café @param x`) both land correctly with no manual bookkeeping.
     for i < n {
-        ch :: text.char_at_byte(i)
-        if ch != '@' {
+        if text_bytes[i] != '@' {
             i = i + 1
             continue
         }
         // Try to match `@param name`, `@return`, `@error`, `@example`.
-        tag_end :: scan_ident_end(text, i + 1)
+        tag_end :: scan_ident_end(text_bytes, i + 1)
         if tag_end == i + 1 {
             i = i + 1
             continue
@@ -268,11 +253,10 @@ collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]!) -> void {
         if tag_name == "param" {
             // Skip whitespace then capture an identifier.
             j: usize = i
-            for j < n {
-                bb :: text.char_at_byte(j)
-                if is_ascii_space(bb) { j = j + 1 } else { break }
+            for j < n && (text_bytes[j] == ' ' || text_bytes[j] == '\t') {
+                j = j + 1
             }
-            name_end :: scan_ident_end(text, j)
+            name_end :: scan_ident_end(text_bytes, j)
             if name_end > j {
                 out.push(RawToken {
                     .line         = line,
@@ -289,11 +273,10 @@ collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]!) -> void {
     }
 }
 
-scan_ident_end :: fn(s: string, start: usize) -> usize {
-    n :: s.bytes().len()
+scan_ident_end :: fn(bs: u8[], start: usize) -> usize {
+    n :: bs.len()
     j := start
-    for j < n {
-        if !is_ident_char(s.char_at_byte(j)) { break }
+    for j < n && is_ident_byte(bs[j]) {
         j = j + 1
     }
     return j
