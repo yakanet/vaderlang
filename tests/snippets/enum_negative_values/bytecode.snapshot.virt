@@ -30,34 +30,34 @@ fn 0 snippet$name (i8) -> string
   i32.eq
   if $L0 void
     string.const 0   ; "low"
+    local.tee 1   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  i32.const -1
+  i32.eq
+  if $L1 void
+    string.const 1   ; "mid"
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    i32.const -1
+    i32.const 0
     i32.eq
-    if $L1 void
-      string.const 1   ; "mid"
+    if $L2 void
+      string.const 2   ; "high"
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
-      i32.const 0
+      i32.const 127
       i32.eq
-      if $L2 void
-        string.const 2   ; "high"
-        local.set 1   ; if_res
+      if $L3 void
       else
-        local.get 0   ; arg 0
-        i32.const 127
-        i32.eq
-        if $L3 void
-          string.const 3   ; "top"
-          local.set 1   ; if_res
-        else
-          unreachable
-        end $L3
-      end $L2
-    end $L1
-  end $L0
+        unreachable
+      end $L3
+      string.const 3   ; "top"
+      local.set 1   ; if_res
+    end $L2
+  end $L1
   local.get 1   ; if_res
   return
 end
@@ -298,6 +298,10 @@ fn 6 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 11   ; std_core$Buffer$ByteAccess$store_u8_vt
+    local.get 1   ; arg 1
+    local.get 6   ; total
+    i64.add
+    return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -362,18 +366,18 @@ fn 7 std_io$write (u8,string) -> void
 end
 
 fn 8 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

@@ -36,9 +36,10 @@ fn 1 snippet$Instant$Comparable$compare (i64,i64) -> i32
   local.get 3   ; b
   i64.gt
   if $L1 void
-    return.lit i32.const 1
+  else
+    return.lit i32.const 0
   end $L1
-  return.lit i32.const 0
+  return.lit i32.const 1
 end
 
 fn 2 snippet$main () -> i32
@@ -58,11 +59,12 @@ fn 2 snippet$main () -> i32
   i32.const 0
   i32.lt
   if $L0 void
-    local.get 2   ; d
-    i64.to_i32
+  else
+    i32.const 1
+    i32.neg
     return
   end $L0
-  i32.const 1
-  i32.neg
+  local.get 2   ; d
+  i64.to_i32
   return
 end

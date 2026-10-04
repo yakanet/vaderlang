@@ -49,12 +49,13 @@ fn 1 snippet$unwrap_or (any,i32) -> i32
   local.get 0   ; arg 0
   type_check 0   ; null
   if $L0 void
-    local.get 1   ; arg 1
+  else
+    local.get 0   ; arg 0
+    ref.cast 2   ; i64
+    i64.to_i32
     return
   end $L0
-  local.get 0   ; arg 0
-  ref.cast 2   ; i64
-  i64.to_i32
+  local.get 1   ; arg 1
   return
 end
 

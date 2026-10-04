@@ -72,8 +72,8 @@ fn 2 snippet$window (string) -> ref
 end
 
 fn 3 snippet$main () -> i32
-  local __in_x_0 i32
   local if_res string
+  local __in_x_0 i32
   local $arr_21 ref
   local $arr_22 ref
   local $arr_23 ref
@@ -84,37 +84,37 @@ fn 3 snippet$main () -> i32
   string.const 0   ; "x"
   i32.const 2
   call 0   ; snippet$say
-  local.set 0   ; __in_x_0
+  local.set 1   ; __in_x_0
   string.const 1   ; "coll"
   call 1   ; snippet$pool
-  local.get 0   ; __in_x_0
+  local.get 1   ; __in_x_0
   call 9   ; std_core$[]$Contains$contains__i32
   if $L0 void
     string.const 2   ; "in: yes"
-    local.set 1   ; if_res
+    local.set 0   ; if_res
   else
     string.const 3   ; "in: no"
-    local.set 1   ; if_res
+    local.set 0   ; if_res
   end $L0
-  local.get 1   ; if_res
+  local.get 0   ; if_res
   call 24   ; std_io$println__string
   string.const 0   ; "x"
   i32.const 7
   call 0   ; snippet$say
-  local.set 0   ; __in_x_0
+  local.set 1   ; __in_x_0
   string.const 1   ; "coll"
   call 1   ; snippet$pool
-  local.get 0   ; __in_x_0
+  local.get 1   ; __in_x_0
   call 9   ; std_core$[]$Contains$contains__i32
   bool.not
   if $L1 void
     string.const 4   ; "not in: yes"
-    local.set 1   ; if_res
+    local.set 0   ; if_res
   else
     string.const 5   ; "not in: no"
-    local.set 1   ; if_res
+    local.set 0   ; if_res
   end $L1
-  local.get 1   ; if_res
+  local.get 0   ; if_res
   call 24   ; std_io$println__string
   array.new 3 0   ; i32[]
   local.set 2   ; $arr_21
@@ -137,18 +137,18 @@ fn 3 snippet$main () -> i32
   string.const 0   ; "x"
   i32.const 2
   call 0   ; snippet$say
-  local.set 0   ; __in_x_0
+  local.set 1   ; __in_x_0
   local.get 2   ; $arr_21
-  local.get 0   ; __in_x_0
+  local.get 1   ; __in_x_0
   call 13   ; std_collections$MutableSet$Contains$contains__i32
   if $L2 void
     string.const 6   ; "set: yes"
-    local.set 1   ; if_res
+    local.set 0   ; if_res
   else
     string.const 7   ; "set: no"
-    local.set 1   ; if_res
+    local.set 0   ; if_res
   end $L2
-  local.get 1   ; if_res
+  local.get 0   ; if_res
   call 24   ; std_io$println__string
   string.const 8   ; "target"
   call 1   ; snippet$pool
@@ -471,6 +471,7 @@ fn 16 std_collections$ensure_index__i32__bool (ref) -> void
     local.get 0   ; arg 0
     local.get 2   ; __for_discard_0
     struct.set 12 3   ; std_collections$MutableMap__i32__bool.mask
+    return
   end $L0
   return
 end
@@ -605,14 +606,14 @@ fn 18 std_collections$write_entry__i32__bool (ref,i32,bool) -> void
     local.get 3   ; $field_3
     local.get 2   ; arg 2
     array.set 14   ; bool[]
-  else
-    local.field 0 12 0   ; arg 0 std_collections$MutableMap__i32__bool.ekeys
-    local.get 1   ; arg 1
-    array.push 2   ; i32
-    local.field 0 12 1   ; arg 0 std_collections$MutableMap__i32__bool.evals
-    local.get 2   ; arg 2
-    array.push 5   ; bool
+    return
   end $L0
+  local.field 0 12 0   ; arg 0 std_collections$MutableMap__i32__bool.ekeys
+  local.get 1   ; arg 1
+  array.push 2   ; i32
+  local.field 0 12 1   ; arg 0 std_collections$MutableMap__i32__bool.evals
+  local.get 2   ; arg 2
+  array.push 5   ; bool
   return
 end
 
@@ -875,13 +876,14 @@ fn 21 std_collections$add__i32 (ref,i32) -> bool
   local.get 1   ; arg 1
   call 12   ; std_collections$MutableMap$Contains$contains__i32__bool
   if $L0 void
-    return.lit bool.const false
+  else
+    local.field 0 13 0   ; arg 0 std_collections$MutableSet__i32.inner
+    local.get 1   ; arg 1
+    bool.const true
+    call 11   ; std_collections$MutableMap$IndexSet$set_at__i32__bool
+    return.lit bool.const true
   end $L0
-  local.field 0 13 0   ; arg 0 std_collections$MutableSet__i32.inner
-  local.get 1   ; arg 1
-  bool.const true
-  call 11   ; std_collections$MutableMap$IndexSet$set_at__i32__bool
-  return.lit bool.const true
+  return.lit bool.const false
 end
 
 fn 22 std_io$write (u8,string) -> void
@@ -941,18 +943,18 @@ fn 22 std_io$write (u8,string) -> void
 end
 
 fn 23 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

@@ -188,14 +188,14 @@ fn 5 snippet$main () -> i32
   local __fuse_i_1 usize
   local __coalesce_8 any
   local x i32
-  local $cast_114 i64
+  local $cast_113 i64
   local __fuse_i_1 usize
-  local $cast_184 u64
+  local $cast_183 u64
   local __fuse_len_0 usize
   local __fuse_i_1 usize
   local x i32
   local __in_hi_59 i32
-  local $call_elem_462 u8
+  local $call_elem_461 u8
   i32.const 1
   i32.const 2
   i32.const 3
@@ -309,17 +309,16 @@ fn 5 snippet$main () -> i32
         call.indirect 5   ; fn
         local.get 6   ; pred
         call.indirect 6   ; fn
-        bool.not
         if $L7 void
-          bool.const false
-          local.set 7   ; __consumed_1
-          br $L4
+          local.get 9   ; __fuse_i_1
+          i64.const 1
+          i64.add
+          local.set 9   ; __fuse_i_1
+          br $L5
         end $L7
-        local.get 9   ; __fuse_i_1
-        i64.const 1
-        i64.add
-        local.set 9   ; __fuse_i_1
-        br $L5
+        bool.const false
+        local.set 7   ; __consumed_1
+        br $L4
       end $L6
     end $L5
     bool.const true
@@ -403,10 +402,10 @@ fn 5 snippet$main () -> i32
   end $L12
   local.get 11   ; x
   i32.to_i64
-  local.set 12   ; $cast_114
+  local.set 12   ; $cast_113
   local.get 2   ; __buf_2
   local.get 3   ; __off_3
-  local.get 12   ; $cast_114
+  local.get 12   ; $cast_113
   call 13   ; std_core$write_int
   local.set 3   ; __off_3
   local.get 2   ; __buf_2
@@ -531,10 +530,10 @@ fn 5 snippet$main () -> i32
   end $L17
   local.get 8   ; __fuse_len_0
   usize.to_i64
-  local.set 14   ; $cast_184
+  local.set 14   ; $cast_183
   local.get 1   ; empty
   local.get 3   ; __off_3
-  local.get 14   ; $cast_184
+  local.get 14   ; $cast_183
   call 14   ; std_core$write_unsigned
   local.set 3   ; __off_3
   local.get 1   ; empty
@@ -588,9 +587,7 @@ fn 5 snippet$main () -> i32
           local.tee 13   ; __fuse_i_1
           local.get 8   ; __fuse_len_0
           u64.ge
-          if $L24 void
-            br $L21
-          end $L24
+          br_if $L21
           local.get 16   ; __fuse_i_1
           i64.const 1
           i64.add
@@ -602,10 +599,10 @@ fn 5 snippet$main () -> i32
   end $L20
   local.get 9   ; __fuse_i_1
   usize.to_i64
-  local.set 14   ; $cast_184
+  local.set 14   ; $cast_183
   local.get 1   ; empty
   local.get 3   ; __off_3
-  local.get 14   ; $cast_184
+  local.get 14   ; $cast_183
   call 14   ; std_core$write_unsigned
   local.set 3   ; __off_3
   local.get 1   ; empty
@@ -636,38 +633,38 @@ fn 5 snippet$main () -> i32
   local.set 8   ; __fuse_len_0
   i64.const 0
   local.set 9   ; __fuse_i_1
-  loop $L25 void
+  loop $L24 void
     local.get 9   ; __fuse_i_1
     local.get 8   ; __fuse_len_0
     u64.lt
-    if $L26 void
+    if $L25 void
       local.get 2   ; __buf_2
       local.get 9   ; __fuse_i_1
       load_slot_i32
       local.tee 11   ; x
       local.get 4   ; __fuse_arr_0
       call.indirect 6   ; fn
-      if $L27 void
+      if $L26 void
         local.get 11   ; x
         local.set 17   ; x
         local.get 5   ; f
         local.get 17   ; x
         array.push 3   ; i32
-      end $L27
+      end $L26
       local.get 9   ; __fuse_i_1
       i64.const 1
       i64.add
       local.set 9   ; __fuse_i_1
-      br $L25
-    end $L26
-  end $L25
+      br $L24
+    end $L25
+  end $L24
   local.get 5   ; f
   array.len
   usize.to_i64
-  local.set 14   ; $cast_184
+  local.set 14   ; $cast_183
   local.get 1   ; empty
   local.get 3   ; __off_3
-  local.get 14   ; $cast_184
+  local.get 14   ; $cast_183
   call 14   ; std_core$write_unsigned
   local.set 3   ; __off_3
   local.get 1   ; empty
@@ -689,11 +686,11 @@ fn 5 snippet$main () -> i32
   local.set 3   ; __off_3
   i64.const 0
   local.set 8   ; __fuse_len_0
-  loop $L28 void
+  loop $L27 void
     local.get 8   ; __fuse_len_0
     local.get 3   ; __off_3
     u64.lt
-    if $L29 void
+    if $L28 void
       local.get 0   ; xs
       local.get 8   ; __fuse_len_0
       load_slot_i32
@@ -702,7 +699,7 @@ fn 5 snippet$main () -> i32
       local.tee 11   ; x
       local.get 2   ; __buf_2
       call.indirect 6   ; fn
-      if $L30 void
+      if $L29 void
         local.get 11   ; x
         local.set 17   ; x
         i64.const 28
@@ -717,24 +714,24 @@ fn 5 snippet$main () -> i32
         local.set 9   ; __fuse_i_1
         local.get 17   ; x
         i32.to_i64
-        local.set 12   ; $cast_114
+        local.set 12   ; $cast_113
         local.get 4   ; __fuse_arr_0
         local.get 9   ; __fuse_i_1
-        local.get 12   ; $cast_114
+        local.get 12   ; $cast_113
         call 13   ; std_core$write_int
         local.set 9   ; __fuse_i_1
         local.get 4   ; __fuse_arr_0
         local.get 9   ; __fuse_i_1
         call 11   ; std_core$finish_buffer
         call 23   ; std_io$println__string
-      end $L30
+      end $L29
       local.get 8   ; __fuse_len_0
       i64.const 1
       i64.add
       local.set 8   ; __fuse_len_0
-      br $L28
-    end $L29
-  end $L28
+      br $L27
+    end $L28
+  end $L27
   i64.const 28
   call 10   ; std_core$new_byte_buffer
   local.set 0   ; xs
@@ -758,11 +755,11 @@ fn 5 snippet$main () -> i32
   local.set 1   ; empty
   i64.const 0
   local.set 8   ; __fuse_len_0
-  loop $L31 void
+  loop $L30 void
     local.get 17   ; x
     local.get 11   ; x
     i32.lt
-    if $L32 void
+    if $L31 void
       local.get 17   ; x
       local.get 1   ; empty
       call.indirect 5   ; fn
@@ -775,15 +772,15 @@ fn 5 snippet$main () -> i32
       i32.const 1
       i32.add
       local.set 17   ; x
-      br $L31
-    end $L32
-  end $L31
+      br $L30
+    end $L31
+  end $L30
   local.get 8   ; __fuse_len_0
   usize.to_i64
-  local.set 14   ; $cast_184
+  local.set 14   ; $cast_183
   local.get 0   ; xs
   local.get 3   ; __off_3
-  local.get 14   ; $cast_184
+  local.get 14   ; $cast_183
   call 14   ; std_core$write_unsigned
   local.set 3   ; __off_3
   local.get 0   ; xs
@@ -810,11 +807,11 @@ fn 5 snippet$main () -> i32
   local.set 3   ; __off_3
   i64.const 0
   local.set 8   ; __fuse_len_0
-  loop $L33 void
+  loop $L32 void
     local.get 8   ; __fuse_len_0
     local.get 3   ; __off_3
     u64.lt
-    if $L34 void
+    if $L33 void
       local.get 0   ; xs
       local.get 8   ; __fuse_len_0
       load_slot_i32
@@ -831,10 +828,10 @@ fn 5 snippet$main () -> i32
       local.set 9   ; __fuse_i_1
       local.get 11   ; x
       i32.to_i64
-      local.set 12   ; $cast_114
+      local.set 12   ; $cast_113
       local.get 2   ; __buf_2
       local.get 9   ; __fuse_i_1
-      local.get 12   ; $cast_114
+      local.get 12   ; $cast_113
       call 13   ; std_core$write_int
       local.set 9   ; __fuse_i_1
       local.get 2   ; __buf_2
@@ -845,19 +842,19 @@ fn 5 snippet$main () -> i32
       i64.const 1
       i64.add
       local.set 8   ; __fuse_len_0
-      br $L33
-    end $L34
-  end $L33
+      br $L32
+    end $L33
+  end $L32
   local.get 1   ; empty
   array.len
   local.set 3   ; __off_3
   i64.const 0
   local.set 8   ; __fuse_len_0
-  loop $L35 void
+  loop $L34 void
     local.get 8   ; __fuse_len_0
     local.get 3   ; __off_3
     u64.lt
-    if $L36 void
+    if $L35 void
       local.get 1   ; empty
       local.get 8   ; __fuse_len_0
       load_slot_i32
@@ -874,10 +871,10 @@ fn 5 snippet$main () -> i32
       local.set 9   ; __fuse_i_1
       local.get 11   ; x
       i32.to_i64
-      local.set 12   ; $cast_114
+      local.set 12   ; $cast_113
       local.get 0   ; xs
       local.get 9   ; __fuse_i_1
-      local.get 12   ; $cast_114
+      local.get 12   ; $cast_113
       call 13   ; std_core$write_int
       local.set 9   ; __fuse_i_1
       local.get 0   ; xs
@@ -888,9 +885,9 @@ fn 5 snippet$main () -> i32
       i64.const 1
       i64.add
       local.set 8   ; __fuse_len_0
-      br $L35
-    end $L36
-  end $L35
+      br $L34
+    end $L35
+  end $L34
   string.const 16   ; "lo"
   i32.const 0
   call 1   ; snippet$bound
@@ -905,15 +902,15 @@ fn 5 snippet$main () -> i32
   local.get 11   ; x
   struct.new 11   ; std_core$Range__i32
   local.set 0   ; xs
-  loop $L37 void
+  loop $L36 void
     local.get 0   ; xs
     call 9   ; std_core$Range$Iterator$next__i32$v
-    local.set 19   ; $call_elem_462
+    local.set 19   ; $call_elem_461
     local.set 18   ; __in_hi_59
-    local.get 19   ; $call_elem_462
+    local.get 19   ; $call_elem_461
     i32.const 1
     i32.eq
-    if $L38 void
+    if $L37 void
     else
       local.get 18   ; __in_hi_59
       local.set 11   ; x
@@ -929,19 +926,19 @@ fn 5 snippet$main () -> i32
       local.set 3   ; __off_3
       local.get 11   ; x
       i32.to_i64
-      local.set 12   ; $cast_114
+      local.set 12   ; $cast_113
       local.get 1   ; empty
       local.get 3   ; __off_3
-      local.get 12   ; $cast_114
+      local.get 12   ; $cast_113
       call 13   ; std_core$write_int
       local.set 3   ; __off_3
       local.get 1   ; empty
       local.get 3   ; __off_3
       call 11   ; std_core$finish_buffer
       call 23   ; std_io$println__string
-      br $L37
-    end $L38
-  end $L37
+      br $L36
+    end $L37
+  end $L36
   string.const 16   ; "lo"
   i32.const 0
   call 1   ; snippet$bound
@@ -950,11 +947,11 @@ fn 5 snippet$main () -> i32
   i32.const 2
   call 1   ; snippet$bound
   local.set 17   ; x
-  loop $L39 void
+  loop $L38 void
     local.get 11   ; x
     local.get 17   ; x
     i32.lt
-    if $L40 void
+    if $L39 void
       i64.const 30
       call 10   ; std_core$new_byte_buffer
       local.set 0   ; xs
@@ -967,10 +964,10 @@ fn 5 snippet$main () -> i32
       local.set 3   ; __off_3
       local.get 11   ; x
       i32.to_i64
-      local.set 12   ; $cast_114
+      local.set 12   ; $cast_113
       local.get 0   ; xs
       local.get 3   ; __off_3
-      local.get 12   ; $cast_114
+      local.get 12   ; $cast_113
       call 13   ; std_core$write_int
       local.set 3   ; __off_3
       local.get 0   ; xs
@@ -981,16 +978,16 @@ fn 5 snippet$main () -> i32
       i32.const 1
       i32.add
       local.set 11   ; x
-      br $L39
-    end $L40
-  end $L39
+      br $L38
+    end $L39
+  end $L38
   i32.const 0
   local.set 11   ; x
-  loop $L41 void
+  loop $L40 void
     local.get 11   ; x
     i32.const 2
     i32.lt
-    if $L42 void
+    if $L41 void
       i64.const 32
       call 10   ; std_core$new_byte_buffer
       local.set 0   ; xs
@@ -1003,10 +1000,10 @@ fn 5 snippet$main () -> i32
       local.set 3   ; __off_3
       local.get 11   ; x
       i32.to_i64
-      local.set 12   ; $cast_114
+      local.set 12   ; $cast_113
       local.get 0   ; xs
       local.get 3   ; __off_3
-      local.get 12   ; $cast_114
+      local.get 12   ; $cast_113
       call 13   ; std_core$write_int
       local.set 3   ; __off_3
       local.get 0   ; xs
@@ -1017,9 +1014,9 @@ fn 5 snippet$main () -> i32
       i32.const 1
       i32.add
       local.set 11   ; x
-      br $L41
-    end $L42
-  end $L41
+      br $L40
+    end $L41
+  end $L40
   i32.const 1
   i32.neg
   local.set 11   ; x
@@ -1044,7 +1041,7 @@ fn 5 snippet$main () -> i32
   local.get 17   ; x
   local.get 11   ; x
   i32.le
-  if $L43 void
+  if $L42 void
     local.get 11   ; x
     local.get 18   ; __in_hi_59
     i32.lt
@@ -1052,7 +1049,7 @@ fn 5 snippet$main () -> i32
   else
     bool.const false
     local.set 7   ; __consumed_1
-  end $L43
+  end $L42
   local.get 0   ; xs
   local.get 3   ; __off_3
   local.get 7   ; __consumed_1
@@ -1147,23 +1144,24 @@ fn 9 std_core$Range$Iterator$next__i32$v (ref) -> (i32,u8)
   end $L0
   local.get 1   ; done
   if $L1 void
+  else
     local.field 0 11 3   ; arg 0 std_core$Range__i32.cursor
     ref.cast 3   ; i32
-    i32.const 1
+    local.set 2   ; $field_3
+    local.field 0 11 3   ; arg 0 std_core$Range__i32.cursor
+    ref.cast 3   ; i32
+    call 20   ; std_core$i32$Step$step
+    local.set 3   ; $field_4
+    local.get 0   ; arg 0
+    local.get 3   ; $field_4
+    struct.set 11 3   ; std_core$Range__i32.cursor
+    local.get 2   ; $field_3
+    i32.const 0
     return
   end $L1
   local.field 0 11 3   ; arg 0 std_core$Range__i32.cursor
   ref.cast 3   ; i32
-  local.set 2   ; $field_3
-  local.field 0 11 3   ; arg 0 std_core$Range__i32.cursor
-  ref.cast 3   ; i32
-  call 20   ; std_core$i32$Step$step
-  local.set 3   ; $field_4
-  local.get 0   ; arg 0
-  local.get 3   ; $field_4
-  struct.set 11 3   ; std_core$Range__i32.cursor
-  local.get 2   ; $field_3
-  i32.const 0
+  i32.const 1
   return
 end
 
@@ -1301,6 +1299,10 @@ fn 13 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 25   ; std_core$Buffer$ByteAccess$store_u8_vt
+    local.get 1   ; arg 1
+    local.get 6   ; total
+    i64.add
+    return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -1393,15 +1395,16 @@ end
 fn 15 std_core$write_bool (ref,usize,bool) -> usize
   local.get 2   ; arg 2
   if $L0 void
+  else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 25   ; "true"
+    string.const 26   ; "false"
     call 12   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 26   ; "false"
+  string.const 25   ; "true"
   call 12   ; std_core$write_string_at
   return
 end
@@ -1412,17 +1415,17 @@ fn 16 std_core$three_way (bool,bool) -> i32
   if $L0 void
     i32.const 1
     i32.neg
+    local.tee 2   ; if_res
+    return
+  end $L0
+  local.get 1   ; arg 1
+  if $L1 void
+    i32.const 1
     local.set 2   ; if_res
   else
-    local.get 1   ; arg 1
-    if $L1 void
-      i32.const 1
-      local.set 2   ; if_res
-    else
-      i32.const 0
-      local.set 2   ; if_res
-    end $L1
-  end $L0
+    i32.const 0
+    local.set 2   ; if_res
+  end $L1
   local.get 2   ; if_res
   return
 end
@@ -1554,18 +1557,18 @@ fn 21 std_io$write (u8,string) -> void
 end
 
 fn 22 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

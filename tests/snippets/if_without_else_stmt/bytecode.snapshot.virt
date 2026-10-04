@@ -35,11 +35,11 @@ fn 1 snippet$main () -> i32
     drop
   end $L0
   local.get 0   ; matched
-  bool.not
   if $L1 void
-    string.const 2   ; "not matched"
-    call 5   ; std_io$println__string
+    return.lit i32.const 0
   end $L1
+  string.const 2   ; "not matched"
+  call 5   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -129,18 +129,18 @@ fn 3 std_io$write (u8,string) -> void
 end
 
 fn 4 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

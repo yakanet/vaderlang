@@ -42,17 +42,17 @@ fn 0 snippet$pick (i32) -> any
   i32.const 1
   i32.eq
   if $L1 void
-    string.const 1   ; "mia"
-    struct.new 4   ; snippet$Cat
+  else
+    string.const 2   ; "kiwi"
+    struct.new 3   ; snippet$Bird
     return
   end $L1
-  string.const 2   ; "kiwi"
-  struct.new 3   ; snippet$Bird
+  string.const 1   ; "mia"
+  struct.new 4   ; snippet$Cat
   return
 end
 
 fn 1 snippet$furry_name (any) -> string
-  local if_res string
   local.get 0   ; arg 0
   type_check 5   ; snippet$Dog
   if $L0 void
@@ -60,15 +60,12 @@ fn 1 snippet$furry_name (any) -> string
     ref.cast 5   ; snippet$Dog
     struct.get 5 0   ; snippet$Dog.name
     ref.cast 7   ; string
-    local.set 1   ; if_res
-  else
-    local.get 0   ; arg 0
-    ref.cast 4   ; snippet$Cat
-    struct.get 4 0   ; snippet$Cat.name
-    ref.cast 7   ; string
-    local.set 1   ; if_res
+    return
   end $L0
-  local.get 1   ; if_res
+  local.get 0   ; arg 0
+  ref.cast 4   ; snippet$Cat
+  struct.get 4 0   ; snippet$Cat.name
+  ref.cast 7   ; string
   return
 end
 
@@ -96,19 +93,20 @@ fn 3 snippet$describe (i32) -> string
   end $L0
   local.get 2   ; or_res
   if $L1 void
+  else
     local.get 1   ; p
-    call 1   ; snippet$furry_name
+    ref.cast 3   ; snippet$Bird
+    call 2   ; snippet$bird_name
     local.set 3   ; $call_10
-    string.const 3   ; "furry "
+    string.const 4   ; "bird "
     local.get 3   ; $call_10
     call 7   ; concat_2
     return
   end $L1
   local.get 1   ; p
-  ref.cast 3   ; snippet$Bird
-  call 2   ; snippet$bird_name
+  call 1   ; snippet$furry_name
   local.set 3   ; $call_10
-  string.const 4   ; "bird "
+  string.const 3   ; "furry "
   local.get 3   ; $call_10
   call 7   ; concat_2
   return
@@ -131,19 +129,19 @@ fn 4 snippet$not_dog (i32,bool) -> string
   end $L0
   local.get 3   ; or_res
   if $L1 void
-    return.lit string.const 5   ; "dog-or-flag"
+  else
+    local.get 2   ; p
+    call 5   ; snippet$furry_or_bird
+    local.set 4   ; $call_10
+    string.const 6   ; "not a dog: "
+    local.get 4   ; $call_10
+    call 7   ; concat_2
+    return
   end $L1
-  local.get 2   ; p
-  call 5   ; snippet$furry_or_bird
-  local.set 4   ; $call_10
-  string.const 6   ; "not a dog: "
-  local.get 4   ; $call_10
-  call 7   ; concat_2
-  return
+  return.lit string.const 5   ; "dog-or-flag"
 end
 
 fn 5 snippet$furry_or_bird (any) -> string
-  local if_res string
   local.get 0   ; arg 0
   type_check 4   ; snippet$Cat
   if $L0 void
@@ -151,15 +149,12 @@ fn 5 snippet$furry_or_bird (any) -> string
     ref.cast 4   ; snippet$Cat
     struct.get 4 0   ; snippet$Cat.name
     ref.cast 7   ; string
-    local.set 1   ; if_res
-  else
-    local.get 0   ; arg 0
-    ref.cast 3   ; snippet$Bird
-    struct.get 3 0   ; snippet$Bird.name
-    ref.cast 7   ; string
-    local.set 1   ; if_res
+    return
   end $L0
-  local.get 1   ; if_res
+  local.get 0   ; arg 0
+  ref.cast 3   ; snippet$Bird
+  struct.get 3 0   ; snippet$Bird.name
+  ref.cast 7   ; string
   return
 end
 
@@ -270,18 +265,18 @@ fn 8 std_io$write (u8,string) -> void
 end
 
 fn 9 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

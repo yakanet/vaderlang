@@ -43,27 +43,27 @@ fn 0 snippet$describe_char (char) -> string
   i32.eq
   if $L0 void
     string.const 0   ; "right"
+    local.tee 1   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  char.const 60
+  i32.eq
+  if $L1 void
+    string.const 1   ; "left"
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    char.const 60
+    char.const 43
     i32.eq
-    if $L1 void
-      string.const 1   ; "left"
+    if $L2 void
+      string.const 2   ; "plus"
       local.set 1   ; if_res
     else
-      local.get 0   ; arg 0
-      char.const 43
-      i32.eq
-      if $L2 void
-        string.const 2   ; "plus"
-        local.set 1   ; if_res
-      else
-        string.const 3   ; "other"
-        local.set 1   ; if_res
-      end $L2
-    end $L1
-  end $L0
+      string.const 3   ; "other"
+      local.set 1   ; if_res
+    end $L2
+  end $L1
   local.get 1   ; if_res
   return
 end
@@ -75,27 +75,27 @@ fn 1 snippet$describe_int (i32) -> string
   i32.eq
   if $L0 void
     string.const 4   ; "zero"
+    local.tee 1   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.eq
+  if $L1 void
+    string.const 5   ; "one"
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    i32.const 1
+    i32.const 2
     i32.eq
-    if $L1 void
-      string.const 5   ; "one"
+    if $L2 void
+      string.const 6   ; "two"
       local.set 1   ; if_res
     else
-      local.get 0   ; arg 0
-      i32.const 2
-      i32.eq
-      if $L2 void
-        string.const 6   ; "two"
-        local.set 1   ; if_res
-      else
-        string.const 7   ; "many"
-        local.set 1   ; if_res
-      end $L2
-    end $L1
-  end $L0
+      string.const 7   ; "many"
+      local.set 1   ; if_res
+    end $L2
+  end $L1
   local.get 1   ; if_res
   return
 end
@@ -107,19 +107,19 @@ fn 2 snippet$flag_label (bool) -> string
   bool.eq
   if $L0 void
     string.const 8   ; "on"
+    local.tee 1   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  bool.const false
+  bool.eq
+  if $L1 void
+    string.const 9   ; "off"
     local.set 1   ; if_res
   else
-    local.get 0   ; arg 0
-    bool.const false
-    bool.eq
-    if $L1 void
-      string.const 9   ; "off"
-      local.set 1   ; if_res
-    else
-      string.const 10   ; "?"
-      local.set 1   ; if_res
-    end $L1
-  end $L0
+    string.const 10   ; "?"
+    local.set 1   ; if_res
+  end $L1
   local.get 1   ; if_res
   return
 end
@@ -131,27 +131,27 @@ fn 3 snippet$mode_name (string) -> string
   string.eq
   if $L0 void
     string.const 12   ; "read"
+    local.tee 1   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  string.const 13   ; "w"
+  string.eq
+  if $L1 void
+    string.const 14   ; "write"
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    string.const 13   ; "w"
+    string.const 15   ; "rw"
     string.eq
-    if $L1 void
-      string.const 14   ; "write"
+    if $L2 void
+      string.const 16   ; "read-write"
       local.set 1   ; if_res
     else
-      local.get 0   ; arg 0
-      string.const 15   ; "rw"
-      string.eq
-      if $L2 void
-        string.const 16   ; "read-write"
-        local.set 1   ; if_res
-      else
-        string.const 17   ; "unknown"
-        local.set 1   ; if_res
-      end $L2
-    end $L1
-  end $L0
+      string.const 17   ; "unknown"
+      local.set 1   ; if_res
+    end $L2
+  end $L1
   local.get 1   ; if_res
   return
 end
@@ -279,18 +279,18 @@ fn 6 std_io$write (u8,string) -> void
 end
 
 fn 7 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

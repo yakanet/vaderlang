@@ -99,33 +99,33 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 static vader_string_t snippet_describe(vader_box_t l0) {
-    vader_string_t l1 = 0;
-    vader_string_t l5 = 0;
-    void* l2 = NULL;
-    size_t l3;
-    int64_t l4;
+    void* l1 = NULL;
+    size_t l2;
+    int64_t l3;
+    vader_string_t l4 = 0;
     int32_t t0;
+    vader_string_t t1 = 0;
     vader_box_t* gc_roots[1] = { &l0 };
-    void** gc_raw_roots[1] = { &l2 };
-    vader_string_t* gc_atom_roots[2] = { &l1, &l5 };
+    void** gc_raw_roots[1] = { &l1 };
+    vader_string_t* gc_atom_roots[2] = { &l4, &t1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 14 "tests/snippets/generic_param_over_wide_union/_main.vader"
     if (l0.tag == 2u) {
-        l2 = std_core_new_byte_buffer((size_t) 24);
-        l3 = (size_t) 0;
-        l3 = std_core_write_string_at(l2, l3, 1u);
+        l1 = std_core_new_byte_buffer((size_t) 24);
+        l2 = (size_t) 0;
+        l2 = std_core_write_string_at(l1, l2, 1u);
         t0 = ((int32_t) l0.payload.i);
-        l4 = ((int64_t) (int32_t) t0);
-        l3 = std_core_write_int(l2, l3, l4);
-        l1 = std_core_finish_buffer(l2, l3);
-    } else {
-        l5 = l0.payload.s;
-        l1 = concat_2(2u, l5);
+        l3 = ((int64_t) (int32_t) t0);
+        l2 = std_core_write_int(l1, l2, l3);
+        t1 = std_core_finish_buffer(l1, l2);
+        { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
+    l4 = l0.payload.s;
+    t1 = concat_2(2u, l4);
+    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t snippet_main(void) {
@@ -225,14 +225,13 @@ static vader_box_t snippet_first_present__i32___string(void* l0) {
 }
 
 static int32_t snippet_or_zero__i32(vader_box_t l0, int32_t l1) {
-    int32_t l2;
+    int32_t t0;
 #line 25 "tests/snippets/generic_param_over_wide_union/_main.vader"
     if (l0.tag == 0u) {
-        l2 = l1;
-    } else {
-        l2 = ((int32_t) l0.payload.i);
+        return l1;
     }
-    return l2;
+    t0 = ((int32_t) l0.payload.i);
+    return t0;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
@@ -352,6 +351,9 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 146 "lib/std/core/primitives.vader"
     if (l3) {
         std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 45);
+#line 147 "lib/std/core/primitives.vader"
+        return (size_t) (int64_t) (l1 + l6);
+#line 146 "lib/std/core/primitives.vader"
     }
 #line 147 "lib/std/core/primitives.vader"
     return (size_t) (int64_t) (l1 + l6);
@@ -377,9 +379,8 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     for (;;) {
 #line 208 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
-        if ((l3 >= l4)) {
+        if (!((l3 >= l4))) {
 #line 211 "lib/std/io/io.vader"
-        } else {
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
             l6 = (void*) _a0_arr;
@@ -409,19 +410,19 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 }
 
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
-    int32_t l3;
     ptrdiff_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 177 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-        l3 = INT32_C(1);
-    } else {
-        l3 = INT32_C(2);
+#line 180 "lib/std/io/io.vader"
+        t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
+        { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+#line 177 "lib/std/io/io.vader"
     }
 #line 180 "lib/std/io/io.vader"
-    t0 = vader_host_system_posix_sys_write(l3, l1, l2);
+    t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 

@@ -338,15 +338,16 @@ end
 fn 6 std_core$write_bool (ref,usize,bool) -> usize
   local.get 2   ; arg 2
   if $L0 void
+  else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 4   ; "true"
+    string.const 5   ; "false"
     call 4   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 5   ; "false"
+  string.const 4   ; "true"
   call 4   ; std_core$write_string_at
   return
 end
@@ -414,18 +415,18 @@ fn 8 std_io$write (u8,string) -> void
 end
 
 fn 9 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
@@ -532,6 +533,7 @@ fn 16 std_collections$ensure_index__i32__bool (ref) -> void
     local.get 0   ; arg 0
     local.get 2   ; __for_discard_0
     struct.set 10 3   ; std_collections$MutableMap__i32__bool.mask
+    return
   end $L0
   return
 end
@@ -666,14 +668,14 @@ fn 18 std_collections$write_entry__i32__bool (ref,i32,bool) -> void
     local.get 3   ; $field_3
     local.get 2   ; arg 2
     array.set 13   ; bool[]
-  else
-    local.field 0 10 0   ; arg 0 std_collections$MutableMap__i32__bool.ekeys
-    local.get 1   ; arg 1
-    array.push 1   ; i32
-    local.field 0 10 1   ; arg 0 std_collections$MutableMap__i32__bool.evals
-    local.get 2   ; arg 2
-    array.push 3   ; bool
+    return
   end $L0
+  local.field 0 10 0   ; arg 0 std_collections$MutableMap__i32__bool.ekeys
+  local.get 1   ; arg 1
+  array.push 1   ; i32
+  local.field 0 10 1   ; arg 0 std_collections$MutableMap__i32__bool.evals
+  local.get 2   ; arg 2
+  array.push 3   ; bool
   return
 end
 
@@ -936,13 +938,14 @@ fn 21 std_collections$add__i32 (ref,i32) -> bool
   local.get 1   ; arg 1
   call 12   ; std_collections$MutableMap$Contains$contains__i32__bool
   if $L0 void
-    return.lit bool.const false
+  else
+    local.field 0 11 0   ; arg 0 std_collections$MutableSet__i32.inner
+    local.get 1   ; arg 1
+    bool.const true
+    call 11   ; std_collections$MutableMap$IndexSet$set_at__i32__bool
+    return.lit bool.const true
   end $L0
-  local.field 0 11 0   ; arg 0 std_collections$MutableSet__i32.inner
-  local.get 1   ; arg 1
-  bool.const true
-  call 11   ; std_collections$MutableMap$IndexSet$set_at__i32__bool
-  return.lit bool.const true
+  return.lit bool.const false
 end
 
 fn 22 std_collections$len__i32 (ref) -> usize

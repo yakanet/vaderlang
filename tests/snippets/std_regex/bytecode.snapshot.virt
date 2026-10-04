@@ -264,12 +264,12 @@ fn 1 snippet$run_find (string,ref,string) -> void
     local.get 6   ; $call_13
     call 6   ; std_core$finish_buffer
     call 14   ; std_io$println__string
-  else
-    local.get 0   ; arg 0
-    string.const 3   ; "=null"
-    call 3   ; concat_2
-    call 14   ; std_io$println__string
+    return
   end $L0
+  local.get 0   ; arg 0
+  string.const 3   ; "=null"
+  call 3   ; concat_2
+  call 14   ; std_io$println__string
   return
 end
 
@@ -622,6 +622,7 @@ fn 2 snippet$main () -> i32
   if $L13 void
     string.const 59   ; "bad-compile=caught"
     call 14   ; std_io$println__string
+    return.lit i32.const 0
   end $L13
   return.lit i32.const 0
 end
@@ -809,15 +810,16 @@ end
 fn 9 std_core$write_bool (ref,usize,bool) -> usize
   local.get 2   ; arg 2
   if $L0 void
+  else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 60   ; "true"
+    string.const 61   ; "false"
     call 7   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 61   ; "false"
+  string.const 60   ; "true"
   call 7   ; std_core$write_string_at
   return
 end
@@ -844,16 +846,67 @@ fn 10 std_core$utf8_encode (char) -> ref
     local.get 2   ; out
     local.get 3   ; $cast_7
     array.push 7   ; u8
+    local.get 2   ; out
+    return
+  end $L0
+  local.get 1   ; cp
+  i32.const 2048
+  u32.lt
+  if $L1 void
+    local.get 1   ; cp
+    i32.const 6
+    u32.shr
+    local.set 4   ; $shr_12
+    i32.const 192
+    local.get 4   ; $shr_12
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 3   ; $cast_7
+    local.get 2   ; out
+    local.get 3   ; $cast_7
+    array.push 7   ; u8
+    local.get 1   ; cp
+    i32.const 63
+    i32.bitand
+    local.set 4   ; $shr_12
+    i32.const 128
+    local.get 4   ; $shr_12
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 3   ; $cast_7
+    local.get 2   ; out
+    local.get 3   ; $cast_7
+    array.push 7   ; u8
   else
     local.get 1   ; cp
-    i32.const 2048
+    i32.const 65536
     u32.lt
-    if $L1 void
+    if $L2 void
+      local.get 1   ; cp
+      i32.const 12
+      u32.shr
+      local.set 4   ; $shr_12
+      i32.const 224
+      local.get 4   ; $shr_12
+      i32.bitor
+      u32.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 3   ; $cast_7
+      local.get 2   ; out
+      local.get 3   ; $cast_7
+      array.push 7   ; u8
       local.get 1   ; cp
       i32.const 6
       u32.shr
+      i32.const 63
+      i32.bitand
       local.set 4   ; $shr_12
-      i32.const 192
+      i32.const 128
       local.get 4   ; $shr_12
       i32.bitor
       u32.to_i32
@@ -879,117 +932,67 @@ fn 10 std_core$utf8_encode (char) -> ref
       array.push 7   ; u8
     else
       local.get 1   ; cp
-      i32.const 65536
-      u32.lt
-      if $L2 void
-        local.get 1   ; cp
-        i32.const 12
-        u32.shr
-        local.set 4   ; $shr_12
-        i32.const 224
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 7   ; u8
-        local.get 1   ; cp
-        i32.const 6
-        u32.shr
-        i32.const 63
-        i32.bitand
-        local.set 4   ; $shr_12
-        i32.const 128
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 7   ; u8
-        local.get 1   ; cp
-        i32.const 63
-        i32.bitand
-        local.set 4   ; $shr_12
-        i32.const 128
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 7   ; u8
-      else
-        local.get 1   ; cp
-        i32.const 18
-        u32.shr
-        local.set 4   ; $shr_12
-        i32.const 240
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 7   ; u8
-        local.get 1   ; cp
-        i32.const 12
-        u32.shr
-        i32.const 63
-        i32.bitand
-        local.set 4   ; $shr_12
-        i32.const 128
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 7   ; u8
-        local.get 1   ; cp
-        i32.const 6
-        u32.shr
-        i32.const 63
-        i32.bitand
-        local.set 4   ; $shr_12
-        i32.const 128
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 7   ; u8
-        local.get 1   ; cp
-        i32.const 63
-        i32.bitand
-        local.set 1   ; cp
-        i32.const 128
-        local.get 1   ; cp
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 7   ; u8
-      end $L2
-    end $L1
-  end $L0
+      i32.const 18
+      u32.shr
+      local.set 4   ; $shr_12
+      i32.const 240
+      local.get 4   ; $shr_12
+      i32.bitor
+      u32.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 3   ; $cast_7
+      local.get 2   ; out
+      local.get 3   ; $cast_7
+      array.push 7   ; u8
+      local.get 1   ; cp
+      i32.const 12
+      u32.shr
+      i32.const 63
+      i32.bitand
+      local.set 4   ; $shr_12
+      i32.const 128
+      local.get 4   ; $shr_12
+      i32.bitor
+      u32.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 3   ; $cast_7
+      local.get 2   ; out
+      local.get 3   ; $cast_7
+      array.push 7   ; u8
+      local.get 1   ; cp
+      i32.const 6
+      u32.shr
+      i32.const 63
+      i32.bitand
+      local.set 4   ; $shr_12
+      i32.const 128
+      local.get 4   ; $shr_12
+      i32.bitor
+      u32.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 3   ; $cast_7
+      local.get 2   ; out
+      local.get 3   ; $cast_7
+      array.push 7   ; u8
+      local.get 1   ; cp
+      i32.const 63
+      i32.bitand
+      local.set 1   ; cp
+      i32.const 128
+      local.get 1   ; cp
+      i32.bitor
+      u32.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 3   ; $cast_7
+      local.get 2   ; out
+      local.get 3   ; $cast_7
+      array.push 7   ; u8
+    end $L2
+  end $L1
   local.get 2   ; out
   return
 end
@@ -1058,18 +1061,18 @@ fn 12 std_io$write (u8,string) -> void
 end
 
 fn 13 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 3   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
@@ -1165,6 +1168,7 @@ fn 17 regex$compile (string) -> any
   local $field_15 usize
   local $len_17 usize
   local $call_23 string
+  local $struct_30 ref
   local.get 0   ; arg 0
   call.import 2   ; std_core$bytes
   local.set 1   ; $call_1
@@ -1204,54 +1208,55 @@ fn 17 regex$compile (string) -> any
   local.get 6   ; $len_17
   u64.lt
   if $L1 void
-    local.field 1 17 0   ; $call_1 regex$Parser.bytes
-    local.set 2   ; $arr_3
-    local.field 1 17 1   ; $call_1 regex$Parser.cursor
+  else
+    local.field 1 17 2   ; $call_1 regex$Parser.insts
+    local.set 3   ; $struct_10
+    i64.const 1
+    struct.new 33   ; regex$InstSave
+    local.set 8   ; $struct_30
+    local.get 3   ; $struct_10
+    local.get 8   ; $struct_30
+    array.push 26   ; union
+    local.field 1 17 2   ; $call_1 regex$Parser.insts
+    local.set 3   ; $struct_10
+    struct.new 32   ; regex$InstMatch
+    local.set 8   ; $struct_30
+    local.get 3   ; $struct_10
+    local.get 8   ; $struct_30
+    array.push 26   ; union
+    local.field 1 17 2   ; $call_1 regex$Parser.insts
+    local.set 3   ; $struct_10
+    local.field 1 17 3   ; $call_1 regex$Parser.next_group_id
     ref.cast 8   ; usize
-    local.set 5   ; $field_15
-    local.get 2   ; $arr_3
-    local.get 5   ; $field_15
-    call 47   ; std_string$utf8_decode
-    call 11   ; std_core$char$Display$to_string
-    local.set 7   ; $call_23
-    string.const 63   ; "unexpected character '"
-    local.get 7   ; $call_23
-    string.const 64   ; "'"
-    call 4   ; concat_3
-    local.set 7   ; $call_23
-    local.field 1 17 1   ; $call_1 regex$Parser.cursor
-    ref.cast 8   ; usize
-    local.set 5   ; $field_15
-    local.get 7   ; $call_23
-    local.get 5   ; $field_15
-    struct.new 15   ; regex$RegexError
+    i64.const 1
+    i64.sub
+    local.set 6   ; $len_17
+    local.get 3   ; $struct_10
+    local.get 6   ; $len_17
+    struct.new 2   ; regex$Pattern
     return
   end $L1
-  local.field 1 17 2   ; $call_1 regex$Parser.insts
+  local.field 1 17 0   ; $call_1 regex$Parser.bytes
   local.set 2   ; $arr_3
-  i64.const 1
-  struct.new 33   ; regex$InstSave
-  local.set 3   ; $struct_10
-  local.get 2   ; $arr_3
-  local.get 3   ; $struct_10
-  array.push 26   ; union
-  local.field 1 17 2   ; $call_1 regex$Parser.insts
-  local.set 2   ; $arr_3
-  struct.new 32   ; regex$InstMatch
-  local.set 3   ; $struct_10
-  local.get 2   ; $arr_3
-  local.get 3   ; $struct_10
-  array.push 26   ; union
-  local.field 1 17 2   ; $call_1 regex$Parser.insts
-  local.set 2   ; $arr_3
-  local.field 1 17 3   ; $call_1 regex$Parser.next_group_id
+  local.field 1 17 1   ; $call_1 regex$Parser.cursor
   ref.cast 8   ; usize
-  i64.const 1
-  i64.sub
   local.set 5   ; $field_15
   local.get 2   ; $arr_3
   local.get 5   ; $field_15
-  struct.new 2   ; regex$Pattern
+  call 47   ; std_string$utf8_decode
+  call 11   ; std_core$char$Display$to_string
+  local.set 7   ; $call_23
+  string.const 63   ; "unexpected character '"
+  local.get 7   ; $call_23
+  string.const 64   ; "'"
+  call 4   ; concat_3
+  local.set 7   ; $call_23
+  local.field 1 17 1   ; $call_1 regex$Parser.cursor
+  ref.cast 8   ; usize
+  local.set 5   ; $field_15
+  local.get 7   ; $call_23
+  local.get 5   ; $field_15
+  struct.new 15   ; regex$RegexError
   return
 end
 
@@ -1326,26 +1331,26 @@ fn 18 regex$find_all (ref,string) -> ref
           ref.cast 8   ; usize
           local.set 4   ; start
         end $L3
-      else
-        local.get 2   ; ib
-        array.len
-        local.set 10   ; $len_23
-        local.get 4   ; start
-        local.get 10   ; $len_23
-        u64.ge
-        if $L5 void
-          local.get 3   ; out
-          return
-        end $L5
-        local.get 2   ; ib
-        local.get 4   ; start
-        call 22   ; regex$codepoint_byte_advance
-        local.set 11   ; $call_25
-        local.get 4   ; start
-        local.get 11   ; $call_25
-        i64.add
-        local.set 4   ; start
+        br $L0
       end $L2
+      local.get 2   ; ib
+      array.len
+      local.set 10   ; $len_23
+      local.get 4   ; start
+      local.get 10   ; $len_23
+      u64.ge
+      if $L5 void
+        local.get 3   ; out
+        return
+      end $L5
+      local.get 2   ; ib
+      local.get 4   ; start
+      call 22   ; regex$codepoint_byte_advance
+      local.set 11   ; $call_25
+      local.get 4   ; start
+      local.get 11   ; $call_25
+      i64.add
+      local.set 4   ; start
       br $L0
     end $L1
   end $L0
@@ -1438,6 +1443,9 @@ fn 19 regex$replace_all (ref,string,string) -> string
     local.get 5   ; sb
     local.get 12   ; $call_23
     call 51   ; std_string_builder$append
+    local.get 5   ; sb
+    call 53   ; std_string_builder$StringBuilder$Display$to_string
+    return
   end $L2
   local.get 5   ; sb
   call 53   ; std_string_builder$StringBuilder$Display$to_string
@@ -1816,9 +1824,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
         local.get 4   ; $add_7
         local.get 41   ; $len_126
         i64.eq
-        if $L25 void
-          br $L0
-        end $L25
+        br_if $L0
         local.get 6   ; next
         local.set 5   ; current
         array.new 20 0   ; regex$Thread[]
@@ -1831,9 +1837,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
         array.len
         i64.const 0
         i64.eq
-        if $L26 void
-          br $L0
-        end $L26
+        br_if $L0
         local.get 4   ; $add_7
         local.get 13   ; bytes_consumed
         i64.add
@@ -1871,25 +1875,24 @@ fn 23 regex$parse_alternation (ref) -> any
   local err1 any
   local $field_8 usize
   local $len_10 usize
-  local or_res bool
-  local $field_14 ref
+  local $field_12 ref
   local branch_offsets ref
-  local $field_25 ref
-  local $field_37 usize
-  local $add_43 usize
+  local $field_23 ref
+  local $field_35 usize
+  local $add_41 usize
   local next_start usize
-  local $field_51 ref
+  local $field_49 ref
+  local $len_51 usize
+  local $call_52 ref
   local $len_53 usize
-  local $call_54 ref
-  local $len_55 usize
-  local $call_57 ref
-  local $idx_84 usize
+  local $call_55 ref
+  local $idx_82 usize
   local jump_pos usize
-  local $field_88 ref
-  local $struct_90 ref
+  local $field_86 ref
+  local $struct_88 ref
   local next_split_pos usize
-  local $field_94 ref
-  local $struct_95 ref
+  local $field_92 ref
+  local $struct_93 ref
   local.field 0 17 2   ; arg 0 regex$Parser.insts
   array.len
   local.set 1   ; branch_start
@@ -1912,56 +1915,52 @@ fn 23 regex$parse_alternation (ref) -> any
   local.get 4   ; $len_10
   u64.ge
   if $L1 void
-    bool.const true
-    local.set 5   ; or_res
-  else
-    local.field 0 17 0   ; arg 0 regex$Parser.bytes
-    local.set 6   ; $field_14
-    local.field 0 17 1   ; arg 0 regex$Parser.cursor
-    ref.cast 8   ; usize
-    local.set 3   ; $field_8
-    local.get 6   ; $field_14
-    local.get 3   ; $field_8
-    array.get 11   ; u8[]
-    ref.cast 7   ; u8
-    i32.const 124
-    i32.ne
-    local.set 5   ; or_res
+    return.lit null.const
   end $L1
-  local.get 5   ; or_res
+  local.field 0 17 0   ; arg 0 regex$Parser.bytes
+  local.set 5   ; $field_12
+  local.field 0 17 1   ; arg 0 regex$Parser.cursor
+  ref.cast 8   ; usize
+  local.set 3   ; $field_8
+  local.get 5   ; $field_12
+  local.get 3   ; $field_8
+  array.get 11   ; u8[]
+  ref.cast 7   ; u8
+  i32.const 124
+  i32.ne
   if $L2 void
     return.lit null.const
   end $L2
   array.new 25 0   ; union[]
-  local.set 6   ; $field_14
+  local.set 5   ; $field_12
   i64.const 0
   array.new 22 1   ; usize[]
-  local.set 7   ; branch_offsets
+  local.set 6   ; branch_offsets
   local.field 0 17 2   ; arg 0 regex$Parser.insts
-  local.set 8   ; $field_25
+  local.set 7   ; $field_23
   local.field 0 17 2   ; arg 0 regex$Parser.insts
   array.len
   local.set 3   ; $field_8
-  local.get 8   ; $field_25
+  local.get 7   ; $field_23
   local.get 1   ; branch_start
   local.get 3   ; $field_8
   call 31   ; regex$extract_range
-  local.set 8   ; $field_25
-  local.get 6   ; $field_14
-  local.get 8   ; $field_25
+  local.set 7   ; $field_23
+  local.get 5   ; $field_12
+  local.get 7   ; $field_23
   array.push_all
-  local.get 6   ; $field_14
+  local.get 5   ; $field_12
   array.len
   local.set 3   ; $field_8
-  local.get 7   ; branch_offsets
+  local.get 6   ; branch_offsets
   local.get 3   ; $field_8
   array.push 8   ; usize
   local.field 0 17 2   ; arg 0 regex$Parser.insts
   local.get 1   ; branch_start
   call 32   ; regex$truncate_to
-  local.set 8   ; $field_25
+  local.set 7   ; $field_23
   local.get 0   ; arg 0
-  local.get 8   ; $field_25
+  local.get 7   ; $field_23
   struct.set 17 2   ; regex$Parser.insts
   block $L3 void
     loop $L4 void
@@ -1976,148 +1975,149 @@ fn 23 regex$parse_alternation (ref) -> any
       u64.lt
       if $L5 void
         local.field 0 17 0   ; arg 0 regex$Parser.bytes
-        local.set 8   ; $field_25
+        local.set 7   ; $field_23
         local.field 0 17 1   ; arg 0 regex$Parser.cursor
         ref.cast 8   ; usize
-        local.set 9   ; $field_37
-        local.get 8   ; $field_25
-        local.get 9   ; $field_37
+        local.set 8   ; $field_35
+        local.get 7   ; $field_23
+        local.get 8   ; $field_35
         array.get 11   ; u8[]
         ref.cast 7   ; u8
         i32.const 124
         i32.eq
         if $L6 void
-          local.field 0 17 1   ; arg 0 regex$Parser.cursor
-          ref.cast 8   ; usize
-          i64.const 1
-          i64.add
-          local.set 10   ; $add_43
-          local.get 0   ; arg 0
-          local.get 10   ; $add_43
-          struct.set 17 1   ; regex$Parser.cursor
-          local.field 0 17 2   ; arg 0 regex$Parser.insts
-          array.len
-          local.set 11   ; next_start
-          local.get 0   ; arg 0
-          call 30   ; regex$parse_concat
-          local.tee 2   ; err1
-          type_check 15   ; regex$RegexError
-          if $L7 void
-            local.get 2   ; err1
-            ref.cast 15   ; regex$RegexError
-            return
-          end $L7
-          local.field 0 17 2   ; arg 0 regex$Parser.insts
-          local.set 12   ; $field_51
-          local.field 0 17 2   ; arg 0 regex$Parser.insts
-          array.len
-          local.set 13   ; $len_53
-          local.get 12   ; $field_51
-          local.get 11   ; next_start
-          local.get 13   ; $len_53
-          call 31   ; regex$extract_range
-          local.set 14   ; $call_54
-          local.get 6   ; $field_14
-          local.get 14   ; $call_54
-          array.push_all
-          local.get 6   ; $field_14
-          array.len
-          local.set 15   ; $len_55
-          local.get 7   ; branch_offsets
-          local.get 15   ; $len_55
-          array.push 8   ; usize
-          local.field 0 17 2   ; arg 0 regex$Parser.insts
-          local.get 11   ; next_start
-          call 32   ; regex$truncate_to
-          local.set 16   ; $call_57
-          local.get 0   ; arg 0
-          local.get 16   ; $call_57
-          struct.set 17 2   ; regex$Parser.insts
-          br $L4
+        else
+          br $L3
         end $L6
-        br $L3
+        local.field 0 17 1   ; arg 0 regex$Parser.cursor
+        ref.cast 8   ; usize
+        i64.const 1
+        i64.add
+        local.set 9   ; $add_41
+        local.get 0   ; arg 0
+        local.get 9   ; $add_41
+        struct.set 17 1   ; regex$Parser.cursor
+        local.field 0 17 2   ; arg 0 regex$Parser.insts
+        array.len
+        local.set 10   ; next_start
+        local.get 0   ; arg 0
+        call 30   ; regex$parse_concat
+        local.tee 2   ; err1
+        type_check 15   ; regex$RegexError
+        if $L7 void
+          local.get 2   ; err1
+          ref.cast 15   ; regex$RegexError
+          return
+        end $L7
+        local.field 0 17 2   ; arg 0 regex$Parser.insts
+        local.set 11   ; $field_49
+        local.field 0 17 2   ; arg 0 regex$Parser.insts
+        array.len
+        local.set 12   ; $len_51
+        local.get 11   ; $field_49
+        local.get 10   ; next_start
+        local.get 12   ; $len_51
+        call 31   ; regex$extract_range
+        local.set 13   ; $call_52
+        local.get 5   ; $field_12
+        local.get 13   ; $call_52
+        array.push_all
+        local.get 5   ; $field_12
+        array.len
+        local.set 14   ; $len_53
+        local.get 6   ; branch_offsets
+        local.get 14   ; $len_53
+        array.push 8   ; usize
+        local.field 0 17 2   ; arg 0 regex$Parser.insts
+        local.get 10   ; next_start
+        call 32   ; regex$truncate_to
+        local.set 15   ; $call_55
+        local.get 0   ; arg 0
+        local.get 15   ; $call_55
+        struct.set 17 2   ; regex$Parser.insts
+        br $L4
       end $L5
     end $L4
   end $L3
-  local.get 7   ; branch_offsets
+  local.get 6   ; branch_offsets
   array.len
   i64.const 1
   i64.sub
   local.set 3   ; $field_8
   array.new 22 0   ; usize[]
-  local.set 8   ; $field_25
+  local.set 7   ; $field_23
   i64.const 0
   local.set 4   ; $len_10
   local.get 3   ; $field_8
   i64.const 1
   i64.sub
-  local.set 9   ; $field_37
+  local.set 8   ; $field_35
   loop $L8 void
     local.get 4   ; $len_10
-    local.get 9   ; $field_37
+    local.get 8   ; $field_35
     u64.lt
     if $L9 void
       local.field 0 17 2   ; arg 0 regex$Parser.insts
       array.len
-      local.set 10   ; $add_43
+      local.set 9   ; $add_41
       local.field 0 17 2   ; arg 0 regex$Parser.insts
-      local.set 12   ; $field_51
+      local.set 11   ; $field_49
       i64.const 0
       i64.const 0
       struct.new 34   ; regex$InstSplit
-      local.set 14   ; $call_54
-      local.get 12   ; $field_51
-      local.get 14   ; $call_54
+      local.set 13   ; $call_52
+      local.get 11   ; $field_49
+      local.get 13   ; $call_52
       array.push 26   ; union
       local.field 0 17 2   ; arg 0 regex$Parser.insts
       array.len
-      local.set 11   ; next_start
+      local.set 10   ; next_start
       local.field 0 17 2   ; arg 0 regex$Parser.insts
-      local.set 16   ; $call_57
-      local.get 7   ; branch_offsets
+      local.set 15   ; $call_55
+      local.get 6   ; branch_offsets
       local.get 4   ; $len_10
       load_slot_i64
-      local.set 13   ; $len_53
+      local.set 12   ; $len_51
       local.get 4   ; $len_10
       i64.const 1
       i64.add
-      local.set 15   ; $len_55
-      local.get 7   ; branch_offsets
-      local.get 15   ; $len_55
+      local.set 14   ; $len_53
+      local.get 6   ; branch_offsets
+      local.get 14   ; $len_53
       load_slot_i64
-      local.set 17   ; $idx_84
-      local.get 16   ; $call_57
-      local.get 6   ; $field_14
-      local.get 13   ; $len_53
-      local.get 17   ; $idx_84
+      local.set 16   ; $idx_82
+      local.get 15   ; $call_55
+      local.get 5   ; $field_12
+      local.get 12   ; $len_51
+      local.get 16   ; $idx_82
       local.get 1   ; branch_start
       call 33   ; regex$push_fragment_rebased
       local.field 0 17 2   ; arg 0 regex$Parser.insts
       array.len
-      local.set 18   ; jump_pos
+      local.set 17   ; jump_pos
       local.field 0 17 2   ; arg 0 regex$Parser.insts
-      local.set 19   ; $field_88
+      local.set 18   ; $field_86
       i64.const 0
       struct.new 31   ; regex$InstJump
-      local.set 20   ; $struct_90
-      local.get 19   ; $field_88
-      local.get 20   ; $struct_90
+      local.set 19   ; $struct_88
+      local.get 18   ; $field_86
+      local.get 19   ; $struct_88
       array.push 26   ; union
-      local.get 8   ; $field_25
-      local.get 18   ; jump_pos
+      local.get 7   ; $field_23
+      local.get 17   ; jump_pos
       array.push 8   ; usize
       local.field 0 17 2   ; arg 0 regex$Parser.insts
       array.len
-      local.set 21   ; next_split_pos
+      local.set 20   ; next_split_pos
       local.field 0 17 2   ; arg 0 regex$Parser.insts
-      local.set 22   ; $field_94
-      local.get 11   ; next_start
-      local.get 21   ; next_split_pos
+      local.set 21   ; $field_92
+      local.get 10   ; next_start
+      local.get 20   ; next_split_pos
       struct.new 34   ; regex$InstSplit
-      local.set 23   ; $struct_95
-      local.get 22   ; $field_94
-      local.get 10   ; $add_43
-      local.get 23   ; $struct_95
+      local.set 22   ; $struct_93
+      local.get 21   ; $field_92
+      local.get 9   ; $add_41
+      local.get 22   ; $struct_93
       array.set 25   ; union[]
       local.get 4   ; $len_10
       i64.const 1
@@ -2131,8 +2131,8 @@ fn 23 regex$parse_alternation (ref) -> any
   i64.sub
   local.set 3   ; $field_8
   local.field 0 17 2   ; arg 0 regex$Parser.insts
-  local.set 12   ; $field_51
-  local.get 7   ; branch_offsets
+  local.set 11   ; $field_49
+  local.get 6   ; branch_offsets
   local.get 3   ; $field_8
   load_slot_i64
   local.set 4   ; $len_10
@@ -2140,12 +2140,12 @@ fn 23 regex$parse_alternation (ref) -> any
   i64.const 1
   i64.add
   local.set 3   ; $field_8
-  local.get 7   ; branch_offsets
+  local.get 6   ; branch_offsets
   local.get 3   ; $field_8
   load_slot_i64
   local.set 3   ; $field_8
-  local.get 12   ; $field_51
-  local.get 6   ; $field_14
+  local.get 11   ; $field_49
+  local.get 5   ; $field_12
   local.get 4   ; $len_10
   local.get 3   ; $field_8
   local.get 1   ; branch_start
@@ -2155,7 +2155,7 @@ fn 23 regex$parse_alternation (ref) -> any
   local.set 1   ; branch_start
   i64.const 0
   local.set 3   ; $field_8
-  local.get 8   ; $field_25
+  local.get 7   ; $field_23
   array.len
   local.set 4   ; $len_10
   loop $L10 void
@@ -2164,17 +2164,17 @@ fn 23 regex$parse_alternation (ref) -> any
     u64.lt
     if $L11 void
       local.field 0 17 2   ; arg 0 regex$Parser.insts
-      local.set 6   ; $field_14
-      local.get 8   ; $field_25
+      local.set 5   ; $field_12
+      local.get 7   ; $field_23
       local.get 3   ; $field_8
       load_slot_i64
-      local.set 9   ; $field_37
+      local.set 8   ; $field_35
       local.get 1   ; branch_start
       struct.new 31   ; regex$InstJump
-      local.set 7   ; branch_offsets
-      local.get 6   ; $field_14
-      local.get 9   ; $field_37
-      local.get 7   ; branch_offsets
+      local.set 6   ; branch_offsets
+      local.get 5   ; $field_12
+      local.get 8   ; $field_35
+      local.get 6   ; branch_offsets
       array.set 25   ; union[]
       local.get 3   ; $field_8
       i64.const 1
@@ -2361,114 +2361,114 @@ fn 25 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
         local.get 8   ; stack
         local.get 14   ; $struct_32
         array.push 39   ; regex$WorkItem
+        br $L0
+      end $L3
+      local.get 13   ; inst
+      type_check 34   ; regex$InstSplit
+      if $L4 void
+        local.get 13   ; inst
+        ref.cast 34   ; regex$InstSplit
+        struct.get 34 1   ; regex$InstSplit.b
+        ref.cast 8   ; usize
+        local.get 12   ; groups
+        struct.new 39   ; regex$WorkItem
+        local.set 15   ; $struct_36
+        local.get 8   ; stack
+        local.get 15   ; $struct_36
+        array.push 39   ; regex$WorkItem
+        local.get 13   ; inst
+        ref.cast 34   ; regex$InstSplit
+        struct.get 34 0   ; regex$InstSplit.a
+        ref.cast 8   ; usize
+        local.get 12   ; groups
+        struct.new 39   ; regex$WorkItem
+        local.set 16   ; $struct_39
+        local.get 8   ; stack
+        local.get 16   ; $struct_39
+        array.push 39   ; regex$WorkItem
       else
         local.get 13   ; inst
-        type_check 34   ; regex$InstSplit
-        if $L4 void
-          local.get 13   ; inst
-          ref.cast 34   ; regex$InstSplit
-          struct.get 34 1   ; regex$InstSplit.b
-          ref.cast 8   ; usize
+        type_check 33   ; regex$InstSave
+        if $L5 void
+          array.new 22 0   ; usize[]
+          local.tee 17   ; g
           local.get 12   ; groups
-          struct.new 39   ; regex$WorkItem
-          local.set 15   ; $struct_36
-          local.get 8   ; stack
-          local.get 15   ; $struct_36
-          array.push 39   ; regex$WorkItem
+          array.push_all
           local.get 13   ; inst
-          ref.cast 34   ; regex$InstSplit
-          struct.get 34 0   ; regex$InstSplit.a
+          ref.cast 33   ; regex$InstSave
+          struct.get 33 0   ; regex$InstSave.slot
           ref.cast 8   ; usize
-          local.get 12   ; groups
+          local.set 18   ; $field_44
+          local.get 17   ; g
+          local.get 18   ; $field_44
+          local.get 5   ; arg 5
+          store_slot_i64
+          local.get 11   ; pc
+          i64.const 1
+          i64.add
+          local.get 17   ; g
           struct.new 39   ; regex$WorkItem
-          local.set 16   ; $struct_39
+          local.set 19   ; $struct_47
           local.get 8   ; stack
-          local.get 16   ; $struct_39
+          local.get 19   ; $struct_47
           array.push 39   ; regex$WorkItem
         else
           local.get 13   ; inst
-          type_check 33   ; regex$InstSave
-          if $L5 void
-            array.new 22 0   ; usize[]
-            local.tee 17   ; g
-            local.get 12   ; groups
-            array.push_all
-            local.get 13   ; inst
-            ref.cast 33   ; regex$InstSave
-            struct.get 33 0   ; regex$InstSave.slot
-            ref.cast 8   ; usize
-            local.set 18   ; $field_44
-            local.get 17   ; g
-            local.get 18   ; $field_44
+          type_check 28   ; regex$InstAnchorStart
+          if $L6 void
             local.get 5   ; arg 5
-            store_slot_i64
-            local.get 11   ; pc
-            i64.const 1
-            i64.add
-            local.get 17   ; g
-            struct.new 39   ; regex$WorkItem
-            local.set 19   ; $struct_47
-            local.get 8   ; stack
-            local.get 19   ; $struct_47
-            array.push 39   ; regex$WorkItem
+            i64.const 0
+            i64.eq
+            if $L7 void
+              local.get 11   ; pc
+              i64.const 1
+              i64.add
+              local.get 12   ; groups
+              struct.new 39   ; regex$WorkItem
+              local.set 20   ; $struct_53
+              local.get 8   ; stack
+              local.get 20   ; $struct_53
+              array.push 39   ; regex$WorkItem
+            end $L7
           else
             local.get 13   ; inst
-            type_check 28   ; regex$InstAnchorStart
-            if $L6 void
+            type_check 27   ; regex$InstAnchorEnd
+            if $L8 void
+              local.get 4   ; arg 4
+              array.len
+              local.set 21   ; $len_55
               local.get 5   ; arg 5
-              i64.const 0
+              local.get 21   ; $len_55
               i64.eq
-              if $L7 void
+              if $L9 void
                 local.get 11   ; pc
                 i64.const 1
                 i64.add
                 local.get 12   ; groups
                 struct.new 39   ; regex$WorkItem
-                local.set 20   ; $struct_53
+                local.set 22   ; $struct_59
                 local.get 8   ; stack
-                local.get 20   ; $struct_53
+                local.get 22   ; $struct_59
                 array.push 39   ; regex$WorkItem
-              end $L7
+              end $L9
             else
               local.get 13   ; inst
-              type_check 27   ; regex$InstAnchorEnd
-              if $L8 void
-                local.get 4   ; arg 4
-                array.len
-                local.set 21   ; $len_55
-                local.get 5   ; arg 5
-                local.get 21   ; $len_55
-                i64.eq
-                if $L9 void
-                  local.get 11   ; pc
-                  i64.const 1
-                  i64.add
-                  local.get 12   ; groups
-                  struct.new 39   ; regex$WorkItem
-                  local.set 22   ; $struct_59
-                  local.get 8   ; stack
-                  local.get 22   ; $struct_59
-                  array.push 39   ; regex$WorkItem
-                end $L9
+              type_check 42   ; union
+              if $L10 void
               else
-                local.get 13   ; inst
-                type_check 42   ; union
-                if $L10 void
-                  local.get 11   ; pc
-                  local.get 12   ; groups
-                  struct.new 21   ; regex$Thread
-                  local.set 23   ; $struct_61
-                  local.get 0   ; arg 0
-                  local.get 23   ; $struct_61
-                  array.push 21   ; regex$Thread
-                else
-                  unreachable
-                end $L10
-              end $L8
-            end $L6
-          end $L5
-        end $L4
-      end $L3
+                unreachable
+              end $L10
+              local.get 11   ; pc
+              local.get 12   ; groups
+              struct.new 21   ; regex$Thread
+              local.set 23   ; $struct_61
+              local.get 0   ; arg 0
+              local.get 23   ; $struct_61
+              array.push 21   ; regex$Thread
+            end $L8
+          end $L6
+        end $L5
+      end $L4
       br $L0
     end $L1
   end $L0
@@ -2480,10 +2480,11 @@ fn 26 regex$resolve_slot (usize,usize) -> usize
   i64.const -1
   i64.eq
   if $L0 void
-    local.get 1   ; arg 1
+  else
+    local.get 0   ; arg 0
     return
   end $L0
-  local.get 0   ; arg 0
+  local.get 1   ; arg 1
   return
 end
 
@@ -2641,9 +2642,10 @@ fn 29 regex$class_matches (ref,char) -> bool
           local.field 0 24 1   ; arg 0 regex$InstClass.negated
           ref.cast 6   ; bool
           if $L4 void
-            return.lit bool.const false
+          else
+            return.lit bool.const true
           end $L4
-          return.lit bool.const true
+          return.lit bool.const false
         end $L3
       end $L2
       local.get 3   ; i
@@ -2664,7 +2666,6 @@ fn 30 regex$parse_concat (ref) -> any
   local $field_5 ref
   local $field_6 usize
   local b u8
-  local or_res bool
   local err any
   block $L0 void
     loop $L1 void
@@ -2690,29 +2691,22 @@ fn 30 regex$parse_concat (ref) -> any
         local.tee 5   ; b
         i32.const 41
         i32.eq
-        if $L3 void
-          bool.const true
-          local.set 6   ; or_res
-        else
-          local.get 5   ; b
-          i32.const 124
-          i32.eq
-          local.set 6   ; or_res
-        end $L3
-        local.get 6   ; or_res
-        if $L4 void
-          br $L0
-        end $L4
+        br_if $L0
+        local.get 5   ; b
+        i32.const 124
+        i32.eq
+        br_if $L0
         local.get 0   ; arg 0
         call 34   ; regex$parse_atom_with_quantifier
-        local.tee 7   ; err
+        local.tee 6   ; err
         type_check 15   ; regex$RegexError
-        if $L5 void
-          local.get 7   ; err
-          ref.cast 15   ; regex$RegexError
-          return
-        end $L5
-        br $L1
+        if $L3 void
+        else
+          br $L1
+        end $L3
+        local.get 6   ; err
+        ref.cast 15   ; regex$RegexError
+        return
       end $L2
     end $L1
   end $L0
@@ -2927,12 +2921,13 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
   i32.const 123
   i32.eq
   if $L5 void
-    local.get 0   ; arg 0
-    local.get 1   ; atom_start
-    call 39   ; regex$apply_counted
-    return
+  else
+    return.lit null.const
   end $L5
-  return.lit null.const
+  local.get 0   ; arg 0
+  local.get 1   ; atom_start
+  call 39   ; regex$apply_counted
+  return
 end
 
 fn 35 regex$parse_atom (ref) -> any
@@ -3092,43 +3087,44 @@ fn 35 regex$parse_atom (ref) -> any
     end $L4
     local.get 10   ; or_res
     if $L5 void
+    else
       local.field 0 17 1   ; arg 0 regex$Parser.cursor
       ref.cast 8   ; usize
+      i64.const 1
+      i64.add
       local.set 2   ; $len_3
-      string.const 69   ; "unterminated group"
+      local.get 0   ; arg 0
       local.get 2   ; $len_3
-      struct.new 15   ; regex$RegexError
-      return
+      struct.set 17 1   ; regex$Parser.cursor
+      local.field 0 17 4   ; arg 0 regex$Parser.depth
+      ref.cast 8   ; usize
+      i64.const 1
+      i64.sub
+      local.set 2   ; $len_3
+      local.get 0   ; arg 0
+      local.get 2   ; $len_3
+      struct.set 17 4   ; regex$Parser.depth
+      local.field 0 17 2   ; arg 0 regex$Parser.insts
+      local.set 3   ; $field_8
+      i64.const 2
+      local.get 1   ; $field_1
+      i64.mul
+      i64.const 1
+      i64.add
+      struct.new 33   ; regex$InstSave
+      local.set 7   ; $struct_46
+      local.get 3   ; $field_8
+      local.get 7   ; $struct_46
+      array.push 26   ; union
+      return.lit null.const
     end $L5
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
-    i64.const 1
-    i64.add
-    local.set 2   ; $len_3
-    local.get 0   ; arg 0
-    local.get 2   ; $len_3
-    struct.set 17 1   ; regex$Parser.cursor
-    local.field 0 17 4   ; arg 0 regex$Parser.depth
-    ref.cast 8   ; usize
-    i64.const 1
-    i64.sub
-    local.set 2   ; $len_3
-    local.get 0   ; arg 0
-    local.get 2   ; $len_3
-    struct.set 17 4   ; regex$Parser.depth
-    local.field 0 17 2   ; arg 0 regex$Parser.insts
-    local.set 3   ; $field_8
-    i64.const 2
+    local.set 1   ; $field_1
+    string.const 69   ; "unterminated group"
     local.get 1   ; $field_1
-    i64.mul
-    i64.const 1
-    i64.add
-    struct.new 33   ; regex$InstSave
-    local.set 7   ; $struct_46
-    local.get 3   ; $field_8
-    local.get 7   ; $struct_46
-    array.push 26   ; union
-    return.lit null.const
+    struct.new 15   ; regex$RegexError
+    return
   end $L1
   local.get 4   ; b
   i32.const 46
@@ -3205,39 +3201,40 @@ fn 35 regex$parse_atom (ref) -> any
   i32.const 92
   i32.eq
   if $L10 void
+  else
+    local.field 0 17 0   ; arg 0 regex$Parser.bytes
+    local.set 3   ; $field_8
+    local.field 0 17 1   ; arg 0 regex$Parser.cursor
+    ref.cast 8   ; usize
+    local.set 1   ; $field_1
+    local.get 3   ; $field_8
+    local.get 1   ; $field_1
+    call 48   ; std_string$utf8_decode_len
+    local.set 2   ; $len_3
+    local.set 11   ; c
+    local.get 2   ; $len_3
+    local.set 1   ; $field_1
+    local.field 0 17 1   ; arg 0 regex$Parser.cursor
+    ref.cast 8   ; usize
+    local.get 1   ; $field_1
+    i64.add
+    local.set 1   ; $field_1
     local.get 0   ; arg 0
-    call 41   ; regex$parse_escape
-    return
+    local.get 1   ; $field_1
+    struct.set 17 1   ; regex$Parser.cursor
+    local.field 0 17 2   ; arg 0 regex$Parser.insts
+    local.set 3   ; $field_8
+    local.get 11   ; c
+    struct.new 30   ; regex$InstChar
+    local.set 7   ; $struct_46
+    local.get 3   ; $field_8
+    local.get 7   ; $struct_46
+    array.push 26   ; union
+    return.lit null.const
   end $L10
-  local.field 0 17 0   ; arg 0 regex$Parser.bytes
-  local.set 3   ; $field_8
-  local.field 0 17 1   ; arg 0 regex$Parser.cursor
-  ref.cast 8   ; usize
-  local.set 1   ; $field_1
-  local.get 3   ; $field_8
-  local.get 1   ; $field_1
-  call 48   ; std_string$utf8_decode_len
-  local.set 2   ; $len_3
-  local.set 11   ; c
-  local.get 2   ; $len_3
-  local.set 1   ; $field_1
-  local.field 0 17 1   ; arg 0 regex$Parser.cursor
-  ref.cast 8   ; usize
-  local.get 1   ; $field_1
-  i64.add
-  local.set 1   ; $field_1
   local.get 0   ; arg 0
-  local.get 1   ; $field_1
-  struct.set 17 1   ; regex$Parser.cursor
-  local.field 0 17 2   ; arg 0 regex$Parser.insts
-  local.set 3   ; $field_8
-  local.get 11   ; c
-  struct.new 30   ; regex$InstChar
-  local.set 7   ; $struct_46
-  local.get 3   ; $field_8
-  local.get 7   ; $struct_46
-  array.push 26   ; union
-  return.lit null.const
+  call 41   ; regex$parse_escape
+  return
 end
 
 fn 36 regex$apply_star (ref,usize) -> void
@@ -3783,37 +3780,38 @@ fn 39 regex$apply_counted (ref,usize) -> any
   i64.const 100000
   u64.gt
   if $L21 void
-    i64.const 58
-    call 5   ; std_core$new_byte_buffer
-    local.set 2   ; $field_2
-    i64.const 0
-    local.set 4   ; $add_12
-    local.get 2   ; $field_2
-    local.get 4   ; $add_12
-    string.const 73   ; "compiled pattern exceeds "
-    call 7   ; std_core$write_string_at
-    local.set 4   ; $add_12
-    i64.const 100000
-    usize.to_i64
-    local.set 12   ; $cast_85
-    local.get 2   ; $field_2
-    local.get 4   ; $add_12
-    local.get 12   ; $cast_85
-    call 8   ; std_core$write_unsigned
-    local.set 4   ; $add_12
-    local.get 2   ; $field_2
-    local.get 4   ; $add_12
-    string.const 74   ; " instructions"
-    call 7   ; std_core$write_string_at
-    local.set 4   ; $add_12
-    local.get 2   ; $field_2
-    local.get 4   ; $add_12
-    call 6   ; std_core$finish_buffer
-    local.get 3   ; $field_3
-    struct.new 15   ; regex$RegexError
-    return
+  else
+    return.lit null.const
   end $L21
-  return.lit null.const
+  i64.const 58
+  call 5   ; std_core$new_byte_buffer
+  local.set 2   ; $field_2
+  i64.const 0
+  local.set 4   ; $add_12
+  local.get 2   ; $field_2
+  local.get 4   ; $add_12
+  string.const 73   ; "compiled pattern exceeds "
+  call 7   ; std_core$write_string_at
+  local.set 4   ; $add_12
+  i64.const 100000
+  usize.to_i64
+  local.set 12   ; $cast_85
+  local.get 2   ; $field_2
+  local.get 4   ; $add_12
+  local.get 12   ; $cast_85
+  call 8   ; std_core$write_unsigned
+  local.set 4   ; $add_12
+  local.get 2   ; $field_2
+  local.get 4   ; $add_12
+  string.const 74   ; " instructions"
+  call 7   ; std_core$write_string_at
+  local.set 4   ; $add_12
+  local.get 2   ; $field_2
+  local.get 4   ; $add_12
+  call 6   ; std_core$finish_buffer
+  local.get 3   ; $field_3
+  struct.new 15   ; regex$RegexError
+  return
 end
 
 fn 40 regex$parse_char_class (ref) -> any
@@ -3917,129 +3915,130 @@ fn 40 regex$parse_char_class (ref) -> any
         i32.const 93
         i32.ne
         if $L5 void
-          local.get 0   ; arg 0
-          call 44   ; regex$read_class_char
-          local.tee 8   ; lo_c
-          type_check 15   ; regex$RegexError
-          if $L6 void
-            local.get 8   ; lo_c
-            ref.cast 15   ; regex$RegexError
-            return
-          end $L6
+        else
+          br $L2
+        end $L5
+        local.get 0   ; arg 0
+        call 44   ; regex$read_class_char
+        local.tee 8   ; lo_c
+        type_check 15   ; regex$RegexError
+        if $L6 void
+          local.get 8   ; lo_c
+          ref.cast 15   ; regex$RegexError
+          return
+        end $L6
+        local.field 0 17 1   ; arg 0 regex$Parser.cursor
+        ref.cast 8   ; usize
+        local.set 10   ; $field_37
+        local.field 0 17 0   ; arg 0 regex$Parser.bytes
+        array.len
+        local.set 11   ; $len_39
+        local.get 10   ; $field_37
+        local.get 11   ; $len_39
+        u64.lt
+        if $L7 void
+          local.field 0 17 0   ; arg 0 regex$Parser.bytes
+          local.set 13   ; $field_42
           local.field 0 17 1   ; arg 0 regex$Parser.cursor
           ref.cast 8   ; usize
-          local.set 10   ; $field_37
+          local.set 14   ; $field_43
+          local.get 13   ; $field_42
+          local.get 14   ; $field_43
+          array.get 11   ; u8[]
+          ref.cast 7   ; u8
+          i32.const 45
+          i32.eq
+          local.set 12   ; and_res
+        else
+          bool.const false
+          local.set 12   ; and_res
+        end $L7
+        local.get 12   ; and_res
+        if $L8 void
+          local.field 0 17 1   ; arg 0 regex$Parser.cursor
+          ref.cast 8   ; usize
+          i64.const 1
+          i64.add
+          local.set 16   ; $add_51
           local.field 0 17 0   ; arg 0 regex$Parser.bytes
           array.len
-          local.set 11   ; $len_39
-          local.get 10   ; $field_37
-          local.get 11   ; $len_39
+          local.set 17   ; $len_53
+          local.get 16   ; $add_51
+          local.get 17   ; $len_53
           u64.lt
-          if $L7 void
-            local.field 0 17 0   ; arg 0 regex$Parser.bytes
-            local.set 13   ; $field_42
-            local.field 0 17 1   ; arg 0 regex$Parser.cursor
-            ref.cast 8   ; usize
-            local.set 14   ; $field_43
-            local.get 13   ; $field_42
-            local.get 14   ; $field_43
-            array.get 11   ; u8[]
-            ref.cast 7   ; u8
-            i32.const 45
-            i32.eq
-            local.set 12   ; and_res
-          else
-            bool.const false
-            local.set 12   ; and_res
-          end $L7
-          local.get 12   ; and_res
-          if $L8 void
-            local.field 0 17 1   ; arg 0 regex$Parser.cursor
-            ref.cast 8   ; usize
-            i64.const 1
-            i64.add
-            local.set 16   ; $add_51
-            local.field 0 17 0   ; arg 0 regex$Parser.bytes
-            array.len
-            local.set 17   ; $len_53
-            local.get 16   ; $add_51
-            local.get 17   ; $len_53
-            u64.lt
-            local.set 15   ; and_res
-          else
-            bool.const false
-            local.set 15   ; and_res
-          end $L8
-          local.get 15   ; and_res
-          if $L9 void
-            local.field 0 17 0   ; arg 0 regex$Parser.bytes
-            local.set 18   ; $field_56
-            local.field 0 17 1   ; arg 0 regex$Parser.cursor
-            ref.cast 8   ; usize
-            i64.const 1
-            i64.add
-            local.set 19   ; $add_59
-            local.get 18   ; $field_56
-            local.get 19   ; $add_59
-            array.get 11   ; u8[]
-            ref.cast 7   ; u8
-            i32.const 93
-            i32.ne
-            local.set 9   ; is_range
-          else
-            bool.const false
-            local.set 9   ; is_range
-          end $L9
-          local.get 9   ; is_range
-          if $L10 void
-            local.field 0 17 1   ; arg 0 regex$Parser.cursor
-            ref.cast 8   ; usize
-            i64.const 1
-            i64.add
-            local.set 20   ; $add_66
-            local.get 0   ; arg 0
-            local.get 20   ; $add_66
-            struct.set 17 1   ; regex$Parser.cursor
-            local.get 0   ; arg 0
-            call 44   ; regex$read_class_char
-            local.tee 21   ; hi_c
-            type_check 15   ; regex$RegexError
-            if $L11 void
-              local.get 21   ; hi_c
-              ref.cast 15   ; regex$RegexError
-              return
-            end $L11
-            local.get 8   ; lo_c
-            ref.cast 5   ; char
-            local.set 22   ; $cast_71
+          local.set 15   ; and_res
+        else
+          bool.const false
+          local.set 15   ; and_res
+        end $L8
+        local.get 15   ; and_res
+        if $L9 void
+          local.field 0 17 0   ; arg 0 regex$Parser.bytes
+          local.set 18   ; $field_56
+          local.field 0 17 1   ; arg 0 regex$Parser.cursor
+          ref.cast 8   ; usize
+          i64.const 1
+          i64.add
+          local.set 19   ; $add_59
+          local.get 18   ; $field_56
+          local.get 19   ; $add_59
+          array.get 11   ; u8[]
+          ref.cast 7   ; u8
+          i32.const 93
+          i32.ne
+          local.set 9   ; is_range
+        else
+          bool.const false
+          local.set 9   ; is_range
+        end $L9
+        local.get 9   ; is_range
+        if $L10 void
+          local.field 0 17 1   ; arg 0 regex$Parser.cursor
+          ref.cast 8   ; usize
+          i64.const 1
+          i64.add
+          local.set 20   ; $add_66
+          local.get 0   ; arg 0
+          local.get 20   ; $add_66
+          struct.set 17 1   ; regex$Parser.cursor
+          local.get 0   ; arg 0
+          call 44   ; regex$read_class_char
+          local.tee 21   ; hi_c
+          type_check 15   ; regex$RegexError
+          if $L11 void
             local.get 21   ; hi_c
-            ref.cast 5   ; char
-            local.set 23   ; $cast_72
-            local.get 22   ; $cast_71
-            local.get 23   ; $cast_72
-            struct.new 38   ; regex$CharRange
-            local.set 24   ; $struct_73
-            local.get 5   ; $field_12
-            local.get 24   ; $struct_73
-            array.push 38   ; regex$CharRange
-          else
-            local.get 8   ; lo_c
-            ref.cast 5   ; char
-            local.set 25   ; $cast_74
-            local.get 8   ; lo_c
-            ref.cast 5   ; char
-            local.set 26   ; $cast_75
-            local.get 25   ; $cast_74
-            local.get 26   ; $cast_75
-            struct.new 38   ; regex$CharRange
-            local.set 27   ; $struct_76
-            local.get 5   ; $field_12
-            local.get 27   ; $struct_76
-            array.push 38   ; regex$CharRange
-          end $L10
+            ref.cast 15   ; regex$RegexError
+            return
+          end $L11
+          local.get 8   ; lo_c
+          ref.cast 5   ; char
+          local.set 22   ; $cast_71
+          local.get 21   ; hi_c
+          ref.cast 5   ; char
+          local.set 23   ; $cast_72
+          local.get 22   ; $cast_71
+          local.get 23   ; $cast_72
+          struct.new 38   ; regex$CharRange
+          local.set 24   ; $struct_73
+          local.get 5   ; $field_12
+          local.get 24   ; $struct_73
+          array.push 38   ; regex$CharRange
           br $L3
-        end $L5
-        br $L2
+        end $L10
+        local.get 8   ; lo_c
+        ref.cast 5   ; char
+        local.set 25   ; $cast_74
+        local.get 8   ; lo_c
+        ref.cast 5   ; char
+        local.set 26   ; $cast_75
+        local.get 25   ; $cast_74
+        local.get 26   ; $cast_75
+        struct.new 38   ; regex$CharRange
+        local.set 27   ; $struct_76
+        local.get 5   ; $field_12
+        local.get 27   ; $struct_76
+        array.push 38   ; regex$CharRange
+        br $L3
       end $L4
     end $L3
   end $L2
@@ -4053,29 +4052,30 @@ fn 40 regex$parse_char_class (ref) -> any
   local.get 4   ; $len_10
   u64.ge
   if $L12 void
-    string.const 75   ; "unterminated character class"
-    local.get 1   ; start_pos
-    struct.new 15   ; regex$RegexError
-    return
+  else
+    local.field 0 17 1   ; arg 0 regex$Parser.cursor
+    ref.cast 8   ; usize
+    i64.const 1
+    i64.add
+    local.set 2   ; $add_5
+    local.get 0   ; arg 0
+    local.get 2   ; $add_5
+    struct.set 17 1   ; regex$Parser.cursor
+    local.field 0 17 2   ; arg 0 regex$Parser.insts
+    local.set 6   ; $field_27
+    local.get 5   ; $field_12
+    local.get 3   ; negated
+    struct.new 24   ; regex$InstClass
+    local.set 5   ; $field_12
+    local.get 6   ; $field_27
+    local.get 5   ; $field_12
+    array.push 26   ; union
+    return.lit null.const
   end $L12
-  local.field 0 17 1   ; arg 0 regex$Parser.cursor
-  ref.cast 8   ; usize
-  i64.const 1
-  i64.add
-  local.set 1   ; start_pos
-  local.get 0   ; arg 0
+  string.const 75   ; "unterminated character class"
   local.get 1   ; start_pos
-  struct.set 17 1   ; regex$Parser.cursor
-  local.field 0 17 2   ; arg 0 regex$Parser.insts
-  local.set 6   ; $field_27
-  local.get 5   ; $field_12
-  local.get 3   ; negated
-  struct.new 24   ; regex$InstClass
-  local.set 5   ; $field_12
-  local.get 6   ; $field_27
-  local.get 5   ; $field_12
-  array.push 26   ; union
-  return.lit null.const
+  struct.new 15   ; regex$RegexError
+  return
 end
 
 fn 41 regex$parse_escape (ref) -> any
@@ -4084,6 +4084,8 @@ fn 41 regex$parse_escape (ref) -> any
   local $field_11 ref
   local e u8
   local $struct_22 ref
+  local $field_84 ref
+  local $struct_87 ref
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
   i64.const 1
@@ -4255,23 +4257,24 @@ fn 41 regex$parse_escape (ref) -> any
   i32.const 83
   i32.eq
   if $L9 void
+  else
     local.field 0 17 2   ; arg 0 regex$Parser.insts
-    local.set 3   ; $field_11
-    call 46   ; regex$space_class_ranges
-    bool.const true
-    struct.new 24   ; regex$InstClass
-    local.set 5   ; $struct_22
-    local.get 3   ; $field_11
-    local.get 5   ; $struct_22
+    local.set 6   ; $field_84
+    local.get 4   ; e
+    u8.to_i32
+    u32.to_char
+    struct.new 30   ; regex$InstChar
+    local.set 7   ; $struct_87
+    local.get 6   ; $field_84
+    local.get 7   ; $struct_87
     array.push 26   ; union
     return.lit null.const
   end $L9
   local.field 0 17 2   ; arg 0 regex$Parser.insts
   local.set 3   ; $field_11
-  local.get 4   ; e
-  u8.to_i32
-  u32.to_char
-  struct.new 30   ; regex$InstChar
+  call 46   ; regex$space_class_ranges
+  bool.const true
+  struct.new 24   ; regex$InstClass
   local.set 5   ; $struct_22
   local.get 3   ; $field_11
   local.get 5   ; $struct_22
@@ -4387,54 +4390,56 @@ fn 43 regex$parse_decimal_usize (ref) -> any
         i32.const 48
         u32.ge
         if $L6 void
-          local.field 0 17 0   ; arg 0 regex$Parser.bytes
-          local.set 7   ; $field_33
-          local.field 0 17 1   ; arg 0 regex$Parser.cursor
-          ref.cast 8   ; usize
-          local.set 8   ; $field_34
-          local.get 7   ; $field_33
-          local.get 8   ; $field_34
-          array.get 11   ; u8[]
-          ref.cast 7   ; u8
-          i32.const 57
-          u32.le
-          if $L7 void
-            local.get 1   ; $field_1
-            i64.const 10
-            i64.mul
-            local.set 9   ; $mul_39
-            local.field 0 17 0   ; arg 0 regex$Parser.bytes
-            local.set 10   ; $field_40
-            local.field 0 17 1   ; arg 0 regex$Parser.cursor
-            ref.cast 8   ; usize
-            local.set 11   ; $field_41
-            local.get 10   ; $field_40
-            local.get 11   ; $field_41
-            array.get 11   ; u8[]
-            ref.cast 7   ; u8
-            i32.const 48
-            i32.sub
-            i32.const 255
-            i32.bitand
-            u8.to_i64
-            local.set 12   ; $cast_45
-            local.get 9   ; $mul_39
-            local.get 12   ; $cast_45
-            i64.add
-            local.set 1   ; $field_1
-            local.field 0 17 1   ; arg 0 regex$Parser.cursor
-            ref.cast 8   ; usize
-            i64.const 1
-            i64.add
-            local.set 13   ; $add_49
-            local.get 0   ; arg 0
-            local.get 13   ; $add_49
-            struct.set 17 1   ; regex$Parser.cursor
-            br $L4
-          end $L7
+        else
           br $L3
         end $L6
-        br $L3
+        local.field 0 17 0   ; arg 0 regex$Parser.bytes
+        local.set 7   ; $field_33
+        local.field 0 17 1   ; arg 0 regex$Parser.cursor
+        ref.cast 8   ; usize
+        local.set 8   ; $field_34
+        local.get 7   ; $field_33
+        local.get 8   ; $field_34
+        array.get 11   ; u8[]
+        ref.cast 7   ; u8
+        i32.const 57
+        u32.le
+        if $L7 void
+        else
+          br $L3
+        end $L7
+        local.get 1   ; $field_1
+        i64.const 10
+        i64.mul
+        local.set 9   ; $mul_39
+        local.field 0 17 0   ; arg 0 regex$Parser.bytes
+        local.set 10   ; $field_40
+        local.field 0 17 1   ; arg 0 regex$Parser.cursor
+        ref.cast 8   ; usize
+        local.set 11   ; $field_41
+        local.get 10   ; $field_40
+        local.get 11   ; $field_41
+        array.get 11   ; u8[]
+        ref.cast 7   ; u8
+        i32.const 48
+        i32.sub
+        i32.const 255
+        i32.bitand
+        u8.to_i64
+        local.set 12   ; $cast_45
+        local.get 9   ; $mul_39
+        local.get 12   ; $cast_45
+        i64.add
+        local.set 1   ; $field_1
+        local.field 0 17 1   ; arg 0 regex$Parser.cursor
+        ref.cast 8   ; usize
+        i64.const 1
+        i64.add
+        local.set 13   ; $add_49
+        local.get 0   ; arg 0
+        local.get 13   ; $add_49
+        struct.set 17 1   ; regex$Parser.cursor
+        br $L4
       end $L5
     end $L4
   end $L3
@@ -4448,7 +4453,10 @@ fn 44 regex$read_class_char (ref) -> any
   local $len_3 usize
   local $field_8 ref
   local e u8
+  local $field_42 ref
+  local $field_43 usize
   local c char
+  local $call_elem_53 usize
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
   local.set 1   ; $field_1
@@ -4479,80 +4487,57 @@ fn 44 regex$read_class_char (ref) -> any
   i32.const 92
   i32.eq
   if $L1 void
-    local.field 0 17 1   ; arg 0 regex$Parser.cursor
-    ref.cast 8   ; usize
-    i64.const 1
-    i64.add
-    local.set 1   ; $field_1
-    local.get 0   ; arg 0
-    local.get 1   ; $field_1
-    struct.set 17 1   ; regex$Parser.cursor
-    local.field 0 17 1   ; arg 0 regex$Parser.cursor
-    ref.cast 8   ; usize
-    local.set 1   ; $field_1
+  else
     local.field 0 17 0   ; arg 0 regex$Parser.bytes
-    array.len
-    local.set 2   ; $len_3
-    local.get 1   ; $field_1
-    local.get 2   ; $len_3
-    u64.ge
-    if $L2 void
-      local.field 0 17 1   ; arg 0 regex$Parser.cursor
-      ref.cast 8   ; usize
-      local.set 1   ; $field_1
-      string.const 79   ; "trailing backslash inside class"
-      local.get 1   ; $field_1
-      struct.new 15   ; regex$RegexError
-      return
-    end $L2
-    local.field 0 17 0   ; arg 0 regex$Parser.bytes
-    local.set 3   ; $field_8
+    local.set 5   ; $field_42
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
-    local.set 1   ; $field_1
-    local.get 3   ; $field_8
-    local.get 1   ; $field_1
-    array.get 11   ; u8[]
-    ref.cast 7   ; u8
-    local.set 4   ; e
+    local.set 6   ; $field_43
+    local.get 5   ; $field_42
+    local.get 6   ; $field_43
+    call 48   ; std_string$utf8_decode_len
+    local.set 8   ; $call_elem_53
+    local.set 7   ; c
+    local.get 8   ; $call_elem_53
+    local.set 6   ; $field_43
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
-    i64.const 1
+    local.get 6   ; $field_43
     i64.add
-    local.set 1   ; $field_1
+    local.set 6   ; $field_43
     local.get 0   ; arg 0
-    local.get 1   ; $field_1
+    local.get 6   ; $field_43
     struct.set 17 1   ; regex$Parser.cursor
-    local.get 4   ; e
-    i32.const 110
-    i32.eq
-    if $L3 void
-      char.const 10
-      retag 5   ; char
-      return
-    end $L3
-    local.get 4   ; e
-    i32.const 116
-    i32.eq
-    if $L4 void
-      char.const 9
-      retag 5   ; char
-      return
-    end $L4
-    local.get 4   ; e
-    i32.const 114
-    i32.eq
-    if $L5 void
-      char.const 13
-      retag 5   ; char
-      return
-    end $L5
-    local.get 4   ; e
-    u8.to_i32
-    u32.to_char
+    local.get 7   ; c
     retag 5   ; char
     return
   end $L1
+  local.field 0 17 1   ; arg 0 regex$Parser.cursor
+  ref.cast 8   ; usize
+  i64.const 1
+  i64.add
+  local.set 1   ; $field_1
+  local.get 0   ; arg 0
+  local.get 1   ; $field_1
+  struct.set 17 1   ; regex$Parser.cursor
+  local.field 0 17 1   ; arg 0 regex$Parser.cursor
+  ref.cast 8   ; usize
+  local.set 1   ; $field_1
+  local.field 0 17 0   ; arg 0 regex$Parser.bytes
+  array.len
+  local.set 2   ; $len_3
+  local.get 1   ; $field_1
+  local.get 2   ; $len_3
+  u64.ge
+  if $L2 void
+    local.field 0 17 1   ; arg 0 regex$Parser.cursor
+    ref.cast 8   ; usize
+    local.set 1   ; $field_1
+    string.const 79   ; "trailing backslash inside class"
+    local.get 1   ; $field_1
+    struct.new 15   ; regex$RegexError
+    return
+  end $L2
   local.field 0 17 0   ; arg 0 regex$Parser.bytes
   local.set 3   ; $field_8
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
@@ -4560,20 +4545,45 @@ fn 44 regex$read_class_char (ref) -> any
   local.set 1   ; $field_1
   local.get 3   ; $field_8
   local.get 1   ; $field_1
-  call 48   ; std_string$utf8_decode_len
-  local.set 2   ; $len_3
-  local.set 5   ; c
-  local.get 2   ; $len_3
-  local.set 1   ; $field_1
+  array.get 11   ; u8[]
+  ref.cast 7   ; u8
+  local.set 4   ; e
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
-  local.get 1   ; $field_1
+  i64.const 1
   i64.add
   local.set 1   ; $field_1
   local.get 0   ; arg 0
   local.get 1   ; $field_1
   struct.set 17 1   ; regex$Parser.cursor
-  local.get 5   ; c
+  local.get 4   ; e
+  i32.const 110
+  i32.eq
+  if $L3 void
+    char.const 10
+    retag 5   ; char
+    return
+  end $L3
+  local.get 4   ; e
+  i32.const 116
+  i32.eq
+  if $L4 void
+    char.const 9
+    retag 5   ; char
+    return
+  end $L4
+  local.get 4   ; e
+  i32.const 114
+  i32.eq
+  if $L5 void
+  else
+    local.get 4   ; e
+    u8.to_i32
+    u32.to_char
+    retag 5   ; char
+    return
+  end $L5
+  char.const 13
   retag 5   ; char
   return
 end
@@ -4679,35 +4689,36 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     i64.const 2
     u64.lt
     if $L3 void
-      i32.const 0
-      i32.to_char
+    else
+      local.get 1   ; arg 1
+      i64.const 1
+      i64.add
+      local.set 4   ; $add_21
+      local.get 0   ; arg 0
+      local.get 4   ; $add_21
+      array.get 11   ; u8[]
+      ref.cast 7   ; u8
+      local.set 5   ; b1
+      local.get 3   ; b
+      u8.to_i32
+      i32.const 31
+      i32.bitand
+      i32.const 6
+      i32.shl
+      local.set 6   ; $shl_28
+      local.get 5   ; b1
+      u8.to_i32
+      i32.const 63
+      i32.bitand
+      local.set 7   ; $bitand_31
+      local.get 6   ; $shl_28
+      local.get 7   ; $bitand_31
+      i32.add
+      u32.to_char
       return
     end $L3
-    local.get 1   ; arg 1
-    i64.const 1
-    i64.add
-    local.set 4   ; $add_21
-    local.get 0   ; arg 0
-    local.get 4   ; $add_21
-    array.get 11   ; u8[]
-    ref.cast 7   ; u8
-    local.set 5   ; b1
-    local.get 3   ; b
-    u8.to_i32
-    i32.const 31
-    i32.bitand
-    i32.const 6
-    i32.shl
-    local.set 6   ; $shl_28
-    local.get 5   ; b1
-    u8.to_i32
-    i32.const 63
-    i32.bitand
-    local.set 7   ; $bitand_31
-    local.get 6   ; $shl_28
-    local.get 7   ; $bitand_31
-    i32.add
-    u32.to_char
+    i32.const 0
+    i32.to_char
     return
   end $L2
   local.get 3   ; b
@@ -4718,40 +4729,102 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     i64.const 3
     u64.lt
     if $L5 void
-      i32.const 0
-      i32.to_char
+    else
+      local.get 1   ; arg 1
+      i64.const 1
+      i64.add
+      local.set 4   ; $add_21
+      local.get 0   ; arg 0
+      local.get 4   ; $add_21
+      array.get 11   ; u8[]
+      ref.cast 7   ; u8
+      local.set 5   ; b1
+      local.get 1   ; arg 1
+      i64.const 2
+      i64.add
+      local.set 4   ; $add_21
+      local.get 0   ; arg 0
+      local.get 4   ; $add_21
+      array.get 11   ; u8[]
+      ref.cast 7   ; u8
+      local.set 8   ; b2
+      local.get 3   ; b
+      u8.to_i32
+      i32.const 15
+      i32.bitand
+      i32.const 12
+      i32.shl
+      local.set 6   ; $shl_28
+      local.get 5   ; b1
+      u8.to_i32
+      i32.const 63
+      i32.bitand
+      i32.const 6
+      i32.shl
+      local.set 7   ; $bitand_31
+      local.get 6   ; $shl_28
+      local.get 7   ; $bitand_31
+      i32.add
+      local.set 6   ; $shl_28
+      local.get 8   ; b2
+      u8.to_i32
+      i32.const 63
+      i32.bitand
+      local.set 7   ; $bitand_31
+      local.get 6   ; $shl_28
+      local.get 7   ; $bitand_31
+      i32.add
+      u32.to_char
       return
     end $L5
+    i32.const 0
+    i32.to_char
+    return
+  end $L4
+  local.get 2   ; n
+  i64.const 4
+  u64.lt
+  if $L6 void
+  else
     local.get 1   ; arg 1
     i64.const 1
     i64.add
-    local.set 4   ; $add_21
+    local.set 2   ; n
     local.get 0   ; arg 0
-    local.get 4   ; $add_21
+    local.get 2   ; n
     array.get 11   ; u8[]
     ref.cast 7   ; u8
     local.set 5   ; b1
     local.get 1   ; arg 1
     i64.const 2
     i64.add
-    local.set 4   ; $add_21
+    local.set 2   ; n
     local.get 0   ; arg 0
-    local.get 4   ; $add_21
+    local.get 2   ; n
     array.get 11   ; u8[]
     ref.cast 7   ; u8
     local.set 8   ; b2
+    local.get 1   ; arg 1
+    i64.const 3
+    i64.add
+    local.set 2   ; n
+    local.get 0   ; arg 0
+    local.get 2   ; n
+    array.get 11   ; u8[]
+    ref.cast 7   ; u8
+    local.set 9   ; b3
     local.get 3   ; b
     u8.to_i32
-    i32.const 15
+    i32.const 7
     i32.bitand
-    i32.const 12
+    i32.const 18
     i32.shl
     local.set 6   ; $shl_28
     local.get 5   ; b1
     u8.to_i32
     i32.const 63
     i32.bitand
-    i32.const 6
+    i32.const 12
     i32.shl
     local.set 7   ; $bitand_31
     local.get 6   ; $shl_28
@@ -4762,86 +4835,26 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     u8.to_i32
     i32.const 63
     i32.bitand
+    i32.const 6
+    i32.shl
+    local.set 7   ; $bitand_31
+    local.get 6   ; $shl_28
+    local.get 7   ; $bitand_31
+    i32.add
+    local.set 6   ; $shl_28
+    local.get 9   ; b3
+    u8.to_i32
+    i32.const 63
+    i32.bitand
     local.set 7   ; $bitand_31
     local.get 6   ; $shl_28
     local.get 7   ; $bitand_31
     i32.add
     u32.to_char
     return
-  end $L4
-  local.get 2   ; n
-  i64.const 4
-  u64.lt
-  if $L6 void
-    i32.const 0
-    i32.to_char
-    return
   end $L6
-  local.get 1   ; arg 1
-  i64.const 1
-  i64.add
-  local.set 2   ; n
-  local.get 0   ; arg 0
-  local.get 2   ; n
-  array.get 11   ; u8[]
-  ref.cast 7   ; u8
-  local.set 5   ; b1
-  local.get 1   ; arg 1
-  i64.const 2
-  i64.add
-  local.set 2   ; n
-  local.get 0   ; arg 0
-  local.get 2   ; n
-  array.get 11   ; u8[]
-  ref.cast 7   ; u8
-  local.set 8   ; b2
-  local.get 1   ; arg 1
-  i64.const 3
-  i64.add
-  local.set 2   ; n
-  local.get 0   ; arg 0
-  local.get 2   ; n
-  array.get 11   ; u8[]
-  ref.cast 7   ; u8
-  local.set 9   ; b3
-  local.get 3   ; b
-  u8.to_i32
-  i32.const 7
-  i32.bitand
-  i32.const 18
-  i32.shl
-  local.set 6   ; $shl_28
-  local.get 5   ; b1
-  u8.to_i32
-  i32.const 63
-  i32.bitand
-  i32.const 12
-  i32.shl
-  local.set 7   ; $bitand_31
-  local.get 6   ; $shl_28
-  local.get 7   ; $bitand_31
-  i32.add
-  local.set 6   ; $shl_28
-  local.get 8   ; b2
-  u8.to_i32
-  i32.const 63
-  i32.bitand
-  i32.const 6
-  i32.shl
-  local.set 7   ; $bitand_31
-  local.get 6   ; $shl_28
-  local.get 7   ; $bitand_31
-  i32.add
-  local.set 6   ; $shl_28
-  local.get 9   ; b3
-  u8.to_i32
-  i32.const 63
-  i32.bitand
-  local.set 7   ; $bitand_31
-  local.get 6   ; $shl_28
-  local.get 7   ; $bitand_31
-  i32.add
-  u32.to_char
+  i32.const 0
+  i32.to_char
   return
 end
 
@@ -4860,7 +4873,6 @@ fn 48 std_string$utf8_decode_len (ref,usize) -> (char,usize)
 end
 
 fn 49 std_string$is_utf8_continuation (u8) -> bool
-  local and_res bool
   local.get 0   ; arg 0
   i32.const 128
   u32.ge
@@ -4868,13 +4880,9 @@ fn 49 std_string$is_utf8_continuation (u8) -> bool
     local.get 0   ; arg 0
     i32.const 192
     u32.lt
-    local.set 1   ; and_res
-  else
-    bool.const false
-    local.set 1   ; and_res
+    return
   end $L0
-  local.get 1   ; and_res
-  return
+  return.lit bool.const false
 end
 
 fn 50 std_string$codepoint_byte_len (char) -> usize
@@ -4897,9 +4905,10 @@ fn 50 std_string$codepoint_byte_len (char) -> usize
   i32.const 65536
   u32.lt
   if $L2 void
-    return.lit i64.const 3
+  else
+    return.lit i64.const 4
   end $L2
-  return.lit i64.const 4
+  return.lit i64.const 3
 end
 
 fn 51 std_string_builder$append (ref,string) -> void

@@ -791,8 +791,39 @@ cf_end :: fn(ctx: FnEmitCfg!, span: Span) -> void {
     drain_pending(ctx, top.target_blk, top.kind == "loop", top.opener_pc, pc)
 }
 
+emit_return :: fn(ctx: FnEmitCfg!, block_id: BlockId, t: TermReturn) -> void {
+    // Values are pushed in the order the caller receives them, so the first goes
+    // down first. `skip_terminator_get` only ever applies to a lone value: with
+    // several, leaving the first on the stack would bury it under the rest.
+    single :: term_return_single(t)
+    for i in 0..<t.values.len() {
+        v :: t.values[i]
+        if !(single != null && ctx.hints.skip_terminator_get.contains(block_id)) {
+            emit_get(ctx, v, t.span)
+        }
+        emit_return_retag(ctx, v, i, t.span)
+    }
+    // `<const> + Return` fuses into `ReturnLit`. Only for a lone value:
+    // `ReturnLit` carries ONE literal, so on a scalarised return it would keep
+    // the last and drop the rest.
+    body :: ctx.slot.body
+    if body.len() > 0 && single != null {
+        cv :: const_op_of(body[body.len() - 1])
+        if cv !is null {
+            body[body.len() - 1] = ReturnLit { .value = cv }
+            return
+        }
+    }
+    push_emit(ctx, Return {}, t.span)
+}
+
 cf_br :: fn(ctx: FnEmitCfg!, span: Span, target_blk: BlockId) -> void {
     pc :: push_op_with_span(ctx, Branch {}, span)
+    defer_or_resolve_branch(ctx, target_blk, pc)
+}
+
+cf_br_if :: fn(ctx: FnEmitCfg!, span: Span, target_blk: BlockId) -> void {
+    pc :: push_op_with_span(ctx, BranchIf {}, span)
     defer_or_resolve_branch(ctx, target_blk, pc)
 }
 

@@ -29,8 +29,8 @@ export main 3
 
 fn 0 snippet$inspect (any) -> string
   local __scrut_0 any
-  local and_res bool
   local if_res string
+  local and_res bool
   local.get 0   ; arg 0
   local.tee 1   ; __scrut_0
   type_check 2   ; i32
@@ -39,46 +39,6 @@ fn 0 snippet$inspect (any) -> string
     ref.cast 2   ; i32
     i32.const 100
     i32.gt
-    local.set 2   ; and_res
-  else
-    bool.const false
-    local.set 2   ; and_res
-  end $L0
-  local.get 2   ; and_res
-  if $L1 void
-    string.const 0   ; "heavy"
-    local.set 3   ; if_res
-  else
-    local.get 1   ; __scrut_0
-    type_check 2   ; i32
-    if $L2 void
-      string.const 1   ; "light"
-      local.set 3   ; if_res
-    else
-      local.get 1   ; __scrut_0
-      type_check 3   ; string
-      if $L3 void
-        local.get 0   ; arg 0
-        ref.cast 3   ; string
-        local.set 3   ; if_res
-      else
-        unreachable
-      end $L3
-    end $L2
-  end $L1
-  local.get 3   ; if_res
-  return
-end
-
-fn 1 snippet$wave_through (any,bool) -> string
-  local __scrut_0 any
-  local and_res bool
-  local if_res string
-  local.get 0   ; arg 0
-  local.tee 2   ; __scrut_0
-  type_check 2   ; i32
-  if $L0 void
-    local.get 1   ; arg 1
     local.set 3   ; and_res
   else
     bool.const false
@@ -86,68 +46,108 @@ fn 1 snippet$wave_through (any,bool) -> string
   end $L0
   local.get 3   ; and_res
   if $L1 void
+    string.const 0   ; "heavy"
+    local.tee 2   ; if_res
+    return
+  end $L1
+  local.get 1   ; __scrut_0
+  type_check 2   ; i32
+  if $L2 void
+    string.const 1   ; "light"
+    local.set 2   ; if_res
+  else
+    local.get 1   ; __scrut_0
+    type_check 3   ; string
+    if $L3 void
+    else
+      unreachable
+    end $L3
+    local.get 0   ; arg 0
+    ref.cast 3   ; string
+    local.set 2   ; if_res
+  end $L2
+  local.get 2   ; if_res
+  return
+end
+
+fn 1 snippet$wave_through (any,bool) -> string
+  local __scrut_0 any
+  local if_res string
+  local and_res bool
+  local.get 0   ; arg 0
+  local.tee 2   ; __scrut_0
+  type_check 2   ; i32
+  if $L0 void
+    local.get 1   ; arg 1
+    local.set 4   ; and_res
+  else
+    bool.const false
+    local.set 4   ; and_res
+  end $L0
+  local.get 4   ; and_res
+  if $L1 void
     string.const 2   ; "waved"
-    local.set 4   ; if_res
+    local.tee 3   ; if_res
+    return
+  end $L1
+  local.get 2   ; __scrut_0
+  type_check 2   ; i32
+  if $L2 void
+    string.const 3   ; "checked"
+    local.set 3   ; if_res
   else
     local.get 2   ; __scrut_0
-    type_check 2   ; i32
-    if $L2 void
-      string.const 3   ; "checked"
-      local.set 4   ; if_res
+    type_check 3   ; string
+    if $L3 void
     else
-      local.get 2   ; __scrut_0
-      type_check 3   ; string
-      if $L3 void
-        string.const 4   ; "papers"
-        local.set 4   ; if_res
-      else
-        unreachable
-      end $L3
-    end $L2
-  end $L1
-  local.get 4   ; if_res
+      unreachable
+    end $L3
+    string.const 4   ; "papers"
+    local.set 3   ; if_res
+  end $L2
+  local.get 3   ; if_res
   return
 end
 
 fn 2 snippet$lane_call (u8,bool) -> string
   local __scrut_0 u8
-  local and_res bool
   local if_res string
+  local and_res bool
   local.get 0   ; arg 0
   local.tee 2   ; __scrut_0
   i32.const 1
   i32.eq
   if $L0 void
     local.get 1   ; arg 1
-    local.set 3   ; and_res
+    local.set 4   ; and_res
   else
     bool.const false
-    local.set 3   ; and_res
+    local.set 4   ; and_res
   end $L0
-  local.get 3   ; and_res
+  local.get 4   ; and_res
   if $L1 void
     string.const 5   ; "hold trucks"
-    local.set 4   ; if_res
+    local.tee 3   ; if_res
+    return
+  end $L1
+  local.get 2   ; __scrut_0
+  i32.const 1
+  i32.eq
+  if $L2 void
+    string.const 6   ; "trucks go"
+    local.set 3   ; if_res
   else
     local.get 2   ; __scrut_0
-    i32.const 1
+    i32.const 0
     i32.eq
-    if $L2 void
-      string.const 6   ; "trucks go"
-      local.set 4   ; if_res
+    if $L3 void
     else
-      local.get 2   ; __scrut_0
-      i32.const 0
-      i32.eq
-      if $L3 void
-        string.const 7   ; "cars go"
-        local.set 4   ; if_res
-      else
-        unreachable
-      end $L3
-    end $L2
-  end $L1
-  local.get 4   ; if_res
+      unreachable
+    end $L3
+    string.const 7   ; "cars go"
+    local.set 3   ; if_res
+  end $L2
+  local.get 3   ; if_res
   return
 end
 
@@ -403,18 +403,18 @@ fn 7 std_io$write (u8,string) -> void
 end
 
 fn 8 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

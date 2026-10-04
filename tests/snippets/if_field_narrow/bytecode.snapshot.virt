@@ -32,38 +32,37 @@ end
 fn 1 snippet$report (ref) -> void
   local __buf_0 ref
   local __off_1 usize
-  local $cast_13 i64
+  local $cast_12 i64
   local.field 0 3 0   ; arg 0 snippet$Bag.items
   type_check 0   ; null
-  bool.not
   if $L0 void
-    i64.const 26
-    call 5   ; std_core$new_byte_buffer
-    local.set 1   ; __buf_0
-    i64.const 0
-    local.set 2   ; __off_1
-    local.get 1   ; __buf_0
-    local.get 2   ; __off_1
-    string.const 0   ; "count="
-    call 7   ; std_core$write_string_at
-    local.set 2   ; __off_1
-    local.field 0 3 0   ; arg 0 snippet$Bag.items
-    call 0   ; snippet$count
-    i32.to_i64
-    local.set 3   ; $cast_13
-    local.get 1   ; __buf_0
-    local.get 2   ; __off_1
-    local.get 3   ; $cast_13
-    call 8   ; std_core$write_int
-    local.set 2   ; __off_1
-    local.get 1   ; __buf_0
-    local.get 2   ; __off_1
-    call 6   ; std_core$finish_buffer
-    call 11   ; std_io$println__string
-  else
     string.const 1   ; "empty"
     call 11   ; std_io$println__string
+    return
   end $L0
+  i64.const 26
+  call 5   ; std_core$new_byte_buffer
+  local.set 1   ; __buf_0
+  i64.const 0
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  string.const 0   ; "count="
+  call 7   ; std_core$write_string_at
+  local.set 2   ; __off_1
+  local.field 0 3 0   ; arg 0 snippet$Bag.items
+  call 0   ; snippet$count
+  i32.to_i64
+  local.set 3   ; $cast_12
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_12
+  call 8   ; std_core$write_int
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  call 6   ; std_core$finish_buffer
+  call 11   ; std_io$println__string
   return
 end
 
@@ -71,12 +70,13 @@ fn 2 snippet$total (ref) -> i32
   local.field 0 3 0   ; arg 0 snippet$Bag.items
   type_check 0   ; null
   if $L0 void
-    i32.const 1
-    i32.neg
+  else
+    local.field 0 3 0   ; arg 0 snippet$Bag.items
+    call 0   ; snippet$count
     return
   end $L0
-  local.field 0 3 0   ; arg 0 snippet$Bag.items
-  call 0   ; snippet$count
+  i32.const 1
+  i32.neg
   return
 end
 
@@ -311,6 +311,10 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 13   ; std_core$Buffer$ByteAccess$store_u8_vt
+    local.get 1   ; arg 1
+    local.get 6   ; total
+    i64.add
+    return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -375,18 +379,18 @@ fn 9 std_io$write (u8,string) -> void
 end
 
 fn 10 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

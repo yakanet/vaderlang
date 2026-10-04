@@ -26,51 +26,41 @@ impl 9 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$greet_wildcard (any) -> string
-  local if_res string
   local $field_7 string
   local.get 0   ; arg 0
   type_check 0   ; null
   if $L0 void
-    string.const 0   ; "no pet"
-    local.set 1   ; if_res
-  else
-    local.get 0   ; arg 0
-    ref.cast 2   ; snippet$Cat
-    struct.get 2 0   ; snippet$Cat.name
-    ref.cast 4   ; string
-    local.set 2   ; $field_7
-    string.const 1   ; "hello "
-    local.get 2   ; $field_7
-    call 3   ; concat_2
-    local.set 1   ; if_res
+    return.lit string.const 0   ; "no pet"
   end $L0
-  local.get 1   ; if_res
+  local.get 0   ; arg 0
+  ref.cast 2   ; snippet$Cat
+  struct.get 2 0   ; snippet$Cat.name
+  ref.cast 4   ; string
+  local.set 1   ; $field_7
+  string.const 1   ; "hello "
+  local.get 1   ; $field_7
+  call 3   ; concat_2
   return
 end
 
 fn 1 snippet$greet_binding (any) -> string
   local pet any
-  local if_res string
   local $field_8 string
   local.get 0   ; arg 0
   local.set 1   ; pet
   local.get 0   ; arg 0
   type_check 0   ; null
   if $L0 void
-    string.const 0   ; "no pet"
-    local.set 2   ; if_res
-  else
-    local.get 1   ; pet
-    ref.cast 2   ; snippet$Cat
-    struct.get 2 0   ; snippet$Cat.name
-    ref.cast 4   ; string
-    local.set 3   ; $field_8
-    string.const 2   ; "howdy "
-    local.get 3   ; $field_8
-    call 3   ; concat_2
-    local.set 2   ; if_res
+    return.lit string.const 0   ; "no pet"
   end $L0
-  local.get 2   ; if_res
+  local.get 1   ; pet
+  ref.cast 2   ; snippet$Cat
+  struct.get 2 0   ; snippet$Cat.name
+  ref.cast 4   ; string
+  local.set 2   ; $field_8
+  string.const 2   ; "howdy "
+  local.get 2   ; $field_8
+  call 3   ; concat_2
   return
 end
 
@@ -186,18 +176,18 @@ fn 4 std_io$write (u8,string) -> void
 end
 
 fn 5 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

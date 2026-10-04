@@ -34,18 +34,18 @@ impl 11 std_core$ByteAccess
 export main 4
 
 fn 0 snippet$describe (any) -> string
-  local $field_5 string
+  local $field_4 string
   local.get 0   ; arg 0
   type_check 2   ; snippet$Cat
-  bool.not
   if $L0 void
+  else
     local.get 0   ; arg 0
     ref.cast 3   ; snippet$Dog
     struct.get 3 0   ; snippet$Dog.sound
     ref.cast 4   ; string
-    local.set 1   ; $field_5
+    local.set 1   ; $field_4
     string.const 0   ; "dog says "
-    local.get 1   ; $field_5
+    local.get 1   ; $field_4
     call 5   ; concat_2
     return
   end $L0
@@ -53,9 +53,9 @@ fn 0 snippet$describe (any) -> string
   ref.cast 2   ; snippet$Cat
   struct.get 2 0   ; snippet$Cat.name
   ref.cast 4   ; string
-  local.set 1   ; $field_5
+  local.set 1   ; $field_4
   string.const 1   ; "cat "
-  local.get 1   ; $field_5
+  local.get 1   ; $field_4
   call 5   ; concat_2
   return
 end
@@ -63,12 +63,12 @@ end
 fn 1 snippet$stringify (any) -> string
   local __buf_0 ref
   local __off_1 usize
-  local $cast_11 i64
-  local $cast_15 string
+  local $cast_10 i64
+  local $cast_14 string
   local.get 0   ; arg 0
   type_check 4   ; string
-  bool.not
   if $L0 void
+  else
     i64.const 24
     call 6   ; std_core$new_byte_buffer
     local.set 1   ; __buf_0
@@ -82,10 +82,10 @@ fn 1 snippet$stringify (any) -> string
     local.get 0   ; arg 0
     ref.cast 6   ; i32
     i32.to_i64
-    local.set 3   ; $cast_11
+    local.set 3   ; $cast_10
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
-    local.get 3   ; $cast_11
+    local.get 3   ; $cast_10
     call 9   ; std_core$write_int
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
@@ -95,26 +95,26 @@ fn 1 snippet$stringify (any) -> string
   end $L0
   local.get 0   ; arg 0
   ref.cast 4   ; string
-  local.set 4   ; $cast_15
+  local.set 4   ; $cast_14
   string.const 3   ; "str "
-  local.get 4   ; $cast_15
+  local.get 4   ; $cast_14
   call 5   ; concat_2
   return
 end
 
 fn 2 snippet$unwrap_or (any,string) -> string
-  local $field_6 string
+  local $field_5 string
   local.get 0   ; arg 0
   type_check 0   ; null
-  bool.not
   if $L0 void
+  else
     local.get 0   ; arg 0
     ref.cast 2   ; snippet$Cat
     struct.get 2 0   ; snippet$Cat.name
     ref.cast 4   ; string
-    local.set 2   ; $field_6
+    local.set 2   ; $field_5
     string.const 1   ; "cat "
-    local.get 2   ; $field_6
+    local.get 2   ; $field_5
     call 5   ; concat_2
     return
   end $L0
@@ -174,6 +174,7 @@ fn 4 snippet$main () -> i32
   if $L1 void
     string.const 10   ; "dog is dog (should not print)"
     call 12   ; std_io$println__string
+    return.lit i32.const 0
   end $L1
   return.lit i32.const 0
 end
@@ -341,6 +342,10 @@ fn 9 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 14   ; std_core$Buffer$ByteAccess$store_u8_vt
+    local.get 1   ; arg 1
+    local.get 6   ; total
+    i64.add
+    return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -405,18 +410,18 @@ fn 10 std_io$write (u8,string) -> void
 end
 
 fn 11 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

@@ -133,27 +133,13 @@ loop_of :: fn(scope: CScope) -> CStatement {
         // `while`, unless the loop already carries one there.
         if core is CIf && (core.end_label == "" || scope.end_label == "") {
             end_label :: if core.end_label == "" { scope.end_label } else { core.end_label }
-            else_block :: core.else_block
-            // The branch that loops, and the condition that selects it.
-            looping :: if else_block == null && ends_with_continue(core.then_block) {
-                core.then_block
-            } else if else_block != null && is_empty(core.then_block) && ends_with_continue(
-                else_block,
-            ) {
-                else_block
-            } else {
-                null
-            }
-            if looping != null {
-                condition :: if else_block == null {
-                    core.condition
-                } else {
-                    CUnary { .operator = "!", .operand = core.condition }
-                }
+            // An empty then-arm loops on the else-arm, under the test negated.
+            test :: negated(core, core.end_label) ?? core
+            if test.else_block == null && ends_with_continue(test.then_block) {
                 return CWhile {
                     .label = scope.label,
-                    .body = spliced(statements, lead, trail, looping),
-                    .condition = condition,
+                    .body = spliced(statements, lead, trail, test.then_block),
+                    .condition = test.condition,
                     .end_label = end_label,
                 }
             }
@@ -271,8 +257,11 @@ tidy_block :: fn(block: CBlock!, used: MutableSet<string>) -> void {
                     tidy_block(else_block, used)
                 }
                 end_label :: used_label(statement.end_label, used)
+                flipped :: negated(statement, end_label)
                 kept.push(
-                    if end_label == statement.end_label {
+                    if flipped != null {
+                        flipped
+                    } else if end_label == statement.end_label {
                         statement
                     } else {
                         CIf {
@@ -331,6 +320,21 @@ tidy_block :: fn(block: CBlock!, used: MutableSet<string>) -> void {
     }
     block.body.clear()
     block.body.push_all(kept)
+}
+
+// `statement` testing its condition the other way round, ending on
+// `end_label`, when its then-arm is empty and its else-arm is not; null
+// otherwise.
+negated :: fn(statement: CIf, end_label: string) -> CIf | null {
+    else_block :: statement.else_block ?? return null
+    if !is_empty(statement.then_block) || is_empty(else_block) {
+        return null
+    }
+    return CIf {
+        .condition = CUnary { .operator = "!", .operand = statement.condition },
+        .then_block = else_block,
+        .end_label = end_label,
+    }
 }
 
 // `label` when a `goto` names it, `""` otherwise.
@@ -400,6 +404,22 @@ test_structure_loops_negates_an_empty_then :: fn() -> void {
         ],
     }
     assert_eq(structured(root), "while (!(c)) {\n}\n")
+}
+
+@test
+test_structure_loops_negates_an_if_with_an_empty_then :: fn() -> void {
+    root :: CBlock {
+        .body = [
+            CIf {
+                .condition = verbatim("c"),
+                .then_block = CBlock { .body = [] },
+                .else_block = CBlock {
+                    .body = [CAssign { .target = verbatim("x"), .value = verbatim("1") }],
+                },
+            },
+        ],
+    }
+    assert_eq(structured(root), "if (!(c)) {\n    x = 1;\n}\n")
 }
 
 @test

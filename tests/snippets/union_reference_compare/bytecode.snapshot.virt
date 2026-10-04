@@ -51,11 +51,12 @@ fn 0 snippet$pick (i32) -> any
   i32.const 2
   i32.eq
   if $L2 void
-    i64.const 7
-    retag 4   ; i64
-    return
+  else
+    return.lit null.const
   end $L2
-  return.lit null.const
+  i64.const 7
+  retag 4   ; i64
+  return
 end
 
 fn 1 snippet$main () -> i32
@@ -262,15 +263,16 @@ end
 fn 6 std_core$write_bool (ref,usize,bool) -> usize
   local.get 2   ; arg 2
   if $L0 void
+  else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 5   ; "true"
+    string.const 6   ; "false"
     call 5   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 6   ; "false"
+  string.const 5   ; "true"
   call 5   ; std_core$write_string_at
   return
 end
@@ -332,18 +334,18 @@ fn 7 std_io$write (u8,string) -> void
 end
 
 fn 8 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

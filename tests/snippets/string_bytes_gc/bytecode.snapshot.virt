@@ -165,38 +165,39 @@ fn 2 snippet$main () -> i32
   end $L2
   local.get 8   ; or_res
   if $L3 void
-    string.const 1   ; "byte-view GC corruption after major cycles"
+  else
+    local.get 4   ; sa
+    local.get 5   ; sb
+    i64.add
+    local.get 6   ; sc
+    i64.add
+    local.get 7   ; sd
+    i64.add
+    local.set 4   ; sa
+    i64.const 63
+    call 4   ; std_core$new_byte_buffer
+    local.set 0   ; va
+    i64.const 0
+    local.set 9   ; __off_1
+    local.get 0   ; va
+    local.get 9   ; __off_1
+    string.const 2   ; "ok: 4 byte views survived 2 major GCs; sum="
+    call 6   ; std_core$write_string_at
+    local.set 9   ; __off_1
+    local.get 0   ; va
+    local.get 9   ; __off_1
+    local.get 4   ; sa
+    call 8   ; std_core$write_unsigned
+    local.set 9   ; __off_1
+    local.get 0   ; va
+    local.get 9   ; __off_1
+    call 5   ; std_core$finish_buffer
     call 11   ; std_io$println__string
-    return.lit i32.const 1
+    return.lit i32.const 0
   end $L3
-  local.get 4   ; sa
-  local.get 5   ; sb
-  i64.add
-  local.get 6   ; sc
-  i64.add
-  local.get 7   ; sd
-  i64.add
-  local.set 4   ; sa
-  i64.const 63
-  call 4   ; std_core$new_byte_buffer
-  local.set 0   ; va
-  i64.const 0
-  local.set 9   ; __off_1
-  local.get 0   ; va
-  local.get 9   ; __off_1
-  string.const 2   ; "ok: 4 byte views survived 2 major GCs; sum="
-  call 6   ; std_core$write_string_at
-  local.set 9   ; __off_1
-  local.get 0   ; va
-  local.get 9   ; __off_1
-  local.get 4   ; sa
-  call 8   ; std_core$write_unsigned
-  local.set 9   ; __off_1
-  local.get 0   ; va
-  local.get 9   ; __off_1
-  call 5   ; std_core$finish_buffer
+  string.const 1   ; "byte-view GC corruption after major cycles"
   call 11   ; std_io$println__string
-  return.lit i32.const 0
+  return.lit i32.const 1
 end
 
 fn 3 concat_2 (string,string) -> string
@@ -362,6 +363,10 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 13   ; std_core$Buffer$ByteAccess$store_u8_vt
+    local.get 1   ; arg 1
+    local.get 6   ; total
+    i64.add
+    return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -508,18 +513,18 @@ fn 9 std_io$write (u8,string) -> void
 end
 
 fn 10 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 3   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write

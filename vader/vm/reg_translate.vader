@@ -137,6 +137,11 @@ translate_function :: fn(
     return t.code
 }
 
+// Whether the op at `pc` is an `if` whose then-arm is empty: its `else` follows.
+skips_else :: fn(f: bc.BcFunction, pc: usize) -> bool {
+    return f.body[pc] is bc.If && pc + 1 < f.body.len() && f.body[pc + 1] is bc.Else
+}
+
 // Translate the op at `pc` ; false when it is not one the register engine runs.
 translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags, t: Translation!, pc: usize) -> bool {
     op :: f.body[pc]
@@ -178,14 +183,21 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         // already carries its class, the casts only inform the C backend.
         is bc.Block | bc.Loop | bc.End | bc.RefCast | bc.Retag -> { t.retarget = previous }
         is bc.Else | bc.Branch -> {
-            flush(t, pc)
-            jump(t, pc, .Jump, 0, 0, f.jump_table[pc])
+            // After an `if` with an empty then-arm, the `if` already jumped past.
+            if !(op is bc.Else && skips_else(f, pc - 1)) {
+                flush(t, pc)
+                jump(t, pc, .Jump, 0, 0, f.jump_table[pc])
+            }
         }
         is bc.If | bc.BranchIf -> {
             cell :: t.stack[t.stack.len() - 1]
             t.stack.remove_last()
             flush(t, pc)
-            when_true :: op is bc.BranchIf
+            // An `if` whose then-arm is empty jumps past its `else` arm when the
+            // condition holds, instead of falling into a jump over it.
+            inverted :: skips_else(f, pc)
+            when_true :: op is bc.BranchIf || inverted
+            target :: f.jump_table[if inverted { pc + 1 } else { pc }]
             // The comparison that just computed the condition, when nothing came
             // between them and nothing else reads its result.
             fusable :: cell.kind == .Register && previous >= 0 && previous == i64(t.code.ops.len()) - 1
@@ -196,13 +208,13 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
                 rhs :: operand_of(t, usize(previous), 2)
                 drop_last_op(t)
                 if compare.swap {
-                    jump(t, pc, compare.op, rhs, lhs, f.jump_table[pc])
+                    jump(t, pc, compare.op, rhs, lhs, target)
                 } else {
-                    jump(t, pc, compare.op, lhs, rhs, f.jump_table[pc])
+                    jump(t, pc, compare.op, lhs, rhs, target)
                 }
             } else {
                 kind: RegOp: if when_true { .JumpIfTrue } else { .JumpIfFalse }
-                jump(t, pc, kind, cell.register, 0, f.jump_table[pc])
+                jump(t, pc, kind, cell.register, 0, target)
             }
         }
         is bc.Return -> {

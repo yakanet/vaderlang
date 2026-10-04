@@ -12,9 +12,10 @@ fn 0 snippet$main () -> i32
   string.const 0   ; "foo"
   call 1   ; snippet$needs_hash__string
   if $L0 void
-    return.lit i32.const 0
+  else
+    return.lit i32.const 1
   end $L0
-  return.lit i32.const 1
+  return.lit i32.const 0
 end
 
 fn 1 snippet$needs_hash__string (string) -> bool

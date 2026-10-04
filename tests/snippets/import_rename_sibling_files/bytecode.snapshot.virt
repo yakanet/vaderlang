@@ -160,18 +160,18 @@ fn 6 std_io$write (u8,string) -> void
 end
 
 fn 7 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 3   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
@@ -215,13 +215,14 @@ fn 9 std_string$trim (string) -> string
         ref.cast 4   ; u8
         call 10   ; std_string$is_white_byte
         if $L3 void
-          local.get 3   ; lo
-          i64.const 1
-          i64.add
-          local.set 3   ; lo
-          br $L1
+        else
+          br $L0
         end $L3
-        br $L0
+        local.get 3   ; lo
+        i64.const 1
+        i64.add
+        local.set 3   ; lo
+        br $L1
       end $L2
     end $L1
   end $L0
@@ -241,13 +242,14 @@ fn 9 std_string$trim (string) -> string
         ref.cast 4   ; u8
         call 10   ; std_string$is_white_byte
         if $L7 void
-          local.get 2   ; n
-          i64.const 1
-          i64.sub
-          local.set 2   ; n
-          br $L5
+        else
+          br $L4
         end $L7
-        br $L4
+        local.get 2   ; n
+        i64.const 1
+        i64.sub
+        local.set 2   ; n
+        br $L5
       end $L6
     end $L5
   end $L4
@@ -285,15 +287,11 @@ fn 10 std_string$is_white_byte (u8) -> bool
   end $L1
   local.get 1   ; or_res
   if $L2 void
-    bool.const true
-    local.set 1   ; or_res
-  else
-    local.get 0   ; arg 0
-    i32.const 13
-    i32.eq
-    local.set 1   ; or_res
+    return.lit bool.const true
   end $L2
-  local.get 1   ; or_res
+  local.get 0   ; arg 0
+  i32.const 13
+  i32.eq
   return
 end
 

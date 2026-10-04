@@ -9,17 +9,18 @@ fn 0 snippet$factorial (i32) -> i32
   i32.const 1
   i32.le
   if $L0 void
-    return.lit i32.const 1
+  else
+    local.get 0   ; arg 0
+    i32.const 1
+    i32.sub
+    call 0   ; snippet$factorial
+    local.set 1   ; $call_6
+    local.get 0   ; arg 0
+    local.get 1   ; $call_6
+    i32.mul
+    return
   end $L0
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.sub
-  call 0   ; snippet$factorial
-  local.set 1   ; $call_6
-  local.get 0   ; arg 0
-  local.get 1   ; $call_6
-  i32.mul
-  return
+  return.lit i32.const 1
 end
 
 fn 1 snippet$main () -> i32

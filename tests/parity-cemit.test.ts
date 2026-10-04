@@ -57,6 +57,9 @@ const C_PARITY = new Set<string>([
   // (jump_table-resolved goto labels, dynamic indent). Counted loop +
   // if/else body ; result via main's exit code (142).
   "scalar_control",
+  // A condition that branches on each operand of `&&` / `||` / `!`: shared
+  // targets reached by `br_if`, an empty then-arm negated.
+  "short_circuit_conditions",
   // T3a : direct `call` — own fns by index, scalar args + result
   // threaded through a fresh temp. Result via exit code (49).
   "scalar_call",

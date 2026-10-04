@@ -1,0 +1,85 @@
+// Conditions built from `&&`, `||` and `!`, with or without an `else`, in an
+// `if`, a value `if`, an `else if` chain and a loop condition — some branch on
+// each operand, some test a computed value. Each operand records itself as it is
+// evaluated, so the output pins both the outcome and which operands ran:
+// short-circuiting must skip the rest.
+// The last two functions take a guard whose operands share one `return`, and an
+// operand that diverges through `?? return`.
+module "snippet"
+
+import "std/io"
+import "std/string_builder"
+
+trace :: fn(sb: StringBuilder!, tag: string, v: bool) -> bool {
+    sb.append(tag)
+    return v
+}
+
+shapes :: fn(a: bool, b: bool, c: bool) -> string {
+    sb :: StringBuilder {}
+    if trace(sb, "a", a) || trace(sb, "b", b) {
+        sb.append("T1 ")
+    } else {
+        sb.append("F1 ")
+    }
+    if !(trace(sb, "a", a) && trace(sb, "b", b)) {
+        sb.append("T2 ")
+    }
+    if !trace(sb, "a", a) || trace(sb, "b", b) && !trace(sb, "c", c) {
+        sb.append("T3 ")
+    } else {
+        sb.append("F3 ")
+    }
+    v :: if (trace(sb, "a", a) || trace(sb, "b", b)) && trace(sb, "c", c) { 1 } else { 2 }
+    sb.append("v${v} ")
+    if !!trace(sb, "a", a) {
+        sb.append("T5 ")
+    } else if trace(sb, "b", b) || trace(sb, "c", c) {
+        sb.append("T6 ")
+    } else {
+        sb.append("F6 ")
+    }
+    return sb.to_string()
+}
+
+first_over :: fn(xs: i32[], n: i32, stop: i32) -> usize {
+    i: usize = 0
+    for i < xs.len() && !(xs[i] > n || xs[i] == stop) {
+        i += 1
+    }
+    return i
+}
+
+guard :: fn(x: i32 | null, y: i32) -> i32 {
+    if x == null || y < 0 {
+        return -1
+    }
+    if !(x > 3) && y != 2 {
+        return x
+    }
+    return x + y
+}
+
+diverge :: fn(x: i32 | null, flag: bool) -> i32 {
+    if flag || (x ?? return 99) > 0 {
+        return 1
+    }
+    return 0
+}
+
+main :: fn() -> i32 {
+    for a in [false, true] {
+        for b in [false, true] {
+            for c in [false, true] {
+                println("${a} ${b} ${c}: ${shapes(a, b, c)}")
+            }
+        }
+    }
+    xs :: [1, 2, 7, 3, 9]
+    println("${first_over(xs, 5, 99)} ${first_over(xs, 10, 3)} ${first_over(xs, 10, 42)}")
+    println("${guard(null, 1)} ${guard(2, -1)} ${guard(2, 1)} ${guard(2, 2)} ${guard(5, 1)}")
+    println(
+        "${diverge(null, true)} ${diverge(null, false)} ${diverge(3, false)} ${diverge(-3, false)}",
+    )
+    return 0
+}

@@ -26,8 +26,11 @@ fn 0 snippet$main () -> i32
         if $L3 void
           return.lit i32.const 0
         end $L3
+        return.lit i32.const 1
       end $L2
+      return.lit i32.const 1
     end $L1
+    return.lit i32.const 1
   end $L0
   return.lit i32.const 1
 end

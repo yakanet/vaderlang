@@ -105,12 +105,13 @@ fn 4 snippet$tail_string (any) -> string
   local.get 0   ; arg 0
   type_check 6   ; ref std_core$Error
   if $L0 void
-    return.lit string.const 2   ; "was-error"
+  else
+    local.get 0   ; arg 0
+    ref.cast 2   ; string
+    call 3   ; snippet$only_string
+    return
   end $L0
-  local.get 0   ; arg 0
-  ref.cast 2   ; string
-  call 3   ; snippet$only_string
-  return
+  return.lit string.const 2   ; "was-error"
 end
 
 fn 5 snippet$main () -> i32
@@ -136,16 +137,16 @@ fn 5 snippet$main () -> i32
     local.get 0   ; __scrut_0
     type_check 2   ; string
     if $L1 void
-      local.get 1   ; e
-      ref.cast 2   ; string
-      local.set 2   ; $vcall_7
-      string.const 5   ; "str "
-      local.get 2   ; $vcall_7
-      call 6   ; concat_2
-      call 13   ; std_io$println__string
     else
       unreachable
     end $L1
+    local.get 1   ; e
+    ref.cast 2   ; string
+    local.set 2   ; $vcall_7
+    string.const 5   ; "str "
+    local.get 2   ; $vcall_7
+    call 6   ; concat_2
+    call 13   ; std_io$println__string
   end $L0
   string.const 6   ; "plain"
   retag 2   ; string
@@ -317,6 +318,10 @@ fn 10 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 15   ; std_core$Buffer$ByteAccess$store_u8_vt
+    local.get 1   ; arg 1
+    local.get 6   ; total
+    i64.add
+    return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -381,18 +386,18 @@ fn 11 std_io$write (u8,string) -> void
 end
 
 fn 12 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

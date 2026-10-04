@@ -338,19 +338,20 @@ fn 2 snippet$__genstate_maybe$Iterator$next (ref) -> ref
   i32.const 5
   i32.eq
   if $L6 void
-    local.get 0   ; arg 0
-    i32.const 4
-    struct.set 3 0   ; snippet$__genstate_maybe.state
+  else
+    null.const
+    local.set 1   ; $k_40
+    local.get 1   ; $k_40
     i32.const 1
-    retag 2   ; i32
-    i32.const 0
     struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
     return
   end $L6
-  null.const
-  local.set 1   ; $k_40
-  local.get 1   ; $k_40
+  local.get 0   ; arg 0
+  i32.const 4
+  struct.set 3 0   ; snippet$__genstate_maybe.state
   i32.const 1
+  retag 2   ; i32
+  i32.const 0
   struct.new 4   ; __Tuple_Union_i32_null_u8_9381f7b1
   return
 end
@@ -415,24 +416,25 @@ fn 4 std_core$Range$Iterator$next__i32 (ref) -> ref
   end $L0
   local.get 1   ; done
   if $L1 void
+  else
     local.field 0 8 3   ; arg 0 std_core$Range__i32.cursor
     ref.cast 2   ; i32
-    i32.const 1
+    local.set 2   ; $field_3
+    local.field 0 8 3   ; arg 0 std_core$Range__i32.cursor
+    ref.cast 2   ; i32
+    call 17   ; std_core$i32$Step$step
+    local.set 3   ; $field_4
+    local.get 0   ; arg 0
+    local.get 3   ; $field_4
+    struct.set 8 3   ; std_core$Range__i32.cursor
+    local.get 2   ; $field_3
+    i32.const 0
     struct.new 10   ; __Tuple_i32_u8_99ae0d29
     return
   end $L1
   local.field 0 8 3   ; arg 0 std_core$Range__i32.cursor
   ref.cast 2   ; i32
-  local.set 2   ; $field_3
-  local.field 0 8 3   ; arg 0 std_core$Range__i32.cursor
-  ref.cast 2   ; i32
-  call 17   ; std_core$i32$Step$step
-  local.set 3   ; $field_4
-  local.get 0   ; arg 0
-  local.get 3   ; $field_4
-  struct.set 8 3   ; std_core$Range__i32.cursor
-  local.get 2   ; $field_3
-  i32.const 0
+  i32.const 1
   struct.new 10   ; __Tuple_i32_u8_99ae0d29
   return
 end
@@ -468,24 +470,25 @@ fn 5 std_core$Range$Iterator$next__usize (ref) -> ref
   end $L0
   local.get 1   ; done
   if $L1 void
+  else
     local.field 0 11 3   ; arg 0 std_core$Range__usize.cursor
     ref.cast 12   ; usize
-    i32.const 1
+    local.set 2   ; $field_3
+    local.field 0 11 3   ; arg 0 std_core$Range__usize.cursor
+    ref.cast 12   ; usize
+    call 18   ; std_core$usize$Step$step
+    local.set 3   ; $field_4
+    local.get 0   ; arg 0
+    local.get 3   ; $field_4
+    struct.set 11 3   ; std_core$Range__usize.cursor
+    local.get 2   ; $field_3
+    i32.const 0
     struct.new 13   ; __Tuple_usize_u8_de11f1ad
     return
   end $L1
   local.field 0 11 3   ; arg 0 std_core$Range__usize.cursor
   ref.cast 12   ; usize
-  local.set 2   ; $field_3
-  local.field 0 11 3   ; arg 0 std_core$Range__usize.cursor
-  ref.cast 12   ; usize
-  call 18   ; std_core$usize$Step$step
-  local.set 3   ; $field_4
-  local.get 0   ; arg 0
-  local.get 3   ; $field_4
-  struct.set 11 3   ; std_core$Range__usize.cursor
-  local.get 2   ; $field_3
-  i32.const 0
+  i32.const 1
   struct.new 13   ; __Tuple_usize_u8_de11f1ad
   return
 end
@@ -624,6 +627,10 @@ fn 9 std_core$write_int (ref,usize,i64) -> usize
     local.get 1   ; arg 1
     i32.const 45
     call 23   ; std_core$Buffer$ByteAccess$store_u8_vt
+    local.get 1   ; arg 1
+    local.get 6   ; total
+    i64.add
+    return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
@@ -637,17 +644,17 @@ fn 10 std_core$three_way (bool,bool) -> i32
   if $L0 void
     i32.const 1
     i32.neg
+    local.tee 2   ; if_res
+    return
+  end $L0
+  local.get 1   ; arg 1
+  if $L1 void
+    i32.const 1
     local.set 2   ; if_res
   else
-    local.get 1   ; arg 1
-    if $L1 void
-      i32.const 1
-      local.set 2   ; if_res
-    else
-      i32.const 0
-      local.set 2   ; if_res
-    end $L1
-  end $L0
+    i32.const 0
+    local.set 2   ; if_res
+  end $L1
   local.get 2   ; if_res
   return
 end
@@ -849,18 +856,18 @@ fn 19 std_io$write (u8,string) -> void
 end
 
 fn 20 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

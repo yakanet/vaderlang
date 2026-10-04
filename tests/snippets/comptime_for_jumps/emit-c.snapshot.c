@@ -169,9 +169,8 @@ static int32_t snippet_main(void) {
     l0 = INT32_C(0);
     while ((l0 < INT32_C(2))) {
 #line 13 "tests/snippets/comptime_for_jumps/_main.vader"
-        if (INT32_C(1) == INT32_C(2)) {
+        if (!(INT32_C(1) == INT32_C(2))) {
 #line 16 "tests/snippets/comptime_for_jumps/_main.vader"
-        } else {
             l1 = std_core_new_byte_buffer((size_t) 51);
             l2 = (size_t) 0;
             l2 = std_core_write_string_at(l1, l2, 1u);
@@ -186,9 +185,8 @@ static int32_t snippet_main(void) {
             std_io_println__string(t0);
 #line 13 "tests/snippets/comptime_for_jumps/_main.vader"
         }
-        if (INT32_C(2) == INT32_C(2)) {
+        if (!(INT32_C(2) == INT32_C(2))) {
 #line 16 "tests/snippets/comptime_for_jumps/_main.vader"
-        } else {
             l5 = std_core_new_byte_buffer((size_t) 51);
             l6 = (size_t) 0;
             l6 = std_core_write_string_at(l5, l6, 1u);
@@ -203,9 +201,8 @@ static int32_t snippet_main(void) {
             std_io_println__string(t0);
 #line 13 "tests/snippets/comptime_for_jumps/_main.vader"
         }
-        if (INT32_C(3) == INT32_C(2)) {
+        if (!(INT32_C(3) == INT32_C(2))) {
 #line 16 "tests/snippets/comptime_for_jumps/_main.vader"
-        } else {
             l9 = std_core_new_byte_buffer((size_t) 51);
             l10 = (size_t) 0;
             l10 = std_core_write_string_at(l9, l10, 1u);
@@ -526,6 +523,9 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 146 "lib/std/core/primitives.vader"
     if (l3) {
         std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 45);
+#line 147 "lib/std/core/primitives.vader"
+        return (size_t) (int64_t) (l1 + l6);
+#line 146 "lib/std/core/primitives.vader"
     }
 #line 147 "lib/std/core/primitives.vader"
     return (size_t) (int64_t) (l1 + l6);
@@ -551,9 +551,8 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     for (;;) {
 #line 208 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
-        if ((l3 >= l4)) {
+        if (!((l3 >= l4))) {
 #line 211 "lib/std/io/io.vader"
-        } else {
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
             l6 = (void*) _a0_arr;
@@ -583,19 +582,19 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 }
 
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
-    int32_t l3;
     ptrdiff_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 177 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-        l3 = INT32_C(1);
-    } else {
-        l3 = INT32_C(2);
+#line 180 "lib/std/io/io.vader"
+        t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
+        { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+#line 177 "lib/std/io/io.vader"
     }
 #line 180 "lib/std/io/io.vader"
-    t0 = vader_host_system_posix_sys_write(l3, l1, l2);
+    t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 

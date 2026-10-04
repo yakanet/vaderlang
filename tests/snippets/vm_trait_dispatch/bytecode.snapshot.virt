@@ -16,33 +16,21 @@ impl 7 snippet$Printable
 export main 2
 
 fn 0 snippet$describe (any) -> i32
-  local if_res i32
   local.get 0   ; arg 0
   type_check 8   ; ref snippet$Printable
   if $L0 void
-    i32.const 1
-    local.set 1   ; if_res
-  else
-    i32.const 0
-    local.set 1   ; if_res
+    return.lit i32.const 1
   end $L0
-  local.get 1   ; if_res
-  return
+  return.lit i32.const 0
 end
 
 fn 1 snippet$describe_wrapper (any) -> i32
-  local if_res i32
   local.get 0   ; arg 0
   type_check 8   ; ref snippet$Printable
   if $L0 void
-    i32.const 1
-    local.set 1   ; if_res
-  else
-    i32.const 0
-    local.set 1   ; if_res
+    return.lit i32.const 1
   end $L0
-  local.get 1   ; if_res
-  return
+  return.lit i32.const 0
 end
 
 fn 2 snippet$main () -> i32

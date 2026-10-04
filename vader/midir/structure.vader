@@ -17,9 +17,12 @@
 // successive loop, and C11 only guarantees 127. An exit the source writes inside
 // the loop — the code before a `break` or a `return` — stays where Ramsey has it.
 //
-// A branch to the block control falls through to emits nothing, and an `if`
-// whose then-arm always leaves puts its else-arm after the `end`, so a chain of
-// guards that return stays flat.
+// A branch to the block control falls through to emits nothing. An `if` whose
+// then-arm always leaves puts its else-arm after the `end`, a then-arm that only
+// jumps forward is a `br_if`, and an else-arm that leaves at once goes first
+// under the test the other way round, so a chain of guards stays flat. A merge
+// that returns or traps in a few instructions is copied to each edge into it
+// instead (`docs/adr/0028`).
 //
 // The CFG must be reducible — the builder only produces structured shapes.
 // `shape_of` checks it, and `structure_function` checks that every `br` found
@@ -46,6 +49,9 @@ StructureShape :: struct {
     merges: BlockId[][]
     /// The exits each loop header emits after its loop's `end`, in reverse postorder.
     exits: BlockId[][]
+    /// Copied to each edge into it instead of placed: a merge that only returns or
+    /// traps, in a few instructions.
+    copied: bool[]
 }
 
 /// Emit the body of `ctx.fn_` as structured control flow into `ctx.slot`.
@@ -61,69 +67,6 @@ structure_function :: fn(ctx: FnEmitCfg!) -> void {
             "midir/structure: '${ctx.fn_.mangled}' — a `br` to bb${ctx.pending[0].target_blk} has no enclosing scope",
         )
     }
-}
-
-/// `fn_` with every edge into a forwarding block — no instructions, a lone
-/// `branch`, a single edge in — sent straight on to where that block leads.
-///
-/// The builder gives each arm of an `if` its block before it knows the arm is a
-/// lone `break` or `continue`. Left in place, a `break`'s block is a second exit
-/// beside the loop's own. One that several edges enter is a real merge and stays:
-/// the `break` after an inner loop whose `&&` condition gives it three exits —
-/// sent on, each of those edges would leave both loops by a `goto` — or a loop
-/// header whose body opens on another loop. A cycle of forwarding blocks is an
-/// empty infinite loop, and keeps its edges.
-///
-/// @param fn_  a function about to be structured.
-/// @return     the same function, its terminators retargeted.
-skip_forwarding_blocks :: fn(fn_: CFGFunction) -> CFGFunction {
-    n :: fn_.blocks.len()
-    entries: i32[]!: [0] * n
-    for b in fn_.blocks {
-        for s in successors_of(b) {
-            entries[i32(s)] += 1
-        }
-    }
-    hop: i32[]!: [-1] * n
-    forwards := false
-    for b in fn_.blocks {
-        t :: b.terminator
-        if b.instructions.len() == 0 && t is TermBranch && entries[i32(b.id)] < 2 {
-            hop[i32(b.id)] = i32(t.target)
-            forwards = true
-        }
-    }
-    if !forwards {
-        return fn_
-    }
-    blocks: BasicBlock[]!: []
-    for b in fn_.blocks {
-        blocks.push(BasicBlock { ...b, .terminator = retargeted(hop, b.terminator) })
-    }
-    return CFGFunction { ...fn_, .blocks = blocks }
-}
-
-retargeted :: fn(hop: i32[], t: Terminator) -> Terminator = match t {
-    is TermBranch                   -> TermBranch { ...t, .target = destination(hop, t.target) }
-    is TermCondBranch               -> TermCondBranch {
-        ...t,
-        .then_block = destination(hop, t.then_block),
-        .else_block = destination(hop, t.else_block),
-    }
-    is TermReturn | TermUnreachable -> t
-}
-
-// The first block on from `b` that does something other than forward, or `b`
-// itself when the forwarding blocks from it loop.
-destination :: fn(hop: i32[], b: BlockId) -> BlockId {
-    at := b
-    for _ in 0..<hop.len() {
-        if hop[i32(at)] < 0 {
-            return at
-        }
-        at = BlockId(hop[i32(at)])
-    }
-    return b
 }
 
 shape_of :: fn(fn_: CFGFunction, preds: BlockId[][], idom: i32[]) -> StructureShape {
@@ -164,6 +107,7 @@ shape_of :: fn(fn_: CFGFunction, preds: BlockId[][], idom: i32[]) -> StructureSh
         }
     }
     merge: bool[]!: [false] * n
+    copied: bool[]!: [false] * n
     merges: BlockId[]![]!: []
     exits: BlockId[]![]!: []
     // The loop header each exit is emitted after, -1 for any other block.
@@ -174,6 +118,15 @@ shape_of :: fn(fn_: CFGFunction, preds: BlockId[][], idom: i32[]) -> StructureSh
     }
     for b in rpo {
         if b == fn_.entry {
+            continue
+        }
+        // A merge that returns or traps in a few instructions is copied to each
+        // edge into it instead: `if (a) return -1; if (b) return -1;`, where a
+        // `block` would need a `br` per edge. Not when a loop's own test leaves
+        // for it: copied into the loop, it would cost the loop its `while`.
+        shared :: forward_preds[i32(b)] >= 2 && !entered_by_test(loops, preds[i32(b)], b)
+        if shared && copies_cheaply(fn_.blocks[i32(b)]) {
+            copied[i32(b)] = true
             continue
         }
         parent :: idom[i32(b)]
@@ -213,6 +166,7 @@ shape_of :: fn(fn_: CFGFunction, preds: BlockId[][], idom: i32[]) -> StructureSh
         .merge = merge,
         .merges = merges,
         .exits = exits,
+        .copied = copied,
     }
 }
 
@@ -263,6 +217,28 @@ emitted_beneath :: fn(
 }
 
 ends_function :: fn(t: Terminator) -> bool = t is TermReturn | TermUnreachable
+
+// True when a loop's own test, at its header, leaves the loop for `b`.
+entered_by_test :: fn(
+    loops: MutableMap<BlockId, MutableSet<BlockId>>,
+    preds: BlockId[],
+    b: BlockId,
+) -> bool {
+    for p in preds {
+        if leaves_header(loops, p, b) {
+            return true
+        }
+    }
+    return false
+}
+
+copies_cheaply :: fn(b: BasicBlock) -> bool {
+    return ends_function(b.terminator) && b.instructions.len() <= SMALL_DEAD_END
+}
+
+// The most instructions a block that returns or traps may hold and still be
+// copied to each edge into it.
+SMALL_DEAD_END: usize: 2
 
 // True when loop header `h` ends in a test with a target outside its loop.
 tests_its_exit :: fn(
@@ -432,7 +408,7 @@ emit_branch :: fn(
     if to == next {
         return
     }
-    if shape.merge[i32(to)] || shape.rpo_index[i32(to)] <= shape.rpo_index[i32(from)] {
+    if only_jumps(shape, from, to) {
         cf_br(ctx, span, to)
         return
     }
@@ -449,6 +425,34 @@ emit_cond_branch :: fn(
 ) -> void {
     if !ctx.hints.skip_terminator_get.contains(x) {
         emit_get(ctx, t.cond, t.span)
+    }
+    // A then-arm that is a lone `br` forward, to a merge other than the one
+    // control falls through to, is a `br_if`, and the else-arm follows at the
+    // same depth. Not a `br` back to a loop header: the VM charges its loop
+    // budget on a backward jump, and a `br_if` would pay it taken or not.
+    else_runs :: t.else_block != next && t.else_block != exit
+    forward :: shape.rpo_index[i32(t.then_block)] > shape.rpo_index[i32(x)]
+    if t.then_block != next && t.then_block != exit && shape.merge[i32(t.then_block)] && forward {
+        cf_br_if(ctx, t.span, t.then_block)
+        if t.else_block != exit {
+            emit_branch(ctx, shape, x, t.else_block, next, t.span)
+        }
+        return
+    }
+    // An else-arm that leaves at once — a `br`, or a block of its own that
+    // returns or traps — goes first, under the test the other way round, and the
+    // then-arm follows its `end`: `if !f(x) { return false }` stays the guard the
+    // source wrote, and a loop body around it still ends on its `continue`. A
+    // copied block is the join of the `if` it follows, and keeps its place.
+    if else_runs && leaves_at_once(ctx, shape, x, t.else_block) {
+        cf_if(ctx, t.span)
+        cf_else(ctx, t.span)
+        emit_branch(ctx, shape, x, t.else_block, next, t.span)
+        cf_end(ctx, t.span)
+        if t.then_block != exit {
+            emit_branch(ctx, shape, x, t.then_block, next, t.span)
+        }
+        return
     }
     cf_if(ctx, t.span)
     if t.then_block != exit {
@@ -470,28 +474,15 @@ emit_cond_branch :: fn(
     cf_end(ctx, t.span)
 }
 
-emit_return :: fn(ctx: FnEmitCfg!, block_id: BlockId, t: TermReturn) -> void {
-    // Values are pushed in the order the caller receives them, so the first goes
-    // down first. `skip_terminator_get` only ever applies to a lone value: with
-    // several, leaving the first on the stack would bury it under the rest.
-    single :: term_return_single(t)
-    for i in 0..<t.values.len() {
-        v :: t.values[i]
-        if !(single != null && ctx.hints.skip_terminator_get.contains(block_id)) {
-            emit_get(ctx, v, t.span)
-        }
-        emit_return_retag(ctx, v, i, t.span)
-    }
-    // `<const> + Return` fuses into `ReturnLit`. Only for a lone value:
-    // `ReturnLit` carries ONE literal, so on a scalarised return it would keep
-    // the last and drop the rest.
-    body :: ctx.slot.body
-    if body.len() > 0 && single != null {
-        cv :: const_op_of(body[body.len() - 1])
-        if cv !is null {
-            body[body.len() - 1] = ReturnLit { .value = cv }
-            return
-        }
-    }
-    push_emit(ctx, Return {}, t.span)
+// Whether `to`, reached from `from`, leaves at once: a lone `br`, or a block of
+// its own that returns or traps.
+leaves_at_once :: fn(ctx: FnEmitCfg, shape: StructureShape, from: BlockId, to: BlockId) -> bool {
+    returns :: ends_function(ctx.fn_.blocks[i32(to)].terminator) && !shape.copied[i32(to)]
+    return returns || only_jumps(shape, from, to)
+}
+
+// Whether control leaving `from` for `to` is a lone `br`: to a merge, or to a
+// loop header behind.
+only_jumps :: fn(shape: StructureShape, from: BlockId, to: BlockId) -> bool {
+    return shape.merge[i32(to)] || shape.rpo_index[i32(to)] <= shape.rpo_index[i32(from)]
 }

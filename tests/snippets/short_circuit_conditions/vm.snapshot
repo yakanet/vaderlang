@@ -1,0 +1,14 @@
+# stdout
+false false false: abF1 aT2 aT3 abv2 abcF6 
+false false true: abF1 aT2 aT3 abv2 abcT6 
+false true false: abT1 aT2 aT3 abcv2 abT6 
+false true true: abT1 aT2 aT3 abcv1 abT6 
+true false false: aT1 abT2 abF3 acv2 aT5 
+true false true: aT1 abT2 abF3 acv1 aT5 
+true true false: aT1 ababcT3 acv2 aT5 
+true true true: aT1 ababcF3 acv1 aT5 
+2 3 5
+-1 -1 2 4 6
+1 99 1 0
+# exit
+0

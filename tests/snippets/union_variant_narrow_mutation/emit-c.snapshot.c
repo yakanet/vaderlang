@@ -113,23 +113,23 @@ static size_t snippet_fill(vader_box_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 22 "tests/snippets/union_variant_narrow_mutation/_main.vader"
-    if (l0.tag == 2u) {
-#line 23 "tests/snippets/union_variant_narrow_mutation/_main.vader"
+    if (!(l0.tag == 2u)) {
+#line 27 "tests/snippets/union_variant_narrow_mutation/_main.vader"
         t0 = l0.payload.obj;
-        vader_array_push_i32((vader_array_t*) t0, INT32_C(30));
-#line 24 "tests/snippets/union_variant_narrow_mutation/_main.vader"
-        t0 = l0.payload.obj;
-        vader_array_push_i32((vader_array_t*) t0, INT32_C(40));
-#line 25 "tests/snippets/union_variant_narrow_mutation/_main.vader"
+        vader_array_push((vader_array_t*) t0, vader_box_string(5u, 1u));
+#line 28 "tests/snippets/union_variant_narrow_mutation/_main.vader"
         t0 = l0.payload.obj;
         t1 = ((vader_array_t*) t0)->length;
         { size_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 #line 22 "tests/snippets/union_variant_narrow_mutation/_main.vader"
     }
-#line 27 "tests/snippets/union_variant_narrow_mutation/_main.vader"
+#line 23 "tests/snippets/union_variant_narrow_mutation/_main.vader"
     t0 = l0.payload.obj;
-    vader_array_push((vader_array_t*) t0, vader_box_string(5u, 1u));
-#line 28 "tests/snippets/union_variant_narrow_mutation/_main.vader"
+    vader_array_push_i32((vader_array_t*) t0, INT32_C(30));
+#line 24 "tests/snippets/union_variant_narrow_mutation/_main.vader"
+    t0 = l0.payload.obj;
+    vader_array_push_i32((vader_array_t*) t0, INT32_C(40));
+#line 25 "tests/snippets/union_variant_narrow_mutation/_main.vader"
     t0 = l0.payload.obj;
     t1 = ((vader_array_t*) t0)->length;
     { size_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -139,35 +139,35 @@ static size_t snippet_total(vader_box_t l0) {
     int32_t l1, l5;
     void* l2;
     size_t l3, l4;
-    int64_t t0;
-    void* t1;
-    size_t t2;
+    void* t0;
+    size_t t1;
+    int64_t t2;
 #line 34 "tests/snippets/union_variant_narrow_mutation/_main.vader"
-    if (l0.tag == 2u) {
-#line 35 "tests/snippets/union_variant_narrow_mutation/_main.vader"
-        l1 = INT32_C(0);
-#line 36 "tests/snippets/union_variant_narrow_mutation/_main.vader"
-        l2 = l0.payload.obj;
-        l3 = ((vader_array_t*) l2)->length;
-        l4 = (size_t) 0;
-        while ((l4 < l3)) {
-            vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
-            VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-            l5 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
-#line 37 "tests/snippets/union_variant_narrow_mutation/_main.vader"
-            l1 = (l1 + l5);
-#line 36 "tests/snippets/union_variant_narrow_mutation/_main.vader"
-            t0 = (l4 + INT64_C(1));
-            l4 = (size_t) (int64_t) t0;
-        }
-#line 39 "tests/snippets/union_variant_narrow_mutation/_main.vader"
-        return (size_t) (int64_t) ((int64_t) (int32_t) l1);
+    if (!(l0.tag == 2u)) {
+#line 41 "tests/snippets/union_variant_narrow_mutation/_main.vader"
+        t0 = l0.payload.obj;
+        t1 = ((vader_array_t*) t0)->length;
+        return t1;
 #line 34 "tests/snippets/union_variant_narrow_mutation/_main.vader"
     }
-#line 41 "tests/snippets/union_variant_narrow_mutation/_main.vader"
-    t1 = l0.payload.obj;
-    t2 = ((vader_array_t*) t1)->length;
-    return t2;
+#line 35 "tests/snippets/union_variant_narrow_mutation/_main.vader"
+    l1 = INT32_C(0);
+#line 36 "tests/snippets/union_variant_narrow_mutation/_main.vader"
+    l2 = l0.payload.obj;
+    l3 = ((vader_array_t*) l2)->length;
+    l4 = (size_t) 0;
+    while ((l4 < l3)) {
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        l5 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
+#line 37 "tests/snippets/union_variant_narrow_mutation/_main.vader"
+        l1 = (l1 + l5);
+#line 36 "tests/snippets/union_variant_narrow_mutation/_main.vader"
+        t2 = (l4 + INT64_C(1));
+        l4 = (size_t) (int64_t) t2;
+    }
+#line 39 "tests/snippets/union_variant_narrow_mutation/_main.vader"
+    return (size_t) (int64_t) ((int64_t) (int32_t) l1);
 }
 
 static int32_t snippet_main(void) {
@@ -378,6 +378,9 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 146 "lib/std/core/primitives.vader"
     if (l3) {
         std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 45);
+#line 147 "lib/std/core/primitives.vader"
+        return (size_t) (int64_t) (l1 + l6);
+#line 146 "lib/std/core/primitives.vader"
     }
 #line 147 "lib/std/core/primitives.vader"
     return (size_t) (int64_t) (l1 + l6);
@@ -454,9 +457,8 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     for (;;) {
 #line 208 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
-        if ((l3 >= l4)) {
+        if (!((l3 >= l4))) {
 #line 211 "lib/std/io/io.vader"
-        } else {
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
             l6 = (void*) _a0_arr;
@@ -486,19 +488,19 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 }
 
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
-    int32_t l3;
     ptrdiff_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 177 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-        l3 = INT32_C(1);
-    } else {
-        l3 = INT32_C(2);
+#line 180 "lib/std/io/io.vader"
+        t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
+        { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+#line 177 "lib/std/io/io.vader"
     }
 #line 180 "lib/std/io/io.vader"
-    t0 = vader_host_system_posix_sys_write(l3, l1, l2);
+    t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 

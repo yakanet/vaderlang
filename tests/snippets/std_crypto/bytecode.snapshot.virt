@@ -147,16 +147,67 @@ fn 2 std_core$utf8_encode (char) -> ref
     local.get 2   ; out
     local.get 3   ; $cast_7
     array.push 4   ; u8
+    local.get 2   ; out
+    return
+  end $L0
+  local.get 1   ; cp
+  i32.const 2048
+  u32.lt
+  if $L1 void
+    local.get 1   ; cp
+    i32.const 6
+    u32.shr
+    local.set 4   ; $shr_12
+    i32.const 192
+    local.get 4   ; $shr_12
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 3   ; $cast_7
+    local.get 2   ; out
+    local.get 3   ; $cast_7
+    array.push 4   ; u8
+    local.get 1   ; cp
+    i32.const 63
+    i32.bitand
+    local.set 4   ; $shr_12
+    i32.const 128
+    local.get 4   ; $shr_12
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 3   ; $cast_7
+    local.get 2   ; out
+    local.get 3   ; $cast_7
+    array.push 4   ; u8
   else
     local.get 1   ; cp
-    i32.const 2048
+    i32.const 65536
     u32.lt
-    if $L1 void
+    if $L2 void
+      local.get 1   ; cp
+      i32.const 12
+      u32.shr
+      local.set 4   ; $shr_12
+      i32.const 224
+      local.get 4   ; $shr_12
+      i32.bitor
+      u32.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 3   ; $cast_7
+      local.get 2   ; out
+      local.get 3   ; $cast_7
+      array.push 4   ; u8
       local.get 1   ; cp
       i32.const 6
       u32.shr
+      i32.const 63
+      i32.bitand
       local.set 4   ; $shr_12
-      i32.const 192
+      i32.const 128
       local.get 4   ; $shr_12
       i32.bitor
       u32.to_i32
@@ -182,117 +233,67 @@ fn 2 std_core$utf8_encode (char) -> ref
       array.push 4   ; u8
     else
       local.get 1   ; cp
-      i32.const 65536
-      u32.lt
-      if $L2 void
-        local.get 1   ; cp
-        i32.const 12
-        u32.shr
-        local.set 4   ; $shr_12
-        i32.const 224
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 4   ; u8
-        local.get 1   ; cp
-        i32.const 6
-        u32.shr
-        i32.const 63
-        i32.bitand
-        local.set 4   ; $shr_12
-        i32.const 128
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 4   ; u8
-        local.get 1   ; cp
-        i32.const 63
-        i32.bitand
-        local.set 4   ; $shr_12
-        i32.const 128
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 4   ; u8
-      else
-        local.get 1   ; cp
-        i32.const 18
-        u32.shr
-        local.set 4   ; $shr_12
-        i32.const 240
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 4   ; u8
-        local.get 1   ; cp
-        i32.const 12
-        u32.shr
-        i32.const 63
-        i32.bitand
-        local.set 4   ; $shr_12
-        i32.const 128
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 4   ; u8
-        local.get 1   ; cp
-        i32.const 6
-        u32.shr
-        i32.const 63
-        i32.bitand
-        local.set 4   ; $shr_12
-        i32.const 128
-        local.get 4   ; $shr_12
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 4   ; u8
-        local.get 1   ; cp
-        i32.const 63
-        i32.bitand
-        local.set 1   ; cp
-        i32.const 128
-        local.get 1   ; cp
-        i32.bitor
-        u32.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 3   ; $cast_7
-        local.get 2   ; out
-        local.get 3   ; $cast_7
-        array.push 4   ; u8
-      end $L2
-    end $L1
-  end $L0
+      i32.const 18
+      u32.shr
+      local.set 4   ; $shr_12
+      i32.const 240
+      local.get 4   ; $shr_12
+      i32.bitor
+      u32.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 3   ; $cast_7
+      local.get 2   ; out
+      local.get 3   ; $cast_7
+      array.push 4   ; u8
+      local.get 1   ; cp
+      i32.const 12
+      u32.shr
+      i32.const 63
+      i32.bitand
+      local.set 4   ; $shr_12
+      i32.const 128
+      local.get 4   ; $shr_12
+      i32.bitor
+      u32.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 3   ; $cast_7
+      local.get 2   ; out
+      local.get 3   ; $cast_7
+      array.push 4   ; u8
+      local.get 1   ; cp
+      i32.const 6
+      u32.shr
+      i32.const 63
+      i32.bitand
+      local.set 4   ; $shr_12
+      i32.const 128
+      local.get 4   ; $shr_12
+      i32.bitor
+      u32.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 3   ; $cast_7
+      local.get 2   ; out
+      local.get 3   ; $cast_7
+      array.push 4   ; u8
+      local.get 1   ; cp
+      i32.const 63
+      i32.bitand
+      local.set 1   ; cp
+      i32.const 128
+      local.get 1   ; cp
+      i32.bitor
+      u32.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 3   ; $cast_7
+      local.get 2   ; out
+      local.get 3   ; $cast_7
+      array.push 4   ; u8
+    end $L2
+  end $L1
   local.get 2   ; out
   return
 end
@@ -354,18 +355,18 @@ fn 3 std_io$write (u8,string) -> void
 end
 
 fn 4 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 3   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
@@ -1617,13 +1618,14 @@ fn 15 crypto$to_bytes (any) -> ref
   local.get 0   ; arg 0
   type_check 2   ; string
   if $L0 void
+  else
     local.get 0   ; arg 0
-    ref.cast 2   ; string
-    call.import 2   ; std_core$bytes
+    ref.cast 6   ; u8[]
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 6   ; u8[]
+  ref.cast 2   ; string
+  call.import 2   ; std_core$bytes
   return
 end
 
@@ -1925,23 +1927,24 @@ fn 23 std_numbers$hex_digit (u64) -> char
   i64.const 9
   u64.le
   if $L0 void
+  else
     local.get 0   ; arg 0
     u64.to_i32
     local.set 1   ; $cast_4
-    i32.const 48
+    i32.const 97
     local.get 1   ; $cast_4
     i32.add
+    i32.const 10
+    i32.sub
     u32.to_char
     return
   end $L0
   local.get 0   ; arg 0
   u64.to_i32
   local.set 1   ; $cast_4
-  i32.const 97
+  i32.const 48
   local.get 1   ; $cast_4
   i32.add
-  i32.const 10
-  i32.sub
   u32.to_char
   return
 end

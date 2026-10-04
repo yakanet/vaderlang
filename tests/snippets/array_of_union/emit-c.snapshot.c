@@ -137,15 +137,17 @@ static int32_t snippet_main(void) {
 #line 17 "tests/snippets/array_of_union/_main.vader"
     if (l4.tag == 0u) {
         std_io_println__string(2u);
+#line 20 "tests/snippets/array_of_union/_main.vader"
+        { vader_gc_top = gc_frame.prev; return INT32_C(0); }
+#line 17 "tests/snippets/array_of_union/_main.vader"
+    }
 #line 18 "tests/snippets/array_of_union/_main.vader"
-    } else if (l4.tag == 3u) {
-        std_io_println__string(3u);
+    if (!(l4.tag == 3u)) {
 #line 16 "tests/snippets/array_of_union/_main.vader"
-    } else {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 #line 18 "tests/snippets/array_of_union/_main.vader"
     }
-#line 17 "tests/snippets/array_of_union/_main.vader"
+    std_io_println__string(3u);
 #line 20 "tests/snippets/array_of_union/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
@@ -275,9 +277,8 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     for (;;) {
 #line 208 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
-        if ((l3 >= l4)) {
+        if (!((l3 >= l4))) {
 #line 211 "lib/std/io/io.vader"
-        } else {
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
             l6 = (void*) _a0_arr;
@@ -307,19 +308,19 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 }
 
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
-    int32_t l3;
     ptrdiff_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 177 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-        l3 = INT32_C(1);
-    } else {
-        l3 = INT32_C(2);
+#line 180 "lib/std/io/io.vader"
+        t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
+        { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+#line 177 "lib/std/io/io.vader"
     }
 #line 180 "lib/std/io/io.vader"
-    t0 = vader_host_system_posix_sys_write(l3, l1, l2);
+    t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 

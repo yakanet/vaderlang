@@ -127,6 +127,7 @@ fn 5 std_collections$ensure_index__string__i32 (ref) -> void
     local.get 0   ; arg 0
     local.get 2   ; __for_discard_0
     struct.set 2 3   ; std_collections$MutableMap__string__i32.mask
+    return
   end $L0
   return
 end
@@ -262,14 +263,14 @@ fn 7 std_collections$write_entry__string__i32 (ref,string,i32) -> void
     local.get 3   ; $field_3
     local.get 2   ; arg 2
     store_slot_i32
-  else
-    local.field 0 2 0   ; arg 0 std_collections$MutableMap__string__i32.ekeys
-    local.get 1   ; arg 1
-    array.push 3   ; string
-    local.field 0 2 1   ; arg 0 std_collections$MutableMap__string__i32.evals
-    local.get 2   ; arg 2
-    array.push 1   ; i32
+    return
   end $L0
+  local.field 0 2 0   ; arg 0 std_collections$MutableMap__string__i32.ekeys
+  local.get 1   ; arg 1
+  array.push 3   ; string
+  local.field 0 2 1   ; arg 0 std_collections$MutableMap__string__i32.evals
+  local.get 2   ; arg 2
+  array.push 1   ; i32
   return
 end
 

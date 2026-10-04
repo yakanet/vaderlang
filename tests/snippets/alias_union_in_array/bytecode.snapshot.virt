@@ -31,8 +31,7 @@ fn 0 snippet$push_pet (ref,any) -> void
 end
 
 fn 1 snippet$describe (any) -> string
-  local if_res string
-  local $field_10 string
+  local $field_5 string
   local.get 0   ; arg 0
   type_check 3   ; snippet_types$Cat
   if $L0 void
@@ -40,29 +39,26 @@ fn 1 snippet$describe (any) -> string
     ref.cast 3   ; snippet_types$Cat
     struct.get 3 0   ; snippet_types$Cat.name
     ref.cast 6   ; string
-    local.set 1   ; if_res
+    local.set 1   ; $field_5
     string.const 0   ; "cat "
-    local.get 1   ; if_res
+    local.get 1   ; $field_5
     call 3   ; concat_2
-    local.set 1   ; if_res
-  else
-    local.get 0   ; arg 0
-    type_check 4   ; snippet_types$Dog
-    if $L1 void
-      local.get 0   ; arg 0
-      ref.cast 4   ; snippet_types$Dog
-      struct.get 4 0   ; snippet_types$Dog.name
-      ref.cast 6   ; string
-      local.set 2   ; $field_10
-      string.const 1   ; "dog "
-      local.get 2   ; $field_10
-      call 3   ; concat_2
-      local.set 1   ; if_res
-    else
-      unreachable
-    end $L1
+    return
   end $L0
-  local.get 1   ; if_res
+  local.get 0   ; arg 0
+  type_check 4   ; snippet_types$Dog
+  if $L1 void
+  else
+    unreachable
+  end $L1
+  local.get 0   ; arg 0
+  ref.cast 4   ; snippet_types$Dog
+  struct.get 4 0   ; snippet_types$Dog.name
+  ref.cast 6   ; string
+  local.set 1   ; $field_5
+  string.const 1   ; "dog "
+  local.get 1   ; $field_5
+  call 3   ; concat_2
   return
 end
 
@@ -196,18 +192,18 @@ fn 4 std_io$write (u8,string) -> void
 end
 
 fn 5 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

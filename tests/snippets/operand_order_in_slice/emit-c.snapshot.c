@@ -212,8 +212,8 @@ static void* snippet_window(vader_string_t l0) {
 }
 
 static int32_t snippet_main(void) {
-    int32_t l0;
-    vader_string_t l1 = 0;
+    vader_string_t l0 = 0;
+    int32_t l1;
     void* l2 = NULL;
     void* l3 = NULL;
     void* l4 = NULL;
@@ -225,31 +225,31 @@ static int32_t snippet_main(void) {
     size_t t3;
     vader_string_t t4 = 0;
     void** gc_raw_roots[4] = { &l2, &l3, &l4, &t0 };
-    vader_string_t* gc_atom_roots[2] = { &l1, &t4 };
+    vader_string_t* gc_atom_roots[2] = { &l0, &t4 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 28 "tests/snippets/operand_order_in_slice/_main.vader"
-    l0 = snippet_say(1u, INT32_C(2));
+    l1 = snippet_say(1u, INT32_C(2));
     t0 = snippet_pool(2u);
-    t1 = std_core____Contains_contains__i32(t0, l0);
+    t1 = std_core____Contains_contains__i32(t0, l1);
     if (t1) {
-        l1 = 3u;
+        l0 = 3u;
     } else {
-        l1 = 4u;
+        l0 = 4u;
     }
-    std_io_println__string(l1);
+    std_io_println__string(l0);
 #line 29 "tests/snippets/operand_order_in_slice/_main.vader"
-    l0 = snippet_say(1u, INT32_C(7));
+    l1 = snippet_say(1u, INT32_C(7));
     t0 = snippet_pool(2u);
-    t1 = std_core____Contains_contains__i32(t0, l0);
+    t1 = std_core____Contains_contains__i32(t0, l1);
     if (!(t1)) {
-        l1 = 5u;
+        l0 = 5u;
     } else {
-        l1 = 6u;
+        l0 = 6u;
     }
-    std_io_println__string(l1);
+    std_io_println__string(l0);
 #line 54 "lib/std/collections/collections.vader"
     vader_array_t* _a0_arr = vader_array_new(3u, 0u, 7u, 2u);
     l2 = (void*) _a0_arr;
@@ -277,14 +277,14 @@ static int32_t snippet_main(void) {
 #line 31 "tests/snippets/operand_order_in_slice/_main.vader"
     std_collections_add__i32(l2, INT32_C(2));
 #line 32 "tests/snippets/operand_order_in_slice/_main.vader"
-    l0 = snippet_say(1u, INT32_C(2));
-    t1 = std_collections_MutableSet_Contains_contains__i32(l2, l0);
+    l1 = snippet_say(1u, INT32_C(2));
+    t1 = std_collections_MutableSet_Contains_contains__i32(l2, l1);
     if (t1) {
-        l1 = 7u;
+        l0 = 7u;
     } else {
-        l1 = 8u;
+        l0 = 8u;
     }
-    std_io_println__string(l1);
+    std_io_println__string(l0);
 #line 33 "tests/snippets/operand_order_in_slice/_main.vader"
     l3 = snippet_pool(9u);
     l4 = snippet_window(10u);
@@ -543,6 +543,8 @@ static void std_collections_ensure_index__i32__bool(void* l0) {
 #line 95 "lib/std/collections/collections.vader"
         l2 = (size_t) 15;
         ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_mask = l2;
+#line 90 "lib/std/collections/collections.vader"
+        { vader_gc_top = gc_frame.prev; return; }
 #line 91 "lib/std/collections/collections.vader"
     }
 #line 90 "lib/std/collections/collections.vader"
@@ -673,14 +675,14 @@ static void std_collections_write_entry__i32__bool(void* l0, int32_t l1, bool l2
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
         ((uint8_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3] = (uint8_t) l2;
-#line 123 "lib/std/collections/collections.vader"
-#line 127 "lib/std/collections/collections.vader"
-    } else {
-        vader_array_push_i32((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_ekeys, l1);
-#line 128 "lib/std/collections/collections.vader"
-        vader_array_push_bool((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_evals, l2);
+#line 122 "lib/std/collections/collections.vader"
+        { vader_gc_top = gc_frame.prev; return; }
 #line 123 "lib/std/collections/collections.vader"
     }
+#line 127 "lib/std/collections/collections.vader"
+    vader_array_push_i32((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_ekeys, l1);
+#line 128 "lib/std/collections/collections.vader"
+    vader_array_push_bool((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__bool_t*) l0)->f_evals, l2);
 #line 122 "lib/std/collections/collections.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -881,13 +883,14 @@ static bool std_collections_add__i32(void* l0, int32_t l1) {
     vader_gc_top = &gc_frame;
 #line 344 "lib/std/collections/collections.vader"
     t0 = std_collections_MutableMap_Contains_contains__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) l0)->f_inner, l1);
-    if (t0) {
-        { vader_gc_top = gc_frame.prev; return false; }
-    }
+    if (!(t0)) {
 #line 345 "lib/std/collections/collections.vader"
-    std_collections_MutableMap_IndexSet_set_at__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) l0)->f_inner, l1, true);
+        std_collections_MutableMap_IndexSet_set_at__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) l0)->f_inner, l1, true);
 #line 346 "lib/std/collections/collections.vader"
-    { vader_gc_top = gc_frame.prev; return true; }
+        { vader_gc_top = gc_frame.prev; return true; }
+#line 344 "lib/std/collections/collections.vader"
+    }
+    { vader_gc_top = gc_frame.prev; return false; }
 }
 
 static void std_io_write(uint8_t l0, vader_string_t l1) {
@@ -910,9 +913,8 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     for (;;) {
 #line 208 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
-        if ((l3 >= l4)) {
+        if (!((l3 >= l4))) {
 #line 211 "lib/std/io/io.vader"
-        } else {
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
             l6 = (void*) _a0_arr;
@@ -942,19 +944,19 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 }
 
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
-    int32_t l3;
     ptrdiff_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 177 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-        l3 = INT32_C(1);
-    } else {
-        l3 = INT32_C(2);
+#line 180 "lib/std/io/io.vader"
+        t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
+        { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+#line 177 "lib/std/io/io.vader"
     }
 #line 180 "lib/std/io/io.vader"
-    t0 = vader_host_system_posix_sys_write(l3, l1, l2);
+    t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 

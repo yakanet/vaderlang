@@ -26,24 +26,24 @@ fn 0 snippet$describe (any) -> string
   type_check 2   ; i32
   if $L0 void
     string.const 0   ; "an int"
+    local.tee 1   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  type_check 3   ; string
+  if $L1 void
+    string.const 1   ; "a string"
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    type_check 3   ; string
-    if $L1 void
-      string.const 1   ; "a string"
-      local.set 1   ; if_res
+    type_check 0   ; null
+    if $L2 void
     else
-      local.get 0   ; arg 0
-      type_check 0   ; null
-      if $L2 void
-        string.const 2   ; "nothing"
-        local.set 1   ; if_res
-      else
-        unreachable
-      end $L2
-    end $L1
-  end $L0
+      unreachable
+    end $L2
+    string.const 2   ; "nothing"
+    local.set 1   ; if_res
+  end $L1
   local.get 1   ; if_res
   return
 end
@@ -149,18 +149,18 @@ fn 3 std_io$write (u8,string) -> void
 end
 
 fn 4 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

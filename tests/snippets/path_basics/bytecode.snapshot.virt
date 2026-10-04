@@ -514,15 +514,16 @@ end
 fn 7 std_core$write_bool (ref,usize,bool) -> usize
   local.get 2   ; arg 2
   if $L0 void
+  else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 43   ; "true"
+    string.const 44   ; "false"
     call 6   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 44   ; "false"
+  string.const 43   ; "true"
   call 6   ; std_core$write_string_at
   return
 end
@@ -584,18 +585,18 @@ fn 8 std_io$write (u8,string) -> void
 end
 
 fn 9 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 5   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 5   ; system_posix$sys_write
@@ -640,25 +641,26 @@ fn 13 std_path$filename (string) -> string
   i64.const 0
   i64.lt
   if $L0 void
+  else
     local.get 1   ; s
+    call.import 3   ; std_core$bytes
+    local.set 3   ; rb
+    local.get 2   ; idx
+    isize.to_i64
+    i64.const 1
+    i64.add
+    local.set 4   ; $add_13
+    local.get 3   ; rb
+    array.len
+    local.set 5   ; $len_14
+    local.get 3   ; rb
+    local.get 4   ; $add_13
+    local.get 5   ; $len_14
+    array.slice 8   ; u8[]
+    call.import 2   ; std_core$bytes_to_string
     return
   end $L0
   local.get 1   ; s
-  call.import 3   ; std_core$bytes
-  local.set 3   ; rb
-  local.get 2   ; idx
-  isize.to_i64
-  i64.const 1
-  i64.add
-  local.set 4   ; $add_13
-  local.get 3   ; rb
-  array.len
-  local.set 5   ; $len_14
-  local.get 3   ; rb
-  local.get 4   ; $add_13
-  local.get 5   ; $len_14
-  array.slice 8   ; u8[]
-  call.import 2   ; std_core$bytes_to_string
   return
 end
 
@@ -675,20 +677,21 @@ fn 14 std_path$name (string) -> string
   i64.const 0
   i64.lt
   if $L0 void
+  else
     local.get 1   ; fname
+    call.import 3   ; std_core$bytes
+    local.set 3   ; $call_7
+    local.get 2   ; idx
+    isize.to_i64
+    local.set 4   ; $cast_9
+    local.get 3   ; $call_7
+    i64.const 0
+    local.get 4   ; $cast_9
+    array.slice 8   ; u8[]
+    call.import 2   ; std_core$bytes_to_string
     return
   end $L0
   local.get 1   ; fname
-  call.import 3   ; std_core$bytes
-  local.set 3   ; $call_7
-  local.get 2   ; idx
-  isize.to_i64
-  local.set 4   ; $cast_9
-  local.get 3   ; $call_7
-  i64.const 0
-  local.get 4   ; $cast_9
-  array.slice 8   ; u8[]
-  call.import 2   ; std_core$bytes_to_string
   return
 end
 
@@ -706,25 +709,26 @@ fn 15 std_path$extension (string) -> string
   i64.const 0
   i64.lt
   if $L0 void
-    return.lit string.const 46   ; ""
+  else
+    local.get 1   ; fname
+    call.import 3   ; std_core$bytes
+    local.set 3   ; fb
+    local.get 2   ; idx
+    isize.to_i64
+    i64.const 1
+    i64.add
+    local.set 4   ; $add_12
+    local.get 3   ; fb
+    array.len
+    local.set 5   ; $len_13
+    local.get 3   ; fb
+    local.get 4   ; $add_12
+    local.get 5   ; $len_13
+    array.slice 8   ; u8[]
+    call.import 2   ; std_core$bytes_to_string
+    return
   end $L0
-  local.get 1   ; fname
-  call.import 3   ; std_core$bytes
-  local.set 3   ; fb
-  local.get 2   ; idx
-  isize.to_i64
-  i64.const 1
-  i64.add
-  local.set 4   ; $add_12
-  local.get 3   ; fb
-  array.len
-  local.set 5   ; $len_13
-  local.get 3   ; fb
-  local.get 4   ; $add_12
-  local.get 5   ; $len_13
-  array.slice 8   ; u8[]
-  call.import 2   ; std_core$bytes_to_string
-  return
+  return.lit string.const 46   ; ""
 end
 
 fn 16 std_path$parent (string) -> string
@@ -747,20 +751,21 @@ fn 16 std_path$parent (string) -> string
   i64.const 0
   i64.eq
   if $L1 void
-    return.lit string.const 47   ; "/"
+  else
+    local.get 1   ; s
+    call.import 3   ; std_core$bytes
+    local.set 3   ; $call_15
+    local.get 2   ; idx
+    isize.to_i64
+    local.set 4   ; $cast_17
+    local.get 3   ; $call_15
+    i64.const 0
+    local.get 4   ; $cast_17
+    array.slice 8   ; u8[]
+    call.import 2   ; std_core$bytes_to_string
+    return
   end $L1
-  local.get 1   ; s
-  call.import 3   ; std_core$bytes
-  local.set 3   ; $call_15
-  local.get 2   ; idx
-  isize.to_i64
-  local.set 4   ; $cast_17
-  local.get 3   ; $call_15
-  i64.const 0
-  local.get 4   ; $cast_17
-  array.slice 8   ; u8[]
-  call.import 2   ; std_core$bytes_to_string
-  return
+  return.lit string.const 47   ; "/"
 end
 
 fn 17 std_path$is_absolute (string) -> bool
@@ -811,15 +816,16 @@ fn 19 std_path$join (string,string) -> string
   char.const 47
   i32.eq
   if $L3 void
+  else
     local.get 2   ; s
+    string.const 47   ; "/"
     local.get 1   ; arg 1
-    call 3   ; concat_2
+    call 2   ; concat_3
     return
   end $L3
   local.get 2   ; s
-  string.const 47   ; "/"
   local.get 1   ; arg 1
-  call 2   ; concat_3
+  call 3   ; concat_2
   return
 end
 
@@ -835,8 +841,8 @@ fn 20 std_path$starts_with (string,string) -> bool
   local.get 2   ; s
   local.get 3   ; pfx
   call 25   ; std_string$starts_with
-  bool.not
   if $L0 void
+  else
     return.lit bool.const false
   end $L0
   local.get 2   ; s
@@ -853,8 +859,8 @@ fn 20 std_path$starts_with (string,string) -> bool
   end $L1
   local.get 3   ; pfx
   call 26   ; std_string$is_empty
-  bool.not
   if $L2 void
+  else
     local.get 5   ; prefix_len
     i64.const 1
     i64.sub
@@ -888,8 +894,8 @@ fn 21 std_path$ends_with (string,string) -> bool
   local.get 2   ; s
   local.get 3   ; sfx
   call 27   ; std_string$ends_with
-  bool.not
   if $L0 void
+  else
     return.lit bool.const false
   end $L0
   local.get 2   ; s
@@ -910,8 +916,8 @@ fn 21 std_path$ends_with (string,string) -> bool
   local.set 4   ; self_len
   local.get 3   ; sfx
   call 26   ; std_string$is_empty
-  bool.not
   if $L2 void
+  else
     local.get 3   ; sfx
     i32.const 0
     call 37   ; std_core$string$Index$at_vt
@@ -949,8 +955,8 @@ fn 22 std_path$normalize (string) -> string
   local or_res bool
   local can_pop bool
   local $sub_43 usize
-  local $len_51 usize
-  local $len_55 usize
+  local $len_50 usize
+  local $len_54 usize
   local.get 0   ; arg 0
   local.tee 1   ; s
   call 26   ; std_string$is_empty
@@ -1061,13 +1067,13 @@ fn 22 std_path$normalize (string) -> string
               local.set 4   ; count
             else
               local.get 2   ; abs
-              bool.not
               if $L12 void
+              else
                 local.get 3   ; segments
                 array.len
-                local.set 16   ; $len_51
+                local.set 16   ; $len_50
                 local.get 4   ; count
-                local.get 16   ; $len_51
+                local.get 16   ; $len_50
                 u64.lt
                 if $L13 void
                   local.get 3   ; segments
@@ -1088,9 +1094,9 @@ fn 22 std_path$normalize (string) -> string
           else
             local.get 3   ; segments
             array.len
-            local.set 17   ; $len_55
+            local.set 17   ; $len_54
             local.get 4   ; count
-            local.get 17   ; $len_55
+            local.get 17   ; $len_54
             u64.lt
             if $L14 void
               local.get 3   ; segments
@@ -1165,10 +1171,12 @@ fn 22 std_path$normalize (string) -> string
   call 26   ; std_string$is_empty
   if $L19 void
     local.get 2   ; abs
-    bool.not
     if $L20 void
+    else
       return.lit string.const 48   ; "."
     end $L20
+    local.get 1   ; s
+    return
   end $L19
   local.get 1   ; s
   return
@@ -1408,35 +1416,36 @@ fn 29 std_string$utf8_decode (ref,usize) -> char
     i64.const 2
     u64.lt
     if $L3 void
-      i32.const 0
-      i32.to_char
+    else
+      local.get 1   ; arg 1
+      i64.const 1
+      i64.add
+      local.set 4   ; $add_21
+      local.get 0   ; arg 0
+      local.get 4   ; $add_21
+      array.get 8   ; u8[]
+      ref.cast 5   ; u8
+      local.set 5   ; b1
+      local.get 3   ; b
+      u8.to_i32
+      i32.const 31
+      i32.bitand
+      i32.const 6
+      i32.shl
+      local.set 6   ; $shl_28
+      local.get 5   ; b1
+      u8.to_i32
+      i32.const 63
+      i32.bitand
+      local.set 7   ; $bitand_31
+      local.get 6   ; $shl_28
+      local.get 7   ; $bitand_31
+      i32.add
+      u32.to_char
       return
     end $L3
-    local.get 1   ; arg 1
-    i64.const 1
-    i64.add
-    local.set 4   ; $add_21
-    local.get 0   ; arg 0
-    local.get 4   ; $add_21
-    array.get 8   ; u8[]
-    ref.cast 5   ; u8
-    local.set 5   ; b1
-    local.get 3   ; b
-    u8.to_i32
-    i32.const 31
-    i32.bitand
-    i32.const 6
-    i32.shl
-    local.set 6   ; $shl_28
-    local.get 5   ; b1
-    u8.to_i32
-    i32.const 63
-    i32.bitand
-    local.set 7   ; $bitand_31
-    local.get 6   ; $shl_28
-    local.get 7   ; $bitand_31
-    i32.add
-    u32.to_char
+    i32.const 0
+    i32.to_char
     return
   end $L2
   local.get 3   ; b
@@ -1447,40 +1456,102 @@ fn 29 std_string$utf8_decode (ref,usize) -> char
     i64.const 3
     u64.lt
     if $L5 void
-      i32.const 0
-      i32.to_char
+    else
+      local.get 1   ; arg 1
+      i64.const 1
+      i64.add
+      local.set 4   ; $add_21
+      local.get 0   ; arg 0
+      local.get 4   ; $add_21
+      array.get 8   ; u8[]
+      ref.cast 5   ; u8
+      local.set 5   ; b1
+      local.get 1   ; arg 1
+      i64.const 2
+      i64.add
+      local.set 4   ; $add_21
+      local.get 0   ; arg 0
+      local.get 4   ; $add_21
+      array.get 8   ; u8[]
+      ref.cast 5   ; u8
+      local.set 8   ; b2
+      local.get 3   ; b
+      u8.to_i32
+      i32.const 15
+      i32.bitand
+      i32.const 12
+      i32.shl
+      local.set 6   ; $shl_28
+      local.get 5   ; b1
+      u8.to_i32
+      i32.const 63
+      i32.bitand
+      i32.const 6
+      i32.shl
+      local.set 7   ; $bitand_31
+      local.get 6   ; $shl_28
+      local.get 7   ; $bitand_31
+      i32.add
+      local.set 6   ; $shl_28
+      local.get 8   ; b2
+      u8.to_i32
+      i32.const 63
+      i32.bitand
+      local.set 7   ; $bitand_31
+      local.get 6   ; $shl_28
+      local.get 7   ; $bitand_31
+      i32.add
+      u32.to_char
       return
     end $L5
+    i32.const 0
+    i32.to_char
+    return
+  end $L4
+  local.get 2   ; n
+  i64.const 4
+  u64.lt
+  if $L6 void
+  else
     local.get 1   ; arg 1
     i64.const 1
     i64.add
-    local.set 4   ; $add_21
+    local.set 2   ; n
     local.get 0   ; arg 0
-    local.get 4   ; $add_21
+    local.get 2   ; n
     array.get 8   ; u8[]
     ref.cast 5   ; u8
     local.set 5   ; b1
     local.get 1   ; arg 1
     i64.const 2
     i64.add
-    local.set 4   ; $add_21
+    local.set 2   ; n
     local.get 0   ; arg 0
-    local.get 4   ; $add_21
+    local.get 2   ; n
     array.get 8   ; u8[]
     ref.cast 5   ; u8
     local.set 8   ; b2
+    local.get 1   ; arg 1
+    i64.const 3
+    i64.add
+    local.set 2   ; n
+    local.get 0   ; arg 0
+    local.get 2   ; n
+    array.get 8   ; u8[]
+    ref.cast 5   ; u8
+    local.set 9   ; b3
     local.get 3   ; b
     u8.to_i32
-    i32.const 15
+    i32.const 7
     i32.bitand
-    i32.const 12
+    i32.const 18
     i32.shl
     local.set 6   ; $shl_28
     local.get 5   ; b1
     u8.to_i32
     i32.const 63
     i32.bitand
-    i32.const 6
+    i32.const 12
     i32.shl
     local.set 7   ; $bitand_31
     local.get 6   ; $shl_28
@@ -1491,86 +1562,26 @@ fn 29 std_string$utf8_decode (ref,usize) -> char
     u8.to_i32
     i32.const 63
     i32.bitand
+    i32.const 6
+    i32.shl
+    local.set 7   ; $bitand_31
+    local.get 6   ; $shl_28
+    local.get 7   ; $bitand_31
+    i32.add
+    local.set 6   ; $shl_28
+    local.get 9   ; b3
+    u8.to_i32
+    i32.const 63
+    i32.bitand
     local.set 7   ; $bitand_31
     local.get 6   ; $shl_28
     local.get 7   ; $bitand_31
     i32.add
     u32.to_char
     return
-  end $L4
-  local.get 2   ; n
-  i64.const 4
-  u64.lt
-  if $L6 void
-    i32.const 0
-    i32.to_char
-    return
   end $L6
-  local.get 1   ; arg 1
-  i64.const 1
-  i64.add
-  local.set 2   ; n
-  local.get 0   ; arg 0
-  local.get 2   ; n
-  array.get 8   ; u8[]
-  ref.cast 5   ; u8
-  local.set 5   ; b1
-  local.get 1   ; arg 1
-  i64.const 2
-  i64.add
-  local.set 2   ; n
-  local.get 0   ; arg 0
-  local.get 2   ; n
-  array.get 8   ; u8[]
-  ref.cast 5   ; u8
-  local.set 8   ; b2
-  local.get 1   ; arg 1
-  i64.const 3
-  i64.add
-  local.set 2   ; n
-  local.get 0   ; arg 0
-  local.get 2   ; n
-  array.get 8   ; u8[]
-  ref.cast 5   ; u8
-  local.set 9   ; b3
-  local.get 3   ; b
-  u8.to_i32
-  i32.const 7
-  i32.bitand
-  i32.const 18
-  i32.shl
-  local.set 6   ; $shl_28
-  local.get 5   ; b1
-  u8.to_i32
-  i32.const 63
-  i32.bitand
-  i32.const 12
-  i32.shl
-  local.set 7   ; $bitand_31
-  local.get 6   ; $shl_28
-  local.get 7   ; $bitand_31
-  i32.add
-  local.set 6   ; $shl_28
-  local.get 8   ; b2
-  u8.to_i32
-  i32.const 63
-  i32.bitand
-  i32.const 6
-  i32.shl
-  local.set 7   ; $bitand_31
-  local.get 6   ; $shl_28
-  local.get 7   ; $bitand_31
-  i32.add
-  local.set 6   ; $shl_28
-  local.get 9   ; b3
-  u8.to_i32
-  i32.const 63
-  i32.bitand
-  local.set 7   ; $bitand_31
-  local.get 6   ; $shl_28
-  local.get 7   ; $bitand_31
-  i32.add
-  u32.to_char
+  i32.const 0
+  i32.to_char
   return
 end
 
@@ -1594,13 +1605,13 @@ fn 30 std_string$codepoint_byte_len (char) -> usize
   i32.const 65536
   u32.lt
   if $L2 void
-    return.lit i64.const 3
+  else
+    return.lit i64.const 4
   end $L2
-  return.lit i64.const 4
+  return.lit i64.const 3
 end
 
 fn 31 std_string$is_utf8_continuation (u8) -> bool
-  local and_res bool
   local.get 0   ; arg 0
   i32.const 128
   u32.ge
@@ -1608,13 +1619,9 @@ fn 31 std_string$is_utf8_continuation (u8) -> bool
     local.get 0   ; arg 0
     i32.const 192
     u32.lt
-    local.set 1   ; and_res
-  else
-    bool.const false
-    local.set 1   ; and_res
+    return
   end $L0
-  local.get 1   ; and_res
-  return
+  return.lit bool.const false
 end
 
 fn 32 std_string_builder$append (ref,string) -> void

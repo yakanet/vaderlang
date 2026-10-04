@@ -30,11 +30,10 @@ impl 9 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$describe (any) -> string
-  local if_res string
+  local __p_0 string
   local $call_7 usize
   local __buf_1 ref
   local $field_17 bool
-  local $field_22 string
   local $field_25 string
   local.get 0   ; arg 0
   type_check 2   ; snippet$Spec__bool
@@ -43,7 +42,7 @@ fn 0 snippet$describe (any) -> string
     ref.cast 2   ; snippet$Spec__bool
     struct.get 2 0   ; snippet$Spec__bool.name
     ref.cast 4   ; string
-    local.tee 1   ; if_res
+    local.tee 1   ; __p_0
     call.import 0   ; std_core$byte_len
     local.set 2   ; $call_7
     i64.const 25
@@ -55,7 +54,7 @@ fn 0 snippet$describe (any) -> string
     local.set 2   ; $call_7
     local.get 3   ; __buf_1
     local.get 2   ; $call_7
-    local.get 1   ; if_res
+    local.get 1   ; __p_0
     call 6   ; std_core$write_string_at
     local.set 2   ; $call_7
     local.get 3   ; __buf_1
@@ -76,31 +75,28 @@ fn 0 snippet$describe (any) -> string
     local.get 3   ; __buf_1
     local.get 2   ; $call_7
     call 5   ; std_core$finish_buffer
-    local.set 1   ; if_res
-  else
-    local.get 0   ; arg 0
-    type_check 3   ; snippet$Spec__string
-    if $L1 void
-      local.get 0   ; arg 0
-      ref.cast 3   ; snippet$Spec__string
-      struct.get 3 0   ; snippet$Spec__string.name
-      ref.cast 4   ; string
-      local.set 5   ; $field_22
-      local.get 0   ; arg 0
-      ref.cast 3   ; snippet$Spec__string
-      struct.get 3 1   ; snippet$Spec__string.dflt
-      ref.cast 4   ; string
-      local.set 6   ; $field_25
-      local.get 5   ; $field_22
-      string.const 1   ; " takes a value, default "
-      local.get 6   ; $field_25
-      call 2   ; concat_3
-      local.set 1   ; if_res
-    else
-      unreachable
-    end $L1
+    return
   end $L0
-  local.get 1   ; if_res
+  local.get 0   ; arg 0
+  type_check 3   ; snippet$Spec__string
+  if $L1 void
+  else
+    unreachable
+  end $L1
+  local.get 0   ; arg 0
+  ref.cast 3   ; snippet$Spec__string
+  struct.get 3 0   ; snippet$Spec__string.name
+  ref.cast 4   ; string
+  local.set 1   ; __p_0
+  local.get 0   ; arg 0
+  ref.cast 3   ; snippet$Spec__string
+  struct.get 3 1   ; snippet$Spec__string.dflt
+  ref.cast 4   ; string
+  local.set 5   ; $field_25
+  local.get 1   ; __p_0
+  string.const 1   ; " takes a value, default "
+  local.get 5   ; $field_25
+  call 2   ; concat_3
   return
 end
 
@@ -279,15 +275,16 @@ end
 fn 7 std_core$write_bool (ref,usize,bool) -> usize
   local.get 2   ; arg 2
   if $L0 void
+  else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 7   ; "true"
+    string.const 8   ; "false"
     call 6   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 8   ; "false"
+  string.const 7   ; "true"
   call 6   ; std_core$write_string_at
   return
 end
@@ -349,18 +346,18 @@ fn 8 std_io$write (u8,string) -> void
 end
 
 fn 9 std_io$write_bytes (u8,ref,usize) -> i32
-  local fd i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.set 3   ; fd
-  else
-    i32.const 2
-    local.set 3   ; fd
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
   end $L0
-  local.get 3   ; fd
+  i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write

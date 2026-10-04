@@ -184,19 +184,23 @@ static vader_string_t snippet_describe(uint8_t l0) {
 #line 29 "tests/snippets/enum_variant_data_written_values/_main.vader"
     if (l0 == INT32_C(0)) {
         l1 = 1u;
-#line 30 "tests/snippets/enum_variant_data_written_values/_main.vader"
-    } else if (l0 == INT32_C(1)) {
-        l1 = 2u;
-#line 31 "tests/snippets/enum_variant_data_written_values/_main.vader"
-    } else if (l0 == INT32_C(2)) {
-        l1 = 3u;
 #line 28 "tests/snippets/enum_variant_data_written_values/_main.vader"
-    } else {
-        vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 31 "tests/snippets/enum_variant_data_written_values/_main.vader"
+        return l1;
+#line 29 "tests/snippets/enum_variant_data_written_values/_main.vader"
     }
 #line 30 "tests/snippets/enum_variant_data_written_values/_main.vader"
-#line 29 "tests/snippets/enum_variant_data_written_values/_main.vader"
+    if (l0 == INT32_C(1)) {
+        l1 = 2u;
+#line 31 "tests/snippets/enum_variant_data_written_values/_main.vader"
+    } else {
+        if (!(l0 == INT32_C(2))) {
+#line 28 "tests/snippets/enum_variant_data_written_values/_main.vader"
+            vader_unreachable("non-exhaustive match (T3013 should have caught this)");
+#line 31 "tests/snippets/enum_variant_data_written_values/_main.vader"
+        }
+        l1 = 3u;
+#line 30 "tests/snippets/enum_variant_data_written_values/_main.vader"
+    }
 #line 28 "tests/snippets/enum_variant_data_written_values/_main.vader"
     return l1;
 }
@@ -350,19 +354,23 @@ static vader_string_t snippet_HttpStatus_Display_to_string(uint8_t l0) {
 #line 3 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
     if (l0 == INT32_C(0)) {
         l1 = 5u;
-#line 4 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
-    } else if (l0 == INT32_C(1)) {
-        l1 = 6u;
-#line 5 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
-    } else if (l0 == INT32_C(2)) {
-        l1 = 7u;
 #line 2 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
-    } else {
-        vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 5 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+        return l1;
+#line 3 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
     }
 #line 4 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
-#line 3 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+    if (l0 == INT32_C(1)) {
+        l1 = 6u;
+#line 5 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+    } else {
+        if (!(l0 == INT32_C(2))) {
+#line 2 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+            vader_unreachable("non-exhaustive match (T3013 should have caught this)");
+#line 5 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+        }
+        l1 = 7u;
+#line 4 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
+    }
 #line 2 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
     return l1;
 }
@@ -484,6 +492,9 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 146 "lib/std/core/primitives.vader"
     if (l3) {
         std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 45);
+#line 147 "lib/std/core/primitives.vader"
+        return (size_t) (int64_t) (l1 + l6);
+#line 146 "lib/std/core/primitives.vader"
     }
 #line 147 "lib/std/core/primitives.vader"
     return (size_t) (int64_t) (l1 + l6);
@@ -543,12 +554,13 @@ static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2) {
 static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     size_t t0;
 #line 173 "lib/std/core/primitives.vader"
-    if (l2) {
-        t0 = std_core_write_string_at(l0, l1, 8u);
-        return t0;
-    }
+    if (!(l2)) {
 #line 174 "lib/std/core/primitives.vader"
-    t0 = std_core_write_string_at(l0, l1, 9u);
+        t0 = std_core_write_string_at(l0, l1, 9u);
+        return t0;
+#line 173 "lib/std/core/primitives.vader"
+    }
+    t0 = std_core_write_string_at(l0, l1, 8u);
     return t0;
 }
 
@@ -572,9 +584,8 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     for (;;) {
 #line 208 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
-        if ((l3 >= l4)) {
+        if (!((l3 >= l4))) {
 #line 211 "lib/std/io/io.vader"
-        } else {
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
             l6 = (void*) _a0_arr;
@@ -604,19 +615,19 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 }
 
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
-    int32_t l3;
     ptrdiff_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 177 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-        l3 = INT32_C(1);
-    } else {
-        l3 = INT32_C(2);
+#line 180 "lib/std/io/io.vader"
+        t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
+        { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+#line 177 "lib/std/io/io.vader"
     }
 #line 180 "lib/std/io/io.vader"
-    t0 = vader_host_system_posix_sys_write(l3, l1, l2);
+    t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 

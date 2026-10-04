@@ -181,6 +181,7 @@ end
 
 fn 24 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local $field_2 i32
+  local $field_8 i32
   local.field 0 8 0   ; arg 0 std_core$Range__i32.start
   ref.cast 3   ; i32
   local.set 2   ; $field_2
@@ -193,12 +194,13 @@ fn 24 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.field 0 8 2   ; arg 0 std_core$Range__i32.inclusive
   ref.cast 2   ; bool
   if $L1 void
+  else
     local.field 0 8 1   ; arg 0 std_core$Range__i32.end
     ref.cast 3   ; i32
-    local.set 2   ; $field_2
+    local.set 3   ; $field_8
     local.get 1   ; arg 1
-    local.get 2   ; $field_2
-    call 31   ; std_core$i32$Comparable$lte
+    local.get 3   ; $field_8
+    call 30   ; std_core$i32$Comparable$lt
     return
   end $L1
   local.field 0 8 1   ; arg 0 std_core$Range__i32.end
@@ -206,7 +208,7 @@ fn 24 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   local.get 2   ; $field_2
-  call 30   ; std_core$i32$Comparable$lt
+  call 31   ; std_core$i32$Comparable$lte
   return
 end
 
@@ -241,30 +243,32 @@ fn 25 std_core$Range$Iterator$next__i32 (ref) -> ref
   end $L0
   local.get 1   ; done
   if $L1 void
+  else
     local.field 0 8 3   ; arg 0 std_core$Range__i32.cursor
     ref.cast 3   ; i32
-    i32.const 1
+    local.set 2   ; $field_3
+    local.field 0 8 3   ; arg 0 std_core$Range__i32.cursor
+    ref.cast 3   ; i32
+    call 39   ; std_core$i32$Step$step
+    local.set 3   ; $field_4
+    local.get 0   ; arg 0
+    local.get 3   ; $field_4
+    struct.set 8 3   ; std_core$Range__i32.cursor
+    local.get 2   ; $field_3
+    i32.const 0
     struct.new 9   ; __Tuple_i32_u8_99ae0d29
     return
   end $L1
   local.field 0 8 3   ; arg 0 std_core$Range__i32.cursor
   ref.cast 3   ; i32
-  local.set 2   ; $field_3
-  local.field 0 8 3   ; arg 0 std_core$Range__i32.cursor
-  ref.cast 3   ; i32
-  call 39   ; std_core$i32$Step$step
-  local.set 3   ; $field_4
-  local.get 0   ; arg 0
-  local.get 3   ; $field_4
-  struct.set 8 3   ; std_core$Range__i32.cursor
-  local.get 2   ; $field_3
-  i32.const 0
+  i32.const 1
   struct.new 9   ; __Tuple_i32_u8_99ae0d29
   return
 end
 
 fn 26 std_core$Range$Contains$contains__usize (ref,usize) -> bool
   local $field_2 usize
+  local $field_8 usize
   local.field 0 11 0   ; arg 0 std_core$Range__usize.start
   ref.cast 12   ; usize
   local.set 2   ; $field_2
@@ -277,12 +281,13 @@ fn 26 std_core$Range$Contains$contains__usize (ref,usize) -> bool
   local.field 0 11 2   ; arg 0 std_core$Range__usize.inclusive
   ref.cast 2   ; bool
   if $L1 void
+  else
     local.field 0 11 1   ; arg 0 std_core$Range__usize.end
     ref.cast 12   ; usize
-    local.set 2   ; $field_2
+    local.set 3   ; $field_8
     local.get 1   ; arg 1
-    local.get 2   ; $field_2
-    call 36   ; std_core$usize$Comparable$lte
+    local.get 3   ; $field_8
+    call 35   ; std_core$usize$Comparable$lt
     return
   end $L1
   local.field 0 11 1   ; arg 0 std_core$Range__usize.end
@@ -290,7 +295,7 @@ fn 26 std_core$Range$Contains$contains__usize (ref,usize) -> bool
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   local.get 2   ; $field_2
-  call 35   ; std_core$usize$Comparable$lt
+  call 36   ; std_core$usize$Comparable$lte
   return
 end
 
@@ -325,24 +330,25 @@ fn 27 std_core$Range$Iterator$next__usize (ref) -> ref
   end $L0
   local.get 1   ; done
   if $L1 void
+  else
     local.field 0 11 3   ; arg 0 std_core$Range__usize.cursor
     ref.cast 12   ; usize
-    i32.const 1
+    local.set 2   ; $field_3
+    local.field 0 11 3   ; arg 0 std_core$Range__usize.cursor
+    ref.cast 12   ; usize
+    call 40   ; std_core$usize$Step$step
+    local.set 3   ; $field_4
+    local.get 0   ; arg 0
+    local.get 3   ; $field_4
+    struct.set 11 3   ; std_core$Range__usize.cursor
+    local.get 2   ; $field_3
+    i32.const 0
     struct.new 13   ; __Tuple_usize_u8_de11f1ad
     return
   end $L1
   local.field 0 11 3   ; arg 0 std_core$Range__usize.cursor
   ref.cast 12   ; usize
-  local.set 2   ; $field_3
-  local.field 0 11 3   ; arg 0 std_core$Range__usize.cursor
-  ref.cast 12   ; usize
-  call 40   ; std_core$usize$Step$step
-  local.set 3   ; $field_4
-  local.get 0   ; arg 0
-  local.get 3   ; $field_4
-  struct.set 11 3   ; std_core$Range__usize.cursor
-  local.get 2   ; $field_3
-  i32.const 0
+  i32.const 1
   struct.new 13   ; __Tuple_usize_u8_de11f1ad
   return
 end
@@ -353,17 +359,17 @@ fn 28 std_core$three_way (bool,bool) -> i32
   if $L0 void
     i32.const 1
     i32.neg
+    local.tee 2   ; if_res
+    return
+  end $L0
+  local.get 1   ; arg 1
+  if $L1 void
+    i32.const 1
     local.set 2   ; if_res
   else
-    local.get 1   ; arg 1
-    if $L1 void
-      i32.const 1
-      local.set 2   ; if_res
-    else
-      i32.const 0
-      local.set 2   ; if_res
-    end $L1
-  end $L0
+    i32.const 0
+    local.set 2   ; if_res
+  end $L1
   local.get 2   ; if_res
   return
 end

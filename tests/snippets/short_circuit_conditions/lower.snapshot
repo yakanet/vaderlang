@@ -1,0 +1,1096 @@
+# Lower
+
+## snippet
+  fn snippet$trace(sb: StringBuilder!, tag: string, v: bool) -> bool
+    call :void
+      callee:
+        append :void
+      arg0:
+        sb :StringBuilder!
+      arg1:
+        tag :string
+    return v :bool
+  fn snippet$shapes(a: bool, b: bool, c: bool) -> string
+    let sb: StringBuilder! =
+      StringBuilder! {
+        parts:
+          array :string[]!
+      }
+    if :void
+      cond:
+        or :bool
+          l:
+            call :bool
+              callee:
+                trace :fn(StringBuilder!, string, bool) -> bool
+              arg0:
+                sb :StringBuilder!
+              arg1:
+                "a" :string
+              arg2:
+                a :bool
+          r:
+            call :bool
+              callee:
+                trace :fn(StringBuilder!, string, bool) -> bool
+              arg0:
+                sb :StringBuilder!
+              arg1:
+                "b" :string
+              arg2:
+                b :bool
+      then:
+        ~>
+          call :void
+            callee:
+              append :void
+            arg0:
+              sb :StringBuilder!
+            arg1:
+              "T1 " :string
+      else:
+        ~>
+          call :void
+            callee:
+              append :void
+            arg0:
+              sb :StringBuilder!
+            arg1:
+              "F1 " :string
+    if :void
+      cond:
+        not :bool
+          and :bool
+            l:
+              call :bool
+                callee:
+                  trace :fn(StringBuilder!, string, bool) -> bool
+                arg0:
+                  sb :StringBuilder!
+                arg1:
+                  "a" :string
+                arg2:
+                  a :bool
+            r:
+              call :bool
+                callee:
+                  trace :fn(StringBuilder!, string, bool) -> bool
+                arg0:
+                  sb :StringBuilder!
+                arg1:
+                  "b" :string
+                arg2:
+                  b :bool
+      then:
+        call :void
+          callee:
+            append :void
+          arg0:
+            sb :StringBuilder!
+          arg1:
+            "T2 " :string
+    if :void
+      cond:
+        or :bool
+          l:
+            not :bool
+              call :bool
+                callee:
+                  trace :fn(StringBuilder!, string, bool) -> bool
+                arg0:
+                  sb :StringBuilder!
+                arg1:
+                  "a" :string
+                arg2:
+                  a :bool
+          r:
+            and :bool
+              l:
+                call :bool
+                  callee:
+                    trace :fn(StringBuilder!, string, bool) -> bool
+                  arg0:
+                    sb :StringBuilder!
+                  arg1:
+                    "b" :string
+                  arg2:
+                    b :bool
+              r:
+                not :bool
+                  call :bool
+                    callee:
+                      trace :fn(StringBuilder!, string, bool) -> bool
+                    arg0:
+                      sb :StringBuilder!
+                    arg1:
+                      "c" :string
+                    arg2:
+                      c :bool
+      then:
+        ~>
+          call :void
+            callee:
+              append :void
+            arg0:
+              sb :StringBuilder!
+            arg1:
+              "T3 " :string
+      else:
+        ~>
+          call :void
+            callee:
+              append :void
+            arg0:
+              sb :StringBuilder!
+            arg1:
+              "F3 " :string
+    let v: i32 =
+      if :{integer}
+        cond:
+          and :bool
+            l:
+              or :bool
+                l:
+                  call :bool
+                    callee:
+                      trace :fn(StringBuilder!, string, bool) -> bool
+                    arg0:
+                      sb :StringBuilder!
+                    arg1:
+                      "a" :string
+                    arg2:
+                      a :bool
+                r:
+                  call :bool
+                    callee:
+                      trace :fn(StringBuilder!, string, bool) -> bool
+                    arg0:
+                      sb :StringBuilder!
+                    arg1:
+                      "b" :string
+                    arg2:
+                      b :bool
+            r:
+              call :bool
+                callee:
+                  trace :fn(StringBuilder!, string, bool) -> bool
+                arg0:
+                  sb :StringBuilder!
+                arg1:
+                  "c" :string
+                arg2:
+                  c :bool
+        then:
+          ~>
+            int(1) :i32
+        else:
+          ~>
+            int(2) :i32
+    call :void
+      callee:
+        append :void
+      arg0:
+        sb :StringBuilder!
+      arg1:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(22) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "v" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    v :i32
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+    if :void
+      cond:
+        not :bool
+          not :bool
+            call :bool
+              callee:
+                trace :fn(StringBuilder!, string, bool) -> bool
+              arg0:
+                sb :StringBuilder!
+              arg1:
+                "a" :string
+              arg2:
+                a :bool
+      then:
+        ~>
+          call :void
+            callee:
+              append :void
+            arg0:
+              sb :StringBuilder!
+            arg1:
+              "T5 " :string
+      else:
+        ~>
+          if :void
+            cond:
+              or :bool
+                l:
+                  call :bool
+                    callee:
+                      trace :fn(StringBuilder!, string, bool) -> bool
+                    arg0:
+                      sb :StringBuilder!
+                    arg1:
+                      "b" :string
+                    arg2:
+                      b :bool
+                r:
+                  call :bool
+                    callee:
+                      trace :fn(StringBuilder!, string, bool) -> bool
+                    arg0:
+                      sb :StringBuilder!
+                    arg1:
+                      "c" :string
+                    arg2:
+                      c :bool
+            then:
+              ~>
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    sb :StringBuilder!
+                  arg1:
+                    "T6 " :string
+            else:
+              ~>
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    sb :StringBuilder!
+                  arg1:
+                    "F6 " :string
+    return
+      call :string
+        callee:
+          std_string_builder$StringBuilder$Display$to_string :string
+        arg0:
+          sb :StringBuilder!
+  fn snippet$first_over(xs: i32[], n: i32, stop: i32) -> usize
+    let i: usize = int(0) :usize
+    loop while (<…>)
+      assign
+        target:
+          i :usize
+        value:
+          add :usize
+            l:
+              i :usize
+            r:
+              int(1) :usize
+    return i :usize
+  fn snippet$guard(x: i32 | null, y: i32) -> i32
+    if :void
+      cond:
+        or :bool
+          l:
+            is null :bool
+              x :i32 | null
+          r:
+            lt :bool
+              l:
+                y :i32
+              r:
+                int(0) :i32
+      then:
+        return
+          neg :i32
+            int(1) :i32
+    if :void
+      cond:
+        and :bool
+          l:
+            not :bool
+              gt :bool
+                l:
+                  cast → i32
+                    x :i32 | null
+                r:
+                  int(3) :i32
+          r:
+            neq :bool
+              l:
+                y :i32
+              r:
+                int(2) :i32
+      then:
+        return
+          cast → i32
+            x :i32 | null
+    return
+      add :i32
+        l:
+          cast → i32
+            x :i32 | null
+        r:
+          y :i32
+  fn snippet$diverge(x: i32 | null, flag: bool) -> i32
+    if :void
+      cond:
+        or :bool
+          l:
+            flag :bool
+          r:
+            gt :bool
+              l:
+                block :i32
+                  let __coalesce_0: i32 | null = x :i32 | null
+                  ~>
+                    if :i32
+                      cond:
+                        is null :bool
+                          __coalesce_0 :i32 | null
+                      then:
+                        return int(99) :i32
+                        ~>
+                          unreachable("`??` fallback diverges") :i32
+                      else:
+                        ~>
+                          cast → i32
+                            __coalesce_0 :i32 | null
+              r:
+                int(0) :i32
+      then:
+        return int(1) :i32
+    return int(0) :i32
+  fn snippet$main() -> i32
+    block :void
+      let __for_arr_0: bool[]! =
+        array :bool[]!
+          false
+          true
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let a: bool =
+          index :bool
+            on:
+              __for_arr_0 :bool[]!
+            ix:
+              __for_i_2 :usize
+        block :void
+          let __for_arr_3: bool[]! =
+            array :bool[]!
+              false
+              true
+          let __for_len_4: usize =
+            LoweredArrayLen
+          let __for_i_5: usize = int(0) :usize
+          loop while (<…>)
+            let b: bool =
+              index :bool
+                on:
+                  __for_arr_3 :bool[]!
+                ix:
+                  __for_i_5 :usize
+            block :void
+              let __for_arr_6: bool[]! =
+                array :bool[]!
+                  false
+                  true
+              let __for_len_7: usize =
+                LoweredArrayLen
+              let __for_i_8: usize = int(0) :usize
+              loop while (<…>)
+                let c: bool =
+                  index :bool
+                    on:
+                      __for_arr_6 :bool[]!
+                    ix:
+                      __for_i_8 :usize
+                ~>
+                  call :void
+                    callee:
+                      std_io$println__string :void
+                    arg0:
+                      block :string
+                        let __p_9: string =
+                          call :string
+                            callee:
+                              shapes :fn(bool, bool, bool) -> string
+                            arg0:
+                              a :bool
+                            arg1:
+                              b :bool
+                            arg2:
+                              c :bool
+                        let __buf_10: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              add :usize
+                                l:
+                                  int(19) :usize
+                                r:
+                                  call :usize
+                                    callee:
+                                      byte_len :usize
+                                    arg0:
+                                      __p_9 :string
+                        let __off_11: usize = int(0) :usize
+                        assign
+                          target:
+                            __off_11 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_bool :usize
+                              arg0:
+                                __buf_10 :Buffer
+                              arg1:
+                                __off_11 :usize
+                              arg2:
+                                a :bool
+                        assign
+                          target:
+                            __off_11 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_10 :Buffer
+                              arg1:
+                                __off_11 :usize
+                              arg2:
+                                " " :string
+                        assign
+                          target:
+                            __off_11 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_bool :usize
+                              arg0:
+                                __buf_10 :Buffer
+                              arg1:
+                                __off_11 :usize
+                              arg2:
+                                b :bool
+                        assign
+                          target:
+                            __off_11 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_10 :Buffer
+                              arg1:
+                                __off_11 :usize
+                              arg2:
+                                " " :string
+                        assign
+                          target:
+                            __off_11 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_bool :usize
+                              arg0:
+                                __buf_10 :Buffer
+                              arg1:
+                                __off_11 :usize
+                              arg2:
+                                c :bool
+                        assign
+                          target:
+                            __off_11 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_10 :Buffer
+                              arg1:
+                                __off_11 :usize
+                              arg2:
+                                ": " :string
+                        assign
+                          target:
+                            __off_11 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_10 :Buffer
+                              arg1:
+                                __off_11 :usize
+                              arg2:
+                                __p_9 :string
+                        ~>
+                          call :string
+                            callee:
+                              finish_buffer :string
+                            arg0:
+                              __buf_10 :Buffer
+                            arg1:
+                              __off_11 :usize
+              step
+                assign
+                  target:
+                    __for_i_8 :usize
+                  value:
+                    add :usize
+                      l:
+                        __for_i_8 :usize
+                      r:
+                        int(1) :usize
+          step
+            assign
+              target:
+                __for_i_5 :usize
+              value:
+                add :usize
+                  l:
+                    __for_i_5 :usize
+                  r:
+                    int(1) :usize
+      step
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    let xs: i32[]! =
+      array :i32[]!
+        int(1) :i32
+        int(2) :i32
+        int(7) :i32
+        int(3) :i32
+        int(9) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_12: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(62) :usize
+          let __off_13: usize = int(0) :usize
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  cast → u64
+                    call :usize
+                      callee:
+                        first_over :fn(i32[], i32, i32) -> usize
+                      arg0:
+                        xs :i32[]!
+                      arg1:
+                        int(5) :i32
+                      arg2:
+                        int(99) :i32
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  cast → u64
+                    call :usize
+                      callee:
+                        first_over :fn(i32[], i32, i32) -> usize
+                      arg0:
+                        xs :i32[]!
+                      arg1:
+                        int(10) :i32
+                      arg2:
+                        int(3) :i32
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  cast → u64
+                    call :usize
+                      callee:
+                        first_over :fn(i32[], i32, i32) -> usize
+                      arg0:
+                        xs :i32[]!
+                      arg1:
+                        int(10) :i32
+                      arg2:
+                        int(42) :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_12 :Buffer
+              arg1:
+                __off_13 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_14: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(104) :usize
+          let __off_15: usize = int(0) :usize
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        guard :fn(i32 | null, i32) -> i32
+                      arg0:
+                        null
+                      arg1:
+                        int(1) :i32
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        guard :fn(i32 | null, i32) -> i32
+                      arg0:
+                        int(2) :i32
+                      arg1:
+                        neg :i32
+                          int(1) :i32
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        guard :fn(i32 | null, i32) -> i32
+                      arg0:
+                        int(2) :i32
+                      arg1:
+                        int(1) :i32
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        guard :fn(i32 | null, i32) -> i32
+                      arg0:
+                        int(2) :i32
+                      arg1:
+                        int(2) :i32
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_15 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_14 :Buffer
+                arg1:
+                  __off_15 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        guard :fn(i32 | null, i32) -> i32
+                      arg0:
+                        int(5) :i32
+                      arg1:
+                        int(1) :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_14 :Buffer
+              arg1:
+                __off_15 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_16: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(83) :usize
+          let __off_17: usize = int(0) :usize
+          assign
+            target:
+              __off_17 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_16 :Buffer
+                arg1:
+                  __off_17 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        diverge :fn(i32 | null, bool) -> i32
+                      arg0:
+                        null
+                      arg1:
+                        true
+          assign
+            target:
+              __off_17 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_16 :Buffer
+                arg1:
+                  __off_17 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_17 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_16 :Buffer
+                arg1:
+                  __off_17 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        diverge :fn(i32 | null, bool) -> i32
+                      arg0:
+                        null
+                      arg1:
+                        false
+          assign
+            target:
+              __off_17 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_16 :Buffer
+                arg1:
+                  __off_17 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_17 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_16 :Buffer
+                arg1:
+                  __off_17 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        diverge :fn(i32 | null, bool) -> i32
+                      arg0:
+                        int(3) :i32
+                      arg1:
+                        false
+          assign
+            target:
+              __off_17 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_16 :Buffer
+                arg1:
+                  __off_17 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_17 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_16 :Buffer
+                arg1:
+                  __off_17 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        diverge :fn(i32 | null, bool) -> i32
+                      arg0:
+                        neg :i32
+                          int(3) :i32
+                      arg1:
+                        false
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_16 :Buffer
+              arg1:
+                __off_17 :usize
+    return int(0) :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

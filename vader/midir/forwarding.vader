@@ -1,0 +1,125 @@
+// vader/midir/forwarding — send edges past the blocks that only forward them.
+//
+// The builder gives each arm of an `if` its block before it knows what the arm
+// holds, so a lone `break` or `continue` is a block with nothing in it but a
+// `branch`. `skip_forwarding_blocks` retargets the edges into such blocks before
+// `structure.vader` places anything.
+
+module "vader/midir"
+
+import "std/collections"
+
+/// `fn_` with every edge into a forwarding block — no instructions, a lone
+/// `branch` — sent straight on to where that block leads.
+///
+/// The builder gives each arm of an `if` its block before it knows the arm is a
+/// lone `break` or `continue`. Left in place, a `break`'s block is a second exit
+/// beside the loop's own. One that several edges enter is a real merge and
+/// stays — the `break` after an inner loop whose `&&` condition gives it three
+/// exits: sent on, each of those edges would leave both loops by a `goto` —
+/// unless it leads where the innermost loop around all those edges goes on or
+/// leaves to, as the `continue` or `break` of `if a || b { break }` does. A cycle
+/// of forwarding blocks is an empty infinite loop, and keeps its edges.
+///
+/// @param fn_  a function about to be structured.
+/// @return     the same function, its terminators retargeted.
+skip_forwarding_blocks :: fn(fn_: CFGFunction) -> CFGFunction {
+    n :: fn_.blocks.len()
+    entries: i32[]!: [0] * n
+    for b in fn_.blocks {
+        for s in successors_of(b) {
+            entries[i32(s)] += 1
+        }
+    }
+    hop: i32[]!: [-1] * n
+    forwards := false
+    shared: BlockId[]!: []
+    for b in fn_.blocks {
+        t :: b.terminator
+        if b.instructions.len() == 0 && t is TermBranch {
+            if entries[i32(b.id)] < 2 {
+                hop[i32(b.id)] = i32(t.target)
+                forwards = true
+            } else {
+                shared.push(b.id)
+            }
+        }
+    }
+    if shared.len() > 0 {
+        preds :: predecessors_of(fn_)
+        loops :: natural_loop_bodies(fn_, preds, compute_dominators(fn_, preds))
+        for b in shared {
+            t :: fn_.blocks[i32(b)].terminator
+            if t is TermBranch && goes_on_or_out(fn_, loops, preds[i32(b)], t.target) {
+                hop[i32(b)] = i32(t.target)
+                forwards = true
+            }
+        }
+    }
+    if !forwards {
+        return fn_
+    }
+    blocks: BasicBlock[]!: []
+    for b in fn_.blocks {
+        blocks.push(BasicBlock { ...b, .terminator = retargeted(hop, b.terminator) })
+    }
+    return CFGFunction { ...fn_, .blocks = blocks }
+}
+
+// True when `target` is where the innermost loop around every block of `sources`
+// goes on — its header, as a `continue` does — or what that loop's own test
+// leaves for, as a `break` does.
+goes_on_or_out :: fn(
+    fn_: CFGFunction,
+    loops: MutableMap<BlockId, MutableSet<BlockId>>,
+    sources: BlockId[],
+    target: BlockId,
+) -> bool {
+    innermost := BlockId(-1)
+    size: usize = 0
+    for [header, body] in loops {
+        if holds_all(body, sources) && (i32(innermost) < 0 || body.len() < size) {
+            innermost = header
+            size = body.len()
+        }
+    }
+    body :: loops[innermost] ?? return false
+    if target == innermost {
+        return true
+    }
+    t :: fn_.blocks[i32(innermost)].terminator
+    tests :: t is TermCondBranch && (t.then_block == target || t.else_block == target)
+    return tests && !body.contains(target)
+}
+
+holds_all :: fn(body: MutableSet<BlockId>, blocks: BlockId[]) -> bool {
+    for b in blocks {
+        if !body.contains(b) {
+            return false
+        }
+    }
+    return true
+}
+
+retargeted :: fn(hop: i32[], t: Terminator) -> Terminator = match t {
+    is TermBranch                   -> TermBranch { ...t, .target = destination(hop, t.target) }
+    is TermCondBranch               -> TermCondBranch {
+        ...t,
+        .then_block = destination(hop, t.then_block),
+        .else_block = destination(hop, t.else_block),
+    }
+    is TermReturn | TermUnreachable -> t
+}
+
+// The first block on from `b` that does something other than forward, or `b`
+// itself when the forwarding blocks from it loop.
+destination :: fn(hop: i32[], b: BlockId) -> BlockId {
+    at := b
+    for _ in 0..<hop.len() {
+        if hop[i32(at)] < 0 {
+            return at
+        }
+        at = BlockId(hop[i32(at)])
+    }
+    return b
+}

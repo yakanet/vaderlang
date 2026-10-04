@@ -32,14 +32,14 @@ fn 0 snippet$run (any,bool,bool) -> i32
     local.get 0   ; arg 0
     type_check 3   ; snippet$Wrap
     if $L1 void
-      local.get 0   ; arg 0
-      ref.cast 3   ; snippet$Wrap
-      struct.get 3 0   ; snippet$Wrap.b
-      ref.cast 5   ; i32
-      local.set 4   ; base
     else
       unreachable
     end $L1
+    local.get 0   ; arg 0
+    ref.cast 3   ; snippet$Wrap
+    struct.get 3 0   ; snippet$Wrap.b
+    ref.cast 5   ; i32
+    local.set 4   ; base
   end $L0
   local.get 1   ; arg 1
   if $L2 void
@@ -79,6 +79,8 @@ fn 0 snippet$run (any,bool,bool) -> i32
         end $L5
       end $L4
     end $L3
+    local.get 4   ; base
+    return
   end $L2
   local.get 4   ; base
   return
