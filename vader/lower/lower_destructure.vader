@@ -213,16 +213,16 @@ emit_tail_copy :: fn(
     })
 }
 
-/// Read a local respecting closure-cell promotion : a captured symbol's slot
-/// holds a cell, so its value lives behind a `LoweredCellGet` ; an uncaptured
-/// one reads straight.
+/// Read a local respecting closure-cell promotion : the slot of a symbol in
+/// `cell_symbols` holds a cell, so its value lives behind a `LoweredCellGet` ;
+/// any other reads straight.
 /// @param ctx   the fn-body lower context (carries the closure analysis).
 /// @param sym   the binding to read.
 /// @param type  the value type the read yields.
 /// @param span  span for the emitted nodes.
-/// @return      a `LoweredCellGet` when `sym` is captured, else a plain ident.
+/// @return      a `LoweredCellGet` when `sym` lives in a cell, else a plain ident.
 export read_local_cell_aware :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr {
-    if ctx.project.closures.captured_symbols.contains(sym.id) {
+    if lives_in_cell(ctx, sym.id) {
         cell_ref :: LoweredIdent { .span = span, .type = TY_UNRESOLVED, .symbol = sym }
         return LoweredCellGet { .span = span, .type = type, .target = cell_ref, .value_type = type }
     }

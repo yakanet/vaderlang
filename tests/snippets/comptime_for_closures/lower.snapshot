@@ -222,8 +222,7 @@
                 __buf_9 :Buffer
               arg1:
                 __off_10 :usize
-    let base: ? =
-      LoweredCellNew
+    let base: i32 = int(100) :i32
     block :void
       let outer: fn() -> i32 =
         LoweredMakeClosure
@@ -489,20 +488,21 @@
           n :i32
         r:
           int(20) :i32
-  struct __lambda_env_snippet_11 { cap_0: ? }
+  struct __lambda_env_snippet_11 { cap_0: i32 }
   fn __lambda_snippet_10(__env_0: __lambda_env_snippet_11!) -> i32
     ~>
       add :i32
         l:
-          LoweredCellGet
+          .cap_0 :i32
+            __env_0 :__lambda_env_snippet_11!
         r:
           int(1) :i32
-  struct __lambda_env_snippet_9 { cap_0: ? }
+  struct __lambda_env_snippet_9 { cap_0: i32 }
   fn __lambda_snippet_8(__env_11: __lambda_env_snippet_9!) -> i32
     let inner: __lambda_env_snippet_11! =
       __lambda_env_snippet_11! {
         cap_0:
-          .cap_0 :?
+          .cap_0 :i32
             __env_11 :__lambda_env_snippet_9!
       }
     return
@@ -511,20 +511,21 @@
           __lambda_snippet_10 :fn() -> i32
         arg0:
           inner :__lambda_env_snippet_11!
-  struct __lambda_env_snippet_15 { cap_0: ? }
+  struct __lambda_env_snippet_15 { cap_0: i32 }
   fn __lambda_snippet_14(__env_0: __lambda_env_snippet_15!) -> i32
     ~>
       add :i32
         l:
-          LoweredCellGet
+          .cap_0 :i32
+            __env_0 :__lambda_env_snippet_15!
         r:
           int(2) :i32
-  struct __lambda_env_snippet_13 { cap_0: ? }
+  struct __lambda_env_snippet_13 { cap_0: i32 }
   fn __lambda_snippet_12(__env_14: __lambda_env_snippet_13!) -> i32
     let inner: __lambda_env_snippet_15! =
       __lambda_env_snippet_15! {
         cap_0:
-          .cap_0 :?
+          .cap_0 :i32
             __env_14 :__lambda_env_snippet_13!
       }
     return

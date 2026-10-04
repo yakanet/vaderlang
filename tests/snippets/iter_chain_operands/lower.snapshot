@@ -77,8 +77,6 @@
                 __off_1 :usize
     return n :usize
   fn snippet$adder(k: i32) -> fn(i32) -> i32
-    let k: ? =
-      LoweredCellNew
     call :void
       callee:
         std_io$println__string :void
@@ -117,7 +115,7 @@
                   __off_1 :usize
                 arg2:
                   cast → i64
-                    LoweredCellGet
+                    k :i32
           ~>
             call :string
               callee:
@@ -129,8 +127,6 @@
     return
       LoweredMakeClosure
   fn snippet$above(k: i32) -> fn(i32) -> bool
-    let k: ? =
-      LoweredCellNew
     call :void
       callee:
         std_io$println__string :void
@@ -169,7 +165,7 @@
                   __off_1 :usize
                 arg2:
                   cast → i64
-                    LoweredCellGet
+                    k :i32
           ~>
             call :string
               callee:
@@ -1634,22 +1630,24 @@
               arg1:
                 __off_61 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 { cap_0: ? }
+  struct __lambda_env_snippet_1 { cap_0: i32 }
   fn __lambda_snippet_0(__env_2: __lambda_env_snippet_1!, x: i32) -> i32
     ~>
       add :i32
         l:
           x :i32
         r:
-          LoweredCellGet
-  struct __lambda_env_snippet_3 { cap_0: ? }
+          .cap_0 :i32
+            __env_2 :__lambda_env_snippet_1!
+  struct __lambda_env_snippet_3 { cap_0: i32 }
   fn __lambda_snippet_2(__env_2: __lambda_env_snippet_3!, x: i32) -> bool
     ~>
       gt :bool
         l:
           x :i32
         r:
-          LoweredCellGet
+          .cap_0 :i32
+            __env_2 :__lambda_env_snippet_3!
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

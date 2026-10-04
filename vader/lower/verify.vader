@@ -65,15 +65,16 @@ verify_no_coroutine_markers :: fn(
 
 // ---- captured bindings ----------------------------------------------------
 
-/// Report every `let` that binds a closure-captured symbol to its bare value.
+/// Report every `let` that binds a cell-promoted capture to its bare value.
 ///
-/// A closure reads its captures through `CellGet`, so a slot left holding the
+/// A closure reads a rebound capture through `CellGet`, so a slot left holding the
 /// bare value is read as a cell — garbage under the VM, a crash natively — and
 /// nothing downstream notices. The `let`s a coroutine spills into its frame are gone by the time this runs;
 /// `gb_collect_stmt` checks those as it spills them.
 ///
 /// @param project   the lowered IR. Read only.
-/// @param captured  symbol ids of every binding a closure captures.
+/// @param captured  symbol ids of every binding a closure captures and an
+///                  assignment rebinds.
 /// @param diags     accumulator ; one `I7011` per bare binding.
 verify_captured_cells :: fn(
     project: LoweredProject, captured: MutableSet<i32>, diags: Diagnostic[]!,
@@ -93,7 +94,7 @@ verify_captured_cells :: fn(
     }
 }
 
-// True when `s` binds a captured symbol to anything but a fresh cell.
+// True when `s` binds a symbol that lives in a cell to anything but a fresh cell.
 binds_bare_capture :: fn(captured: MutableSet<i32>, s: LoweredLet) =
     s.symbol.id in captured && !(s.value is LoweredCellNew)
 

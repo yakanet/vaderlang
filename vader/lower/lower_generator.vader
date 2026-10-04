@@ -178,7 +178,7 @@ export lower_generator_fn :: fn(
     push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, shape.type, gb_next_body(gb), state_fields)
 
     // Rewrite `g`'s body: `return g$State { <all fields>, .state = entry }`.
-    // Param fields carry the incoming args (a captured param is cell-wrapped here
+    // Param fields carry the incoming args (a param in a cell is cell-wrapped here
     // — `gb_param_construct_value`) ; local fields get a zero value (assigned in
     // `next()` before first read, but `struct.new` needs every field). Field
     // order matches the struct decl (params, locals, state).

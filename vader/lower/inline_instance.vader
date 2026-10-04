@@ -44,8 +44,8 @@ export InlineInstance :: struct {
 }
 
 /// A fresh instance of `callee`, declared by `decl` in `owner`: every binding the
-/// declaration introduces gets a clone under a new id. A clone of a binding a
-/// closure captures is recorded as captured, so its `let` still makes a cell.
+/// declaration introduces gets a clone under a new id. A clone of a binding in a
+/// cell joins `cell_symbols`, so its `let` still makes a cell.
 ///
 /// @param project  the project context: mints the ids, holds the captures.
 /// @param callee   the inlined fn's own symbol; keys the binding cache.
@@ -64,8 +64,8 @@ new_inline_instance :: fn(
         clone :: Symbol { ...binding, .id = next_project_synthetic_id(project) }
         clones[binding.id] = clone
         project.clone_origins[clone.id] = binding.id
-        if binding.id in project.closures.captured_symbols {
-            project.closures.captured_symbols.add(clone.id)
+        if binding.id in project.closures.cell_symbols {
+            project.closures.cell_symbols.add(clone.id)
         }
     }
     return InlineInstance {

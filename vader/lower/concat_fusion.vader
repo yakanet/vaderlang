@@ -71,8 +71,8 @@ export fuse_concat_tail :: fn(ctx: FnLowerCtx!, stmts: LoweredStmt[]!) -> void {
 }
 
 // Destructure `s = concat_N(s, …)`, or `null` for anything else. The target must
-// be a plain local: a captured one is rewritten to a cell, so it arrives as a
-// `LoweredCellSet` and never reaches here — which is what rules out a closure
+// be a plain local: a captured one is rebound by this very assignment, so it lives
+// in a cell, arrives as a `LoweredCellSet` and never reaches here — which is what rules out a closure
 // observing the intermediate.
 //
 // The self-referential first argument is checked BEFORE `cf_is_concat_call`:

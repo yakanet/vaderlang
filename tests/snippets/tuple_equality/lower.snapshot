@@ -847,8 +847,9 @@
                 __buf_38 :Buffer
               arg1:
                 __off_39 :usize
-    let calls: ? =
-      LoweredCellNew
+    let calls: i32[]! =
+      array :i32[]!
+        int(0) :i32
     let counted: __lambda_env_snippet_1! =
       __lambda_env_snippet_1! {
         cap_0: calls :i32[]!
@@ -929,7 +930,7 @@
                   cast → i64
                     index :i32
                       on:
-                        LoweredCellGet
+                        calls :i32[]!
                       ix:
                         int(0) :i32
           ~>
@@ -941,13 +942,14 @@
               arg1:
                 __off_44 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 { cap_0: ? }
+  struct __lambda_env_snippet_1 { cap_0: i32[]! }
   fn __lambda_snippet_0(__env_40: __lambda_env_snippet_1!, n: i32) -> [i32, string]!
     assign
       target:
         index :i32
           on:
-            LoweredCellGet
+            .cap_0 :i32[]!
+              __env_40 :__lambda_env_snippet_1!
           ix:
             int(0) :i32
       value:
@@ -955,7 +957,8 @@
           l:
             index :i32
               on:
-                LoweredCellGet
+                .cap_0 :i32[]!
+                  __env_40 :__lambda_env_snippet_1!
               ix:
                 int(0) :i32
           r:

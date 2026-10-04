@@ -3,23 +3,21 @@
 ## snippet
   struct snippet$Point { x: i32, y: i32 }
   fn snippet$scale(p: i32 | Point) -> fn() -> i32
-    let v: ? =
-      LoweredCellNew
+    let v: i32 | Point = p :i32 | Point
     if :void
       cond:
         is i32 :bool
-          LoweredCellGet
+          v :i32 | Point
       then:
         return
           LoweredMakeClosure
     return __lambda_snippet_2 :fn() -> i32
   fn snippet$corner(p: i32 | Point) -> fn() -> i32
-    let v: ? =
-      LoweredCellNew
+    let v: i32 | Point = p :i32 | Point
     if :void
       cond:
         is Point! :bool
-          LoweredCellGet
+          v :i32 | Point
       then:
         return
           LoweredMakeClosure
@@ -192,29 +190,32 @@
               arg1:
                 __off_7 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 { cap_0: ? }
+  struct __lambda_env_snippet_1 { cap_0: i32 | Point }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> i32
     return
       mul :i32
         l:
           cast → i32
-            LoweredCellGet
+            .cap_0 :i32 | Point
+              __env_0 :__lambda_env_snippet_1!
         r:
           int(2) :i32
   fn __lambda_snippet_2() -> i32
     return int(0) :i32
-  struct __lambda_env_snippet_4 { cap_0: ? }
+  struct __lambda_env_snippet_4 { cap_0: i32 | Point }
   fn __lambda_snippet_3(__env_0: __lambda_env_snippet_4!) -> i32
     return
       add :i32
         l:
           .x :i32
             cast → Point
-              LoweredCellGet
+              .cap_0 :i32 | Point
+                __env_0 :__lambda_env_snippet_4!
         r:
           .y :i32
             cast → Point
-              LoweredCellGet
+              .cap_0 :i32 | Point
+                __env_0 :__lambda_env_snippet_4!
   fn __lambda_snippet_5() -> i32
     return
       neg :i32

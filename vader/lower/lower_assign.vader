@@ -105,35 +105,11 @@ try_lower_cell_set_assign :: fn(
     if target_ident is IdentExpr {
         symbol :: resolve_ident(ctx, target_ident.span) ?? return null
         if symbol is Symbol {
-            if !ctx.project.closures.captured_symbols.contains(symbol.id) { return null }
+            if !lives_in_cell(ctx, symbol.id) { return null }
             value_type :: ctx.types.expr_type(target_ident)
-            // Build the cell pointer. Inside a lifted lambda body the
-            // captured symbol has no local slot ; the cell ref lives on
-            // the env-struct param at `cap_N`. Otherwise (in the
-            // enclosing fn) the local slot itself holds the cell.
-            // Mirrors `try_route_through_env`'s structure but without
-            // the trailing CellGet wrap — we want the raw cell pointer
-            // so CellSet can write through it.
-            cell_ref: LoweredExpr = LoweredIdent {
-                .span = target_ident.span, .type = value_type, .symbol = symbol,
-            }
-            lifted :: ctx.lifted_context
-            if !(lifted is null) {
-                field_name :: lifted.capture_fields[symbol.id]
-                if field_name is string {
-                    env_ident :: LoweredIdent {
-                        .span = target_ident.span, .type = lifted.env_type,
-                        .symbol = lifted.env_symbol,
-                    }
-                    cell_ref = LoweredFieldAccess {
-                        .span = target_ident.span, .type = TY_UNRESOLVED,
-                        .target = env_ident, .field = field_name,
-                    }
-                }
-            }
             return LoweredCellSet {
                 .span = span,
-                .target = cell_ref,
+                .target = env_cell(ctx, symbol, target_ident.span, value_type),
                 .value = value,
                 .value_type = value_type,
             }

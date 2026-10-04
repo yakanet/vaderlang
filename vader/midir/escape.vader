@@ -6,8 +6,8 @@
 //   - Passed as Call / CallIndirect / VirtualCall arg (no inter-
 //     procedural analysis ; we assume the callee retains a reference)
 //   - Stored as a field of an (escaping) value, or pushed into one
-//   - Wrapped in CellNew / written into CellSet (closures capture by
-//     reference)
+//   - Wrapped in CellNew / written into CellSet (a closure shares a capture
+//     something rebinds through its cell)
 //
 // Pure read-only uses (ArrayLen, TypeCheck, Cast, Move, CondBranch, …)
 // keep the value local. FieldGet / ArrayGet record the result as an

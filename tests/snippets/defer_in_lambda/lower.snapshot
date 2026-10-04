@@ -2,8 +2,7 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let x: ? =
-      LoweredCellNew
+    let x: string = "captured-x" :string
     let f: __lambda_env_snippet_1! =
       __lambda_env_snippet_1! {
         cap_0: x :string
@@ -18,8 +17,7 @@
         std_io$println__string :void
       arg0:
         "--- now panic case ---" :string
-    let n: ? =
-      LoweredCellNew
+    let n: i32 = int(5) :i32
     let do_panic: __lambda_env_snippet_7! =
       __lambda_env_snippet_7! {
         cap_0: x :string
@@ -84,7 +82,7 @@
         std_io$println__string :void
       arg0:
         "lambda inner cleanup" :string
-  struct __defer_env_snippet_5 { cap_0: ? }
+  struct __defer_env_snippet_5 { cap_0: string }
   fn __defer_snippet_4(__env_1: __defer_env_snippet_5!) -> void
     call :void
       callee:
@@ -96,8 +94,9 @@
           arg0:
             "uses outer " :string
           arg1:
-            LoweredCellGet
-  struct __lambda_env_snippet_1 { cap_0: ? }
+            .cap_0 :string
+              __env_1 :__defer_env_snippet_5!
+  struct __lambda_env_snippet_1 { cap_0: string }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> void
     defer.push
       LoweredMakeClosure
@@ -109,7 +108,7 @@
       arg0:
         "lambda body" :string
     defer.pop_exec 2
-  struct __defer_env_snippet_9 { cap_0: ? }
+  struct __defer_env_snippet_9 { cap_0: string }
   fn __defer_snippet_8(__env_0: __defer_env_snippet_9!) -> void
     call :void
       callee:
@@ -121,8 +120,9 @@
           arg0:
             "panic defer in lambda saw " :string
           arg1:
-            LoweredCellGet
-  struct __lambda_env_snippet_7 { cap_0: ?, cap_1: ? }
+            .cap_0 :string
+              __env_0 :__defer_env_snippet_9!
+  struct __lambda_env_snippet_7 { cap_0: string, cap_1: i32 }
   fn __lambda_snippet_6(__env_1: __lambda_env_snippet_7!) -> i32
     defer.push
       LoweredMakeClosure
@@ -135,13 +135,16 @@
       let __result_1: i32 =
         div :i32
           l:
-            LoweredCellGet
+            .cap_1 :i32
+              __env_1 :__lambda_env_snippet_7!
           r:
             sub :i32
               l:
-                LoweredCellGet
+                .cap_1 :i32
+                  __env_1 :__lambda_env_snippet_7!
               r:
-                LoweredCellGet
+                .cap_1 :i32
+                  __env_1 :__lambda_env_snippet_7!
       defer.pop_exec 1
       return __result_1 :i32
   fn concat_2(p0: string, p1: string) -> string

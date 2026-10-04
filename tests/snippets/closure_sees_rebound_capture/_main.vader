@@ -1,0 +1,92 @@
+// A capture something rebinds lives in a heap cell that the closure shares with
+// the code around it, so each side sees the other's assignments. A capture nothing
+// rebinds is copied into the env instead (`capture_loop_var`,
+// `defer_capture_param`) ; these are the bindings that keep their cell : a
+// parameter reassigned after a closure captured it, at fn entry and inside a
+// lambda ; loop bindings the body reassigns — a range counter, an array element,
+// a fused filter chain's element ; a local the closure itself increments ; and a
+// generator parameter reassigned between yields, whose cell the generator's frame
+// carries across each suspension.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+is_even :: fn(v: i32) -> bool = v % 2 == 0
+
+// The closure is made before the parameter is reassigned, and reads it after.
+reads_later :: fn(n: i32) -> i32 {
+    read :: () -> n
+    n = n + 10
+    return read()
+}
+
+// The closure reads `seed` at each yield ; the body reassigns it in between.
+stepped :: fn(seed: i32) -> Iterator<i32> {
+    add :: fn(x: i32) -> i32 { return x + seed }
+    for i in 0..<3 {
+        yield add(i)
+        seed = seed + 100
+    }
+}
+
+main :: fn() -> i32 {
+    println("param ${reads_later(1)}")
+
+    // A range counter the body reassigns : each closure keeps its iteration's
+    // cell, and sees the value the body left in it.
+    seen: (fn() -> i32)[]!: []
+    for i in 0..<3 {
+        seen.push(() -> i)
+        i = i * 10
+    }
+    for read in seen {
+        println("counter ${read()}")
+    }
+
+    // An array element the body reassigns.
+    tagged: (fn() -> string)[]!: []
+    for word in ["a", "b"] {
+        tagged.push(() -> word)
+        word = word + "!"
+    }
+    for read in tagged {
+        println("element ${read()}")
+    }
+
+    // A fused filter chain's element the body reassigns.
+    evens: (fn() -> i32)[]!: []
+    for z in (0..<5).filter(is_even) {
+        evens.push(() -> z)
+        z = z * 10
+    }
+    for read in evens {
+        println("filtered ${read()}")
+    }
+
+    // A local the closure increments, read back by the enclosing fn.
+    count := 0
+    bump :: fn() {
+        count = count + 1
+    }
+    bump()
+    bump()
+    println("count ${count}")
+
+    // A lambda's own parameter, reassigned after a nested lambda captured it.
+    shift :: fn(n: i32) -> i32 {
+        read :: () -> n
+        n = n * 2
+        return read()
+    }
+    println("lambda param ${shift(21)}")
+
+    // Held in a variable, the generator runs as a frame of its own rather than
+    // inlined into the loop.
+    it :: stepped(1)
+    for v in it {
+        println("generator ${v}")
+    }
+    return 0
+}

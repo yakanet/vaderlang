@@ -187,7 +187,7 @@ export lower_async_fn :: fn(
     push_async_decls(fn_ctx, state_sym, self_sym, state_ty, resume_ty, gb_next_body(gb), gb_cancel_body(gb), state_fields)
 
     // Rewrite `f`'s body: `return __asyncstate { <all fields>, .awaited = null,
-    // .state = entry }`. Param fields carry the incoming args (a captured param is
+    // .state = entry }`. Param fields carry the incoming args (a param in a cell is
     // cell-wrapped here — `gb_param_construct_value`) ; local fields get a zero
     // value (assigned in `resume()` before first read, but `struct.new` needs
     // every field). Field order matches the struct decl.

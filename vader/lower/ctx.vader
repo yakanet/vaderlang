@@ -30,8 +30,9 @@ export Capture :: struct {
     type:   Type
 }
 
-/// Free-variable analysis output. `captured_symbols` lists every symbol
-/// ID that needs heap-promotion via `Cell<T>` ; `lambda_captures` keys
+/// Free-variable analysis output. `cell_symbols` lists every captured
+/// symbol an assignment rebinds — the ones heap-promoted to a `Cell<T>` ; a
+/// capture nothing rebinds is copied into the env instead. `lambda_captures` keys
 /// the per-lambda capture list (field order in the generated env struct
 /// mirrors this order). `defer_captures` plays the same role for
 /// `defer body` thunks — the body lifts to a synthetic fn carrying its
@@ -45,11 +46,11 @@ export Capture :: struct {
 /// map across every module), so a bare-id key collides across modules : a
 /// recursive self-capturing closure in module A then leaks its `[self]`
 /// capture into a same-id closure in module B, whose env packs an
-/// out-of-scope symbol → "unresolved ident" → mis-compile. `captured_symbols`
+/// out-of-scope symbol → "unresolved ident" → mis-compile. `cell_symbols`
 /// keys by symbol id, which IS project-global-unique (one shared factory),
 /// so it needs no qualification.
 export ClosureAnalysis :: struct {
-    captured_symbols: MutableSet<i32>
+    cell_symbols: MutableSet<i32>
     lambda_captures:  MutableMap<string, Capture[]>
     defer_captures:   MutableMap<string, Capture[]>
 }
@@ -64,7 +65,7 @@ export capture_key :: fn(module_path: string, node_id: usize) -> string = "${mod
 /// @return  a fresh analysis with no captures recorded.
 export new_closure_analysis :: fn() -> ClosureAnalysis {
     return ClosureAnalysis {
-        .captured_symbols = MutableSet<i32> {},
+        .cell_symbols = MutableSet<i32> {},
         .lambda_captures  = MutableMap<string, Capture[]> {},
         .defer_captures   = MutableMap<string, Capture[]> {},
     }
@@ -444,14 +445,22 @@ export new_block_ctx :: fn(is_fn_root: bool, loop_id: usize | null) -> BlockCtx 
 // Lifted-fn context
 // ============================================================================
 
+/// Where a lifted body finds one capture in its env.
+export EnvSlot :: struct {
+    field:      string
+    /// The type the env stores the capture's value at, or `null` when it holds
+    /// the capture's cell.
+    value_type: Type | null
+}
+
 /// Per-lambda lifting context. Set on `FnLowerCtx` when we're lowering a
 /// lambda's lifted top-level body : captured outer symbols are reached
-/// via `env.<field>` rather than as direct locals. The map keys on the
-/// outer symbol's ID ; the value is the env field name.
+/// via `env.<field>` rather than as direct locals.
 export LiftedFnContext :: struct {
-    env_symbol:      Symbol
-    env_type:        Type
-    capture_fields:  MutableMap<i32, string>
+    env_symbol: Symbol
+    env_type:   Type
+    /// Each capture's slot, keyed by the outer symbol's id.
+    captures:   MutableMap<i32, EnvSlot>
 }
 
 // ============================================================================
@@ -628,7 +637,7 @@ import "std/testing"
 
 @test test_new_closure_analysis_is_empty :: fn() -> void {
     analysis :: new_closure_analysis()
-    assert_eq(analysis.captured_symbols.len(), 0)
+    assert_eq(analysis.cell_symbols.len(), 0)
     assert_eq(analysis.lambda_captures.len(), 0)
 }
 

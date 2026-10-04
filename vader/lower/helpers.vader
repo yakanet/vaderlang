@@ -159,9 +159,15 @@ export CellInit :: struct {
     slot_type: Type
 }
 
+// Whether `symbol_id` names a binding that lives in a heap cell: a closure
+// captures it and an assignment rebinds it (`closure_analysis`).
+lives_in_cell :: fn(ctx: FnLowerCtx, symbol_id: i32) -> bool {
+    return symbol_id in ctx.project.closures.cell_symbols
+}
+
 /// Wrap the initialiser in `LoweredCellNew` when `symbol` is captured
-/// by an inner lambda. Reads through `ctx.project.closures` to decide ;
-/// non-captured slots return their input verbatim.
+/// by an inner lambda and rebound (`lives_in_cell`) ; any other slot returns its
+/// input verbatim.
 /// @param ctx         the fn-body context.
 /// @param symbol      the binding's symbol.
 /// @param value       the initialiser expression.
@@ -171,8 +177,7 @@ export CellInit :: struct {
 export lower_cell_init :: fn(
     ctx: FnLowerCtx, symbol: Symbol, value: LoweredExpr, value_type: Type, span: Span,
 ) -> CellInit {
-    captured :: symbol.id in ctx.project.closures.captured_symbols
-    if !captured {
+    if !lives_in_cell(ctx, symbol.id) {
         return CellInit { .value = value, .slot_type = value_type }
     }
     cell :: LoweredCellNew {
@@ -182,9 +187,9 @@ export lower_cell_init :: fn(
 }
 
 /// `let <name> = <value>` for a user-visible binding, heap-promoted to a cell
-/// when an inner lambda captures it (`lower_cell_init`). Every binding a closure
-/// can capture goes through here: the closure reads its captures through
-/// `CellGet`, so a slot left holding the bare value reads garbage.
+/// when an inner lambda captures it and something rebinds it (`lower_cell_init`).
+/// Every binding a closure can capture goes through here: the closure reads such
+/// a capture through `CellGet`, so a slot left holding the bare value reads garbage.
 ///
 /// @param symbol      the binding's symbol.
 /// @param name        its display name.
@@ -200,45 +205,95 @@ export cell_aware_let :: fn(
     }
 }
 
-/// The expression denoting `symbol`'s CELL inside the fn being lowered right
-/// now: `env.cap_N` when that fn is itself a lifted body that captured it, a
-/// plain ident otherwise — to the instance's clone inside an inlined generator,
-/// since the capture lists name the resolver's symbols.
-///
-/// This is what an env literal must store. A captured binding is heap-promoted
-/// to a `Cell<T>` (`lower_cell_init`) and every lift sharing it holds a ref to
-/// the SAME cell, so the slot carries the ref, not the value — which is why
-/// this stops one step short of `try_route_through_env`, whose job is reading
-/// the value back out.
-///
-/// Without the routing, a lift nested inside another lift built its env from a
-/// bare ident on a symbol the enclosing LIFTED fn does not own as a local.
-/// `midir` could not resolve it and replaced the whole entry block with
-/// `unreachable`, so the nested closure — and everything around it — silently
-/// did nothing.
-///
-/// @param ctx     the fn-body context ; its `lifted_context` decides.
-/// @param symbol  the captured binding.
-/// @param span    span for the synthesised nodes.
-/// @param type    the binding's type, used only for the non-lifted ident.
-/// @return        `env.cap_N` (typed `Unresolved`, it is an opaque cell ref) or
-///                a plain `LoweredIdent`.
-export lifted_cell_ref :: fn(
-    ctx: FnLowerCtx, symbol: Symbol, span: Span, type: Type,
-) -> LoweredExpr {
+// Where a closure's env keeps each capture, in capture order: `cap_<N>`, holding
+// its value at its declared type in the fn making the closure — the type of its own
+// slot — or, for a capture that lives in a cell, that cell. Computed once per
+// closure, so the env literal that writes a field and the lifted body that reads it
+// agree.
+env_slots :: fn(ctx: FnLowerCtx, captures: Capture[]) -> EnvSlot[] {
+    slots: EnvSlot[]!: []
+    for i in 0..<captures.len() {
+        symbol :: captures[i].symbol
+        value_type: Type | null: if lives_in_cell(ctx, symbol.id) {
+            null
+        } else {
+            declared_type_of_symbol(ctx, symbol) ?? captures[i].type
+        }
+        slots.push(EnvSlot { .field = "cap_${i}", .value_type = value_type })
+    }
+    return slots
+}
+
+// The env struct's fields, one per slot ; a cell is an opaque ref.
+env_struct_fields :: fn(slots: EnvSlot[]) -> LoweredStructField[] {
+    fields: LoweredStructField[]!: []
+    for slot in slots {
+        field_type :: slot.value_type ?? TY_UNRESOLVED
+        fields.push(LoweredStructField { .name = slot.field, .type = field_type })
+    }
+    return fields
+}
+
+// The env literal's fields: each capture's value, or its cell, as the fn being
+// lowered right now reaches it.
+env_lit_fields :: fn(ctx: FnLowerCtx, span: Span, captures: Capture[], slots: EnvSlot[]) -> LoweredStructLitField![] {
+    fields: LoweredStructLitField![]!: []
+    for i in 0..<captures.len() {
+        symbol :: captures[i].symbol
+        value_type :: slots[i].value_type
+        value :: if value_type != null {
+            try_route_through_env(ctx, symbol, span, value_type) ?? LoweredIdent {
+                .span = span,
+                .type = value_type,
+                .symbol = instance_symbol(ctx, symbol),
+            }
+        } else {
+            env_cell(ctx, symbol, span, captures[i].type)
+        }
+        fields.push(LoweredStructLitField { .name = slots[i].field, .value = value })
+    }
+    return fields
+}
+
+// The slots keyed by captured symbol id, for the lifted body.
+slots_by_symbol :: fn(captures: Capture[], slots: EnvSlot[]) -> MutableMap<i32, EnvSlot> {
+    map :: MutableMap<i32, EnvSlot> {}
+    for i in 0..<captures.len() {
+        map[captures[i].symbol.id] = slots[i]
+    }
+    return map
+}
+
+// The cell an env literal stores for the rebound capture `symbol`, as the fn being
+// lowered right now reaches it: `env.cap_N` when that fn is itself a lifted body
+// that captured it, a plain ident otherwise — to the instance's clone inside an
+// inlined generator, since the capture lists name the resolver's symbols. `type`
+// is the binding's type, used only for the plain ident.
+//
+// Every lift sharing a rebound capture holds a ref to the SAME cell, so the env
+// carries the ref, not the value — which is why this stops one step short of
+// `try_route_through_env`, whose job is reading the value back out.
+//
+// A lift nested inside another must not read a bare ident for a symbol the
+// enclosing LIFTED fn does not own as a local: `midir` cannot resolve it and
+// replaces the whole entry block with `unreachable`.
+env_cell :: fn(ctx: FnLowerCtx, symbol: Symbol, span: Span, type: Type) -> LoweredExpr {
     lifted :: ctx.lifted_context
     if lifted != null {
-        field_name :: lifted.capture_fields[symbol.id]
-        if field_name is string {
-            env_ident :: LoweredIdent {
-                .span = span, .type = lifted.env_type, .symbol = lifted.env_symbol,
-            }
-            return LoweredFieldAccess {
-                .span = span, .type = TY_UNRESOLVED, .target = env_ident, .field = field_name,
-            }
+        slot :: lifted.captures[symbol.id]
+        if slot != null {
+            return env_field(lifted, slot.field, span, TY_UNRESOLVED)
         }
     }
     return LoweredIdent { .span = span, .type = type, .symbol = instance_symbol(ctx, symbol) }
+}
+
+// `env.<field>` in a lifted body, read at `type`.
+env_field :: fn(lifted: LiftedFnContext, field: string, span: Span, type: Type) -> LoweredFieldAccess = LoweredFieldAccess {
+    .span = span,
+    .type = type,
+    .target = LoweredIdent { .span = span, .type = lifted.env_type, .symbol = lifted.env_symbol },
+    .field = field,
 }
 
 /// Return a copy of `block` with `prefix` spliced in before its statements,
@@ -312,7 +367,7 @@ is_invariant_operand :: fn(ctx: FnLowerCtx, value: LoweredExpr) -> bool = @parti
 // Whether `value` reads the same when only other operands run before the read —
 // calls, but no statement of the enclosing fn : a literal, or a local read
 // directly. A call cannot rebind a local it does not capture, and a captured one
-// is read through its cell, not as an ident.
+// it can rebind lives in a cell, read through it, not as an ident.
 is_stable_operand :: fn(value: LoweredExpr) -> bool = value is LoweredIdent || is_literal(value)
 
 // Whether evaluating `value` does nothing but read — a stable operand, or a field,

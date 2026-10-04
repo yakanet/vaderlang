@@ -2,14 +2,22 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let path: ? =
-      LoweredCellNew
+    let path: string =
+      call :string
+        callee:
+          concat_2 :string
+        arg0:
+          call :string
+            callee:
+              temp_dir :fn() -> string
+        arg1:
+          "/vader_cross_module_default" :string
     let wrote: IOError | null =
       call :IOError | null
         callee:
           write_file_string :fn(string, string) -> IOError | null
         arg0:
-          LoweredCellGet
+          path :string
         arg1:
           "0123456789" :string
     if :void
@@ -40,7 +48,7 @@
         callee:
           read_file_string :fn(string, usize) -> IOError | string
         arg0:
-          LoweredCellGet
+          path :string
         arg1:
           int(16777216) :usize
     if :void
@@ -107,7 +115,7 @@
         callee:
           read_file_string :IOError | string
         arg0:
-          LoweredCellGet
+          path :string
         arg1:
           int(16777216) :usize
     if :void
@@ -176,7 +184,7 @@
             callee:
               read_file_string :fn(string, usize) -> IOError | string
             arg0:
-              LoweredCellGet
+              path :string
             arg1:
               int(4) :usize
       then:
@@ -186,7 +194,7 @@
               callee:
                 read_file_string :fn(string, usize) -> IOError | string
               arg0:
-                LoweredCellGet
+                path :string
               arg1:
                 int(4) :usize
         call :void
@@ -204,13 +212,14 @@
     block :void
       defer.pop_exec 1
       return int(0) :i32
-  struct __defer_env_snippet_1 { cap_0: ? }
+  struct __defer_env_snippet_1 { cap_0: string }
   fn __defer_snippet_0(__env_0: __defer_env_snippet_1!) -> void
     call :IOError | null
       callee:
         remove_file :fn(string) -> IOError | null
       arg0:
-        LoweredCellGet
+        .cap_0 :string
+          __env_0 :__defer_env_snippet_1!
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

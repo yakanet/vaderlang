@@ -162,18 +162,21 @@ const C_PARITY = new Set<string>([
   // A type parameter left alone in a union pattern binds the union of the
   // argument's other variants (`T | null` over `i32 | string | null`).
   "generic_param_over_wide_union",
-  // Captured parameters : a `defer` / lambda body that reads or mutates one of
-  // its enclosing fn's PARAMS promotes that param to a heap cell at fn entry
-  // (`promote_captured_params`). Exercises cell-new over an ABI param +
-  // make_closure with a non-empty env + the lifted body's `struct.get` cell
-  // read in the C emitter. The run oracle (matches vm.snapshot) is the guard.
+  // Captured parameters : a `defer` / lambda body that reads one of its
+  // enclosing fn's PARAMS copies the raw ABI value into a non-empty env, which
+  // the lifted body reads back with a typed `struct.get` in the C emitter. The
+  // run oracle (matches vm.snapshot) is the guard.
   "defer_capture_param",
   // Captured loop bindings : a for-in element/range loop var and a lambda's own
-  // param captured by a nested lambda promote to per-iteration / per-call cells
-  // (`lower_cell_init` at the for-in binding sites + `promote_captured_params`
-  // in the lifted lambda body). Closures stashed in the loop and run after it
-  // must each see their own iteration's value — the run oracle is the guard.
+  // param captured by a nested lambda are copied into each closure's env when it
+  // is made. Closures stashed in the loop and run after it must each see their
+  // own iteration's value — the run oracle is the guard.
   "capture_loop_var",
+  // Rebound captures : a param reassigned after a closure captured it (at fn
+  // entry, `promote_cell_params`, and in a lambda), a range counter the body
+  // reassigns (per-iteration cell on a synthetic counter) and a local the closure
+  // increments all live in a cell both sides share.
+  "closure_sees_rebound_capture",
   // Generators (`@generator` + `yield`) — the state-machine lowering emits a
   // synthesized `g$State` struct + an `Iterator::next` state machine consumed by
   // for-in; the native run validates the whole desugar end-to-end.
@@ -183,10 +186,10 @@ const C_PARITY = new Set<string>([
   "generator_break",       // break + continue across a yield
   "generator_struct_elem", // struct element type, flattened
   "generator_escapes",     // stored-then-consumed → boxed state machine (not inlined)
-  // A generator local captured by a closure promotes to a heap cell that must
-  // survive across each yield. The native run is the guard on the fix: the
-  // spilled `g$State` field must carry the cell (box), not the value type — a
-  // value-typed field emitted `int32_t f_sN` and the cell get derefed a scalar.
+  // A generator local captured by a closure, read at each yield : nothing
+  // reassigns it, so the closure's env holds its value and the frame carries the
+  // closure. A reassigned one (`closure_sees_rebound_capture`) spills to a
+  // `g$State` field that must carry the cell, not the value type.
   "generator_closure_capture",
   // Stream fusion (Couche 1): `arr.iter().map(f).filter(p)` under a `for`
   // fuses to a flat index loop — no iterator structs. Native run validates the
@@ -257,16 +260,17 @@ const C_PARITY = new Set<string>([
   "async_try_all",     // try_join_all(xs): fallible join, first-error by input order
   "async_interleave",  // visible cooperative interleaving via println order
   "async_shared_deadline", // timers sharing a deadline are spent by one park
-  // Captured param + local surviving `await`: both promote to heap cells the
-  // frame must carry across suspension (the retired M5008 case). Native run is
-  // the seed-critical guard — the C-emit bug was a value-typed spilled field.
+  // Captured param + local surviving `await`: the local the closure reassigns
+  // lives in a heap cell the frame must carry across suspension (the retired
+  // M5008 case) ; the param is copied into the env. Native run is the
+  // seed-critical guard — the C-emit bug was a value-typed spilled field.
   "async_closure_capture",
   // The same, but two coroutines under `join_all` with interleaved drives: their
   // cells must stay distinct (the concurrent-capture VM corruption M5008 masked).
   "async_capture_concurrent",
   // `defer` inside a coroutine (4a): pending defers live in a per-frame stack and
   // drain LIFO at completion. A defer registered before the await — and the local
-  // it captures by-ref — must survive the suspension. Native run is the guard.
+  // it captures — must survive the suspension. Native run is the guard.
   "async_defer",
   // Cancelling a suspended coroutine (4c-1): `frame.cancel()` runs pending defers
   // LIFO and recursively tears down the awaited child, without finishing the body.

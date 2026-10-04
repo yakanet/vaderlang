@@ -44,8 +44,8 @@ export lower_defer :: fn(
     env_param_symbol :: fresh_synthetic_symbol(ctx, "env")
     env_type :: mk_struct(env_symbol, [], immutable = false)
 
-    env_fields :: build_defer_env_fields(captures)
-    capture_fields_map :: build_defer_capture_fields_map(captures)
+    slots :: env_slots(ctx, captures)
+    env_fields :: env_struct_fields(slots)
 
     env_decl :: LoweredStructDecl {
         .mangled = env_symbol.name,
@@ -70,7 +70,7 @@ export lower_defer :: fn(
     lifted_ctx.lifted_context = LiftedFnContext {
         .env_symbol     = env_param_symbol,
         .env_type       = env_type,
-        .capture_fields = capture_fields_map,
+        .captures       = slots_by_symbol(captures, slots),
     }
     body :: block_lowerer(lifted_ctx, body_block, true, null)
 
@@ -87,7 +87,7 @@ export lower_defer :: fn(
 
     env_lit :: LoweredStructLit {
         .span = defer_stmt.span, .type = env_type,
-        .fields = build_defer_env_lit_fields(ctx, defer_stmt.span, captures),
+        .fields = env_lit_fields(ctx, defer_stmt.span, captures, slots),
     }
     thunk :: LoweredMakeClosure {
         .span = defer_stmt.span, .type = TY_UNRESOLVED,
@@ -105,36 +105,6 @@ lookup_defer_captures :: fn(ctx: FnLowerCtx, defer_stmt: AST.DeferStmt) -> Captu
     if found is Capture[] as caps { return runtime_captures(ctx, caps) }
     empty: Capture[]: []
     return empty
-}
-
-build_defer_env_fields :: fn(captures: Capture[]) -> LoweredStructField[] {
-    fields: LoweredStructField[]!: []
-    for i in 0..<captures.len() {
-        fields.push(LoweredStructField {
-            .name = "cap_${i}", .type = TY_UNRESOLVED,
-        })
-    }
-    return fields
-}
-
-build_defer_env_lit_fields :: fn(ctx: FnLowerCtx, span: Span, captures: Capture[]) -> LoweredStructLitField![] {
-    fields: LoweredStructLitField![]!: []
-    for i in 0..<captures.len() {
-        capture :: captures[i]
-        fields.push(LoweredStructLitField {
-            .name = "cap_${i}",
-            .value = lifted_cell_ref(ctx, capture.symbol, span, capture.type),
-        })
-    }
-    return fields
-}
-
-build_defer_capture_fields_map :: fn(captures: Capture[]) -> MutableMap<i32, string> {
-    map :: MutableMap<i32, string> {}
-    for i in 0..<captures.len() {
-        map[captures[i].symbol.id] = "cap_${i}"
-    }
-    return map
 }
 
 // Wrap the defer body (single Stmt OR BlockExpr) into a BlockExpr the

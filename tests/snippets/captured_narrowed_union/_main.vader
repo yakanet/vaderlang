@@ -2,9 +2,9 @@ module "snippet"
 
 import "std/io"
 
-// A local holding a UNION, flow-narrowed, then captured by a lambda. The cell is
-// created at the declared type, so it has to be read back at that type — reading
-// it at the narrowed one takes the union box's tag word for the payload.
+// A local holding a UNION, flow-narrowed, then captured by a lambda. The env holds
+// it at the declared type, so it has to be read back at that type — reading it at
+// the narrowed one takes the union box's tag word for the payload.
 
 Point :: struct { x: i32, y: i32 }
 

@@ -1,7 +1,7 @@
-// A generator local captured by a closure is promoted to a heap cell that must
-// survive across each `yield`: `base` is captured by the nested `addbase`, read
-// at every yield point. The frame carries the cell (and the closure that shares
-// it by-reference), so both persist across suspension. This used to be rejected
+// A generator local captured by a closure, read at every yield point : `base`
+// is captured by the nested `addbase`. Nothing reassigns it, so the closure's
+// env holds its value and the frame carries the closure across suspension (a
+// reassigned one keeps a cell — `closure_sees_rebound_capture`). This used to be rejected
 // with M5007 — now lifted; see `vader/lower/lower_coroutine.vader::gb_add_field`.
 module "snippet"
 

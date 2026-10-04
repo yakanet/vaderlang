@@ -2,8 +2,6 @@
 
 ## snippet
   fn snippet$charge(amount: i32) -> void
-    let amount: ? =
-      LoweredCellNew
     defer.push
       LoweredMakeClosure
     call :void
@@ -44,7 +42,7 @@
                   __off_2 :usize
                 arg2:
                   cast → i64
-                    LoweredCellGet
+                    amount :i32
           ~>
             call :string
               callee:
@@ -81,7 +79,7 @@
       callee:
         reserve :fn() -> void
     return int(0) :i32
-  struct __defer_env_snippet_1 { cap_0: ? }
+  struct __defer_env_snippet_1 { cap_0: i32 }
   fn __defer_snippet_0(__env_0: __defer_env_snippet_1!) -> void
     call :void
       callee:
@@ -121,7 +119,8 @@
                   __off_1 :usize
                 arg2:
                   cast → i64
-                    LoweredCellGet
+                    .cap_0 :i32
+                      __env_0 :__defer_env_snippet_1!
           ~>
             call :string
               callee:

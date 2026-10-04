@@ -468,20 +468,20 @@ gb_next_body :: fn(gb: GenBuild) -> LoweredBlock {
 
 // ---- captured-symbol (heap cell) spilling ---------------------------------
 
-// True when a spilled param / local is captured by a closure. Such a symbol is
-// materialised as a heap **cell** (`lower_cell_init` cells exactly the captured
-// symbols) : the frame carries the *cell* (opaque ref), never the value, so the
+// True when a spilled param / local lives in a heap **cell** — a closure captures
+// it and something rebinds it (`lower_cell_init` cells exactly `cell_symbols`) :
+// the frame carries the *cell* (opaque ref), never the value, so the
 // cell — shared by-reference with any escaping closure — survives suspension
 // along with the heap frame that holds it.
-gb_is_captured :: fn(gb: GenBuild, sym_id: i32) =
-    gb.fn_ctx.project.closures.captured_symbols.contains(sym_id)
+gb_is_cell :: fn(gb: GenBuild, sym_id: i32) =
+    lives_in_cell(gb.fn_ctx, sym_id)
 
-// The construct-time field value for a spilled param. A captured param is
-// wrapped in a heap cell *at construction* — the factory still has the raw arg
+// The construct-time field value for a spilled param. A param in a cell is
+// wrapped in that cell *at construction* — the factory still has the raw arg
 // and the frame field is cell-typed (`gb_add_field`), so the coroutine body
 // reads it back through the same `$Cell<T>`. Delegates to the canonical
-// cell-wrap (`lower_cell_init`), which returns a non-captured param's raw value
-// verbatim, so the same path `let` locals and captured params take is reused.
+// cell-wrap (`lower_cell_init`), which returns any other param's raw value
+// verbatim, so the same path `let` locals and cell params take is reused.
 gb_param_construct_value :: fn(gb: GenBuild, param: LoweredParam) -> LoweredExpr {
     read :: LoweredIdent { .span = gb.span, .type = param.type, .symbol = param.symbol }
     return lower_cell_init(gb.fn_ctx, param.symbol, read, param.type, gb.span).value
@@ -629,7 +629,7 @@ gb_collect_stmt :: fn(gb: GenBuild!, s: LoweredStmt) -> void {
     match s {
         is LoweredLet -> {
             // Once spilled the `let` is a field store, out of `verify_captured_cells`' sight.
-            if binds_bare_capture(gb.fn_ctx.project.closures.captured_symbols, s) {
+            if binds_bare_capture(gb.fn_ctx.project.closures.cell_symbols, s) {
                 gb.fn_ctx.project.diags.push(bare_capture_error(s, gb.fn_ctx.entry.mangled))
             }
             gb_add_field(gb, s.symbol, s.type)
@@ -680,18 +680,18 @@ gb_collect_expr :: fn(gb: GenBuild!, e: LoweredExpr) -> void {
     }
 }
 
-// Register a spilled symbol as a `g$State` field (idempotent). A captured
-// symbol's field carries the opaque cell type (`TY_UNRESOLVED`), not the value
-// type — the cell is what lives in the frame (see `gb_is_captured`). The param
+// Register a spilled symbol as a `g$State` field (idempotent). The field of a
+// symbol in a cell carries the opaque cell type (`TY_UNRESOLVED`), not the value
+// type — the cell is what lives in the frame (see `gb_is_cell`). The param
 // pre-seed and local collection both route through here, so this single check
 // covers both ; `gb_route_expr` applies the same cell-type override to the
-// access (it can't just reuse this type — a non-captured access legitimately
-// uses its use-site type, which differs for erased generic combinators).
+// access (it can't just reuse this type — any other access legitimately uses
+// its use-site type, which differs for erased generic combinators).
 gb_add_field :: fn(gb: GenBuild!, sym: Symbol, ty: Type) -> void {
     if gb.field_map[sym.id] != null { return }
     name :: "s${gb.fields.len()}"
     gb.field_map[sym.id] = name
-    field_ty :: if gb_is_captured(gb, sym.id) { TY_UNRESOLVED } else { ty }
+    field_ty :: if gb_is_cell(gb, sym.id) { TY_UNRESOLVED } else { ty }
     gb.fields.push(LoweredStructField { .name = name, .type = field_ty })
 }
 
@@ -762,13 +762,13 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
     match e {
         is LoweredIdent -> {
             name :: gb.field_map[e.symbol.id] ?? return e
-            // A captured symbol's field holds a cell (opaque ref), not the value ;
+            // The field of a symbol in a cell holds the cell (opaque ref), not the value ;
             // type the `self.<field>` access at the cell type so the wrapping
             // CellGet / CellSet — and any closure-env slot fed from it — stays a
-            // valid cell reference. A non-captured access keeps its use-site type
+            // valid cell reference. Any other access keeps its use-site type
             // (`id.type`), which differs from the declared field type for erased
             // generic combinators — don't collapse the two.
-            field_ty :: if gb_is_captured(gb, e.symbol.id) { TY_UNRESOLVED } else { e.type }
+            field_ty :: if gb_is_cell(gb, e.symbol.id) { TY_UNRESOLVED } else { e.type }
             return gb_field(gb, name, field_ty)
         }
         is LoweredCall -> {

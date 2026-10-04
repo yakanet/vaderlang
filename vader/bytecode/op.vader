@@ -223,7 +223,7 @@ export FnRef :: struct { function_index: i32, type_id: i32 }
 export FnAddr :: struct { function_index: i32 }
 
 /// Build a closure : pop an `env` value (typically a `StructVal`
-/// carrying the captured cells) and push a `FnVal { function_index, env }`.
+/// carrying each capture's value or cell) and push a `FnVal { function_index, env }`.
 /// The lifted fn's signature has an extra leading `env` parameter ;
 /// `CallIndirect` prepends `env` as `slot 0` when invoking. `type_id`
 /// is informational (mirrors `fn.ref`'s static-type hint). Sprint 4 (b5)

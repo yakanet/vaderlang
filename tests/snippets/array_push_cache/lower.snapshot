@@ -848,8 +848,27 @@
                 int(1) :i32
     return witness :i32
   fn snippet$captured(n: i32) -> i32
-    let out: ? =
-      LoweredCellNew
+    let out: i32[]! =
+      @array.repeat :i32[]!
+        array :i32[]!
+        if :usize
+          cond:
+            lt :bool
+              l:
+                int(0) :i32
+              r:
+                n :i32
+          then:
+            ~>
+              cast → usize
+                sub :i32
+                  l:
+                    n :i32
+                  r:
+                    int(0) :i32
+          else:
+            ~>
+              int(0) :usize
     let observe: __lambda_env_snippet_1! =
       __lambda_env_snippet_1! {
         cap_0: out :i32[]!
@@ -2643,7 +2662,7 @@
               arg1:
                 __off_35 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 { cap_0: ? }
+  struct __lambda_env_snippet_1 { cap_0: i32[]! }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> i32
     ~>
       cast → i32

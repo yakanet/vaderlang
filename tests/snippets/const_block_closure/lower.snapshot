@@ -3,8 +3,7 @@
 ## snippet
   const snippet$make_adder: fn(i32) -> i32 =
     block :fn(i32) -> i32
-      let base: ? =
-        LoweredCellNew
+      let base: i32 = int(10) :i32
       ~>
         LoweredMakeClosure
   fn snippet$main() -> i32
@@ -86,12 +85,13 @@
               arg1:
                 __off_3 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 { cap_0: ? }
+  struct __lambda_env_snippet_1 { cap_0: i32 }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, n: i32) -> i32
     ~>
       add :i32
         l:
-          LoweredCellGet
+          .cap_0 :i32
+            __env_0 :__lambda_env_snippet_1!
         r:
           n :i32
   fn concat_2(p0: string, p1: string) -> string

@@ -690,7 +690,7 @@ export own_bytes :: fn(a: ArrayVal!) -> void {
 /// and `make_closure`, consumed by `call.indirect`. `function_index`
 /// keys into `Module.functions` (same index space as the direct `Call`
 /// op). `env` is `null` for plain fn-refs (Sprint 4 (b4)) and a captured
-/// value (typically a `StructVal` holding the cell-wrapped captures)
+/// value (typically a `StructVal` holding each capture's value or cell)
 /// for closures (Sprint 4 (b5)). At `CallIndirect` time, a non-`null`
 /// `env` is bound to the callee's `slot 0` before the user args fill
 /// `slot 1 ..`.

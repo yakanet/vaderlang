@@ -1,6 +1,7 @@
-// `base` (param) and `acc` (local) are both captured by the closure `step`, so
-// both are promoted to heap cells. They must survive each `await` suspension:
-// the coroutine frame carries the cells and `step` shares them by-reference.
+// `base` (param) and `acc` (local) are both captured by the closure `step`, and
+// must survive each `await` suspension. `step` reassigns `acc`, so it lives in a
+// heap cell the coroutine frame carries and `step` shares ; nothing reassigns
+// `base`, so `step`'s env holds its value.
 // This cross-suspension cell survival is exactly what the retired M5008 guard
 // used to forbid — see `vader/lower/lower_coroutine.vader::gb_add_field`.
 module "snippet"

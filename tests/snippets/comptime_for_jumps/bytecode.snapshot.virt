@@ -1,30 +1,28 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct __defer_env_snippet_1 { cap_0:7 }
+type 2 struct __defer_env_snippet_1 { cap_0:1 }
 type 3 primitive void
-type 4 struct __defer_env_snippet_3 { cap_0:7 }
-type 5 struct __defer_env_snippet_5 { cap_0:7 }
+type 4 struct __defer_env_snippet_3 { cap_0:1 }
+type 5 struct __defer_env_snippet_5 { cap_0:1 }
 type 6 primitive string
-type 7 ref _
-type 8 primitive u8
-type 9 primitive usize
-type 10 struct std_core$Buffer {  }
-type 11 primitive i64
-type 12 array 8
-type 13 primitive isize
-type 14 struct $Cell_i32 { value:1 }
-type 15 fn () -> 3
+type 7 primitive u8
+type 8 primitive usize
+type 9 struct std_core$Buffer {  }
+type 10 primitive i64
+type 11 array 7
+type 12 primitive isize
+type 13 fn () -> 3
 string 0 "continue: "
 string 1 ":"
 string 2 "break: "
 string 3 "after round "
 string 4 "  defer of a copy, round "
 string 5 "\n"
-import 0 byte_len std_core$byte_len result_type=9 param_types=6 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=12 param_types=6 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,12,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 10 std_core$ByteAccess
+import 0 byte_len std_core$byte_len result_type=8 param_types=6 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=11 param_types=6 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,11,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 9 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -41,10 +39,9 @@ fn 0 snippet$main () -> i32
   local __off_5 usize
   local $cast_50 i64
   local $cast_55 i64
-  local i any
-  local __buf_16 ref
-  local __off_17 usize
-  local $cast_137 i64
+  local __buf_15 ref
+  local __off_16 usize
+  local $cast_131 i64
   i32.const 0
   local.set 0   ; i
   loop $L0 void
@@ -190,10 +187,8 @@ fn 0 snippet$main () -> i32
     i32.lt
     if $L6 void
       local.get 0   ; i
-      struct.new 14   ; $Cell_i32
-      local.tee 13   ; i
       struct.new 2   ; __defer_env_snippet_1
-      make_closure 1 15   ; __defer_snippet_0 fn
+      make_closure 1 13   ; __defer_snippet_0 fn
       defer.push
       i32.const 1
       i32.const 2
@@ -211,7 +206,7 @@ fn 0 snippet$main () -> i32
         string.const 2   ; "break: "
         call 7   ; std_core$write_string_at
         local.set 2   ; __off_1
-        local.field 13 14 0   ; i $Cell_i32.value
+        local.get 0   ; i
         i32.to_i64
         local.set 3   ; $cast_14
         local.get 1   ; __buf_0
@@ -237,9 +232,9 @@ fn 0 snippet$main () -> i32
         call 6   ; std_core$finish_buffer
         call 11   ; std_io$println__string
         defer.pop_exec 1
-        local.get 13   ; i
+        local.get 0   ; i
         struct.new 4   ; __defer_env_snippet_3
-        make_closure 2 15   ; __defer_snippet_2 fn
+        make_closure 2 13   ; __defer_snippet_2 fn
         defer.push
         i32.const 2
         i32.const 2
@@ -257,7 +252,7 @@ fn 0 snippet$main () -> i32
           string.const 2   ; "break: "
           call 7   ; std_core$write_string_at
           local.set 6   ; __off_3
-          local.field 13 14 0   ; i $Cell_i32.value
+          local.get 0   ; i
           i32.to_i64
           local.set 7   ; $cast_32
           local.get 5   ; __buf_2
@@ -283,9 +278,9 @@ fn 0 snippet$main () -> i32
           call 6   ; std_core$finish_buffer
           call 11   ; std_io$println__string
           defer.pop_exec 1
-          local.get 13   ; i
+          local.get 0   ; i
           struct.new 5   ; __defer_env_snippet_5
-          make_closure 3 15   ; __defer_snippet_4 fn
+          make_closure 3 13   ; __defer_snippet_4 fn
           defer.push
           i32.const 3
           i32.const 2
@@ -303,7 +298,7 @@ fn 0 snippet$main () -> i32
             string.const 2   ; "break: "
             call 7   ; std_core$write_string_at
             local.set 10   ; __off_5
-            local.field 13 14 0   ; i $Cell_i32.value
+            local.get 0   ; i
             i32.to_i64
             local.set 11   ; $cast_50
             local.get 9   ; __buf_4
@@ -334,24 +329,24 @@ fn 0 snippet$main () -> i32
       end $L7
       i64.const 32
       call 5   ; std_core$new_byte_buffer
-      local.set 14   ; __buf_16
+      local.set 13   ; __buf_15
       i64.const 0
-      local.set 15   ; __off_17
-      local.get 14   ; __buf_16
-      local.get 15   ; __off_17
+      local.set 14   ; __off_16
+      local.get 13   ; __buf_15
+      local.get 14   ; __off_16
       string.const 3   ; "after round "
       call 7   ; std_core$write_string_at
-      local.set 15   ; __off_17
-      local.field 13 14 0   ; i $Cell_i32.value
+      local.set 14   ; __off_16
+      local.get 0   ; i
       i32.to_i64
-      local.set 16   ; $cast_137
-      local.get 14   ; __buf_16
-      local.get 15   ; __off_17
-      local.get 16   ; $cast_137
+      local.set 15   ; $cast_131
+      local.get 13   ; __buf_15
+      local.get 14   ; __off_16
+      local.get 15   ; $cast_131
       call 8   ; std_core$write_int
-      local.set 15   ; __off_17
-      local.get 14   ; __buf_16
-      local.get 15   ; __off_17
+      local.set 14   ; __off_16
+      local.get 13   ; __buf_15
+      local.get 14   ; __off_16
       call 6   ; std_core$finish_buffer
       call 11   ; std_io$println__string
       local.get 0   ; i
@@ -367,7 +362,7 @@ end
 fn 1 __defer_snippet_0 (ref) -> void
   local __buf_0 ref
   local __off_1 usize
-  local $cast_10 i64
+  local $cast_9 i64
   i64.const 45
   call 5   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
@@ -379,12 +374,12 @@ fn 1 __defer_snippet_0 (ref) -> void
   call 7   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 2 0   ; arg 0 __defer_env_snippet_1.cap_0
-  struct.get 14 0   ; $Cell_i32.value
+  ref.cast 1   ; i32
   i32.to_i64
-  local.set 3   ; $cast_10
+  local.set 3   ; $cast_9
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 3   ; $cast_10
+  local.get 3   ; $cast_9
   call 8   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
@@ -397,7 +392,7 @@ end
 fn 2 __defer_snippet_2 (ref) -> void
   local __buf_0 ref
   local __off_1 usize
-  local $cast_10 i64
+  local $cast_9 i64
   i64.const 45
   call 5   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
@@ -409,12 +404,12 @@ fn 2 __defer_snippet_2 (ref) -> void
   call 7   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 4 0   ; arg 0 __defer_env_snippet_3.cap_0
-  struct.get 14 0   ; $Cell_i32.value
+  ref.cast 1   ; i32
   i32.to_i64
-  local.set 3   ; $cast_10
+  local.set 3   ; $cast_9
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 3   ; $cast_10
+  local.get 3   ; $cast_9
   call 8   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
@@ -427,7 +422,7 @@ end
 fn 3 __defer_snippet_4 (ref) -> void
   local __buf_0 ref
   local __off_1 usize
-  local $cast_10 i64
+  local $cast_9 i64
   i64.const 45
   call 5   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
@@ -439,12 +434,12 @@ fn 3 __defer_snippet_4 (ref) -> void
   call 7   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 5 0   ; arg 0 __defer_env_snippet_5.cap_0
-  struct.get 14 0   ; $Cell_i32.value
+  ref.cast 1   ; i32
   i32.to_i64
-  local.set 3   ; $cast_10
+  local.set 3   ; $cast_9
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 3   ; $cast_10
+  local.get 3   ; $cast_9
   call 8   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
@@ -657,7 +652,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 12   ; u8[]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

@@ -3,10 +3,6 @@
 ## snippet
   struct snippet$Counter { hits: i64 }
   fn snippet$log_at_exit(label: string, code: i64) -> void
-    let label: ? =
-      LoweredCellNew
-    let code: ? =
-      LoweredCellNew
     defer.push
       LoweredMakeClosure
     call :void
@@ -19,13 +15,9 @@
           arg0:
             "running " :string
           arg1:
-            LoweredCellGet
+            label :string
     defer.pop_exec 1
   fn snippet$bump_at_exit(counter: Counter!, by: i64) -> void
-    let counter: ? =
-      LoweredCellNew
-    let by: ? =
-      LoweredCellNew
     defer.push
       LoweredMakeClosure
     call :void
@@ -65,7 +57,7 @@
                 arg1:
                   __off_2 :usize
                 arg2:
-                  LoweredCellGet
+                  by :i64
           ~>
             call :string
               callee:
@@ -76,8 +68,6 @@
                 __off_2 :usize
     defer.pop_exec 1
   fn snippet$make_greeter(name: string) -> void
-    let name: ? =
-      LoweredCellNew
     let greet: __lambda_env_snippet_5! =
       __lambda_env_snippet_5! {
         cap_0: name :string
@@ -167,7 +157,7 @@
       arg0:
         "world" :string
     return int(0) :i32
-  struct __defer_env_snippet_1 { cap_0: ?, cap_1: ? }
+  struct __defer_env_snippet_1 { cap_0: string, cap_1: i64 }
   fn __defer_snippet_0(__env_0: __defer_env_snippet_1!) -> void
     ~>
       call :void
@@ -176,7 +166,8 @@
         arg0:
           block :string
             let __p_0: string =
-              LoweredCellGet
+              .cap_0 :string
+                __env_0 :__defer_env_snippet_1!
             let __buf_1: Buffer =
               call :Buffer
                 callee:
@@ -243,7 +234,8 @@
                   arg1:
                     __off_2 :usize
                   arg2:
-                    LoweredCellGet
+                    .cap_1 :i64
+                      __env_0 :__defer_env_snippet_1!
             ~>
               call :string
                 callee:
@@ -252,20 +244,23 @@
                   __buf_1 :Buffer
                 arg1:
                   __off_2 :usize
-  struct __defer_env_snippet_3 { cap_0: ?, cap_1: ? }
+  struct __defer_env_snippet_3 { cap_0: Counter!, cap_1: i64 }
   fn __defer_snippet_2(__env_0: __defer_env_snippet_3!) -> void
     assign
       target:
         .hits :i64
-          LoweredCellGet
+          .cap_0 :Counter!
+            __env_0 :__defer_env_snippet_3!
       value:
         add :i64
           l:
             .hits :i64
-              LoweredCellGet
+              .cap_0 :Counter!
+                __env_0 :__defer_env_snippet_3!
           r:
-            LoweredCellGet
-  struct __lambda_env_snippet_5 { cap_0: ? }
+            .cap_1 :i64
+              __env_0 :__defer_env_snippet_3!
+  struct __lambda_env_snippet_5 { cap_0: string }
   fn __lambda_snippet_4(__env_0: __lambda_env_snippet_5!) -> void
     ~>
       call :void
@@ -278,7 +273,8 @@
             arg0:
               "hello " :string
             arg1:
-              LoweredCellGet
+              .cap_0 :string
+                __env_0 :__lambda_env_snippet_5!
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

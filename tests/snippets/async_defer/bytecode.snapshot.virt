@@ -3,65 +3,59 @@ type 0 primitive null
 type 1 primitive string
 type 2 ref std_core$Async
 type 3 primitive i32
-type 4 struct __defer_env_snippet_1 { cap_0:11 }
+type 4 struct __defer_env_snippet_1 { cap_0:1 }
 type 5 primitive void
-type 6 struct __defer_env_snippet_3 { cap_0:11 }
-type 7 struct __asyncstate_snippet_4 { s0:11,s1:0,__defers:12,awaited:14,state:3 }
+type 6 struct __defer_env_snippet_3 { cap_0:1 }
+type 7 struct __asyncstate_snippet_4 { s0:1,s1:0,__defers:11,awaited:13,state:3 }
 type 8 union 3,9
-type 9 struct std_core$Suspended { wake_at:20 }
-type 10 struct __asyncstate_snippet_5 { s0:3,s1:3,awaited:14,state:3 }
-type 11 ref _
-type 12 array 13
-type 13 fn () -> 5
-type 14 ref std_core$Async
-type 15 primitive bool
-type 16 primitive u8
-type 17 primitive usize
-type 18 array 16
-type 19 struct std_core$Buffer {  }
-type 20 primitive i64
-type 21 ref std_core$Async
-type 22 struct std_async$Sleep { ms:20,deadline:20,armed:15 }
-type 23 union 0,9
-type 24 primitive isize
-type 25 struct $Cell_string { value:1 }
+type 9 struct std_core$Suspended { wake_at:19 }
+type 10 struct __asyncstate_snippet_5 { s0:3,s1:3,awaited:13,state:3 }
+type 11 array 12
+type 12 fn () -> 5
+type 13 ref std_core$Async
+type 14 primitive bool
+type 15 primitive u8
+type 16 primitive usize
+type 17 array 15
+type 18 struct std_core$Buffer {  }
+type 19 primitive i64
+type 20 ref std_core$Async
+type 21 struct std_async$Sleep { ms:19,deadline:19,armed:14 }
+type 22 union 0,9
+type 23 primitive isize
 string 0 "defer 1 "
 string 1 "defer 2 "
 string 2 "body "
 string 3 "x"
 string 4 "\n"
 string 5 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len result_type=17 param_types=1 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=18 param_types=1 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=24 param_types=3,18,17 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-import 3 sched_now std_runtime$sched_now result_type=20 () -> i64
-import 4 sched_arm std_runtime$sched_arm result_type=5 param_types=20 param_mutable=0 param_by_address= (i64) -> void
+import 0 byte_len std_core$byte_len result_type=16 param_types=1 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=17 param_types=1 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=23 param_types=3,17,16 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 sched_now std_runtime$sched_now result_type=19 () -> i64
+import 4 sched_arm std_runtime$sched_arm result_type=5 param_types=19 param_mutable=0 param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=3 () -> i32
 import 6 panic std_abort$panic result_type=5 param_types=1 param_mutable=0 param_by_address= (string) -> void
 impl 7 std_core$Async
 impl 10 std_core$Async
-impl 19 std_core$ByteAccess
-impl 22 std_core$Async
+impl 18 std_core$ByteAccess
+impl 21 std_core$Async
 vtable std_core$Async.resume 7 4
 vtable std_core$Async.resume 10 5
-vtable std_core$Async.resume 22 12
+vtable std_core$Async.resume 21 12
 export main 1
 
 fn 0 snippet$step (string) -> any
-  local $cell_1 any
-  local $arr_3 ref
-  local $k_4 any
+  local $arr_2 ref
+  local $k_3 any
+  array.new 11 0   ; fn[]
+  local.set 1   ; $arr_2
+  null.const
+  local.set 2   ; $k_3
   local.get 0   ; arg 0
-  struct.new 25   ; $Cell_string
-  local.set 1   ; $cell_1
-  array.new 12 0   ; fn[]
-  local.set 2   ; $arr_3
   null.const
-  local.set 3   ; $k_4
-  local.get 1   ; $cell_1
-  null.const
-  local.get 2   ; $arr_3
-  local.get 3   ; $k_4
+  local.get 1   ; $arr_2
+  local.get 2   ; $k_3
   i32.const 7
   struct.new 7   ; __asyncstate_snippet_4
   return
@@ -82,24 +76,24 @@ fn 1 snippet$main () -> i32
 end
 
 fn 2 __defer_snippet_0 (ref) -> void
-  local $cell_get_3 string
+  local $field_2 string
   local.field 0 4 0   ; arg 0 __defer_env_snippet_1.cap_0
-  struct.get 25 0   ; $Cell_string.value
-  local.set 1   ; $cell_get_3
+  ref.cast 1   ; string
+  local.set 1   ; $field_2
   string.const 0   ; "defer 1 "
-  local.get 1   ; $cell_get_3
+  local.get 1   ; $field_2
   call 6   ; concat_2
   call 9   ; std_io$println__string
   return
 end
 
 fn 3 __defer_snippet_2 (ref) -> void
-  local $cell_get_3 string
+  local $field_2 string
   local.field 0 6 0   ; arg 0 __defer_env_snippet_3.cap_0
-  struct.get 25 0   ; $Cell_string.value
-  local.set 1   ; $cell_get_3
+  ref.cast 1   ; string
+  local.set 1   ; $field_2
   string.const 1   ; "defer 2 "
-  local.get 1   ; $cell_get_3
+  local.get 1   ; $field_2
   call 6   ; concat_2
   call 9   ; std_io$println__string
   return
@@ -115,12 +109,12 @@ fn 4 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
   local $slice_35 ref
   local $field_41 ref
   local $cast_45 ref
-  local $cell_get_48 string
+  local $field_47 string
   local __resumed_4 any
-  local $cast_59 null
-  local $cast_66 any
-  local $field_71 ref
-  local $cast_75 ref
+  local $cast_58 null
+  local $cast_65 any
+  local $field_70 ref
+  local $cast_74 ref
   loop $L0 void
     local.field 0 7 4   ; arg 0 __asyncstate_snippet_4.state
     ref.cast 3   ; i32
@@ -167,8 +161,8 @@ fn 4 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
         local.set 2   ; $sub_21
         local.get 1   ; $field_17
         local.get 2   ; $sub_21
-        array.get 12   ; fn[]
-        call.indirect 13   ; fn
+        array.get 11   ; fn[]
+        call.indirect 12   ; fn
         local.field 0 7 2   ; arg 0 __asyncstate_snippet_4.__defers
         local.set 3   ; $field_23
         local.field 0 7 2   ; arg 0 __asyncstate_snippet_4.__defers
@@ -178,8 +172,8 @@ fn 4 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
         local.set 4   ; $sub_27
         local.get 3   ; $field_23
         local.get 4   ; $sub_27
-        array.get 12   ; fn[]
-        call.indirect 13   ; fn
+        array.get 11   ; fn[]
+        call.indirect 12   ; fn
         local.field 0 7 2   ; arg 0 __asyncstate_snippet_4.__defers
         local.set 5   ; $field_29
         local.field 0 7 2   ; arg 0 __asyncstate_snippet_4.__defers
@@ -190,7 +184,7 @@ fn 4 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
         local.get 5   ; $field_29
         i64.const 0
         local.get 6   ; $sub_34
-        array.slice 12   ; fn[]
+        array.slice 11   ; fn[]
         local.set 7   ; $slice_35
         local.get 0   ; arg 0
         local.get 7   ; $slice_35
@@ -207,18 +201,19 @@ fn 4 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
           local.field 0 7 2   ; arg 0 __asyncstate_snippet_4.__defers
           local.set 8   ; $field_41
           local.field 0 7 0   ; arg 0 __asyncstate_snippet_4.s0
+          ref.cast 1   ; string
           struct.new 6   ; __defer_env_snippet_3
-          make_closure 3 13   ; __defer_snippet_2 fn
-          ref.cast 13   ; fn
+          make_closure 3 12   ; __defer_snippet_2 fn
+          ref.cast 12   ; fn
           local.set 9   ; $cast_45
           local.get 8   ; $field_41
           local.get 9   ; $cast_45
-          array.push 13   ; fn
+          array.push 12   ; fn
           local.field 0 7 0   ; arg 0 __asyncstate_snippet_4.s0
-          struct.get 25 0   ; $Cell_string.value
-          local.set 10   ; $cell_get_48
+          ref.cast 1   ; string
+          local.set 10   ; $field_47
           string.const 2   ; "body "
-          local.get 10   ; $cell_get_48
+          local.get 10   ; $field_47
           call 6   ; concat_2
           call 9   ; std_io$println__string
           local.get 0   ; arg 0
@@ -241,9 +236,9 @@ fn 4 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
             end $L7
             local.get 11   ; __resumed_4
             ref.cast 0   ; null
-            local.set 12   ; $cast_59
+            local.set 12   ; $cast_58
             local.get 0   ; arg 0
-            local.get 12   ; $cast_59
+            local.get 12   ; $cast_58
             struct.set 7 1   ; __asyncstate_snippet_4.s1
             local.get 0   ; arg 0
             i32.const 4
@@ -256,9 +251,9 @@ fn 4 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
             if $L8 void
               i64.const 1
               call 10   ; std_async$sleep
-              local.set 13   ; $cast_66
+              local.set 13   ; $cast_65
               local.get 0   ; arg 0
-              local.get 13   ; $cast_66
+              local.get 13   ; $cast_65
               struct.set 7 3   ; __asyncstate_snippet_4.awaited
               local.get 0   ; arg 0
               i32.const 5
@@ -275,15 +270,16 @@ fn 4 snippet$__asyncstate_snippet_4$Async$resume (ref) -> any
                 return
               end $L9
               local.field 0 7 2   ; arg 0 __asyncstate_snippet_4.__defers
-              local.set 14   ; $field_71
+              local.set 14   ; $field_70
               local.field 0 7 0   ; arg 0 __asyncstate_snippet_4.s0
+              ref.cast 1   ; string
               struct.new 4   ; __defer_env_snippet_1
-              make_closure 2 13   ; __defer_snippet_0 fn
-              ref.cast 13   ; fn
-              local.set 15   ; $cast_75
-              local.get 14   ; $field_71
-              local.get 15   ; $cast_75
-              array.push 13   ; fn
+              make_closure 2 12   ; __defer_snippet_0 fn
+              ref.cast 12   ; fn
+              local.set 15   ; $cast_74
+              local.get 14   ; $field_70
+              local.get 15   ; $cast_74
+              array.push 12   ; fn
               local.get 0   ; arg 0
               i32.const 6
               struct.set 7 4   ; __asyncstate_snippet_4.state
@@ -446,7 +442,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 18   ; u8[]
+      array.slice 17   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -509,7 +505,7 @@ fn 10 std_async$sleep (i64) -> any
   local.get 0   ; arg 0
   i64.const 0
   bool.const false
-  struct.new 22   ; std_async$Sleep
+  struct.new 21   ; std_async$Sleep
   return
 end
 
@@ -522,17 +518,17 @@ end
 fn 12 std_async$Sleep$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
-  local.field 0 22 2   ; arg 0 std_async$Sleep.armed
-  ref.cast 15   ; bool
+  local.field 0 21 2   ; arg 0 std_async$Sleep.armed
+  ref.cast 14   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0
     bool.const true
-    struct.set 22 2   ; std_async$Sleep.armed
+    struct.set 21 2   ; std_async$Sleep.armed
     call.import 3   ; std_runtime$sched_now
     local.set 1   ; $call_3
-    local.field 0 22 0   ; arg 0 std_async$Sleep.ms
-    ref.cast 20   ; i64
+    local.field 0 21 0   ; arg 0 std_async$Sleep.ms
+    ref.cast 19   ; i64
     local.set 2   ; $field_4
     local.get 1   ; $call_3
     local.get 2   ; $field_4
@@ -540,23 +536,23 @@ fn 12 std_async$Sleep$Async$resume (ref) -> any
     local.set 1   ; $call_3
     local.get 0   ; arg 0
     local.get 1   ; $call_3
-    struct.set 22 1   ; std_async$Sleep.deadline
-    local.field 0 22 1   ; arg 0 std_async$Sleep.deadline
-    ref.cast 20   ; i64
+    struct.set 21 1   ; std_async$Sleep.deadline
+    local.field 0 21 1   ; arg 0 std_async$Sleep.deadline
+    ref.cast 19   ; i64
     call.import 4   ; std_runtime$sched_arm
   end $L0
   call.import 3   ; std_runtime$sched_now
   local.set 1   ; $call_3
-  local.field 0 22 1   ; arg 0 std_async$Sleep.deadline
-  ref.cast 20   ; i64
+  local.field 0 21 1   ; arg 0 std_async$Sleep.deadline
+  ref.cast 19   ; i64
   local.set 2   ; $field_4
   local.get 1   ; $call_3
   local.get 2   ; $field_4
   i64.ge
   if $L1 void
   else
-    local.field 0 22 1   ; arg 0 std_async$Sleep.deadline
-    ref.cast 20   ; i64
+    local.field 0 21 1   ; arg 0 std_async$Sleep.deadline
+    ref.cast 19   ; i64
     struct.new 9   ; std_core$Suspended
     return
   end $L1

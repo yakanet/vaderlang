@@ -535,10 +535,10 @@ emit_fused_range :: fn(
     hi :: range_chain.bound_upper ?? panic(UNBOUND_CHAIN)
 
     // Same captured-counter handling as the non-fused int-range path : when the
-    // loop var is captured, run the counter on a synthetic symbol and rebind the
-    // user var to a fresh per-iteration cell. Uncaptured → byte-identical.
-    captured :: template.binding_symbol.id in ctx.project.closures.captured_symbols
-    counter_symbol :: if captured { fresh_synthetic_symbol(ctx, template.binding_name) } else { template.binding_symbol }
+    // loop var lives in a cell, run the counter on a synthetic symbol and rebind
+    // the user var to a fresh per-iteration cell.
+    in_cell :: lives_in_cell(ctx, template.binding_symbol.id)
+    counter_symbol :: if in_cell { fresh_synthetic_symbol(ctx, template.binding_name) } else { template.binding_symbol }
     counter_init :: LoweredLet {
         .span = span, .name = template.binding_name, .symbol = counter_symbol,
         .type = int_type, .value = lo,
@@ -559,7 +559,7 @@ emit_fused_range :: fn(
         },
     }
 
-    range_body :: if !captured { template.user_body } else {
+    range_body :: if !in_cell { template.user_body } else {
         bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, counter_ref, int_type, span)
         prepend_stmts_to_block(bind_stmts, template.user_body)
     }

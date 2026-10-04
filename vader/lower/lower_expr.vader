@@ -249,9 +249,9 @@ lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr
             // env-struct param via `env.cap_N`.
             via_env :: try_route_through_env(ctx, symbol, ident.span, type)
             if via_env != null { return via_env }
-            // Local captured by an inner lambda : the slot stores a cell
-            // ref, the value lives behind a `LoweredCellGet`.
-            if ctx.project.closures.captured_symbols.contains(symbol.id) {
+            // Local captured by an inner lambda and rebound : the slot stores a
+            // cell ref, the value lives behind a `LoweredCellGet`.
+            if lives_in_cell(ctx, symbol.id) {
                 cell_ref :: LoweredIdent {
                     .span = ident.span, .type = type, .symbol = symbol,
                 }
@@ -571,40 +571,46 @@ try_lower_common_union_field :: fn(
 cell_value :: fn(
     ctx: FnLowerCtx, symbol: Symbol, cell_ref: LoweredExpr, span: Span, use_type: Type,
 ) -> LoweredExpr {
-    declared :: declared_type_of_symbol(ctx, symbol)
-    stored :: if declared is UnionType { declared } else { use_type }
+    stored :: read_type(declared_type_of_symbol(ctx, symbol), use_type)
     got :: LoweredCellGet {
         .span = span, .type = stored, .target = cell_ref, .value_type = stored,
     }
-    if equals_type(stored, use_type) {
-        return got
+    return as_use(span, got, stored, use_type)
+}
+
+// The type to read a cell or env field holding `declared` at, for a use the typer
+// gave `use_type`: a union at its declared type, so the read sees its box ; anything
+// else at the use type, which shares its layout.
+read_type :: fn(declared: Type | null, use_type: Type) -> Type {
+    return if declared is UnionType { declared } else { use_type }
+}
+
+// `value`, read at `read`, as the use of type `use_type` sees it: a cast to the
+// variant a narrowed use names. Only a union is read at a type other than the use's
+// (`read_type`).
+as_use :: fn(span: Span, value: LoweredExpr, read: Type, use_type: Type) -> LoweredExpr {
+    if read !is UnionType || equals_type(read, use_type) {
+        return value
     }
-    return LoweredCast { .span = span, .type = use_type, .value = got }
+    return LoweredCast { .span = span, .type = use_type, .value = value }
 }
 
 try_route_through_env :: fn(
     ctx: FnLowerCtx, symbol: Symbol, span: Span, type: Type,
 ) -> LoweredExpr | null {
     lifted :: ctx.lifted_context ?? return null
-    field_name :: lifted.capture_fields[symbol.id]
-    match field_name {
-        is null -> { return null }
-        is string -> {
-            env_ident :: LoweredIdent {
-                .span = span, .type = lifted.env_type, .symbol = lifted.env_symbol,
-            }
-            // The env slot stores a `Cell<T>` ref, not a `T` ; type the
-            // field access as `Unresolved` (≡ ref ValType) so downstream
-            // bytecode emit doesn't synthesise a primitive-typed
-            // `ref.cast` over what is in fact an opaque cell pointer.
-            cell_ref :: LoweredFieldAccess {
-                .span = span, .type = TY_UNRESOLVED, .target = env_ident, .field = field_name,
-            }
-            // The env-struct slot holds a cell ref ; unwrap via
-            // `LoweredCellGet` to materialise the value.
-            return cell_value(ctx, symbol, cell_ref, span, type)
-        }
+    slot :: lifted.captures[symbol.id] ?? return null
+    // A capture nothing rebinds sits in the env as its value, at the type the env
+    // literal wrote it.
+    stored :: slot.value_type
+    if stored != null {
+        read :: read_type(stored, type)
+        return as_use(span, env_field(lifted, slot.field, span, read), read, type)
     }
+    // Any other holds a `Cell<T>` ref, not a `T` ; type the field access as
+    // `Unresolved` (≡ ref ValType) so downstream bytecode emit doesn't synthesise
+    // a primitive-typed `ref.cast` over what is in fact an opaque cell pointer.
+    return cell_value(ctx, symbol, env_field(lifted, slot.field, span, TY_UNRESOLVED), span, type)
 }
 
 // Desugar `left ?? fallback` to a temp-bound if-expression :

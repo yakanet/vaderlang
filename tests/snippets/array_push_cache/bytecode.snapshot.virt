@@ -6,21 +6,19 @@ type 3 primitive string
 type 4 array 3
 type 5 struct snippet$Holder { items:2 }
 type 6 primitive bool
-type 7 struct __lambda_env_snippet_1 { cap_0:8 }
-type 8 ref _
-type 9 primitive u8
-type 10 primitive usize
-type 11 struct std_core$Buffer {  }
-type 12 primitive i64
-type 13 primitive u64
-type 14 array 9
-type 15 primitive void
-type 16 primitive isize
-type 17 primitive i16
-type 18 array 17
-type 19 array 20
-type 20 primitive f32
-type 21 struct "$Cell_Array<i32>" { value:2 }
+type 7 struct __lambda_env_snippet_1 { cap_0:2 }
+type 8 primitive u8
+type 9 primitive usize
+type 10 struct std_core$Buffer {  }
+type 11 primitive i64
+type 12 primitive u64
+type 13 array 8
+type 14 primitive void
+type 15 primitive isize
+type 16 primitive i16
+type 17 array 16
+type 18 array 19
+type 19 primitive f32
 string 0 "v"
 string 1 "x"
 string 2 "/"
@@ -50,10 +48,10 @@ string 25 "collected    "
 string 26 "filtered     "
 string 27 "taken        "
 string 28 "\n"
-import 0 byte_len std_core$byte_len result_type=10 param_types=3 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=14 param_types=3 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=1,14,10 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 11 std_core$ByteAccess
+import 0 byte_len std_core$byte_len result_type=9 param_types=3 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=13 param_types=3 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,13,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 10 std_core$ByteAccess
 export main 27
 
 fn 0 snippet$tight (i32) -> ref
@@ -678,7 +676,7 @@ fn 12 snippet$widths (i32) -> string
   local $cast_65 i32
   local $cast_79 i32
   local $cast_101 i64
-  array.new 14 0   ; u8[]
+  array.new 13 0   ; u8[]
   local.set 1   ; $arr_1
   i32.const 0
   local.get 0   ; arg 0
@@ -713,7 +711,7 @@ fn 12 snippet$widths (i32) -> string
       local.set 4   ; $cast_16
       local.get 1   ; $arr_1
       local.get 4   ; $cast_16
-      array.push 9 1   ; u8 $arr_1
+      array.push 8 1   ; u8 $arr_1
       local.get 3   ; i
       i32.const 1
       i32.add
@@ -721,7 +719,7 @@ fn 12 snippet$widths (i32) -> string
       br $L1
     end $L2
   end $L1
-  array.new 18 0   ; i16[]
+  array.new 17 0   ; i16[]
   local.set 5   ; $arr_19
   i32.const 0
   local.get 0   ; arg 0
@@ -760,7 +758,7 @@ fn 12 snippet$widths (i32) -> string
       local.set 6   ; $cast_34
       local.get 5   ; $arr_19
       local.get 6   ; $cast_34
-      array.push 17 5   ; i16 $arr_19
+      array.push 16 5   ; i16 $arr_19
       local.get 3   ; i
       i32.const 1
       i32.add
@@ -768,7 +766,7 @@ fn 12 snippet$widths (i32) -> string
       br $L4
     end $L5
   end $L4
-  array.new 19 0   ; f32[]
+  array.new 18 0   ; f32[]
   local.set 7   ; $arr_37
   i32.const 0
   local.get 0   ; arg 0
@@ -805,7 +803,7 @@ fn 12 snippet$widths (i32) -> string
       local.set 10   ; $mul_52
       local.get 7   ; $arr_37
       local.get 10   ; $mul_52
-      array.push 20 7   ; f32 $arr_37
+      array.push 19 7   ; f32 $arr_37
       local.get 3   ; i
       i32.const 1
       i32.add
@@ -827,8 +825,8 @@ fn 12 snippet$widths (i32) -> string
     if $L10 void
       local.get 1   ; $arr_1
       local.get 11   ; __for_i_2
-      array.get 14   ; u8[]
-      ref.cast 9   ; u8
+      array.get 13   ; u8[]
+      ref.cast 8   ; u8
       u8.to_i32
       local.set 12   ; $cast_65
       local.get 3   ; i
@@ -857,8 +855,8 @@ fn 12 snippet$widths (i32) -> string
     if $L12 void
       local.get 1   ; $arr_1
       local.get 11   ; __for_i_2
-      array.get 18   ; i16[]
-      ref.cast 17   ; i16
+      array.get 17   ; i16[]
+      ref.cast 16   ; i16
       i16.to_i32
       local.set 13   ; $cast_79
       local.get 12   ; $cast_65
@@ -887,8 +885,8 @@ fn 12 snippet$widths (i32) -> string
     if $L14 void
       local.get 1   ; $arr_1
       local.get 11   ; __for_i_2
-      array.get 19   ; f32[]
-      ref.cast 20   ; f32
+      array.get 18   ; f32[]
+      ref.cast 19   ; f32
       local.set 9   ; $k_51
       local.get 8   ; $cast_50
       local.get 9   ; $k_51
@@ -996,43 +994,60 @@ fn 14 snippet$aliased (i32) -> i32
 end
 
 fn 15 snippet$captured (i32) -> i32
-  local out any
+  local $arr_1 ref
+  local if_res usize
   local observe ref
   local witness i32
   local i i32
-  local $call_12 i32
+  local $call_18 i32
   array.new 2 0   ; i32[]
-  struct.new 21   ; $Cell_Array<i32>
-  local.tee 1   ; out
+  local.set 1   ; $arr_1
+  i32.const 0
+  local.get 0   ; arg 0
+  i32.lt
+  if $L0 void
+    local.get 0   ; arg 0
+    i32.const 0
+    i32.sub
+    i32.to_i64
+    local.set 2   ; if_res
+  else
+    i64.const 0
+    local.set 2   ; if_res
+  end $L0
+  local.get 1   ; $arr_1
+  local.get 2   ; if_res
+  array.repeat
+  local.tee 1   ; $arr_1
   struct.new 7   ; __lambda_env_snippet_1
-  local.set 2   ; observe
+  local.set 3   ; observe
   i32.const 0
-  local.set 3   ; witness
+  local.set 4   ; witness
   i32.const 0
-  local.set 4   ; i
-  loop $L0 void
-    local.get 4   ; i
+  local.set 5   ; i
+  loop $L1 void
+    local.get 5   ; i
     local.get 0   ; arg 0
     i32.lt
-    if $L1 void
-      local.field 1 21 0   ; out $Cell_Array<i32>.value
-      local.get 4   ; i
+    if $L2 void
+      local.get 1   ; $arr_1
+      local.get 5   ; i
       array.push 1   ; i32
-      local.get 2   ; observe
+      local.get 3   ; observe
       call 28   ; __lambda_snippet_0
-      local.set 5   ; $call_12
-      local.get 3   ; witness
-      local.get 5   ; $call_12
+      local.set 6   ; $call_18
+      local.get 4   ; witness
+      local.get 6   ; $call_18
       i32.add
-      local.set 3   ; witness
-      local.get 4   ; i
+      local.set 4   ; witness
+      local.get 5   ; i
       i32.const 1
       i32.add
-      local.set 4   ; i
-      br $L0
-    end $L1
-  end $L0
-  local.get 3   ; witness
+      local.set 5   ; i
+      br $L1
+    end $L2
+  end $L1
+  local.get 4   ; witness
   return
 end
 
@@ -2162,7 +2177,6 @@ end
 
 fn 28 __lambda_snippet_0 (ref) -> i32
   local.field 0 7 0   ; arg 0 __lambda_env_snippet_1.cap_0
-  struct.get 21 0   ; $Cell_Array<i32>.value
   array.len
   usize.to_i32
   return
@@ -2494,7 +2508,7 @@ fn 36 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 14   ; u8[]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

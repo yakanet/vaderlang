@@ -1,7 +1,7 @@
 // lower-desugar-3 regression : a top-level const initialised by a block that
 // declares locals and returns a capturing lambda. Closure analysis must visit
-// ConstDecl values (not just fn/impl bodies), else the captured cell (`base`)
-// is never promoted and the lambda miscompiles (VM `convert on empty stack` /
+// ConstDecl values (not just fn/impl bodies), else the capture (`base`) never
+// reaches the env and the lambda miscompiles (VM `convert on empty stack` /
 // native `unreachable in __lambda_1`).
 module "snippet"
 

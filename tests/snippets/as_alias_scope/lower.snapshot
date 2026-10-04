@@ -33,8 +33,6 @@
         cb :fn(Leaf | Pair) -> void
     return int(2) :i32
   fn snippet$defer_form(t: Leaf | Pair) -> i32
-    let t: ? =
-      LoweredCellNew
     defer.push
       LoweredMakeClosure
     block :void
@@ -397,7 +395,7 @@
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void
-  struct __defer_env_snippet_3 { cap_0: ? }
+  struct __defer_env_snippet_3 { cap_0: Leaf | Pair }
   fn __defer_snippet_2(__env_0: __defer_env_snippet_3!) -> void
     ~>
       if :void
@@ -407,7 +405,8 @@
               callee:
                 unwrap :fn(Leaf | Pair) -> Leaf | Pair
               arg0:
-                LoweredCellGet
+                .cap_0 :Leaf | Pair
+                  __env_0 :__defer_env_snippet_3!
         then:
           let df: Leaf! =
             cast → Leaf!
@@ -415,7 +414,8 @@
                 callee:
                   unwrap :fn(Leaf | Pair) -> Leaf | Pair
                 arg0:
-                  LoweredCellGet
+                  .cap_0 :Leaf | Pair
+                    __env_0 :__defer_env_snippet_3!
           call :void
             callee:
               std_io$println__string :void

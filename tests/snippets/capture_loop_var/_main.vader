@@ -1,11 +1,12 @@
-// Capturing a for-in loop variable, or a lambda's own parameter, promotes that
-// binding to a per-iteration / per-call heap cell so each closure observes its
-// own value rather than the final one. These are the same captured-binding bug
-// class as `defer_capture_param`, on the binding sites that aren't plain `let`
-// locals : for-in element bindings, the range counter, the fused iterator-chain
-// (map / filter) bindings, and a lambda parameter captured by a further-nested
-// lambda. The strongest shape — closures stashed during the loop and invoked
-// afterward — pins the per-iteration semantics.
+// Capturing a for-in loop variable, or a lambda's own parameter, gives each
+// closure the value of its own iteration / call rather than the final one :
+// nothing reassigns these bindings, so the env copies the value the closure was
+// made with (a reassigned one keeps a per-iteration cell —
+// `closure_sees_rebound_capture`). The binding sites are the ones that aren't
+// plain `let` locals : for-in element bindings, the range counter, the fused
+// iterator-chain (map / filter) bindings, and a lambda parameter captured by a
+// further-nested lambda. The strongest shape — closures stashed during the loop
+// and invoked afterward — pins the per-iteration semantics.
 
 module "snippet"
 

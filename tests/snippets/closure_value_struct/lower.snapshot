@@ -3,8 +3,7 @@
 ## snippet
   struct snippet$Adder { f: fn(i32) -> i32 }
   fn snippet$main() -> i32
-    let base: ? =
-      LoweredCellNew
+    let base: i32 = int(50) :i32
     let a: Adder! =
       Adder! {
         f:
@@ -17,11 +16,12 @@
             a :Adder!
         arg0:
           int(3) :i32
-  struct __lambda_env_snippet_1 { cap_0: ? }
+  struct __lambda_env_snippet_1 { cap_0: i32 }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, x: i32) -> i32
     ~>
       add :i32
         l:
-          LoweredCellGet
+          .cap_0 :i32
+            __env_0 :__lambda_env_snippet_1!
         r:
           x :i32

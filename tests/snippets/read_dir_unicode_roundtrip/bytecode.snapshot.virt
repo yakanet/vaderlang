@@ -15,13 +15,11 @@ type 12 array 2
 type 13 struct __defer_env_std_io_1 { cap_0:16 }
 type 14 union 10,7
 type 15 union 0,2
-type 16 ref _
+type 16 primitive pointer
 type 17 primitive isize
-type 18 union 19,0
-type 19 primitive pointer
-type 20 ref std_core$Error
-type 21 struct $Cell_CPointer { value:19 }
-type 22 fn () -> 8
+type 18 union 16,0
+type 19 ref std_core$Error
+type 20 fn () -> 8
 string 0 "vader_rd_café_日本.txt"
 string 1 "/"
 string 2 "write failed: "
@@ -67,15 +65,15 @@ import 3 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_
 import 4 extern getenv std_env$get_env header=<stdlib.h> result_type=15 param_types=2 param_mutable=0 param_by_address= (string) -> any
 import 5 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=1,7,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 import 6 extern opendir system_posix$sys_opendir header=<dirent.h> result_type=18 param_types=2 param_mutable=0 param_by_address= (string) -> any
-import 7 extern closedir system_posix$sys_closedir header=<dirent.h> result_type=1 param_types=19 param_mutable=0 param_by_address= (pointer) -> i32
+import 7 extern closedir system_posix$sys_closedir header=<dirent.h> result_type=1 param_types=16 param_mutable=0 param_by_address= (pointer) -> i32
 import 8 extern vader_last_errno system_posix$sys_last_errno result_type=1 () -> i32
-import 9 extern readdir system_posix$sys_readdir header=<dirent.h> result_type=18 param_types=19 param_mutable=0 param_by_address= (pointer) -> any
-import 10 extern vader_dirent_name system_posix$dirent_name result_type=2 param_types=19 param_mutable=0 param_by_address= (pointer) -> string
-import 11 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=19 param_mutable=0 param_by_address= (pointer) -> i32
+import 9 extern readdir system_posix$sys_readdir header=<dirent.h> result_type=18 param_types=16 param_mutable=0 param_by_address= (pointer) -> any
+import 10 extern vader_dirent_name system_posix$dirent_name result_type=2 param_types=16 param_mutable=0 param_by_address= (pointer) -> string
+import 11 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=16 param_mutable=0 param_by_address= (pointer) -> i32
 import 12 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=18 param_types=2,2 param_mutable=0,0 param_by_address= (string,string) -> any
-import 13 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=19 param_mutable=0 param_by_address= (pointer) -> i32
-import 14 extern fread system_posix$sys_fread header=<stdio.h> result_type=5 param_types=7,5,5,19 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-import 15 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=7,5,5,19 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 13 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=16 param_mutable=0 param_by_address= (pointer) -> i32
+import 14 extern fread system_posix$sys_fread header=<stdio.h> result_type=5 param_types=7,5,5,16 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 15 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=7,5,5,16 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
 import 16 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_mutable=0 param_by_address= (string) -> i32
 impl 6 std_core$ByteAccess
 impl 10 std_core$Error
@@ -107,7 +105,7 @@ fn 0 snippet$main () -> i32
   local.get 2   ; $arr_8
   call 8   ; std_io$write_file_bytes
   local.tee 3   ; written
-  type_check 20   ; ref std_core$Error
+  type_check 19   ; ref std_core$Error
   if $L0 void
     local.get 3   ; written
     virtual.call 1 std_core$Error.message
@@ -394,7 +392,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
     return
   end $L3
   local.get 5   ; __coalesce_3
-  ref.cast 19   ; pointer
+  ref.cast 16   ; pointer
   local.set 4   ; f
   local.get 1   ; arg 1
   array.len
@@ -441,13 +439,13 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
 end
 
 fn 9 std_io$read_dir (string) -> any
+  local d pointer
   local __coalesce_0 any
   local out ref
-  local __coalesce_2 any
   local name string
   local.get 0   ; arg 0
   call.import 6   ; system_posix$sys_opendir
-  local.tee 1   ; __coalesce_0
+  local.tee 2   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
     string.const 14   ; "read_dir: cannot open `"
@@ -459,24 +457,23 @@ fn 9 std_io$read_dir (string) -> any
     struct.new 10   ; std_io$IOError
     return
   end $L0
-  local.get 1   ; __coalesce_0
-  ref.cast 19   ; pointer
-  struct.new 21   ; $Cell_CPointer
-  local.tee 1   ; __coalesce_0
+  local.get 2   ; __coalesce_0
+  ref.cast 16   ; pointer
+  local.tee 1   ; d
   struct.new 13   ; __defer_env_std_io_1
-  make_closure 10 22   ; __defer_std_io_0 fn
+  make_closure 10 20   ; __defer_std_io_0 fn
   defer.push
   array.new 12 0   ; string[]
-  local.set 2   ; out
+  local.set 3   ; out
   loop $L1 void
-    local.field 1 21 0   ; __coalesce_0 $Cell_CPointer.value
+    local.get 1   ; d
     call.import 9   ; system_posix$sys_readdir
-    local.tee 3   ; __coalesce_2
+    local.tee 2   ; __coalesce_0
     type_check 0   ; null
     if $L2 void
     else
-      local.get 3   ; __coalesce_2
-      ref.cast 19   ; pointer
+      local.get 2   ; __coalesce_0
+      ref.cast 16   ; pointer
       call.import 10   ; system_posix$dirent_name
       local.tee 4   ; name
       string.const 16   ; "."
@@ -492,20 +489,20 @@ fn 9 std_io$read_dir (string) -> any
       else
         br $L1
       end $L4
-      local.get 2   ; out
+      local.get 3   ; out
       local.get 4   ; name
       array.push 2   ; string
       br $L1
     end $L2
   end $L1
   defer.pop_exec 1
-  local.get 2   ; out
+  local.get 3   ; out
   return
 end
 
 fn 10 __defer_std_io_0 (ref) -> void
   local.field 0 13 0   ; arg 0 __defer_env_std_io_1.cap_0
-  struct.get 21 0   ; $Cell_CPointer.value
+  ref.cast 16   ; pointer
   call.import 7   ; system_posix$sys_closedir
   drop
   return
@@ -531,7 +528,7 @@ fn 11 std_io$read_file_bytes (string,usize) -> any
     return
   end $L0
   local.get 3   ; __coalesce_0
-  ref.cast 19   ; pointer
+  ref.cast 16   ; pointer
   local.set 2   ; f
   array.new 7 0   ; u8[]
   local.set 4   ; out

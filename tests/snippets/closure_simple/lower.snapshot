@@ -2,8 +2,7 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let x: ? =
-      LoweredCellNew
+    let x: i32 = int(10) :i32
     let add_x: __lambda_env_snippet_1! =
       __lambda_env_snippet_1! {
         cap_0: x :i32
@@ -16,11 +15,12 @@
           add_x :__lambda_env_snippet_1!
         arg1:
           int(5) :i32
-  struct __lambda_env_snippet_1 { cap_0: ? }
+  struct __lambda_env_snippet_1 { cap_0: i32 }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, y: i32) -> i32
     return
       add :i32
         l:
-          LoweredCellGet
+          .cap_0 :i32
+            __env_0 :__lambda_env_snippet_1!
         r:
           y :i32

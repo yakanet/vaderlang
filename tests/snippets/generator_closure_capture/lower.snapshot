@@ -5,7 +5,7 @@
     return
       __genstate_gen! {
         s0: seed :i32
-        s1: null
+        s1: int(0) :i32
         s2: null
         s3: int(0) :i32
         state: int(6) :i32
@@ -83,15 +83,16 @@
               arg1:
                 __off_3 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 { cap_0: ? }
+  struct __lambda_env_snippet_1 { cap_0: i32 }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, x: i32) -> i32
     return
       add :i32
         l:
           x :i32
         r:
-          LoweredCellGet
-  struct snippet$__genstate_gen { s0: i32, s1: ?, s2: fn(i32) -> i32, s3: i32, state: i32 }
+          .cap_0 :i32
+            __env_0 :__lambda_env_snippet_1!
+  struct snippet$__genstate_gen { s0: i32, s1: i32, s2: fn(i32) -> i32, s3: i32, state: i32 }
   fn snippet$__genstate_gen$Iterator$next(self: __genstate_gen!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -246,10 +247,15 @@
                                 then:
                                   assign
                                     target:
-                                      .s1 :?
+                                      .s1 :i32
                                         __self_1 :__genstate_gen!
                                     value:
-                                      LoweredCellNew
+                                      mul :i32
+                                        l:
+                                          .s0 :i32
+                                            __self_1 :__genstate_gen!
+                                        r:
+                                          int(10) :i32
                                   assign
                                     target:
                                       .s2 :fn(i32) -> i32

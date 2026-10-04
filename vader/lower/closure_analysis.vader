@@ -118,7 +118,7 @@ analyze_fn_body :: fn(
 // Walk a top-level const's value for capturing lambdas. A const initialised by
 // a block that declares locals and returns a lambda — `make_adder :: { base ::
 // 10 (n) -> base + n }` — hosts a closure just like a fn body ; without this its
-// `lambda_captures` entry is missing, the captured cell is never promoted, and
+// `lambda_captures` entry is missing, the env never carries the capture, and
 // the lambda miscompiles (VM `convert on empty stack` / native `unreachable`).
 // Walked with an EMPTY owned scope (a const has no params) at top level
 // (out_captures = null) — nested lambdas record their own captures.
@@ -232,7 +232,7 @@ walk_stmt :: fn(
             // comptime depth guard's `defer` was a no-op for exactly this
             // reason). The collected captures then merge into the parent's set
             // (an outer closure capturing through a defer body still needs the
-            // heap-promotion).
+            // binding in its own env).
             defer_scope :: empty_scope()
             defer_captures: Capture[]!: []
             defer_seen :: MutableSet<i32> {}
@@ -255,7 +255,7 @@ walk_stmt :: fn(
                 }
             }
             for cap in defer_captures {
-                ctx.analysis.captured_symbols.add(cap.symbol.id)
+                note_cell_capture(ctx, cap)
             }
         }
     }
@@ -557,6 +557,15 @@ walk_pattern_for_bindings :: fn(
     }
 }
 
+// A capture lives in a cell only when an assignment rebinds it: one nothing rebinds
+// is copied into the env when the closure is made, and reads the same there as in
+// its own slot. A symbol `rebind_free` does not list keeps its cell.
+note_cell_capture :: fn(ctx: WalkCtx!, capture: Capture) -> void {
+    if !(capture.symbol.id in ctx.typed.resolved.rebind_free) {
+        _ :: ctx.analysis.cell_symbols.add(capture.symbol.id)
+    }
+}
+
 // ---------------------------------------------------------------- lambdas
 
 process_lambda :: fn(
@@ -568,7 +577,9 @@ process_lambda :: fn(
     seen :: empty_scope()
     walk_body(lambda.body, own_scope, captures, seen, ctx)
 
-    for capture in captures { ctx.analysis.captured_symbols.add(capture.symbol.id) }
+    for capture in captures {
+        note_cell_capture(ctx, capture)
+    }
     ctx.analysis.lambda_captures[capture_key(ctx.typed.resolved.path, lambda.id)] = captures
 
     // Fold this lambda's captures into the enclosing lambda's, skipping
