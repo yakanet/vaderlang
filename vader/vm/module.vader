@@ -58,7 +58,8 @@ export VmState :: struct {
 
 /// Verify a `BytecodeModule` and wrap it in the runtime `VmState` `exec`
 /// consumes. Materialises the data pool and resolves the entry index up front so
-/// the hot loop never re-decodes either.
+/// the hot loop never re-decodes either. A direct call to a small straight-line
+/// leaf is replaced by the leaf's body first (`inline_leaf.vader`).
 ///
 /// @param bc_mod  the parsed module (from `parse_virt_bc` or the builder).
 /// @return        a `VmState` ready to pass to `exec`.
@@ -69,14 +70,28 @@ export VmState :: struct {
 export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState | VerifyError = prepare_for(bc_mod, false)
 
 /// `prepare` for a run a debugger drives: the code carries a `Line` op at every
-/// source position, where the debugger may stop.
+/// source position, where the debugger may stop, and no call is inlined, so every
+/// call is a frame the debugger can step into.
 ///
 /// @param bc_mod  the parsed module.
 /// @return        a `VmState` to pass to `exec_entry` with a `DebugController`.
 /// @error         as `prepare`.
 export prepare_debug :: fn(bc_mod: bc.BytecodeModule) -> VmState | VerifyError = prepare_for(bc_mod, true)
 
-prepare_for :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | VerifyError {
+prepare_for :: fn(module: bc.BytecodeModule, debug: bool) -> VmState | VerifyError {
+    if !debug {
+        // An inlined body's operand tags come from the caller's arguments, no
+        // longer from the leaf's signature: a module whose arguments the tags
+        // prove only through that signature runs without inlining.
+        inlined :: prepare_module(inline_leaf_calls(module), false)
+        if inlined is VmState {
+            return inlined
+        }
+    }
+    return prepare_module(module, debug)
+}
+
+prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | VerifyError {
     depths :: verify_module(bc_mod)
     if depths is VerifyError {
         return depths

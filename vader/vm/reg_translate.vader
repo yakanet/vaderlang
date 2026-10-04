@@ -39,6 +39,8 @@ Translation :: struct {
     retarget: i64
     /// Jumps to patch: the op index, then the original target pc.
     jumps: i64[]!
+    /// `BcFunction.source_pc` of the function translated.
+    source_pc: i32[]
 }
 
 /// Translate every function of `module`.
@@ -98,6 +100,7 @@ translate_function :: fn(
         .stack    = [],
         .stack_base = stack_base,
         .retarget = -1,
+        .source_pc = f.source_pc,
         .jumps    = [],
     }
     leader :: bc.mark_jump_targets(f.jump_table, n)
@@ -494,7 +497,7 @@ emit :: fn(t: Translation!, pc: usize, op: RegOp, a: i32, b: i32, c: i32) -> voi
     t.operands.push(a)
     t.operands.push(b)
     t.operands.push(c)
-    t.code.origin.push(i32(pc))
+    t.code.origin.push(if pc < t.source_pc.len() { t.source_pc[pc] } else { i32(pc) })
 }
 
 // Emit a jump whose `a` is patched to the op translating `target`.

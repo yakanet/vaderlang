@@ -1,0 +1,228 @@
+// vader/vm/inline_leaf — inline direct calls to small straight-line leaves before
+// the VM prepares a module.
+//
+// A call costs the register VM far more than an arithmetic op: frame records, a
+// reset of the callee's locals, its constants copied in, the result moved back
+// out. A leaf doing a few ops of arithmetic pays more for its call than for its
+// body. `prepare` therefore rewrites each direct `call` to such a leaf into the
+// leaf's body before anything checks or translates the module, so the verifier and
+// the tag inference vouch for the rewritten code.
+//
+// An inlined body holds no op that can call or trap: a call would put a frame
+// back, and a trap would report a pc inside the caller. Every op of the rewritten
+// body keeps the pc `vader dump` shows (`BcFunction.source_pc`). `prepare_debug`
+// inlines nothing, so every call stays a frame the debugger can step into. Native
+// code never sees this: `cc` inlines on its own.
+
+module "vader/vm"
+
+import "std/collections"
+import "std/iter"
+bc :: import "vader/bytecode"
+
+// The longest body inlined, its `return` aside.
+MAX_INLINED_OPS: usize: 16
+
+// `module` with every direct call to an inline leaf replaced by the leaf's body.
+inline_leaf_calls :: fn(module: bc.BytecodeModule) -> bc.BytecodeModule {
+    leaf: bool[]!: []
+    for f in module.functions {
+        leaf.push(is_inline_leaf(f))
+    }
+    if !(true in leaf) {
+        return module
+    }
+    functions: bc.BcFunction[]!: []
+    for i in 0..<module.functions.len() {
+        functions.push(inline_into(module.functions, leaf, i))
+    }
+    return bc.BytecodeModule { ...module, .functions = functions }
+}
+
+// Whether a call to `f` can be replaced by its body: straight-line, short, ending
+// in its only return, and made of `inlinable_op`s.
+is_inline_leaf :: fn(f: bc.BcFunction) -> bool {
+    n :: f.body.len()
+    if f.is_main || n == 0 || n > MAX_INLINED_OPS + 1 || bc.bc_result_arity(f.signature) > 1 {
+        return false
+    }
+    if f.body[n - 1] !is bc.Return | bc.ReturnLit {
+        return false
+    }
+    // The caller resets the inlined locals once per call of its own, not once per
+    // site: a local read before it is written would see an earlier site's value.
+    params :: f.signature.params.len()
+    written :: (params + f.locals.len()).filled(() -> false)
+    for op in f.body[0..<n - 1] {
+        if !inlinable_op(op) {
+            return false
+        }
+        slot :: slot_touched_by(op)
+        if slot >= i32(params) {
+            if op is bc.LocalGet && !written[usize(slot)] {
+                return false
+            }
+            written[usize(slot)] = true
+        }
+    }
+    return true
+}
+
+// An op an inlined body may hold: it neither branches, calls nor traps.
+inlinable_op :: fn(op: bc.Op) -> bool {
+    // @partial: an allowlist ; every other op keeps the call.
+    return @partial match op {
+        is bc.LocalGet | bc.LocalSet | bc.LocalTee | bc.Drop -> true
+        is bc.I32Const | bc.I64Const | bc.F64Const | bc.BoolConst | bc.CharConst | bc.NullConst -> true
+        is bc.Convert -> true
+        is bc.I32Add | bc.I32Sub | bc.I32Mul | bc.I32Neg | bc.I32BitNot | bc.I32BitAnd -> true
+        is bc.I32BitOr | bc.I32BitXor | bc.I32Shl | bc.I32Shr | bc.I32ShrU -> true
+        is bc.I32Eq | bc.I32Ne | bc.I32Lt | bc.I32Le | bc.I32Gt | bc.I32Ge -> true
+        is bc.U32Lt | bc.U32Le | bc.U32Gt | bc.U32Ge -> true
+        is bc.I64Add | bc.I64Sub | bc.I64Mul | bc.I64Neg | bc.I64BitNot | bc.I64BitAnd -> true
+        is bc.I64BitOr | bc.I64BitXor | bc.I64Shl | bc.I64Shr | bc.I64ShrU -> true
+        is bc.I64Eq | bc.I64Ne | bc.I64Lt | bc.I64Le | bc.I64Gt | bc.I64Ge -> true
+        is bc.U64Lt | bc.U64Le | bc.U64Gt | bc.U64Ge -> true
+        is bc.F64Add | bc.F64Sub | bc.F64Mul | bc.F64Div | bc.F64Neg -> true
+        is bc.F64Eq | bc.F64Ne | bc.F64Lt | bc.F64Le | bc.F64Gt | bc.F64Ge -> true
+        is bc.BoolEq | bc.BoolNe | bc.BoolAnd | bc.BoolOr | bc.BoolNot -> true
+        _ -> false
+    }
+}
+
+// `op` with the local slot it names, if any, moved up by `base`.
+relocated :: fn(op: bc.Op, base: i32) -> bc.Op {
+    slot :: slot_touched_by(op)
+    return if slot < 0 { op } else { bc.with_remapped_slot(op, slot + base) }
+}
+
+// `functions[index]` with its calls to inline leaves expanded.
+inline_into :: fn(functions: bc.BcFunction[], leaf: bool[], index: usize) -> bc.BcFunction {
+    caller :: functions[index]
+    body :: caller.body
+    if !body.any_match((op) -> op is bc.Call && leaf[usize(op.function_index)]) {
+        return caller
+    }
+    out: bc.Op[]!: []
+    debug: (bc.DebugPos | null)[]!: []
+    source_pc: i32[]!: []
+    old_to_new: i32[]!: []
+    locals: bc.BcLocal[]!: []
+    locals.push_all(caller.locals)
+    params :: i32(caller.signature.params.len())
+    // An inlined body calls nothing, so two sites of one leaf never overlap: they
+    // share its block of locals.
+    bases :: MutableMap<i32, i32> {}
+    for pc in 0..<body.len() {
+        op :: body[pc]
+        old_to_new.push(i32(out.len()))
+        here :: caller.debug[pc]
+        if op is bc.Call && leaf[usize(op.function_index)] {
+            callee :: functions[usize(op.function_index)]
+            base := bases[op.function_index] ?? -1
+            if base < 0 {
+                base = params + i32(locals.len())
+                for p in callee.signature.params {
+                    locals.push(bc.BcLocal { .name = "inlined", .val = p })
+                }
+                locals.push_all(callee.locals)
+                bases[op.function_index] = base
+            }
+            // The arguments sit on the stack, the last on top.
+            k :: callee.signature.params.len()
+            for j in 0..<k {
+                out.push(bc.LocalSet { .slot = base + i32(k - 1 - j) })
+                debug.push(here)
+                source_pc.push(i32(pc))
+            }
+            m :: callee.body.len()
+            for c in 0..<m - 1 {
+                out.push(relocated(callee.body[c], base))
+                debug.push(callee.debug[c])
+                source_pc.push(i32(pc))
+            }
+            last :: callee.body[m - 1]
+            if last is bc.ReturnLit {
+                out.push(last.value)
+                debug.push(here)
+                source_pc.push(i32(pc))
+            }
+            continue
+        }
+        out.push(op)
+        debug.push(here)
+        source_pc.push(i32(pc))
+    }
+    return bc.BcFunction {
+        ...caller,
+        .locals = locals,
+        .body = out,
+        .debug = debug,
+        .jump_table = bc.remap_jump_table(caller.jump_table, old_to_new, out.len()),
+        .source_pc = source_pc,
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// `fn 0 square`, a straight-line leaf, `fn 1 halve`, which divides, `fn 2 stale`,
+// which reads a local before writing it, and a `main` running `main_body` ; `null`
+// once the parse failed the test.
+leaf_module :: fn(main_body: string) -> bc.BytecodeModule | null {
+    square :: "fn 0 square (i32) -> i32\n  local.get 0\n  local.get 0\n  i32.mul\n  return\nend\n"
+    halve :: "fn 1 halve (i32) -> i32\n  local.get 0\n  i32.const 2\n  i32.div\n  return\nend\n"
+    stale :: "fn 2 stale (i32) -> i32\n  local acc i32\n  local.get 1\n  drop\n  local.get 0\n  return\nend\n"
+    main :: "fn 3 main () -> i32\n${main_body}end\nexport main 3\n"
+    parsed :: parse_virt_bc("module demo\ntype 0 primitive i32\n${square}${halve}${stale}${main}")
+    if parsed is VirtParseError {
+        assert(false, "the test module parses: ${parsed.reason}")
+        return null
+    }
+    return parsed
+}
+
+has_call :: fn(f: bc.BcFunction) -> bool = f.body.any_match((op) -> op is bc.Call)
+
+@test
+test_inline_leaf_replaces_a_call_with_the_leaf_body :: fn() -> void {
+    parsed :: leaf_module("  i32.const 7\n  call 0\n  return\n") ?? return
+    module :: inline_leaf_calls(parsed)
+    assert(!has_call(module.functions[3]), "the call to `square` is gone")
+    assert_eq(exec_value(module), 49)
+}
+
+@test
+test_inline_leaf_keeps_a_call_to_a_body_that_can_trap :: fn() -> void {
+    parsed :: leaf_module("  i32.const 8\n  call 1\n  return\n") ?? return
+    assert(has_call(inline_leaf_calls(parsed).functions[3]), "`halve` divides, so its call stays")
+}
+
+@test
+test_inline_leaf_keeps_a_call_to_a_body_reading_a_local_before_writing_it :: fn() -> void {
+    parsed :: leaf_module("  i32.const 8\n  call 2\n  return\n") ?? return
+    assert(has_call(inline_leaf_calls(parsed).functions[3]), "`stale` reads `acc` first")
+}
+
+@test
+test_inline_leaf_shares_one_block_of_locals_per_leaf :: fn() -> void {
+    parsed :: leaf_module(
+        "  i32.const 2\n  call 0\n  i32.const 3\n  call 0\n  i32.add\n  return\n",
+    ) ?? return
+    module :: inline_leaf_calls(parsed)
+    assert_eq(module.functions[3].locals.len(), 1)
+    assert_eq(exec_value(module), 13)
+}
+
+@test
+test_inline_leaf_keeps_the_pc_vader_dump_shows :: fn() -> void {
+    parsed :: leaf_module("  i32.const 7\n  call 0\n  return\n") ?? return
+    main :: inline_leaf_calls(parsed).functions[3]
+    // `i32.const 7`, the call at pc 1 expanded into four ops, the return at pc 2.
+    assert_eq(main.source_pc.len(), main.body.len())
+    assert_eq(main.source_pc[0], 0)
+    assert_eq(main.source_pc[1], 1)
+    assert_eq(main.source_pc[4], 1)
+    assert_eq(main.source_pc[5], 2)
+}

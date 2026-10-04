@@ -42,7 +42,10 @@ export remap_push_cache_slot :: fn(op: Op, remap: i32[]) -> Op {
 
 /// Rewrite `op`'s slot reference to `new_slot`. Returns `op` unchanged
 /// when it carries no slot.
-with_remapped_slot :: fn(op: Op, new_slot: i32) -> Op {
+///
+/// @param op        any op.
+/// @param new_slot  the slot it names instead.
+export with_remapped_slot :: fn(op: Op, new_slot: i32) -> Op {
     if op is LocalGet           { return LocalGet { .slot = new_slot } }
     if op is LocalSet           { return LocalSet { .slot = new_slot } }
     if op is LocalTee           { return LocalTee { .slot = new_slot } }
