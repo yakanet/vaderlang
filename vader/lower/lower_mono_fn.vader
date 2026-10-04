@@ -225,12 +225,10 @@ build_fn_instance_decl :: fn(
     if owner_module is null { return null }
     fn_decl :: find_fn_decl_for_symbol(module_decls(owner_module), inst.fn_symbol, inst.type_args.len())
     if fn_decl is null { return null }
-    // Monomorphization flavor — see `fn_instance_flavor`. Replaces the
-    // old `dispatches || returns_typeparam_array || all_type_args_monomorphizable`
-    // predicate with a 3-way classifier shared with the call site so the registered
-    // instance mangle reconciles with this body:
-    //   Mono   — trait-dispatch (`fn_trait_dispatches`, the `virtual.call`-on-`ref _`
-    //            gap) OR a bare type-param array return (the result's element kind
+    // Monomorphization flavor — see `fn_instance_flavor`, a 3-way classifier shared
+    // with the call site so the registered instance mangle reconciles with this body:
+    //   Mono   — a body needing its instance's real types (`fn_needs_concrete_instances`)
+    //            OR a bare type-param array return (the result's element kind
     //            must be concrete, S5 Solution A). Full-concrete subst.
     //   Mixed  — ≥1 arg `kept_type_argument` keeps (a primitive, an enum with variant
     //            data): keep those concrete (devirt + primops/atom-eq inline), erase
@@ -335,8 +333,10 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
 // the materialised body's substitution AND the instance-mangle suffix, so the two
 // MUST be computed from one classifier — `fn_instance_flavor` — at both the call
 // site and the materialiser, or the registered mangle and the body drift apart.
-//   Mono   — full-concrete subst + `mono_suffix`. Trait-dispatch (the dispatch
-//            vtable needs the concrete struct), a `Display` dispatched on an enum
+//   Mono   — full-concrete subst + `mono_suffix`. A body needing its instance's real
+//            types (`fn_needs_concrete_instances` : a trait dispatch, whose vtable
+//            needs the concrete struct, or a free fn looked up from a type-param
+//            receiver or argument), a `Display` dispatched on an enum
 //            or a distinct (boxed, it would reach its representation's), or a bare
 //            type-param array return (the result array's element kind must be
 //            concrete, S5 Solution A).
@@ -347,12 +347,13 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
 //            All-reference args: nothing to monomorphize, uniform pointer like Java.
 InstanceFlavor :: enum { Mono, Mixed, Erased }
 
-// Core classifier. `dispatches` mirrors `build_fn_instance_decl`'s historical
-// check (`fn_trait_dispatches[fn_decl.id]`). Order matters: Mono (dispatch /
-// array-return) is checked before Mixed so an array-returning fn with a primitive
-// arg stays full-concrete.
+// Core classifier. Order matters: Mono (concrete instances needed / array-return)
+// is checked before Mixed so an array-returning fn with a primitive arg stays
+// full-concrete.
 fn_instance_flavor :: fn(fn_decl: FnDecl, owner_typed: TypedProgram, type_args: Type[]) -> InstanceFlavor {
-    if owner_typed.fn_trait_dispatches[fn_decl.id] is bool { return .Mono }
+    if owner_typed.fn_needs_concrete_instances[fn_decl.id] is bool {
+        return .Mono
+    }
     if owner_typed.fn_display_dispatches[fn_decl.id] is bool
         && type_args.any_match((a) -> boxes_as_representation(a)) {
         return .Mono

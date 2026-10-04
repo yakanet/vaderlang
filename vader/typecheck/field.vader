@@ -191,7 +191,7 @@ try_typeparam_bound_method :: fn(
         return null
     }
     typed.bounded_dispatch_trait[e.id] = trait_key
-    mark_trait_dispatch(typed)
+    keep_instances_concrete(typed)
     tm :: dispatch_bounded_method(bound, e.field, typed) ?? return null
     return substitute_self(tm, target_ty)
 }
@@ -238,6 +238,12 @@ try_free_fn_ufcs_dispatch :: fn(
     }
     first_param :: free_ufcs.winner.ty.params[0]
     typed.ufcs_receiver_types[e.id] = first_param
+    // The lowerer finds the fn again from the receiver's own type when that type
+    // names a type parameter (`settled_choice`, lower_ufcs.vader) ; erased to `Any`
+    // it names none, so the enclosing fn's instances stay concrete.
+    if type_contains_type_param(target_ty) {
+        keep_instances_concrete(typed)
+    }
     typed.chosen_fns[e.id] = free_ufcs.winner
     // T3071 on THIS dispatch path too. A mutator declared as a free fn called via
     // UFCS — `put`, `remove`, `clear`, `append` — is the dominant stdlib style, and

@@ -26,8 +26,9 @@ export FnContext :: struct {
     /// AST node id of the fn whose body is being checked. Lets deep
     /// expression checks (e.g. bounded trait-method dispatch in
     /// `field.vader`) attribute a finding back to the enclosing fn via
-    /// `fn_trait_dispatches`. Keyed by id (not name) so overloaded fns
-    /// don't collide. `0` for lambdas / synthetic contexts.
+    /// `fn_needs_concrete_instances`. Keyed by id (not name) so overloaded fns
+    /// don't collide. A lambda carries its enclosing fn's ; `0` for synthetic
+    /// contexts.
     fn_id: usize = 0
     /// True when the enclosing fn is a generator (it `yield`s). Drives `yield`
     /// legality, forbids `return <value>`, and suppresses the
@@ -60,13 +61,13 @@ export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnCont
     }
 }
 
-// Attribute a dispatch through a type parameter's bound to the fn whose body is
-// being checked, so the lowerer keeps that fn's generic instances concrete
-// rather than erasing them — see `TypedProgram.fn_trait_dispatches`.
-mark_trait_dispatch :: fn(typed: TypedProgram!) -> void {
+// Keep the generic instances of the fn whose body is being checked concrete rather
+// than erased (`T` → `Any`) — see `TypedProgram.fn_needs_concrete_instances`. Each
+// call site says why its construct needs the instance's real types.
+keep_instances_concrete :: fn(typed: TypedProgram!) -> void {
     if typed.current_fn_ctx is FnContext as fctx {
         if fctx.fn_id != 0 {
-            typed.fn_trait_dispatches[fctx.fn_id] = true
+            typed.fn_needs_concrete_instances[fctx.fn_id] = true
         }
     }
 }

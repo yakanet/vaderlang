@@ -896,6 +896,12 @@ export infer_call :: fn(
             // bound has nothing to check against. One bound to the enclosing fn's
             // `T` does : `pick(x, 0)` hands a literal to that `T`.
             if mentions_unbound_type_param(callee_ty.params[i], bindings) {
+                // `count(it)` with `it: I` and `I: Iterator<i32>` : the callee's `T`
+                // is only knowable from the instance's concrete `I`, which an erased
+                // instance does not keep.
+                if arg_types[i] is TypeParamType {
+                    keep_instances_concrete(typed)
+                }
                 continue
             }
             // A SUBSTITUTED element bit is fiction — see `substituted_element_fiction`.

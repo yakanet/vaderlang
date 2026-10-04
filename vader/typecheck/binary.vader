@@ -376,7 +376,7 @@ check_bounded_operator :: fn(
     if specialised !is FnType {
         return null
     }
-    mark_trait_dispatch(typed)
+    keep_instances_concrete(typed)
     if specialised.params.len() > 0 && !is_assignable(operand, specialised.params[0]) {
         push_operand_mismatch(recv, operand, specialised.params[0], op_label, span, diags)
     }

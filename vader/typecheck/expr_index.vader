@@ -64,7 +64,7 @@ export infer_index :: fn(
             if idx_args != null {
                 if idx_args.len() >= 2 {
                     typed.bounded_dispatch_trait[e.id] = core_trait_key(TRAIT_INDEX)
-                    mark_trait_dispatch(typed)
+                    keep_instances_concrete(typed)
                     return idx_args[1]
                 }
             }

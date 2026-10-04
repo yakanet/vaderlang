@@ -539,15 +539,14 @@ export TypedProgram :: struct {
     /// instead of a direct field-call to an unresolved member.
     bounded_dispatch_trait: MutableMap<usize, string>
 
-    /// Generic fn AST-node id → true when its body trait-dispatches on a
-    /// type-param (i.e. records at least one `bounded_dispatch_trait`
-    /// entry while checking that fn). The lowerer's
-    /// `build_fn_instance_decl` reads this to keep such instances
-    /// CONCRETE (per-instance subst) instead of erasing every type-param
-    /// to `Any` — erasure would lower the dispatch to `virtual.call` on a
-    /// `ref _` receiver that no vtable resolves. Keyed by node id (not
-    /// name) so overloaded generics don't collide.
-    fn_trait_dispatches: MutableMap<usize, bool>
+    /// Generic fn AST-node id → true when its body needs each instance's real
+    /// types (`keep_instances_concrete`) : a trait dispatch on a type-param (no
+    /// vtable resolves a `virtual.call` on an erased `ref _` receiver), or a free
+    /// fn looked up from a receiver or argument that names one (`Any` names no
+    /// fn, and infers no callee type argument). The lowerer's `fn_instance_flavor`
+    /// then keeps those instances CONCRETE instead of erasing every type-param to
+    /// `Any`. Keyed by node id (not name) so overloaded generics don't collide.
+    fn_needs_concrete_instances: MutableMap<usize, bool>
 
     /// Generic fn AST-node id → true when its body interpolates a value whose
     /// type mentions a type-param, so renders it through a `Display` dispatched
@@ -676,7 +675,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .local_init_index = MutableMap<i32, AST.Expr> {},
     .const_decls = MutableMap<i32, AST.ConstDecl> {},
     .bounded_dispatch_trait = MutableMap<usize, string> {},
-    .fn_trait_dispatches = MutableMap<usize, bool> {},
+    .fn_needs_concrete_instances = MutableMap<usize, bool> {},
     .fn_display_dispatches = MutableMap<usize, bool> {},
     .overload_result_callees = MutableMap<usize, bool> {},
     .enum_data_reads = MutableMap<usize, bool> {},

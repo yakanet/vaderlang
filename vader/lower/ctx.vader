@@ -87,7 +87,7 @@ export LowerProjectCtx :: struct {
     loaded:              LoadedProject
     /// Every module's typed program, keyed by module path. Threaded onto the
     /// ctx so a generic-call lowering site (`emit_generic_fn_call`) can read the
-    /// callee's `fn_trait_dispatches` to pick the instance-mangle FLAVOR (Mono /
+    /// callee's `fn_needs_concrete_instances` to pick the instance-mangle FLAVOR (Mono /
     /// Mixed / Erased) consistently with the materialiser (`lower_mono_fn`). Same
     /// `TypedProject` the materialiser already consumes — exposed earlier here.
     typed:               TypedProject
