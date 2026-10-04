@@ -808,11 +808,7 @@ check_assign :: fn(
                 if set_args != null {
                     if set_args.len() >= 2 {
                         typed.bounded_dispatch_trait[ix.id] = core_trait_key(TRAIT_INDEX_SET)
-                        if typed.current_fn_ctx is FnContext as fctx {
-                            if fctx.fn_id != 0 {
-                                typed.fn_trait_dispatches[fctx.fn_id] = true
-                            }
-                        }
+                        mark_trait_dispatch(typed)
                         set_value :: check_expr_fn(s.value, set_args[1], typed, diags)
                         emit_assign_mismatch_if(set_value, set_args[1], s.span, s.value.id, typed, diags)
                         return

@@ -43,7 +43,9 @@ export is_assignable :: fn(from: Type, to: Type) -> bool {
     // `fn<K, V>(self: MutableMap<K, V>)` fn accept a concrete
     // `MutableMap<string, i32>` receiver via UFCS dispatch.
     if from is TypeParamType { return true }
-    if to is TypeParamType { return true }
+    // A free literal fits no type parameter : no bound says `T` is numeric, and a
+    // `0` reaching a `T = string` instance is a run-time fault.
+    if to is TypeParamType { return !is_free_numeric(from) }
 
     // @partial: variants with a bespoke rule are listed; everything else shares check_common.
     return @partial match from {

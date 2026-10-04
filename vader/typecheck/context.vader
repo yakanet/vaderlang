@@ -60,6 +60,17 @@ export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnCont
     }
 }
 
+// Attribute a dispatch through a type parameter's bound to the fn whose body is
+// being checked, so the lowerer keeps that fn's generic instances concrete
+// rather than erasing them — see `TypedProgram.fn_trait_dispatches`.
+mark_trait_dispatch :: fn(typed: TypedProgram!) -> void {
+    if typed.current_fn_ctx is FnContext as fctx {
+        if fctx.fn_id != 0 {
+            typed.fn_trait_dispatches[fctx.fn_id] = true
+        }
+    }
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

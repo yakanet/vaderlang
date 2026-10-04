@@ -1,0 +1,15 @@
+// A free literal into a slot typed by a type parameter — T3001. `Add` does
+// not say `T` is numeric : `0` is no value of a `T = string` instance.
+module "snippet"
+
+sum :: fn<T: Add>(xs: T[]) -> T {
+    s: T = 0
+    for x in xs {
+        s += x
+    }
+    return s
+}
+
+main :: fn() -> i32 {
+    return sum([1, 2, 3])
+}

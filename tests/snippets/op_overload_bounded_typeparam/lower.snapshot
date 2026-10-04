@@ -1,0 +1,430 @@
+# Lower
+
+## snippet
+  struct snippet$V { x: i32 }
+  fn snippet$V$Add$add(self: V!, other: V) -> V
+    ~>
+      V! {
+        x:
+          add :i32
+            l:
+              .x :i32
+                self :V
+            r:
+              .x :i32
+                other :V
+      }
+  fn snippet$V$Comparable$compare(self: V!, other: V) -> i32
+    ~>
+      sub :i32
+        l:
+          .x :i32
+            self :V
+        r:
+          .x :i32
+            other :V
+  fn snippet$V$Comparable$lt(self: V!, other: V) -> bool
+    return
+      lt :bool
+        l:
+          call :i32
+            callee:
+              snippet$V$Comparable$compare :i32
+            arg0:
+              self :V
+            arg1:
+              other :V
+        r:
+          int(0) :i32
+  fn snippet$V$Comparable$lte(self: V!, other: V) -> bool
+    return
+      lte :bool
+        l:
+          call :i32
+            callee:
+              snippet$V$Comparable$compare :i32
+            arg0:
+              self :V
+            arg1:
+              other :V
+        r:
+          int(0) :i32
+  fn snippet$V$Comparable$gt(self: V!, other: V) -> bool
+    return
+      gt :bool
+        l:
+          call :i32
+            callee:
+              snippet$V$Comparable$compare :i32
+            arg0:
+              self :V
+            arg1:
+              other :V
+        r:
+          int(0) :i32
+  fn snippet$V$Comparable$gte(self: V!, other: V) -> bool
+    return
+      gte :bool
+        l:
+          call :i32
+            callee:
+              snippet$V$Comparable$compare :i32
+            arg0:
+              self :V
+            arg1:
+              other :V
+        r:
+          int(0) :i32
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__i64 :void
+      arg0:
+        call :i64
+          callee:
+            snippet$total__i64 :i64
+          arg0:
+            array :i64[]
+              cast → i64
+                int(3000000000) :i64
+              cast → i64
+                int(1) :i64
+    call :void
+      callee:
+        std_io$println__f64 :void
+      arg0:
+        call :f64
+          callee:
+            snippet$total__f64 :f64
+          arg0:
+            array :f64[]
+              float(1.5) :f64
+              float(2.25) :f64
+    call :void
+      callee:
+        std_io$println__i32 :void
+      arg0:
+        .x :i32
+          call :V!
+            callee:
+              snippet$total__V :V!
+            arg0:
+              array :V![]
+                V! {
+                  x: int(2) :i32
+                }
+                V! {
+                  x: int(3) :i32
+                }
+    call :void
+      callee:
+        std_io$println__i32 :void
+      arg0:
+        call :i32
+          callee:
+            snippet$largest__i32 :i32
+          arg0:
+            array :i32[]
+              int(3) :i32
+              int(9) :i32
+              int(4) :i32
+    call :void
+      callee:
+        std_io$println__i32 :void
+      arg0:
+        .x :i32
+          call :V!
+            callee:
+              snippet$largest__V :V!
+            arg0:
+              array :V![]
+                V! {
+                  x: int(7) :i32
+                }
+                V! {
+                  x: int(1) :i32
+                }
+    return int(0) :i32
+  fn snippet$total__V(xs: V![]) -> V!
+    let s: V! =
+      index :V!
+        on:
+          xs :V![]
+        ix:
+          int(0) :i32
+    block :void
+      let __for_arr_0: V![] =
+        slice :V![]
+          on:
+            xs :V![]
+          lo:
+            int(1) :usize
+          hi:
+            LoweredArrayLen
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let x: V! =
+          index :V!
+            on:
+              __for_arr_0 :V![]
+            ix:
+              __for_i_2 :usize
+        assign
+          target:
+            s :V!
+          value:
+            call :V!
+              callee:
+                snippet$V$Add$add :V!
+              arg0:
+                s :V!
+              arg1:
+                x :V!
+      step
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return s :V!
+  fn snippet$total__f64(xs: f64[]) -> f64
+    let s: f64 =
+      index :f64
+        on:
+          xs :f64[]
+        ix:
+          int(0) :i32
+    block :void
+      let __for_arr_0: f64[] =
+        slice :f64[]
+          on:
+            xs :f64[]
+          lo:
+            int(1) :usize
+          hi:
+            LoweredArrayLen
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let x: f64 =
+          index :f64
+            on:
+              __for_arr_0 :f64[]
+            ix:
+              __for_i_2 :usize
+        assign
+          target:
+            s :f64
+          value:
+            add :f64
+              l:
+                s :f64
+              r:
+                x :f64
+      step
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return s :f64
+  fn snippet$total__i64(xs: i64[]) -> i64
+    let s: i64 =
+      index :i64
+        on:
+          xs :i64[]
+        ix:
+          int(0) :i32
+    block :void
+      let __for_arr_0: i64[] =
+        slice :i64[]
+          on:
+            xs :i64[]
+          lo:
+            int(1) :usize
+          hi:
+            LoweredArrayLen
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let x: i64 =
+          index :i64
+            on:
+              __for_arr_0 :i64[]
+            ix:
+              __for_i_2 :usize
+        assign
+          target:
+            s :i64
+          value:
+            add :i64
+              l:
+                s :i64
+              r:
+                x :i64
+      step
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return s :i64
+  fn snippet$largest__V(xs: V![]) -> V!
+    let best: V! =
+      index :V!
+        on:
+          xs :V![]
+        ix:
+          int(0) :i32
+    block :void
+      let __for_arr_0: V![] = xs :V![]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let x: V! =
+          index :V!
+            on:
+              __for_arr_0 :V![]
+            ix:
+              __for_i_2 :usize
+        ~>
+          if :void
+            cond:
+              gt :bool
+                l:
+                  call :i32
+                    callee:
+                      snippet$V$Comparable$compare :i32
+                    arg0:
+                      x :V!
+                    arg1:
+                      best :V!
+                r:
+                  int(0) :i32
+            then:
+              assign
+                target:
+                  best :V!
+                value:
+                  x :V!
+      step
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return best :V!
+  fn snippet$largest__i32(xs: i32[]) -> i32
+    let best: i32 =
+      index :i32
+        on:
+          xs :i32[]
+        ix:
+          int(0) :i32
+    block :void
+      let __for_arr_0: i32[] = xs :i32[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let x: i32 =
+          index :i32
+            on:
+              __for_arr_0 :i32[]
+            ix:
+              __for_i_2 :usize
+        ~>
+          if :void
+            cond:
+              gt :bool
+                l:
+                  x :i32
+                r:
+                  best :i32
+            then:
+              assign
+                target:
+                  best :i32
+                value:
+                  x :i32
+      step
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return best :i32
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

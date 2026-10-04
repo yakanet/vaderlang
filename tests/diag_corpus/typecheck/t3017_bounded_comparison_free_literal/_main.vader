@@ -1,0 +1,12 @@
+// A comparison on a type parameter bounded by `Comparable` takes another `T` —
+// T3017 on a free literal, which fits no type parameter.
+module "snippet"
+
+positive :: fn<T: Comparable>(x: T) -> bool = x > 0
+
+main :: fn() -> i32 {
+    if positive(3) {
+        return 1
+    }
+    return 0
+}

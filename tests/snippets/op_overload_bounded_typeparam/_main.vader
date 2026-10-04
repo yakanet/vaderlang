@@ -1,0 +1,42 @@
+// Operators on a type parameter bounded by the operator's trait. `T: Add`
+// grants `+` / `+=` and `T: Comparable` grants `<` / `>` inside the generic
+// body ; each instance is monomorphised, so a primitive `T` gets the native
+// op and a struct `T` the call into its impl.
+
+module "snippet"
+
+import "std/io"
+
+V :: struct {
+    x: i32
+}
+
+V implements Add -> V { .x = self.x + other.x }
+V implements Comparable -> self.x - other.x
+
+total :: fn<T: Add>(xs: T[]) -> T {
+    s := xs[0]
+    for x in xs[1..<xs.len()] {
+        s += x
+    }
+    return s
+}
+
+largest :: fn<T: Comparable>(xs: T[]) -> T {
+    best := xs[0]
+    for x in xs {
+        if x > best {
+            best = x
+        }
+    }
+    return best
+}
+
+main :: fn() -> i32 {
+    println(total([i64(3_000_000_000), i64(1)]))
+    println(total([1.5, 2.25]))
+    println(total([V { .x = 2 }, V { .x = 3 }]).x)
+    println(largest([3, 9, 4]))
+    println(largest([V { .x = 7 }, V { .x = 1 }]).x)
+    return 0
+}

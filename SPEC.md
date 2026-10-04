@@ -598,6 +598,8 @@ The flow is bidirectional:
 - **Top-down (slot expected)** — typed lets, struct-field defaults, fn-arg slots, struct-lit field values, return-type-annotated `return …`, indexed `arr[i]` (slot is the impl's `I` type), comparison/arithmetic where one side has a concrete numeric type. The literal repins to the expected width.
 - **Unary `-`, `~`** — the operand inherits the operator's outer expected type, so `g: i64 = -50` lowers the inner `50` as `i64`, not `i32`.
 - **Generic call sites** — after type-parameter unification, FreeInt args adopt the substituted concrete width. Works through plain calls, generic UFCS, and namespace imports.
+
+A **type parameter is not a numeric context**. Inside a generic body, a free literal into a slot typed `T` — `s: T = 0`, `return 'a'`, `pick(x, 0)` where `pick` takes two `T`, `f(2.5)` through a parameter `f: fn(T) -> T`, the right operand of `x > 0` with `T: Comparable` — is rejected (T3001, T3017 on an operator): no bound says `T` is numeric, and `0` is no value of a `T = string` instance. A call through a fn-typed parameter binds none of the enclosing fn's type parameters; a local holding a generic fn (`g :: identity`) still binds its own at each call.
 - **Cross-branch in `if`** — when one branch of an if-expression produces a concrete numeric type and the other is a Free literal, the Free side repins to match (so `if c { 0 } else { width: usize }` types to `usize`, not `{integer} | usize`).
 
 When no context applies, the literal falls back to its **default** (`i32` for integers, `f64` for floats). The default is what `x := 42` records.
@@ -1403,7 +1405,7 @@ make_buffer :: fn<N: i32>() -> FixedArray<u8, N> { ... }
 **Implementation**: monomorphization at compile time, driven by the comptime engine. Single specialization machinery.
 
 **Bound enforcement and trait-method dispatch on type parameters**: both wired since Layer 7e. The typechecker:
-- Resolves `key.hash()` inside a generic body where `key: K` and `K: Hash` to the trait method statically, then mono-substitutes it to the concrete type's impl member.
+- Resolves `key.hash()` inside a generic body where `key: K` and `K: Hash` to the trait method statically, then mono-substitutes it to the concrete type's impl member. An operator on such a parameter goes the same way (`a + b` with `T: Add`, `a < b` with `T: Comparable` — see *Operator overloading*).
 - At every call site of a generic fn, walks the call-site type-args against each type-param's angle-bracketed bound (`<T: Trait>`). Any concrete type lacking an explicit `T implements Trait` impl yields T3006 ("trait not satisfied").
 
 **Limitations (MVP)**:
@@ -1611,7 +1613,8 @@ Resolution rule for **arithmetic** operators (`+ - * / %`):
 1. If both operands are primitive numerics, use the built-in op (current behaviour).
 2. `string + string` is a built-in op (`string.concat`); `string implements Add` exists for SPEC completeness and is also reachable via UFCS — the compiler routes both paths to the same op (see §12 op-level intrinsics).
 3. Otherwise, look up the matching `Add`/`Sub`/`Mul`/`Div`/`Rem` impl on the left operand's type; the right operand must be assignable to that impl's `Rhs`, and the result type is the impl's `Out`. `Rhs` and `Out` default to `Self`, so the homogeneous case needs only `implements Add`; a heterogeneous operator (e.g. `Instant implements Add<Duration, Instant>`) spells them. The defaults fill at impl materialization, so existing `i32 implements Add` and `where T: Add` keep meaning `Add<Self, Self>`.
-4. If no impl matches, T3017.
+4. A left operand typed by a type parameter whose bound names the operator's trait (`T: Add` for `+`) dispatches through that bound, exactly as `a.add(b)` would: the right operand must be a `T`, the result is a `T`, and each instance of the enclosing function is monomorphised, so a primitive `T` gets the built-in op and a struct `T` its impl.
+5. If no impl matches, T3017.
 
 Resolution rule for **equality** (`==` / `!=`):
 1. Primitive operands (numerics, strings, chars, bools, null) use the built-in equality op.
@@ -1620,7 +1623,7 @@ Resolution rule for **equality** (`==` / `!=`):
 
 Resolution rule for **ordering** (`< <= > >=`):
 1. Primitive numerics, strings, and chars use the built-in comparison ops.
-2. User-struct operands look up the `Comparable` impl; the lowerer rewrites `a < b` to `compare(a, b) < 0` (and analogously for the other three operators) over the i32 result.
+2. User-struct operands look up the `Comparable` impl; the lowerer rewrites `a < b` to `compare(a, b) < 0` (and analogously for the other three operators) over the i32 result. A type parameter bounded by `Comparable` dispatches the same way, through its bound; the right operand must be a `T` (T3017 otherwise).
 3. If no impl matches, **T3043** (`` `X` does not implement `Comparable` ``).
 
 **T3043** is the shared "operator's trait is not implemented" error — it names the missing trait (`Equals` for `==`/`!=`, `Comparable` for `< <= > >=`, `Contains` for `in`) so the fix is obvious. It is distinct from T3017, which stays for plain operand-type mismatches (e.g. `i32 && bool`, mismatched numeric widths). (Arithmetic `+ - * / %` on a type without the matching `Add`/… impl still reports T3017 for now.)

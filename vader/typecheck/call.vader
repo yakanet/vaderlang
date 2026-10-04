@@ -598,14 +598,8 @@ report_unbound_type_args :: fn(
     // Calling a fn-VALUE (a param / local / pattern binding whose type happens
     // to mention type-params, e.g. `f: fn(T) -> U[]` inside a generic body):
     // there is nothing to infer and no syntax to pass a type argument through.
-    if c.callee is AST.IdentExpr {
-        callee_sym :: typed.resolved.idents[c.callee.span.hash()]
-        if callee_sym is Symbol {
-            @partial match callee_sym.kind {
-                .Param | .Local | .Binding -> { return }
-                _ -> {}
-            }
-        }
+    if callee_is_kind(c, .Local, typed) || callee_is_kind(c, .Binding, typed) {
+        return
     }
     if expected != null && type_contains_type_param(expected) {
         return
@@ -642,6 +636,22 @@ report_unbound_type_args :: fn(
             ),
         )
     }
+}
+
+// Whether `c` calls a name that resolves to a symbol of `kind`.
+callee_is_kind :: fn(c: AST.CallExpr, kind: SymbolKind, typed: TypedProgram) -> bool {
+    if c.callee !is AST.IdentExpr {
+        return false
+    }
+    callee_sym :: typed.resolved.idents[c.callee.span.hash()]
+    return callee_sym is Symbol && callee_sym.kind == kind
+}
+
+// Whether `t` names a type parameter `bindings` has no entry for.
+mentions_unbound_type_param :: fn(t: Type, bindings: MutableMap<i32, Type>) -> bool {
+    unbound: Symbol[]!: []
+    collect_unbound_type_params(t, bindings, unbound)
+    return unbound.len() > 0
 }
 
 // Walk `t` and append every type-param `bindings` has no entry for, skipping
@@ -790,7 +800,11 @@ export infer_call :: fn(
     // Resolved once here, applied at each return below — args are still
     // type-checked first so a bad argument to `todo(...)` is still flagged.
     diverges :: callee_is_no_return(c.callee, typed)
-    is_generic :: fn_has_type_params(callee_ty)
+    // A fn-typed PARAMETER names the enclosing fn's type parameters (`f: fn(T) -> T`
+    // inside `fn<T>`) : they are fixed for the body, so the call binds none of them
+    // and its arguments check against them as written. A local may hold a generic
+    // fn (`g :: identity`), whose own parameters the call still binds.
+    is_generic :: fn_has_type_params(callee_ty) && !callee_is_kind(c, .Param, typed)
     n :: min(c.args.len(), callee_ty.params.len())
     if is_generic {
         bindings :: MutableMap<i32, Type> {}
@@ -869,7 +883,12 @@ export infer_call :: fn(
         for i in 0..<n {
             want :: substitute_map(callee_ty.params[i], bindings)
             reject_immutable_into_mutable_param(callee_ty, i, want, c, typed, diags)
-            if type_contains_type_param(want)                          { continue }
+            // A parameter still naming a type parameter of the callee that nothing
+            // bound has nothing to check against. One bound to the enclosing fn's
+            // `T` does : `pick(x, 0)` hands a literal to that `T`.
+            if mentions_unbound_type_param(callee_ty.params[i], bindings) {
+                continue
+            }
             // A SUBSTITUTED element bit is fiction — see `substituted_element_fiction`.
             // Decided once : the guard walks the declared type recursively.
             fiction :: substituted_element_fiction(callee_ty.params[i])

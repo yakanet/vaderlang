@@ -64,11 +64,7 @@ export infer_index :: fn(
             if idx_args != null {
                 if idx_args.len() >= 2 {
                     typed.bounded_dispatch_trait[e.id] = core_trait_key(TRAIT_INDEX)
-                    if typed.current_fn_ctx is FnContext as fctx {
-                        if fctx.fn_id != 0 {
-                            typed.fn_trait_dispatches[fctx.fn_id] = true
-                        }
-                    }
+                    mark_trait_dispatch(typed)
                     return idx_args[1]
                 }
             }

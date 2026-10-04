@@ -176,18 +176,24 @@ check_arith :: fn(
     if method_name == "" {
         return numeric_result(e, left, right, diags)
     }
-    // Dispatch through the impl method on the left operand ; its result type is
-    // the operator's type (Self → left). The RHS is validated against the impl's
-    // `other` param by the shared helper.
-    ft :: check_operator_rhs(
+    op_label :: "operator ${method_name}"
+    bounded :: check_bounded_operator(
         left,
         right,
+        arith_trait(e.op),
         method_name,
-        "operator ${method_name}",
+        op_label,
         e.right.span,
         typed,
         diags,
     )
+    if bounded != null {
+        return bounded.return_type
+    }
+    // Dispatch through the impl method on the left operand ; its result type is
+    // the operator's type (Self → left). The RHS is validated against the impl's
+    // `other` param by the shared helper.
+    ft :: check_operator_rhs(left, right, method_name, op_label, e.right.span, typed, diags)
     if ft != null {
         return substitute_self_in(ft.return_type, left)
     }
@@ -270,6 +276,16 @@ arith_trait_method :: fn(op: AST.BinaryOp) -> string {
     return ""
 }
 
+// The trait whose method `arith_trait_method` names.
+arith_trait :: fn(op: AST.BinaryOp) -> string {
+    if op == .Add { return TRAIT_ADD }
+    if op == .Sub { return TRAIT_SUB }
+    if op == .Mul { return TRAIT_MUL }
+    if op == .Div { return TRAIT_DIV }
+    if op == .Mod { return TRAIT_REM }
+    return ""
+}
+
 substitute_self_in :: fn(t: Type, self_ty: Type) -> Type {
     if t is SelfType {
         return self_ty
@@ -311,18 +327,83 @@ check_operator_rhs :: fn(
         if method.params.len() > 0 {
             rhs :: substitute_self_in(method.params[0], recv)
             if !is_assignable(operand, rhs) {
-                diags.push(
-                    typecheck_error(
-                        .OperatorNotDefined,
-                        span,
-                        "${op_label} on ${display_type(recv)} expects ${display_type(rhs)}, found ${display_type(operand)}",
-                    ),
-                )
+                push_operand_mismatch(recv, operand, rhs, op_label, span, diags)
             }
         }
         return method
     }
     return null
+}
+
+/// `check_operator_rhs` for a type parameter whose bound names the operator's
+/// trait — `a + b` with `T: Add`, `a < b` with `T: Comparable` — typed as the
+/// bound method `a.add(b)` would be. The enclosing fn keeps concrete instances,
+/// as for a bounded method call, so the lowerer finds the impl after
+/// substitution. Null when `recv` is not such a parameter.
+///
+/// @param recv         the left operand's type.
+/// @param operand      the right operand's type, checked against the method's `other`.
+/// @param trait_name   the operator's trait (`TRAIT_ADD`, …) ; a same-named method of
+///                     another bound trait does not count, since the lowerer looks
+///                     the instance's impl up by trait.
+/// @param method_name  the trait method the operator calls (`add`, `compare`, …).
+/// @param op_label     how a mismatch names the operator.
+/// @param span         the right operand, where a mismatch is reported.
+/// @return             the method specialised at `recv`.
+/// @error              T3017 when the right operand does not fit the method's `other`.
+check_bounded_operator :: fn(
+    recv: Type,
+    operand: Type,
+    trait_name: string,
+    method_name: string,
+    op_label: string,
+    span: Span,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+) -> FnType | null {
+    if recv !is TypeParamType {
+        return null
+    }
+    bound :: typed.resolved.type_param_bounds[recv.symbol.id] ?? return null
+    if dispatch_bounded_method_trait(bound, method_name, typed) != core_trait_key(trait_name) {
+        return null
+    }
+    method :: dispatch_bounded_method(bound, method_name, typed) ?? return null
+    specialised :: substitute_self(method, recv)
+    if specialised !is FnType {
+        return null
+    }
+    mark_trait_dispatch(typed)
+    if specialised.params.len() > 0 {
+        want :: specialised.params[0]
+        // `want` is `recv` itself for the default `Rhs = Self`. The same type
+        // parameter is the only operand that fits it : assignability would let
+        // any concrete type through.
+        fits :: equals_type(operand, want) || want !is TypeParamType && is_assignable(operand, want)
+        if !fits {
+            push_operand_mismatch(recv, operand, want, op_label, span, diags)
+        }
+    }
+    return specialised
+}
+
+// T3017 on an operator whose right operand does not fit the method's `other`.
+push_operand_mismatch :: fn(
+    recv: Type,
+    operand: Type,
+    want: Type,
+    op_label: string,
+    span: Span,
+    diags: Diagnostic[]!,
+) -> void {
+    found :: display_type(operand)
+    diags.push(
+        typecheck_error(
+            .OperatorNotDefined,
+            span,
+            "${op_label} on ${display_type(recv)} expects ${display_type(want)}, found ${found}",
+        ),
+    )
 }
 
 /// Aliased fallback for operator resolution (concrete-first, aliased-fallback) : a
@@ -394,6 +475,18 @@ check_compare :: fn(
     // here would be an unsound compile-time pass over a runtime crash. String
     // ordering can return as a real `Comparable` impl if the language wants
     // lexicographic comparison later ; until then it's T3043 like `bool`.
+    if check_bounded_operator(
+        left,
+        right,
+        TRAIT_COMPARABLE,
+        METHOD_COMPARE,
+        "comparison operator",
+        e.right.span,
+        typed,
+        diags,
+    ) != null {
+        return TY_BOOL
+    }
     // User-struct overload via `Comparable::compare` — the lowerer rewrites
     // `a < b` into `a.compare(b) < 0`. The shared helper confirms the impl exists
     // AND validates the right operand against its `other: Self` param (without it
