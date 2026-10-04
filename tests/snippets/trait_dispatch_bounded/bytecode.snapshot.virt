@@ -92,7 +92,6 @@ fn 1 snippet$count_matching__i32 (ref,i32) -> i32
   local x i32
   local $call_12 u64
   local $call_13 u64
-  local and_res bool
   i32.const 0
   local.set 2   ; n
   local.get 0   ; arg 0
@@ -123,18 +122,13 @@ fn 1 snippet$count_matching__i32 (ref,i32) -> i32
           local.get 6   ; x
           local.get 1   ; arg 1
           i32.eq
-          local.set 9   ; and_res
-        else
-          bool.const false
-          local.set 9   ; and_res
+          if $L4 void
+            local.get 2   ; n
+            i32.const 1
+            i32.add
+            local.set 2   ; n
+          end $L4
         end $L3
-        local.get 9   ; and_res
-        if $L4 void
-          local.get 2   ; n
-          i32.const 1
-          i32.add
-          local.set 2   ; n
-        end $L4
         local.get 5   ; __for_i_2
         i64.const 1
         i64.add
@@ -155,7 +149,6 @@ fn 2 snippet$count_matching__string (ref,string) -> i32
   local x string
   local $call_12 u64
   local $call_13 u64
-  local and_res bool
   i32.const 0
   local.set 2   ; n
   local.get 0   ; arg 0
@@ -187,18 +180,13 @@ fn 2 snippet$count_matching__string (ref,string) -> i32
           local.get 6   ; x
           local.get 1   ; arg 1
           string.eq
-          local.set 9   ; and_res
-        else
-          bool.const false
-          local.set 9   ; and_res
+          if $L4 void
+            local.get 2   ; n
+            i32.const 1
+            i32.add
+            local.set 2   ; n
+          end $L4
         end $L3
-        local.get 9   ; and_res
-        if $L4 void
-          local.get 2   ; n
-          i32.const 1
-          i32.add
-          local.set 2   ; n
-        end $L4
         local.get 5   ; __for_i_2
         i64.const 1
         i64.add

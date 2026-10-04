@@ -63,19 +63,14 @@ fn 1 snippet$first_two (any,bool) -> i32
   local.get 2   ; or_res
   if $L1 void
     local.get 1   ; arg 1
-    local.set 2   ; or_res
-  else
-    bool.const false
-    local.set 2   ; or_res
+    if $L2 void
+      local.get 0   ; arg 0
+      ref.cast 5   ; snippet$A
+      struct.get 5 0   ; snippet$A.n
+      ref.cast 8   ; i32
+      return
+    end $L2
   end $L1
-  local.get 2   ; or_res
-  if $L2 void
-    local.get 0   ; arg 0
-    ref.cast 5   ; snippet$A
-    struct.get 5 0   ; snippet$A.n
-    ref.cast 8   ; i32
-    return
-  end $L2
   return.lit i32.const 0
 end
 

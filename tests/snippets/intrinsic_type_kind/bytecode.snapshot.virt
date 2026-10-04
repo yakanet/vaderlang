@@ -8,7 +8,6 @@ string 3 "tuple"
 export main 0
 
 fn 0 snippet$main () -> i32
-  local and_res bool
   string.const 0   ; "primitive"
   string.const 0   ; "primitive"
   string.eq
@@ -16,34 +15,19 @@ fn 0 snippet$main () -> i32
     string.const 1   ; "struct"
     string.const 1   ; "struct"
     string.eq
-    local.set 0   ; and_res
-  else
-    bool.const false
-    local.set 0   ; and_res
+    if $L1 void
+      string.const 2   ; "array"
+      string.const 2   ; "array"
+      string.eq
+      if $L2 void
+        string.const 3   ; "tuple"
+        string.const 3   ; "tuple"
+        string.eq
+        if $L3 void
+          return.lit i32.const 0
+        end $L3
+      end $L2
+    end $L1
   end $L0
-  local.get 0   ; and_res
-  if $L1 void
-    string.const 2   ; "array"
-    string.const 2   ; "array"
-    string.eq
-    local.set 0   ; and_res
-  else
-    bool.const false
-    local.set 0   ; and_res
-  end $L1
-  local.get 0   ; and_res
-  if $L2 void
-    string.const 3   ; "tuple"
-    string.const 3   ; "tuple"
-    string.eq
-    local.set 0   ; and_res
-  else
-    bool.const false
-    local.set 0   ; and_res
-  end $L2
-  local.get 0   ; and_res
-  if $L3 void
-    return.lit i32.const 0
-  end $L3
   return.lit i32.const 1
 end

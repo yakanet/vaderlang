@@ -22,10 +22,9 @@ impl 8 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$classify (any) -> string
-  local and_res bool
   local __buf_0 ref
   local __off_1 usize
-  local $cast_17 i64
+  local $cast_15 i64
   local.get 0   ; arg 0
   type_check 2   ; snippet$Circle
   if $L0 void
@@ -35,39 +34,34 @@ fn 0 snippet$classify (any) -> string
     ref.cast 5   ; i32
     i32.const 0
     i32.gt
-    local.set 1   ; and_res
-  else
-    bool.const false
-    local.set 1   ; and_res
+    if $L1 void
+      i64.const 29
+      call 3   ; std_core$new_byte_buffer
+      local.set 1   ; __buf_0
+      i64.const 0
+      local.set 2   ; __off_1
+      local.get 1   ; __buf_0
+      local.get 2   ; __off_1
+      string.const 0   ; "circle r="
+      call 5   ; std_core$write_string_at
+      local.set 2   ; __off_1
+      local.get 0   ; arg 0
+      ref.cast 2   ; snippet$Circle
+      struct.get 2 0   ; snippet$Circle.radius
+      ref.cast 5   ; i32
+      i32.to_i64
+      local.set 3   ; $cast_15
+      local.get 1   ; __buf_0
+      local.get 2   ; __off_1
+      local.get 3   ; $cast_15
+      call 6   ; std_core$write_int
+      local.set 2   ; __off_1
+      local.get 1   ; __buf_0
+      local.get 2   ; __off_1
+      call 4   ; std_core$finish_buffer
+      return
+    end $L1
   end $L0
-  local.get 1   ; and_res
-  if $L1 void
-    i64.const 29
-    call 3   ; std_core$new_byte_buffer
-    local.set 2   ; __buf_0
-    i64.const 0
-    local.set 3   ; __off_1
-    local.get 2   ; __buf_0
-    local.get 3   ; __off_1
-    string.const 0   ; "circle r="
-    call 5   ; std_core$write_string_at
-    local.set 3   ; __off_1
-    local.get 0   ; arg 0
-    ref.cast 2   ; snippet$Circle
-    struct.get 2 0   ; snippet$Circle.radius
-    ref.cast 5   ; i32
-    i32.to_i64
-    local.set 4   ; $cast_17
-    local.get 2   ; __buf_0
-    local.get 3   ; __off_1
-    local.get 4   ; $cast_17
-    call 6   ; std_core$write_int
-    local.set 3   ; __off_1
-    local.get 2   ; __buf_0
-    local.get 3   ; __off_1
-    call 4   ; std_core$finish_buffer
-    return
-  end $L1
   return.lit string.const 1   ; "other"
 end
 

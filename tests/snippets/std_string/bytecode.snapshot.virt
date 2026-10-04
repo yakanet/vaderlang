@@ -617,8 +617,7 @@ fn 12 std_string$trim (string) -> string
   local sb ref
   local n usize
   local lo usize
-  local and_res bool
-  local $sub_18 usize
+  local $sub_15 usize
   local.get 0   ; arg 0
   call.import 3   ; std_core$bytes
   local.tee 1   ; sb
@@ -637,19 +636,14 @@ fn 12 std_string$trim (string) -> string
         array.get 9   ; u8[]
         ref.cast 4   ; u8
         call 18   ; std_string$is_white_byte
-        local.set 4   ; and_res
-      else
-        bool.const false
-        local.set 4   ; and_res
+        if $L3 void
+          local.get 3   ; lo
+          i64.const 1
+          i64.add
+          local.set 3   ; lo
+          br $L1
+        end $L3
       end $L2
-      local.get 4   ; and_res
-      if $L3 void
-        local.get 3   ; lo
-        i64.const 1
-        i64.add
-        local.set 3   ; lo
-        br $L1
-      end $L3
     end $L1
   end $L0
   block $L4 void
@@ -661,25 +655,20 @@ fn 12 std_string$trim (string) -> string
         local.get 2   ; n
         i64.const 1
         i64.sub
-        local.set 5   ; $sub_18
+        local.set 4   ; $sub_15
         local.get 1   ; sb
-        local.get 5   ; $sub_18
+        local.get 4   ; $sub_15
         array.get 9   ; u8[]
         ref.cast 4   ; u8
         call 18   ; std_string$is_white_byte
-        local.set 4   ; and_res
-      else
-        bool.const false
-        local.set 4   ; and_res
+        if $L7 void
+          local.get 2   ; n
+          i64.const 1
+          i64.sub
+          local.set 2   ; n
+          br $L5
+        end $L7
       end $L6
-      local.get 4   ; and_res
-      if $L7 void
-        local.get 2   ; n
-        i64.const 1
-        i64.sub
-        local.set 2   ; n
-        br $L5
-      end $L7
     end $L5
   end $L4
   local.get 1   ; sb
@@ -1566,7 +1555,6 @@ fn 27 std_string$byte_contains (string,string) -> bool
   local m usize
   local first u8
   local i usize
-  local and_res bool
   local.get 0   ; arg 0
   call.import 3   ; std_core$bytes
   local.set 2   ; sb
@@ -1621,15 +1609,10 @@ fn 27 std_string$byte_contains (string,string) -> bool
           local.get 3   ; subb
           local.get 5   ; m
           call 22   ; std_string$bytes_match_at
-          local.set 8   ; and_res
-        else
-          bool.const false
-          local.set 8   ; and_res
+          if $L6 void
+            return.lit bool.const true
+          end $L6
         end $L5
-        local.get 8   ; and_res
-        if $L6 void
-          return.lit bool.const true
-        end $L6
         local.get 7   ; i
         i64.const 1
         i64.add

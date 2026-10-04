@@ -6,7 +6,6 @@ export main 0
 fn 0 snippet$main () -> i32
   local n i32
   local a i32
-  local and_res bool
   i32.const 21
   local.tee 0   ; n
   call 1   ; snippet_helper$scale_two
@@ -21,15 +20,10 @@ fn 0 snippet$main () -> i32
     local.get 0   ; n
     i32.const 42
     i32.eq
-    local.set 2   ; and_res
-  else
-    bool.const false
-    local.set 2   ; and_res
+    if $L1 void
+      return.lit i32.const 0
+    end $L1
   end $L0
-  local.get 2   ; and_res
-  if $L1 void
-    return.lit i32.const 0
-  end $L1
   return.lit i32.const 1
 end
 

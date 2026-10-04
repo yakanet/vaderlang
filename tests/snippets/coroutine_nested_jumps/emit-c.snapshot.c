@@ -1306,9 +1306,8 @@ static void* snippet___genstate_stop_at_three_Iterator_next(void* l0) {
 }
 
 static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
-    int32_t l1, l2, l3, l4, l5, l7, l8, l9, l10, l11, l12, l13, l15, l16;
+    int32_t l1, l2, l3, l4, l5, l7, l8, l9, l10, l11, l12, l13, l14, l15;
     uint8_t l6;
-    bool l14;
     int32_t t0, t2;
     void* t1 = NULL;
     void** gc_raw_roots[2] = { &l0, &t1 };
@@ -1401,24 +1400,21 @@ static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
                             t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
 #line 59 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             t2 = vader_mod_i32(t0, INT32_C(2));
-                            l14 = t2 == INT32_C(1);
-                        } else {
-                            l14 = false;
-                        }
-                        if (l14) {
+                            if (t2 == INT32_C(1)) {
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                            l15 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
+                                l14 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
 #line 60 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                            ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s3 = l15;
+                                ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s3 = l14;
 #line 61 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                            break;
+                                break;
 #line 59 "tests/snippets/coroutine_nested_jumps/_main.vader"
+                            }
                         }
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
 #line 55 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                        l16 = (t0 + INT32_C(1));
-                        ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4 = l16;
+                        l15 = (t0 + INT32_C(1));
+                        ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4 = l15;
                         continue;
                     }
                     break;

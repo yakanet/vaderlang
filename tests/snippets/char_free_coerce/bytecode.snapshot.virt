@@ -24,10 +24,9 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local bs ref
-  local and_res bool
   local delta u8
   local __off_1 usize
-  local $cast_38 u64
+  local $cast_36 u64
   string.const 0   ; "a/9"
   call.import 1   ; std_core$bytes
   local.tee 0   ; bs
@@ -53,16 +52,11 @@ fn 0 snippet$main () -> i32
     ref.cast 3   ; u8
     i32.const 57
     u32.le
-    local.set 1   ; and_res
-  else
-    bool.const false
-    local.set 1   ; and_res
+    if $L2 void
+      string.const 2   ; "digit"
+      call 8   ; std_io$println__string
+    end $L2
   end $L1
-  local.get 1   ; and_res
-  if $L2 void
-    string.const 2   ; "digit"
-    call 8   ; std_io$println__string
-  end $L2
   i32.const 1
   i32.const 31
   i32.shl
@@ -80,27 +74,27 @@ fn 0 snippet$main () -> i32
   i32.sub
   i32.const 255
   i32.bitand
-  local.set 2   ; delta
+  local.set 1   ; delta
   i64.const 28
   call 2   ; std_core$new_byte_buffer
   local.set 0   ; bs
   i64.const 0
-  local.set 3   ; __off_1
+  local.set 2   ; __off_1
   local.get 0   ; bs
-  local.get 3   ; __off_1
+  local.get 2   ; __off_1
   string.const 4   ; "delta = "
   call 4   ; std_core$write_string_at
-  local.set 3   ; __off_1
-  local.get 2   ; delta
+  local.set 2   ; __off_1
+  local.get 1   ; delta
   u8.to_i64
-  local.set 4   ; $cast_38
+  local.set 3   ; $cast_36
   local.get 0   ; bs
-  local.get 3   ; __off_1
-  local.get 4   ; $cast_38
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_36
   call 5   ; std_core$write_unsigned
-  local.set 3   ; __off_1
+  local.set 2   ; __off_1
   local.get 0   ; bs
-  local.get 3   ; __off_1
+  local.get 2   ; __off_1
   call 3   ; std_core$finish_buffer
   call 8   ; std_io$println__string
   char.const 65
