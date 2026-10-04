@@ -201,15 +201,8 @@ static inline size_t vader_atom_len(vader_atom_t a) {
 }
 
 /* Intern canonical bytes — returns the atom whose bytes equal `data[0..len]`.
- * On a hash miss, copies the bytes into a fresh owner buffer.
- *
- * `_take` variant : on miss, transfers ownership of the passed buffer
- *  into the new entry (no extra copy). The buffer MUST be malloc'd with
- *  `len + 1` bytes ; the runtime writes `buf[len] = '\0'` for the inline
- *  NUL contract. On hit, `_take` frees the passed buffer and returns the
- *  canonical atom. */
+ * On a hash miss, copies the bytes into a fresh owner buffer. */
 vader_atom_t vader_atom_intern(const char* data, size_t len);
-vader_atom_t vader_atom_intern_take(char* buf, size_t len);
 
 /* Slice — installs (or finds) an atom whose bytes equal
  * `entry(parent).data[offset..offset+len]`. Dedupe runs against the

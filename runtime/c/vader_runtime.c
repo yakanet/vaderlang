@@ -861,15 +861,17 @@ static uint64_t vader_atom_hash64(const char* data, size_t len) {
  * on miss. The empty-slot sentinel in `buckets[]` is also 0 ; callers
  * short-circuit len==0 before reaching this so the sentinel can never
  * collide with a real hit. `bucket_capacity` is a power of two — mask
- * trick replaces a modulo. */
-static vader_atom_t vader_atom_lookup(const char* data, size_t len, vader_u32_t hash) {
+ * trick replaces a modulo. `e->hash` is the FNV-64 of the entry's bytes
+ * (comptime atoms get theirs at init, before any lookup), so a hash mismatch
+ * rules an entry out without reading its bytes. */
+static vader_atom_t vader_atom_lookup(const char* data, size_t len, uint64_t hash) {
     const vader_u32_t mask = g_atoms.bucket_capacity - 1u;
-    vader_u32_t idx = hash & mask;
+    vader_u32_t idx = (vader_u32_t) hash & mask;
     for (;;) {
         vader_atom_t a = g_atoms.buckets[idx];
         if (a == VADER_ATOM_EMPTY) return VADER_ATOM_EMPTY;
         const vader_atom_entry_t* e = &vader_atom_entries[a];
-        if (e->len == len && memcmp(e->data, data, len) == 0) {
+        if (e->hash == hash && e->len == len && memcmp(e->data, data, len) == 0) {
             return a;
         }
         idx = (idx + 1u) & mask;
@@ -970,31 +972,12 @@ vader_atom_t vader_atom_intern(const char* data, size_t len) {
     if (len == 0) return VADER_ATOM_EMPTY;
 
     uint64_t hash = vader_atom_hash64(data, len);
-    vader_atom_t found = vader_atom_lookup(data, len, (vader_u32_t) hash);
+    vader_atom_t found = vader_atom_lookup(data, len, hash);
     if (found != VADER_ATOM_EMPTY) return found;
 
     char* buf = (char*) malloc(len + 1u);
     if (buf == NULL) vader_trap("vader_atom_intern: buffer malloc failed");
     memcpy(buf, data, len);
-    buf[len] = '\0';
-    return vader_atom_install_owner(buf, len, hash);
-}
-
-vader_atom_t vader_atom_intern_take(char* buf, size_t len) {
-    if (len == 0) {
-        free(buf);
-        return VADER_ATOM_EMPTY;
-    }
-
-    uint64_t hash = vader_atom_hash64(buf, len);
-    vader_atom_t found = vader_atom_lookup(buf, len, (vader_u32_t) hash);
-    if (found != VADER_ATOM_EMPTY) {
-        free(buf);
-        return found;
-    }
-
-    /* Caller MUST have allocated `buf` with `malloc(len + 1)` so the
-     * inline NUL fits. */
     buf[len] = '\0';
     return vader_atom_install_owner(buf, len, hash);
 }
@@ -1029,7 +1012,7 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
      * sharing different bytes that happen to compare equal). */
     const char* candidate = vader_atom_entries[root].data + root_offset;
     uint64_t hash         = vader_atom_hash64(candidate, len);
-    vader_atom_t found    = vader_atom_lookup(candidate, len, (vader_u32_t) hash);
+    vader_atom_t found    = vader_atom_lookup(candidate, len, hash);
     if (found != VADER_ATOM_EMPTY) return found;
 
     /* Miss — install as slice atom borrowing from the root owner. No
@@ -3492,8 +3475,8 @@ vader_array_t* vader_string_bytes_view(vader_string_t s, uint32_t arr_type, uint
 /* Inverse of `vader_string_bytes_view` — see the header. A borrowed view
  * aliases `owner[offset .. offset+len]`, so `vader_atom_slice` reinterprets
  * those bytes as a string atom in O(1) (intern-deduped, no copy of the byte
- * storage). A materialised `u8[]` (rare — e.g. a built array) is gathered
- * byte-by-byte and interned. Bytes are taken verbatim ; no UTF-8 validation. */
+ * storage). A materialised `u8[]` (e.g. a built array) is interned straight
+ * from its slots. Bytes are taken verbatim ; no UTF-8 validation. */
 vader_string_t vader_string_as_string(vader_array_t* a) {
     a = vader_array_resolve(a);
     size_t len = a->length;
@@ -3501,17 +3484,12 @@ vader_string_t vader_string_as_string(vader_array_t* a) {
     if (vader_array_is_borrowed(a)) {
         return vader_atom_slice(vader_array_borrowed_owner(a), a->offset, len);
     }
-    /* Materialised KIND_U8 buffer : read the slots directly and intern a copy.
-     * No Vader alloc in the loop (`malloc` is host), so `a->buf` stays valid
-     * once resolved (the header was already resolved above). */
+    /* Materialised KIND_U8 buffer : interning allocates nothing on the Vader
+     * heap (its copy on a miss is `malloc`), so the resolved slots stay put
+     * while it reads them. */
     vader_array_resolve_buf(a);
-    char* buf = (char*) malloc(len + 1u);
-    if (buf == NULL) vader_trap("vader_string_as_string: buffer malloc failed");
-    const uint8_t* src = (const uint8_t*) a->buf->slots;
-    for (size_t i = 0; i < len; i++) {
-        buf[i] = (char) src[a->offset + i];
-    }
-    return vader_atom_intern_take(buf, len);
+    const char* src = (const char*) a->buf->slots;
+    return vader_atom_intern(src + a->offset, len);
 }
 
 /* Box the host argv into a `[string]` Vader array. Called from emitted main
