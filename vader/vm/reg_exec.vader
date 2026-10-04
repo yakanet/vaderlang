@@ -509,8 +509,39 @@ reg_call :: fn(
             .Call | .CallIndirect | .VirtualCall -> {
                 at :: base + usize(operand_b(w))
                 index: i32 = operand_a(w)
-                if op != .Call {
-                    resolved :: resolve_dynamic_call(state, m, f, pc, op, w, at, is_comptime)
+                if op == .CallIndirect {
+                    // Resolved here rather than in a helper: a fn that may build a
+                    // `Trap` carries a GC frame on every call (`compute_may_alloc`).
+                    // The fn value sits above the arguments ; an environment it
+                    // carries becomes the first.
+                    arity :: usize(operand_c(w))
+                    value :: refs[at + arity]
+                    if tags[at + arity] == .Ref && value is FnVal {
+                        target :: value.function_index
+                        env :: value.env
+                        expected :: if env != null { arity + 1 } else { arity }
+                        in_range :: target >= 0 && usize(target) < code.functions.len()
+                        if in_range && code.functions[usize(target)].params == expected {
+                            if env != null {
+                                i := arity
+                                for i > 0 {
+                                    to :: at + i
+                                    bits[to] = bits[to - 1]
+                                    tags[to] = tags[to - 1]
+                                    refs[to] = refs[to - 1]
+                                    i -= 1
+                                }
+                                set_register(m, at, env)
+                            }
+                            index = target
+                        } else {
+                            return indirect_call_trap(code, m, at, arity, f.origin[pc])
+                        }
+                    } else {
+                        return indirect_call_trap(code, m, at, arity, f.origin[pc])
+                    }
+                } else if op == .VirtualCall {
+                    resolved :: resolve_virtual(state, m, f, pc, at, is_comptime)
                     if resolved is Trap {
                         return resolved
                     }
@@ -660,55 +691,39 @@ narrow_register :: fn(m: RegMachine!, at: usize, width: i32) -> void {
     m.tags[at] = .I32
 }
 
-// The function a `call.indirect` or `virtual.call` at `pc` reaches, its arguments
-// rearranged from register `at` the way that callee's parameters read them ; `-1`
-// when a host primitive impl served the call, its result already in `at`.
-resolve_dynamic_call :: fn(
-    state: VmState, m: RegMachine!, f: RegFunction, pc: usize, op: RegOp, w: i64, at: usize, is_comptime: bool,
-) -> i32 | Trap {
-    origin :: f.origin[pc]
-    if op == .CallIndirect {
-        return resolve_indirect(state, m, operand_a(w), at, usize(operand_c(w)), origin)
-    }
-    site :: usize(operand_a(w))
-    return resolve_virtual(state, m, f.virtuals[site], f.virtual_rows[site], at, origin, is_comptime)
-}
-
-// The fn value above `arity` arguments from `at` ; an environment it carries
-// becomes the first argument, the others moving up one register.
-resolve_indirect :: fn(state: VmState, m: RegMachine!, type_id: i32, at: usize, arity: usize, origin: i32) -> i32 | Trap {
+// Why the fn value above `arity` arguments from `at` cannot be called — the
+// `call.indirect` arm turned it down, on the same tests: not a fn, an index out
+// of range, or an arity its callee does not declare.
+indirect_call_trap :: fn(code: RegModule, m: RegMachine, at: usize, arity: usize, origin: i32) -> Trap {
     value :: read_fn(register_value(m, at + arity), origin, "call.indirect receiver")
     if value is Trap {
         return value
     }
-    checked :: validate_fn_index(value.function_index, state.bc.functions, origin, "call.indirect")
-    if checked is Trap {
-        return checked
+    target :: value.function_index
+    if target < 0 || usize(target) >= code.functions.len() {
+        return fn_index_trap(target, origin, "call.indirect")
     }
-    callee :: state.bc.functions[usize(value.function_index)]
-    env :: value.env
-    expected :: if env != null { arity + 1 } else { arity }
-    declared :: callee.signature.params.len()
-    if declared != expected {
-        incl :: if env != null { " (incl. env)" } else { "" }
-        return Trap { .message = "call.indirect arity mismatch at pc=${origin}: caller supplied ${expected}${incl} but '${callee.name}' declares ${declared} param(s)" }
-    }
-    if env != null {
-        i := arity
-        for i > 0 {
-            move_register(m, at + i, at + i - 1)
-            i -= 1
-        }
-        set_register(m, at, env)
-    }
-    return value.function_index
+    callee :: code.functions[usize(target)]
+    expected :: if value.env != null { arity + 1 } else { arity }
+    incl :: if value.env != null { " (incl. env)" } else { "" }
+    return Trap { .message = "call.indirect arity mismatch at pc=${origin}: caller supplied ${expected}${incl} but '${callee.name}' declares ${callee.params} param(s)" }
 }
 
-// The impl behind a `virtual.call` for the receiver on top of its arguments,
-// moved to `at` ahead of them ; `-1` when a host primitive impl served it.
+// The impl behind the `virtual.call` at `pc` for the receiver on top of its
+// arguments, moved to `at` ahead of them ; `-1` when a host primitive impl served
+// it.
 resolve_virtual :: fn(
-    state: VmState, m: RegMachine!, call: bc.VirtualCall, row: i32, at: usize, origin: i32, is_comptime: bool,
+    state: VmState,
+    m: RegMachine!,
+    f: RegFunction,
+    pc: usize,
+    at: usize,
+    is_comptime: bool,
 ) -> i32 | Trap {
+    site :: usize(operand_a(f.words[pc]))
+    call :: f.virtuals[site]
+    row :: f.virtual_rows[site]
+    origin :: f.origin[pc]
     count :: usize(call.parameter_count)
     top :: at + count - 1
     receiver :: register_value(m, top)
@@ -897,7 +912,13 @@ defer_thunk :: fn(state: VmState, closure: Value, origin: i32, label: string) ->
 
 // Run a deferred closure, its environment in register `at`.
 run_thunk :: fn(
-    state: VmState, code: RegModule, m: RegMachine!, thunk: FnVal!, at: usize, depth: usize, resume: usize,
+    state: VmState,
+    code: RegModule,
+    m: RegMachine!,
+    thunk: FnVal!,
+    at: usize,
+    depth: usize,
+    resume: usize,
     is_comptime: bool,
 ) -> Trap | null {
     reserve_registers(m, at + 1)

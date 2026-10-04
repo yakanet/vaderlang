@@ -342,8 +342,8 @@ export read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
 }
 
 
-/// Unwrap a `FnVal` from a `Value`. Used by the `CallIndirect` arm
-/// to recover the function reference on top of the stack.
+/// Unwrap a `FnVal` from a `Value`, or the trap naming what was found
+/// instead — for a call through a fn value.
 export read_fn :: fn(v: Value, at_pc: i32, label: string) -> FnVal | Trap {
     if v is FnVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected fn, got ${describe_value_tag(v)}" }
