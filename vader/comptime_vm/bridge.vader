@@ -83,7 +83,7 @@ array_to_comptime :: fn(array: Vm.ArrayVal, ty: Type, span: Span) -> Ct.Comptime
     elem_ty :: array_element_type(ty)
     elements: Ct.ComptimeValue[]!: []
     for i in 0..<array.length {
-        bridged :: value_to_comptime(array.elements[array.offset + i], elem_ty, span)
+        bridged :: value_to_comptime(Vm.element_at(array, array.offset + i), elem_ty, span)
         if bridged is Diagnostic { return bridged }
         elements.push(bridged)
     }

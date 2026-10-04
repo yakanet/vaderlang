@@ -179,22 +179,18 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = I32Val(i32(bs[idx])) }
     }
     .BytesToString -> {
-        // bytes→string : the VM gathers the boxed u8 slots into a real `u8[]` and
-        // lets the native intern them verbatim (no UTF-8 validation). Native
-        // O(1)-reinterprets a borrowed slice.
+        // bytes→string : the native interns the bytes verbatim (no UTF-8
+        // validation) — straight from the view a `s.bytes()` reads, else
+        // gathered out of the boxed u8 slots.
         arr :: read_array(stack[arg_base], at_pc, "bytes_to_string receiver")
         if arr is Trap { return arr }
-        raw: u8[]!: []
-        for i in 0..<arr.length {
-            b :: read_i32(arr.elements[arr.offset + i], at_pc, "bytes_to_string byte")
-            if b is Trap { return b }
-            raw.push(u8(b))
+        bs :: array_bytes(arr, arr.length, at_pc, "bytes_to_string byte")
+        if bs is Trap {
+            return bs
         }
-        return HostOk { .value = StringVal(raw.bytes_to_string()) }
+        return HostOk { .value = StringVal(bs.bytes_to_string()) }
     }
     .Bytes -> {
-        // Native zero-copies a read-only `u8[]` view ; the VM materialises a copy
-        // (boxed slots can't alias the interned bytes) — same values.
         s :: read_string(stack[arg_base], at_pc, "bytes receiver")
         if s is Trap { return s }
         return HostOk { .value = bytes_to_value(string(s), u8_array_type_id) }
@@ -346,12 +342,11 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         // A VM array holds boxed `Value`s, not contiguous bytes, so both are
         // materialised into real `u8[]`. The host takes their address right
         // before the call, and nothing runs in between.
-        desc: u8[]!: []
-        for i in 0..<desc_arr.length {
-            b :: read_i64(desc_arr.elements[desc_arr.offset + i], at_pc, "ffi_call desc byte")
-            if b is Trap { return b }
-            desc.push(u8(b))
+        desc :: array_bytes(desc_arr, desc_arr.length, at_pc, "ffi_call desc byte")
+        if desc is Trap {
+            return desc
         }
+        own_bytes(frame_arr)
         frame: u8[]!: []
         for i in 0..<frame_arr.length {
             b :: read_i64(frame_arr.elements[frame_arr.offset + i], at_pc, "ffi_call frame byte")
@@ -416,6 +411,24 @@ is_std_handle_symbol :: fn(symbol: string) -> bool = symbol == "GetStdHandle"
 /// @return       1 for stdout, 2 for stderr.
 debug_std_descriptor :: fn(which: i64) -> i64 = if which == 0xFFFF_FFF4 { 2 } else { 1 }
 
+// The first `count` bytes of `a` as a `u8[]`: the bytes it reads in place when it
+// views a string, else its boxed slots gathered.
+array_bytes :: fn(a: ArrayVal, count: usize, at_pc: i32, label: string) -> u8[] | Trap {
+    raw :: a.raw
+    if raw != null {
+        return raw[a.offset..<a.offset + count]
+    }
+    bs: u8[]!: []
+    for i in 0..<count {
+        b :: read_i64(a.elements[a.offset + i], at_pc, label)
+        if b is Trap {
+            return b
+        }
+        bs.push(u8(b))
+    }
+    return bs
+}
+
 /// Route a `sys_write` through the debugger's output sink instead of the real
 /// descriptor, and report the full count as written.
 ///
@@ -438,11 +451,9 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
     if count < 0 || usize(count) > arr.length {
         return Trap { .message = "sys_write at pc=${at_pc}: count ${i64(count)} exceeds the buffer" }
     }
-    bs: u8[]!: []
-    for i in 0..<usize(count) {
-        b :: read_i64(arr.elements[arr.offset + i], at_pc, "sys_write byte")
-        if b is Trap { return b }
-        bs.push(u8(b))
+    bs :: array_bytes(arr, usize(count), at_pc, "sys_write byte")
+    if bs is Trap {
+        return bs
     }
     debug.output_sink(i32(fd) - 1, bytes_to_string(bs))
     // `WriteFile` answers a bool, `write` a byte count.
@@ -590,15 +601,22 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             desc.push(u8(FFI_ADDR))
             addr_slots.push(i64(slot_words.len()))
             slot_words.push(i64(data.len()))
-            borrowed.push(LentArray { .target = v, .at = data.len(), .element = elem })
-            for j in 0..<v.length {
-                cell :: v.elements[v.offset + j]
-                b :: if cell is I64Val { i64(cell) } else if cell is I32Val { i64(cell) } else {
-                    failed :: read_i64(cell, at_pc, "extern `${info.extern_name}` element")
-                    if failed is Trap { return failed }
-                    i64(failed)
+            raw :: v.raw
+            if raw != null {
+                // A string's own bytes, read-only as the native view is: lent as
+                // they are, and nothing travels back.
+                data.push_all(raw[v.offset..<v.offset + v.length])
+            } else {
+                borrowed.push(LentArray { .target = v, .at = data.len(), .element = elem })
+                for j in 0..<v.length {
+                    cell :: v.elements[v.offset + j]
+                    b :: if cell is I64Val { i64(cell) } else if cell is I32Val { i64(cell) } else {
+                        failed :: read_i64(cell, at_pc, "extern `${info.extern_name}` element")
+                        if failed is Trap { return failed }
+                        i64(failed)
+                    }
+                    push_little_endian(data, b, width)
                 }
-                push_little_endian(data, b, width)
             }
         } else if v is StringVal {
             // A `string` crosses as a NUL-terminated buffer in the frame's data

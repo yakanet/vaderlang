@@ -57,34 +57,25 @@ export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
 
-/// Box a string's UTF-8 bytes as an `ArrayVal` of `u8` values — the VM's
-/// copy fallback for `std/string::bytes`. The native target returns a
-/// zero-copy read-only `u8[]` view aliasing the interned bytes ; the VM boxes
-/// every slot so it cannot alias a raw buffer and materialises a copy
-/// (same observable values). `u8` rides in `I32Val` (see `coerce_i32`).
+/// A string's UTF-8 bytes as a `u8[]` `ArrayVal` — `std/string::bytes` on the
+/// VM. Like the native view, it reads the interned bytes in place (`raw`)
+/// instead of boxing a copy: a loop that takes `s.bytes()` on each turn stays
+/// linear. A slot reads back as an `I32Val`.
 ///
 /// `type_id` must be the module's `u8[]` `ArrayType` index (see
 /// `find_u8_array_type_id`) so the result narrows under an `is u8[]` test.
 /// @param s        source string.
 /// @param type_id  the module's `u8[]` ArrayType index, or 0 when absent.
-/// @return         an `ArrayVal` whose elements are the UTF-8 bytes of `s`.
+/// @return         an `ArrayVal` reading the UTF-8 bytes of `s`.
 export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
-    elements: Value[]!: []
-    for b in s.bytes() { elements.push(I32Val(i32(b))) }
-    return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
-}
-
-/// Box a raw `u8[]` as an `ArrayVal` of `u8` values — the VM wrapper for a
-/// host call that returns bytes (`std/io::read_file_bytes`). Sibling of
-/// `bytes_to_value`, but the source is already a byte array rather than a
-/// string. `u8` rides in `I32Val` (see `coerce_i32`).
-/// @param bs       source bytes.
-/// @param type_id  the module's `u8[]` ArrayType index (see `find_u8_array_type_id`).
-/// @return         an `ArrayVal` whose elements are the bytes of `bs`.
-export u8_array_to_value :: fn(bs: u8[], type_id: i32) -> ArrayVal {
-    elements: Value[]!: []
-    for b in bs { elements.push(I32Val(i32(b))) }
-    return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
+    raw :: s.bytes()
+    return ArrayVal {
+        .type_id = type_id,
+        .elements = [],
+        .offset = 0,
+        .length = raw.len(),
+        .raw = raw,
+    }
 }
 
 /// Locate the module's `string[]` `ArrayType` index — the type id a
@@ -332,15 +323,16 @@ export is_array_view :: fn(a: ArrayVal) -> bool {
 ///
 /// @param a  the array to detach; mutated in place.
 export detach_array_view :: fn(a: ArrayVal!) -> void {
-    if !is_array_view(a) {
+    if a.raw == null && !is_array_view(a) {
         return
     }
     fresh: Value[]!: [] * a.length
     for j in 0..<a.length {
-        fresh.push(a.elements[a.offset + j])
+        fresh.push(element_at(a, a.offset + j))
     }
     a.elements = fresh
     a.offset = 0
+    a.raw = null
 }
 
 /// Unwrap a `BoolVal` from a `Value`. Used by the boolean op arms.
@@ -669,6 +661,29 @@ export ArrayVal :: struct {
     elements: Value[]!
     offset:   usize
     length:   usize
+    /// The bytes a `u8[]` reads in place of `elements` — a string's
+    /// `s.bytes()`, never copied — or null. A write or a push owns them first
+    /// (`own_bytes`); `offset` and `length` index into them as into `elements`.
+    raw: u8[] | null = null
+}
+
+/// Slot `at` of `a`'s backing, `offset` included.
+export element_at :: fn(a: ArrayVal, at: usize) -> Value {
+    raw :: a.raw
+    if raw != null {
+        return I32Val(i32(raw[at]))
+    }
+    return a.elements[at]
+}
+
+/// Give `a` boxed elements of its own in place of the bytes it reads — before
+/// anything writes or grows it. A no-op when it reads none.
+///
+/// @param a  the array; mutated in place.
+export own_bytes :: fn(a: ArrayVal!) -> void {
+    if a.raw != null {
+        detach_array_view(a)
+    }
 }
 
 /// Function-reference payload — the runtime value pushed by `fn.ref`
@@ -800,7 +815,7 @@ ArrayVal implements Display {
         sb.append("[")
         for i in 0..<self.length {
             if i > 0 { sb.append(", ") }
-            sb.append(display_value(self.elements[self.offset + i]))
+            sb.append(display_value(element_at(self, self.offset + i)))
         }
         sb.append("]")
         return "${sb}"
@@ -828,4 +843,32 @@ export display_value :: fn(v: Value) -> string = match v {
     is ErrorVal -> v.to_string()
     is TypeVal -> v.to_string()
     is ObjVal -> v.to_string()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_bytes_view_reads_the_string_without_a_copy :: fn() -> void {
+    a :: bytes_to_value("héllo", 0)
+    assert_eq(a.length, 6)
+    assert_eq(a.elements.len(), 0)
+    assert_eq(display_value(element_at(a, 1)), "195")
+}
+
+@test
+test_bytes_view_owns_its_window_before_a_write :: fn() -> void {
+    a :: ArrayVal {
+        .type_id = 0,
+        .elements = [],
+        .offset = 1,
+        .length = 2,
+        .raw = "abc".bytes(),
+    }
+    own_bytes(a)
+    assert(a.raw == null, "the view is gone")
+    assert_eq(a.offset, 0)
+    assert_eq(a.elements.len(), 2)
+    assert_eq(display_value(element_at(a, 0)), "98")
 }

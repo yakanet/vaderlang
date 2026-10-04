@@ -622,6 +622,11 @@ get_element :: fn(
     if index < 0 || usize(index) >= array.length {
         return Trap { .message = "${label} index ${index} out of bounds (len=${array.length}) at pc=${f.origin[pc]}" }
     }
+    raw :: array.raw
+    if raw != null {
+        set_i32(m.bits, m.tags, base, dst, i32(raw[array.offset + usize(index)]))
+        return null
+    }
     set_register(m, base + usize(dst), array.elements[array.offset + usize(index)])
     return null
 }
@@ -639,6 +644,7 @@ set_element :: fn(
     if index < 0 || usize(index) >= array.length {
         return Trap { .message = "${label} index ${index} out of bounds (len=${array.length}) at pc=${f.origin[pc]}" }
     }
+    own_bytes(array)
     array.elements[array.offset + usize(index)] = register_value(m, base + usize(value))
     return null
 }

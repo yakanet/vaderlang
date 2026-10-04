@@ -312,7 +312,7 @@ project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32)
         if v is ArrayVal {
             shown :: if v.length > DEBUG_MAX_ELEMS { DEBUG_MAX_ELEMS } else { v.length }
             for i in 0..<shown {
-                children.push(project_var("[${i}]", v.elements[v.offset + i], bc_mod, depth + 1))
+                children.push(project_var("[${i}]", element_at(v, v.offset + i), bc_mod, depth + 1))
             }
         } else if v is StructVal {
             children = project_struct_fields(v, bc_mod, depth)
@@ -940,6 +940,7 @@ apply_boxed :: fn(
             if array_unwrap.length == 0 {
                 frame.tag[frame.sp - 1] = .Null
             } else {
+                own_bytes(array_unwrap)
                 last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
                 // Shrink the SHARED backing when this array owns the tail —
                 // same rule as `array.clear` below, and as the native
@@ -958,6 +959,7 @@ apply_boxed :: fn(
         is bc.ArrayClear -> {
             array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.clear receiver")
             if array_unwrap is Trap { return array_unwrap }
+            array_unwrap.raw = null
             // Clear the SHARED backing when this array owns it, the way the
             // native runtime shrinks `buf->length` in `vader_array_clear`.
             // `data.const` hands out a FRESH header over the pool entry's

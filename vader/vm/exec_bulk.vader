@@ -40,8 +40,9 @@ exec_array_copy :: fn(frame: Frame!) -> Trap | null {
     // Overlap-safe : snapshot the source window before writing.
     window: Value[]!: [] * n
     for j in 0..<n {
-        window.push(src_unwrap.elements[src_unwrap.offset + ss + j])
+        window.push(element_at(src_unwrap, src_unwrap.offset + ss + j))
     }
+    own_bytes(dst_unwrap)
     for j in 0..<n {
         dst_unwrap.elements[dst_unwrap.offset + ds + j] = window[j]
     }
@@ -73,6 +74,7 @@ exec_array_slice :: fn(frame: Frame!, instr: bc.ArraySlice) -> Trap | null {
             .elements = array_unwrap.elements,
             .offset   = array_unwrap.offset + lo_clamped,
             .length   = hi_clamped - lo_clamped,
+            .raw      = array_unwrap.raw,
         })
     frame.sp = frame.sp - 2
     frame.pc = frame.pc + 1
@@ -90,7 +92,7 @@ exec_array_push_all :: fn(frame: Frame!) -> Trap | null {
     // `push_all(x, x)` (src aliases dst) doubles correctly.
     add :: src_unwrap.length
     for j in 0..<add {
-        dst_unwrap.elements.push(src_unwrap.elements[src_unwrap.offset + j])
+        dst_unwrap.elements.push(element_at(src_unwrap, src_unwrap.offset + j))
     }
     dst_unwrap.length = dst_unwrap.length + add
     frame.sp = frame.sp - 2
@@ -111,7 +113,7 @@ exec_array_repeat :: fn(frame: Frame!) -> Trap | null {
     repeated: Value[]!: [] * slots
     for _ in 0..<count {
         for j in 0..<array_unwrap.length {
-            repeated.push(array_unwrap.elements[array_unwrap.offset + j])
+            repeated.push(element_at(array_unwrap, array_unwrap.offset + j))
         }
     }
     push_val(frame, frame.sp - 2, ArrayVal {
