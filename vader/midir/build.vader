@@ -127,8 +127,6 @@ FnCtx :: struct {
     blocks:          MutableBlock![]!
     loop_stack:      LoopFrame[]!
     current:         BlockId | null
-    /// Entry → exit of every labelled block built so far (`CFGFunction.block_regions`).
-    block_regions:   MutableMap<i32, BlockId> = MutableMap<i32, BlockId> {}
 }
 
 import "vader/comptime"
@@ -498,7 +496,6 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
         .extern_name = meta.extern_name,
         .is_extern   = meta.is_extern,
         .is_exported = meta.is_exported,
-        .block_regions = fn_ctx.block_regions,
     }
 }
 
@@ -660,9 +657,11 @@ build_assign :: fn(fn_ctx: FnCtx!, s: LoweredAssign) -> void {
     return
 }
 
+// A loop with no condition starts its body in its header. A header that only
+// forwards to the body has no test of its own: the C emitter could not write
+// the loop as a `while` when its body opens with `if c { break }`.
 build_loop :: fn(fn_ctx: FnCtx!, s: LoweredLoop) -> void {
     header_id :: new_block(fn_ctx, s.span)
-    body_id :: new_block(fn_ctx, s.body.span)
     exit_id :: new_block(fn_ctx, s.span)
 
     if fn_ctx.current !is null {
@@ -671,18 +670,17 @@ build_loop :: fn(fn_ctx: FnCtx!, s: LoweredLoop) -> void {
 
     fn_ctx.current = header_id
     if s.cond !is null {
-        if !branch_on_and(fn_ctx, s.cond, body_id, exit_id, BlockId(-1)) {
+        body_id :: new_block(fn_ctx, s.body.span)
+        if !branch_on_and(fn_ctx, s.cond, body_id, exit_id) {
             terminate(fn_ctx, TermBranch { .target = exit_id, .span = s.span })
         }
-    } else {
-        terminate(fn_ctx, TermBranch { .target = body_id, .span = s.span })
+        fn_ctx.current = body_id
     }
 
     frame :: LoopFrame {
         .label = s.label, .header_id = header_id, .exit_id = exit_id, .step = s.step,
     }
     fn_ctx.loop_stack.push(frame)
-    fn_ctx.current = body_id
     build_block_body(fn_ctx, s.body)
     if fn_ctx.current !is null {
         build_back_edge(fn_ctx, frame, s.span)
@@ -705,7 +703,6 @@ build_labelled_block :: fn(fn_ctx: FnCtx!, s: LoweredLabelledBlock) -> void {
     if fn_ctx.current !is null {
         terminate(fn_ctx, TermBranch { .target = entry_id, .span = s.span })
     }
-    fn_ctx.block_regions[i32(entry_id)] = exit_id
     fn_ctx.loop_stack.push(LoopFrame {
         .label = s.label, .header_id = exit_id, .exit_id = exit_id, .step = [], .block = true,
     })
@@ -1031,7 +1028,6 @@ build_short_circuit :: fn(fn_ctx: FnCtx!, e: LoweredBinary, dest: LocalId | null
         .cond = lhs,
         .then_block = then_id,
         .else_block = else_id,
-        .join = join_id,
         .span = e.span,
     })
 
@@ -1174,8 +1170,7 @@ build_if :: fn(fn_ctx: FnCtx!, e: LoweredIf, dest: LocalId | null) -> LocalId | 
     join_id :: new_block(fn_ctx, e.span)
 
     terminate(fn_ctx, TermCondBranch {
-        .cond = cond_local, .then_block = then_id, .else_block = else_id,
-        .join = join_id, .span = e.span,
+        .cond = cond_local, .then_block = then_id, .else_block = else_id, .span = e.span,
     })
 
     fn_ctx.current = then_id
@@ -1202,7 +1197,7 @@ build_if :: fn(fn_ctx: FnCtx!, e: LoweredIf, dest: LocalId | null) -> LocalId | 
 build_if_without_else :: fn(fn_ctx: FnCtx!, e: LoweredIf) -> LocalId | null {
     then_id :: new_block(fn_ctx, e.then_block.span)
     join_id :: new_block(fn_ctx, e.span)
-    if branch_on_and(fn_ctx, e.cond, then_id, join_id, join_id) {
+    if branch_on_and(fn_ctx, e.cond, then_id, join_id) {
         fn_ctx.current = then_id
         build_if_arm(fn_ctx, e.then_block, null)
         if fn_ctx.current !is null {
@@ -1218,17 +1213,15 @@ build_if_without_else :: fn(fn_ctx: FnCtx!, e: LoweredIf) -> LocalId | null {
 // Branch to `on_true` when `cond` holds and to `on_false` otherwise, testing each
 // `&&` operand in turn. False when an operand diverged, which leaves `on_true`
 // unreachable.
-branch_on_and :: fn(
-    fn_ctx: FnCtx!, cond: LoweredExpr, on_true: BlockId, on_false: BlockId, join: BlockId,
-) -> bool {
+branch_on_and :: fn(fn_ctx: FnCtx!, cond: LoweredExpr, on_true: BlockId, on_false: BlockId) -> bool {
     if cond is LoweredBinary {
         if cond.op == .And {
             next :: new_block(fn_ctx, cond.right.span_of())
-            if !branch_on_and(fn_ctx, cond.left, next, on_false, join) {
+            if !branch_on_and(fn_ctx, cond.left, next, on_false) {
                 return false
             }
             fn_ctx.current = next
-            return branch_on_and(fn_ctx, cond.right, on_true, on_false, join)
+            return branch_on_and(fn_ctx, cond.right, on_true, on_false)
         }
     }
     local :: build_expr(fn_ctx, cond) ?? return false
@@ -1239,7 +1232,6 @@ branch_on_and :: fn(
         .cond = local,
         .then_block = on_true,
         .else_block = on_false,
-        .join = join,
         .span = cond.span_of(),
     })
     return true

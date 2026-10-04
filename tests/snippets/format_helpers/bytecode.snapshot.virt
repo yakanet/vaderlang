@@ -475,17 +475,15 @@ fn 8 std_io$write (u8,string) -> void
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  block $L0 void
-    loop $L1 void
-      local.get 2   ; buf
-      array.len
-      local.set 4   ; $len_6
-      local.get 3   ; sent
-      local.get 4   ; $len_6
-      u64.ge
-      if $L2 void
-        return
-      end $L2
+  loop $L0 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_6
+    local.get 3   ; sent
+    local.get 4   ; $len_6
+    u64.ge
+    if $L1 void
+    else
       local.get 2   ; buf
       array.len
       local.set 5   ; $len_8
@@ -503,9 +501,9 @@ fn 8 std_io$write (u8,string) -> void
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L3 void
+      if $L2 void
         return
-      end $L3
+      end $L2
       local.get 8   ; n
       i32.to_i64
       local.set 9   ; $cast_16
@@ -513,7 +511,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 9   ; $cast_16
       i64.add
       local.set 3   ; sent
-      br $L1
+      br $L0
     end $L1
   end $L0
   return
@@ -566,21 +564,19 @@ fn 11 std_string$pad_start (string,usize,char) -> string
   array.new 13 0   ; string[]
   struct.new 12   ; std_string_builder$StringBuilder
   local.set 4   ; sb
-  block $L1 void
-    loop $L2 void
+  loop $L1 void
+    local.get 3   ; n
+    local.get 1   ; arg 1
+    u64.lt
+    if $L2 void
+      local.get 4   ; sb
+      local.get 2   ; arg 2
+      call 17   ; std_string_builder$append_char
       local.get 3   ; n
-      local.get 1   ; arg 1
-      u64.lt
-      if $L3 void
-        local.get 4   ; sb
-        local.get 2   ; arg 2
-        call 17   ; std_string_builder$append_char
-        local.get 3   ; n
-        i64.const 1
-        i64.add
-        local.set 3   ; n
-        br $L2
-      end $L3
+      i64.const 1
+      i64.add
+      local.set 3   ; n
+      br $L1
     end $L2
   end $L1
   local.get 4   ; sb
@@ -608,21 +604,19 @@ fn 12 std_string$pad_end (string,usize,char) -> string
   local.tee 4   ; sb
   local.get 0   ; arg 0
   call 18   ; std_string_builder$append
-  block $L1 void
-    loop $L2 void
+  loop $L1 void
+    local.get 3   ; n
+    local.get 1   ; arg 1
+    u64.lt
+    if $L2 void
+      local.get 4   ; sb
+      local.get 2   ; arg 2
+      call 17   ; std_string_builder$append_char
       local.get 3   ; n
-      local.get 1   ; arg 1
-      u64.lt
-      if $L3 void
-        local.get 4   ; sb
-        local.get 2   ; arg 2
-        call 17   ; std_string_builder$append_char
-        local.get 3   ; n
-        i64.const 1
-        i64.add
-        local.set 3   ; n
-        br $L2
-      end $L3
+      i64.const 1
+      i64.add
+      local.set 3   ; n
+      br $L1
     end $L2
   end $L1
   local.get 4   ; sb
@@ -689,26 +683,24 @@ fn 14 std_numbers$to_hex (u64) -> string
   local.set 2   ; base
   local.get 0   ; arg 0
   local.set 3   ; x
-  block $L1 void
-    loop $L2 void
+  loop $L1 void
+    local.get 3   ; x
+    i64.const 0
+    u64.gt
+    if $L2 void
       local.get 3   ; x
-      i64.const 0
-      u64.gt
-      if $L3 void
-        local.get 3   ; x
-        local.get 2   ; base
-        u64.rem
-        call 16   ; std_numbers$hex_digit
-        local.set 4   ; $call_12
-        local.get 1   ; rev
-        local.get 4   ; $call_12
-        array.push 3 1   ; char rev
-        local.get 3   ; x
-        local.get 2   ; base
-        u64.div
-        local.set 3   ; x
-        br $L2
-      end $L3
+      local.get 2   ; base
+      u64.rem
+      call 16   ; std_numbers$hex_digit
+      local.set 4   ; $call_12
+      local.get 1   ; rev
+      local.get 4   ; $call_12
+      array.push 3 1   ; char rev
+      local.get 3   ; x
+      local.get 2   ; base
+      u64.div
+      local.set 3   ; x
+      br $L1
     end $L2
   end $L1
   array.new 13 0   ; string[]
@@ -719,33 +711,31 @@ fn 14 std_numbers$to_hex (u64) -> string
   local.set 6   ; n
   i64.const 0
   local.set 7   ; k
-  block $L4 void
-    loop $L5 void
-      local.get 7   ; k
+  loop $L3 void
+    local.get 7   ; k
+    local.get 6   ; n
+    u64.lt
+    if $L4 void
       local.get 6   ; n
-      u64.lt
-      if $L6 void
-        local.get 6   ; n
-        i64.const 1
-        i64.sub
-        local.get 7   ; k
-        i64.sub
-        local.set 8   ; $sub_24
-        local.get 1   ; rev
-        local.get 8   ; $sub_24
-        load_slot_i32
-        local.set 4   ; $call_12
-        local.get 5   ; sb
-        local.get 4   ; $call_12
-        call 17   ; std_string_builder$append_char
-        local.get 7   ; k
-        i64.const 1
-        i64.add
-        local.set 7   ; k
-        br $L5
-      end $L6
-    end $L5
-  end $L4
+      i64.const 1
+      i64.sub
+      local.get 7   ; k
+      i64.sub
+      local.set 8   ; $sub_24
+      local.get 1   ; rev
+      local.get 8   ; $sub_24
+      load_slot_i32
+      local.set 4   ; $call_12
+      local.get 5   ; sb
+      local.get 4   ; $call_12
+      call 17   ; std_string_builder$append_char
+      local.get 7   ; k
+      i64.const 1
+      i64.add
+      local.set 7   ; k
+      br $L3
+    end $L4
+  end $L3
   local.get 5   ; sb
   call 19   ; std_string_builder$StringBuilder$Display$to_string
   return
@@ -772,32 +762,30 @@ fn 15 std_numbers$to_bin (u64) -> string
   local.set 2   ; two
   local.get 0   ; arg 0
   local.set 3   ; x
-  block $L1 void
-    loop $L2 void
+  loop $L1 void
+    local.get 3   ; x
+    i64.const 0
+    u64.gt
+    if $L2 void
       local.get 3   ; x
+      local.get 2   ; two
+      u64.rem
       i64.const 0
-      u64.gt
+      i64.eq
       if $L3 void
-        local.get 3   ; x
-        local.get 2   ; two
-        u64.rem
-        i64.const 0
-        i64.eq
-        if $L4 void
-          local.get 1   ; rev
-          char.const 48
-          array.push 3 1   ; char rev
-        else
-          local.get 1   ; rev
-          char.const 49
-          array.push 3 1   ; char rev
-        end $L4
-        local.get 3   ; x
-        local.get 2   ; two
-        u64.div
-        local.set 3   ; x
-        br $L2
+        local.get 1   ; rev
+        char.const 48
+        array.push 3 1   ; char rev
+      else
+        local.get 1   ; rev
+        char.const 49
+        array.push 3 1   ; char rev
       end $L3
+      local.get 3   ; x
+      local.get 2   ; two
+      u64.div
+      local.set 3   ; x
+      br $L1
     end $L2
   end $L1
   array.new 13 0   ; string[]
@@ -808,33 +796,31 @@ fn 15 std_numbers$to_bin (u64) -> string
   local.set 5   ; n
   i64.const 0
   local.set 6   ; k
-  block $L5 void
-    loop $L6 void
-      local.get 6   ; k
+  loop $L4 void
+    local.get 6   ; k
+    local.get 5   ; n
+    u64.lt
+    if $L5 void
       local.get 5   ; n
-      u64.lt
-      if $L7 void
-        local.get 5   ; n
-        i64.const 1
-        i64.sub
-        local.get 6   ; k
-        i64.sub
-        local.set 7   ; $sub_27
-        local.get 1   ; rev
-        local.get 7   ; $sub_27
-        load_slot_i32
-        local.set 8   ; $idx_28
-        local.get 4   ; sb
-        local.get 8   ; $idx_28
-        call 17   ; std_string_builder$append_char
-        local.get 6   ; k
-        i64.const 1
-        i64.add
-        local.set 6   ; k
-        br $L6
-      end $L7
-    end $L6
-  end $L5
+      i64.const 1
+      i64.sub
+      local.get 6   ; k
+      i64.sub
+      local.set 7   ; $sub_27
+      local.get 1   ; rev
+      local.get 7   ; $sub_27
+      load_slot_i32
+      local.set 8   ; $idx_28
+      local.get 4   ; sb
+      local.get 8   ; $idx_28
+      call 17   ; std_string_builder$append_char
+      local.get 6   ; k
+      i64.const 1
+      i64.add
+      local.set 6   ; k
+      br $L4
+    end $L5
+  end $L4
   local.get 4   ; sb
   call 19   ; std_string_builder$StringBuilder$Display$to_string
   return
@@ -924,28 +910,26 @@ fn 19 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 3   ; __for_len_1
   i64.const 0
   local.set 4   ; __for_i_2
-  block $L2 void
-    loop $L3 void
+  loop $L2 void
+    local.get 4   ; __for_i_2
+    local.get 3   ; __for_len_1
+    u64.lt
+    if $L3 void
+      local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      local.get 3   ; __for_len_1
-      u64.lt
-      if $L4 void
-        local.get 2   ; __for_arr_0
-        local.get 4   ; __for_i_2
-        array.get 13   ; string[]
-        ref.cast 2   ; string
-        call.import 0   ; std_core$byte_len
-        local.set 5   ; $call_23
-        local.get 1   ; n
-        local.get 5   ; $call_23
-        i64.add
-        local.set 1   ; n
-        local.get 4   ; __for_i_2
-        i64.const 1
-        i64.add
-        local.set 4   ; __for_i_2
-        br $L3
-      end $L4
+      array.get 13   ; string[]
+      ref.cast 2   ; string
+      call.import 0   ; std_core$byte_len
+      local.set 5   ; $call_23
+      local.get 1   ; n
+      local.get 5   ; $call_23
+      i64.add
+      local.set 1   ; n
+      local.get 4   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 4   ; __for_i_2
+      br $L2
     end $L3
   end $L2
   local.get 1   ; n
@@ -959,36 +943,34 @@ fn 19 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 4   ; __for_i_2
   i64.const 0
   local.set 5   ; $call_23
-  block $L5 void
-    loop $L6 void
+  loop $L4 void
+    local.get 5   ; $call_23
+    local.get 4   ; __for_i_2
+    u64.lt
+    if $L5 void
+      local.get 6   ; __for_arr_3
       local.get 5   ; $call_23
-      local.get 4   ; __for_i_2
-      u64.lt
-      if $L7 void
-        local.get 6   ; __for_arr_3
-        local.get 5   ; $call_23
-        array.get 13   ; string[]
-        ref.cast 2   ; string
-        local.set 7   ; p
-        local.get 2   ; __for_arr_0
-        local.get 3   ; __for_len_1
-        local.get 7   ; p
-        call 22   ; std_core$Buffer$ByteAccess$write_string_vt
-        local.get 7   ; p
-        call.import 0   ; std_core$byte_len
-        local.set 8   ; $call_40
-        local.get 3   ; __for_len_1
-        local.get 8   ; $call_40
-        i64.add
-        local.set 3   ; __for_len_1
-        local.get 5   ; $call_23
-        i64.const 1
-        i64.add
-        local.set 5   ; $call_23
-        br $L6
-      end $L7
-    end $L6
-  end $L5
+      array.get 13   ; string[]
+      ref.cast 2   ; string
+      local.set 7   ; p
+      local.get 2   ; __for_arr_0
+      local.get 3   ; __for_len_1
+      local.get 7   ; p
+      call 22   ; std_core$Buffer$ByteAccess$write_string_vt
+      local.get 7   ; p
+      call.import 0   ; std_core$byte_len
+      local.set 8   ; $call_40
+      local.get 3   ; __for_len_1
+      local.get 8   ; $call_40
+      i64.add
+      local.set 3   ; __for_len_1
+      local.get 5   ; $call_23
+      i64.const 1
+      i64.add
+      local.set 5   ; $call_23
+      br $L4
+    end $L5
+  end $L4
   local.get 2   ; __for_arr_0
   local.get 1   ; n
   call 21   ; std_core$Buffer$ByteAccess$intern_string_vt

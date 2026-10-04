@@ -215,17 +215,15 @@ fn 5 std_io$write (u8,string) -> void
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  block $L0 void
-    loop $L1 void
-      local.get 2   ; buf
-      array.len
-      local.set 4   ; $len_6
-      local.get 3   ; sent
-      local.get 4   ; $len_6
-      u64.ge
-      if $L2 void
-        return
-      end $L2
+  loop $L0 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_6
+    local.get 3   ; sent
+    local.get 4   ; $len_6
+    u64.ge
+    if $L1 void
+    else
       local.get 2   ; buf
       array.len
       local.set 5   ; $len_8
@@ -243,9 +241,9 @@ fn 5 std_io$write (u8,string) -> void
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L3 void
+      if $L2 void
         return
-      end $L3
+      end $L2
       local.get 8   ; n
       i32.to_i64
       local.set 9   ; $cast_16
@@ -253,7 +251,7 @@ fn 5 std_io$write (u8,string) -> void
       local.get 9   ; $cast_16
       i64.add
       local.set 3   ; sent
-      br $L1
+      br $L0
     end $L1
   end $L0
   return
@@ -295,30 +293,28 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
   local.set 2   ; __for_len_1
   i64.const 0
   local.set 3   ; __for_i_2
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 3   ; __for_i_2
+    local.get 2   ; __for_len_1
+    u64.lt
+    if $L1 void
+      local.get 0   ; arg 0
       local.get 3   ; __for_i_2
-      local.get 2   ; __for_len_1
-      u64.lt
+      call.import 3   ; std_core$byte_at
+      i32.const 0
+      i32.eq
       if $L2 void
-        local.get 0   ; arg 0
-        local.get 3   ; __for_i_2
-        call.import 3   ; std_core$byte_at
+        string.const 13   ; "path contains a NUL byte"
         i32.const 0
-        i32.eq
-        if $L3 void
-          string.const 13   ; "path contains a NUL byte"
-          i32.const 0
-          i32.const 0
-          struct.new 11   ; std_io$IOError
-          return
-        end $L3
-        local.get 3   ; __for_i_2
-        i64.const 1
-        i64.add
-        local.set 3   ; __for_i_2
-        br $L1
+        i32.const 0
+        struct.new 11   ; std_io$IOError
+        return
       end $L2
+      local.get 3   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 3   ; __for_i_2
+      br $L0
     end $L1
   end $L0
   local.get 0   ; arg 0
@@ -326,11 +322,11 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
   call.import 9   ; system_posix$sys_fopen
   local.tee 5   ; __coalesce_3
   type_check 0   ; null
-  if $L4 void
+  if $L3 void
     string.const 15   ; "open failed"
     call 8   ; std_io$last_io_error
     return
-  end $L4
+  end $L3
   local.get 5   ; __coalesce_3
   ref.cast 4   ; pointer
   local.set 4   ; f
@@ -338,7 +334,7 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
   array.len
   i64.const 0
   u64.gt
-  if $L5 void
+  if $L4 void
     local.get 1   ; arg 1
     array.len
     local.set 2   ; __for_len_1
@@ -354,7 +350,7 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
     local.get 2   ; __for_len_1
     local.get 3   ; __for_i_2
     i64.ne
-    if $L6 void
+    if $L5 void
       string.const 16   ; "short write"
       call 8   ; std_io$last_io_error
       local.set 6   ; err
@@ -363,17 +359,17 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
       drop
       local.get 6   ; err
       return
-    end $L6
-  end $L5
+    end $L5
+  end $L4
   local.get 4   ; f
   call.import 10   ; system_posix$sys_fclose
   i32.const 0
   i32.ne
-  if $L7 void
+  if $L6 void
     string.const 17   ; "close failed"
     call 8   ; std_io$last_io_error
     return
-  end $L7
+  end $L6
   return.lit null.const
 end
 
@@ -584,30 +580,30 @@ fn 10 std_io$without_trailing_sep (string) -> string
         end $L3
         local.get 6   ; or_res
         if $L4 void
-        else
-          local.get 5   ; last
-          i64.const 1
-          i64.sub
-          local.set 7   ; $sub_23
-          local.get 1   ; b
-          local.get 7   ; $sub_23
-          array.get 7   ; u8[]
-          ref.cast 5   ; u8
-          i32.const 58
-          i32.eq
-          if $L5 void
-          else
-            local.get 2   ; trailing
-            i64.const 1
-            i64.add
-            local.set 2   ; trailing
-            local.get 3   ; i
-            i64.const 1
-            i64.add
-            local.set 3   ; i
-            br $L1
-          end $L5
+          br $L0
         end $L4
+        local.get 5   ; last
+        i64.const 1
+        i64.sub
+        local.set 7   ; $sub_23
+        local.get 1   ; b
+        local.get 7   ; $sub_23
+        array.get 7   ; u8[]
+        ref.cast 5   ; u8
+        i32.const 58
+        i32.eq
+        if $L5 void
+          br $L0
+        end $L5
+        local.get 2   ; trailing
+        i64.const 1
+        i64.add
+        local.set 2   ; trailing
+        local.get 3   ; i
+        i64.const 1
+        i64.add
+        local.set 3   ; i
+        br $L1
       end $L2
     end $L1
   end $L0

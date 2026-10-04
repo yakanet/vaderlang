@@ -97,9 +97,7 @@ static int32_t snippet_mixed_loops(int32_t l0) {
 #line 10 "tests/snippets/for_loop/_main.vader"
         t0 = vader_mod_i32(l2, INT32_C(2));
         if (t0 != INT32_C(0)) {
-#line 11 "tests/snippets/for_loop/_main.vader"
             continue;
-#line 10 "tests/snippets/for_loop/_main.vader"
         }
 #line 13 "tests/snippets/for_loop/_main.vader"
         l1 = (l1 + INT32_C(1));

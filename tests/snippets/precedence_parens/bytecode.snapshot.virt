@@ -63,26 +63,24 @@ fn 1 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
   local.set 3   ; __for_len_1
   i64.const 0
   local.set 4   ; __for_i_2
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 4   ; __for_i_2
+    local.get 3   ; __for_len_1
+    u64.lt
+    if $L1 void
+      local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      local.get 3   ; __for_len_1
-      u64.lt
+      load_slot_i32
+      local.get 1   ; arg 1
+      i32.eq
       if $L2 void
-        local.get 2   ; __for_arr_0
-        local.get 4   ; __for_i_2
-        load_slot_i32
-        local.get 1   ; arg 1
-        i32.eq
-        if $L3 void
-          return.lit bool.const true
-        end $L3
-        local.get 4   ; __for_i_2
-        i64.const 1
-        i64.add
-        local.set 4   ; __for_i_2
-        br $L1
+        return.lit bool.const true
       end $L2
+      local.get 4   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 4   ; __for_i_2
+      br $L0
     end $L1
   end $L0
   return.lit bool.const false

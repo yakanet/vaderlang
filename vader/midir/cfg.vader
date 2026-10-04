@@ -61,10 +61,6 @@ export CFGFunction :: struct {
     is_extern:   bool
     /// True when @export-decorated. Drives the bytecode export table.
     is_exported: bool
-    /// Labelled-block regions, entry block id → exit block id. A `break` out of
-    /// one is a forward jump the structurer cannot place from the CFG alone: the
-    /// region tells it where to open the `block` the jump leaves.
-    block_regions: MutableMap<i32, BlockId> = MutableMap<i32, BlockId> {}
     /// When non-empty, the values this fn hands back INSTEAD of the single
     /// object `return_type` names — set by `scalarise_value_returns`.
     ///
@@ -159,13 +155,6 @@ export TermCondBranch :: struct {
     cond:        LocalId
     then_block:  BlockId
     else_block:  BlockId
-    /// Where the two arms rejoin — the block the builder created for exactly
-    /// that. Post-dominance cannot recover it once an arm `return`s: the
-    /// synthetic exit swallows the join, `cond_branch_merge` degrades to the
-    /// enclosing region's end, and both arms then run past the join and emit
-    /// the continuation once EACH. `-1` when the branch has no join (a loop
-    /// header's back-edge test), which keeps the post-dominator path.
-    join:        BlockId = BlockId(-1)
 }
 
 export TermReturn :: struct {

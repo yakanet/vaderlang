@@ -1,0 +1,43 @@
+// match_then_nested_for_continue — a CFG shape that once sent the structurer
+// into unbounded recursion (SIGSEGV while the native compiler emitted its
+// bytecode).
+//
+// All three pieces were needed to trigger it :
+//   1. a `match` over a union (an `unreachable` non-exhaustive fallback arm + a
+//      merge block both arms reach),
+//   2. two levels of nested `if` after the match,
+//   3. a `for x in <array>` loop (the iterator `.next()` step CFG, not a range
+//      loop) whose body has a `continue`.
+// The structurer then emitted the post-match continuation once per branch, and
+// the second copy re-entered the loop with no loop scope open. It places every
+// block once now (`docs/adr/0027`); the snippet pins that the shape compiles and
+// runs.
+
+module "snippet"
+
+Pair :: struct { a: i32 }
+Wrap :: struct { b: i32 }
+U :: Pair | Wrap
+
+run :: fn(u: U, gate1: bool, gate2: bool) -> i32 {
+    items :: [1, 2, 3]
+    base := 0
+    match u {
+        is Pair -> { base = u.a }
+        is Wrap -> { base = u.b }
+    }
+    n := base
+    if gate1 {
+        if gate2 {
+            for it in items {
+                if it == 2 { continue }
+                n = n + 1
+            }
+        }
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    return run(Pair { .a = 5 }, true, true)
+}

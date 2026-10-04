@@ -191,7 +191,7 @@ static void snippet_continue_outer(void) {
     vader_gc_top = &gc_frame;
 #line 10 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
     l0 = INT32_C(0);
-    loop_3: while ((l0 < INT32_C(2))) {
+    loop_2: while ((l0 < INT32_C(2))) {
         vader_struct__Cell_i32_t* _a0_obj = (vader_struct__Cell_i32_t*) vader_gc_alloc(sizeof(vader_struct__Cell_i32_t));
         vader_obj_header_init(_a0_obj, 15u);
         _a0_obj->f_value = l0;
@@ -235,7 +235,7 @@ static void snippet_continue_outer(void) {
 #line 10 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
                 l0 = (l0 + INT32_C(1));
 #line 15 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
-                goto loop_3;
+                goto loop_2;
 #line 14 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
             }
 #line 17 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
@@ -280,69 +280,71 @@ static void snippet_break_outer(void) {
     vader_gc_top = &gc_frame;
 #line 24 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
     l0 = INT32_C(0);
-    while ((l0 < INT32_C(2))) {
-        vader_struct__Cell_i32_t* _a0_obj = (vader_struct__Cell_i32_t*) vader_gc_alloc(sizeof(vader_struct__Cell_i32_t));
-        vader_obj_header_init(_a0_obj, 15u);
-        _a0_obj->f_value = l0;
-        t0 = (void*) _a0_obj;
-        l1 = vader_ref_box(t0);
+    {
+        while ((l0 < INT32_C(2))) {
+            vader_struct__Cell_i32_t* _a0_obj = (vader_struct__Cell_i32_t*) vader_gc_alloc(sizeof(vader_struct__Cell_i32_t));
+            vader_obj_header_init(_a0_obj, 15u);
+            _a0_obj->f_value = l0;
+            t0 = (void*) _a0_obj;
+            l1 = vader_ref_box(t0);
 #line 25 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
-        vader_struct___defer_env_snippet_5_t* _a1_obj = (vader_struct___defer_env_snippet_5_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_5_t));
-        vader_obj_header_init(_a1_obj, 5u);
-        _a1_obj->f_cap_0 = l1;
-        t0 = (void*) _a1_obj;
-        vader_fn_t* _a2_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-        vader_obj_header_init(_a2_closure, 16u);
-        _a2_closure->code = (void*) &vader_fn_lift___defer_snippet_4;
-        _a2_closure->env = t0;
-        t0 = (void*) _a2_closure;
-        vader_defer_push(vader_ref_box(t0));
-#line 26 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
-        l2 = INT32_C(0);
-        while ((l2 < INT32_C(2))) {
-            vader_struct__Cell_i32_t* _a3_obj = (vader_struct__Cell_i32_t*) vader_gc_alloc(sizeof(vader_struct__Cell_i32_t));
-            vader_obj_header_init(_a3_obj, 15u);
-            _a3_obj->f_value = l2;
-            t0 = (void*) _a3_obj;
-            l3 = vader_ref_box(t0);
-#line 27 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
-            vader_struct___defer_env_snippet_7_t* _a4_obj = (vader_struct___defer_env_snippet_7_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_7_t));
-            vader_obj_header_init(_a4_obj, 6u);
-            _a4_obj->f_cap_0 = l1;
-            _a4_obj->f_cap_1 = l3;
-            t0 = (void*) _a4_obj;
-            vader_fn_t* _a5_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-            vader_obj_header_init(_a5_closure, 16u);
-            _a5_closure->code = (void*) &vader_fn_lift___defer_snippet_6;
-            _a5_closure->env = t0;
-            t0 = (void*) _a5_closure;
+            vader_struct___defer_env_snippet_5_t* _a1_obj = (vader_struct___defer_env_snippet_5_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_5_t));
+            vader_obj_header_init(_a1_obj, 5u);
+            _a1_obj->f_cap_0 = l1;
+            t0 = (void*) _a1_obj;
+            vader_fn_t* _a2_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
+            vader_obj_header_init(_a2_closure, 16u);
+            _a2_closure->code = (void*) &vader_fn_lift___defer_snippet_4;
+            _a2_closure->env = t0;
+            t0 = (void*) _a2_closure;
             vader_defer_push(vader_ref_box(t0));
-#line 28 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
-            if (((vader_struct__Cell_i32_t*) l1.payload.obj)->f_value == INT32_C(1)) {
-#line 29 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
-                vader_defer_pop_exec(2u);
-                goto end_7;
-#line 28 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
-            }
-#line 31 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
-            l4 = std_core_new_byte_buffer((size_t) 48);
-            l5 = (size_t) 0;
-            l5 = std_core_write_string_at(l4, l5, 1u);
-            l6 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) l1.payload.obj)->f_value);
-            l5 = std_core_write_int(l4, l5, l6);
-            l5 = std_core_write_string_at(l4, l5, 2u);
-            l7 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) l3.payload.obj)->f_value);
-            l5 = std_core_write_int(l4, l5, l7);
-            t1 = std_core_finish_buffer(l4, l5);
-            std_io_println__string(t1);
-            vader_defer_pop_exec(1u);
 #line 26 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
-            l2 = (l2 + INT32_C(1));
-        }
+            l2 = INT32_C(0);
+            while ((l2 < INT32_C(2))) {
+                vader_struct__Cell_i32_t* _a3_obj = (vader_struct__Cell_i32_t*) vader_gc_alloc(sizeof(vader_struct__Cell_i32_t));
+                vader_obj_header_init(_a3_obj, 15u);
+                _a3_obj->f_value = l2;
+                t0 = (void*) _a3_obj;
+                l3 = vader_ref_box(t0);
+#line 27 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
+                vader_struct___defer_env_snippet_7_t* _a4_obj = (vader_struct___defer_env_snippet_7_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_7_t));
+                vader_obj_header_init(_a4_obj, 6u);
+                _a4_obj->f_cap_0 = l1;
+                _a4_obj->f_cap_1 = l3;
+                t0 = (void*) _a4_obj;
+                vader_fn_t* _a5_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
+                vader_obj_header_init(_a5_closure, 16u);
+                _a5_closure->code = (void*) &vader_fn_lift___defer_snippet_6;
+                _a5_closure->env = t0;
+                t0 = (void*) _a5_closure;
+                vader_defer_push(vader_ref_box(t0));
+#line 28 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
+                if (((vader_struct__Cell_i32_t*) l1.payload.obj)->f_value == INT32_C(1)) {
+#line 29 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
+                    vader_defer_pop_exec(2u);
+                    goto end_2;
+#line 28 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
+                }
+#line 31 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
+                l4 = std_core_new_byte_buffer((size_t) 48);
+                l5 = (size_t) 0;
+                l5 = std_core_write_string_at(l4, l5, 1u);
+                l6 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) l1.payload.obj)->f_value);
+                l5 = std_core_write_int(l4, l5, l6);
+                l5 = std_core_write_string_at(l4, l5, 2u);
+                l7 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) l3.payload.obj)->f_value);
+                l5 = std_core_write_int(l4, l5, l7);
+                t1 = std_core_finish_buffer(l4, l5);
+                std_io_println__string(t1);
+                vader_defer_pop_exec(1u);
+#line 26 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
+                l2 = (l2 + INT32_C(1));
+            }
 #line 24 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
-        vader_defer_pop_exec(1u);
-        l0 = (l0 + INT32_C(1));
-    } end_7: ;
+            vader_defer_pop_exec(1u);
+            l0 = (l0 + INT32_C(1));
+        }
+    } end_2: ;
 #line 34 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
     std_io_println__string(4u);
 #line 23 "tests/snippets/defer_named_jump_nested_loop/_main.vader"
@@ -601,30 +603,31 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 208 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
         if ((l3 >= l4)) {
-#line 209 "lib/std/io/io.vader"
-            { vader_gc_top = gc_frame.prev; return; }
+#line 211 "lib/std/io/io.vader"
+        } else {
+            l5 = ((vader_array_t*) l2)->length;
+            vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
+            l6 = (void*) _a0_arr;
+#line 212 "lib/std/io/io.vader"
+            l7 = ((vader_array_t*) l6)->length;
+            l8 = std_io_write_bytes(l0, l6, l7);
+#line 213 "lib/std/io/io.vader"
+            if ((l8 <= INT32_C(0))) {
+#line 214 "lib/std/io/io.vader"
+                { vader_gc_top = gc_frame.prev; return; }
+#line 213 "lib/std/io/io.vader"
+            }
+#line 216 "lib/std/io/io.vader"
+            t0 = ((int64_t) (int32_t) l8);
+            l9 = (size_t) (int64_t) t0;
+            t0 = (l3 + l9);
+            l3 = (size_t) (int64_t) t0;
+#line 207 "lib/std/io/io.vader"
+            continue;
 #line 208 "lib/std/io/io.vader"
         }
-#line 211 "lib/std/io/io.vader"
-        l5 = ((vader_array_t*) l2)->length;
-        vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
-        l6 = (void*) _a0_arr;
-#line 212 "lib/std/io/io.vader"
-        l7 = ((vader_array_t*) l6)->length;
-        l8 = std_io_write_bytes(l0, l6, l7);
-#line 213 "lib/std/io/io.vader"
-        if ((l8 <= INT32_C(0))) {
-#line 214 "lib/std/io/io.vader"
-            { vader_gc_top = gc_frame.prev; return; }
-#line 213 "lib/std/io/io.vader"
-        }
-#line 216 "lib/std/io/io.vader"
-        t0 = ((int64_t) (int32_t) l8);
-        l9 = (size_t) (int64_t) t0;
-        t0 = (l3 + l9);
-        l3 = (size_t) (int64_t) t0;
 #line 207 "lib/std/io/io.vader"
-        continue;
+        break;
     }
 #line 209 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }

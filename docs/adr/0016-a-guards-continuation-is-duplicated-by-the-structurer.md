@@ -2,7 +2,10 @@
 
 ## Status
 
-Accepted (2026-09-06). Supersedes in part
+Accepted (2026-09-06). Its mechanism — `TermCondBranch.join`, `cond_branch_merge`
+— is superseded by [0027](0027-the-structurer-places-each-block-once-by-dominator-tree.md),
+which places every block once; the `exec.vader` source-shape decision stands.
+Supersedes in part
 [0014](0014-the-interpreters-cost-is-the-buffer-resolve.md) and
 [0015](0015-the-interpreters-buffer-resolve-is-worth-thirteen-percent.md), which
 both attribute the `exec_entry` doubling to the C emitter. It is not the C

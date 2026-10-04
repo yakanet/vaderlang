@@ -75,6 +75,57 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
     return BcPeepholeOut { .body = new_body, .jump_table = new_jt, .debug = new_debug }
 }
 
+/// Drop every `block` no branch leaves through, with its `end`.
+///
+/// The structurer opens a `block` before each merge without knowing whether the
+/// code that reaches the merge will branch to it or fall into it. A `br` to a
+/// `block` resolves to the op after its `end`, and no other branch lands there,
+/// so a `block` whose after-`end` PC no `br` / `br_if` targets is never left
+/// early.
+///
+/// @param function  a function whose `jump_table` is fully resolved.
+/// @return          the body without those `block` / `end` pairs.
+export drop_unbranched_blocks :: fn(function: BcFunction) -> BcPeepholeOut {
+    body :: function.body
+    jump_table :: function.jump_table
+    n :: body.len()
+    branched_to: bool[]!: [false] * (n + 1)
+    for pc in 0..<n {
+        target :: jump_table[pc]
+        if body[pc] is Branch | BranchIf && target >= 0 && usize(target) <= n {
+            branched_to[usize(target)] = true
+        }
+    }
+    dropped: bool[]!: [false] * n
+    any := false
+    for pc in 0..<n {
+        after_end :: jump_table[pc]
+        if body[pc] is Block && after_end > 0 && !branched_to[usize(after_end)] {
+            dropped[pc] = true
+            dropped[usize(after_end) - 1] = true
+            any = true
+        }
+    }
+    if !any {
+        return bc_peephole_unchanged(function)
+    }
+    kept: Op[]!: []
+    old_to_new: i32[]!: []
+    for pc in 0..<n {
+        if dropped[pc] {
+            old_to_new.push(-1)
+        } else {
+            old_to_new.push(i32(kept.len()))
+            kept.push(body[pc])
+        }
+    }
+    return BcPeepholeOut {
+        .body = kept,
+        .jump_table = remap_jump_table(jump_table, old_to_new, kept.len()),
+        .debug = remap_debug(function.debug, old_to_new, kept.len()),
+    }
+}
+
 /// Remap a jump_table from old PC space to new PC space using a
 /// per-old-PC `old_to_new` map (entries < 0 mark removed ops).
 /// New entries default to -1.

@@ -388,7 +388,6 @@ remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
             .cond = remap_local(m, t.cond),
             .then_block = t.then_block,
             .else_block = t.else_block,
-            .join = t.join,
             .span = t.span,
         }
     }

@@ -50,34 +50,32 @@ fn 0 snippet$run (any,bool,bool) -> i32
       local.set 5   ; __for_len_1
       i64.const 0
       local.set 6   ; __for_i_2
-      block $L4 void
-        loop $L5 void
+      loop $L4 void
+        local.get 6   ; __for_i_2
+        local.get 5   ; __for_len_1
+        u64.lt
+        if $L5 void
+          local.get 3   ; items
           local.get 6   ; __for_i_2
-          local.get 5   ; __for_len_1
-          u64.lt
+          load_slot_i32
+          i32.const 2
+          i32.eq
           if $L6 void
-            local.get 3   ; items
-            local.get 6   ; __for_i_2
-            load_slot_i32
-            i32.const 2
-            i32.eq
-            if $L7 void
-              local.get 6   ; __for_i_2
-              i64.const 1
-              i64.add
-              local.set 6   ; __for_i_2
-              br $L5
-            end $L7
-            local.get 4   ; base
-            i32.const 1
-            i32.add
-            local.set 4   ; base
             local.get 6   ; __for_i_2
             i64.const 1
             i64.add
             local.set 6   ; __for_i_2
-            br $L5
+            br $L4
           end $L6
+          local.get 4   ; base
+          i32.const 1
+          i32.add
+          local.set 4   ; base
+          local.get 6   ; __for_i_2
+          i64.const 1
+          i64.add
+          local.set 6   ; __for_i_2
+          br $L4
         end $L5
       end $L4
     end $L3

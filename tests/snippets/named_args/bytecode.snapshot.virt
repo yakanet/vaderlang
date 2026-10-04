@@ -171,31 +171,29 @@ fn 6 std_core$len (string) -> usize
   local.set 2   ; __for_len_1
   i64.const 0
   local.set 3   ; __for_i_2
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 3   ; __for_i_2
+    local.get 2   ; __for_len_1
+    u64.lt
+    if $L1 void
+      local.get 0   ; arg 0
       local.get 3   ; __for_i_2
-      local.get 2   ; __for_len_1
-      u64.lt
+      call.import 1   ; std_core$byte_at
+      i32.const 192
+      i32.bitand
+      i32.const 128
+      i32.ne
       if $L2 void
-        local.get 0   ; arg 0
-        local.get 3   ; __for_i_2
-        call.import 1   ; std_core$byte_at
-        i32.const 192
-        i32.bitand
-        i32.const 128
-        i32.ne
-        if $L3 void
-          local.get 1   ; n
-          i64.const 1
-          i64.add
-          local.set 1   ; n
-        end $L3
-        local.get 3   ; __for_i_2
+        local.get 1   ; n
         i64.const 1
         i64.add
-        local.set 3   ; __for_i_2
-        br $L1
+        local.set 1   ; n
       end $L2
+      local.get 3   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 3   ; __for_i_2
+      br $L0
     end $L1
   end $L0
   local.get 1   ; n

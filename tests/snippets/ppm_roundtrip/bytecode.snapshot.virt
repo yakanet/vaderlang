@@ -236,37 +236,35 @@ fn 0 snippet$main () -> i32
   struct.get 14 3   ; images_ppm$Ppm.pixels
   array.len
   local.set 8   ; __for_hi_0
-  block $L7 void
-    loop $L8 void
+  loop $L7 void
+    local.get 7   ; i
+    local.get 8   ; __for_hi_0
+    u64.lt
+    if $L8 void
+      local.get 2   ; enc
+      ref.cast 14   ; images_ppm$Ppm
+      struct.get 14 3   ; images_ppm$Ppm.pixels
       local.get 7   ; i
-      local.get 8   ; __for_hi_0
-      u64.lt
+      array.get 8   ; u8[]
+      ref.cast 4   ; u8
+      local.set 9   ; $idx_90
+      local.get 1   ; px
+      local.get 7   ; i
+      array.get 8   ; u8[]
+      ref.cast 4   ; u8
+      local.set 10   ; $idx_91
+      local.get 9   ; $idx_90
+      local.get 10   ; $idx_91
+      i32.ne
       if $L9 void
-        local.get 2   ; enc
-        ref.cast 14   ; images_ppm$Ppm
-        struct.get 14 3   ; images_ppm$Ppm.pixels
-        local.get 7   ; i
-        array.get 8   ; u8[]
-        ref.cast 4   ; u8
-        local.set 9   ; $idx_90
-        local.get 1   ; px
-        local.get 7   ; i
-        array.get 8   ; u8[]
-        ref.cast 4   ; u8
-        local.set 10   ; $idx_91
-        local.get 9   ; $idx_90
-        local.get 10   ; $idx_91
-        i32.ne
-        if $L10 void
-          bool.const false
-          local.set 5   ; ok
-        end $L10
-        local.get 7   ; i
-        i64.const 1
-        i64.add
-        local.set 7   ; i
-        br $L8
+        bool.const false
+        local.set 5   ; ok
       end $L9
+      local.get 7   ; i
+      i64.const 1
+      i64.add
+      local.set 7   ; i
+      br $L7
     end $L8
   end $L7
   local.get 2   ; enc
@@ -274,13 +272,13 @@ fn 0 snippet$main () -> i32
   call 26   ; images_ppm$Ppm$Display$to_string
   call 17   ; std_io$println__string
   local.get 5   ; ok
-  if $L11 void
+  if $L10 void
     string.const 7   ; "OK"
     call 17   ; std_io$println__string
   else
     string.const 8   ; "MISMATCH"
     call 17   ; std_io$println__string
-  end $L11
+  end $L10
   return.lit i32.const 0
 end
 
@@ -429,63 +427,59 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
   local.set 3   ; ndigits
   local.get 2   ; arg 2
   local.set 4   ; m
-  block $L1 void
-    loop $L2 void
+  loop $L1 void
+    local.get 4   ; m
+    i64.const 0
+    i64.ne
+    if $L2 void
+      local.get 3   ; ndigits
+      i64.const 1
+      i64.add
+      local.set 3   ; ndigits
       local.get 4   ; m
-      i64.const 0
-      i64.ne
-      if $L3 void
-        local.get 3   ; ndigits
-        i64.const 1
-        i64.add
-        local.set 3   ; ndigits
-        local.get 4   ; m
-        i64.const 10
-        u64.div
-        local.set 4   ; m
-        br $L2
-      end $L3
+      i64.const 10
+      u64.div
+      local.set 4   ; m
+      br $L1
     end $L2
   end $L1
   local.get 1   ; arg 1
   local.get 3   ; ndigits
   i64.add
   local.set 5   ; i
-  block $L4 void
-    loop $L5 void
+  loop $L3 void
+    local.get 2   ; arg 2
+    i64.const 0
+    i64.ne
+    if $L4 void
+      local.get 5   ; i
+      i64.const 1
+      i64.sub
+      local.set 5   ; i
       local.get 2   ; arg 2
-      i64.const 0
-      i64.ne
-      if $L6 void
-        local.get 5   ; i
-        i64.const 1
-        i64.sub
-        local.set 5   ; i
-        local.get 2   ; arg 2
-        i64.const 10
-        u64.rem
-        u64.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 6   ; $cast_26
-        i32.const 48
-        local.get 6   ; $cast_26
-        i32.add
-        i32.const 255
-        i32.bitand
-        local.set 7   ; $add_27
-        local.get 0   ; arg 0
-        local.get 5   ; i
-        local.get 7   ; $add_27
-        call 28   ; std_core$Buffer$ByteAccess$store_u8_vt
-        local.get 2   ; arg 2
-        i64.const 10
-        u64.div
-        local.set 2   ; arg 2
-        br $L5
-      end $L6
-    end $L5
-  end $L4
+      i64.const 10
+      u64.rem
+      u64.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 6   ; $cast_26
+      i32.const 48
+      local.get 6   ; $cast_26
+      i32.add
+      i32.const 255
+      i32.bitand
+      local.set 7   ; $add_27
+      local.get 0   ; arg 0
+      local.get 5   ; i
+      local.get 7   ; $add_27
+      call 28   ; std_core$Buffer$ByteAccess$store_u8_vt
+      local.get 2   ; arg 2
+      i64.const 10
+      u64.div
+      local.set 2   ; arg 2
+      br $L3
+    end $L4
+  end $L3
   local.get 1   ; arg 1
   local.get 3   ; ndigits
   i64.add
@@ -510,30 +504,28 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
   local.set 2   ; __for_len_1
   i64.const 0
   local.set 3   ; __for_i_2
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 3   ; __for_i_2
+    local.get 2   ; __for_len_1
+    u64.lt
+    if $L1 void
+      local.get 0   ; arg 0
       local.get 3   ; __for_i_2
-      local.get 2   ; __for_len_1
-      u64.lt
+      call.import 1   ; std_core$byte_at
+      i32.const 0
+      i32.eq
       if $L2 void
-        local.get 0   ; arg 0
-        local.get 3   ; __for_i_2
-        call.import 1   ; std_core$byte_at
+        string.const 10   ; "path contains a NUL byte"
         i32.const 0
-        i32.eq
-        if $L3 void
-          string.const 10   ; "path contains a NUL byte"
-          i32.const 0
-          i32.const 0
-          struct.new 11   ; std_io$IOError
-          return
-        end $L3
-        local.get 3   ; __for_i_2
-        i64.const 1
-        i64.add
-        local.set 3   ; __for_i_2
-        br $L1
+        i32.const 0
+        struct.new 11   ; std_io$IOError
+        return
       end $L2
+      local.get 3   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 3   ; __for_i_2
+      br $L0
     end $L1
   end $L0
   local.get 0   ; arg 0
@@ -541,11 +533,11 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
   call.import 8   ; system_posix$sys_fopen
   local.tee 5   ; __coalesce_3
   type_check 0   ; null
-  if $L4 void
+  if $L3 void
     string.const 12   ; "open failed"
     call 12   ; std_io$last_io_error
     return
-  end $L4
+  end $L3
   local.get 5   ; __coalesce_3
   ref.cast 22   ; pointer
   local.set 4   ; f
@@ -553,7 +545,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
   array.len
   i64.const 0
   u64.gt
-  if $L5 void
+  if $L4 void
     local.get 1   ; arg 1
     array.len
     local.set 2   ; __for_len_1
@@ -569,7 +561,7 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
     local.get 2   ; __for_len_1
     local.get 3   ; __for_i_2
     i64.ne
-    if $L6 void
+    if $L5 void
       string.const 13   ; "short write"
       call 12   ; std_io$last_io_error
       local.set 6   ; err
@@ -578,17 +570,17 @@ fn 8 std_io$write_file_bytes (string,ref) -> any
       drop
       local.get 6   ; err
       return
-    end $L6
-  end $L5
+    end $L5
+  end $L4
   local.get 4   ; f
   call.import 9   ; system_posix$sys_fclose
   i32.const 0
   i32.ne
-  if $L7 void
+  if $L6 void
     string.const 14   ; "close failed"
     call 12   ; std_io$last_io_error
     return
-  end $L7
+  end $L6
   return.lit null.const
 end
 
@@ -600,9 +592,6 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
   local $len_18 usize
   local n usize
   local $slice_24 ref
-  local $k_28 string
-  local $k_29 u8
-  local $k_30 i32
   local $len_32 usize
   local.get 0   ; arg 0
   string.const 15   ; "rb"
@@ -624,99 +613,77 @@ fn 9 std_io$read_file_bytes (string,usize) -> any
   i64.const 65536
   array.repeat
   local.set 5   ; chunk
-  block $L1 void
-    loop $L2 void
+  loop $L1 void
+    local.get 5   ; chunk
+    array.len
+    local.set 6   ; $len_18
+    local.get 5   ; chunk
+    i64.const 1
+    local.get 6   ; $len_18
+    local.get 2   ; f
+    call.import 10   ; system_posix$sys_fread
+    local.tee 7   ; n
+    i64.const 0
+    u64.gt
+    if $L2 void
       local.get 5   ; chunk
-      array.len
-      local.set 6   ; $len_18
-      local.get 5   ; chunk
-      i64.const 1
-      local.get 6   ; $len_18
-      local.get 2   ; f
-      call.import 10   ; system_posix$sys_fread
-      local.tee 7   ; n
       i64.const 0
-      u64.gt
-      if $L3 void
-        local.get 5   ; chunk
-        i64.const 0
-        local.get 7   ; n
-        array.slice 8   ; u8[]
-        local.set 8   ; $slice_24
-        local.get 4   ; out
-        local.get 8   ; $slice_24
-        array.push_all
-      end $L3
-      local.get 4   ; out
-      array.len
-      local.get 1   ; arg 1
-      u64.gt
-      if $L4 void
-        local.get 2   ; f
-        call.import 9   ; system_posix$sys_fclose
-        drop
-        string.const 17   ; "file too large"
-        local.set 9   ; $k_28
-        i32.const 0
-        local.set 10   ; $k_29
-        i32.const 0
-        local.set 11   ; $k_30
-        local.get 9   ; $k_28
-        local.get 10   ; $k_29
-        local.get 11   ; $k_30
-        struct.new 11   ; std_io$IOError
-        return
-      end $L4
-      local.get 5   ; chunk
-      array.len
-      local.set 12   ; $len_32
       local.get 7   ; n
-      local.get 12   ; $len_32
-      u64.lt
-      if $L5 void
-        local.get 2   ; f
-        call.import 7   ; system_posix$sys_ferror
-        i32.const 0
-        i32.ne
-        if $L6 void
-          string.const 18   ; "read failed"
-          call 12   ; std_io$last_io_error
-          local.set 3   ; __coalesce_0
-        else
-          null.const
-          local.set 3   ; __coalesce_0
-        end $L6
-        local.get 2   ; f
-        call.import 9   ; system_posix$sys_fclose
-        drop
-        local.get 3   ; __coalesce_0
-        type_check 0   ; null
-        bool.not
-        if $L7 void
-          local.get 3   ; __coalesce_0
-          ref.cast 11   ; std_io$IOError
-          return
-        end $L7
-        local.get 4   ; out
-        return
-      end $L5
-      br $L2
+      array.slice 8   ; u8[]
+      local.set 8   ; $slice_24
+      local.get 4   ; out
+      local.get 8   ; $slice_24
+      array.push_all
     end $L2
+    local.get 4   ; out
+    array.len
+    local.get 1   ; arg 1
+    u64.gt
+    if $L3 void
+      local.get 2   ; f
+      call.import 9   ; system_posix$sys_fclose
+      drop
+      string.const 17   ; "file too large"
+      i32.const 0
+      i32.const 0
+      struct.new 11   ; std_io$IOError
+      return
+    end $L3
+    local.get 5   ; chunk
+    array.len
+    local.set 9   ; $len_32
+    local.get 7   ; n
+    local.get 9   ; $len_32
+    u64.lt
+    if $L4 void
+      local.get 2   ; f
+      call.import 7   ; system_posix$sys_ferror
+      i32.const 0
+      i32.ne
+      if $L5 void
+        string.const 18   ; "read failed"
+        call 12   ; std_io$last_io_error
+        local.set 3   ; __coalesce_0
+      else
+        null.const
+        local.set 3   ; __coalesce_0
+      end $L5
+      local.get 2   ; f
+      call.import 9   ; system_posix$sys_fclose
+      drop
+      local.get 3   ; __coalesce_0
+      type_check 0   ; null
+      bool.not
+      if $L6 void
+        local.get 3   ; __coalesce_0
+        ref.cast 11   ; std_io$IOError
+        return
+      end $L6
+      local.get 4   ; out
+      return
+    end $L4
+    br $L1
   end $L1
-  local.get 2   ; f
-  call.import 9   ; system_posix$sys_fclose
-  drop
-  string.const 17   ; "file too large"
-  local.set 9   ; $k_28
-  i32.const 0
-  local.set 10   ; $k_29
-  i32.const 0
-  local.set 11   ; $k_30
-  local.get 9   ; $k_28
-  local.get 10   ; $k_29
-  local.get 11   ; $k_30
-  struct.new 11   ; std_io$IOError
-  return
 end
 
 fn 10 std_io$write (u8,string) -> void
@@ -733,17 +700,15 @@ fn 10 std_io$write (u8,string) -> void
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  block $L0 void
-    loop $L1 void
-      local.get 2   ; buf
-      array.len
-      local.set 4   ; $len_6
-      local.get 3   ; sent
-      local.get 4   ; $len_6
-      u64.ge
-      if $L2 void
-        return
-      end $L2
+  loop $L0 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_6
+    local.get 3   ; sent
+    local.get 4   ; $len_6
+    u64.ge
+    if $L1 void
+    else
       local.get 2   ; buf
       array.len
       local.set 5   ; $len_8
@@ -761,9 +726,9 @@ fn 10 std_io$write (u8,string) -> void
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L3 void
+      if $L2 void
         return
-      end $L3
+      end $L2
       local.get 8   ; n
       i32.to_i64
       local.set 9   ; $cast_16
@@ -771,7 +736,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 9   ; $cast_16
       i64.add
       local.set 3   ; sent
-      br $L1
+      br $L0
     end $L1
   end $L0
   return
@@ -1009,30 +974,30 @@ fn 14 std_io$without_trailing_sep (string) -> string
         end $L3
         local.get 6   ; or_res
         if $L4 void
-        else
-          local.get 5   ; last
-          i64.const 1
-          i64.sub
-          local.set 7   ; $sub_23
-          local.get 1   ; b
-          local.get 7   ; $sub_23
-          array.get 8   ; u8[]
-          ref.cast 4   ; u8
-          i32.const 58
-          i32.eq
-          if $L5 void
-          else
-            local.get 2   ; trailing
-            i64.const 1
-            i64.add
-            local.set 2   ; trailing
-            local.get 3   ; i
-            i64.const 1
-            i64.add
-            local.set 3   ; i
-            br $L1
-          end $L5
+          br $L0
         end $L4
+        local.get 5   ; last
+        i64.const 1
+        i64.sub
+        local.set 7   ; $sub_23
+        local.get 1   ; b
+        local.get 7   ; $sub_23
+        array.get 8   ; u8[]
+        ref.cast 4   ; u8
+        i32.const 58
+        i32.eq
+        if $L5 void
+          br $L0
+        end $L5
+        local.get 2   ; trailing
+        i64.const 1
+        i64.add
+        local.set 2   ; trailing
+        local.get 3   ; i
+        i64.const 1
+        i64.add
+        local.set 3   ; i
+        br $L1
       end $L2
     end $L1
   end $L0
@@ -1683,57 +1648,56 @@ fn 21 images_ppm$skip_ws (ref,usize) -> usize
   local.set 2   ; n
   local.get 1   ; arg 1
   local.set 3   ; p
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 3   ; p
+    local.get 2   ; n
+    u64.lt
+    if $L1 void
+      local.get 0   ; arg 0
       local.get 3   ; p
-      local.get 2   ; n
-      u64.lt
+      array.get 8   ; u8[]
+      ref.cast 4   ; u8
+      local.tee 4   ; b
+      i32.const 35
+      i32.eq
       if $L2 void
-        local.get 0   ; arg 0
-        local.get 3   ; p
-        array.get 8   ; u8[]
-        ref.cast 4   ; u8
-        local.tee 4   ; b
-        i32.const 35
-        i32.eq
-        if $L3 void
-          block $L4 void
-            loop $L5 void
+        block $L3 void
+          loop $L4 void
+            local.get 3   ; p
+            local.get 2   ; n
+            u64.lt
+            if $L5 void
+              local.get 0   ; arg 0
               local.get 3   ; p
-              local.get 2   ; n
-              u64.lt
+              array.get 8   ; u8[]
+              ref.cast 4   ; u8
+              i32.const 10
+              i32.ne
               if $L6 void
-                local.get 0   ; arg 0
                 local.get 3   ; p
-                array.get 8   ; u8[]
-                ref.cast 4   ; u8
-                i32.const 10
-                i32.ne
-                if $L7 void
-                  local.get 3   ; p
-                  i64.const 1
-                  i64.add
-                  local.set 3   ; p
-                  br $L5
-                end $L7
+                i64.const 1
+                i64.add
+                local.set 3   ; p
+                br $L4
               end $L6
+              br $L3
             end $L5
           end $L4
-        else
-          local.get 4   ; b
-          call 23   ; images_ppm$is_ws_byte
-          if $L8 void
-            local.get 3   ; p
-            i64.const 1
-            i64.add
-            local.set 3   ; p
-          else
-            local.get 3   ; p
-            return
-          end $L8
         end $L3
-        br $L1
+      else
+        local.get 4   ; b
+        call 23   ; images_ppm$is_ws_byte
+        if $L7 void
+          local.get 3   ; p
+          i64.const 1
+          i64.add
+          local.set 3   ; p
+        else
+          local.get 3   ; p
+          return
+        end $L7
       end $L2
+      br $L0
     end $L1
   end $L0
   local.get 3   ; p
@@ -1804,6 +1768,7 @@ fn 22 images_ppm$scan_uint (ref,usize) -> ref
           local.set 3   ; p
           br $L1
         end $L3
+        br $L0
       end $L2
     end $L1
   end $L0

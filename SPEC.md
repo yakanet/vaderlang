@@ -120,7 +120,7 @@ The CFG is the substrate for analyses that need def-use chains rather than tree 
 - **Loop-carried-dependency check** — replaces the over-conservative "in loop ⇒ escapes" filter; +95 stack-promotions on the self-host.
 - **Dead-store elimination** — finer-grained than the AST-level DCE pass, prunes individual writes whose result is never read.
 
-The bytecode emitter consumes the CFG (not the Lowered AST), recovers WASM-style structured nesting via a structurer pass that uses immediate dominators + post-dominators, and emits the linear stack ops. CFG dumps are exposed via `vader dump --stage=cfg`. Design: `docs/MID_IR_DESIGN.md`.
+The bytecode emitter consumes the CFG (not the Lowered AST), recovers WASM-style structured nesting via a structurer pass that places each block once by dominator tree (`docs/adr/0027`), and emits the linear stack ops. CFG dumps are exposed via `vader dump --stage=cfg`. Design: `docs/MID_IR_DESIGN.md`.
 
 ### Dead-code elimination
 

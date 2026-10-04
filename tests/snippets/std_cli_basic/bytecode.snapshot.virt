@@ -388,27 +388,25 @@ fn 0 snippet$main () -> i32
   local.set 3   ; __off_1
   i64.const 0
   local.set 7   ; __for_i_18
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 7   ; __for_i_18
+    local.get 3   ; __off_1
+    u64.lt
+    if $L1 void
+      local.get 1   ; $arr_14
       local.get 7   ; __for_i_18
-      local.get 3   ; __off_1
-      u64.lt
-      if $L2 void
-        local.get 1   ; $arr_14
-        local.get 7   ; __for_i_18
-        array.get 10   ; string[]
-        ref.cast 2   ; string
-        local.set 5   ; $idx_52
-        string.const 31   ; "err="
-        local.get 5   ; $idx_52
-        call 1   ; concat_2
-        call 14   ; std_io$println__string
-        local.get 7   ; __for_i_18
-        i64.const 1
-        i64.add
-        local.set 7   ; __for_i_18
-        br $L1
-      end $L2
+      array.get 10   ; string[]
+      ref.cast 2   ; string
+      local.set 5   ; $idx_52
+      string.const 31   ; "err="
+      local.get 5   ; $idx_52
+      call 1   ; concat_2
+      call 14   ; std_io$println__string
+      local.get 7   ; __for_i_18
+      i64.const 1
+      i64.add
+      local.set 7   ; __for_i_18
+      br $L0
     end $L1
   end $L0
   string.const 32   ; "--out"
@@ -917,63 +915,59 @@ fn 10 std_core$write_unsigned (ref,usize,u64) -> usize
   local.set 3   ; ndigits
   local.get 2   ; arg 2
   local.set 4   ; m
-  block $L1 void
-    loop $L2 void
+  loop $L1 void
+    local.get 4   ; m
+    i64.const 0
+    i64.ne
+    if $L2 void
+      local.get 3   ; ndigits
+      i64.const 1
+      i64.add
+      local.set 3   ; ndigits
       local.get 4   ; m
-      i64.const 0
-      i64.ne
-      if $L3 void
-        local.get 3   ; ndigits
-        i64.const 1
-        i64.add
-        local.set 3   ; ndigits
-        local.get 4   ; m
-        i64.const 10
-        u64.div
-        local.set 4   ; m
-        br $L2
-      end $L3
+      i64.const 10
+      u64.div
+      local.set 4   ; m
+      br $L1
     end $L2
   end $L1
   local.get 1   ; arg 1
   local.get 3   ; ndigits
   i64.add
   local.set 5   ; i
-  block $L4 void
-    loop $L5 void
+  loop $L3 void
+    local.get 2   ; arg 2
+    i64.const 0
+    i64.ne
+    if $L4 void
+      local.get 5   ; i
+      i64.const 1
+      i64.sub
+      local.set 5   ; i
       local.get 2   ; arg 2
-      i64.const 0
-      i64.ne
-      if $L6 void
-        local.get 5   ; i
-        i64.const 1
-        i64.sub
-        local.set 5   ; i
-        local.get 2   ; arg 2
-        i64.const 10
-        u64.rem
-        u64.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 6   ; $cast_26
-        i32.const 48
-        local.get 6   ; $cast_26
-        i32.add
-        i32.const 255
-        i32.bitand
-        local.set 7   ; $add_27
-        local.get 0   ; arg 0
-        local.get 5   ; i
-        local.get 7   ; $add_27
-        call 43   ; std_core$Buffer$ByteAccess$store_u8_vt
-        local.get 2   ; arg 2
-        i64.const 10
-        u64.div
-        local.set 2   ; arg 2
-        br $L5
-      end $L6
-    end $L5
-  end $L4
+      i64.const 10
+      u64.rem
+      u64.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 6   ; $cast_26
+      i32.const 48
+      local.get 6   ; $cast_26
+      i32.add
+      i32.const 255
+      i32.bitand
+      local.set 7   ; $add_27
+      local.get 0   ; arg 0
+      local.get 5   ; i
+      local.get 7   ; $add_27
+      call 43   ; std_core$Buffer$ByteAccess$store_u8_vt
+      local.get 2   ; arg 2
+      i64.const 10
+      u64.div
+      local.set 2   ; arg 2
+      br $L3
+    end $L4
+  end $L3
   local.get 1   ; arg 1
   local.get 3   ; ndigits
   i64.add
@@ -1010,17 +1004,15 @@ fn 12 std_io$write (u8,string) -> void
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  block $L0 void
-    loop $L1 void
-      local.get 2   ; buf
-      array.len
-      local.set 4   ; $len_6
-      local.get 3   ; sent
-      local.get 4   ; $len_6
-      u64.ge
-      if $L2 void
-        return
-      end $L2
+  loop $L0 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_6
+    local.get 3   ; sent
+    local.get 4   ; $len_6
+    u64.ge
+    if $L1 void
+    else
       local.get 2   ; buf
       array.len
       local.set 5   ; $len_8
@@ -1038,9 +1030,9 @@ fn 12 std_io$write (u8,string) -> void
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L3 void
+      if $L2 void
         return
-      end $L3
+      end $L2
       local.get 8   ; n
       i32.to_i64
       local.set 9   ; $cast_16
@@ -1048,7 +1040,7 @@ fn 12 std_io$write (u8,string) -> void
       local.get 9   ; $cast_16
       i64.add
       local.set 3   ; sent
-      br $L1
+      br $L0
     end $L1
   end $L0
   return
@@ -1161,322 +1153,320 @@ fn 15 cli$parse (ref,ref) -> ref
           i64.const 1
           i64.add
           local.set 6   ; i
+          br $L0
+        end $L3
+        local.get 7   ; a
+        string.const 40   ; "-"
+        call 32   ; std_string$starts_with
+        bool.not
+        if $L4 void
+          bool.const true
+          local.set 8   ; or_res
         else
           local.get 7   ; a
           string.const 40   ; "-"
-          call 32   ; std_string$starts_with
-          bool.not
-          if $L4 void
-            bool.const true
-            local.set 8   ; or_res
-          else
-            local.get 7   ; a
-            string.const 40   ; "-"
-            string.eq
-            local.set 8   ; or_res
-          end $L4
-          local.get 8   ; or_res
-          if $L5 void
-          else
-            local.get 7   ; a
-            string.const 39   ; "--"
-            call 32   ; std_string$starts_with
-            local.set 9   ; long
-            local.get 7   ; a
-            call.import 3   ; std_core$bytes
-            local.set 10   ; ab
-            local.get 9   ; long
-            if $L6 void
-              i32.const 2
-              local.set 11   ; if_res
-            else
-              i32.const 1
-              local.set 11   ; if_res
-            end $L6
-            local.get 10   ; ab
-            array.len
-            local.set 12   ; $len_40
-            local.get 10   ; ab
-            local.get 11   ; if_res
-            local.get 12   ; $len_40
-            array.slice 8   ; u8[]
-            call.import 2   ; std_core$bytes_to_string
-            local.tee 13   ; body
-            char.const 61
-            i64.const 0
-            call 33   ; std_string$index_of
-            local.set 14   ; eq
-            local.get 13   ; body
-            call.import 3   ; std_core$bytes
-            local.set 15   ; bb
-            local.get 14   ; eq
-            i64.const 0
-            i64.lt
-            if $L7 void
-              local.get 13   ; body
-              local.set 16   ; name
-            else
-              local.get 14   ; eq
-              isize.to_i64
-              local.set 17   ; $cast_54
-              local.get 15   ; bb
-              i64.const 0
-              local.get 17   ; $cast_54
-              array.slice 8   ; u8[]
-              call.import 2   ; std_core$bytes_to_string
-              local.set 16   ; name
-            end $L7
-            local.get 14   ; eq
-            i64.const 0
-            i64.lt
-            if $L8 void
-              string.const 3   ; ""
-              local.set 18   ; inline_value
-            else
-              local.get 14   ; eq
-              isize.to_i64
-              i64.const 1
-              i64.add
-              local.set 19   ; $add_63
-              local.get 15   ; bb
-              array.len
-              local.set 20   ; $len_64
-              local.get 15   ; bb
-              local.get 19   ; $add_63
-              local.get 20   ; $len_64
-              array.slice 8   ; u8[]
-              call.import 2   ; std_core$bytes_to_string
-              local.set 18   ; inline_value
-            end $L8
-            local.get 1   ; arg 1
-            local.get 16   ; name
-            local.get 9   ; long
-            call 18   ; cli$find_spec
-            local.tee 21   ; spec
-            type_check 0   ; null
-            if $L9 void
-              string.const 41   ; "unknown flag "
-              local.get 7   ; a
-              call 1   ; concat_2
-              local.set 22   ; $call_71
-              local.get 4   ; $arr_4
-              local.get 22   ; $call_71
-              array.push 2   ; string
-              local.get 6   ; i
-              i64.const 1
-              i64.add
-              local.set 6   ; i
-              br $L1
-            end $L9
-            local.get 21   ; spec
-            ref.cast 12   ; cli$FlagSpec
-            struct.get 12 5   ; cli$FlagSpec.kind
-            i32.const 0
-            i32.eq
-            if $L10 void
-              local.get 14   ; eq
-              i64.const 0
-              i64.lt
-              if $L11 void
-                local.get 21   ; spec
-                ref.cast 12   ; cli$FlagSpec
-                struct.get 12 0   ; cli$FlagSpec.name
-                ref.cast 2   ; string
-                local.set 23   ; $field_81
-                local.get 2   ; $arr_2
-                local.get 23   ; $field_81
-                string.const 36   ; "true"
-                call 24   ; std_collections$MutableMap$IndexSet$set_at__string__string
-              else
-                local.get 18   ; inline_value
-                string.const 36   ; "true"
-                string.eq
-                if $L12 void
-                  bool.const true
-                  local.set 24   ; or_res
-                else
-                  local.get 18   ; inline_value
-                  string.const 37   ; "false"
-                  string.eq
-                  local.set 24   ; or_res
-                end $L12
-                local.get 24   ; or_res
-                if $L13 void
-                  local.get 21   ; spec
-                  ref.cast 12   ; cli$FlagSpec
-                  struct.get 12 0   ; cli$FlagSpec.name
-                  ref.cast 2   ; string
-                  local.set 25   ; $field_90
-                  local.get 2   ; $arr_2
-                  local.get 25   ; $field_90
-                  local.get 18   ; inline_value
-                  call 24   ; std_collections$MutableMap$IndexSet$set_at__string__string
-                else
-                  local.get 7   ; a
-                  string.const 42   ; ": bool flag accepts true or false, got \""
-                  local.get 18   ; inline_value
-                  string.const 43   ; "\""
-                  call 2   ; concat_4
-                  local.set 26   ; $call_93
-                  local.get 4   ; $arr_4
-                  local.get 26   ; $call_93
-                  array.push 2   ; string
-                end $L13
-              end $L11
-              local.get 6   ; i
-              i64.const 1
-              i64.add
-              local.set 6   ; i
-              br $L1
-            end $L10
-            local.get 14   ; eq
-            i64.const 0
-            i64.ge
-            if $L14 void
-              local.get 21   ; spec
-              ref.cast 12   ; cli$FlagSpec
-              local.get 7   ; a
-              local.get 18   ; inline_value
-              local.get 2   ; $arr_2
-              local.get 4   ; $arr_4
-              call 19   ; cli$record_str_flag
-              local.get 6   ; i
-              i64.const 1
-              i64.add
-              local.set 6   ; i
-              br $L1
-            end $L14
-            local.get 6   ; i
-            i64.const 1
-            i64.add
-            local.get 5   ; n
-            u64.ge
-            if $L15 void
-              local.get 21   ; spec
-              ref.cast 12   ; cli$FlagSpec
-              call 20   ; cli$value_placeholder
-              local.set 27   ; $call_107
-              local.get 21   ; spec
-              ref.cast 12   ; cli$FlagSpec
-              call 20   ; cli$value_placeholder
-              local.set 28   ; $call_111
-              local.get 7   ; a
-              string.const 44   ; ": missing value, expected "
-              local.get 7   ; a
-              string.const 45   ; "="
-              local.get 27   ; $call_107
-              string.const 46   ; " or "
-              local.get 7   ; a
-              string.const 47   ; " "
-              local.get 28   ; $call_111
-              call 3   ; concat_9
-              local.set 29   ; $call_112
-              local.get 4   ; $arr_4
-              local.get 29   ; $call_112
-              array.push 2   ; string
-              local.get 6   ; i
-              i64.const 1
-              i64.add
-              local.set 6   ; i
-              br $L1
-            end $L15
-            local.get 6   ; i
-            i64.const 1
-            i64.add
-            local.set 30   ; $add_116
-            local.get 0   ; arg 0
-            local.get 30   ; $add_116
-            array.get 10   ; string[]
-            ref.cast 2   ; string
-            local.tee 31   ; next
-            string.const 40   ; "-"
-            call 32   ; std_string$starts_with
-            if $L16 void
-              local.get 31   ; next
-              string.const 40   ; "-"
-              string.ne
-              local.set 32   ; looks_like_flag
-            else
-              bool.const false
-              local.set 32   ; looks_like_flag
-            end $L16
-            local.get 21   ; spec
-            ref.cast 12   ; cli$FlagSpec
-            struct.get 12 5   ; cli$FlagSpec.kind
-            i32.const 2
-            i32.eq
-            if $L17 void
-              local.get 31   ; next
-              call 34   ; std_string$parse_int
-              type_check 23   ; std_string$ParseError
-              bool.not
-              local.set 33   ; negative_number
-            else
-              bool.const false
-              local.set 33   ; negative_number
-            end $L17
-            local.get 32   ; looks_like_flag
-            if $L18 void
-              local.get 33   ; negative_number
-              bool.not
-              if $L19 void
-                local.get 7   ; a
-                string.const 48   ; ": missing value — \""
-                local.get 31   ; next
-                string.const 49   ; "\" reads as a flag; use "
-                local.get 7   ; a
-                string.const 45   ; "="
-                local.get 31   ; next
-                string.const 50   ; " if it is the value"
-                call 4   ; concat_8
-                local.set 34   ; $call_139
-                local.get 4   ; $arr_4
-                local.get 34   ; $call_139
-                array.push 2   ; string
-                local.get 6   ; i
-                i64.const 1
-                i64.add
-                local.set 6   ; i
-                br $L1
-              end $L19
-            end $L18
-            local.get 21   ; spec
-            ref.cast 12   ; cli$FlagSpec
-            local.get 7   ; a
-            local.get 31   ; next
-            local.get 2   ; $arr_2
-            local.get 4   ; $arr_4
-            call 19   ; cli$record_str_flag
-            local.get 6   ; i
-            i64.const 2
-            i64.add
-            local.set 6   ; i
-            br $L1
-          end $L5
-        end $L3
-      end $L2
-    end $L1
-  end $L0
-  block $L20 void
-    loop $L21 void
-      local.get 6   ; i
-      local.get 5   ; n
-      u64.lt
-      if $L22 void
-        local.get 0   ; arg 0
-        local.get 6   ; i
-        array.get 10   ; string[]
-        ref.cast 2   ; string
-        local.set 7   ; a
-        local.get 3   ; $arr_3
+          string.eq
+          local.set 8   ; or_res
+        end $L4
+        local.get 8   ; or_res
+        if $L5 void
+          br $L0
+        end $L5
         local.get 7   ; a
-        array.push 2 3   ; string $arr_3
+        string.const 39   ; "--"
+        call 32   ; std_string$starts_with
+        local.set 9   ; long
+        local.get 7   ; a
+        call.import 3   ; std_core$bytes
+        local.set 10   ; ab
+        local.get 9   ; long
+        if $L6 void
+          i32.const 2
+          local.set 11   ; if_res
+        else
+          i32.const 1
+          local.set 11   ; if_res
+        end $L6
+        local.get 10   ; ab
+        array.len
+        local.set 12   ; $len_40
+        local.get 10   ; ab
+        local.get 11   ; if_res
+        local.get 12   ; $len_40
+        array.slice 8   ; u8[]
+        call.import 2   ; std_core$bytes_to_string
+        local.tee 13   ; body
+        char.const 61
+        i64.const 0
+        call 33   ; std_string$index_of
+        local.set 14   ; eq
+        local.get 13   ; body
+        call.import 3   ; std_core$bytes
+        local.set 15   ; bb
+        local.get 14   ; eq
+        i64.const 0
+        i64.lt
+        if $L7 void
+          local.get 13   ; body
+          local.set 16   ; name
+        else
+          local.get 14   ; eq
+          isize.to_i64
+          local.set 17   ; $cast_54
+          local.get 15   ; bb
+          i64.const 0
+          local.get 17   ; $cast_54
+          array.slice 8   ; u8[]
+          call.import 2   ; std_core$bytes_to_string
+          local.set 16   ; name
+        end $L7
+        local.get 14   ; eq
+        i64.const 0
+        i64.lt
+        if $L8 void
+          string.const 3   ; ""
+          local.set 18   ; inline_value
+        else
+          local.get 14   ; eq
+          isize.to_i64
+          i64.const 1
+          i64.add
+          local.set 19   ; $add_63
+          local.get 15   ; bb
+          array.len
+          local.set 20   ; $len_64
+          local.get 15   ; bb
+          local.get 19   ; $add_63
+          local.get 20   ; $len_64
+          array.slice 8   ; u8[]
+          call.import 2   ; std_core$bytes_to_string
+          local.set 18   ; inline_value
+        end $L8
+        local.get 1   ; arg 1
+        local.get 16   ; name
+        local.get 9   ; long
+        call 18   ; cli$find_spec
+        local.tee 21   ; spec
+        type_check 0   ; null
+        if $L9 void
+          string.const 41   ; "unknown flag "
+          local.get 7   ; a
+          call 1   ; concat_2
+          local.set 22   ; $call_71
+          local.get 4   ; $arr_4
+          local.get 22   ; $call_71
+          array.push 2   ; string
+          local.get 6   ; i
+          i64.const 1
+          i64.add
+          local.set 6   ; i
+          br $L1
+        end $L9
+        local.get 21   ; spec
+        ref.cast 12   ; cli$FlagSpec
+        struct.get 12 5   ; cli$FlagSpec.kind
+        i32.const 0
+        i32.eq
+        if $L10 void
+          local.get 14   ; eq
+          i64.const 0
+          i64.lt
+          if $L11 void
+            local.get 21   ; spec
+            ref.cast 12   ; cli$FlagSpec
+            struct.get 12 0   ; cli$FlagSpec.name
+            ref.cast 2   ; string
+            local.set 23   ; $field_81
+            local.get 2   ; $arr_2
+            local.get 23   ; $field_81
+            string.const 36   ; "true"
+            call 24   ; std_collections$MutableMap$IndexSet$set_at__string__string
+          else
+            local.get 18   ; inline_value
+            string.const 36   ; "true"
+            string.eq
+            if $L12 void
+              bool.const true
+              local.set 24   ; or_res
+            else
+              local.get 18   ; inline_value
+              string.const 37   ; "false"
+              string.eq
+              local.set 24   ; or_res
+            end $L12
+            local.get 24   ; or_res
+            if $L13 void
+              local.get 21   ; spec
+              ref.cast 12   ; cli$FlagSpec
+              struct.get 12 0   ; cli$FlagSpec.name
+              ref.cast 2   ; string
+              local.set 25   ; $field_90
+              local.get 2   ; $arr_2
+              local.get 25   ; $field_90
+              local.get 18   ; inline_value
+              call 24   ; std_collections$MutableMap$IndexSet$set_at__string__string
+            else
+              local.get 7   ; a
+              string.const 42   ; ": bool flag accepts true or false, got \""
+              local.get 18   ; inline_value
+              string.const 43   ; "\""
+              call 2   ; concat_4
+              local.set 26   ; $call_93
+              local.get 4   ; $arr_4
+              local.get 26   ; $call_93
+              array.push 2   ; string
+            end $L13
+          end $L11
+          local.get 6   ; i
+          i64.const 1
+          i64.add
+          local.set 6   ; i
+          br $L1
+        end $L10
+        local.get 14   ; eq
+        i64.const 0
+        i64.ge
+        if $L14 void
+          local.get 21   ; spec
+          ref.cast 12   ; cli$FlagSpec
+          local.get 7   ; a
+          local.get 18   ; inline_value
+          local.get 2   ; $arr_2
+          local.get 4   ; $arr_4
+          call 19   ; cli$record_str_flag
+          local.get 6   ; i
+          i64.const 1
+          i64.add
+          local.set 6   ; i
+          br $L1
+        end $L14
         local.get 6   ; i
         i64.const 1
         i64.add
+        local.get 5   ; n
+        u64.ge
+        if $L15 void
+          local.get 21   ; spec
+          ref.cast 12   ; cli$FlagSpec
+          call 20   ; cli$value_placeholder
+          local.set 27   ; $call_107
+          local.get 21   ; spec
+          ref.cast 12   ; cli$FlagSpec
+          call 20   ; cli$value_placeholder
+          local.set 28   ; $call_111
+          local.get 7   ; a
+          string.const 44   ; ": missing value, expected "
+          local.get 7   ; a
+          string.const 45   ; "="
+          local.get 27   ; $call_107
+          string.const 46   ; " or "
+          local.get 7   ; a
+          string.const 47   ; " "
+          local.get 28   ; $call_111
+          call 3   ; concat_9
+          local.set 29   ; $call_112
+          local.get 4   ; $arr_4
+          local.get 29   ; $call_112
+          array.push 2   ; string
+          local.get 6   ; i
+          i64.const 1
+          i64.add
+          local.set 6   ; i
+          br $L1
+        end $L15
+        local.get 6   ; i
+        i64.const 1
+        i64.add
+        local.set 30   ; $add_116
+        local.get 0   ; arg 0
+        local.get 30   ; $add_116
+        array.get 10   ; string[]
+        ref.cast 2   ; string
+        local.tee 31   ; next
+        string.const 40   ; "-"
+        call 32   ; std_string$starts_with
+        if $L16 void
+          local.get 31   ; next
+          string.const 40   ; "-"
+          string.ne
+          local.set 32   ; looks_like_flag
+        else
+          bool.const false
+          local.set 32   ; looks_like_flag
+        end $L16
+        local.get 21   ; spec
+        ref.cast 12   ; cli$FlagSpec
+        struct.get 12 5   ; cli$FlagSpec.kind
+        i32.const 2
+        i32.eq
+        if $L17 void
+          local.get 31   ; next
+          call 34   ; std_string$parse_int
+          type_check 23   ; std_string$ParseError
+          bool.not
+          local.set 33   ; negative_number
+        else
+          bool.const false
+          local.set 33   ; negative_number
+        end $L17
+        local.get 32   ; looks_like_flag
+        if $L18 void
+          local.get 33   ; negative_number
+          bool.not
+          if $L19 void
+            local.get 7   ; a
+            string.const 48   ; ": missing value — \""
+            local.get 31   ; next
+            string.const 49   ; "\" reads as a flag; use "
+            local.get 7   ; a
+            string.const 45   ; "="
+            local.get 31   ; next
+            string.const 50   ; " if it is the value"
+            call 4   ; concat_8
+            local.set 34   ; $call_139
+            local.get 4   ; $arr_4
+            local.get 34   ; $call_139
+            array.push 2   ; string
+            local.get 6   ; i
+            i64.const 1
+            i64.add
+            local.set 6   ; i
+            br $L1
+          end $L19
+        end $L18
+        local.get 21   ; spec
+        ref.cast 12   ; cli$FlagSpec
+        local.get 7   ; a
+        local.get 31   ; next
+        local.get 2   ; $arr_2
+        local.get 4   ; $arr_4
+        call 19   ; cli$record_str_flag
+        local.get 6   ; i
+        i64.const 2
+        i64.add
         local.set 6   ; i
-        br $L21
-      end $L22
+        br $L1
+      end $L2
+    end $L1
+  end $L0
+  loop $L20 void
+    local.get 6   ; i
+    local.get 5   ; n
+    u64.lt
+    if $L21 void
+      local.get 0   ; arg 0
+      local.get 6   ; i
+      array.get 10   ; string[]
+      ref.cast 2   ; string
+      local.set 7   ; a
+      local.get 3   ; $arr_3
+      local.get 7   ; a
+      array.push 2 3   ; string $arr_3
+      local.get 6   ; i
+      i64.const 1
+      i64.add
+      local.set 6   ; i
+      br $L20
     end $L21
   end $L20
   local.get 2   ; $arr_2
@@ -1540,51 +1530,49 @@ fn 18 cli$find_spec (ref,string,bool) -> any
   local.set 4   ; __for_len_1
   i64.const 0
   local.set 5   ; __for_i_2
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 5   ; __for_i_2
+    local.get 4   ; __for_len_1
+    u64.lt
+    if $L1 void
+      local.get 3   ; __for_arr_0
       local.get 5   ; __for_i_2
-      local.get 4   ; __for_len_1
-      u64.lt
+      array.get 11   ; cli$FlagSpec[]
+      local.set 6   ; s
+      local.get 2   ; arg 2
       if $L2 void
-        local.get 3   ; __for_arr_0
-        local.get 5   ; __for_i_2
-        array.get 11   ; cli$FlagSpec[]
-        local.set 6   ; s
-        local.get 2   ; arg 2
+        local.field 6 12 0   ; s cli$FlagSpec.name
+        ref.cast 2   ; string
+        local.get 1   ; arg 1
+        string.eq
         if $L3 void
-          local.field 6 12 0   ; s cli$FlagSpec.name
-          ref.cast 2   ; string
-          local.get 1   ; arg 1
-          string.eq
-          if $L4 void
-            local.get 6   ; s
-            return
-          end $L4
+          local.get 6   ; s
+          return
         end $L3
-        local.get 2   ; arg 2
-        bool.not
+      end $L2
+      local.get 2   ; arg 2
+      bool.not
+      if $L4 void
+        local.field 6 12 2   ; s cli$FlagSpec.alias
+        ref.cast 2   ; string
+        string.const 3   ; ""
+        string.ne
         if $L5 void
           local.field 6 12 2   ; s cli$FlagSpec.alias
           ref.cast 2   ; string
-          string.const 3   ; ""
-          string.ne
+          local.get 1   ; arg 1
+          string.eq
           if $L6 void
-            local.field 6 12 2   ; s cli$FlagSpec.alias
-            ref.cast 2   ; string
-            local.get 1   ; arg 1
-            string.eq
-            if $L7 void
-              local.get 6   ; s
-              return
-            end $L7
+            local.get 6   ; s
+            return
           end $L6
         end $L5
-        local.get 5   ; __for_i_2
-        i64.const 1
-        i64.add
-        local.set 5   ; __for_i_2
-        br $L1
-      end $L2
+      end $L4
+      local.get 5   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 5   ; __for_i_2
+      br $L0
     end $L1
   end $L0
   return.lit null.const
@@ -1683,28 +1671,26 @@ fn 21 cli$accepts_value (ref,string) -> bool
   local.set 3   ; __for_len_1
   i64.const 0
   local.set 4   ; __for_i_2
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 4   ; __for_i_2
+    local.get 3   ; __for_len_1
+    u64.lt
+    if $L1 void
+      local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      local.get 3   ; __for_len_1
-      u64.lt
+      array.get 16   ; cli$ValueSpec[]
+      struct.get 17 0   ; cli$ValueSpec.name
+      ref.cast 2   ; string
+      local.get 1   ; arg 1
+      string.eq
       if $L2 void
-        local.get 2   ; __for_arr_0
-        local.get 4   ; __for_i_2
-        array.get 16   ; cli$ValueSpec[]
-        struct.get 17 0   ; cli$ValueSpec.name
-        ref.cast 2   ; string
-        local.get 1   ; arg 1
-        string.eq
-        if $L3 void
-          return.lit bool.const true
-        end $L3
-        local.get 4   ; __for_i_2
-        i64.const 1
-        i64.add
-        local.set 4   ; __for_i_2
-        br $L1
+        return.lit bool.const true
       end $L2
+      local.get 4   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 4   ; __for_i_2
+      br $L0
     end $L1
   end $L0
   return.lit bool.const false
@@ -1731,27 +1717,25 @@ fn 22 cli$value_list (ref) -> string
   local.set 2   ; $len_3
   i64.const 0
   local.set 4   ; __for_i_2
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 4   ; __for_i_2
+    local.get 2   ; $len_3
+    u64.lt
+    if $L1 void
+      local.get 3   ; __for_arr_0
       local.get 4   ; __for_i_2
-      local.get 2   ; $len_3
-      u64.lt
-      if $L2 void
-        local.get 3   ; __for_arr_0
-        local.get 4   ; __for_i_2
-        array.get 16   ; cli$ValueSpec[]
-        struct.get 17 0   ; cli$ValueSpec.name
-        ref.cast 2   ; string
-        local.set 5   ; $field_15
-        local.get 1   ; $arr_1
-        local.get 5   ; $field_15
-        array.push 2 1   ; string $arr_1
-        local.get 4   ; __for_i_2
-        i64.const 1
-        i64.add
-        local.set 4   ; __for_i_2
-        br $L1
-      end $L2
+      array.get 16   ; cli$ValueSpec[]
+      struct.get 17 0   ; cli$ValueSpec.name
+      ref.cast 2   ; string
+      local.set 5   ; $field_15
+      local.get 1   ; $arr_1
+      local.get 5   ; $field_15
+      array.push 2 1   ; string $arr_1
+      local.get 4   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 4   ; __for_i_2
+      br $L0
     end $L1
   end $L0
   local.get 1   ; $arr_1
@@ -1817,21 +1801,19 @@ fn 27 std_collections$ensure_index__string__string (ref) -> void
     local.set 1   ; idx
     i64.const 0
     local.set 2   ; __for_discard_0
-    block $L1 void
-      loop $L2 void
+    loop $L1 void
+      local.get 2   ; __for_discard_0
+      i64.const 16
+      u64.lt
+      if $L2 void
+        local.get 1   ; idx
+        i32.const 0
+        array.push 1 1   ; i32 idx
         local.get 2   ; __for_discard_0
-        i64.const 16
-        u64.lt
-        if $L3 void
-          local.get 1   ; idx
-          i32.const 0
-          array.push 1 1   ; i32 idx
-          local.get 2   ; __for_discard_0
-          i64.const 1
-          i64.add
-          local.set 2   ; __for_discard_0
-          br $L2
-        end $L3
+        i64.const 1
+        i64.add
+        local.set 2   ; __for_discard_0
+        br $L1
       end $L2
     end $L1
     local.get 0   ; arg 0
@@ -1860,21 +1842,19 @@ fn 28 std_collections$rehash__string__string (ref,usize) -> void
   local.set 2   ; fresh
   i64.const 0
   local.set 3   ; __for_discard_0
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 3   ; __for_discard_0
+    local.get 1   ; arg 1
+    u64.lt
+    if $L1 void
+      local.get 2   ; fresh
+      i32.const 0
+      array.push 1 2   ; i32 fresh
       local.get 3   ; __for_discard_0
-      local.get 1   ; arg 1
-      u64.lt
-      if $L2 void
-        local.get 2   ; fresh
-        i32.const 0
-        array.push 1 2   ; i32 fresh
-        local.get 3   ; __for_discard_0
-        i64.const 1
-        i64.add
-        local.set 3   ; __for_discard_0
-        br $L1
-      end $L2
+      i64.const 1
+      i64.add
+      local.set 3   ; __for_discard_0
+      br $L0
     end $L1
   end $L0
   local.get 1   ; arg 1
@@ -1886,59 +1866,55 @@ fn 28 std_collections$rehash__string__string (ref,usize) -> void
   local.field 0 15 4   ; arg 0 std_collections$MutableMap__string__string.size
   ref.cast 5   ; usize
   local.set 5   ; __for_hi_1
-  block $L3 void
-    loop $L4 void
+  loop $L2 void
+    local.get 4   ; e
+    local.get 5   ; __for_hi_1
+    u64.lt
+    if $L3 void
+      local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
       local.get 4   ; e
-      local.get 5   ; __for_hi_1
-      u64.lt
-      if $L5 void
-        local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
-        local.get 4   ; e
-        array.get 10   ; string[]
-        ref.cast 2   ; string
-        call 46   ; std_core$string$Hash$hash_vt
-        local.tee 6   ; perturb
-        local.get 3   ; __for_discard_0
-        call 25   ; std_collections$first_slot
-        local.set 7   ; s
-        block $L6 void
-          loop $L7 void
-            local.get 2   ; fresh
-            local.get 7   ; s
-            load_slot_i32
-            i32.const 0
-            i32.ne
-            if $L8 void
-              local.get 6   ; perturb
-              i64.const 5
-              u64.shr
-              local.set 6   ; perturb
-              local.get 7   ; s
-              local.get 6   ; perturb
-              local.get 3   ; __for_discard_0
-              call 26   ; std_collections$next_slot
-              local.set 7   ; s
-              br $L7
-            end $L8
-          end $L7
-        end $L6
-        local.get 4   ; e
-        i64.const 1
-        i64.add
-        usize.to_i32
-        local.set 8   ; $cast_33
+      array.get 10   ; string[]
+      ref.cast 2   ; string
+      call 46   ; std_core$string$Hash$hash_vt
+      local.tee 6   ; perturb
+      local.get 3   ; __for_discard_0
+      call 25   ; std_collections$first_slot
+      local.set 7   ; s
+      loop $L4 void
         local.get 2   ; fresh
         local.get 7   ; s
-        local.get 8   ; $cast_33
-        store_slot_i32
-        local.get 4   ; e
-        i64.const 1
-        i64.add
-        local.set 4   ; e
-        br $L4
-      end $L5
-    end $L4
-  end $L3
+        load_slot_i32
+        i32.const 0
+        i32.ne
+        if $L5 void
+          local.get 6   ; perturb
+          i64.const 5
+          u64.shr
+          local.set 6   ; perturb
+          local.get 7   ; s
+          local.get 6   ; perturb
+          local.get 3   ; __for_discard_0
+          call 26   ; std_collections$next_slot
+          local.set 7   ; s
+          br $L4
+        end $L5
+      end $L4
+      local.get 4   ; e
+      i64.const 1
+      i64.add
+      usize.to_i32
+      local.set 8   ; $cast_33
+      local.get 2   ; fresh
+      local.get 7   ; s
+      local.get 8   ; $cast_33
+      store_slot_i32
+      local.get 4   ; e
+      i64.const 1
+      i64.add
+      local.set 4   ; e
+      br $L2
+    end $L3
+  end $L2
   local.get 0   ; arg 0
   local.get 2   ; fresh
   struct.set 15 2   ; std_collections$MutableMap__string__string.index
@@ -2031,29 +2007,27 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
   if $L0 void
     i64.const 16
     local.set 3   ; $field_3
-    block $L1 void
-      loop $L2 void
-        local.field 0 15 4   ; arg 0 std_collections$MutableMap__string__string.size
-        ref.cast 5   ; usize
-        i64.const 1
-        i64.add
-        i64.const 4
-        i64.mul
-        local.set 4   ; $field_4
+    loop $L1 void
+      local.field 0 15 4   ; arg 0 std_collections$MutableMap__string__string.size
+      ref.cast 5   ; usize
+      i64.const 1
+      i64.add
+      i64.const 4
+      i64.mul
+      local.set 4   ; $field_4
+      local.get 3   ; $field_3
+      i64.const 3
+      i64.mul
+      local.set 5   ; $mul_24
+      local.get 4   ; $field_4
+      local.get 5   ; $mul_24
+      u64.gt
+      if $L2 void
         local.get 3   ; $field_3
-        i64.const 3
+        i64.const 2
         i64.mul
-        local.set 5   ; $mul_24
-        local.get 4   ; $field_4
-        local.get 5   ; $mul_24
-        u64.gt
-        if $L3 void
-          local.get 3   ; $field_3
-          i64.const 2
-          i64.mul
-          local.set 3   ; $field_3
-          br $L2
-        end $L3
+        local.set 3   ; $field_3
+        br $L1
       end $L2
     end $L1
     local.get 0   ; arg 0
@@ -2073,81 +2047,79 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
   i64.const 1
   i64.neg
   local.set 7   ; first_tomb
-  block $L4 void
-    loop $L5 void
+  loop $L3 void
+    local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
+    local.get 3   ; $field_3
+    load_slot_i32
+    i32.const 0
+    i32.ne
+    if $L4 void
       local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
       local.get 3   ; $field_3
       load_slot_i32
-      i32.const 0
-      i32.ne
-      if $L6 void
+      i32.const -1
+      i32.eq
+      if $L5 void
+        local.get 7   ; first_tomb
+        i64.const 0
+        i64.lt
+        if $L6 void
+          local.get 3   ; $field_3
+          usize.to_i64
+          local.set 7   ; first_tomb
+        end $L6
+      else
         local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
         local.get 3   ; $field_3
         load_slot_i32
-        i32.const -1
-        i32.eq
+        i32.to_i64
+        i64.const 1
+        i64.sub
+        local.set 4   ; $field_4
+        local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
+        local.get 4   ; $field_4
+        array.get 10   ; string[]
+        ref.cast 2   ; string
+        local.get 1   ; arg 1
+        string.eq
         if $L7 void
-          local.get 7   ; first_tomb
-          i64.const 0
-          i64.lt
-          if $L8 void
-            local.get 3   ; $field_3
-            usize.to_i64
-            local.set 7   ; first_tomb
-          end $L8
-        else
-          local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
-          local.get 3   ; $field_3
-          load_slot_i32
-          i32.to_i64
-          i64.const 1
-          i64.sub
-          local.set 4   ; $field_4
-          local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
+          local.field 0 15 1   ; arg 0 std_collections$MutableMap__string__string.evals
           local.get 4   ; $field_4
-          array.get 10   ; string[]
-          ref.cast 2   ; string
-          local.get 1   ; arg 1
-          string.eq
-          if $L9 void
-            local.field 0 15 1   ; arg 0 std_collections$MutableMap__string__string.evals
-            local.get 4   ; $field_4
-            local.get 2   ; arg 2
-            array.set 10   ; string[]
-            return
-          end $L9
+          local.get 2   ; arg 2
+          array.set 10   ; string[]
+          return
         end $L7
-        local.get 6   ; perturb
-        i64.const 5
-        u64.shr
-        local.set 6   ; perturb
-        local.field 0 15 3   ; arg 0 std_collections$MutableMap__string__string.mask
-        ref.cast 5   ; usize
-        local.set 5   ; $mul_24
-        local.get 3   ; $field_3
-        local.get 6   ; perturb
-        local.get 5   ; $mul_24
-        call 26   ; std_collections$next_slot
-        local.set 3   ; $field_3
-        br $L5
-      end $L6
-    end $L5
-  end $L4
+      end $L5
+      local.get 6   ; perturb
+      i64.const 5
+      u64.shr
+      local.set 6   ; perturb
+      local.field 0 15 3   ; arg 0 std_collections$MutableMap__string__string.mask
+      ref.cast 5   ; usize
+      local.set 5   ; $mul_24
+      local.get 3   ; $field_3
+      local.get 6   ; perturb
+      local.get 5   ; $mul_24
+      call 26   ; std_collections$next_slot
+      local.set 3   ; $field_3
+      br $L3
+    end $L4
+  end $L3
   local.get 7   ; first_tomb
   i64.const 0
   i64.ge
-  if $L10 void
+  if $L8 void
     local.get 7   ; first_tomb
     i64.to_i64
     local.set 4   ; $field_4
   else
     local.get 3   ; $field_3
     local.set 4   ; $field_4
-  end $L10
+  end $L8
   local.get 7   ; first_tomb
   i64.const 0
   i64.ge
-  if $L11 void
+  if $L9 void
     local.field 0 15 5   ; arg 0 std_collections$MutableMap__string__string.tombs
     ref.cast 5   ; usize
     i64.const 1
@@ -2156,7 +2128,7 @@ fn 30 std_collections$put__string__string (ref,string,string) -> void
     local.get 0   ; arg 0
     local.get 3   ; $field_3
     struct.set 15 5   ; std_collections$MutableMap__string__string.tombs
-  end $L11
+  end $L9
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -2206,56 +2178,54 @@ fn 31 std_collections$get__string__string (ref,string) -> any
   local.get 3   ; $field_9
   call 25   ; std_collections$first_slot
   local.set 3   ; $field_9
-  block $L1 void
-    loop $L2 void
+  loop $L1 void
+    local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
+    local.get 3   ; $field_9
+    load_slot_i32
+    i32.const 0
+    i32.ne
+    if $L2 void
       local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
       local.get 3   ; $field_9
       load_slot_i32
-      i32.const 0
+      i32.const -1
       i32.ne
       if $L3 void
         local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
         local.get 3   ; $field_9
         load_slot_i32
-        i32.const -1
-        i32.ne
+        i32.to_i64
+        i64.const 1
+        i64.sub
+        local.set 4   ; ei
+        local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
+        local.get 4   ; ei
+        array.get 10   ; string[]
+        ref.cast 2   ; string
+        local.get 1   ; arg 1
+        string.eq
         if $L4 void
-          local.field 0 15 2   ; arg 0 std_collections$MutableMap__string__string.index
-          local.get 3   ; $field_9
-          load_slot_i32
-          i32.to_i64
-          i64.const 1
-          i64.sub
-          local.set 4   ; ei
-          local.field 0 15 0   ; arg 0 std_collections$MutableMap__string__string.ekeys
+          local.field 0 15 1   ; arg 0 std_collections$MutableMap__string__string.evals
           local.get 4   ; ei
           array.get 10   ; string[]
           ref.cast 2   ; string
-          local.get 1   ; arg 1
-          string.eq
-          if $L5 void
-            local.field 0 15 1   ; arg 0 std_collections$MutableMap__string__string.evals
-            local.get 4   ; ei
-            array.get 10   ; string[]
-            ref.cast 2   ; string
-            retag 2   ; string
-            return
-          end $L5
+          retag 2   ; string
+          return
         end $L4
-        local.get 2   ; perturb
-        i64.const 5
-        u64.shr
-        local.set 2   ; perturb
-        local.field 0 15 3   ; arg 0 std_collections$MutableMap__string__string.mask
-        ref.cast 5   ; usize
-        local.set 5   ; $field_33
-        local.get 3   ; $field_9
-        local.get 2   ; perturb
-        local.get 5   ; $field_33
-        call 26   ; std_collections$next_slot
-        local.set 3   ; $field_9
-        br $L2
       end $L3
+      local.get 2   ; perturb
+      i64.const 5
+      u64.shr
+      local.set 2   ; perturb
+      local.field 0 15 3   ; arg 0 std_collections$MutableMap__string__string.mask
+      ref.cast 5   ; usize
+      local.set 5   ; $field_33
+      local.get 3   ; $field_9
+      local.get 2   ; perturb
+      local.get 5   ; $field_33
+      call 26   ; std_collections$next_slot
+      local.set 3   ; $field_9
+      br $L1
     end $L2
   end $L1
   return.lit null.const
@@ -2280,32 +2250,30 @@ fn 32 std_string$starts_with (string,string) -> bool
   end $L0
   i64.const 0
   local.set 3   ; $call_4
-  block $L1 void
-    loop $L2 void
+  loop $L1 void
+    local.get 3   ; $call_4
+    local.get 2   ; pl
+    u64.lt
+    if $L2 void
+      local.get 0   ; arg 0
       local.get 3   ; $call_4
-      local.get 2   ; pl
-      u64.lt
+      call.import 1   ; std_core$byte_at
+      local.set 4   ; $call_10
+      local.get 1   ; arg 1
+      local.get 3   ; $call_4
+      call.import 1   ; std_core$byte_at
+      local.set 5   ; $call_11
+      local.get 4   ; $call_10
+      local.get 5   ; $call_11
+      i32.ne
       if $L3 void
-        local.get 0   ; arg 0
-        local.get 3   ; $call_4
-        call.import 1   ; std_core$byte_at
-        local.set 4   ; $call_10
-        local.get 1   ; arg 1
-        local.get 3   ; $call_4
-        call.import 1   ; std_core$byte_at
-        local.set 5   ; $call_11
-        local.get 4   ; $call_10
-        local.get 5   ; $call_11
-        i32.ne
-        if $L4 void
-          return.lit bool.const false
-        end $L4
-        local.get 3   ; $call_4
-        i64.const 1
-        i64.add
-        local.set 3   ; $call_4
-        br $L2
+        return.lit bool.const false
       end $L3
+      local.get 3   ; $call_4
+      i64.const 1
+      i64.add
+      local.set 3   ; $call_4
+      br $L1
     end $L2
   end $L1
   return.lit bool.const true
@@ -2325,33 +2293,31 @@ fn 33 std_string$index_of (string,char,usize) -> isize
   local.set 4   ; n
   local.get 2   ; arg 2
   local.set 5   ; i
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 5   ; i
+    local.get 4   ; n
+    u64.lt
+    if $L1 void
+      local.get 3   ; sb
       local.get 5   ; i
-      local.get 4   ; n
-      u64.lt
+      call 35   ; std_string$utf8_decode_len
+      local.set 8   ; $call_elem_21
+      local.set 6   ; cp
+      local.get 8   ; $call_elem_21
+      local.set 7   ; width
+      local.get 6   ; cp
+      local.get 1   ; arg 1
+      i32.eq
       if $L2 void
-        local.get 3   ; sb
         local.get 5   ; i
-        call 35   ; std_string$utf8_decode_len
-        local.set 8   ; $call_elem_21
-        local.set 6   ; cp
-        local.get 8   ; $call_elem_21
-        local.set 7   ; width
-        local.get 6   ; cp
-        local.get 1   ; arg 1
-        i32.eq
-        if $L3 void
-          local.get 5   ; i
-          usize.to_i64
-          return
-        end $L3
-        local.get 5   ; i
-        local.get 7   ; width
-        i64.add
-        local.set 5   ; i
-        br $L1
+        usize.to_i64
+        return
       end $L2
+      local.get 5   ; i
+      local.get 7   ; width
+      i64.add
+      local.set 5   ; i
+      br $L0
     end $L1
   end $L0
   i64.const 1
@@ -2404,86 +2370,84 @@ fn 34 std_string$parse_int (string) -> any
   end $L2
   i64.const 0
   local.set 4   ; acc
-  block $L3 void
-    loop $L4 void
+  loop $L3 void
+    local.get 2   ; i
+    local.get 1   ; n
+    u64.lt
+    if $L4 void
+      local.get 0   ; arg 0
       local.get 2   ; i
-      local.get 1   ; n
-      u64.lt
+      call.import 1   ; std_core$byte_at
+      local.tee 5   ; b
+      i32.const 48
+      u32.lt
       if $L5 void
-        local.get 0   ; arg 0
-        local.get 2   ; i
-        call.import 1   ; std_core$byte_at
-        local.tee 5   ; b
-        i32.const 48
-        u32.lt
-        if $L6 void
-          bool.const true
-          local.set 6   ; or_res
-        else
-          local.get 5   ; b
-          i32.const 57
-          u32.gt
-          local.set 6   ; or_res
-        end $L6
-        local.get 6   ; or_res
-        if $L7 void
-          string.const 61   ; "parse_int: invalid digit"
+        bool.const true
+        local.set 6   ; or_res
+      else
+        local.get 5   ; b
+        i32.const 57
+        u32.gt
+        local.set 6   ; or_res
+      end $L5
+      local.get 6   ; or_res
+      if $L6 void
+        string.const 61   ; "parse_int: invalid digit"
+        struct.new 23   ; std_string$ParseError
+        return
+      end $L6
+      local.get 4   ; acc
+      i64.const 10
+      i64.mul
+      local.set 7   ; $mul_34
+      local.get 5   ; b
+      i32.const 48
+      i32.sub
+      i32.const 255
+      i32.bitand
+      u8.to_i64
+      local.set 8   ; $cast_37
+      local.get 7   ; $mul_34
+      local.get 8   ; $cast_37
+      i64.add
+      local.set 4   ; acc
+      local.get 3   ; neg
+      if $L7 void
+        i64.const 2147483648
+        local.set 9   ; $add_41
+        local.get 4   ; acc
+        local.get 9   ; $add_41
+        i64.gt
+        if $L8 void
+          string.const 62   ; "parse_int: overflow"
           struct.new 23   ; std_string$ParseError
           return
-        end $L7
-        local.get 4   ; acc
-        i64.const 10
-        i64.mul
-        local.set 7   ; $mul_34
-        local.get 5   ; b
-        i32.const 48
-        i32.sub
-        i32.const 255
-        i32.bitand
-        u8.to_i64
-        local.set 8   ; $cast_37
-        local.get 7   ; $mul_34
-        local.get 8   ; $cast_37
-        i64.add
-        local.set 4   ; acc
-        local.get 3   ; neg
-        if $L8 void
-          i64.const 2147483648
-          local.set 9   ; $add_41
-          local.get 4   ; acc
-          local.get 9   ; $add_41
-          i64.gt
-          if $L9 void
-            string.const 62   ; "parse_int: overflow"
-            struct.new 23   ; std_string$ParseError
-            return
-          end $L9
-        else
-          local.get 4   ; acc
-          i64.const 2147483647
-          i64.gt
-          if $L10 void
-            string.const 62   ; "parse_int: overflow"
-            struct.new 23   ; std_string$ParseError
-            return
-          end $L10
         end $L8
-        local.get 2   ; i
-        i64.const 1
-        i64.add
-        local.set 2   ; i
-        br $L4
-      end $L5
+      else
+        local.get 4   ; acc
+        i64.const 2147483647
+        i64.gt
+        if $L9 void
+          string.const 62   ; "parse_int: overflow"
+          struct.new 23   ; std_string$ParseError
+          return
+        end $L9
+      end $L7
+      local.get 2   ; i
+      i64.const 1
+      i64.add
+      local.set 2   ; i
+      br $L3
     end $L4
   end $L3
   local.get 3   ; neg
-  if $L11 void
+  if $L10 void
     local.get 4   ; acc
     i64.neg
     i64.to_i32
     retag 1   ; i32
     return
-  end $L11
+  end $L10
   local.get 4   ; acc
   i64.to_i32
   retag 1   ; i32
@@ -2751,34 +2715,32 @@ fn 38 std_string$join (ref,string) -> string
   local.get 0   ; arg 0
   array.len
   local.set 4   ; __for_hi_0
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 3   ; i
+    local.get 4   ; __for_hi_0
+    u64.lt
+    if $L1 void
       local.get 3   ; i
-      local.get 4   ; __for_hi_0
-      u64.lt
+      i64.const 0
+      u64.gt
       if $L2 void
-        local.get 3   ; i
-        i64.const 0
-        u64.gt
-        if $L3 void
-          local.get 2   ; sb
-          local.get 1   ; arg 1
-          call 40   ; std_string_builder$append
-        end $L3
-        local.get 0   ; arg 0
-        local.get 3   ; i
-        array.get 10   ; string[]
-        ref.cast 2   ; string
-        local.set 5   ; $idx_12
         local.get 2   ; sb
-        local.get 5   ; $idx_12
+        local.get 1   ; arg 1
         call 40   ; std_string_builder$append
-        local.get 3   ; i
-        i64.const 1
-        i64.add
-        local.set 3   ; i
-        br $L1
       end $L2
+      local.get 0   ; arg 0
+      local.get 3   ; i
+      array.get 10   ; string[]
+      ref.cast 2   ; string
+      local.set 5   ; $idx_12
+      local.get 2   ; sb
+      local.get 5   ; $idx_12
+      call 40   ; std_string_builder$append
+      local.get 3   ; i
+      i64.const 1
+      i64.add
+      local.set 3   ; i
+      br $L0
     end $L1
   end $L0
   local.get 2   ; sb
@@ -2846,28 +2808,26 @@ fn 41 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 3   ; __for_len_1
   i64.const 0
   local.set 4   ; __for_i_2
-  block $L2 void
-    loop $L3 void
+  loop $L2 void
+    local.get 4   ; __for_i_2
+    local.get 3   ; __for_len_1
+    u64.lt
+    if $L3 void
+      local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      local.get 3   ; __for_len_1
-      u64.lt
-      if $L4 void
-        local.get 2   ; __for_arr_0
-        local.get 4   ; __for_i_2
-        array.get 10   ; string[]
-        ref.cast 2   ; string
-        call.import 0   ; std_core$byte_len
-        local.set 5   ; $call_23
-        local.get 1   ; n
-        local.get 5   ; $call_23
-        i64.add
-        local.set 1   ; n
-        local.get 4   ; __for_i_2
-        i64.const 1
-        i64.add
-        local.set 4   ; __for_i_2
-        br $L3
-      end $L4
+      array.get 10   ; string[]
+      ref.cast 2   ; string
+      call.import 0   ; std_core$byte_len
+      local.set 5   ; $call_23
+      local.get 1   ; n
+      local.get 5   ; $call_23
+      i64.add
+      local.set 1   ; n
+      local.get 4   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 4   ; __for_i_2
+      br $L2
     end $L3
   end $L2
   local.get 1   ; n
@@ -2881,36 +2841,34 @@ fn 41 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 4   ; __for_i_2
   i64.const 0
   local.set 5   ; $call_23
-  block $L5 void
-    loop $L6 void
+  loop $L4 void
+    local.get 5   ; $call_23
+    local.get 4   ; __for_i_2
+    u64.lt
+    if $L5 void
+      local.get 6   ; __for_arr_3
       local.get 5   ; $call_23
-      local.get 4   ; __for_i_2
-      u64.lt
-      if $L7 void
-        local.get 6   ; __for_arr_3
-        local.get 5   ; $call_23
-        array.get 10   ; string[]
-        ref.cast 2   ; string
-        local.set 7   ; p
-        local.get 2   ; __for_arr_0
-        local.get 3   ; __for_len_1
-        local.get 7   ; p
-        call 45   ; std_core$Buffer$ByteAccess$write_string_vt
-        local.get 7   ; p
-        call.import 0   ; std_core$byte_len
-        local.set 8   ; $call_40
-        local.get 3   ; __for_len_1
-        local.get 8   ; $call_40
-        i64.add
-        local.set 3   ; __for_len_1
-        local.get 5   ; $call_23
-        i64.const 1
-        i64.add
-        local.set 5   ; $call_23
-        br $L6
-      end $L7
-    end $L6
-  end $L5
+      array.get 10   ; string[]
+      ref.cast 2   ; string
+      local.set 7   ; p
+      local.get 2   ; __for_arr_0
+      local.get 3   ; __for_len_1
+      local.get 7   ; p
+      call 45   ; std_core$Buffer$ByteAccess$write_string_vt
+      local.get 7   ; p
+      call.import 0   ; std_core$byte_len
+      local.set 8   ; $call_40
+      local.get 3   ; __for_len_1
+      local.get 8   ; $call_40
+      i64.add
+      local.set 3   ; __for_len_1
+      local.get 5   ; $call_23
+      i64.const 1
+      i64.add
+      local.set 5   ; $call_23
+      br $L4
+    end $L5
+  end $L4
   local.get 2   ; __for_arr_0
   local.get 1   ; n
   call 44   ; std_core$Buffer$ByteAccess$intern_string_vt

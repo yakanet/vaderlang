@@ -42,98 +42,94 @@ fn 0 snippet$continue_outer () -> void
   local $cast_34 i64
   i32.const 0
   local.set 0   ; v
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 0   ; v
+    i32.const 2
+    i32.lt
+    if $L1 void
       local.get 0   ; v
-      i32.const 2
-      i32.lt
-      if $L2 void
-        local.get 0   ; v
-        struct.new 15   ; $Cell_i32
-        local.tee 1   ; v
-        struct.new 3   ; __defer_env_snippet_1
-        make_closure 3 16   ; __defer_snippet_0 fn
-        defer.push
-        i32.const 0
-        local.set 2   ; w
-        block $L3 void
-          loop $L4 void
-            local.get 2   ; w
-            i32.const 2
-            i32.lt
-            if $L5 void
-              local.get 2   ; w
-              struct.new 15   ; $Cell_i32
-              local.set 3   ; w
-              local.get 1   ; v
-              local.get 3   ; w
-              struct.new 4   ; __defer_env_snippet_3
-              make_closure 4 16   ; __defer_snippet_2 fn
-              defer.push
-              local.field 3 15 0   ; w $Cell_i32.value
-              i32.const 1
-              i32.eq
-              if $L6 void
-                defer.pop_exec 2
-                local.get 0   ; v
-                i32.const 1
-                i32.add
-                local.set 0   ; v
-                br $L1
-              end $L6
-              i64.const 48
-              call 8   ; std_core$new_byte_buffer
-              local.set 4   ; __buf_4
-              i64.const 0
-              local.set 5   ; __off_5
-              local.get 4   ; __buf_4
-              local.get 5   ; __off_5
-              string.const 0   ; "  body "
-              call 10   ; std_core$write_string_at
-              local.set 5   ; __off_5
-              local.field 1 15 0   ; v $Cell_i32.value
-              i32.to_i64
-              local.set 6   ; $cast_29
-              local.get 4   ; __buf_4
-              local.get 5   ; __off_5
-              local.get 6   ; $cast_29
-              call 11   ; std_core$write_int
-              local.set 5   ; __off_5
-              local.get 4   ; __buf_4
-              local.get 5   ; __off_5
-              string.const 1   ; "."
-              call 10   ; std_core$write_string_at
-              local.set 5   ; __off_5
-              local.field 3 15 0   ; w $Cell_i32.value
-              i32.to_i64
-              local.set 7   ; $cast_34
-              local.get 4   ; __buf_4
-              local.get 5   ; __off_5
-              local.get 7   ; $cast_34
-              call 11   ; std_core$write_int
-              local.set 5   ; __off_5
-              local.get 4   ; __buf_4
-              local.get 5   ; __off_5
-              call 9   ; std_core$finish_buffer
-              call 14   ; std_io$println__string
-              defer.pop_exec 1
-              local.get 2   ; w
-              i32.const 1
-              i32.add
-              local.set 2   ; w
-              br $L4
-            end $L5
+      struct.new 15   ; $Cell_i32
+      local.tee 1   ; v
+      struct.new 3   ; __defer_env_snippet_1
+      make_closure 3 16   ; __defer_snippet_0 fn
+      defer.push
+      i32.const 0
+      local.set 2   ; w
+      loop $L2 void
+        local.get 2   ; w
+        i32.const 2
+        i32.lt
+        if $L3 void
+          local.get 2   ; w
+          struct.new 15   ; $Cell_i32
+          local.set 3   ; w
+          local.get 1   ; v
+          local.get 3   ; w
+          struct.new 4   ; __defer_env_snippet_3
+          make_closure 4 16   ; __defer_snippet_2 fn
+          defer.push
+          local.field 3 15 0   ; w $Cell_i32.value
+          i32.const 1
+          i32.eq
+          if $L4 void
+            defer.pop_exec 2
+            local.get 0   ; v
+            i32.const 1
+            i32.add
+            local.set 0   ; v
+            br $L0
           end $L4
+          i64.const 48
+          call 8   ; std_core$new_byte_buffer
+          local.set 4   ; __buf_4
+          i64.const 0
+          local.set 5   ; __off_5
+          local.get 4   ; __buf_4
+          local.get 5   ; __off_5
+          string.const 0   ; "  body "
+          call 10   ; std_core$write_string_at
+          local.set 5   ; __off_5
+          local.field 1 15 0   ; v $Cell_i32.value
+          i32.to_i64
+          local.set 6   ; $cast_29
+          local.get 4   ; __buf_4
+          local.get 5   ; __off_5
+          local.get 6   ; $cast_29
+          call 11   ; std_core$write_int
+          local.set 5   ; __off_5
+          local.get 4   ; __buf_4
+          local.get 5   ; __off_5
+          string.const 1   ; "."
+          call 10   ; std_core$write_string_at
+          local.set 5   ; __off_5
+          local.field 3 15 0   ; w $Cell_i32.value
+          i32.to_i64
+          local.set 7   ; $cast_34
+          local.get 4   ; __buf_4
+          local.get 5   ; __off_5
+          local.get 7   ; $cast_34
+          call 11   ; std_core$write_int
+          local.set 5   ; __off_5
+          local.get 4   ; __buf_4
+          local.get 5   ; __off_5
+          call 9   ; std_core$finish_buffer
+          call 14   ; std_io$println__string
+          defer.pop_exec 1
+          local.get 2   ; w
+          i32.const 1
+          i32.add
+          local.set 2   ; w
+          br $L2
         end $L3
-        string.const 2   ; "  never: the inner loop always leaves by `continue v`"
-        call 14   ; std_io$println__string
-        defer.pop_exec 1
-        local.get 0   ; v
-        i32.const 1
-        i32.add
-        local.set 0   ; v
-        br $L1
       end $L2
+      string.const 2   ; "  never: the inner loop always leaves by `continue v`"
+      call 14   ; std_io$println__string
+      defer.pop_exec 1
+      local.get 0   ; v
+      i32.const 1
+      i32.add
+      local.set 0   ; v
+      br $L0
     end $L1
   end $L0
   return
@@ -164,69 +160,67 @@ fn 1 snippet$break_outer () -> void
         defer.push
         i32.const 0
         local.set 2   ; w
-        block $L3 void
-          loop $L4 void
+        loop $L3 void
+          local.get 2   ; w
+          i32.const 2
+          i32.lt
+          if $L4 void
             local.get 2   ; w
-            i32.const 2
-            i32.lt
+            struct.new 15   ; $Cell_i32
+            local.set 3   ; w
+            local.get 1   ; v
+            local.get 3   ; w
+            struct.new 6   ; __defer_env_snippet_7
+            make_closure 6 16   ; __defer_snippet_6 fn
+            defer.push
+            local.field 1 15 0   ; v $Cell_i32.value
+            i32.const 1
+            i32.eq
             if $L5 void
-              local.get 2   ; w
-              struct.new 15   ; $Cell_i32
-              local.set 3   ; w
-              local.get 1   ; v
-              local.get 3   ; w
-              struct.new 6   ; __defer_env_snippet_7
-              make_closure 6 16   ; __defer_snippet_6 fn
-              defer.push
-              local.field 1 15 0   ; v $Cell_i32.value
-              i32.const 1
-              i32.eq
-              if $L6 void
-                defer.pop_exec 2
-                br $L2
-              end $L6
-              i64.const 48
-              call 8   ; std_core$new_byte_buffer
-              local.set 4   ; __buf_4
-              i64.const 0
-              local.set 5   ; __off_5
-              local.get 4   ; __buf_4
-              local.get 5   ; __off_5
-              string.const 0   ; "  body "
-              call 10   ; std_core$write_string_at
-              local.set 5   ; __off_5
-              local.field 1 15 0   ; v $Cell_i32.value
-              i32.to_i64
-              local.set 6   ; $cast_27
-              local.get 4   ; __buf_4
-              local.get 5   ; __off_5
-              local.get 6   ; $cast_27
-              call 11   ; std_core$write_int
-              local.set 5   ; __off_5
-              local.get 4   ; __buf_4
-              local.get 5   ; __off_5
-              string.const 1   ; "."
-              call 10   ; std_core$write_string_at
-              local.set 5   ; __off_5
-              local.field 3 15 0   ; w $Cell_i32.value
-              i32.to_i64
-              local.set 7   ; $cast_32
-              local.get 4   ; __buf_4
-              local.get 5   ; __off_5
-              local.get 7   ; $cast_32
-              call 11   ; std_core$write_int
-              local.set 5   ; __off_5
-              local.get 4   ; __buf_4
-              local.get 5   ; __off_5
-              call 9   ; std_core$finish_buffer
-              call 14   ; std_io$println__string
-              defer.pop_exec 1
-              local.get 2   ; w
-              i32.const 1
-              i32.add
-              local.set 2   ; w
-              br $L4
+              defer.pop_exec 2
+              br $L0
             end $L5
+            i64.const 48
+            call 8   ; std_core$new_byte_buffer
+            local.set 4   ; __buf_4
+            i64.const 0
+            local.set 5   ; __off_5
+            local.get 4   ; __buf_4
+            local.get 5   ; __off_5
+            string.const 0   ; "  body "
+            call 10   ; std_core$write_string_at
+            local.set 5   ; __off_5
+            local.field 1 15 0   ; v $Cell_i32.value
+            i32.to_i64
+            local.set 6   ; $cast_27
+            local.get 4   ; __buf_4
+            local.get 5   ; __off_5
+            local.get 6   ; $cast_27
+            call 11   ; std_core$write_int
+            local.set 5   ; __off_5
+            local.get 4   ; __buf_4
+            local.get 5   ; __off_5
+            string.const 1   ; "."
+            call 10   ; std_core$write_string_at
+            local.set 5   ; __off_5
+            local.field 3 15 0   ; w $Cell_i32.value
+            i32.to_i64
+            local.set 7   ; $cast_32
+            local.get 4   ; __buf_4
+            local.get 5   ; __off_5
+            local.get 7   ; $cast_32
+            call 11   ; std_core$write_int
+            local.set 5   ; __off_5
+            local.get 4   ; __buf_4
+            local.get 5   ; __off_5
+            call 9   ; std_core$finish_buffer
+            call 14   ; std_io$println__string
+            defer.pop_exec 1
+            local.get 2   ; w
+            i32.const 1
+            i32.add
+            local.set 2   ; w
+            br $L3
           end $L4
         end $L3
         defer.pop_exec 1
@@ -494,26 +488,24 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
   local.set 4   ; ndigits
   local.get 2   ; arg 2
   local.set 5   ; m
-  block $L2 void
-    loop $L3 void
+  loop $L2 void
+    local.get 5   ; m
+    i64.const 0
+    i64.ne
+    if $L3 void
+      local.get 4   ; ndigits
+      i64.const 1
+      i64.add
+      local.set 4   ; ndigits
       local.get 5   ; m
-      i64.const 0
-      i64.ne
-      if $L4 void
-        local.get 4   ; ndigits
-        i64.const 1
-        i64.add
-        local.set 4   ; ndigits
-        local.get 5   ; m
-        i64.const 10
-        i64.div
-        local.set 5   ; m
-        br $L3
-      end $L4
+      i64.const 10
+      i64.div
+      local.set 5   ; m
+      br $L2
     end $L3
   end $L2
   local.get 3   ; neg
-  if $L5 void
+  if $L4 void
     local.get 4   ; ndigits
     i64.const 1
     i64.add
@@ -521,54 +513,52 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
   else
     local.get 4   ; ndigits
     local.set 6   ; total
-  end $L5
+  end $L4
   local.get 1   ; arg 1
   local.get 6   ; total
   i64.add
   local.set 4   ; ndigits
-  block $L6 void
-    loop $L7 void
+  loop $L5 void
+    local.get 2   ; arg 2
+    i64.const 0
+    i64.ne
+    if $L6 void
+      local.get 4   ; ndigits
+      i64.const 1
+      i64.sub
+      local.set 4   ; ndigits
       local.get 2   ; arg 2
-      i64.const 0
-      i64.ne
-      if $L8 void
-        local.get 4   ; ndigits
-        i64.const 1
-        i64.sub
-        local.set 4   ; ndigits
-        local.get 2   ; arg 2
-        i64.const 10
-        i64.rem
-        i64.neg
-        i64.to_i32
-        i32.const 255
-        i32.bitand
-        local.set 7   ; $cast_36
-        i32.const 48
-        local.get 7   ; $cast_36
-        i32.add
-        i32.const 255
-        i32.bitand
-        local.set 8   ; $add_37
-        local.get 0   ; arg 0
-        local.get 4   ; ndigits
-        local.get 8   ; $add_37
-        call 16   ; std_core$Buffer$ByteAccess$store_u8_vt
-        local.get 2   ; arg 2
-        i64.const 10
-        i64.div
-        local.set 2   ; arg 2
-        br $L7
-      end $L8
-    end $L7
-  end $L6
+      i64.const 10
+      i64.rem
+      i64.neg
+      i64.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 7   ; $cast_36
+      i32.const 48
+      local.get 7   ; $cast_36
+      i32.add
+      i32.const 255
+      i32.bitand
+      local.set 8   ; $add_37
+      local.get 0   ; arg 0
+      local.get 4   ; ndigits
+      local.get 8   ; $add_37
+      call 16   ; std_core$Buffer$ByteAccess$store_u8_vt
+      local.get 2   ; arg 2
+      i64.const 10
+      i64.div
+      local.set 2   ; arg 2
+      br $L5
+    end $L6
+  end $L5
   local.get 3   ; neg
-  if $L9 void
+  if $L7 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     i32.const 45
     call 16   ; std_core$Buffer$ByteAccess$store_u8_vt
-  end $L9
+  end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
   i64.add
@@ -589,17 +579,15 @@ fn 12 std_io$write (u8,string) -> void
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  block $L0 void
-    loop $L1 void
-      local.get 2   ; buf
-      array.len
-      local.set 4   ; $len_6
-      local.get 3   ; sent
-      local.get 4   ; $len_6
-      u64.ge
-      if $L2 void
-        return
-      end $L2
+  loop $L0 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_6
+    local.get 3   ; sent
+    local.get 4   ; $len_6
+    u64.ge
+    if $L1 void
+    else
       local.get 2   ; buf
       array.len
       local.set 5   ; $len_8
@@ -617,9 +605,9 @@ fn 12 std_io$write (u8,string) -> void
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L3 void
+      if $L2 void
         return
-      end $L3
+      end $L2
       local.get 8   ; n
       i32.to_i64
       local.set 9   ; $cast_16
@@ -627,7 +615,7 @@ fn 12 std_io$write (u8,string) -> void
       local.get 9   ; $cast_16
       i64.add
       local.set 3   ; sent
-      br $L1
+      br $L0
     end $L1
   end $L0
   return

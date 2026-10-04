@@ -284,7 +284,6 @@ emit_rewritten_block :: fn(
                 .cond = is_absent,
                 .then_block = absent_id,
                 .else_block = present_id,
-                .join = join_id,
             },
             .span = b.span,
         })

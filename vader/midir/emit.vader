@@ -2,16 +2,9 @@
 //
 // Reuses the LoweredAST → bytecode
 // emitter's project context (`EmitterCtx`) for everything *outside*
-// the function body. Function bodies come from the CFG : we run a
-// recursive structurer that recovers WASM-style `block` / `loop` /
-// `if` nesting from basic blocks + terminators.
-//
-// Reducibility is guaranteed by construction (the converter only ever
-// produces patterns derived from structured source — no user-visible
-// `goto`). The structurer relies on dominators + immediate post-
-// dominators computed once per fn (both via the simple iterative
-// algorithm — Cooper, Harvey, Kennedy "A Simple, Fast Dominance
-// Algorithm" — already ported in `analyses.vader`).
+// the function body. Function bodies come from the CFG : the structurer
+// (`structure.vader`) recovers WASM-style `block` / `loop` / `if` nesting
+// from basic blocks + terminators, by dominator tree.
 //
 // This is the canonical CFG → bytecode emitter : every `dump --stage`
 // consumer, `vader run`, the C backend, the bootstrap, and the comptime
@@ -663,15 +656,8 @@ FnEmitCfg :: struct {
     project: EmitterCtx
     string_index_map: i32[]
     local_to_slot: i32[]
-    preds: BlockId[][]
-    idom: i32[]
-    ipostdom: i32[]
-    loop_exit: MutableMap<i32, BlockId | null>
     scopes: ScopeFrame[]!
     pending: PendingBranch[]!
-    wrapped_loop_headers: MutableSet<i32>
-    /// Labelled-block entries whose `block` is already open (`emit_range`).
-    wrapped_regions: MutableSet<i32> = MutableSet<i32> {}
     hints: ScheduleHints
     /// When false, the two push helpers store `null` in `slot.debug` instead
     /// of building a `DebugPos` per op — see `EmitOptions.want_debug`. Only
@@ -724,13 +710,24 @@ emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx!,
             local_to_slot.push(slot_idx)
         }
     }
-    preds :: predecessors_of(cfg_fn)
-    idom :: compute_dominators(cfg_fn, preds)
-    ipostdom :: compute_post_dominators(cfg_fn)
-    loop_exit :: find_loop_exits(cfg_fn, preds, idom)
-    hints :: schedule_stack(cfg_fn)
-    fn_ctx :: FnEmitCfg { .fn_ = cfg_fn, .pinned_types_bucket = pins_bucket, .slot = slot, .project = ctx, .string_index_map = string_index_map, .local_to_slot = local_to_slot, .preds = preds, .idom = idom, .ipostdom = ipostdom, .loop_exit = loop_exit, .scopes = [], .pending = [], .wrapped_loop_headers = MutableSet<i32> {}, .hints = hints, .want_debug = want_debug }
-    emit_range(fn_ctx, cfg_fn.entry, BlockId(-1))
+    threaded :: skip_forwarding_blocks(cfg_fn)
+    hints :: schedule_stack(threaded)
+    fn_ctx :: FnEmitCfg {
+        .fn_ = threaded,
+        .pinned_types_bucket = pins_bucket,
+        .slot = slot,
+        .project = ctx,
+        .string_index_map = string_index_map,
+        .local_to_slot = local_to_slot,
+        .scopes = [],
+        .pending = [],
+        .hints = hints,
+        .want_debug = want_debug,
+    }
+    structure_function(fn_ctx)
+    ctx.functions[usize(fn_idx)] = with_peephole_out(
+        ctx.functions[usize(fn_idx)], drop_unbranched_blocks(ctx.functions[usize(fn_idx)]),
+    )
 }
 
 // ============================================================================
@@ -750,9 +747,13 @@ cf_loop :: fn(ctx: FnEmitCfg!, span: Span, target_blk: BlockId) -> void {
     ctx.slot.jump_table[usize(pc)] = pc + 1
 }
 
-cf_if :: fn(ctx: FnEmitCfg!, span: Span, target_blk: BlockId) -> void {
+cf_if :: fn(ctx: FnEmitCfg!, span: Span) -> void {
     pc :: push_op_with_span(ctx, If {}, span)
-    ctx.scopes.push(ScopeFrame { .kind = "if", .target_blk = target_blk, .opener_pc = pc })
+    ctx.scopes.push(ScopeFrame {
+        .kind = "if",
+        .target_blk = BlockId(-1),
+        .opener_pc = pc,
+    })
 }
 
 cf_else :: fn(ctx: FnEmitCfg!, span: Span) -> void {
@@ -795,32 +796,16 @@ cf_br :: fn(ctx: FnEmitCfg!, span: Span, target_blk: BlockId) -> void {
     defer_or_resolve_branch(ctx, target_blk, pc)
 }
 
+// A `br` to a loop header resolves at once, to the loop's opener: a forward
+// `block` on the same header has closed before its `loop` opens, so an open
+// `loop` scope is the one the `br` means. Any other `br` waits for the `end` of
+// its `block`.
 defer_or_resolve_branch :: fn(ctx: FnEmitCfg!, target_blk: BlockId, pc: i32) -> void {
-    // Walk the scope stack for a matching target. CRITICAL : LOOP scopes
-    // are preferred over enclosing IF/BLOCK scopes whose `target_blk`
-    // happens to equal the loop's — without this, a body's
-    // `br loop_header` lands on the wrapping if's End label instead of
-    // the loop's opener. This collision arises because Vader's
-    // `cond_branch_merge` can return the loop's own header for
-    // back-edge-only branches.
-    sp :: ctx.scopes.len()
-    iL := i64(sp) - 1
-    for iL >= 0 {
-        scope :: ctx.scopes[usize(iL)]
-        if scope.kind == "loop" && scope.target_blk == target_blk {
-            ctx.slot.jump_table[usize(pc)] = scope.opener_pc + 1
+    for s in ctx.scopes {
+        if s.kind == "loop" && s.target_blk == target_blk {
+            ctx.slot.jump_table[usize(pc)] = s.opener_pc + 1
             return
         }
-        iL = iL - 1
-    }
-    i := i64(sp) - 1
-    for i >= 0 {
-        scope :: ctx.scopes[usize(i)]
-        if scope.target_blk == target_blk {
-            ctx.pending.push(PendingBranch { .branch_pc = pc, .target_blk = target_blk })
-            return
-        }
-        i = i - 1
     }
     ctx.pending.push(PendingBranch { .branch_pc = pc, .target_blk = target_blk })
 }
@@ -859,82 +844,6 @@ push_op_with_span :: fn(ctx: FnEmitCfg!, op: Op, span: Span) -> i32 {
     ctx.slot.debug.push(if ctx.want_debug { debug_pos_of_span(span) } else { null })
     ctx.slot.jump_table.push(-1)
     return pc
-}
-
-/// Recursive structurer. Walk blocks from `start` until `until` (or
-/// `-1` for "until function end"). On loop headers, wrap in
-/// `block`+`loop` and recurse on the body until the natural exit.
-emit_range :: fn(ctx: FnEmitCfg!, start: BlockId, until: BlockId) -> void {
-    cur := start
-    for cur != -1 && cur != until {
-        block :: ctx.fn_.blocks[usize(cur)]
-        // A labelled block's entry: open the `block` its `break`s leave, emit the
-        // region up to its exit, and carry on from the exit.
-        region_exit :: ctx.fn_.block_regions[i32(cur)]
-        if region_exit != null && !ctx.wrapped_regions.contains(i32(cur)) {
-            ctx.wrapped_regions.add(i32(cur))
-            cf_block(ctx, block.span, region_exit)
-            emit_range(ctx, cur, region_exit)
-            cf_end(ctx, block.span)
-            // Unmarked like a loop header: a region emitted again (a continuation
-            // the structurer inlines twice) must open its `block` again.
-            ctx.wrapped_regions.remove(i32(cur))
-            cur = region_exit
-            continue
-        }
-        // First visit to a loop header → wrap in block + loop. Subsequent
-        // visits (back-edges, nested control flow inside the body) see
-        // this header as already wrapped and emit it as a plain block.
-        is_loop_header := false
-        if !ctx.wrapped_loop_headers.contains(i32(cur)) {
-            if loop_exit_present(ctx, cur) { is_loop_header = true }
-        }
-        // `loop_exit[cur]` is present iff `cur` is a loop header.
-        // Defaults to null lookup — we treat both "missing" and
-        // "value=null" as "no loop here" to avoid the MutableMap
-        // contains_key surrogate question (null is a legitimate
-        // map value here so plain [] doesn't suffice).
-
-        if is_loop_header {
-            exit_opt :: ctx.loop_exit[i32(cur)]
-            exit_target: BlockId = BlockId(-1)
-            if exit_opt is BlockId { exit_target = exit_opt }
-            cf_block(ctx, block.span, exit_target)
-            cf_loop(ctx, block.span, cur)
-            ctx.wrapped_loop_headers.add(i32(cur))
-            inner_until: BlockId = BlockId(-1)
-            if exit_opt is BlockId { inner_until = exit_opt }
-            emit_range(ctx, cur, inner_until)
-            // Unmark on the way out so a sibling loop that reuses this block
-            // id (or a later structural pass) sees it as a fresh header again.
-            // Without this the header stays marked forever — re-encountered
-            // back-edges then emit inline with no loop scope and the structurer
-            // recurses without bound.
-            ctx.wrapped_loop_headers.remove(i32(cur))
-            cf_end(ctx, block.span)
-            // close loop scope
-            cf_end(ctx, block.span)
-            // close block scope
-            if exit_opt is BlockId {
-                cur = exit_opt
-            } else {
-                cur = BlockId(-1)
-            }
-            continue
-        }
-        cur = emit_block_contents(ctx, cur, until)
-    }
-}
-
-/// `MutableMap[k]` returns V (here BlockId|null). When the key is absent
-/// the lookup also returns null — indistinguishable from a stored null
-/// without `contains_key` (which the Vader stdlib MutableMap doesn't
-/// surface via direct field access). Walk the keys instead to know.
-loop_exit_present :: fn(ctx: FnEmitCfg, b: BlockId) -> bool {
-    for [k, _] in ctx.loop_exit {
-        if k == b { return true }
-    }
-    return false
 }
 
 // Tag a scalar returned into a union result (see `emit_retag_into`) : an
@@ -1030,113 +939,6 @@ union_element :: fn(t: Type) -> bool {
     return is_union_slot(array.element)
 }
 
-/// Emit one block's instructions and dispatch on its terminator.
-/// Returns the BlockId to continue from (linear fall-through), or `-1`
-/// when the terminator already left the current scope.
-emit_block_contents :: fn(ctx: FnEmitCfg!, block_id: BlockId, until: BlockId) -> BlockId {
-    block :: ctx.fn_.blocks[usize(block_id)]
-    for i in 0..<block.instructions.len() {
-        emit_instr(ctx, block.instructions[i], pos_key(block_id, i))
-    }
-    t :: block.terminator
-    if t is TermReturn {
-        // Values are pushed in the order the caller receives them, so the first
-        // goes down first. `skip_terminator_get` only ever applies to a lone
-        // value: with several, leaving the first on the stack would bury it
-        // under the rest.
-        single :: term_return_single(t)
-        for i in 0..<t.values.len() {
-            v :: t.values[i]
-            if !(single != null && ctx.hints.skip_terminator_get.contains(block_id)) {
-                emit_get(ctx, v, t.span)
-            }
-            emit_return_retag(ctx, v, i, t.span)
-        }
-        // Fuse `<const> + Return → ReturnLit X` post-emit. Only for a lone
-        // value: `ReturnLit` carries ONE literal, so on a scalarised return it
-        // would keep the last and drop the rest.
-        body :: ctx.slot.body
-        if body.len() > 0 && term_return_single(t) != null {
-            last :: body[body.len() - 1]
-            cv :: const_op_of(last)
-            if cv !is null {
-                body[body.len() - 1] = ReturnLit { .value = cv }
-                return BlockId(-1)
-            }
-        }
-        push_emit(ctx, Return {}, t.span)
-        return BlockId(-1)
-    }
-    if t is TermUnreachable {
-        // Always the trapping op (VM `Trap`, `vader_unreachable` in C), a
-        // provably dead fallback included: a bare `return` there would leave a
-        // value-returning function with nothing on the stack, which the VM's
-        // load-time verifier rejects.
-        push_emit(ctx, Unreachable { .reason = t.reason }, t.span)
-        return BlockId(-1)
-    }
-    if t is TermBranch {
-        if t.target == until { return BlockId(-1) }
-        // Walk scope stack for matching target. If found → cf_br
-        // resolves to the scope (immediate for loop, deferred for
-        // block/if). Otherwise fall through linearly.
-        if scope_contains_target(ctx, t.target) {
-            cf_br(ctx, t.span, t.target)
-            return BlockId(-1)
-        }
-        return t.target
-    }
-    if t is TermCondBranch {
-        merge :: cond_branch_merge(ctx, block_id, t, until)
-        return emit_cond(ctx, block_id, t, merge)
-    }
-    return BlockId(-1)
-}
-
-/// Emit a conditional : the then-arm inside the `if`, the else-arm as an `else`
-/// unless the then-arm already left.
-///
-/// The early-return flattening is what keeps a long chain flat : when the
-/// then-branch's last op is a genuine exit, the else body becomes the post-`end`
-/// continuation rather than an `else` arm, so `if c { return X } y()` doesn't
-/// wrap the trailing `y()` — and a 148-arm `match` whose arms all return lands
-/// as 148 SIBLING `if`s instead of 148 nested ones. C11 guarantees only 127
-/// levels of nested compound statements ; the tree's op dispatches would clear
-/// that on their own.
-emit_cond :: fn(
-    ctx: FnEmitCfg!, block_id: BlockId, t: TermCondBranch, merge: BlockId,
-) -> BlockId {
-    if !ctx.hints.skip_terminator_get.contains(block_id) {
-        emit_get(ctx, t.cond, t.span)
-    }
-    cf_if(ctx, t.span, merge)
-    if i32(merge) < 0 || t.then_block != merge { emit_range(ctx, t.then_block, merge) }
-    // A no-`else` conditional has the JOIN for its else target, so there is no
-    // else body to emit — and an `else` opened over nothing still costs a scope
-    // in the emitted C.
-    has_else :: i32(merge) < 0 || t.else_block != merge
-    if !has_else {
-        cf_end(ctx, t.span)
-        return merge
-    }
-    if last_op_exits(ctx) {
-        cf_end(ctx, t.span)
-        return t.else_block
-    }
-    cf_else(ctx, t.span)
-    emit_range(ctx, t.else_block, merge)
-    cf_end(ctx, t.span)
-    return merge
-}
-
-// True when an open LOOP scope already targets `blk` — see the call site.
-loop_scope_targets :: fn(ctx: FnEmitCfg, blk: BlockId) -> bool {
-    for s in ctx.scopes {
-        if s.kind == "loop" && s.target_blk == blk { return true }
-    }
-    return false
-}
-
 // True when the last op emitted leaves the current scope, so nothing after it in
 // that scope can run.
 last_op_exits :: fn(ctx: FnEmitCfg) -> bool {
@@ -1144,70 +946,6 @@ last_op_exits :: fn(ctx: FnEmitCfg) -> bool {
     if body.len() == 0 { return false }
     last :: body[body.len() - 1]
     return last is Return | ReturnLit | Branch
-}
-
-
-
-scope_contains_target :: fn(ctx: FnEmitCfg, target: BlockId) -> bool {
-    for s in ctx.scopes { if s.target_blk == target { return true } }
-    return false
-}
-
-/// Where the two arms of a conditional rejoin, so `emit_range` stops there
-/// instead of running each arm to the end of the region.
-///
-/// The builder records it (`TermCondBranch.join`) because post-dominance cannot
-/// recover it: an arm that `return`s reaches the synthetic exit, which then
-/// post-dominates the branch, and the merge degrades to the enclosing region's
-/// end. Both arms then walk past the join, so the continuation is emitted once
-/// per arm — 2^N over N such guards, loop or no loop.
-///
-/// The two answers legitimately DIFFER, and that is the whole point: post-
-/// dominance answers "what does every path from here go through", the builder
-/// answers "where do these two arms rejoin". They coincide for a plain `if` and
-/// part company as soon as an arm leaves the region — `for { … if c { break }
-/// … }` post-dominates on the loop's exit while the arms rejoin in the body. So
-/// `ipostdom` is not a cross-check on the recorded value ; only a range check is
-/// sound, and it is the failure mode that matters (a stale id from a pass that
-/// renumbered blocks — none does today, and `then_block` / `else_block` carry
-/// the same exposure unguarded).
-cond_branch_merge :: fn(ctx: FnEmitCfg, block_id: BlockId, t: TermCondBranch, until: BlockId) -> BlockId {
-    post :: ctx.ipostdom[usize(block_id)]
-    // A post-dominator an open scope already targets, other than the region's
-    // own end, lies past that end: an arm `br`s out to it — `break outer`, a
-    // `break` leaving a labelled block — and the other arm reaches it only through
-    // the region's end. As the merge, the emission would carry on past the end
-    // from inside the region, copying everything after it in.
-    if post >= 0 && (BlockId(post) == until || !scope_contains_target(ctx, BlockId(post))) {
-        if ctx.wrapped_loop_headers.contains(post) { return BlockId(-1) }
-        return BlockId(post)
-    }
-    // Post-dominance gave up — an arm reaches the synthetic exit, which then
-    // post-dominates the branch and hides the join — or answered past the
-    // region's end. Fall back to the one the builder recorded. Without it the
-    // merge degrades to `until`, both arms walk past the join, and the
-    // continuation is emitted once PER ARM.
-    recorded :: i32(t.join)
-    if recorded >= 0 {
-        if recorded >= i32(ctx.fn_.blocks.len()) || recorded == i32(block_id) {
-            panic("midir/emit: '${ctx.fn_.mangled}' bb${block_id} — recorded join bb${recorded} is not a block of this fn")
-        }
-        // Only when something actually REACHES the join. Both arms exiting —
-        // every arm of a `match` returning, say — leaves the builder's join
-        // block dead, with no predecessors. Naming it as the merge would stop
-        // each arm at a block nobody enters and cost an `else` per arm : a
-        // 148-arm dispatch would nest 148 deep, past C11's guaranteed 127.
-        if ctx.preds[usize(recorded)].len() == 0 { return until }
-        if ctx.wrapped_loop_headers.contains(recorded) { return BlockId(-1) }
-        // An enclosing LOOP scope on the same block wins in
-        // `defer_or_resolve_branch` — deliberately, so a body's back-edge finds
-        // the loop and not the `if` wrapped around it. Naming that block as this
-        // conditional's merge would then send the arm's `br` to the loop's
-        // opener instead of past the `if`, and the loop never ends.
-        if loop_scope_targets(ctx, BlockId(recorded)) { return until }
-        return BlockId(recorded)
-    }
-    return until
 }
 
 /// The type a closure's object header should carry.

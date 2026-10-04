@@ -168,7 +168,6 @@ static int32_t snippet_main(void) {
 #line 11 "tests/snippets/comptime_for_jumps/_main.vader"
     l0 = INT32_C(0);
     while ((l0 < INT32_C(2))) {
-#line 12 "tests/snippets/comptime_for_jumps/_main.vader"
 #line 13 "tests/snippets/comptime_for_jumps/_main.vader"
         if (INT32_C(1) == INT32_C(2)) {
 #line 16 "tests/snippets/comptime_for_jumps/_main.vader"
@@ -187,8 +186,6 @@ static int32_t snippet_main(void) {
             std_io_println__string(t0);
 #line 13 "tests/snippets/comptime_for_jumps/_main.vader"
         }
-#line 12 "tests/snippets/comptime_for_jumps/_main.vader"
-#line 13 "tests/snippets/comptime_for_jumps/_main.vader"
         if (INT32_C(2) == INT32_C(2)) {
 #line 16 "tests/snippets/comptime_for_jumps/_main.vader"
         } else {
@@ -206,8 +203,6 @@ static int32_t snippet_main(void) {
             std_io_println__string(t0);
 #line 13 "tests/snippets/comptime_for_jumps/_main.vader"
         }
-#line 12 "tests/snippets/comptime_for_jumps/_main.vader"
-#line 13 "tests/snippets/comptime_for_jumps/_main.vader"
         if (INT32_C(3) == INT32_C(2)) {
 #line 16 "tests/snippets/comptime_for_jumps/_main.vader"
         } else {
@@ -225,7 +220,6 @@ static int32_t snippet_main(void) {
             std_io_println__string(t0);
 #line 13 "tests/snippets/comptime_for_jumps/_main.vader"
         }
-#line 12 "tests/snippets/comptime_for_jumps/_main.vader"
 #line 11 "tests/snippets/comptime_for_jumps/_main.vader"
         l0 = (l0 + INT32_C(1));
     }
@@ -237,106 +231,102 @@ static int32_t snippet_main(void) {
         _a0_obj->f_value = l0;
         t1 = (void*) _a0_obj;
         l13 = vader_ref_box(t1);
-#line 20 "tests/snippets/comptime_for_jumps/_main.vader"
-        {
 #line 21 "tests/snippets/comptime_for_jumps/_main.vader"
-            vader_struct___defer_env_snippet_1_t* _a1_obj = (vader_struct___defer_env_snippet_1_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_1_t));
-            vader_obj_header_init(_a1_obj, 2u);
-            _a1_obj->f_cap_0 = l13;
-            t1 = (void*) _a1_obj;
-            vader_fn_t* _a2_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-            vader_obj_header_init(_a2_closure, 15u);
-            _a2_closure->code = (void*) &vader_fn_lift___defer_snippet_0;
-            _a2_closure->env = t1;
-            t1 = (void*) _a2_closure;
+        vader_struct___defer_env_snippet_1_t* _a1_obj = (vader_struct___defer_env_snippet_1_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_1_t));
+        vader_obj_header_init(_a1_obj, 2u);
+        _a1_obj->f_cap_0 = l13;
+        t1 = (void*) _a1_obj;
+        vader_fn_t* _a2_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
+        vader_obj_header_init(_a2_closure, 15u);
+        _a2_closure->code = (void*) &vader_fn_lift___defer_snippet_0;
+        _a2_closure->env = t1;
+        t1 = (void*) _a2_closure;
+        vader_defer_push(vader_ref_box(t1));
+#line 22 "tests/snippets/comptime_for_jumps/_main.vader"
+        if (INT32_C(1) == INT32_C(2)) {
+#line 23 "tests/snippets/comptime_for_jumps/_main.vader"
+            vader_defer_pop_exec(1u);
+#line 22 "tests/snippets/comptime_for_jumps/_main.vader"
+#line 25 "tests/snippets/comptime_for_jumps/_main.vader"
+        } else {
+            l1 = std_core_new_byte_buffer((size_t) 48);
+            l2 = (size_t) 0;
+            l2 = std_core_write_string_at(l1, l2, 3u);
+            l3 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) l13.payload.obj)->f_value);
+            l2 = std_core_write_int(l1, l2, l3);
+            l2 = std_core_write_string_at(l1, l2, 2u);
+#line 20 "tests/snippets/comptime_for_jumps/_main.vader"
+#line 25 "tests/snippets/comptime_for_jumps/_main.vader"
+            l4 = ((int64_t) 1);
+            l2 = std_core_write_int(l1, l2, l4);
+            t0 = std_core_finish_buffer(l1, l2);
+            std_io_println__string(t0);
+            vader_defer_pop_exec(1u);
+#line 21 "tests/snippets/comptime_for_jumps/_main.vader"
+            vader_struct___defer_env_snippet_3_t* _a3_obj = (vader_struct___defer_env_snippet_3_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_3_t));
+            vader_obj_header_init(_a3_obj, 4u);
+            _a3_obj->f_cap_0 = l13;
+            t1 = (void*) _a3_obj;
+            vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
+            vader_obj_header_init(_a4_closure, 15u);
+            _a4_closure->code = (void*) &vader_fn_lift___defer_snippet_2;
+            _a4_closure->env = t1;
+            t1 = (void*) _a4_closure;
             vader_defer_push(vader_ref_box(t1));
 #line 22 "tests/snippets/comptime_for_jumps/_main.vader"
-            if (INT32_C(1) == INT32_C(2)) {
+            if (INT32_C(2) == INT32_C(2)) {
 #line 23 "tests/snippets/comptime_for_jumps/_main.vader"
                 vader_defer_pop_exec(1u);
 #line 22 "tests/snippets/comptime_for_jumps/_main.vader"
 #line 25 "tests/snippets/comptime_for_jumps/_main.vader"
             } else {
-                l1 = std_core_new_byte_buffer((size_t) 48);
-                l2 = (size_t) 0;
-                l2 = std_core_write_string_at(l1, l2, 3u);
-                l3 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) l13.payload.obj)->f_value);
-                l2 = std_core_write_int(l1, l2, l3);
-                l2 = std_core_write_string_at(l1, l2, 2u);
+                l5 = std_core_new_byte_buffer((size_t) 48);
+                l6 = (size_t) 0;
+                l6 = std_core_write_string_at(l5, l6, 3u);
+                l7 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) l13.payload.obj)->f_value);
+                l6 = std_core_write_int(l5, l6, l7);
+                l6 = std_core_write_string_at(l5, l6, 2u);
 #line 20 "tests/snippets/comptime_for_jumps/_main.vader"
 #line 25 "tests/snippets/comptime_for_jumps/_main.vader"
-                l4 = ((int64_t) 1);
-                l2 = std_core_write_int(l1, l2, l4);
-                t0 = std_core_finish_buffer(l1, l2);
+                l8 = ((int64_t) 2);
+                l6 = std_core_write_int(l5, l6, l8);
+                t0 = std_core_finish_buffer(l5, l6);
                 std_io_println__string(t0);
                 vader_defer_pop_exec(1u);
 #line 21 "tests/snippets/comptime_for_jumps/_main.vader"
-                vader_struct___defer_env_snippet_3_t* _a3_obj = (vader_struct___defer_env_snippet_3_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_3_t));
-                vader_obj_header_init(_a3_obj, 4u);
-                _a3_obj->f_cap_0 = l13;
-                t1 = (void*) _a3_obj;
-                vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-                vader_obj_header_init(_a4_closure, 15u);
-                _a4_closure->code = (void*) &vader_fn_lift___defer_snippet_2;
-                _a4_closure->env = t1;
-                t1 = (void*) _a4_closure;
+                vader_struct___defer_env_snippet_5_t* _a5_obj = (vader_struct___defer_env_snippet_5_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_5_t));
+                vader_obj_header_init(_a5_obj, 5u);
+                _a5_obj->f_cap_0 = l13;
+                t1 = (void*) _a5_obj;
+                vader_fn_t* _a6_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
+                vader_obj_header_init(_a6_closure, 15u);
+                _a6_closure->code = (void*) &vader_fn_lift___defer_snippet_4;
+                _a6_closure->env = t1;
+                t1 = (void*) _a6_closure;
                 vader_defer_push(vader_ref_box(t1));
 #line 22 "tests/snippets/comptime_for_jumps/_main.vader"
-                if (INT32_C(2) == INT32_C(2)) {
+                if (INT32_C(3) == INT32_C(2)) {
 #line 23 "tests/snippets/comptime_for_jumps/_main.vader"
                     vader_defer_pop_exec(1u);
 #line 22 "tests/snippets/comptime_for_jumps/_main.vader"
 #line 25 "tests/snippets/comptime_for_jumps/_main.vader"
                 } else {
-                    l5 = std_core_new_byte_buffer((size_t) 48);
-                    l6 = (size_t) 0;
-                    l6 = std_core_write_string_at(l5, l6, 3u);
-                    l7 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) l13.payload.obj)->f_value);
-                    l6 = std_core_write_int(l5, l6, l7);
-                    l6 = std_core_write_string_at(l5, l6, 2u);
+                    l9 = std_core_new_byte_buffer((size_t) 48);
+                    l10 = (size_t) 0;
+                    l10 = std_core_write_string_at(l9, l10, 3u);
+                    l11 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) l13.payload.obj)->f_value);
+                    l10 = std_core_write_int(l9, l10, l11);
+                    l10 = std_core_write_string_at(l9, l10, 2u);
 #line 20 "tests/snippets/comptime_for_jumps/_main.vader"
 #line 25 "tests/snippets/comptime_for_jumps/_main.vader"
-                    l8 = ((int64_t) 2);
-                    l6 = std_core_write_int(l5, l6, l8);
-                    t0 = std_core_finish_buffer(l5, l6);
+                    l12 = ((int64_t) 3);
+                    l10 = std_core_write_int(l9, l10, l12);
+                    t0 = std_core_finish_buffer(l9, l10);
                     std_io_println__string(t0);
                     vader_defer_pop_exec(1u);
-#line 21 "tests/snippets/comptime_for_jumps/_main.vader"
-                    vader_struct___defer_env_snippet_5_t* _a5_obj = (vader_struct___defer_env_snippet_5_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_snippet_5_t));
-                    vader_obj_header_init(_a5_obj, 5u);
-                    _a5_obj->f_cap_0 = l13;
-                    t1 = (void*) _a5_obj;
-                    vader_fn_t* _a6_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-                    vader_obj_header_init(_a6_closure, 15u);
-                    _a6_closure->code = (void*) &vader_fn_lift___defer_snippet_4;
-                    _a6_closure->env = t1;
-                    t1 = (void*) _a6_closure;
-                    vader_defer_push(vader_ref_box(t1));
 #line 22 "tests/snippets/comptime_for_jumps/_main.vader"
-                    if (INT32_C(3) == INT32_C(2)) {
-#line 23 "tests/snippets/comptime_for_jumps/_main.vader"
-                        vader_defer_pop_exec(1u);
-#line 22 "tests/snippets/comptime_for_jumps/_main.vader"
-#line 25 "tests/snippets/comptime_for_jumps/_main.vader"
-                    } else {
-                        l9 = std_core_new_byte_buffer((size_t) 48);
-                        l10 = (size_t) 0;
-                        l10 = std_core_write_string_at(l9, l10, 3u);
-                        l11 = ((int64_t) (int32_t) ((vader_struct__Cell_i32_t*) l13.payload.obj)->f_value);
-                        l10 = std_core_write_int(l9, l10, l11);
-                        l10 = std_core_write_string_at(l9, l10, 2u);
-#line 20 "tests/snippets/comptime_for_jumps/_main.vader"
-#line 25 "tests/snippets/comptime_for_jumps/_main.vader"
-                        l12 = ((int64_t) 3);
-                        l10 = std_core_write_int(l9, l10, l12);
-                        t0 = std_core_finish_buffer(l9, l10);
-                        std_io_println__string(t0);
-                        vader_defer_pop_exec(1u);
-#line 22 "tests/snippets/comptime_for_jumps/_main.vader"
-                    }
                 }
             }
-#line 20 "tests/snippets/comptime_for_jumps/_main.vader"
         }
 #line 27 "tests/snippets/comptime_for_jumps/_main.vader"
         l14 = std_core_new_byte_buffer((size_t) 32);
@@ -562,30 +552,31 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 208 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
         if ((l3 >= l4)) {
-#line 209 "lib/std/io/io.vader"
-            { vader_gc_top = gc_frame.prev; return; }
+#line 211 "lib/std/io/io.vader"
+        } else {
+            l5 = ((vader_array_t*) l2)->length;
+            vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
+            l6 = (void*) _a0_arr;
+#line 212 "lib/std/io/io.vader"
+            l7 = ((vader_array_t*) l6)->length;
+            l8 = std_io_write_bytes(l0, l6, l7);
+#line 213 "lib/std/io/io.vader"
+            if ((l8 <= INT32_C(0))) {
+#line 214 "lib/std/io/io.vader"
+                { vader_gc_top = gc_frame.prev; return; }
+#line 213 "lib/std/io/io.vader"
+            }
+#line 216 "lib/std/io/io.vader"
+            t0 = ((int64_t) (int32_t) l8);
+            l9 = (size_t) (int64_t) t0;
+            t0 = (l3 + l9);
+            l3 = (size_t) (int64_t) t0;
+#line 207 "lib/std/io/io.vader"
+            continue;
 #line 208 "lib/std/io/io.vader"
         }
-#line 211 "lib/std/io/io.vader"
-        l5 = ((vader_array_t*) l2)->length;
-        vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
-        l6 = (void*) _a0_arr;
-#line 212 "lib/std/io/io.vader"
-        l7 = ((vader_array_t*) l6)->length;
-        l8 = std_io_write_bytes(l0, l6, l7);
-#line 213 "lib/std/io/io.vader"
-        if ((l8 <= INT32_C(0))) {
-#line 214 "lib/std/io/io.vader"
-            { vader_gc_top = gc_frame.prev; return; }
-#line 213 "lib/std/io/io.vader"
-        }
-#line 216 "lib/std/io/io.vader"
-        t0 = ((int64_t) (int32_t) l8);
-        l9 = (size_t) (int64_t) t0;
-        t0 = (l3 + l9);
-        l3 = (size_t) (int64_t) t0;
 #line 207 "lib/std/io/io.vader"
-        continue;
+        break;
     }
 #line 209 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }

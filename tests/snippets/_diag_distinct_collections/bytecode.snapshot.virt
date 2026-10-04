@@ -20,27 +20,25 @@ fn 0 snippet$sum_ids (ref) -> i32
   local.set 3   ; __for_len_1
   i64.const 0
   local.set 4   ; __for_i_2
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 4   ; __for_i_2
+    local.get 3   ; __for_len_1
+    u64.lt
+    if $L1 void
+      local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      local.get 3   ; __for_len_1
-      u64.lt
-      if $L2 void
-        local.get 2   ; __for_arr_0
-        local.get 4   ; __for_i_2
-        load_slot_i64
-        i64.to_i32
-        local.set 5   ; $cast_12
-        local.get 1   ; total
-        local.get 5   ; $cast_12
-        i32.add
-        local.set 1   ; total
-        local.get 4   ; __for_i_2
-        i64.const 1
-        i64.add
-        local.set 4   ; __for_i_2
-        br $L1
-      end $L2
+      load_slot_i64
+      i64.to_i32
+      local.set 5   ; $cast_12
+      local.get 1   ; total
+      local.get 5   ; $cast_12
+      i32.add
+      local.set 1   ; total
+      local.get 4   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 4   ; __for_i_2
+      br $L0
     end $L1
   end $L0
   local.get 1   ; total

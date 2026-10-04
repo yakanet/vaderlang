@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/_diag_structurer_overflow
+## tests/snippets/match_then_nested_for_continue
 
 ## generic instances
   __genstate_array_iter<T>

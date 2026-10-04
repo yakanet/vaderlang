@@ -47,7 +47,6 @@ fn 1 snippet$demo () -> i32
   end $L0
   local.get 1   ; and_res
   if $L1 void
-  else
   end $L1
   i32.const 0
   drop
@@ -74,7 +73,6 @@ fn 1 snippet$demo () -> i32
   drop
   bool.const true
   if $L2 void
-  else
   end $L2
   local.get 0   ; $mul_3
   return

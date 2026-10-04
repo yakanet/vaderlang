@@ -98,38 +98,40 @@ static void snippet_scan(void) {
     vader_gc_top = &gc_frame;
 #line 11 "tests/snippets/loop_break_by_var/_main.vader"
     l0 = INT32_C(0);
-    loop_3: while ((l0 < INT32_C(3))) {
+    {
+        loop_3: while ((l0 < INT32_C(3))) {
 #line 12 "tests/snippets/loop_break_by_var/_main.vader"
-        l1 = INT32_C(0);
-        while ((l1 < INT32_C(3))) {
+            l1 = INT32_C(0);
+            while ((l1 < INT32_C(3))) {
 #line 13 "tests/snippets/loop_break_by_var/_main.vader"
-            if (l1 == INT32_C(2)) {
+                if (l1 == INT32_C(2)) {
 #line 11 "tests/snippets/loop_break_by_var/_main.vader"
-                l0 = (l0 + INT32_C(1));
+                    l0 = (l0 + INT32_C(1));
 #line 13 "tests/snippets/loop_break_by_var/_main.vader"
-                goto loop_3;
-            }
+                    goto loop_3;
+                }
 #line 14 "tests/snippets/loop_break_by_var/_main.vader"
-            if (l0 == INT32_C(2)) {
-                goto end_7;
-            }
+                if (l0 == INT32_C(2)) {
+                    goto end_2;
+                }
 #line 15 "tests/snippets/loop_break_by_var/_main.vader"
-            l2 = std_core_new_byte_buffer((size_t) 46);
-            l3 = (size_t) 0;
-            l3 = std_core_write_string_at(l2, l3, 1u);
-            l4 = ((int64_t) (int32_t) l0);
-            l3 = std_core_write_int(l2, l3, l4);
-            l3 = std_core_write_string_at(l2, l3, 2u);
-            l5 = ((int64_t) (int32_t) l1);
-            l3 = std_core_write_int(l2, l3, l5);
-            t0 = std_core_finish_buffer(l2, l3);
-            std_io_println__string(t0);
+                l2 = std_core_new_byte_buffer((size_t) 46);
+                l3 = (size_t) 0;
+                l3 = std_core_write_string_at(l2, l3, 1u);
+                l4 = ((int64_t) (int32_t) l0);
+                l3 = std_core_write_int(l2, l3, l4);
+                l3 = std_core_write_string_at(l2, l3, 2u);
+                l5 = ((int64_t) (int32_t) l1);
+                l3 = std_core_write_int(l2, l3, l5);
+                t0 = std_core_finish_buffer(l2, l3);
+                std_io_println__string(t0);
 #line 12 "tests/snippets/loop_break_by_var/_main.vader"
-            l1 = (l1 + INT32_C(1));
-        }
+                l1 = (l1 + INT32_C(1));
+            }
 #line 11 "tests/snippets/loop_break_by_var/_main.vader"
-        l0 = (l0 + INT32_C(1));
-    } end_7: ;
+            l0 = (l0 + INT32_C(1));
+        }
+    } end_2: ;
 #line 10 "tests/snippets/loop_break_by_var/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -173,47 +175,49 @@ static void snippet_sift(void) {
 #line 23 "tests/snippets/loop_break_by_var/_main.vader"
     l3 = ((vader_array_t*) l0)->length;
     l4 = (size_t) 0;
-    loop_25: while ((l4 < l3)) {
-        vader_array_t* _a4_slotarr = ((vader_array_t*) l0);
-        VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l4)
-        l1 = vader_array_ref_load_obj(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l4);
+    {
+        loop_25: while ((l4 < l3)) {
+            vader_array_t* _a4_slotarr = ((vader_array_t*) l0);
+            VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l4)
+            l1 = vader_array_ref_load_obj(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l4);
 #line 24 "tests/snippets/loop_break_by_var/_main.vader"
-        l5 = ((vader_array_t*) l1)->length;
-        l6 = (size_t) 0;
-        while ((l6 < l5)) {
-            vader_array_t* _a5_slotarr = ((vader_array_t*) l1);
-            VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
-            VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l6)
-            l7 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l6];
+            l5 = ((vader_array_t*) l1)->length;
+            l6 = (size_t) 0;
+            while ((l6 < l5)) {
+                vader_array_t* _a5_slotarr = ((vader_array_t*) l1);
+                VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l6)
+                l7 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l6];
 #line 25 "tests/snippets/loop_break_by_var/_main.vader"
-            if (l7 == INT32_C(5)) {
-                goto end_29;
-            }
+                if (l7 == INT32_C(5)) {
+                    goto end_24;
+                }
 #line 26 "tests/snippets/loop_break_by_var/_main.vader"
-            if (l7 == INT32_C(2)) {
+                if (l7 == INT32_C(2)) {
 #line 23 "tests/snippets/loop_break_by_var/_main.vader"
-                t0 = (l4 + INT64_C(1));
-                l4 = (size_t) (int64_t) t0;
+                    t0 = (l4 + INT64_C(1));
+                    l4 = (size_t) (int64_t) t0;
 #line 26 "tests/snippets/loop_break_by_var/_main.vader"
-                goto loop_25;
-            }
+                    goto loop_25;
+                }
 #line 27 "tests/snippets/loop_break_by_var/_main.vader"
-            l2 = std_core_new_byte_buffer((size_t) 25);
-            l8 = (size_t) 0;
-            l8 = std_core_write_string_at(l2, l8, 3u);
-            l9 = ((int64_t) (int32_t) l7);
-            l8 = std_core_write_int(l2, l8, l9);
-            t1 = std_core_finish_buffer(l2, l8);
-            std_io_println__string(t1);
+                l2 = std_core_new_byte_buffer((size_t) 25);
+                l8 = (size_t) 0;
+                l8 = std_core_write_string_at(l2, l8, 3u);
+                l9 = ((int64_t) (int32_t) l7);
+                l8 = std_core_write_int(l2, l8, l9);
+                t1 = std_core_finish_buffer(l2, l8);
+                std_io_println__string(t1);
 #line 24 "tests/snippets/loop_break_by_var/_main.vader"
-            t0 = (l6 + INT64_C(1));
-            l6 = (size_t) (int64_t) t0;
-        }
+                t0 = (l6 + INT64_C(1));
+                l6 = (size_t) (int64_t) t0;
+            }
 #line 23 "tests/snippets/loop_break_by_var/_main.vader"
-        t0 = (l4 + INT64_C(1));
-        l4 = (size_t) (int64_t) t0;
-    } end_29: ;
+            t0 = (l4 + INT64_C(1));
+            l4 = (size_t) (int64_t) t0;
+        }
+    } end_24: ;
 #line 21 "tests/snippets/loop_break_by_var/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -372,30 +376,31 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 208 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
         if ((l3 >= l4)) {
-#line 209 "lib/std/io/io.vader"
-            { vader_gc_top = gc_frame.prev; return; }
+#line 211 "lib/std/io/io.vader"
+        } else {
+            l5 = ((vader_array_t*) l2)->length;
+            vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
+            l6 = (void*) _a0_arr;
+#line 212 "lib/std/io/io.vader"
+            l7 = ((vader_array_t*) l6)->length;
+            l8 = std_io_write_bytes(l0, l6, l7);
+#line 213 "lib/std/io/io.vader"
+            if ((l8 <= INT32_C(0))) {
+#line 214 "lib/std/io/io.vader"
+                { vader_gc_top = gc_frame.prev; return; }
+#line 213 "lib/std/io/io.vader"
+            }
+#line 216 "lib/std/io/io.vader"
+            t0 = ((int64_t) (int32_t) l8);
+            l9 = (size_t) (int64_t) t0;
+            t0 = (l3 + l9);
+            l3 = (size_t) (int64_t) t0;
+#line 207 "lib/std/io/io.vader"
+            continue;
 #line 208 "lib/std/io/io.vader"
         }
-#line 211 "lib/std/io/io.vader"
-        l5 = ((vader_array_t*) l2)->length;
-        vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
-        l6 = (void*) _a0_arr;
-#line 212 "lib/std/io/io.vader"
-        l7 = ((vader_array_t*) l6)->length;
-        l8 = std_io_write_bytes(l0, l6, l7);
-#line 213 "lib/std/io/io.vader"
-        if ((l8 <= INT32_C(0))) {
-#line 214 "lib/std/io/io.vader"
-            { vader_gc_top = gc_frame.prev; return; }
-#line 213 "lib/std/io/io.vader"
-        }
-#line 216 "lib/std/io/io.vader"
-        t0 = ((int64_t) (int32_t) l8);
-        l9 = (size_t) (int64_t) t0;
-        t0 = (l3 + l9);
-        l3 = (size_t) (int64_t) t0;
 #line 207 "lib/std/io/io.vader"
-        continue;
+        break;
     }
 #line 209 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }

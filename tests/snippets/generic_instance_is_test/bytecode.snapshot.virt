@@ -128,53 +128,51 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __for_len_1
   i64.const 0
   local.set 3   ; __for_i_2
-  block $L0 void
-    loop $L1 void
+  loop $L0 void
+    local.get 3   ; __for_i_2
+    local.get 2   ; __for_len_1
+    u64.lt
+    if $L1 void
+      local.get 0   ; $struct_2
       local.get 3   ; __for_i_2
-      local.get 2   ; __for_len_1
-      u64.lt
+      array.get 13   ; union[]
+      local.tee 4   ; s
+      type_check 2   ; snippet$Spec__bool
       if $L2 void
-        local.get 0   ; $struct_2
-        local.get 3   ; __for_i_2
-        array.get 13   ; union[]
-        local.tee 4   ; s
-        type_check 2   ; snippet$Spec__bool
+        local.get 4   ; s
+        ref.cast 2   ; snippet$Spec__bool
+        struct.get 2 0   ; snippet$Spec__bool.name
+        ref.cast 4   ; string
+        local.set 5   ; $field_19
+        string.const 4   ; "if: "
+        local.get 5   ; $field_19
+        string.const 5   ; " bool"
+        call 2   ; concat_3
+        call 10   ; std_io$println__string
+      else
+        local.get 4   ; s
+        type_check 3   ; snippet$Spec__string
         if $L3 void
           local.get 4   ; s
-          ref.cast 2   ; snippet$Spec__bool
-          struct.get 2 0   ; snippet$Spec__bool.name
+          ref.cast 3   ; snippet$Spec__string
+          struct.get 3 0   ; snippet$Spec__string.name
           ref.cast 4   ; string
-          local.set 5   ; $field_19
+          local.set 6   ; $field_25
           string.const 4   ; "if: "
-          local.get 5   ; $field_19
-          string.const 5   ; " bool"
+          local.get 6   ; $field_25
+          string.const 6   ; " string"
           call 2   ; concat_3
           call 10   ; std_io$println__string
-        else
-          local.get 4   ; s
-          type_check 3   ; snippet$Spec__string
-          if $L4 void
-            local.get 4   ; s
-            ref.cast 3   ; snippet$Spec__string
-            struct.get 3 0   ; snippet$Spec__string.name
-            ref.cast 4   ; string
-            local.set 6   ; $field_25
-            string.const 4   ; "if: "
-            local.get 6   ; $field_25
-            string.const 6   ; " string"
-            call 2   ; concat_3
-            call 10   ; std_io$println__string
-          end $L4
         end $L3
-        local.get 4   ; s
-        call 0   ; snippet$describe
-        call 10   ; std_io$println__string
-        local.get 3   ; __for_i_2
-        i64.const 1
-        i64.add
-        local.set 3   ; __for_i_2
-        br $L1
       end $L2
+      local.get 4   ; s
+      call 0   ; snippet$describe
+      call 10   ; std_io$println__string
+      local.get 3   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 3   ; __for_i_2
+      br $L0
     end $L1
   end $L0
   return.lit i32.const 0
@@ -308,17 +306,15 @@ fn 8 std_io$write (u8,string) -> void
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
-  block $L0 void
-    loop $L1 void
-      local.get 2   ; buf
-      array.len
-      local.set 4   ; $len_6
-      local.get 3   ; sent
-      local.get 4   ; $len_6
-      u64.ge
-      if $L2 void
-        return
-      end $L2
+  loop $L0 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_6
+    local.get 3   ; sent
+    local.get 4   ; $len_6
+    u64.ge
+    if $L1 void
+    else
       local.get 2   ; buf
       array.len
       local.set 5   ; $len_8
@@ -336,9 +332,9 @@ fn 8 std_io$write (u8,string) -> void
       local.tee 8   ; n
       i32.const 0
       i32.le
-      if $L3 void
+      if $L2 void
         return
-      end $L3
+      end $L2
       local.get 8   ; n
       i32.to_i64
       local.set 9   ; $cast_16
@@ -346,7 +342,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 9   ; $cast_16
       i64.add
       local.set 3   ; sent
-      br $L1
+      br $L0
     end $L1
   end $L0
   return
