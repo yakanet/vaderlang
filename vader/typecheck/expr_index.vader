@@ -94,7 +94,7 @@ export infer_index :: fn(
 /// The type args of a named trait carried by a TypeParam's bound (e.g.
 /// `Index<I, T>` / `IndexSet<I, V>` in `[C: Index<usize, T>]`), or null when the
 /// bound names no such trait. Walks `A & B` intersections the same way
-/// `dispatch_bounded_method_trait` does. Shared by the `c[i]` read (Index) and
+/// `bound_trait_declaring` (field.vader) does. Shared by the `c[i]` read (Index) and
 /// the `c[i] = v` write (IndexSet, in `stmt.vader::check_assign`).
 export bounded_trait_args :: fn(bound: AST.Expr, trait_key: string, typed: TypedProgram) -> Type[] | null {
     if bound is AST.BinaryExpr {

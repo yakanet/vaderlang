@@ -170,6 +170,17 @@ export import_binding_by_id :: fn(sym_id: i32, typed: TypedProgram) -> Symbol | 
     return null
 }
 
+/// A static trait member reached through the type that owns it — `T.zero()`,
+/// `i64.zero()`.
+export StaticMember :: struct {
+    /// The type the member is called on, as written : a type parameter is
+    /// substituted per instance by the lowerer.
+    owner: Type
+    /// The trait declaring the member, so the impl lookup cannot land on a
+    /// same-named member of another trait.
+    trait_key: string
+}
+
 /// One UFCS-dispatchable impl method: its signature plus whether it may mutate
 /// its receiver.
 ///
@@ -414,6 +425,18 @@ export TypedProgram :: struct {
     /// tooling: the lowerer finds the impl member from the receiver itself.
     chosen_impl_methods: MutableMap<usize, ImplMethod>
 
+    /// `FieldExpr` id → the static member a `Type.member` access names. Read by
+    /// the lowerer, which calls the owner's impl member directly, with no
+    /// receiver.
+    static_members: MutableMap<usize, StaticMember>
+
+    /// Id of the `FieldExpr` callee being typed — `T.zero` in `T.zero()`. Set by
+    /// the call right before it types its callee, so a static member can tell a
+    /// call from a use as a value (T3093). Only a type name or a namespace member
+    /// owns a static member, and neither holds a call that could overwrite it
+    /// before it is read.
+    callee_field_id: usize = AST.UNASSIGNED_NODE_ID
+
     /// `"${impl_base_key}::${methodName}" → the `trait_key`s of every trait
     /// providing the same method on the same receiver. When the list
     /// has 2+ entries, an unqualified `x.method()` is ambiguous —
@@ -657,6 +680,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .ufcs_receiver_types = MutableMap<usize, Type> {},
     .chosen_fns = MutableMap<usize, FnCandidate> {},
     .chosen_impl_methods = MutableMap<usize, ImplMethod> {},
+    .static_members = MutableMap<usize, StaticMember> {},
     .impl_method_traits = MutableMap<string, string[]!> {},
     .struct_field_types = MutableMap<i32, MutableMap<string, Type>> {},
     .struct_implemented_traits = MutableMap<string, string[]!> {},

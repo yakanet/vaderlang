@@ -46,6 +46,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  Iterator<T>
   Iterator<U>
   Iterator<T>
   Iterator<T>
@@ -89,7 +90,6 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  Async<T>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -100,6 +100,7 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
+  Async<T>
   Range<i32>
   Range<usize>
   Range<T>

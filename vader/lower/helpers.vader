@@ -34,7 +34,8 @@ prepare_value_for_slot :: fn(
     ctx: FnLowerCtx!, expr: LoweredExpr, slot: Type, span: Span,
 ) -> LoweredExpr = try_emit_into_coercion(ctx, expr, type_of(expr), slot, span) ?? expr
 
-/// Prepare a positional argument list against a callee's declared param types.
+/// Lower a call's arguments, then prepare each one for the param slot it binds to.
+/// Every argument is lowered before the first one is prepared.
 ///
 /// `params` is the callee's FULL param list and `first_slot` the index the first
 /// element of `args` binds to — 0 for a plain call, 1 on the UFCS paths where the
@@ -42,21 +43,27 @@ prepare_value_for_slot :: fn(
 /// tail, or a signature the lowerer couldn't resolve) pass through untouched.
 ///
 /// @param ctx         the fn-body context.
-/// @param args        the already-lowered arguments, in source order.
-/// @param arg_spans   parallel to `args` — each argument's own span.
+/// @param args        the call's arguments, in source order.
 /// @param params      the callee's declared param types.
 /// @param first_slot  index in `params` that `args[0]` binds to.
-/// @return            a fresh list, each argument prepared for its slot.
-prepare_args_for_params :: fn(
-    ctx: FnLowerCtx!, args: LoweredExpr[], arg_spans: Span[], params: Type[], first_slot: usize,
+/// @return            a fresh list, each argument lowered and prepared for its slot.
+lower_call_args :: fn(
+    ctx: FnLowerCtx!,
+    args: CallArg[],
+    params: Type[],
+    first_slot: usize,
 ) -> LoweredExpr[]! {
+    lowered: LoweredExpr[]!: []
+    for arg in args {
+        lowered.push(lower_expr(ctx, arg.value))
+    }
     out: LoweredExpr[]!: []
-    for i in 0..<args.len() {
+    for i in 0..<lowered.len() {
         slot :: first_slot + i
         if slot >= params.len() {
-            out.push(args[i])
+            out.push(lowered[i])
         } else {
-            out.push(prepare_value_for_slot(ctx, args[i], params[slot], arg_spans[i]))
+            out.push(prepare_value_for_slot(ctx, lowered[i], params[slot], args[i].value.span))
         }
     }
     return out

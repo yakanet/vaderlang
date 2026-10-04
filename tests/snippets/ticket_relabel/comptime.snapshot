@@ -17,12 +17,12 @@
   Iterator<T>
   Iterator<T>
   Async<T>
+  ArrayOps<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayOps<T>
 
 # Diagnostics
 [13:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and i32

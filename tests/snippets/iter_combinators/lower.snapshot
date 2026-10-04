@@ -61,7 +61,10 @@
     let s1: i32 =
       block :i32
         let __fuse_arr_2: i32[]! = squares :i32[]!
-        let s: i32 = int(0) :i32
+        let s: i32 =
+          call :i32
+            callee:
+              std_core$i32$Zero$zero :i32
         block :void
           let __fuse_len_0: usize =
             LoweredArrayLen
@@ -77,10 +80,12 @@
               target:
                 s :i32
               value:
-                add :i32
-                  l:
+                call :i32
+                  callee:
+                    std_core$i32$Add$add :i32
+                  arg0:
                     s :i32
-                  r:
+                  arg1:
                     x :i32
           step
             assign
@@ -137,7 +142,10 @@
     let s2: i32 =
       block :i32
         let __fuse_arr_6: i32[]! = evens :i32[]!
-        let s: i32 = int(0) :i32
+        let s: i32 =
+          call :i32
+            callee:
+              std_core$i32$Zero$zero :i32
         block :void
           let __fuse_len_0: usize =
             LoweredArrayLen
@@ -153,10 +161,12 @@
               target:
                 s :i32
               value:
-                add :i32
-                  l:
+                call :i32
+                  callee:
+                    std_core$i32$Add$add :i32
+                  arg0:
                     s :i32
-                  r:
+                  arg1:
                     x :i32
           step
             assign
@@ -229,7 +239,10 @@
     let s3: i32 =
       block :i32
         let __fuse_arr_10: i32[]! = first :i32[]!
-        let s: i32 = int(0) :i32
+        let s: i32 =
+          call :i32
+            callee:
+              std_core$i32$Zero$zero :i32
         block :void
           let __fuse_len_0: usize =
             LoweredArrayLen
@@ -245,10 +258,12 @@
               target:
                 s :i32
               value:
-                add :i32
-                  l:
+                call :i32
+                  callee:
+                    std_core$i32$Add$add :i32
+                  arg0:
                     s :i32
-                  r:
+                  arg1:
                     x :i32
           step
             assign
@@ -273,7 +288,10 @@
     let s4: i32 =
       block :i32
         let __fuse_arr_12: i32[]! = rest :i32[]!
-        let s: i32 = int(0) :i32
+        let s: i32 =
+          call :i32
+            callee:
+              std_core$i32$Zero$zero :i32
         block :void
           let __fuse_len_0: usize =
             LoweredArrayLen
@@ -289,10 +307,12 @@
               target:
                 s :i32
               value:
-                add :i32
-                  l:
+                call :i32
+                  callee:
+                    std_core$i32$Add$add :i32
+                  arg0:
                     s :i32
-                  r:
+                  arg1:
                     x :i32
           step
             assign

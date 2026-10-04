@@ -2182,8 +2182,8 @@ end
 
 fn 18 std_core$shl (ref,i32) -> ref
   local out ref
-  local _z usize
-  local __for_hi_0 usize
+  local __for_discard_0 usize
+  local __for_hi_1 usize
   local bit_shift i32
   local $idx_24 u32
   local $cast_35 u64
@@ -2195,24 +2195,24 @@ fn 18 std_core$shl (ref,i32) -> ref
   array.new 17 0   ; u32[]
   local.set 2   ; out
   i64.const 0
-  local.set 3   ; _z
+  local.set 3   ; __for_discard_0
   local.get 1   ; arg 1
   i32.const 32
   i32.div
   i32.to_i64
-  local.set 4   ; __for_hi_0
+  local.set 4   ; __for_hi_1
   loop $L0 void
-    local.get 3   ; _z
-    local.get 4   ; __for_hi_0
+    local.get 3   ; __for_discard_0
+    local.get 4   ; __for_hi_1
     u64.lt
     if $L1 void
       local.get 2   ; out
       i32.const 0
       array.push 18 2   ; u32 out
-      local.get 3   ; _z
+      local.get 3   ; __for_discard_0
       i64.const 1
       i64.add
-      local.set 3   ; _z
+      local.set 3   ; __for_discard_0
       br $L0
     end $L1
   end $L0
@@ -2224,27 +2224,27 @@ fn 18 std_core$shl (ref,i32) -> ref
   i32.eq
   if $L2 void
     i64.const 0
-    local.set 3   ; _z
+    local.set 3   ; __for_discard_0
     local.get 0   ; arg 0
     array.len
-    local.set 4   ; __for_hi_0
+    local.set 4   ; __for_hi_1
     loop $L3 void
-      local.get 3   ; _z
-      local.get 4   ; __for_hi_0
+      local.get 3   ; __for_discard_0
+      local.get 4   ; __for_hi_1
       u64.lt
       if $L4 void
         local.get 0   ; arg 0
-        local.get 3   ; _z
+        local.get 3   ; __for_discard_0
         array.get 17   ; u32[]
         ref.cast 18   ; u32
         local.set 6   ; $idx_24
         local.get 2   ; out
         local.get 6   ; $idx_24
         array.push 18 2   ; u32 out
-        local.get 3   ; _z
+        local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
-        local.set 3   ; _z
+        local.set 3   ; __for_discard_0
         br $L3
       end $L4
     end $L3
@@ -2254,17 +2254,17 @@ fn 18 std_core$shl (ref,i32) -> ref
   i32.const 0
   local.set 6   ; $idx_24
   i64.const 0
-  local.set 3   ; _z
+  local.set 3   ; __for_discard_0
   local.get 0   ; arg 0
   array.len
-  local.set 4   ; __for_hi_0
+  local.set 4   ; __for_hi_1
   loop $L5 void
-    local.get 3   ; _z
-    local.get 4   ; __for_hi_0
+    local.get 3   ; __for_discard_0
+    local.get 4   ; __for_hi_1
     u64.lt
     if $L6 void
       local.get 0   ; arg 0
-      local.get 3   ; _z
+      local.get 3   ; __for_discard_0
       array.get 17   ; u32[]
       ref.cast 18   ; u32
       u32.to_i64
@@ -2295,10 +2295,10 @@ fn 18 std_core$shl (ref,i32) -> ref
       u64.shr
       u64.to_i32
       local.set 6   ; $idx_24
-      local.get 3   ; _z
+      local.get 3   ; __for_discard_0
       i64.const 1
       i64.add
-      local.set 3   ; _z
+      local.set 3   ; __for_discard_0
       br $L5
     end $L6
   end $L5

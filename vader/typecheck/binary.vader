@@ -367,12 +367,11 @@ check_bounded_operator :: fn(
     if recv !is TypeParamType {
         return null
     }
-    bound :: typed.resolved.type_param_bounds[recv.symbol.id] ?? return null
-    if dispatch_bounded_method_trait(bound, method_name, typed) != core_trait_key(trait_name) {
+    member :: type_member(recv, method_name, typed) ?? return null
+    if member.trait_key != core_trait_key(trait_name) {
         return null
     }
-    method :: dispatch_bounded_method(bound, method_name, typed) ?? return null
-    specialised :: substitute_self(method, recv)
+    specialised :: member.ty
     if specialised !is FnType {
         return null
     }

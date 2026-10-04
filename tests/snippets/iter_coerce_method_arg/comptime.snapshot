@@ -60,8 +60,8 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Index<I, T>
   ArrayOps<T>
+  Index<I, T>
   IndexSet<I, T>
   Contains<T>
   Iterator<i32[]>
@@ -74,6 +74,7 @@
   Iterator<[T, U]>
   Iterator<[T, usize]>
   Iterator<[K, V]>
+  Iterator<T>
   Iterator<T>
   Iterator<T>
   Iterator<T>

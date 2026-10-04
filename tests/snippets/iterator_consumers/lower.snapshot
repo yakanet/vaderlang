@@ -628,7 +628,10 @@
                     block :i32
                       let __fuse_arr_6: i32[]! = a :i32[]!
                       let pred: fn(i32) -> bool = odd :fn(i32) -> bool
-                      let s: i32 = int(0) :i32
+                      let s: i32 =
+                        call :i32
+                          callee:
+                            std_core$i32$Zero$zero :i32
                       block :void
                         let __fuse_len_0: usize =
                           LoweredArrayLen
@@ -654,10 +657,12 @@
                                   target:
                                     s :i32
                                   value:
-                                    add :i32
-                                      l:
+                                    call :i32
+                                      callee:
+                                        std_core$i32$Add$add :i32
+                                      arg0:
                                         s :i32
-                                      r:
+                                      arg1:
                                         x :i32
                         step
                           assign
@@ -699,7 +704,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        sum :i32
+                        std_iter$sum__i32 :i32
                       arg0:
                         odds :__genstate_filter<i32>!
           ~>
@@ -2669,7 +2674,10 @@
                   cast → i64
                     block :i32
                       let f: fn(i32) -> i32 = __lambda_snippet_12 :fn(i32) -> i32
-                      let s: i32 = int(0) :i32
+                      let s: i32 =
+                        call :i32
+                          callee:
+                            std_core$i32$Zero$zero :i32
                       block :void
                         let x: i32 = int(0) :i32
                         loop while (<…>)
@@ -2683,10 +2691,12 @@
                             target:
                               s :i32
                             value:
-                              add :i32
-                                l:
+                              call :i32
+                                callee:
+                                  std_core$i32$Add$add :i32
+                                arg0:
                                   s :i32
-                                r:
+                                arg1:
                                   x :i32
                         step
                           assign

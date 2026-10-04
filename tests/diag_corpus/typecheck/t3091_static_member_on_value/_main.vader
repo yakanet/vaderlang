@@ -1,0 +1,8 @@
+// A static trait member (no `self`) called on a value — T3091. It is called on the
+// type : `i64.zero()`.
+module "snippet"
+
+main :: fn() -> i32 {
+    x: i64: 7
+    return i32(x.zero())
+}

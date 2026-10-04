@@ -278,7 +278,10 @@
     ~>
       block :i32
         let __fuse_iter_0: Range<i32>! = it :Range<i32>!
-        let s: i32 = int(0) :i32
+        let s: i32 =
+          call :i32
+            callee:
+              std_core$i32$Zero$zero :i32
         block :void
           loop
             let __fuse_step_0: [i32, Continuation]! =
@@ -305,10 +308,12 @@
                   target:
                     s :i32
                   value:
-                    add :i32
-                      l:
+                    call :i32
+                      callee:
+                        std_core$i32$Add$add :i32
+                      arg0:
                         s :i32
-                      r:
+                      arg1:
                         x :i32
         ~>
           s :i32

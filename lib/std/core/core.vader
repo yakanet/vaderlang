@@ -107,6 +107,13 @@ export Div :: trait<Rhs = Self, Out = Self> { div :: fn(self, other: Rhs) -> Out
 /// `%` dispatch. See `Add`.
 export Rem :: trait<Rhs = Self, Out = Self> { rem :: fn(self, other: Rhs) -> Out }
 
+/// The additive identity of a type — what a sum of no elements is. A static
+/// member : called on the type, `T.zero()` in a body bounded by `T: Zero`.
+export Zero :: trait {
+    /// The value `z` for which `z + x == x`.
+    zero :: fn() -> Self
+}
+
 /// Bit-level view of a float as its raw IEEE 754 integer pattern. This is NOT a
 /// numeric conversion : `u64(x)` truncates the VALUE (`3.7 → 3`), whereas
 /// `x.to_bits()` returns the exact bits (`3.0 → 0x4008000000000000`). The

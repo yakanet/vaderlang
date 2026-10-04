@@ -1,11 +1,18 @@
-// `.sum()` is declared on `Iterator<i32>` only ; a chain yielding `i64` matches
-// no overload — T3008.
+// `halve` is declared on `Iterator<i32>` only ; a chain yielding `i64` matches no
+// overload — T3008.
 module "snippet"
 
 import "std/iter"
 
+halve :: fn(self: Iterator<i32>) -> i32 {
+    n := 0
+    for x in self {
+        n += x / 2
+    }
+    return n
+}
+
 main :: fn() -> i32 {
     big: i64: 3_000_000_000
-    total :: (0..<3).map(x -> i64(x) + big).sum()
-    return i32(total)
+    return (0..<3).map((x) -> i64(x) + big).halve()
 }

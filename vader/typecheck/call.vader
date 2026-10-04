@@ -739,6 +739,9 @@ export infer_call :: fn(
     diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
+    if c.callee is AST.FieldExpr {
+        typed.callee_field_id = c.callee.id
+    }
     initial_callee_ty :: check_expr_fn(c.callee, null, typed, diags)
     // Overload dispatch : when the callee is a bare ident whose name
     // has multiple fn overloads (`describe :: fn(Box) -> ... ;

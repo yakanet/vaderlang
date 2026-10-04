@@ -188,7 +188,7 @@ static vader_box_t snippet_Never_Async_resume(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 212 "lib/std/core/core.vader"
+#line 219 "lib/std/core/core.vader"
 #line 15 "tests/snippets/async_cancel_defer/_main.vader"
     vader_struct_std_core_Suspended_t* _a0_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
     vader_obj_header_init(_a0_obj, 4u);

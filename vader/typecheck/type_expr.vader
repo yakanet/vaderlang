@@ -425,15 +425,26 @@ params_mutable_of :: fn(ps: AST.FnParam[]) -> bool[] {
     return if any_mutable { out } else { [] }
 }
 
-/// `params_mutable_of` for a member called with its receiver curried away: the
-/// flags of `ps[1..]`, empty when none of them is marked.
+/// Whether `fd` takes a receiver — its first parameter is `self`. A trait or impl
+/// member without one is STATIC : called on a type (`T.zero()`), never on a value.
 ///
-/// @param ps  the member's parameters, receiver first.
-params_mutable_after_receiver :: fn(ps: AST.FnParam[]) -> bool[] {
+/// @param fd  a trait or impl member.
+export has_self_param :: fn(fd: AST.FnDecl) -> bool =
+    fd.params.len() > 0 && fd.params[0].name == "self"
+
+/// Index of `fd`'s first parameter past its receiver : 1 when it takes `self`, 0
+/// for a static member.
+receiver_count :: fn(fd: AST.FnDecl) -> usize = if has_self_param(fd) { 1 } else { 0 }
+
+/// `params_mutable_of` for a member called with its receiver curried away: the
+/// flags of the parameters past `self`, empty when none of them is marked.
+///
+/// @param fd  the member.
+params_mutable_after_receiver :: fn(fd: AST.FnDecl) -> bool[] {
     out: bool[]!: []
     any_mutable := false
-    for i in 1..<ps.len() {
-        m :: AST.param_is_mutable(ps[i])
+    for i in receiver_count(fd)..<fd.params.len() {
+        m :: AST.param_is_mutable(fd.params[i])
         if m { any_mutable = true }
         out.push(m)
     }

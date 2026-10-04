@@ -54,9 +54,10 @@ export mul_add_small :: fn(self: BigInt, mul: u32, add: u32) -> BigInt {
 }
 
 /// Multiply by a small (u32) scalar — the `*` operator (`bigint * u32`).
-BigInt implements Mul<u32, BigInt> {
-    mul :: fn(self, other: u32) -> BigInt = self.mul_add_small(other, 0)
-}
+BigInt implements Mul<u32, BigInt> -> self.mul_add_small(other, 0)
+
+/// Zero is the empty limb sequence.
+BigInt implements Zero -> []
 
 /// Floor-divide by a small (u32) scalar → `[quotient, remainder]` — the `/`
 /// operator (`bigint / u32`).
@@ -99,7 +100,7 @@ export div_small :: fn(self: BigInt, d: u32) -> BigInt {
 /// @return      `self << bits`.
 export shl :: fn(self: BigInt, bits: i32) -> BigInt {
     out: BigInt: []
-    for _z in 0..<usize(bits / 32) { out.push(0) }
+    for 0..<usize(bits / 32) { out.push(0) }
     bit_shift :: bits % 32
     if bit_shift == 0 {
         for i in 0..<self.len() { out.push(self[i]) }
@@ -117,7 +118,9 @@ export shl :: fn(self: BigInt, bits: i32) -> BigInt {
 
 /// True when every limb is zero.
 export is_zero :: fn(self: BigInt) -> bool {
-    for i in 0..<self.len() { if self[i] != 0 { return false } }
+    for i in 0..<self.len() {
+        if self[i] != 0 { return false }
+    }
     return true
 }
 
@@ -125,10 +128,16 @@ export is_zero :: fn(self: BigInt) -> bool {
 export any_below :: fn(self: BigInt, pos: i32) -> bool {
     whole :: pos / 32
     bit :: pos % 32
-    for i in 0..<usize(whole) { if self[i] != 0 { return true } }
+    for i in 0..<usize(whole) {
+        if self[i] != 0 {
+            return true
+        }
+    }
     if bit > 0 && usize(whole) < self.len() {
         mask :: (u32(1) << u32(bit)) - 1
-        if (self[usize(whole)] & mask) != 0 { return true }
+        if (self[usize(whole)] & mask) != 0 {
+            return true
+        }
     }
     return false
 }

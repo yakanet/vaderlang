@@ -11,8 +11,8 @@
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
-  Index<I, T>
   ArrayOps<T>
+  Index<I, T>
   IndexSet<I, T>
   Contains<T>
   Iterator<T>

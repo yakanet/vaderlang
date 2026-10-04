@@ -336,12 +336,8 @@ export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
 ///
 /// @param t  a type from a generic signature or declaration.
 /// @return   `t`, its type parameters turned into `TY_UNRESOLVED`.
-export erase_type_params :: fn(t: Type) -> Type {
-    if !type_contains_type_param(t) {
-        return t
-    }
-    return erase_params_in(t)
-}
+export erase_type_params :: fn(t: Type) -> Type =
+    if type_contains_type_param(t) { erase_params_in(t) } else { t }
 
 // The rebuilt shape is only ever an `is_assignable` target, so a union keeps its
 // variants as they are (`mk_union`) rather than being re-normalised.

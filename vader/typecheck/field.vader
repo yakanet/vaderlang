@@ -42,6 +42,10 @@ export infer_field :: fn(
     if target_ty is UnresolvedType {
         return TY_UNRESOLVED
     }
+    static_member :: try_static_member(e, target_ty, typed, diags)
+    if static_member !is null {
+        return static_member
+    }
     // Built-in array methods (`len`/`push`/…) resolve as members of the
     // `@intrinsic T[] implements ArrayOps` blanket (std/core/array.vader), through
     // `try_impl_method_ufcs`'s `[]`-keyed lookup + `substitute_array_element`.
@@ -52,7 +56,7 @@ export infer_field :: fn(
     // Bounded TypeParam dispatch runs BEFORE free-fn UFCS : a free fn whose first
     // param is a bare `T` fits any receiver, and would otherwise hijack the
     // dispatch instead of routing through the type-param's trait bound.
-    candidate = try_typeparam_bound_method(target_ty, e, typed)
+    candidate = try_typeparam_bound_method(target_ty, e, typed, diags)
     if candidate !is null {
         return candidate
     }
@@ -61,7 +65,7 @@ export infer_field :: fn(
         repin_free_ufcs_receiver(target_ty, e, typed, diags, check_expr_fn)
         return candidate
     }
-    candidate = try_trait_method_dispatch(target_ty, e, typed)
+    candidate = try_trait_method_dispatch(target_ty, e, typed, diags)
     if candidate !is null {
         return candidate
     }
@@ -110,6 +114,9 @@ try_impl_method_ufcs :: fn(
     key_ty :: default_if_free(target_ty)
     impl_ufcs :: typed.impl_methods["${impl_type_key(key_ty)}::${e.field}"]
     if impl_ufcs !is null {
+        if rejects_static_member(impl_ufcs.decl, e, typed, diags) {
+            return TY_UNRESOLVED
+        }
         check_trait_ambiguity(e, target_ty, typed, diags)
         reject_mutating_method_on_immutable(impl_ufcs, e, target_ty, typed, diags)
         typed.chosen_impl_methods[e.id] = impl_ufcs
@@ -126,6 +133,9 @@ try_impl_method_ufcs :: fn(
     }
     if base_impl is null {
         return null
+    }
+    if rejects_static_member(base_impl.decl, e, typed, diags) {
+        return TY_UNRESOLVED
     }
     check_trait_ambiguity(e, target_ty, typed, diags)
     reject_mutating_method_on_immutable(base_impl, e, target_ty, typed, diags)
@@ -178,48 +188,182 @@ try_typeparam_bound_method :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
     typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> Type | null {
     if target_ty !is TypeParamType {
         return null
     }
-    bound :: typed.resolved.type_param_bounds[target_ty.symbol.id] ?? return null
-    // Find the trait carrying `e.field` AND record its `trait_key` so the
-    // lower can emit `vcall <trait_key>.method` once the receiver gets
-    // erased to Any post-monomorphization.
-    trait_key :: dispatch_bounded_method_trait(bound, e.field, typed)
-    if trait_key == "" {
-        return null
+    member :: type_member(target_ty, e.field, typed) ?? return null
+    if rejects_static_member(member.decl, e, typed, diags) {
+        return TY_UNRESOLVED
     }
-    typed.bounded_dispatch_trait[e.id] = trait_key
+    // Record the trait carrying `e.field` so the lower can emit
+    // `vcall <trait_key>.method` once the receiver gets erased to Any
+    // post-monomorphization.
+    typed.bounded_dispatch_trait[e.id] = member.trait_key
     keep_instances_concrete(typed)
-    tm :: dispatch_bounded_method(bound, e.field, typed) ?? return null
-    return substitute_self(tm, target_ty)
+    return member.ty
 }
 
-// Variant of `dispatch_bounded_method` that returns the trait NAME
-// instead of the method type. Same walk over `A & B` intersections.
-dispatch_bounded_method_trait :: fn(
+// ---- static trait members -------------------------------------------------
+
+/// A trait member reached through a type : its signature (`Self` substituted, no
+/// receiver), its declaration and the trait declaring it.
+TypeMember :: struct {
+    ty: Type
+    decl: AST.FnDecl
+    trait_key: string
+}
+
+/// `Type.member` on a static trait member — `T.zero()` with `T: Zero`,
+/// `i64.zero()`, `ns.Sq.unit(3)` — typed as the member, and recorded in
+/// `static_members` for the lowerer, which calls the owner's impl member with no
+/// receiver.
+///
+/// @param e          the field access ; its target must name a type.
+/// @param target_ty  the target's type, as `infer_field` typed it.
+/// @return           the member's type ; null when the target names no type, or
+///                   the type has no member by that name (`Direction.North` then
+///                   resolves as a variant).
+/// @error            T3092 when the member takes `self` : it is called on a value.
+/// @error            T3093 when the member is taken as a value instead of called.
+try_static_member :: fn(
+    e: AST.FieldExpr,
+    target_ty: Type,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+) -> Type | null {
+    owner :: static_owner(e.target, target_ty, typed) ?? return null
+    member :: type_member(owner, e.field, typed) ?? return null
+    if has_self_param(member.decl) {
+        diags.push(
+            typecheck_error(
+                .InstanceMemberOnType,
+                e.field_span,
+                "`${e.field}` takes `self` ; call it on a value of ${display_type(owner)}",
+            ),
+        )
+        return TY_UNRESOLVED
+    }
+    if typed.callee_field_id != e.id {
+        diags.push(
+            typecheck_error(
+                .StaticMemberNotCalled,
+                e.field_span,
+                "write `${display_type(owner)}.${e.field}(…)`",
+            ),
+        )
+        return TY_UNRESOLVED
+    }
+    if owner is TypeParamType {
+        keep_instances_concrete(typed)
+    } else {
+        check_trait_ambiguity(e, owner, typed, diags)
+    }
+    typed.static_members[e.id] = StaticMember { .owner = owner, .trait_key = member.trait_key }
+    return member.ty
+}
+
+// The type a field access's target names : a bare type name, or a namespace member
+// that is a type (`ns.Sq`) ; null for a value.
+static_owner :: fn(target: AST.Expr, target_ty: Type, typed: TypedProgram) -> Type | null {
+    if target is AST.FieldExpr {
+        if target.target !is AST.IdentExpr {
+            return null
+        }
+        alias :: typed.resolved.idents[target.target.span.hash()] ?? return null
+        types :: typed.resolved.namespace_member_types[alias.id] ?? return null
+        if types[target.field] == null {
+            return null
+        }
+        return target_ty
+    }
+    sym :: bare_name_symbol(target, typed) ?? return null
+    return denoted_type(sym, target_ty, typed)
+}
+
+// The type a type name stands for ; null for a name bound to anything else, a trait
+// included : a trait owns no impl to call. `target_ty` is the name's own type, which
+// for a declared type or a type parameter is the type itself.
+denoted_type :: fn(sym: Symbol, target_ty: Type, typed: TypedProgram) -> Type | null {
+    if sym.kind == .Trait {
+        return null
+    }
+    if sym.kind == .BuiltinType {
+        return primitive_from_name(sym.name)
+    }
+    if is_type_kind(sym.kind) {
+        return target_ty
+    }
+    return typed.resolved.alias_types[sym.id]
+}
+
+// The member `name` of `owner` : through its bound for a type parameter, through
+// its impls otherwise.
+type_member :: fn(owner: Type, name: string, typed: TypedProgram) -> TypeMember | null {
+    if owner is TypeParamType {
+        bound :: typed.resolved.type_param_bounds[owner.symbol.id] ?? return null
+        trait_ty :: bound_trait_declaring(bound, name, typed) ?? return null
+        decl :: trait_member_decl(trait_ty, name, typed) ?? return null
+        method :: try_trait_method(trait_ty, name, typed) ?? return null
+        return TypeMember {
+            .ty = substitute_self(method, owner),
+            .decl = decl,
+            .trait_key = trait_key_of(trait_ty.symbol),
+        }
+    }
+    base_key :: "${impl_base_key(owner)}::${name}"
+    found :: typed.impl_methods[base_key] ?? return null
+    decl :: found.decl ?? return null
+    traits :: typed.impl_method_traits[base_key] ?? return null
+    return TypeMember { .ty = found.ty, .decl = decl, .trait_key = traits[0] }
+}
+
+// The trait of `bound` (an `A & B` walked left first) that declares `name`.
+bound_trait_declaring :: fn(
     bound: AST.Expr,
     name: string,
     typed: TypedProgram,
-) -> string {
+) -> TraitType | null {
     if bound is AST.BinaryExpr {
         if bound.op == .BitAnd {
-            l :: dispatch_bounded_method_trait(bound.left, name, typed)
-            if l != "" {
-                return l
+            left :: bound_trait_declaring(bound.left, name, typed)
+            if left != null {
+                return left
             }
-            return dispatch_bounded_method_trait(bound.right, name, typed)
+            return bound_trait_declaring(bound.right, name, typed)
         }
     }
     bound_ty :: type_from_expr(bound, typed.resolved, [])
-    if bound_ty is TraitType {
-        if try_trait_method(bound_ty, name, typed) is null {
-            return ""
-        }
-        return trait_key_of(bound_ty.symbol)
+    if bound_ty is TraitType && trait_member_decl(bound_ty, name, typed) !is null {
+        return bound_ty
     }
-    return ""
+    return null
+}
+
+// The declaration of `trait_ty`'s member `name`.
+trait_member_decl :: fn(trait_ty: TraitType, name: string, typed: TypedProgram) -> AST.FnDecl | null =
+    lookup_trait_method(typed.trait_decls[trait_ty.symbol.id], name)
+
+// T3091 when `x.<name>` reaches a static member — one taking no `self`, called on
+// a type instead. `x` may be the trait itself, which types as a trait value.
+rejects_static_member :: fn(
+    decl: AST.FnDecl | null,
+    e: AST.FieldExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[]!,
+) -> bool {
+    if decl is null || has_self_param(decl) {
+        return false
+    }
+    owner :: bare_name_symbol(e.target, typed)
+    detail :: if owner != null && owner.kind == .Trait {
+        "`${owner.name}` is a trait ; call `${e.field}` on a type that implements it"
+    } else {
+        "`${e.field}` takes no `self` ; call it on the type"
+    }
+    diags.push(typecheck_error(.StaticMemberOnValue, e.field_span, detail))
+    return true
 }
 
 // `x.foo()` dispatching to a free fn `foo` whose first param accepts
@@ -314,11 +458,15 @@ try_trait_method_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
     typed: TypedProgram,
+    diags: Diagnostic[]!,
 ) -> Type | null {
     if target_ty !is TraitType {
         return null
     }
     trait_method :: try_trait_method(target_ty, e.field, typed) ?? return null
+    if rejects_static_member(trait_member_decl(target_ty, e.field, typed), e, typed, diags) {
+        return TY_UNRESOLVED
+    }
     return substitute_self(trait_method, target_ty)
 }
 
@@ -1056,30 +1204,6 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
     }
 }
 
-// Walk a TypeParam bound expression (single trait or `A & B` chain)
-// and return the first trait whose declared methods include `name`.
-dispatch_bounded_method :: fn(
-    bound: AST.Expr,
-    name: string,
-    typed: TypedProgram,
-) -> Type | null {
-    // Intersection : `A & B` — recurse on each side.
-    if bound is AST.BinaryExpr {
-        if bound.op == .BitAnd {
-            l :: dispatch_bounded_method(bound.left, name, typed)
-            if l !is null {
-                return l
-            }
-            return dispatch_bounded_method(bound.right, name, typed)
-        }
-    }
-    bound_ty :: type_from_expr(bound, typed.resolved, [])
-    if bound_ty is TraitType {
-        return try_trait_method(bound_ty, name, typed)
-    }
-    return null
-}
-
 // `t.method()` where `t: <SomeTrait>`. Looks up the method on the
 // trait decl, drops the `self` param, and returns the curried fn
 // type. Null when the trait isn't indexed or the method is missing.
@@ -1105,9 +1229,11 @@ try_default_trait_method :: fn(
             owner_resolved = owner
         }
         for m in decl.members {
-            if m.name != name { continue }
-            if m.body is null { continue }
-            // require default body
+            // A default needs a body ; a static member is reached through its
+            // type, never through a value.
+            if m.name != name     { continue }
+            if m.body is null     { continue }
+            if !has_self_param(m) { continue }
             params: Type[]!: []
             for i in 1..<m.params.len() {
                 p :: m.params[i]
@@ -1203,27 +1329,22 @@ try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type 
     if owner !is null {
         owner_resolved = owner
     }
-    for m in decl.members {
-        if m.name != name {
-            continue
-        }
-        params: Type[]!: []
-        for i in 1..<m.params.len() {
-            p :: m.params[i]
-            params.push(type_from_expr_opt_in(p.ty, owner_resolved))
-        }
-        ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
-        padded :: pad_trait_default_args(t.args, decl.type_params, owner_resolved)
-        return substitute_by_name(member_fn_type(m, params, ret), decl.type_params, padded)
+    m :: lookup_trait_method(decl, name) ?? return null
+    params: Type[]!: []
+    for i in receiver_count(m)..<m.params.len() {
+        params.push(type_from_expr_opt_in(m.params[i].ty, owner_resolved))
     }
-    return null
+    ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
+    padded :: pad_trait_default_args(t.args, decl.type_params, owner_resolved)
+    return substitute_by_name(member_fn_type(m, params, ret), decl.type_params, padded)
 }
 
 // A trait member's type with its receiver dropped — `params` are its tail — and
-// the tail's `!` markers kept, so T3072 still sees them through method syntax.
+// the tail's `!` markers kept, so T3072 still sees them through method syntax. A
+// static member has no receiver to drop.
 member_fn_type :: fn(m: AST.FnDecl, params: Type[], ret: Type) -> Type = FnType {
     .params         = params,
-    .params_mutable = params_mutable_after_receiver(m.params),
+    .params_mutable = params_mutable_after_receiver(m),
     .return_type    = ret,
 }
 
@@ -1484,7 +1605,7 @@ export typeparam_bound_method_names :: fn(tp: TypeParamType, typed: TypedProgram
 }
 
 // Append every trait-method name reachable through `bound` (single trait or
-// `A & B`) into `out`. Mirrors `dispatch_bounded_method`'s bound walk.
+// `A & B`) into `out`. Mirrors `bound_trait_declaring`'s bound walk.
 collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out: string[]!) -> void {
     if bound is AST.BinaryExpr {
         if bound.op == .BitAnd {

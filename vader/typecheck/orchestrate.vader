@@ -1172,6 +1172,8 @@ reset_expr_tables :: fn(typed: TypedProgram!) -> void {
     // behind would outlive the full walk's.
     typed.chosen_fns = MutableMap<usize, FnCandidate> {}
     typed.chosen_impl_methods = MutableMap<usize, ImplMethod> {}
+    typed.static_members = MutableMap<usize, StaticMember> {}
+    typed.callee_field_id = AST.UNASSIGNED_NODE_ID
     typed.overload_result_callees = MutableMap<usize, bool> {}
     typed.local_types = MutableMap<u64, Type> {}
     // The whole narrowing machine, not table by table: a sixth table added to
@@ -2461,13 +2463,7 @@ declares_mutable_self :: fn(m: AST.FnDecl, trait_method: AST.FnDecl | null) -> b
     return false
 }
 
-has_mutable_self :: fn(fd: AST.FnDecl) -> bool {
-    if fd.params.len() == 0 {
-        return false
-    }
-    first :: fd.params[0]
-    return first.name == "self" && first.mutable
-}
+has_mutable_self :: fn(fd: AST.FnDecl) -> bool = has_self_param(fd) && fd.params[0].mutable
 
 /// UFCS-bound method type : `fn(self, ...rest) -> R` becomes `fn(...rest) -> R`,
 /// since the receiver binds `self` at the call site. Always returns a type — a
@@ -2485,18 +2481,14 @@ ufcs_method_type :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> Type {
-    has_self :: fd.params.len() > 0 && fd.params[0].name == "self"
     rest: Type[]!: []
-    for i in (if has_self { 1 } else { 0 })..<fd.params.len() {
+    for i in receiver_count(fd)..<fd.params.len() {
         rest.push(param_type(fd.params[i], for_ty, typed, diags))
     }
     ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
     // The markers ride along, or a `!` parameter reached by method syntax would
     // never be checked against its argument (T3072).
-    if has_self {
-        return member_fn_type(fd, rest, ret)
-    }
-    return FnType { .params = rest, .params_mutable = params_mutable_of(fd.params), .return_type = ret }
+    return member_fn_type(fd, rest, ret)
 }
 
 /// Pre-walk an impl method's signature so `self` resolves to the impl block's
@@ -2550,7 +2542,8 @@ declare_impl_return :: fn(
             return apply_readonly_default(trait_ret, written)
         }
     }
-    return declare_fn_return(fd, typed.resolved, diags)
+    // A written `-> Self` names `for_ty` too.
+    return substitute_self(declare_fn_return(fd, typed.resolved, diags), for_ty)
 }
 
 param_type :: fn(

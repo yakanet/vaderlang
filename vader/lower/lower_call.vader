@@ -3,6 +3,7 @@
 
 module "vader/lower"
 
+import "std/abort"
 import "std/collections"
 
 import "toolchain/ast"
@@ -51,6 +52,8 @@ lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
     if consumer_form != null { return consumer_form }
     array_form :: try_lower_array_op(ctx, call, type)
     if array_form != null { return array_form }
+    static_form :: try_lower_static_member_call(ctx, call, type)
+    if static_form != null { return static_form }
     namespace_form :: try_lower_namespace_call(ctx, call, type)
     if namespace_form != null { return namespace_form }
     cast_form :: try_lower_cast_call(ctx, call, type)
@@ -65,13 +68,7 @@ lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
     // Slot preparation reads the picked overload's fn-type, so take params off
     // `raw_callee` before any result-type retype below.
     param_types :: param_types_of(type_of(raw_callee))
-    raw_args: LoweredExpr[]!: []
-    arg_spans: Span[]!: []
-    for call_arg in call.args {
-        raw_args.push(lower_expr(ctx, call_arg.value))
-        arg_spans.push(call_arg.value.span)
-    }
-    args :: prepare_args_for_params(ctx, raw_args, arg_spans, param_types, 0)
+    args :: lower_call_args(ctx, call.args, param_types, 0)
     callee :: retype_overload_callee(ctx, call.callee, raw_callee, type)
     // Direct calls to non-generic stdlib free fns (`StringBuilder {}`,
     // `byte_len(s)`) : harvest so `materialize_nongeneric_imported_fns`
@@ -122,6 +119,29 @@ export param_types_of :: fn(callee_type: Type) -> Type[] {
             return empty
         }
     }
+}
+
+/// `Type.member(args)` on a static trait member (`T.zero()`, `i64.zero()`) : a
+/// direct call to the owner's impl member, with no receiver. A type-parameter
+/// owner only appears in a generic body, whose instances typecheck keeps
+/// concrete, so it is a concrete type once substituted.
+///
+/// @param call  the call ; its callee is the `Type.member` field access.
+/// @param type  the call's result type.
+/// @return      the lowered call, or null when the callee is no static member.
+try_lower_static_member_call :: fn(
+    ctx: FnLowerCtx!,
+    call: CallExpr,
+    type: Type,
+) -> LoweredExpr | null {
+    field :: as_field_expr(call.callee) ?? return null
+    found :: ctx.typed.static_members[field.id] ?? return null
+    owner :: ctx.types.apply(found.owner)
+    member :: resolve_impl_member(ctx, owner, found.trait_key, field.field) ?? unreachable(
+        "lower_call: no impl member `${field.field}` for a static call",
+    )
+    args :: lower_call_args(ctx, call.args, member.arg_types, 0)
+    return build_member_call_or_inline(member, args, type, call.span)
 }
 
 /// `recv.method(args)` against a trait-typed receiver lowers to a

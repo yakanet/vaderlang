@@ -220,7 +220,7 @@ synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string, tra
         .subst          = new_substitution(),
         .type_arguments = [],
         .module         = typed,
-        .vtable_slot    = VtableSlot { .trait_key = trait_key, .method = member.name },
+        .vtable_slot    = member_vtable_slot(trait_key, member),
     }
 }
 

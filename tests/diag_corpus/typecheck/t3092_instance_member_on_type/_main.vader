@@ -1,0 +1,9 @@
+// An instance trait member (it takes `self`) called on a type — T3092. It needs a
+// value : `x.to_string()`.
+module "snippet"
+
+describe :: fn<T: Display>(x: T) -> string = T.to_string()
+
+main :: fn() -> i32 {
+    return i32(describe(7).byte_len())
+}

@@ -91,6 +91,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  Iterator<T>
   Iterator<U>
   Iterator<T>
   Iterator<T>
@@ -111,9 +112,9 @@
   Iterator<T>
   Iterator<T>
   Async<T>
+  ArrayOps<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayOps<T>

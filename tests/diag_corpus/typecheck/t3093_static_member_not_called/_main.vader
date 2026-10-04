@@ -1,0 +1,8 @@
+// A static trait member named without being called — T3093. It has no value
+// form : call it, `i64.zero()`.
+module "snippet"
+
+main :: fn() -> i32 {
+    f :: i64.zero
+    return 0
+}

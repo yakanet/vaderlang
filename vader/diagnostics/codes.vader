@@ -128,6 +128,9 @@ export TypecheckCode :: enum(CodeInfo) {
     NotIterable                     { .id = "T3088", .message = "value is not iterable" },
     AmbiguousLiteralInUnion         { .id = "T3089", .message = "literal could take several members of the union" },
     ArrayImplNotOverTypeParam       { .id = "T3090", .message = "an impl on an array type must take its element as a type parameter" },
+    StaticMemberOnValue             { .id = "T3091", .message = "a static member is called on a type, not on a value" },
+    InstanceMemberOnType            { .id = "T3092", .message = "an instance member is called on a value, not on a type" },
+    StaticMemberNotCalled           { .id = "T3093", .message = "a static member is called, not taken as a value" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

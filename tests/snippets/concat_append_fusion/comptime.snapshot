@@ -14,12 +14,12 @@
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
   Ready<string>
   Ready<T>
   Ready<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
   Async<string>
   Async<T>
   Range<i32>

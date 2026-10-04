@@ -527,7 +527,7 @@ materialize_impl_for_instance :: fn(
             .subst          = subst,
             .type_arguments = inst.args,
             .module         = impl_typed,
-            .vtable_slot    = VtableSlot { .trait_key = impl_trait, .method = member.name },
+            .vtable_slot    = member_vtable_slot(impl_trait, member),
         }
         synth_start :: project_ctx.synth_decls.len()
         // A `generator` impl member (e.g. `Into::into` yielding its elements)

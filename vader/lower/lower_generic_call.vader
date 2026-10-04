@@ -150,13 +150,7 @@ emit_generic_fn_call :: fn(
     mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args)
     // Build args through the shared slot preparation (`into` coercion), same as
     // the non-generic path.
-    raw_args: LoweredExpr[]!: []
-    arg_spans: Span[]!: []
-    for call_arg in call.args {
-        raw_args.push(lower_expr(ctx, call_arg.value))
-        arg_spans.push(call_arg.value.span)
-    }
-    lowered_args :: prepare_args_for_params(ctx, raw_args, arg_spans, ft.params, 0)
+    lowered_args :: lower_call_args(ctx, call.args, ft.params, 0)
     // The callee must carry `fn_sym.id` : the materialised instance registers in
     // `function_index_by_symbol_id` under its origin symbol (= `fn_sym`), so a
     // call keyed on a placeholder id (`0`) misses and is silently dropped.

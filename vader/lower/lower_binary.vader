@@ -261,7 +261,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
         // Primitive operands stay on the built-in path — primitives
         // have their own arithmetic / comparison ops.
         if left_ty is PrimitiveType { return null }
-        member :: resolve_op_member(ctx, left_ty, info.trait_key, info.method_name) ?? return null
+        member :: resolve_impl_member(ctx, left_ty, info.trait_key, info.method_name) ?? return null
         if member is UfcsMember {
             lowered_left  :: lower_expr(ctx, binary.left)
             lowered_right :: lower_expr(ctx, binary.right)
@@ -352,31 +352,6 @@ lower_op_overload_via_vcall :: fn(
             .span = binary.span, .type = mk_primitive("i32"), .value = 0,
         },
     }
-}
-
-// The member `method` that `ty`'s impl of `trait_key` provides, or null.
-//
-// `find_impl_member_for` is name-based, so the trait is confirmed separately: a
-// same-named member on a DIFFERENT trait would otherwise match.
-resolve_op_member :: fn(ctx: FnLowerCtx!, ty: Type, trait_key: string, method: string) -> UfcsMember | null {
-    member :: find_impl_member_for(ctx, ty, method) ?? return null
-    if !impl_provides(ctx, ty, trait_key, method) {
-        return null
-    }
-    return member
-}
-
-// True iff some impl of `trait_key` targets `for_ty` AND declares a member named
-// `method_name`. Guards against UFCS-name collisions where a struct happens to
-// have a method matching an op-trait's method name but doesn't actually
-// implement that trait.
-impl_provides :: fn(ctx: FnLowerCtx, for_ty: Type, trait_key: string, method_name: string) -> bool {
-    for entry in ctx.project.impls.impls_of(impl_base_key(for_ty), trait_key) {
-        for m in entry.decl.members {
-            if m.name == method_name { return true }
-        }
-    }
-    return false
 }
 
 OpShape :: enum(i32) {

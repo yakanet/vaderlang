@@ -408,6 +408,21 @@ char  implements Step -> char(u32(self) + 1)
 @intrinsic f64 implements Mul
 @intrinsic f64 implements Div
 
+// ---- Additive identity ----------------------------------------------------
+
+i8 implements Zero -> 0
+i16 implements Zero -> 0
+i32 implements Zero -> 0
+i64 implements Zero -> 0
+isize implements Zero -> 0
+u8 implements Zero -> 0
+u16 implements Zero -> 0
+u32 implements Zero -> 0
+u64 implements Zero -> 0
+usize implements Zero -> 0
+f32 implements Zero -> 0.0
+f64 implements Zero -> 0.0
+
 // ---- String ---------------------------------------------------------------
 //
 // `Add` is wired here in std/core (auto-imported) so `.add()` and the `Add`

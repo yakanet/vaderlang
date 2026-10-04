@@ -145,7 +145,7 @@ static vader_box_t snippet_CountDown_Async_resume(void* l0) {
     t0 = ((vader_struct_snippet_CountDown_t*) l0)->f_n;
     l1 = (t0 - INT32_C(1));
     ((vader_struct_snippet_CountDown_t*) l0)->f_n = l1;
-#line 212 "lib/std/core/core.vader"
+#line 219 "lib/std/core/core.vader"
 #line 14 "tests/snippets/async_countdown/_main.vader"
     vader_struct_std_core_Suspended_t* _a0_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
     vader_obj_header_init(_a0_obj, 4u);

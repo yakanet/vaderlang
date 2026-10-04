@@ -1432,7 +1432,7 @@ The same holds for `pick(x, 0)` where `pick` takes two `T`, for `f(2.5)` through
 Matching an argument against a signature that nothing has instantiated yet is a different question, where a type parameter is still free: choosing an overload, choosing the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>`), and checking the fields of a generic struct literal written without type arguments (`Box { .value = [4, 5] }`). A free literal still needs a type to land on, and such a literal binds none: `Box { .value = 0 }` is T3001 — write `Box<i32> { .value = 0 }`.
 
 **Limitations (MVP)**:
-- **No "associated functions"** (static methods on a type) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap<K, V> { ... }` for struct-literal construction. Post-MVP candidate.
+- **No inherent "associated functions"** — a static function belongs to a trait (*Static members* under §Traits), never to a type on its own. Factory functions outside a trait are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap<K, V> { ... }` for struct-literal construction. Post-MVP candidate.
 
 Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `<T: Add>` succeeds for every primitive numeric type as well as for `string` (concat). `Equals` and `Hash` are carried by **every** primitive (`@intrinsic <prim> implements Equals` + `<prim> implements Hash` in `std/core`, covering `i8`…`usize`, `f32`/`f64`, `bool`, `char`, `string`), so `x.hash()` / `x.equals(y)` and `MutableMap` / `MutableSet` keying work for any primitive without a per-type opt-in.
 
@@ -1460,7 +1460,34 @@ print_it :: fn<T: Display>(x: T) {
 - Implementation: `T implements Trait { ... }` (three forms — see below). `T` and `Trait` name declarations, resolved like any other name — a trait imported from another module included. The impl belongs to those declarations, not to their names: when two modules each declare a `Foo`, or an `Animal` trait, an impl of one says nothing about the other.
 - A union satisfies a trait iff all its members satisfy it.
 - Operator overloading via stdlib traits — see *Operator overloading* below.
-- **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in a `Foo implements Trait { … }` block, `Self = Foo`. Outside trait/impl context, `Self` is undefined (`T3023`).
+- **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in a `Foo implements Trait { … }` block, `Self = Foo`, a written `-> Self` included. Outside trait/impl context, `Self` is undefined (`T3023`).
+
+#### Static members
+
+A trait member whose first parameter is not named `self` is **static** — the name decides, not the type, so `combine :: fn(a: Self, b: Self) -> Self` is static too. It is called on a **type**, never on a value. The type is a concrete one, a type parameter whose bound names the trait, or a member reached through a namespace alias (`M.Point.origin()`):
+
+```vader
+Zero :: trait {
+    zero :: fn() -> Self
+}
+
+i64 implements Zero -> 0
+
+sum :: fn<T: Add & Zero>(xs: T[]) -> T {
+    s := T.zero()
+    for x in xs {
+        s += x
+    }
+    return s
+}
+
+start :: i64.zero()
+```
+
+- `Type.member(args)` resolves `member` in `Type`'s impls, or through the bound for a type parameter. A static member may take parameters (`unit :: fn(scale: i32) -> Self`).
+- A static member called on a value is **T3091**, and so is one called on the trait itself (`Zero.zero()`: the trait has no impl to pick). An instance member (one taking `self`) called on a type is **T3092**. A static member named without being called (`f :: i64.zero`) is **T3093**: it has no value form.
+- Dispatch is static: the call goes straight to the owner's impl member. A generic function calling one on its type parameter is instantiated per concrete type. A static member has no vtable slot, so a trait mixing static and `self` members still dispatches the latter on a trait-typed value; the static ones are reached through a type only.
+- `std/core` declares `Zero` (`zero :: fn() -> Self`, the additive identity), implemented by every numeric primitive and by `BigInt`; `std/iter`'s `sum` is `fn<T: Add & Zero>(self: Iterator<T>) -> T`.
 
 #### Coherence — one impl per (type, trait)
 

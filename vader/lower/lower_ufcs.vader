@@ -242,13 +242,7 @@ build_ufcs_args :: fn(
     } else {
         args.push(receiver)
     }
-    raw_args: LoweredExpr[]!: []
-    arg_spans: Span[]!: []
-    for call_arg in call.args {
-        raw_args.push(lower_expr(ctx, call_arg.value))
-        arg_spans.push(call_arg.value.span)
-    }
-    args.push_all(prepare_args_for_params(ctx, raw_args, arg_spans, params, first_slot))
+    args.push_all(lower_call_args(ctx, call.args, params, first_slot))
     return args
 }
 

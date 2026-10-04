@@ -1,0 +1,86 @@
+// A static trait member — no `self` — is called on a type : a concrete one
+// (`Sq.unit(3)`, `i64.zero()`), or a type parameter its bound names (`S.unit(n)`,
+// `T.zero()` inside `sum`). It has no vtable slot, so a trait mixing it with
+// `self` members still dispatches those on a value. Two traits declaring the
+// same static name stay apart : the bound picks the impl (`via_b` → `B`'s).
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+Shape :: trait {
+    unit :: fn(scale: i32) -> Self
+    area :: fn(self) -> i32
+}
+
+Sq :: struct {
+    side: i32
+}
+
+Sq implements Shape {
+    unit :: fn(scale: i32) -> Self = Sq { .side = scale }
+    area :: fn(self) -> i32 = self.side * self.side
+}
+
+Rect :: struct {
+    w: i32
+    h: i32
+}
+
+Rect implements Shape {
+    unit :: fn(scale: i32) -> Self = Rect { .w = scale, .h = 2 * scale }
+    area :: fn(self) -> i32 = self.w * self.h
+}
+
+build :: fn<S: Shape>(n: i32) -> S = S.unit(n)
+
+A :: trait {
+    make :: fn() -> Self
+}
+
+B :: trait {
+    make :: fn() -> Self
+}
+
+P :: struct {
+    v: i32
+}
+
+P implements A {
+    make :: fn() -> Self = P { .v = 1 }
+}
+
+P implements B {
+    make :: fn() -> Self = P { .v = 2 }
+}
+
+via_a :: fn<T: A>() -> T = T.make()
+via_b :: fn<T: B>() -> T = T.make()
+
+areas :: fn(xs: Shape[]) -> i32 {
+    t := 0
+    for x in xs {
+        t += x.area()
+    }
+    return t
+}
+
+main :: fn() -> i32 {
+    println(Sq.unit(3).area())
+    s: Sq: build(4)
+    r: Rect: build(2)
+    shapes: Shape[]!: []
+    shapes.push(s)
+    shapes.push(r)
+    println(areas(shapes))
+    println(i64.zero())
+    big: i64: 3_000_000_000
+    println((0..<3).map((x) -> i64(x) + big).sum())
+    println([1.5, 2.25].sum())
+    a: P: via_a()
+    b: P: via_b()
+    println(a.v * 10 + b.v)
+    println(BigInt.zero().len())
+    return 0
+}

@@ -112,13 +112,18 @@ export fold :: fn<T, U>(self: Iterator<T>, init: U, f: fn(U, T) -> U) -> U {
     return acc
 }
 
-/// Sum the elements of an `Iterator<i32>` (an `i32[]` auto-coerces at the call
-/// site). A generic `Sum`-trait variant is deferred until trait-method dispatch
-/// on `$T: Add + Default` works or a `T()` zero-init form is exposed.
-export sum :: fn(self: Iterator<i32>) -> i32 {
-    s := 0
+/// Sum the elements of an iterator (an array auto-coerces at the call site).
+///
+/// @param self  the elements to add.
+/// @return      their sum ; `T.zero()` when there are none.
+/// @example
+///   total :: [1.5, 2.25].sum()   // 3.75
+export sum :: fn<T: Add & Zero>(self: Iterator<T>) -> T {
+    s := T.zero()
     for x in self {
-        s = s + x
+        // `.add`, not `+=` : the bootstrap seed compiles this file, and it
+        // predates operators on a bounded type parameter.
+        s = s.add(x)
     }
     return s
 }
