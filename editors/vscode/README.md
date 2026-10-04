@@ -5,7 +5,7 @@ VS Code extension for the [Vader](../../README.md) programming language. Provide
 ## Features
 
 - Syntax highlighting for `.vader` files
-- Syntax highlighting and folding for `.virt` files — the text bytecode `vader dump --stage=bytecode` and `vader build --emit=bytecode-text` write (no language server: highlighting only)
+- Syntax highlighting and folding for `.virt` files — the text bytecode `vader dump --stage=bytecode` and `vader build --emit=bytecode-text` write — plus, from the Language Server, hover documentation on ops, inlay hints naming each table index, and go-to-definition from an operand to what it names
 - Semantic tokens via the Vader Language Server (richer highlighting for keywords, types, functions, parameters, decorators, and VaderDoc `@param` / `@return` / `@error` / `@example` tags)
 - Comment toggling (`//`, `/* */`, `///`) and `///` auto-continuation on Enter
 - Bracket matching and auto-closing pairs

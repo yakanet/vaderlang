@@ -234,15 +234,24 @@ file /tmp/hello-win.exe          # → PE32+ executable (console) x86-64, for MS
 
 ## Editor support
 
-A minimal VS Code extension lives under [`editors/vscode/`](./editors/vscode/) — syntax highlighting, comment toggling, bracket matching.
+Two editor plugins share one TextMate grammar ([`editors/common/`](./editors/common/)) and the same language server, `vader lsp`, which answers for `.vader` files (navigation, hover, completion, diagnostics, formatting) and for `.virt` text bytecode (hover on ops, inlay hints, go-to-definition on operands). Both spawn `vader` from the `PATH` unless told otherwise — inside this repo, point them at `build/vader`.
+
+**VS Code** — [`editors/vscode/`](./editors/vscode/) ; setting `vader.lsp.path` names the binary.
 
 ```sh
-# Symlink into VS Code's extensions folder, then reload the window
-ln -s "$PWD/editors/vscode" ~/.vscode/extensions/vader-0.1.0
-
-# …or package it as a .vsix
-npm install -g @vscode/vsce && cd editors/vscode && vsce package && code --install-extension vader-0.1.0.vsix
+cd editors/vscode
+npm install && npm run build                     # bundle the client into out/
+ln -s "$PWD" ~/.vscode/extensions/vader-0.1.0    # then reload the window
 ```
+
+**JetBrains IDEs** (IntelliJ IDEA, PyCharm, CLion, …) — [`editors/intellij/`](./editors/intellij/) ; needs the [LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij) plugin installed first, and *Settings → Tools → Vader* names the binary.
+
+```sh
+cd editors/intellij
+./gradlew buildPlugin    # → build/distributions/vader-intellij-0.1.0.zip
+```
+
+Then *Settings → Plugins → ⚙️ → Install Plugin from Disk…* and pick the `.zip`. Each plugin's README covers packaging, settings and development.
 
 ## Development
 
