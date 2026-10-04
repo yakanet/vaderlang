@@ -18,7 +18,21 @@ export is_empty :: fn(s: string) -> bool = s.bytes().len() == 0
 /// callers go through `sub in s` (Contains impl below) or UFCS
 /// `s.contains(sub)`. Named distinctly from the trait method (`contains`) to
 /// avoid shadowing it inside the impl body.
-byte_contains :: fn(s: string, sub: string) -> bool = byte_find(s, sub, 0) >= 0
+byte_contains :: fn(s: string, sub: string) -> bool {
+    sb :: s.bytes()
+    subb :: sub.bytes()
+    n :: sb.len()
+    m :: subb.len()
+    if m == 0 { return true }
+    if m > n  { return false }
+    first :: subb[0]
+    for i in 0..<n - m + 1 {
+        if sb[i] == first && bytes_match_at(sb, i, subb, m) {
+            return true
+        }
+    }
+    return false
+}
 
 /// True iff `s` starts with `prefix`. Byte-wise comparison.
 export starts_with :: fn(s: string, prefix: string) -> bool {
@@ -186,30 +200,13 @@ to_lower_byte :: fn(c: u8) -> u8 {
 is_white_byte :: fn(b: u8) = b == ' ' || b == '\t' || b == '\n' || b == '\r'
 
 // True iff the `m` bytes of `subb` match `sb` starting at byte offset `off`.
+// Starts at byte 1: every caller has already compared byte 0.
 // Takes byte views (not strings) so the caller holds them once across the scan.
 bytes_match_at :: fn(sb: u8[], off: usize, subb: u8[], m: usize) -> bool {
-    for j in 0..<m {
+    for j in 1..<m {
         if sb[off + j] != subb[j] { return false }
     }
     return true
-}
-
-// Byte-wise substring search — first offset >= `from` where `sub` occurs in
-// `s`, or `-1`. Empty `sub` matches at `from`. Powers `contains` and `split`.
-byte_find :: fn(s: string, sub: string, from: usize) -> isize {
-    sb :: s.bytes()
-    subb :: sub.bytes()
-    n :: sb.len()
-    m :: subb.len()
-    if m == 0 { return isize(from) }
-    if m > n { return -1 }
-    last :: n - m
-    i := from
-    for i <= last {
-        if bytes_match_at(sb, i, subb, m) { return isize(i) }
-        i = i + 1
-    }
-    return -1
 }
 
 /// Byte offset of the *last* occurrence of `c` in `s` at or after
@@ -269,21 +266,27 @@ export index_of :: fn(s: string, c: char, from: usize) -> isize {
 export split :: fn(s: string, sep: string) -> string[]! {
     out: string[]!: []
     sb :: s.bytes()
+    sepb :: sep.bytes()
     n :: sb.len()
-    m :: sep.bytes().len()
+    m :: sepb.len()
     if m == 0 {
-        for i in 0..< n {
+        for i in 0..<n {
             out.push(sb[i..<i + 1].bytes_to_string())
         }
         return out
     }
-    start :usize = 0
-    found := byte_find(s, sep, start)
-    for found >= 0 {
-        fpos :: usize(found)
-        out.push(sb[start..<fpos].bytes_to_string())
-        start = fpos + m
-        found = byte_find(s, sep, start)
+    first :: sepb[0]
+    start: usize = 0
+    i: usize = 0
+    for i + m <= n {
+        // `m == 1` skips the call: the first byte is the whole separator.
+        if sb[i] == first && (m == 1 || bytes_match_at(sb, i, sepb, m)) {
+            out.push(sb[start..<i].bytes_to_string())
+            i += m
+            start = i
+        } else {
+            i += 1
+        }
     }
     out.push(sb[start..<n].bytes_to_string())
     return out
@@ -726,6 +729,12 @@ import "std/testing"
     assert("" in "anything", "every string contains empty")
 }
 
+@test test_contains_after_partial_match :: fn() -> void {
+    // `a` starts a candidate at 0 that fails on its second byte.
+    assert("ab" in "aab", "finds ab after a false start")
+    assert(!("ab" in "aac"), "rejects a first-byte-only match")
+}
+
 @test test_starts_ends_with :: fn() -> void {
     assert(starts_with("hello", "hell"), "starts_with hell")
     assert(!starts_with("hello", "world"), "does not start_with world")
@@ -821,6 +830,22 @@ import "std/testing"
     parts_multi :: split("a::b::c", "::")
     assert_eq(parts_multi.len(), 3)
     assert_eq(parts_multi[2], "c")
+}
+
+@test test_split_after_partial_match :: fn() -> void {
+    // The lone `:` matches the separator's first byte only and stays in the piece.
+    parts :: split("a:b::c", "::")
+    assert_eq(parts.len(), 2)
+    assert_eq(parts[0], "a:b")
+    assert_eq(parts[1], "c")
+}
+
+@test test_split_overlapping_separator :: fn() -> void {
+    // A match consumes its bytes: `aaa` holds one `aa`, not two.
+    parts :: split("aaa", "aa")
+    assert_eq(parts.len(), 2)
+    assert_eq(parts[0], "")
+    assert_eq(parts[1], "a")
 }
 
 @test test_join :: fn() -> void {
