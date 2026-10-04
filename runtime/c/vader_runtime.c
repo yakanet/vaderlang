@@ -655,11 +655,11 @@ typedef struct {
     vader_u32_t         count;
     vader_u32_t         capacity;
 
-    /* Open-addressing hash : intern lookup. `buckets[i]` holds the atom
-     * id installed at hash slot `i`, or 0 (== VADER_ATOM_EMPTY) for an
-     * empty slot. Slot 0 cannot collide with a real atom because we
-     * pre-install the empty atom and skip it in probes. */
-    vader_u32_t* buckets;
+    /* Open-addressing hash : intern lookup. `buckets[i]` holds the atom id
+     * installed at hash slot `i` in its low 32 bits and the high 32 bits of
+     * that atom's hash above them, or 0 for an empty slot. The empty atom
+     * (id 0) is never installed, so an occupied slot is never 0. */
+    uint64_t*    buckets;
     vader_u32_t  bucket_capacity;
     vader_u32_t  bucket_count;     /* occupied slots — for load factor check */
 
@@ -697,7 +697,7 @@ static int  g_atom_profile = 0;
 /* Forward decls — implementations below cluster by concern. */
 static void        vader_atom_install_empty(void);
 static uint64_t    vader_atom_hash64(const char* data, size_t len);
-static void        vader_atom_bucket_install(vader_atom_t a, vader_u32_t hash);
+static void        vader_atom_bucket_install(vader_atom_t a);
 static void        vader_ensure_stdio_binary(void);
 
 void vader_atom_init(void) {
@@ -750,8 +750,7 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
         vader_u32_t target = (count + 1u) * 4u;
         while (want_buckets < target) want_buckets *= 2u;
     }
-    g_atoms.buckets = (vader_u32_t*)
-        calloc(want_buckets, sizeof(vader_u32_t));
+    g_atoms.buckets = (uint64_t*) calloc(want_buckets, sizeof(uint64_t));
     if (g_atoms.buckets == NULL) vader_trap("vader_atom_init: buckets calloc failed");
     g_atoms.bucket_capacity = want_buckets;
     g_atoms.bucket_count    = 0;
@@ -783,17 +782,16 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
             const vader_atom_entry_t* e = &vader_atom_entries[i];
             /* Codegen's positional comptime-table literals omit `hash` (it
              * zero-fills) — recompute it here so comptime atoms hash like any
-             * interned string ; its low bits index the bucket. */
-            uint64_t hash64 = vader_atom_hash64(e->data, e->len);
-            vader_atom_entries[i].hash = hash64;
-            vader_atom_bucket_install(i, (vader_u32_t) hash64);
+             * interned string. */
+            vader_atom_entries[i].hash = vader_atom_hash64(e->data, e->len);
+            vader_atom_bucket_install(i);
         }
     }
 }
 
 /* Install VADER_ATOM_EMPTY at index 0 with PERM flag. No bucket entry —
  * the empty string is reached by direct `a == 0` checks, never via hash
- * probe (it would collide with the "empty slot" sentinel). */
+ * probe : every intern entrypoint short-circuits `len == 0`. */
 static void vader_atom_install_empty(void) {
     vader_atom_entry_t* e = &vader_atom_entries[0];
     e->parent        = 0;
@@ -844,9 +842,11 @@ void vader_atom_shutdown(void) {
 
 /* FNV1a 64-bit over the bytes — the atom table's ONE hash. Computed once at
  * insert: cached on the entry (returned O(1) by `vader_string_hash` for
- * `string`'s `Hash` trait) AND its low bits index the open-addressing bucket
+ * `string`'s `Hash` trait), its low bits index the open-addressing bucket
  * table (an odd multiplier keeps the low bits a bijection, so no clustering
- * under the power-of-two mask). Byte-identical to the retired pure-Vader
+ * under the power-of-two mask) and its high 32 bits tag the bucket, so the
+ * probe passes over other atoms without reading their entries. Both halves
+ * must stay well mixed. Byte-identical to the retired pure-Vader
  * `string_hash_fnv1a64`. */
 static uint64_t vader_atom_hash64(const char* data, size_t len) {
     uint64_t h = 14695981039346656037ull;
@@ -858,37 +858,38 @@ static uint64_t vader_atom_hash64(const char* data, size_t len) {
 }
 
 /* Bucket probe — returns the matching atom id or VADER_ATOM_EMPTY (0)
- * on miss. The empty-slot sentinel in `buckets[]` is also 0 ; callers
- * short-circuit len==0 before reaching this so the sentinel can never
- * collide with a real hit. `bucket_capacity` is a power of two — mask
- * trick replaces a modulo. `e->hash` is the FNV-64 of the entry's bytes
- * (comptime atoms get theirs at init, before any lookup), so a hash mismatch
- * rules an entry out without reading its bytes. */
+ * on miss. Callers short-circuit len==0 before reaching this : the empty
+ * atom has no bucket. `bucket_capacity` is a power of two — mask trick
+ * replaces a modulo. The low bits of the hash pick the slot and its high
+ * 32 bits sit in the bucket, so a slot holding another hash is passed over
+ * without reading `entries[]`. */
 static vader_atom_t vader_atom_lookup(const char* data, size_t len, uint64_t hash) {
     const vader_u32_t mask = g_atoms.bucket_capacity - 1u;
     vader_u32_t idx = (vader_u32_t) hash & mask;
     for (;;) {
-        vader_atom_t a = g_atoms.buckets[idx];
-        if (a == VADER_ATOM_EMPTY) return VADER_ATOM_EMPTY;
+        uint64_t slot = g_atoms.buckets[idx];
+        if (slot == 0) return VADER_ATOM_EMPTY;
+        vader_atom_t a = (vader_atom_t) slot;
         const vader_atom_entry_t* e = &vader_atom_entries[a];
-        if (e->hash == hash && e->len == len && memcmp(e->data, data, len) == 0) {
+        if ((slot ^ hash) >> 32 == 0 && e->len == len && memcmp(e->data, data, len) == 0) {
             return a;
         }
         idx = (idx + 1u) & mask;
     }
 }
 
-/* Install an atom id at its canonical bucket slot. `hash` is the low 32 bits of
- * the atom's FNV-64 (callers truncate `e->hash`). Assumes free room — the
- * load-factor check in the intern entrypoint grows buckets before any insert
- * that would push it past the 0.75 threshold. */
-static void vader_atom_bucket_install(vader_atom_t a, vader_u32_t hash) {
+/* Install atom `a` at its canonical bucket slot, under the hash its entry
+ * caches — every caller fills `e->hash` first. Assumes free room :
+ * `vader_atom_bucket_add` grows the table past a 0.75 load after each new
+ * atom. */
+static void vader_atom_bucket_install(vader_atom_t a) {
+    const uint64_t hash = vader_atom_entries[a].hash;
     const vader_u32_t mask = g_atoms.bucket_capacity - 1u;
-    vader_u32_t idx = hash & mask;
-    while (g_atoms.buckets[idx] != VADER_ATOM_EMPTY) {
+    vader_u32_t idx = (vader_u32_t) hash & mask;
+    while (g_atoms.buckets[idx] != 0) {
         idx = (idx + 1u) & mask;
     }
-    g_atoms.buckets[idx] = a;
+    g_atoms.buckets[idx] = (hash >> 32 << 32) | a;
     g_atoms.bucket_count++;
 }
 
@@ -897,8 +898,7 @@ static void vader_atom_bucket_install(vader_atom_t a, vader_u32_t hash) {
 static void vader_atom_grow_buckets(void) {
     free(g_atoms.buckets);
     g_atoms.bucket_capacity *= 2u;
-    g_atoms.buckets = (vader_u32_t*)
-        calloc(g_atoms.bucket_capacity, sizeof(vader_u32_t));
+    g_atoms.buckets = (uint64_t*) calloc(g_atoms.bucket_capacity, sizeof(uint64_t));
     if (g_atoms.buckets == NULL) vader_trap("vader_atom_grow_buckets: calloc failed");
     g_atoms.bucket_count = 0;
     /* Reinsert every LIVE atom except the empty sentinel at index 0. `data ==
@@ -910,8 +910,16 @@ static void vader_atom_grow_buckets(void) {
     for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
         const vader_atom_entry_t* e = &vader_atom_entries[i];
         if (e->data == NULL) continue;
-        /* Rehash from the cached FNV-64 (low bits) — no byte re-walk. */
-        vader_atom_bucket_install(i, (vader_u32_t) e->hash);
+        vader_atom_bucket_install(i);
+    }
+}
+
+/* Index a freshly minted atom, growing the table past a 0.75 load. The grow
+ * comes after the install so the new atom rehashes with the rest. */
+static void vader_atom_bucket_add(vader_atom_t a) {
+    vader_atom_bucket_install(a);
+    if (g_atoms.bucket_count * 4u > g_atoms.bucket_capacity * 3u) {
+        vader_atom_grow_buckets();
     }
 }
 
@@ -956,13 +964,7 @@ static vader_atom_t vader_atom_install_owner(char* buf, size_t len, uint64_t has
     e->hash          = hash;
     g_atoms.owner_bytes += len;
 
-    vader_atom_bucket_install(a, (vader_u32_t) hash);
-
-    /* Grow if past 0.75. Done after install so the just-inserted atom
-     * rehashes with the rest into the new table. */
-    if (g_atoms.bucket_count * 4u > g_atoms.bucket_capacity * 3u) {
-        vader_atom_grow_buckets();
-    }
+    vader_atom_bucket_add(a);
     return a;
 }
 
@@ -1030,12 +1032,7 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
     e->data          = candidate;
     e->hash          = hash;
 
-    vader_atom_bucket_install(a, (vader_u32_t) hash);
-
-    if (g_atoms.bucket_count * 4u > g_atoms.bucket_capacity * 3u) {
-        vader_atom_grow_buckets();
-    }
-
+    vader_atom_bucket_add(a);
     return a;
 }
 
@@ -1327,13 +1324,12 @@ static void vader_atom_sweep(void) {
     /* Rebuild the hash index. Bucket clears + linear reinsert keeps the
      * implementation simple ; incremental updates would need to track
      * each tombstone's original hash to clear specifically. */
-    memset(g_atoms.buckets, 0, g_atoms.bucket_capacity * sizeof(vader_u32_t));
+    memset(g_atoms.buckets, 0, g_atoms.bucket_capacity * sizeof(uint64_t));
     g_atoms.bucket_count = 0;
     for (vader_u32_t i = 1; i < g_atoms.count; i++) {
         const vader_atom_entry_t* e = &vader_atom_entries[i];
         if (e->data == NULL) continue;
-        /* Reinsert from the cached FNV-64 (low bits) — no byte re-walk. */
-        vader_atom_bucket_install(i, (vader_u32_t) e->hash);
+        vader_atom_bucket_install(i);
     }
 }
 

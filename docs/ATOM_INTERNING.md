@@ -111,7 +111,7 @@ typedef struct {
     vader_u32_t         capacity;
 
     /* Open-addressing hash : intern lookup */
-    vader_u32_t* buckets;          /* atom id, 0 = empty slot */
+    uint64_t*    buckets;          /* hash >> 32 << 32 | atom id, 0 = empty slot */
     vader_u32_t  bucket_capacity;  /* power of two */
 
     /* Free list of tombstone indices, reused by intern_owner */
