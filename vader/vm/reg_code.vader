@@ -119,7 +119,7 @@ RegOp :: enum(i32) {
     Call
     // Call the function value on top of `c` arguments from r[b] ; `a` is its fn type.
     CallIndirect
-    // Dispatch virtuals[a] on the receiver above its arguments from r[b].
+    // Dispatch virtuals[a] on its `c` arguments from r[b], the receiver last.
     VirtualCall
     // Truncate r[a] to width `b`: 0 `u8`, 1 `i8`, 2 `u16`, 3 `i16` (`narrow_mask`).
     Narrow
@@ -188,6 +188,8 @@ RegFunction :: struct {
     texts:     string[]!
     /// Parameters, locals, then one register per operand-stack depth.
     registers: usize
+    /// `signature.params.len()` — the arity the call arm checks a fn value or a
+    /// vtable impl against before entering it.
     params:    usize
     /// Parameters plus locals: the registers a call resets.
     slots:     usize

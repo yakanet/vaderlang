@@ -253,7 +253,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             base :: pop_to(t, usize(op.parameter_count))
             t.code.virtuals.push(op)
             t.code.virtual_rows.push(vtable_row_of(module.vtables, op.vtable_key))
-            emit(t, pc, .VirtualCall, i32(t.code.virtuals.len() - 1), base, 0)
+            emit(t, pc, .VirtualCall, i32(t.code.virtuals.len() - 1), base, op.parameter_count)
             if results == 1 {
                 push_register(t, base)
             }

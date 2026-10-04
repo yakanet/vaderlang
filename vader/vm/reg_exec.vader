@@ -541,11 +541,49 @@ reg_call :: fn(
                         return indirect_call_trap(code, m, at, arity, f.origin[pc])
                     }
                 } else if op == .VirtualCall {
-                    resolved :: resolve_virtual(state, m, f, pc, at, is_comptime)
-                    if resolved is Trap {
-                        return resolved
+                    // A struct or array receiver whose impl its vtable row lists is
+                    // dispatched here, as a fn value is ; a primitive receiver and
+                    // every trap take `resolve_virtual`. The receiver sits above the
+                    // other arguments and moves ahead of them.
+                    site :: usize(index)
+                    count :: usize(operand_c(w))
+                    top :: at + count - 1
+                    receiver :: refs[top]
+                    type_id: i32: if tags[top] != .Ref {
+                        -1
+                    } else {
+                        // @partial: a primitive's type id comes from the type table
+                        // (`receiver_type_id_of`), in `resolve_virtual`.
+                        @partial match receiver {
+                            is StructVal -> receiver.type_id
+                            is ArrayVal  -> receiver.type_id
+                            _            -> -1
+                        }
                     }
-                    index = resolved
+                    row :: if type_id < 0 { -1 } else { f.virtual_rows[site] }
+                    target :: lookup_vtable_row(state.bc.vtables, row, type_id)
+                    in_range :: target >= 0 && usize(target) < code.functions.len()
+                    if in_range && code.functions[usize(target)].params == count {
+                        // A lone receiver already sits where the callee reads it.
+                        if top > at {
+                            i := top
+                            for i > at {
+                                bits[i] = bits[i - 1]
+                                tags[i] = tags[i - 1]
+                                refs[i] = refs[i - 1]
+                                i -= 1
+                            }
+                            refs[at] = receiver
+                            tags[at] = .Ref
+                        }
+                        index = target
+                    } else {
+                        resolved :: resolve_virtual(state, m, f, pc, at, is_comptime)
+                        if resolved is Trap {
+                            return resolved
+                        }
+                        index = resolved
+                    }
                 }
                 // A negative index: a host primitive impl served the call.
                 if index >= 0 {
@@ -720,11 +758,12 @@ resolve_virtual :: fn(
     at: usize,
     is_comptime: bool,
 ) -> i32 | Trap {
-    site :: usize(operand_a(f.words[pc]))
+    w :: f.words[pc]
+    site :: usize(operand_a(w))
     call :: f.virtuals[site]
     row :: f.virtual_rows[site]
     origin :: f.origin[pc]
-    count :: usize(call.parameter_count)
+    count :: usize(operand_c(w))
     top :: at + count - 1
     receiver :: register_value(m, top)
     type_id :: receiver_type_id_of(state, receiver)
@@ -746,7 +785,7 @@ resolve_virtual :: fn(
         callee :: state.bc.functions[usize(target)]
         if callee.signature.params.len() != count {
             declared :: callee.signature.params.len()
-            return Trap { .message = "virtual.call '${call.vtable_key}' : impl '${callee.name}' expects ${declared} param(s) but call site supplied ${call.parameter_count} at pc=${origin}" }
+            return Trap { .message = "virtual.call '${call.vtable_key}' : impl '${callee.name}' expects ${declared} param(s) but call site supplied ${count} at pc=${origin}" }
         }
         return target
     }
