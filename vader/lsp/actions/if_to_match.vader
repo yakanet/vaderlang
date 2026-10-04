@@ -156,9 +156,12 @@ tif_find_if :: fn(decls: AST.Decl[]) -> AST.IfExpr | null {
     return null
 }
 
+// A two-condition chain with an `else` — the shape if→match converts.
+CONVERTIBLE_IF_CHAIN :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 {\n        v\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
+
 @test
 test_if_to_match_converts :: fn() -> void {
-    src :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 {\n        v\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
+    src :: CONVERTIBLE_IF_CHAIN
     parsed :: Parse.parse_source(src, "t.vader")
     ifx :: tif_find_if(parsed.program.decls)
     if ifx == null {
@@ -190,7 +193,7 @@ test_if_to_match_declines_as_binder :: fn() -> void {
 
 @test
 test_if_to_match_declines_two_branches :: fn() -> void {
-    src :: "g :: fn(v: i32 | string) -> i32 {\n    return if v is i32 as n {\n        n\n    } else {\n        0\n    }\n}\n"
+    src :: "g :: fn(v: i32 | string) -> i32 {\n    return if v is i32 {\n        v\n    } else {\n        0\n    }\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
     ifx :: tif_find_if(parsed.program.decls)
     if ifx == null {
@@ -203,7 +206,7 @@ test_if_to_match_declines_two_branches :: fn() -> void {
 
 @test
 test_if_to_match_declines_no_else :: fn() -> void {
-    src :: "h :: fn(v: i32 | string) -> i32 {\n    if v is i32 as n {\n        return n\n    } else if v == \"\" {\n        return 1\n    }\n    return 0\n}\n"
+    src :: "h :: fn(v: i32 | string) -> i32 {\n    if v is i32 {\n        return v\n    } else if v == \"\" {\n        return 1\n    }\n    return 0\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
     ifx :: tif_find_if(parsed.program.decls)
     if ifx == null {

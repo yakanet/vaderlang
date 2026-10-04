@@ -256,7 +256,7 @@ test_roundtrip_match_to_if :: fn() -> void {
 
 @test
 test_roundtrip_if_to_match :: fn() -> void {
-    src :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 as n {\n        n\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
+    src :: CONVERTIBLE_IF_CHAIN
     parsed :: Parse.parse_source(src, "rt.vader")
     ifx :: tif_find_if(parsed.program.decls)
     if ifx == null {

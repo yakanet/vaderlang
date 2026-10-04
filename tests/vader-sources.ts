@@ -72,8 +72,7 @@ export function containsTestFn(dir: string): boolean {
  *  directory has a subdirectory at all).
  *
  *  Paths are normalised to `/` : these are Vader module paths, and `join` yields
- *  `\` on Windows — which would miss a caller's skip-list lookup and run a
- *  skipped-everywhere-else module to a CI timeout. */
+ *  `\` on Windows — the test names would then differ from one OS to the next. */
 export function findTestModules(root: string): string[] {
   const dirs: string[] = [];
   const visit = (dir: string) => {
