@@ -1349,7 +1349,7 @@ static int32_t snippet_main(void) {
         l11 = (uint64_t) (int64_t) t1;
         l10 = std_core_write_unsigned(l15, l10, l11);
         t0 = std_core_finish_buffer(l15, l10);
-#line 383 "lib/std/iter/iter.vader"
+#line 381 "lib/std/iter/iter.vader"
         l16 = __lambda_snippet_0(t0);
 #line 90 "lib/std/iter/iter.vader"
         vader_array_push_i64((vader_array_t*) l13, (int64_t) (size_t) l16);
@@ -1385,13 +1385,13 @@ static int32_t snippet_main(void) {
     l0 = INT32_C(0);
     while ((l0 < INT32_C(4))) {
 #line 14 "tests/snippets/generator_overloads/_main.vader"
-#line 377 "lib/std/iter/iter.vader"
+#line 375 "lib/std/iter/iter.vader"
         t6 = __lambda_snippet_1(l0);
         if (t6) {
 #line 54 "lib/std/iter/iter.vader"
             t1 = (l6 + INT64_C(1));
             l6 = (size_t) (int64_t) t1;
-#line 377 "lib/std/iter/iter.vader"
+#line 375 "lib/std/iter/iter.vader"
         }
 #line 13 "tests/snippets/generator_overloads/_main.vader"
         l0 = (l0 + INT32_C(1));

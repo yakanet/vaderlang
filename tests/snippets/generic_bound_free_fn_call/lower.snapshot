@@ -308,12 +308,10 @@
                   target:
                     s :i32
                   value:
-                    call :i32
-                      callee:
-                        std_core$i32$Add$add :i32
-                      arg0:
+                    add :i32
+                      l:
                         s :i32
-                      arg1:
+                      r:
                         x :i32
         ~>
           s :i32

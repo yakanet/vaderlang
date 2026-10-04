@@ -727,7 +727,7 @@ static int32_t snippet_main(void) {
 #line 60 "tests/snippets/closure_sees_rebound_capture/_main.vader"
     l3 = INT32_C(0);
     while ((l3 < INT32_C(5))) {
-#line 377 "lib/std/iter/iter.vader"
+#line 375 "lib/std/iter/iter.vader"
         t5 = snippet_is_even(l3);
         if (t5) {
             vader_struct__Cell_i32_t* _a16_obj = (vader_struct__Cell_i32_t*) vader_gc_alloc(sizeof(vader_struct__Cell_i32_t));
@@ -749,7 +749,7 @@ static int32_t snippet_main(void) {
 #line 62 "tests/snippets/closure_sees_rebound_capture/_main.vader"
             l6 = (((vader_struct__Cell_i32_t*) l4.payload.obj)->f_value * INT32_C(10));
             ((vader_struct__Cell_i32_t*) l4.payload.obj)->f_value = l6;
-#line 377 "lib/std/iter/iter.vader"
+#line 375 "lib/std/iter/iter.vader"
         }
 #line 60 "tests/snippets/closure_sees_rebound_capture/_main.vader"
         l3 = (l3 + INT32_C(1));

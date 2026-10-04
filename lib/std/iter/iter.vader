@@ -121,9 +121,7 @@ export fold :: fn<T, U>(self: Iterator<T>, init: U, f: fn(U, T) -> U) -> U {
 export sum :: fn<T: Add & Zero>(self: Iterator<T>) -> T {
     s := T.zero()
     for x in self {
-        // `.add`, not `+=` : the bootstrap seed compiles this file, and it
-        // predates operators on a bounded type parameter.
-        s = s.add(x)
+        s += x
     }
     return s
 }

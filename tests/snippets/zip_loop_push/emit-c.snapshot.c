@@ -97,10 +97,10 @@ static void* snippet_products(void* l0, void* l1) {
 #line 11 "tests/snippets/zip_loop_push/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(3u, 0u, 8u, 4u);
     l2 = (void*) _a0_arr;
-#line 161 "lib/std/iter/iter.vader"
+#line 159 "lib/std/iter/iter.vader"
     l3 = l0;
     l4 = l1;
-#line 162 "lib/std/iter/iter.vader"
+#line 160 "lib/std/iter/iter.vader"
     l5 = ((vader_array_t*) l3)->length;
     l6 = ((vader_array_t*) l4)->length;
     if ((l5 < l6)) {
@@ -108,7 +108,7 @@ static void* snippet_products(void* l0, void* l1) {
     } else {
         l5 = ((vader_array_t*) l4)->length;
     }
-#line 163 "lib/std/iter/iter.vader"
+#line 161 "lib/std/iter/iter.vader"
     l6 = (size_t) 0;
     vader_array_t* _pc26_hdr = (vader_array_t*) l2;
     size_t _pc26_len = _pc26_hdr->length;
@@ -116,7 +116,7 @@ static void* snippet_products(void* l0, void* l1) {
     void* _pc26_slots = _pc26_hdr->buf->slots;
     for (;;) {
         if ((l6 < l5)) {
-#line 164 "lib/std/iter/iter.vader"
+#line 162 "lib/std/iter/iter.vader"
             vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
             VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l6)
@@ -146,7 +146,7 @@ static void* snippet_products(void* l0, void* l1) {
                 _pc26_cap = (_pc26_hdr->offset == 0 && !vader_array_is_borrowed(_pc26_hdr) && _pc26_hdr->length >= _pc26_hdr->buf->length) ? _pc26_hdr->capacity : (size_t) 0;
                 _pc26_slots = _pc26_hdr->buf->slots;
             }
-#line 163 "lib/std/iter/iter.vader"
+#line 161 "lib/std/iter/iter.vader"
             t0 = (l6 + INT64_C(1));
             l6 = (size_t) (int64_t) t0;
             continue;

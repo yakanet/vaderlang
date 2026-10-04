@@ -279,7 +279,7 @@ fn 11 snippet$summed__Range_i32_ (ref) -> i32
       local.set 3   ; x
       local.get 2   ; s
       local.get 3   ; x
-      call 82   ; std_core$i32$Add$add_vt
+      i32.add
       local.set 2   ; s
       br $L0
     end $L1
@@ -1206,7 +1206,7 @@ fn 45 std_core$format_f32 (f32) -> string
   local $cast_34 u64
   local $field_35 i32
   local.get 0   ; arg 0
-  call 85   ; std_core$f32$Float32Bits$to_bits_vt
+  call 84   ; std_core$f32$Float32Bits$to_bits_vt
   local.tee 1   ; bits
   i32.const 31
   u32.shr
@@ -1278,7 +1278,7 @@ fn 46 std_core$format_f64 (f64) -> string
   local d ref
   local $field_34 i32
   local.get 0   ; arg 0
-  call 84   ; std_core$f64$FloatBits$to_bits_vt
+  call 83   ; std_core$f64$FloatBits$to_bits_vt
   local.tee 1   ; bits
   i64.const 63
   u64.shr
@@ -3377,7 +3377,7 @@ fn 69 std_core$insert_point (ref,usize,i32,i32) -> usize
   local.get 0   ; arg 0
   local.get 4   ; $cast_4
   local.get 6   ; $cast_10
-  call 83   ; std_core$Buffer$ByteAccess$memory_copy_vt
+  call 82   ; std_core$Buffer$ByteAccess$memory_copy_vt
   local.get 0   ; arg 0
   local.get 4   ; $cast_4
   i32.const 46
@@ -3712,14 +3712,7 @@ fn 81 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 82 std_core$i32$Add$add_vt (i32,i32) -> i32
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.add
-  return
-end
-
-fn 83 std_core$Buffer$ByteAccess$memory_copy_vt (ref,usize,ref,usize,usize) -> void
+fn 82 std_core$Buffer$ByteAccess$memory_copy_vt (ref,usize,ref,usize,usize) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -3729,13 +3722,13 @@ fn 83 std_core$Buffer$ByteAccess$memory_copy_vt (ref,usize,ref,usize,usize) -> v
   return
 end
 
-fn 84 std_core$f64$FloatBits$to_bits_vt (f64) -> u64
+fn 83 std_core$f64$FloatBits$to_bits_vt (f64) -> u64
   local.get 0   ; arg 0
   f64_to_bits
   return
 end
 
-fn 85 std_core$f32$Float32Bits$to_bits_vt (f32) -> u32
+fn 84 std_core$f32$Float32Bits$to_bits_vt (f32) -> u32
   local.get 0   ; arg 0
   f32_to_bits
   return

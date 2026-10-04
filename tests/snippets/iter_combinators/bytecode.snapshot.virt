@@ -109,7 +109,7 @@ fn 0 snippet$main () -> i32
       local.set 7   ; x
       local.get 6   ; s
       local.get 7   ; x
-      call 17   ; std_core$i32$Add$add_vt
+      i32.add
       local.set 6   ; s
       local.get 4   ; __fuse_i_1
       i64.const 1
@@ -173,7 +173,7 @@ fn 0 snippet$main () -> i32
       local.set 8   ; x
       local.get 7   ; x
       local.get 8   ; x
-      call 17   ; std_core$i32$Add$add_vt
+      i32.add
       local.set 7   ; x
       local.get 4   ; __fuse_i_1
       i64.const 1
@@ -249,7 +249,7 @@ fn 0 snippet$main () -> i32
       local.set 10   ; x
       local.get 9   ; x
       local.get 10   ; x
-      call 17   ; std_core$i32$Add$add_vt
+      i32.add
       local.set 9   ; x
       local.get 4   ; __fuse_i_1
       i64.const 1
@@ -286,7 +286,7 @@ fn 0 snippet$main () -> i32
       local.set 11   ; x
       local.get 10   ; x
       local.get 11   ; x
-      call 17   ; std_core$i32$Add$add_vt
+      i32.add
       local.set 10   ; x
       local.get 4   ; __fuse_i_1
       i64.const 1
@@ -685,12 +685,5 @@ fn 16 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   buffer_write_string
-  return
-end
-
-fn 17 std_core$i32$Add$add_vt (i32,i32) -> i32
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.add
   return
 end

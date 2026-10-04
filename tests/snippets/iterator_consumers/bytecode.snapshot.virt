@@ -645,7 +645,7 @@ fn 13 snippet$main () -> i32
         local.set 13   ; x
         local.get 1   ; i
         local.get 13   ; x
-        call 85   ; std_core$i32$Add$add_vt
+        i32.add
         local.set 1   ; i
       end $L8
       local.get 10   ; __fuse_i_1
@@ -1833,7 +1833,7 @@ fn 13 snippet$main () -> i32
       local.set 13   ; x
       local.get 1   ; i
       local.get 13   ; x
-      call 85   ; std_core$i32$Add$add_vt
+      i32.add
       local.set 1   ; i
       local.get 12   ; x
       i32.const 1
@@ -3229,7 +3229,7 @@ fn 63 std_iter$sum__i32 (any) -> i32
       local.set 4   ; x
       local.get 1   ; s
       local.get 4   ; x
-      call 85   ; std_core$i32$Add$add_vt
+      i32.add
       local.set 1   ; s
       br $L0
     end $L1
@@ -5025,12 +5025,5 @@ fn 84 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   buffer_write_string
-  return
-end
-
-fn 85 std_core$i32$Add$add_vt (i32,i32) -> i32
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.add
   return
 end

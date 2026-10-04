@@ -522,7 +522,7 @@ static void snippet_chain_continue_and_break(void) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
         t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3];
-#line 383 "lib/std/iter/iter.vader"
+#line 381 "lib/std/iter/iter.vader"
         l4 = snippet_inc(t0);
 #line 43 "tests/snippets/counted_loop_continue/_main.vader"
         l0 = (l0 + INT32_C(1));
@@ -708,7 +708,7 @@ static void snippet_fused_range_continue(void) {
 #line 91 "tests/snippets/counted_loop_continue/_main.vader"
     l1 = INT32_C(0);
     while ((l1 < INT32_C(5))) {
-#line 383 "lib/std/iter/iter.vader"
+#line 381 "lib/std/iter/iter.vader"
         l2 = snippet_inc(l1);
 #line 92 "tests/snippets/counted_loop_continue/_main.vader"
         l0 = (l0 + INT32_C(1));

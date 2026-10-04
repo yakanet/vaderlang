@@ -159,12 +159,10 @@
                 target:
                   s :i64
                 value:
-                  call :i64
-                    callee:
-                      std_core$i64$Add$add :i64
-                    arg0:
+                  add :i64
+                    l:
                       s :i64
-                    arg1:
+                    r:
                       x :i64
             step
               assign
@@ -206,12 +204,10 @@
                 target:
                   s :f64
                 value:
-                  call :f64
-                    callee:
-                      std_core$f64$Add$add :f64
-                    arg0:
+                  add :f64
+                    l:
                       s :f64
-                    arg1:
+                    r:
                       x :f64
             step
               assign
