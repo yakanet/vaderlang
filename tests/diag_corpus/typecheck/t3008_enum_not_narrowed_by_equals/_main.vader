@@ -1,0 +1,19 @@
+// T3008: every enum implements `Equals` with no impl, which the run-time
+// `is Equals` test does not see. So `v is Equals` does not narrow an enum out
+// of a union : past the guard, `v` may still be a `Color`, and `v.x` is refused.
+module "snippet"
+
+Color :: enum { Red, Green }
+
+Point :: struct {
+    x: i32
+}
+
+pick :: fn(v: Color | Point) -> i32 {
+    if v is Equals {
+        return -1
+    }
+    return v.x
+}
+
+main :: fn() -> i32 = pick(Point { .x = 4 })

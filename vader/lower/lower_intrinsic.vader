@@ -355,7 +355,8 @@ try_fold_fields :: fn(
 }
 
 /// Fold `@satisfies(T, Trait)` to a literal bool. True iff a user impl
-/// `T implements Trait` exists in the registry.
+/// `T implements Trait` exists in the registry, or `T` has it built in
+/// (`has_builtin_impl`).
 try_fold_satisfies :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
@@ -366,7 +367,9 @@ try_fold_satisfies :: fn(
     if !(target_or_null is null) && !(trait_or_null is null) {
         match arg_ty_or_unresolved(trait_or_null) as tt {
             is TraitType -> {
-                value = has_impl_for(ctx.project, arg_ty_or_unresolved(target_or_null), tt.symbol)
+                target :: arg_ty_or_unresolved(target_or_null)
+                value = (has_impl_for(ctx.project, target, tt.symbol)
+                    || has_builtin_impl(target, trait_key_of(tt.symbol)))
             }
             _            -> {}
         }

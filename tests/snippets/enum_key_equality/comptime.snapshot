@@ -50,7 +50,6 @@
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
-  ArrayOps<T>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
@@ -59,6 +58,7 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  ArrayOps<T>
   Async<T>
   Range<i32>
   Range<usize>

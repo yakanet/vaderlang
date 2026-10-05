@@ -161,7 +161,8 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
     callee_field :: as_field_expr(call.callee) ?? return null
     if callee_field is FieldExpr {
         receiver :: lower_expr(ctx, callee_field.target)
-        if type_of(receiver) is TraitType as tt {
+        receiver_ty :: type_of(receiver)
+        if receiver_ty is TraitType {
             // A `.method()` the typer resolved as a FREE-FN UFCS — a combinator
             // like `it.map(f)` on an erased `Iterator<T>` receiver, where the
             // trait has NO such method — must NOT emit a virtual call (it would
@@ -174,7 +175,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
             for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
             // Record the dispatched trait so every primitive implementor is
             // surfaced into the vtable — see `virtually_dispatched_traits`.
-            trait_key :: trait_key_of(tt.symbol)
+            trait_key :: trait_key_of(receiver_ty.symbol)
             ctx.project.virtually_dispatched_traits.add(trait_key)
             return LoweredVirtualCall {
                 .span = call.span, .type = type,
@@ -187,7 +188,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
         // the resolving trait's key in `bounded_dispatch_trait` ; route
         // through the runtime vtable so the boxed value's tag picks
         // the right impl at runtime.
-        if type_of(receiver) is AnyType {
+        if receiver_ty is AnyType {
             trait_name :: ctx.typed.bounded_dispatch_trait[callee_field.id]
             if trait_name is string {
                 args: LoweredExpr[]!: []
@@ -203,16 +204,15 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
                 }
             }
         }
-        // Concrete primitive receiver with a bounded-trait method : a generic
-        // instance concretised on a primitive K (e.g. `key.equals(other)` in
-        // `MutableMap<i32,_>`), or on an enum with variant data, which
-        // `kept_type_argument` keeps too. `Equals` is `@intrinsic` on primitives and
-        // an enum's `==` is an integer comparison, so devirtualise straight to
-        // the comparison primop instead of a `virtual.call` / thunk — the
-        // native build has no host binding for an int `equals`. Other trait methods
-        // (Hash / Comparable have materialised bodies) fall through to the UFCS
-        // direct-call path.
-        if kept_type_argument(type_of(receiver)) != null {
+        // Concrete primitive or enum receiver with a bounded-trait method : a
+        // generic instance concretised on a primitive K (e.g. `key.equals(other)`
+        // in `MutableMap<i32,_>`), or any enum, whose `Equals` is built in.
+        // `Equals` is `@intrinsic` on primitives and an enum's `==` is an integer
+        // comparison, so devirtualise straight to the comparison primop instead of
+        // a `virtual.call` / thunk — the native build has no host binding for an
+        // int `equals`. Other trait methods (Hash / Comparable have materialised
+        // bodies) fall through to the UFCS direct-call path.
+        if receiver_ty is EnumType || kept_type_argument(receiver_ty) != null {
             tname_opt :: ctx.typed.bounded_dispatch_trait[callee_field.id]
             if tname_opt is string {
                 // `equals` is `@intrinsic` on primitives ; `not_equals` is the

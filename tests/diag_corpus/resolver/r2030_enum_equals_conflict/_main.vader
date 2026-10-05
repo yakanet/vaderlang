@@ -1,0 +1,9 @@
+// R2030: every enum implements `Equals`, comparing by variant, with no impl —
+// so one written for an enum is a second impl for the same (type, trait).
+module "snippet"
+
+Direction :: enum { North, South }
+
+Direction implements Equals -> true
+
+main :: fn() -> i32 = if Direction.North == .South { 1 } else { 0 }

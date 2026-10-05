@@ -2,6 +2,13 @@
 
 ## snippet
   struct snippet$StatusInfo { reason: string }
+  fn snippet$same_through_trait(a: Equals, b: Equals) -> bool
+    ~>
+      vcall std_core$Equals.equals :bool
+        recv:
+          a :Equals
+        arg0:
+          b :Equals
   fn snippet$main() -> i32
     let c: Color = int(1) :u8
     call :void
@@ -101,6 +108,162 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(17) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  eq :bool
+                    l:
+                      c :Color
+                    r:
+                      int(1) :u8
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  eq :bool
+                    l:
+                      c :Color
+                    r:
+                      int(2) :u8
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  neq :bool
+                    l:
+                      c :Color
+                    r:
+                      int(0) :u8
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(11) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  true
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  true
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
     let by_color: MutableMap<Color, i32>! =
       MutableMap<Any, i32>! {
         ekeys:
@@ -136,28 +299,28 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __buf_5: Buffer =
+          let __buf_9: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
               arg0:
                 int(62) :usize
-          let __off_6: usize = int(0) :usize
+          let __off_10: usize = int(0) :usize
           assign
             target:
-              __off_6 :usize
+              __off_10 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_5 :Buffer
+                  __buf_9 :Buffer
                 arg1:
-                  __off_6 :usize
+                  __off_10 :usize
                 arg2:
                   cast → i64
                     block :i32
-                      let __coalesce_2: i32 | null =
+                      let __coalesce_6: i32 | null =
                         call :i32 | null
                           callee:
                             std_collections$MutableMap$Index$at__Any__i32 :i32 | null
@@ -169,7 +332,7 @@
                         if :i32
                           cond:
                             is null :bool
-                              __coalesce_2 :i32 | null
+                              __coalesce_6 :i32 | null
                           then:
                             ~>
                               neg :i32
@@ -177,35 +340,35 @@
                           else:
                             ~>
                               cast → i32
-                                __coalesce_2 :i32 | null
+                                __coalesce_6 :i32 | null
           assign
             target:
-              __off_6 :usize
+              __off_10 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_5 :Buffer
+                  __buf_9 :Buffer
                 arg1:
-                  __off_6 :usize
+                  __off_10 :usize
                 arg2:
                   " " :string
           assign
             target:
-              __off_6 :usize
+              __off_10 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_5 :Buffer
+                  __buf_9 :Buffer
                 arg1:
-                  __off_6 :usize
+                  __off_10 :usize
                 arg2:
                   cast → i64
                     block :i32
-                      let __coalesce_3: i32 | null =
+                      let __coalesce_7: i32 | null =
                         call :i32 | null
                           callee:
                             std_collections$MutableMap$Index$at__Any__i32 :i32 | null
@@ -217,7 +380,7 @@
                         if :i32
                           cond:
                             is null :bool
-                              __coalesce_3 :i32 | null
+                              __coalesce_7 :i32 | null
                           then:
                             ~>
                               neg :i32
@@ -225,35 +388,35 @@
                           else:
                             ~>
                               cast → i32
-                                __coalesce_3 :i32 | null
+                                __coalesce_7 :i32 | null
           assign
             target:
-              __off_6 :usize
+              __off_10 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_5 :Buffer
+                  __buf_9 :Buffer
                 arg1:
-                  __off_6 :usize
+                  __off_10 :usize
                 arg2:
                   " " :string
           assign
             target:
-              __off_6 :usize
+              __off_10 :usize
             value:
               call :usize
                 callee:
                   write_int :usize
                 arg0:
-                  __buf_5 :Buffer
+                  __buf_9 :Buffer
                 arg1:
-                  __off_6 :usize
+                  __off_10 :usize
                 arg2:
                   cast → i64
                     block :i32
-                      let __coalesce_4: i32 | null =
+                      let __coalesce_8: i32 | null =
                         call :i32 | null
                           callee:
                             std_collections$MutableMap$Index$at__Any__i32 :i32 | null
@@ -265,7 +428,7 @@
                         if :i32
                           cond:
                             is null :bool
-                              __coalesce_4 :i32 | null
+                              __coalesce_8 :i32 | null
                           then:
                             ~>
                               neg :i32
@@ -273,15 +436,15 @@
                           else:
                             ~>
                               cast → i32
-                                __coalesce_4 :i32 | null
+                                __coalesce_8 :i32 | null
           ~>
             call :string
               callee:
                 finish_buffer :string
               arg0:
-                __buf_5 :Buffer
+                __buf_9 :Buffer
               arg1:
-                __off_6 :usize
+                __off_10 :usize
     let by_status: MutableMap<HttpStatus, string>! =
       MutableMap<HttpStatus, string>! {
         ekeys:
@@ -326,9 +489,9 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __p_9: string =
+          let __p_13: string =
             block :string
-              let __coalesce_7: null | string =
+              let __coalesce_11: null | string =
                 call :null | string
                   callee:
                     std_collections$MutableMap$Index$at__snippet_HttpStatus__string :null | string
@@ -340,17 +503,17 @@
                 if :string
                   cond:
                     is null :bool
-                      __coalesce_7 :null | string
+                      __coalesce_11 :null | string
                   then:
                     ~>
                       "?" :string
                   else:
                     ~>
                       cast → string
-                        __coalesce_7 :null | string
-          let __p_10: string =
+                        __coalesce_11 :null | string
+          let __p_14: string =
             block :string
-              let __coalesce_8: null | string =
+              let __coalesce_12: null | string =
                 call :null | string
                   callee:
                     std_collections$MutableMap$Index$at__snippet_HttpStatus__string :null | string
@@ -362,15 +525,15 @@
                 if :string
                   cond:
                     is null :bool
-                      __coalesce_8 :null | string
+                      __coalesce_12 :null | string
                   then:
                     ~>
                       "?" :string
                   else:
                     ~>
                       cast → string
-                        __coalesce_8 :null | string
-          let __buf_11: Buffer =
+                        __coalesce_12 :null | string
+          let __buf_15: Buffer =
             call :Buffer
               callee:
                 new_byte_buffer :Buffer
@@ -385,77 +548,77 @@
                           callee:
                             byte_len :usize
                           arg0:
-                            __p_9 :string
+                            __p_13 :string
                       r:
                         call :usize
                           callee:
                             byte_len :usize
                           arg0:
-                            __p_10 :string
-          let __off_12: usize = int(0) :usize
+                            __p_14 :string
+          let __off_16: usize = int(0) :usize
           assign
             target:
-              __off_12 :usize
+              __off_16 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_11 :Buffer
+                  __buf_15 :Buffer
                 arg1:
-                  __off_12 :usize
+                  __off_16 :usize
                 arg2:
-                  __p_9 :string
+                  __p_13 :string
           assign
             target:
-              __off_12 :usize
+              __off_16 :usize
             value:
               call :usize
                 callee:
                   write_string_at :usize
                 arg0:
-                  __buf_11 :Buffer
+                  __buf_15 :Buffer
                 arg1:
-                  __off_12 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_12 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_11 :Buffer
-                arg1:
-                  __off_12 :usize
-                arg2:
-                  __p_10 :string
-          assign
-            target:
-              __off_12 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_11 :Buffer
-                arg1:
-                  __off_12 :usize
+                  __off_16 :usize
                 arg2:
                   " " :string
           assign
             target:
-              __off_12 :usize
+              __off_16 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_15 :Buffer
+                arg1:
+                  __off_16 :usize
+                arg2:
+                  __p_14 :string
+          assign
+            target:
+              __off_16 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_15 :Buffer
+                arg1:
+                  __off_16 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_16 :usize
             value:
               call :usize
                 callee:
                   write_unsigned :usize
                 arg0:
-                  __buf_11 :Buffer
+                  __buf_15 :Buffer
                 arg1:
-                  __off_12 :usize
+                  __off_16 :usize
                 arg2:
                   cast → u64
                     call :usize
@@ -468,9 +631,80 @@
               callee:
                 finish_buffer :string
               arg0:
-                __buf_11 :Buffer
+                __buf_15 :Buffer
               arg1:
-                __off_12 :usize
+                __off_16 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_17: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(11) :usize
+          let __off_18: usize = int(0) :usize
+          assign
+            target:
+              __off_18 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_17 :Buffer
+                arg1:
+                  __off_18 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      same_through_trait :fn(Equals, Equals) -> bool
+                    arg0:
+                      int(0) :u8
+                    arg1:
+                      int(0) :u8
+          assign
+            target:
+              __off_18 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_17 :Buffer
+                arg1:
+                  __off_18 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_18 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_17 :Buffer
+                arg1:
+                  __off_18 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      same_through_trait :fn(Equals, Equals) -> bool
+                    arg0:
+                      int(0) :u8
+                    arg1:
+                      int(2) :u8
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_17 :Buffer
+              arg1:
+                __off_18 :usize
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

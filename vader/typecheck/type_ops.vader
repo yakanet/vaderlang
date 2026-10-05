@@ -462,13 +462,17 @@ export base_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgr
     return trait_key in bucket
 }
 
-/// True iff `t` implements `trait_key` : its nominal carrier
+/// True iff `t` implements `trait_key` : it has the impl built in
+/// (`has_builtin_impl`), or its nominal carrier
 /// has an impl of it (`base_implements_trait`), and a generic impl counts only
 /// for the arguments its bounds admit — `Box<T> implements<T: Display>
 /// Display` makes `Box<i32>` implement `Display`, not `Box<Point>` when `Point`
 /// has none (`TypedProgram.impl_bounds`). Shared by trait widening, the T3006 /
 /// T3018 checks and UFCS dispatch.
 export struct_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool {
+    if has_builtin_impl(t, trait_key) {
+        return true
+    }
     if !base_implements_trait(t, trait_key, typed) {
         return false
     }
@@ -579,8 +583,8 @@ first_unmet_bound :: fn(args: Type[], bounds: ArgBound[], typed: TypedProgram) -
 // generic impl, or bound to a callee's type parameter (T3006). An erased instance
 // dispatches on the boxed value, so what counts is what that dispatch reaches : a
 // type parameter through its own bound, a union through every variant, a distinct
-// through its own impl or its backing's, an enum for `Equals` with no impl (it
-// compares by variant) — and an array not for `Display`, which no vtable carries.
+// through its own impl or its backing's — and an array not for `Display`, which
+// no vtable carries.
 // A type still unknown here is not held against the bound.
 satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool = match arg {
     is TypeParamType -> {
@@ -594,9 +598,7 @@ satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool
     is ArrayType     -> trait_key != core_trait_key(TRAIT_DISPLAY) && struct_implements_trait(arg, trait_key, typed)
     is AnyType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType
         | SelfType -> true
-    is EnumType      -> (trait_key == core_trait_key(TRAIT_EQUALS)
-        || struct_implements_trait(arg, trait_key, typed))
-    is PrimitiveType | StructType | TupleType | FnType | TypeMetaType -> {
+    is PrimitiveType | StructType | EnumType | TupleType | FnType | TypeMetaType -> {
         struct_implements_trait(arg, trait_key, typed)
     }
 }

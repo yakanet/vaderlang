@@ -359,6 +359,9 @@ export TypedProgram :: struct {
     /// result type of an `async fn` call. Populated once from core by the
     /// orchestrator (mirror of `range_symbol`).
     async_symbol: Symbol | null
+    /// `std/core`'s `Equals` trait symbol — the trait every enum implements with
+    /// no impl (`has_builtin_impl`). Populated once from core by the orchestrator.
+    equals_symbol: Symbol | null
     /// `std/async`'s `run_async_main` fn symbol, or null when the program never
     /// imports `std/async`. When present, the lowerer routes a `main` that
     /// awaits through it (the park-based scheduler driver) instead of the
@@ -570,9 +573,10 @@ export TypedProgram :: struct {
 
     /// FieldExpr.id → the resolved trait's `trait_key`. Populated when a
     /// `x.method()` call dispatches via a TypeParam bound (`T: Hash`
-    /// resolves `.hash` through the Hash trait). The lower consumes
-    /// this to emit `vcall std/core.Hash.hash` on erased-to-Any receivers
-    /// instead of a direct field-call to an unresolved member.
+    /// resolves `.hash` through the Hash trait), or reaches an enum's built-in
+    /// `Equals`. The lower consumes this to emit `vcall std/core.Hash.hash` on
+    /// erased-to-Any receivers instead of a direct field-call to an unresolved
+    /// member, and the comparison itself on an enum or primitive receiver.
     bounded_dispatch_trait: MutableMap<usize, string>
 
     /// Generic fn AST-node id → true when its body needs each instance's real
@@ -685,6 +689,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .range_symbol    = null,
     .field_symbol    = null,
     .async_symbol    = null,
+    .equals_symbol   = null,
     .imported_fn_overloads = MutableMap<string, MutableMap<string, FnCandidate[]!>!> {},
     .iter_element_types = MutableMap<string, Type> {},
     .index_target_types = MutableMap<string, Type> {},

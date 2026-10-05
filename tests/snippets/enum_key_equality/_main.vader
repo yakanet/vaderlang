@@ -3,7 +3,10 @@
 // by an enum with variant data gets a concrete instance whose key hashing and
 // comparison go through the rank it stores. None of these may reach a host
 // import : the native build has no binding for `<int>$Equals$equals`, so a
-// comparison routed to one traps at run time while the VM runs it fine.
+// comparison routed to one traps at run time while the VM runs it fine. Every
+// enum implements `Equals` with no impl : `c.equals(d)` is the comparison itself,
+// and an enum passed where `Equals` is a type boxes as its integer, whose
+// `Equals` the vtable reaches.
 
 module "snippet"
 
@@ -21,9 +24,13 @@ HttpStatus :: enum(StatusInfo) {
     NotFound { .reason = "Not Found" },
 }
 
+same_through_trait :: fn(a: Equals, b: Equals) -> bool = a.equals(b)
+
 main :: fn() -> i32 {
     c :: Color.Green
     println("${c == .Green} ${c == .Blue} ${c != .Red}")
+    println("${c.equals(.Green)} ${c.equals(.Blue)} ${c.not_equals(.Red)}")
+    println("${@satisfies(Color, Equals)} ${@satisfies(HttpStatus, Equals)}")
 
     by_color :: MutableMap<Color, i32> {}
     by_color[.Red] = 1
@@ -35,5 +42,8 @@ main :: fn() -> i32 {
     by_status[.Ok] = "here"
     by_status[.NotFound] = "missing"
     println("${by_status[.NotFound] ?? "?"} ${by_status[.Ok] ?? "?"} ${by_status.len()}")
+    println(
+        "${same_through_trait(Color.Red, Color.Red)} ${same_through_trait(Color.Red, Color.Blue)}",
+    )
     return 0
 }

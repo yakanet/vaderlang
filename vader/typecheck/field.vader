@@ -4,7 +4,7 @@
 // chain of `try_*` dispatchers and returns the first non-null result :
 //   - namespace-import field access (`mod.foo`),
 //   - array methods ; impl-method / free-fn / trait-method UFCS dispatch ;
-//     bounded-TypeParam trait dispatch,
+//     bounded-TypeParam trait dispatch ; an enum's built-in `Equals`,
 //   - tuple positional index ; discriminated-union common-field access ;
 //     enum-variant dot access (`Color.Red`),
 //   - struct field lookup (the terminal fallback), with generic-arg
@@ -57,6 +57,10 @@ export infer_field :: fn(
     // param is a bare `T` fits any receiver, and would otherwise hijack the
     // dispatch instead of routing through the type-param's trait bound.
     candidate = try_typeparam_bound_method(target_ty, e, typed, diags)
+    if candidate !is null {
+        return candidate
+    }
+    candidate = try_builtin_equals_method(target_ty, e, typed)
     if candidate !is null {
         return candidate
     }
@@ -205,6 +209,19 @@ try_typeparam_bound_method :: fn(
     return member.ty
 }
 
+// `c.equals(d)` / `c.not_equals(d)` on an enum, whose `Equals` is built in
+// (`builtin_equals_member`). Recorded like a bounded receiver's dispatch, which
+// the lowerer turns into the comparison itself.
+try_builtin_equals_method :: fn(
+    target_ty: Type,
+    e: AST.FieldExpr,
+    typed: TypedProgram!,
+) -> Type | null {
+    member :: builtin_equals_member(target_ty, e.field, typed) ?? return null
+    typed.bounded_dispatch_trait[e.id] = member.trait_key
+    return member.ty
+}
+
 // ---- static trait members -------------------------------------------------
 
 /// A trait member reached through a type : its signature (`Self` substituted, no
@@ -299,24 +316,48 @@ denoted_type :: fn(sym: Symbol, target_ty: Type, typed: TypedProgram) -> Type | 
 }
 
 // The member `name` of `owner` : through its bound for a type parameter, through
-// its impls otherwise.
+// its impls otherwise, or the impl it has built in.
 type_member :: fn(owner: Type, name: string, typed: TypedProgram) -> TypeMember | null {
     if owner is TypeParamType {
         bound :: typed.resolved.type_param_bounds[owner.symbol.id] ?? return null
         trait_ty :: bound_trait_declaring(bound, name, typed) ?? return null
-        decl :: trait_member_decl(trait_ty, name, typed) ?? return null
-        method :: try_trait_method(trait_ty, name, typed) ?? return null
-        return TypeMember {
-            .ty = substitute_self(method, owner),
-            .decl = decl,
-            .trait_key = trait_key_of(trait_ty.symbol),
-        }
+        return trait_type_member(trait_ty, owner, name, typed)
     }
     base_key :: "${impl_base_key(owner)}::${name}"
-    found :: typed.impl_methods[base_key] ?? return null
+    found :: typed.impl_methods[base_key] ?? return builtin_equals_member(owner, name, typed)
     decl :: found.decl ?? return null
     traits :: typed.impl_method_traits[base_key] ?? return null
     return TypeMember { .ty = found.ty, .decl = decl, .trait_key = traits[0] }
+}
+
+// The member `name` of `trait_ty`, `Self` standing for `owner`.
+trait_type_member :: fn(
+    trait_ty: TraitType,
+    owner: Type,
+    name: string,
+    typed: TypedProgram,
+) -> TypeMember | null {
+    decl :: trait_member_decl(trait_ty, name, typed) ?? return null
+    method :: try_trait_method(trait_ty, name, typed) ?? return null
+    return TypeMember {
+        .ty = substitute_self(method, owner),
+        .decl = decl,
+        .trait_key = trait_key_of(trait_ty.symbol),
+    }
+}
+
+// The member `name` of the `Equals` `owner` has built in (`has_builtin_impl`) :
+// an enum's `equals` / `not_equals`. Every variant access (`Color.Red`) asks
+// here, so the name is looked up before anything is built.
+builtin_equals_member :: fn(owner: Type, name: string, typed: TypedProgram) -> TypeMember | null {
+    sym :: typed.equals_symbol ?? return null
+    if lookup_trait_method(typed.trait_decls[sym.id], name) == null {
+        return null
+    }
+    if !has_builtin_impl(owner, trait_key_of(sym)) {
+        return null
+    }
+    return trait_type_member(TraitType { .symbol = sym, .args = [] }, owner, name, typed)
 }
 
 // The trait of `bound` (an `A & B` walked left first) that declares `name`.
@@ -1204,16 +1245,10 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
     }
 }
 
-// `t.method()` where `t: <SomeTrait>`. Looks up the method on the
-// trait decl, drops the `self` param, and returns the curried fn
-// type. Null when the trait isn't indexed or the method is missing.
 /// For a struct receiver, find a trait it implements whose method by
 /// the given name has a default (non-empty) body, and return the
-/// curried signature with `Self → struct_ty`. Trait type-args aren't
-/// recovered (`struct_implemented_traits` only stores trait names),
-/// so methods that reference the trait's `T` come back unsubstituted —
-/// good enough for a default whose signature names only `Self`
-/// (`not_equals :: fn(self, other: Self) -> bool`).
+/// curried signature with `Self → struct_ty` and the trait's type
+/// parameters → the impl's recorded arguments.
 try_default_trait_method :: fn(
     target_ty: StructType,
     name: string,
@@ -1223,27 +1258,16 @@ try_default_trait_method :: fn(
     for trait_key in traits {
         trait_id :: find_trait_id(trait_key, typed) ?? continue
         decl :: typed.trait_decls[trait_id] ?? continue
-        owner :: typed.trait_decl_owners[trait_id]
-        owner_resolved: ResolvedModule = typed.resolved
-        if owner !is null {
-            owner_resolved = owner
-        }
         for m in decl.members {
             // A default needs a body ; a static member is reached through its
             // type, never through a value.
             if m.name != name     { continue }
             if m.body is null     { continue }
             if !has_self_param(m) { continue }
-            params: Type[]!: []
-            for i in 1..<m.params.len() {
-                p :: m.params[i]
-                params.push(type_from_expr_opt_in(p.ty, owner_resolved))
-            }
-            ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
             // Substitute Self → struct, then trait type-params →
             // recorded impl args, so a default naming the trait's `T`
             // reports the impl's argument instead.
-            sub_self :: substitute_self(member_fn_type(m, params, ret), target_ty)
+            sub_self :: substitute_self(trait_member_type(trait_id, m, typed), target_ty)
             return substitute_trait_typeparams(sub_self, decl, trait_key, target_ty, typed)
         }
     }
@@ -1317,26 +1341,27 @@ pad_trait_default_args :: fn(
     return out
 }
 
+// `t.method()` where `t: <SomeTrait>`. Looks up the method on the
+// trait decl, drops the `self` param, and returns the curried fn
+// type. Null when the trait isn't indexed or the method is missing.
 try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type | null {
     decl :: typed.trait_decls[t.symbol.id] ?? return null
-    // Resolve the trait method's param + return types against the
-    // OWNER module's resolved.idents — std/core's `Iterator<T>.next`
-    // signature references `T` (a Symbol minted during std/core's
-    // resolve pass), so typing it against the entry's idents would
-    // hand back Unresolved.
-    owner :: typed.trait_decl_owners[t.symbol.id]
-    owner_resolved: ResolvedModule = typed.resolved
-    if owner !is null {
-        owner_resolved = owner
-    }
     m :: lookup_trait_method(decl, name) ?? return null
+    owner_resolved :: typed.trait_decl_owners[t.symbol.id] ?? typed.resolved
+    padded :: pad_trait_default_args(t.args, decl.type_params, owner_resolved)
+    return substitute_by_name(trait_member_type(t.symbol.id, m, typed), decl.type_params, padded)
+}
+
+// The type of `m`, a member of the trait `trait_id`, with its receiver dropped.
+// Its signature is read in the trait's own module : std/core's `Iterator<T>.next`
+// names a `T` minted there, which the entry's idents would leave unresolved.
+trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram) -> Type {
+    owner_resolved :: typed.trait_decl_owners[trait_id] ?? typed.resolved
     params: Type[]!: []
     for i in receiver_count(m)..<m.params.len() {
         params.push(type_from_expr_opt_in(m.params[i].ty, owner_resolved))
     }
-    ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
-    padded :: pad_trait_default_args(t.args, decl.type_params, owner_resolved)
-    return substitute_by_name(member_fn_type(m, params, ret), decl.type_params, padded)
+    return member_fn_type(m, params, type_from_expr_opt_in(m.return_type, owner_resolved))
 }
 
 // A trait member's type with its receiver dropped — `params` are its tail — and

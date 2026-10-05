@@ -378,6 +378,16 @@ export trait_key_of :: fn(trait_sym: Symbol) -> string =
 /// @param name  a `TRAIT_*` constant.
 export core_trait_key :: fn(name: string) -> string = "std_core\$${name}"
 
+/// Whether `t` implements `trait_key` with no impl : every enum implements
+/// `Equals`, comparing by variant. A boxed enum carries its integer, whose
+/// `Equals` a vtable reaches. No impl is registered, so the run-time `is Trait`
+/// test does not see this one.
+///
+/// @param t          the implementing type.
+/// @param trait_key  the trait asked for.
+export has_builtin_impl :: fn(t: Type, trait_key: string) -> bool =
+    t is EnumType && trait_key == core_trait_key(TRAIT_EQUALS)
+
 /// The trait name inside a `trait_key` — what a message shows the user.
 ///
 /// @param key  a `trait_key`.

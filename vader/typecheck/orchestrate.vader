@@ -608,6 +608,12 @@ check_module_impl_coherence :: fn(
     for decl in merge_module_program(loaded.module.files).decls {
         if decl is AST.ImplDecl {
             for_ty :: type_from_expr(decl.for_type, tp.resolved, diag_sink())
+            if writes_builtin_impl(decl, for_ty, tp.resolved) {
+                detail :: ("every enum implements `Equals`, comparing by variant : "
+                    + "`${display_type(for_ty)}` takes no impl of its own")
+                diags.push(resolver_error(.ConflictingImpl, decl.span, detail))
+                continue
+            }
             args: Type[]!: []
             for ta in decl.trait_args {
                 args.push(type_from_expr(ta, tp.resolved, diag_sink()))
@@ -623,6 +629,12 @@ check_module_impl_coherence :: fn(
             }
         }
     }
+}
+
+// Whether `decl` writes an impl `for_ty` already has with none (`has_builtin_impl`).
+writes_builtin_impl :: fn(decl: AST.ImplDecl, for_ty: Type, resolved: ResolvedModule) -> bool {
+    trait_sym :: impl_trait_symbol(decl, resolved) ?? return false
+    return has_builtin_impl(for_ty, trait_key_of(trait_sym))
 }
 
 conflict_detail :: fn(decl: AST.ImplDecl, for_ty: Type) -> string {
@@ -1985,6 +1997,7 @@ populate_core_symbols_into :: fn(
     typed.range_symbol = core_loaded.collected.symbols[STRUCT_RANGE]
     typed.field_symbol = core_loaded.collected.symbols[STRUCT_FIELD]
     typed.async_symbol = core_loaded.collected.symbols[TRAIT_ASYNC]
+    typed.equals_symbol = core_loaded.collected.symbols[TRAIT_EQUALS]
 }
 
 build_namespace_exports :: fn(
