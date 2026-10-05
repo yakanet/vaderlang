@@ -249,6 +249,129 @@
         std_io$println__usize :void
       arg0:
         LoweredArrayLen
+    call :void
+      callee:
+        std_io$println__i32 :void
+      arg0:
+        block :i32
+          let __fuse_arr_4: i32[]! =
+            array :i32[]!
+              int(2) :i32
+              int(3) :i32
+              int(4) :i32
+          let p: i32 =
+            call :i32
+              callee:
+                std_core$i32$One$one :i32
+          block :void
+            let __fuse_len_0: usize =
+              LoweredArrayLen
+            let __fuse_i_1: usize = int(0) :usize
+            loop while (<…>)
+              let x: i32 =
+                index :i32
+                  on:
+                    __fuse_arr_4 :i32[]!
+                  ix:
+                    __fuse_i_1 :usize
+              assign
+                target:
+                  p :i32
+                value:
+                  mul :i32
+                    l:
+                      p :i32
+                    r:
+                      x :i32
+            step
+              assign
+                target:
+                  __fuse_i_1 :usize
+                value:
+                  add :usize
+                    l:
+                      __fuse_i_1 :usize
+                    r:
+                      int(1) :usize
+          ~>
+            p :i32
+    call :void
+      callee:
+        std_io$println__f64 :void
+      arg0:
+        block :f64
+          let __fuse_arr_6: f64[]! =
+            array :f64[]!
+              float(1.5) :f64
+              float(4.0) :f64
+          let p: f64 =
+            call :f64
+              callee:
+                std_core$f64$One$one :f64
+          block :void
+            let __fuse_len_0: usize =
+              LoweredArrayLen
+            let __fuse_i_1: usize = int(0) :usize
+            loop while (<…>)
+              let x: f64 =
+                index :f64
+                  on:
+                    __fuse_arr_6 :f64[]!
+                  ix:
+                    __fuse_i_1 :usize
+              assign
+                target:
+                  p :f64
+                value:
+                  mul :f64
+                    l:
+                      p :f64
+                    r:
+                      x :f64
+            step
+              assign
+                target:
+                  __fuse_i_1 :usize
+                value:
+                  add :usize
+                    l:
+                      __fuse_i_1 :usize
+                    r:
+                      int(1) :usize
+          ~>
+            p :f64
+    call :void
+      callee:
+        std_io$println__bool :void
+      arg0:
+        call :bool
+          callee:
+            std_core$is_zero__i64 :bool
+          arg0:
+            cast → i64
+              int(0) :i64
+    call :void
+      callee:
+        std_io$println__bool :void
+      arg0:
+        call :bool
+          callee:
+            std_core$is_zero__f64 :bool
+          arg0:
+            float(2.5) :f64
+    let limbs: BigInt =
+      array :BigInt
+        int(0) :u32
+        int(0) :u32
+    call :void
+      callee:
+        std_io$println__bool :void
+      arg0:
+        call :bool
+          callee:
+            is_zero :bool
+          arg0:
+            limbs :BigInt
     return int(0) :i32
   struct __lambda_env_snippet_1 { cap_0: i64 }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, x: i32) -> i64

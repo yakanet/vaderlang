@@ -1,8 +1,10 @@
 // A static trait member — no `self` — is called on a type : a concrete one
 // (`Sq.unit(3)`, `i64.zero()`), or a type parameter its bound names (`S.unit(n)`,
-// `T.zero()` inside `sum`). It has no vtable slot, so a trait mixing it with
-// `self` members still dispatches those on a value. Two traits declaring the
-// same static name stay apart : the bound picks the impl (`via_b` → `B`'s).
+// `T.zero()` inside `sum`, `T.one()` inside `product`). It has no vtable slot, so
+// a trait mixing it with `self` members still dispatches those on a value. Two
+// traits declaring the same static name stay apart : the bound picks the impl
+// (`via_b` → `B`'s). `is_zero` is generic over `Zero & Equals` ; `BigInt` keeps
+// its own.
 
 module "snippet"
 
@@ -82,5 +84,11 @@ main :: fn() -> i32 {
     b: P: via_b()
     println(a.v * 10 + b.v)
     println(BigInt.zero().len())
+    println([2, 3, 4].product())
+    println([1.5, 4.0].product())
+    println(i64(0).is_zero())
+    println(2.5.is_zero())
+    limbs: BigInt: [0, 0]
+    println(limbs.is_zero())
     return 0
 }

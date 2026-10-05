@@ -114,6 +114,18 @@ export Zero :: trait {
     zero :: fn() -> Self
 }
 
+/// Whether `self` is its type's zero, compared with `==`.
+///
+/// @param self  the value to test.
+export is_zero :: fn<T: Zero & Equals>(self: T) -> bool = self == T.zero()
+
+/// The multiplicative identity of a type — what a product of no elements is. A
+/// static member, like `Zero.zero`.
+export One :: trait {
+    /// The value `u` for which `u * x == x`.
+    one :: fn() -> Self
+}
+
 /// Bit-level view of a float as its raw IEEE 754 integer pattern. This is NOT a
 /// numeric conversion : `u64(x)` truncates the VALUE (`3.7 → 3`), whereas
 /// `x.to_bits()` returns the exact bits (`3.0 → 0x4008000000000000`). The

@@ -1495,7 +1495,7 @@ start :: i64.zero()
 - `Type.member(args)` resolves `member` in `Type`'s impls, or through the bound for a type parameter. A static member may take parameters (`unit :: fn(scale: i32) -> Self`).
 - A static member called on a value is **T3091**, and so is one called on the trait itself (`Zero.zero()`: the trait has no impl to pick). An instance member (one taking `self`) called on a type is **T3092**. A static member named without being called (`f :: i64.zero`) is **T3093**: it has no value form.
 - Dispatch is static: the call goes straight to the owner's impl member. A generic function calling one on its type parameter is instantiated per concrete type. A static member has no vtable slot, so a trait mixing static and `self` members still dispatches the latter on a trait-typed value; the static ones are reached through a type only.
-- `std/core` declares `Zero` (`zero :: fn() -> Self`, the additive identity), implemented by every numeric primitive and by `BigInt`; `std/iter`'s `sum` is `fn<T: Add & Zero>(self: Iterator<T>) -> T`.
+- `std/core` declares `Zero` and `One` (`zero` / `one :: fn() -> Self`, the additive and multiplicative identities), implemented by every numeric primitive — `Zero` by `BigInt` too. `std/iter`'s `sum` is `fn<T: Add & Zero>(self: Iterator<T>) -> T`, and `product` is `fn<T: Mul & One>(self: Iterator<T>) -> T`.
 
 #### Coherence — one impl per (type, trait)
 

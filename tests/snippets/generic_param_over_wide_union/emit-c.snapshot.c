@@ -162,13 +162,13 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
         l4 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l3];
-#line 276 "lib/std/iter/iter.vader"
+#line 290 "lib/std/iter/iter.vader"
         if (!(l4.tag == 0u)) {
-#line 277 "lib/std/iter/iter.vader"
+#line 291 "lib/std/iter/iter.vader"
 #line 30 "tests/snippets/generic_param_over_wide_union/_main.vader"
             t0 = snippet_describe(l4);
             std_io_println__string(t0);
-#line 276 "lib/std/iter/iter.vader"
+#line 290 "lib/std/iter/iter.vader"
         }
 #line 29 "tests/snippets/generic_param_over_wide_union/_main.vader"
         t1 = (l3 + INT64_C(1));

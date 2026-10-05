@@ -19,11 +19,11 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  ArrayOps<T>
   Async<i32>
   Async<null>
   Async<void>
   Async<T>
-  ArrayOps<T>
   Range<i32>
   Range<usize>
   Range<T>

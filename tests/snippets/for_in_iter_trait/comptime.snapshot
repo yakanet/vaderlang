@@ -23,8 +23,6 @@
   Div<Rhs, Out>
   Rem<Rhs, Out>
   ArrayOps<T>
-  Index<I, T>
-  IndexSet<I, T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
@@ -54,7 +52,8 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  Contains<T>
+  Index<I, T>
+  IndexSet<I, T>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -65,6 +64,7 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
+  Contains<T>
   Iterator<i32[]>
   Iterator<T[]>
   Iterator<T[]>
@@ -76,6 +76,7 @@
   Iterator<[T, U]>
   Iterator<[T, usize]>
   Iterator<[K, V]>
+  Iterator<T>
   Iterator<T>
   Iterator<T>
   Iterator<T>

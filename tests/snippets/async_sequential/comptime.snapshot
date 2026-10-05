@@ -20,10 +20,10 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
+  ArrayOps<T>
   Async<i32>
   Async<string>
   Async<T>
-  ArrayOps<T>
   Range<i32>
   Range<usize>
   Range<T>

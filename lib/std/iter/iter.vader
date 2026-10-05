@@ -126,6 +126,20 @@ export sum :: fn<T: Add & Zero>(self: Iterator<T>) -> T {
     return s
 }
 
+/// Multiply the elements of an iterator (an array auto-coerces at the call site).
+///
+/// @param self  the elements to multiply.
+/// @return      their product ; `T.one()` when there are none.
+/// @example
+///   total :: [2, 3, 4].product()   // 24
+export product :: fn<T: Mul & One>(self: Iterator<T>) -> T {
+    p := T.one()
+    for x in self {
+        p *= x
+    }
+    return p
+}
+
 // `slice` removed — it was a trivial wrapper over the built-in `arr[start..<end]`
 // view (zero-copy, copy-on-write on push, const-preserving). Use the index-range
 // form directly.
@@ -465,8 +479,8 @@ import "std/testing"
 @test test_fold :: fn() -> void {
     total :: [1, 2, 3, 4].fold(0, (acc: i32, x: i32) -> acc + x)
     assert_eq(total, 10)
-    product :: [2, 3, 4].fold(1, (acc: i32, x: i32) -> acc * x)
-    assert_eq(product, 24)
+    folded :: [2, 3, 4].fold(1, (acc: i32, x: i32) -> acc * x)
+    assert_eq(folded, 24)
 }
 
 @test test_slice :: fn() -> void {

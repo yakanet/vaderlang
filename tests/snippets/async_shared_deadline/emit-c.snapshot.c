@@ -245,7 +245,7 @@ static vader_box_t snippet_Probe_Async_resume(void* l0) {
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 #line 20 "tests/snippets/async_shared_deadline/_main.vader"
     }
-#line 219 "lib/std/core/core.vader"
+#line 231 "lib/std/core/core.vader"
 #line 21 "tests/snippets/async_shared_deadline/_main.vader"
     vader_struct_std_core_Suspended_t* _a0_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
     vader_obj_header_init(_a0_obj, 4u);

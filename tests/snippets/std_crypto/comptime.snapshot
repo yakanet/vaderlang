@@ -25,43 +25,6 @@
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
-  Iterator<i32[]>
-  Iterator<T[]>
-  Iterator<T[]>
-  Iterator<null | T>
-  Iterator<char>
-  Iterator<i32>
-  Iterator<string>
-  Iterator<[string, usize]>
-  Iterator<[T, U]>
-  Iterator<[T, usize]>
-  Iterator<[K, V]>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<U>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<U>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
-  Iterator<T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
@@ -91,6 +54,44 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
+  Iterator<i32[]>
+  Iterator<T[]>
+  Iterator<T[]>
+  Iterator<null | T>
+  Iterator<char>
+  Iterator<i32>
+  Iterator<string>
+  Iterator<[string, usize]>
+  Iterator<[T, U]>
+  Iterator<[T, usize]>
+  Iterator<[K, V]>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<U>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<U>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
