@@ -1427,7 +1427,6 @@
           "stop" :string
           "c" :string
       let f: fn(string) -> string = __lambda_snippet_8 :fn(string) -> string
-      let __consumed_33: void = int(0) :void
       block :$exit$i153
         block :void
           let __fuse_len_0: usize =
@@ -1476,17 +1475,11 @@
                     __fuse_i_1 :usize
                   r:
                     int(1) :usize
-        assign
-          target:
-            __consumed_33 :void
-          value:
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                "" :string
-      ~>
-        __consumed_33 :void
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            "" :string
     call :void
       callee:
         print_until_stop :fn(Iterator<string>) -> void
@@ -1498,7 +1491,6 @@
           "x" :string
           "y" :string
       let f: fn(string) -> string = __lambda_snippet_9 :fn(string) -> string
-      let __consumed_35: void = int(0) :void
       block :$exit$i165
         block :void
           let __fuse_len_0: usize =
@@ -1547,17 +1539,11 @@
                     __fuse_i_1 :usize
                   r:
                     int(1) :usize
-        assign
-          target:
-            __consumed_35 :void
-          value:
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                "" :string
-      ~>
-        __consumed_35 :void
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            "" :string
     let pairs: __genstate_map<[i32, i32]!>! =
       call :__genstate_map<[i32, i32]!>!
         callee:

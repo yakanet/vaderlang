@@ -15,8 +15,8 @@ import "std/string"
 import "std/sort"
 AST :: import "toolchain/ast"
 
-/// True when `t` is the `void` primitive. The canonical void test, shared by
-/// match-exhaustiveness (typecheck) and return-type checks (midir).
+/// True when `t` is the `void` primitive — by name, so a `void` built anywhere
+/// passes, not only the `TY_VOID` singleton.
 export is_void :: fn(t: Type) -> bool {
     if t is PrimitiveType { return t.name == "void" }
     return false

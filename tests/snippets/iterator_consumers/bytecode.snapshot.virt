@@ -465,9 +465,9 @@ fn 13 snippet$main () -> i32
   local s string
   local y i32
   local v any
-  local $call_elem_722 i32
-  local $call_elem_723 i32
-  local $call_elem_729 i32
+  local $call_elem_718 i32
+  local $call_elem_719 i32
+  local $call_elem_725 i32
   array.new 21 0   ; i32[]
   i64.const 10
   array.repeat
@@ -1231,9 +1231,9 @@ fn 13 snippet$main () -> i32
         local.get 5   ; __fuse_i_1
         load_slot_i32
         call 4   ; snippet$tens$v
-        local.set 21   ; $call_elem_722
+        local.set 21   ; $call_elem_718
         local.set 13   ; x
-        local.get 21   ; $call_elem_722
+        local.get 21   ; $call_elem_718
         local.set 19   ; y
         local.get 13   ; x
         i32.const 100
@@ -1269,8 +1269,8 @@ fn 13 snippet$main () -> i32
   local.set 3   ; $arr_14
   local.get 2   ; pts
   call 11   ; snippet$pair_sum
-  local.set 22   ; $call_elem_723
-  local.set 21   ; $call_elem_722
+  local.set 22   ; $call_elem_719
+  local.set 21   ; $call_elem_718
   i64.const 88
   call 32   ; std_core$new_byte_buffer
   local.set 2   ; pts
@@ -1309,7 +1309,7 @@ fn 13 snippet$main () -> i32
   string.const 1   ; " "
   call 34   ; std_core$write_string_at
   local.set 4   ; $len_15
-  local.get 21   ; $call_elem_722
+  local.get 21   ; $call_elem_718
   i32.to_i64
   local.set 9   ; acc
   local.get 2   ; pts
@@ -1322,7 +1322,7 @@ fn 13 snippet$main () -> i32
   string.const 1   ; " "
   call 34   ; std_core$write_string_at
   local.set 4   ; $len_15
-  local.get 22   ; $call_elem_723
+  local.get 22   ; $call_elem_719
   i32.to_i64
   local.set 9   ; acc
   local.get 2   ; pts
@@ -1366,9 +1366,9 @@ fn 13 snippet$main () -> i32
         local.get 5   ; __fuse_i_1
         load_slot_i32
         call 6   ; snippet$fifties$v
-        local.set 23   ; $call_elem_729
+        local.set 23   ; $call_elem_725
         local.set 13   ; x
-        local.get 23   ; $call_elem_729
+        local.get 23   ; $call_elem_725
         local.set 19   ; y
         local.get 13   ; x
         i32.const 100
@@ -1404,8 +1404,8 @@ fn 13 snippet$main () -> i32
   local.set 3   ; $arr_14
   local.get 2   ; pts
   call 11   ; snippet$pair_sum
-  local.set 22   ; $call_elem_723
-  local.set 21   ; $call_elem_722
+  local.set 22   ; $call_elem_719
+  local.set 21   ; $call_elem_718
   i64.const 94
   call 32   ; std_core$new_byte_buffer
   local.set 2   ; pts
@@ -1444,7 +1444,7 @@ fn 13 snippet$main () -> i32
   string.const 1   ; " "
   call 34   ; std_core$write_string_at
   local.set 4   ; $len_15
-  local.get 21   ; $call_elem_722
+  local.get 21   ; $call_elem_718
   i32.to_i64
   local.set 9   ; acc
   local.get 2   ; pts
@@ -1457,7 +1457,7 @@ fn 13 snippet$main () -> i32
   string.const 1   ; " "
   call 34   ; std_core$write_string_at
   local.set 4   ; $len_15
-  local.get 22   ; $call_elem_723
+  local.get 22   ; $call_elem_719
   i32.to_i64
   local.set 9   ; acc
   local.get 2   ; pts
@@ -1507,15 +1507,15 @@ fn 13 snippet$main () -> i32
         local.get 5   ; __fuse_i_1
         load_slot_i32
         call 4   ; snippet$tens$v
-        local.set 23   ; $call_elem_729
-        local.tee 22   ; $call_elem_723
-        local.get 23   ; $call_elem_729
+        local.set 23   ; $call_elem_725
+        local.tee 22   ; $call_elem_719
+        local.get 23   ; $call_elem_725
         struct.new 4   ; __Tuple_i32_i32_3103e027
         call 7   ; snippet$big_pair
         if $L46 void
-          local.get 22   ; $call_elem_723
+          local.get 22   ; $call_elem_719
           local.set 13   ; x
-          local.get 23   ; $call_elem_729
+          local.get 23   ; $call_elem_725
           local.set 19   ; y
           local.get 13   ; x
           i32.const 100
@@ -1552,7 +1552,7 @@ fn 13 snippet$main () -> i32
   local.set 3   ; $arr_14
   local.get 2   ; pts
   call 11   ; snippet$pair_sum
-  local.set 21   ; $call_elem_722
+  local.set 21   ; $call_elem_718
   local.set 19   ; y
   i64.const 97
   call 32   ; std_core$new_byte_buffer
@@ -1605,7 +1605,7 @@ fn 13 snippet$main () -> i32
   string.const 1   ; " "
   call 34   ; std_core$write_string_at
   local.set 4   ; $len_15
-  local.get 21   ; $call_elem_722
+  local.get 21   ; $call_elem_718
   i32.to_i64
   local.set 9   ; acc
   local.get 2   ; pts

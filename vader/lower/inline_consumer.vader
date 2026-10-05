@@ -309,7 +309,7 @@ emit_inlined_consumer :: fn(ctx: FnLowerCtx!, call: ConsumerCall, type: Type, sp
     if trailing != null {
         inner.push(assign_consumed(result, type, trailing, span))
     }
-    returns_value :: type != TY_VOID
+    returns_value :: !is_void(type)
     if returns_value {
         stmts.push(LoweredLet {
             .span = span,
@@ -373,10 +373,10 @@ value_tail :: fn(body: AST.BlockExpr) -> AST.BlockExpr {
 // `value` in the call's result slot ; a void result keeps it as it is, a
 // statement.
 slot_result :: fn(ctx: FnLowerCtx!, value: LoweredExpr, type: Type, span: Span) -> LoweredExpr =
-    if type == TY_VOID { value } else { prepare_value_for_slot(ctx, value, type, span) }
+    if is_void(type) { value } else { prepare_value_for_slot(ctx, value, type, span) }
 
 assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr, span: Span) -> LoweredStmt {
-    if type == TY_VOID {
+    if is_void(type) {
         return LoweredExprStmt { .span = span, .expr = value }
     }
     return LoweredAssign {

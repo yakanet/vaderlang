@@ -603,11 +603,9 @@ export StringNe :: struct {}
 /// form `s[r]` where `r : Range[usize]`. Out-of-bounds clamps (no
 /// trap). Walks UTF-8 — O(n) in the byte length.
 export StringSliceCodepoints :: struct {}
-/// Pop two references ; push `BoolVal` for identity equality. Delegates to
-/// `vm/value.vader::value_ref_eq`, which compares `null` + primitive operands
-/// and traps on heap-allocated variants (struct / array / fn). Dormant in the
-/// current pipeline: `op_select` lowers ref `==` / `!=` to `I32Eq` / `I32Ne`,
-/// so the emitter never produces these — they only appear via hand-written `.virt`.
+/// Pop two references ; push `BoolVal` for identity equality — `===` on two
+/// objects, and `==` on two boxes. `vm/value.vader::value_ref_eq` compares a boxed
+/// scalar by value and a heap value by identity.
 export RefEq :: struct {}
 /// Pop two references ; push `BoolVal` for identity inequality. See `RefEq`.
 export RefNe :: struct {}

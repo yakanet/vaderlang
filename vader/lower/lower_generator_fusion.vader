@@ -552,7 +552,7 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterChain 
     signature :: fn_signature(owner, target.callee) ?? return null
     subst :: gen_source_subst(ctx, target, signature, call) ?? return null
     element :: genstate_element(ctx.typed, decl, subst) ?? return null
-    if element == TY_VOID {
+    if is_void(element) {
         return null
     }
     // Minted last: a descent that gives up must leave no ids or clones behind.
