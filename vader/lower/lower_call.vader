@@ -93,6 +93,17 @@ lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
 // body, which the VM traps as `f64.lt expected f64, got i32`. Re-pointing
 // also drives `register_nongeneric_imported_fn` (back in `lower_call`) to
 // materialise the picked overload's body.
+// `left == right` — `!=` for `not_equals` : the `Equals` of a primitive or an enum,
+// which the comparison primop answers.
+equals_primop :: fn(method: string, left: LoweredExpr, right: LoweredExpr, span: Span) =
+    LoweredBinary {
+        .span = span,
+        .type = TY_BOOL,
+        .op = if method == METHOD_EQUALS { .Eq } else { .Neq },
+        .left = left,
+        .right = right,
+    }
+
 retype_overload_callee :: fn(
     ctx: FnLowerCtx, callee_ast: Expr, lowered: LoweredExpr, result_type: Type,
 ) -> LoweredExpr {
@@ -221,11 +232,8 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
                 if tname_opt == core_trait_key(TRAIT_EQUALS) && call.args.len() > 0 {
                     name :: callee_field.field
                     if name == METHOD_EQUALS || name == METHOD_NOT_EQUALS {
-                        cmp_op :: if name == METHOD_EQUALS { LoweredBinaryOp.Eq } else { LoweredBinaryOp.Neq }
-                        return LoweredBinary {
-                            .span = call.span, .type = type, .op = cmp_op,
-                            .left = receiver, .right = lower_expr(ctx, call.args[0].value),
-                        }
+                        other :: lower_expr(ctx, call.args[0].value)
+                        return equals_primop(name, receiver, other, call.span)
                     }
                 }
             }

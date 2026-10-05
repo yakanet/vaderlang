@@ -380,6 +380,13 @@ const C_PARITY = new Set<string>([
   // `enum_key_equality` also pins that an enum's `==` never becomes a call to
   // a host `<int>$Equals$equals`, which the VM binds and the native build does not.
   "enum_key_equality",
+  // A direct `a.equals(b)` on a primitive reaches its `@intrinsic` import, which
+  // only the VM binds a host for : the native build has to emit its op instead.
+  "primitive_hash_eq",
+  // A union `==` and an erased `Equals` call test each operand's tag before the
+  // variant's own comparison ; a wrong read only shows natively as a wrong answer.
+  "union_value_equality",
+  "equals_across_variants",
   "generic_enum_same_name",
   // An enum with variant data stores its variant's rank : its value tables and
   // the conversion back to the written value, inside a generic instance too.

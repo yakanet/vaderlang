@@ -788,26 +788,15 @@ reject_untagged_beside_variants :: fn(e: AST.BinaryExpr, t: Type, diags: Diagnos
     if t !is UnionType {
         return
     }
-    held: usize = 0
-    untagged: Type | null = null
-    for v in t.variants {
-        if !is_null_type(v) {
-            held += 1
-            if is_untagged(v) {
-                untagged = v
-            }
-        }
-    }
-    if held > 1 && untagged != null {
-        diags.push(
-            typecheck_error(
-                .IsTestOnSharedInstance,
-                e.span,
-                "`==` on `${display_type(t)}` would test for `${display_type(untagged)}`, "
-                    + "which only `null` can be told from",
-            ),
-        )
-    }
+    untagged :: untagged_beside_variant(t) ?? return
+    diags.push(
+        typecheck_error(
+            .IsTestOnSharedInstance,
+            e.span,
+            "`==` on `${display_type(t)}` would test for `${display_type(untagged)}`, "
+                + "which only `null` can be told from",
+        ),
+    )
 }
 
 // The first of `types` with a part that has no `==`.

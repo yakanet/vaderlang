@@ -591,7 +591,8 @@ satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool
         bound :: typed.resolved.type_param_bounds[arg.symbol.id]
         bound != null && bounded_trait_args(bound, trait_key, typed) != null
     }
-    is UnionType     -> all_satisfy_bound(arg.variants, trait_key, typed)
+    is UnionType     -> (all_satisfy_bound(arg.variants, trait_key, typed)
+        && (trait_key != core_trait_key(TRAIT_EQUALS) || untagged_beside_variant(arg) == null))
     is TraitType     -> trait_key_of(arg.symbol) == trait_key || struct_implements_trait(arg, trait_key, typed)
     is DistinctType  -> (struct_implements_trait(arg, trait_key, typed)
         || satisfies_bound(arg.backing, trait_key, typed))
@@ -601,6 +602,23 @@ satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool
     is PrimitiveType | StructType | EnumType | TupleType | FnType | TypeMetaType -> {
         struct_implements_trait(arg, trait_key, typed)
     }
+}
+
+// A variant of `u` with no tag of its own (`is_untagged`) that sits beside another
+// non-null one : an `Equals` comparison, which tests which variant each side
+// holds, can tell it only from `null`. Null when there is none.
+untagged_beside_variant :: fn(u: UnionType) -> Type | null {
+    held: usize = 0
+    untagged: Type | null = null
+    for v in u.variants {
+        if !is_null_type(v) {
+            held += 1
+            if is_untagged(v) {
+                untagged = v
+            }
+        }
+    }
+    return if held > 1 { untagged } else { null }
 }
 
 all_satisfy_bound :: fn(types: Type[], trait_key: string, typed: TypedProgram) -> bool {

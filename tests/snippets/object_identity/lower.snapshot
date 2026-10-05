@@ -483,3 +483,34 @@
           buf :Buffer
         arg1:
           c1 :usize
+  fn snippet$Point$Equals$equals$guard(self: Point, other: Any) -> bool
+    ~>
+      and :bool
+        l:
+          is Point :bool
+            other :Any
+        r:
+          call :bool
+            callee:
+              snippet$Point$Equals$equals :bool
+            arg0:
+              self :Point
+            arg1:
+              cast → Point
+                other :Any
+  fn snippet$Point$Equals$not_equals$guard(self: Point, other: Any) -> bool
+    ~>
+      or :bool
+        l:
+          not :bool
+            is Point :bool
+              other :Any
+        r:
+          call :bool
+            callee:
+              snippet$Point$Equals$not_equals :bool
+            arg0:
+              self :Point
+            arg1:
+              cast → Point
+                other :Any

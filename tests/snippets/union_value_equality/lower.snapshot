@@ -1453,3 +1453,65 @@
           buf :Buffer
         arg1:
           c1 :usize
+  fn snippet$Point$Equals$equals$guard(self: Point, other: Any) -> bool
+    ~>
+      and :bool
+        l:
+          is Point :bool
+            other :Any
+        r:
+          call :bool
+            callee:
+              snippet$Point$Equals$equals :bool
+            arg0:
+              self :Point
+            arg1:
+              cast → Point
+                other :Any
+  fn snippet$Point$Equals$not_equals$guard(self: Point, other: Any) -> bool
+    ~>
+      or :bool
+        l:
+          not :bool
+            is Point :bool
+              other :Any
+        r:
+          call :bool
+            callee:
+              snippet$Point$Equals$not_equals :bool
+            arg0:
+              self :Point
+            arg1:
+              cast → Point
+                other :Any
+  fn snippet$Label$Equals$equals$guard(self: Label, other: Any) -> bool
+    ~>
+      and :bool
+        l:
+          is Label :bool
+            other :Any
+        r:
+          call :bool
+            callee:
+              snippet$Label$Equals$equals :bool
+            arg0:
+              self :Label
+            arg1:
+              cast → Label
+                other :Any
+  fn snippet$Label$Equals$not_equals$guard(self: Label, other: Any) -> bool
+    ~>
+      or :bool
+        l:
+          not :bool
+            is Label :bool
+              other :Any
+        r:
+          call :bool
+            callee:
+              snippet$Label$Equals$not_equals :bool
+            arg0:
+              self :Label
+            arg1:
+              cast → Label
+                other :Any

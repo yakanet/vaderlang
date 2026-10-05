@@ -1,0 +1,1823 @@
+module _main
+type 0 primitive null
+type 1 struct snippet$Point { x:5 }
+type 2 primitive bool
+type 3 primitive u64
+type 4 struct snippet$Label { n:5 }
+type 5 primitive i32
+type 6 primitive string
+type 7 ref _
+type 8 primitive u8
+type 9 primitive usize
+type 10 struct std_core$Buffer {  }
+type 11 array 12
+type 12 union 4,1
+type 13 array 14
+type 14 union 15,6
+type 15 primitive f64
+type 16 primitive i8
+type 17 primitive i16
+type 18 primitive i64
+type 19 primitive isize
+type 20 primitive u16
+type 21 primitive u32
+type 22 primitive char
+type 23 primitive f32
+type 24 array 8
+type 25 primitive void
+type 26 struct std_collections$MutableMap__Any__string { ekeys:29,evals:30,index:31,mask:9,size:9,tombs:9 }
+type 27 union 0,6
+type 28 struct std_collections$MutableMap__Label___Point__string { ekeys:29,evals:30,index:31,mask:9,size:9,tombs:9 }
+type 29 array 7
+type 30 array 6
+type 31 array 5
+string 0 "point"
+string 1 "absent"
+string 2 " "
+string 3 "a"
+string 4 "true"
+string 5 "false"
+string 6 "\n"
+import 0 byte_len std_core$byte_len result_type=9 param_types=6 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=24 param_types=6 param_mutable=0 param_by_address= (string) -> ref
+import 2 hash std_core$string$Hash$hash result_type=3 param_types=6 param_mutable=0 param_by_address= (string) -> u64
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=5,24,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 1 std_core$Hash
+impl 4 std_core$Hash
+impl 1 std_core$Equals
+impl 4 std_core$Equals
+impl 10 std_core$ByteAccess
+impl 26 std_core$Index
+impl 26 std_core$IndexSet
+impl 26 std_core$Contains
+impl 26 std_core$Into
+impl 28 std_core$Index
+impl 28 std_core$IndexSet
+impl 28 std_core$Contains
+impl 28 std_core$Into
+vtable std_core$Hash.hash 1 2
+vtable std_core$Hash.hash 4 5
+vtable std_core$Hash.hash 5 21
+vtable std_core$Hash.hash 6 72
+vtable std_core$Hash.hash 16 19
+vtable std_core$Hash.hash 17 20
+vtable std_core$Hash.hash 18 22
+vtable std_core$Hash.hash 19 23
+vtable std_core$Hash.hash 8 24
+vtable std_core$Hash.hash 20 25
+vtable std_core$Hash.hash 21 26
+vtable std_core$Hash.hash 3 27
+vtable std_core$Hash.hash 9 28
+vtable std_core$Hash.hash 22 29
+vtable std_core$Equals.equals 1 9
+vtable std_core$Equals.equals 4 11
+vtable std_core$Equals.equals 5 30
+vtable std_core$Equals.equals 6 32
+vtable std_core$Equals.equals 16 34
+vtable std_core$Equals.equals 17 36
+vtable std_core$Equals.equals 18 38
+vtable std_core$Equals.equals 19 40
+vtable std_core$Equals.equals 8 42
+vtable std_core$Equals.equals 20 44
+vtable std_core$Equals.equals 21 46
+vtable std_core$Equals.equals 3 48
+vtable std_core$Equals.equals 9 50
+vtable std_core$Equals.equals 23 52
+vtable std_core$Equals.equals 15 54
+vtable std_core$Equals.equals 2 56
+vtable std_core$Equals.equals 22 58
+vtable std_core$Equals.not_equals 1 10
+vtable std_core$Equals.not_equals 4 12
+vtable std_core$Equals.not_equals 5 31
+vtable std_core$Equals.not_equals 6 33
+vtable std_core$Equals.not_equals 16 35
+vtable std_core$Equals.not_equals 17 37
+vtable std_core$Equals.not_equals 18 39
+vtable std_core$Equals.not_equals 19 41
+vtable std_core$Equals.not_equals 8 43
+vtable std_core$Equals.not_equals 20 45
+vtable std_core$Equals.not_equals 21 47
+vtable std_core$Equals.not_equals 3 49
+vtable std_core$Equals.not_equals 9 51
+vtable std_core$Equals.not_equals 23 53
+vtable std_core$Equals.not_equals 15 55
+vtable std_core$Equals.not_equals 2 57
+vtable std_core$Equals.not_equals 22 59
+export main 6
+
+fn 0 snippet$Point$Equals$equals (ref,ref) -> bool
+  local $field_2 i32
+  local $field_3 i32
+  local.field 0 1 0   ; arg 0 snippet$Point.x
+  ref.cast 5   ; i32
+  local.set 2   ; $field_2
+  local.field 1 1 0   ; arg 1 snippet$Point.x
+  ref.cast 5   ; i32
+  local.set 3   ; $field_3
+  local.get 2   ; $field_2
+  local.get 3   ; $field_3
+  i32.eq
+  return
+end
+
+fn 1 snippet$Point$Equals$not_equals (ref,ref) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 0   ; snippet$Point$Equals$equals
+  bool.not
+  return
+end
+
+fn 2 snippet$Point$Hash$hash (ref) -> u64
+  local.field 0 1 0   ; arg 0 snippet$Point.x
+  ref.cast 5   ; i32
+  i32.to_i64
+  return
+end
+
+fn 3 snippet$Label$Equals$equals (ref,ref) -> bool
+  local $field_2 i32
+  local $field_3 i32
+  local.field 0 4 0   ; arg 0 snippet$Label.n
+  ref.cast 5   ; i32
+  local.set 2   ; $field_2
+  local.field 1 4 0   ; arg 1 snippet$Label.n
+  ref.cast 5   ; i32
+  local.set 3   ; $field_3
+  local.get 2   ; $field_2
+  local.get 3   ; $field_3
+  i32.eq
+  return
+end
+
+fn 4 snippet$Label$Equals$not_equals (ref,ref) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 3   ; snippet$Label$Equals$equals
+  bool.not
+  return
+end
+
+fn 5 snippet$Label$Hash$hash (ref) -> u64
+  local.field 0 4 0   ; arg 0 snippet$Label.n
+  ref.cast 5   ; i32
+  i32.to_i64
+  return
+end
+
+fn 6 snippet$main () -> i32
+  local $arr_0 ref
+  local $arr_1 ref
+  local $arr_2 ref
+  local __coalesce_0 any
+  local if_res string
+  local if_res string
+  local __off_3 usize
+  local $call_41 bool
+  local e2 any
+  array.new 29 0   ; ref[]
+  local.set 0   ; $arr_0
+  array.new 30 0   ; string[]
+  local.set 1   ; $arr_1
+  array.new 31 0   ; i32[]
+  local.set 2   ; $arr_2
+  local.get 0   ; $arr_0
+  local.get 1   ; $arr_1
+  local.get 2   ; $arr_2
+  i64.const 0
+  i64.const 0
+  i64.const 0
+  struct.new 26   ; std_collections$MutableMap__Any__string
+  local.set 0   ; $arr_0
+  i32.const 1
+  struct.new 1   ; snippet$Point
+  local.set 1   ; $arr_1
+  local.get 0   ; $arr_0
+  local.get 1   ; $arr_1
+  string.const 0   ; "point"
+  call 61   ; std_collections$MutableMap$IndexSet$set_at__Any__string
+  i32.const 1
+  struct.new 4   ; snippet$Label
+  local.set 1   ; $arr_1
+  local.get 0   ; $arr_0
+  local.get 1   ; $arr_1
+  call 60   ; std_collections$MutableMap$Index$at__Any__string
+  local.tee 3   ; __coalesce_0
+  type_check 0   ; null
+  if $L0 void
+    string.const 1   ; "absent"
+    local.set 4   ; if_res
+  else
+    local.get 3   ; __coalesce_0
+    ref.cast 6   ; string
+    local.set 4   ; if_res
+  end $L0
+  i32.const 1
+  struct.new 1   ; snippet$Point
+  local.set 1   ; $arr_1
+  local.get 0   ; $arr_0
+  local.get 1   ; $arr_1
+  call 60   ; std_collections$MutableMap$Index$at__Any__string
+  local.tee 3   ; __coalesce_0
+  type_check 0   ; null
+  if $L1 void
+    string.const 1   ; "absent"
+    local.set 5   ; if_res
+  else
+    local.get 3   ; __coalesce_0
+    ref.cast 6   ; string
+    local.set 5   ; if_res
+  end $L1
+  local.get 4   ; if_res
+  string.const 2   ; " "
+  local.get 5   ; if_res
+  call 7   ; concat_3
+  call 71   ; std_io$println__string
+  i32.const 1
+  struct.new 1   ; snippet$Point
+  array.new 11 1   ; union[]
+  local.set 0   ; $arr_0
+  i32.const 1
+  struct.new 4   ; snippet$Label
+  local.set 3   ; __coalesce_0
+  i64.const 5
+  call 13   ; std_core$new_byte_buffer
+  local.set 1   ; $arr_1
+  i64.const 0
+  local.set 6   ; __off_3
+  local.get 0   ; $arr_0
+  local.get 3   ; __coalesce_0
+  call 17   ; std_core$[]$Contains$contains__Label___Point
+  local.set 7   ; $call_41
+  local.get 1   ; $arr_1
+  local.get 6   ; __off_3
+  local.get 7   ; $call_41
+  call 16   ; std_core$write_bool
+  local.set 6   ; __off_3
+  local.get 1   ; $arr_1
+  local.get 6   ; __off_3
+  call 14   ; std_core$finish_buffer
+  call 71   ; std_io$println__string
+  f64.const 1.5 4609434218613702656
+  retag 15   ; f64
+  string.const 3   ; "a"
+  retag 6   ; string
+  array.new 13 2   ; union[]
+  local.set 0   ; $arr_0
+  f64.const 1.5 4609434218613702656
+  retag 15   ; f64
+  local.set 3   ; __coalesce_0
+  i64.const 5
+  call 13   ; std_core$new_byte_buffer
+  local.set 1   ; $arr_1
+  i64.const 0
+  local.set 6   ; __off_3
+  local.get 0   ; $arr_0
+  local.get 3   ; __coalesce_0
+  call 18   ; std_core$[]$Contains$contains__f64___string
+  local.set 7   ; $call_41
+  local.get 1   ; $arr_1
+  local.get 6   ; __off_3
+  local.get 7   ; $call_41
+  call 16   ; std_core$write_bool
+  local.set 6   ; __off_3
+  local.get 1   ; $arr_1
+  local.get 6   ; __off_3
+  call 14   ; std_core$finish_buffer
+  call 71   ; std_io$println__string
+  i32.const 1
+  struct.new 1   ; snippet$Point
+  local.set 3   ; __coalesce_0
+  i32.const 1
+  struct.new 4   ; snippet$Label
+  local.set 8   ; e2
+  i64.const 11
+  call 13   ; std_core$new_byte_buffer
+  local.set 0   ; $arr_0
+  i64.const 0
+  local.set 6   ; __off_3
+  local.get 8   ; e2
+  local.get 3   ; __coalesce_0
+  virtual.call 2 std_core$Equals.equals
+  local.set 7   ; $call_41
+  local.get 0   ; $arr_0
+  local.get 6   ; __off_3
+  local.get 7   ; $call_41
+  call 16   ; std_core$write_bool
+  local.set 6   ; __off_3
+  local.get 0   ; $arr_0
+  local.get 6   ; __off_3
+  string.const 2   ; " "
+  call 15   ; std_core$write_string_at
+  local.set 6   ; __off_3
+  local.get 8   ; e2
+  local.get 3   ; __coalesce_0
+  virtual.call 2 std_core$Equals.not_equals
+  local.set 7   ; $call_41
+  local.get 0   ; $arr_0
+  local.get 6   ; __off_3
+  local.get 7   ; $call_41
+  call 16   ; std_core$write_bool
+  local.set 6   ; __off_3
+  local.get 0   ; $arr_0
+  local.get 6   ; __off_3
+  call 14   ; std_core$finish_buffer
+  call 71   ; std_io$println__string
+  return.lit i32.const 0
+end
+
+fn 7 concat_3 (string,string,string) -> string
+  local c0 usize
+  local $call_5 usize
+  local $call_8 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 4   ; $call_5
+  local.get 3   ; c0
+  local.get 4   ; $call_5
+  i64.add
+  local.set 4   ; $call_5
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 5   ; $call_8
+  local.get 4   ; $call_5
+  local.get 5   ; $call_8
+  i64.add
+  local.tee 5   ; $call_8
+  call 73   ; std_core$usize$BufferAlloc$new_buffer_vt
+  local.tee 6   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  call 75   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 6   ; buf
+  local.get 3   ; c0
+  local.get 1   ; arg 1
+  call 75   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 6   ; buf
+  local.get 4   ; $call_5
+  local.get 2   ; arg 2
+  call 75   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 6   ; buf
+  local.get 5   ; $call_8
+  call 74   ; std_core$Buffer$ByteAccess$intern_string_vt
+  return
+end
+
+fn 8 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  call 73   ; std_core$usize$BufferAlloc$new_buffer_vt
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  call 75   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  call 75   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  call 74   ; std_core$Buffer$ByteAccess$intern_string_vt
+  return
+end
+
+fn 9 snippet$Point$Equals$equals$guard (ref,any) -> bool
+  local $cast_4 ref
+  local.get 1   ; arg 1
+  type_check 1   ; snippet$Point
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 1   ; snippet$Point
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    call 0   ; snippet$Point$Equals$equals
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 10 snippet$Point$Equals$not_equals$guard (ref,any) -> bool
+  local $cast_6 ref
+  local.get 1   ; arg 1
+  type_check 1   ; snippet$Point
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 1   ; snippet$Point
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  call 1   ; snippet$Point$Equals$not_equals
+  return
+end
+
+fn 11 snippet$Label$Equals$equals$guard (ref,any) -> bool
+  local $cast_4 ref
+  local.get 1   ; arg 1
+  type_check 4   ; snippet$Label
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 4   ; snippet$Label
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    call 3   ; snippet$Label$Equals$equals
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 12 snippet$Label$Equals$not_equals$guard (ref,any) -> bool
+  local $cast_6 ref
+  local.get 1   ; arg 1
+  type_check 4   ; snippet$Label
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 4   ; snippet$Label
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  call 4   ; snippet$Label$Equals$not_equals
+  return
+end
+
+fn 13 std_core$new_byte_buffer (usize) -> ref
+  local.get 0   ; arg 0
+  call 73   ; std_core$usize$BufferAlloc$new_buffer_vt
+  return
+end
+
+fn 14 std_core$finish_buffer (ref,usize) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 74   ; std_core$Buffer$ByteAccess$intern_string_vt
+  return
+end
+
+fn 15 std_core$write_string_at (ref,usize,string) -> usize
+  local $call_3 usize
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call 75   ; std_core$Buffer$ByteAccess$write_string_vt
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_3
+  local.get 1   ; arg 1
+  local.get 3   ; $call_3
+  i64.add
+  return
+end
+
+fn 16 std_core$write_bool (ref,usize,bool) -> usize
+  local.get 2   ; arg 2
+  if $L0 void
+  else
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    string.const 5   ; "false"
+    call 15   ; std_core$write_string_at
+    return
+  end $L0
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  string.const 4   ; "true"
+  call 15   ; std_core$write_string_at
+  return
+end
+
+fn 17 std_core$[]$Contains$contains__Label___Point (ref,any) -> bool
+  local __for_arr_0 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
+  local item any
+  local $cast_12 ref
+  local $cast_13 ref
+  local $cast_17 ref
+  local $cast_18 ref
+  local.get 0   ; arg 0
+  local.tee 2   ; __for_arr_0
+  array.len
+  local.set 3   ; __for_len_1
+  i64.const 0
+  local.set 4   ; __for_i_2
+  loop $L0 void
+    local.get 4   ; __for_i_2
+    local.get 3   ; __for_len_1
+    u64.lt
+    if $L1 void
+      local.get 2   ; __for_arr_0
+      local.get 4   ; __for_i_2
+      array.get 11   ; union[]
+      local.tee 5   ; item
+      type_check 4   ; snippet$Label
+      if $L2 void
+        local.get 1   ; arg 1
+        type_check 4   ; snippet$Label
+        if $L3 void
+          local.get 5   ; item
+          ref.cast 4   ; snippet$Label
+          local.set 6   ; $cast_12
+          local.get 1   ; arg 1
+          ref.cast 4   ; snippet$Label
+          local.set 7   ; $cast_13
+          local.get 6   ; $cast_12
+          local.get 7   ; $cast_13
+          call 3   ; snippet$Label$Equals$equals
+          if $L4 void
+            return.lit bool.const true
+          end $L4
+        end $L3
+      end $L2
+      local.get 5   ; item
+      type_check 1   ; snippet$Point
+      if $L5 void
+        local.get 1   ; arg 1
+        type_check 1   ; snippet$Point
+        if $L6 void
+          local.get 5   ; item
+          ref.cast 1   ; snippet$Point
+          local.set 8   ; $cast_17
+          local.get 1   ; arg 1
+          ref.cast 1   ; snippet$Point
+          local.set 9   ; $cast_18
+          local.get 8   ; $cast_17
+          local.get 9   ; $cast_18
+          call 0   ; snippet$Point$Equals$equals
+          if $L7 void
+            return.lit bool.const true
+          end $L7
+        end $L6
+      end $L5
+      local.get 4   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 4   ; __for_i_2
+      br $L0
+    end $L1
+  end $L0
+  return.lit bool.const false
+end
+
+fn 18 std_core$[]$Contains$contains__f64___string (ref,any) -> bool
+  local __for_arr_0 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
+  local item any
+  local $cast_12 f64
+  local $cast_13 f64
+  local $cast_17 string
+  local $cast_18 string
+  local.get 0   ; arg 0
+  local.tee 2   ; __for_arr_0
+  array.len
+  local.set 3   ; __for_len_1
+  i64.const 0
+  local.set 4   ; __for_i_2
+  loop $L0 void
+    local.get 4   ; __for_i_2
+    local.get 3   ; __for_len_1
+    u64.lt
+    if $L1 void
+      local.get 2   ; __for_arr_0
+      local.get 4   ; __for_i_2
+      array.get 13   ; union[]
+      local.tee 5   ; item
+      type_check 15   ; f64
+      if $L2 void
+        local.get 1   ; arg 1
+        type_check 15   ; f64
+        if $L3 void
+          local.get 5   ; item
+          ref.cast 15   ; f64
+          local.set 6   ; $cast_12
+          local.get 1   ; arg 1
+          ref.cast 15   ; f64
+          local.set 7   ; $cast_13
+          local.get 6   ; $cast_12
+          local.get 7   ; $cast_13
+          f64.eq
+          if $L4 void
+            return.lit bool.const true
+          end $L4
+        end $L3
+      end $L2
+      local.get 5   ; item
+      type_check 6   ; string
+      if $L5 void
+        local.get 1   ; arg 1
+        type_check 6   ; string
+        if $L6 void
+          local.get 5   ; item
+          ref.cast 6   ; string
+          local.set 8   ; $cast_17
+          local.get 1   ; arg 1
+          ref.cast 6   ; string
+          local.set 9   ; $cast_18
+          local.get 8   ; $cast_17
+          local.get 9   ; $cast_18
+          string.eq
+          if $L7 void
+            return.lit bool.const true
+          end $L7
+        end $L6
+      end $L5
+      local.get 4   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 4   ; __for_i_2
+      br $L0
+    end $L1
+  end $L0
+  return.lit bool.const false
+end
+
+fn 19 std_core$i8$Hash$hash (i8) -> u64
+  local.get 0   ; arg 0
+  i8.to_i64
+  return
+end
+
+fn 20 std_core$i16$Hash$hash (i16) -> u64
+  local.get 0   ; arg 0
+  i16.to_i64
+  return
+end
+
+fn 21 std_core$i32$Hash$hash (i32) -> u64
+  local.get 0   ; arg 0
+  i32.to_i64
+  return
+  local.get 0   ; arg 0
+  i32.to_i64
+  return
+end
+
+fn 22 std_core$i64$Hash$hash (i64) -> u64
+  local.get 0   ; arg 0
+  i64.to_i64
+  return
+end
+
+fn 23 std_core$isize$Hash$hash (isize) -> u64
+  local.get 0   ; arg 0
+  isize.to_i64
+  return
+end
+
+fn 24 std_core$u8$Hash$hash (u8) -> u64
+  local.get 0   ; arg 0
+  u8.to_i64
+  return
+end
+
+fn 25 std_core$u16$Hash$hash (u16) -> u64
+  local.get 0   ; arg 0
+  u16.to_i64
+  return
+end
+
+fn 26 std_core$u32$Hash$hash (u32) -> u64
+  local.get 0   ; arg 0
+  u32.to_i64
+  return
+end
+
+fn 27 std_core$u64$Hash$hash (u64) -> u64
+  local.get 0   ; arg 0
+  return
+end
+
+fn 28 std_core$usize$Hash$hash (usize) -> u64
+  local.get 0   ; arg 0
+  usize.to_i64
+  return
+end
+
+fn 29 std_core$char$Hash$hash (char) -> u64
+  local.get 0   ; arg 0
+  char.to_i64
+  return
+end
+
+fn 30 std_core$i32$Equals$equals$guard (i32,any) -> bool
+  local $cast_4 i32
+  local.get 1   ; arg 1
+  type_check 5   ; i32
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 5   ; i32
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i32.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 31 std_core$i32$Equals$not_equals$guard (i32,any) -> bool
+  local $cast_6 i32
+  local.get 1   ; arg 1
+  type_check 5   ; i32
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 5   ; i32
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  i32.ne
+  return
+end
+
+fn 32 std_core$string$Equals$equals$guard (string,any) -> bool
+  local $cast_4 string
+  local.get 1   ; arg 1
+  type_check 6   ; string
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 6   ; string
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    string.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 33 std_core$string$Equals$not_equals$guard (string,any) -> bool
+  local $cast_6 string
+  local.get 1   ; arg 1
+  type_check 6   ; string
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 6   ; string
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  string.ne
+  return
+end
+
+fn 34 std_core$i8$Equals$equals$guard (i8,any) -> bool
+  local $cast_4 i8
+  local.get 1   ; arg 1
+  type_check 16   ; i8
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 16   ; i8
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i32.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 35 std_core$i8$Equals$not_equals$guard (i8,any) -> bool
+  local $cast_6 i8
+  local.get 1   ; arg 1
+  type_check 16   ; i8
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 16   ; i8
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  i32.ne
+  return
+end
+
+fn 36 std_core$i16$Equals$equals$guard (i16,any) -> bool
+  local $cast_4 i16
+  local.get 1   ; arg 1
+  type_check 17   ; i16
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 17   ; i16
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i32.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 37 std_core$i16$Equals$not_equals$guard (i16,any) -> bool
+  local $cast_6 i16
+  local.get 1   ; arg 1
+  type_check 17   ; i16
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 17   ; i16
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  i32.ne
+  return
+end
+
+fn 38 std_core$i64$Equals$equals$guard (i64,any) -> bool
+  local $cast_4 i64
+  local.get 1   ; arg 1
+  type_check 18   ; i64
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 18   ; i64
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i64.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 39 std_core$i64$Equals$not_equals$guard (i64,any) -> bool
+  local $cast_6 i64
+  local.get 1   ; arg 1
+  type_check 18   ; i64
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 18   ; i64
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  i64.ne
+  return
+end
+
+fn 40 std_core$isize$Equals$equals$guard (isize,any) -> bool
+  local $cast_4 isize
+  local.get 1   ; arg 1
+  type_check 19   ; isize
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 19   ; isize
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i64.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 41 std_core$isize$Equals$not_equals$guard (isize,any) -> bool
+  local $cast_6 isize
+  local.get 1   ; arg 1
+  type_check 19   ; isize
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 19   ; isize
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  i64.ne
+  return
+end
+
+fn 42 std_core$u8$Equals$equals$guard (u8,any) -> bool
+  local $cast_4 u8
+  local.get 1   ; arg 1
+  type_check 8   ; u8
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 8   ; u8
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i32.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 43 std_core$u8$Equals$not_equals$guard (u8,any) -> bool
+  local $cast_6 u8
+  local.get 1   ; arg 1
+  type_check 8   ; u8
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 8   ; u8
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  i32.ne
+  return
+end
+
+fn 44 std_core$u16$Equals$equals$guard (u16,any) -> bool
+  local $cast_4 u16
+  local.get 1   ; arg 1
+  type_check 20   ; u16
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 20   ; u16
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i32.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 45 std_core$u16$Equals$not_equals$guard (u16,any) -> bool
+  local $cast_6 u16
+  local.get 1   ; arg 1
+  type_check 20   ; u16
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 20   ; u16
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  i32.ne
+  return
+end
+
+fn 46 std_core$u32$Equals$equals$guard (u32,any) -> bool
+  local $cast_4 u32
+  local.get 1   ; arg 1
+  type_check 21   ; u32
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 21   ; u32
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i32.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 47 std_core$u32$Equals$not_equals$guard (u32,any) -> bool
+  local $cast_6 u32
+  local.get 1   ; arg 1
+  type_check 21   ; u32
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 21   ; u32
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  i32.ne
+  return
+end
+
+fn 48 std_core$u64$Equals$equals$guard (u64,any) -> bool
+  local $cast_4 u64
+  local.get 1   ; arg 1
+  type_check 3   ; u64
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 3   ; u64
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i64.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 49 std_core$u64$Equals$not_equals$guard (u64,any) -> bool
+  local $cast_6 u64
+  local.get 1   ; arg 1
+  type_check 3   ; u64
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 3   ; u64
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  i64.ne
+  return
+end
+
+fn 50 std_core$usize$Equals$equals$guard (usize,any) -> bool
+  local $cast_4 usize
+  local.get 1   ; arg 1
+  type_check 9   ; usize
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 9   ; usize
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i64.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 51 std_core$usize$Equals$not_equals$guard (usize,any) -> bool
+  local $cast_6 usize
+  local.get 1   ; arg 1
+  type_check 9   ; usize
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 9   ; usize
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  i64.ne
+  return
+end
+
+fn 52 std_core$f32$Equals$equals$guard (f32,any) -> bool
+  local $cast_4 f32
+  local.get 1   ; arg 1
+  type_check 23   ; f32
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 23   ; f32
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    f64.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 53 std_core$f32$Equals$not_equals$guard (f32,any) -> bool
+  local $cast_6 f32
+  local.get 1   ; arg 1
+  type_check 23   ; f32
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 23   ; f32
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  f64.ne
+  return
+end
+
+fn 54 std_core$f64$Equals$equals$guard (f64,any) -> bool
+  local $cast_4 f64
+  local.get 1   ; arg 1
+  type_check 15   ; f64
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 15   ; f64
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    f64.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 55 std_core$f64$Equals$not_equals$guard (f64,any) -> bool
+  local $cast_6 f64
+  local.get 1   ; arg 1
+  type_check 15   ; f64
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 15   ; f64
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  f64.ne
+  return
+end
+
+fn 56 std_core$bool$Equals$equals$guard (bool,any) -> bool
+  local $cast_4 bool
+  local.get 1   ; arg 1
+  type_check 2   ; bool
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 2   ; bool
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    bool.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 57 std_core$bool$Equals$not_equals$guard (bool,any) -> bool
+  local $cast_6 bool
+  local.get 1   ; arg 1
+  type_check 2   ; bool
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 2   ; bool
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  bool.ne
+  return
+end
+
+fn 58 std_core$char$Equals$equals$guard (char,any) -> bool
+  local $cast_4 char
+  local.get 1   ; arg 1
+  type_check 22   ; char
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 22   ; char
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    i32.eq
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 59 std_core$char$Equals$not_equals$guard (char,any) -> bool
+  local $cast_6 char
+  local.get 1   ; arg 1
+  type_check 22   ; char
+  bool.not
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1   ; arg 1
+  ref.cast 22   ; char
+  local.set 2   ; $cast_6
+  local.get 0   ; arg 0
+  local.get 2   ; $cast_6
+  i32.ne
+  return
+end
+
+fn 60 std_collections$MutableMap$Index$at__Any__string (ref,any) -> any
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 68   ; std_collections$get__Any__string
+  return
+end
+
+fn 61 std_collections$MutableMap$IndexSet$set_at__Any__string (ref,any,string) -> void
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call 67   ; std_collections$put__Any__string
+  return
+end
+
+fn 62 std_collections$first_slot (u64,usize) -> usize
+  local.get 0   ; arg 0
+  u64.to_i64
+  local.get 1   ; arg 1
+  i64.bitand
+  return
+end
+
+fn 63 std_collections$next_slot (usize,u64,usize) -> usize
+  local $mul_4 usize
+  local $cast_5 usize
+  local.get 0   ; arg 0
+  i64.const 5
+  i64.mul
+  local.set 3   ; $mul_4
+  local.get 1   ; arg 1
+  u64.to_i64
+  local.set 4   ; $cast_5
+  local.get 3   ; $mul_4
+  local.get 4   ; $cast_5
+  i64.add
+  i64.const 1
+  i64.add
+  local.get 2   ; arg 2
+  i64.bitand
+  return
+end
+
+fn 64 std_collections$ensure_index__Any__string (ref) -> void
+  local idx ref
+  local __for_discard_0 usize
+  local.field 0 26 2   ; arg 0 std_collections$MutableMap__Any__string.index
+  array.len
+  i64.const 0
+  i64.eq
+  if $L0 void
+    array.new 31 0   ; i32[]
+    i64.const 16
+    array.repeat
+    local.set 1   ; idx
+    i64.const 0
+    local.set 2   ; __for_discard_0
+    loop $L1 void
+      local.get 2   ; __for_discard_0
+      i64.const 16
+      u64.lt
+      if $L2 void
+        local.get 1   ; idx
+        i32.const 0
+        array.push 5 1   ; i32 idx
+        local.get 2   ; __for_discard_0
+        i64.const 1
+        i64.add
+        local.set 2   ; __for_discard_0
+        br $L1
+      end $L2
+    end $L1
+    local.get 0   ; arg 0
+    local.get 1   ; idx
+    struct.set 26 2   ; std_collections$MutableMap__Any__string.index
+    i64.const 15
+    local.set 2   ; __for_discard_0
+    local.get 0   ; arg 0
+    local.get 2   ; __for_discard_0
+    struct.set 26 3   ; std_collections$MutableMap__Any__string.mask
+    return
+  end $L0
+  return
+end
+
+fn 65 std_collections$rehash__Any__string (ref,usize) -> void
+  local fresh ref
+  local __for_discard_0 usize
+  local e usize
+  local __for_hi_1 usize
+  local perturb u64
+  local s usize
+  local $cast_33 i32
+  array.new 31 0   ; i32[]
+  local.get 1   ; arg 1
+  array.repeat
+  local.set 2   ; fresh
+  i64.const 0
+  local.set 3   ; __for_discard_0
+  loop $L0 void
+    local.get 3   ; __for_discard_0
+    local.get 1   ; arg 1
+    u64.lt
+    if $L1 void
+      local.get 2   ; fresh
+      i32.const 0
+      array.push 5 2   ; i32 fresh
+      local.get 3   ; __for_discard_0
+      i64.const 1
+      i64.add
+      local.set 3   ; __for_discard_0
+      br $L0
+    end $L1
+  end $L0
+  local.get 1   ; arg 1
+  i64.const 1
+  i64.sub
+  local.set 3   ; __for_discard_0
+  i64.const 0
+  local.set 4   ; e
+  local.field 0 26 4   ; arg 0 std_collections$MutableMap__Any__string.size
+  ref.cast 9   ; usize
+  local.set 5   ; __for_hi_1
+  loop $L2 void
+    local.get 4   ; e
+    local.get 5   ; __for_hi_1
+    u64.lt
+    if $L3 void
+      local.field 0 26 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
+      local.get 4   ; e
+      array.get 29   ; ref[]
+      virtual.call 1 std_core$Hash.hash
+      local.tee 6   ; perturb
+      local.get 3   ; __for_discard_0
+      call 62   ; std_collections$first_slot
+      local.set 7   ; s
+      loop $L4 void
+        local.get 2   ; fresh
+        local.get 7   ; s
+        load_slot_i32
+        i32.const 0
+        i32.ne
+        if $L5 void
+          local.get 6   ; perturb
+          i64.const 5
+          u64.shr
+          local.set 6   ; perturb
+          local.get 7   ; s
+          local.get 6   ; perturb
+          local.get 3   ; __for_discard_0
+          call 63   ; std_collections$next_slot
+          local.set 7   ; s
+          br $L4
+        end $L5
+      end $L4
+      local.get 4   ; e
+      i64.const 1
+      i64.add
+      usize.to_i32
+      local.set 8   ; $cast_33
+      local.get 2   ; fresh
+      local.get 7   ; s
+      local.get 8   ; $cast_33
+      store_slot_i32
+      local.get 4   ; e
+      i64.const 1
+      i64.add
+      local.set 4   ; e
+      br $L2
+    end $L3
+  end $L2
+  local.get 0   ; arg 0
+  local.get 2   ; fresh
+  struct.set 26 2   ; std_collections$MutableMap__Any__string.index
+  local.get 0   ; arg 0
+  local.get 3   ; __for_discard_0
+  struct.set 26 3   ; std_collections$MutableMap__Any__string.mask
+  local.get 0   ; arg 0
+  i64.const 0
+  struct.set 26 5   ; std_collections$MutableMap__Any__string.tombs
+  return
+end
+
+fn 66 std_collections$write_entry__Any__string (ref,any,string) -> void
+  local $field_3 usize
+  local $len_5 usize
+  local $field_7 ref
+  local.field 0 26 4   ; arg 0 std_collections$MutableMap__Any__string.size
+  ref.cast 9   ; usize
+  local.set 3   ; $field_3
+  local.field 0 26 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
+  array.len
+  local.set 4   ; $len_5
+  local.get 3   ; $field_3
+  local.get 4   ; $len_5
+  u64.lt
+  if $L0 void
+    local.field 0 26 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
+    local.set 5   ; $field_7
+    local.field 0 26 4   ; arg 0 std_collections$MutableMap__Any__string.size
+    ref.cast 9   ; usize
+    local.set 3   ; $field_3
+    local.get 5   ; $field_7
+    local.get 3   ; $field_3
+    local.get 1   ; arg 1
+    array.set 29   ; ref[]
+    local.field 0 26 1   ; arg 0 std_collections$MutableMap__Any__string.evals
+    local.set 5   ; $field_7
+    local.field 0 26 4   ; arg 0 std_collections$MutableMap__Any__string.size
+    ref.cast 9   ; usize
+    local.set 3   ; $field_3
+    local.get 5   ; $field_7
+    local.get 3   ; $field_3
+    local.get 2   ; arg 2
+    array.set 30   ; string[]
+    return
+  end $L0
+  local.field 0 26 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
+  local.get 1   ; arg 1
+  array.push 7   ; ref
+  local.field 0 26 1   ; arg 0 std_collections$MutableMap__Any__string.evals
+  local.get 2   ; arg 2
+  array.push 6   ; string
+  return
+end
+
+fn 67 std_collections$put__Any__string (ref,any,string) -> void
+  local $field_3 usize
+  local $field_4 usize
+  local $mul_24 usize
+  local perturb u64
+  local first_tomb i64
+  local $idx_54 any
+  local $field_70 ref
+  local $cast_74 i32
+  local.get 0   ; arg 0
+  call 64   ; std_collections$ensure_index__Any__string
+  local.field 0 26 4   ; arg 0 std_collections$MutableMap__Any__string.size
+  ref.cast 9   ; usize
+  local.set 3   ; $field_3
+  local.field 0 26 5   ; arg 0 std_collections$MutableMap__Any__string.tombs
+  ref.cast 9   ; usize
+  local.set 4   ; $field_4
+  local.get 3   ; $field_3
+  local.get 4   ; $field_4
+  i64.add
+  i64.const 1
+  i64.add
+  i64.const 4
+  i64.mul
+  local.set 3   ; $field_3
+  local.field 0 26 3   ; arg 0 std_collections$MutableMap__Any__string.mask
+  ref.cast 9   ; usize
+  i64.const 1
+  i64.add
+  i64.const 3
+  i64.mul
+  local.set 4   ; $field_4
+  local.get 3   ; $field_3
+  local.get 4   ; $field_4
+  u64.gt
+  if $L0 void
+    i64.const 16
+    local.set 3   ; $field_3
+    loop $L1 void
+      local.field 0 26 4   ; arg 0 std_collections$MutableMap__Any__string.size
+      ref.cast 9   ; usize
+      i64.const 1
+      i64.add
+      i64.const 4
+      i64.mul
+      local.set 4   ; $field_4
+      local.get 3   ; $field_3
+      i64.const 3
+      i64.mul
+      local.set 5   ; $mul_24
+      local.get 4   ; $field_4
+      local.get 5   ; $mul_24
+      u64.gt
+      if $L2 void
+        local.get 3   ; $field_3
+        i64.const 2
+        i64.mul
+        local.set 3   ; $field_3
+        br $L1
+      end $L2
+    end $L1
+    local.get 0   ; arg 0
+    local.get 3   ; $field_3
+    call 65   ; std_collections$rehash__Any__string
+  end $L0
+  local.get 1   ; arg 1
+  virtual.call 1 std_core$Hash.hash
+  local.set 6   ; perturb
+  local.field 0 26 3   ; arg 0 std_collections$MutableMap__Any__string.mask
+  ref.cast 9   ; usize
+  local.set 3   ; $field_3
+  local.get 6   ; perturb
+  local.get 3   ; $field_3
+  call 62   ; std_collections$first_slot
+  local.set 3   ; $field_3
+  i64.const 1
+  i64.neg
+  local.set 7   ; first_tomb
+  loop $L3 void
+    local.field 0 26 2   ; arg 0 std_collections$MutableMap__Any__string.index
+    local.get 3   ; $field_3
+    load_slot_i32
+    i32.const 0
+    i32.ne
+    if $L4 void
+      local.field 0 26 2   ; arg 0 std_collections$MutableMap__Any__string.index
+      local.get 3   ; $field_3
+      load_slot_i32
+      i32.const -1
+      i32.eq
+      if $L5 void
+        local.get 7   ; first_tomb
+        i64.const 0
+        i64.lt
+        if $L6 void
+          local.get 3   ; $field_3
+          usize.to_i64
+          local.set 7   ; first_tomb
+        end $L6
+      else
+        local.field 0 26 2   ; arg 0 std_collections$MutableMap__Any__string.index
+        local.get 3   ; $field_3
+        load_slot_i32
+        i32.to_i64
+        i64.const 1
+        i64.sub
+        local.set 4   ; $field_4
+        local.field 0 26 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
+        local.get 4   ; $field_4
+        array.get 29   ; ref[]
+        local.set 8   ; $idx_54
+        local.get 1   ; arg 1
+        local.get 8   ; $idx_54
+        virtual.call 2 std_core$Equals.equals
+        if $L7 void
+          local.field 0 26 1   ; arg 0 std_collections$MutableMap__Any__string.evals
+          local.get 4   ; $field_4
+          local.get 2   ; arg 2
+          array.set 30   ; string[]
+          return
+        end $L7
+      end $L5
+      local.get 6   ; perturb
+      i64.const 5
+      u64.shr
+      local.set 6   ; perturb
+      local.field 0 26 3   ; arg 0 std_collections$MutableMap__Any__string.mask
+      ref.cast 9   ; usize
+      local.set 5   ; $mul_24
+      local.get 3   ; $field_3
+      local.get 6   ; perturb
+      local.get 5   ; $mul_24
+      call 63   ; std_collections$next_slot
+      local.set 3   ; $field_3
+      br $L3
+    end $L4
+  end $L3
+  local.get 7   ; first_tomb
+  i64.const 0
+  i64.ge
+  if $L8 void
+    local.get 7   ; first_tomb
+    i64.to_i64
+    local.set 4   ; $field_4
+  else
+    local.get 3   ; $field_3
+    local.set 4   ; $field_4
+  end $L8
+  local.get 7   ; first_tomb
+  i64.const 0
+  i64.ge
+  if $L9 void
+    local.field 0 26 5   ; arg 0 std_collections$MutableMap__Any__string.tombs
+    ref.cast 9   ; usize
+    i64.const 1
+    i64.sub
+    local.set 3   ; $field_3
+    local.get 0   ; arg 0
+    local.get 3   ; $field_3
+    struct.set 26 5   ; std_collections$MutableMap__Any__string.tombs
+  end $L9
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call 66   ; std_collections$write_entry__Any__string
+  local.field 0 26 2   ; arg 0 std_collections$MutableMap__Any__string.index
+  local.set 9   ; $field_70
+  local.field 0 26 4   ; arg 0 std_collections$MutableMap__Any__string.size
+  ref.cast 9   ; usize
+  i64.const 1
+  i64.add
+  usize.to_i32
+  local.set 10   ; $cast_74
+  local.get 9   ; $field_70
+  local.get 4   ; $field_4
+  local.get 10   ; $cast_74
+  store_slot_i32
+  local.field 0 26 4   ; arg 0 std_collections$MutableMap__Any__string.size
+  ref.cast 9   ; usize
+  i64.const 1
+  i64.add
+  local.set 3   ; $field_3
+  local.get 0   ; arg 0
+  local.get 3   ; $field_3
+  struct.set 26 4   ; std_collections$MutableMap__Any__string.size
+  return
+end
+
+fn 68 std_collections$get__Any__string (ref,any) -> any
+  local perturb u64
+  local $field_9 usize
+  local ei usize
+  local $idx_27 any
+  local $field_33 usize
+  local.field 0 26 2   ; arg 0 std_collections$MutableMap__Any__string.index
+  array.len
+  i64.const 0
+  i64.eq
+  if $L0 void
+    return.lit null.const
+  end $L0
+  local.get 1   ; arg 1
+  virtual.call 1 std_core$Hash.hash
+  local.set 2   ; perturb
+  local.field 0 26 3   ; arg 0 std_collections$MutableMap__Any__string.mask
+  ref.cast 9   ; usize
+  local.set 3   ; $field_9
+  local.get 2   ; perturb
+  local.get 3   ; $field_9
+  call 62   ; std_collections$first_slot
+  local.set 3   ; $field_9
+  loop $L1 void
+    local.field 0 26 2   ; arg 0 std_collections$MutableMap__Any__string.index
+    local.get 3   ; $field_9
+    load_slot_i32
+    i32.const 0
+    i32.ne
+    if $L2 void
+      local.field 0 26 2   ; arg 0 std_collections$MutableMap__Any__string.index
+      local.get 3   ; $field_9
+      load_slot_i32
+      i32.const -1
+      i32.ne
+      if $L3 void
+        local.field 0 26 2   ; arg 0 std_collections$MutableMap__Any__string.index
+        local.get 3   ; $field_9
+        load_slot_i32
+        i32.to_i64
+        i64.const 1
+        i64.sub
+        local.set 4   ; ei
+        local.field 0 26 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
+        local.get 4   ; ei
+        array.get 29   ; ref[]
+        local.set 5   ; $idx_27
+        local.get 1   ; arg 1
+        local.get 5   ; $idx_27
+        virtual.call 2 std_core$Equals.equals
+        if $L4 void
+          local.field 0 26 1   ; arg 0 std_collections$MutableMap__Any__string.evals
+          local.get 4   ; ei
+          array.get 30   ; string[]
+          ref.cast 6   ; string
+          retag 6   ; string
+          return
+        end $L4
+      end $L3
+      local.get 2   ; perturb
+      i64.const 5
+      u64.shr
+      local.set 2   ; perturb
+      local.field 0 26 3   ; arg 0 std_collections$MutableMap__Any__string.mask
+      ref.cast 9   ; usize
+      local.set 6   ; $field_33
+      local.get 3   ; $field_9
+      local.get 2   ; perturb
+      local.get 6   ; $field_33
+      call 63   ; std_collections$next_slot
+      local.set 3   ; $field_9
+      br $L1
+    end $L2
+  end $L1
+  return.lit null.const
+end
+
+fn 69 std_io$write (u8,string) -> void
+  local buf ref
+  local sent usize
+  local $len_6 usize
+  local $len_8 usize
+  local chunk ref
+  local $len_11 usize
+  local n i32
+  local $cast_16 usize
+  local.get 1   ; arg 1
+  call.import 1   ; std_core$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  loop $L0 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_6
+    local.get 3   ; sent
+    local.get 4   ; $len_6
+    u64.ge
+    if $L1 void
+    else
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 24   ; u8[]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 70   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L2 void
+        return
+      end $L2
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      i64.add
+      local.set 3   ; sent
+      br $L0
+    end $L1
+  end $L0
+  return
+end
+
+fn 70 std_io$write_bytes (u8,ref,usize) -> i32
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 3   ; system_posix$sys_write
+    isize.to_i32
+    return
+  end $L0
+  i32.const 2
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 3   ; system_posix$sys_write
+  isize.to_i32
+  return
+end
+
+fn 71 std_io$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 6   ; "\n"
+  call 8   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 69   ; std_io$write
+  return
+end
+
+fn 72 std_core$string$Hash$hash_vt (string) -> u64
+  local.get 0   ; arg 0
+  call.import 2   ; std_core$string$Hash$hash
+  return
+end
+
+fn 73 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+  local.get 0   ; arg 0
+  buffer.new
+  return
+end
+
+fn 74 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  buffer_to_string
+  return
+end
+
+fn 75 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
+  return
+end

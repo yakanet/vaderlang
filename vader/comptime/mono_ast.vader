@@ -55,8 +55,9 @@ export MonoEntry :: struct {
     /// lookups (TypedProgram side-tables are per-module).
     module: TypedProgram | null
 
-    /// The vtable slot this fn fills when it is an impl member ; null for every
-    /// other fn. The vtables are built from it.
+    /// The vtable slot this fn fills when it is an impl member, or the guard that
+    /// stands in for one (`vader/lower/guard_equals.vader`) ; null for every other
+    /// fn. The vtables are built from it.
     vtable_slot: VtableSlot | null = null
 }
 

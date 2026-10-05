@@ -976,6 +976,20 @@ export is_untagged :: fn(t: Type) -> bool {
     return false
 }
 
+/// Whether a boxed value of `t` is tagged as `t` itself, so a runtime `is t` tells it
+/// from a value of any other type. Not an enum nor a distinct
+/// (`boxes_as_representation`), nor a type with no tag to test (`is_untagged`).
+///
+/// @param t  the type of the value boxed.
+export carries_own_tag :: fn(t: Type) -> bool = match t {
+    is StructType -> !is_untagged(t)
+    is ArrayType | PrimitiveType -> true
+    is EnumType | DistinctType | AnyType | TypeParamType -> false
+    // Never the receiver of an impl.
+    is UnionType | TupleType | TraitType | FnType | SelfType | TypeMetaType -> false
+    is NeverType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType -> false
+}
+
 /// Whether a boxed value of type `t` carries its representation's runtime type
 /// rather than its own : an enum boxes as its integer, a distinct as its
 /// backing. A trait dispatched on such a value reaches its own impl only where

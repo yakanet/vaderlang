@@ -1722,6 +1722,8 @@ match u {
 | Type with `impl Equals` | Delegated to `Equals.equals` |
 | **Trait value, fn value** | **Compile error (T3043)** — a trait value may hold an implementor without `Equals`; narrow it first (`if d is Point`) |
 
+A generic body compares a `T: Equals` through its `Equals`, picked from the receiver's runtime type. When the other operand holds another type — `T` is a union, or the values are typed `Equals` — `equals` answers `false` and `not_equals` `true`, without reaching the impl. An enum or a distinct type is the exception: it boxes as its representation, so it compares as that representation does. A union whose variant has no tag of its own (an instance of a generic struct whose body other instances share) beside another non-null variant does not satisfy `Equals` (T3006).
+
 To compare two structs or arrays, implement `Equals` (or call `equals(a, b)`).
 Structs and arrays have no implicit identity `==`: a bare `a == b` on them is
 rejected at compile time, never a silent reference compare. Identity has its own

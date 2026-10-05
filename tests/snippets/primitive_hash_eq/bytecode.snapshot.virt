@@ -65,7 +65,7 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; a
   i32.const 42
-  call 16   ; std_core$i32$Equals$equals_vt
+  i32.eq
   local.set 4   ; $call_23
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -88,7 +88,7 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; a
   i32.const 7
-  call 16   ; std_core$i32$Equals$equals_vt
+  i32.eq
   local.set 4   ; $call_23
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -406,12 +406,5 @@ fn 15 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   buffer_write_string
-  return
-end
-
-fn 16 std_core$i32$Equals$equals_vt (i32,i32) -> bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.eq
   return
 end

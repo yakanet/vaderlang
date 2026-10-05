@@ -1,0 +1,82 @@
+# Typecheck
+
+## tests/snippets/equals_across_variants
+  StructDecl     Label                :: Label!
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point!
+  ConstDecl      Shape                :: type
+  expr 16402:2  UnaryExpr      :: bool
+  expr 16402:3  CallExpr       :: bool
+  expr 16402:4  FieldExpr      :: fn(Point) -> bool
+  expr 16402:5  IdentExpr      :: Point
+  expr 16402:7  IdentExpr      :: Point
+  expr 16:28    BinaryExpr     :: bool
+  expr 16:28    FieldExpr      :: i32
+  expr 16:28    IdentExpr      :: Point
+  expr 16:38    FieldExpr      :: i32
+  expr 16:38    IdentExpr      :: Point
+  expr 18:26    CallExpr       :: u64
+  expr 18:26    IdentExpr      :: type
+  expr 18:30    FieldExpr      :: i32
+  expr 18:30    IdentExpr      :: Point
+  expr 24594:2  UnaryExpr      :: bool
+  expr 24594:3  CallExpr       :: bool
+  expr 24594:4  FieldExpr      :: fn(Label) -> bool
+  expr 24594:5  IdentExpr      :: Label
+  expr 24594:7  IdentExpr      :: Label
+  expr 24:28    BinaryExpr     :: bool
+  expr 24:28    FieldExpr      :: i32
+  expr 24:28    IdentExpr      :: Label
+  expr 24:38    FieldExpr      :: i32
+  expr 24:38    IdentExpr      :: Label
+  expr 26:26    CallExpr       :: u64
+  expr 26:26    IdentExpr      :: type
+  expr 26:30    FieldExpr      :: i32
+  expr 26:30    IdentExpr      :: Label
+  expr 31:13    StructLitExpr  :: MutableMap<Label | Point, string>!
+  expr 32:10    StructLitExpr  :: Point!
+  expr 32:30    StringLitExpr  :: string
+  expr 32:5     IdentExpr      :: MutableMap<Label | Point, string>!
+  expr 33:13    StringLitExpr  :: string
+  expr 33:16    IdentExpr      :: MutableMap<Label | Point, string>!
+  expr 33:16    IndexExpr      :: null | string
+  expr 33:16    NullCoalesceExpr :: string
+  expr 33:21    StructLitExpr  :: Label!
+  expr 33:42    StringLitExpr  :: string
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 33:54    IdentExpr      :: MutableMap<Label | Point, string>!
+  expr 33:54    IndexExpr      :: null | string
+  expr 33:54    NullCoalesceExpr :: string
+  expr 33:59    StructLitExpr  :: Point!
+  expr 33:80    StringLitExpr  :: string
+  expr 34:22    SeqLitExpr     :: (Label | Point)[]
+  expr 34:23    StructLitExpr  :: Point!
+  expr 35:19    StructLitExpr  :: Label!
+  expr 36:13    StringLitExpr  :: string
+  expr 36:16    BinaryExpr     :: bool
+  expr 36:16    IdentExpr      :: Label | Point
+  expr 36:25    IdentExpr      :: (Label | Point)[]
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 37:32    SeqLitExpr     :: (f64 | string)[]
+  expr 37:38    StringLitExpr  :: string
+  expr 39:13    StringLitExpr  :: string
+  expr 39:16    BinaryExpr     :: bool
+  expr 39:16    IdentExpr      :: f64 | string
+  expr 39:25    IdentExpr      :: (f64 | string)[]
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 40:17    StructLitExpr  :: Point!
+  expr 41:17    StructLitExpr  :: Label!
+  expr 42:13    StringLitExpr  :: string
+  expr 42:16    CallExpr       :: bool
+  expr 42:16    FieldExpr      :: fn(Equals) -> bool
+  expr 42:16    IdentExpr      :: Equals
+  expr 42:26    IdentExpr      :: Equals
+  expr 42:33    CallExpr       :: bool
+  expr 42:33    FieldExpr      :: fn(Equals) -> bool
+  expr 42:33    IdentExpr      :: Equals
+  expr 42:47    IdentExpr      :: Equals
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void

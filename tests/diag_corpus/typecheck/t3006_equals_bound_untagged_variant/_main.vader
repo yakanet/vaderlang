@@ -1,0 +1,24 @@
+// T3006: a generic body compares a `T: Equals` by testing which variant each side
+// holds. An instance of a generic struct whose body other instances share has no
+// tag of its own, so beside another variant the union does not satisfy `Equals`.
+module "snippet"
+
+Point :: struct {
+    x: i32
+}
+
+Point implements Equals -> self.x == other.x
+
+Box :: struct<T> {
+    value: T
+}
+
+Box<T> implements<T: Equals> Equals -> self.value == other.value
+
+first_equals :: fn<T: Equals>(xs: T[], x: T) -> bool = xs[0].equals(x)
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1 }
+    xs: (Box<Point> | Point)[]: [p]
+    return if first_equals(xs, p) { 0 } else { 1 }
+}

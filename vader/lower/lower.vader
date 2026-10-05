@@ -239,6 +239,9 @@ lower_project_impl :: fn(
     // (e.g. M5001 from `lower_for_in`) into the caller-owned sink so
     // they reach `# Diagnostics` in the CLI dump.
     for d in project_ctx.diags { diags.push(d) }
+    // Before `collect_vtable_entries` : it moves each guarded `Equals` slot from the
+    // impl onto its guard.
+    guard_equals_slots(project, project_ctx)
     // Collect vtable entries from impl members. Without this,
     // `BcModule.impl_table` is always empty and `impl TYPE_ID TRAIT_NAME`
     // directives never land in the .virt — the runtime falls back to

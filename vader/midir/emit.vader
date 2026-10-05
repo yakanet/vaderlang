@@ -1516,19 +1516,25 @@ resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
     }
     by_symbol :: p.import_index_by_symbol_id[ins.callee.id]
     if by_symbol is i32 {
-        return DirectCallTarget {
-            .op = CallImport { .index = by_symbol },
-            .signature = p.imports[usize(by_symbol)].signature,
-        }
+        return import_call_target(p, by_symbol)
     }
     by_mangle :: p.import_index_by_mangle[ins.callee.name]
     if by_mangle is i32 {
-        return DirectCallTarget {
-            .op = CallImport { .index = by_mangle },
-            .signature = p.imports[usize(by_mangle)].signature,
-        }
+        return import_call_target(p, by_mangle)
     }
     panic("midir/emit: unresolved callee '${ins.callee.name}' (id=${ins.callee.id}) in '${ctx.fn_.mangled}' — impl-member/for-in materialisation gap (GATE B1)")
+}
+
+// A call to import `index` : `CallImport`, or the dedicated op of an `@intrinsic`
+// that has one, which the native build binds no host for — the choice
+// `build_intrinsic_wrapper_body` makes for a vtable target.
+import_call_target :: fn(p: EmitterCtx, index: i32) -> DirectCallTarget {
+    imp :: p.imports[usize(index)]
+    intrinsic :: if imp.is_extern { null } else { intrinsic_op_for_mangled(imp.mangled_name) }
+    return DirectCallTarget {
+        .op = intrinsic ?? CallImport { .index = index },
+        .signature = imp.signature,
+    }
 }
 
 /// Look up a field index by name on a struct type. Returns `null` when

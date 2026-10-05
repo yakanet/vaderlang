@@ -1,0 +1,44 @@
+// A generic body compares through `Equals` by a virtual call, which picks the impl
+// from the receiver alone. When `T` is a union, the other operand may hold another
+// variant: the call then answers `false` (`true` for `not_equals`) instead of
+// reading it as the receiver's type. `Point` and `Label` share a field layout, so
+// a wrong read would compare `x` with `n` and find them equal.
+
+module "snippet"
+
+import "std/collections"
+import "std/io"
+
+Point :: struct {
+    x: i32
+}
+
+Point implements Equals -> self.x == other.x
+
+Point implements Hash -> u64(self.x)
+
+Label :: struct {
+    n: i32
+}
+
+Label implements Equals -> self.n == other.n
+
+Label implements Hash -> u64(self.n)
+
+Shape :: Point | Label
+
+main :: fn() -> i32 {
+    seen :: MutableMap<Shape, string> {}
+    seen[Point { .x = 1 }] = "point"
+    println("${seen[Label { .n = 1 }] ?? "absent"} ${seen[Point { .x = 1 }] ?? "absent"}")
+    shapes: Shape[]: [Point { .x = 1 }]
+    label: Shape: Label { .n = 1 }
+    println("${label in shapes}")
+    numbers: (f64 | string)[]: [1.5, "a"]
+    found: f64 | string: 1.5
+    println("${found in numbers}")
+    e1: Equals: Point { .x = 1 }
+    e2: Equals: Label { .n = 1 }
+    println("${e1.equals(e2)} ${e1.not_equals(e2)}")
+    return 0
+}
