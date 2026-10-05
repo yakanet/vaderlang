@@ -855,4 +855,8 @@ lower_binary_op :: fn(op: BinaryOp) -> LoweredBinaryOp = match op {
     .Is     -> .Eq
     .In     -> .Eq
     .NotIn  -> .Eq
+    // `===` has no trait to route through (`op_trait_method`) : it stays the bare
+    // comparison, which on two references compares the references.
+    .Same    -> .Eq
+    .NotSame -> .Neq
 }

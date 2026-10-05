@@ -88,6 +88,7 @@ export infer_binary :: fn(
         .Logical  -> { check_logical(e, left, right, diags) }
         .Bitwise  -> { check_bitwise(e, left, right, typed, diags) }
         .Equality -> { check_equality(e, left, right, typed, diags) }
+        .Identity -> { check_identity(e, left, right, diags) }
         .Is       -> { TY_BOOL }
         .In       -> { check_in(e, left, right, typed, diags) }
     }
@@ -704,6 +705,62 @@ check_equality :: fn(
     return TY_BOOL
 }
 
+/// `a === b` / `a !== b` : the same object, never an equal value — SPEC §Identity.
+/// T3017 on an operand with no identity, or on two that never hold one object.
+check_identity :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]!) -> Type {
+    // An unknown operand comes from an earlier error, or never yields.
+    unresolved :: left is UnresolvedType || right is UnresolvedType
+    if unresolved || left is NeverType || right is NeverType {
+        return TY_BOOL
+    }
+    if !has_identity(left) {
+        push_no_identity(e.op, e.left.span, left, diags)
+    } else if !has_identity(right) {
+        push_no_identity(e.op, e.right.span, right, diags)
+    } else if !types_overlap(subtract_type(left, TY_NULL), subtract_type(right, TY_NULL)) {
+        diags.push(
+            typecheck_error(
+                .OperatorNotDefined,
+                e.span,
+                "`${display_type(left)}` and `${display_type(right)}` are never the same object",
+            ),
+        )
+    }
+    return TY_BOOL
+}
+
+push_no_identity :: fn(op: AST.BinaryOp, span: Span, t: Type, diags: Diagnostic[]!) -> void {
+    equality :: if op == .Same { "==" } else { "!=" }
+    diags.push(
+        typecheck_error(
+            .OperatorNotDefined,
+            span,
+            "`${display_type(t)}` has no identity ; compare with `${equality}`, "
+                + "or narrow to an object first",
+        ),
+    )
+}
+
+// Whether every non-null value of `t` is an object, with an identity `===` can
+// compare. A trait value, `any`, a type parameter or `Self` may hold a scalar, which
+// compares by its payload : they have none.
+has_identity :: fn(t: Type) -> bool = match t {
+    is StructType | ArrayType | UnresolvedType | NeverType -> true
+    is UnionType -> union_has_identity(t)
+    is DistinctType -> has_identity(t.backing)
+    is PrimitiveType | EnumType | TupleType | FnType | TraitType | AnyType | TypeParamType
+        | SelfType | TypeMetaType | FreeIntType | FreeFloatType | FreeCharType -> false
+}
+
+union_has_identity :: fn(u: UnionType) -> bool {
+    for v in u.variants {
+        if !is_null_type(v) && !has_identity(v) {
+            return false
+        }
+    }
+    return true
+}
+
 // The first element of `t` with no working `==`, or null when every one has.
 //
 // What reaches `ref.eq` — and therefore has to be refused — is every kind the VM
@@ -743,7 +800,10 @@ first_incomparable_element :: fn(t: TupleType, typed: TypedProgram) -> Type | nu
 // does not name `Equals`. Null when there is none.
 param_without_equals :: fn(operand: Type, typed: TypedProgram) -> Type | null {
     if operand is TypeParamType {
-        return if satisfies_bound(operand, core_trait_key(TRAIT_EQUALS), typed) { null } else { operand }
+        if satisfies_bound(operand, core_trait_key(TRAIT_EQUALS), typed) {
+            return null
+        }
+        return operand
     }
     if operand is UnionType {
         for v in operand.variants {
@@ -893,7 +953,7 @@ check_bitwise :: fn(
 
 // ---- helpers --------------------------------------------------------------
 
-OpKind :: enum(u8) { Arith, Compare, Equality, Logical, Bitwise, Is, In }
+OpKind :: enum(u8) { Arith, Compare, Equality, Identity, Logical, Bitwise, Is, In }
 
 classify :: fn(op: AST.BinaryOp) -> OpKind = match op {
     .Add    -> .Arith
@@ -917,6 +977,8 @@ classify :: fn(op: AST.BinaryOp) -> OpKind = match op {
     .Is     -> .Is
     .In     -> .In
     .NotIn  -> .In
+    .Same    -> .Identity
+    .NotSame -> .Identity
 }
 
 // When left is a concrete numeric and the op propagates context, return
@@ -927,6 +989,7 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
         .Arith    -> true
         .Compare  -> true
         .Equality -> true
+        .Identity -> false
         .Logical  -> false
         .Bitwise  -> true
         .Is       -> false
@@ -962,6 +1025,7 @@ op_expected_ctx :: fn(op: AST.BinaryOp, expected: Type | null) -> Type | null {
         .Bitwise  -> true
         .Compare  -> false
         .Equality -> false
+        .Identity -> false
         .Logical  -> false
         .Is       -> false
         .In       -> false

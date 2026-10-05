@@ -2675,6 +2675,8 @@ infix_for :: fn(k: TokenKind) = match k {
     .AndAnd    -> InfixOpDescr { .has = true, .left_bp = 12, .right_bp = 13, .op = .And,    .non_assoc = false }
     .Eq        -> InfixOpDescr { .has = true, .left_bp = 20, .right_bp = 20, .op = .Eq,     .non_assoc = true  }
     .Neq       -> InfixOpDescr { .has = true, .left_bp = 20, .right_bp = 20, .op = .Neq,    .non_assoc = true  }
+    .Same      -> InfixOpDescr { .has = true, .left_bp = 20, .right_bp = 20, .op = .Same,   .non_assoc = true  }
+    .NotSame   -> InfixOpDescr { .has = true, .left_bp = 20, .right_bp = 20, .op = .NotSame, .non_assoc = true }
     .Lt        -> InfixOpDescr { .has = true, .left_bp = 20, .right_bp = 20, .op = .Lt,     .non_assoc = true  }
     .Lte       -> InfixOpDescr { .has = true, .left_bp = 20, .right_bp = 20, .op = .Lte,    .non_assoc = true  }
     .Gt        -> InfixOpDescr { .has = true, .left_bp = 20, .right_bp = 20, .op = .Gt,     .non_assoc = true  }
@@ -2785,6 +2787,8 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .Shr          -> -1
     .Eq           -> -1
     .Neq          -> -1
+    .Same         -> -1
+    .NotSame      -> -1
     .Lt           -> -1
     .Lte          -> -1
     .Gt           -> -1
@@ -3396,6 +3400,7 @@ is_angle_scan_bailout :: fn(k: TokenKind) -> bool {
     if k == .PlusAssign || k == .MinusAssign { return true }
     if k == .StarAssign || k == .SlashAssign || k == .PercentAssign { return true }
     if k == .Gte || k == .Lte || k == .Eq || k == .Neq { return true }
+    if k == .Same || k == .NotSame { return true }
     if k == .KwIf || k == .KwElse || k == .KwMatch || k == .KwIs { return true }
     if k == .KwFor || k == .KwIn { return true }
     if k == .KwReturn || k == .KwYield || k == .KwAwait || k == .KwDefer || k == .KwBreak || k == .KwContinue { return true }

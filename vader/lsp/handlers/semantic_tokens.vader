@@ -126,7 +126,7 @@ classify_token :: fn(t: Token) -> i32 = match t.kind {
     .InterpOpen | .InterpClose
         | .Plus | .Minus | .Star | .Slash | .Percent
         | .Amp | .Pipe | .Caret | .Tilde | .Shl | .Shr
-        | .Eq | .Neq | .Lt | .Lte | .Gt | .Gte
+        | .Eq | .Neq | .Same | .NotSame | .Lt | .Lte | .Gt | .Gte
         | .AndAnd | .OrOr | .Bang | .QuestionQuestion
         | .Assign | .PlusAssign | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign
         | .DeclConst | .DeclVar | .RangeExcl | .RangeIncl

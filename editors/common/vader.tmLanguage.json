@@ -339,7 +339,7 @@
         },
         {
           "name": "keyword.operator.comparison.vader",
-          "match": "==|!=|<=|>=|<(?![<=])|>(?![>=])"
+          "match": "===|!==|==|!=|<=|>=|<(?![<=])|>(?![>=])"
         },
         {
           "name": "keyword.operator.logical.vader",

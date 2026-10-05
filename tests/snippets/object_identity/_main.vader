@@ -1,0 +1,35 @@
+// `===` / `!==` ask whether two references are the same object ; `==` asks whether
+// two values are equal, through `Equals`. Two equal points are not the same
+// object, a union compares the object it holds, and `null` is never an object.
+
+module "snippet"
+
+import "std/io"
+
+Point :: struct {
+    x: i32
+}
+
+Point implements Equals -> self.x == other.x
+
+Label :: struct {
+    text: string
+}
+
+Shape :: Point | Label
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1 }
+    q :: Point { .x = 1 }
+    println("${p == q} ${p === q} ${p === p} ${p !== q}")
+    xs :: [1, 2]
+    ys :: [1, 2]
+    println("${xs === ys} ${xs === xs}")
+    held: Shape: p
+    other: Shape: q
+    println("${held === other} ${held === p} ${held !== p}")
+    maybe: Point | null: p
+    none: Point | null: null
+    println("${maybe === p} ${none === p} ${maybe !== none}")
+    return 0
+}

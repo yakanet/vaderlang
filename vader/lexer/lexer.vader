@@ -83,7 +83,7 @@ suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
     // `:=` binding wrap onto the next line, mirroring the pipe / arrow
     // continuation so multi-line union declarations read cleanly.
     .Plus | .Minus | .Star | .Slash | .Percent | .Amp | .Pipe | .Caret
-        | .Shl | .Shr | .Eq | .Neq | .Lt | .Lte | .Gt | .Gte | .AndAnd
+        | .Shl | .Shr | .Eq | .Neq | .Same | .NotSame | .Lt | .Lte | .Gt | .Gte | .AndAnd
         | .OrOr | .QuestionQuestion | .RangeExcl | .RangeIncl | .DotDotDot | .Assign | .PlusAssign
         | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign | .Colon
         | .Arrow | .FatArrow | .Comma | .DeclConst | .DeclVar -> true
@@ -98,8 +98,8 @@ suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
 // A compound assignment (`+=`) lexes as its own kind, so it is never one.
 // @partial: only the infix-only operators continue a line; every other token → false.
 continues_previous_line :: fn(k: TokenKind) = @partial match k {
-    .Plus | .Star | .Slash | .Percent | .Caret | .QuestionQuestion | .Eq | .Neq
-        | .Lt | .Lte | .Shl | .Gt | .Gte | .Shr | .AndAnd | .OrOr | .Amp | .Pipe -> true
+    .Plus | .Star | .Slash | .Percent | .Caret | .QuestionQuestion | .Eq | .Neq | .Same
+        | .NotSame | .Lt | .Lte | .Shl | .Gt | .Gte | .Shr | .AndAnd | .OrOr | .Amp | .Pipe -> true
     _ -> false
 }
 
@@ -714,6 +714,12 @@ try_lex_operator :: fn(l: Lexer!) -> bool {
         if c3 == '.' { return l.emit_and_advance(.DotDotDot, "...") }
     }
 
+    // Identity ops: `===` and `!==`, ahead of the `==` / `!=` they start with.
+    if c2 == '=' && l.peek_at(2) == '=' {
+        if c == '=' { return l.emit_and_advance(.Same, "===") }
+        if c == '!' { return l.emit_and_advance(.NotSame, "!==") }
+    }
+
     // Two-char ops.
     if c == '=' && c2 == '=' { return l.emit_and_advance(.Eq, "==") }
     if c == '!' && c2 == '=' { return l.emit_and_advance(.Neq, "!=") }
@@ -974,6 +980,14 @@ import "std/testing"
     assert(l.tokens.len() >= 4, "arith yields int + op + int + eof")
 }
 
+@test test_tokenize_identity_operators :: fn() -> void {
+    l :: tokenize("a === b !== c == d != e", "test.vader")
+    assert(l.tokens[1].kind == .Same, "`===` is one token")
+    assert(l.tokens[3].kind == .NotSame, "`!==` is one token")
+    assert(l.tokens[5].kind == .Eq, "`==` stays `==`")
+    assert(l.tokens[7].kind == .Neq, "`!=` stays `!=`")
+}
+
 @test test_tokenize_comment_skipped :: fn() -> void {
     l :: tokenize("// comment\n42", "test.vader")
     // Line comment is consumed ; only the int + eof remain.
@@ -1060,7 +1074,7 @@ count_newlines :: fn(l: Lexer) -> usize {
 }
 
 @test test_leading_infix_operator_continues :: fn() -> void {
-    for op in "+ * / % ^ ?? == != < <= << > >= >> && || & |".split(" ") {
+    for op in "+ * / % ^ ?? == != === !== < <= << > >= >> && || & |".split(" ") {
         l :: tokenize("a\n    ${op} b", "test.vader")
         assert(count_newlines(l) == 0, "a line opening with `${op}` continues")
     }

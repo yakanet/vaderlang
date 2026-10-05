@@ -485,6 +485,8 @@ export LoweredBinaryOp :: enum(u8) {
     BitXor,
     And,
     Or,
+    // The bare compare : a value's payload, an object's reference. What `==` means
+    // is settled in `lower_binary` before this ; `===` lowers here directly.
     Eq,
     Neq,
     Lt,

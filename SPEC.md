@@ -358,7 +358,7 @@ From tightest to loosest. Higher levels bind more tightly. Non-assoc operators f
 | 7     | `^`                                    | left           |
 | 8     | `\|`                                   | left           |
 | 9     | `..<`, `..=`                           | non-assoc      |
-| 10    | `<`, `<=`, `>`, `>=`, `==`, `!=`, `is`, `!is`, `in`, `!in` | non-assoc      |
+| 10    | `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `is`, `!is`, `in`, `!in` | non-assoc      |
 | 11    | `&&`                                   | left           |
 | 12    | `\|\|`                                 | left           |
 | 13    | `??` (null-coalescing)                 | left (non-chaining) |
@@ -391,10 +391,10 @@ Trailing commas are allowed in every comma-separated list: function arguments, f
 A newline terminates a statement. No `;` is required. The lexer emits a `NEWLINE` token at every line break **except** in the five cases below, where the newline is silently absorbed:
 
 1. **Inside an unclosed bracket** `(` or `[` — newlines inside parens / array construction are insignificant. (Newlines inside `{ }` blocks stay significant — they separate statements; only a newline *immediately after* an opening `{` is absorbed, per *Statement separators* above.)
-2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `??`, `..<`, `..=`, and the spread `...`. (A newline after `!` is **not** absorbed.)
+2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `??`, `..<`, `..=`, and the spread `...`. (A newline after `!` is **not** absorbed.)
 3. **After a comma** `,`.
 4. **After a token that expects a right-hand side**: `=`, `:`, `->`, `=>`, the binding operators `::` / `:=`, and the compound-assignments `+=` `-=` `*=` `/=` `%=`.
-5. **Before a leading operator that has no prefix form** — when the next line *opens* with `+`, `*`, `/`, `%`, `^`, `??`, `==`, `!=`, `<`, `<=`, `<<`, `>`, `>=`, `>>`, `&&`, `||`, `&` or `|`, the newline before it is absorbed so the operator continues the previous expression. None of these has a prefix / unary meaning, so a line starting with one is unambiguously a continuation — in a `{ }` block too, where nothing else holds the expression open: a leading `+` continues a sum or a concatenation, `??` a fallback, `&&` / `||` a condition, `&` / `|` a type intersection / union. `//` comment lines between the two are looked past. A compound assignment (`+=`, `*=`, `/=`, `%=`) is **not** a continuation. Operators that *do* have a prefix form — `-`, `~`, `!`, `.` — are excluded, so they never silently join the previous line.
+5. **Before a leading operator that has no prefix form** — when the next line *opens* with `+`, `*`, `/`, `%`, `^`, `??`, `==`, `!=`, `===`, `!==`, `<`, `<=`, `<<`, `>`, `>=`, `>>`, `&&`, `||`, `&` or `|`, the newline before it is absorbed so the operator continues the previous expression. None of these has a prefix / unary meaning, so a line starting with one is unambiguously a continuation — in a `{ }` block too, where nothing else holds the expression open: a leading `+` continues a sum or a concatenation, `??` a fallback, `&&` / `||` a condition, `&` / `|` a type intersection / union. `//` comment lines between the two are looked past. A compound assignment (`+=`, `*=`, `/=`, `%=`) is **not** a continuation. Operators that *do* have a prefix form — `-`, `~`, `!`, `.` — are excluded, so they never silently join the previous line.
 
 There is **no backslash-continuation** (`\` at end of line is not special). If you need to break a long expression, use one of the five cases above (typically wrap in parentheses, or break after — or before — a binary operator).
 
@@ -927,7 +927,7 @@ p :: Point { .x = 1.0, .y = 2.0 }
 
 - Heap-allocated by default.
 - `p2 := p` copies the **reference**, not the contents.
-- `==` on two structs requires an `Equals` impl — there is no silent reference-identity default; comparing structs without one is **T3043** (`` `X` does not implement `Equals` ``). For value comparison, implement the `Equals` trait (or call a free function `equals(a, b)`).
+- `==` on two structs requires an `Equals` impl — there is no silent reference-identity default; comparing structs without one is **T3043** (`` `X` does not implement `Equals` ``). For value comparison, implement the `Equals` trait (or call a free function `equals(a, b)`); to ask whether two references are the same object, use `===` (§Identity).
 - Field layout is **not guaranteed** (the compiler arranges fields freely).
 - The user has no access to the layout (no `@offset_of`, no `unsafe_cast` in MVP).
 
@@ -1718,7 +1718,26 @@ match u {
 
 To compare two structs or arrays, implement `Equals` (or call `equals(a, b)`).
 Structs and arrays have no implicit identity `==`: a bare `a == b` on them is
-rejected at compile time, never a silent reference compare.
+rejected at compile time, never a silent reference compare. Identity has its own
+operator, `===`.
+
+#### Identity: `===` and `!==`
+
+`==` asks whether two values are equal; `===` asks whether two references are the
+**same object**, and `!==` is its negation. Two equal points built apart are `==`
+(through their `Equals`) but not `===`.
+
+- Only a reference has an identity: a struct, an array, a union of references
+  (`Node | null` included), a distinct type over one of these. A union compares
+  the object it holds.
+- A value has none — a number, `bool`, `char`, `string`, an enum, a tuple, a fn,
+  `null` on its own. Neither does a type that may hold one: a value typed by a
+  trait (`i32` implements `Display`), `any`, a type parameter, `Self`. `===` on any
+  of them is **T3017**: compare with `==`, or narrow first (`if d is Point`).
+- The two operands must be able to hold the same object — they share a variant
+  other than `null`. `Point === Label` and `Point | null === Label | null` are
+  **T3017**.
+- `===` goes through no trait and cannot be overloaded.
 
 ---
 

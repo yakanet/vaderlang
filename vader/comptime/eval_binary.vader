@@ -68,6 +68,8 @@ combine_binary :: fn(expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeV
     .Is     -> vm_required(expr.span, "BinaryOp.Is")
     .In     -> vm_required(expr.span, "BinaryOp.In")
     .NotIn  -> vm_required(expr.span, "BinaryOp.NotIn")
+    .Same    -> vm_required(expr.span, "BinaryOp.Same")
+    .NotSame -> vm_required(expr.span, "BinaryOp.NotSame")
 }
 
 /// Evaluate a `UnaryExpr` (`-x`, `!x`, `~x`).

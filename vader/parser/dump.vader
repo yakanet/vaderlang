@@ -1407,6 +1407,8 @@ binary_op_name :: fn(op: BinaryOp) = match op {
     .Lte    -> "lte"
     .Gt     -> "gt"
     .Gte    -> "gte"
+    .Same    -> "same"
+    .NotSame -> "not_same"
     .Is     -> "is"
     .In     -> "in"
     .NotIn  -> "not_in"

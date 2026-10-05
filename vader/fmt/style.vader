@@ -43,6 +43,8 @@ export binary_op_symbol :: fn(op: BinaryOp) -> string {
         .Is     -> "is"
         .In     -> "in"
         .NotIn  -> "!in"
+        .Same   -> "==="
+        .NotSame -> "!=="
     }
 }
 

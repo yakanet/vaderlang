@@ -855,6 +855,8 @@ export BinaryOp :: enum(u8) {
     And, Or,
     Eq, Neq, Lt, Lte, Gt, Gte,
     Is, In, NotIn,
+    /// `===` / `!==` : the same object, not an equal value.
+    Same, NotSame,
 }
 
 /// The `as <name>` of `if e is T as x` and `match e as x`.
