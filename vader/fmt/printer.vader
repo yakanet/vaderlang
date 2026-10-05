@@ -55,6 +55,10 @@ export Printer :: struct {
     // force their single-line form and never explode — used by `flat_width`
     // to MEASURE a construct before deciding its real layout.
     flat: bool = false
+    // Keep the line breaks the source writes around a binary operator and after
+    // a fn's `=`. Off for a standalone rendering (`format_expr`), whose output
+    // measures a width or lands at an indentation the source never had.
+    keep_line_breaks: bool = true
     // Width that follows on the same line once the NEXT delimited construct
     // closes — the ` ?? return …` after a call. That construct counts it in its
     // fit test (`fits_inline`), which clears it before the construct's own
@@ -633,12 +637,12 @@ emit_fn_decl :: fn(self: Printer!, d: p.FnDecl) -> void {
     self.emit_fn_params(d.params, d.trailing_comma)
     self.emit_type_expr_with_prefix(" -> ", d.return_type)
     if d.is_expression_bodied {
-        self.write(" = ")
+        self.write(" =")
         // Expression-bodied : body is normalised to BlockExpr with empty
         // stmts + trailing expr. Re-emit the trailing expr alone.
         match d.body as b {
-            is null        -> self.write("/* missing body */")
-            is p.BlockExpr -> self.emit_expr(b.trailing)
+            is null        -> self.write(" /* missing body */")
+            is p.BlockExpr -> self.emit_expression_body(b.trailing)
         }
     } else {
         match d.body as b {
@@ -1129,6 +1133,12 @@ emit_const_decl :: fn(self: Printer!, d: p.ConstDecl) -> void {
             self.emit_union_multiline(d.value, name_width)
             return
         }
+        // A union that fits takes one line, whatever line breaks the source has.
+        keep :: self.keep_line_breaks
+        self.keep_line_breaks = false
+        self.emit_expr(d.value)
+        self.keep_line_breaks = keep
+        return
     }
     self.emit_expr(d.value)
 }
@@ -1177,6 +1187,7 @@ is_bitor_chain :: fn(e: p.Expr) -> bool = if e is p.BinaryExpr as b { b.op == .B
 /// @return        the formatted single-expression text.
 export format_expr :: fn(source: string, e: p.Expr) -> string {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.keep_line_breaks = false
     sub.emit_expr(e)
     return sub.finish()
 }
@@ -1420,15 +1431,146 @@ emit_defer_stmt :: fn(self: Printer!, s: p.DeferStmt) -> void {
 // `left ?? fallback` — the fallback is a value expression or a divergent
 // statement (`return` / `break` / `continue`).
 emit_null_coalesce :: fn(self: Printer!, e: p.NullCoalesceExpr) -> void {
+    right_start :: fallback_start(e.fallback)
+    place :: self.operator_place("??", e.left.span.end, right_start)
     // A left operand that closes on a delimiter decides its layout knowing the
     // ` ?? …` that shares its last line, and explodes rather than run past
     // `MAX_LINE`.
-    if !self.flat && e.left is p.CallExpr | p.StructLitExpr | p.SeqLitExpr | p.IntrinsicCallExpr {
+    shares_line :: !self.flat && place.at == .Inline
+    if shares_line && e.left is p.CallExpr | p.StructLitExpr | p.SeqLitExpr | p.IntrinsicCallExpr {
         self.trailing = coalesce_tail_width(self.source, e.fallback)
     }
     self.emit_expr(e.left)
-    self.write(" ?? ")
+    self.write_operator(place, "??", right_start)
     self.emit_coalesce_fallback(e.fallback)
+    if place.at != .Inline {
+        self.depth -= 1
+    }
+}
+
+// The expression after a fn's `=` : on the same line, or on the next one a level
+// deeper when the source breaks the line right after the `=`.
+emit_expression_body :: fn(self: Printer!, body: p.Expr | null) -> void {
+    if body == null || !self.keeps_line_breaks()
+        || !line_breaks_before(self.source, body.span.start.offset) {
+        self.write(" ")
+        self.emit_expr(body)
+        return
+    }
+    self.depth += 1
+    self.break_line(body.span.start.offset, body.span.start.line)
+    self.emit_expr(body)
+    self.depth -= 1
+}
+
+// A measurement (`flat`) or a standalone rendering lays everything on one line.
+keeps_line_breaks :: fn(self: Printer) -> bool = !self.flat && self.keep_line_breaks
+
+// Whether only blanks separate `offset` from the line break before it.
+line_breaks_before :: fn(source: string, offset: usize) -> bool =
+    offset > 0 && !code_before_on_line(source.bytes(), offset)
+
+fallback_start :: fn(fallback: p.CoalesceFallback) -> Position = match fallback {
+    is p.ReturnStmt | p.BreakStmt | p.ContinueStmt -> fallback.span.start
+    is p.Expr                                      -> fallback.span.start
+}
+
+// ---- source line breaks around an operator --------------------------------
+
+/// Where the source breaks the line around a binary operator. `vader fmt` keeps
+/// such a break and never adds one.
+LineBreakAt :: enum {
+    /// No break : ` op ` between the operands.
+    Inline,
+    /// `a` then `op b` on the next line.
+    BeforeOp,
+    /// `a op` then `b` on the next line.
+    AfterOp,
+}
+
+/// The operator between two operands, as the source writes it.
+OperatorPlace :: struct {
+    at: LineBreakAt
+    /// Byte offset of the operator, where a `BeforeOp` break flushes the
+    /// comments up to.
+    offset: usize
+}
+
+// Where the source breaks the line around `symbol`, the operator written between
+// `left_end` and `right_start`. Operands on one line keep it inline with no scan ;
+// otherwise the operator is found past blanks, `//` comments and the `)` closing a
+// parenthesised left operand — anything else there keeps it inline, as does a
+// measurement.
+operator_place :: fn(
+    self: Printer,
+    symbol: string,
+    left_end: Position,
+    right_start: Position,
+) -> OperatorPlace {
+    inline :: OperatorPlace { .at = .Inline, .offset = 0 }
+    if !self.keeps_line_breaks() || left_end.line == right_start.line {
+        return inline
+    }
+    source :: self.source
+    bytes :: source.bytes()
+    sym :: symbol.bytes()
+    i := left_end.offset
+    for i < right_start.offset {
+        c :: bytes[i]
+        if c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == ')' {
+            i += 1
+        } else if c == '/' && i + 1 < right_start.offset && bytes[i + 1] == '/' {
+            for i < right_start.offset && bytes[i] != '\n' {
+                i += 1
+            }
+        } else {
+            break
+        }
+    }
+    if i + sym.len() > right_start.offset {
+        return inline
+    }
+    for k in 0..<sym.len() {
+        if bytes[i + k] != sym[k] {
+            return inline
+        }
+    }
+    at: LineBreakAt: if line_breaks_before(source, i) { .BeforeOp } else { .AfterOp }
+    return OperatorPlace { .at = at, .offset = i }
+}
+
+// Write `symbol` between two operands where `place` says, with the comments the
+// source holds there. A broken line leaves the right operand one level deeper :
+// the caller restores the depth once it is written.
+write_operator :: fn(
+    self: Printer!,
+    place: OperatorPlace,
+    symbol: string,
+    right_start: Position,
+) -> void {
+    match place.at {
+        .Inline -> self.write(" ${symbol} ")
+        .BeforeOp -> {
+            self.depth += 1
+            self.break_line(place.offset, right_start.line)
+            self.write("${symbol} ")
+        }
+        .AfterOp -> {
+            self.depth += 1
+            self.write(" ${symbol}")
+            self.break_line(right_start.offset, right_start.line)
+        }
+    }
+}
+
+// A kept line break : the comments the source holds before `before`, then a fresh
+// line at the current depth.
+break_line :: fn(self: Printer!, before: usize, node_line: i32) -> void {
+    self.flush_leading_comments(before, node_line)
+    if self.column != 0 {
+        self.newline()
+    }
+    self.indent()
 }
 
 emit_coalesce_fallback :: fn(self: Printer!, fallback: p.CoalesceFallback) -> void {
@@ -1699,11 +1841,14 @@ emit_unary :: fn(self: Printer!, x: p.UnaryExpr) -> void {
 }
 
 emit_binary :: fn(self: Printer!, x: p.BinaryExpr) -> void {
+    symbol :: binary_op_symbol(x.op)
+    place :: self.operator_place(symbol, x.left.span.end, x.right.span.start)
     self.emit_binary_operand(x.left, x.op, true)
-    self.write(" ")
-    self.write(binary_op_symbol(x.op))
-    self.write(" ")
+    self.write_operator(place, symbol, x.right.span.start)
     self.emit_binary_operand(x.right, x.op, false)
+    if place.at != .Inline {
+        self.depth -= 1
+    }
     // `is T as <ident>` — only meaningful for `op == .Is` ; reproduce
     // the optional binding when present so the formatter is round-trip
     // stable.
@@ -1921,6 +2066,7 @@ emit_match :: fn(self: Printer!, x: p.MatchExpr) -> void {
 // ` -> `. Measured via a sub-printer, like `if_cond_width`.
 match_arm_head_width :: fn(source: string, arm: p.MatchArm) -> usize {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.keep_line_breaks = false
     sub.emit_pattern(arm.pattern)
     sub.emit_expr_with_prefix(" if ", arm.guard)
     return sub.finish().bytes().len()

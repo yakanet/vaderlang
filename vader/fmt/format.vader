@@ -53,6 +53,7 @@ export format_source :: fn(source: string, path: string) -> FormatResult {
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/string"
 import "std/testing"
 
 @test
@@ -62,6 +63,45 @@ test_roundtrip_preserves_await_parens :: fn() -> void {
     // (`(await x).f` → `await x.f`).
     fmt_keeps("h :: fn() -> i32 = (await m()).value", "(await m()).value")
     fmt_keeps("k :: fn(a: i32, b: i32) -> i32 = await (a + b)", "await (a + b)")
+}
+
+@test
+test_fmt_keeps_line_break_before_operator :: fn() -> void {
+    fmt_keeps("s :: fn() -> i32 = 1\n    + 2", "= 1\n    + 2")
+    fmt_keeps("f :: fn(x: i32 | null) -> i32 = x\n    ?? 0", "x\n    ?? 0")
+}
+
+@test
+test_fmt_keeps_line_break_after_operator :: fn() -> void {
+    fmt_keeps("s :: fn() -> i32 = 1 +\n    2", "1 +\n    2")
+}
+
+@test
+test_fmt_keeps_comment_between_operands :: fn() -> void {
+    fmt_keeps("s :: fn() -> i32 = 1\n    // the rest\n    + 2", "1\n    // the rest\n    + 2")
+}
+
+@test
+test_fmt_keeps_line_break_after_body_equals :: fn() -> void {
+    fmt_keeps("s :: fn() -> i32 =\n    1 + 2", "=\n    1 + 2")
+}
+
+@test
+test_fmt_indents_a_tighter_operand_deeper :: fn() -> void {
+    // `%` binds tighter than `+` : its continuation is one level further in.
+    fmt_keeps("s :: fn() -> i32 = 1\n    + 4\n    % 3", "= 1\n    + 4\n        % 3")
+}
+
+@test
+test_fmt_adds_no_line_break :: fn() -> void {
+    // A chain past `MAX_LINE` written on one line stays on one line.
+    long :: "s :: fn() -> string = \"${"a".repeat(50)}\" + \"${"b".repeat(50)}\""
+    fmt_keeps(long, "\"${"a".repeat(50)}\" + \"${"b".repeat(50)}\"")
+}
+
+@test
+test_fmt_lays_a_fitting_union_on_one_line :: fn() -> void {
+    fmt_keeps("T ::\n    | A\n    | B", "T :: A | B")
 }
 
 fmt_keeps :: fn(decl: string, needle: string) -> void {
