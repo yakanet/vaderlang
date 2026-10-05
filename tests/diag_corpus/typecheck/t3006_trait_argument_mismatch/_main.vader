@@ -1,0 +1,7 @@
+// T3006: a bound's trait arguments count — `string[]` implements
+// `Contains<string>`, not the `Contains<i32>` that `holds` asks for.
+module "snippet"
+
+holds :: fn<C: Contains<i32>>(c: C, x: i32) -> bool = x in c
+
+main :: fn() -> i32 = if holds(["a"], 2) { 1 } else { 0 }

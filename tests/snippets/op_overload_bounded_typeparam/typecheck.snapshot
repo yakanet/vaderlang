@@ -1,95 +1,135 @@
 # Typecheck
 
 ## tests/snippets/op_overload_bounded_typeparam
+  FnDecl         count_of             :: fn(T[], T) -> i32
+  FnDecl         holds                :: fn(C, i32) -> bool
   FnDecl         largest              :: fn(T[]) -> T
   FnDecl         main                 :: fn() -> i32
+  FnDecl         matches              :: fn(null | T, T) -> bool
   FnDecl         total                :: fn(T[]) -> T
   StructDecl     V                    :: V!
-  expr 14:21    StructLitExpr  :: V!
-  expr 14:30    BinaryExpr     :: i32
-  expr 14:30    FieldExpr      :: i32
-  expr 14:30    IdentExpr      :: V
-  expr 14:39    FieldExpr      :: i32
-  expr 14:39    IdentExpr      :: V
-  expr 15374:13 BinaryExpr     :: bool
-  expr 15374:14 CallExpr       :: i32
-  expr 15374:15 FieldExpr      :: fn(V) -> i32
-  expr 15374:16 IdentExpr      :: V
-  expr 15374:18 IdentExpr      :: V
-  expr 15374:2  BinaryExpr     :: bool
-  expr 15374:24 BinaryExpr     :: bool
-  expr 15374:25 CallExpr       :: i32
-  expr 15374:26 FieldExpr      :: fn(V) -> i32
-  expr 15374:27 IdentExpr      :: V
-  expr 15374:29 IdentExpr      :: V
-  expr 15374:3  CallExpr       :: i32
-  expr 15374:35 BinaryExpr     :: bool
-  expr 15374:36 CallExpr       :: i32
-  expr 15374:37 FieldExpr      :: fn(V) -> i32
-  expr 15374:38 IdentExpr      :: V
-  expr 15374:4  FieldExpr      :: fn(V) -> i32
-  expr 15374:40 IdentExpr      :: V
-  expr 15374:5  IdentExpr      :: V
-  expr 15374:7  IdentExpr      :: V
-  expr 15:28    BinaryExpr     :: i32
-  expr 15:28    FieldExpr      :: i32
-  expr 15:28    IdentExpr      :: V
-  expr 15:37    FieldExpr      :: i32
-  expr 15:37    IdentExpr      :: V
-  expr 18:10    IdentExpr      :: T[]
-  expr 18:10    IndexExpr      :: T
-  expr 19:14    IdentExpr      :: T[]
-  expr 19:14    IndexExpr      :: T[]
-  expr 19:17    RangeExpr      :: Range<usize>!
-  expr 19:21    CallExpr       :: usize
-  expr 19:21    FieldExpr      :: fn() -> usize
-  expr 19:21    IdentExpr      :: T[]
-  expr 20:14    IdentExpr      :: T
-  expr 20:9     BinaryExpr     :: T
-  expr 20:9     IdentExpr      :: T
-  expr 22:12    IdentExpr      :: T
-  expr 26:13    IdentExpr      :: T[]
-  expr 26:13    IndexExpr      :: T
-  expr 27:14    IdentExpr      :: T[]
-  expr 28:12    BinaryExpr     :: bool
-  expr 28:12    IdentExpr      :: T
-  expr 28:16    IdentExpr      :: T
-  expr 28:9     IfExpr         :: void
-  expr 29:13    IdentExpr      :: T
-  expr 29:20    IdentExpr      :: T
-  expr 32:12    IdentExpr      :: T
-  expr 36:13    CallExpr       :: i64
-  expr 36:13    IdentExpr      :: fn(T[]) -> T
-  expr 36:19    SeqLitExpr     :: i64[]
-  expr 36:20    CallExpr       :: i64
-  expr 36:20    IdentExpr      :: type
-  expr 36:40    CallExpr       :: i64
-  expr 36:40    IdentExpr      :: type
-  expr 36:5     CallExpr       :: void
-  expr 36:5     IdentExpr      :: fn(T) -> void
-  expr 37:13    CallExpr       :: f64
-  expr 37:13    IdentExpr      :: fn(T[]) -> T
-  expr 37:19    SeqLitExpr     :: f64[]
-  expr 37:5     CallExpr       :: void
-  expr 37:5     IdentExpr      :: fn(T) -> void
-  expr 38:13    CallExpr       :: V!
-  expr 38:13    FieldExpr      :: i32
-  expr 38:13    IdentExpr      :: fn(T[]) -> T
-  expr 38:19    SeqLitExpr     :: V![]
-  expr 38:20    StructLitExpr  :: V!
-  expr 38:34    StructLitExpr  :: V!
-  expr 38:5     CallExpr       :: void
-  expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 39:13    CallExpr       :: i32
-  expr 39:13    IdentExpr      :: fn(T[]) -> T
-  expr 39:21    SeqLitExpr     :: i32[]
-  expr 39:5     CallExpr       :: void
-  expr 39:5     IdentExpr      :: fn(T) -> void
-  expr 40:13    CallExpr       :: V!
-  expr 40:13    FieldExpr      :: i32
-  expr 40:13    IdentExpr      :: fn(T[]) -> T
-  expr 40:21    SeqLitExpr     :: V![]
-  expr 40:22    StructLitExpr  :: V!
-  expr 40:36    StructLitExpr  :: V!
-  expr 40:5     CallExpr       :: void
-  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 15:21    StructLitExpr  :: V!
+  expr 15:30    BinaryExpr     :: i32
+  expr 15:30    FieldExpr      :: i32
+  expr 15:30    IdentExpr      :: V
+  expr 15:39    FieldExpr      :: i32
+  expr 15:39    IdentExpr      :: V
+  expr 16398:13 BinaryExpr     :: bool
+  expr 16398:14 CallExpr       :: i32
+  expr 16398:15 FieldExpr      :: fn(V) -> i32
+  expr 16398:16 IdentExpr      :: V
+  expr 16398:18 IdentExpr      :: V
+  expr 16398:2  BinaryExpr     :: bool
+  expr 16398:24 BinaryExpr     :: bool
+  expr 16398:25 CallExpr       :: i32
+  expr 16398:26 FieldExpr      :: fn(V) -> i32
+  expr 16398:27 IdentExpr      :: V
+  expr 16398:29 IdentExpr      :: V
+  expr 16398:3  CallExpr       :: i32
+  expr 16398:35 BinaryExpr     :: bool
+  expr 16398:36 CallExpr       :: i32
+  expr 16398:37 FieldExpr      :: fn(V) -> i32
+  expr 16398:38 IdentExpr      :: V
+  expr 16398:4  FieldExpr      :: fn(V) -> i32
+  expr 16398:40 IdentExpr      :: V
+  expr 16398:5  IdentExpr      :: V
+  expr 16398:7  IdentExpr      :: V
+  expr 16:28    BinaryExpr     :: i32
+  expr 16:28    FieldExpr      :: i32
+  expr 16:28    IdentExpr      :: V
+  expr 16:37    FieldExpr      :: i32
+  expr 16:37    IdentExpr      :: V
+  expr 19:10    IdentExpr      :: T[]
+  expr 19:10    IndexExpr      :: T
+  expr 20:14    IdentExpr      :: T[]
+  expr 20:14    IndexExpr      :: T[]
+  expr 20:17    RangeExpr      :: Range<usize>!
+  expr 20:21    CallExpr       :: usize
+  expr 20:21    FieldExpr      :: fn() -> usize
+  expr 20:21    IdentExpr      :: T[]
+  expr 21:14    IdentExpr      :: T
+  expr 21:9     BinaryExpr     :: T
+  expr 21:9     IdentExpr      :: T
+  expr 23:12    IdentExpr      :: T
+  expr 27:13    IdentExpr      :: T[]
+  expr 27:13    IndexExpr      :: T
+  expr 28:14    IdentExpr      :: T[]
+  expr 29:12    BinaryExpr     :: bool
+  expr 29:12    IdentExpr      :: T
+  expr 29:16    IdentExpr      :: T
+  expr 29:9     IfExpr         :: void
+  expr 30:13    IdentExpr      :: T
+  expr 30:20    IdentExpr      :: T
+  expr 33:12    IdentExpr      :: T
+  expr 38:14    IdentExpr      :: T[]
+  expr 39:12    BinaryExpr     :: bool
+  expr 39:12    IdentExpr      :: T
+  expr 39:17    IdentExpr      :: T
+  expr 39:9     IfExpr         :: void
+  expr 40:13    BinaryExpr     :: i32
+  expr 40:13    IdentExpr      :: i32
+  expr 43:12    IdentExpr      :: i32
+  expr 46:55    BinaryExpr     :: bool
+  expr 46:55    IdentExpr      :: i32
+  expr 46:60    IdentExpr      :: C
+  expr 49:64    BinaryExpr     :: bool
+  expr 49:64    IdentExpr      :: null | T
+  expr 49:73    IdentExpr      :: T
+  expr 52:13    CallExpr       :: i64
+  expr 52:13    IdentExpr      :: fn(T[]) -> T
+  expr 52:19    SeqLitExpr     :: i64[]
+  expr 52:20    CallExpr       :: i64
+  expr 52:20    IdentExpr      :: type
+  expr 52:40    CallExpr       :: i64
+  expr 52:40    IdentExpr      :: type
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
+  expr 53:13    CallExpr       :: f64
+  expr 53:13    IdentExpr      :: fn(T[]) -> T
+  expr 53:19    SeqLitExpr     :: f64[]
+  expr 53:5     CallExpr       :: void
+  expr 53:5     IdentExpr      :: fn(T) -> void
+  expr 54:13    CallExpr       :: V!
+  expr 54:13    FieldExpr      :: i32
+  expr 54:13    IdentExpr      :: fn(T[]) -> T
+  expr 54:19    SeqLitExpr     :: V![]
+  expr 54:20    StructLitExpr  :: V!
+  expr 54:34    StructLitExpr  :: V!
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(T) -> void
+  expr 55:13    CallExpr       :: i32
+  expr 55:13    IdentExpr      :: fn(T[]) -> T
+  expr 55:21    SeqLitExpr     :: i32[]
+  expr 55:5     CallExpr       :: void
+  expr 55:5     IdentExpr      :: fn(T) -> void
+  expr 56:13    CallExpr       :: V!
+  expr 56:13    FieldExpr      :: i32
+  expr 56:13    IdentExpr      :: fn(T[]) -> T
+  expr 56:21    SeqLitExpr     :: V![]
+  expr 56:22    StructLitExpr  :: V!
+  expr 56:36    StructLitExpr  :: V!
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void
+  expr 57:13    CallExpr       :: i32
+  expr 57:13    IdentExpr      :: fn(T[], T) -> i32
+  expr 57:22    SeqLitExpr     :: string[]
+  expr 57:23    StringLitExpr  :: string
+  expr 57:28    StringLitExpr  :: string
+  expr 57:33    StringLitExpr  :: string
+  expr 57:39    StringLitExpr  :: string
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(T) -> void
+  expr 58:13    CallExpr       :: bool
+  expr 58:13    IdentExpr      :: fn(C, i32) -> bool
+  expr 58:19    SeqLitExpr     :: i32[]!
+  expr 58:5     CallExpr       :: void
+  expr 58:5     IdentExpr      :: fn(T) -> void
+  expr 59:13    CallExpr       :: bool
+  expr 59:13    IdentExpr      :: fn(C, i32) -> bool
+  expr 59:19    SeqLitExpr     :: i32[]!
+  expr 59:5     CallExpr       :: void
+  expr 59:5     IdentExpr      :: fn(T) -> void
+  expr 60:13    CallExpr       :: bool
+  expr 60:13    IdentExpr      :: fn(null | T, T) -> bool
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(T) -> void

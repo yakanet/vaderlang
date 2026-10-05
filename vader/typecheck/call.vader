@@ -1116,8 +1116,12 @@ check_typeparam_bounds :: fn(
 ) -> void {
     for [id, bound_ty] in bindings {
         bound :: typed.type_param_bound_traits[id] ?? continue
-        for key in bound.traits {
-            if satisfies_bound(bound_ty, key, typed) {
+        for trait_ty in bound.traits {
+            key :: trait_key_of(trait_ty.symbol)
+            wanted: Type: if trait_ty.args.len() == 0 { trait_ty } else {
+                substitute_map(trait_ty, bindings)
+            }
+            if satisfies_bound(bound_ty, key, typed) && meets_trait_args(bound_ty, wanted, typed) {
                 continue
             }
             // `satisfies_bound` refuses an array any `Display` : say why.
@@ -1125,13 +1129,27 @@ check_typeparam_bounds :: fn(
                 ("an array renders only when interpolated directly, not through type "
                     + "parameter `${bound.name}` of `${callee_name(c.callee)}`")
             } else {
-                ("`${display_type(bound_ty)}` does not implement `${trait_key_name(key)}` "
+                ("`${display_type(bound_ty)}` does not implement `${display_type(wanted)}` "
                     + "(required by type parameter `${bound.name}` of `${callee_name(c.callee)}`)"
                     + unmet_impl_bound_note(bound_ty, key, typed))
             }
             diags.push(typecheck_error(.TraitNotSatisfied, c.span, detail))
         }
     }
+}
+
+// Whether `t` implements `wanted` at its arguments — `Contains<string>` is no
+// `Contains<i32>`. A trait without arguments is `satisfies_bound`'s alone (an
+// enum's `Equals` has no impl to compare) ; arguments the call left unbound, or a
+// type the check cannot see into, are undecided and so met.
+meets_trait_args :: fn(t: Type, wanted: Type, typed: TypedProgram) -> bool {
+    if wanted !is TraitType || wanted.args.len() == 0 || type_contains_type_param(wanted) {
+        return true
+    }
+    if t is TypeParamType {
+        return bound_widens_into(t, wanted, typed)
+    }
+    return t is UnresolvedType | AnyType || implements_trait_instance(t, wanted, typed)
 }
 
 // T3006 for a UFCS call whose curried signature kept none of the callee's type

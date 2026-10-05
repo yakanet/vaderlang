@@ -1,5 +1,6 @@
 // Operators on a type parameter bounded by the operator's trait. `T: Add`
-// grants `+` / `+=` and `T: Comparable` grants `<` / `>` inside the generic
+// grants `+` / `+=`, `T: Comparable` grants `<` / `>`, `T: Equals` grants `==`
+// between two `T`s, and `C: Contains<i32>` grants `x in c` inside the generic
 // body ; each instance is monomorphised, so a primitive `T` gets the native
 // op and a struct `T` the call into its impl.
 
@@ -32,11 +33,30 @@ largest :: fn<T: Comparable>(xs: T[]) -> T {
     return best
 }
 
+count_of :: fn<T: Equals>(xs: T[], wanted: T) -> i32 {
+    n := 0
+    for x in xs {
+        if x == wanted {
+            n += 1
+        }
+    }
+    return n
+}
+
+holds :: fn<C: Contains<i32>>(c: C, x: i32) -> bool = x in c
+
+// A `T | null` compares with a `T`.
+matches :: fn<T: Equals>(found: T | null, wanted: T) -> bool = found == wanted
+
 main :: fn() -> i32 {
     println(total([i64(3_000_000_000), i64(1)]))
     println(total([1.5, 2.25]))
     println(total([V { .x = 2 }, V { .x = 3 }]).x)
     println(largest([3, 9, 4]))
     println(largest([V { .x = 7 }, V { .x = 1 }]).x)
+    println(count_of(["a", "b", "a"], "a"))
+    println(holds([4, 5], 5))
+    println(holds([4, 5], 6))
+    println(matches(7, 7))
     return 0
 }

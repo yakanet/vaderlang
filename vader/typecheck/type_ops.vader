@@ -644,6 +644,14 @@ export resolve_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedP
         for a in raw { out.push(substitute_by_name(a, struct_decl.type_params, t.args)) }
         return out
     }
+    if t is ArrayType {
+        // `T[] implements<T: Equals> Contains<T>` gives `i32[]` the argument `i32`.
+        out: Type[]!: []
+        for a in raw {
+            out.push(substitute_array_element(a, t.element))
+        }
+        return out
+    }
     return raw
 }
 

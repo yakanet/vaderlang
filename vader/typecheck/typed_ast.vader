@@ -171,12 +171,11 @@ export import_binding_by_id :: fn(sym_id: i32, typed: TypedProgram) -> Symbol | 
 }
 
 /// The traits a type parameter's bound names — `T: Add & Zero` gives `Add` and
-/// `Zero` — as `trait_key`s.
+/// `Zero`, `C: Contains<i32>` gives `Contains<i32>`, argument included.
 export TypeParamBound :: struct {
     /// The type parameter, as written.
     name: string
-    /// The traits, by `trait_key`.
-    traits: string[]
+    traits: TraitType[]
 }
 
 /// A static trait member reached through the type that owns it — `T.zero()`,

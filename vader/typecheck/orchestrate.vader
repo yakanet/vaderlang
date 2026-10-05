@@ -935,8 +935,8 @@ record_type_param_bounds :: fn(
             continue
         }
         bound :: resolved.type_param_bounds[sym.id] ?? continue
-        traits: string[]!: []
-        collect_bound_traits(bound, resolved, traits)
+        traits: TraitType[]!: []
+        collect_bound_trait_types(bound, resolved, traits)
         out[sym.id] = TypeParamBound { .name = sym.name, .traits = traits }
     }
 }
@@ -947,14 +947,23 @@ record_type_param_bounds :: fn(
 /// @param resolved  the module that declares the type parameter.
 /// @param out       receives one key per trait, left to right.
 export collect_bound_traits :: fn(bound: AST.Expr, resolved: ResolvedModule, out: string[]!) -> void {
+    traits: TraitType[]!: []
+    collect_bound_trait_types(bound, resolved, traits)
+    for t in traits {
+        out.push(trait_key_of(t.symbol))
+    }
+}
+
+// The traits `bound` names, with their arguments (`Contains<i32>`), left to right.
+collect_bound_trait_types :: fn(bound: AST.Expr, resolved: ResolvedModule, out: TraitType[]!) -> void {
     if bound is AST.BinaryExpr && bound.op == .BitAnd {
-        collect_bound_traits(bound.left, resolved, out)
-        collect_bound_traits(bound.right, resolved, out)
+        collect_bound_trait_types(bound.left, resolved, out)
+        collect_bound_trait_types(bound.right, resolved, out)
         return
     }
     bound_type :: type_from_expr(bound, resolved, diag_sink())
     if bound_type is TraitType {
-        out.push(trait_key_of(bound_type.symbol))
+        out.push(bound_type)
     }
 }
 

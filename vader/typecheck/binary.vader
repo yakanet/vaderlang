@@ -344,16 +344,16 @@ check_operator_rhs :: fn(
 /// as for a bounded method call, so the lowerer finds the impl after
 /// substitution. Null when `recv` is not such a parameter.
 ///
-/// @param recv         the left operand's type.
-/// @param operand      the right operand's type, checked against the method's `other`.
+/// @param recv         the receiver operand's type : the left one, the right one for `in`.
+/// @param operand      the other operand's type, checked against the method's `other`.
 /// @param trait_name   the operator's trait (`TRAIT_ADD`, …) ; a same-named method of
 ///                     another bound trait does not count, since the lowerer looks
 ///                     the instance's impl up by trait.
 /// @param method_name  the trait method the operator calls (`add`, `compare`, …).
 /// @param op_label     how a mismatch names the operator.
-/// @param span         the right operand, where a mismatch is reported.
+/// @param span         the other operand, where a mismatch is reported.
 /// @return             the method specialised at `recv`.
-/// @error              T3017 when the right operand does not fit the method's `other`.
+/// @error              T3017 when the other operand does not fit the method's `other`.
 check_bounded_operator :: fn(
     recv: Type,
     operand: Type,
@@ -382,7 +382,7 @@ check_bounded_operator :: fn(
     return specialised
 }
 
-// T3017 on an operator whose right operand does not fit the method's `other`.
+// T3017 on an operator whose operand does not fit the slot `want` it fills.
 push_operand_mismatch :: fn(
     recv: Type,
     operand: Type,
@@ -545,6 +545,19 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram!,
     if has_impl_method(right, METHOD_CONTAINS, typed) {
         return TY_BOOL
     }
+    // A container type parameter whose bound names `Contains` (`C: Contains<i32>`).
+    if check_bounded_operator(
+        right,
+        left,
+        TRAIT_CONTAINS,
+        METHOD_CONTAINS,
+        "operator in",
+        e.left.span,
+        typed,
+        diags,
+    ) != null {
+        return TY_BOOL
+    }
     fb :: distinct_op_fallback(e, left, right, typed, diags, check_in)
     if fb != null {
         return fb
@@ -557,6 +570,7 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram!,
 /// mismatched pair is a clean diagnostic rather than a lowering-time
 /// dereference of the wrong operand :
 ///   - `x == null` / `null == x` : always valid ; runs the T3040 overlap check.
+///   - a type-parameter operand : the other must be the same parameter (T3017).
 ///   - two numerics : must be the same family / width (`numeric_result`, T3017) ;
 ///     free literals fold, so `x == 0` still type-checks.
 ///   - a struct operand : requires an `Equals` impl on the (left-preferred)
@@ -583,6 +597,19 @@ check_equality :: fn(
     }
     if is_null_type(left) {
         check_is_overlap(e, right, left, diags)
+        return TY_BOOL
+    }
+    // A type parameter is opaque in its body : only a value of the same parameter
+    // compares with it (`T | null` included) — never a literal, which no instance
+    // but a numeric one holds.
+    label :: if e.op == .Eq { "operator ==" } else { "operator !=" }
+    comparable :: is_assignable(left, right) || is_assignable(right, left)
+    if left is TypeParamType && !comparable {
+        push_operand_mismatch(left, right, left, label, e.right.span, diags)
+        return TY_BOOL
+    }
+    if right is TypeParamType && !comparable {
+        push_operand_mismatch(right, left, right, label, e.left.span, diags)
         return TY_BOOL
     }
     if unrelated_distincts(left, right) {
@@ -648,7 +675,7 @@ check_equality :: fn(
     if left is StructType || left is ArrayType || right is StructType || right is ArrayType {
         needs :: if left is StructType || left is ArrayType { left } else { right }
         other :: if left is StructType || left is ArrayType { right } else { left }
-        ft :: check_operator_rhs(needs, other, METHOD_EQUALS, "operator ==", e.span, typed, diags)
+        ft :: check_operator_rhs(needs, other, METHOD_EQUALS, label, e.span, typed, diags)
         if ft == null && (other is StructType || other is ArrayType || other is PrimitiveType) {
             push_trait_missing(e, needs, TRAIT_EQUALS, diags)
         }

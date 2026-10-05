@@ -10,7 +10,6 @@
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
-  ArrayOps<T>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
@@ -23,3 +22,4 @@
   Range<T>
   Range<T>
   Range<T>
+  ArrayOps<T>

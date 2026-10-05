@@ -1413,10 +1413,10 @@ make_buffer :: fn<N: i32>() -> FixedArray<u8, N> { ... }
 **Implementation**: monomorphization at compile time, driven by the comptime engine. Single specialization machinery.
 
 **Bound enforcement and trait-method dispatch on type parameters**: both wired since Layer 7e. The typechecker:
-- Resolves `key.hash()` inside a generic body where `key: K` and `K: Hash` to the trait method statically, then mono-substitutes it to the concrete type's impl member. An operator on such a parameter goes the same way (`a + b` with `T: Add`, `a < b` with `T: Comparable` — see *Operator overloading*).
-- At every call site of a generic fn, checks each type argument the call binds against every trait of its parameter's bound (`<T: Trait>`, each of `<T: A & B>`). A type lacking an impl of one yields T3006 ("trait not satisfied"). The check is the same wherever the callee is declared (in the module, imported, behind a namespace alias) and however it is called — directly, or through UFCS, where the receiver alone may bind the parameter (`m.println()`). A type argument that is itself a type parameter meets a bound its own bound names; an enum meets `Equals` with no impl, since it compares by variant.
+- Resolves `key.hash()` inside a generic body where `key: K` and `K: Hash` to the trait method statically, then mono-substitutes it to the concrete type's impl member. An operator on such a parameter goes the same way (`a + b` with `T: Add`, `a < b` with `T: Comparable`, `a == b` with `T: Equals`, `x in c` with `C: Contains<E>` — see *Operator overloading*).
+- At every call site of a generic fn, checks each type argument the call binds against every trait of its parameter's bound (`<T: Trait>`, each of `<T: A & B>`), arguments included: `C: Contains<i32>` is not met by a `string[]`, whose impl is `Contains<string>`. A type lacking a matching impl yields T3006 ("trait not satisfied"). The check is the same wherever the callee is declared (in the module, imported, behind a namespace alias) and however it is called — directly, or through UFCS, where the receiver alone may bind the parameter (`m.println()`). A type argument that is itself a type parameter meets a bound its own bound names; an enum meets `Equals` with no impl, since it compares by variant.
 
-**Type parameters are opaque in their body.** A generic body must hold for every instance, so it knows nothing of `T` beyond its bound: only a `T` fits a slot typed `T`, and a `T` fits only a slot that names it (`T`, or a union such as `T | null`). Each of these is rejected (T3001; T3020 on a `return`; T3017 on an operator's right operand), because a `T = string` instance would receive an integer or hand one out:
+**Type parameters are opaque in their body.** A generic body must hold for every instance, so it knows nothing of `T` beyond its bound: only a `T` fits a slot typed `T`, and a `T` fits only a slot that names it (`T`, or a union such as `T | null`). Each of these is rejected (T3001; T3020 on a `return`; T3017 on an operator's operand), because a `T = string` instance would receive an integer or hand one out:
 
 ```vader
 widen :: fn<T>(x: T) -> i64 {
@@ -1435,7 +1435,7 @@ zero :: fn<T: Add>(x: T) -> T {
 }
 ```
 
-The same holds for `pick(x, 0)` where `pick` takes two `T`, for `f(2.5)` through a parameter `f: fn(T) -> T`, and for `x > 0` with `T: Comparable`. A call through a fn-typed parameter binds none of the enclosing fn's type parameters; a local holding a generic fn (`g :: identity`) still binds its own at each call.
+The same holds for `pick(x, 0)` where `pick` takes two `T`, for `f(2.5)` through a parameter `f: fn(T) -> T`, for `x > 0` with `T: Comparable`, and for `x == 0` with `T: Equals`. A call through a fn-typed parameter binds none of the enclosing fn's type parameters; a local holding a generic fn (`g :: identity`) still binds its own at each call.
 
 Matching an argument against a signature that nothing has instantiated yet is a different question, where a type parameter is still free: choosing an overload, choosing the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>`), and checking the fields of a generic struct literal written without type arguments (`Box { .value = [4, 5] }`). A free literal still needs a type to land on, and such a literal binds none: `Box { .value = 0 }` is T3001 — write `Box<i32> { .value = 0 }`.
 
