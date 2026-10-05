@@ -1,0 +1,82 @@
+// `==` on a union compares by value: the two sides hold the same variant, and
+// those two values are equal by that variant's own rule — its `Equals`, a
+// tuple's fields, a scalar's value. `null` equals `null`.
+//
+// A union compares with another union or with one of its members. A `T | null`
+// in a generic body compares through `T`'s `Equals`, and so does a tuple holding
+// a `T` ; an instance of a generic struct beside `null` too. A distinct over a
+// tuple uses its own `Equals`. A float in a union follows IEEE 754, as a bare one
+// does.
+
+module "snippet"
+
+import "std/io"
+
+Point :: struct {
+    x: i32
+}
+
+Point implements Equals -> self.x == other.x
+
+Label :: struct {
+    text: string
+}
+
+Label implements Equals -> self.text == other.text
+
+Shape :: Point | Label
+
+Color :: enum { Red, Green }
+
+Box :: struct<T> {
+    value: T
+}
+
+Box<T> implements<T: Equals> Equals -> self.value == other.value
+
+// Equal when the first field is: the impl, not the fields, decides.
+Pair :: [i32, i32]
+
+Pair implements Equals -> self.0 == other.0
+
+same_opt :: fn<T: Equals>(a: T | null, b: T) -> bool = a == b
+
+same_pair :: fn<T: Equals>(a: [T, i32], b: [T, i32]) -> bool = a == b
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1 }
+    q :: Point { .x = 1 }
+    r :: Point { .x = 2 }
+    s1: Shape: p
+    s2: Shape: q
+    s3: Shape: r
+    s4: Shape: Label { .text = "a" }
+    println("${s1 == s2} ${s1 == s3} ${s1 == s4} ${s1 != s3}")
+    println("${s1 == q} ${q == s1} ${s4 == q}")
+    n1: i64 | string: i64(5)
+    n2: i64 | string: i64(5)
+    n3: i64 | string: "5"
+    println("${n1 == n2} ${n1 == n3}")
+    o1: Point | null: p
+    o2: Point | null: null
+    o3: Point | null: null
+    println("${o1 == q} ${o2 == o3} ${o1 == o2}")
+    println("${same_opt(p, q)} ${same_opt(null, q)} ${same_opt(r, q)}")
+    println("${same_pair([p, 1], [q, 1])} ${same_pair([p, 1], [r, 1])}")
+    t1 :: [1, s1]
+    t2 :: [1, s2]
+    println("${t1 == t2}")
+    c: Color | null: .Red
+    println("${c == Color.Red} ${c == Color.Green}")
+    nan :: 0.0 / 0.0
+    f1: f64 | null: nan
+    z1: f64 | null: 0.0
+    z2: f64 | null: -0.0
+    println("${f1 == f1} ${z1 == z2}")
+    boxed: Box<Point> | null: Box<Point> { .value = p }
+    println("${boxed == Box<Point> { .value = q }} ${boxed == Box<Point> { .value = r }}")
+    first: Pair: [1, 2]
+    second: Pair: [1, 3]
+    println("${first == second}")
+    return 0
+}

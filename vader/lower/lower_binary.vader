@@ -152,10 +152,10 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
     if binary.op == .Eq || binary.op == .Neq {
         null_rewrite :: try_lower_null_eq(ctx, binary)
         if null_rewrite != null { return null_rewrite }
-        // A tuple has no impl to overload, so it is rewritten here rather than
-        // through the trait router. See `lower_tuple_eq.vader`.
-        tuple_rewrite :: try_lower_tuple_eq(ctx, binary)
-        if tuple_rewrite != null { return tuple_rewrite }
+        // A tuple or a union has no impl to overload, so it is rewritten here
+        // rather than through the trait router. See `lower_value_eq.vader`.
+        value_rewrite :: try_lower_value_eq(ctx, binary)
+        if value_rewrite != null { return value_rewrite }
     }
     // `[lhs] * n` — array repeat / preallocation. A numeric `*` never yields an
     // array, so an array result type uniquely marks this case. Lower to the

@@ -1,0 +1,22 @@
+// T3087: `==` on a union tests which variant each side holds. An instance of a
+// generic struct whose body other instances share has no tag of its own, so it
+// can only be told from `null` — beside another variant, the test is refused.
+module "snippet"
+
+Point :: struct {
+    x: i32
+}
+
+Point implements Equals -> self.x == other.x
+
+Box :: struct<T> {
+    value: T
+}
+
+Box<T> implements<T: Equals> Equals -> self.value == other.value
+
+main :: fn() -> i32 {
+    a: Box<Point> | Point: Point { .x = 1 }
+    b: Box<Point> | Point: Point { .x = 1 }
+    return if a == b { 0 } else { 1 }
+}

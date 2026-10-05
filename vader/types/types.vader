@@ -590,6 +590,11 @@ export TY_STRING     :: PrimitiveType { .name = "string" }
 export TY_NULL       :: PrimitiveType { .name = "null" }
 export TY_CPOINTER   :: PrimitiveType { .name = "CPointer" }
 
+/// Whether `t` is the `null` type.
+///
+/// @param t  the type to test.
+export is_null_type :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "null"
+
 // ---- display --------------------------------------------------------------
 
 /// Render `t` as a human-readable string. The format is fixed so dumps
@@ -950,6 +955,25 @@ export kept_type_argument :: fn(t: Type) -> Type | null {
         return backing
     }
     return null
+}
+
+/// Whether a value of `t` carries no tag of its own to test at run time : an erased
+/// type parameter, or an instance of a generic struct whose body the instances
+/// erasing one of its arguments share (T3087).
+///
+/// @param t  a variant of a union.
+export is_untagged :: fn(t: Type) -> bool {
+    if t is AnyType || t is TypeParamType {
+        return true
+    }
+    if t is StructType {
+        for arg in t.args {
+            if arg !is UnresolvedType && kept_type_argument(arg) == null {
+                return true
+            }
+        }
+    }
+    return false
 }
 
 /// Whether a boxed value of type `t` carries its representation's runtime type

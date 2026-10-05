@@ -1,0 +1,14 @@
+// T3001: a union compares by variant, so two sides that can never hold the same
+// variant are never equal — a `Point | null` against a `string` is a mistake.
+module "snippet"
+
+Point :: struct {
+    x: i32
+}
+
+Point implements Equals -> self.x == other.x
+
+main :: fn() -> i32 {
+    p: Point | null: Point { .x = 1 }
+    return if p == "x" { 0 } else { 1 }
+}

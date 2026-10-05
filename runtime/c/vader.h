@@ -303,7 +303,8 @@ static inline vader_box_t vader_box_f64(uint32_t tag, vader_f64_t v) {
     vader_box_t bx; bx.tag = tag; bx._pad = 0; bx.payload.f = v; return bx;
 }
 static inline vader_box_t vader_box_bool(uint32_t tag, vader_bool_t v) {
-    vader_box_t bx; bx.tag = tag; bx._pad = 0; bx.payload.b = v; return bx;
+    /* Zero the 8-byte alias first: `vader_box_eq` compares all of it. */
+    vader_box_t bx; bx.tag = tag; bx._pad = 0; bx.payload.obj = NULL; bx.payload.b = v; return bx;
 }
 static inline vader_box_t vader_box_string(uint32_t tag, vader_string_t v) {
     /* Zero the 8-byte obj alias first so `vader_box_eq`'s `payload.obj ==`

@@ -1,0 +1,203 @@
+// vader/lower/lower_value_eq — `==` / `!=` on a tuple or a union, compared by value.
+//
+// Neither has an `Equals` impl to call. A tuple compares field by field: it has no
+// identity to observe, since `t[0] = x` is T3008. A union compares by variant: two
+// of its values are equal when both hold the same variant and those two are equal
+// by that variant's own rule ; `null` equals `null`.
+//
+// The rewrite reads each side once, then folds over the parts:
+//
+//     { ta :: a ; tb :: b ; ta._0 == tb._0 && ta._1 == tb._1 }
+//     { ua :: a ; ub :: b ; ua is P && ub is P && ua.equals(ub) || ua is null && ub is null }
+//
+// `!=` negates the whole fold — one node, whatever the shape. A union whose
+// variants all compare by their bits (integers, `bool`, `char`, `string`, enums)
+// is left to the box compare, which already answers by value for them.
+//
+// EVERY part form has to be handled here: these comparisons are emitted directly
+// and never go back through `lower_expr`, so a nested tuple or union that fell
+// through would compare two boxes, and a struct would reach `ref.eq`.
+// `typecheck/binary.vader` refuses the parts with no `==` (`part_without_equality`),
+// proves two tuple operands EQUAL — which lets the left type drive both sides —
+// and a union operand to share a variant with the other (`shares_variant`).
+
+module "vader/lower"
+
+import "std/collections"
+import "toolchain/ast"
+import "toolchain/span"
+import "vader/typecheck"
+import "vader/types"
+
+try_lower_value_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr | null {
+    left_ty  :: ctx.types.expr_type(binary.left)
+    right_ty :: ctx.types.expr_type(binary.right)
+    // A distinct over a tuple (`Pair :: [i32, i32]`) compares through its
+    // backing: the nominal wrapper carries no identity of its own.
+    tuples :: tuple_backing(left_ty) != null && tuple_backing(right_ty) != null
+    unions :: left_ty is UnionType || right_ty is UnionType
+    if !tuples && (!unions || compares_by_bits(left_ty) && compares_by_bits(right_ty)) {
+        return null
+    }
+    span :: binary.span
+    stmts: LoweredStmt[]!: []
+    left  :: bind_unless_stable(ctx, lower_expr(ctx, binary.left), "eq_l", span, stmts)
+    right :: bind_unless_stable(ctx, lower_expr(ctx, binary.right), "eq_r", span, stmts)
+    equal :: value_eq(ctx, left, left_ty, right, right_ty, span)
+    return with_prelude(stmts, maybe_negate(equal, binary.op == .Neq, span), span)
+}
+
+// Whether every value of `t` compares by its bits — the payload of its box — so that
+// a box compare is already `==` : an integer, `bool`, `char`, `string`, an enum. Not
+// a float (`nan`, `-0.0`), nor a struct, a tuple, a distinct or a type parameter.
+compares_by_bits :: fn(t: Type) -> bool {
+    for v in union_variants(t) ?? [t] {
+        bits :: v is EnumType || v is PrimitiveType && !is_float_name(v.name)
+        if !bits {
+            return false
+        }
+    }
+    return true
+}
+
+// `left == right`, by the rule their types need. Both sides are side-effect free —
+// a temporary, a stable operand, a field or a cast of one — so naming each once per
+// part is free. Exhaustive over `Type`, like `part_without_equality`, so the two
+// cannot drift.
+value_eq :: fn(
+    ctx: FnLowerCtx!,
+    left: LoweredExpr,
+    left_ty: Type,
+    right: LoweredExpr,
+    right_ty: Type,
+    span: Span,
+) -> LoweredExpr {
+    if right_ty is UnionType {
+        return variant_disjunction(ctx, left, left_ty, right, right_ty, span)
+    }
+    return match left_ty {
+        is UnionType -> variant_disjunction(ctx, left, left_ty, right, right_ty, span)
+        is TupleType -> field_conjunction(ctx, left, right, left_ty, span)
+        is StructType | ArrayType ->
+            equals_call(ctx, left, left_ty, right, span) ?? no_equals(left_ty, span)
+        // Its own `Equals` when it has one, its backing's rule otherwise.
+        is DistinctType ->
+            equals_call(ctx, left, left_ty, right, span)
+                ?? value_eq(ctx, left, left_ty.backing, right, left_ty.backing, span)
+        // An erased type parameter: the boxed receiver's tag picks the impl.
+        is AnyType | TypeParamType -> virtual_equals(ctx, left, right, span)
+        is PrimitiveType | EnumType | FreeIntType | FreeFloatType | FreeCharType -> LoweredBinary {
+            .span = span,
+            .type = TY_BOOL,
+            .op = .Eq,
+            .left = left,
+            .right = right,
+        }
+        is TraitType | FnType | SelfType | TypeMetaType | NeverType | UnresolvedType ->
+            no_equals(left_ty, span)
+    }
+}
+
+// A call to `t`'s `Equals` impl ; null when it has none.
+equals_call :: fn(
+    ctx: FnLowerCtx!, left: LoweredExpr, t: Type, right: LoweredExpr, span: Span,
+) -> LoweredExpr | null {
+    equals_key :: core_trait_key(TRAIT_EQUALS)
+    member :: resolve_impl_member(ctx, t, equals_key, METHOD_EQUALS) ?? return null
+    return build_member_call_or_inline(member, [left, right], TY_BOOL, span)
+}
+
+virtual_equals :: fn(
+    ctx: FnLowerCtx!, left: LoweredExpr, right: LoweredExpr, span: Span,
+) -> LoweredExpr {
+    equals_key :: core_trait_key(TRAIT_EQUALS)
+    ctx.project.virtually_dispatched_traits.add(equals_key)
+    return LoweredVirtualCall {
+        .span = span,
+        .type = TY_BOOL,
+        .trait_name = equals_key,
+        .method = METHOD_EQUALS,
+        .receiver = left,
+        .args = [right],
+        .param_types = [],
+    }
+}
+
+// `left == right` folded over the fields of `ty`.
+field_conjunction :: fn(
+    ctx: FnLowerCtx!, left: LoweredExpr, right: LoweredExpr, ty: TupleType, span: Span,
+) -> LoweredExpr {
+    fields: LoweredExpr[]!: []
+    for i in 0..<ty.elements.len() {
+        elem_ty :: ty.elements[i]
+        l :: field_of(left, elem_ty, "_${i}", span)
+        r :: field_of(right, elem_ty, "_${i}", span)
+        fields.push(value_eq(ctx, l, elem_ty, r, elem_ty, span))
+    }
+    return and_all(span, fields)
+}
+
+field_of :: fn(target: LoweredExpr, ty: Type, field: string, span: Span) -> LoweredExpr =
+    LoweredFieldAccess {
+        .span = span,
+        .type = ty,
+        .field = field,
+        .target = target,
+    }
+
+// `left == right` folded over the variants the two sides share (`same_variant`):
+// each holds its own form of the variant — a side that is no union holds its one
+// type — and the two are equal by its rule. False when they share none.
+variant_disjunction :: fn(
+    ctx: FnLowerCtx!,
+    left: LoweredExpr,
+    left_ty: Type,
+    right: LoweredExpr,
+    right_ty: Type,
+    span: Span,
+) -> LoweredExpr {
+    terms: LoweredExpr[]!: []
+    for l_variant in union_variants(left_ty) ?? [left_ty] {
+        r_variant :: counterpart(right_ty, l_variant) ?? continue
+        parts: LoweredExpr[]!: []
+        holds_test(left, left_ty, l_variant, span, parts)
+        holds_test(right, right_ty, r_variant, span, parts)
+        if !is_null_type(l_variant) {
+            l :: narrow_target(left, left_ty, l_variant, span)
+            r :: narrow_target(right, right_ty, r_variant, span)
+            parts.push(value_eq(ctx, l, l_variant, r, l_variant, span))
+        }
+        terms.push(and_all(span, parts))
+    }
+    return or_all(span, terms)
+}
+
+// Push the test that `value`, of type `t`, holds `variant` now — none when `t` is no
+// union, which always does. A variant with no tag of its own (`is_untagged`) sits
+// only beside `null` (T3087): it is whatever is not `null`.
+holds_test :: fn(
+    value: LoweredExpr, t: Type, variant: Type, span: Span, out: LoweredExpr[]!,
+) -> void {
+    if t !is UnionType {
+        return
+    }
+    if is_untagged(variant) {
+        out.push(maybe_negate(type_check(value, TY_NULL, span), true, span))
+        return
+    }
+    out.push(type_check(value, variant, span))
+}
+
+type_check :: fn(value: LoweredExpr, check: Type, span: Span) -> LoweredExpr = LoweredTypeCheck {
+    .span = span,
+    .type = TY_BOOL,
+    .value = value,
+    .check_type = check,
+}
+
+// A part typecheck has proven to compare, yet with no `Equals` to call.
+no_equals :: fn(t: Type, span: Span) -> LoweredExpr = LoweredUnreachable {
+    .span = span,
+    .type = TY_BOOL,
+    .reason = "`==` on `${display_type(t)}`, which has no `Equals`",
+}

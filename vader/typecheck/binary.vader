@@ -583,16 +583,20 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram!,
 /// mismatched pair is a clean diagnostic rather than a lowering-time
 /// dereference of the wrong operand :
 ///   - `x == null` / `null == x` : always valid ; runs the T3040 overlap check.
-///   - a type-parameter operand : the other must be the same parameter (T3017),
-///     and its bound must name `Equals` (T3043), a variant of a union included.
+///   - a type-parameter operand : the other must be the same parameter (T3017).
+///   - every part of each operand — itself, the variants of its union, the
+///     elements of its tuple — must compare (`part_without_equality`, T3043).
+///   - a union operand : the other side must share a variant (T3001), and a
+///     variant with no tag of its own may sit only beside `null` (T3087) ; it
+///     compares by variant (`lower/lower_value_eq.vader`).
+///   - two distinct types neither of which is the other's backing : T3001.
 ///   - two numerics : must be the same family / width (`numeric_result`, T3017) ;
 ///     free literals fold, so `x == 0` still type-checks.
-///   - a struct operand : requires an `Equals` impl on the (left-preferred)
-///     struct AND the other operand assignable to its `other: Self` param —
-///     `struct == prim` / `Foo == Bar` / a struct without `Equals` is rejected
-///     (T3043 / T3017), never a silent reference compare.
-///   - everything else (enums, strings, bool, char, unions, distinct, arrays,
-///     unresolved) keeps built-in or undecidable equality.
+///   - two scalars : one representation (T3001).
+///   - two tuples : one type (T3001), compared element by element.
+///   - a struct operand : the other must fit its `Equals`'s `other: Self` (T3017).
+///   - everything else (enums, strings, bool, char, unresolved) keeps built-in
+///     or undecidable equality.
 check_equality :: fn(
     e: AST.BinaryExpr,
     left: Type,
@@ -626,12 +630,23 @@ check_equality :: fn(
         push_operand_mismatch(right, left, right, label, e.left.span, diags)
         return TY_BOOL
     }
-    unbounded := param_without_equals(left, typed)
-    if unbounded == null {
-        unbounded = param_without_equals(right, typed)
+    incomparable := part_without_equality(left, typed)
+    if incomparable == null {
+        incomparable = part_without_equality(right, typed)
     }
-    if unbounded != null {
-        push_trait_missing(e, unbounded, TRAIT_EQUALS, diags)
+    if incomparable != null {
+        push_trait_missing(e, incomparable, TRAIT_EQUALS, diags)
+        return TY_BOOL
+    }
+    // A union compares by variant, against another union or one of its members.
+    if left is UnionType || right is UnionType {
+        if !shares_variant(left, right) {
+            diags.push(typecheck_error(.TypeMismatch, e.span,
+                "`${display_type(left)}` and `${display_type(right)}` share no variant"))
+        } else {
+            reject_untagged_beside_variants(e, left, diags)
+            reject_untagged_beside_variants(e, right, diags)
+        }
         return TY_BOOL
     }
     if unrelated_distincts(left, right) {
@@ -658,48 +673,22 @@ check_equality :: fn(
         }
         return TY_BOOL
     }
-    // A tuple's `==` compares its ELEMENTS (`lower/lower_tuple_eq.vader`), so it is
-    // exactly as comparable as they are, and the rewrite is unconditional:
-    // anything this gate lets through must have a working `==` at every position.
-    //
-    // `equals_type` is the compatibility the lowerer needs — it drives both sides
-    // from the left type, at every depth — and a distinct over a tuple compares
-    // through its backing, the nominal wrapper holding no identity of its own.
-    left_tuple  :: tuple_backing(left)
-    right_tuple :: tuple_backing(right)
-    if left_tuple != null && right_tuple != null {
+    // The lowerer drives both sides of a tuple from the left type, at every depth
+    // (`lower/lower_value_eq.vader`), so the two must be one type. A distinct over a
+    // tuple compares through its backing.
+    if tuple_backing(left) != null && tuple_backing(right) != null {
         if !equals_type(left, right) {
             diags.push(typecheck_error(.TypeMismatch, e.span,
                 "expected `${display_type(left)}`, got `${display_type(right)}`"))
-            return TY_BOOL
-        }
-        // Equal types, so walking one side is enough and the diagnostic cannot
-        // depend on operand order.
-        bad :: first_incomparable_element(left_tuple, typed)
-        if bad != null {
-            push_trait_missing(e, bad, TRAIT_EQUALS, diags)
         }
         return TY_BOOL
     }
-    // `struct` and `array` are the only kinds with NO built-in `==` — a bare
-    // `a == b` on them would compare references, which is `===`.
-    // Both require an `Equals` impl (the lowerer rewrites `a == b` into
-    // `a.equals(b)`). Every other kind has a working built-in `==` : numeric /
-    // char / bool / string / enum→`i32.eq` / distinct→backing / union, box
-    // against box — identity for a reference variant.
-    //
-    // Flag only a struct/array/scalar counterpart with no impl (a real defect :
-    // `Foo == Bar`, `arr == arr`, `point == 5`) ; comparing to a union / enum /
-    // distinct is left alone. `check_operator_rhs` returns null for an array (no
-    // impl ever matches), so arrays always take the reject path against a
-    // struct/array/scalar other.
-    if left is StructType || left is ArrayType || right is StructType || right is ArrayType {
-        needs :: if left is StructType || left is ArrayType { left } else { right }
-        other :: if left is StructType || left is ArrayType { right } else { left }
-        ft :: check_operator_rhs(needs, other, METHOD_EQUALS, label, e.span, typed, diags)
-        if ft == null && (other is StructType || other is ArrayType || other is PrimitiveType) {
-            push_trait_missing(e, needs, TRAIT_EQUALS, diags)
-        }
+    // A struct has an `Equals` by now (`part_without_equality`) ; the other side
+    // must fit its `other: Self`.
+    if left is StructType || right is StructType {
+        needs :: if left is StructType { left } else { right }
+        other :: if left is StructType { right } else { left }
+        check_operator_rhs(needs, other, METHOD_EQUALS, label, e.span, typed, diags)
     }
     return TY_BOOL
 }
@@ -760,64 +749,76 @@ union_has_identity :: fn(u: UnionType) -> bool {
     return true
 }
 
-// The first element of `t` with no working `==`, or null when every one has.
-//
-// What would reach `ref.eq` — and so compare an object by identity, not through
-// `Equals` — has to be refused. A primitive never gets that far, since op-select
-// picks the typed eq from the static type. So: an array (never has an impl), a struct
-// without one, a fn value, and a type parameter — whose element access is emitted
-// before the erased-receiver vcall path could route it. A nested tuple asks the
-// same question one level down.
-//
-// A UNION element is deliberately absent: `Box | null == Box | null` traps the
-// same way OUTSIDE any tuple, which is the reference-compare policy the gate
-// above describes. Refusing it here would be a stricter rule inside a tuple than
-// outside one.
-first_incomparable_element :: fn(t: TupleType, typed: TypedProgram) -> Type | null {
-    for el in t.elements {
-        match el {
-            is TupleType -> {
-                inner :: first_incomparable_element(el, typed)
-                if inner != null {
-                    return inner
-                }
-            }
-            is ArrayType | FnType | TypeParamType -> { return el }
-            is StructType -> {
-                if !struct_implements_trait(el, core_trait_key(TRAIT_EQUALS), typed) {
-                    return el
-                }
-            }
-            _ -> {}
+// The part of `t` with no `==` : `t` itself, a variant of its union, an element of
+// its tuple. A scalar and an enum compare built in ; a struct, an array and a type
+// parameter through `Equals` ; a distinct through its own impl or its backing. A
+// trait value and a fn never do — a trait value may hold a type without `Equals`.
+// Null when every part compares, an unknown one included.
+part_without_equality :: fn(t: Type, typed: TypedProgram) -> Type | null = match t {
+    is UnionType -> first_without_equality(t.variants, typed)
+    is TupleType -> first_without_equality(t.elements, typed)
+    is TraitType | FnType -> t
+    is StructType | ArrayType | TypeParamType ->
+        if satisfies_bound(t, core_trait_key(TRAIT_EQUALS), typed) { null } else { t }
+    is DistinctType ->
+        if struct_implements_trait(t, core_trait_key(TRAIT_EQUALS), typed) {
+            null
+        } else {
+            part_without_equality(t.backing, typed)
         }
-    }
-    return null
+    is PrimitiveType | EnumType | AnyType | UnresolvedType | NeverType | SelfType
+        | TypeMetaType | FreeIntType | FreeFloatType | FreeCharType -> null
 }
 
-// The type parameter of `operand` — itself, or a variant of its union — whose bound
-// does not name `Equals`. Null when there is none.
-param_without_equals :: fn(operand: Type, typed: TypedProgram) -> Type | null {
-    if operand is TypeParamType {
-        if satisfies_bound(operand, core_trait_key(TRAIT_EQUALS), typed) {
-            return null
+// Whether `left` and `right` share a variant (`counterpart`), each read as its
+// variants when it is a union.
+shares_variant :: fn(left: Type, right: Type) -> bool {
+    for l in union_variants(left) ?? [left] {
+        if counterpart(right, l) != null {
+            return true
         }
-        return operand
-    }
-    if operand is UnionType {
-        for v in operand.variants {
-            if v is TypeParamType && !satisfies_bound(v, core_trait_key(TRAIT_EQUALS), typed) {
-                return v
-            }
-        }
-    }
-    return null
-}
-
-is_null_type :: fn(t: Type) -> bool {
-    if t is PrimitiveType {
-        return t.name == "null"
     }
     return false
+}
+
+// T3087 when `t` is a union whose variant with no tag of its own (`is_untagged`) sits
+// beside another non-null one : `==` tests which variant each side holds, and only
+// `null` can be told from it.
+reject_untagged_beside_variants :: fn(e: AST.BinaryExpr, t: Type, diags: Diagnostic[]!) -> void {
+    if t !is UnionType {
+        return
+    }
+    held: usize = 0
+    untagged: Type | null = null
+    for v in t.variants {
+        if !is_null_type(v) {
+            held += 1
+            if is_untagged(v) {
+                untagged = v
+            }
+        }
+    }
+    if held > 1 && untagged != null {
+        diags.push(
+            typecheck_error(
+                .IsTestOnSharedInstance,
+                e.span,
+                "`==` on `${display_type(t)}` would test for `${display_type(untagged)}`, "
+                    + "which only `null` can be told from",
+            ),
+        )
+    }
+}
+
+// The first of `types` with a part that has no `==`.
+first_without_equality :: fn(types: Type[], typed: TypedProgram) -> Type | null {
+    for t in types {
+        bad :: part_without_equality(t, typed)
+        if bad != null {
+            return bad
+        }
+    }
+    return null
 }
 
 // An `is` test compares the SHAPE : mutability is a static discipline with no

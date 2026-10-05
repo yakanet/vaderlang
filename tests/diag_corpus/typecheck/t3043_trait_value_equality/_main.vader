@@ -1,0 +1,17 @@
+// T3043: a value typed by a trait may hold any implementor, one without `Equals`
+// among them, so it has no `==`. Narrow it first (`if d is Point`).
+module "snippet"
+
+import "std/io"
+
+Point :: struct {
+    x: i32
+}
+
+Point implements Display -> "P${self.x}"
+
+main :: fn() -> i32 {
+    d: Display: Point { .x = 1 }
+    e: Display: Point { .x = 1 }
+    return if d == e { 0 } else { 1 }
+}

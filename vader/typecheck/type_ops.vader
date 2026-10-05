@@ -779,6 +779,31 @@ export types_overlap :: fn(a: Type, b: Type) -> bool {
     return equals_type_shape(a, b)
 }
 
+/// Whether a value of `a` and one of `b` are the same variant to `==` : one shape,
+/// mutability aside, or a free literal the other type takes. A union compares a
+/// variant only with its counterpart on the other side.
+///
+/// @param a  a variant of one operand, or the operand itself.
+/// @param b  a variant of the other operand, or the operand itself.
+export same_variant :: fn(a: Type, b: Type) -> bool =
+    equals_type_shape(a, b)
+        || (is_free_numeric(a) && is_assignable(a, b))
+        || (is_free_numeric(b) && is_assignable(b, a))
+
+/// The variant of `t` that is the same as `variant` (`same_variant`) — `t` itself
+/// when it is no union and matches. Null when none is.
+///
+/// @param t        an operand's type.
+/// @param variant  a variant of the other operand.
+export counterpart :: fn(t: Type, variant: Type) -> Type | null {
+    for v in union_variants(t) ?? [t] {
+        if same_variant(v, variant) {
+            return v
+        }
+    }
+    return null
+}
+
 /// The variants of `t` when it is a union, `null` otherwise —
 /// `union_variants(t) ?? [t]` reads any type as its list of variants.
 ///

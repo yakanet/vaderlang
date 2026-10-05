@@ -97,20 +97,12 @@
           "kind": "BinaryExpr",
           "op": "bitor",
           "left": {
-            "kind": "BinaryExpr",
-            "op": "bitor",
-            "left": {
-              "kind": "IdentExpr",
-              "name": "Circle"
-            },
-            "right": {
-              "kind": "IdentExpr",
-              "name": "Square"
-            }
+            "kind": "IdentExpr",
+            "name": "Circle"
           },
           "right": {
             "kind": "IdentExpr",
-            "name": "i64"
+            "name": "Square"
           }
         },
         "right": {
@@ -220,19 +212,19 @@
                   {
                     "kind": "ReturnStmt",
                     "value": {
-                      "kind": "CallExpr",
-                      "callee": {
+                      "kind": "StructLitExpr",
+                      "typeName": {
                         "kind": "IdentExpr",
-                        "name": "i64"
+                        "name": "Square"
                       },
-                      "args": [
+                      "items": [
                         {
-                          "name": null,
+                          "kind": "field",
+                          "name": "side",
                           "value": {
                             "kind": "IntLitExpr",
-                            "value": "7n"
-                          },
-                          "spread": false
+                            "value": "1n"
+                          }
                         }
                       ]
                     }
@@ -281,20 +273,12 @@
                 "kind": "BinaryExpr",
                 "op": "bitor",
                 "left": {
-                  "kind": "BinaryExpr",
-                  "op": "bitor",
-                  "left": {
-                    "kind": "IdentExpr",
-                    "name": "Circle"
-                  },
-                  "right": {
-                    "kind": "IdentExpr",
-                    "name": "Square"
-                  }
+                  "kind": "IdentExpr",
+                  "name": "Circle"
                 },
                 "right": {
                   "kind": "IdentExpr",
-                  "name": "i64"
+                  "name": "Square"
                 }
               },
               "right": {
@@ -323,13 +307,13 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "const == const: "
+                        "value": "const === const: "
                       },
                       {
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "eq",
+                          "op": "same",
                           "left": {
                             "kind": "CallExpr",
                             "callee": {
@@ -376,13 +360,13 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "fresh == const: "
+                        "value": "fresh === const: "
                       },
                       {
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "eq",
+                          "op": "same",
                           "left": {
                             "kind": "CallExpr",
                             "callee": {
@@ -429,79 +413,13 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "i64 == i64: "
+                        "value": "null === null: "
                       },
                       {
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "eq",
-                          "left": {
-                            "kind": "CallExpr",
-                            "callee": {
-                              "kind": "IdentExpr",
-                              "name": "pick"
-                            },
-                            "args": [
-                              {
-                                "name": null,
-                                "value": {
-                                  "kind": "IntLitExpr",
-                                  "value": "2n"
-                                },
-                                "spread": false
-                              }
-                            ]
-                          },
-                          "right": {
-                            "kind": "CallExpr",
-                            "callee": {
-                              "kind": "IdentExpr",
-                              "name": "pick"
-                            },
-                            "args": [
-                              {
-                                "name": null,
-                                "value": {
-                                  "kind": "IntLitExpr",
-                                  "value": "2n"
-                                },
-                                "spread": false
-                              }
-                            ]
-                          }
-                        }
-                      }
-                    ]
-                  },
-                  "spread": false
-                }
-              ]
-            }
-          },
-          {
-            "kind": "ExprStmt",
-            "expr": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "IdentExpr",
-                "name": "println"
-              },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "text",
-                        "value": "null == null: "
-                      },
-                      {
-                        "kind": "interp",
-                        "expr": {
-                          "kind": "BinaryExpr",
-                          "op": "eq",
+                          "op": "same",
                           "left": {
                             "kind": "CallExpr",
                             "callee": {
@@ -561,13 +479,13 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "i64 != const: "
+                        "value": "square !== const: "
                       },
                       {
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "neq",
+                          "op": "not_same",
                           "left": {
                             "kind": "CallExpr",
                             "callee": {

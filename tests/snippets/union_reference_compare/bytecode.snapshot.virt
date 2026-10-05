@@ -1,32 +1,30 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 union 3,4,0,5
+type 2 union 3,0,4
 type 3 struct snippet$Circle { r:1 }
-type 4 primitive i64
-type 5 struct snippet$Square { side:1 }
-type 6 primitive string
-type 7 primitive bool
-type 8 primitive u8
-type 9 primitive usize
-type 10 struct std_core$Buffer {  }
-type 11 array 8
-type 12 primitive void
-type 13 primitive isize
-type 14 array 3
-string 0 "const == const: "
-string 1 "fresh == const: "
-string 2 "i64 == i64: "
-string 3 "null == null: "
-string 4 "i64 != const: "
-string 5 "true"
-string 6 "false"
-string 7 "\n"
+type 4 struct snippet$Square { side:1 }
+type 5 primitive string
+type 6 primitive bool
+type 7 primitive u8
+type 8 primitive usize
+type 9 struct std_core$Buffer {  }
+type 10 array 7
+type 11 primitive void
+type 12 primitive isize
+type 13 array 3
+string 0 "const === const: "
+string 1 "fresh === const: "
+string 2 "null === null: "
+string 3 "square !== const: "
+string 4 "true"
+string 5 "false"
+string 6 "\n"
 data 0 structs 3 1 1 i32 01000000
-import 0 byte_len std_core$byte_len result_type=9 param_types=6 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=11 param_types=6 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,11,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 10 std_core$ByteAccess
+import 0 byte_len std_core$byte_len result_type=8 param_types=5 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=10 param_types=5 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,10,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 9 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$pick (i32) -> any
@@ -34,9 +32,9 @@ fn 0 snippet$pick (i32) -> any
   i32.const 0
   i32.eq
   if $L0 void
-    data.const 0 14   ; pool[0] snippet$Circle[]
+    data.const 0 13   ; pool[0] snippet$Circle[]
     i64.const 0
-    array.get 14   ; snippet$Circle[]
+    array.get 13   ; snippet$Circle[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -54,8 +52,8 @@ fn 0 snippet$pick (i32) -> any
   else
     return.lit null.const
   end $L2
-  i64.const 7
-  retag 4   ; i64
+  i32.const 1
+  struct.new 4   ; snippet$Square
   return
 end
 
@@ -66,18 +64,18 @@ fn 1 snippet$main () -> i32
   local $eq_13 bool
   local $call_36 any
   local $call_38 any
-  data.const 0 14   ; pool[0] snippet$Circle[]
+  data.const 0 13   ; pool[0] snippet$Circle[]
   i64.const 0
-  array.get 14   ; snippet$Circle[]
+  array.get 13   ; snippet$Circle[]
   local.set 0   ; shared
-  i64.const 21
+  i64.const 22
   call 3   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  string.const 0   ; "const == const: "
+  string.const 0   ; "const === const: "
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const 0
@@ -94,14 +92,14 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
   call 9   ; std_io$println__string
-  i64.const 21
+  i64.const 22
   call 3   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  string.const 1   ; "fresh == const: "
+  string.const 1   ; "fresh === const: "
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const 1
@@ -118,43 +116,14 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
   call 9   ; std_io$println__string
-  i64.const 17
+  i64.const 20
   call 3   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  string.const 2   ; "i64 == i64: "
-  call 5   ; std_core$write_string_at
-  local.set 2   ; __off_1
-  i32.const 2
-  call 0   ; snippet$pick
-  local.set 4   ; $call_36
-  i32.const 2
-  call 0   ; snippet$pick
-  local.set 5   ; $call_38
-  local.get 4   ; $call_36
-  local.get 5   ; $call_38
-  ref.eq
-  local.set 3   ; $eq_13
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  local.get 3   ; $eq_13
-  call 6   ; std_core$write_bool
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  call 4   ; std_core$finish_buffer
-  call 9   ; std_io$println__string
-  i64.const 19
-  call 3   ; std_core$new_byte_buffer
-  local.set 1   ; __buf_0
-  i64.const 0
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  string.const 3   ; "null == null: "
+  string.const 2   ; "null === null: "
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const 3
@@ -176,14 +145,14 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
   call 9   ; std_io$println__string
-  i64.const 19
+  i64.const 23
   call 3   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  string.const 4   ; "i64 != const: "
+  string.const 3   ; "square !== const: "
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const 2
@@ -266,13 +235,13 @@ fn 6 std_core$write_bool (ref,usize,bool) -> usize
   else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 6   ; "false"
+    string.const 5   ; "false"
     call 5   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 5   ; "true"
+  string.const 4   ; "true"
   call 5   ; std_core$write_string_at
   return
 end
@@ -306,7 +275,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -356,7 +325,7 @@ end
 fn 9 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 7   ; "\n"
+  string.const 6   ; "\n"
   call 2   ; concat_2
   local.set 1   ; $call_3
   i32.const 0

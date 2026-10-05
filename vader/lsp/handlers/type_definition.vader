@@ -80,15 +80,10 @@ export type_symbol :: fn(t: Type) -> Symbol | null {
 union_symbol :: fn(u: UnionType) -> Symbol | null {
     named: Type[]!: []
     for v in u.variants {
-        if !is_null_primitive(v) { named.push(v) }
+        if !is_null_type(v) { named.push(v) }
     }
     if named.len() != 1 { return null }
     return type_symbol(named[0])
-}
-
-is_null_primitive :: fn(t: Type) -> bool {
-    if t is PrimitiveType { return t.name == "null" }
-    return false
 }
 
 // ---- tests ----------------------------------------------------------------

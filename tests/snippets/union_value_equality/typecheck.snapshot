@@ -1,0 +1,204 @@
+# Typecheck
+
+## tests/snippets/union_value_equality
+  StructDecl     Box                  :: Box<T>!
+  EnumDecl       Color                :: Color
+  StructDecl     Label                :: Label!
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Pair                 :: type
+  StructDecl     Point                :: Point!
+  FnDecl         same_opt             :: fn(null | T, T) -> bool
+  FnDecl         same_pair            :: fn([T, i32], [T, i32]) -> bool
+  ConstDecl      Shape                :: type
+  expr 19474:2  UnaryExpr      :: bool
+  expr 19474:3  CallExpr       :: bool
+  expr 19474:4  FieldExpr      :: fn(Point) -> bool
+  expr 19474:5  IdentExpr      :: Point
+  expr 19474:7  IdentExpr      :: Point
+  expr 19:28    BinaryExpr     :: bool
+  expr 19:28    FieldExpr      :: i32
+  expr 19:28    IdentExpr      :: Point
+  expr 19:38    FieldExpr      :: i32
+  expr 19:38    IdentExpr      :: Point
+  expr 25618:2  UnaryExpr      :: bool
+  expr 25618:3  CallExpr       :: bool
+  expr 25618:4  FieldExpr      :: fn(Label) -> bool
+  expr 25618:5  IdentExpr      :: Label
+  expr 25618:7  IdentExpr      :: Label
+  expr 25:28    BinaryExpr     :: bool
+  expr 25:28    FieldExpr      :: string
+  expr 25:28    IdentExpr      :: Label
+  expr 25:41    FieldExpr      :: string
+  expr 25:41    IdentExpr      :: Label
+  expr 35870:2  UnaryExpr      :: bool
+  expr 35870:3  CallExpr       :: bool
+  expr 35870:4  FieldExpr      :: fn(Box<T>) -> bool
+  expr 35870:5  IdentExpr      :: Box<T>
+  expr 35870:7  IdentExpr      :: Box<T>
+  expr 35:40    BinaryExpr     :: bool
+  expr 35:40    FieldExpr      :: T
+  expr 35:40    IdentExpr      :: Box<T>
+  expr 35:54    FieldExpr      :: T
+  expr 35:54    IdentExpr      :: Box<T>
+  expr 40977:2  UnaryExpr      :: bool
+  expr 40977:3  CallExpr       :: bool
+  expr 40977:4  FieldExpr      :: fn(Pair) -> bool
+  expr 40977:5  IdentExpr      :: Pair
+  expr 40977:7  IdentExpr      :: Pair
+  expr 40:27    BinaryExpr     :: bool
+  expr 40:27    FieldExpr      :: i32
+  expr 40:27    IdentExpr      :: Pair
+  expr 40:37    FieldExpr      :: i32
+  expr 40:37    IdentExpr      :: Pair
+  expr 42:56    BinaryExpr     :: bool
+  expr 42:56    IdentExpr      :: null | T
+  expr 42:61    IdentExpr      :: T
+  expr 44:64    BinaryExpr     :: bool
+  expr 44:64    IdentExpr      :: [T, i32]
+  expr 44:69    IdentExpr      :: [T, i32]
+  expr 47:10    StructLitExpr  :: Point!
+  expr 48:10    StructLitExpr  :: Point!
+  expr 49:10    StructLitExpr  :: Point!
+  expr 50:16    IdentExpr      :: Point!
+  expr 51:16    IdentExpr      :: Point!
+  expr 52:16    IdentExpr      :: Point!
+  expr 53:16    StructLitExpr  :: Label!
+  expr 53:32    StringLitExpr  :: string
+  expr 54:13    StringLitExpr  :: string
+  expr 54:16    BinaryExpr     :: bool
+  expr 54:16    IdentExpr      :: Label | Point
+  expr 54:22    IdentExpr      :: Label | Point
+  expr 54:28    BinaryExpr     :: bool
+  expr 54:28    IdentExpr      :: Label | Point
+  expr 54:34    IdentExpr      :: Label | Point
+  expr 54:40    BinaryExpr     :: bool
+  expr 54:40    IdentExpr      :: Label | Point
+  expr 54:46    IdentExpr      :: Label | Point
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(T) -> void
+  expr 54:52    BinaryExpr     :: bool
+  expr 54:52    IdentExpr      :: Label | Point
+  expr 54:58    IdentExpr      :: Label | Point
+  expr 55:13    StringLitExpr  :: string
+  expr 55:16    BinaryExpr     :: bool
+  expr 55:16    IdentExpr      :: Label | Point
+  expr 55:22    IdentExpr      :: Point!
+  expr 55:27    BinaryExpr     :: bool
+  expr 55:27    IdentExpr      :: Point!
+  expr 55:32    IdentExpr      :: Label | Point
+  expr 55:38    BinaryExpr     :: bool
+  expr 55:38    IdentExpr      :: Label | Point
+  expr 55:44    IdentExpr      :: Point!
+  expr 55:5     CallExpr       :: void
+  expr 55:5     IdentExpr      :: fn(T) -> void
+  expr 56:23    CallExpr       :: i64
+  expr 56:23    IdentExpr      :: type
+  expr 57:23    CallExpr       :: i64
+  expr 57:23    IdentExpr      :: type
+  expr 58:23    StringLitExpr  :: string
+  expr 59:13    StringLitExpr  :: string
+  expr 59:16    BinaryExpr     :: bool
+  expr 59:16    IdentExpr      :: i64 | string
+  expr 59:22    IdentExpr      :: i64 | string
+  expr 59:28    BinaryExpr     :: bool
+  expr 59:28    IdentExpr      :: i64 | string
+  expr 59:34    IdentExpr      :: i64 | string
+  expr 59:5     CallExpr       :: void
+  expr 59:5     IdentExpr      :: fn(T) -> void
+  expr 60:23    IdentExpr      :: Point!
+  expr 63:13    StringLitExpr  :: string
+  expr 63:16    BinaryExpr     :: bool
+  expr 63:16    IdentExpr      :: null | Point
+  expr 63:22    IdentExpr      :: Point!
+  expr 63:27    BinaryExpr     :: bool
+  expr 63:27    IdentExpr      :: null | Point
+  expr 63:33    IdentExpr      :: null | Point
+  expr 63:39    BinaryExpr     :: bool
+  expr 63:39    IdentExpr      :: null | Point
+  expr 63:45    IdentExpr      :: null | Point
+  expr 63:5     CallExpr       :: void
+  expr 63:5     IdentExpr      :: fn(T) -> void
+  expr 64:13    StringLitExpr  :: string
+  expr 64:16    CallExpr       :: bool
+  expr 64:16    IdentExpr      :: fn(null | T, T) -> bool
+  expr 64:25    IdentExpr      :: Point!
+  expr 64:28    IdentExpr      :: Point!
+  expr 64:34    CallExpr       :: bool
+  expr 64:34    IdentExpr      :: fn(null | T, T) -> bool
+  expr 64:49    IdentExpr      :: Point!
+  expr 64:5     CallExpr       :: void
+  expr 64:5     IdentExpr      :: fn(T) -> void
+  expr 64:55    CallExpr       :: bool
+  expr 64:55    IdentExpr      :: fn(null | T, T) -> bool
+  expr 64:64    IdentExpr      :: Point!
+  expr 64:67    IdentExpr      :: Point!
+  expr 65:13    StringLitExpr  :: string
+  expr 65:16    CallExpr       :: bool
+  expr 65:16    IdentExpr      :: fn([T, i32], [T, i32]) -> bool
+  expr 65:26    SeqLitExpr     :: [Point!, i32]!
+  expr 65:27    IdentExpr      :: Point!
+  expr 65:34    SeqLitExpr     :: [Point!, i32]!
+  expr 65:35    IdentExpr      :: Point!
+  expr 65:45    CallExpr       :: bool
+  expr 65:45    IdentExpr      :: fn([T, i32], [T, i32]) -> bool
+  expr 65:5     CallExpr       :: void
+  expr 65:5     IdentExpr      :: fn(T) -> void
+  expr 65:55    SeqLitExpr     :: [Point!, i32]!
+  expr 65:56    IdentExpr      :: Point!
+  expr 65:63    SeqLitExpr     :: [Point!, i32]!
+  expr 65:64    IdentExpr      :: Point!
+  expr 66:11    SeqLitExpr     :: [i32, Label | Point]!
+  expr 66:15    IdentExpr      :: Label | Point
+  expr 67:11    SeqLitExpr     :: [i32, Label | Point]!
+  expr 67:15    IdentExpr      :: Label | Point
+  expr 68:13    StringLitExpr  :: string
+  expr 68:16    BinaryExpr     :: bool
+  expr 68:16    IdentExpr      :: [i32, Label | Point]!
+  expr 68:22    IdentExpr      :: [i32, Label | Point]!
+  expr 68:5     CallExpr       :: void
+  expr 68:5     IdentExpr      :: fn(T) -> void
+  expr 69:22    DotVariantExpr :: Color
+  expr 70:13    StringLitExpr  :: string
+  expr 70:16    BinaryExpr     :: bool
+  expr 70:16    IdentExpr      :: Color | null
+  expr 70:21    FieldExpr      :: Color
+  expr 70:21    IdentExpr      :: Color
+  expr 70:34    BinaryExpr     :: bool
+  expr 70:34    IdentExpr      :: Color | null
+  expr 70:39    FieldExpr      :: Color
+  expr 70:39    IdentExpr      :: Color
+  expr 70:5     CallExpr       :: void
+  expr 70:5     IdentExpr      :: fn(T) -> void
+  expr 71:12    BinaryExpr     :: {float}
+  expr 72:21    IdentExpr      :: f64
+  expr 74:21    UnaryExpr      :: f64
+  expr 75:13    StringLitExpr  :: string
+  expr 75:16    BinaryExpr     :: bool
+  expr 75:16    IdentExpr      :: f64 | null
+  expr 75:22    IdentExpr      :: f64 | null
+  expr 75:28    BinaryExpr     :: bool
+  expr 75:28    IdentExpr      :: f64 | null
+  expr 75:34    IdentExpr      :: f64 | null
+  expr 75:5     CallExpr       :: void
+  expr 75:5     IdentExpr      :: fn(T) -> void
+  expr 76:31    StructLitExpr  :: Box<Point>!
+  expr 76:53    IdentExpr      :: Point!
+  expr 77:13    StringLitExpr  :: string
+  expr 77:16    BinaryExpr     :: bool
+  expr 77:16    IdentExpr      :: Box<Point> | null
+  expr 77:25    StructLitExpr  :: Box<Point>!
+  expr 77:47    IdentExpr      :: Point!
+  expr 77:5     CallExpr       :: void
+  expr 77:5     IdentExpr      :: fn(T) -> void
+  expr 77:54    BinaryExpr     :: bool
+  expr 77:54    IdentExpr      :: Box<Point> | null
+  expr 77:63    StructLitExpr  :: Box<Point>!
+  expr 77:85    IdentExpr      :: Point!
+  expr 78:18    SeqLitExpr     :: Pair
+  expr 79:19    SeqLitExpr     :: Pair
+  expr 80:13    StringLitExpr  :: string
+  expr 80:16    BinaryExpr     :: bool
+  expr 80:16    IdentExpr      :: Pair
+  expr 80:25    IdentExpr      :: Pair
+  expr 80:5     CallExpr       :: void
+  expr 80:5     IdentExpr      :: fn(T) -> void

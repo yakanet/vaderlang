@@ -804,8 +804,8 @@ println(pair.1)      // "answer"
   - `[1, "x"]` → tuple (heterogeneous, no annotation).
   - With an annotation, the annotation wins: `xs: int[] = [1, 2, 3]` is array; `p: [int, string] = [1, "x"]` is tuple.
 - **Tuples are not arrays**: `[i32, i32]` is not assignable to `i32[]` even though every element type unifies.
-- **`==` compares the elements, not the references.** A tuple carries no identity to observe — it cannot be mutated (`t[0] = x` is `T3008`) and a fresh one is built at each construction — so `a == b` is rewritten field by field. Two tuples with equal contents are equal whether or not they are the same object, and `a != b` negates the whole comparison. Each element is compared by its own rule: a nested tuple recurses, a struct goes through its `Equals` impl, everything else uses the built-in `==`. A **distinct newtype over a tuple** (`Pair :: [i32, i32]`) compares through its backing, so naming the type does not change the answer.
-- **A tuple is only as comparable as its elements.** An element with no working `==` — an array, a struct without an `Equals` impl, a function value, or a type parameter — is `T3043`, reported against the **element's** type, which is what needs the impl. The two operands must have the *same* type, not merely the same arity: `[i32, string] == [string, i32]` and a nested arity mismatch are both `T3001`.
+- **`==` compares the elements, not the references.** A tuple carries no identity to observe — it cannot be mutated (`t[0] = x` is `T3008`) and a fresh one is built at each construction — so `a == b` is rewritten field by field. Two tuples with equal contents are equal whether or not they are the same object, and `a != b` negates the whole comparison. Each element compares as it would on its own: a nested tuple recurses, a struct goes through its `Equals` impl, a union by variant, a bounded type parameter through `Equals`. A **distinct newtype over a tuple** (`Pair :: [i32, i32]`) compares through its backing unless it implements `Equals` itself.
+- **A tuple is only as comparable as its elements.** An element with no working `==` — an array, a struct without an `Equals` impl, a function value, a trait value, or a type parameter whose bound does not name `Equals` — is `T3043`, reported against the **element's** type, which is what needs the impl. The two operands must have the *same* type, not merely the same arity: `[i32, string] == [string, i32]` and a nested arity mismatch are both `T3001`.
 
 ### Destructuring
 
@@ -1678,7 +1678,8 @@ Resolution rule for **equality** (`==` / `!=`):
 1. Primitive operands (numerics, strings, chars, bools, null) use the built-in equality op.
 2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists; **without an impl it is T3043** (`` `X` does not implement `Equals` ``). `==` on a struct that never opted into value equality is almost always a bug, so it is rejected rather than silently comparing references.
 3. `==` on a type-parameter operand needs a bound naming `Equals`, as `a + b` needs `Add` — `fn<T: Equals>(a: T, b: T) = a == b`. Without it, **T3043**, also when the parameter is a variant of a union (`T | null == T`). Only `x == null` needs no bound. `x in xs` follows: `T[]` implements `Contains<T>` only for `T: Equals`.
-4. Mismatched types are an error. Two numerics of different family or width are T3017. Any other pair of scalars compares by **representation** — a distinct type stands for its backing, through any number of layers — and two different representations are **T3001**: `h == INVALID_HANDLE` with `h: Handle` (`Handle :: CPointer`) against an `isize`, `b == c` with `b: u8` and a `char` variable, `name == 3`. A distinct type against its own backing compares (`path == ""` with `Path :: string`), through the type's `Equals` impl when it has one; two distinct types that are not one another's backing do not (`Meters == Seconds`, both `i64`: T3001). Free literals adopt the other operand's type first, so `b == '/'` and `x == 0` compare.
+4. A union operand compares by variant: both sides hold the same variant, and those two values are equal by that variant's own `==`. Every variant but `null` must compare, else **T3043** naming it. A union compares with another union or with one of its members; two sides that share no variant are **T3001**. A variant with no tag of its own to test — a type parameter, or an instance of a generic struct whose body other instances share — may sit only beside `null` (**T3087**). An enum boxes as its integer and a distinct as its backing, so `Color | u8` or `Meters | i64` cannot tell those two variants apart.
+5. Mismatched types are an error. Two numerics of different family or width are T3017. Any other pair of scalars compares by **representation** — a distinct type stands for its backing, through any number of layers — and two different representations are **T3001**: `h == INVALID_HANDLE` with `h: Handle` (`Handle :: CPointer`) against an `isize`, `b == c` with `b: u8` and a `char` variable, `name == 3`. A distinct type against its own backing compares (`path == ""` with `Path :: string`), through the type's `Equals` impl when it has one; two distinct types that are not one another's backing do not (`Meters == Seconds`, both `i64`: T3001). Free literals adopt the other operand's type first, so `b == '/'` and `x == 0` compare.
 
 Resolution rule for **ordering** (`< <= > >=`):
 1. Primitive numerics, strings, and chars use the built-in comparison ops.
@@ -1709,12 +1710,17 @@ match u {
 
 | Type | Default `==` behavior |
 |------|----------------------|
-| Primitives (numeric, bool, char) | Bit-for-bit |
+| Integers, `bool`, `char` | By value |
+| Floats | IEEE 754: `nan != nan`, `0.0 == -0.0` — the same in a union or a generic body |
 | `string` | Structural (compares contents) |
-| `enum` | Discriminant equality (`i32.eq`) |
-| Distinct type | Backing type's `==` |
+| `enum` | Discriminant equality (`i32.eq`); every enum implements `Equals` |
+| Distinct type | Its own `Equals` impl, else the backing type's `==` |
+| Tuple | Element by element (see *Tuples*) |
+| Union (`A \| B`, `T \| null`) | Same variant, then that variant's `==`; `null == null` |
+| Type parameter | Through `Equals`: the bound must name it (T3043) |
 | **Struct, array** | **Compile error (T3043) — no built-in `==`; implement `Equals`** |
 | Type with `impl Equals` | Delegated to `Equals.equals` |
+| **Trait value, fn value** | **Compile error (T3043)** — a trait value may hold an implementor without `Equals`; narrow it first (`if d is Point`) |
 
 To compare two structs or arrays, implement `Equals` (or call `equals(a, b)`).
 Structs and arrays have no implicit identity `==`: a bare `a == b` on them is
