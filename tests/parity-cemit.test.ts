@@ -387,6 +387,7 @@ const C_PARITY = new Set<string>([
   // variant's own comparison ; a wrong read only shows natively as a wrong answer.
   "union_value_equality",
   "equals_across_variants",
+  "literal_pattern_on_union",
   "generic_enum_same_name",
   // An enum with variant data stores its variant's rank : its value tables and
   // the conversion back to the written value, inside a generic instance too.

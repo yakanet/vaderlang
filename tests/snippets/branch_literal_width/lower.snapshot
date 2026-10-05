@@ -92,7 +92,7 @@
                 l:
                   n :usize
                 r:
-                  int(0) :i32
+                  int(0) :usize
             then:
               ~>
                 char(0x28)
@@ -134,7 +134,7 @@
                 l:
                   n :usize
                 r:
-                  int(0) :i32
+                  int(0) :usize
             then:
               ~>
                 int(1) :i32

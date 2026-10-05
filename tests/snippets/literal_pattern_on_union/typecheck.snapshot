@@ -1,0 +1,182 @@
+# Typecheck
+
+## tests/snippets/literal_pattern_on_union
+  FnDecl         __comptime_BAKED     :: fn() -> i64 | string
+  FnDecl         __comptime_BAKED_IS_A :: fn() -> bool
+  FnDecl         __comptime_BAKED_IS_FIVE :: fn() -> bool
+  ConstDecl      BAKED                :: i64 | string
+  ConstDecl      BAKED_IS_A           :: bool
+  ConstDecl      BAKED_IS_FIVE        :: bool
+  StructDecl     Boxed                :: Boxed<T>!
+  FnDecl         boxed                :: fn(Boxed<i64>) -> string
+  FnDecl         describe             :: fn(i64 | string) -> string
+  FnDecl         describe_float       :: fn(f64 | string) -> string
+  FnDecl         held                 :: fn(Holder) -> string
+  StructDecl     Holder               :: Holder!
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Measure              :: Measure!
+  FnDecl         measured             :: fn(Measure) -> string
+  FnDecl         named                :: fn(Path) -> string
+  ConstDecl      Path                 :: type
+  StructDecl     Point                :: Point!
+  FnDecl         shape                :: fn(null | Point | string) -> string
+  ConstDecl      STORED               :: i64 | string
+  expr 33809:2  UnaryExpr      :: bool
+  expr 33809:3  CallExpr       :: bool
+  expr 33809:4  FieldExpr      :: fn(Path) -> bool
+  expr 33809:5  IdentExpr      :: Path
+  expr 33809:7  IdentExpr      :: Path
+  expr 34:47    BinaryExpr     :: bool
+  expr 34:47    CallExpr       :: string
+  expr 34:47    CallExpr       :: string
+  expr 34:47    FieldExpr      :: fn() -> string
+  expr 34:47    IdentExpr      :: type
+  expr 34:54    IdentExpr      :: Path
+  expr 34:74    CallExpr       :: string
+  expr 34:74    CallExpr       :: string
+  expr 34:74    FieldExpr      :: fn() -> string
+  expr 34:74    IdentExpr      :: type
+  expr 34:81    IdentExpr      :: Path
+  expr 38:54    MatchExpr      :: string
+  expr 38:60    IdentExpr      :: i64 | string
+  expr 39:12    StringLitExpr  :: string
+  expr 40:12    StringLitExpr  :: string
+  expr 40:5     StringLitExpr  :: string
+  expr 41:12    StringLitExpr  :: string
+  expr 45:60    MatchExpr      :: string
+  expr 45:66    IdentExpr      :: f64 | string
+  expr 46:12    StringLitExpr  :: string
+  expr 47:12    StringLitExpr  :: string
+  expr 50:35    MatchExpr      :: string
+  expr 50:41    IdentExpr      :: Holder
+  expr 51:29    StringLitExpr  :: string
+  expr 52:20    StringLitExpr  :: string
+  expr 52:29    StringLitExpr  :: string
+  expr 53:29    StringLitExpr  :: string
+  expr 56:40    MatchExpr      :: string
+  expr 56:46    IdentExpr      :: Measure
+  expr 57:30    StringLitExpr  :: string
+  expr 58:30    StringLitExpr  :: string
+  expr 61:40    MatchExpr      :: string
+  expr 61:46    IdentExpr      :: Boxed<i64>
+  expr 62:31    StringLitExpr  :: string
+  expr 63:31    StringLitExpr  :: string
+  expr 67:43    MatchExpr      :: string
+  expr 67:49    IdentExpr      :: Path
+  expr 68:17    StringLitExpr  :: string
+  expr 68:5     StringLitExpr  :: string
+  expr 69:17    StringLitExpr  :: string
+  expr 73:60    MatchExpr      :: string
+  expr 73:66    IdentExpr      :: null | Point | string
+  expr 74:17    StringLitExpr  :: string
+  expr 75:17    StringLitExpr  :: string
+  expr 76:17    StringLitExpr  :: string
+  expr 76:5     StringLitExpr  :: string
+  expr 77:17    StringLitExpr  :: string
+  expr 81:1     IdentExpr      :: fn() -> i64 | string
+  expr 81:22    CallExpr       :: i64 | string
+  expr 83:1     IdentExpr      :: fn() -> bool
+  expr 83:15    CallExpr       :: bool
+  expr 83:25    BinaryExpr     :: bool
+  expr 83:25    IdentExpr      :: i64 | string
+  expr 83:34    StringLitExpr  :: string
+  expr 84:1     IdentExpr      :: fn() -> bool
+  expr 84:18    CallExpr       :: bool
+  expr 84:28    BinaryExpr     :: bool
+  expr 84:28    IdentExpr      :: i64 | string
+  expr 88:13    StringLitExpr  :: string
+  expr 88:16    CallExpr       :: string
+  expr 88:16    IdentExpr      :: fn(i64 | string) -> string
+  expr 88:25    IdentExpr      :: i64
+  expr 88:34    CallExpr       :: string
+  expr 88:34    IdentExpr      :: fn(i64 | string) -> string
+  expr 88:43    StringLitExpr  :: string
+  expr 88:5     CallExpr       :: void
+  expr 88:5     IdentExpr      :: fn(T) -> void
+  expr 88:51    CallExpr       :: string
+  expr 88:51    IdentExpr      :: fn(i64 | string) -> string
+  expr 89:25    UnaryExpr      :: f64
+  expr 90:13    StringLitExpr  :: string
+  expr 90:16    CallExpr       :: string
+  expr 90:16    IdentExpr      :: fn(f64 | string) -> string
+  expr 90:31    IdentExpr      :: f64
+  expr 90:49    CallExpr       :: string
+  expr 90:49    IdentExpr      :: fn(f64 | string) -> string
+  expr 90:5     CallExpr       :: void
+  expr 90:5     IdentExpr      :: fn(T) -> void
+  expr 91:13    StringLitExpr  :: string
+  expr 91:16    CallExpr       :: string
+  expr 91:16    IdentExpr      :: fn(Holder) -> string
+  expr 91:21    StructLitExpr  :: Holder!
+  expr 91:35    IdentExpr      :: i64
+  expr 91:46    CallExpr       :: string
+  expr 91:46    IdentExpr      :: fn(Holder) -> string
+  expr 91:5     CallExpr       :: void
+  expr 91:5     IdentExpr      :: fn(T) -> void
+  expr 91:51    StructLitExpr  :: Holder!
+  expr 91:65    StringLitExpr  :: string
+  expr 91:75    CallExpr       :: string
+  expr 91:75    IdentExpr      :: fn(Holder) -> string
+  expr 91:80    StructLitExpr  :: Holder!
+  expr 92:13    StringLitExpr  :: string
+  expr 92:16    CallExpr       :: string
+  expr 92:16    IdentExpr      :: fn(Measure) -> string
+  expr 92:25    StructLitExpr  :: Measure!
+  expr 92:40    IdentExpr      :: f64
+  expr 92:5     CallExpr       :: void
+  expr 92:5     IdentExpr      :: fn(T) -> void
+  expr 92:60    CallExpr       :: string
+  expr 92:60    IdentExpr      :: fn(Measure) -> string
+  expr 92:69    StructLitExpr  :: Measure!
+  expr 92:84    StringLitExpr  :: string
+  expr 93:13    StringLitExpr  :: string
+  expr 93:16    CallExpr       :: string
+  expr 93:16    IdentExpr      :: fn(Boxed<i64>) -> string
+  expr 93:22    StructLitExpr  :: Boxed<i64>!
+  expr 93:40    IdentExpr      :: i64
+  expr 93:5     CallExpr       :: void
+  expr 93:5     IdentExpr      :: fn(T) -> void
+  expr 93:51    CallExpr       :: string
+  expr 93:51    IdentExpr      :: fn(Boxed<i64>) -> string
+  expr 93:57    StructLitExpr  :: Boxed<i64>!
+  expr 93:75    StringLitExpr  :: string
+  expr 94:13    StringLitExpr  :: string
+  expr 94:16    CallExpr       :: string
+  expr 94:16    IdentExpr      :: fn(Path) -> string
+  expr 94:22    CallExpr       :: Path
+  expr 94:22    IdentExpr      :: type
+  expr 94:27    StringLitExpr  :: string
+  expr 94:41    CallExpr       :: string
+  expr 94:41    IdentExpr      :: fn(Path) -> string
+  expr 94:47    CallExpr       :: Path
+  expr 94:47    IdentExpr      :: type
+  expr 94:5     CallExpr       :: void
+  expr 94:5     IdentExpr      :: fn(T) -> void
+  expr 94:52    StringLitExpr  :: string
+  expr 95:13    StringLitExpr  :: string
+  expr 95:16    CallExpr       :: string
+  expr 95:16    IdentExpr      :: fn(null | Point | string) -> string
+  expr 95:31    CallExpr       :: string
+  expr 95:31    IdentExpr      :: fn(null | Point | string) -> string
+  expr 95:37    StructLitExpr  :: Point!
+  expr 95:5     CallExpr       :: void
+  expr 95:5     IdentExpr      :: fn(T) -> void
+  expr 95:58    CallExpr       :: string
+  expr 95:58    IdentExpr      :: fn(null | Point | string) -> string
+  expr 95:64    StringLitExpr  :: string
+  expr 95:72    CallExpr       :: string
+  expr 95:72    IdentExpr      :: fn(null | Point | string) -> string
+  expr 95:78    StringLitExpr  :: string
+  expr 96:13    StringLitExpr  :: string
+  expr 96:16    BinaryExpr     :: bool
+  expr 96:16    IdentExpr      :: i64 | string
+  expr 96:26    StringLitExpr  :: string
+  expr 96:33    BinaryExpr     :: bool
+  expr 96:33    IdentExpr      :: i64 | string
+  expr 96:5     CallExpr       :: void
+  expr 96:5     IdentExpr      :: fn(T) -> void
+  expr 97:13    StringLitExpr  :: string
+  expr 97:16    IdentExpr      :: bool
+  expr 97:30    IdentExpr      :: bool
+  expr 97:5     CallExpr       :: void
+  expr 97:5     IdentExpr      :: fn(T) -> void

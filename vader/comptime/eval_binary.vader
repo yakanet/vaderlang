@@ -42,8 +42,33 @@ export evaluate_binary_expr :: fn(
     } else {
         right_result.value
     }
+    // `==` on a union compares by variant : two values of different kinds are
+    // unequal, two `null`s equal ; `compare` answers two values of one kind.
+    if expr.op == .Eq || expr.op == .Neq {
+        apart :: !same_kind(left_result.value, right_value)
+        if (apart || left_result.value is NullValue) && has_union_operand(context, expr) {
+            return ok(bool_value(apart == (expr.op == .Neq)))
+        }
+    }
     combined :: combine_binary(expr, left_result.value, right_value)
     return normalize_int_result(combined, rname)
+}
+
+has_union_operand :: fn(context: ComptimeContext, expr: AST.BinaryExpr) -> bool =
+    context.typed.expr_types[expr.left.id] is UnionType
+        || context.typed.expr_types[expr.right.id] is UnionType
+
+same_kind :: fn(left: ComptimeValue, right: ComptimeValue) -> bool = match left {
+    is IntValue    -> right is IntValue
+    is FloatValue  -> right is FloatValue
+    is BoolValue   -> right is BoolValue
+    is CharValue   -> right is CharValue
+    is StringValue -> right is StringValue
+    is NullValue   -> right is NullValue
+    is VoidValue   -> right is VoidValue
+    is ArrayValue  -> right is ArrayValue
+    is StructValue -> right is StructValue
+    is TypeValue   -> right is TypeValue
 }
 
 combine_binary :: fn(expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue) -> EvalResult = match expr.op {

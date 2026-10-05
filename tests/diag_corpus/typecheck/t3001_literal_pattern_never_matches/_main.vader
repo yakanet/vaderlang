@@ -1,0 +1,11 @@
+// T3001: a literal pattern matches when `scrutinee == literal` holds, so a literal
+// no value of the scrutinee can equal is refused rather than never matching.
+module "snippet"
+
+// @partial: a literal covers no whole variant.
+describe :: fn(u: i64 | string) -> string = @partial match u {
+    true -> "yes"
+    _    -> "other"
+}
+
+main :: fn() -> i32 = if describe(5) == "yes" { 1 } else { 0 }

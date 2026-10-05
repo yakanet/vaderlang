@@ -1519,14 +1519,14 @@ fn 15 base64$decode_byte (u8) -> i32
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
-      char.const 43
+      i32.const 43
       i32.eq
       if $L6 void
         i32.const 62
         local.set 1   ; if_res
       else
         local.get 0   ; arg 0
-        char.const 47
+        i32.const 47
         i32.eq
         if $L7 void
           i32.const 63

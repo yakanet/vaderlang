@@ -1,0 +1,99 @@
+// A literal pattern matches when `scrutinee == literal` holds, with the literal
+// typed against the scrutinee : `5` on an `i64 | string` is an `i64`, and a float
+// variant compares by IEEE, so `0.0` matches `-0.0`. The same holds for a literal
+// constraining a union field — a generic one included — for a distinct type with
+// its own `Equals`, for a module const read where a union is expected, and for
+// `==` on such a const at comptime. A literal meets what the arms above leave of
+// the scrutinee : after `is Point`, `"a"` compares with `string | null` only, so
+// `Point` needs no `Equals`.
+
+module "snippet"
+
+import "std/io"
+import "std/string"
+
+Holder :: struct {
+    v: i64 | string
+}
+
+Measure :: struct {
+    m: f64 | string
+}
+
+Point :: struct {
+    x: i32
+}
+
+Boxed :: struct<T> {
+    v: T | string
+}
+
+Path :: string
+
+Path implements Equals {
+    equals :: fn(self, other: Self) -> bool = string(self).to_lower() == string(other).to_lower()
+}
+
+// @partial: literals cover some values of each variant, never a whole one.
+describe :: fn(u: i64 | string) -> string = @partial match u {
+    5   -> "five"
+    "a" -> "letter a"
+    _   -> "other"
+}
+
+// @partial: literals cover some values of each variant, never a whole one.
+describe_float :: fn(u: f64 | string) -> string = @partial match u {
+    0.0 -> "zero"
+    _   -> "other"
+}
+
+held :: fn(h: Holder) -> string = match h {
+    is Holder { v: 5 }   -> "holds five"
+    is Holder { v: "a" } -> "holds a"
+    _                    -> "holds other"
+}
+
+measured :: fn(h: Measure) -> string = match h {
+    is Measure { m: 0.0 } -> "measures zero"
+    _                     -> "measures other"
+}
+
+boxed :: fn(b: Boxed<i64>) -> string = match b {
+    is Boxed<i64> { v: 5 } -> "boxes five"
+    _                      -> "boxes other"
+}
+
+// @partial: a literal covers some values of `Path`, never all of them.
+named :: fn(n: Path) -> string = @partial match n {
+    "readme" -> "readme"
+    _        -> "other"
+}
+
+// @partial: a literal covers some strings, never the whole variant.
+shape :: fn(u: Point | string | null) -> string = @partial match u {
+    null     -> "null"
+    is Point -> "point"
+    "a"      -> "a"
+    _        -> "other string"
+}
+
+STORED: i64 | string: 5
+BAKED: i64 | string: @comptime 5
+
+BAKED_IS_A :: @comptime BAKED == "a"
+BAKED_IS_FIVE :: @comptime BAKED == 5
+
+main :: fn() -> i32 {
+    five: i64: 5
+    println("${describe(five)} ${describe("a")} ${describe(7)}")
+    negative_zero: f64: -0.0
+    println("${describe_float(negative_zero)} ${describe_float(1.5)}")
+    println("${held(Holder { .v = five })} ${held(Holder { .v = "a" })} ${held(Holder { .v = 6 })}")
+    println("${measured(Measure { .m = negative_zero })} ${measured(Measure { .m = "x" })}")
+    println("${boxed(Boxed<i64> { .v = five })} ${boxed(Boxed<i64> { .v = "a" })}")
+    println("${named(Path("README"))} ${named(Path("notes"))}")
+    println("${shape(null)} ${shape(Point { .x = 1 })} ${shape("a")} ${shape("b")}")
+    println("${STORED == "a"} ${STORED == 5}")
+    println("${BAKED_IS_A} ${BAKED_IS_FIVE}")
+    return 0
+}

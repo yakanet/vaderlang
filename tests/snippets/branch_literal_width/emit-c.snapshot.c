@@ -152,7 +152,7 @@ static int32_t snippet_main(void) {
 #line 17 "tests/snippets/branch_literal_width/_main.vader"
     l2 = ((vader_array_t*) l0)->length;
 #line 19 "tests/snippets/branch_literal_width/_main.vader"
-    if (l2 == INT32_C(0)) {
+    if (l2 == INT64_C(0)) {
         l1 = (uint8_t) (uint32_t) 40u;
 #line 20 "tests/snippets/branch_literal_width/_main.vader"
     } else {
@@ -175,7 +175,7 @@ static int32_t snippet_main(void) {
 #line 23 "tests/snippets/branch_literal_width/_main.vader"
     l5 = INT64_C(5000000000);
 #line 25 "tests/snippets/branch_literal_width/_main.vader"
-    if (l2 == INT32_C(0)) {
+    if (l2 == INT64_C(0)) {
         l6 = (int64_t) 1;
 #line 26 "tests/snippets/branch_literal_width/_main.vader"
     } else {

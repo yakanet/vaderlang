@@ -237,11 +237,11 @@ fn 3 snippet$main () -> i32
   local if_res string
   local __buf_15 ref
   local __off_16 usize
-  local $cast_68 i64
-  local $cast_72 string
+  local $cast_69 i64
+  local $cast_73 string
   local __buf_22 ref
   local __off_23 usize
-  local $cast_108 i64
+  local $cast_109 i64
   data.const 0 22   ; pool[0] union[]
   local.tee 0   ; __for_arr_0
   array.len
@@ -367,10 +367,10 @@ fn 3 snippet$main () -> i32
         local.set 6   ; __off_16
         local.get 3   ; w
         ref.cast 15   ; i64
-        local.set 7   ; $cast_68
+        local.set 7   ; $cast_69
         local.get 5   ; __buf_15
         local.get 6   ; __off_16
-        local.get 7   ; $cast_68
+        local.get 7   ; $cast_69
         call 9   ; std_core$write_int
         local.set 6   ; __off_16
         local.get 5   ; __buf_15
@@ -380,9 +380,9 @@ fn 3 snippet$main () -> i32
       else
         local.get 3   ; w
         ref.cast 3   ; string
-        local.set 8   ; $cast_72
+        local.set 8   ; $cast_73
         string.const 1   ; "string "
-        local.get 8   ; $cast_72
+        local.get 8   ; $cast_73
         call 4   ; concat_2
         local.set 4   ; if_res
       end $L10
@@ -427,10 +427,10 @@ fn 3 snippet$main () -> i32
         struct.get 10 0   ; snippet$Circle.r
         ref.cast 2   ; i32
         i32.to_i64
-        local.set 7   ; $cast_68
+        local.set 7   ; $cast_69
         local.get 5   ; __buf_15
         local.get 6   ; __off_16
-        local.get 7   ; $cast_68
+        local.get 7   ; $cast_69
         call 9   ; std_core$write_int
         local.set 6   ; __off_16
         local.get 5   ; __buf_15
@@ -453,10 +453,10 @@ fn 3 snippet$main () -> i32
         struct.get 11 0   ; snippet$Square.side
         ref.cast 2   ; i32
         i32.to_i64
-        local.set 11   ; $cast_108
+        local.set 11   ; $cast_109
         local.get 9   ; __buf_22
         local.get 10   ; __off_23
-        local.get 11   ; $cast_108
+        local.get 11   ; $cast_109
         call 9   ; std_core$write_int
         local.set 10   ; __off_23
         local.get 9   ; __buf_22
@@ -493,10 +493,10 @@ fn 3 snippet$main () -> i32
       local.set 4   ; if_res
       local.field 5 12 1   ; __buf_15 snippet$Holder.cell
       call 2   ; snippet$small
-      local.set 8   ; $cast_72
+      local.set 8   ; $cast_73
       local.get 4   ; if_res
       string.const 9   ; ": "
-      local.get 8   ; $cast_72
+      local.get 8   ; $cast_73
       call 5   ; concat_3
       call 36   ; std_io$println__string
       local.get 2   ; __for_i_2

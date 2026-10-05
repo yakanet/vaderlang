@@ -47,6 +47,28 @@ try_lower_value_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr | 
     return with_prelude(stmts, maybe_negate(equal, binary.op == .Neq, span), span)
 }
 
+// `value == literal` for a literal pattern, by the rule `==` follows : the bare
+// compare when every value of `value`'s type compares by its bits, `value_eq`
+// otherwise — by variant on a union, through its own `Equals` on a distinct, IEEE
+// on a float. `value` is the pre-bound scrutinee or a field of it. Unlike
+// `try_lower_value_eq`, nothing falls back to `lower_binary` here, so a non-union
+// operand goes through `value_eq` too.
+literal_eq :: fn(
+    ctx: FnLowerCtx!, value: LoweredExpr, literal: LoweredExpr, span: Span,
+) -> LoweredExpr {
+    value_type :: type_of(value)
+    if !compares_by_bits(value_type) {
+        return value_eq(ctx, value, value_type, literal, type_of(literal), span)
+    }
+    return LoweredBinary {
+        .span = span,
+        .type = TY_BOOL,
+        .op = .Eq,
+        .left = value,
+        .right = literal,
+    }
+}
+
 // Whether every value of `t` compares by its bits — the payload of its box — so that
 // a box compare is already `==` : an integer, `bool`, `char`, `string`, an enum. Not
 // a float (`nan`, `-0.0`), nor a struct, a tuple, a distinct or a type parameter.

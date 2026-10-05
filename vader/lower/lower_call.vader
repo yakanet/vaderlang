@@ -345,6 +345,24 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
 // whose value isn't a foldable scalar — the caller keeps a real reference.
 // Shared by `lower_ident` (every ident) and `try_lower_namespace_const`.
 fold_const_symbol :: fn(ctx: FnLowerCtx!, sym: Symbol, type: Type, span: Span) -> LoweredExpr | null {
+    folded :: fold_const_value(ctx, sym, type, span) ?? return null
+    // The value carries its own variant's type ; a read typed as a union boxes it,
+    // as reading the const's slot would — `==` and `is` dispatch on that type.
+    if type is UnionType && !equals_type(type_of(folded), type) {
+        return LoweredCast {
+            .span = span,
+            .type = type,
+            .value = folded,
+        }
+    }
+    return folded
+}
+
+// The value `sym` folds to : its comptime-baked scalar, or its literal RHS when the
+// bake missed. Null when it does not fold.
+fold_const_value :: fn(
+    ctx: FnLowerCtx!, sym: Symbol, type: Type, span: Span,
+) -> LoweredExpr | null {
     baked :: lookup_const_baked_value(ctx, sym)
     if baked == null {
         // Bake missed. Gate on Const kind so the common baked-miss (every

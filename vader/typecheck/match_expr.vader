@@ -16,17 +16,18 @@ AST :: import "toolchain/ast"
 // pattern. Literal and range patterns carry scalar exprs (`value`, or
 // `lower`/`upper`) that must be checked so they land in `expr_types` ; every
 // other pattern kind carries none. Called on the arm pattern and on each
-// or-pattern alternative. NOTE : bounds are checked in isolation (`null`
-// expected), so a bound whose type mismatches the scrutinee is not yet rejected
-// — see TODO "range/literal pattern bound typing".
+// or-pattern alternative. Range bounds are checked in isolation (`null`
+// expected), so a bound whose type mismatches the scrutinee passes.
 check_pattern_bound_exprs :: fn(
     pat: AST.Pattern!,
+    scrutinee: AST.Expr,
+    scrut: Type,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     if pat is AST.LiteralPattern {
-        _ :: check_expr_fn(pat.value, null, typed, diags)
+        check_pattern_literal(pat.value, scrutinee, scrut, typed, diags, check_expr_fn)
     }
     if pat is AST.RangePattern {
         _ :: check_expr_fn(pat.lower, null, typed, diags)
@@ -102,10 +103,15 @@ export infer_match :: fn(
                 ),
             )
         }
-        check_pattern_bound_exprs(arm.pattern, typed, diags, check_expr_fn)
+        // A literal is compared with what the arms above leave of the scrutinee :
+        // after `is Point ->`, `"a"` meets `string | null`, and `Point` needs no
+        // `Equals`. Once nothing is left, W0014 has the arm and the whole
+        // scrutinee types it.
+        left_over :: if remaining is NeverType { scrut_ty } else { remaining }
+        check_pattern_bound_exprs(arm.pattern, scrut, left_over, typed, diags, check_expr_fn)
         if arm.pattern is AST.OrPattern as op {
             for sub in op.patterns {
-                check_pattern_bound_exprs(sub, typed, diags, check_expr_fn)
+                check_pattern_bound_exprs(sub, scrut, left_over, typed, diags, check_expr_fn)
             }
         }
         // Re-bind the pattern types against the narrowed `remaining`
@@ -482,13 +488,34 @@ bind_struct_pattern :: fn(
         match field.value as value {
             is AST.PatternBinding -> { typed.local_types[value.span.hash()] = ft }
             is AST.PatternLiteral -> {
-                got :: check_expr_fn(value.value, ft, typed, diags)
-                if !is_assignable(got, ft) {
-                    diags.push(mismatch_diagnostic(got, ft, value.value.span, .TypeMismatch))
-                }
+                check_pattern_literal(value.value, value.value, ft, typed, diags, check_expr_fn)
             }
         }
     }
+}
+
+// A literal pattern — or a literal constraining a struct field — matches when
+// `compared == literal` holds, so it is checked as the right operand of that `==`
+// is (`infer_binary`): typed alone, a free literal then repinned to the variant of
+// `expected` it fills, and `==`'s own rule applied (`check_equality`). `compared`
+// only lends its span to the diagnostics.
+check_pattern_literal :: fn(
+    literal: AST.Expr!,
+    compared: AST.Expr,
+    expected: Type,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> void {
+    alone :: check_expr_fn(literal, null, typed, diags)
+    got :: repin_operand(literal, alone, expected, typed, diags, check_expr_fn)
+    comparison :: AST.BinaryExpr {
+        .span = literal.span,
+        .op = .Eq,
+        .left = compared,
+        .right = literal,
+    }
+    _ :: check_equality(comparison, expected, got, typed, diags)
 }
 
 scratch_diags :: fn() -> Diagnostic[]! { return [] }

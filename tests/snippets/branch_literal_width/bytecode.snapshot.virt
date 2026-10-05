@@ -94,7 +94,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; out
   array.len
   local.tee 2   ; $sub_9
-  i32.const 0
+  i64.const 0
   i64.eq
   if $L4 void
     char.const 40
@@ -125,7 +125,7 @@ fn 0 snippet$main () -> i32
   i64.const 5000000000
   local.set 5   ; big
   local.get 2   ; $sub_9
-  i32.const 0
+  i64.const 0
   i64.eq
   if $L6 void
     i32.const 1

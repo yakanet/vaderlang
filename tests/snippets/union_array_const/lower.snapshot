@@ -315,7 +315,8 @@
           callee:
             cell :fn(i32 | string) -> string
           arg0:
-            int(8) :i32
+            cast → i32 | string
+              int(8) :i32
     block :void
       let __for_arr_6: (bool | char | f64 | string)[] = MIXED :(bool | char | f64 | string)[]
       let __for_len_7: usize =

@@ -1,0 +1,17 @@
+// T3043: a literal pattern is `scrutinee == literal`, against what the arms above
+// leave of the scrutinee. Placed before `is Point`, `"a"` meets the whole
+// `Point | string | null`, and `Point` has no `Equals` — narrow it out first.
+module "snippet"
+
+Point :: struct {
+    x: i32
+}
+
+shape :: fn(u: Point | string | null) -> i32 = match u {
+    "a"      -> 1
+    null     -> 2
+    is Point -> 3
+    _        -> 4
+}
+
+main :: fn() -> i32 = shape("a")
