@@ -1,0 +1,8 @@
+// T3043: `==` on a type parameter compares through `Equals`, so its bound must name
+// it, as `+` needs `Add`. Without the bound, an instance on a type with no `Equals`
+// would compile and fail at run time.
+module "snippet"
+
+same :: fn<T>(a: T, b: T) -> bool = a == b
+
+main :: fn() -> i32 = if same(1, 1) { 0 } else { 1 }

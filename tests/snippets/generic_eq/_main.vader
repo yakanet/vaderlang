@@ -2,7 +2,7 @@ module "snippet"
 
 import "std/io"
 
-export are_eq :: fn<T>(a: T, b: T) -> bool {
+export are_eq :: fn<T: Equals>(a: T, b: T) -> bool {
     return a == b
 }
 

@@ -340,7 +340,7 @@ export MutableSet :: struct<T: Hash & Equals> {
 /// @param self   the set receiver.
 /// @param value  the element to add.
 /// @return       `true` on insertion, `false` on duplicate.
-export add :: fn<T>(self: MutableSet<T>!, value: T) -> bool {
+export add :: fn<T: Hash & Equals>(self: MutableSet<T>!, value: T) -> bool {
     if value in self.inner { return false }
     self.inner[value] = true
     return true
@@ -368,7 +368,7 @@ export clear :: fn<T>(self: MutableSet<T>!) -> void = self.inner.clear()
 // `value in set` / `value !in set` dispatch through Contains. No
 // Index/IndexSet impl — sets have no value-at-key semantics, and `s.add(v)`
 // reads more clearly than a hypothetical `s[v] = true`.
-MutableSet<T> implements Contains<T> -> value in self.inner
+MutableSet<T> implements<T: Hash & Equals> Contains<T> -> value in self.inner
 
 // `for v in s` works directly via the `Into<Iterator<...>>` impl below — same
 // `generator` pattern as `MutableMap` (fast-path for `for v in s`, state machine

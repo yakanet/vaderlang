@@ -1,0 +1,13 @@
+// T3043: `T[]` implements `Contains<T>` only for `T: Equals`, since `x in xs`
+// compares `x` with each element. A struct without `Equals` has no `in`.
+module "snippet"
+
+Point :: struct {
+    x: i32
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1 }
+    points :: [p]
+    return if p in points { 0 } else { 1 }
+}

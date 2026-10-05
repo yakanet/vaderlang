@@ -21,7 +21,10 @@
       "typeParams": [
         {
           "name": "T",
-          "bound": null,
+          "bound": {
+            "kind": "IdentExpr",
+            "name": "Equals"
+          },
           "isComptimeValue": false
         }
       ],
