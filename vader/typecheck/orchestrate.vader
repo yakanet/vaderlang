@@ -310,6 +310,7 @@ export check_project_with_bodies :: fn(
     // via `try_default_trait_method`.
     cross_publish_trait_decls(per_module)
     cross_publish_fn_decls(per_module)
+    broadcast_type_param_bounds(per_module)
     // Index every module's typed program by its declared module name, so the
     // import-respecting overload population (D-a) can resolve each module's
     // `import "..."` paths to the imported module's typed program.
@@ -909,6 +910,37 @@ record_impl_bounds :: fn(
     }
 }
 
+// Every module's type-parameter bounds in ONE table every module reads, so a call
+// checks an imported callee's bounds as it checks a local one's. Symbol ids are
+// project-wide, so modules cannot collide. Built once imports are wired : a bound
+// naming a renamed import or a namespace member (`T: Ns.Trait`) resolves only then.
+broadcast_type_param_bounds :: fn(per_module: MutableMap<string, TypedProgram!>) -> void {
+    shared :: MutableMap<i32, TypeParamBound> {}
+    for [_, typed] in per_module {
+        record_type_param_bounds(typed.resolved, shared)
+    }
+    for [_, typed] in per_module {
+        typed.type_param_bound_traits = shared
+    }
+}
+
+// The bound of every type parameter `resolved` declares, by its symbol id. The
+// bound table has no names : `idents` is what carries a type parameter's.
+record_type_param_bounds :: fn(
+    resolved: ResolvedModule,
+    out: MutableMap<i32, TypeParamBound>!,
+) -> void {
+    for [_, sym] in resolved.idents {
+        if sym.kind != .TypeParam || out[sym.id] != null {
+            continue
+        }
+        bound :: resolved.type_param_bounds[sym.id] ?? continue
+        traits: string[]!: []
+        collect_bound_traits(bound, resolved, traits)
+        out[sym.id] = TypeParamBound { .name = sym.name, .traits = traits }
+    }
+}
+
 /// The `trait_key`s of the traits `bound` names — one, or an `A & B` chain.
 ///
 /// @param bound     a type parameter's bound.
@@ -1467,8 +1499,8 @@ cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram!>) -
 }
 
 /// Same idea as `cross_publish_trait_decls` but for `fn_decls`.
-/// Lets T3006 enforcement reach cross-module callees (e.g. checking
-/// bounds on `std/math.min`'s type-params from an entry call site).
+/// Lets `lookup_callee_fn_decl` reach a callee declared in another module
+/// (`std/math.min` from an entry call site).
 cross_publish_fn_decls :: fn(per_module: MutableMap<string, TypedProgram!>) -> void {
     ids: i32[]!: []
     fdecls: AST.FnDecl[]!: []

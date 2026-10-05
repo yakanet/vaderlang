@@ -11,23 +11,23 @@ type 8 primitive void
 type 9 struct __asyncstate_snippet_1 { s0:11,awaited:10,state:4 }
 type 10 ref std_core$Async
 type 11 array 4
-type 12 primitive bool
-type 13 primitive u8
-type 14 primitive usize
-type 15 struct std_core$Buffer {  }
-type 16 primitive u64
-type 17 array 13
+type 12 primitive u64
+type 13 primitive bool
+type 14 primitive u8
+type 15 primitive usize
+type 16 struct std_core$Buffer {  }
+type 17 array 14
 type 18 struct std_async$JoinAll__i32 { children:23,results:25,wake_at:26 }
 type 19 union 11,7
 type 20 ref std_core$Async
-type 21 struct std_async$Sleep { ms:2,deadline:2,armed:12 }
+type 21 struct std_async$Sleep { ms:2,deadline:2,armed:13 }
 type 22 union 0,7
 type 23 array 3
 type 24 ref std_core$Async
-type 25 struct std_collections$MutableMap__usize__i32 { ekeys:28,evals:11,index:11,mask:14,size:14,tombs:14 }
+type 25 struct std_collections$MutableMap__usize__i32 { ekeys:28,evals:11,index:11,mask:15,size:15,tombs:15 }
 type 26 array 2
 type 27 primitive isize
-type 28 array 14
+type 28 array 15
 type 29 union 4,0
 string 0 ": end (slept "
 string 1 ")"
@@ -37,16 +37,16 @@ string 4 "B"
 string 5 "C"
 string 6 "\n"
 string 7 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len result_type=14 param_types=1 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=15 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=17 param_types=1 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=27 param_types=4,17,14 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=27 param_types=4,17,15 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 import 3 sched_now std_runtime$sched_now result_type=2 () -> i64
 import 4 sched_arm std_runtime$sched_arm result_type=8 param_types=2 param_mutable=0 param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=4 () -> i32
 import 6 panic std_abort$panic result_type=8 param_types=1 param_mutable=0 param_by_address= (string) -> void
 impl 5 std_core$Async
 impl 9 std_core$Async
-impl 15 std_core$ByteAccess
+impl 16 std_core$ByteAccess
 impl 18 std_core$Async
 impl 21 std_core$Async
 impl 25 std_core$Index
@@ -564,6 +564,9 @@ fn 11 std_core$usize$Hash$hash (usize) -> u64
   local.get 0   ; arg 0
   usize.to_i64
   return
+  local.get 0   ; arg 0
+  usize.to_i64
+  return
 end
 
 fn 12 std_io$write (u8,string) -> void
@@ -836,7 +839,7 @@ fn 20 std_async$Sleep$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 21 2   ; arg 0 std_async$Sleep.armed
-  ref.cast 12   ; bool
+  ref.cast 13   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0
@@ -1068,7 +1071,7 @@ fn 30 std_collections$rehash__usize__i32 (ref,usize) -> void
   i64.const 0
   local.set 4   ; e
   local.field 0 25 4   ; arg 0 std_collections$MutableMap__usize__i32.size
-  ref.cast 14   ; usize
+  ref.cast 15   ; usize
   local.set 5   ; __for_hi_1
   loop $L2 void
     local.get 4   ; e
@@ -1135,7 +1138,7 @@ fn 31 std_collections$write_entry__usize__i32 (ref,usize,i32) -> void
   local $len_5 usize
   local $field_7 ref
   local.field 0 25 4   ; arg 0 std_collections$MutableMap__usize__i32.size
-  ref.cast 14   ; usize
+  ref.cast 15   ; usize
   local.set 3   ; $field_3
   local.field 0 25 0   ; arg 0 std_collections$MutableMap__usize__i32.ekeys
   array.len
@@ -1147,7 +1150,7 @@ fn 31 std_collections$write_entry__usize__i32 (ref,usize,i32) -> void
     local.field 0 25 0   ; arg 0 std_collections$MutableMap__usize__i32.ekeys
     local.set 5   ; $field_7
     local.field 0 25 4   ; arg 0 std_collections$MutableMap__usize__i32.size
-    ref.cast 14   ; usize
+    ref.cast 15   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -1156,7 +1159,7 @@ fn 31 std_collections$write_entry__usize__i32 (ref,usize,i32) -> void
     local.field 0 25 1   ; arg 0 std_collections$MutableMap__usize__i32.evals
     local.set 5   ; $field_7
     local.field 0 25 4   ; arg 0 std_collections$MutableMap__usize__i32.size
-    ref.cast 14   ; usize
+    ref.cast 15   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -1166,7 +1169,7 @@ fn 31 std_collections$write_entry__usize__i32 (ref,usize,i32) -> void
   end $L0
   local.field 0 25 0   ; arg 0 std_collections$MutableMap__usize__i32.ekeys
   local.get 1   ; arg 1
-  array.push 14   ; usize
+  array.push 15   ; usize
   local.field 0 25 1   ; arg 0 std_collections$MutableMap__usize__i32.evals
   local.get 2   ; arg 2
   array.push 4   ; i32
@@ -1184,10 +1187,10 @@ fn 32 std_collections$put__usize__i32 (ref,usize,i32) -> void
   local.get 0   ; arg 0
   call 29   ; std_collections$ensure_index__usize__i32
   local.field 0 25 4   ; arg 0 std_collections$MutableMap__usize__i32.size
-  ref.cast 14   ; usize
+  ref.cast 15   ; usize
   local.set 3   ; $field_3
   local.field 0 25 5   ; arg 0 std_collections$MutableMap__usize__i32.tombs
-  ref.cast 14   ; usize
+  ref.cast 15   ; usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -1198,7 +1201,7 @@ fn 32 std_collections$put__usize__i32 (ref,usize,i32) -> void
   i64.mul
   local.set 3   ; $field_3
   local.field 0 25 3   ; arg 0 std_collections$MutableMap__usize__i32.mask
-  ref.cast 14   ; usize
+  ref.cast 15   ; usize
   i64.const 1
   i64.add
   i64.const 3
@@ -1212,7 +1215,7 @@ fn 32 std_collections$put__usize__i32 (ref,usize,i32) -> void
     local.set 3   ; $field_3
     loop $L1 void
       local.field 0 25 4   ; arg 0 std_collections$MutableMap__usize__i32.size
-      ref.cast 14   ; usize
+      ref.cast 15   ; usize
       i64.const 1
       i64.add
       i64.const 4
@@ -1241,7 +1244,7 @@ fn 32 std_collections$put__usize__i32 (ref,usize,i32) -> void
   call 11   ; std_core$usize$Hash$hash
   local.set 6   ; perturb
   local.field 0 25 3   ; arg 0 std_collections$MutableMap__usize__i32.mask
-  ref.cast 14   ; usize
+  ref.cast 15   ; usize
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
@@ -1297,7 +1300,7 @@ fn 32 std_collections$put__usize__i32 (ref,usize,i32) -> void
       u64.shr
       local.set 6   ; perturb
       local.field 0 25 3   ; arg 0 std_collections$MutableMap__usize__i32.mask
-      ref.cast 14   ; usize
+      ref.cast 15   ; usize
       local.set 5   ; $mul_24
       local.get 3   ; $field_3
       local.get 6   ; perturb
@@ -1323,7 +1326,7 @@ fn 32 std_collections$put__usize__i32 (ref,usize,i32) -> void
   i64.ge
   if $L9 void
     local.field 0 25 5   ; arg 0 std_collections$MutableMap__usize__i32.tombs
-    ref.cast 14   ; usize
+    ref.cast 15   ; usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -1338,7 +1341,7 @@ fn 32 std_collections$put__usize__i32 (ref,usize,i32) -> void
   local.field 0 25 2   ; arg 0 std_collections$MutableMap__usize__i32.index
   local.set 8   ; $field_70
   local.field 0 25 4   ; arg 0 std_collections$MutableMap__usize__i32.size
-  ref.cast 14   ; usize
+  ref.cast 15   ; usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -1348,7 +1351,7 @@ fn 32 std_collections$put__usize__i32 (ref,usize,i32) -> void
   local.get 9   ; $cast_74
   store_slot_i32
   local.field 0 25 4   ; arg 0 std_collections$MutableMap__usize__i32.size
-  ref.cast 14   ; usize
+  ref.cast 15   ; usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -1374,7 +1377,7 @@ fn 33 std_collections$get__usize__i32 (ref,usize) -> any
   call 11   ; std_core$usize$Hash$hash
   local.set 2   ; perturb
   local.field 0 25 3   ; arg 0 std_collections$MutableMap__usize__i32.mask
-  ref.cast 14   ; usize
+  ref.cast 15   ; usize
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
@@ -1418,7 +1421,7 @@ fn 33 std_collections$get__usize__i32 (ref,usize) -> any
       u64.shr
       local.set 2   ; perturb
       local.field 0 25 3   ; arg 0 std_collections$MutableMap__usize__i32.mask
-      ref.cast 14   ; usize
+      ref.cast 15   ; usize
       local.set 5   ; $field_33
       local.get 3   ; $field_9
       local.get 2   ; perturb
@@ -1433,7 +1436,7 @@ end
 
 fn 34 std_collections$len__usize__i32 (ref) -> usize
   local.field 0 25 4   ; arg 0 std_collections$MutableMap__usize__i32.size
-  ref.cast 14   ; usize
+  ref.cast 15   ; usize
   return
 end
 

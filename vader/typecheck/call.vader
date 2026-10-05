@@ -300,7 +300,7 @@ seed_ufcs_bindings :: fn(
 
 // Seed `bindings` from a `f<T1, T2>(…)` callee's explicit type args.
 // Zips the resolved fn-decl's ordered type-params (recovered from
-// `idents` by their decl-site span, as T3006 does) with the resolved
+// `idents` by their decl-site span) with the resolved
 // `<…>` argument types. No-op when the callee isn't an explicit generic
 // instantiation. Lets a free-literal arg pin to the named concrete type.
 seed_explicit_type_args :: fn(
@@ -991,6 +991,7 @@ export infer_call :: fn(
         typed.overloaded_arg_depth = typed.overloaded_arg_depth - 1
     }
     widen_empty_array_on_push(c, typed)
+    check_receiver_bounds(c, typed, diags)
     if diverges {
         return TY_NEVER
     }
@@ -1103,49 +1104,59 @@ cast_call_target :: fn(
     return result
 }
 
-/// T3006 enforcement : for every `T: Trait` bound on the callee's
-/// fn-decl type-params, check that the bound concrete type implements
-/// the trait. Skips bounds whose typeParam stays unbound after unify
-/// (no arg pinned it — caller already gets a T3001 in that path).
+/// T3006 enforcement : every type parameter the call bound must satisfy each
+/// trait of its bound, wherever the callee is declared and however it is called
+/// — direct, UFCS, through a namespace. Skips a parameter the call left unbound
+/// (it already reports T3001 or T3069).
 check_typeparam_bounds :: fn(
     c: AST.CallExpr,
     bindings: MutableMap<i32, Type>,
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> void {
-    fn_decl :: lookup_callee_fn_decl(c.callee, typed) ?? return
-    for tp in fn_decl.type_params {
-        if tp.bound is null {
-            continue
-        }
-        sym :: typed.resolved.idents[tp.span.hash()] ?? continue
-        bound_ty :: bindings[sym.id] ?? continue
-        bound_trait :: type_from_expr(tp.bound, typed.resolved, [])
-        if bound_trait is TraitType {
-            // An erased instance dispatches `Display` on its value's runtime type,
-            // and no vtable carries an array's : its impl is reached only where
-            // the value is known to be an array.
-            if bound_ty is ArrayType && bound_trait.symbol.name == TRAIT_DISPLAY {
-                diags.push(
-                    typecheck_error(
-                        .TraitNotSatisfied,
-                        c.span,
-                        "an array renders only when interpolated directly, not through type "
-                            + "parameter `${tp.name}` of `${callee_name(c.callee)}`",
-                    ),
-                )
-            } else if !struct_implements_trait(bound_ty, trait_key_of(bound_trait.symbol), typed) {
-                diags.push(
-                    typecheck_error(
-                        .TraitNotSatisfied,
-                        c.span,
-                        "`${display_type(bound_ty)}` does not implement `${bound_trait.symbol.name}` (required by type parameter `${tp.name}` of `${callee_name(c.callee)}`)"
-                            + unmet_impl_bound_note(bound_ty, trait_key_of(bound_trait.symbol), typed),
-                    ),
-                )
+    for [id, bound_ty] in bindings {
+        bound :: typed.type_param_bound_traits[id] ?? continue
+        for key in bound.traits {
+            if satisfies_bound(bound_ty, key, typed) {
+                continue
             }
+            // `satisfies_bound` refuses an array any `Display` : say why.
+            detail :: if bound_ty is ArrayType && key == core_trait_key(TRAIT_DISPLAY) {
+                ("an array renders only when interpolated directly, not through type "
+                    + "parameter `${bound.name}` of `${callee_name(c.callee)}`")
+            } else {
+                ("`${display_type(bound_ty)}` does not implement `${trait_key_name(key)}` "
+                    + "(required by type parameter `${bound.name}` of `${callee_name(c.callee)}`)"
+                    + unmet_impl_bound_note(bound_ty, key, typed))
+            }
+            diags.push(typecheck_error(.TraitNotSatisfied, c.span, detail))
         }
     }
+}
+
+// T3006 for a UFCS call whose curried signature kept none of the callee's type
+// parameters (`m.println()` on `println<T: Display>(msg: T)`) : the receiver alone
+// binds them, so the generic path never ran.
+check_receiver_bounds :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]!) -> void {
+    if c.callee !is AST.FieldExpr {
+        return
+    }
+    decl :: chosen_decl(typed, c.callee.id) ?? return
+    if !has_bounded_type_param(decl) {
+        return
+    }
+    bindings :: MutableMap<i32, Type> {}
+    seed_ufcs_bindings(c.callee, typed, bindings)
+    check_typeparam_bounds(c, bindings, typed, diags)
+}
+
+has_bounded_type_param :: fn(decl: AST.FnDecl) -> bool {
+    for tp in decl.type_params {
+        if tp.bound !is null {
+            return true
+        }
+    }
+    return false
 }
 
 /// The declaration a call's callee names: a bare or explicitly instantiated name
@@ -1157,7 +1168,7 @@ check_typeparam_bounds :: fn(
 /// @return        the `FnDecl`, or null when the callee is no named fn.
 export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
     // See through an explicit `f<…>` instantiation to the underlying
-    // ident, so T3006 bound-checking fires on `f<i64>(…)` too.
+    // ident, so `f<i64>(…)` finds its decl too.
     base: AST.Expr = callee
     if callee is AST.GenericInstExpr {
         base = callee.callee

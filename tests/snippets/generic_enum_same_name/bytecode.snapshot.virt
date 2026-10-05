@@ -4,22 +4,22 @@ type 1 primitive i32
 type 2 primitive u8
 type 3 primitive i64
 type 4 primitive string
-type 5 primitive usize
-type 6 struct std_core$Buffer {  }
-type 7 primitive u64
+type 5 primitive u64
+type 6 primitive usize
+type 7 struct std_core$Buffer {  }
 type 8 array 2
 type 9 primitive void
-type 10 struct std_collections$MutableMap__Status__i64 { ekeys:8,evals:12,index:13,mask:5,size:5,tombs:5 }
+type 10 struct std_collections$MutableMap__Status__i64 { ekeys:8,evals:12,index:13,mask:6,size:6,tombs:6 }
 type 11 union 3,0
 type 12 array 3
 type 13 array 1
 type 14 primitive isize
 string 0 " "
 string 1 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=4 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=6 param_types=4 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=8 param_types=4 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 std_core$ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,8,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 7 std_core$ByteAccess
 impl 10 std_core$Index
 impl 10 std_core$IndexSet
 impl 10 std_core$Contains
@@ -560,7 +560,7 @@ fn 17 std_collections$rehash__snippet_alpha_Status__i64 (ref,usize) -> void
   i64.const 0
   local.set 4   ; e
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 5   ; __for_hi_1
   loop $L2 void
     local.get 4   ; e
@@ -658,7 +658,7 @@ fn 18 std_collections$rehash__snippet_beta_Status__i64 (ref,usize) -> void
   i64.const 0
   local.set 4   ; e
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 5   ; __for_hi_1
   loop $L2 void
     local.get 4   ; e
@@ -725,7 +725,7 @@ fn 19 std_collections$write_entry__snippet_alpha_Status__i64 (ref,u8,i64) -> voi
   local $len_5 usize
   local $field_7 ref
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_3
   local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
   array.len
@@ -737,7 +737,7 @@ fn 19 std_collections$write_entry__snippet_alpha_Status__i64 (ref,u8,i64) -> voi
     local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
     local.set 5   ; $field_7
     local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-    ref.cast 5   ; usize
+    ref.cast 6   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -746,7 +746,7 @@ fn 19 std_collections$write_entry__snippet_alpha_Status__i64 (ref,u8,i64) -> voi
     local.field 0 10 1   ; arg 0 std_collections$MutableMap__Status__i64.evals
     local.set 5   ; $field_7
     local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-    ref.cast 5   ; usize
+    ref.cast 6   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -768,7 +768,7 @@ fn 20 std_collections$write_entry__snippet_beta_Status__i64 (ref,u8,i64) -> void
   local $len_5 usize
   local $field_7 ref
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_3
   local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
   array.len
@@ -780,7 +780,7 @@ fn 20 std_collections$write_entry__snippet_beta_Status__i64 (ref,u8,i64) -> void
     local.field 0 10 0   ; arg 0 std_collections$MutableMap__Status__i64.ekeys
     local.set 5   ; $field_7
     local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-    ref.cast 5   ; usize
+    ref.cast 6   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -789,7 +789,7 @@ fn 20 std_collections$write_entry__snippet_beta_Status__i64 (ref,u8,i64) -> void
     local.field 0 10 1   ; arg 0 std_collections$MutableMap__Status__i64.evals
     local.set 5   ; $field_7
     local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-    ref.cast 5   ; usize
+    ref.cast 6   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -817,10 +817,10 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   local.get 0   ; arg 0
   call 15   ; std_collections$ensure_index__snippet_alpha_Status__i64
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_3
   local.field 0 10 5   ; arg 0 std_collections$MutableMap__Status__i64.tombs
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -831,7 +831,7 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   i64.mul
   local.set 3   ; $field_3
   local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   i64.const 1
   i64.add
   i64.const 3
@@ -845,7 +845,7 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
     local.set 3   ; $field_3
     loop $L1 void
       local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-      ref.cast 5   ; usize
+      ref.cast 6   ; usize
       i64.const 1
       i64.add
       i64.const 4
@@ -874,7 +874,7 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   call 8   ; std_core$u8$Hash$hash
   local.set 6   ; perturb
   local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
@@ -930,7 +930,7 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
       u64.shr
       local.set 6   ; perturb
       local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
-      ref.cast 5   ; usize
+      ref.cast 6   ; usize
       local.set 5   ; $mul_24
       local.get 3   ; $field_3
       local.get 6   ; perturb
@@ -956,7 +956,7 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   i64.ge
   if $L9 void
     local.field 0 10 5   ; arg 0 std_collections$MutableMap__Status__i64.tombs
-    ref.cast 5   ; usize
+    ref.cast 6   ; usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -971,7 +971,7 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
   local.set 8   ; $field_70
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -981,7 +981,7 @@ fn 21 std_collections$put__snippet_alpha_Status__i64 (ref,u8,i64) -> void
   local.get 9   ; $cast_74
   store_slot_i32
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -1002,10 +1002,10 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   local.get 0   ; arg 0
   call 16   ; std_collections$ensure_index__snippet_beta_Status__i64
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_3
   local.field 0 10 5   ; arg 0 std_collections$MutableMap__Status__i64.tombs
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -1016,7 +1016,7 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   i64.mul
   local.set 3   ; $field_3
   local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   i64.const 1
   i64.add
   i64.const 3
@@ -1030,7 +1030,7 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
     local.set 3   ; $field_3
     loop $L1 void
       local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-      ref.cast 5   ; usize
+      ref.cast 6   ; usize
       i64.const 1
       i64.add
       i64.const 4
@@ -1059,7 +1059,7 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   call 8   ; std_core$u8$Hash$hash
   local.set 6   ; perturb
   local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
@@ -1115,7 +1115,7 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
       u64.shr
       local.set 6   ; perturb
       local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
-      ref.cast 5   ; usize
+      ref.cast 6   ; usize
       local.set 5   ; $mul_24
       local.get 3   ; $field_3
       local.get 6   ; perturb
@@ -1141,7 +1141,7 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   i64.ge
   if $L9 void
     local.field 0 10 5   ; arg 0 std_collections$MutableMap__Status__i64.tombs
-    ref.cast 5   ; usize
+    ref.cast 6   ; usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -1156,7 +1156,7 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   local.field 0 10 2   ; arg 0 std_collections$MutableMap__Status__i64.index
   local.set 8   ; $field_70
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -1166,7 +1166,7 @@ fn 22 std_collections$put__snippet_beta_Status__i64 (ref,u8,i64) -> void
   local.get 9   ; $cast_74
   store_slot_i32
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__Status__i64.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -1192,7 +1192,7 @@ fn 23 std_collections$get__snippet_alpha_Status__i64 (ref,u8) -> any
   call 8   ; std_core$u8$Hash$hash
   local.set 2   ; perturb
   local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
@@ -1236,7 +1236,7 @@ fn 23 std_collections$get__snippet_alpha_Status__i64 (ref,u8) -> any
       u64.shr
       local.set 2   ; perturb
       local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
-      ref.cast 5   ; usize
+      ref.cast 6   ; usize
       local.set 5   ; $field_33
       local.get 3   ; $field_9
       local.get 2   ; perturb
@@ -1265,7 +1265,7 @@ fn 24 std_collections$get__snippet_beta_Status__i64 (ref,u8) -> any
   call 8   ; std_core$u8$Hash$hash
   local.set 2   ; perturb
   local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
@@ -1309,7 +1309,7 @@ fn 24 std_collections$get__snippet_beta_Status__i64 (ref,u8) -> any
       u64.shr
       local.set 2   ; perturb
       local.field 0 10 3   ; arg 0 std_collections$MutableMap__Status__i64.mask
-      ref.cast 5   ; usize
+      ref.cast 6   ; usize
       local.set 5   ; $field_33
       local.get 3   ; $field_9
       local.get 2   ; perturb

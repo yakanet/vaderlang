@@ -1,0 +1,15 @@
+// T3006: every trait of an `A & B` bound is checked — `Meters` has the `Add` of
+// `sum`'s `T: Add & Zero`, not its `Zero`.
+module "snippet"
+
+import "std/iter"
+
+Meters :: struct {
+    v: i32
+}
+
+Meters implements Add {
+    add :: fn(self, other: Meters) -> Meters = Meters { .v = self.v + other.v }
+}
+
+main :: fn() -> i32 = [Meters { .v = 2 }].sum().v

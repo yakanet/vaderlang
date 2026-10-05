@@ -1406,7 +1406,7 @@ make_buffer :: fn<N: i32>() -> FixedArray<u8, N> { ... }
 
 **Bound enforcement and trait-method dispatch on type parameters**: both wired since Layer 7e. The typechecker:
 - Resolves `key.hash()` inside a generic body where `key: K` and `K: Hash` to the trait method statically, then mono-substitutes it to the concrete type's impl member. An operator on such a parameter goes the same way (`a + b` with `T: Add`, `a < b` with `T: Comparable` — see *Operator overloading*).
-- At every call site of a generic fn, walks the call-site type-args against each type-param's angle-bracketed bound (`<T: Trait>`). Any concrete type lacking an explicit `T implements Trait` impl yields T3006 ("trait not satisfied").
+- At every call site of a generic fn, checks each type argument the call binds against every trait of its parameter's bound (`<T: Trait>`, each of `<T: A & B>`). A type lacking an impl of one yields T3006 ("trait not satisfied"). The check is the same wherever the callee is declared (in the module, imported, behind a namespace alias) and however it is called — directly, or through UFCS, where the receiver alone may bind the parameter (`m.println()`). A type argument that is itself a type parameter meets a bound its own bound names; an enum meets `Equals` with no impl, since it compares by variant.
 
 **Type parameters are opaque in their body.** A generic body must hold for every instance, so it knows nothing of `T` beyond its bound: only a `T` fits a slot typed `T`, and a `T` fits only a slot that names it (`T`, or a union such as `T | null`). Each of these is rejected (T3001; T3020 on a `return`; T3017 on an operator's right operand), because a `T = string` instance would receive an integer or hand one out:
 

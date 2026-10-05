@@ -87,11 +87,11 @@ static bool std_collections_add__string(void* l0, vader_string_t l1);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
+static uint64_t std_core_string_Hash_hash_vt(vader_string_t l0);
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
 static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2);
-static uint64_t std_core_string_Hash_hash_vt(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -100,14 +100,14 @@ static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf)
 const vader_type_info_t vader_type_info_table[19] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 16 },
-    [3] = { .slot_size = 1 },
+    [3] = { .slot_size = 8 },
     [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 8 },
-    [6] = {
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 8 },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [7] = { .slot_size = 8 },
     [8] = { .slot_size = 8 },
     [9] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -160,7 +160,7 @@ static uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 4u);
+    return (void*) vader_string_bytes_view(a0, 9u, 5u);
 }
 
 static uint64_t vader_host_std_core_string_Hash_hash(vader_string_t a0) {
@@ -213,7 +213,7 @@ static int32_t snippet_main(void) {
     vader_array_t* _a0_arr = vader_array_new(17u, 0u, 0u, 2u);
     l0 = (void*) _a0_arr;
 #line 57 "lib/std/collections/collections.vader"
-    vader_array_t* _a1_arr = vader_array_new(16u, 0u, 12u, 3u);
+    vader_array_t* _a1_arr = vader_array_new(16u, 0u, 12u, 4u);
     l1 = (void*) _a1_arr;
 #line 62 "lib/std/collections/collections.vader"
     vader_array_t* _a2_arr = vader_array_new(15u, 0u, 7u, 1u);
@@ -559,7 +559,7 @@ static void std_collections_MutableMap_IndexSet_set_at__string__i32(void* l0, va
 
 static bool std_collections_MutableSet_Contains_contains__string(void* l0, vader_string_t l1) {
     bool t0;
-#line 370 "lib/std/collections/collections.vader"
+#line 371 "lib/std/collections/collections.vader"
     t0 = std_collections_MutableMap_Contains_contains__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1);
     return t0;
 }
@@ -1461,41 +1461,41 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 205 "lib/std/io/io.vader"
-    l2 = vader_host_std_core_bytes(l1);
 #line 206 "lib/std/io/io.vader"
-    l3 = (size_t) 0;
+    l2 = vader_host_std_core_bytes(l1);
 #line 207 "lib/std/io/io.vader"
-    for (;;) {
+    l3 = (size_t) 0;
 #line 208 "lib/std/io/io.vader"
+    for (;;) {
+#line 209 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
         if (!((l3 >= l4))) {
-#line 211 "lib/std/io/io.vader"
+#line 212 "lib/std/io/io.vader"
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
             l6 = (void*) _a0_arr;
-#line 212 "lib/std/io/io.vader"
+#line 213 "lib/std/io/io.vader"
             l7 = ((vader_array_t*) l6)->length;
             l8 = std_io_write_bytes(l0, l6, l7);
-#line 213 "lib/std/io/io.vader"
-            if ((l8 <= INT32_C(0))) {
 #line 214 "lib/std/io/io.vader"
+            if ((l8 <= INT32_C(0))) {
+#line 215 "lib/std/io/io.vader"
                 { vader_gc_top = gc_frame.prev; return; }
-#line 213 "lib/std/io/io.vader"
+#line 214 "lib/std/io/io.vader"
             }
-#line 216 "lib/std/io/io.vader"
+#line 217 "lib/std/io/io.vader"
             t0 = ((int64_t) (int32_t) l8);
             l9 = (size_t) (int64_t) t0;
             t0 = (l3 + l9);
             l3 = (size_t) (int64_t) t0;
-#line 207 "lib/std/io/io.vader"
-            continue;
 #line 208 "lib/std/io/io.vader"
+            continue;
+#line 209 "lib/std/io/io.vader"
         }
-#line 207 "lib/std/io/io.vader"
+#line 208 "lib/std/io/io.vader"
         break;
     }
-#line 209 "lib/std/io/io.vader"
+#line 210 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -1504,14 +1504,14 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 177 "lib/std/io/io.vader"
+#line 178 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-#line 180 "lib/std/io/io.vader"
+#line 181 "lib/std/io/io.vader"
         t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
         { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-#line 177 "lib/std/io/io.vader"
+#line 178 "lib/std/io/io.vader"
     }
-#line 180 "lib/std/io/io.vader"
+#line 181 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1521,10 +1521,16 @@ static void std_io_println__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 235 "lib/std/io/io.vader"
+#line 236 "lib/std/io/io.vader"
     l1 = concat_2(l0, 7u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
+}
+
+static uint64_t std_core_string_Hash_hash_vt(vader_string_t l0) {
+    uint64_t t0;
+    t0 = vader_host_std_core_string_Hash_hash(l0);
+    return t0;
 }
 
 static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
@@ -1556,12 +1562,6 @@ static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size
 static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2) {
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
     return;
-}
-
-static uint64_t std_core_string_Hash_hash_vt(vader_string_t l0) {
-    uint64_t t0;
-    t0 = vader_host_std_core_string_Hash_hash(l0);
-    return t0;
 }
 
 int main(int argc, char** argv) {

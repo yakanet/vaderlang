@@ -170,6 +170,15 @@ export import_binding_by_id :: fn(sym_id: i32, typed: TypedProgram) -> Symbol | 
     return null
 }
 
+/// The traits a type parameter's bound names — `T: Add & Zero` gives `Add` and
+/// `Zero` — as `trait_key`s.
+export TypeParamBound :: struct {
+    /// The type parameter, as written.
+    name: string
+    /// The traits, by `trait_key`.
+    traits: string[]
+}
+
 /// A static trait member reached through the type that owns it — `T.zero()`,
 /// `i64.zero()`.
 export StaticMember :: struct {
@@ -430,6 +439,11 @@ export TypedProgram :: struct {
     /// receiver.
     static_members: MutableMap<usize, StaticMember>
 
+    /// Type-parameter symbol id → the traits of its bound. A project check
+    /// shares ONE table across every module (`broadcast_type_param_bounds`), so a
+    /// call reaches the bounds of an imported callee (T3006).
+    type_param_bound_traits: MutableMap<i32, TypeParamBound>
+
     /// Id of the `FieldExpr` callee being typed — `T.zero` in `T.zero()`. Set by
     /// the call right before it types its callee, so a static member can tell a
     /// call from a use as a value (T3093). Only a type name or a namespace member
@@ -681,6 +695,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .chosen_fns = MutableMap<usize, FnCandidate> {},
     .chosen_impl_methods = MutableMap<usize, ImplMethod> {},
     .static_members = MutableMap<usize, StaticMember> {},
+    .type_param_bound_traits = MutableMap<i32, TypeParamBound> {},
     .impl_method_traits = MutableMap<string, string[]!> {},
     .struct_field_types = MutableMap<i32, MutableMap<string, Type>> {},
     .struct_implemented_traits = MutableMap<string, string[]!> {},

@@ -3,11 +3,11 @@ type 0 primitive null
 type 1 primitive i32
 type 2 primitive bool
 type 3 primitive string
-type 4 primitive u8
-type 5 primitive usize
-type 6 struct std_core$Buffer {  }
-type 7 primitive u64
-type 8 array 4
+type 4 primitive u64
+type 5 primitive u8
+type 6 primitive usize
+type 7 struct std_core$Buffer {  }
+type 8 array 5
 type 9 primitive void
 type 10 primitive isize
 type 11 array 1
@@ -15,10 +15,10 @@ string 0 "slice mid len="
 string 1 "slice over len="
 string 2 "slice tail len="
 string 3 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=3 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=6 param_types=3 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=8 param_types=3 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 std_core$ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,8,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 7 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32

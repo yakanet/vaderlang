@@ -3,7 +3,6 @@
 
 module "vader/lower"
 
-import "std/abort"
 import "std/collections"
 
 import "toolchain/ast"
@@ -128,7 +127,8 @@ export param_types_of :: fn(callee_type: Type) -> Type[] {
 ///
 /// @param call  the call ; its callee is the `Type.member` field access.
 /// @param type  the call's result type.
-/// @return      the lowered call, or null when the callee is no static member.
+/// @return      the lowered call — a trap when typecheck refused the owner (T3006)
+///              — or null when the callee is no static member.
 try_lower_static_member_call :: fn(
     ctx: FnLowerCtx!,
     call: CallExpr,
@@ -137,9 +137,16 @@ try_lower_static_member_call :: fn(
     field :: as_field_expr(call.callee) ?? return null
     found :: ctx.typed.static_members[field.id] ?? return null
     owner :: ctx.types.apply(found.owner)
-    member :: resolve_impl_member(ctx, owner, found.trait_key, field.field) ?? unreachable(
-        "lower_call: no impl member `${field.field}` for a static call",
-    )
+    member :: resolve_impl_member(ctx, owner, found.trait_key, field.field)
+    // No impl only when typecheck refused the instance's bound (T3006) : lowering
+    // still runs so every diagnostic gets reported, and the call becomes a trap.
+    if member == null {
+        return LoweredUnreachable {
+            .span = call.span,
+            .type = type,
+            .reason = "no impl member `${field.field}` for `${display_type(owner)}`",
+        }
+    }
     args :: lower_call_args(ctx, call.args, member.arg_types, 0)
     return build_member_call_or_inline(member, args, type, call.span)
 }

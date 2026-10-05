@@ -81,7 +81,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint64_t slots[684]; } vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 684u, 684u, 10u, 4u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 684u, 684u, 7u, 4u, { 0u, 0u, 0u },
     {
         (uint64_t) UINT64_C(1), (uint64_t) UINT64_C(2305843009213693952),
         (uint64_t) UINT64_C(11068046444225730970), (uint64_t) UINT64_C(1844674407370955161),
@@ -431,7 +431,7 @@ static const vader_array_t vader_data_0 = {
     { 23u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint64_t slots[652]; } vader_data_1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 10u, 4u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 7u, 4u, { 0u, 0u, 0u },
     {
         (uint64_t) UINT64_C(0), (uint64_t) UINT64_C(1152921504606846976), (uint64_t) UINT64_C(0),
         (uint64_t) UINT64_C(1441151880758558720), (uint64_t) UINT64_C(0),
@@ -765,7 +765,7 @@ static const vader_array_t vader_data_1 = {
     { 23u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint64_t slots[55]; } vader_data_2_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 55u, 55u, 10u, 4u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 55u, 55u, 7u, 4u, { 0u, 0u, 0u },
     {
         (uint64_t) UINT64_C(576460752303423489), (uint64_t) UINT64_C(461168601842738791),
         (uint64_t) UINT64_C(368934881474191033), (uint64_t) UINT64_C(295147905179352826),
@@ -801,7 +801,7 @@ static const vader_array_t vader_data_2 = {
     { 23u, 0u, 0u, 0u, NULL }, 55u, 55u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
 };
 static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint64_t slots[47]; } vader_data_3_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 47u, 47u, 10u, 4u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 47u, 47u, 7u, 4u, { 0u, 0u, 0u },
     {
         (uint64_t) UINT64_C(1152921504606846976), (uint64_t) UINT64_C(1441151880758558720),
         (uint64_t) UINT64_C(1801439850948198400), (uint64_t) UINT64_C(2251799813685248000),
@@ -919,12 +919,12 @@ const vader_type_info_t vader_type_info_table[24] = {
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [6] = { .slot_size = 8 },
-    [7] = { .slot_size = 1 },
-    [8] = {
+    [7] = { .slot_size = 8 },
+    [8] = { .slot_size = 1 },
+    [9] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [9] = { .slot_size = 8 },
     [10] = { .slot_size = 8 },
     [11] = { .slot_size = 1 },
     [12] = { .slot_size = 2 },
@@ -969,7 +969,7 @@ static vader_string_t vader_host_std_core_bytes_to_string(void* a0) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 19u, 7u);
+    return (void*) vader_string_bytes_view(a0, 19u, 8u);
 }
 
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) {
@@ -1876,7 +1876,7 @@ static void* std_core_utf8_encode(uint32_t l0) {
     t0 = ((int32_t) (uint32_t) l0);
     l1 = (uint32_t) (int32_t) t0;
 #line 183 "lib/std/core/primitives.vader"
-    vader_array_t* _a0_arr = vader_array_new(19u, 0u, 1u, 7u);
+    vader_array_t* _a0_arr = vader_array_new(19u, 0u, 1u, 8u);
     l2 = (void*) _a0_arr;
 #line 184 "lib/std/core/primitives.vader"
     if ((l1 < INT32_C(128))) {
@@ -3455,41 +3455,41 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 205 "lib/std/io/io.vader"
-    l2 = vader_host_std_core_bytes(l1);
 #line 206 "lib/std/io/io.vader"
-    l3 = (size_t) 0;
+    l2 = vader_host_std_core_bytes(l1);
 #line 207 "lib/std/io/io.vader"
-    for (;;) {
+    l3 = (size_t) 0;
 #line 208 "lib/std/io/io.vader"
+    for (;;) {
+#line 209 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
         if (!((l3 >= l4))) {
-#line 211 "lib/std/io/io.vader"
+#line 212 "lib/std/io/io.vader"
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
             l6 = (void*) _a0_arr;
-#line 212 "lib/std/io/io.vader"
+#line 213 "lib/std/io/io.vader"
             l7 = ((vader_array_t*) l6)->length;
             l8 = std_io_write_bytes(l0, l6, l7);
-#line 213 "lib/std/io/io.vader"
-            if ((l8 <= INT32_C(0))) {
 #line 214 "lib/std/io/io.vader"
+            if ((l8 <= INT32_C(0))) {
+#line 215 "lib/std/io/io.vader"
                 { vader_gc_top = gc_frame.prev; return; }
-#line 213 "lib/std/io/io.vader"
+#line 214 "lib/std/io/io.vader"
             }
-#line 216 "lib/std/io/io.vader"
+#line 217 "lib/std/io/io.vader"
             t0 = ((int64_t) (int32_t) l8);
             l9 = (size_t) (int64_t) t0;
             t0 = (l3 + l9);
             l3 = (size_t) (int64_t) t0;
-#line 207 "lib/std/io/io.vader"
-            continue;
 #line 208 "lib/std/io/io.vader"
+            continue;
+#line 209 "lib/std/io/io.vader"
         }
-#line 207 "lib/std/io/io.vader"
+#line 208 "lib/std/io/io.vader"
         break;
     }
-#line 209 "lib/std/io/io.vader"
+#line 210 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3498,14 +3498,14 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 177 "lib/std/io/io.vader"
+#line 178 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-#line 180 "lib/std/io/io.vader"
+#line 181 "lib/std/io/io.vader"
         t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
         { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-#line 177 "lib/std/io/io.vader"
+#line 178 "lib/std/io/io.vader"
     }
-#line 180 "lib/std/io/io.vader"
+#line 181 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -3515,7 +3515,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 235 "lib/std/io/io.vader"
+#line 236 "lib/std/io/io.vader"
     l1 = concat_2(l0, 20u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
@@ -3571,12 +3571,12 @@ static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv) {
         case 11u: return std_core_i8_Display_to_string(((int8_t) recv.payload.i));
         case 12u: return std_core_i16_Display_to_string(((int16_t) recv.payload.i));
         case 2u: return std_core_i32_Display_to_string(((int32_t) recv.payload.i));
-        case 9u: return std_core_i64_Display_to_string(((int64_t) recv.payload.i));
+        case 10u: return std_core_i64_Display_to_string(((int64_t) recv.payload.i));
         case 13u: return std_core_isize_Display_to_string(((ptrdiff_t) recv.payload.i));
-        case 7u: return std_core_u8_Display_to_string(((uint8_t) recv.payload.i));
+        case 8u: return std_core_u8_Display_to_string(((uint8_t) recv.payload.i));
         case 14u: return std_core_u16_Display_to_string(((uint16_t) recv.payload.i));
         case 15u: return std_core_u32_Display_to_string(((uint32_t) recv.payload.i));
-        case 10u: return std_core_u64_Display_to_string(((uint64_t) recv.payload.i));
+        case 7u: return std_core_u64_Display_to_string(((uint64_t) recv.payload.i));
         case 6u: return std_core_usize_Display_to_string(((size_t) recv.payload.i));
         case 3u: return std_core_bool_Display_to_string(recv.payload.b);
         case 16u: return std_core_char_Display_to_string(((uint32_t) recv.payload.i));

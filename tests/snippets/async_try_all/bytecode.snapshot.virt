@@ -18,10 +18,10 @@ type 15 array 16
 type 16 union 6,1
 type 17 ref std_core$Error
 type 18 primitive usize
-type 19 primitive u8
-type 20 struct std_core$Buffer {  }
-type 21 primitive u64
-type 22 array 19
+type 19 primitive u64
+type 20 primitive u8
+type 21 struct std_core$Buffer {  }
+type 22 array 20
 type 23 ref _
 type 24 struct std_async$TryJoinAll__i32__Any { inner:39 }
 type 25 union 26,17,9
@@ -68,7 +68,7 @@ import 6 panic std_abort$panic result_type=10 param_types=2 param_mutable=0 para
 impl 1 std_core$Error
 impl 7 std_core$Async
 impl 11 std_core$Async
-impl 20 std_core$ByteAccess
+impl 21 std_core$ByteAccess
 impl 24 std_core$Async
 impl 28 std_core$Async
 impl 33 std_core$Async
@@ -963,6 +963,9 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
 end
 
 fn 12 std_core$usize$Hash$hash (usize) -> u64
+  local.get 0   ; arg 0
+  usize.to_i64
+  return
   local.get 0   ; arg 0
   usize.to_i64
   return

@@ -7,12 +7,12 @@ type 4 array 3
 type 5 struct snippet$Holder { items:2 }
 type 6 primitive bool
 type 7 struct __lambda_env_snippet_1 { cap_0:2 }
-type 8 primitive u8
-type 9 primitive usize
-type 10 struct std_core$Buffer {  }
-type 11 primitive i64
-type 12 primitive u64
-type 13 array 8
+type 8 primitive u64
+type 9 primitive u8
+type 10 primitive usize
+type 11 struct std_core$Buffer {  }
+type 12 primitive i64
+type 13 array 9
 type 14 primitive void
 type 15 primitive isize
 type 16 primitive i16
@@ -48,10 +48,10 @@ string 25 "collected    "
 string 26 "filtered     "
 string 27 "taken        "
 string 28 "\n"
-import 0 byte_len std_core$byte_len result_type=9 param_types=3 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=10 param_types=3 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=13 param_types=3 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,13,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 10 std_core$ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,13,10 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 11 std_core$ByteAccess
 export main 27
 
 fn 0 snippet$tight (i32) -> ref
@@ -711,7 +711,7 @@ fn 12 snippet$widths (i32) -> string
       local.set 4   ; $cast_16
       local.get 1   ; $arr_1
       local.get 4   ; $cast_16
-      array.push 8 1   ; u8 $arr_1
+      array.push 9 1   ; u8 $arr_1
       local.get 3   ; i
       i32.const 1
       i32.add
@@ -826,7 +826,7 @@ fn 12 snippet$widths (i32) -> string
       local.get 1   ; $arr_1
       local.get 11   ; __for_i_2
       array.get 13   ; u8[]
-      ref.cast 8   ; u8
+      ref.cast 9   ; u8
       u8.to_i32
       local.set 12   ; $cast_65
       local.get 3   ; i

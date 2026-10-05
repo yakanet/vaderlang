@@ -14,8 +14,8 @@ type 11 primitive u8
 type 12 struct std_collections$MutableMap__usize__i32 { ekeys:25,evals:21,index:21,mask:13,size:13,tombs:13 }
 type 13 primitive usize
 type 14 primitive string
-type 15 struct std_core$Buffer {  }
-type 16 primitive u64
+type 15 primitive u64
+type 16 struct std_core$Buffer {  }
 type 17 array 11
 type 18 primitive void
 type 19 union 1,0
@@ -47,7 +47,7 @@ string 17 "\n"
 import 0 byte_len std_core$byte_len result_type=13 param_types=14 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=17 param_types=14 param_mutable=0 param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=26 param_types=1,17,13 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 15 std_core$ByteAccess
+impl 16 std_core$ByteAccess
 impl 2 std_core$Index
 impl 2 std_core$IndexSet
 impl 2 std_core$Contains
@@ -1094,9 +1094,15 @@ fn 13 std_core$i16$Hash$hash (i16) -> u64
   local.get 0   ; arg 0
   i16.to_i64
   return
+  local.get 0   ; arg 0
+  i16.to_i64
+  return
 end
 
 fn 14 std_core$i64$Hash$hash (i64) -> u64
+  local.get 0   ; arg 0
+  i64.to_i64
+  return
   local.get 0   ; arg 0
   i64.to_i64
   return
@@ -1106,9 +1112,15 @@ fn 15 std_core$u8$Hash$hash (u8) -> u64
   local.get 0   ; arg 0
   u8.to_i64
   return
+  local.get 0   ; arg 0
+  u8.to_i64
+  return
 end
 
 fn 16 std_core$u16$Hash$hash (u16) -> u64
+  local.get 0   ; arg 0
+  u16.to_i64
+  return
   local.get 0   ; arg 0
   u16.to_i64
   return
@@ -1118,9 +1130,15 @@ fn 17 std_core$usize$Hash$hash (usize) -> u64
   local.get 0   ; arg 0
   usize.to_i64
   return
+  local.get 0   ; arg 0
+  usize.to_i64
+  return
 end
 
 fn 18 std_core$char$Hash$hash (char) -> u64
+  local.get 0   ; arg 0
+  char.to_i64
+  return
   local.get 0   ; arg 0
   char.to_i64
   return

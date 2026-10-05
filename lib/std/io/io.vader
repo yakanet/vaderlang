@@ -23,6 +23,7 @@ import "system/windows"
 /// and Windows has no `errno` at all, only `GetLastError` with its own
 /// numbering. This is the shared vocabulary; `IOError.code` keeps the raw value
 /// for the cases it does not cover.
+@displayable
 export IOErrorKind :: enum(u8) {
     /// The failure carried no code, or one this does not classify. Read `code`.
     Other

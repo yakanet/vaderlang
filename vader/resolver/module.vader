@@ -117,6 +117,7 @@ export concat_file_decls :: fn(files: SourceFile[]) -> Decl![] {
 /// Decided ONCE, where the roots are assembled (`loader::project_include_paths`),
 /// and carried from there — never recomputed by matching a module's folder
 /// against a list of roots, which is what this replaces.
+@displayable
 export ModuleOrigin :: enum(u8) {
     /// This build named it: the entry's own folder, a `--include-paths` flag (in a
     /// driven build the compiler's own sources arrive this way), the project root,

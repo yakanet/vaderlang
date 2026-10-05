@@ -2,17 +2,17 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 primitive string
-type 3 primitive bool
-type 4 primitive u8
-type 5 primitive usize
-type 6 struct std_core$Buffer {  }
-type 7 primitive u64
-type 8 array 4
+type 3 primitive u64
+type 4 primitive bool
+type 5 primitive u8
+type 6 primitive usize
+type 7 struct std_core$Buffer {  }
+type 8 array 5
 type 9 primitive void
-type 10 struct std_collections$MutableMap__i32__bool { ekeys:12,evals:13,index:12,mask:5,size:5,tombs:5 }
+type 10 struct std_collections$MutableMap__i32__bool { ekeys:12,evals:13,index:12,mask:6,size:6,tombs:6 }
 type 11 struct std_collections$MutableSet__i32 { inner:10 }
 type 12 array 1
-type 13 array 3
+type 13 array 4
 type 14 primitive isize
 string 0 "new? "
 string 1 "len = "
@@ -21,10 +21,10 @@ string 3 "has 30? "
 string 4 "true"
 string 5 "false"
 string 6 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=8 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,8,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 6 std_core$ByteAccess
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,8,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 7 std_core$ByteAccess
 impl 10 std_core$Index
 impl 10 std_core$IndexSet
 impl 10 std_core$Contains
@@ -356,6 +356,9 @@ fn 7 std_core$i32$Hash$hash (i32) -> u64
   local.get 0   ; arg 0
   i32.to_i64
   return
+  local.get 0   ; arg 0
+  i32.to_i64
+  return
 end
 
 fn 8 std_io$write (u8,string) -> void
@@ -574,7 +577,7 @@ fn 17 std_collections$rehash__i32__bool (ref,usize) -> void
   i64.const 0
   local.set 4   ; e
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__i32__bool.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 5   ; __for_hi_1
   loop $L2 void
     local.get 4   ; e
@@ -641,7 +644,7 @@ fn 18 std_collections$write_entry__i32__bool (ref,i32,bool) -> void
   local $len_5 usize
   local $field_7 ref
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__i32__bool.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_3
   local.field 0 10 0   ; arg 0 std_collections$MutableMap__i32__bool.ekeys
   array.len
@@ -653,7 +656,7 @@ fn 18 std_collections$write_entry__i32__bool (ref,i32,bool) -> void
     local.field 0 10 0   ; arg 0 std_collections$MutableMap__i32__bool.ekeys
     local.set 5   ; $field_7
     local.field 0 10 4   ; arg 0 std_collections$MutableMap__i32__bool.size
-    ref.cast 5   ; usize
+    ref.cast 6   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -662,7 +665,7 @@ fn 18 std_collections$write_entry__i32__bool (ref,i32,bool) -> void
     local.field 0 10 1   ; arg 0 std_collections$MutableMap__i32__bool.evals
     local.set 5   ; $field_7
     local.field 0 10 4   ; arg 0 std_collections$MutableMap__i32__bool.size
-    ref.cast 5   ; usize
+    ref.cast 6   ; usize
     local.set 3   ; $field_3
     local.get 5   ; $field_7
     local.get 3   ; $field_3
@@ -675,7 +678,7 @@ fn 18 std_collections$write_entry__i32__bool (ref,i32,bool) -> void
   array.push 1   ; i32
   local.field 0 10 1   ; arg 0 std_collections$MutableMap__i32__bool.evals
   local.get 2   ; arg 2
-  array.push 3   ; bool
+  array.push 4   ; bool
   return
 end
 
@@ -690,10 +693,10 @@ fn 19 std_collections$put__i32__bool (ref,i32,bool) -> void
   local.get 0   ; arg 0
   call 16   ; std_collections$ensure_index__i32__bool
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__i32__bool.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_3
   local.field 0 10 5   ; arg 0 std_collections$MutableMap__i32__bool.tombs
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -704,7 +707,7 @@ fn 19 std_collections$put__i32__bool (ref,i32,bool) -> void
   i64.mul
   local.set 3   ; $field_3
   local.field 0 10 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   i64.const 1
   i64.add
   i64.const 3
@@ -718,7 +721,7 @@ fn 19 std_collections$put__i32__bool (ref,i32,bool) -> void
     local.set 3   ; $field_3
     loop $L1 void
       local.field 0 10 4   ; arg 0 std_collections$MutableMap__i32__bool.size
-      ref.cast 5   ; usize
+      ref.cast 6   ; usize
       i64.const 1
       i64.add
       i64.const 4
@@ -747,7 +750,7 @@ fn 19 std_collections$put__i32__bool (ref,i32,bool) -> void
   call 7   ; std_core$i32$Hash$hash
   local.set 6   ; perturb
   local.field 0 10 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
@@ -803,7 +806,7 @@ fn 19 std_collections$put__i32__bool (ref,i32,bool) -> void
       u64.shr
       local.set 6   ; perturb
       local.field 0 10 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
-      ref.cast 5   ; usize
+      ref.cast 6   ; usize
       local.set 5   ; $mul_24
       local.get 3   ; $field_3
       local.get 6   ; perturb
@@ -829,7 +832,7 @@ fn 19 std_collections$put__i32__bool (ref,i32,bool) -> void
   i64.ge
   if $L9 void
     local.field 0 10 5   ; arg 0 std_collections$MutableMap__i32__bool.tombs
-    ref.cast 5   ; usize
+    ref.cast 6   ; usize
     i64.const 1
     i64.sub
     local.set 3   ; $field_3
@@ -844,7 +847,7 @@ fn 19 std_collections$put__i32__bool (ref,i32,bool) -> void
   local.field 0 10 2   ; arg 0 std_collections$MutableMap__i32__bool.index
   local.set 8   ; $field_70
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__i32__bool.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   i64.const 1
   i64.add
   usize.to_i32
@@ -854,7 +857,7 @@ fn 19 std_collections$put__i32__bool (ref,i32,bool) -> void
   local.get 9   ; $cast_74
   store_slot_i32
   local.field 0 10 4   ; arg 0 std_collections$MutableMap__i32__bool.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   i64.const 1
   i64.add
   local.set 3   ; $field_3
@@ -880,7 +883,7 @@ fn 20 std_collections$contains_key__i32__bool (ref,i32) -> bool
   call 7   ; std_core$i32$Hash$hash
   local.set 2   ; perturb
   local.field 0 10 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
@@ -920,7 +923,7 @@ fn 20 std_collections$contains_key__i32__bool (ref,i32) -> bool
       u64.shr
       local.set 2   ; perturb
       local.field 0 10 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
-      ref.cast 5   ; usize
+      ref.cast 6   ; usize
       local.set 5   ; $field_32
       local.get 3   ; $field_9
       local.get 2   ; perturb
@@ -951,7 +954,7 @@ end
 fn 22 std_collections$len__i32 (ref) -> usize
   local.field 0 11 0   ; arg 0 std_collections$MutableSet__i32.inner
   struct.get 10 4   ; std_collections$MutableMap__i32__bool.size
-  ref.cast 5   ; usize
+  ref.cast 6   ; usize
   return
 end
 

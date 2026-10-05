@@ -269,18 +269,18 @@ export len :: fn<K, V>(self: MutableMap<K, V>) -> usize { return self.size }
 export is_empty :: fn<K, V>(self: MutableMap<K, V>) -> bool { return self.size == 0 }
 
 // Operator sugar — `m[key]` reads via Index, `m[key] = v` writes via
-// IndexSet, `key in m` dispatches via Contains. K's `Hash & Equals` bound is
-// auto-inherited from the struct decl ; the impl bodies reuse `get` / `put`
-// / `contains_key` so all the dispatch machinery is shared.
-MutableMap<K, V> implements Index<K, V | null> {
+// IndexSet, `key in m` dispatches via Contains. The impl bodies reuse `get` /
+// `put` / `contains_key`, so each impl restates the struct's `K: Hash & Equals`
+// bound those calls require.
+MutableMap<K, V> implements<K: Hash & Equals, V> Index<K, V | null> {
     at :: fn(self, key: K) -> V | null { return self.get(key) }
 }
 
-MutableMap<K, V> implements IndexSet<K, V> {
+MutableMap<K, V> implements<K: Hash & Equals, V> IndexSet<K, V> {
     set_at :: fn(self!, key: K, v: V) { self.put(key, v) }
 }
 
-MutableMap<K, V> implements Contains<K> {
+MutableMap<K, V> implements<K: Hash & Equals, V> Contains<K> {
     contains :: fn(self, key: K) -> bool { return self.contains_key(key) }
 }
 
@@ -351,7 +351,8 @@ export add :: fn<T>(self: MutableSet<T>!, value: T) -> bool {
 /// @param self   the set receiver.
 /// @param value  the element to drop.
 /// @return       `true` when `value` was removed, `false` when it was absent.
-export remove :: fn<T>(self: MutableSet<T>!, value: T) -> bool = self.inner.remove(value)
+export remove :: fn<T: Hash & Equals>(self: MutableSet<T>!, value: T) -> bool =
+    self.inner.remove(value)
 
 /// Number of members in the set. O(1).
 export len :: fn<T>(self: MutableSet<T>) -> usize = self.inner.size
