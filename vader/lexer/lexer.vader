@@ -44,6 +44,9 @@ export Lexer :: struct {
     col: i32
     paren_depth: i32          // unclosed `(` and `[` (NOT `{`)
     last_kind: TokenKind      // initialised to .Newline so first-token rules fire correctly
+    // A statement-ending line break not emitted yet : the next token decides
+    // whether it ends the statement (`emit`).
+    pending_newline: Span | null = null
     tokens: Token[]!
     errors: Diagnostic[]!
     interp_stack: InterpFrame![]!
@@ -84,6 +87,19 @@ suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
         | .OrOr | .QuestionQuestion | .RangeExcl | .RangeIncl | .DotDotDot | .Assign | .PlusAssign
         | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign | .Colon
         | .Arrow | .FatArrow | .Comma | .DeclConst | .DeclVar -> true
+    _ -> false
+}
+
+// SPEC §3 newline rule 5 — the infix-only operators. None can open an expression
+// (`parse_prefix` takes `-` / `!` / `~` / `.`), so a line opening with one
+// continues the previous line, a type union or a condition as much as a sum :
+//   T ::            cond := a == 1          name :: first_name(user)
+//       | A             && b == 2               ?? "anonymous"
+// A compound assignment (`+=`) lexes as its own kind, so it is never one.
+// @partial: only the infix-only operators continue a line; every other token → false.
+continues_previous_line :: fn(k: TokenKind) = @partial match k {
+    .Plus | .Star | .Slash | .Percent | .Caret | .QuestionQuestion | .Eq | .Neq
+        | .Lt | .Lte | .Shl | .Gt | .Gte | .Shr | .AndAnd | .OrOr | .Amp | .Pipe -> true
     _ -> false
 }
 
@@ -141,6 +157,13 @@ advance :: fn(l: Lexer!, n: usize) -> void {
 // ---- token emission -------------------------------------------------------
 
 emit :: fn(l: Lexer!, t: Token) -> void {
+    newline :: l.pending_newline
+    if newline != null {
+        l.pending_newline = null
+        if !t.kind.continues_previous_line() {
+            l.tokens.push(make_token(.Newline, "\n", newline))
+        }
+    }
     l.tokens.push(t)
     l.last_kind = t.kind
 }
@@ -211,40 +234,11 @@ handle_newline :: fn(l: Lexer!) -> void {
     }
     if l.paren_depth > 0 { return }
     if l.last_kind.suppresses_newline_after() { return }
-    if l.last_kind == .Newline { return }
-    // Lookahead-suppress : if the next non-whitespace line opens with a
-    // leading `|` / `||` / `&` / `&&`, don't emit the newline so the operator
-    // continues the previous expression (see `peeks_leading_continuation`).
-    // Mirrors the trailing-operator rule on the suppress-after side.
-    if l.peeks_leading_continuation() { return }
-
+    if l.last_kind == .Newline || l.pending_newline != null { return }
+    // Held until the next token decides it (`emit`) : a line opening with an
+    // infix-only operator continues this one.
     here :: l.position_here()
-    span :: Span { .start = here, .end = here }
-    l.emit(make_token(.Newline, "\n", span))
-}
-
-// Look past spaces / tabs / cross-line whitespace to see whether the next
-// significant line *opens* with `|`, `||`, `&`, or `&&`. None of these four
-// has a prefix / unary form (`parse_prefix` only knows `-` / `!` / `~`), so a
-// line opening with one can only continue the previous expression — the
-// newline before it is absorbed rather than terminating the statement :
-//   T ::                       cond := a == 1
-//       | A                        && b == 2
-//       | B                        && c == 3
-// (a leading `|` / `&` continues a type union / intersection, a leading
-// `||` / `&&` continues a boolean condition broken across lines). This is the
-// "before" mirror of `suppresses_newline_after`, but it must peek raw chars :
-// at newline-handling time the next operator hasn't been lexed into a token
-// yet, so there's no `TokenKind` to match on. The `!= '='` guard is "not a
-// compound-assign" — `|=` / `&=` can't lead a continuation.
-peeks_leading_continuation :: fn(l: Lexer) -> bool {
-    i: usize = 0
-    for {
-        c :: l.peek_at(i)
-        if c == ' ' || c == '\t' || c == '\r' || c == '\n' { i = i + 1  continue }
-        if c == '|' || c == '&' { return l.peek_at(i + 1) != '=' }
-        return false
-    }
+    l.pending_newline = Span { .start = here, .end = here }
 }
 
 // ---- identifiers ----------------------------------------------------------
@@ -1063,6 +1057,42 @@ count_newlines :: fn(l: Lexer) -> usize {
     // The pre-existing leading single-`|` type-union continuation is intact.
     l :: tokenize("T ::\n    | A\n    | B", "test.vader")
     assert_eq(count_newlines(l), 0)
+}
+
+@test test_leading_infix_operator_continues :: fn() -> void {
+    for op in "+ * / % ^ ?? == != < <= << > >= >> && || & |".split(" ") {
+        l :: tokenize("a\n    ${op} b", "test.vader")
+        assert(count_newlines(l) == 0, "a line opening with `${op}` continues")
+    }
+}
+
+@test test_leading_operator_past_comment_line_continues :: fn() -> void {
+    l :: tokenize("s :: a\n    // the tail\n    + b", "test.vader")
+    assert_eq(count_newlines(l), 0)
+}
+
+@test test_leading_operator_after_bare_cr_continues :: fn() -> void {
+    l :: tokenize("s :: a\r// the tail\r+ b", "test.vader")
+    assert_eq(count_newlines(l), 0)
+}
+
+@test test_leading_compound_assignment_keeps_newline :: fn() -> void {
+    // `+=` / `*=` start a statement of their own : no continuation.
+    l :: tokenize("a\n+= 1\nb\n*= 2", "test.vader")
+    assert_eq(count_newlines(l), 3)
+}
+
+@test test_leading_prefix_operator_keeps_newline :: fn() -> void {
+    // `-` and `!` have a prefix form : the next line is a statement of its own.
+    l :: tokenize("a\n-b\nc\n!d", "test.vader")
+    assert_eq(count_newlines(l), 3)
+}
+
+@test test_comment_line_alone_keeps_newline :: fn() -> void {
+    // A comment line before a plain statement still ends `a` (one newline : the
+    // comment's own line break follows a newline already emitted).
+    l :: tokenize("a\n// note\nb", "test.vader")
+    assert_eq(count_newlines(l), 1)
 }
 
 @test test_complete_lines_keep_newline :: fn() -> void {

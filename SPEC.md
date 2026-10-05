@@ -391,10 +391,10 @@ Trailing commas are allowed in every comma-separated list: function arguments, f
 A newline terminates a statement. No `;` is required. The lexer emits a `NEWLINE` token at every line break **except** in the five cases below, where the newline is silently absorbed:
 
 1. **Inside an unclosed bracket** `(` or `[` — newlines inside parens / array construction are insignificant. (Newlines inside `{ }` blocks stay significant — they separate statements; only a newline *immediately after* an opening `{` is absorbed, per *Statement separators* above.)
-2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `..<`, `..=`, and the spread `...`. (A newline after `!` is **not** absorbed.)
+2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `??`, `..<`, `..=`, and the spread `...`. (A newline after `!` is **not** absorbed.)
 3. **After a comma** `,`.
 4. **After a token that expects a right-hand side**: `=`, `:`, `->`, `=>`, the binding operators `::` / `:=`, and the compound-assignments `+=` `-=` `*=` `/=` `%=`.
-5. **Before a leading operator that has no prefix form** — when the next line *opens* with `&&`, `||`, `&`, or `|`, the newline before it is absorbed so the operator continues the previous expression. These four operators are infix-only (no prefix / unary meaning), so a line starting with one is unambiguously a continuation: a leading `&&` / `||` continues a boolean condition, a leading `&` / `|` continues a type intersection / union. (The compound-assign forms `&=` / `|=` are **not** treated as continuations.) Operators that *do* have a prefix form — `-`, `~`, `!` — are excluded, so they never silently join the previous line.
+5. **Before a leading operator that has no prefix form** — when the next line *opens* with `+`, `*`, `/`, `%`, `^`, `??`, `==`, `!=`, `<`, `<=`, `<<`, `>`, `>=`, `>>`, `&&`, `||`, `&` or `|`, the newline before it is absorbed so the operator continues the previous expression. None of these has a prefix / unary meaning, so a line starting with one is unambiguously a continuation — in a `{ }` block too, where nothing else holds the expression open: a leading `+` continues a sum or a concatenation, `??` a fallback, `&&` / `||` a condition, `&` / `|` a type intersection / union. `//` comment lines between the two are looked past. A compound assignment (`+=`, `*=`, `/=`, `%=`) is **not** a continuation. Operators that *do* have a prefix form — `-`, `~`, `!`, `.` — are excluded, so they never silently join the previous line.
 
 There is **no backslash-continuation** (`\` at end of line is not special). If you need to break a long expression, use one of the five cases above (typically wrap in parentheses, or break after — or before — a binary operator).
 
@@ -409,12 +409,20 @@ total := a +
          b +
          c
 
-// OK: break before a leading `&&` / `||` (infix-only operators)
+// OK: break before a leading infix-only operator
 if a == 1
     && b == 2
     && c == 3 {
     // ...
 }
+label :: if verbose {
+    "value "
+        + "${n}"
+} else {
+    "${n}"
+}
+name :: first_name(user)
+    ?? return "anonymous"
 
 // OK: break after comma
 list := [

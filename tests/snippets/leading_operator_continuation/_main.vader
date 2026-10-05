@@ -1,0 +1,46 @@
+// A line opening with an infix-only operator continues the previous expression :
+// `+`, `*`, `??`, `==`, `<`, `&&`, … have no prefix form, so the newline before
+// them is absorbed — in a block-valued `if` too, where nothing else would hold
+// the expression open. A comment line may sit in between.
+
+module "snippet"
+
+import "std/io"
+
+describe :: fn(n: i32, verbose: bool) -> string {
+    label :: if verbose {
+        "value "
+            + "${n}"
+            // the unit follows
+            + " units"
+    } else {
+        "${n}"
+    }
+    return label
+}
+
+lookup :: fn(names: string[], i: usize) -> string {
+    found :: (if i < names.len() { names[i] } else { null })
+        ?? return "none"
+    return found
+}
+
+in_range :: fn(n: i32) -> bool =
+    n >= 0
+        && n
+            < 10
+
+main :: fn() -> i32 {
+    println(describe(3, true))
+    println(describe(4, false))
+    println(lookup(["ada", "bob"], 1))
+    println(lookup(["ada"], 5))
+    total :: 2
+        * 3
+        + 4
+        % 3
+    println(total)
+    println(in_range(5))
+    println(in_range(12))
+    return 0
+}
