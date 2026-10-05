@@ -7,7 +7,8 @@ Point :: struct {
     x: i32
 }
 
-shape :: fn(u: Point | string | null) -> i32 = match u {
+// @partial: a literal covers some strings, never the whole variant.
+shape :: fn(u: Point | string | null) -> i32 = @partial match u {
     "a"      -> 1
     null     -> 2
     is Point -> 3

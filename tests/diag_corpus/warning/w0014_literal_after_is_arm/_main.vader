@@ -1,0 +1,11 @@
+// W0014: a literal pattern meets what the arms above leave of the scrutinee. After
+// `is string ->`, no string is left for `"a"` to match.
+module "snippet"
+
+shape :: fn(u: i32 | string) -> i32 = match u {
+    is string -> 1
+    "a"       -> 2
+    is i32    -> 3
+}
+
+main :: fn() -> i32 = shape("a")
