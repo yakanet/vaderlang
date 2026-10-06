@@ -26,7 +26,7 @@ vtable snippet$Greeter.greet 1 0
 vtable snippet$Doubler.doubled 2 1
 vtable std_core$Iterator.next 6 6
 vtable std_core$Iterator.next 10 7
-vtable std_core$Iterator.next 14 19
+vtable std_core$Iterator.next 14 12
 export main 2
 
 fn 0 snippet$Hello$Greeter$greet (ref) -> i32
@@ -56,7 +56,7 @@ fn 2 snippet$main () -> i32
   i32.const 20
   i32.const 30
   array.new 13 3   ; i32[]
-  call 9   ; std_core$[]$Into$into__i32
+  call 8   ; std_core$[]$Into$into__i32
   call 3   ; snippet$count__i32
   local.set 1   ; b
   struct.new 1   ; snippet$Hello
@@ -133,7 +133,7 @@ fn 6 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 11   ; std_core$i32$Comparable$gt
+    i32.gt
     local.set 1   ; done
   else
     local.field 0 6 3   ; arg 0 std_core$Range__i32.cursor
@@ -144,7 +144,7 @@ fn 6 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 12   ; std_core$i32$Comparable$gte
+    i32.ge
     local.set 1   ; done
   end $L0
   local.get 1   ; done
@@ -155,7 +155,7 @@ fn 6 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 6 3   ; arg 0 std_core$Range__i32.cursor
     ref.cast 2   ; i32
-    call 16   ; std_core$i32$Step$step
+    call 9   ; std_core$i32$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -187,7 +187,7 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 14   ; std_core$usize$Comparable$gt
+    u64.gt
     local.set 1   ; done
   else
     local.field 0 10 3   ; arg 0 std_core$Range__usize.cursor
@@ -198,7 +198,7 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 3   ; $field_4
     local.get 2   ; $field_3
     local.get 3   ; $field_4
-    call 15   ; std_core$usize$Comparable$gte
+    u64.ge
     local.set 1   ; done
   end $L0
   local.get 1   ; done
@@ -209,7 +209,7 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 10 3   ; arg 0 std_core$Range__usize.cursor
     ref.cast 11   ; usize
-    call 17   ; std_core$usize$Step$step
+    call 10   ; std_core$usize$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -226,152 +226,13 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
   return
 end
 
-fn 8 std_core$three_way (bool,bool) -> i32
-  local if_res i32
+fn 8 std_core$[]$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
-  if $L0 void
-    i32.const 1
-    i32.neg
-    local.tee 2   ; if_res
-    return
-  end $L0
-  local.get 1   ; arg 1
-  if $L1 void
-    i32.const 1
-    local.set 2   ; if_res
-  else
-    i32.const 0
-    local.set 2   ; if_res
-  end $L1
-  local.get 2   ; if_res
+  call 11   ; std_core$array_iter__i32
   return
 end
 
-fn 9 std_core$[]$Into$into__i32 (ref) -> any
-  local.get 0   ; arg 0
-  call 18   ; std_core$array_iter__i32
-  return
-end
-
-fn 10 std_core$i32$Comparable$compare (i32,i32) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 8   ; std_core$three_way
-  return
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 8   ; std_core$three_way
-  return
-end
-
-fn 11 std_core$i32$Comparable$gt (i32,i32) -> bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 10   ; std_core$i32$Comparable$compare
-  i32.const 0
-  i32.gt
-  return
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 10   ; std_core$i32$Comparable$compare
-  i32.const 0
-  i32.gt
-  return
-end
-
-fn 12 std_core$i32$Comparable$gte (i32,i32) -> bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 10   ; std_core$i32$Comparable$compare
-  i32.const 0
-  i32.ge
-  return
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 10   ; std_core$i32$Comparable$compare
-  i32.const 0
-  i32.ge
-  return
-end
-
-fn 13 std_core$usize$Comparable$compare (usize,usize) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 8   ; std_core$three_way
-  return
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 8   ; std_core$three_way
-  return
-end
-
-fn 14 std_core$usize$Comparable$gt (usize,usize) -> bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 13   ; std_core$usize$Comparable$compare
-  i32.const 0
-  i32.gt
-  return
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 13   ; std_core$usize$Comparable$compare
-  i32.const 0
-  i32.gt
-  return
-end
-
-fn 15 std_core$usize$Comparable$gte (usize,usize) -> bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 13   ; std_core$usize$Comparable$compare
-  i32.const 0
-  i32.ge
-  return
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 13   ; std_core$usize$Comparable$compare
-  i32.const 0
-  i32.ge
-  return
-end
-
-fn 16 std_core$i32$Step$step (i32) -> i32
+fn 9 std_core$i32$Step$step (i32) -> i32
   local.get 0   ; arg 0
   i32.const 1
   i32.add
@@ -382,7 +243,7 @@ fn 16 std_core$i32$Step$step (i32) -> i32
   return
 end
 
-fn 17 std_core$usize$Step$step (usize) -> usize
+fn 10 std_core$usize$Step$step (usize) -> usize
   local.get 0   ; arg 0
   i64.const 1
   i64.add
@@ -393,7 +254,7 @@ fn 17 std_core$usize$Step$step (usize) -> usize
   return
 end
 
-fn 18 std_core$array_iter__i32 (ref) -> any
+fn 11 std_core$array_iter__i32 (ref) -> any
   local.get 0   ; arg 0
   i64.const 0
   i64.const 0
@@ -402,7 +263,7 @@ fn 18 std_core$array_iter__i32 (ref) -> any
   return
 end
 
-fn 19 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
+fn 12 std_core$__gen_state_std_core_0$Iterator$next (ref) -> ref
   local $field_12 usize
   local $field_13 usize
   local $add_22 usize

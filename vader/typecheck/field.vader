@@ -512,7 +512,7 @@ try_trait_method_dispatch :: fn(
 }
 
 // Struct that implements a trait carrying a same-named method WITH a default body
-// (`Comparable.lt`) — synthesise the dispatch from the trait method's signature.
+// (`Async.cancel`) — synthesise the dispatch from the trait method's signature.
 try_default_trait_method_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,

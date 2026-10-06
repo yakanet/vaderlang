@@ -14,7 +14,7 @@ Open (`[ ]`) and in-progress (`[~]`) items keep the full context needed to act o
 
 ## Priority — next up
 
-- [ ] **The trait default-method materialiser emits each body twice** (found 2026-09-21 while writing the IR verifiers). `dump --stage=dced-ast --module=std/core examples/hello/hello.vader` shows two identical `std_core$i32$Comparable$lt` decls; 16 mangles duplicate this way on every program (`{i32,i64,usize,char}${Comparable$lt,lte,gt,gte}` + `$Step$step`).
+- [ ] **The trait default-method materialiser emits each body twice** (found 2026-09-21 while writing the IR verifiers). `dump --stage=dced-ast --module=std/core examples/hello/hello.vader` shows two identical `std_core$i32$Step$step` decls; every `Step` impl a program's ranges reach duplicates this way (`{i32,usize}$Step$step` for hello).
 
   Harmless today — the CFG DCE prunes them before bytecode — but not benign in shape. Both carry `origin.symbol = null`, so `midir/emit.vader:324-334` resolves both through the same `function_index_by_mangle` slot and `emit_cfg_function_body` runs **twice on one slot**, appending locals and body, while the first reserved slot stays empty. A duplicate that survived the prune would ship that.
 

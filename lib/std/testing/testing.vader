@@ -44,30 +44,30 @@ export assert_ne :: fn<T: Display & Equals>(actual: T, unexpected: T) -> void {
     }
 }
 
-/// Assert `actual < bound`. Uses the `Comparable.lt` default method.
+/// Assert `actual < bound`.
 export assert_lt :: fn<T: Display & Comparable>(actual: T, bound: T) -> void {
-    if !actual.lt(bound) {
+    if actual >= bound {
         panic("assert_lt failed: expected ${actual} < ${bound}")
     }
 }
 
 /// Assert `actual <= bound`.
 export assert_lte :: fn<T: Display & Comparable>(actual: T, bound: T) -> void {
-    if !actual.lte(bound) {
+    if actual > bound {
         panic("assert_lte failed: expected ${actual} <= ${bound}")
     }
 }
 
 /// Assert `actual > bound`.
 export assert_gt :: fn<T: Display & Comparable>(actual: T, bound: T) -> void {
-    if !actual.gt(bound) {
+    if actual <= bound {
         panic("assert_gt failed: expected ${actual} > ${bound}")
     }
 }
 
 /// Assert `actual >= bound`.
 export assert_gte :: fn<T: Display & Comparable>(actual: T, bound: T) -> void {
-    if !actual.gte(bound) {
+    if actual < bound {
         panic("assert_gte failed: expected ${actual} >= ${bound}")
     }
 }

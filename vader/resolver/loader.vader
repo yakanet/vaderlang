@@ -461,9 +461,9 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]!, overlay: Mutable
     // globally unique — not just module-unique. Per-module factories (each
     // restarting at 1) overlapped, and the side-tables keyed by raw node id
     // (`expr_types` / `expr_kinds` / `node_spans`) then collided whenever one
-    // module's typecheck recorded a FOREIGN node — e.g. std/core's primitive
-    // `Comparable` default-method clones, materialised via `node_id_factory`
-    // and typed into a consumer module (the `expand_tilde` return-array
+    // module's typecheck recorded a FOREIGN node — e.g. a trait's
+    // default-method clones, materialised via `node_id_factory` and typed
+    // into a consumer module (the `expand_tilde` return-array
     // miscompile). A global factory makes that collision impossible (mirrors
     // globally-unique Symbol ids).
     out: SourceFile[]!: []

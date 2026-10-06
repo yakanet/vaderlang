@@ -8,26 +8,6 @@
   expr 16:28    IdentExpr      :: Money
   expr 16:43    FieldExpr      :: i32
   expr 16:43    IdentExpr      :: Money
-  expr 17426:13 BinaryExpr     :: bool
-  expr 17426:14 CallExpr       :: i32
-  expr 17426:15 FieldExpr      :: fn(Money) -> i32
-  expr 17426:16 IdentExpr      :: Money
-  expr 17426:18 IdentExpr      :: Money
-  expr 17426:2  BinaryExpr     :: bool
-  expr 17426:24 BinaryExpr     :: bool
-  expr 17426:25 CallExpr       :: i32
-  expr 17426:26 FieldExpr      :: fn(Money) -> i32
-  expr 17426:27 IdentExpr      :: Money
-  expr 17426:29 IdentExpr      :: Money
-  expr 17426:3  CallExpr       :: i32
-  expr 17426:35 BinaryExpr     :: bool
-  expr 17426:36 CallExpr       :: i32
-  expr 17426:37 FieldExpr      :: fn(Money) -> i32
-  expr 17426:38 IdentExpr      :: Money
-  expr 17426:4  FieldExpr      :: fn(Money) -> i32
-  expr 17426:40 IdentExpr      :: Money
-  expr 17426:5  IdentExpr      :: Money
-  expr 17426:7  IdentExpr      :: Money
   expr 19:12    BinaryExpr     :: bool
   expr 19:12    FieldExpr      :: i32
   expr 19:12    IdentExpr      :: Money

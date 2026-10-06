@@ -91,7 +91,7 @@ synth_with_body :: fn(
         .name = method.name,
         // The trait method's name span, distinct per default method — not the
         // shared `impl_.trait_name_span`, which is name-span-keyed into
-        // `impl_method_decl_types` and would collapse `lt` / `lte` / `gt` / `gte`
+        // `impl_method_decl_types` and would collapse a trait's default methods
         // onto one return type.
         .name_span = method.name_span,
         .visibility = .Public,
@@ -139,9 +139,9 @@ synth_clone_span :: fn(factory: NodeIdFactory!) -> Span {
 
 /// `substitute_params` but `self` re-anchors at `self_span` (its type is
 /// contextual, so a shared span is fine) while every non-self param gets a
-/// fresh minted span — so a two-arg default (`Comparable.gt(self, other:
-/// Self)`) doesn't collide `other` across sibling impls in the span-keyed
-/// `param_types` table.
+/// fresh minted span — so a two-arg SAM method (`Comparable.compare(self,
+/// other: Self)`) doesn't collide `other` across sibling impls in the
+/// span-keyed `param_types` table.
 substitute_params_disambiguated :: fn(
     params: AST.FnParam[], subst: Subst, self_span: Span, factory: NodeIdFactory!,
 ) -> AST.FnParam![]! {

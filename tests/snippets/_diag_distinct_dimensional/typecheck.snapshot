@@ -22,26 +22,6 @@
   expr 19:73    CallExpr       :: i64
   expr 19:73    IdentExpr      :: type
   expr 19:77    IdentExpr      :: Duration
-  expr 21524:13 BinaryExpr     :: bool
-  expr 21524:14 CallExpr       :: i32
-  expr 21524:15 FieldExpr      :: fn(Instant) -> i32
-  expr 21524:16 IdentExpr      :: Instant
-  expr 21524:18 IdentExpr      :: Instant
-  expr 21524:2  BinaryExpr     :: bool
-  expr 21524:24 BinaryExpr     :: bool
-  expr 21524:25 CallExpr       :: i32
-  expr 21524:26 FieldExpr      :: fn(Instant) -> i32
-  expr 21524:27 IdentExpr      :: Instant
-  expr 21524:29 IdentExpr      :: Instant
-  expr 21524:3  CallExpr       :: i32
-  expr 21524:35 BinaryExpr     :: bool
-  expr 21524:36 CallExpr       :: i32
-  expr 21524:37 FieldExpr      :: fn(Instant) -> i32
-  expr 21524:38 IdentExpr      :: Instant
-  expr 21524:4  FieldExpr      :: fn(Instant) -> i32
-  expr 21524:40 IdentExpr      :: Instant
-  expr 21524:5  IdentExpr      :: Instant
-  expr 21524:7  IdentExpr      :: Instant
   expr 23:14    CallExpr       :: i64
   expr 23:14    IdentExpr      :: type
   expr 23:18    IdentExpr      :: Instant

@@ -100,6 +100,21 @@
                 self :A
           r:
             int(1) :i32
+  fn snippet$A$Widget$above(self: A!, other: A) -> bool
+    ~>
+      gt :bool
+        l:
+          call :i32
+            callee:
+              snippet$A$Widget$base :i32
+            arg0:
+              self :A
+        r:
+          call :i32
+            callee:
+              snippet$A$Widget$base :i32
+            arg0:
+              other :A
   fn snippet$B$Widget$base(self: B!) -> i32
     ~>
       .b :i32
@@ -196,6 +211,21 @@
                 self :B
           r:
             int(1) :i32
+  fn snippet$B$Widget$above(self: B!, other: B) -> bool
+    ~>
+      gt :bool
+        l:
+          call :i32
+            callee:
+              snippet$B$Widget$base :i32
+            arg0:
+              self :B
+        r:
+          call :i32
+            callee:
+              snippet$B$Widget$base :i32
+            arg0:
+              other :B
   fn snippet$main() -> i32
     let a: A! =
       A! {
@@ -384,6 +414,45 @@
                 int(1) :i32
           r:
             int(3) :i32
+      then:
+        assign
+          target:
+            ok :bool
+          value:
+            false
+    let low: A! =
+      A! {
+        a: int(0) :i32
+      }
+    let high: B! =
+      B! {
+        b: int(5) :i32
+      }
+    if :void
+      cond:
+        not :bool
+          call :bool
+            callee:
+              snippet$A$Widget$above :bool
+            arg0:
+              a :A!
+            arg1:
+              low :A!
+      then:
+        assign
+          target:
+            ok :bool
+          value:
+            false
+    if :void
+      cond:
+        call :bool
+          callee:
+            snippet$B$Widget$above :bool
+          arg0:
+            b :B!
+          arg1:
+            high :B!
       then:
         assign
           target:

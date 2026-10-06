@@ -108,10 +108,6 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2);
 static size_t std_core_write_bool(void* l0, size_t l1, bool l2);
-static int32_t std_core_three_way(bool l0, bool l1);
-static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1);
-static bool std_core_i32_Comparable_gt(int32_t l0, int32_t l1);
-static bool std_core_i32_Comparable_gte(int32_t l0, int32_t l1);
 static int32_t std_core_i32_Step_step(int32_t l0);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
@@ -923,30 +919,30 @@ static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, uint8_t
     int32_t l2, l3;
     bool t0;
     int32_t t1;
-#line 295 "lib/std/core/core.vader"
+#line 291 "lib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_inclusive;
     if (t0) {
         l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
-        l1 = std_core_i32_Comparable_gt(l2, l3);
-#line 296 "lib/std/core/core.vader"
+        l1 = (l2 > l3);
+#line 292 "lib/std/core/core.vader"
     } else {
         l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
-        l1 = std_core_i32_Comparable_gte(l2, l3);
-#line 295 "lib/std/core/core.vader"
+        l1 = (l2 >= l3);
+#line 291 "lib/std/core/core.vader"
     }
-#line 299 "lib/std/core/core.vader"
+#line 295 "lib/std/core/core.vader"
     if (!(l1)) {
-#line 300 "lib/std/core/core.vader"
+#line 296 "lib/std/core/core.vader"
         l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
-#line 301 "lib/std/core/core.vader"
+#line 297 "lib/std/core/core.vader"
         t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         l3 = std_core_i32_Step_step(t1);
         ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor = l3;
-#line 302 "lib/std/core/core.vader"
+#line 298 "lib/std/core/core.vader"
         *__o1 = (uint8_t) 0; *__o0 = l2; return;
-#line 299 "lib/std/core/core.vader"
+#line 295 "lib/std/core/core.vader"
     }
     t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
     *__o1 = (uint8_t) 1; *__o0 = t1; return;
@@ -1119,55 +1115,8 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     return t0;
 }
 
-static int32_t std_core_three_way(bool l0, bool l1) {
-    int32_t l2;
-#line 313 "lib/std/core/primitives.vader"
-    if (l0) {
-        l2 = -(INT32_C(1));
-        return l2;
-    }
-    if (l1) {
-        l2 = INT32_C(1);
-    } else {
-        l2 = INT32_C(0);
-    }
-    return l2;
-}
-
-static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
-    bool l2, l3;
-    int32_t t0;
-#line 317 "lib/std/core/primitives.vader"
-    l2 = (l0 < l1);
-    l3 = (l0 > l1);
-    t0 = std_core_three_way(l2, l3);
-    return t0;
-    l2 = (l0 < l1);
-    l3 = (l0 > l1);
-    t0 = std_core_three_way(l2, l3);
-    return t0;
-}
-
-static bool std_core_i32_Comparable_gt(int32_t l0, int32_t l1) {
-    int32_t t0;
-#line 324626 "<clone>:lib/std/core/primitives.vader"
-    t0 = std_core_i32_Comparable_compare(l0, l1);
-    return (t0 > INT32_C(0));
-    t0 = std_core_i32_Comparable_compare(l0, l1);
-    return (t0 > INT32_C(0));
-}
-
-static bool std_core_i32_Comparable_gte(int32_t l0, int32_t l1) {
-    int32_t t0;
-#line 324626 "<clone>:lib/std/core/primitives.vader"
-    t0 = std_core_i32_Comparable_compare(l0, l1);
-    return (t0 >= INT32_C(0));
-    t0 = std_core_i32_Comparable_compare(l0, l1);
-    return (t0 >= INT32_C(0));
-}
-
 static int32_t std_core_i32_Step_step(int32_t l0) {
-#line 335 "lib/std/core/primitives.vader"
+#line 334 "lib/std/core/primitives.vader"
     return (l0 + INT32_C(1));
     return (l0 + INT32_C(1));
 }

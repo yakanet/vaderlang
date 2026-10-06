@@ -2633,8 +2633,8 @@ param_type :: fn(
     // Substitute `Self` → `for_ty` so an explicit `Self`-typed param (e.g.
     // `Comparable.compare(self, other: Self)`) records the concrete carrier
     // — otherwise the impl method's type keeps `other: Self`, and a default-
-    // method clone calling it (`self.compare(other)`, `other` already
-    // substituted to `for_ty`) mismatches `expected Self, got <for_ty>`.
+    // method clone calling it with its own `other` (already substituted to
+    // `for_ty`) mismatches `expected Self, got <for_ty>`.
     return apply_readonly_default(
         substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty), p.ty,
     )

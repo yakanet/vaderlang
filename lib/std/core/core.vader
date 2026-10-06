@@ -34,8 +34,8 @@ export Equals :: trait {
 }
 
 /// Total ordering. Powers `<` / `<=` / `>` / `>=` : `a < b` is
-/// `a.compare(b) < 0`. Impls only provide `compare` ; `lt` / `lte` / `gt` / `gte`
-/// follow from it as default methods.
+/// `a.compare(b) < 0`, so an impl provides `compare` alone and the four operators
+/// cannot disagree with it.
 ///
 /// `compare(a, b)` must return :
 ///   `< 0` when `a` is strictly less than `b`,
@@ -43,10 +43,6 @@ export Equals :: trait {
 ///   `> 0` when `a` is strictly greater than `b`.
 export Comparable :: trait {
     compare :: fn(self, other: Self) -> i32
-    lt  :: fn(self, other: Self) -> bool { return self.compare(other) <  0 }
-    lte :: fn(self, other: Self) -> bool { return self.compare(other) <= 0 }
-    gt  :: fn(self, other: Self) -> bool { return self.compare(other) >  0 }
-    gte :: fn(self, other: Self) -> bool { return self.compare(other) >= 0 }
 }
 
 /// Hash codes for `MutableMap` / `MutableSet` keys — equal values (`Equals`), equal hashes.
@@ -274,7 +270,7 @@ export Range :: struct<T> {
 }
 
 // Single bounded generic impl pair covering every integer width plus `char`.
-// `T : Comparable & Step` lets the bodies dispatch `lt`/`lte`/`gt`/`gte`
+// `T : Comparable & Step` lets the bodies dispatch `<` / `<=` / `>` / `>=`
 // to T's `Comparable` impl and the advance step to T's `Step` impl —
 // concrete `+ 1` / codepoint-bump logic lives in those per-primitive impls
 // in this same file (search for `implements Step` and `implements
@@ -284,16 +280,16 @@ export Range :: struct<T> {
 
 Range<T> implements<T: Comparable & Step> Contains<T> {
     contains :: fn(self, value: T) -> bool {
-        if value.lt(self.start) { return false }
-        if self.inclusive       { return value.lte(self.end) }
-        return value.lt(self.end)
+        if value < self.start { return false }
+        if self.inclusive     { return value <= self.end }
+        return value < self.end
     }
 }
 
 Range<T> implements<T: Comparable & Step> Iterator<T> {
     next :: fn(self!) -> [T, Continuation] {
-        done :: if (self.inclusive) { self.cursor.gt(self.end) }
-                else                 { self.cursor.gte(self.end) }
+        done :: if (self.inclusive) { self.cursor > self.end }
+                else                 { self.cursor >= self.end }
         // The cursor doubles as the stop filler: it is a `T` already at hand, so
         // nothing has to be manufactured for a type that only promises ordering.
         if (done) { return [self.cursor, .Stop] }

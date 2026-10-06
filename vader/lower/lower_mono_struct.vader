@@ -431,8 +431,8 @@ materialize_impl_members_for :: fn(
                         d, inst, mt, owner_typed, project_ctx, project,
                     )
                     // The impl body virtual-calls the bound traits'
-                    // methods on the type-param (`cursor.gte(...)` /
-                    // `cursor.step()` in `Range.next`). Materialise
+                    // methods on the type-param (`cursor.step()` in
+                    // `Range.next`). Materialise
                     // those bound-trait impls for the concrete args so
                     // the vtable carries the matching entries.
                     materialize_bound_trait_impls(
@@ -484,7 +484,7 @@ materialize_impl_for_instance :: fn(
     self_type: Type: self_struct
     // Suffix from the ERASED args : a generic impl mangles `next__Any`
     // (not `next__i32`) so the shared erased body's sibling self-calls
-    // (`self.compare(other)` in a `Comparable` default) and every
+    // (a default method calling a sibling member) and every
     // concrete-arg call site resolve to one name. `find_impl_member_for` / `lower_for_in`
     // erase the receiver args the same way (gated on `ImplEntry.is_generic`).
     // Concrete-instantiation impls keep `erased_args == inst.args`, so their
@@ -557,7 +557,7 @@ materialize_impl_for_instance :: fn(
 /// For each bounded type param of `impl_decl` (`Range<T> implements<T:
 /// Comparable & Step>`), materialise the bound traits' impls for the
 /// matching concrete instance arg. The generic-impl body dispatches a
-/// type-param method (`cursor.gte(...)`) through a `virtual.call`, so the
+/// type-param method (`cursor.step()`) through a `virtual.call`, so the
 /// vtable needs the concrete type's `(trait, method)` rows — which
 /// `collect_vtable_entries` builds from the materialised member fns.
 /// Deduped per `(type, trait)` ; no-op for unbounded type params.

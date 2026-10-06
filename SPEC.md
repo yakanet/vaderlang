@@ -1627,30 +1627,26 @@ Countdown<T> implements Iterator<T> {
 A trait method may carry a body:
 
 ```vader
-Comparable :: trait {
-    compare :: fn(self, other: Self) -> i32
-    lt      :: fn(self, other: Self) -> bool { return self.compare(other) < 0 }
+Shape :: trait {
+    area     :: fn(self) -> f64
+    describe :: fn(self) -> string { return "a shape of area ${self.area()}" }
 }
 ```
 
-Any impl that doesn't override `lt` automatically inherits the body
+Any impl that doesn't override `describe` automatically inherits the body
 above — the resolver clones the trait method's body into the impl at
 declaration time, with `Self → forType` substituted (and trait type-params
 substituted by impl trait-args). References inside the body to other trait
-methods (`self.compare(other)`) resolve through UFCS against the impl scope,
+methods (`self.area()`) resolve through UFCS against the impl scope,
 so they pick up the impl's own member when the user provides one.
 
 ```vader
-Money implements Comparable -> self.cents.compare(other.cents)
-// Money.lt exists implicitly, derived from the cloned default.
+Square implements Shape -> self.side * self.side
+// Square.describe exists implicitly, derived from the cloned default.
 ```
 
 Stdlib traits that ship with default methods:
-- `Comparable.lt` / `.lte` / `.gt` / `.gte` (derived from `compare`).
 - `Async.cancel` (does nothing).
-
-`Equals` ships no default method: `a != b` is `!a.equals(b)`, so the two operators
-cannot disagree.
 
 #### Operator overloading
 
@@ -1668,6 +1664,11 @@ Built-in operators dispatch through stdlib traits when the operand types are not
 | `a[i]`          | `Index<I, T>`      | `at :: fn(self, i: I) -> T`                 |
 | `a[i] = v`      | `IndexSet<I, T>`   | `set_at :: fn(self, i: I, v: T)`            |
 | `v in a`        | `Contains<T>`      | `contains :: fn(self, v: T) -> bool`        |
+
+Each operator trait declares exactly the member its operator dispatches to, with no
+default method: `a != b` is `!a.equals(b)` and `a <= b` is `a.compare(b) <= 0`. An impl
+declares only its trait's members (T3094), so an operator cannot disagree with a method
+of its trait.
 
 Compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`) desugar to `lhs = lhs <op> rhs` at parse time, so they reuse the corresponding trait dispatch. The place `lhs` is still evaluated once: in `a[i()] += v()`, `a` and `i()` run first, then the element is read, then `v()` runs, and the result is written back to that same element — `i()` runs once, where the spelled-out `a[i()] = a[i()] + v()` would run it twice. Because the result is rebound to `lhs`, a compound assignment requires the operator's `Out` to be assignable to `lhs`'s type — always true in the homogeneous `Out = Self` case; a heterogeneous `Out` (e.g. `Instant - Instant -> Duration`) simply can't be used with the compound form.
 

@@ -14,26 +14,6 @@
   expr 15:30    IdentExpr      :: V
   expr 15:39    FieldExpr      :: i32
   expr 15:39    IdentExpr      :: V
-  expr 16398:13 BinaryExpr     :: bool
-  expr 16398:14 CallExpr       :: i32
-  expr 16398:15 FieldExpr      :: fn(V) -> i32
-  expr 16398:16 IdentExpr      :: V
-  expr 16398:18 IdentExpr      :: V
-  expr 16398:2  BinaryExpr     :: bool
-  expr 16398:24 BinaryExpr     :: bool
-  expr 16398:25 CallExpr       :: i32
-  expr 16398:26 FieldExpr      :: fn(V) -> i32
-  expr 16398:27 IdentExpr      :: V
-  expr 16398:29 IdentExpr      :: V
-  expr 16398:3  CallExpr       :: i32
-  expr 16398:35 BinaryExpr     :: bool
-  expr 16398:36 CallExpr       :: i32
-  expr 16398:37 FieldExpr      :: fn(V) -> i32
-  expr 16398:38 IdentExpr      :: V
-  expr 16398:4  FieldExpr      :: fn(V) -> i32
-  expr 16398:40 IdentExpr      :: V
-  expr 16398:5  IdentExpr      :: V
-  expr 16398:7  IdentExpr      :: V
   expr 16:28    BinaryExpr     :: i32
   expr 16:28    FieldExpr      :: i32
   expr 16:28    IdentExpr      :: V

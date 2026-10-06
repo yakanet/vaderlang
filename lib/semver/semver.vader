@@ -13,7 +13,7 @@
 //     explicit `T | ParseError` union, carrying `ParseError`
 //     (from `std/string`) on malformed input.
 //   - `Version` plugs into `std/core::Display`, `Equals`, `Comparable` —
-//     call sites use UFCS : `a.compare(b)`, `a.lt(b)`, `a.equals(b)`,
+//     call sites use `a.compare(b)`, `a < b`, `a == b`,
 //     `${v}` (interp).
 //   - `VersionRange` plugs into `std/core::Contains<Version>` — call
 //     sites use the infix `in` operator : `v in r` desugars to
@@ -849,8 +849,7 @@ Version implements Comparable {
     /// Three-way compare per SemVer 2.0.0 §11. Major / minor / patch
     /// numerically ; pre-release lower than no pre-release ;
     /// pre-release segments per `compare_prerelease`. Build metadata
-    /// is ignored. `lt` / `lte` / `gt` / `gte` come free from
-    /// `Comparable`'s default methods.
+    /// is ignored ; `<` / `<=` / `>` / `>=` derive from it.
     compare :: fn(self, other: Self) -> i32 { return compare_versions(self, other) }
 }
 
@@ -1152,15 +1151,15 @@ parse_ok :: fn(s: string) -> Version {
     assert_eq(a.compare(b), 0)
 }
 
-@test test_comparable_default_methods :: fn() -> void {
+@test test_comparison_operators :: fn() -> void {
     a :: parse_ok("1.2.3")
     b :: parse_ok("1.2.4")
-    assert(a.lt(b),  "lt")
-    assert(a.lte(b), "lte")
-    assert(b.gt(a),  "gt")
-    assert(b.gte(a), "gte")
-    assert(a.lte(a), "lte refl")
-    assert(a.gte(a), "gte refl")
+    assert(a < b,  "<")
+    assert(a <= b, "<=")
+    assert(b > a,  ">")
+    assert(b >= a, ">=")
+    assert(a <= a, "<= refl")
+    assert(a >= a, ">= refl")
 }
 
 // ---- parse_range — OK ----

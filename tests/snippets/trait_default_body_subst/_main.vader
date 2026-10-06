@@ -4,7 +4,8 @@
 // unchanged — leaving them referencing the trait's own (aliased) AST, which
 // `assign_block_ids` then re-id'd IN PLACE, corrupting every other impl's copy
 // (and skipping Self/T substitution). Exercises one default per value-variant
-// across two impls ; exit 0 iff every clone was independent and correct.
+// across two impls, plus one taking `other: Self`, whose `other` each clone types
+// at its own carrier ; exit 0 iff every clone was independent and correct.
 
 module "snippet"
 
@@ -18,6 +19,7 @@ Widget :: trait {
     wide  :: fn(self) -> i64    = i64(self.base()) * 2             // CastExpr
     label :: fn(self) -> string = "w:${self.base()}"              // StringLitExpr (interp)
     pair  :: fn(self) -> i32[]  = [self.base(), self.base() + 1]   // SeqLitExpr
+    above :: fn(self, other: Self) -> bool = self.base() > other.base()
 }
 
 A :: struct { a: i32 }
@@ -42,6 +44,10 @@ main :: fn() -> i32 {
     pb :: b.pair()
     if pb[0] != 2 { ok = false }
     if pb[1] != 3 { ok = false }
+    low :: A { .a = 0 }
+    high :: B { .b = 5 }
+    if !a.above(low) { ok = false }
+    if b.above(high) { ok = false }
     if ok {
         println("all ok")
         return 0

@@ -23,58 +23,6 @@
         r:
           .x :i32
             other :V
-  fn snippet$V$Comparable$lt(self: V!, other: V) -> bool
-    return
-      lt :bool
-        l:
-          call :i32
-            callee:
-              snippet$V$Comparable$compare :i32
-            arg0:
-              self :V
-            arg1:
-              other :V
-        r:
-          int(0) :i32
-  fn snippet$V$Comparable$lte(self: V!, other: V) -> bool
-    return
-      lte :bool
-        l:
-          call :i32
-            callee:
-              snippet$V$Comparable$compare :i32
-            arg0:
-              self :V
-            arg1:
-              other :V
-        r:
-          int(0) :i32
-  fn snippet$V$Comparable$gt(self: V!, other: V) -> bool
-    return
-      gt :bool
-        l:
-          call :i32
-            callee:
-              snippet$V$Comparable$compare :i32
-            arg0:
-              self :V
-            arg1:
-              other :V
-        r:
-          int(0) :i32
-  fn snippet$V$Comparable$gte(self: V!, other: V) -> bool
-    return
-      gte :bool
-        l:
-          call :i32
-            callee:
-              snippet$V$Comparable$compare :i32
-            arg0:
-              self :V
-            arg1:
-              other :V
-        r:
-          int(0) :i32
   fn snippet$main() -> i32
     call :void
       callee:
