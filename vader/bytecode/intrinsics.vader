@@ -40,6 +40,10 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
     if cmp != null {
         return cmp
     }
+    // Ordering. `@intrinsic string implements Comparable` : its `compare` is an op.
+    if mangled == r"std_core$string$Comparable$compare" {
+        return StringCompare {}
+    }
     // Target ABI memory opcodes — the abstract `Buffer`'s `@intrinsic` methods
     // (`stdlib/std/core/buffer.vader`). `buffer.new` takes no operand — the
     // allocated object is always a `Buffer`, so its type is the BUFFER sentinel
@@ -142,6 +146,8 @@ import "std/testing"
         ["f32", "Equals", "equals"], ["f64", "Equals", "equals"],
         ["bool", "Equals", "equals"], ["char", "Equals", "equals"],
         ["string", "Equals", "equals"],
+        // ordering (op-backed) — `string` only
+        ["string", "Comparable", "compare"],
         ["usize", "BufferAlloc", "new_buffer"],
         ["Buffer", "ByteAccess", "load_u8"], ["Buffer", "ByteAccess", "store_u8"],
         ["Buffer", "ByteAccess", "memory_copy"], ["Buffer", "ByteAccess", "intern_string"],

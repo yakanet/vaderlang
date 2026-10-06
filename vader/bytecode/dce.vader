@@ -402,7 +402,7 @@ TypelessOp :: Unreachable | I32Const | LocalGet | LocalSet | LocalTee | StringCo
     | I64Le | I64Gt | I64Ge | U64Div | U64Mod | U64Lt | U64Le | U64Gt | U64Ge | I64Shl | I64Shr
     | I64ShrU | I64BitAnd | I64BitOr | I64BitXor | I64BitNot | F64Add | F64Sub | F64Mul | F64Div
     | F64Neg | F64Eq | F64Ne | F64Lt | F64Le | F64Gt | F64Ge | BoolEq | BoolNe | BoolAnd
-    | BoolOr | BoolNot | StringEq | StringNe | StringSliceCodepoints | RefEq | RefNe | Drop
+    | BoolOr | BoolNot | StringEq | StringNe | StringCompare | StringSliceCodepoints | RefEq | RefNe | Drop
     | Block | Loop | If | Else | End | Branch | BranchIf | Return | ReturnLit | BufferNew
     | LoadU8 | LoadI32 | LoadI64 | LoadF64 | StoreU8 | StoreI32 | StoreI64 | StoreF64
     | LoadSlotI32 | LoadSlotI64 | LoadSlotF64 | StoreSlotI32 | StoreSlotI64 | StoreSlotF64

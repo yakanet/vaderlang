@@ -886,6 +886,7 @@ write_op_refs :: fn(out: StringBuilder!, refs: (OperandRef | null)[]!, op: Op) -
         is BoolOr                   -> out.append("bool.or")
         is StringEq                 -> out.append("string.eq")
         is StringNe                 -> out.append("string.ne")
+        is StringCompare            -> out.append("string.compare")
         is StringSliceCodepoints    -> out.append("string.slice_codepoints")
         is RefEq                    -> out.append("ref.eq")
         is RefNe                    -> out.append("ref.ne")

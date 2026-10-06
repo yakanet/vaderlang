@@ -323,6 +323,10 @@ u64   implements Comparable -> three_way(self < other, self > other)
 usize implements Comparable -> three_way(self < other, self > other)
 char  implements Comparable -> three_way(self < other, self > other)
 
+// Byte order, through the `string.compare` op : `"a" < "b"` lowers to
+// `compare("a", "b") < 0`.
+@intrinsic string implements Comparable
+
 // ---- Step -----------------------------------------------------------------
 //
 // Discrete-successor logic per primitive. Every integer width bumps by 1 ;

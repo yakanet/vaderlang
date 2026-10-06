@@ -1,0 +1,110 @@
+# Typecheck
+
+## tests/snippets/string_ordering
+  FnDecl         __comptime_BAKED     :: fn() -> bool
+  ConstDecl      BAKED                :: bool
+  FnDecl         less                 :: fn(T, T) -> bool
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         order                :: fn(Comparable, Comparable) -> i32
+  expr 11:49    BinaryExpr     :: bool
+  expr 11:49    IdentExpr      :: T
+  expr 11:53    IdentExpr      :: T
+  expr 13:52    CallExpr       :: i32
+  expr 13:52    FieldExpr      :: fn(Comparable) -> i32
+  expr 13:52    IdentExpr      :: Comparable
+  expr 13:62    IdentExpr      :: Comparable
+  expr 15:1     IdentExpr      :: fn() -> bool
+  expr 15:10    CallExpr       :: bool
+  expr 15:20    BinaryExpr     :: bool
+  expr 15:20    StringLitExpr  :: string
+  expr 15:30    StringLitExpr  :: string
+  expr 18:13    StringLitExpr  :: string
+  expr 18:28    BinaryExpr     :: bool
+  expr 18:28    StringLitExpr  :: string
+  expr 18:34    StringLitExpr  :: string
+  expr 18:41    BinaryExpr     :: bool
+  expr 18:41    StringLitExpr  :: string
+  expr 18:47    StringLitExpr  :: string
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 18:54    BinaryExpr     :: bool
+  expr 18:54    StringLitExpr  :: string
+  expr 18:61    StringLitExpr  :: string
+  expr 18:68    BinaryExpr     :: bool
+  expr 18:68    StringLitExpr  :: string
+  expr 18:75    StringLitExpr  :: string
+  expr 18:82    BinaryExpr     :: bool
+  expr 18:82    StringLitExpr  :: string
+  expr 18:88    StringLitExpr  :: string
+  expr 19:13    StringLitExpr  :: string
+  expr 19:28    BinaryExpr     :: bool
+  expr 19:28    StringLitExpr  :: string
+  expr 19:33    StringLitExpr  :: string
+  expr 19:40    BinaryExpr     :: bool
+  expr 19:40    StringLitExpr  :: string
+  expr 19:47    StringLitExpr  :: string
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 19:56    BinaryExpr     :: bool
+  expr 19:56    StringLitExpr  :: string
+  expr 19:64    StringLitExpr  :: string
+  expr 19:72    BinaryExpr     :: bool
+  expr 19:72    StringLitExpr  :: string
+  expr 19:78    StringLitExpr  :: string
+  expr 20:13    StringLitExpr  :: string
+  expr 20:28    BinaryExpr     :: bool
+  expr 20:28    StringLitExpr  :: string
+  expr 20:34    StringLitExpr  :: string
+  expr 20:41    BinaryExpr     :: bool
+  expr 20:41    StringLitExpr  :: string
+  expr 20:48    StringLitExpr  :: string
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 20:59    BinaryExpr     :: bool
+  expr 20:59    StringLitExpr  :: string
+  expr 20:65    StringLitExpr  :: string
+  expr 21:13    StringLitExpr  :: string
+  expr 21:28    CallExpr       :: i32
+  expr 21:28    FieldExpr      :: fn(string) -> i32
+  expr 21:28    StringLitExpr  :: string
+  expr 21:40    StringLitExpr  :: string
+  expr 21:48    CallExpr       :: i32
+  expr 21:48    FieldExpr      :: fn(string) -> i32
+  expr 21:48    StringLitExpr  :: string
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 21:60    StringLitExpr  :: string
+  expr 21:68    CallExpr       :: i32
+  expr 21:68    FieldExpr      :: fn(string) -> i32
+  expr 21:68    StringLitExpr  :: string
+  expr 21:80    StringLitExpr  :: string
+  expr 22:13    StringLitExpr  :: string
+  expr 22:28    CallExpr       :: bool
+  expr 22:28    IdentExpr      :: fn(T, T) -> bool
+  expr 22:33    StringLitExpr  :: string
+  expr 22:40    StringLitExpr  :: string
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 22:50    CallExpr       :: bool
+  expr 22:50    IdentExpr      :: fn(T, T) -> bool
+  expr 22:55    StringLitExpr  :: string
+  expr 22:62    StringLitExpr  :: string
+  expr 23:13    StringLitExpr  :: string
+  expr 23:28    CallExpr       :: i32
+  expr 23:28    IdentExpr      :: fn(Comparable, Comparable) -> i32
+  expr 23:34    StringLitExpr  :: string
+  expr 23:41    StringLitExpr  :: string
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 23:51    CallExpr       :: i32
+  expr 23:51    IdentExpr      :: fn(Comparable, Comparable) -> i32
+  expr 23:57    StringLitExpr  :: string
+  expr 23:64    StringLitExpr  :: string
+  expr 24:13    StringLitExpr  :: string
+  expr 24:28    IdentExpr      :: bool
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:15    StringLitExpr  :: string
+  expr 25:22    StringLitExpr  :: string
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T, T) -> void

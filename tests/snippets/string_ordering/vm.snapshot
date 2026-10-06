@@ -1,0 +1,10 @@
+# stdout
+operators : true false true false true
+prefix    : true true true true
+bytes     : true true true
+compare   : -1 1 0
+generic   : true false
+erased    : -1 0
+comptime  : true
+# exit
+0

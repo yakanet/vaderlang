@@ -1,0 +1,17 @@
+// A distinct with an `Equals` of its own compares through it on either side of
+// `==` : `"readme" == p` reads the string as a `Path`, as `p == "readme"` does.
+
+module "snippet"
+
+import "std/io"
+
+Path :: string
+
+Path implements Equals -> string(self).byte_len() == string(other).byte_len()
+
+main :: fn() -> i32 {
+    p :: Path("abcdef")
+    println("left  : ${p == "readme"} ${p != "readme"} ${p == "abc"}")
+    println("right : ${"readme" == p} ${"readme" != p} ${"abc" == p}")
+    return 0
+}

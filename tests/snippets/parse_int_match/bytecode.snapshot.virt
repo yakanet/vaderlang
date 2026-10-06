@@ -132,18 +132,18 @@ fn 1 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  call 28   ; std_core$usize$BufferAlloc$new_buffer_vt
+  buffer.new
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 30   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 30   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 4   ; buf
   local.get 3   ; $call_4
-  call 29   ; std_core$Buffer$ByteAccess$intern_string_vt
+  buffer_to_string
   return
 end
 
@@ -169,22 +169,22 @@ fn 2 concat_3 (string,string,string) -> string
   local.get 5   ; $call_8
   i64.add
   local.tee 5   ; $call_8
-  call 28   ; std_core$usize$BufferAlloc$new_buffer_vt
+  buffer.new
   local.tee 6   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 30   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 6   ; buf
   local.get 3   ; c0
   local.get 1   ; arg 1
-  call 30   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 6   ; buf
   local.get 4   ; $call_5
   local.get 2   ; arg 2
-  call 30   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 6   ; buf
   local.get 5   ; $call_8
-  call 29   ; std_core$Buffer$ByteAccess$intern_string_vt
+  buffer_to_string
   return
 end
 
@@ -265,12 +265,12 @@ fn 3 std_core$parse_f64 (string) -> any
     local.get 5   ; $add_14
     i64.bitor
     local.tee 3   ; $field_8
-    call 31   ; std_core$u64$BitsFloat$from_bits_vt
+    bits_to_f64
     retag 7   ; f64
     return
   end $L3
   local.get 3   ; $field_8
-  call 31   ; std_core$u64$BitsFloat$from_bits_vt
+  bits_to_f64
   retag 7   ; f64
   return
 end
@@ -948,7 +948,7 @@ fn 6 std_core$parse_f64_slow (string,bool) -> f64
   call 11   ; std_core$is_zero
   if $L1 void
     local.get 3   ; sign
-    call 31   ; std_core$u64$BitsFloat$from_bits_vt
+    bits_to_f64
     return
   end $L1
   local.field 2 11 0   ; p std_core$SlowParts.d
@@ -1052,7 +1052,7 @@ fn 6 std_core$parse_f64_slow (string,bool) -> f64
     local.get 3   ; sign
     local.get 11   ; $shl_71
     i64.bitor
-    call 31   ; std_core$u64$BitsFloat$from_bits_vt
+    bits_to_f64
     return
   end $L8
   i32.const 1022
@@ -1076,7 +1076,7 @@ fn 6 std_core$parse_f64_slow (string,bool) -> f64
     local.get 3   ; sign
     local.get 12   ; $shl_87
     i64.bitor
-    call 31   ; std_core$u64$BitsFloat$from_bits_vt
+    bits_to_f64
     return
   end $L9
   local.get 8   ; __for_hi_0
@@ -1136,7 +1136,7 @@ fn 6 std_core$parse_f64_slow (string,bool) -> f64
     local.get 12   ; $shl_87
     local.get 13   ; $sub_110
     i64.bitor
-    call 31   ; std_core$u64$BitsFloat$from_bits_vt
+    bits_to_f64
     return
   end $L11
   i64.const 2047
@@ -1146,7 +1146,7 @@ fn 6 std_core$parse_f64_slow (string,bool) -> f64
   local.get 3   ; sign
   local.get 11   ; $shl_71
   i64.bitor
-  call 31   ; std_core$u64$BitsFloat$from_bits_vt
+  bits_to_f64
   return
 end
 
@@ -2634,32 +2634,5 @@ fn 27 std_string$parse_float (string) -> any
   local.get 1   ; __coalesce_0
   ref.cast 7   ; f64
   retag 7   ; f64
-  return
-end
-
-fn 28 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
-  local.get 0   ; arg 0
-  buffer.new
-  return
-end
-
-fn 29 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  buffer_to_string
-  return
-end
-
-fn 30 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  local.get 2   ; arg 2
-  buffer_write_string
-  return
-end
-
-fn 31 std_core$u64$BitsFloat$from_bits_vt (u64) -> f64
-  local.get 0   ; arg 0
-  bits_to_f64
   return
 end

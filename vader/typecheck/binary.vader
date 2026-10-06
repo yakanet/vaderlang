@@ -466,11 +466,6 @@ check_compare :: fn(
         numeric_result(e, left, right, diags)
         return TY_BOOL
     }
-    // NB: no `string < string` case — string ordering isn't lowered (the VM
-    // and native both trap: `i32.lt` on a string operand), so accepting it
-    // here would be an unsound compile-time pass over a runtime crash. String
-    // ordering can return as a real `Comparable` impl if the language wants
-    // lexicographic comparison later ; until then it's T3043 like `bool`.
     if check_bounded_operator(
         left,
         right,
@@ -483,7 +478,7 @@ check_compare :: fn(
     ) != null {
         return TY_BOOL
     }
-    // User-struct overload via `Comparable::compare` — the lowerer rewrites
+    // `Comparable::compare` on a struct, or on `string` — the lowerer rewrites
     // `a < b` into `a.compare(b) < 0`. The shared helper confirms the impl exists
     // AND validates the right operand against its `other: Self` param (without it
     // a wrong-typed RHS — `Money < 5`, `Foo < Bar` — panics at lowering).

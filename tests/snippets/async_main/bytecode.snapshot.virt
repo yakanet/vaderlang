@@ -179,18 +179,18 @@ fn 4 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  call 8   ; std_core$usize$BufferAlloc$new_buffer_vt
+  buffer.new
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 10   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 10   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 4   ; buf
   local.get 3   ; $call_4
-  call 9   ; std_core$Buffer$ByteAccess$intern_string_vt
+  buffer_to_string
   return
 end
 
@@ -279,26 +279,5 @@ fn 7 std_io$println__string (string) -> void
   i32.const 0
   local.get 1   ; $call_3
   call 5   ; std_io$write
-  return
-end
-
-fn 8 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
-  local.get 0   ; arg 0
-  buffer.new
-  return
-end
-
-fn 9 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  buffer_to_string
-  return
-end
-
-fn 10 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  local.get 2   ; arg 2
-  buffer_write_string
   return
 end

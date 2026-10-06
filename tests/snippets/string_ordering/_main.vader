@@ -1,0 +1,27 @@
+// `string implements Comparable` : `<` / `<=` / `>` / `>=` order two strings by
+// their bytes, which in UTF-8 is codepoint order, a proper prefix first. The
+// operator, `compare`, a generic `T: Comparable`, a trait-typed value and a
+// comptime constant all give the same order.
+
+module "snippet"
+
+import "std/io"
+import "std/testing"
+
+less :: fn<T: Comparable>(a: T, b: T) -> bool = a < b
+
+order :: fn(c: Comparable, d: Comparable) -> i32 = c.compare(d)
+
+BAKED :: @comptime "apple" < "banana"
+
+main :: fn() -> i32 {
+    println("operators : ${"a" < "b"} ${"b" < "a"} ${"a" <= "a"} ${"a" >= "b"} ${"b" > "a"}")
+    println("prefix    : ${"" < "a"} ${"ab" < "abc"} ${"abc" > "ab"} ${"" <= ""}")
+    println("bytes     : ${"Z" < "a"} ${"zz" < "zèbre"} ${"é" > "z"}")
+    println("compare   : ${"a".compare("b")} ${"b".compare("a")} ${"x".compare("x")}")
+    println("generic   : ${less("ant", "bee")} ${less("bee", "ant")}")
+    println("erased    : ${order("ant", "bee")} ${order("bee", "bee")}")
+    println("comptime  : ${BAKED}")
+    assert_lt("ant", "bee")
+    return 0
+}

@@ -760,12 +760,6 @@ static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
-static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
-static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
-static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2);
-static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2);
-static void std_core_Buffer_ByteAccess_memory_copy_vt(void* l0, size_t l1, void* l2, size_t l3, size_t l4);
-static uint64_t std_core_f64_FloatBits_to_bits_vt(double l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -899,17 +893,17 @@ static vader_string_t concat_9(vader_string_t l0, vader_string_t l1, vader_strin
     l17 = vader_host_std_core_byte_len(l8);
     t0 = (l16 + l17);
     l17 = (size_t) (int64_t) t0;
-    l18 = std_core_usize_BufferAlloc_new_buffer_vt(l17);
-    std_core_Buffer_ByteAccess_write_string_vt(l18, (size_t) 0, l0);
-    std_core_Buffer_ByteAccess_write_string_vt(l18, l9, l1);
-    std_core_Buffer_ByteAccess_write_string_vt(l18, l10, l2);
-    std_core_Buffer_ByteAccess_write_string_vt(l18, l11, l3);
-    std_core_Buffer_ByteAccess_write_string_vt(l18, l12, l4);
-    std_core_Buffer_ByteAccess_write_string_vt(l18, l13, l5);
-    std_core_Buffer_ByteAccess_write_string_vt(l18, l14, l6);
-    std_core_Buffer_ByteAccess_write_string_vt(l18, l15, l7);
-    std_core_Buffer_ByteAccess_write_string_vt(l18, l16, l8);
-    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l18, l17);
+    l18 = (void*) vader_buffer_new((size_t) l17);
+    vader_buffer_write_string((vader_buffer_t*) l18, (size_t) INT64_C(0), l0);
+    vader_buffer_write_string((vader_buffer_t*) l18, (size_t) l9, l1);
+    vader_buffer_write_string((vader_buffer_t*) l18, (size_t) l10, l2);
+    vader_buffer_write_string((vader_buffer_t*) l18, (size_t) l11, l3);
+    vader_buffer_write_string((vader_buffer_t*) l18, (size_t) l12, l4);
+    vader_buffer_write_string((vader_buffer_t*) l18, (size_t) l13, l5);
+    vader_buffer_write_string((vader_buffer_t*) l18, (size_t) l14, l6);
+    vader_buffer_write_string((vader_buffer_t*) l18, (size_t) l15, l7);
+    vader_buffer_write_string((vader_buffer_t*) l18, (size_t) l16, l8);
+    t1 = vader_buffer_intern_string((vader_buffer_t*) l18, (size_t) l17);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -928,10 +922,10 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     l3 = vader_host_std_core_byte_len(l1);
     t0 = (l2 + l3);
     l3 = (size_t) (int64_t) t0;
-    l4 = std_core_usize_BufferAlloc_new_buffer_vt(l3);
-    std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) 0, l0);
-    std_core_Buffer_ByteAccess_write_string_vt(l4, l2, l1);
-    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l4, l3);
+    l4 = (void*) vader_buffer_new((size_t) l3);
+    vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
+    vader_buffer_write_string((vader_buffer_t*) l4, (size_t) l2, l1);
+    t1 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -959,7 +953,8 @@ static vader_string_t std_core_format_f64(double l0) {
     };
     vader_gc_top = &gc_frame;
 #line 399 "lib/std/core/dtoa.vader"
-    l1 = std_core_f64_FloatBits_to_bits_vt(l0);
+    t0 = (int64_t)(((union { double __vd; uint64_t __vu; }){ .__vd = l0 }).__vu);
+    l1 = (uint64_t) (int64_t) t0;
 #line 400 "lib/std/core/dtoa.vader"
     l2 = (l1 >> INT64_C(63)) != INT64_C(0);
 #line 401 "lib/std/core/dtoa.vader"
@@ -1450,24 +1445,24 @@ static vader_string_t std_core_render(uint64_t l0, int32_t l1, bool l2) {
         break;
     }
 #line 388 "lib/std/core/dtoa.vader"
-    l5 = std_core_usize_BufferAlloc_new_buffer_vt((size_t) 25);
+    l5 = (void*) vader_buffer_new((size_t) INT64_C(25));
 #line 389 "lib/std/core/dtoa.vader"
     l6 = (size_t) 0;
 #line 390 "lib/std/core/dtoa.vader"
     if (l2) {
 #line 391 "lib/std/core/dtoa.vader"
-        std_core_Buffer_ByteAccess_store_u8_vt(l5, (size_t) 0, (uint8_t) 45);
+        vader_buffer_store_u8((vader_buffer_t*) l5, (size_t) INT64_C(0), (uint8_t) INT32_C(45));
 #line 392 "lib/std/core/dtoa.vader"
         l6 = (size_t) 1;
 #line 394 "lib/std/core/dtoa.vader"
         l7 = std_core_write_decimal(l5, l6, l3, l4);
-        t1 = std_core_Buffer_ByteAccess_intern_string_vt(l5, l7);
+        t1 = vader_buffer_intern_string((vader_buffer_t*) l5, (size_t) l7);
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 #line 390 "lib/std/core/dtoa.vader"
     }
 #line 394 "lib/std/core/dtoa.vader"
     l7 = std_core_write_decimal(l5, l6, l3, l4);
-    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l5, l7);
+    t1 = vader_buffer_intern_string((vader_buffer_t*) l5, (size_t) l7);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1649,11 +1644,11 @@ static size_t std_core_write_decimal(void* l0, size_t l1, uint64_t l2, int32_t l
     if ((-(INT32_C(6)) < l5)) {
         if ((l5 <= INT32_C(0))) {
 #line 356 "lib/std/core/dtoa.vader"
-            std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 48);
+            vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
 #line 357 "lib/std/core/dtoa.vader"
             t0 = (l1 + INT64_C(1));
             l6 = (size_t) (int64_t) t0;
-            std_core_Buffer_ByteAccess_store_u8_vt(l0, l6, (uint8_t) 46);
+            vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l6, (uint8_t) INT32_C(46));
 #line 358 "lib/std/core/dtoa.vader"
             t0 = (l1 + INT64_C(2));
             l6 = (size_t) (int64_t) t0;
@@ -1673,11 +1668,11 @@ static size_t std_core_write_decimal(void* l0, size_t l1, uint64_t l2, int32_t l
             l7 = (l5 - l4);
             l8 = std_core_write_zeros(l0, l6, l7);
 #line 363 "lib/std/core/dtoa.vader"
-            std_core_Buffer_ByteAccess_store_u8_vt(l0, l8, (uint8_t) 46);
+            vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l8, (uint8_t) INT32_C(46));
 #line 364 "lib/std/core/dtoa.vader"
             t0 = (l8 + INT64_C(1));
             l9 = (size_t) (int64_t) t0;
-            std_core_Buffer_ByteAccess_store_u8_vt(l0, l9, (uint8_t) 48);
+            vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l9, (uint8_t) INT32_C(48));
 #line 365 "lib/std/core/dtoa.vader"
             return (size_t) (int64_t) (l8 + INT64_C(2));
 #line 361 "lib/std/core/dtoa.vader"
@@ -1701,7 +1696,7 @@ static size_t std_core_write_decimal(void* l0, size_t l1, uint64_t l2, int32_t l
 #line 372 "lib/std/core/dtoa.vader"
     l4 = (l5 - INT32_C(1));
 #line 373 "lib/std/core/dtoa.vader"
-    std_core_Buffer_ByteAccess_store_u8_vt(l0, l8, (uint8_t) 101);
+    vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l8, (uint8_t) INT32_C(101));
 #line 374 "lib/std/core/dtoa.vader"
     t0 = (l8 + INT64_C(1));
     l6 = (size_t) (int64_t) t0;
@@ -1710,7 +1705,7 @@ static size_t std_core_write_decimal(void* l0, size_t l1, uint64_t l2, int32_t l
     } else {
         l10 = (uint8_t) 43;
     }
-    std_core_Buffer_ByteAccess_store_u8_vt(l0, l6, l10);
+    vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l6, (uint8_t) l10);
 #line 375 "lib/std/core/dtoa.vader"
     t0 = (l8 + INT64_C(2));
     l6 = (size_t) (int64_t) t0;
@@ -1870,7 +1865,7 @@ static size_t std_core_write_digits(void* l0, size_t l1, uint64_t l2, int32_t l3
         l7 = (uint8_t) (int32_t) t2;
         t2 = ((INT32_C(48) + l7) & INT32_C(255));
         l8 = (uint8_t) (int32_t) t2;
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l6, l8);
+        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l6, (uint8_t) l8);
 #line 322 "lib/std/core/dtoa.vader"
         l4 = vader_div_u64(l4, INT64_C(10));
 #line 319 "lib/std/core/dtoa.vader"
@@ -1891,7 +1886,7 @@ static size_t std_core_write_zeros(void* l0, size_t l1, int32_t l2) {
         l4 = (size_t) (int64_t) t0;
         t0 = (l1 + l4);
         l5 = (size_t) (int64_t) t0;
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l5, (uint8_t) 48);
+        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l5, (uint8_t) INT32_C(48));
 #line 329 "lib/std/core/dtoa.vader"
         l3 = (l3 + INT32_C(1));
     }
@@ -1914,9 +1909,9 @@ static size_t std_core_insert_point(void* l0, size_t l1, int32_t l2, int32_t l3)
     l5 = (size_t) (int64_t) t0;
     t0 = ((int64_t) (int32_t) (l2 - l3));
     l6 = (size_t) (int64_t) t0;
-    std_core_Buffer_ByteAccess_memory_copy_vt(l0, l5, l0, l4, l6);
+    vader_buffer_memory_copy((vader_buffer_t*) l0, (size_t) l5, (vader_buffer_t*) l0, (size_t) l4, (size_t) l6);
 #line 341 "lib/std/core/dtoa.vader"
-    std_core_Buffer_ByteAccess_store_u8_vt(l0, l4, (uint8_t) 46);
+    vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) INT32_C(46));
 #line 342 "lib/std/core/dtoa.vader"
     t0 = ((int64_t) (int32_t) l2);
     l4 = (size_t) (int64_t) t0;
@@ -1933,7 +1928,7 @@ static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2) {
 #line 152 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
 #line 153 "lib/std/core/primitives.vader"
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l1, (uint8_t) 48);
+        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
 #line 154 "lib/std/core/primitives.vader"
         return (size_t) (int64_t) (l1 + INT64_C(1));
 #line 152 "lib/std/core/primitives.vader"
@@ -1965,7 +1960,7 @@ static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2) {
         l6 = (uint8_t) (int32_t) t2;
         t2 = ((INT32_C(48) + l6) & INT32_C(255));
         l7 = (uint8_t) (int32_t) t2;
-        std_core_Buffer_ByteAccess_store_u8_vt(l0, l5, l7);
+        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l5, (uint8_t) l7);
 #line 166 "lib/std/core/primitives.vader"
         l2 = vader_div_u64(l2, INT64_C(10));
 #line 163 "lib/std/core/primitives.vader"
@@ -2050,46 +2045,6 @@ static void std_io_println__string(vader_string_t l0) {
     l1 = concat_2(l0, 7u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
-}
-
-static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    t0 = (void*) vader_buffer_new((size_t) l0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2) {
-    vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-    return;
-}
-
-static void std_core_Buffer_ByteAccess_store_u8_vt(void* l0, size_t l1, uint8_t l2) {
-    vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) l2);
-    return;
-}
-
-static void std_core_Buffer_ByteAccess_memory_copy_vt(void* l0, size_t l1, void* l2, size_t l3, size_t l4) {
-    vader_buffer_memory_copy((vader_buffer_t*) l0, (size_t) l1, (vader_buffer_t*) l2, (size_t) l3, (size_t) l4);
-    return;
-}
-
-static uint64_t std_core_f64_FloatBits_to_bits_vt(double l0) {
-    return (uint64_t) (int64_t) (int64_t)(((union { double __vd; uint64_t __vu; }){ .__vd = l0 }).__vu);
 }
 
 int main(int argc, char** argv) {

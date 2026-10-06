@@ -1098,6 +1098,10 @@ apply_boxed :: fn(
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
+        is bc.StringCompare -> {
+            outcome :: exec_string_compare(frame)
+            if outcome is Trap { return outcome }
+        }
         is bc.StringSliceCodepoints -> {
             outcome :: exec_string_slice_codepoints(frame)
             if outcome is Trap { return outcome }

@@ -1,0 +1,48 @@
+# Typecheck
+
+## tests/snippets/distinct_orders_as_backing
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Name                 :: type
+  StructDecl     Rgb                  :: Rgb!
+  ConstDecl      Tint                 :: type
+  expr 15:30    BinaryExpr     :: i32
+  expr 15:30    FieldExpr      :: i32
+  expr 15:30    IdentExpr      :: Rgb
+  expr 15:39    FieldExpr      :: i32
+  expr 15:39    IdentExpr      :: Rgb
+  expr 20:15    CallExpr       :: Name
+  expr 20:15    IdentExpr      :: type
+  expr 20:20    StringLitExpr  :: string
+  expr 21:14    CallExpr       :: Name
+  expr 21:14    IdentExpr      :: type
+  expr 21:19    StringLitExpr  :: string
+  expr 22:13    StringLitExpr  :: string
+  expr 22:25    BinaryExpr     :: bool
+  expr 22:25    IdentExpr      :: Name
+  expr 22:34    IdentExpr      :: Name
+  expr 22:43    BinaryExpr     :: bool
+  expr 22:43    IdentExpr      :: Name
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 22:51    IdentExpr      :: Name
+  expr 22:61    BinaryExpr     :: bool
+  expr 22:61    IdentExpr      :: Name
+  expr 22:70    StringLitExpr  :: string
+  expr 23:12    CallExpr       :: Tint
+  expr 23:12    IdentExpr      :: type
+  expr 23:17    StructLitExpr  :: Rgb!
+  expr 24:15    CallExpr       :: Tint
+  expr 24:15    IdentExpr      :: type
+  expr 24:20    StructLitExpr  :: Rgb!
+  expr 25:13    StringLitExpr  :: string
+  expr 25:25    BinaryExpr     :: bool
+  expr 25:25    IdentExpr      :: Tint
+  expr 25:31    IdentExpr      :: Tint
+  expr 25:41    BinaryExpr     :: bool
+  expr 25:41    IdentExpr      :: Tint
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 25:50    IdentExpr      :: Tint
+  expr 25:57    BinaryExpr     :: bool
+  expr 25:57    IdentExpr      :: Tint
+  expr 25:64    IdentExpr      :: Tint

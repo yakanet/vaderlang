@@ -1507,6 +1507,16 @@ DirectCallTarget :: struct {
 // silently drop the call and return whatever the stack holds.
 resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
     p :: ctx.project
+    by_symbol :: p.import_index_by_symbol_id[ins.callee.id]
+    import_index :: if by_symbol is i32 { by_symbol } else { p.import_index_by_mangle[ins.callee.name] }
+    // An `@intrinsic` with an op of its own emits that op, even where a vtable entry
+    // gave it a wrapper fn under the same mangle : the wrapper serves dispatch only.
+    if import_index is i32 {
+        target :: import_call_target(p, import_index)
+        if target.op !is CallImport {
+            return target
+        }
+    }
     fn_index :: resolve_fn_index(ins.callee, p)
     if fn_index >= 0 {
         return DirectCallTarget {
@@ -1514,13 +1524,8 @@ resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
             .signature = p.functions[usize(fn_index)].signature,
         }
     }
-    by_symbol :: p.import_index_by_symbol_id[ins.callee.id]
-    if by_symbol is i32 {
-        return import_call_target(p, by_symbol)
-    }
-    by_mangle :: p.import_index_by_mangle[ins.callee.name]
-    if by_mangle is i32 {
-        return import_call_target(p, by_mangle)
+    if import_index is i32 {
+        return import_call_target(p, import_index)
     }
     panic("midir/emit: unresolved callee '${ins.callee.name}' (id=${ins.callee.id}) in '${ctx.fn_.mangled}' — impl-member/for-in materialisation gap (GATE B1)")
 }

@@ -376,7 +376,7 @@ call_results :: fn(ctx: TagContext, op: bc.Op) -> bc.ValType[] | null {
 pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = match op {
     is bc.I32Const | bc.ArrayLen | bc.LoadU8 | bc.LoadI32 | bc.F32ToBits | bc.I32Add | bc.I32Sub
      | bc.I32Mul | bc.I32Div | bc.I32Mod | bc.I32BitAnd | bc.I32BitOr | bc.I32BitXor | bc.I32Shl
-     | bc.I32Shr | bc.I32ShrU | bc.U32Div | bc.U32Mod | bc.I32Neg | bc.I32BitNot -> TAGS_I32
+     | bc.I32Shr | bc.I32ShrU | bc.U32Div | bc.U32Mod | bc.I32Neg | bc.I32BitNot | bc.StringCompare -> TAGS_I32
     is bc.I64Const | bc.SizeOfType | bc.LoadI64 | bc.F64ToBits | bc.I64Add | bc.I64Sub | bc.I64Mul
      | bc.I64Div | bc.I64Mod | bc.U64Div | bc.U64Mod | bc.I64Shl | bc.I64Shr | bc.I64ShrU
      | bc.I64BitAnd | bc.I64BitOr | bc.I64BitXor | bc.I64Neg | bc.I64BitNot -> TAGS_I64
@@ -452,7 +452,8 @@ accepted_tags :: fn(op: bc.Op, back: usize) -> u8 | null = match op {
      | bc.StructGet | bc.StructSet | bc.LocalField | bc.ArrayNew | bc.ArrayPush | bc.ArrayLen
      | bc.ArraySlice | bc.DataConst | bc.RefCast | bc.Retag | bc.Convert | bc.TypeCheck
      | bc.TypeConst | bc.DeferPush | bc.DeferPopExec | bc.SizeOfType | bc.BoolEq | bc.BoolNe
-     | bc.BoolAnd | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.StringSliceCodepoints
+     | bc.BoolAnd | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.StringCompare
+     | bc.StringSliceCodepoints
      | bc.RefEq | bc.RefNe | bc.Drop | bc.Block | bc.Loop | bc.If | bc.Else | bc.End | bc.Branch
      | bc.BranchIf | bc.Return | bc.ReturnLit | bc.BufferNew | bc.LoadU8 | bc.LoadI32 | bc.LoadI64
      | bc.LoadF64 | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.MemoryCopy

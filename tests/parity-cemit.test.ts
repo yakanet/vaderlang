@@ -391,6 +391,13 @@ const C_PARITY = new Set<string>([
   "array_content_comparison",
   "distinct_reference_equality",
   "float_ieee_equality",
+  // `string.compare` is an op of its own : the VM's arm and the runtime's
+  // `vader_string_compare` must order the same.
+  "string_ordering",
+  // A distinct's own `Equals` answers whichever side of `==` it sits on.
+  "distinct_equality_either_side",
+  // Without an impl of its own, a distinct orders through its backing's.
+  "distinct_orders_as_backing",
   "generic_enum_same_name",
   // An enum with variant data stores its variant's rank : its value tables and
   // the conversion back to the written value, inside a generic instance too.

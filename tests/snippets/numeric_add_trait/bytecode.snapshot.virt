@@ -27,22 +27,15 @@ end
 fn 1 snippet$double__i32 (i32) -> i32
   local.get 0   ; arg 0
   local.get 0   ; arg 0
-  call 3   ; std_core$i32$Add$add_vt
+  i32.add
   return
 end
 
 fn 2 snippet$triple__i32 (i32) -> i32
   local.get 0   ; arg 0
   local.get 0   ; arg 0
-  call 3   ; std_core$i32$Add$add_vt
+  i32.add
   local.get 0   ; arg 0
-  call 3   ; std_core$i32$Add$add_vt
-  return
-end
-
-fn 3 std_core$i32$Add$add_vt (i32,i32) -> i32
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
   i32.add
   return
 end

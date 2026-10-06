@@ -223,6 +223,7 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
          | bc.I64ShrU | bc.I64BitAnd | bc.I64BitOr | bc.I64BitXor | bc.F64Add | bc.F64Sub
          | bc.F64Mul | bc.F64Div | bc.F64Eq | bc.F64Ne | bc.F64Lt | bc.F64Le | bc.F64Gt
          | bc.F64Ge | bc.BoolEq | bc.BoolNe | bc.BoolAnd | bc.BoolOr | bc.StringEq | bc.StringNe
+         | bc.StringCompare
          | bc.RefEq | bc.RefNe | bc.ArrayGet | bc.ArrayRepeat | bc.LoadU8 | bc.LoadI32
          | bc.LoadI64 | bc.LoadF64 | bc.LoadSlotI32 | bc.LoadSlotI64 | bc.LoadSlotF64
          | bc.BufferToString -> effect(2, 1)

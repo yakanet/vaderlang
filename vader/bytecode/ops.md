@@ -390,6 +390,11 @@ Pop two strings, push whether their bytes are equal.
 ### `string.ne`
 Pop two strings, push whether their bytes differ.
 
+### `string.compare`
+Pop two strings, push an `i32` that is negative, zero or positive as the first orders
+before, with or after the second. Byte-wise — codepoint order in UTF-8 — and a proper
+prefix orders first.
+
 ### `string.slice_codepoints`
 Pop `hi`, `lo` and a string; push the codepoints in `lo..<hi`. Out-of-range bounds are
 clamped.

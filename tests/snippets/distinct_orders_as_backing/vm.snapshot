@@ -1,0 +1,5 @@
+# stdout
+string : false true true
+struct : true false true
+# exit
+0

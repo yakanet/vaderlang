@@ -1354,6 +1354,21 @@ static inline uint8_t vader_string_byte_at(vader_string_t s, size_t i) {
     if (i >= (size_t) e->len) vader_trap("byte index out of bounds");
     return ((const uint8_t*) e->data)[i];
 }
+/* Three-way byte order of two atoms — the `string.compare` op behind `string
+ * implements Comparable`. Negative, zero or positive as `a` orders before, with or
+ * after `b` ; UTF-8 byte order is codepoint order, and a proper prefix orders
+ * first. Equal strings are one atom, so equality reads no byte. */
+static inline int32_t vader_string_compare(vader_string_t a, vader_string_t b) {
+    if (a == b) return 0;
+    const vader_atom_entry_t* ea = vader_atom_entry(a);
+    const vader_atom_entry_t* eb = vader_atom_entry(b);
+    size_t la = (size_t) ea->len;
+    size_t lb = (size_t) eb->len;
+    size_t shorter = la < lb ? la : lb;
+    int order = shorter == 0 ? 0 : memcmp(ea->data, eb->data, shorter);
+    if (order != 0) return order < 0 ? -1 : 1;
+    return la < lb ? -1 : 1;
+}
 vader_char_t   vader_string_char_at(vader_string_t s, size_t i);
 /* Zero-copy `const u8[]` view over `s`'s interned bytes — backs
  * `std/string::bytes`. Allocates only a small `vader_array_t` header

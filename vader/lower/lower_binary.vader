@@ -258,10 +258,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
         }
         left_name :: type_surface_name(left_ty)
         if left_name == "" { return null }
-        // Primitive operands stay on the built-in path — primitives
-        // have their own arithmetic / comparison ops.
-        if left_ty is PrimitiveType { return null }
-        member :: resolve_impl_member(ctx, left_ty, info.trait_key, info.method_name) ?? return null
+        member :: operator_member(ctx, left_ty, info) ?? return null
         if member is UfcsMember {
             lowered_left  :: lower_expr(ctx, binary.left)
             lowered_right :: lower_expr(ctx, binary.right)
@@ -313,6 +310,22 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
         return null
     }
     return null
+}
+
+// The impl member `a op b` dispatches to on a left operand of type `t` : its own,
+// else its backing's along a distinct chain, as the typecheck resolves it
+// (`distinct_op_fallback`). Null where the built-in op applies — a primitive has
+// one for every operator but ordering a `string`, which only its `Comparable` impl
+// answers.
+operator_member :: fn(ctx: FnLowerCtx!, t: Type, info: OpTraitInfo) -> UfcsMember | null {
+    if t is PrimitiveType && !(info.shape == .CompareCmp && is_string_type(t)) {
+        return null
+    }
+    own :: resolve_impl_member(ctx, t, info.trait_key, info.method_name)
+    if own != null || t !is DistinctType {
+        return own
+    }
+    return operator_member(ctx, t.backing, info)
 }
 
 // Emit `a op b` as a virtual call (the receiver is TypeParam-bound or

@@ -120,9 +120,6 @@ static size_t std_string_codepoint_byte_len(uint32_t l0);
 static bool std_string_is_utf8_continuation(uint8_t l0);
 static void std_string_builder_append_char(void* l0, uint32_t l1);
 static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0);
-static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
-static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1);
-static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -518,13 +515,13 @@ static vader_string_t concat_5(vader_string_t l0, vader_string_t l1, vader_strin
     l9 = vader_host_std_core_byte_len(l4);
     t0 = (l8 + l9);
     l9 = (size_t) (int64_t) t0;
-    l10 = std_core_usize_BufferAlloc_new_buffer_vt(l9);
-    std_core_Buffer_ByteAccess_write_string_vt(l10, (size_t) 0, l0);
-    std_core_Buffer_ByteAccess_write_string_vt(l10, l5, l1);
-    std_core_Buffer_ByteAccess_write_string_vt(l10, l6, l2);
-    std_core_Buffer_ByteAccess_write_string_vt(l10, l7, l3);
-    std_core_Buffer_ByteAccess_write_string_vt(l10, l8, l4);
-    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l10, l9);
+    l10 = (void*) vader_buffer_new((size_t) l9);
+    vader_buffer_write_string((vader_buffer_t*) l10, (size_t) INT64_C(0), l0);
+    vader_buffer_write_string((vader_buffer_t*) l10, (size_t) l5, l1);
+    vader_buffer_write_string((vader_buffer_t*) l10, (size_t) l6, l2);
+    vader_buffer_write_string((vader_buffer_t*) l10, (size_t) l7, l3);
+    vader_buffer_write_string((vader_buffer_t*) l10, (size_t) l8, l4);
+    t1 = vader_buffer_intern_string((vader_buffer_t*) l10, (size_t) l9);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -546,11 +543,11 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
     l5 = vader_host_std_core_byte_len(l2);
     t0 = (l4 + l5);
     l5 = (size_t) (int64_t) t0;
-    l6 = std_core_usize_BufferAlloc_new_buffer_vt(l5);
-    std_core_Buffer_ByteAccess_write_string_vt(l6, (size_t) 0, l0);
-    std_core_Buffer_ByteAccess_write_string_vt(l6, l3, l1);
-    std_core_Buffer_ByteAccess_write_string_vt(l6, l4, l2);
-    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l6, l5);
+    l6 = (void*) vader_buffer_new((size_t) l5);
+    vader_buffer_write_string((vader_buffer_t*) l6, (size_t) INT64_C(0), l0);
+    vader_buffer_write_string((vader_buffer_t*) l6, (size_t) l3, l1);
+    vader_buffer_write_string((vader_buffer_t*) l6, (size_t) l4, l2);
+    t1 = vader_buffer_intern_string((vader_buffer_t*) l6, (size_t) l5);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -584,15 +581,15 @@ static vader_string_t concat_7(vader_string_t l0, vader_string_t l1, vader_strin
     l13 = vader_host_std_core_byte_len(l6);
     t0 = (l12 + l13);
     l13 = (size_t) (int64_t) t0;
-    l14 = std_core_usize_BufferAlloc_new_buffer_vt(l13);
-    std_core_Buffer_ByteAccess_write_string_vt(l14, (size_t) 0, l0);
-    std_core_Buffer_ByteAccess_write_string_vt(l14, l7, l1);
-    std_core_Buffer_ByteAccess_write_string_vt(l14, l8, l2);
-    std_core_Buffer_ByteAccess_write_string_vt(l14, l9, l3);
-    std_core_Buffer_ByteAccess_write_string_vt(l14, l10, l4);
-    std_core_Buffer_ByteAccess_write_string_vt(l14, l11, l5);
-    std_core_Buffer_ByteAccess_write_string_vt(l14, l12, l6);
-    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l14, l13);
+    l14 = (void*) vader_buffer_new((size_t) l13);
+    vader_buffer_write_string((vader_buffer_t*) l14, (size_t) INT64_C(0), l0);
+    vader_buffer_write_string((vader_buffer_t*) l14, (size_t) l7, l1);
+    vader_buffer_write_string((vader_buffer_t*) l14, (size_t) l8, l2);
+    vader_buffer_write_string((vader_buffer_t*) l14, (size_t) l9, l3);
+    vader_buffer_write_string((vader_buffer_t*) l14, (size_t) l10, l4);
+    vader_buffer_write_string((vader_buffer_t*) l14, (size_t) l11, l5);
+    vader_buffer_write_string((vader_buffer_t*) l14, (size_t) l12, l6);
+    t1 = vader_buffer_intern_string((vader_buffer_t*) l14, (size_t) l13);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -611,10 +608,10 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     l3 = vader_host_std_core_byte_len(l1);
     t0 = (l2 + l3);
     l3 = (size_t) (int64_t) t0;
-    l4 = std_core_usize_BufferAlloc_new_buffer_vt(l3);
-    std_core_Buffer_ByteAccess_write_string_vt(l4, (size_t) 0, l0);
-    std_core_Buffer_ByteAccess_write_string_vt(l4, l2, l1);
-    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l4, l3);
+    l4 = (void*) vader_buffer_new((size_t) l3);
+    vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
+    vader_buffer_write_string((vader_buffer_t*) l4, (size_t) l2, l1);
+    t1 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -624,7 +621,7 @@ static void* std_core_new_byte_buffer(size_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 101 "lib/std/core/primitives.vader"
-    t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
+    t0 = (void*) vader_buffer_new((size_t) l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -637,14 +634,14 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
     };
     vader_gc_top = &gc_frame;
 #line 104 "lib/std/core/primitives.vader"
-    t0 = std_core_Buffer_ByteAccess_intern_string_vt(l0, l1);
+    t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
 #line 121 "lib/std/core/primitives.vader"
-    std_core_Buffer_ByteAccess_write_string_vt(l0, l1, l2);
+    vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
 #line 122 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     return (size_t) (int64_t) (l1 + l3);
@@ -850,34 +847,34 @@ static vader_string_t std_string_to_lower(vader_string_t l0) {
 #line 35 "lib/std/string_builder/string_builder.vader"
     vader_array_t* _a0_arr = vader_array_new(22u, 0u, 0u, 1u);
     t0 = (void*) _a0_arr;
-#line 431 "lib/std/string/string.vader"
+#line 407 "lib/std/string/string.vader"
     vader_struct_std_string_builder_StringBuilder_t* _a1_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
     vader_obj_header_init(_a1_obj, 21u);
     _a1_obj->f_parts = t0;
     l1 = (void*) _a1_obj;
-#line 432 "lib/std/string/string.vader"
+#line 408 "lib/std/string/string.vader"
     l2 = vader_host_std_core_bytes(l0);
-#line 433 "lib/std/string/string.vader"
+#line 409 "lib/std/string/string.vader"
     l3 = ((vader_array_t*) l2)->length;
-#line 434 "lib/std/string/string.vader"
+#line 410 "lib/std/string/string.vader"
     l4 = (size_t) 0;
-#line 435 "lib/std/string/string.vader"
+#line 411 "lib/std/string/string.vader"
     while ((l4 < l3)) {
-#line 436 "lib/std/string/string.vader"
+#line 412 "lib/std/string/string.vader"
         std_string_utf8_decode_len(l2, l4, &t1, &t2);
         l8 = t2;
         l5 = t1;
         l6 = l8;
-#line 438 "lib/std/string/string.vader"
+#line 414 "lib/std/string/string.vader"
         t3 = std_string_to_lower_cp((uint32_t) (int32_t) ((int32_t) (uint32_t) l5));
         l7 = ((uint32_t) (uint32_t) t3);
         std_string_builder_append_char(l1, l7);
-#line 439 "lib/std/string/string.vader"
+#line 415 "lib/std/string/string.vader"
         t4 = (l4 + l6);
         l4 = (size_t) (int64_t) t4;
-#line 435 "lib/std/string/string.vader"
+#line 411 "lib/std/string/string.vader"
     }
-#line 441 "lib/std/string/string.vader"
+#line 417 "lib/std/string/string.vader"
     t5 = std_string_builder_StringBuilder_Display_to_string(l1);
     { vader_string_t __vret = t5; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -896,7 +893,7 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
     uint32_t l1;
     bool l2;
     int32_t t0;
-#line 398 "lib/std/string/string.vader"
+#line 374 "lib/std/string/string.vader"
     if ((l0 >= INT32_C(65))) {
         l2 = (l0 <= INT32_C(90));
     } else {
@@ -905,11 +902,11 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
     if (l2) {
         t0 = (l0 + INT32_C(32));
         l1 = (uint32_t) (int32_t) t0;
-#line 397 "lib/std/string/string.vader"
+#line 373 "lib/std/string/string.vader"
         return l1;
-#line 398 "lib/std/string/string.vader"
+#line 374 "lib/std/string/string.vader"
     }
-#line 399 "lib/std/string/string.vader"
+#line 375 "lib/std/string/string.vader"
     if ((l0 >= INT32_C(192))) {
         l2 = (l0 <= INT32_C(214));
     } else {
@@ -918,7 +915,7 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
     if (l2) {
         t0 = (l0 + INT32_C(32));
         l1 = (uint32_t) (int32_t) t0;
-#line 400 "lib/std/string/string.vader"
+#line 376 "lib/std/string/string.vader"
     } else {
         if ((l0 >= INT32_C(216))) {
             l2 = (l0 <= INT32_C(222));
@@ -928,18 +925,18 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
         if (l2) {
             t0 = (l0 + INT32_C(32));
             l1 = (uint32_t) (int32_t) t0;
-#line 401 "lib/std/string/string.vader"
+#line 377 "lib/std/string/string.vader"
         } else if (l0 == INT32_C(376)) {
             l1 = (uint32_t) 255;
-#line 402 "lib/std/string/string.vader"
+#line 378 "lib/std/string/string.vader"
         } else {
             l1 = l0;
-#line 401 "lib/std/string/string.vader"
+#line 377 "lib/std/string/string.vader"
         }
-#line 400 "lib/std/string/string.vader"
-#line 399 "lib/std/string/string.vader"
+#line 376 "lib/std/string/string.vader"
+#line 375 "lib/std/string/string.vader"
     }
-#line 397 "lib/std/string/string.vader"
+#line 373 "lib/std/string/string.vader"
     return l1;
 }
 
@@ -1171,7 +1168,7 @@ static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l
         l4 = (size_t) (int64_t) t2;
     }
 #line 88 "lib/std/string_builder/string_builder.vader"
-    l2 = std_core_usize_BufferAlloc_new_buffer_vt(l1);
+    l2 = (void*) vader_buffer_new((size_t) l1);
 #line 89 "lib/std/string_builder/string_builder.vader"
     l3 = (size_t) 0;
 #line 90 "lib/std/string_builder/string_builder.vader"
@@ -1185,7 +1182,7 @@ static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l
         t0 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l5];
         l7 = t0.payload.s;
 #line 91 "lib/std/string_builder/string_builder.vader"
-        std_core_Buffer_ByteAccess_write_string_vt(l2, l3, l7);
+        vader_buffer_write_string((vader_buffer_t*) l2, (size_t) l3, l7);
 #line 92 "lib/std/string_builder/string_builder.vader"
         l8 = vader_host_std_core_byte_len(l7);
         t2 = (l3 + l8);
@@ -1195,34 +1192,8 @@ static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l
         l5 = (size_t) (int64_t) t2;
     }
 #line 94 "lib/std/string_builder/string_builder.vader"
-    t1 = std_core_Buffer_ByteAccess_intern_string_vt(l2, l1);
+    t1 = vader_buffer_intern_string((vader_buffer_t*) l2, (size_t) l1);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static void* std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    t0 = (void*) vader_buffer_new((size_t) l0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(void* l0, size_t l1) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static void std_core_Buffer_ByteAccess_write_string_vt(void* l0, size_t l1, vader_string_t l2) {
-    vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-    return;
 }
 
 int main(int argc, char** argv) {

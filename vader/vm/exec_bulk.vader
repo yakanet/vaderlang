@@ -127,6 +127,19 @@ exec_array_repeat :: fn(frame: Frame!) -> Trap | null {
     return null
 }
 
+/// `string.compare` — the three-way byte order of two strings.
+exec_string_compare :: fn(frame: Frame!) -> Trap | null {
+    left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.compare")
+    if left  is Trap { return left  }
+    right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.compare")
+    if right is Trap { return right }
+    frame.payload[frame.sp - 2] = i64(string(left).compare(string(right)))
+    frame.tag[frame.sp - 2] = .I32
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
+    return null
+}
+
 /// `string.slice_codepoints` — a codepoint-indexed substring.
 exec_string_slice_codepoints :: fn(frame: Frame!) -> Trap | null {
     s_box  :: read_string(peek_val(frame, frame.sp - 3), frame.pc, "string.slice_codepoints receiver")

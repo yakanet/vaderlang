@@ -1,0 +1,27 @@
+// A distinct with no `Comparable` of its own orders as its backing does — a
+// `string` by its bytes, a struct through the struct's impl — and never by the
+// handle it holds.
+
+module "snippet"
+
+import "std/io"
+
+Name :: string
+
+Rgb :: struct {
+    r: i32
+}
+
+Rgb implements Comparable -> self.r - other.r
+
+Tint :: Rgb
+
+main :: fn() -> i32 {
+    banana :: Name("banana")
+    apple :: Name("apple")
+    println("string : ${banana < apple} ${apple < banana} ${banana < "zz"}")
+    dim :: Tint(Rgb { .r = 1 })
+    bright :: Tint(Rgb { .r = 2 })
+    println("struct : ${dim < bright} ${bright < dim} ${dim >= dim}")
+    return 0
+}

@@ -110,18 +110,18 @@ fn 1 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  call 24   ; std_core$usize$BufferAlloc$new_buffer_vt
+  buffer.new
   local.tee 4   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 26   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 4   ; buf
   local.get 2   ; c0
   local.get 1   ; arg 1
-  call 26   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 4   ; buf
   local.get 3   ; $call_4
-  call 25   ; std_core$Buffer$ByteAccess$intern_string_vt
+  buffer_to_string
   return
 end
 
@@ -1877,7 +1877,7 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L3
   end $L2
   local.get 1   ; n
-  call 24   ; std_core$usize$BufferAlloc$new_buffer_vt
+  buffer.new
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
@@ -1900,7 +1900,7 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       local.get 2   ; __for_arr_0
       local.get 3   ; __for_len_1
       local.get 7   ; p
-      call 26   ; std_core$Buffer$ByteAccess$write_string_vt
+      buffer_write_string
       local.get 7   ; p
       call.import 0   ; std_core$byte_len
       local.set 8   ; $call_40
@@ -1917,7 +1917,7 @@ fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L4
   local.get 2   ; __for_arr_0
   local.get 1   ; n
-  call 25   ; std_core$Buffer$ByteAccess$intern_string_vt
+  buffer_to_string
   return
 end
 
@@ -1946,26 +1946,5 @@ fn 23 std_numbers$hex_digit (u64) -> char
   local.get 1   ; $cast_4
   i32.add
   u32.to_char
-  return
-end
-
-fn 24 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
-  local.get 0   ; arg 0
-  buffer.new
-  return
-end
-
-fn 25 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  buffer_to_string
-  return
-end
-
-fn 26 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  local.get 2   ; arg 2
-  buffer_write_string
   return
 end

@@ -125,6 +125,7 @@ export Op :: Unreachable
     | BoolNot
     | StringEq
     | StringNe
+    | StringCompare
     | StringSliceCodepoints
     | RefEq
     | RefNe
@@ -598,6 +599,11 @@ export BoolNot :: struct {}
 export StringEq :: struct {}
 /// Pop two strings (left, right) ; push `BoolVal` for byte-inequality.
 export StringNe :: struct {}
+/// Pop two strings (left, right) ; push an `I32Val` that is negative, zero or
+/// positive as left orders before, with or after right. Byte-wise, which in UTF-8
+/// is codepoint order ; a proper prefix orders first. Backs `string implements
+/// Comparable`.
+export StringCompare :: struct {}
 /// Pop a string and two `usize` (lo, hi) ; push the codepoint-indexed
 /// substring as a fresh `StringVal`. Implements the codepoint slice
 /// form `s[r]` where `r : Range[usize]`. Out-of-bounds clamps (no

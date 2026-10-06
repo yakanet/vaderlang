@@ -1,10 +1,11 @@
-// vader/lower/lower_value_eq — `==` / `!=` on a tuple, a union or a distinct over a
-// reference type, compared by value.
+// vader/lower/lower_value_eq — `==` / `!=` on a tuple, a union, a distinct over a
+// reference type or a distinct whose own `Equals` sits on the right, compared by
+// value.
 //
-// Neither has an `Equals` impl to call. A tuple compares field by field: it has no
-// identity to observe, since `t[0] = x` is T3008. A union compares by variant: two
-// of its values are equal when both hold the same variant and those two are equal
-// by that variant's own rule ; `null` equals `null`.
+// A tuple and a union have no `Equals` impl to call. A tuple compares field by
+// field: it has no identity to observe, since `t[0] = x` is T3008. A union compares
+// by variant: two of its values are equal when both hold the same variant and those
+// two are equal by that variant's own rule ; `null` equals `null`.
 //
 // The rewrite reads each side once, then folds over the parts:
 //
@@ -37,7 +38,10 @@ try_lower_value_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr | 
     // backing: the nominal wrapper carries no identity of its own.
     tuples :: tuple_backing(left_ty) != null && tuple_backing(right_ty) != null
     unions :: left_ty is UnionType || right_ty is UnionType
-    distincts :: distinct_over_reference(left_ty) || distinct_over_reference(right_ty)
+    distincts :: (
+        distinct_over_reference(left_ty) || distinct_over_reference(right_ty)
+        || own_equals_on_right(ctx, left_ty, right_ty)
+    )
     bits :: compares_by_bits(left_ty) && compares_by_bits(right_ty)
     if !tuples && !distincts && (!unions || bits) {
         return null
@@ -64,6 +68,15 @@ literal_eq :: fn(
         return value_eq(ctx, value, value_type, literal, type_of(literal), span)
     }
     return equals_primop(value, literal, span)
+}
+
+// Whether `right` is a distinct with its own `Equals` and `left` is neither a
+// distinct nor a union : the impl answers whichever side the distinct sits on.
+own_equals_on_right :: fn(ctx: FnLowerCtx!, left: Type, right: Type) -> bool {
+    if right !is DistinctType || left is DistinctType | UnionType {
+        return false
+    }
+    return resolve_impl_member(ctx, right, core_trait_key(TRAIT_EQUALS), METHOD_EQUALS) != null
 }
 
 // Whether `t` is a distinct over a struct or an array, which the bare `==` would
@@ -98,6 +111,11 @@ value_eq :: fn(
 ) -> LoweredExpr {
     if right_ty is UnionType {
         return variant_disjunction(ctx, left, left_ty, right, right_ty, span)
+    }
+    // A distinct on the right compares as one on the left — `Equals` is symmetric,
+    // so the operands swap and the distinct is `self`. Both are already bound.
+    if right_ty is DistinctType && left_ty !is DistinctType | UnionType {
+        return value_eq(ctx, right, right_ty, left, left_ty, span)
     }
     return match left_ty {
         is UnionType -> variant_disjunction(ctx, left, left_ty, right, right_ty, span)

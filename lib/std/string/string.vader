@@ -138,30 +138,12 @@ string implements Contains<string> {
 // `import "std/string"` lists. Part of the wider core/string/utf8 layering
 // reorg — see the header of `unicode.vader` for the frozen split.
 
-/// Comparator suitable for `sort(arr, compare_ascending)` : returns `true`
-/// when `a` precedes `b` byte-wise — by codepoint, since both are UTF-8.
-/// `string` implements no `Comparable`, so this stands in for `a < b`.
+/// Comparator suitable for `sort(arr, compare_ascending)` : `a < b` as a
+/// function value — byte order, which is codepoint order in UTF-8.
 /// @param a  left string.
 /// @param b  right string.
 /// @return   `true` iff `a` strictly precedes `b` ; equal strings → `false`.
-export compare_ascending :: fn(a: string, b: string) -> bool {
-    // Compare raw BYTES (not `a[i]`, which is codepoint-indexed and would trap
-    // OOB once `i` passes the codepoint count of a multibyte operand — the loop
-    // bound is a byte length). UTF-8 byte order equals codepoint order, so the
-    // result is unchanged. Mirrors `compare_ascending_ci`.
-    ab :: a.bytes()
-    bb :: b.bytes()
-    la :: ab.len()
-    lb :: bb.len()
-    n :: min(la, lb)
-    for i in 0..<n {
-        ca :: ab[i]
-        cb :: bb[i]
-        if ca < cb { return true }
-        if ca > cb { return false }
-    }
-    return la < lb
-}
+export compare_ascending :: fn(a: string, b: string) -> bool = a < b
 
 /// Case-insensitive ASCII variant of `compare_ascending`. Matches
 /// JavaScript's default `String.localeCompare()` ordering for the
@@ -180,13 +162,7 @@ export compare_ascending_ci :: fn(a: string, b: string) -> bool {
     }
     if la != lb { return la < lb }
     // Equal folded — break ties by raw bytes so the order stays total.
-    for i in 0..<n {
-        ra :: ab[i]
-        rb :: bb[i]
-        if ra < rb { return true }
-        if ra > rb { return false }
-    }
-    return false
+    return a < b
 }
 
 to_lower_byte :: fn(c: u8) -> u8 {

@@ -286,13 +286,17 @@ compare :: fn(
         }
         is BoolValue -> {
             match right {
-                is BoolValue -> { return equality_only(expr, left.value == right.value, op, "bool") }
+                is BoolValue -> { return bool_equality_only(expr, left.value == right.value, op) }
                 _ -> {}
             }
         }
         is StringValue -> {
             match right {
-                is StringValue -> { return equality_only(expr, left.value == right.value, op, "string") }
+                is StringValue -> {
+                    // Ordered by the `compare` that `string implements Comparable` runs.
+                    order :: i64(left.value.compare(right.value))
+                    return ok(bool_value(int_compare(order, 0, op)))
+                }
                 _ -> {}
             }
         }
@@ -306,15 +310,13 @@ compare :: fn(
     return type_mismatch(expr, "comparison operand kinds disagree")
 }
 
-// `string` / `bool` support only equality at comptime : neither implements
-// `Comparable`, so `<` / `<=` / `>` / `>=` are unordered. At runtime the very
-// same expression lowers to `i32.lt` and traps ("expected i32, got string") —
-// baking any bool here would diverge from that trapping behaviour, so refuse
-// loudly rather than silently return `false` (the old degraded fallback).
-equality_only :: fn(expr: AST.BinaryExpr, eq: bool, op: CompareOp, kind: string) -> EvalResult {
+// `bool` supports only equality at comptime : it implements no `Comparable`, so
+// `<` / `<=` / `>` / `>=` are unordered — refused loudly rather than baked as a
+// `false` the typecheck would never have let through.
+bool_equality_only :: fn(expr: AST.BinaryExpr, eq: bool, op: CompareOp) -> EvalResult {
     if op == .Eq  { return ok(bool_value(eq)) }
     if op == .Neq { return ok(bool_value(!eq)) }
-    return type_mismatch(expr, "`${kind}` values are not ordered (no Comparable impl); only == and != are valid at comptime")
+    return type_mismatch(expr, "`bool` values are not ordered (no Comparable impl); only == and != are valid at comptime")
 }
 
 int_compare :: fn(left: i64, right: i64, op: CompareOp) -> bool = match op {

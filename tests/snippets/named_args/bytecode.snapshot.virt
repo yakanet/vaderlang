@@ -6,7 +6,6 @@ type 3 struct snippet$Box { v:2 }
 type 4 primitive u8
 type 5 primitive usize
 type 6 struct std_core$Buffer {  }
-type 7 primitive void
 string 0 ", "
 string 1 "Alice"
 string 2 "Hello"
@@ -141,22 +140,22 @@ fn 5 concat_3 (string,string,string) -> string
   local.get 5   ; $call_8
   i64.add
   local.tee 5   ; $call_8
-  call 7   ; std_core$usize$BufferAlloc$new_buffer_vt
+  buffer.new
   local.tee 6   ; buf
   i64.const 0
   local.get 0   ; arg 0
-  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 6   ; buf
   local.get 3   ; c0
   local.get 1   ; arg 1
-  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 6   ; buf
   local.get 4   ; $call_5
   local.get 2   ; arg 2
-  call 9   ; std_core$Buffer$ByteAccess$write_string_vt
+  buffer_write_string
   local.get 6   ; buf
   local.get 5   ; $call_8
-  call 8   ; std_core$Buffer$ByteAccess$intern_string_vt
+  buffer_to_string
   return
 end
 
@@ -197,26 +196,5 @@ fn 6 std_core$len (string) -> usize
     end $L1
   end $L0
   local.get 1   ; n
-  return
-end
-
-fn 7 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
-  local.get 0   ; arg 0
-  buffer.new
-  return
-end
-
-fn 8 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  buffer_to_string
-  return
-end
-
-fn 9 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  local.get 2   ; arg 2
-  buffer_write_string
   return
 end

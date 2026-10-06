@@ -342,13 +342,13 @@ static int32_t std_core_three_way(bool l0, bool l1) {
 }
 
 static int32_t std_core_i32_Step_step(int32_t l0) {
-#line 334 "lib/std/core/primitives.vader"
+#line 338 "lib/std/core/primitives.vader"
     return (l0 + INT32_C(1));
     return (l0 + INT32_C(1));
 }
 
 static size_t std_core_usize_Step_step(size_t l0) {
-#line 341 "lib/std/core/primitives.vader"
+#line 345 "lib/std/core/primitives.vader"
     return (size_t) (int64_t) (l0 + INT64_C(1));
     return (size_t) (int64_t) (l0 + INT64_C(1));
 }
