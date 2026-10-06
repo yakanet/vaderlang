@@ -1871,7 +1871,7 @@ The assignability of an array does **not** descend into a nested array: `T[]![]`
 
 Invariance is enforced in one direction only, the unsound one: a value may always **drop** rights (`Cfg![]` fills a `Cfg[]` slot), never gain them. A `Cfg[]` handed to a `Cfg![]` slot is T3077 — the callee declared it may write through the elements, and they are not its to write.
 
-A **generic** parameter is the exception, and it has to be: inference binds `T` from the argument's *shape*, dropping mutability, or `MutableMap<i32, Cfg>` built from a borrow would stop being the same type as one built from a local. So `sort<T>(arr: T[], …)` takes a `Cfg[]` and a `Cfg![]` alike, and the exemption costs nothing — inside the body the element is a `T`, which grants no mutation, so the callee cannot write through a claim inference invented for it.
+A **generic** parameter is the exception, and it has to be: inference binds `T` from the argument's *shape*, dropping mutability, or `MutableMap<i32, Cfg>` built from a borrow would stop being the same type as one built from a local. So `sort<T>(arr: T[], …)` takes a `Cfg[]` and a `Cfg![]` alike, and the exemption costs nothing — inside the body the element is a `T`, which grants no mutation, so the callee cannot write through a claim inference invented for it. A bound's `self!` member is no way around that: through `x: T` it is T3071, and needs `x: T!`.
 
 **A generic that stores its argument** says so. The exemption covers what the callee *does* with a `T`, not where it *puts* it: `push` writes nothing through its argument, but stores it in an array that hands it back writable. Such a parameter carries the marker on the type parameter — `push :: fn(self!, value: T!)` — and the argument must then be as mutable as `T` is bound to:
 
@@ -1953,7 +1953,7 @@ Markers on function values are **contravariant**: a function that does not mutat
 
 #### Diagnostics
 
-Calling a `self!` method on a read-only receiver is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. Filling a slot that promises mutation with a read-only value is T3077, at any level. On a module const, a marker outside the one storable shape is T3076. Writing the removed `const` qualifier is P1027.
+Calling a `self!` method on a read-only receiver (`x: T` included) is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. Filling a slot that promises mutation with a read-only value is T3077, at any level. On a module const, a marker outside the one storable shape is T3076. Writing the removed `const` qualifier is P1027.
 
 T3070/T3071/T3042 carry the fix as a hint, and it names the **one** declaration that can be reopened — following the wrong one hits a wall, since marking a local bound from a factory is a strengthening and a loop variable takes no marker at all. Ordered from the most specific lever to the least:
 

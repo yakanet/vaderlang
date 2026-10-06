@@ -1,0 +1,18 @@
+// T3071 on `poke` ; `poke_mutable`, through `T!`, is accepted.
+module "snippet"
+
+Bump :: trait {
+    bump :: fn(self!) -> void
+}
+
+poke :: fn<T: Bump>(x: T) -> void {
+    x.bump()
+}
+
+poke_mutable :: fn<T: Bump>(x: T!) -> void {
+    x.bump()
+}
+
+main :: fn() -> i32 {
+    return 0
+}

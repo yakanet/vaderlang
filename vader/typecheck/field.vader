@@ -147,9 +147,8 @@ try_impl_method_ufcs :: fn(
     return substitute_impl_method(base_impl.ty, key_ty, typed)
 }
 
-// T3071 — a `self!` method is unavailable on an immutable receiver. This is the
-// convergence point for EVERY impl-method dispatch (direct key, base-name key and
-// the array blanket), so one check here covers them all.
+// T3071 — a `self!` method is unavailable on an immutable receiver. Shared by every
+// dispatch path that can pick a `self!` member.
 //
 // A receiver is immutable for either of two independent reasons, and both must be
 // tested: its ACCESS PATH is immutable (a module-level const, later a borrowed
@@ -201,6 +200,11 @@ try_typeparam_bound_method :: fn(
     if rejects_static_member(member.decl, e, typed, diags) {
         return TY_UNRESOLVED
     }
+    // `x: T` is read-only like any written type : a bound's `self!` member needs `x: T!`.
+    reject_mutating_method_on_immutable(
+        ImplMethod { .ty = member.ty, .self_mutable = has_mutable_self(member.decl) },
+        e, target_ty, typed, diags,
+    )
     // Record the trait carrying `e.field` so the lower can emit
     // `vcall <trait_key>.method` once the receiver gets erased to Any
     // post-monomorphization.
