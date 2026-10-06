@@ -434,9 +434,9 @@ static uint64_t std_core_bits64(void* l0, int32_t l1) {
 
 vader_string_t std_core_bool_Display_to_string(bool l0) {
     if (l0) {
-        return 2229u;
+        return 2243u;
     }
-    return 1549u;
+    return 1562u;
 }
 
 vader_string_t std_core_char_Display_to_string(uint32_t l0) {
@@ -1164,7 +1164,7 @@ void* std_core_filled__ArrayVal___bool___char___ErrorVal___f64___FnVal___i32___i
     void** gc_raw_roots[3] = { &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(187u, 0u, 0u, 1539u);
+    vader_array_t* _a0_arr = vader_array_new(187u, 0u, 0u, 1542u);
     t0 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (size_t) l0);
     l2 = (void*) _a1_arr;
@@ -1297,19 +1297,19 @@ static vader_string_t std_core_format_f32(float l0) {
     l1 = (uint32_t) (int32_t) t0;
     if (l1 == INT32_C(255)) {
         if (l3 != INT32_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 1903u; }
+            { vader_gc_top = gc_frame.prev; return 1916u; }
         }
         if (l2) {
-            { vader_gc_top = gc_frame.prev; return 277u; }
+            { vader_gc_top = gc_frame.prev; return 279u; }
         }
-        { vader_gc_top = gc_frame.prev; return 1724u; }
+        { vader_gc_top = gc_frame.prev; return 1737u; }
     }
     if (l1 == INT32_C(0)) {
         if (l3 == INT32_C(0)) {
             if (l2) {
-                { vader_gc_top = gc_frame.prev; return 266u; }
+                { vader_gc_top = gc_frame.prev; return 268u; }
             }
-            { vader_gc_top = gc_frame.prev; return 312u; }
+            { vader_gc_top = gc_frame.prev; return 314u; }
         }
     }
     l4 = std_core_f2d(l3, l1);
@@ -1343,19 +1343,19 @@ static vader_string_t std_core_format_f64(double l0) {
     l1 = (uint64_t) (int64_t) t0;
     if (l1 == INT64_C(2047)) {
         if (l3 != INT64_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 1903u; }
+            { vader_gc_top = gc_frame.prev; return 1916u; }
         }
         if (l2) {
-            { vader_gc_top = gc_frame.prev; return 277u; }
+            { vader_gc_top = gc_frame.prev; return 279u; }
         }
-        { vader_gc_top = gc_frame.prev; return 1724u; }
+        { vader_gc_top = gc_frame.prev; return 1737u; }
     }
     if (l1 == INT64_C(0)) {
         if (l3 == INT64_C(0)) {
             if (l2) {
-                { vader_gc_top = gc_frame.prev; return 266u; }
+                { vader_gc_top = gc_frame.prev; return 268u; }
             }
-            { vader_gc_top = gc_frame.prev; return 312u; }
+            { vader_gc_top = gc_frame.prev; return 314u; }
         }
     }
     l4 = std_core_d2d(l3, l1);
@@ -1381,7 +1381,7 @@ static vader_string_t std_core_format_signed(int64_t l0) {
     };
     vader_gc_top = &gc_frame;
     if (l0 == INT64_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 311u; }
+        { vader_gc_top = gc_frame.prev; return 313u; }
     }
     l1 = (l0 < INT64_C(0));
     if ((l0 > INT64_C(0))) {
@@ -1438,7 +1438,7 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
     };
     vader_gc_top = &gc_frame;
     if (l0 == INT64_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 311u; }
+        { vader_gc_top = gc_frame.prev; return 313u; }
     }
     l1 = (size_t) 0;
     l2 = l0;
@@ -1885,7 +1885,7 @@ void* std_core_new_byte_buffer(size_t l0) {
 }
 
 vader_string_t std_core_null_Display_to_string(vader_box_t l0) {
-    return 1933u;
+    return 1946u;
 }
 
 vader_box_t std_core_parse_f64(vader_string_t l0) {
@@ -2865,10 +2865,10 @@ void* std_core_utf8_encode(uint32_t l0) {
 size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     size_t t0;
     if (!(l2)) {
-        t0 = std_core_write_string_at(l0, l1, 1549u);
+        t0 = std_core_write_string_at(l0, l1, 1562u);
         return t0;
     }
-    t0 = std_core_write_string_at(l0, l1, 2229u);
+    t0 = std_core_write_string_at(l0, l1, 2243u);
     return t0;
 }
 

@@ -36,7 +36,7 @@ static vader_box_t vader_comptime_vm_array_to_comptime(void* l0, vader_box_t l1,
     };
     vader_gc_top = &gc_frame;
     l3 = vader_comptime_vm_array_element_type(l1);
-    vader_array_t* _a0_arr = vader_array_new(180u, 0u, 13u, 1345u);
+    vader_array_t* _a0_arr = vader_array_new(180u, 0u, 13u, 1346u);
     l4 = (void*) _a0_arr;
     l5 = (size_t) 0;
     l6 = ((vader_struct_vader_vm_ArrayVal_t*) l0)->f_length;
@@ -78,7 +78,7 @@ static vader_string_t vader_comptime_vm_find_callee_mangle(void* l0, vader_strin
         vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = concat_2(168u, l1);
+    l2 = concat_2(170u, l1);
     l3 = ((vader_struct_vader_bytecode_BytecodeModule_t*) l0)->f_functions;
     l4 = ((vader_array_t*) l3)->length;
     l5 = (size_t) 0;
@@ -134,15 +134,15 @@ static vader_box_t vader_comptime_vm_int_scalar(int64_t l0, vader_string_t l1) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (l1 == 2287u) {
+    if (l1 == 2301u) {
         l2 = true;
     } else {
-        l2 = l1 == 2266u;
+        l2 = l1 == 2280u;
     }
     if (l2) {
         l2 = true;
     } else {
-        l2 = l1 == 2267u;
+        l2 = l1 == 2281u;
     }
     if (l2) {
         t0 = vader_comptime_int_val_typed(((int64_t) (uint32_t) ((int32_t) (int64_t) l0)), l1);
@@ -336,7 +336,7 @@ static void* vader_comptime_vm_stage_to_bytecode(void* l0, void* l1, void* l2, v
     t2 = vader_midir_annotate_escape(t3);
     l4 = ((vader_struct_vader_midir_AnnotatedProject_t*) t2)->f_project;
     l5 = vader_bytecode_default_emit_options();
-    t2 = vader_midir_emit_bytecode_from_cfg(l4, 1370u, l5);
+    t2 = vader_midir_emit_bytecode_from_cfg(l4, 1383u, l5);
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -349,7 +349,7 @@ static void* vader_comptime_vm_unsupported(void* l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = concat_3(1371u, l1, 130u);
+    l2 = concat_3(1384u, l1, 131u);
     t0 = vader_diagnostics_comptime_error((uint8_t) 0, l0, l2);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -374,17 +374,17 @@ static vader_box_t vader_comptime_vm_value_to_comptime(vader_box_t l0, vader_box
     if (l0.tag == 226u) {
         t0 = ((int32_t) l0.payload.i);
         l4 = ((int64_t) (int32_t) t0);
-        l5 = vader_comptime_vm_prim_name(l1, 1649u);
+        l5 = vader_comptime_vm_prim_name(l1, 1662u);
         l3 = vader_comptime_vm_int_scalar(l4, l5);
         { vader_box_t __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0.tag == 227u) {
         l4 = ((int64_t) l0.payload.i);
-        l5 = vader_comptime_vm_prim_name(l1, 1671u);
+        l5 = vader_comptime_vm_prim_name(l1, 1684u);
         l3 = vader_comptime_vm_int_scalar(l4, l5);
     } else if ((l0.tag == 219u || l0.tag == 220u)) {
         l6 = ((double) l0.payload.f);
-        l5 = vader_comptime_vm_prim_name(l1, 1533u);
+        l5 = vader_comptime_vm_prim_name(l1, 1546u);
         l3 = vader_comptime_float_val_typed(l6, l5);
     } else if (l0.tag == 221u) {
         t1 = l0.payload.b;
@@ -413,22 +413,22 @@ static vader_box_t vader_comptime_vm_value_to_comptime(vader_box_t l0, vader_box
         t2 = l0.payload.obj;
         l3 = vader_comptime_vm_array_to_comptime(t2, l1, l2);
     } else if (l0.tag == 1054u) {
-        t2 = vader_comptime_vm_unsupported(l2, 2154u);
+        t2 = vader_comptime_vm_unsupported(l2, 2168u);
         l3 = vader_ref_box(t2);
     } else if (l0.tag == 1034u) {
-        t2 = vader_comptime_vm_unsupported(l2, 1609u);
+        t2 = vader_comptime_vm_unsupported(l2, 1622u);
         l3 = vader_ref_box(t2);
     } else if (l0.tag == 1058u) {
-        t2 = vader_comptime_vm_unsupported(l2, 2241u);
+        t2 = vader_comptime_vm_unsupported(l2, 2255u);
         l3 = vader_ref_box(t2);
     } else if (l0.tag == 1033u) {
-        t2 = vader_comptime_vm_unsupported(l2, 1477u);
+        t2 = vader_comptime_vm_unsupported(l2, 1490u);
         l3 = vader_ref_box(t2);
     } else {
         if (!(l0.tag == 1042u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        t2 = vader_comptime_vm_unsupported(l2, 1644u);
+        t2 = vader_comptime_vm_unsupported(l2, 1657u);
         l3 = vader_ref_box(t2);
     }
     { vader_box_t __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }

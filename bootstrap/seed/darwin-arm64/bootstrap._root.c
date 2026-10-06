@@ -229,7 +229,7 @@ void __lambda_vader_lower_2(void* l0, vader_string_t l1, vader_string_t l2) {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l3 = concat_3(l1, 2516u, l2);
+    l3 = concat_3(l1, 2530u, l2);
     t0 = std_collections_MutableMap_Index_at__string__bool(((vader_struct___lambda_env_vader_lower_3_t*) l0)->f_cap_0, l3);
     if (t0.tag == 0u) {
         std_collections_MutableMap_IndexSet_set_at__string__bool(((vader_struct___lambda_env_vader_lower_3_t*) l0)->f_cap_0, l3, true);
@@ -505,7 +505,7 @@ bool __lambda_vader_resolver_1(vader_string_t l0, vader_string_t l1) {
 bool __lambda_vader_resolver_2(void* l0) {
     vader_string_t t0;
     t0 = ((vader_struct_toolchain_ast_Decorator_t*) l0)->f_name;
-    return t0 == 1433u;
+    return t0 == 1446u;
 }
 
 vader_box_t __lambda_vader_typecheck_0(void* l0, void* l1) {
@@ -528,7 +528,7 @@ vader_string_t __lambda_vader_typecheck_1(void* l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = ((vader_struct_vader_types_PrimitiveType_t*) l0)->f_name;
-    t0 = concat_3(820u, l1, 820u);
+    t0 = concat_3(824u, l1, 824u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

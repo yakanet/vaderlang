@@ -6750,7 +6750,7 @@ vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2525u
+#define VADER_COMPTIME_ATOM_COUNT 2539u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
