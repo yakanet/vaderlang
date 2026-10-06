@@ -111,7 +111,7 @@ vader_box_t toolchain_ast_compound_assign_op(void* l0) {
         if (t1) {
             t1 = toolchain_ast_is_arith_op(((vader_struct_toolchain_ast_BinaryExpr_t*) l1)->f_op);
             if (t1) {
-                t2 = vader_box_i32(229u, (int32_t)(uint32_t) ((vader_struct_toolchain_ast_BinaryExpr_t*) l1)->f_op);
+                t2 = vader_box_i32(230u, (int32_t)(uint32_t) ((vader_struct_toolchain_ast_BinaryExpr_t*) l1)->f_op);
                 return t2;
             }
         }
