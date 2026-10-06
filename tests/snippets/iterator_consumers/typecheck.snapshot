@@ -224,19 +224,19 @@
   expr 12:40    CallExpr       :: i64
   expr 12:40    IdentExpr      :: type
   expr 12:44    IdentExpr      :: i32
-  expr 130:14   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 130:14   CallExpr       :: __genstate_map<[i32, i32]>!
   expr 130:14   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 130:14   IdentExpr      :: i32[]!
   expr 130:20   IdentExpr      :: fn(i32) -> [i32, i32]
   expr 131:10   CallExpr       :: [i32, i32]
   expr 131:10   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
-  expr 131:19   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 131:19   CallExpr       :: __genstate_map<[i32, i32]>!
   expr 131:19   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 131:19   IdentExpr      :: i32[]!
   expr 131:25   IdentExpr      :: fn(i32) -> [i32, i32]
   expr 132:15   CallExpr       :: [i32, i32]
   expr 132:15   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
-  expr 132:24   IdentExpr      :: __genstate_map<[i32, i32]!>!
+  expr 132:24   IdentExpr      :: __genstate_map<[i32, i32]>!
   expr 133:13   StringLitExpr  :: string
   expr 133:21   FieldExpr      :: i32
   expr 133:21   IdentExpr      :: [i32, i32]
@@ -248,19 +248,19 @@
   expr 133:47   IdentExpr      :: [i32, i32]
   expr 133:5    CallExpr       :: void
   expr 133:5    IdentExpr      :: fn(T) -> void
-  expr 134:13   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 134:13   CallExpr       :: __genstate_map<[i32, i32]>!
   expr 134:13   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 134:13   IdentExpr      :: i32[]!
   expr 134:19   IdentExpr      :: fn(i32) -> [i32, i32]
   expr 135:10   CallExpr       :: [i32, i32]
   expr 135:10   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
-  expr 135:19   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 135:19   CallExpr       :: __genstate_map<[i32, i32]>!
   expr 135:19   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 135:19   IdentExpr      :: i32[]!
   expr 135:25   IdentExpr      :: fn(i32) -> [i32, i32]
   expr 136:15   CallExpr       :: [i32, i32]
   expr 136:15   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
-  expr 136:24   IdentExpr      :: __genstate_map<[i32, i32]!>!
+  expr 136:24   IdentExpr      :: __genstate_map<[i32, i32]>!
   expr 137:13   StringLitExpr  :: string
   expr 137:27   FieldExpr      :: i32
   expr 137:27   IdentExpr      :: [i32, i32]
@@ -272,8 +272,8 @@
   expr 137:5    IdentExpr      :: fn(T) -> void
   expr 137:53   FieldExpr      :: i32
   expr 137:53   IdentExpr      :: [i32, i32]
-  expr 139:15   CallExpr       :: __genstate_filter<[i32, i32]!>!
-  expr 139:15   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 139:15   CallExpr       :: __genstate_filter<[i32, i32]>!
+  expr 139:15   CallExpr       :: __genstate_map<[i32, i32]>!
   expr 139:15   FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 139:15   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 139:15   IdentExpr      :: i32[]!
@@ -281,8 +281,8 @@
   expr 139:34   IdentExpr      :: fn([i32, i32]) -> bool
   expr 140:10   CallExpr       :: [i32, i32]
   expr 140:10   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
-  expr 140:19   CallExpr       :: __genstate_filter<[i32, i32]!>!
-  expr 140:19   CallExpr       :: __genstate_map<[i32, i32]!>!
+  expr 140:19   CallExpr       :: __genstate_filter<[i32, i32]>!
+  expr 140:19   CallExpr       :: __genstate_map<[i32, i32]>!
   expr 140:19   FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 140:19   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 140:19   IdentExpr      :: i32[]!
@@ -290,7 +290,7 @@
   expr 140:38   IdentExpr      :: fn([i32, i32]) -> bool
   expr 141:15   CallExpr       :: [i32, i32]
   expr 141:15   IdentExpr      :: fn(Iterator<[i32, i32]>) -> [i32, i32]
-  expr 141:24   IdentExpr      :: __genstate_filter<[i32, i32]!>!
+  expr 141:24   IdentExpr      :: __genstate_filter<[i32, i32]>!
   expr 142:13   StringLitExpr  :: string
   expr 142:30   FieldExpr      :: i32
   expr 142:30   IdentExpr      :: [i32, i32]

@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (2026-09-06).
+Accepted (2026-09-06). The `unify_type_param` item under "Left open" is resolved by
+0032 : a type argument now keeps the argument's rights.
 
 ## Context
 

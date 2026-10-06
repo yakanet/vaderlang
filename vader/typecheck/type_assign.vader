@@ -182,16 +182,6 @@ export is_assignable_fn :: fn(from: Type, self: FnType, to: Type) -> bool {
     return check_common(from, to)
 }
 
-/// Whether parameter `i` of `f` carries the `!` mutation marker. Reads through the
-/// parallel vector's "empty means none marked" convention, so an unmarked fn type
-/// answers false without allocating a same-length all-`false` run.
-export param_mutable_at :: fn(f: FnType, i: usize) -> bool {
-    if i >= f.params_mutable.len() {
-        return false
-    }
-    return f.params_mutable[i]
-}
-
 /// Diagnostic for a value of type `got` that does not fit a slot of type
 /// `expected`, picking the message that explains the actual cause.
 ///

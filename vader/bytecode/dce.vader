@@ -320,11 +320,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx!) -> void {
     }
 
     // Rewrite composite types' inner type indices.
-    types: BcType[]!: []
-    for t in kept {
-        types.push(remap_type(t, remap))
-    }
-    ctx.types = types
+    ctx.types = kept.map((t) -> remap_type(t, remap)).collect()
 
     // Remap type_key entries — drop pruned slots, rewrite survivors.
     new_type_key :: MutableMap<string, i32> {}

@@ -95,9 +95,9 @@
   expr 82:13    SeqLitExpr     :: f64[]!
   expr 82:5     CallExpr       :: void
   expr 82:5     IdentExpr      :: fn(T) -> void
-  expr 83:11    CallExpr       :: P!
+  expr 83:11    CallExpr       :: P
   expr 83:11    IdentExpr      :: fn() -> T
-  expr 84:11    CallExpr       :: P!
+  expr 84:11    CallExpr       :: P
   expr 84:11    IdentExpr      :: fn() -> T
   expr 85:13    BinaryExpr     :: i32
   expr 85:13    BinaryExpr     :: i32

@@ -60,8 +60,8 @@
           let label: string =
             ._0 :string
               __gen_elem_4 :[string, Point]
-          let p: Point! =
-            ._1 :Point!
+          let p: Point =
+            ._1 :Point
               __gen_elem_4 :[string, Point]
           call :void
             callee:
@@ -124,7 +124,7 @@
                       arg2:
                         cast → i64
                           .x :i32
-                            p :Point!
+                            p :Point
                 assign
                   target:
                     __off_3 :usize
@@ -152,7 +152,7 @@
                       arg2:
                         cast → i64
                           .y :i32
-                            p :Point!
+                            p :Point
                 ~>
                   call :string
                     callee:

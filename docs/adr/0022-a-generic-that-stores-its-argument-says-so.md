@@ -3,7 +3,8 @@
 ## Status
 
 Accepted (2026-09-28). Amends 0017 on two points: the generic-parameter exemption,
-and the storageless module const.
+and the storageless module const. Amended by 0032 : `T` is no longer erased to its
+maximal rights, it keeps the argument's.
 
 ## Context
 

@@ -895,10 +895,10 @@
                 arg1:
                   __off_22 :usize
   fn snippet$composite_sources() -> void
-    let pairs: __genstate_filter<[i32, usize]!>! =
-      call :__genstate_filter<[i32, usize]!>!
+    let pairs: __genstate_filter<[i32, usize]>! =
+      call :__genstate_filter<[i32, usize]>!
         callee:
-          std_iter$filter___i32__usize_ :__genstate_filter<[i32, usize]!>!
+          std_iter$filter___i32__usize_ :__genstate_filter<[i32, usize]>!
         arg0:
           call :__genstate_indexed<[i32, usize]>!
             callee:
@@ -915,32 +915,32 @@
         arg1:
           big :fn([i32, usize]) -> bool
     block :void
-      let __iter_1: Iterator<[i32, usize]!> = pairs :__genstate_filter<[i32, usize]!>!
+      let __iter_1: Iterator<[i32, usize]> = pairs :__genstate_filter<[i32, usize]>!
       loop
-        let __step_2: [[i32, usize]!, Continuation]! =
-          vcall std_core$Iterator.next :[[i32, usize]!, Continuation]!
+        let __step_2: [[i32, usize], Continuation]! =
+          vcall std_core$Iterator.next :[[i32, usize], Continuation]!
             recv:
-              __iter_1 :Iterator<[i32, usize]!>
+              __iter_1 :Iterator<[i32, usize]>
         if :void
           cond:
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_2 :[[i32, usize]!, Continuation]!
+                  __step_2 :[[i32, usize], Continuation]!
               r:
                 int(1) :u8
           then:
             break
           else:
-            let __for_elem_3: [i32, usize]! =
-              ._0 :[i32, usize]!
-                __step_2 :[[i32, usize]!, Continuation]!
+            let __for_elem_3: [i32, usize] =
+              ._0 :[i32, usize]
+                __step_2 :[[i32, usize], Continuation]!
             let x: i32 =
               ._0 :i32
-                __for_elem_3 :[i32, usize]!
+                __for_elem_3 :[i32, usize]
             let i: usize =
               ._1 :usize
-                __for_elem_3 :[i32, usize]!
+                __for_elem_3 :[i32, usize]
             call :void
               callee:
                 std_io$println__string :void
@@ -1015,10 +1015,10 @@
                         __buf_4 :Buffer
                       arg1:
                         __off_5 :usize
-    let zipped: __genstate_filter<[i32, i32]!>! =
-      call :__genstate_filter<[i32, i32]!>!
+    let zipped: __genstate_filter<[i32, i32]>! =
+      call :__genstate_filter<[i32, i32]>!
         callee:
-          std_iter$filter___i32__i32_ :__genstate_filter<[i32, i32]!>!
+          std_iter$filter___i32__i32_ :__genstate_filter<[i32, i32]>!
         arg0:
           call :__genstate_zip<[i32, i32]>!
             callee:
@@ -1036,32 +1036,32 @@
         arg1:
           both_odd :fn([i32, i32]) -> bool
     block :void
-      let __iter_7: Iterator<[i32, i32]!> = zipped :__genstate_filter<[i32, i32]!>!
+      let __iter_7: Iterator<[i32, i32]> = zipped :__genstate_filter<[i32, i32]>!
       loop
-        let __step_8: [[i32, i32]!, Continuation]! =
-          vcall std_core$Iterator.next :[[i32, i32]!, Continuation]!
+        let __step_8: [[i32, i32], Continuation]! =
+          vcall std_core$Iterator.next :[[i32, i32], Continuation]!
             recv:
-              __iter_7 :Iterator<[i32, i32]!>
+              __iter_7 :Iterator<[i32, i32]>
         if :void
           cond:
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_8 :[[i32, i32]!, Continuation]!
+                  __step_8 :[[i32, i32], Continuation]!
               r:
                 int(1) :u8
           then:
             break
           else:
-            let __for_elem_9: [i32, i32]! =
-              ._0 :[i32, i32]!
-                __step_8 :[[i32, i32]!, Continuation]!
+            let __for_elem_9: [i32, i32] =
+              ._0 :[i32, i32]
+                __step_8 :[[i32, i32], Continuation]!
             let a: i32 =
               ._0 :i32
-                __for_elem_9 :[i32, i32]!
+                __for_elem_9 :[i32, i32]
             let b: i32 =
               ._1 :i32
-                __for_elem_9 :[i32, i32]!
+                __for_elem_9 :[i32, i32]
             call :void
               callee:
                 std_io$println__string :void

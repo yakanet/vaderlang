@@ -336,7 +336,7 @@
                                   arg0:
                                     x :[i32, i32]
                               then:
-                                let _: [i32, i32]! = x :[i32, i32]
+                                let _: [i32, i32] = x :[i32, i32]
                                 assign
                                   target:
                                     total :usize
@@ -446,7 +446,7 @@
                                       arg0:
                                         x :[i32, i32]
                                   then:
-                                    let _: [i32, i32]! = x :[i32, i32]
+                                    let _: [i32, i32] = x :[i32, i32]
                                     assign
                                       target:
                                         total :usize
@@ -677,12 +677,12 @@
                 __buf_10 :Buffer
               arg1:
                 __off_11 :usize
-    let found: [i32, i32]! | null =
-      block :[i32, i32]! | null
+    let found: [i32, i32] | null =
+      block :[i32, i32] | null
         let self: i32[] = a :i32[]!
         let other: i32[] = b :i32[]!
         let pred: fn([i32, i32]) -> bool = left_bigger :fn([i32, i32]) -> bool
-        let __consumed_12: [i32, i32]! | null = null
+        let __consumed_12: [i32, i32] | null = null
         block :$exit$i107
           block :void
             let n: usize =
@@ -727,7 +727,7 @@
                   then:
                     assign
                       target:
-                        __consumed_12 :[i32, i32]! | null
+                        __consumed_12 :[i32, i32] | null
                       value:
                         x :[i32, i32]
                     break :$exit$i107
@@ -743,16 +743,16 @@
                         int(1) :usize
           assign
             target:
-              __consumed_12 :[i32, i32]! | null
+              __consumed_12 :[i32, i32] | null
             value:
               null
         ~>
-          __consumed_12 :[i32, i32]! | null
+          __consumed_12 :[i32, i32] | null
     if :void
       cond:
         not :bool
           is null :bool
-            found :[i32, i32]! | null
+            found :[i32, i32] | null
       then:
         call :void
           callee:
@@ -793,8 +793,8 @@
                     arg2:
                       cast → i64
                         ._0 :i32
-                          cast → [i32, i32]!
-                            found :[i32, i32]! | null
+                          cast → [i32, i32]
+                            found :[i32, i32] | null
               assign
                 target:
                   __off_14 :usize
@@ -822,8 +822,8 @@
                     arg2:
                       cast → i64
                         ._1 :i32
-                          cast → [i32, i32]!
-                            found :[i32, i32]! | null
+                          cast → [i32, i32]
+                            found :[i32, i32] | null
               ~>
                 call :string
                   callee:
@@ -1002,8 +1002,8 @@
               _0: x :[i32, i32]
               _1: i :usize
             }
-          let pair: [i32, i32]! =
-            ._0 :[i32, i32]!
+          let pair: [i32, i32] =
+            ._0 :[i32, i32]
               __gen_elem_20 :[[i32, i32], usize]
           let i: usize =
             ._1 :usize
@@ -1074,7 +1074,7 @@
                       arg2:
                         cast → i64
                           ._0 :i32
-                            pair :[i32, i32]!
+                            pair :[i32, i32]
                 assign
                   target:
                     __off_19 :usize
@@ -1102,7 +1102,7 @@
                       arg2:
                         cast → i64
                           ._1 :i32
-                            pair :[i32, i32]!
+                            pair :[i32, i32]
                 ~>
                   call :string
                     callee:

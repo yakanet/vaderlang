@@ -72,6 +72,13 @@ export infer_lambda :: fn(
             )
         }
     }
+    // The trailing value is the lambda's return, held to the type the slot promised,
+    // rights included, as a named fn's is. A promise still naming a type parameter,
+    // or none, is what the body infers.
+    trailing :: e.body.trailing
+    if trailing != null && expected_ret != null && is_concrete_promise(expected_ret) {
+        emit_return_mismatch_if(body, expected_ret, trailing.span, trailing, typed, diags)
+    }
     ret :: pick_final_return(expected_ret, body, ctx)
     return FnType {
         .params         = param_types,
@@ -79,6 +86,9 @@ export infer_lambda :: fn(
         .return_type    = ret,
     }
 }
+
+is_concrete_promise :: fn(t: Type) -> bool =
+    !is_void(t) && !contains_unresolved(t) && !type_contains_type_param(t)
 
 infer_param :: fn(
     p: AST.FnParam, idx: usize, expected_fn: FnType | null,

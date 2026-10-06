@@ -178,9 +178,7 @@ export desugared_param_type :: fn(t: Type, mutable: bool) -> Type {
 ///
 /// It descends through STRUCTURAL children (array element, tuple elements) and
 /// stops at NOMINAL boundaries : the args of `Map<K, V>` describe what is stored,
-/// not slots of the program, and the bit must never live there — it would fork
-/// every generic instantiated from both a parameter (frozen) and a local
-/// (mutable), which is why `unify_type_param` erases it.
+/// not slots of the program, so the default does not reach into them.
 ///
 /// `written` is walked ALONGSIDE `t` because, once lowered, an explicit `!` and
 /// the default are indistinguishable : both leave `immutable = false`. Only the

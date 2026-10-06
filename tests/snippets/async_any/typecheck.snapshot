@@ -17,8 +17,8 @@
   expr 22:11    IdentExpr      :: fn(i64) -> Async<null>
   expr 22:5     AwaitExpr      :: null
   expr 23:12    StringLitExpr  :: string
-  expr 29:10    AwaitExpr      :: Boom! | string
-  expr 29:16    CallExpr       :: Async<Boom! | string>
+  expr 29:10    AwaitExpr      :: Boom | string
+  expr 29:16    CallExpr       :: Async<Boom | string>
   expr 29:16    GenericInstExpr :: fn(Async<E | U>[]) -> Async<E | U>
   expr 29:16    IdentExpr      :: fn(Async<E | U>[]) -> Async<E | U>
   expr 29:39    SeqLitExpr     :: Async<Boom | string>[]
@@ -29,7 +29,7 @@
   expr 30:13    IdentExpr      :: Error
   expr 30:5     IfExpr         :: void
   expr 30:8     BinaryExpr     :: bool
-  expr 30:8     IdentExpr      :: Boom! | string
+  expr 30:8     IdentExpr      :: Boom | string
   expr 31:17    StringLitExpr  :: string
   expr 31:32    CallExpr       :: string
   expr 31:32    FieldExpr      :: fn() -> string

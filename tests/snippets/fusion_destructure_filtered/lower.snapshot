@@ -14,10 +14,10 @@
           int(20) :i32
   fn snippet$main() -> i32
     let lazy: string = "" :string
-    let it: __genstate_filter<[i32, usize]!>! =
-      call :__genstate_filter<[i32, usize]!>!
+    let it: __genstate_filter<[i32, usize]>! =
+      call :__genstate_filter<[i32, usize]>!
         callee:
-          std_iter$filter___i32__usize_ :__genstate_filter<[i32, usize]!>!
+          std_iter$filter___i32__usize_ :__genstate_filter<[i32, usize]>!
         arg0:
           call :__genstate_indexed<[i32, usize]>!
             callee:
@@ -34,32 +34,32 @@
         arg1:
           not_twenty :fn([i32, usize]) -> bool
     block :void
-      let __iter_1: Iterator<[i32, usize]!> = it :__genstate_filter<[i32, usize]!>!
+      let __iter_1: Iterator<[i32, usize]> = it :__genstate_filter<[i32, usize]>!
       loop
-        let __step_2: [[i32, usize]!, Continuation]! =
-          vcall std_core$Iterator.next :[[i32, usize]!, Continuation]!
+        let __step_2: [[i32, usize], Continuation]! =
+          vcall std_core$Iterator.next :[[i32, usize], Continuation]!
             recv:
-              __iter_1 :Iterator<[i32, usize]!>
+              __iter_1 :Iterator<[i32, usize]>
         if :void
           cond:
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_2 :[[i32, usize]!, Continuation]!
+                  __step_2 :[[i32, usize], Continuation]!
               r:
                 int(1) :u8
           then:
             break
           else:
-            let __for_elem_3: [i32, usize]! =
-              ._0 :[i32, usize]!
-                __step_2 :[[i32, usize]!, Continuation]!
+            let __for_elem_3: [i32, usize] =
+              ._0 :[i32, usize]
+                __step_2 :[[i32, usize], Continuation]!
             let x: i32 =
               ._0 :i32
-                __for_elem_3 :[i32, usize]!
+                __for_elem_3 :[i32, usize]
             let i: usize =
               ._1 :usize
-                __for_elem_3 :[i32, usize]!
+                __for_elem_3 :[i32, usize]
             assign
               target:
                 lazy :string

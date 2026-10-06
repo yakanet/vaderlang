@@ -19,12 +19,12 @@
           name: "c" :string
           value: int(3) :i32
         }
-    let merged: Rec![]! =
-      block :Rec![]!
+    let merged: Rec[]! =
+      block :Rec[]!
         let __fuse_arr_0: Rec[] = a :Rec[]
         let __fuse_arr_1: Rec[] = b :Rec[]
-        let out: Rec![]! =
-          array :Rec![]!
+        let out: Rec[]! =
+          array :Rec[]!
         block :void
           let __fuse_len_0: usize =
             LoweredArrayLen
@@ -36,7 +36,7 @@
                   __fuse_arr_0 :Rec[]
                 ix:
                   __fuse_i_1 :usize
-            let x: Rec! = x :Rec
+            let x: Rec = x :Rec
             LoweredArrayPush cached
           step
             assign
@@ -58,7 +58,7 @@
                   __fuse_arr_1 :Rec[]
                 ix:
                   __fuse_i_3 :usize
-            let x: Rec! = y :Rec
+            let x: Rec = y :Rec
             LoweredArrayPush cached
           step
             assign
@@ -71,7 +71,7 @@
                   r:
                     int(1) :usize
         ~>
-          out :Rec![]!
+          out :Rec[]!
     call :void
       callee:
         std_io$println__string :void
@@ -120,15 +120,15 @@
               arg1:
                 __off_4 :usize
     block :void
-      let __for_arr_5: Rec![]! = merged :Rec![]!
+      let __for_arr_5: Rec[]! = merged :Rec[]!
       let __for_len_6: usize =
         LoweredArrayLen
       let __for_i_7: usize = int(0) :usize
       loop while (<…>)
-        let r: Rec! =
-          index :Rec!
+        let r: Rec =
+          index :Rec
             on:
-              __for_arr_5 :Rec![]!
+              __for_arr_5 :Rec[]!
             ix:
               __for_i_7 :usize
         ~>
@@ -139,7 +139,7 @@
               block :string
                 let __p_8: string =
                   .name :string
-                    r :Rec!
+                    r :Rec
                 let __buf_9: Buffer =
                   call :Buffer
                     callee:
@@ -195,7 +195,7 @@
                       arg2:
                         cast → i64
                           .value :i32
-                            r :Rec!
+                            r :Rec
                 ~>
                   call :string
                     callee:
@@ -360,21 +360,21 @@
                 __for_i_15 :usize
               r:
                 int(1) :usize
-    let kept: Rec![]! =
-      block :Rec![]!
-        let __fuse_arr_19: Rec![]! = merged :Rec![]!
-        let pred: fn(Rec!) -> bool = __lambda_snippet_1 :fn(Rec) -> bool
-        let out: Rec![]! =
-          array :Rec![]!
+    let kept: Rec[]! =
+      block :Rec[]!
+        let __fuse_arr_19: Rec[]! = merged :Rec[]!
+        let pred: fn(Rec) -> bool = __lambda_snippet_1 :fn(Rec) -> bool
+        let out: Rec[]! =
+          array :Rec[]!
         block :void
           let __fuse_len_0: usize =
             LoweredArrayLen
           let __fuse_i_1: usize = int(0) :usize
           loop while (<…>)
-            let x: Rec! =
-              index :Rec!
+            let x: Rec =
+              index :Rec
                 on:
-                  __fuse_arr_19 :Rec![]!
+                  __fuse_arr_19 :Rec[]!
                 ix:
                   __fuse_i_1 :usize
             ~>
@@ -382,11 +382,11 @@
                 cond:
                   call :bool
                     callee:
-                      __lambda_snippet_1 :fn(Rec!) -> bool
+                      __lambda_snippet_1 :fn(Rec) -> bool
                     arg0:
-                      x :Rec!
+                      x :Rec
                 then:
-                  let x: Rec! = x :Rec!
+                  let x: Rec = x :Rec
                   LoweredArrayPush cached
           step
             assign
@@ -399,17 +399,17 @@
                   r:
                     int(1) :usize
         ~>
-          out :Rec![]!
+          out :Rec[]!
     block :void
-      let __for_arr_21: Rec![]! = kept :Rec![]!
+      let __for_arr_21: Rec[]! = kept :Rec[]!
       let __for_len_22: usize =
         LoweredArrayLen
       let __for_i_23: usize = int(0) :usize
       loop while (<…>)
-        let r: Rec! =
-          index :Rec!
+        let r: Rec =
+          index :Rec
             on:
-              __for_arr_21 :Rec![]!
+              __for_arr_21 :Rec[]!
             ix:
               __for_i_23 :usize
         ~>
@@ -420,7 +420,7 @@
               block :string
                 let __p_24: string =
                   .name :string
-                    r :Rec!
+                    r :Rec
                 let __buf_25: Buffer =
                   call :Buffer
                     callee:
@@ -489,7 +489,7 @@
                       arg2:
                         cast → i64
                           .value :i32
-                            r :Rec!
+                            r :Rec
                 ~>
                   call :string
                     callee:
@@ -521,7 +521,7 @@
               __fuse_arr_30 :Rec[]
             ix:
               __fuse_i_33 :usize
-        let m: Rec! = x :Rec
+        let m: Rec = x :Rec
         call :void
           callee:
             std_io$println__string :void
@@ -529,7 +529,7 @@
             block :string
               let __p_27: string =
                 .name :string
-                  m :Rec!
+                  m :Rec
               let __buf_28: Buffer =
                 call :Buffer
                   callee:
@@ -598,7 +598,7 @@
                     arg2:
                       cast → i64
                         .value :i32
-                          m :Rec!
+                          m :Rec
               ~>
                 call :string
                   callee:
@@ -627,7 +627,7 @@
               __fuse_arr_31 :Rec[]
             ix:
               __fuse_i_35 :usize
-        let m: Rec! = y :Rec
+        let m: Rec = y :Rec
         call :void
           callee:
             std_io$println__string :void
@@ -635,7 +635,7 @@
             block :string
               let __p_27: string =
                 .name :string
-                  m :Rec!
+                  m :Rec
               let __buf_28: Buffer =
                 call :Buffer
                   callee:
@@ -704,7 +704,7 @@
                     arg2:
                       cast → i64
                         .value :i32
-                          m :Rec!
+                          m :Rec
               ~>
                 call :string
                   callee:
@@ -736,7 +736,7 @@
               __fuse_arr_39 :Rec[]
             ix:
               __fuse_i_42 :usize
-        let m: Rec! = x :Rec
+        let m: Rec = x :Rec
         call :void
           callee:
             std_io$println__string :void
@@ -744,7 +744,7 @@
             block :string
               let __p_36: string =
                 .name :string
-                  m :Rec!
+                  m :Rec
               let __buf_37: Buffer =
                 call :Buffer
                   callee:
@@ -813,7 +813,7 @@
                     arg2:
                       cast → i64
                         .value :i32
-                          m :Rec!
+                          m :Rec
               ~>
                 call :string
                   callee:
@@ -842,7 +842,7 @@
               __fuse_arr_40 :Rec[]
             ix:
               __fuse_i_44 :usize
-        let m: Rec! = y :Rec
+        let m: Rec = y :Rec
         call :void
           callee:
             std_io$println__string :void
@@ -850,7 +850,7 @@
             block :string
               let __p_36: string =
                 .name :string
-                  m :Rec!
+                  m :Rec
               let __buf_37: Buffer =
                 call :Buffer
                   callee:
@@ -919,7 +919,7 @@
                     arg2:
                       cast → i64
                         .value :i32
-                          m :Rec!
+                          m :Rec
               ~>
                 call :string
                   callee:

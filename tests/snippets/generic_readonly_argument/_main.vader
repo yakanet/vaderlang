@@ -1,0 +1,32 @@
+// A read-only value fits a bare type parameter : `T` is bound to it, rights
+// included, so `show(p)` accepts a borrowed `p` and `wrap(p)` hands back a
+// read-only `Box<Point>` rather than a writable alias.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+Point :: struct {
+    x: i32
+}
+
+Box :: struct<T> {
+    v: T
+}
+
+ORIGIN :: Point { .x = 3 }
+
+show :: fn<T>(v: T) -> i32 = 1
+
+wrap :: fn<T>(v: T) -> Box<T>! = Box<T> { .v = v }
+
+through_param :: fn(p: Point) -> i32 = show(p) + wrap(p).v.x
+
+double :: fn(p: Point) -> i32 = p.x * 2
+
+main :: fn() -> i32 {
+    xs: Point[]: [ORIGIN, Point { .x = 4 }]
+    doubled: i32[]!: xs.map(double).collect()
+    println("${show(xs)} ${through_param(ORIGIN)} ${doubled[0]} ${doubled[1]}")
+    return 0
+}

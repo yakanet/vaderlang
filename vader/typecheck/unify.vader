@@ -52,35 +52,28 @@ export unify_type_param :: fn(
                     return
                 }
             }
-            // Bind the SHAPE, never the mutability. The immutability bit says
-            // "this slot is a read-only borrow" ; a type ARGUMENT is not a slot of
-            // the program (there is no syntax for one — `MutableMap<i32, Cfg>`
-            // describes what is stored, and read-only-ness of the container is
-            // spelled on the container). Letting it through would fork every
-            // generic on it: `MutableMap<i32, Cfg>` from an immutable arg would
-            // stop being the same type as the one from a mutable one, and the two
-            // would fail to unify everywhere downstream. Matches the level-1 depth
-            // rule — the bit only ever lives at the root of a slot.
-            bound :: with_immutable(arg_type, false)
+            // Bound as it is, rights included : `T` lends what it is bound to, so
+            // `fn(T)` bound to a `Cfg!` may mutate it, and `collect()` over read-only
+            // elements hands back read-only elements.
             existing :: out[param_type.symbol.id]
-            if existing is null { out[param_type.symbol.id] = bound  return }
+            if existing is null { out[param_type.symbol.id] = arg_type  return }
             // Tighten Free* bindings when a later arg pins the same
             // type-param to a concrete numeric. Lets
             // `fold([1,2,3], 1, (a, b) -> a + b)` re-bind U from
             // FreeInt (init=1) to i32 (the lambda body returns i32)
             // so the post-loop assignability check accepts the lambda.
             if is_free_numeric(existing) && !is_free_numeric(arg_type) {
-                out[param_type.symbol.id] = bound
+                out[param_type.symbol.id] = arg_type
             }
             // Same reasoning as above for a binding that was recorded before
             // this rule existed elsewhere in the tree : an unresolved binding
             // yields to anything that carries real information.
             if type_contains_unresolved(existing) {
-                out[param_type.symbol.id] = bound
+                out[param_type.symbol.id] = arg_type
             }
             if existing is TypeParamType {
                 if existing.symbol.id == param_type.symbol.id {
-                    out[param_type.symbol.id] = bound
+                    out[param_type.symbol.id] = arg_type
                 }
             }
             return

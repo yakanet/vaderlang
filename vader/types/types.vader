@@ -461,11 +461,48 @@ export mk_array :: fn(element: Type, immutable: bool) -> Type = ArrayType { .ele
 /// silently, which is exactly how a marked callback would slip past the
 /// contravariance check.
 ///
-/// @param src     the fn type the result derives from ; only its marker vector is read.
+/// A parameter `src` wrote as a bare type parameter lends what it is now bound to :
+/// `fn(T)` with `T` bound to `Cfg!` mutates its argument, and is marked so.
+///
+/// @param src     the fn type the result derives from.
 /// @param params  the rewritten parameter types — must keep `src`'s arity and order.
 /// @param ret     the rewritten return type.
-export mk_fn_like :: fn(src: FnType, params: Type[], ret: Type) -> Type = FnType {
-    .params = params, .params_mutable = src.params_mutable, .return_type = ret,
+export mk_fn_like :: fn(src: FnType, params: Type[], ret: Type) -> Type {
+    if !relays_any(src, params) {
+        return FnType { .params = params, .params_mutable = src.params_mutable, .return_type = ret }
+    }
+    marks: bool[]!: []
+    for i in 0..<params.len() {
+        marks.push(param_mutable_at(src, i) || relays_at(src, params, i))
+    }
+    return FnType { .params = params, .params_mutable = marks, .return_type = ret }
+}
+
+/// Whether parameter `i` of `f` carries the `!` mutation marker. Reads through the
+/// parallel vector's "empty means none marked" convention, so an unmarked fn type
+/// answers false without allocating a same-length all-`false` run.
+///
+/// @param f  the fn type.
+/// @param i  the parameter's index.
+export param_mutable_at :: fn(f: FnType, i: usize) -> bool {
+    if i >= f.params_mutable.len() {
+        return false
+    }
+    return f.params_mutable[i]
+}
+
+// Parameter `i`, written as a bare type parameter, now bound to a type granting mutation.
+relays_at :: fn(src: FnType, params: Type[], i: usize) -> bool =
+    src.params[i] is TypeParamType && type_grants_mutation(params[i])
+
+// Scanned first so the common case — nothing to relay — allocates no marker vector.
+relays_any :: fn(src: FnType, params: Type[]) -> bool {
+    for i in 0..<params.len() {
+        if relays_at(src, params, i) {
+            return true
+        }
+    }
+    return false
 }
 
 /// Rebuild an `FnType` that DROPS its leading parameter (UFCS curries the

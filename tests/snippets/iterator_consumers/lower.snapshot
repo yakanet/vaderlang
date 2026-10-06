@@ -1544,10 +1544,10 @@
             std_io$println__string :void
           arg0:
             "" :string
-    let pairs: __genstate_map<[i32, i32]!>! =
-      call :__genstate_map<[i32, i32]!>!
+    let pairs: __genstate_map<[i32, i32]>! =
+      call :__genstate_map<[i32, i32]>!
         callee:
-          std_iter$map__i32__Any :__genstate_map<[i32, i32]!>!
+          std_iter$map__i32__Any :__genstate_map<[i32, i32]>!
         arg0:
           call :Iterator<T>
             callee:
@@ -1647,7 +1647,7 @@
         callee:
           pair_sum :fn(Iterator<[i32, i32]>) -> [i32, i32]
         arg0:
-          pairs :__genstate_map<[i32, i32]!>!
+          pairs :__genstate_map<[i32, i32]>!
     call :void
       callee:
         std_io$println__string :void
@@ -1780,10 +1780,10 @@
                 __buf_38 :Buffer
               arg1:
                 __off_39 :usize
-    let late: __genstate_map<[i32, i32]!>! =
-      call :__genstate_map<[i32, i32]!>!
+    let late: __genstate_map<[i32, i32]>! =
+      call :__genstate_map<[i32, i32]>!
         callee:
-          std_iter$map__i32__Any :__genstate_map<[i32, i32]!>!
+          std_iter$map__i32__Any :__genstate_map<[i32, i32]>!
         arg0:
           call :Iterator<T>
             callee:
@@ -1883,7 +1883,7 @@
         callee:
           pair_sum :fn(Iterator<[i32, i32]>) -> [i32, i32]
         arg0:
-          late :__genstate_map<[i32, i32]!>!
+          late :__genstate_map<[i32, i32]>!
     call :void
       callee:
         std_io$println__string :void
@@ -2016,14 +2016,14 @@
                 __buf_42 :Buffer
               arg1:
                 __off_43 :usize
-    let tuples: __genstate_filter<[i32, i32]!>! =
-      call :__genstate_filter<[i32, i32]!>!
+    let tuples: __genstate_filter<[i32, i32]>! =
+      call :__genstate_filter<[i32, i32]>!
         callee:
-          std_iter$filter___i32__i32_ :__genstate_filter<[i32, i32]!>!
+          std_iter$filter___i32__i32_ :__genstate_filter<[i32, i32]>!
         arg0:
-          call :__genstate_map<[i32, i32]!>!
+          call :__genstate_map<[i32, i32]>!
             callee:
-              std_iter$map__i32__Any :__genstate_map<[i32, i32]!>!
+              std_iter$map__i32__Any :__genstate_map<[i32, i32]>!
             arg0:
               call :Iterator<T>
                 callee:
@@ -2135,7 +2135,7 @@
         callee:
           pair_sum :fn(Iterator<[i32, i32]>) -> [i32, i32]
         arg0:
-          tuples :__genstate_filter<[i32, i32]!>!
+          tuples :__genstate_filter<[i32, i32]>!
     call :void
       callee:
         std_io$println__string :void

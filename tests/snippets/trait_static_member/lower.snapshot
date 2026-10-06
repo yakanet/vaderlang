@@ -222,13 +222,13 @@
           ~>
             s :f64
     let a: P =
-      call :P!
+      call :P
         callee:
-          snippet$via_a__P :P!
+          snippet$via_a__P :P
     let b: P =
-      call :P!
+      call :P
         callee:
-          snippet$via_b__P :P!
+          snippet$via_b__P :P
     call :void
       callee:
         std_io$println__i32 :void
@@ -397,16 +397,16 @@
           snippet$Sq$Shape$unit :Sq!
         arg0:
           n :i32
-  fn snippet$via_a__P() -> P!
+  fn snippet$via_a__P() -> P
     ~>
-      call :P!
+      call :P
         callee:
-          snippet$P$A$make :P!
-  fn snippet$via_b__P() -> P!
+          snippet$P$A$make :P
+  fn snippet$via_b__P() -> P
     ~>
-      call :P!
+      call :P
         callee:
-          snippet$P$B$make :P!
+          snippet$P$B$make :P
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize
