@@ -218,6 +218,7 @@ export ResolverCode :: enum(CodeInfo) {
     DuplicateTargetDeclaration   { .id = "R2039", .message = "duplicate bare `@target` declaration" },
     TargetBodySignatureDiffers   { .id = "R2040", .message = "`@target` body does not have the declaration's signature" },
     NoTargetBodyCoversTarget     { .id = "R2041", .message = "no `@target` body covers the target being built" },
+    UnionInBound                 { .id = "R2042", .message = "a bound cannot be a union" },
 }
 
 // C-codes belong to the comptime evaluator + monomorphizer ; once

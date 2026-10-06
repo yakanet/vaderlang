@@ -222,10 +222,12 @@ walk_decl :: fn(self: ResolveState!, d: AST.Decl) -> void {
         is AST.ImplDecl      -> { self.walk_impl_decl(d) }
         is AST.TypeAliasDecl -> {
             self.scope.push()
+            // An alias's bounds are checked, not recorded : nothing enforces them.
             for tp in d.type_params {
-                sym :: self.mint_local(.TypeParam, tp.name, tp.span)
-                self.scope.bind(tp.name, sym)
-                self.walk_opt_expr(tp.bound)
+                _ :: self.bind_type_param(tp)
+                if tp.bound !is null {
+                    _ :: self.checked_bound(tp, tp.bound)
+                }
             }
             self.walk_opt_expr(d.aliased)
             self.scope.pop()
@@ -248,21 +250,79 @@ walk_enum_decl :: fn(self: ResolveState!, d: AST.EnumDecl) -> void {
     }
 }
 
+// Bind `tp` in the current scope and walk its bound.
+bind_type_param :: fn(self: ResolveState!, tp: AST.TypeParam) -> Symbol {
+    sym :: self.mint_local(.TypeParam, tp.name, tp.span)
+    self.scope.bind(tp.name, sym)
+    self.walk_opt_expr(tp.bound)
+    return sym
+}
+
+// `bind_type_param`, then record the bound the typecheck holds `tp` to.
+declare_type_param :: fn(self: ResolveState!, tp: AST.TypeParam) -> Symbol {
+    sym :: self.bind_type_param(tp)
+    bound :: tp.bound ?? return sym
+    self.type_param_bounds[sym.id] = self.checked_bound(tp, bound)
+    return sym
+}
+
+// R2042 on a union in `tp`'s bound : a `null` member belongs where `T` is used, not
+// on the bound. Returns the bound to record — the union's other member when `null`
+// is all it adds, so the body is checked against what was meant. A comptime value
+// parameter's `:` gives its type, not a bound.
+checked_bound :: fn(self: ResolveState!, tp: AST.TypeParam, bound: AST.Expr) -> AST.Expr {
+    if tp.is_comptime_value {
+        return bound
+    }
+    union :: union_in_bound(bound) ?? return bound
+    variants :: AST.collect_bitor_variants(union)
+    others: AST.Expr[]!: []
+    for v in variants {
+        // A bound spells `null` as a name, not as the literal.
+        if v !is AST.IdentExpr || v.name != "null" {
+            others.push(v)
+        }
+    }
+    names_null :: others.len() < variants.len()
+    hint :: if names_null {
+        "put `null` where `${tp.name}` is used instead: `x: ${tp.name} | null`"
+    } else {
+        "a bound names traits, joined by `&`"
+    }
+    self.diags.push(resolver_error(.UnionInBound, union.span, "`${tp.name}` — ${hint}"))
+    // A union has two members at least : one left means `null` was the other.
+    if others.len() == 1 && bound is AST.BinaryExpr && bound.op == .BitOr {
+        return others[0]
+    }
+    return bound
+}
+
+// The first `A | B` in `bound`, looking through its `&` chain : `&` binds tighter
+// than `|`, so a union sits under an `&` only when parenthesised, `A & (B | C)`.
+union_in_bound :: fn(bound: AST.Expr | null) -> AST.BinaryExpr | null {
+    if bound !is AST.BinaryExpr {
+        return null
+    }
+    if bound.op == .BitOr {
+        return bound
+    }
+    if bound.op != .BitAnd {
+        return null
+    }
+    left :: union_in_bound(bound.left)
+    return if left != null { left } else { union_in_bound(bound.right) }
+}
+
 walk_fn_decl :: fn(self: ResolveState!, d: AST.FnDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     // Type-params first so the rest of the signature + body sees them.
     for tp in d.type_params {
-        sym :: self.mint_local(.TypeParam, tp.name, tp.span)
-        self.scope.bind(tp.name, sym)
+        sym :: self.declare_type_param(tp)
         // Record the decl site → Symbol in idents : `seed_explicit_type_args`
         // recovers this type-param's Symbol id from it, and the T3006 bound table
         // its name.
         self.idents[tp.span.hash()] = sym
-        self.walk_opt_expr(tp.bound)
-        if tp.bound !is null {
-            self.type_param_bounds[sym.id] = tp.bound
-        }
     }
     for p in d.params {
         self.walk_opt_expr(p.ty)
@@ -302,12 +362,7 @@ walk_struct_decl :: fn(self: ResolveState!, d: AST.StructDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     for tp in d.type_params {
-        sym :: self.mint_local(.TypeParam, tp.name, tp.span)
-        self.scope.bind(tp.name, sym)
-        self.walk_opt_expr(tp.bound)
-        if tp.bound !is null {
-            self.type_param_bounds[sym.id] = tp.bound
-        }
+        self.declare_type_param(tp)
     }
     for f in d.fields {
         self.walk_expr(f.ty)
@@ -320,14 +375,14 @@ walk_trait_decl :: fn(self: ResolveState!, d: AST.TraitDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     for tp in d.type_params {
-        sym :: self.mint_local(.TypeParam, tp.name, tp.span)
-        self.scope.bind(tp.name, sym)
-        self.walk_opt_expr(tp.bound)
-        if tp.bound !is null {
-            self.type_param_bounds[sym.id] = tp.bound
-        }
+        self.declare_type_param(tp)
     }
     self.walk_opt_expr(d.requires)
+    union :: union_in_bound(d.requires)
+    if union != null {
+        detail :: "`${d.name}` — a trait requires traits, joined by `&`"
+        self.diags.push(resolver_error(.UnionInBound, union.span, detail))
+    }
     for m in d.members { self.walk_fn_decl(m) }
     self.scope.pop()
 }
@@ -336,12 +391,7 @@ walk_impl_decl :: fn(self: ResolveState!, d: AST.ImplDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     for tp in d.type_params {
-        sym :: self.mint_local(.TypeParam, tp.name, tp.span)
-        self.scope.bind(tp.name, sym)
-        self.walk_opt_expr(tp.bound)
-        if tp.bound !is null {
-            self.type_param_bounds[sym.id] = tp.bound
-        }
+        self.declare_type_param(tp)
     }
     // Auto-bind type params from `for_type` when the impl head
     // omits the explicit `[T]` block (e.g. `Stack<T> implements

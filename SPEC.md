@@ -1403,7 +1403,7 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) {
 }
 ```
 
-`&` mirrors `|` (union) — `K: A | B` would mean K satisfies either, `K: A & B` means K satisfies both. **Only `&` (intersection) is in MVP scope**; `|` on bounds is post-MVP. A future predicate-bound escape hatch (`<T: @size_of <= 64>`-style) is reserved for non-trait constraints once they land.
+A bound names traits, joined by `&` (`K: A & B`: K satisfies both). A union is not a bound — `K: A | B` grants nothing a body could use, so it is **R2042**, as it is in a trait's `requires`; an optional value carries `null` where the parameter is used, not on its bound: `fn<T: Bump>(x: T! | null)`, never `fn<T: Bump | null>(x: T!)`. A future predicate-bound escape hatch (`<T: @size_of <= 64>`-style) is reserved for non-trait constraints once they land.
 
 **Compile-time values** (post-MVP candidate; the fixed-size array surface itself is not designed yet — the example below uses placeholder syntax):
 
