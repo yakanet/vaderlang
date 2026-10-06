@@ -215,14 +215,24 @@ export mismatch_diagnostic :: fn(
 export mismatch_diagnostic_hinted :: fn(
     got: Type, expected: Type, span: Span, fallback: TypecheckCode, hint: string,
 ) -> Diagnostic {
-    // A read-only struct / tuple into a slot promising mutation. Same treatment as
-    // the fn case below : a dedicated wording, because "expected Cfg!, got Cfg" says
-    // nothing about WHY they differ nor where to fix it.
-    if mutability_widens(got, expected) {
+    // A read-only value into a slot promising mutation, at any level. Same treatment
+    // as the fn case below : a dedicated wording, because "expected Cfg!, got Cfg"
+    // says nothing about WHY they differ nor where to fix it.
+    if mutability_widens(got, expected, false) {
+        what :: if got is FnType { "returns a read-only value" } else { "is read-only" }
         return typecheck_error(
             .ImmutableValueIntoMutableSlot,
             span,
-            "`${display_type(got)}` is read-only, but this slot is declared `${display_type(expected)}`${hint}",
+            "`${display_type(got)}` ${what}, but this slot is declared `${display_type(expected)}`${hint}",
+        )
+    }
+    // The other way round : a level that holds MORE rights than the slot's, where
+    // the slot's holder could store a read-only value its owner then writes.
+    if mutability_widens(got, expected) {
+        return typecheck_error(
+            fallback,
+            span,
+            "expected ${display_type(expected)}, got ${display_type(got)}${hint} — through a mutable array the elements' `!` must match, and a fn cannot take a parameter with other rights than its slot hands it",
         )
     }
     if fn_mutability_widens(got, expected) {
@@ -240,16 +250,17 @@ export mismatch_diagnostic_hinted :: fn(
 }
 
 /// True when `from` would GAIN mutation rights that `to` grants and it does not —
-/// the one direction the marker forbids, at every structural level.
+/// the one direction the marker forbids, at every structural level. Under a mutable
+/// array spine the element must not LOSE rights either, and a fn's parameters are
+/// compared the other way round.
 ///
 /// It has to run ahead of `is_assignable`'s equality short-circuit, because
 /// `equals_type` leaves the struct / tuple bit out of type identity ON PURPOSE (two
 /// `Cfg` are one type whether or not a borrow is read-only, which is what keeps
 /// caches, union dedup and monomorphisation keys stable). That makes the
 /// short-circuit blind to the marker at every level, so a guard built one shape at a
-/// time can never catch up — this walks the positions `strip_mutability` does, minus
-/// `FnType`: a fn parameter is CONTRAVARIANT, so widening there is the opposite
-/// question, and `fn_mutability_widens` owns it.
+/// time can never catch up — this walks the positions `strip_mutability` does. The
+/// `!` on a fn parameter's NAME is the one position left to `fn_mutability_widens`.
 ///
 /// Without this a read-only borrow launders through any slot promising mutation, a
 /// struct-literal field being the reachable one :
@@ -257,9 +268,12 @@ export mismatch_diagnostic_hinted :: fn(
 /// `h.cfg.n = 99` writes the CALLER's value. T3072 only ever covered a call
 /// argument, hand-written at that one site.
 ///
-/// @param from  the value's type.
-/// @param to    the slot's type.
-mutability_widens :: fn(from: Type, to: Type) -> bool {
+/// @param from    the value's type.
+/// @param to      the slot's type.
+/// @param strict  false leaves out the positions where a value LOSING rights is the
+///                fault — a mutable array's element, a fn's parameters — for the
+///                caller that only words a diagnostic.
+mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
     if from is StructType {
         if to is StructType {
             // The SAME struct at two mutabilities — without the symbol check this fired
@@ -271,7 +285,7 @@ mutability_widens :: fn(from: Type, to: Type) -> bool {
             if from.immutable && !to.immutable {
                 return true
             }
-            return any_widens(from.args, to.args)
+            return any_widens(from.args, to.args, strict)
         }
         return false
     }
@@ -283,21 +297,39 @@ mutability_widens :: fn(from: Type, to: Type) -> bool {
             if from.immutable && !to.immutable {
                 return true
             }
-            return any_widens(from.elements, to.elements)
+            return any_widens(from.elements, to.elements, strict)
         }
         return false
     }
     // The array's own spine bit is `is_assignable_array`'s, which sees it. Its
-    // ELEMENT is what nothing else looks at.
+    // ELEMENT is what nothing else looks at — in both directions under a mutable
+    // spine, whose holder may store an element of the slot's rights : a `Cfg![]!`
+    // handed to a `Cfg[]!` would take in a read-only `Cfg` its owner then writes.
     if from is ArrayType {
         if to is ArrayType {
-            return mutability_widens(from.element, to.element)
+            if strict && !to.immutable && mutability_widens(to.element, from.element) {
+                return true
+            }
+            return mutability_widens(from.element, to.element, strict)
         }
         return false
     }
     if from is TraitType {
         if to is TraitType {
-            return any_widens(from.args, to.args)
+            return any_widens(from.args, to.args, strict)
+        }
+        return false
+    }
+    // A fn's parameters are contravariant — the slot's caller hands its arguments to
+    // `from` — and its return covariant : a fn handing out a read-only value cannot
+    // fill a slot promising a mutable one, or `g().x = 9` writes through it. The
+    // `!` on a parameter's NAME is `fn_mutability_widens`'s.
+    if from is FnType {
+        if to is FnType {
+            if strict && any_widens(to.params, from.params) {
+                return true
+            }
+            return mutability_widens(from.return_type, to.return_type, strict)
         }
         return false
     }
@@ -308,7 +340,7 @@ mutability_widens :: fn(from: Type, to: Type) -> bool {
     // `Box!`. The single key-tie, `T[] | T[]!`, is T3074 before it reaches here.
     if from is UnionType {
         if to is UnionType {
-            return any_widens(from.variants, to.variants)
+            return any_widens(from.variants, to.variants, strict)
         }
         return false
     }
@@ -318,12 +350,12 @@ mutability_widens :: fn(from: Type, to: Type) -> bool {
 // Element-wise `mutability_widens`, for the positions that pair by INDEX — nominal
 // args, tuple elements and union variants. A length mismatch is an ordinary type
 // mismatch, not a mutability story, so it is left to the shape check.
-any_widens :: fn(from: Type[], to: Type[]) -> bool {
+any_widens :: fn(from: Type[], to: Type[], strict: bool = true) -> bool {
     if from.len() != to.len() {
         return false
     }
     for i in 0..<from.len() {
-        if mutability_widens(from[i], to[i]) {
+        if mutability_widens(from[i], to[i], strict) {
             return true
         }
     }

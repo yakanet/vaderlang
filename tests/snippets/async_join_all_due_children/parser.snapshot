@@ -56,17 +56,20 @@
         {
           "name": "inner",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Async"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "null"
-              }
-            ]
+                "name": "Async"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "null"
+                }
+              ]
+            }
           },
           "visibility": "public",
           "default": null
@@ -99,7 +102,8 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false
+              "variadic": false,
+              "mutable": true
             }
           ],
           "returnType": {

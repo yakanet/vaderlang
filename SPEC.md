@@ -936,7 +936,7 @@ Struct-literal field order does not have to match the declaration order — the 
 
 #### Field defaults
 
-A field declaration may carry an initialiser used when the literal omits it. Defaults are checked once at the decl site against the (unsubstituted) field type; they are re-lowered at every literal site that uses them.
+A field declaration may carry an initialiser used when the literal omits it. Defaults are checked once at the decl site against the (unsubstituted) field type, its rights included: a read-only value — a module const — cannot fill a field that promises mutation (`T3077`). They are re-lowered at every literal site that uses them.
 
 ```vader
 Settings :: struct {
@@ -1467,7 +1467,7 @@ print_it :: fn<T: Display>(x: T) {
 
 - Declaration: `Name :: trait { ... }`.
 - Implementation: `T implements Trait { ... }` (three forms — see below). `T` and `Trait` name declarations, resolved like any other name — a trait imported from another module included. The impl belongs to those declarations, not to their names: when two modules each declare a `Foo`, or an `Animal` trait, an impl of one says nothing about the other.
-- An impl defines its trait's members and nothing else (`T3094`; see *No inherent "associated functions"*), each with its trait method's signature — the same parameters and return type, `Self` read as the impl's type and the trait's parameters as the impl's arguments (`T3095`).
+- An impl defines its trait's members and nothing else (`T3094`; see *No inherent "associated functions"*), each with its trait method's signature — the same parameters and return type, `Self` read as the impl's type and the trait's parameters as the impl's arguments (`T3095`). The rights follow the trait too: a call through the trait lends what the TRAIT declares, so a member may not demand more — `self!` or a `!` parameter where the trait wrote none — nor return less than a `!` return promises (`T3095`). A position the trait wrote as a type parameter or `Self` holds the rights of what binds it.
 - A union satisfies a trait iff all its members satisfy it.
 - Operator overloading via stdlib traits — see *Operator overloading* below.
 - **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in a `Foo implements Trait { … }` block, `Self = Foo`, a written `-> Self` included. Outside trait/impl context, `Self` is undefined (`T3023`).
@@ -1843,7 +1843,7 @@ inferred :: [s]       // no annotation : inferred, owned
 inferred.push(other)  // OK
 ```
 
-**A value is as read-only as the slot that handed it out.** A call to an unmarked return, a local bound from one, and a value read through a read-only field refuse a `self!` method (T3071) and a `!` parameter (T3072), exactly as they refuse a field write (T3070). A function whose caller owns the result says so with `!`:
+**A value is as read-only as the slot that handed it out.** A call to an unmarked return, a local bound from one, and a value read through a read-only field refuse a `self!` method (T3071) and a `!` parameter (T3072), exactly as they refuse a field write (T3070). A conversion re-types the same value, so `Ids(TABLE)` is as read-only as `TABLE`. A function whose caller owns the result says so with `!`:
 
 ```vader
 make  :: fn() -> Point = Point { .x = 1 }    // hands out a read-only view
@@ -1881,7 +1881,7 @@ Writing `!` twice on one level is an error (P1030): `Cfg[]!!` says the same thin
 
 The assignability of an array does **not** descend into a nested array: `T[]![]` and `T[][]` are distinct element types, and arrays are invariant in their element. A builder that fills mutable inner arrays and hands them back read-only copies the outer spine into the promised type rather than propagating `T[]![]` to every consumer.
 
-Invariance is enforced in one direction only, the unsound one: a value may always **drop** rights (`Cfg![]` fills a `Cfg[]` slot), never gain them. A `Cfg[]` handed to a `Cfg![]` slot is T3077 — the callee declared it may write through the elements, and they are not its to write.
+Through a **read-only** array a value may always **drop** rights (`Cfg![]` fills a `Cfg[]` slot), never gain them. A `Cfg[]` handed to a `Cfg![]` slot is T3077 — the callee declared it may write through the elements, and they are not its to write. Through a **mutable** array the elements' rights must **match**: a `Cfg![]!` does not fill a `Cfg[]!` slot (T3001), because whoever holds the slot may push a read-only `Cfg` — a module const — that the array's owner then writes through as a `Cfg!`. An accumulator parameter therefore spells the elements its caller holds: `out: Stmt![]!`.
 
 A **generic** parameter is the exception, and it has to be: inference binds `T` from the argument's *shape*, dropping mutability, or `MutableMap<i32, Cfg>` built from a borrow would stop being the same type as one built from a local. So `sort<T>(arr: T[], …)` takes a `Cfg[]` and a `Cfg![]` alike, and the exemption costs nothing — inside the body the element is a `T`, which grants no mutation, so the callee cannot write through a claim inference invented for it. A bound's `self!` member is no way around that: through `x: T` it is T3071, and needs `x: T!`.
 
@@ -1961,7 +1961,7 @@ apply :: fn(f: fn(i32[]!) -> void, xs: i32[]!) -> void {
 }
 ```
 
-Markers on function values are **contravariant**: a function that does not mutate fits a slot that would allow it — it simply promises less — while one that does cannot be handed to a caller lending its value out read-only (T3073).
+Markers on function values are **contravariant**: a function that does not mutate fits a slot that would allow it — it simply promises less — while one that does cannot be handed to a caller lending its value out read-only (T3073). The return is **covariant**, like any other level: a function handing out a read-only value cannot fill a slot promising a mutable result — `fn() -> Point` into `fn() -> Point!` is T3077.
 
 #### Diagnostics
 

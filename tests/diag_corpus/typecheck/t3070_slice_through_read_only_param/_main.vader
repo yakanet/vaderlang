@@ -1,0 +1,17 @@
+// Rebinding a field through a read-only parameter is T3070, reported before
+// lowering : an ill-typed program is never lowered, which would panic on it.
+module "snippet"
+
+St :: struct {
+    stack: i32[]!
+}
+
+pop :: fn(s: St) -> void {
+    s.stack = s.stack[0..<1]
+}
+
+main :: fn() -> i32 {
+    s :: St { .stack = [1, 2] }
+    pop(s)
+    return 0
+}

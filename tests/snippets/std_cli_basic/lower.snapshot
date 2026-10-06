@@ -12,7 +12,7 @@
           default_text: "" :string
           kind: int(0) :u8
           values:
-            array :ValueSpec![]!
+            array :ValueSpec[]
         }
         FlagSpec! {
           name: "out" :string
@@ -22,7 +22,7 @@
           default_text: "" :string
           kind: int(1) :u8
           values:
-            array :ValueSpec![]!
+            array :ValueSpec[]
         }
     let argv: string[]! =
       array :string[]!

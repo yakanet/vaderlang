@@ -2268,17 +2268,8 @@ export walk_bodies :: fn(
             is AST.AssertDecl    -> {
                 check_expr(decl.condition, null, typed, diags)
             }
-            is AST.StructDecl    -> {
-                // Type each field's default value against the field's
-                // declared type so `delta: isize = -1` types the `-1`
-                // UnaryExpr as `isize`, not the default `{integer}`.
-                for f in decl.fields {
-                    if f.default != null {
-                        field_ty :: type_from_expr(f.ty, typed.resolved, diags)
-                        check_expr(f.default, field_ty, typed, diags)
-                    }
-                }
-            }
+            // Its field defaults are typed below, once every const has its type.
+            is AST.StructDecl    -> {}
             is AST.ImplDecl      -> {
                 // All impl metadata + structural checks ran in the pre-pass
                 // (`register_impl_metadata`) so forward references resolve ;
@@ -2288,13 +2279,35 @@ export walk_bodies :: fn(
                 }
             }
             is AST.EnumDecl      -> { check_variant_data(decl, typed, diags, check_expr) }
+            // Body-less decl kinds — nothing to walk. Listed explicitly (not
+            // `_`) so a new Decl variant trips T3013 and forces a decision.
             is AST.TraitDecl     -> {}
             is AST.TypeAliasDecl -> {}
             is AST.ImportDecl    -> {}
         }
-    }    // Body-less decl kinds — nothing to walk. Listed explicitly (not
-    // `_`) so a new Decl variant trips T3013 and forces a decision.
+    }
+    for decl in decls {
+        if decl is AST.StructDecl {
+            check_field_defaults(decl, typed, diags)
+        }
+    }
+}
 
+// Type each field's default against the field's declared type — `delta: isize = -1`
+// types the `-1` as `isize`, not `{integer}` — and check that it fits, rights
+// included : every `T {}` shares this one value, so a read-only one (a module const)
+// in a field that promises mutation is written through by the first `t.f.n = …`.
+// Runs after the bodies, so a const declared below the struct has its frozen type.
+check_field_defaults :: fn(
+    decl: AST.StructDecl!, typed: TypedProgram!, diags: Diagnostic[]!,
+) -> void {
+    for f in decl.fields {
+        dv :: f.default ?? continue
+        sym :: lookup_sym_by_name_orch(typed.resolved, decl.name) ?? return
+        field_ty :: resolved_field_type(sym.id, decl, f.name, typed, diags) ?? continue
+        got :: check_expr(dv, field_ty, typed, diags)
+        emit_mismatch_if(got, field_ty, f.span, dv, .TypeMismatch, typed, diags)
+    }
 }
 
 // Every array type shares one set of impls, the one `T[] implements<T> …` writes
@@ -2501,9 +2514,11 @@ check_impl_members :: fn(
 // T3095 — `member` must have its trait method's signature, as `trait_type` gives it
 // (its arguments, then the defaults) with `Self` read as `for_ty` : the same number of
 // parameters, each of the same type, and the same return type. The vtable slot and
-// the direct call both assume this shape. A generic trait method is held to its
-// arity alone, its own type parameters being the impl's to name. A SAM member and
-// a default-method clone copy the trait's signature.
+// the direct call both assume this shape. The rights follow the trait too : a member
+// may not demand more than the trait lends nor return less than it promises, except
+// where the trait wrote `T` or `Self`. A generic trait method is held to its arity
+// alone, its own type parameters being the impl's to name. A SAM member and a
+// default-method clone copy the trait's signature.
 check_member_signature :: fn(
     member: AST.FnDecl,
     trait_method: AST.FnDecl,
@@ -2532,17 +2547,51 @@ check_member_signature :: fn(
     }
     // `want` has no receiver ; `got` keeps the impl's `self`.
     skip :: receiver_count(trait_method)
+    // The trait's signature before its arguments are bound : the positions it wrote
+    // as `T` or `Self` show where `want`'s marker is borrowed rather than promised.
+    written :: trait_member_type(trait_type.symbol.id, trait_method, typed)
+    // A call through the trait is checked against the TRAIT's rights : an impl that
+    // demands more mutates what the caller lent read-only (a module const, in
+    // `.rodata`), and one that returns fewer hands a read-only value to a caller
+    // promised a mutable one.
+    if skip > 0 && has_mutable_self(member) && !has_mutable_self(trait_method) {
+        detail :: "`${member.name}` declares `self!`, but the trait lends its receiver read-only"
+        diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.params[0].span, detail))
+    }
     for i in 0..<want.params.len() {
-        if !equals_type_shape(want.params[i], got.params[i + skip]) {
-            name :: member.params[i + skip].name
-            detail :: "`${member.name}` parameter `${name}`: ${expected_got(want.params[i], got.params[i + skip])}"
-            diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.params[i + skip].span, detail))
+        param :: member.params[i + skip]
+        have :: got.params[i + skip]
+        if !equals_type_shape(want.params[i], have) {
+            detail :: "`${member.name}` parameter `${param.name}`: ${expected_got(want.params[i], have)}"
+            diags.push(typecheck_error(.ImplMemberSignatureDiffers, param.span, detail))
+        } else if !is_assignable(want.params[i], have) && !borrows_its_rights(written.params[i]) {
+            detail :: "`${member.name}` parameter `${param.name}` is `${display_type(have)}`, but the trait lends `${display_type(want.params[i])}`"
+            diags.push(typecheck_error(.ImplMemberSignatureDiffers, param.span, detail))
         }
     }
     if !equals_type_shape(want.return_type, got.return_type) {
         detail :: "`${member.name}` return: ${expected_got(want.return_type, got.return_type)}"
         diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.name_span, detail))
+    } else if !is_assignable(got.return_type, want.return_type) &&
+        !borrows_its_rights(written.return_type) {
+        detail :: "`${member.name}` returns `${display_type(got.return_type)}`, but the trait promises `${display_type(want.return_type)}`"
+        diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.name_span, detail))
     }
+}
+
+// A position written as a type parameter or `Self` holds the rights of what binds
+// it, and a type argument carries no bit : the `!` it shows once bound is the raw
+// default, not a promise the impl could break.
+borrows_its_rights :: fn(t: Type) -> bool = type_contains_type_param(t) || mentions_self(t)
+
+// @partial: `Self` can only sit under a structural level here ; a nominal one
+// (`Box<Self>`) carries no bit either way.
+mentions_self :: fn(t: Type) -> bool = @partial match t {
+    is SelfType  -> true
+    is ArrayType -> mentions_self(t.element)
+    is TupleType -> t.elements.any_match(mentions_self)
+    is UnionType -> t.variants.any_match(mentions_self)
+    _            -> false
 }
 
 // `expected X, got Y` over two types compared without their `!`.
@@ -2702,35 +2751,30 @@ param_type :: fn(
 }
 
 /// True when a const's value can be typed WITHOUT any fn body having been typed
-/// first — a literal, or a sequence of them.
+/// first — a literal, or a sequence or struct literal of them.
 ///
 /// Deliberately conservative. A const whose value CALLS something must stay in
 /// file order among the bodies: `std/core`'s `POW5_128 :: @comptime { … }` runs
 /// `build_pow5_split`. Note that `@comptime` there is a prefix on the VALUE, not
 /// a decorator on the declaration, so `cd.decorators` does not see it.
-is_body_independent_value :: fn(e: AST.Expr) -> bool {
-    if e is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.CharLitExpr {
-        return true
-    }
-    if e is AST.StringLitExpr {
-        // An interpolated part holds an arbitrary expression.
-        for part in e.parts {
-            if part !is AST.StringLitText {
-                return false
-            }
-        }
-        return true
-    }
-    if e is AST.SeqLitExpr {
-        for element in e.elements {
-            if !is_body_independent_value(element) {
-                return false
-            }
-        }
-        return true
-    }
-    return false
+// @partial: every other expression may read a body's result — a call, an ident
+// (another const, typed in file order) — and stays with the bodies.
+is_body_independent_value :: fn(e: AST.Expr) -> bool = @partial match e {
+    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.CharLitExpr | AST.NullLitExpr
+     | AST.DotVariantExpr -> true
+    // An interpolated part holds an arbitrary expression.
+    is AST.StringLitExpr -> e.parts.all_match((part) -> part is AST.StringLitText)
+    is AST.UnaryExpr     -> is_body_independent_value(e.operand)
+    is AST.SeqLitExpr    -> e.elements.all_match(is_body_independent_value)
+    // `ORIGIN :: Point { .x = 1 }` is exactly what lands in `.rodata` : typed in file
+    // order, a body above it would read it as `?` and store it anywhere unfrozen.
+    is AST.StructLitExpr -> e.items.all_match(is_independent_field)
+    _                    -> false
 }
+
+// A `...spread` copies another value, as body-dependent as that value.
+is_independent_field :: fn(item: AST.StructLitItem) -> bool =
+    item is AST.StructLitField && is_body_independent_value(item.value)
 
 check_const_value :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, diags: Diagnostic[]!) -> void {
     sym :: lookup_sym_by_name_orch(typed.resolved, cd.name) ?? return

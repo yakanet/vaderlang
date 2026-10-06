@@ -327,8 +327,9 @@ seed_explicit_type_args :: fn(
 // `infer_call`), so a reordered / defaulted call flows positionally through
 // every downstream pass — the lowerer needs no special handling.
 //
-// Returns null (leaving `c.args` untouched) when the call can't be normalised :
-// a variadic param (the slot model can't express `...rest`), or an error —
+// Returns null (leaving `c.args` untouched) when there is nothing to reorder, or
+// when the call can't be normalised : a variadic param (the slot model can't
+// express `...rest`), or an error —
 // T3003 too many / positional-after-named, T3004 unknown name, T3005 missing
 // required, T3025 a named arg duplicating a filled slot.
 normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnostic[]!) -> AST.CallArg[]! | null {
@@ -345,7 +346,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
         }
     }
     if only_positional && c.args.len() == params.len() {
-        return c.args
+        return null
     }
     slots: (AST.CallArg | null)[]!: [null] * params.len()
     seen_named := false
@@ -748,16 +749,9 @@ export infer_call :: fn(
     // describe :: fn(Bag) -> ...`), pre-walk the args and pick the
     // overload whose first param accepts the first arg.
     callee_ty :: pick_overload(c, initial_callee_ty, typed, diags, check_expr_fn)
-    // `T(x)` cast-style call : when the callee resolves to the
-    // metatype (a bare type name in value position), treat the
-    // call as a conversion and return the target type. This case is
-    // folded before reaching the not-callable arm.
-    if callee_ty is TypeMetaType {
-        return cast_call_target(c, typed, diags, check_expr_fn)
-    }
-    // `Info(v)` : a struct's name called on one value converts it, the same
-    // cast as above for a name that types as a struct rather than a metatype.
-    if callee_ty is StructType && c.args.len() == 1 && names_symbol_of_kind(c.callee, .Struct, typed) {
+    // `T(x)` cast-style call : treat the call as a conversion and return the target
+    // type. Folded before reaching the not-callable arm.
+    if converts_by_name(c, callee_ty, typed) {
         return cast_call_target(c, typed, diags, check_expr_fn)
     }
     // Unresolved callee : upstream error already reported, fall through
@@ -791,7 +785,7 @@ export infer_call :: fn(
             norm :: normalize_call_args(decl_params, c, diags)
             // normalize_call_args owns arity/named diagnostics here ; skip the
             // positional check below to avoid double-reporting. A null result
-            // (variadic / error) leaves `c.args` untouched for recovery.
+            // (nothing to reorder, variadic, error) leaves `c.args` as it is.
             normalised = true
             if norm is AST.CallArg[] as na {
                 c.args = na
@@ -1065,6 +1059,19 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram!) -> void {
     typed.expr_types[init_id] = widened
 }
 
+// Whether `c` is a conversion `T(x)` rather than a call : its callee names a type in
+// value position — the metatype of a bare type name, or a struct's own name called on
+// one value (`Info(v)`), which types as the struct rather than as a metatype.
+converts_by_name :: fn(c: AST.CallExpr, callee_ty: Type, typed: TypedProgram) -> bool {
+    if callee_ty is TypeMetaType {
+        return true
+    }
+    if callee_ty !is StructType || c.args.len() != 1 {
+        return false
+    }
+    return names_symbol_of_kind(c.callee, .Struct, typed)
+}
+
 /// `T(x)` where `T` is a type-name — the call-syntax cast (the parser emits a
 /// `CallExpr` here, not a `CastExpr`). Type-checks the value and returns the
 /// target type — the read-only data itself for `Data(variant)` — emitting
@@ -1103,6 +1110,9 @@ cast_call_target :: fn(
                     "cannot cast ${display_type(src)} to ${display_type(target)}",
                 ),
             )
+        } else if type_withholds_mutation(src) {
+            // A conversion hands out what it was lent : `Point(ORIGIN)` is the const.
+            result = with_immutable(target, true)
         }
     }
     return result
@@ -1392,7 +1402,7 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture! {
     return CallFixture { .typed = result.typed, .call = null }
 }
 
-accept_call :: fn(e: AST.Expr) -> AST.Expr | null {
+accept_call :: fn(e: AST.Expr!) -> AST.Expr! | null {
     if e is AST.CallExpr {
         return e
     }

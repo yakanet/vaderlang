@@ -2042,7 +2042,7 @@ parse_type_list_until_angle :: fn(p: Parser!) -> TypeExpr![]! {
 // actually produces in type position need to be traversed. Accepts `null`
 // so call sites with optional type-bearing slots can dispatch directly
 // without an outer match.
-collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]!) -> void {
+collect_type_params :: fn(t: TypeExpr | null, out: TypeParam![]!) -> void {
     // Other TypeExpr variants are no-ops here. This MUST stay a plain
     // `match … _ -> {}`, NOT `@partial` : `parse_type` does produce variants
     // beyond the listed set on real input (the self-compile hits them), so a

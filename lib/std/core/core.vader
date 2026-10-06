@@ -161,7 +161,7 @@ export Index :: trait<I, T> {
 }
 /// Indexed write — `a[i] = v`. Symmetric with `Index`.
 export IndexSet :: trait<I, T> {
-    set_at :: fn(self, i: I, v: T)
+    set_at :: fn(self!, i: I, v: T)
 }
 
 /// Membership test. `x in coll` desugars to `coll.contains(x)` ;
@@ -235,7 +235,7 @@ export Async :: trait<T> {
     /// yet ready. Synthesised per `async fn` by lowering. The resumed value
     /// is delivered out-of-band (a synthesised erased frame slot the scheduler
     /// sets before each call), so this signature stays source-clean.
-    resume :: fn(self) -> T | Suspended
+    resume :: fn(self!) -> T | Suspended
 
     /// Tear the awaitable down without completing it : run any pending `defer`s
     /// (LIFO), recursively cancel the child it is parked on, and retire it.

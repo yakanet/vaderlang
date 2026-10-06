@@ -213,7 +213,7 @@ variant_disjunction :: fn(
 // union, which always does. A variant with no tag of its own (`is_untagged`) sits
 // only beside `null` (T3087): it is whatever is not `null`.
 holds_test :: fn(
-    value: LoweredExpr!, t: Type, variant: Type, span: Span, out: LoweredExpr[]!,
+    value: LoweredExpr!, t: Type, variant: Type, span: Span, out: LoweredExpr![]!,
 ) -> void {
     if t !is UnionType {
         return

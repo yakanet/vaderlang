@@ -14,7 +14,7 @@ import "toolchain/span"
 // the target ident's `_<i>` field (tuples) or `[i]` index (arrays).
 emit_let_binding_leaves :: fn(
     ctx: FnLowerCtx!, binding: TupleBinding, target: LoweredExpr!,
-    target_type: Type, span: Span, out: LoweredStmt[]!,
+    target_type: Type, span: Span, out: LoweredStmt![]!,
 ) -> void {
     // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
     // `BigInt :: u32[]`) destructures through its backing composite — unwrap the
@@ -124,7 +124,7 @@ rest_leaf_index :: fn(binding: TupleBinding) -> i64 {
 // loop pushing `arr[i]` for `i` in `rest_index..<arr.len()`.
 emit_array_destructure :: fn(
     ctx: FnLowerCtx!, binding: TupleBinding, rest_index: usize,
-    target: LoweredExpr!, arr: ArrayType, span: Span, out: LoweredStmt[]!,
+    target: LoweredExpr!, arr: ArrayType, span: Span, out: LoweredStmt![]!,
 ) -> void {
     elem_type :: ctx.types.apply(arr.element)
     for i in 0..<rest_index {
@@ -150,7 +150,7 @@ emit_array_destructure :: fn(
 // destructure.
 emit_rest_loop :: fn(
     ctx: FnLowerCtx!, rest: RestBinding, rest_index: usize,
-    target: LoweredExpr!, elem_type: Type, span: Span, out: LoweredStmt[]!,
+    target: LoweredExpr!, elem_type: Type, span: Span, out: LoweredStmt![]!,
 ) -> void {
     // The resolver indexes a rest binding's Symbol by `span` (not
     // `name_span` like simple bindings — see resolver `bind_let_binding`).
@@ -172,7 +172,7 @@ emit_rest_loop :: fn(
 /// @param elem_type   the source's element type.
 emit_tail_copy :: fn(
     ctx: FnLowerCtx!, dest: LoweredExpr!, rest_index: usize,
-    target: LoweredExpr!, elem_type: Type, span: Span, out: LoweredStmt[]!,
+    target: LoweredExpr!, elem_type: Type, span: Span, out: LoweredStmt![]!,
 ) -> void {
     idx_sym :: fresh_synthetic_symbol(ctx, "i")
     out.push(LoweredLet {
@@ -234,7 +234,7 @@ export read_local_cell_aware :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, spa
 // nested tuples recurse.
 emit_let_leaf_array :: fn(
     ctx: FnLowerCtx!, leaf: LetBinding, access: LoweredExpr!, elem_type: Type,
-    span: Span, out: LoweredStmt[]!,
+    span: Span, out: LoweredStmt![]!,
 ) -> void {
     match leaf {
         is SimpleBinding -> {
@@ -250,7 +250,7 @@ emit_let_leaf_array :: fn(
 
 emit_let_leaf :: fn(
     ctx: FnLowerCtx!, leaf: LetBinding, target: LoweredExpr!,
-    target_type: Type, index: usize, span: Span, out: LoweredStmt[]!,
+    target_type: Type, index: usize, span: Span, out: LoweredStmt![]!,
     field_names: string[] | null,
 ) -> void {
     match leaf {

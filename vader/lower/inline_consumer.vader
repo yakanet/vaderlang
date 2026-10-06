@@ -335,7 +335,9 @@ result_block :: fn(stmts: LoweredStmt![], trailing: LoweredExpr! | null, type: T
 // Each argument evaluated once, in parameter order, as the call would: the
 // consumed one as its chain's operands, every other one bound to the instance's
 // clone of its parameter. Returns the consumed chain, bound.
-bind_consumer_arguments :: fn(ctx: FnLowerCtx!, call: ConsumerCall, out: LoweredStmt[]!) -> IterChain {
+bind_consumer_arguments :: fn(
+    ctx: FnLowerCtx!, call: ConsumerCall, out: LoweredStmt![]!,
+) -> IterChain {
     target :: call.target
     bound := call.chain
     for k in 0..<target.decl.params.len() {
@@ -394,7 +396,7 @@ assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr!, span: Spa
 /// @param stmt      the `return`.
 /// @param out       receives the assignment, when the `return` carries a value.
 assign_consumer_return :: fn(
-    ctx: FnLowerCtx!, consumer: InlineConsumer, stmt: AST.ReturnStmt, out: LoweredStmt[]!,
+    ctx: FnLowerCtx!, consumer: InlineConsumer, stmt: AST.ReturnStmt, out: LoweredStmt![]!,
 ) -> void {
     if stmt.value is AST.Expr as v {
         value :: slot_result(ctx, lower_expr(ctx, v), consumer.result_type, stmt.span)

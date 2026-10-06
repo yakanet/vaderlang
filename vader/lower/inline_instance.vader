@@ -186,7 +186,7 @@ origin_symbol_id :: fn(project: LowerProjectCtx, symbol: Symbol) -> i32 =
 bind_instance_param :: fn(
     ctx: FnLowerCtx!, instance: InlineInstance, owner: TypedProgram, p: AST.FnParam, value: LoweredExpr!,
     slot: Type,
-) -> LoweredStmt {
+) -> LoweredStmt! {
     symbol :: lookup_local_symbol(ctx.project, owner.resolved, p.span) ?? panic(
         "inlined call: parameter `${p.name}` has no symbol",
     )
@@ -231,7 +231,7 @@ instance_exit_label :: fn(instance: InlineInstance) -> string = r"$exit" + insta
 ///
 /// @param instance  the instance to leave.
 /// @param span      the jump's span.
-leave_instance :: fn(instance: InlineInstance!, span: Span) -> LoweredStmt {
+leave_instance :: fn(instance: InlineInstance!, span: Span) -> LoweredStmt! {
     instance.exited = true
     return LoweredBreak { .span = span, .label = instance_exit_label(instance) }
 }

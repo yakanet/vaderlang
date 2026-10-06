@@ -310,25 +310,28 @@
         {
           "name": "f",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Async"
-            },
-            "typeArgs": [
-              {
-                "kind": "BinaryExpr",
-                "op": "bitor",
-                "left": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                },
-                "right": {
-                  "kind": "IdentExpr",
-                  "name": "LoadError"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Async"
+              },
+              "typeArgs": [
+                {
+                  "kind": "BinaryExpr",
+                  "op": "bitor",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  },
+                  "right": {
+                    "kind": "IdentExpr",
+                    "name": "LoadError"
+                  }
                 }
-              }
-            ]
+              ]
+            }
           },
           "defaultValue": null,
           "variadic": false

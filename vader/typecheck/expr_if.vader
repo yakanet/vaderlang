@@ -461,7 +461,7 @@ expr_if_check_stub :: fn(
     }
 }
 
-accept_if :: fn(e: AST.Expr) -> AST.Expr | null {
+accept_if :: fn(e: AST.Expr!) -> AST.Expr! | null {
     if e is AST.IfExpr { return e }
     return null
 }

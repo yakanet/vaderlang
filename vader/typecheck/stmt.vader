@@ -582,8 +582,8 @@ flows_into :: fn(got: Type, expected: Type, node_id: usize, typed: TypedProgram!
 }
 
 // Push `code` when `got` doesn't flow into `expected` — neither assignable nor
-// `Into`-coercible. Shared by the return / yield mismatch checks so wording
-// stays in sync ; only the diagnostic code differs. `value` is the coerced
+// `Into`-coercible. Shared by the return / yield mismatch checks and by field
+// defaults so wording stays in sync ; only the diagnostic code differs. `value` is the coerced
 // expression — its id feeds `try_into`'s LSP into-hint table, and it names the
 // declaration to reopen on a mutability-only mismatch. Null for a bare `return`.
 emit_mismatch_if :: fn(
@@ -1601,8 +1601,9 @@ expr_is_immutable_within :: fn(e: AST.Expr, typed: TypedProgram, budget: i32) ->
 // The per-LEVEL half of `expr_is_immutable`, for the callers that have already
 // settled the storageless-const question.
 //
-// @partial: only an access path can be immutable — an ident, or a field / element
-// reached from one. Every other expression form yields a fresh owned value.
+// @partial: only an access path can be immutable — an ident, a field / element
+// reached from one, or a conversion re-typing one. Every other expression form
+// yields a fresh owned value.
 walk_levels :: fn(e: AST.Expr, typed: TypedProgram, budget: i32) -> bool {
     // A level that declares `!` STOPS the walk. `xs: Box![]` says the elements are
     // mutable whatever the path that reached them, exactly as `Wrap { b: Box! }` says
@@ -1617,8 +1618,26 @@ walk_levels :: fn(e: AST.Expr, typed: TypedProgram, budget: i32) -> bool {
         is AST.IdentExpr -> ident_is_immutable(e, typed, budget)
         is AST.FieldExpr -> walk_levels(e.target, typed, budget)
         is AST.IndexExpr -> walk_levels(e.target, typed, budget)
+        // `Ids(xs)` re-types the SAME value : it is as read-only as `xs`.
+        is AST.CallExpr  -> converted_is_immutable(e, typed, budget)
         _                -> false
     }
+}
+
+// A conversion `T(x)` of a value that holds a reference re-types that same
+// reference, so it is as read-only as `x`. A scalar converts to a copy, which no
+// path can freeze.
+converted_is_immutable :: fn(c: AST.CallExpr, typed: TypedProgram, budget: i32) -> bool {
+    if c.args.len() != 1 {
+        return false
+    }
+    callee_ty :: typed.expr_types[c.callee.id] ?? return false
+    if !converts_by_name(c, callee_ty, typed) {
+        return false
+    }
+    converted :: typed.expr_types[c.args[0].value.id] ?? return false
+    return carries_mutability_bit(strip_distinct(converted)) &&
+        walk_levels(c.args[0].value, typed, budget)
 }
 
 ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32) -> bool {

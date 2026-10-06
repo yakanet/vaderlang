@@ -130,7 +130,7 @@ has_foldable_leaf :: fn(operands: LoweredExpr[]) -> bool {
 // Append `lit`'s bytes to `out`'s trailing leaf when that leaf is itself a
 // literal, and report whether it happened. The merged span covers the whole run,
 // so a diagnostic on the folded value still points at every part the user wrote.
-merge_into_literal_tail :: fn(out: LoweredExpr[]!, lit: LoweredStringLit) -> bool {
+merge_into_literal_tail :: fn(out: LoweredExpr![]!, lit: LoweredStringLit) -> bool {
     last :: out.len()
     if last == 0 {
         return false
@@ -545,9 +545,9 @@ fold_test_run :: fn(leaves: LoweredExpr![]!) -> string {
 // A chain with nothing to fold keeps its own array — the early-out that spares
 // the common `"x=" + v + ", y=" + w` shape a copy per leaf.
 @test test_fold_literal_runs_returns_the_input_when_nothing_folds :: fn() -> void {
-    mixed: LoweredExpr[]!: [fold_test_lit("a"), fold_test_opaque("x")]
-    pair: LoweredExpr[]!: [fold_test_lit("a"), fold_test_lit("b")]
-    empty: LoweredExpr[]!: [fold_test_lit(""), fold_test_opaque("x")]
+    mixed: LoweredExpr![]!: [fold_test_lit("a"), fold_test_opaque("x")]
+    pair: LoweredExpr![]!: [fold_test_lit("a"), fold_test_lit("b")]
+    empty: LoweredExpr![]!: [fold_test_lit(""), fold_test_opaque("x")]
     assert(!has_foldable_leaf(mixed), "no adjacent pair and no empty leaf")
     assert(has_foldable_leaf(pair), "two adjacent literals merge")
     assert(has_foldable_leaf(empty), "an empty literal is dropped")

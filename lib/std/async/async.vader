@@ -65,7 +65,7 @@ export sleep :: fn(ms: i64) -> Async<null> = Sleep { .ms = ms }
 /// @return      main's completed `i32` exit code.
 /// @error       panics on a park with no timer armed — every task is suspended
 ///              with nothing left to wake it (a deadlock).
-export run_async_main :: fn(root: Async<i32>) -> i32 = block_on(root)
+export run_async_main :: fn(root: Async<i32>!) -> i32 = block_on(root)
 
 /// Drive any awaitable to completion from synchronous code, returning its
 /// result. Resumes `root` and, whenever it parks, blocks on the nearest armed
@@ -76,7 +76,7 @@ export run_async_main :: fn(root: Async<i32>) -> i32 = block_on(root)
 /// @param root  the awaitable to run to completion.
 /// @return      its completed value.
 /// @error       panics on a park with nothing armed to wake it (a deadlock).
-export block_on :: fn<T>(root: Async<T>) -> T {
+export block_on :: fn<T>(root: Async<T>!) -> T {
     for {
         r :: root.resume()
         if r is Suspended {
@@ -335,13 +335,13 @@ TimeoutError implements Error {
 /// child's value, or a `TimeoutError` once the timer fires — and the loser is
 /// cancelled.
 Timeout :: struct<T> {
-    child: Async<T>
-    timer: Async<null>
+    child: Async<T>!
+    timer: Async<null>!
     ms:    i64
 }
 
 Timeout<T> implements Async<T | TimeoutError> {
-    resume :: fn(self) -> T | TimeoutError | Suspended {
+    resume :: fn(self!) -> T | TimeoutError | Suspended {
         rc :: self.child.resume()
         if rc is Suspended {
             rt :: self.timer.resume()

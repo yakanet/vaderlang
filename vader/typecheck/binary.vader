@@ -1198,7 +1198,7 @@ narrow :: fn(got: Type, expected: Type | null) -> Type {
     return got
 }
 
-accept_binary :: fn(e: AST.Expr) -> AST.Expr | null {
+accept_binary :: fn(e: AST.Expr!) -> AST.Expr! | null {
     if e is AST.BinaryExpr {
         return e
     }

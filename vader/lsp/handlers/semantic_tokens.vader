@@ -76,7 +76,7 @@ reencode_columns :: fn(out: RawToken![]!, li: LineIndex) -> void {
 
 // ---- lexer tokens → semantic tokens --------------------------------------
 
-collect_token_kinds :: fn(source: string, uri: string, out: RawToken[]!) -> void {
+collect_token_kinds :: fn(source: string, uri: string, out: RawToken![]!) -> void {
     lex :: tokenize(source, uri)
     toks :: lex.tokens
     for i in 0..<toks.len() {
@@ -97,7 +97,7 @@ collect_token_kinds :: fn(source: string, uri: string, out: RawToken[]!) -> void
 // Build a `RawToken` for `t` with the given semantic type. The token loop
 // computes the type (with the `!is` / `!in` Bang override) and calls this so the
 // span arithmetic lives in one place.
-raw_of_type :: fn(t: Token, tt: i32) -> RawToken {
+raw_of_type :: fn(t: Token, tt: i32) -> RawToken! {
     sp :: t.span
     return RawToken {
         .line         = sp.start.line - 1,
@@ -155,11 +155,11 @@ classify_token :: fn(t: Token) -> i32 = match t.kind {
 
 // ---- comments → semantic tokens ------------------------------------------
 
-collect_comment_kinds :: fn(source: string, out: RawToken[]!) -> void {
+collect_comment_kinds :: fn(source: string, out: RawToken![]!) -> void {
     cm :: scan_comments(source)
     for c in cm.comments {
         rt :: comment_to_raw(c)
-        for r in rt { out.push(r) }
+        out.push_all(rt)
     }
 }
 
@@ -169,8 +169,8 @@ collect_comment_kinds :: fn(source: string, out: RawToken[]!) -> void {
 //     comment (documentation modifier), `@param`/`@return`/etc. as
 //     decorator (documentation modifier), `@param`'s name as parameter
 //     (documentation modifier).
-comment_to_raw :: fn(c: Comment) -> RawToken[] {
-    out: RawToken[]!: []
+comment_to_raw :: fn(c: Comment) -> RawToken![] {
+    out: RawToken![]!: []
     // Base case : non-doc comments emit a single comment-typed token.
     match c.kind {
         .Line -> {
@@ -190,7 +190,7 @@ comment_to_raw :: fn(c: Comment) -> RawToken[] {
     }
 }
 
-make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
+make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken! {
     // `Comment` carries no end column, so derive the end from the text's byte
     // length ; `reencode_columns` turns the offsets into col + length.
     return RawToken {
@@ -214,7 +214,7 @@ make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
 // `///` prefix and narrative therefore keep their TextMate coloring
 // from `comment.line.documentation.vader` ; only the tag fragments
 // receive semantic-token treatment.
-collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]!) -> void {
+collect_doc_line_tokens :: fn(c: Comment, out: RawToken![]!) -> void {
     text_bytes :: c.text.bytes()
     n :: text_bytes.len()
     i: usize = 0
@@ -287,7 +287,7 @@ scan_ident_end :: fn(bs: u8[], start: usize) -> usize {
 // Sort by (line, col) ascending. The lexer emits tokens in source order
 // already, but comment tokens are produced separately and need merging.
 // Insertion sort suffices — token count per file is small (≤ a few k).
-sort_raws :: fn(arr: RawToken[]!) -> void {
+sort_raws :: fn(arr: RawToken![]!) -> void {
     n :: arr.len()
     for i in 1..<n {
         x :: arr[i]
@@ -522,16 +522,16 @@ tok_type_at :: fn(toks: RawToken[], offset: usize) -> i32 {
 test_bang_is_in_paint_as_keyword :: fn() -> void {
     // `!is` / `!in` : the leading `!` paints as a keyword (not an operator) so
     // the negated operator colours as one unit — mirrors the TextMate grammar.
-    is_toks: RawToken[]!: []
+    is_toks: RawToken![]!: []
     collect_token_kinds("x !is y\n", "t.vader", is_toks)
     assert_eq(tok_type_at(is_toks, 2), i32(TokenType.Keyword))
 
-    in_toks: RawToken[]!: []
+    in_toks: RawToken![]!: []
     collect_token_kinds("x !in y\n", "t.vader", in_toks)
     assert_eq(tok_type_at(in_toks, 2), i32(TokenType.Keyword))
 
     // A bare `!` (logical not) still classifies as an operator.
-    not_toks: RawToken[]!: []
+    not_toks: RawToken![]!: []
     collect_token_kinds("!x\n", "t.vader", not_toks)
     assert_eq(tok_type_at(not_toks, 0), i32(TokenType.Operator))
 }

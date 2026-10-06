@@ -591,7 +591,7 @@ match_expr_check_stub :: fn(
     }
 }
 
-accept_match :: fn(e: AST.Expr) -> AST.Expr | null {
+accept_match :: fn(e: AST.Expr!) -> AST.Expr! | null {
     if e is AST.MatchExpr {
         return e
     }

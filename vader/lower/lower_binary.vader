@@ -230,7 +230,7 @@ is_primitive_string_concat :: fn(ctx: FnLowerCtx, b: BinaryExpr) -> bool {
 // Flatten a primitive string `+` tree into its leaf operands, lowered in order.
 // `((a + b) + c)` collects `[a, b, c]`. A nested node is recursed into only when
 // it is itself a primitive string `+` ; everything else is an opaque leaf.
-collect_concat_operands :: fn(ctx: FnLowerCtx!, e: Expr, out: LoweredExpr[]!) -> void {
+collect_concat_operands :: fn(ctx: FnLowerCtx!, e: Expr, out: LoweredExpr![]!) -> void {
     if e is BinaryExpr {
         if is_primitive_string_concat(ctx, e) {
             collect_concat_operands(ctx, e.left, out)

@@ -515,7 +515,7 @@ gb_defers_len :: fn(gb: GenBuild, span: Span) -> LoweredExpr! =
 // Drain the top `count` defer thunks LIFO, then truncate. `count` is static (the
 // defers of the exiting scope[s]) — emit all calls before truncating so
 // `len - 1 - k` walks the live tail top-down, then slice off the drained run.
-gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[]!) -> void {
+gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt![]!) -> void {
     count :: i64(dpe.count)
     if count == 0 { return }
     usize_ty :: mk_primitive("usize")
@@ -549,7 +549,7 @@ gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[]!
 // `gb_defer_drain` (which drains a statically-known scope count on a structured
 // exit). At cancel time the pending count is dynamic (how far the coroutine ran
 // before it was abandoned), so loop `while len != 0 { call last ; truncate }`.
-gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]!) -> void {
+gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt![]!) -> void {
     usize_ty :: mk_primitive("usize")
     // idx = self.__defers.len() - 1 (recomputed each iteration — the truncate
     // below shrinks the array, so the last live thunk moves down every step).
@@ -706,7 +706,7 @@ gb_route_block :: fn(gb: GenBuild, block: LoweredBlock) -> LoweredBlock! {
 
 // Each rebuild lists its fields instead of spreading the node: a child added
 // without a default then breaks the build here rather than escaping the routing.
-gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]!) -> void {
+gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt![]!) -> void {
     match s {
         is LoweredLet -> {
             // Every local is spilled → `self.<field> = value`.
@@ -740,8 +740,8 @@ gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]!) -> void {
         is LoweredLabelledBlock -> {
             out.push(LoweredLabelledBlock { ...s, .body = gb_route_block(gb, s.body) })
         }
-        is LoweredBreak    -> { out.push(s) }
-        is LoweredContinue -> { out.push(s) }
+        is LoweredBreak    -> { out.push(LoweredBreak { .span = s.span, .label = s.label }) }
+        is LoweredContinue -> { out.push(LoweredContinue { .span = s.span, .label = s.label }) }
         is LoweredCellSet  -> {
             out.push(LoweredCellSet { .span = s.span, .target = gb_route_expr(gb, s.target), .value = gb_route_expr(gb, s.value), .value_type = s.value_type })
         }

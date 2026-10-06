@@ -243,7 +243,7 @@ seq_lit_check_stub :: fn(
     }
 }
 
-accept_seq :: fn(e: AST.Expr) -> AST.Expr | null {
+accept_seq :: fn(e: AST.Expr!) -> AST.Expr! | null {
     if e is AST.SeqLitExpr {
         return e
     }

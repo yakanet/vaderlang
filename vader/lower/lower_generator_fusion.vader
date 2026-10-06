@@ -602,7 +602,7 @@ gen_source_subst :: fn(
 // is read through `Iterator.next` by the body, so it must arrive wrapped.
 bind_gen_source_operands :: fn(
     ctx: FnLowerCtx!, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
-    out: LoweredStmt[]!,
+    out: LoweredStmt![]!,
 ) -> IterChain {
     gs :: chain.gen_source ?? return chain
     for k in 0..<gs.decl.params.len() {

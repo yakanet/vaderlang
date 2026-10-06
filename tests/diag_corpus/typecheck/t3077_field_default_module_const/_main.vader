@@ -1,0 +1,21 @@
+// Every `Box {}` shares its field's default value : a module const there, in a
+// field that promises mutation, would be written through by `b.inner.n = 9`.
+// The const is declared after the struct on purpose — the default is checked
+// once every const has its type. T3077.
+module "snippet"
+
+Inner :: struct {
+    n: i32
+}
+
+Box :: struct {
+    inner: Inner! = INNER
+}
+
+INNER :: Inner { .n = 1 }
+
+main :: fn() -> i32 {
+    b :: Box {}
+    b.inner.n = 9
+    return INNER.n
+}

@@ -33,8 +33,6 @@ import "std/io"
 import "std/path"
 import "std/string"
 import "cli"
-import "vader/diagnostics"
-import "vader/lower"
 import "vader/pipeline"
 import "vader/target"
 
@@ -70,29 +68,14 @@ export cmd_check :: fn(args: string[]) -> i32 {
         }
     }
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
-    front :: gather_pipeline_diags(pipeline)
     // Lowering too, not just the front end. It needs no toolchain — it produces
     // IR, not C — and without it the gate answered "the Windows code resolves
     // and type-checks", which is not what the header above promises. An `await`
     // in a short-circuit operand (M5009) inside a `@target(.Windows)` body
-    // passed `check` and failed the build.
-    lower_diags: Diagnostic[]!: []
-    lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    diags: Diagnostic[]!: []
-    for d in front {
-        diags.push(d)
-    }
-    for d in lower_diags {
-        diags.push(d)
-    }
+    // passed `check` and failed the build. As for `build`, a program the front
+    // end rejected is not lowered.
+    le :: lower_to_entry_with(file, include_path_flags, target)
     // Diagnostics on STDERR, and stdout stays empty on success: a gate is read by
     // a script before it is read by a person.
-    if diags.len() > 0 {
-        eprintln(diags.dump_diagnostics_with_file())
-    }
-    if any_error_diag(diags) {
-        return 1
-    }
-    return 0
+    return if flush_build_diags(le.pre_diags, le.lower_diags) { 0 } else { 1 }
 }

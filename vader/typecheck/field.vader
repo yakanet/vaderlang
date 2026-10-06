@@ -1366,7 +1366,7 @@ try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type 
 // The type of `m`, a member of the trait `trait_id`, with its receiver dropped.
 // Its signature is read in the trait's own module : std/core's `Iterator<T>.next`
 // names a `T` minted there, which the entry's idents would leave unresolved.
-trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram) -> Type {
+trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram) -> FnType {
     owner_resolved :: typed.trait_decl_owners[trait_id] ?? typed.resolved
     params: Type[]!: []
     for i in receiver_count(m)..<m.params.len() {
@@ -1378,7 +1378,7 @@ trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram) -> Ty
 // A trait member's type with its receiver dropped — `params` are its tail — and
 // the tail's `!` markers kept, so T3072 still sees them through method syntax. A
 // static member has no receiver to drop.
-member_fn_type :: fn(m: AST.FnDecl, params: Type[], ret: Type) -> Type = FnType {
+member_fn_type :: fn(m: AST.FnDecl, params: Type[], ret: Type) -> FnType = FnType {
     .params         = params,
     .params_mutable = params_mutable_after_receiver(m),
     .return_type    = ret,
@@ -1702,7 +1702,7 @@ field_check_stub :: fn(
     }
 }
 
-accept_field :: fn(e: AST.Expr) -> AST.Expr | null {
+accept_field :: fn(e: AST.Expr!) -> AST.Expr! | null {
     if e is AST.FieldExpr {
         return e
     }

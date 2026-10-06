@@ -3,7 +3,7 @@
 // `find_first_in_block` factors out the recursive descent every
 // `infer_*` test block needs to locate the first expression a
 // predicate accepts. Callers wrap with a tiny `accept_X` predicate
-// and narrow the returned `AST.Expr | null` via `match … is AST.XExpr`.
+// and narrow the returned `AST.Expr! | null` via `match … is AST.XExpr`.
 //
 // The per-file `*_check_stub` helpers and the parse + resolve + check pipeline
 // stay per-file : moving them here would either create a file-level cycle
@@ -22,10 +22,10 @@ AST :: import "toolchain/ast"
 ///
 /// `pred` receives every visited expression and returns either the
 /// expression itself (to stop the walk) or `null` to keep walking.
-/// Callers narrow the returned `AST.Expr | null` to the variant
+/// Callers narrow the returned `AST.Expr! | null` to the variant
 /// they're looking for.
 export find_first_in_block :: fn(
-    b: AST.BlockExpr, pred: fn(AST.Expr) -> AST.Expr | null,
+    b: AST.BlockExpr!, pred: fn(AST.Expr!) -> AST.Expr! | null,
 ) -> AST.Expr! | null {
     for stmt in b.stmts {
         hit :: find_first_in_stmt(stmt, pred)
@@ -36,7 +36,7 @@ export find_first_in_block :: fn(
 }
 
 find_first_in_stmt :: fn(
-    s: AST.Stmt, pred: fn(AST.Expr) -> AST.Expr | null,
+    s: AST.Stmt!, pred: fn(AST.Expr!) -> AST.Expr! | null,
 ) -> AST.Expr! | null {
     // @partial: the walker descends only into return / expr statements; every
     // other statement kind carries no expression to search → null.
@@ -51,7 +51,7 @@ find_first_in_stmt :: fn(
 }
 
 find_first_in_expr :: fn(
-    e: AST.Expr, pred: fn(AST.Expr) -> AST.Expr! | null,
+    e: AST.Expr!, pred: fn(AST.Expr!) -> AST.Expr! | null,
 ) -> AST.Expr! | null {
     hit :: pred(e)
     if hit !is null { return hit }
@@ -83,7 +83,7 @@ find_first_in_expr :: fn(
                 is null            -> { return null }
                 is AST.IfElseBlock -> { return find_first_in_block(eb.block, pred) }
                 is AST.IfElseIf    -> {
-                    inner: AST.Expr: eb.branch
+                    inner: AST.Expr!: eb.branch
                     return find_first_in_expr(inner, pred)
                 }
             }

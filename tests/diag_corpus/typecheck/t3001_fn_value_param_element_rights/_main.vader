@@ -1,0 +1,22 @@
+// A fn type's parameters are contravariant in their rights : `fill` may store a
+// read-only point in what a `fn(Point![]!)` caller hands it, and the caller then
+// writes it as a `Point!`. T3001.
+module "snippet"
+
+Point :: struct {
+    x: i32
+}
+
+ORIGIN :: Point { .x = 1 }
+
+fill :: fn(dst: Point[]!) -> void {
+    dst.push(ORIGIN)
+}
+
+main :: fn() -> i32 {
+    held: Point![]!: []
+    slot: fn(Point![]!) -> void: fill
+    slot(held)
+    held[0].x = 9
+    return ORIGIN.x
+}

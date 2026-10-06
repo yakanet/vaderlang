@@ -42,7 +42,7 @@ export lower_for_in :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
-) -> LoweredStmt {
+) -> LoweredStmt! {
     span :: for_stmt.span
     // Fast path : `for x in <chain>` where `<chain>` is one or more
     // `std/iter` lazy combinators (`map` / `filter` / …, all generators)
@@ -677,7 +677,7 @@ try_lower_for_in_raw_array :: fn(
     iter_lowered: LoweredExpr!, iter_type: Type,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
-) -> LoweredStmt | null {
+) -> LoweredStmt! | null {
     array_elem_type: Type = TY_UNRESOLVED
     // Arrays — and array-backed distinct newtypes via `array_backing` — iterate
     // by index over the value (which is the backing array at runtime).
@@ -773,7 +773,7 @@ try_lower_for_in_int_range :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
-) -> LoweredStmt | null {
+) -> LoweredStmt! | null {
     range :: extract_range(in_form.iter) ?? return null
     raw_lower :: ctx.types.expr_type(range.lower)
     raw_upper :: ctx.types.expr_type(range.upper)
@@ -919,7 +919,7 @@ try_lower_for_in_map_set :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
     src_value: LoweredExpr!, src_type: Type, span: Span,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
-) -> LoweredStmt | null {
+) -> LoweredStmt! | null {
     if src_type is StructType {
         // `MutableMap` / `MutableSet` lookups returning null (std/collections not
         // loaded) fall through to `!is_map && !is_set` below — no separate gate.
@@ -951,7 +951,7 @@ lower_map_set_compact :: fn(
     src_value: LoweredExpr!, src_type: Type, span: Span,
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
     source: StructType, is_map: bool, is_set: bool, entry_args: Type[],
-) -> LoweredStmt {
+) -> LoweredStmt! {
     usize_ty :: mk_primitive("usize")
     key_ty :: entry_args[0]
     val_ty :: entry_args[1]

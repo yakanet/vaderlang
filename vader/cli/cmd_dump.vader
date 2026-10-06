@@ -270,17 +270,18 @@ run_cfg_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
 ) -> i32 {
     pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
-    lower_diags: Diagnostic[]!: []
-    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    cfg :: build_cfg_project(lowered)
-    // Scope the dump to the entry's subtree (or `--module`) without the string
-    // pool, so `dump --stage=cfg` reads as the code under inspection.
-    opts :: DumpCfgOptions {
-        .scope = dump_scope(module_filter, pipeline.loaded),
-        .include_strings = false,
+    // A front-end-rejected program is never lowered : print its diagnostics alone.
+    le :: lower_to_entry_from(pipeline)
+    if !any_error_diag(le.pre_diags) {
+        // Scope the dump to the entry's subtree (or `--module`) without the string
+        // pool, so `dump --stage=cfg` reads as the code under inspection.
+        opts :: DumpCfgOptions {
+            .scope = dump_scope(module_filter, pipeline.loaded),
+            .include_strings = false,
+        }
+        print(dump_cfg_project(build_cfg_project(le.lowered), opts))
     }
-    print(dump_cfg_project(cfg, opts))
-    print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
+    print_pipeline_diags(pipeline, le.lower_diags, dump_scope(module_filter, pipeline.loaded))
     return 0
 }
 
@@ -377,10 +378,12 @@ run_lower_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
 ) -> i32 {
     pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
-    lower_diags: Diagnostic[]!: []
-    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    println(dump_lowered(lowered, dump_scope(module_filter, pipeline.loaded)))
-    print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
+    // A front-end-rejected program is never lowered : print its diagnostics alone.
+    le :: lower_to_entry_from(pipeline)
+    if !any_error_diag(le.pre_diags) {
+        println(dump_lowered(le.lowered, dump_scope(module_filter, pipeline.loaded)))
+    }
+    print_pipeline_diags(pipeline, le.lower_diags, dump_scope(module_filter, pipeline.loaded))
     return 0
 }
 
@@ -490,11 +493,13 @@ run_dced_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
 ) -> i32 {
     pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
-    lower_diags: Diagnostic[]!: []
-    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    pruned :: prune_unreachable_fns(lowered, false)
-    println(dump_lowered(pruned, dump_scope(module_filter, pipeline.loaded)))
-    print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
+    // A front-end-rejected program is never lowered : print its diagnostics alone.
+    le :: lower_to_entry_from(pipeline)
+    if !any_error_diag(le.pre_diags) {
+        pruned :: prune_unreachable_fns(le.lowered, false)
+        println(dump_lowered(pruned, dump_scope(module_filter, pipeline.loaded)))
+    }
+    print_pipeline_diags(pipeline, le.lower_diags, dump_scope(module_filter, pipeline.loaded))
     return 0
 }
 

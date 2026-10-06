@@ -176,7 +176,7 @@ struct_lit_check_stub :: fn(
     }
 }
 
-accept_struct_lit :: fn(e: AST.Expr) -> AST.Expr | null {
+accept_struct_lit :: fn(e: AST.Expr!) -> AST.Expr! | null {
     if e is AST.StructLitExpr { return e }
     return null
 }

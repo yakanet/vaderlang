@@ -1,0 +1,16 @@
+// A conversion re-types the same value : `Ids(TABLE)` is as read-only as
+// `TABLE`, so it cannot be lent to a parameter that mutates it. T3072.
+module "snippet"
+
+Ids :: i32[]
+
+TABLE :: [1, 2, 3]
+
+poke :: fn(xs: Ids!) -> void {
+    xs[0] = 9
+}
+
+main :: fn() -> i32 {
+    poke(Ids(TABLE))
+    return TABLE[0]
+}

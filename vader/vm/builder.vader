@@ -200,10 +200,10 @@ export add_impl :: fn(self: ModuleBuilder!, type_id: i32, trait_name: string) ->
 /// @return          the index into `self.functions`.
 export add_function :: fn(self: ModuleBuilder!, function: FunctionBuilder) -> i32 {
     index :: i32(self.functions.len())
-    locals :: function.local_count.filled(() -> bc.BcLocal {
-        .name = "_",
-        .val = .Any
-    })
+    locals: bc.BcLocal[]!: []
+    for _ in 0..<function.local_count {
+        locals.push(bc.BcLocal { .name = "_", .val = .Any })
+    }
     debug: (bc.DebugPos | null)[]!: [null] * function.ops.len()
     self.functions.push(bc.BcFunction {
         .name       = function.name,

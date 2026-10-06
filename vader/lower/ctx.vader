@@ -527,7 +527,7 @@ export FnLowerCtx :: struct {
     /// (respecting a per-block watermark, so an enclosing `if`-condition's await
     /// isn't stolen by an arm body) into statement position just before the
     /// statement that used their value.
-    pending_awaits:     LoweredStmt[]! = []
+    pending_awaits:     LoweredStmt![]! = []
 
     /// Non-null while INLINING a generator body into the chain that consumes it
     /// (a chain source or layer, `lower_generator_fusion.vader`): `lower_stmt`

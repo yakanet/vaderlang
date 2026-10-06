@@ -345,7 +345,7 @@ unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
 
 introduce_pattern_bindings :: fn(
     ctx: FnLowerCtx!, pattern: Pattern, scrut_symbol: Symbol, scrut_type: Type,
-    out: LoweredStmt[]!, span: Span,
+    out: LoweredStmt![]!, span: Span,
 ) -> void {
     scrut_ref :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
     walk_pattern_bindings(ctx, pattern, scrut_ref, scrut_type, out, span)
@@ -353,7 +353,7 @@ introduce_pattern_bindings :: fn(
 
 walk_pattern_bindings :: fn(
     ctx: FnLowerCtx!, pattern: Pattern, target: LoweredExpr!, target_type: Type,
-    out: LoweredStmt[]!, span: Span,
+    out: LoweredStmt![]!, span: Span,
 ) -> void {
     match pattern {
         is IsPattern -> {

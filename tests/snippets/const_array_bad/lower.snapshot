@@ -1,32 +1,3 @@
-# Lower
-
-## snippet
-  fn snippet$write_through_param(a: i32[]) -> void
-    assign
-      target:
-        index :?
-          on:
-            a :i32[]
-          ix:
-            int(0) :i32
-      value:
-        int(99) :?
-  fn snippet$main() -> i32
-    assign
-      target:
-        index :?
-          on:
-            DIGITS :i32[]
-          ix:
-            int(0) :i32
-      value:
-        int(99) :?
-    call :void
-      callee:
-        write_through_param :fn(i32[]) -> void
-      arg0:
-        DIGITS :i32[]
-    return int(0) :i32
 
 # Diagnostics
 [12:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]` — annotate `a!` at tests/snippets/const_array_bad/_main.vader:11:27

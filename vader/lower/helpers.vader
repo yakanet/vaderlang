@@ -333,7 +333,8 @@ loop_step_block :: fn(lp: LoweredLoop) -> LoweredBlock = arm_block(lp.step, lp.s
 
 // A fresh local bound to `value` in `out`, and the ident that reads it.
 bind_to_local :: fn(
-    ctx: FnLowerCtx!, value: LoweredExpr!, type: Type, name: string, span: Span, out: LoweredStmt[]!,
+    ctx: FnLowerCtx!, value: LoweredExpr!, type: Type, name: string, span: Span,
+    out: LoweredStmt![]!,
 ) -> LoweredExpr! {
     symbol :: fresh_synthetic_symbol(ctx, name)
     out.push(LoweredLet {
@@ -344,7 +345,7 @@ bind_to_local :: fn(
 
 // `value` itself when it is invariant, else a local bound to it in `out`.
 bind_unless_invariant :: fn(
-    ctx: FnLowerCtx!, value: LoweredExpr!, name: string, span: Span, out: LoweredStmt[]!,
+    ctx: FnLowerCtx!, value: LoweredExpr!, name: string, span: Span, out: LoweredStmt![]!,
 ) -> LoweredExpr! = if is_invariant_operand(ctx, value) {
     value
 } else {
@@ -353,7 +354,7 @@ bind_unless_invariant :: fn(
 
 // `value` itself when it is stable, else a local bound to it in `out`.
 bind_unless_stable :: fn(
-    ctx: FnLowerCtx!, value: LoweredExpr!, name: string, span: Span, out: LoweredStmt[]!,
+    ctx: FnLowerCtx!, value: LoweredExpr!, name: string, span: Span, out: LoweredStmt![]!,
 ) -> LoweredExpr! = if is_stable_operand(value) {
     value
 } else {

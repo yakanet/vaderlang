@@ -1,0 +1,16 @@
+// A fn type's return is covariant in its rights : a fn handing out a module
+// const cannot fill a slot promising a mutable result. T3077.
+module "snippet"
+
+Point :: struct {
+    x: i32
+}
+
+ORIGIN :: Point { .x = 1 }
+
+main :: fn() -> i32 {
+    f :: () -> ORIGIN
+    g: fn() -> Point!: f
+    g().x = 9
+    return ORIGIN.x
+}
