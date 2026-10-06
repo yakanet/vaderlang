@@ -105,7 +105,7 @@ StringChars implements Iterator<char> {
 ///
 /// @param s  source string.
 /// @return   a `StringChars` iterator over its codepoints.
-export chars :: fn(s: string) -> StringChars {
+export chars :: fn(s: string) -> StringChars! {
     bs :: s.bytes()
     return StringChars { .bytes = bs, .cursor = 0, .length = bs.len() }
 }

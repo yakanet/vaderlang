@@ -24,10 +24,10 @@ import "vader/diagnostics"
 AST :: import "toolchain/ast"
 
 /// Clone a BlockExpr, recursively substituting TypeParam idents.
-export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
-    new_stmts: AST.Stmt[]!: []
+export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr! {
+    new_stmts: AST.Stmt![]!: []
     for s in b.stmts { new_stmts.push(substitute_stmt(s, subst)) }
-    new_trailing: AST.Expr | null = null
+    new_trailing: AST.Expr! | null = null
     if b.trailing !is null {
         new_trailing = substitute_expr_full(b.trailing, subst)
     }
@@ -41,13 +41,13 @@ export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
 
 // Substitute inside a `??` fallback, preserving its concrete shape : break /
 // continue carry no substitutable expression ; return substitutes its value.
-substitute_coalesce_fallback :: fn(f: AST.CoalesceFallback, subst: Subst) -> AST.CoalesceFallback = match f {
+substitute_coalesce_fallback :: fn(f: AST.CoalesceFallback!, subst: Subst) -> AST.CoalesceFallback! = match f {
     is AST.ReturnStmt -> AST.ReturnStmt { .span = f.span, .value = subst_opt_expr(f.value, subst) }
     is AST.BreakStmt | AST.ContinueStmt -> f
     is AST.Expr -> substitute_expr_full(f, subst)
 }
 
-subst_opt_expr :: fn(v: AST.Expr | null, subst: Subst) -> AST.Expr | null {
+subst_opt_expr :: fn(v: AST.Expr! | null, subst: Subst) -> AST.Expr! | null {
     if v == null { return null }
     return substitute_expr_full(v, subst)
 }
@@ -67,7 +67,7 @@ subst_opt_expr :: fn(v: AST.Expr | null, subst: Subst) -> AST.Expr | null {
 /// @param e      the node to clone.
 /// @param subst  the type-param → trait-arg bindings to apply.
 /// @return       a fresh tree sharing no node with `e`.
-export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
+export substitute_expr_full :: fn(e: AST.Expr!, subst: Subst) -> AST.Expr! {
     match e {
         // Leaves : reuse the original. No TypeParam refs possible.
         is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr -> { return e }
@@ -140,7 +140,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.IfExpr -> {
-            new_else: AST.IfElse | null = null
+            new_else: AST.IfElse! | null = null
             match e.else_branch as eb {
                 is null            -> {}
                 is AST.IfElseBlock -> {
@@ -169,7 +169,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
         is AST.MatchExpr -> {
             new_arms: AST.MatchArm![]!: []
             for a in e.arms {
-                new_guard: AST.Expr | null = null
+                new_guard: AST.Expr! | null = null
                 if a.guard !is null {
                     new_guard = substitute_expr_full(a.guard, subst)
                 }
@@ -217,7 +217,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.SeqLitExpr -> {
-            new_elems: AST.Expr[]!: []
+            new_elems: AST.Expr![]!: []
             for el in e.elements { new_elems.push(substitute_expr_full(el, subst)) }
             return AST.SeqLitExpr {
                 .span = e.span, .id = AST.UNASSIGNED_NODE_ID, .elements = new_elems,
@@ -244,7 +244,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
             }
         }
         is AST.IntrinsicCallExpr -> {
-            new_args: AST.Expr[]!: []
+            new_args: AST.Expr![]!: []
             for a in e.args { new_args.push(substitute_expr_full(a, subst)) }
             return AST.IntrinsicCallExpr {
                 .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -283,11 +283,11 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
         is AST.LambdaExpr -> {
             new_params: AST.FnParam![]!: []
             for pm in e.params {
-                new_pty: AST.TypeExpr | null = null
+                new_pty: AST.TypeExpr! | null = null
                 if pm.ty !is null {
                     new_pty = substitute_type_expr(pm.ty, subst)
                 }
-                new_default: AST.Expr | null = null
+                new_default: AST.Expr! | null = null
                 if pm.default_value !is null {
                     new_default = substitute_expr_full(pm.default_value, subst)
                 }
@@ -298,7 +298,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                     .decorators = pm.decorators,
                 })
             }
-            new_ret: AST.TypeExpr | null = null
+            new_ret: AST.TypeExpr! | null = null
             if e.return_type !is null {
                 new_ret = substitute_type_expr(e.return_type, subst)
             }
@@ -315,10 +315,10 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
 /// see `substitute_expr_full`.
 // @partial: sketch coverage — the TODO'd DeferStmt passes through unchanged until
 // the walker is completed.
-export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
+export substitute_stmt :: fn(s: AST.Stmt!, subst: Subst) -> AST.Stmt! {
     @partial match s {
         is AST.LetStmt               -> {
-            new_ty: AST.TypeExpr | null = null
+            new_ty: AST.TypeExpr! | null = null
             if s.ty !is null {
                 new_ty = substitute_type_expr(s.ty, subst)
             }
@@ -341,7 +341,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
             }
         }
         is AST.ReturnStmt            -> {
-            new_value: AST.Expr | null = null
+            new_value: AST.Expr! | null = null
             if s.value !is null {
                 new_value = substitute_expr_full(s.value, subst)
             }
@@ -359,7 +359,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
             }
         }
         is AST.DestructureAssignStmt -> {
-            targets: AST.AssignTarget[]!: []
+            targets: AST.AssignTarget![]!: []
             for t in s.targets {
                 match t {
                     is AST.PlaceTarget    -> {
@@ -414,7 +414,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
 // target, so its clone is the cloned `target` : two copies would each get an id
 // and a stamped span of their own — no longer read as `op=`, and each lowered on
 // its own, evaluating the place's operands twice.
-clone_assign_value :: fn(s: AST.AssignStmt, target: AST.Expr, subst: Subst) -> AST.Expr {
+clone_assign_value :: fn(s: AST.AssignStmt, target: AST.Expr!, subst: Subst) -> AST.Expr! {
     if AST.compound_assign_op(s) != null {
         if s.value is AST.BinaryExpr as value {
             return AST.BinaryExpr {
@@ -432,13 +432,13 @@ clone_assign_value :: fn(s: AST.AssignStmt, target: AST.Expr, subst: Subst) -> A
 /// the local Symbol on `binding.name_span` ; sharing the trait node would
 /// collide across impls/generations). Spans are carried over and re-stamped
 /// by `stamp_binding_spans`.
-clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding {
+clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding! {
     match b {
         is AST.SimpleBinding -> {
             return AST.SimpleBinding { ...b, .id = AST.UNASSIGNED_NODE_ID }
         }
         is AST.TupleBinding -> {
-            new_elems: AST.LetBinding[]!: []
+            new_elems: AST.LetBinding![]!: []
             for e in b.elements { new_elems.push(clone_let_binding(e)) }
             return AST.TupleBinding { .span = b.span, .id = AST.UNASSIGNED_NODE_ID, .elements = new_elems }
         }
@@ -455,10 +455,10 @@ clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding {
 // @partial: sketch coverage — the TODO'd patterns (StructPattern,
 // LiteralPattern, EnumVariantPattern) and the childless WildcardPattern pass
 // through unchanged.
-export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
+export substitute_pattern :: fn(p: AST.Pattern!, subst: Subst) -> AST.Pattern! {
     @partial match p {
         is AST.IsPattern -> {
-            new_inner: AST.Pattern | null = null
+            new_inner: AST.Pattern! | null = null
             if p.inner !is null {
                 new_inner = substitute_pattern(p.inner, subst)
             }
@@ -486,7 +486,7 @@ import "toolchain/span"
 /// on the trait's original AST node IDs).
 export substitute_block_materialized :: fn(
     b: AST.BlockExpr, subst: Subst, factory: NodeIdFactory!, stamp: StampCtx!,
-) -> AST.BlockExpr {
+) -> AST.BlockExpr! {
     cloned :: substitute_block(b, subst)
     assign_block_ids(cloned, factory)
     stamp_block_spans(cloned, stamp)

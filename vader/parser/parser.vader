@@ -18,7 +18,7 @@ import "toolchain/span"
 // ============================================================================
 
 export ParsedSource :: struct {
-    program:    Program
+    program:    Program!
     tokens:     Token[]
     errors:     Diagnostic[]
     /// Carries the factory state after the post-parse ID walk so
@@ -202,7 +202,7 @@ export Parser :: struct {
     // flushes these into the decl list after each parsed decl. Avoids a
     // dedicated `ComptimeExpr` AST node (which would ripple a T3013 arm across
     // every exhaustive `match expr` in the compiler).
-    pending_decls: Decl[]! = []
+    pending_decls: Decl![]! = []
     // Current `parse_expr` recursion depth ; guards against a native stack
     // overflow on pathologically nested input. Bounded by `MAX_EXPR_DEPTH`.
     expr_depth: i32 = 0
@@ -424,7 +424,7 @@ export describe_token :: fn(t: Token) -> string {
 // Program
 // ============================================================================
 
-parse_program :: fn(p: Parser!) -> Program {
+parse_program :: fn(p: Parser!) -> Program! {
     start_tok :: p.peek()
     decls: Decl![]!: []
     p.skip_newlines()
@@ -523,7 +523,7 @@ is_module_segment_continue :: fn(c: char) = c in 'a'..='z' || c.is_digit() || c 
 // Declarations
 // ============================================================================
 
-parse_decl :: fn(p: Parser!) -> Decl | null {
+parse_decl :: fn(p: Parser!) -> Decl! | null {
     decorators :: p.parse_decorators()
     visibility: Visibility = .Private
     if p.match_kind(.KwExport) != null {
@@ -537,8 +537,8 @@ parse_decl :: fn(p: Parser!) -> Decl | null {
 }
 
 parse_decorated_decl :: fn(
-    p: Parser!, decorators: Decorator[], visibility: Visibility,
-) -> Decl | null {
+    p: Parser!, decorators: Decorator![], visibility: Visibility,
+) -> Decl! | null {
     // `@assert(condition)` is a "decorator-statement" that stands on its
     // own at the top level rather than annotating a following decl. Only
     // the lone-decorator form promotes — mixing `@comptime @assert(...)`
@@ -654,12 +654,12 @@ reject_displayable_decorator :: fn(p: Parser!, decorators: Decorator[]) -> void 
     }
 }
 
-parse_decorators :: fn(p: Parser!) -> Decorator[] {
-    out: Decorator[]!: []
+parse_decorators :: fn(p: Parser!) -> Decorator![] {
+    out: Decorator![]!: []
     for p.check(.At) {
         at :: p.advance()
         name_tok :: p.expect(.Ident, "decorator name after `@`")
-        args: Expr[]!: []
+        args: Expr![]!: []
         if p.match_kind(.LParen) != null {
             if !p.check(.RParen) {
                 first := true
@@ -688,7 +688,7 @@ parse_decorators :: fn(p: Parser!) -> Decorator[] {
 /// import ; a bare path is a wildcard import (every function of the module
 /// becomes callable, prefix + UFCS). The `import "..." as name` form is
 /// rejected — write `name :: import "..."`.
-parse_import_decl :: fn(p: Parser!, decorators: Decorator[]) -> ImportDecl {
+parse_import_decl :: fn(p: Parser!, decorators: Decorator![]) -> ImportDecl! {
     start :: p.advance()  // `import`
     path_info :: p.expect_string_literal("import path")
 
@@ -723,7 +723,7 @@ parse_import_decl :: fn(p: Parser!, decorators: Decorator[]) -> ImportDecl {
 
 /// Named-decl-position `name :: import "..."`. Routed from
 /// `parse_named_decl` when the RHS keyword after `::` is `import`.
-parse_named_import_decl :: fn(p: Parser!, decorators: Decorator[], name_tok: Token) -> ImportDecl {
+parse_named_import_decl :: fn(p: Parser!, decorators: Decorator![], name_tok: Token) -> ImportDecl! {
     p.advance()  // `import`
     path_info :: p.expect_string_literal("import path")
     lbrace :: p.match_kind(.LBrace)
@@ -861,7 +861,7 @@ peek_is_lhs_generic_alias_head :: fn(p: Parser) -> bool {
     return false
 }
 
-parse_lhs_generic_alias_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility) -> TypeAliasDecl {
+parse_lhs_generic_alias_decl :: fn(p: Parser!, decorators: Decorator![], visibility: Visibility) -> TypeAliasDecl! {
     name_tok :: p.advance()  // ident
     type_params :: p.parse_angle_type_params()
     p.advance()  // `::`
@@ -877,7 +877,7 @@ parse_lhs_generic_alias_decl :: fn(p: Parser!, decorators: Decorator[], visibili
     }
 }
 
-parse_impl_decl :: fn(p: Parser!, decorators: Decorator[]) -> ImplDecl {
+parse_impl_decl :: fn(p: Parser!, decorators: Decorator![]) -> ImplDecl! {
     p.reject_target_decorator(decorators, "an `implements` block")
     start_tok :: p.peek()
     for_type :: p.parse_type()
@@ -886,14 +886,14 @@ parse_impl_decl :: fn(p: Parser!, decorators: Decorator[]) -> ImplDecl {
     // `Foo<T> implements<T: Bound> Trait<T> { … }`. The angle list follows
     // the keyword that introduces a typeParam scope
     // (`fn<T>`, `struct<T>`, `trait<T>`, `implements<T>`).
-    type_params: TypeParam[] = []
+    type_params: TypeParam![] = []
     if p.check(.Lt) {
         type_params = p.parse_angle_type_params()
     }
     trait_tok :: p.expect(.Ident, "trait name")
 
     // Trait-args — `Iterator<T>`.
-    trait_args: TypeExpr[] = []
+    trait_args: TypeExpr![] = []
     if p.match_kind(.Lt) != null {
         trait_args = p.parse_type_list_until_angle()
     }
@@ -984,7 +984,7 @@ peek_is_classic_impl_body :: fn(p: Parser) -> bool {
     return p.peek_at(i).kind == .Ident && p.peek_at(i + 1).kind == .DeclConst && p.peek_at(i + 2).kind == .KwFn
 }
 
-parse_sam_arrow_member :: fn(p: Parser!) -> FnDecl {
+parse_sam_arrow_member :: fn(p: Parser!) -> FnDecl! {
     arrow_tok :: p.expect(.Arrow, "`->` to introduce a SAM impl body")
     expr :: p.parse_expr(0)
     span :: p.span_of(arrow_tok, p.peek_at(-1))
@@ -1009,7 +1009,7 @@ parse_sam_arrow_member :: fn(p: Parser!) -> FnDecl {
     }
 }
 
-parse_sam_block_member :: fn(p: Parser!) -> FnDecl {
+parse_sam_block_member :: fn(p: Parser!) -> FnDecl! {
     block :: p.parse_block()
     return FnDecl {
         .span                 = block.span,
@@ -1027,7 +1027,7 @@ parse_sam_block_member :: fn(p: Parser!) -> FnDecl {
     }
 }
 
-parse_named_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility) -> Decl {
+parse_named_decl :: fn(p: Parser!, decorators: Decorator![], visibility: Visibility) -> Decl! {
     name_tok :: p.advance()  // ident
     p.advance()              // `::`
 
@@ -1039,7 +1039,7 @@ parse_named_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibili
     return p.parse_const_decl(decorators, visibility, name_tok)
 }
 
-parse_fn_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> FnDecl {
+parse_fn_decl :: fn(p: Parser!, decorators: Decorator![], visibility: Visibility, name_tok: Token) -> FnDecl! {
     p.reject_c_decorators(decorators, "a function")
     p.advance()  // `fn`
     // Angle type-params `fn<T: Bound>(...)` are merged with the legacy
@@ -1047,7 +1047,7 @@ parse_fn_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility,
     angle_params :: p.parse_angle_type_params()
     sig :: p.parse_fn_signature_params()
     type_params :: merge_type_params(angle_params, sig.type_params)
-    return_type: TypeExpr | null = null
+    return_type: TypeExpr! | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     tail :: p.parse_fn_body_tail(return_type)
     return FnDecl {
@@ -1068,7 +1068,7 @@ parse_fn_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility,
 }
 
 FnBodyTail :: struct {
-    body:                 BlockExpr | null
+    body:                 BlockExpr! | null
     is_expression_bodied: bool
 }
 
@@ -1089,7 +1089,7 @@ parse_fn_body_tail :: fn(p: Parser!, return_type: TypeExpr | null) -> FnBodyTail
     return FnBodyTail { .body = null, .is_expression_bodied = false }
 }
 
-parse_fn_decl_inside_trait :: fn(p: Parser!) -> FnDecl | null {
+parse_fn_decl_inside_trait :: fn(p: Parser!) -> FnDecl! | null {
     decorators :: p.parse_decorators()
     p.reject_displayable_decorator(decorators)
     visibility: Visibility = .Private
@@ -1115,7 +1115,7 @@ parse_fn_decl_inside_trait :: fn(p: Parser!) -> FnDecl | null {
     angle_params :: p.parse_angle_type_params()
     sig :: p.parse_fn_signature_params()
     type_params :: merge_type_params(angle_params, sig.type_params)
-    return_type: TypeExpr | null = null
+    return_type: TypeExpr! | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     tail :: p.parse_fn_body_tail(return_type)
     return FnDecl {
@@ -1137,7 +1137,7 @@ parse_fn_decl_inside_trait :: fn(p: Parser!) -> FnDecl | null {
 
 FnSignature :: struct {
     params:         FnParam![]!
-    type_params:    TypeParam[]!
+    type_params:    TypeParam![]!
     trailing_comma: bool = false
 }
 
@@ -1151,7 +1151,7 @@ CommaList :: struct<T> {
 }
 
 parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
-    type_params: TypeParam[]!: []
+    type_params: TypeParam![]!: []
     params:      FnParam![]! : []
     trailing := false
     p.expect(.LParen, "`(` after function name")
@@ -1211,12 +1211,12 @@ parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
                 is_mutable = true
                 splits_neq = true
             }
-            ty: TypeExpr | null = null
+            ty: TypeExpr! | null = null
             if p.match_kind(.Colon) != null {
                 p.skip_newlines()
                 ty = p.parse_type()
             }
-            default_value: Expr | null = null
+            default_value: Expr! | null = null
             if splits_neq || p.match_kind(.Assign) != null {
                 default_value = p.parse_expr(0)
             }
@@ -1255,7 +1255,7 @@ parse_fn_signature_params :: fn(p: Parser!) -> FnSignature {
 
 empty_token :: fn() = make_token(.Eof, "", empty_file_span(""))
 
-parse_struct_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
+parse_struct_decl :: fn(p: Parser!, decorators: Decorator![], visibility: Visibility, name_tok: Token) -> StructDecl! {
     p.reject_target_decorator(decorators, "a struct")
     p.advance()  // `struct`
     type_params :: p.parse_struct_type_param_list()
@@ -1280,7 +1280,7 @@ parse_struct_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibil
         fname :: p.expect(.Ident, "field name")
         p.expect(.Colon, "`:` after field name")
         ftype :: p.parse_type()
-        fdefault: Expr | null = null
+        fdefault: Expr! | null = null
         if p.match_kind(.Assign) != null {
             p.skip_newlines()
             fdefault = p.parse_expr(0)
@@ -1309,14 +1309,14 @@ parse_struct_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibil
     }
 }
 
-parse_struct_type_param_list :: fn(p: Parser!) -> TypeParam[] {
+parse_struct_type_param_list :: fn(p: Parser!) -> TypeParam![] {
     // `<T>` canonical type-params first. The `($T, $N: i32)` paren form
     // is reserved for comptime-value heads (the angle list has no
     // type-ascription slot today) — kept until comptime-value params get
     // their own unified surface.
     if p.check(.Lt) { return p.parse_angle_type_params() }
     if p.match_kind(.LParen) == null { return [] }
-    out: TypeParam[]!: []
+    out: TypeParam![]!: []
     p.skip_newlines()
     for !p.check(.RParen) && !p.check(.Eof) {
         // Each iteration parses one (possibly $-prefixed) type-param. After
@@ -1333,7 +1333,7 @@ parse_struct_type_param_list :: fn(p: Parser!) -> TypeParam[] {
         has_dollar :: p.match_kind(.Dollar) != null
         start :: p.peek()
         name :: p.expect(.Ident, "type parameter name")
-        bound: TypeExpr | null = null
+        bound: TypeExpr! | null = null
         if p.match_kind(.Colon) != null { bound = p.parse_type() }
 
             if !has_dollar {
@@ -1375,10 +1375,10 @@ parse_struct_type_param_list :: fn(p: Parser!) -> TypeParam[] {
 // (`<T: Hash & Eq>`) work via the same parser. Always returns
 // non-comptime-value entries — comptime-value params keep the paren
 // form `(N: i32)`.
-parse_angle_type_params :: fn(p: Parser!) -> TypeParam[]! {
+parse_angle_type_params :: fn(p: Parser!) -> TypeParam![]! {
     if !p.check(.Lt) { return [] }
     p.advance()  // `<`
-    out: TypeParam[]!: []
+    out: TypeParam![]!: []
     p.skip_newlines()
     for !p.check(.Eof) {
         if p.check_closing_angle() { break }
@@ -1389,7 +1389,7 @@ parse_angle_type_params :: fn(p: Parser!) -> TypeParam[]! {
         }
         start :: p.peek()
         name :: p.expect(.Ident, "type-param name")
-        bound: TypeExpr | null = null
+        bound: TypeExpr! | null = null
         if p.match_kind(.Colon) != null {
             p.skip_newlines()
             bound = p.parse_type()
@@ -1397,7 +1397,7 @@ parse_angle_type_params :: fn(p: Parser!) -> TypeParam[]! {
         // Optional default type — `<T = Default>`. Honored when an impl supplies
         // fewer trait-args than the trait declares : the trailing params fill from
         // their defaults (see `build_subst` in vader/resolver/materialize.vader).
-        default_ty: TypeExpr | null = null
+        default_ty: TypeExpr! | null = null
         if p.match_kind(.Assign) != null {
             p.skip_newlines()
             default_ty = p.parse_type()
@@ -1419,10 +1419,10 @@ parse_angle_type_params :: fn(p: Parser!) -> TypeParam[]! {
 // collected from the value-arg types (legacy dollar-prefixed form).
 // The angle list takes precedence — a name already declared explicitly
 // is not re-added from the inline list.
-merge_type_params :: fn(angle: TypeParam[], inlined: TypeParam[]) -> TypeParam[] {
+merge_type_params :: fn(angle: TypeParam![], inlined: TypeParam![]) -> TypeParam![] {
     if angle.len() == 0 { return inlined }
     if inlined.len() == 0   { return angle }
-    merged: TypeParam[]!: []
+    merged: TypeParam![]!: []
     for angle_param in angle { merged.push(angle_param) }
     for inline_param in inlined {
         already_present := false
@@ -1437,7 +1437,7 @@ merge_type_params :: fn(angle: TypeParam[], inlined: TypeParam[]) -> TypeParam[]
     return merged
 }
 
-parse_trait_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> TraitDecl {
+parse_trait_decl :: fn(p: Parser!, decorators: Decorator![], visibility: Visibility, name_tok: Token) -> TraitDecl! {
     p.reject_target_decorator(decorators, "a trait")
     p.reject_c_decorators(decorators, "a trait")
     p.advance()  // `trait`
@@ -1445,7 +1445,7 @@ parse_trait_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibili
     // Trait composition. Two forms :
     //   `Foo :: trait<T> = A & B`            (alias, no own methods)
     //   `Foo :: trait<T> : A & B { ... }`    (composes A & B + own methods)
-    requires: TypeExpr | null = null
+    requires: TypeExpr! | null = null
     members: FnDecl![]!: []
     if p.match_kind(.Assign) != null {
         requires = p.parse_type()
@@ -1486,11 +1486,11 @@ parse_trait_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibili
     }
 }
 
-parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> EnumDecl {
+parse_enum_decl :: fn(p: Parser!, decorators: Decorator![], visibility: Visibility, name_tok: Token) -> EnumDecl! {
     p.reject_target_decorator(decorators, "an enum")
     p.reject_c_decorators(decorators, "an enum")
     p.advance()  // `enum`
-    header: TypeExpr[]!: []
+    header: TypeExpr![]!: []
     if p.match_kind(.LParen) != null {
         header.push(p.parse_type())
         if p.match_kind(.Comma) != null {
@@ -1556,7 +1556,7 @@ parse_enum_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibilit
 
 // `name :: value` — untyped top-level const. The typed shape uses the
 // Odin-style `name : Type : value` form parsed by `parse_typed_const_decl`.
-parse_const_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> ConstDecl {
+parse_const_decl :: fn(p: Parser!, decorators: Decorator![], visibility: Visibility, name_tok: Token) -> ConstDecl! {
     p.reject_target_decorator(decorators, "a constant — use `VADER_OS`, which is a value")
     // Multi-line union with a leading pipe :
     //   T ::
@@ -1594,7 +1594,7 @@ parse_const_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibili
 // rewritten to `@comptime NAME :: __comptime_NAME()`. A block inner is used
 // verbatim as the fn body (so a `return` inside it works) ; any other expression
 // is wrapped as the block's trailing expression.
-desugar_comptime_const :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility, name_tok: Token, ty: TypeExpr | null) -> ConstDecl {
+desugar_comptime_const :: fn(p: Parser!, decorators: Decorator![], visibility: Visibility, name_tok: Token, ty: TypeExpr! | null) -> ConstDecl! {
     at_tok :: p.advance()   // `@`
     p.advance()             // `comptime`
     // A `{ … }` block isn't an expression-position prefix, so parse it directly ;
@@ -1629,7 +1629,7 @@ desugar_comptime_const :: fn(p: Parser!, decorators: Decorator[], visibility: Vi
         .callee = ident_expr(name_tok.span, synth_name),
         .args   = [],
     }
-    decos: Decorator[]!: []
+    decos: Decorator![]!: []
     for d in decorators { decos.push(d) }
     decos.push(Decorator { .span = name_tok.span, .name = "comptime", .args = [] })
     return ConstDecl {
@@ -1653,14 +1653,14 @@ desugar_comptime_const :: fn(p: Parser!, decorators: Decorator[], visibility: Vi
 // trailing, not from `return` statements). The user's imperative `return k`
 // thus works exactly like a trailing `k`. Blocks already ending in a trailing
 // expression, or not ending in a value-`return`, pass through unchanged.
-lift_trailing_return :: fn(block: BlockExpr) -> BlockExpr {
+lift_trailing_return :: fn(block: BlockExpr!) -> BlockExpr! {
     if block.trailing != null { return block }
     n :: block.stmts.len()
     if n == 0 { return block }
     last :: block.stmts[n - 1]
     if last is ReturnStmt {
         if last.value != null {
-            kept: Stmt[]!: []
+            kept: Stmt![]!: []
             for i in 0..<(n - 1) { kept.push(block.stmts[i]) }
             return BlockExpr { .span = block.span, .stmts = kept, .trailing = last.value }
         }
@@ -1670,7 +1670,7 @@ lift_trailing_return :: fn(block: BlockExpr) -> BlockExpr {
 
 // `name : Type : value` — typed top-level const, mirrors the local
 // `name : Type : value` immutable-let form for surface uniformity.
-parse_typed_const_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Visibility) -> ConstDecl {
+parse_typed_const_decl :: fn(p: Parser!, decorators: Decorator![], visibility: Visibility) -> ConstDecl! {
     p.reject_target_decorator(decorators, "a constant — use `VADER_OS`, which is a value")
     name_tok :: p.advance()  // name
     p.advance()  // first `:`
@@ -1700,7 +1700,7 @@ parse_typed_const_decl :: fn(p: Parser!, decorators: Decorator[], visibility: Vi
 
 // Build a plain `IdentExpr` with both flag fields off — most call sites
 // don't need the implicit-dot or type-param-intro variants.
-ident_expr :: fn(span: Span, name: string) -> IdentExpr {
+ident_expr :: fn(span: Span, name: string) -> IdentExpr! {
     return IdentExpr {
         .span                = span,
         .name                = name,
@@ -1709,7 +1709,7 @@ ident_expr :: fn(span: Span, name: string) -> IdentExpr {
     }
 }
 
-parse_type :: fn(p: Parser!) -> TypeExpr {
+parse_type :: fn(p: Parser!) -> TypeExpr! {
     // Depth guard, sharing `parse_expr`'s budget : the type grammar recurses
     // through `parse_type_primary`'s `(T)` grouping and `[T, …]` tuples, so
     // pathologically nested type syntax (`((((…))))` in type position) could
@@ -1784,7 +1784,7 @@ reject_arm_binding :: fn(p: Parser!) -> void {
 // `T & U & V` — left-associative `bitand` chain, tighter than `|` and
 // looser than the postfix operators. Same node shape as value-side trait
 // composition (e.g. `[T: Hash & Eq]`).
-parse_type_intersection :: fn(p: Parser!) -> TypeExpr {
+parse_type_intersection :: fn(p: Parser!) -> TypeExpr! {
     head := p.parse_type_postfix()
     if p.check(.Amp) {
         head_span :: head.span
@@ -1802,7 +1802,7 @@ parse_type_intersection :: fn(p: Parser!) -> TypeExpr {
     return head
 }
 
-parse_type_postfix :: fn(p: Parser!) -> TypeExpr {
+parse_type_postfix :: fn(p: Parser!) -> TypeExpr! {
     head := p.parse_type_primary()
     // Postfix loop, left to right, so each marker binds to the level it follows :
     // `Cfg![]` is an array of mutable Cfg, `Cfg[]!` a mutable array of read-only
@@ -1871,7 +1871,7 @@ parse_type_mut_marker :: fn(p: Parser!) -> Token | null {
     }
 }
 
-parse_type_primary :: fn(p: Parser!) -> TypeExpr {
+parse_type_primary :: fn(p: Parser!) -> TypeExpr! {
     t :: p.peek()
     if t.kind == .Dollar {
         p.advance()
@@ -1903,7 +1903,7 @@ parse_type_primary :: fn(p: Parser!) -> TypeExpr {
         //                      ArrayTypeExpr so the user-likely-meant-array
         //                      flow keeps working downstream.
         start :: p.advance()
-        elements: TypeExpr[]!: []
+        elements: TypeExpr![]!: []
         p.skip_newlines()
         if p.check(.RBracket) {
             p.error(.ExpectedType, t.span, "empty `[]` is not a valid type")
@@ -1941,7 +1941,7 @@ parse_type_primary :: fn(p: Parser!) -> TypeExpr {
     }
     if t.kind == .Ident {
         name :: p.advance()
-        head: Expr = ident_expr(name.span, name.text)
+        head: Expr! = ident_expr(name.span, name.text)
         // Qualified namespace : `module.Type` — applies when the leading
         // ident is an `import "X" as alias` (or destructured-namespace)
         // binding. The resolver follows the chain to the exported type in
@@ -1978,13 +1978,13 @@ parse_type_primary :: fn(p: Parser!) -> TypeExpr {
     return ident_expr(t.span, "?")
 }
 
-parse_fn_type :: fn(p: Parser!) -> FnTypeExpr {
+parse_fn_type :: fn(p: Parser!) -> FnTypeExpr! {
     start :: p.advance()  // `fn`
     p.expect(.LParen, "`(` after `fn` in function type")
     // The parameter list is parsed inline because a trailing `!` mutation marker
     // is legal ONLY here — everywhere else a type is parsed (`parse_type`), a `!`
     // must stay a syntax error, so the loop cannot be factored out for reuse.
-    params: TypeExpr[]!: []
+    params: TypeExpr![]!: []
     marks: bool[]!: []
     any_mutable := false
     p.skip_newlines()
@@ -2001,7 +2001,7 @@ parse_fn_type :: fn(p: Parser!) -> FnTypeExpr {
         }
     }
     p.expect(.RParen, "`)` after function parameter types")
-    return_type: TypeExpr | null = null
+    return_type: TypeExpr! | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     return FnTypeExpr {
         .span           = p.span_of(start, p.peek_at(-1)),
@@ -2018,8 +2018,8 @@ parse_fn_type :: fn(p: Parser!) -> FnTypeExpr {
 // `Shr` token that the parser splits via `consume_closing_angle`). The
 // opening `<` must already have been consumed by the caller ; the closing
 // `>` (or first half of a `Shr`) is consumed before returning.
-parse_type_list_until_angle :: fn(p: Parser!) -> TypeExpr[]! {
-    out: TypeExpr[]!: []
+parse_type_list_until_angle :: fn(p: Parser!) -> TypeExpr![]! {
+    out: TypeExpr![]!: []
     p.skip_newlines()
     if p.check_closing_angle() {
         p.consume_closing_angle()
@@ -2091,7 +2091,7 @@ collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]!) -> void {
 // Statements / blocks
 // ============================================================================
 
-parse_block :: fn(p: Parser!) -> BlockExpr {
+parse_block :: fn(p: Parser!) -> BlockExpr! {
     lb :: p.expect(.LBrace, "`{` to open block")
     // Depth guard, sharing `parse_expr`/`parse_type`'s budget. Block nesting
     // recurses parse_block ↔ parse_stmt, so a pathologically deep `for {…}` /
@@ -2112,8 +2112,8 @@ parse_block :: fn(p: Parser!) -> BlockExpr {
         return BlockExpr { .span = p.span_of(lb, p.peek_at(-1)), .stmts = [], .trailing = null }
     }
     p.skip_newlines()
-    raw: Stmt[]!: []
-    trailing: Expr | null = null
+    raw: Stmt![]!: []
+    trailing: Expr! | null = null
     for !p.check(.RBrace) && !p.check(.Eof) {
         s_opt :: p.parse_stmt()
         match s_opt {
@@ -2133,10 +2133,10 @@ parse_block :: fn(p: Parser!) -> BlockExpr {
     }
     // Promote a trailing ExprStmt into the block's implicit return value
     // by rebuilding `stmts` without the last element (no `pop` on arrays).
-    stmts: Stmt[]!: []
+    stmts: Stmt![]!: []
     n :: raw.len()
     last_is_expr := false
-    last_expr: Expr | null = null
+    last_expr: Expr! | null = null
     if n > 0 {
         last :: raw[n - 1]
         match last {
@@ -2173,7 +2173,7 @@ parse_block :: fn(p: Parser!) -> BlockExpr {
     }
 }
 
-parse_stmt :: fn(p: Parser!) -> Stmt | null {
+parse_stmt :: fn(p: Parser!) -> Stmt! | null {
     if p.check(.KwReturn)   { return p.parse_return() }
     if p.check(.KwYield)    { return p.parse_yield() }
     if p.check(.KwFor)      { return p.parse_for(null, false) }
@@ -2252,7 +2252,7 @@ compound_op :: fn(k: TokenKind) = @partial match k {
     _              -> CompoundOpResult { .matched = false, .op = .Add }
 }
 
-parse_typed_let :: fn(p: Parser!) -> LetStmt {
+parse_typed_let :: fn(p: Parser!) -> LetStmt! {
     name_tok :: p.advance()  // ident
     p.advance()              // `:`
     ty :: p.parse_type()
@@ -2281,7 +2281,7 @@ parse_typed_let :: fn(p: Parser!) -> LetStmt {
     }
 }
 
-parse_let :: fn(p: Parser!) -> LetStmt {
+parse_let :: fn(p: Parser!) -> LetStmt! {
     name_tok :: p.advance()
     decl_tok :: p.advance()  // `::` or `:=`
     mutable :: decl_tok.kind == .DeclVar
@@ -2326,9 +2326,9 @@ kind_after_bracket_group :: fn(p: Parser) -> TokenKind {
     return p.tokens[usize(i)].kind
 }
 
-parse_destructure_assign :: fn(p: Parser!) -> DestructureAssignStmt {
+parse_destructure_assign :: fn(p: Parser!) -> DestructureAssignStmt! {
     start :: p.advance()  // `[`
-    targets: AssignTarget[]!: []
+    targets: AssignTarget![]!: []
     for {
         p.skip_newlines()
         if p.check(.RBracket) {
@@ -2367,7 +2367,7 @@ parse_destructure_assign :: fn(p: Parser!) -> DestructureAssignStmt {
     }
 }
 
-parse_assign_target :: fn(p: Parser!) -> AssignTarget {
+parse_assign_target :: fn(p: Parser!) -> AssignTarget! {
     start :: p.peek()
     if p.match_kind(.DotDotDot) != null {
         place :: p.parse_expr(0)
@@ -2381,10 +2381,10 @@ parse_assign_target :: fn(p: Parser!) -> AssignTarget {
     return PlaceTarget { .span = place.span, .place = place }
 }
 
-parse_tuple_let :: fn(p: Parser!) -> LetStmt {
+parse_tuple_let :: fn(p: Parser!) -> LetStmt! {
     start :: p.peek()
     binding :: p.parse_let_binding()
-    ty: TypeExpr | null = null
+    ty: TypeExpr! | null = null
     mutable := true
     if p.check(.Colon) {
         p.advance()
@@ -2415,11 +2415,11 @@ parse_tuple_let :: fn(p: Parser!) -> LetStmt {
     }
 }
 
-parse_let_binding :: fn(p: Parser!) -> LetBinding {
+parse_let_binding :: fn(p: Parser!) -> LetBinding! {
     if p.check(.LBracket) {
         start :: p.advance()
         p.skip_newlines()
-        elements: LetBinding[]!: []
+        elements: LetBinding![]!: []
         if !p.check(.RBracket) {
             for {
                 p.skip_newlines()
@@ -2466,9 +2466,9 @@ parse_let_binding :: fn(p: Parser!) -> LetBinding {
     }
 }
 
-parse_return :: fn(p: Parser!) -> ReturnStmt {
+parse_return :: fn(p: Parser!) -> ReturnStmt! {
     start :: p.advance()  // `return`
-    value: Expr | null = null
+    value: Expr! | null = null
     if !p.check(.Newline) && !p.check(.RBrace) && !p.check(.Eof) {
         value = p.parse_expr(0)
     }
@@ -2478,7 +2478,7 @@ parse_return :: fn(p: Parser!) -> ReturnStmt {
     }
 }
 
-parse_yield :: fn(p: Parser!) -> YieldStmt {
+parse_yield :: fn(p: Parser!) -> YieldStmt! {
     start :: p.advance()  // `yield`
     value :: p.parse_expr(0)
     return YieldStmt {
@@ -2487,7 +2487,7 @@ parse_yield :: fn(p: Parser!) -> YieldStmt {
     }
 }
 
-parse_for :: fn(p: Parser!, label: string | null, is_comptime: bool) -> ForStmt {
+parse_for :: fn(p: Parser!, label: string | null, is_comptime: bool) -> ForStmt! {
     start :: p.advance()  // `for`
 
     if p.check(.LBrace) {
@@ -2585,7 +2585,7 @@ looks_like_for_destructure :: fn(p: Parser) -> bool {
     }
 }
 
-parse_break :: fn(p: Parser!) -> BreakStmt {
+parse_break :: fn(p: Parser!) -> BreakStmt! {
     start :: p.advance()
     label: string | null = null
     if p.check(.Ident) {
@@ -2597,7 +2597,7 @@ parse_break :: fn(p: Parser!) -> BreakStmt {
     }
 }
 
-parse_continue :: fn(p: Parser!) -> ContinueStmt {
+parse_continue :: fn(p: Parser!) -> ContinueStmt! {
     start :: p.advance()
     label: string | null = null
     if p.check(.Ident) {
@@ -2613,7 +2613,7 @@ parse_continue :: fn(p: Parser!) -> ContinueStmt {
 // (`return` / `break` / `continue`), otherwise a value expression parsed at
 // the `??` right binding power (7 — below the operator's own 6, so `??` is
 // left-associative and non-chaining).
-parse_coalesce_fallback :: fn(p: Parser!) -> CoalesceFallback {
+parse_coalesce_fallback :: fn(p: Parser!) -> CoalesceFallback! {
     // A `match … { _ -> }` over `TokenKind` (a closed enum) trips W0005 ; the
     // if-chain keeps "3 divergent keywords, else a value expression" warning-free.
     k :: p.peek().kind
@@ -2623,7 +2623,7 @@ parse_coalesce_fallback :: fn(p: Parser!) -> CoalesceFallback {
     return p.parse_expr(7)
 }
 
-parse_defer :: fn(p: Parser!) -> DeferStmt {
+parse_defer :: fn(p: Parser!) -> DeferStmt! {
     start :: p.advance()
     body: DeferBody = DeferStmtBody { .stmt = ExprStmt { .span = start.span, .expr = NullLitExpr { .span = start.span } } }
     if p.check(.LBrace) {
@@ -2844,7 +2844,7 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .KwSelf       -> -1
 }
 
-parse_expr :: fn(p: Parser!, min_bp: i32) -> Expr {
+parse_expr :: fn(p: Parser!, min_bp: i32) -> Expr! {
     // Depth guard : bail before recursing past `MAX_EXPR_DEPTH` so deeply
     // nested input (`((((…))))`, `!!!!…`) can't overflow the native stack.
     p.expr_depth = p.expr_depth + 1
@@ -3013,7 +3013,7 @@ parse_expr :: fn(p: Parser!, min_bp: i32) -> Expr {
     return left
 }
 
-parse_prefix :: fn(p: Parser!) -> Expr {
+parse_prefix :: fn(p: Parser!) -> Expr! {
     t :: p.peek()
     if t.kind == .IntLit {
         p.advance()
@@ -3119,7 +3119,7 @@ parse_prefix :: fn(p: Parser!) -> Expr {
             }
             is IntrinsicSpec -> {
                 p.expect(.LParen, "`(` after `@${spec.name}`")
-                args: Expr[]!: []
+                args: Expr![]!: []
                 p.skip_newlines()
                 intr_trailing := false
                 if !p.check(.RParen) {
@@ -3171,7 +3171,7 @@ parse_prefix :: fn(p: Parser!) -> Expr {
     return NullLitExpr { .span = t.span }
 }
 
-parse_postfix :: fn(p: Parser!, left: Expr, t: Token) -> Expr {
+parse_postfix :: fn(p: Parser!, left: Expr!, t: Token) -> Expr! {
     if t.kind == .Dot {
         p.advance()
         // Numeric tuple-index access `t.0`, `t.1`, ... — the lowerer rewrites
@@ -3283,7 +3283,7 @@ parse_call_args :: fn(p: Parser!) -> CommaList<CallArg!> {
     return CommaList<CallArg!> { .items = out, .trailing_comma = trailing }
 }
 
-parse_ident_or_struct_lit :: fn(p: Parser!) -> Expr {
+parse_ident_or_struct_lit :: fn(p: Parser!) -> Expr! {
     t :: p.advance()
     // Angle-bracket generic in expression position. Two shapes :
     //   `Ident<T, ...>(args)`        — generic call ; build a CallExpr whose
@@ -3456,7 +3456,7 @@ parse_struct_lit_fields :: fn(p: Parser!) -> CommaList<StructLitField! | StructL
     return CommaList<StructLitField! | StructLitSpread!> { .items = out, .trailing_comma = trailing }
 }
 
-parse_paren :: fn(p: Parser!) -> Expr {
+parse_paren :: fn(p: Parser!) -> Expr! {
     p.advance()  // `(`
     p.skip_newlines()
     saved_allow :: p.allow_struct_lit
@@ -3495,7 +3495,7 @@ peek_lambda_without_fn :: fn(p: Parser) -> bool {
 
 // Parse `(params) -> body` as a lambda (no `fn` keyword). The opening `(`
 // is still on the parser ; `parse_fn_signature_params` consumes it.
-parse_lambda_without_fn :: fn(p: Parser!) -> LambdaExpr {
+parse_lambda_without_fn :: fn(p: Parser!) -> LambdaExpr! {
     start :: p.peek()
     sig :: p.parse_fn_signature_params()
     p.expect(.Arrow, "`->` between lambda params and body")
@@ -3512,7 +3512,7 @@ parse_lambda_without_fn :: fn(p: Parser!) -> LambdaExpr {
 
 // Tail-parse `-> body` after a bare IdentExpr consumed by parse_prefix.
 // Builds the single-param lambda with the ident as a typeless FnParam.
-parse_single_param_lambda_tail :: fn(p: Parser!, param_ident: IdentExpr) -> LambdaExpr {
+parse_single_param_lambda_tail :: fn(p: Parser!, param_ident: IdentExpr) -> LambdaExpr! {
     p.advance()  // ->
     param :: FnParam {
         .span          = param_ident.span,
@@ -3536,7 +3536,7 @@ parse_single_param_lambda_tail :: fn(p: Parser!, param_ident: IdentExpr) -> Lamb
 // Wrap a body expression in a synthetic BlockExpr if it is not already
 // one. Keeps the AST shape `LambdaExpr.body: BlockExpr` stable for
 // downstream consumers.
-wrap_as_block :: fn(body: Expr) -> BlockExpr {
+wrap_as_block :: fn(body: Expr!) -> BlockExpr! {
     if body is BlockExpr { return body }
     return BlockExpr {
         .span     = body.span,
@@ -3545,9 +3545,9 @@ wrap_as_block :: fn(body: Expr) -> BlockExpr {
     }
 }
 
-parse_seq_lit :: fn(p: Parser!) -> SeqLitExpr {
+parse_seq_lit :: fn(p: Parser!) -> SeqLitExpr! {
     lb :: p.advance()
-    elements: Expr[]!: []
+    elements: Expr![]!: []
     trailing := false
     p.skip_newlines()
     if !p.check(.RBracket) {
@@ -3569,7 +3569,7 @@ parse_seq_lit :: fn(p: Parser!) -> SeqLitExpr {
     }
 }
 
-parse_string_lit :: fn(p: Parser!) -> StringLitExpr {
+parse_string_lit :: fn(p: Parser!) -> StringLitExpr! {
     begin :: p.advance()  // string_begin
     parts: StringLitPart![]!: []
     for !p.check(.StringEnd) && !p.check(.Eof) {
@@ -3606,7 +3606,7 @@ parse_string_lit :: fn(p: Parser!) -> StringLitExpr {
     }
 }
 
-parse_if_expr :: fn(p: Parser!) -> IfExpr {
+parse_if_expr :: fn(p: Parser!) -> IfExpr! {
     start :: p.advance()  // `if`
     saved_allow :: p.allow_struct_lit
     // Struct literals are disabled at condition top-level so `if Foo { … }`
@@ -3622,7 +3622,7 @@ parse_if_expr :: fn(p: Parser!) -> IfExpr {
     p.allow_struct_lit = saved_allow
 
     then_block :: p.parse_block()
-    else_branch: IfElse | null = null
+    else_branch: IfElse! | null = null
     p.skip_newlines()
     if p.match_kind(.KwElse) != null {
         p.skip_newlines()
@@ -3645,7 +3645,7 @@ parse_if_expr :: fn(p: Parser!) -> IfExpr {
     }
 }
 
-parse_match_expr :: fn(p: Parser!, partial: bool, unreachable: bool) -> MatchExpr {
+parse_match_expr :: fn(p: Parser!, partial: bool, unreachable: bool) -> MatchExpr! {
     start :: p.advance()  // `match`
     saved_allow :: p.allow_struct_lit
     p.allow_struct_lit = false
@@ -3678,22 +3678,22 @@ parse_match_expr :: fn(p: Parser!, partial: bool, unreachable: bool) -> MatchExp
     }
 }
 
-parse_match_arm :: fn(p: Parser!) -> MatchArm {
+parse_match_arm :: fn(p: Parser!) -> MatchArm! {
     start :: p.peek()
     first :: p.parse_pattern()
     // Or-pattern : `.A | .B`, `1 | 2`. Pipe-separated alternatives collected into
     // an `OrPattern`. (`is A | B` never reaches here as an or-pattern — the type
     // parser already folded `A | B` into a single union `IsPattern`.)
-    pattern: Pattern = first
+    pattern: Pattern! = first
     if p.check(.Pipe) {
-        alts: Pattern[]!: [first]
+        alts: Pattern![]!: [first]
         for p.match_kind(.Pipe) != null {
             p.skip_newlines()
             alts.push(p.parse_pattern())
         }
         pattern = OrPattern { .span = p.span_of(start, p.peek_at(-1)), .patterns = alts }
     }
-    guard: Expr | null = null
+    guard: Expr! | null = null
     if p.match_kind(.KwIf) != null {
         saved_allow :: p.allow_struct_lit
         saved_lambda :: p.allow_bare_lambda
@@ -3713,10 +3713,10 @@ parse_match_arm :: fn(p: Parser!) -> MatchArm {
     }
 }
 
-parse_lambda :: fn(p: Parser!) -> LambdaExpr {
+parse_lambda :: fn(p: Parser!) -> LambdaExpr! {
     start :: p.advance()  // `fn`
     sig :: p.parse_fn_signature_params()
-    return_type: TypeExpr | null = null
+    return_type: TypeExpr! | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     body :: p.parse_block()
     return LambdaExpr {
@@ -3732,7 +3732,7 @@ parse_lambda :: fn(p: Parser!) -> LambdaExpr {
 // Patterns
 // ============================================================================
 
-parse_pattern :: fn(p: Parser!) -> Pattern {
+parse_pattern :: fn(p: Parser!) -> Pattern! {
     t :: p.peek()
     if t.kind == .Dot {
         p.advance()
@@ -3744,7 +3744,7 @@ parse_pattern :: fn(p: Parser!) -> Pattern {
     }
     if t.kind == .KwIs {
         p.advance()
-        ty: TypeExpr: if p.check(.Dot) {
+        ty: TypeExpr!: if p.check(.Dot) {
             // `is .Foo` — implicit-dot variant, resolved against the
             // match scrutinee at typecheck. Plain `parse_type` would
             // reject the leading dot, so we synthesise a flagged
@@ -3760,7 +3760,7 @@ parse_pattern :: fn(p: Parser!) -> Pattern {
         } else {
             p.parse_type()
         }
-        inner: Pattern | null = null
+        inner: Pattern! | null = null
         if p.check(.LBrace) {
             inner = p.parse_struct_pattern()
         }
@@ -3822,7 +3822,7 @@ parse_pattern :: fn(p: Parser!) -> Pattern {
 // `[a, b] ->` destructured a tuple in the pattern. The type test is
 // `is [T, U]` and the destructure is a `let` in the arm, so the form is
 // diagnosed and skipped to its `]` — its elements would each report again.
-reject_tuple_pattern :: fn(p: Parser!) -> WildcardPattern {
+reject_tuple_pattern :: fn(p: Parser!) -> WildcardPattern! {
     start :: p.advance()  // `[`
     depth := 1
     last := start
@@ -3839,7 +3839,7 @@ reject_tuple_pattern :: fn(p: Parser!) -> WildcardPattern {
     return WildcardPattern { .span = span }
 }
 
-parse_struct_pattern :: fn(p: Parser!) -> StructPattern {
+parse_struct_pattern :: fn(p: Parser!) -> StructPattern! {
     start :: p.expect(.LBrace, "`{` to open struct pattern")
     p.skip_newlines()
     fields: StructPatternField![]!: []

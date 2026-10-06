@@ -1135,7 +1135,7 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[], type_ids: 
     out: ArrayVal![]!: []
     for i in 0..<entries.len() {
         e :: entries[i]
-        elements: Value[]!: []
+        elements: Value![]!: []
         if e is bc.BcStrData {
             for v in e.values { elements.push(StringVal(v)) }
         } else if e is bc.BcPrimData {
@@ -1156,16 +1156,16 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[], type_ids: 
 // Materialise one recursive baked value into a VM `Value`. Struct identity is
 // resolved from `symbol_id` against the module type table ; nested arrays carry
 // type_id 0 (the VM is loosely typed — field access reads positionally).
-bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value {
+bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value! {
     if v is bc.BcValStr { return StringVal(v.value) }
     if v is bc.BcValPrim { return value_from_bits(v.kind, v.bits) }
     if v is bc.BcValStruct {
-        fields: Value[]!: []
+        fields: Value![]!: []
         for f in v.fields { fields.push(bc_value_to_vm(f, types)) }
         return StructVal { .type_id = type_id_for_symbol(types, v.symbol_id), .fields = fields }
     }
     if v is bc.BcValArray {
-        elems: Value[]!: []
+        elems: Value![]!: []
         for e in v.elements { elems.push(bc_value_to_vm(e, types)) }
         return ArrayVal { .type_id = 0, .elements = elems, .offset = 0, .length = elems.len() }
     }
@@ -1189,7 +1189,7 @@ type_id_for_symbol :: fn(types: bc.BcType[], symbol_id: i32) -> i32 {
 // `virt_reader::read_data_item`, reading from the materialised `u64` rather than
 // a hex byte slice. f32/f64 bit-cast the low bits (f32 held in an `F64Val`, as
 // elsewhere in the VM) ; `Boxed` never appears in a primitive data pool.
-value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
+value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value! {
     if kind == .U8   { return I32Val(i32(bits & 0xff)) }
     if kind == .I8   {
         b :: bits & 0xff

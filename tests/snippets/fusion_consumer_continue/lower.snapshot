@@ -1390,10 +1390,10 @@
   fn snippet$chars_indexed_continue() -> void
     let fused: i32 = int(0) :i32
     block :void
-      let __fuse_iter_1: StringChars =
-        call :StringChars
+      let __fuse_iter_1: StringChars! =
+        call :StringChars!
           callee:
-            chars :StringChars
+            chars :StringChars!
           arg0:
             "fused" :string
       let i: usize = int(0) :usize
@@ -1403,7 +1403,7 @@
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
-              __fuse_iter_1 :StringChars
+              __fuse_iter_1 :StringChars!
         if :void
           cond:
             eq :bool
@@ -1464,9 +1464,9 @@
         callee:
           std_iter$indexed__char :__genstate_indexed<[char, usize]>!
         arg0:
-          call :StringChars
+          call :StringChars!
             callee:
-              chars :StringChars
+              chars :StringChars!
             arg0:
               "fused" :string
     block :void

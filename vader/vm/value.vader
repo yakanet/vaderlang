@@ -36,7 +36,7 @@ export ValueResult :: ValueOk | Trap
 export ValueOk :: struct { value: Value }
 
 /// Default-zero `Value`, used to size each frame's locals at fn entry.
-export zero_value :: fn() -> Value { return I32Val(0) }
+export zero_value :: fn() -> Value! { return I32Val(0) }
 
 /// Box a `string[]` as an `ArrayVal` of `StringVal`.
 ///
@@ -51,8 +51,8 @@ export zero_value :: fn() -> Value { return I32Val(0) }
 ///                 module has no such entry (the value is then never
 ///                 matched against `string[]` so the tag is moot).
 /// @return         an `ArrayVal` whose elements are `StringVal`s of `items`.
-export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
-    elements: Value[]!: []
+export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal! {
+    elements: Value![]!: []
     for s in items { elements.push(StringVal(s)) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
@@ -67,7 +67,7 @@ export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
 /// @param s        source string.
 /// @param type_id  the module's `u8[]` ArrayType index, or 0 when absent.
 /// @return         an `ArrayVal` reading the UTF-8 bytes of `s`.
-export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
+export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal! {
     raw :: s.bytes()
     return ArrayVal {
         .type_id = type_id,
@@ -169,7 +169,7 @@ export read_f64 :: fn(v: Value, at_pc: i32, label: string) -> F64Val | Trap {
 /// already at the target storage is a no-op fast path — avoids the box
 /// reallocation when `mask32(u32 x)` (hot in SHA-256 / MD5) hits an
 /// already-I32Val.
-export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, at_pc: i32) -> Value | Trap {
+export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, at_pc: i32) -> Value! | Trap {
     // An unsigned source narrower than 64 bits is tagged `I32Val` holding the
     // raw bits ; widening must ZERO-extend (the bits are a u32 magnitude), not
     // sign-extend the way `read_numeric_as_i64` does for a signed i32.
@@ -290,7 +290,7 @@ export read_struct_field :: fn(v: Value, field_index: i32, at_pc: i32, label: st
 
 /// Unwrap an `ArrayVal` from a `Value`. Used by the array-op arms
 /// (`array.push` / `array.get` / `array.set` / `array.len`).
-export read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal | Trap {
+export read_array :: fn(v: Value!, at_pc: i32, label: string) -> ArrayVal! | Trap {
     if v is ArrayVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected array, got ${describe_value_tag(v)}" }
 }
@@ -326,7 +326,7 @@ export detach_array_view :: fn(a: ArrayVal!) -> void {
     if a.raw == null && !is_array_view(a) {
         return
     }
-    fresh: Value[]!: [] * a.length
+    fresh: Value![]!: [] * a.length
     for j in 0..<a.length {
         fresh.push(element_at(a, a.offset + j))
     }
@@ -344,7 +344,7 @@ export read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
 
 /// Unwrap a `FnVal` from a `Value`, or the trap naming what was found
 /// instead — for a call through a fn value.
-export read_fn :: fn(v: Value, at_pc: i32, label: string) -> FnVal | Trap {
+export read_fn :: fn(v: Value!, at_pc: i32, label: string) -> FnVal! | Trap {
     if v is FnVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected fn, got ${describe_value_tag(v)}" }
 }
@@ -641,7 +641,7 @@ export Value :: I32Val
 /// alias-expansion bug (TODO §3.8, cross-module-only) doesn't bite here.
 export StructVal :: struct {
     type_id: i32
-    fields: Value[]!
+    fields: Value![]!
 }
 
 /// Heap-allocated array payload — grow-only via `array.push`, fixed-size
@@ -656,7 +656,7 @@ export StructVal :: struct {
 /// view so tail slots held by sibling views aren't clobbered.
 export ArrayVal :: struct {
     type_id:  i32
-    elements: Value[]!
+    elements: Value![]!
     offset:   usize
     length:   usize
     /// The bytes a `u8[]` reads in place of `elements` — a string's
@@ -666,7 +666,7 @@ export ArrayVal :: struct {
 }
 
 /// Slot `at` of `a`'s backing, `offset` included.
-export element_at :: fn(a: ArrayVal, at: usize) -> Value {
+export element_at :: fn(a: ArrayVal, at: usize) -> Value! {
     raw :: a.raw
     if raw != null {
         return I32Val(i32(raw[at]))
@@ -694,7 +694,7 @@ export own_bytes :: fn(a: ArrayVal!) -> void {
 /// `slot 1 ..`.
 export FnVal :: struct {
     function_index: i32
-    env: Value | null
+    env: Value! | null
 }
 
 /// Singleton runtime `null`. Has no fields — `is NullVal` is the only

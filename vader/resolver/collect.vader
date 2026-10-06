@@ -86,7 +86,7 @@ export collect_module :: fn(
     program: Program, module_path: string, module_name: string,
     factory: SymbolFactory!,
     index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[]!,
-) -> CollectedModule {
+) -> CollectedModule! {
     // One `FileImports` per collect_module call — this pass sees exactly one
     // file, and `collect_files` appends each file's entry into the merged view.
     out :: CollectedModule {

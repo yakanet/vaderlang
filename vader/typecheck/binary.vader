@@ -1234,13 +1234,13 @@ expect_binary :: fn(src: string) -> ExpectedBinary {
 }
 
 ExpectedBinary :: struct {
-    typed: TypedProgram
-    bin: AST.BinaryExpr
+    typed: TypedProgram!
+    bin: AST.BinaryExpr!
 }
 
-synthetic_binary :: fn() -> AST.BinaryExpr {
+synthetic_binary :: fn() -> AST.BinaryExpr! {
     sp :: empty_span()
-    int_lit: AST.Expr: AST.IntLitExpr {
+    int_lit: AST.Expr!: AST.IntLitExpr {
         .span = sp,
         .id = AST.UNASSIGNED_NODE_ID,
         .value = 0,

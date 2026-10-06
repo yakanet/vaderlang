@@ -73,7 +73,7 @@ export materialize_default_members :: fn(
             is null          -> {}     // not a default method
             is AST.BlockExpr -> {
                 if method.name in provided { continue }
-                no_decorators: AST.Decorator[]: []
+                no_decorators: AST.Decorator![]: []
                 cloned :: substitute_block_materialized(body, subst, host_factory, stamp)
                 impl_.members.push(synth_with_body(method, subst, no_decorators, cloned, stamp))
             }
@@ -83,8 +83,8 @@ export materialize_default_members :: fn(
 
 synth_with_body :: fn(
     method: AST.FnDecl, subst: Subst,
-    decorators: AST.Decorator[], body: AST.BlockExpr, stamp: StampCtx!,
-) -> AST.FnDecl {
+    decorators: AST.Decorator![], body: AST.BlockExpr!, stamp: StampCtx!,
+) -> AST.FnDecl! {
     return AST.FnDecl {
         .span = method.span,
         .id = AST.UNASSIGNED_NODE_ID,
@@ -252,8 +252,8 @@ build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
 }
 
 synth_signature :: fn(
-    method: AST.FnDecl, name_span: Span, subst: Subst, decorators: AST.Decorator[],
-) -> AST.FnDecl {
+    method: AST.FnDecl, name_span: Span, subst: Subst, decorators: AST.Decorator![],
+) -> AST.FnDecl! {
     return AST.FnDecl {
         .span = method.span,
         .id = AST.UNASSIGNED_NODE_ID,
@@ -283,13 +283,13 @@ substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam![]! 
     return out
 }
 
-substitute_opt_type :: fn(t: AST.TypeExpr | null, subst: Subst) -> AST.TypeExpr | null {
+substitute_opt_type :: fn(t: AST.TypeExpr! | null, subst: Subst) -> AST.TypeExpr! | null {
     if t == null { return null }
     return substitute_type_expr(t, subst)
 }
 
-intrinsic_decorator :: fn(span: Span) -> AST.Decorator[] {
-    args: AST.Expr[]: []
+intrinsic_decorator :: fn(span: Span) -> AST.Decorator![] {
+    args: AST.Expr![]: []
     return [AST.Decorator { .span = span, .id = AST.UNASSIGNED_NODE_ID, .name = "intrinsic", .args = args }]
 }
 
@@ -372,7 +372,7 @@ find_trait :: fn(decls: AST.Decl[], name: string) -> AST.TraitDecl | null {
     return null
 }
 
-find_impl :: fn(decls: AST.Decl[]) -> AST.ImplDecl | null {
+find_impl :: fn(decls: AST.Decl![]) -> AST.ImplDecl! | null {
     for d in decls {
         match d {
             is AST.ImplDecl -> { return d }

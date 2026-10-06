@@ -22,7 +22,7 @@ import "std/target"
 /// has `has_return == false` — the exec checks the import's signature
 /// before pushing.
 export HostCallResult :: HostOk | Trap
-export HostOk :: struct { value: Value }
+export HostOk :: struct { value: Value! }
 
 // An extern's integer argument `i`, its label built only when it is not one.
 extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: usize) -> I64Val | Trap {
@@ -74,7 +74,7 @@ extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: usize) -> I64Val
 /// @error           traps with an `is_impure_comptime_trap_message` marker when
 ///                  `is_comptime` and the host is impure — `comptime_vm` routes
 ///                  it to `C4016` rather than the generic `C4002`.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[]!, sched_state: usize[]!, at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId) -> HostCallResult {
+export dispatch_import :: fn(info: bc.BcImport, stack: Value![], arg_base: usize, gc_state: usize[]!, sched_state: usize[]!, at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId) -> HostCallResult {
     // ---- compiler-internal `@extern` hosts ---------------------------------
     //
     // `@extern` is EXEMPT from the emit-time wiring check (`midir/emit.vader` :
@@ -405,7 +405,7 @@ array_bytes :: fn(a: ArrayVal, count: usize, at_pc: i32, label: string) -> u8[] 
 /// @param at_pc     program counter, for trap messages.
 /// @param debug     the attached controller.
 /// @return          the byte count, as the syscall would report it.
-debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, debug: DebugController) -> HostCallResult {
+debug_write :: fn(info: bc.BcImport, stack: Value![], arg_base: usize, at_pc: i32, debug: DebugController) -> HostCallResult {
     fd :: read_i64(stack[arg_base], at_pc, "sys_write fd")
     if fd is Trap { return fd }
     arr :: read_array(stack[arg_base + 1], at_pc, "sys_write buf")
@@ -449,7 +449,7 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
 /// @param types        the module type table, for a lent array's element width.
 /// @param debug        the DAP controller when one is attached, else null.
 /// @return             the callee's result, or a `Trap` naming what stopped it.
-dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, types: bc.BcType[], debug: DebugController | null) -> HostCallResult {
+dispatch_extern :: fn(info: bc.BcImport, stack: Value![], arg_base: usize, at_pc: i32, types: bc.BcType[], debug: DebugController | null) -> HostCallResult {
     // A foreign call at comptime is allowed — SPEC §"Comptime". What the compiler
     // owes ITSELF is checked by `bootstrap/verify.sh` (stage1 == stage2), not
     // here.
@@ -768,7 +768,7 @@ ffi_result_is_opt :: fn(types: bc.BcType[], result_type: i32, want: bc.ValType) 
 
 /// A `@c_struct` argument the callee writes through, to read back after the call.
 LentStruct :: struct {
-    target: StructVal
+    target: StructVal!
     /// Offset of the block inside the frame's data area.
     at:     usize
     fields: bc.BcField[]
@@ -1001,7 +1001,7 @@ push_little_endian :: fn(buf: u8[]!, value: i64, width: usize) -> void {
 /// @param old  the element being overwritten.
 /// @param n    the byte C wrote.
 /// @return     `n` wearing `old`'s variant.
-retyped_int :: fn(old: Value, n: i64) -> Value {
+retyped_int :: fn(old: Value, n: i64) -> Value! {
     if old is I64Val {
         return I64Val(n)
     }

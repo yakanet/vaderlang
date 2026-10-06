@@ -26,7 +26,7 @@ AST :: import "toolchain/ast"
 /// they're looking for.
 export find_first_in_block :: fn(
     b: AST.BlockExpr, pred: fn(AST.Expr) -> AST.Expr | null,
-) -> AST.Expr | null {
+) -> AST.Expr! | null {
     for stmt in b.stmts {
         hit :: find_first_in_stmt(stmt, pred)
         if hit !is null { return hit }
@@ -37,7 +37,7 @@ export find_first_in_block :: fn(
 
 find_first_in_stmt :: fn(
     s: AST.Stmt, pred: fn(AST.Expr) -> AST.Expr | null,
-) -> AST.Expr | null {
+) -> AST.Expr! | null {
     // @partial: the walker descends only into return / expr statements; every
     // other statement kind carries no expression to search → null.
     @partial match s {
@@ -51,8 +51,8 @@ find_first_in_stmt :: fn(
 }
 
 find_first_in_expr :: fn(
-    e: AST.Expr, pred: fn(AST.Expr) -> AST.Expr | null,
-) -> AST.Expr | null {
+    e: AST.Expr, pred: fn(AST.Expr) -> AST.Expr! | null,
+) -> AST.Expr! | null {
     hit :: pred(e)
     if hit !is null { return hit }
     // @partial: the walker recurses only through the composite expr kinds with

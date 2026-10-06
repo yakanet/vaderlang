@@ -112,11 +112,11 @@
   expr 155:5    CallExpr       :: void
   expr 155:5    IdentExpr      :: fn(T) -> void
   expr 159:10   StringLitExpr  :: string
-  expr 160:14   CallExpr       :: StringChars
+  expr 160:14   CallExpr       :: StringChars!
   expr 160:14   CallExpr       :: __genstate_filter<char>!
   expr 160:14   CallExpr       :: __genstate_filter<char>!
   expr 160:14   CallExpr       :: usize
-  expr 160:14   FieldExpr      :: fn() -> StringChars
+  expr 160:14   FieldExpr      :: fn() -> StringChars!
   expr 160:14   FieldExpr      :: fn() -> usize
   expr 160:14   FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 160:14   FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
@@ -127,10 +127,10 @@
   expr 160:61   LambdaExpr     :: fn(char) -> bool
   expr 160:74   BinaryExpr     :: bool
   expr 160:74   IdentExpr      :: char
-  expr 162:11   CallExpr       :: StringChars
+  expr 162:11   CallExpr       :: StringChars!
   expr 162:11   CallExpr       :: __genstate_filter<char>!
   expr 162:11   CallExpr       :: __genstate_filter<char>!
-  expr 162:11   FieldExpr      :: fn() -> StringChars
+  expr 162:11   FieldExpr      :: fn() -> StringChars!
   expr 162:11   FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 162:11   FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
   expr 162:11   IdentExpr      :: string

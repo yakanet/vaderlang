@@ -75,7 +75,7 @@ bce_fn_pure :: fn(pctx: BcePurityCtx!, fd: LoweredFnDecl) -> bool {
 // WRONG instance. Same rule as `dce.vader`. An instance is therefore only reachable
 // via its (unique) mangle ; a symid-only callee that misses stays conservatively
 // impure — never mis-resolved to a sibling with a different purity.
-bce_build_purity_ctx :: fn(project: LoweredProject) -> BcePurityCtx {
+bce_build_purity_ctx :: fn(project: LoweredProject) -> BcePurityCtx! {
     by_mangle :: MutableMap<string, LoweredFnDecl> {}
     by_symid :: MutableMap<i32, LoweredFnDecl> {}
     for [_, m] in project.modules {
@@ -315,7 +315,7 @@ bp_expr :: fn(e: LoweredExpr!, pctx: BcePurityCtx!) -> void {
 // fuses to two sequential source loops, and any N-way sequential fusion likewise);
 // each is proven independently, not just the last.
 bp_pair :: fn(b: LoweredBlock!, pctx: BcePurityCtx!) -> void {
-    pending_len: LoweredArrayLen | null = null
+    pending_len: LoweredArrayLen! | null = null
     for st in b.stmts {
         if st is LoweredLet {
             if st.value is LoweredArrayLen as al {
@@ -464,7 +464,7 @@ import "toolchain/span"
 // the ctx, resolves callees by mangle / symbol id — the rest of the MonoEntry /
 // LoweredFnDecl shape is inert filler here.
 
-bce_test_ctx :: fn() -> BcePurityCtx = BcePurityCtx {
+bce_test_ctx :: fn() -> BcePurityCtx! = BcePurityCtx {
     .by_mangle = MutableMap<string, LoweredFnDecl> {},
     .by_symid = MutableMap<i32, LoweredFnDecl> {},
     .memo = MutableMap<string, bool> {},
@@ -479,7 +479,7 @@ bce_test_sym :: fn(id: i32, name: string) -> Symbol = Symbol {
     .defined_at = null,
 }
 
-bce_test_fn :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl! {
+bce_test_fn :: fn(sym: Symbol, body: LoweredBlock! | null) -> LoweredFnDecl! {
     // MonoEntry shape mirrors `synth_mono_entry` (lower_lambda.vader) — kept inline
     // because that helper needs a FnLowerCtx the fixture deliberately doesn't build.
     return LoweredFnDecl {
@@ -500,18 +500,18 @@ bce_test_fn :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl! {
     }
 }
 
-bce_test_block :: fn(stmts: LoweredStmt[]) -> LoweredBlock = LoweredBlock {
+bce_test_block :: fn(stmts: LoweredStmt![]) -> LoweredBlock! = LoweredBlock {
     .span = empty_span(), .type = TY_VOID, .stmts = stmts, .trailing = null,
 }
 
 // `return 0` — no allocation, no call : pure.
-bce_test_pure_return :: fn() -> LoweredStmt = LoweredReturn {
+bce_test_pure_return :: fn() -> LoweredStmt! = LoweredReturn {
     .span = empty_span(),
     .value = LoweredIntLit { .span = empty_span(), .type = TY_VOID, .value = 0 },
 }
 
 // `return [0]` — an array literal allocates : impure.
-bce_test_alloc_return :: fn() -> LoweredStmt = LoweredReturn {
+bce_test_alloc_return :: fn() -> LoweredStmt! = LoweredReturn {
     .span = empty_span(),
     .value = LoweredArrayLit {
         .span = empty_span(), .type = TY_VOID,
@@ -520,7 +520,7 @@ bce_test_alloc_return :: fn() -> LoweredStmt = LoweredReturn {
 }
 
 // `return callee()` — a bare call to `callee`.
-bce_test_call_return :: fn(callee: Symbol) -> LoweredStmt = LoweredReturn {
+bce_test_call_return :: fn(callee: Symbol) -> LoweredStmt! = LoweredReturn {
     .span = empty_span(),
     .value = LoweredCall {
         .span = empty_span(), .type = TY_VOID,
@@ -602,14 +602,14 @@ bce_test_register :: fn(ctx: BcePurityCtx!, fd: LoweredFnDecl) -> void {
 }
 
 // A `bce_recheck` `arr.len()` bound over `sym`, as the desugars emit it.
-bce_test_recheck_len :: fn(sym: Symbol) -> LoweredArrayLen = LoweredArrayLen {
+bce_test_recheck_len :: fn(sym: Symbol) -> LoweredArrayLen! = LoweredArrayLen {
     .span = empty_span(), .type = TY_VOID,
     .target = LoweredIdent { .span = empty_span(), .type = TY_VOID, .symbol = sym },
     .bce_recheck = true,
 }
 
 // A `bce_recheck` `arr[0]` element access over `sym`.
-bce_test_recheck_index :: fn(sym: Symbol) -> LoweredIndex = LoweredIndex {
+bce_test_recheck_index :: fn(sym: Symbol) -> LoweredIndex! = LoweredIndex {
     .span = empty_span(), .type = TY_VOID,
     .target = LoweredIdent { .span = empty_span(), .type = TY_VOID, .symbol = sym },
     .index = LoweredIntLit { .span = empty_span(), .type = TY_VOID, .value = 0 },
@@ -617,14 +617,14 @@ bce_test_recheck_index :: fn(sym: Symbol) -> LoweredIndex = LoweredIndex {
 }
 
 // A safe counter loop whose only body statement is `idx` (a pure element read).
-bce_test_loop_over :: fn(idx: LoweredIndex) -> LoweredStmt = LoweredLoop {
+bce_test_loop_over :: fn(idx: LoweredIndex!) -> LoweredStmt! = LoweredLoop {
     .span = empty_span(), .label = null, .cond = null,
     .body = bce_test_block([LoweredExprStmt { .span = empty_span(), .expr = idx }]),
     .step = [],
 }
 
 // `let len = <recheck arr.len()>` — the preheader bound.
-bce_test_len_let :: fn(len: LoweredArrayLen) -> LoweredStmt = LoweredLet {
+bce_test_len_let :: fn(len: LoweredArrayLen!) -> LoweredStmt! = LoweredLet {
     .span = empty_span(), .name = "len", .symbol = bce_test_sym(0, "len"),
     .type = TY_VOID, .value = len,
 }

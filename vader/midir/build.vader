@@ -51,7 +51,7 @@ ProjectCtx :: struct {
     diags: Diagnostic[]!
 }
 
-new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]!) -> ProjectCtx {
+new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]!) -> ProjectCtx! {
     externs :: MutableMap<i32, MutableSet<usize>> {}
     for [_, m] in lp.modules {
         for d in m.decls {
@@ -117,7 +117,7 @@ LoopFrame :: struct {
 /// construction ; null means control already left (Return / Unreachable
 /// terminator emitted).
 FnCtx :: struct {
-    project:         ProjectCtx
+    project:         ProjectCtx!
     mangled:         string
     origin:          MonoEntry
     return_type:     Type
@@ -140,11 +140,11 @@ import "vader/comptime"
 ///
 /// @param lp  the lowered project from the lowerer pass.
 /// @return    a fresh `CFGProject` with one entry per non-stdlib module.
-export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]! = []) -> CFGProject {
+export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]! = []) -> CFGProject! {
     ctx :: new_project_ctx(lp, diags)
     modules :: MutableMap<string, CFGModule> {}
     for [module_id, m] in lp.modules {
-        functions: CFGFunction[]!: []
+        functions: CFGFunction![]!: []
         externs: CFGExternDecl[]!: []
         struct_decls: CFGStructDecl[]!: []
         for d in m.decls {
@@ -434,7 +434,7 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
 /// Convert one body-having `LoweredFnDecl` into a `CFGFunction`.
 /// Returns `null` for bodyless fns (caller routes them through
 /// `make_extern_decl` instead).
-convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | null {
+convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx!) -> CFGFunction! | null {
     if d.body is null { return null }
     body :: d.body
 

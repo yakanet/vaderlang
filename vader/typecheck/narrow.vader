@@ -54,14 +54,14 @@ export NarrowState :: struct {
     /// `narrow_for_binding`, which falls back to the static type when no
     /// narrowing is in effect or the entry's generation is stale. Producers live
     /// in `expr_if.vader`, `match_expr.vader` and `stmt.vader`.
-    bindings: MutableMap<i32, NarrowSlot> = MutableMap<i32, NarrowSlot> {}
+    bindings: MutableMap<i32, NarrowSlot>! = MutableMap<i32, NarrowSlot> {}
 
     /// Per-field narrowed type stack, keyed by `"${receiver_sym_id}#${field_name}"`.
     /// Mirrors `bindings` but for `expr.field` chains: when
     /// `if b.items != null { ... }` activates a narrowing in the then-branch,
     /// `field.vader::infer_field` reads this to return `i32[]` rather than
     /// `i32[] | null`.
-    fields: MutableMap<string, NarrowSlot> = MutableMap<string, NarrowSlot> {}
+    fields: MutableMap<string, NarrowSlot>! = MutableMap<string, NarrowSlot> {}
 
     /// Kill generation per binding slot — bumped by `invalidate_narrow_on_assign`
     /// when a reassignment invalidates the binding's active narrowing. Entries

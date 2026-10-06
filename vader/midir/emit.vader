@@ -653,7 +653,7 @@ FnEmitCfg :: struct {
     fn_: CFGFunction
     pinned_types_bucket: i32[]!
     slot: BcFunction
-    project: EmitterCtx
+    project: EmitterCtx!
     string_index_map: i32[]
     local_to_slot: i32[]
     scopes: ScopeFrame[]!

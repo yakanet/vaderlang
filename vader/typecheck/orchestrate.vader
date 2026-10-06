@@ -41,7 +41,7 @@ merge_module_program :: fn(files: SourceFile[]) -> AST.Program {
 /// the compiler wouldn't — and vice-versa. The only thing layered on top is the
 /// LSP's per-file presentation filter (drop other files' spans).
 export FileCheck :: struct {
-    project: LoadedProject
+    project: LoadedProject!
     result: CheckResult
     /// Loader diagnostics (parse / discovery / import-path / collect) followed
     /// by typecheck diagnostics, in that order — the same merge the CLI's
@@ -477,7 +477,7 @@ import "std/string"
 
 empty_impls :: fn() -> ImplRegistry { return ImplRegistry {} }
 
-empty_fallback :: fn(project: LoadedProject!) -> TypedProgram {
+empty_fallback :: fn(project: LoadedProject!) -> TypedProgram! {
     loaded :: project.modules[project.entry]
     if loaded == null {
         // Defensive — load_project guarantees entry is loaded.
@@ -487,7 +487,7 @@ empty_fallback :: fn(project: LoadedProject!) -> TypedProgram {
     return new_typed_program(rm)
 }
 
-synth_resolved :: fn() -> ResolvedModule {
+synth_resolved :: fn() -> ResolvedModule! {
     return ResolvedModule {
         .path = "",
         .display_path = "",

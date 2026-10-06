@@ -43,7 +43,7 @@ mark_produced_structs :: fn(t: Type, ctx: FnLowerCtx!) -> void {
     }
 }
 
-lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
+lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr! {
     mark_produced_structs(type, ctx)
     // A call to a fn iterating its `Iterator` parameter once, handed a fusible
     // chain, becomes the chain's loop before the call itself is formed.
@@ -81,7 +81,7 @@ lower_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
 
 // `left == right` : the `Equals` of a primitive or an enum, which the comparison
 // primop answers.
-equals_primop :: fn(left: LoweredExpr, right: LoweredExpr, span: Span) = LoweredBinary {
+equals_primop :: fn(left: LoweredExpr!, right: LoweredExpr!, span: Span) = LoweredBinary {
     .span = span,
     .type = TY_BOOL,
     .op = .Eq,
@@ -104,8 +104,8 @@ equals_primop :: fn(left: LoweredExpr, right: LoweredExpr, span: Span) = Lowered
 // also drives `register_nongeneric_imported_fn` (back in `lower_call`) to
 // materialise the picked overload's body.
 retype_overload_callee :: fn(
-    ctx: FnLowerCtx, callee_ast: Expr, lowered: LoweredExpr, result_type: Type,
-) -> LoweredExpr {
+    ctx: FnLowerCtx, callee_ast: Expr, lowered: LoweredExpr!, result_type: Type,
+) -> LoweredExpr! {
     if callee_ast is IdentExpr {
         if ctx.typed.overload_result_callees[callee_ast.id] is null { return lowered }
         if lowered is LoweredIdent {
@@ -143,7 +143,7 @@ try_lower_static_member_call :: fn(
     ctx: FnLowerCtx!,
     call: CallExpr,
     type: Type,
-) -> LoweredExpr | null {
+) -> LoweredExpr! | null {
     field :: as_field_expr(call.callee) ?? return null
     found :: ctx.typed.static_members[field.id] ?? return null
     owner :: ctx.types.apply(found.owner)
@@ -167,7 +167,7 @@ try_lower_static_member_call :: fn(
 /// and the lowered receiver's runtime type is a `TraitType` (the typer
 /// already narrowed unions / cast-call sites so the lowered tree carries
 /// the dispatch type at the surface).
-try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr | null {
+try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr! | null {
     callee_field :: as_field_expr(call.callee) ?? return null
     if callee_field is FieldExpr {
         receiver :: lower_expr(ctx, callee_field.target)
@@ -181,7 +181,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
             // `ufcs_receiver_types[id]` iff it resolved free-fn UFCS ; a genuine
             // trait method leaves it null → the vcall below still fires.
             if !(ctx.typed.ufcs_receiver_types[callee_field.id] is null) { return null }
-            args: LoweredExpr[]!: []
+            args: LoweredExpr![]!: []
             for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
             // Record the dispatched trait so every primitive implementor is
             // surfaced into the vtable — see `virtually_dispatched_traits`.
@@ -201,7 +201,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
         if receiver_ty is AnyType {
             trait_name :: ctx.typed.bounded_dispatch_trait[callee_field.id]
             if trait_name is string {
-                args: LoweredExpr[]!: []
+                args: LoweredExpr![]!: []
                 for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
                 // Erased bounded-trait receiver : surface every primitive
                 // implementor of `tname` — see `virtually_dispatched_traits`.
@@ -249,7 +249,7 @@ module_impl_decls :: fn(ctx: FnLowerCtx, module: string) -> Decl[] {
 // resolved symbol has kind `ImportBinding` (namespace import). Emit
 // a direct call to the imported member by name — the dump format
 // shows just the bare callee name for namespace-prefixed calls.
-try_lower_namespace_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr | null {
+try_lower_namespace_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr! | null {
     callee :: call.callee
     if callee is FieldExpr {
         namespace_symbol :: as_namespace_binding(ctx, callee.target) ?? return null
@@ -283,7 +283,7 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> 
         // lowered lazily (every non-entry module is), so without this its
         // body is never reserved and the call is unresolved at emit.
         register_nongeneric_imported_fn(ctx, member_symbol)
-        args: LoweredExpr[]!: []
+        args: LoweredExpr![]!: []
         for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
         return LoweredCall {
             .span = call.span, .type = type,
@@ -336,7 +336,7 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
 // `try_fold_unbaked_const`. Returns null for a non-const symbol, or a const
 // whose value isn't a foldable scalar — the caller keeps a real reference.
 // Shared by `lower_ident` (every ident) and `try_lower_namespace_const`.
-fold_const_symbol :: fn(ctx: FnLowerCtx!, sym: Symbol, type: Type, span: Span) -> LoweredExpr | null {
+fold_const_symbol :: fn(ctx: FnLowerCtx!, sym: Symbol, type: Type, span: Span) -> LoweredExpr! | null {
     folded :: fold_const_value(ctx, sym, type, span) ?? return null
     // The value carries its own variant's type ; a read typed as a union boxes it,
     // as reading the const's slot would — `==` and `is` dispatch on that type.
@@ -354,7 +354,7 @@ fold_const_symbol :: fn(ctx: FnLowerCtx!, sym: Symbol, type: Type, span: Span) -
 // bake missed. Null when it does not fold.
 fold_const_value :: fn(
     ctx: FnLowerCtx!, sym: Symbol, type: Type, span: Span,
-) -> LoweredExpr | null {
+) -> LoweredExpr! | null {
     baked :: lookup_const_baked_value(ctx, sym)
     if baked == null {
         // Bake missed. Gate on Const kind so the common baked-miss (every
@@ -392,7 +392,7 @@ fold_const_value :: fn(
 // `lower_ident`. Load-bearing under the uniform lazy lowering: any non-entry
 // module's compound const reached via `M.CONST` needs the same routing as a
 // bare reference (its decl is materialised on demand, not lowered eagerly).
-try_lower_namespace_const :: fn(ctx: FnLowerCtx!, e: FieldExpr, type: Type) -> LoweredExpr | null {
+try_lower_namespace_const :: fn(ctx: FnLowerCtx!, e: FieldExpr, type: Type) -> LoweredExpr! | null {
     ns_sym :: as_namespace_binding(ctx, e.target) ?? return null
     member :: resolve_namespace_member(ctx, ns_sym, e.field)
     if member.kind != .Const { return null }
@@ -412,7 +412,7 @@ try_lower_namespace_const :: fn(ctx: FnLowerCtx!, e: FieldExpr, type: Type) -> L
 // `LoweredIdent` and doesn't match), else null so the caller falls back to
 // `LoweredArrayLen`. The internal `byte_len` host fn is resolved from
 // std/string's symbol table.
-fold_bytes_len :: fn(ctx: FnLowerCtx!, target: LoweredExpr, span: Span) -> LoweredExpr | null {
+fold_bytes_len :: fn(ctx: FnLowerCtx!, target: LoweredExpr, span: Span) -> LoweredExpr! | null {
     // Cheap structural gate first — short-circuits the vast majority of
     // `.len()` sites (plain arrays) before touching the symbol table.
     if target is LoweredCall {
@@ -450,7 +450,7 @@ fold_bytes_len :: fn(ctx: FnLowerCtx!, target: LoweredExpr, span: Span) -> Lower
 // Detect `arr.push(x)` / `arr.len()` and emit the dedicated op. Returns
 // null when the receiver isn't an array or the field isn't a recognised
 // array intrinsic — caller falls back to the generic call path.
-try_lower_array_op :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr | null {
+try_lower_array_op :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr! | null {
     callee :: call.callee
     // @partial: only a `recv.field(args)` (FieldExpr callee) can be an array op;
     // every other Expr callee → null (caller falls back to the generic path).

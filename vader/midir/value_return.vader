@@ -35,7 +35,7 @@ import "vader/lower"
 ///
 /// @param p  the CFG project, fresh from `build_cfg_project`.
 /// @return   a fresh project; `p` is untouched.
-export scalarise_value_returns :: fn(p: CFGProject) -> CFGProject {
+export scalarise_value_returns :: fn(p: CFGProject!) -> CFGProject! {
     by_symbol :: MutableMap<i32, string> {}
     callers :: MutableSet<string> {}
     chosen :: choose_functions(p, by_symbol, callers)
@@ -44,7 +44,7 @@ export scalarise_value_returns :: fn(p: CFGProject) -> CFGProject {
     }
     out :: MutableMap<string, CFGModule> {}
     for [id, m] in p.modules {
-        new_fns: CFGFunction[]!: []
+        new_fns: CFGFunction![]!: []
         for f in m.functions {
             for g in scalarised_forms(f, chosen[f.mangled]) {
                 new_fns.push(rewrite_call_sites(g, chosen, by_symbol, callers))
@@ -115,7 +115,7 @@ choose_functions :: fn(
 
 // Every `return` hands back the scalarised values instead of one object: the
 // tuple's elements, or — when `nullable` — the tag then the struct's fields.
-rewrite_callee :: fn(f: CFGFunction, elements: Type[], nullable: bool) -> CFGFunction {
+rewrite_callee :: fn(f: CFGFunction, elements: Type[], nullable: bool) -> CFGFunction! {
     locals: CFGLocal[]!: []
     locals.push_all(f.locals)
     new_blocks: BasicBlock[]!: []
@@ -180,9 +180,9 @@ rewrite_return_block :: fn(
 
 // Every call to a scalarised function receives N values instead of one object.
 rewrite_call_sites :: fn(
-    f: CFGFunction, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
+    f: CFGFunction!, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
     callers: MutableSet<string>,
-) -> CFGFunction {
+) -> CFGFunction! {
     if f.mangled !in callers {
         return f
     }

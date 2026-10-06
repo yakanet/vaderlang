@@ -8,10 +8,10 @@
       arg0:
         "-- ascii --" :string
     block :void
-      let __iter_0: StringChars =
-        call :StringChars
+      let __iter_0: StringChars! =
+        call :StringChars!
           callee:
-            chars :StringChars
+            chars :StringChars!
           arg0:
             "vader" :string
       loop
@@ -20,7 +20,7 @@
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
-              __iter_0 :StringChars
+              __iter_0 :StringChars!
         if :void
           cond:
             eq :bool
@@ -50,10 +50,10 @@
       arg0:
         "-- multibyte --" :string
     block :void
-      let __iter_2: StringChars =
-        call :StringChars
+      let __iter_2: StringChars! =
+        call :StringChars!
           callee:
-            chars :StringChars
+            chars :StringChars!
           arg0:
             "你好嗎？" :string
       loop
@@ -62,7 +62,7 @@
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
-              __iter_2 :StringChars
+              __iter_2 :StringChars!
         if :void
           cond:
             eq :bool
@@ -88,10 +88,10 @@
                     c :char
     let n: i32 = int(0) :i32
     block :void
-      let __iter_4: StringChars =
-        call :StringChars
+      let __iter_4: StringChars! =
+        call :StringChars!
           callee:
-            chars :StringChars
+            chars :StringChars!
           arg0:
             "héllo" :string
       loop
@@ -100,7 +100,7 @@
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
-              __iter_4 :StringChars
+              __iter_4 :StringChars!
         if :void
           cond:
             eq :bool
@@ -208,10 +208,10 @@
       arg0:
         "-- empty --" :string
     block :void
-      let __iter_8: StringChars =
-        call :StringChars
+      let __iter_8: StringChars! =
+        call :StringChars!
           callee:
-            chars :StringChars
+            chars :StringChars!
           arg0:
             "" :string
       loop
@@ -220,7 +220,7 @@
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
-              __iter_8 :StringChars
+              __iter_8 :StringChars!
         if :void
           cond:
             eq :bool

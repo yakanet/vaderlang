@@ -20,10 +20,10 @@ import "toolchain/span"
 // ============================================================================
 
 export Printer :: struct {
-    buf:      StringBuilder
+    buf:      StringBuilder!
     depth:    i32
     source:   string
-    comments: CommentMap
+    comments: CommentMap!
     // Set to true after the first character has been written ; used by
     // `flush_leading_comments` to skip an initial empty line.
     has_written: bool
@@ -76,7 +76,7 @@ BlockLayout :: enum(u8) {
     Inline,
 }
 
-export new_printer :: fn(source: string, comments: CommentMap) -> Printer! {
+export new_printer :: fn(source: string, comments: CommentMap!) -> Printer! {
     return Printer {
         .buf = StringBuilder {},
         .depth = 0,

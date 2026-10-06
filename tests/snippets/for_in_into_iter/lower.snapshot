@@ -347,10 +347,10 @@
                 __off_20 :usize
     let chars: i32 = int(0) :i32
     block :void
-      let __iter_21: StringChars =
-        call :StringChars
+      let __iter_21: StringChars! =
+        call :StringChars!
           callee:
-            chars :StringChars
+            chars :StringChars!
           arg0:
             "héllo 世界" :string
       loop
@@ -359,7 +359,7 @@
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
-              __iter_21 :StringChars
+              __iter_21 :StringChars!
         if :void
           cond:
             eq :bool

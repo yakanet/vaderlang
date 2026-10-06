@@ -66,7 +66,7 @@ pop_jump_frame :: fn(ctx: FnLowerCtx!) -> JumpFrame =
 ///
 /// @param frame  the frame the body was lowered under, popped.
 /// @param body   the loop body.
-resumable_body :: fn(frame: JumpFrame, body: LoweredBlock) -> LoweredBlock {
+resumable_body :: fn(frame: JumpFrame, body: LoweredBlock!) -> LoweredBlock! {
     label :: frame.resume ?? return body
     return arm_block([labelled_block(label, body.span, block_stmts_with_trailing(body))], body.span)
 }
@@ -77,7 +77,7 @@ resumable_body :: fn(frame: JumpFrame, body: LoweredBlock) -> LoweredBlock {
 /// @param frame  the frame the loop body was lowered under, popped.
 /// @param span   span of the block when one is built.
 /// @param stmts  the producer's emitted statements.
-exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt[]) -> LoweredStmt[] {
+exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt![]) -> LoweredStmt![] {
     label :: frame.exit ?? return stmts
     return [labelled_block(label, span, stmts)]
 }
@@ -92,7 +92,7 @@ exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt[]) -> LoweredS
 /// @param span     the jump's span.
 spliced_jump :: fn(
     ctx: FnLowerCtx!, jump_id: usize, written: string | null, is_break: bool, span: Span,
-) -> LoweredStmt | null {
+) -> LoweredStmt! | null {
     target :: ctx.typed.jump_targets[jump_id] ?? return null
     frame :: frame_of(ctx, target) ?? return null
     lands :: if is_break { frame.breaks_land } else { frame.continue_lands }

@@ -119,8 +119,9 @@ check_field :: fn(
     want :: if as_pattern { erase_type_params(expected) } else { expected }
     if is_assignable(got, want)               { return }
     if try_into(got, want, typed, f.value.id) { return }
-    diags.push(typecheck_error(.TypeMismatch, f.span,
-        "expected ${display_type(expected)}, got ${display_type(got)}"))
+    diags.push(mismatch_diagnostic_hinted(
+        got, expected, f.span, .TypeMismatch, mutability_level_hint(f.value, got, expected, typed),
+    ))
 }
 
 
@@ -181,8 +182,8 @@ accept_struct_lit :: fn(e: AST.Expr) -> AST.Expr | null {
 }
 
 ExpectedSL :: struct {
-    typed: TypedProgram
-    sl:    AST.StructLitExpr
+    typed: TypedProgram!
+    sl:    AST.StructLitExpr!
 }
 
 expect_struct_lit :: fn(src: string) -> ExpectedSL {
@@ -209,9 +210,9 @@ expect_struct_lit :: fn(src: string) -> ExpectedSL {
 }
 
 
-synthetic_sl :: fn() -> AST.StructLitExpr {
+synthetic_sl :: fn() -> AST.StructLitExpr! {
     sp :: empty_span()
-    int_lit: AST.Expr: AST.IntLitExpr {
+    int_lit: AST.Expr!: AST.IntLitExpr {
         .span = sp, .id = AST.UNASSIGNED_NODE_ID, .value = 0,
     }
     return AST.StructLitExpr {

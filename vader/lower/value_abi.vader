@@ -554,7 +554,7 @@ test_fresh_returns_looks_inside_an_if :: fn() -> void {
     assert(!returns_only_fresh_composites(fresh_test_body([nested])), "an arm's return counts")
 }
 
-fresh_test_body :: fn(stmts: LoweredStmt[]) -> LoweredBlock = LoweredBlock {
+fresh_test_body :: fn(stmts: LoweredStmt![]) -> LoweredBlock! = LoweredBlock {
     .span = empty_span(),
     .type = TY_VOID,
     .stmts = stmts,

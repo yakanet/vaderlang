@@ -50,7 +50,7 @@ export Capture :: struct {
 /// keys by symbol id, which IS project-global-unique (one shared factory),
 /// so it needs no qualification.
 export ClosureAnalysis :: struct {
-    cell_symbols: MutableSet<i32>
+    cell_symbols: MutableSet<i32>!
     lambda_captures:  MutableMap<string, Capture[]>
     defer_captures:   MutableMap<string, Capture[]>
 }
@@ -91,7 +91,7 @@ export LowerProjectCtx :: struct {
     /// Mixed / Erased) consistently with the materialiser (`lower_mono_fn`). Same
     /// `TypedProject` the materialiser already consumes — exposed earlier here.
     typed:               TypedProject
-    impls:               ImplRegistry
+    impls:               ImplRegistry!
 
     /// `$VADER_OPT_REPORT` is on — read once at construction so each fall site
     /// costs a bool test rather than an environment lookup. See `opt_report.vader`.
@@ -106,7 +106,7 @@ export LowerProjectCtx :: struct {
     /// The callees whose body is being inlined right now — generators and
     /// iterator consumers alike. Inlining one of them again, from inside its own
     /// body, would never end.
-    inlining_callees:    MutableSet<i32> = MutableSet<i32> {}
+    inlining_callees:    MutableSet<i32>! = MutableSet<i32> {}
     /// Instance clone id → the resolver's id for the same binding: the key of
     /// every resolver table indexed by symbol id (`origin_symbol_id`).
     clone_origins:       MutableMap<i32, i32> = MutableMap<i32, i32> {}
@@ -114,7 +114,7 @@ export LowerProjectCtx :: struct {
     /// its declaration's span (`inline_consumer.vader`).
     consumers:           MutableMap<u64, ConsumerShape> = MutableMap<u64, ConsumerShape> {}
     /// The callees known to consume none, keyed the same way.
-    non_consumers:       MutableSet<u64> = MutableSet<u64> {}
+    non_consumers:       MutableSet<u64>! = MutableSet<u64> {}
 
     /// `name -> Symbol` from `std/core` (cached once at construction
     /// so trait / struct lookups don't re-walk the module map).
@@ -156,7 +156,7 @@ export LowerProjectCtx :: struct {
     /// `lower.vader::lower_module` brackets each module's walk with a window and
     /// `lower_finish.vader::drain_synth_window` pushes the window's decls into
     /// that module, so the emit picks them up alongside user decls.
-    synth_decls:         LoweredDecl[]!
+    synth_decls:         LoweredDecl![]!
 
     /// Synthetic `concat_N` fns, keyed by arity. The string `+`-concat and
     /// all-string `${}` lowering route an N-leaf chain to one shared
@@ -172,7 +172,7 @@ export LowerProjectCtx :: struct {
     /// `concat_N` first synthesised inside a deduped generic instance would be
     /// stranded). They are collected here and drained ONCE, unconditionally,
     /// into the entry module after the lowering fixpoint (`drain_concat_decls`).
-    concat_decls:        LoweredFnDecl[]!
+    concat_decls:        LoweredFnDecl![]!
     /// Enum symbol id → the synthetic read-only const holding that enum's
     /// variant data, one slot per rank. Minted at the first read
     /// (`enum_table_const`) so every read shares one symbol.
@@ -219,7 +219,7 @@ export LowerProjectCtx :: struct {
     /// `collect(it: Iterator<T>)`) share a base mangle ; the second to
     /// register gets a `_1` suffix so the `dump_bytecode → parse_virt`
     /// round-trip keeps distinct fn names.
-    seen_mangled:        MutableMap<string, bool>
+    seen_mangled:        MutableMap<string, bool>!
 
     /// NON-generic free fns observed at call sites (UFCS or direct) in any
     /// non-entry module. Such modules are lowered lazily, so unless harvested
@@ -229,7 +229,7 @@ export LowerProjectCtx :: struct {
     /// emits one `LoweredFnDecl` per harvested symbol (body lowered, or
     /// `null` for `@extern` → import table). Keyed by `fn_symbol.id` for
     /// dedup ; `_order` preserves discovery order for a deterministic dump.
-    nongeneric_imported_fns:   MutableMap<i32, bool>
+    nongeneric_imported_fns:   MutableMap<i32, bool>!
     nongeneric_imported_order: Symbol[]!
     /// Resume cursor into `nongeneric_imported_order` for
     /// `materialize_nongeneric_imported_fns`. Persisted so the
@@ -248,7 +248,7 @@ export LowerProjectCtx :: struct {
     /// like any user const (scalar → inline, bulky array → fn-wrap accessor).
     /// Keyed by `const_symbol.id` for dedup ; `_order` preserves discovery
     /// order for a deterministic dump.
-    nongeneric_imported_consts:       MutableMap<i32, bool>
+    nongeneric_imported_consts:       MutableMap<i32, bool>!
     nongeneric_imported_const_order:  Symbol[]!
     /// Resume cursor into `nongeneric_imported_const_order`, persisted across
     /// the materialise↔surface fixpoint so a const harvested late (e.g. one
@@ -263,7 +263,7 @@ export LowerProjectCtx :: struct {
     /// All call sites end up routing through trait virtual dispatch,
     /// which picks the single surviving body regardless of the original
     /// instance's concrete args.
-    materialized_impl_keys: MutableSet<string>
+    materialized_impl_keys: MutableSet<string>!
 
     /// Mangles of every monomorphized struct decl `materialize_struct_instance`
     /// has pushed. Two jobs. It makes that function idempotent — the receiver
@@ -274,7 +274,7 @@ export LowerProjectCtx :: struct {
     /// the whole `ref`-orphan bug class (a fn whose receiver has no struct decl
     /// interns as a bare `ref`, and its first field access panics in
     /// `midir/emit`).
-    materialized_struct_mangles: MutableSet<string>
+    materialized_struct_mangles: MutableSet<string>!
 
     /// Mangles of impl-member calls actually resolved during lowering
     /// (recorded by `find_impl_member_for`). The post-lowering
@@ -282,7 +282,7 @@ export LowerProjectCtx :: struct {
     /// stdlib impl members a concrete call references — surfacing ALL of
     /// them would intern unused signature types and shift the type table
     /// for unrelated snippets.
-    referenced_impl_mangles: MutableSet<string>
+    referenced_impl_mangles: MutableSet<string>!
 
     /// Trait names reached by an ERASED virtual dispatch (op-overload on a
     /// `T`/`Any` operand, a bounded-trait method call on an erased receiver,
@@ -294,7 +294,7 @@ export LowerProjectCtx :: struct {
     /// trait (the mono model materialises every non-generic impl member
     /// upfront then DCEs to the dispatched keys). Empty for snippets
     /// with no erased primitive dispatch → no surfacing, no snapshot drift.
-    virtually_dispatched_traits: MutableSet<string>
+    virtually_dispatched_traits: MutableSet<string>!
 
     /// Symbol ids of struct types a value of which can be INHABITED at runtime :
     /// constructed by a `lower_struct_lit`, OR produced by a callee's return type
@@ -306,7 +306,7 @@ export LowerProjectCtx :: struct {
     /// implements Error`) gets its impl members in the vtable ONLY when a value
     /// of it can exist, NOT for every snippet that merely dispatches the trait —
     /// otherwise an inhabitable-nowhere struct would bloat the table.
-    constructed_struct_symbols: MutableSet<i32>
+    constructed_struct_symbols: MutableSet<i32>!
 
     /// Blanket-array impl-member call sites (`x in arr` → `T[] implements
     /// Contains`, `[T]`-to-`Iterator` coercion → `T[] implements Into`) : maps
@@ -328,7 +328,7 @@ export LowerProjectCtx :: struct {
     pending_generic_impl_recv: GenericInstance![]!
     /// Receiver keys already queued, so each erased instance is queued once
     /// (bounds the queue + avoids redundant per-receiver module scans).
-    seen_generic_impl_recv: MutableSet<string>
+    seen_generic_impl_recv: MutableSet<string>!
 
     /// Resumable state for the generic-fn-instance materialiser, split into a
     /// build phase (`drain_generic_fn_instances`) and a one-shot flush
@@ -501,14 +501,14 @@ export FnLowerCtx :: struct {
     /// loop-var symbol's id, the value is the per-iter literal that
     /// replaces every reference to `x` in the body. Pushed at unroll
     /// entry, popped at exit ; shape mirrors `narrowed` in typecheck.
-    comptime_bindings:  MutableMap<i32, LoweredExpr>
+    comptime_bindings:  MutableMap<i32, LoweredExpr!>!
 
     /// The operands of a compound assignment's place, evaluated once ahead of
     /// it : keyed by AST node id, the value `lower_expr` returns for that node
     /// while the statement is lowered, so the write and the read in
     /// `lhs op rhs` share one evaluation. Transient — `lower_compound_assign`
     /// removes its entries once the statement is lowered.
-    bound_operands:     MutableMap<usize, LoweredExpr> = MutableMap<usize, LoweredExpr> {}
+    bound_operands:     MutableMap<usize, LoweredExpr!>! = MutableMap<usize, LoweredExpr!> {}
 
     /// True while lowering a `generator` body: `lower_stmt` emits a
     /// transient `LoweredYield` marker for `yield e` (consumed by the
@@ -608,7 +608,7 @@ export new_fn_lower_ctx :: fn(
         .blocks            = [],
         .uniq              = 0,
         .lifted_context    = null,
-        .comptime_bindings = MutableMap<i32, LoweredExpr> {},
+        .comptime_bindings = MutableMap<i32, LoweredExpr!> {},
     }
 }
 

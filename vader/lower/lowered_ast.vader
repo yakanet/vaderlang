@@ -142,7 +142,7 @@ export LoweredFnDecl :: struct {
     params:      LoweredParam[]
     return_type: Type
     /// `null` for `@extern` / signature-only fns.
-    body:        LoweredBlock | null
+    body:        LoweredBlock! | null
     origin:     MonoEntry
 }
 
@@ -155,7 +155,7 @@ export LoweredStructDecl :: struct {
 export LoweredConstDecl :: struct {
     mangled: string
     type:    Type
-    value:   LoweredExpr
+    value:   LoweredExpr!
     origin:  MonoEntry
 }
 
@@ -195,7 +195,7 @@ export LoweredStmt ::
 /// exits.
 export LoweredDeferPush :: struct {
     span:  Span
-    thunk: LoweredExpr
+    thunk: LoweredExpr!
 }
 
 /// Pop and execute `count` entries from the current frame's defer-
@@ -211,13 +211,13 @@ export LoweredLet :: struct {
     name:   string
     symbol: Symbol
     type:   Type
-    value:  LoweredExpr
+    value:  LoweredExpr!
 }
 
 export LoweredAssign :: struct {
     span:   Span
-    target: LoweredExpr
-    value:  LoweredExpr
+    target: LoweredExpr!
+    value:  LoweredExpr!
 }
 
 /// Update the slot of a closure cell (a heap single-slot box used to give
@@ -225,19 +225,19 @@ export LoweredAssign :: struct {
 /// a cell ref ; `value` carries the new contents (statically `value_type`).
 export LoweredCellSet :: struct {
     span:       Span
-    target:     LoweredExpr
-    value:      LoweredExpr
+    target:     LoweredExpr!
+    value:      LoweredExpr!
     value_type: Type
 }
 
 export LoweredExprStmt :: struct {
     span: Span
-    expr: LoweredExpr
+    expr: LoweredExpr!
 }
 
 export LoweredReturn :: struct {
     span:  Span
-    value: LoweredExpr | null
+    value: LoweredExpr! | null
 }
 
 /// TRANSIENT generator marker — one `yield e` inside a `generator` body.
@@ -248,7 +248,7 @@ export LoweredReturn :: struct {
 /// generator transform is a compiler bug.
 export LoweredYield :: struct {
     span:  Span
-    value: LoweredExpr
+    value: LoweredExpr!
 }
 
 /// TRANSIENT async marker — one `await e` inside an `async` body, produced by
@@ -260,7 +260,7 @@ export LoweredAwait :: struct {
     span:        Span
     target:      Symbol
     target_type: Type
-    awaited:     LoweredExpr
+    awaited:     LoweredExpr!
 }
 
 /// A block that a `break <label>` leaves early, where the lowering has to jump
@@ -270,7 +270,7 @@ export LoweredAwait :: struct {
 export LoweredLabelledBlock :: struct {
     span:  Span
     label: string
-    body:  LoweredBlock
+    body:  LoweredBlock!
 }
 
 /// Every `for` form collapses to a Loop after lowering. `cond == null`
@@ -278,12 +278,12 @@ export LoweredLabelledBlock :: struct {
 export LoweredLoop :: struct {
     span:  Span
     label: string | null
-    cond:  LoweredExpr | null
-    body:  LoweredBlock
+    cond:  LoweredExpr! | null
+    body:  LoweredBlock!
     /// Runs after the body, and wherever a `continue` targets this loop, before
     /// `cond` is tested again — a counted loop's increment. Straight-line code:
     /// no jump, no `yield` or `await`. Empty for a loop with no step.
-    step:  LoweredStmt[]
+    step:  LoweredStmt![]
     /// How many turns the loop runs, when the emitter that built it knows ; null
     /// for any other loop.
     turns: LoopTurns | null = null
@@ -301,8 +301,8 @@ export LoweredLoop :: struct {
 /// no later pass rewrites these expressions, and no backend reads them.
 export LoopTurns :: struct {
     counter:   Symbol
-    start:     LoweredExpr
-    bound:     LoweredExpr
+    start:     LoweredExpr!
+    bound:     LoweredExpr!
     inclusive: bool
 }
 
@@ -408,8 +408,8 @@ export LoweredTypeConst :: struct {
 export LoweredCall :: struct {
     span:   Span
     type:   Type
-    callee: LoweredExpr
-    args:   LoweredExpr[]!
+    callee: LoweredExpr!
+    args:   LoweredExpr![]!
 }
 
 /// Virtual dispatch on a trait-typed receiver — the runtime indexes a
@@ -421,8 +421,8 @@ export LoweredVirtualCall :: struct {
     type:       Type
     trait_name: string
     method:     string
-    receiver:   LoweredExpr
-    args:       LoweredExpr[]!
+    receiver:   LoweredExpr!
+    args:       LoweredExpr![]!
     /// The method's declared parameter types, `self` excluded, parallel to
     /// `args` — midir tags a scalar entering a union one. Empty on a synthesised
     /// call, whose parameters are erased.
@@ -432,15 +432,15 @@ export LoweredVirtualCall :: struct {
 export LoweredFieldAccess :: struct {
     span:   Span
     type:   Type
-    target: LoweredExpr
+    target: LoweredExpr!
     field:  string
 }
 
 export LoweredIndex :: struct {
     span:   Span
     type:   Type
-    target: LoweredExpr
-    index:  LoweredExpr
+    target: LoweredExpr!
+    index:  LoweredExpr!
     /// Bounds-check elimination : `true` when the producer has PROVEN the index
     /// is in range (a loop counter running `0..<len(arr)` over `arr`). The C
     /// backend then skips the D7 per-access bounds check. Set by the
@@ -466,7 +466,7 @@ export LoweredUnary :: struct {
     span:    Span
     type:    Type
     op:      LoweredUnaryOp
-    operand: LoweredExpr
+    operand: LoweredExpr!
 }
 
 /// Canonical binary operator kinds. `and` / `or` are short-circuited at
@@ -499,16 +499,16 @@ export LoweredBinary :: struct {
     span:  Span
     type:  Type
     op:    LoweredBinaryOp
-    left:  LoweredExpr
-    right: LoweredExpr
+    left:  LoweredExpr!
+    right: LoweredExpr!
 }
 
 export LoweredIf :: struct {
     span:        Span
     type:        Type
-    cond:        LoweredExpr
-    then_block:  LoweredBlock
-    else_block:  LoweredBlock | null
+    cond:        LoweredExpr!
+    then_block:  LoweredBlock!
+    else_block:  LoweredBlock! | null
 }
 
 /// Block — both a statement-position and an expression-position citizen.
@@ -516,8 +516,8 @@ export LoweredIf :: struct {
 export LoweredBlock :: struct {
     span:     Span
     type:     Type
-    stmts:    LoweredStmt[]
-    trailing: LoweredExpr | null
+    stmts:    LoweredStmt![]
+    trailing: LoweredExpr! | null
 }
 
 export LoweredStructLit :: struct {
@@ -528,13 +528,13 @@ export LoweredStructLit :: struct {
 
 export LoweredStructLitField :: struct {
     name:  string
-    value: LoweredExpr
+    value: LoweredExpr!
 }
 
 export LoweredArrayLit :: struct {
     span:     Span
     type:     Type
-    elements: LoweredExpr[]!
+    elements: LoweredExpr![]!
 }
 
 /// A read-only `T[]` module-level literal that lives in the project's data
@@ -559,7 +559,7 @@ export LoweredDataConst :: struct {
 export LoweredArrayLen :: struct {
     span:   Span
     type:   Type
-    target: LoweredExpr
+    target: LoweredExpr!
     /// BCE candidate marker : set by a loop desugar (foreach / iterator-fusion)
     /// on the `arr.len()` bound it emits into the loop preheader. The
     /// `bce_prove_tag` pass — which runs AFTER inlining, so map/filter callbacks
@@ -573,8 +573,8 @@ export LoweredArrayLen :: struct {
 export LoweredArrayPush :: struct {
     span:   Span
     type:   Type
-    target: LoweredExpr
-    value:  LoweredExpr
+    target: LoweredExpr!
+    value:  LoweredExpr!
     /// Set by `push_cache_tag` when this push sits in a loop that can keep the
     /// array's length / capacity / slots in locals instead of memory — nothing
     /// in the body observes the array, and nothing but this push's own grow can
@@ -588,9 +588,9 @@ export LoweredArrayPush :: struct {
 export LoweredArraySlice :: struct {
     span:   Span
     type:   Type
-    target: LoweredExpr
-    lo:     LoweredExpr
-    hi:     LoweredExpr
+    target: LoweredExpr!
+    lo:     LoweredExpr!
+    hi:     LoweredExpr!
 }
 
 /// `string[lo..hi)` codepoint-range slice. `lo` and `hi` are codepoint
@@ -601,15 +601,15 @@ export LoweredArraySlice :: struct {
 export LoweredStringSlice :: struct {
     span:   Span
     type:   Type
-    target: LoweredExpr
-    lo:     LoweredExpr
-    hi:     LoweredExpr
+    target: LoweredExpr!
+    lo:     LoweredExpr!
+    hi:     LoweredExpr!
 }
 
 export LoweredCast :: struct {
     span:  Span
     type:  Type
-    value: LoweredExpr
+    value: LoweredExpr!
 }
 
 /// Runtime tag check — tests whether a value of a union type is currently
@@ -617,7 +617,7 @@ export LoweredCast :: struct {
 export LoweredTypeCheck :: struct {
     span:       Span
     type:       Type
-    value:      LoweredExpr
+    value:      LoweredExpr!
     check_type: Type
 }
 
@@ -639,7 +639,7 @@ export LoweredIntrinsicCall :: struct {
     span:        Span
     type:        Type
     name:        string
-    args:        LoweredExpr[]!
+    args:        LoweredExpr![]!
 }
 
 /// Allocate a new closure cell holding `value`. Cells are 1-slot heap
@@ -650,7 +650,7 @@ export LoweredIntrinsicCall :: struct {
 export LoweredCellNew :: struct {
     span:       Span
     type:       Type
-    value:      LoweredExpr
+    value:      LoweredExpr!
     value_type: Type
 }
 
@@ -659,7 +659,7 @@ export LoweredCellNew :: struct {
 export LoweredCellGet :: struct {
     span:       Span
     type:       Type
-    target:     LoweredExpr
+    target:     LoweredExpr!
     value_type: Type
 }
 
@@ -672,7 +672,7 @@ export LoweredMakeClosure :: struct {
     span:      Span
     type:      Type
     fn_symbol: Symbol
-    env:       LoweredExpr
+    env:       LoweredExpr!
 }
 
 // ============================================================================

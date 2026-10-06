@@ -441,7 +441,7 @@ export check_fn_body :: fn(
                 got,
                 effective_return,
                 body.trailing.span,
-                body.trailing.id,
+                body.trailing,
                 typed,
                 diags,
             )
@@ -557,10 +557,10 @@ emit_return_mismatch_if :: fn(
     got: Type,
     expected: Type,
     span: Span,
-    node_id: usize,
+    value: AST.Expr | null,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
-) -> void = emit_mismatch_if(got, expected, span, node_id, .BodyReturnIncompatible, typed, diags)
+) -> void = emit_mismatch_if(got, expected, span, value, .BodyReturnIncompatible, typed, diags)
 
 // The one coercion gate shared by let / return / yield / assign : `got` flows
 // into `expected` when it is assignable, or `Into`-coercible. `is_assignable`
@@ -583,23 +583,28 @@ flows_into :: fn(got: Type, expected: Type, node_id: usize, typed: TypedProgram!
 
 // Push `code` when `got` doesn't flow into `expected` — neither assignable nor
 // `Into`-coercible. Shared by the return / yield mismatch checks so wording
-// stays in sync ; only the diagnostic code differs. `node_id` is the coerced
-// value expr's `Expr.id`, forwarded to `try_into` for the LSP into-hint table.
+// stays in sync ; only the diagnostic code differs. `value` is the coerced
+// expression — its id feeds `try_into`'s LSP into-hint table, and it names the
+// declaration to reopen on a mutability-only mismatch. Null for a bare `return`.
 emit_mismatch_if :: fn(
     got: Type,
     expected: Type,
     span: Span,
-    node_id: usize,
+    value: AST.Expr | null,
     code: TypecheckCode,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> void {
-    if flows_into(got, expected, node_id, typed) {
+    fits :: if value == null {
+        is_assignable(got, expected)
+    } else {
+        flows_into(got, expected, value.id, typed)
+    }
+    if fits {
         return
     }
-    diags.push(
-        typecheck_error(code, span, "expected ${display_type(expected)}, got ${display_type(got)}"),
-    )
+    hint :: if value == null { "" } else { mutability_level_hint(value, got, expected, typed) }
+    diags.push(mismatch_diagnostic_hinted(got, expected, span, code, hint))
 }
 
 // Resolve the effective fn-context: the arg-side `ctx` when present, else the
@@ -778,10 +783,7 @@ check_assign :: fn(
                     typecheck_error(
                         .CannotMutateImmutableArray,
                         ix.target.span,
-                        // Two hints, and only one can apply : the receiver is either
-                        // reached through a field or rooted in a parameter / local.
                         "cannot mutate `${display_type(target_arr_ty)}`"
-                            + field_annotate_hint(ix.target, typed)
                             + mutation_fix_hint(ix.target, typed),
                     ),
                 )
@@ -797,7 +799,7 @@ check_assign :: fn(
             // flow-narrowed, so it is the declared slot type the write must fit.
             elem_ty :: check_expr_fn(s.target, null, typed, diags)
             value_ty :: check_expr_fn(s.value, elem_ty, typed, diags)
-            emit_assign_mismatch_if(value_ty, elem_ty, s.span, s.value.id, typed, diags)
+            emit_assign_mismatch_if(value_ty, elem_ty, s.span, s.value, typed, diags)
             return
         }
         // TypeParam bounded by `IndexSet<I, V>` — `c[i] = v` dispatches through
@@ -813,7 +815,7 @@ check_assign :: fn(
                         typed.bounded_dispatch_trait[ix.id] = core_trait_key(TRAIT_INDEX_SET)
                         keep_instances_concrete(typed)
                         set_value :: check_expr_fn(s.value, set_args[1], typed, diags)
-                        emit_assign_mismatch_if(set_value, set_args[1], s.span, s.value.id, typed, diags)
+                        emit_assign_mismatch_if(set_value, set_args[1], s.span, s.value, typed, diags)
                         return
                     }
                 }
@@ -829,7 +831,7 @@ check_assign :: fn(
         // already surfaced that, so `emit_assign_mismatch_if` no-ops on it.
         v_expected :: index_set_value_expected(target_arr_ty, typed)
         value_ty :: check_expr_fn(s.value, v_expected, typed, diags)
-        emit_assign_mismatch_if(value_ty, v_expected, s.span, s.value.id, typed, diags)
+        emit_assign_mismatch_if(value_ty, v_expected, s.span, s.value, typed, diags)
         return
     }
     target_ty :: check_expr_fn(s.target, null, typed, diags)
@@ -843,7 +845,7 @@ check_assign :: fn(
     // write retires the narrowing, per `invalidate_narrow_on_assign`), so the
     // assignability check must target the declaration, not the narrowed view.
     declared :: declared_lvalue_type(s.target, target_ty, typed)
-    emit_assign_mismatch_if(value_ty, declared, s.span, s.value.id, typed, diags)
+    emit_assign_mismatch_if(value_ty, declared, s.span, s.value, typed, diags)
     // A write to a narrowed binding / field chain retires its stale
     // narrowings — see `narrow.vader::invalidate_narrow_on_assign`.
     invalidate_narrow_on_assign(s.target, value_ty, typed)
@@ -892,16 +894,19 @@ emit_assign_mismatch_if :: fn(
     got: Type,
     expected: Type | null,
     span: Span,
-    node_id: usize,
+    value: AST.Expr,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> void {
-    if expected == null                          { return }
-    if flows_into(got, expected, node_id, typed) { return }
+    if expected == null                           { return }
+    if flows_into(got, expected, value.id, typed) { return }
     // Both mutability families take the dedicated wording — "cannot assign A to a
     // slot of type B" says nothing when A and B differ only by a marker.
     if fn_mutability_widens(got, expected) || mutability_widens(got, expected) {
-        diags.push(mismatch_diagnostic(got, expected, span, .AssignTypeMismatch))
+        diags.push(mismatch_diagnostic_hinted(
+            got, expected, span, .AssignTypeMismatch,
+            mutability_level_hint(value, got, expected, typed),
+        ))
         return
     }
     diags.push(
@@ -1073,7 +1078,6 @@ check_destructure_target :: fn(
                 diags.push(typecheck_error(
                     .CannotMutateImmutableArray, target.target.span,
                     "cannot mutate `${display_type(recv_ty)}`"
-                        + field_annotate_hint(target.target, typed)
                         + mutation_fix_hint(target.target, typed)))
                 return
             }
@@ -1088,7 +1092,7 @@ check_destructure_target :: fn(
         return
     }
     slot_ty :: check_expr_fn(target, elem_ty, typed, diags)
-    emit_assign_mismatch_if(elem_ty, slot_ty, target.span, target.id, typed, diags)
+    emit_assign_mismatch_if(elem_ty, slot_ty, target.span, target, typed, diags)
 }
 
 is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
@@ -1135,9 +1139,6 @@ push_immutability_diag_for :: fn(
     return true
 }
 
-// " — annotate `name!` at file:line:col", empty when the root isn't an annotatable
-// parameter. The position is machine-readable on purpose: the migration sweep reads
-// it to place the `!` itself.
 /// `annotate \`<field>!\` at <where its type is written>` when `e` reaches through
 /// a struct FIELD whose declaration is the thing to reopen.
 ///
@@ -1147,6 +1148,11 @@ push_immutability_diag_for :: fn(
 /// field belongs to, so pointing at it is its job, not the reader's to work out.
 export field_annotate_hint :: fn(e: AST.Expr, typed: TypedProgram) -> string {
     if e is AST.FieldExpr {
+        // A field already marked `!` is not the level that withholds mutation.
+        reached :: typed.expr_types[e.id]
+        if reached != null && type_grants_mutation(reached) {
+            return ""
+        }
         owner :: typed.expr_types[e.target.id] ?? return ""
         st :: struct_backing(owner) ?? return ""
         sd :: typed.struct_decls[st.symbol.id] ?? return ""
@@ -1159,6 +1165,9 @@ export field_annotate_hint :: fn(e: AST.Expr, typed: TypedProgram) -> string {
     return ""
 }
 
+// " — annotate `name!` at file:line:col", empty when the root isn't an annotatable
+// parameter. The position is machine-readable on purpose: the migration sweep reads
+// it to place the `!` itself.
 annotate_hint :: fn(root_param: Symbol | null) -> string {
     if root_param is null {
         return ""
@@ -1167,18 +1176,9 @@ annotate_hint :: fn(root_param: Symbol | null) -> string {
     return " — annotate `${root_param.name}!` at ${at.start.file}:${at.start.line}:${at.start.column}"
 }
 
-/// The ROOT symbol an access path starts from, when that root is one a reader can
-/// annotate — a PARAMETER or an annotated LOCAL.
-///
-/// Both take the read-only default now, so both are cleared the same way: by writing
-/// `!` on the declared type. Returns null for anything else on purpose: a
-/// module-level const has no type to mark, and a loop variable is read-only only
-/// because its ITERABLE is (`for x! in` isn't valid syntax) — marking the iterable's
-/// own declaration is what clears it.
-// Remember which fn's RETURN produced a local's value, for a local bound directly
-// from a call.
+// Remember what produced a local's value — a call, a field path, an element — so a
+// fix hint can name the declaration that hands it out.
 record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram!) -> void {
-    // Positive form throughout : an `as` binding does not survive a negated `is`.
     // Positive form throughout : an `as` binding does not survive a negated `is`.
     if s.binding is AST.SimpleBinding as sb {
         local_sym :: typed.resolved.idents[sb.name_span.hash()] ?? return
@@ -1186,11 +1186,8 @@ record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram!) -> void {
         if ann !is null {
             typed.local_annotation[local_sym.id] = ann
         }
-        if s.value is AST.CallExpr as call {
-            if call.callee is AST.IdentExpr as callee {
-                callee_sym :: typed.resolved.idents[callee.span.hash()] ?? return
-                typed.local_init_callee[local_sym.id] = callee_sym
-            }
+        if s.value is AST.CallExpr || s.value is AST.FieldExpr {
+            typed.local_init_source[local_sym.id] = s.value
             return
         }
         // `top :: stack[i]` — the local IS an element, so its lever is the
@@ -1216,14 +1213,26 @@ record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram!) -> void {
 export mutability_level_hint :: fn(
     value: AST.Expr, got: Type, expected: Type, typed: TypedProgram,
 ) -> string {
-    if !equals_type(strip_mutability(got), strip_mutability(expected)) {
-        return ""
-    }
+    slot :: same_shape_slot(got, expected) ?? return ""
     ann :: ident_annotation(value, typed)
     if ann !is null {
-        return level_differs_at(path_name(value, "the value"), got, ann.span, mutability_level_name(got))
+        level :: if type_is_immutable(got) && !type_is_immutable(slot) {
+            "the top level"
+        } else {
+            mutability_level_name(got)
+        }
+        return level_differs_at(path_name(value, "the value"), got, ann.span, level)
     }
-    return field_annotate_hint(value, typed) + mutation_fix_hint(value, typed)
+    return mutation_fix_hint(value, typed)
+}
+
+// `expected`, or the variant of it `got` is meant for (`X` into `X! | null`), when
+// the two differ by mutability alone. Null when they differ in shape.
+same_shape_slot :: fn(got: Type, expected: Type) -> Type | null {
+    if !is_assignable(strip_mutability(got), strip_mutability(expected)) {
+        return null
+    }
+    return counterpart(expected, got) ?? expected
 }
 
 // The written type of the local or parameter `e` NAMES, when it is a bare name and
@@ -1318,8 +1327,17 @@ export mutation_fix_hint :: fn(value: AST.Expr, typed: TypedProgram) -> string =
 // `budget` bounds the narrowing recursion — `is A as a` nests, and a malformed table
 // could otherwise cycle.
 mutation_fix_hint_within :: fn(value: AST.Expr, typed: TypedProgram, budget: i32) -> string {
-    sym :: immutable_root_symbol(value, typed) ?? return annotate_hint(immutable_root_param(value, typed))
-    prod :: producer_hint_for(sym, typed)
+    if budget <= 0 {
+        return ""
+    }
+    // A read-only FIELD is the lever whenever the value is reached through one :
+    // marking it `!` stops every walk at that level, whatever the root.
+    field :: field_annotate_hint(value, typed)
+    if field != "" {
+        return field
+    }
+    sym :: immutable_root_symbol(value, typed) ?? return source_hint(path_root(value), typed, budget)
+    prod :: producer_hint_for(sym, typed, budget)
     if prod != "" {
         return prod
     }
@@ -1335,30 +1353,94 @@ mutation_fix_hint_within :: fn(value: AST.Expr, typed: TypedProgram, budget: i32
     if elem_level != "" {
         return elem_level
     }
-    root :: annotate_hint(immutable_root_param(value, typed))
+    root :: annotate_hint(reopenable_root(value, typed))
     if root != "" {
         return root
     }
     // An `is T as x` binding is not itself annotatable, and its lever is whatever its
     // SCRUTINEE's lever is — which may be a parameter, a field, another binding.
     // Recursing here is what covers a write inside a match arm over a borrowed value.
-    if budget > 0 {
-        at :: sym.defined_at
-        if at !is null {
-            scrut :: typed.narrow.binding_scrutinee[at.hash()]
-            if scrut !is null {
-                return mutation_fix_hint_within(scrut, typed, budget - 1)
-            }
+    at :: sym.defined_at ?? return ""
+    scrut :: typed.narrow.binding_scrutinee[at.hash()] ?? return ""
+    return mutation_fix_hint_within(scrut, typed, budget - 1)
+}
+
+// The lever of a local that holds what a call or a field path produced.
+producer_hint_for :: fn(sym: Symbol, typed: TypedProgram, budget: i32) -> string {
+    source :: typed.local_init_source[sym.id] ?? return ""
+    return mutation_fix_hint_within(source, typed, budget - 1)
+}
+
+// The hint for a value with no root name : a call's result, or what an array
+// literal or a `??` was built from.
+// @partial: no other expression hands out a value it did not make itself.
+source_hint :: fn(root: AST.Expr, typed: TypedProgram, budget: i32) -> string = @partial match root {
+    is AST.CallExpr         -> call_return_hint(root, typed)
+    is AST.SeqLitExpr       -> first_element_hint(root.elements, typed, budget)
+    is AST.NullCoalesceExpr -> mutation_fix_hint_within(root.left, typed, budget - 1)
+    _                       -> ""
+}
+
+first_element_hint :: fn(elements: AST.Expr[], typed: TypedProgram, budget: i32) -> string {
+    for element in elements {
+        hint :: mutation_fix_hint_within(element, typed, budget - 1)
+        if hint != "" {
+            return hint
         }
     }
     return ""
 }
 
-producer_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
-    callee :: typed.local_init_callee[sym.id] ?? return ""
-    decl :: typed.fn_decls[callee.id] ?? return ""
-    rt :: decl.return_type ?? return ""
-    return " — annotate the return of `${callee.name}` at ${where_of(rt.span)}"
+// The call's read-only result is the level to reopen : the return written in the
+// callee's declaration, or in the fn type of the parameter it was called through.
+call_return_hint :: fn(call: AST.CallExpr, typed: TypedProgram) -> string {
+    // A return already marked `!` is not the level that withholds mutation.
+    result :: typed.expr_types[call.id]
+    if result != null && type_grants_mutation(result) {
+        return ""
+    }
+    decl: AST.FnDecl | null = callee_decl(call, typed)
+    if decl == null {
+        decl = chosen_impl_decl(typed, call.callee.id)
+    }
+    if decl != null {
+        rt :: decl.return_type ?? return ""
+        return " — annotate the return of `${decl.name}` at ${where_of(rt.span)}"
+    }
+    ann :: ident_annotation(call.callee, typed) ?? return ""
+    if ann !is AST.FnTypeExpr {
+        return ""
+    }
+    rt :: ann.return_type ?? return ""
+    name :: path_name(call.callee, "the callback")
+    return " — annotate the return in `${name}`'s type at ${where_of(rt.span)}"
+}
+
+// The start of an access path : `f()` for `f().a[0]`.
+// @partial: only a field or an element continues a path.
+path_root :: fn(e: AST.Expr) -> AST.Expr = @partial match e {
+    is AST.FieldExpr -> path_root(e.target)
+    is AST.IndexExpr -> path_root(e.target)
+    _                -> e
+}
+
+// The annotatable root, when annotating it would change something : it is borrowed, or
+// its own type is read-only. `self: S!` reaching a read-only field is neither — the
+// field is the lever. A local with no written type (a loop variable, an inferred
+// local) has nothing to mark.
+reopenable_root :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null {
+    sym :: immutable_root_symbol(e, typed) ?? return null
+    if sym.kind != .Param && sym.kind != .Local {
+        return null
+    }
+    if sym.kind == .Local && typed.local_annotation[sym.id] == null {
+        return null
+    }
+    if typed.resolved.immutable_borrows[sym.id] != null {
+        return sym
+    }
+    root_ty :: typed.expr_types[path_root(e).id] ?? return sym
+    return if type_grants_mutation(root_ty) { null } else { sym }
 }
 
 // Follows `is T as x` bindings back to their scrutinee before asking about the
@@ -1437,18 +1519,13 @@ path_name :: fn(e: AST.Expr, fallback: string) -> string {
 
 where_of :: fn(s: Span) -> string = "${s.start.file}:${s.start.line}:${s.start.column}"
 
-export immutable_root_param :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null {
-    sym :: immutable_root_symbol(e, typed) ?? return null
-    if sym.kind == .Param { return sym }
-    if sym.kind == .Local { return sym }
+// The symbol an access path starts from, when it starts from a name.
+immutable_root_symbol :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null {
+    root :: path_root(e)
+    if root is AST.IdentExpr {
+        return typed.resolved.idents[root.span.hash()]
+    }
     return null
-}
-
-immutable_root_symbol :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null = @partial match e {
-    is AST.IdentExpr -> typed.resolved.idents[e.span.hash()]
-    is AST.FieldExpr -> immutable_root_symbol(e.target, typed)
-    is AST.IndexExpr -> immutable_root_symbol(e.target, typed)
-    _                -> null
 }
 
 /// Whether the CONTAINER of a write is read-only, asked of its TYPE.
@@ -1485,6 +1562,15 @@ rooted_in_storageless_const :: fn(e: AST.Expr, typed: TypedProgram) -> bool {
     }
     return !has_mutable_const_storage(typed.decl_types[sym.id])
 }
+
+/// True when mutating the value `e` must be rejected : its type withholds mutation (a
+/// frozen array or struct, a value an unmarked return handed out), or its access path
+/// does (`expr_is_immutable`).
+///
+/// @param e   the value about to be mutated.
+/// @param ty  its type.
+export value_is_read_only :: fn(e: AST.Expr, ty: Type, typed: TypedProgram) -> bool =
+    type_withholds_mutation(ty) || expr_is_immutable(e, typed)
 
 /// True when writing THROUGH `e` must be rejected, judged on the ACCESS PATH.
 ///
@@ -1650,7 +1736,7 @@ check_return :: fn(
                     TY_VOID,
                     effective.return_type,
                     s.span,
-                    s.id,
+                    null,
                     typed,
                     diags,
                 )
@@ -1674,7 +1760,7 @@ check_return :: fn(
         } else {
             effective.inferred_return = union_of([prev, got])
         }
-        emit_return_mismatch_if(got, effective.return_type, s.span, v.id, typed, diags)
+        emit_return_mismatch_if(got, effective.return_type, s.span, v, typed, diags)
     }
 }
 
@@ -1695,7 +1781,7 @@ check_yield :: fn(
                 got,
                 yt,
                 s.value.span,
-                s.value.id,
+                s.value,
                 .GeneratorYieldIncompatible,
                 typed,
                 diags,
@@ -1919,7 +2005,7 @@ check_defer :: fn(
     return
 }
 
-outside_loops :: fn(ctx: FnContext! | null) -> FnContext | null {
+outside_loops :: fn(ctx: FnContext! | null) -> FnContext! | null {
     if ctx is null {
         return null
     }
@@ -1928,7 +2014,7 @@ outside_loops :: fn(ctx: FnContext! | null) -> FnContext | null {
 
 // ---- support --------------------------------------------------------------
 
-bump_loop_depth :: fn(ctx: FnContext! | null) -> FnContext | null {
+bump_loop_depth :: fn(ctx: FnContext! | null) -> FnContext! | null {
     if ctx is null {
         return null
     }
@@ -2313,7 +2399,7 @@ diag_sink_stmt :: fn() -> Diagnostic[]! { return [] }
 // slot it is subtracted from. Same rationale as `match_expr::pattern_type_of`.
 complement_narrowed_type :: fn(ty: AST.Expr, current: Type, typed: TypedProgram) -> Type {
     narrowed :: type_from_expr(ty, typed.resolved, diag_sink_stmt())
-    if !(narrowed is ArrayType | StructType | TupleType | UnionType) { return narrowed }
+    if !carries_mutability_bit(narrowed) { return narrowed }
     return with_immutable(narrowed, narrowing_immutability(current, narrowed))
 }
 
@@ -2322,7 +2408,7 @@ complement_narrowed_type :: fn(ty: AST.Expr, current: Type, typed: TypedProgram)
 reject_advancing_immutable :: fn(
     iter: AST.Expr, iter_ty: Type, typed: TypedProgram, diags: Diagnostic[]!,
 ) -> void {
-    if !expr_is_immutable(iter, typed) || !advances_in_place(iter_ty, typed) {
+    if !value_is_read_only(iter, iter_ty, typed) || !advances_in_place(iter_ty, typed) {
         return
     }
     push_mutating_on_immutable(

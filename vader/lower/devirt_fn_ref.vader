@@ -75,7 +75,7 @@ AnalyzeCtx :: struct {
     /// `LoweredIdent` anywhere but a `LoweredCall.callee`. Such a local escapes,
     /// so its alias is not safe to devirtualize away. Also gathers any symbol bound
     /// MORE THAN ONCE (see `bound`) — the alias would be ambiguous.
-    escaped: MutableSet<i32>
+    escaped: MutableSet<i32>!
     /// local `symbol.id`s already seen as a `let` target. The iterator fusion
     /// REUSES a combinator's param symbol (`filter`'s `pred`, `map`'s `f`) across
     /// every fusion site in one body, so the same id is bound multiple times to
@@ -86,7 +86,7 @@ AnalyzeCtx :: struct {
     /// non-unique local `symbol.id`s (it should freshen the per-site binding symbol)
     /// — that violates the "unique local id per body" invariant every whole-body
     /// pass relies on, and should be fixed at the source too.
-    bound: MutableSet<i32>
+    bound: MutableSet<i32>!
 }
 
 analyze_block :: fn(b: LoweredBlock, ctx: AnalyzeCtx!) -> void {
@@ -253,8 +253,8 @@ rewrite_expr :: fn(e: LoweredExpr!, ctx: AnalyzeCtx) -> void {
                     // the retyped local) prepended as the FIRST arg — matches the
                     // lifted-fn ABI (`lower_lambda.vader::lower_lambda` gives a
                     // capturing lambda's lifted fn the env as param 0).
-                    env_arg: LoweredExpr: LoweredIdent { .span = old.span, .type = clo.env_type, .symbol = old.symbol }
-                    new_args: LoweredExpr[]!: [env_arg]
+                    env_arg: LoweredExpr!: LoweredIdent { .span = old.span, .type = clo.env_type, .symbol = old.symbol }
+                    new_args: LoweredExpr![]!: [env_arg]
                     new_args.push_all(e.args)
                     e.args = new_args
                     e.callee = LoweredIdent { .span = old.span, .type = old.type, .symbol = clo.fn_sym }

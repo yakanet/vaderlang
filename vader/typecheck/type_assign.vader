@@ -207,11 +207,11 @@ export mismatch_diagnostic :: fn(
     got: Type, expected: Type, span: Span, fallback: TypecheckCode,
 ) -> Diagnostic = mismatch_diagnostic_hinted(got, expected, span, fallback, "")
 
-/// `mismatch_diagnostic` with a caller-supplied hint appended to the mutability
-/// wordings — the generic "expected X, got Y" never takes one.
+/// `mismatch_diagnostic` with a caller-supplied hint appended.
 ///
-/// @param hint  e.g. `producer_annotate_hint`'s output, or "" when the caller has
-///              no value expression to reason from.
+/// @param hint  `mutability_level_hint`'s output, empty unless the two types differ
+///              by mutability alone ; "" when the caller has no value expression to
+///              reason from.
 export mismatch_diagnostic_hinted :: fn(
     got: Type, expected: Type, span: Span, fallback: TypecheckCode, hint: string,
 ) -> Diagnostic {
@@ -235,7 +235,7 @@ export mismatch_diagnostic_hinted :: fn(
     return typecheck_error(
         fallback,
         span,
-        "expected ${display_type(expected)}, got ${display_type(got)}",
+        "expected ${display_type(expected)}, got ${display_type(got)}${hint}",
     )
 }
 

@@ -232,7 +232,7 @@ Blocks :: struct {
 
 // A block starts at pc 0, at every jump target, and after every op that does not
 // fall through alone.
-new_blocks :: fn(module: bc.BytecodeModule, f: bc.BcFunction, width: usize) -> Blocks {
+new_blocks :: fn(module: bc.BytecodeModule, f: bc.BcFunction, width: usize) -> Blocks! {
     n :: f.body.len()
     leader: bool[]!: [false] * n
     leader[0] = true

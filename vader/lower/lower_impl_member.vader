@@ -47,7 +47,7 @@ is_identity_member :: fn(m: FnDecl) -> bool {
 /// `LoweredCall` exactly as before. The single hook every "resolve impl member +
 /// build call" site should route through (P2 will extend it to general
 /// expression bodies via value-substitution).
-build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[]!, ret: Type, span: Span) -> LoweredExpr {
+build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr![]!, ret: Type, span: Span) -> LoweredExpr! {
     // Identity uses `self` exactly once, so returning the (already-lowered)
     // receiver evaluates it once — no temp / double-eval concern.
     if member.is_identity && args.len() == 1 { return args[0] }
@@ -326,7 +326,7 @@ type_surface_name :: fn(t: Type) -> string = match t {
 /// through `try_into` ; the lowered arg is then handed back verbatim only when
 /// the cast is a true identity — unwrapping a distinct still stamps its target,
 /// see `emit_value_cast`.
-try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr | null {
+try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr! | null {
     if call.args.len() != 1 { return null }
     if call.callee !is IdentExpr && ctx.types.expr_type(call.callee) is TypeMetaType {
         return emit_value_cast(ctx, call, type)
@@ -358,7 +358,7 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
 /// by the direct-ident path (`try_lower_cast_call`) and the namespace path
 /// (`nsM.T(value)` in `try_lower_namespace_call`). The caller has already
 /// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
-emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr {
+emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr! {
     // The checked type, not the lowered one : a variant literal lowers to its
     // bare index and no longer says it is an enum.
     source :: enum_type_or_unwrap(ctx, ctx.types.expr_type(call.args[0].value))
@@ -421,8 +421,8 @@ emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredEx
 // `callee_module` is informational on that path, so callers pass the impl's
 // owning module when resolved and the caller's module on the bare fallback.
 mk_into_call :: fn(
-    arg: LoweredExpr, result_type: Type, span: Span, callee_name: string, callee_module: string,
-) -> LoweredCall {
+    arg: LoweredExpr!, result_type: Type, span: Span, callee_name: string, callee_module: string,
+) -> LoweredCall! {
     return LoweredCall {
         .span = span, .type = result_type,
         .callee = LoweredIdent {
@@ -441,7 +441,7 @@ mk_into_call :: fn(
 // The bare `into` placeholder — emit can't resolve it to a member mangle. Still
 // used by the array→Iterator blanket and generic Into impls, whose element /
 // erased-instance mangles aren't wired into the coercion path yet.
-mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, span: Span) -> LoweredCall =
+mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr!, result_type: Type, span: Span) -> LoweredCall! =
     mk_into_call(arg, result_type, span, METHOD_INTO, ctx.typed.resolved.path)
 
 // `T[] -> Iterator<T>` value-slot coercion. Returns `into(arr)` resolved to
@@ -452,8 +452,8 @@ mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, sp
 // (`std_core$[]$Into$into__<element>`) and records the element in
 // `array_blanket_elems`, which `surface_array_blanket_members` materialises.
 try_array_iter_coercion :: fn(
-    ctx: FnLowerCtx!, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
-) -> LoweredExpr | null {
+    ctx: FnLowerCtx!, arg: LoweredExpr!, arg_type: Type, target_type: Type, span: Span,
+) -> LoweredExpr! | null {
     if arg_type is ArrayType {
         if target_type is TraitType {
             if target_type.symbol.name != TRAIT_ITERATOR { return null }
@@ -478,8 +478,8 @@ try_array_iter_coercion :: fn(
 /// `Target(value)` where `value : Source` and `Source implements Into<Target>`
 /// emits `LoweredCall { callee: into, args: [value] }`.
 try_emit_into_coercion :: fn(
-    ctx: FnLowerCtx!, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
-) -> LoweredExpr | null {
+    ctx: FnLowerCtx!, arg: LoweredExpr!, arg_type: Type, target_type: Type, span: Span,
+) -> LoweredExpr! | null {
     // Built-in array→Iterator coercion ; an array has no surface name to
     // mangle the member with, so it must precede the impl scan below.
     array_iter :: try_array_iter_coercion(ctx, arg, arg_type, target_type, span)

@@ -13,7 +13,7 @@ import "toolchain/span"
 // Walk a `LetBinding` tree, emitting one `LoweredLet` per leaf with
 // the target ident's `_<i>` field (tuples) or `[i]` index (arrays).
 emit_let_binding_leaves :: fn(
-    ctx: FnLowerCtx!, binding: TupleBinding, target: LoweredExpr,
+    ctx: FnLowerCtx!, binding: TupleBinding, target: LoweredExpr!,
     target_type: Type, span: Span, out: LoweredStmt[]!,
 ) -> void {
     // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
@@ -124,7 +124,7 @@ rest_leaf_index :: fn(binding: TupleBinding) -> i64 {
 // loop pushing `arr[i]` for `i` in `rest_index..<arr.len()`.
 emit_array_destructure :: fn(
     ctx: FnLowerCtx!, binding: TupleBinding, rest_index: usize,
-    target: LoweredExpr, arr: ArrayType, span: Span, out: LoweredStmt[]!,
+    target: LoweredExpr!, arr: ArrayType, span: Span, out: LoweredStmt[]!,
 ) -> void {
     elem_type :: ctx.types.apply(arr.element)
     for i in 0..<rest_index {
@@ -150,7 +150,7 @@ emit_array_destructure :: fn(
 // destructure.
 emit_rest_loop :: fn(
     ctx: FnLowerCtx!, rest: RestBinding, rest_index: usize,
-    target: LoweredExpr, elem_type: Type, span: Span, out: LoweredStmt[]!,
+    target: LoweredExpr!, elem_type: Type, span: Span, out: LoweredStmt[]!,
 ) -> void {
     // The resolver indexes a rest binding's Symbol by `span` (not
     // `name_span` like simple bindings — see resolver `bind_let_binding`).
@@ -171,8 +171,8 @@ emit_rest_loop :: fn(
 /// @param target      the source array.
 /// @param elem_type   the source's element type.
 emit_tail_copy :: fn(
-    ctx: FnLowerCtx!, dest: LoweredExpr, rest_index: usize,
-    target: LoweredExpr, elem_type: Type, span: Span, out: LoweredStmt[]!,
+    ctx: FnLowerCtx!, dest: LoweredExpr!, rest_index: usize,
+    target: LoweredExpr!, elem_type: Type, span: Span, out: LoweredStmt[]!,
 ) -> void {
     idx_sym :: fresh_synthetic_symbol(ctx, "i")
     out.push(LoweredLet {
@@ -195,7 +195,7 @@ emit_tail_copy :: fn(
             .right = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = 1 },
         },
     }
-    loop_stmts: LoweredStmt[]!: []
+    loop_stmts: LoweredStmt![]!: []
     loop_stmts.push(push_stmt)
     loop_stmts.push(inc_stmt)
     loop_body :: LoweredBlock {
@@ -221,7 +221,7 @@ emit_tail_copy :: fn(
 /// @param type  the value type the read yields.
 /// @param span  span for the emitted nodes.
 /// @return      a `LoweredCellGet` when `sym` lives in a cell, else a plain ident.
-export read_local_cell_aware :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr {
+export read_local_cell_aware :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr! {
     if lives_in_cell(ctx, sym.id) {
         cell_ref :: LoweredIdent { .span = span, .type = TY_UNRESOLVED, .symbol = sym }
         return LoweredCellGet { .span = span, .type = type, .target = cell_ref, .value_type = type }
@@ -233,7 +233,7 @@ export read_local_cell_aware :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, spa
 // leaf to an already-built index access. SimpleBinding binds directly ;
 // nested tuples recurse.
 emit_let_leaf_array :: fn(
-    ctx: FnLowerCtx!, leaf: LetBinding, access: LoweredExpr, elem_type: Type,
+    ctx: FnLowerCtx!, leaf: LetBinding, access: LoweredExpr!, elem_type: Type,
     span: Span, out: LoweredStmt[]!,
 ) -> void {
     match leaf {
@@ -249,7 +249,7 @@ emit_let_leaf_array :: fn(
 }
 
 emit_let_leaf :: fn(
-    ctx: FnLowerCtx!, leaf: LetBinding, target: LoweredExpr,
+    ctx: FnLowerCtx!, leaf: LetBinding, target: LoweredExpr!,
     target_type: Type, index: usize, span: Span, out: LoweredStmt[]!,
     field_names: string[] | null,
 ) -> void {
@@ -332,9 +332,9 @@ destructure_backing :: fn(t: Type) -> Type {
 }
 
 build_leaf_access :: fn(
-    target: LoweredExpr, target_type: Type, elem_type: Type, span: Span, index: usize,
+    target: LoweredExpr!, target_type: Type, elem_type: Type, span: Span, index: usize,
     field_names: string[] | null,
-) -> LoweredExpr {
+) -> LoweredExpr! {
     if target_type is ArrayType {
         return LoweredIndex {
             .span = span, .type = elem_type, .target = target,

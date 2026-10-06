@@ -20,25 +20,25 @@ import "vader/resolver/symbol"
 /// Top-level entry — apply all CFG-level optimisations to every fn in
 /// the project. Pure : returns a fresh CFGProject sharing unchanged
 /// modules with the input.
-export eliminate_dead_cfg :: fn(p: CFGProject!) -> CFGProject {
+export eliminate_dead_cfg :: fn(p: CFGProject!) -> CFGProject! {
     new_modules :: MutableMap<string, CFGModule> {}
     for [module_id, m] in p.modules {
-        new_fns: CFGFunction[]!: []
+        new_fns: CFGFunction![]!: []
         for f in m.functions { new_fns.push(optimise_function(f)) }
         new_modules[module_id] = CFGModule { ...m, .functions = new_fns }
     }
     return CFGProject { ...p, .modules = new_modules }
 }
 
-optimise_function :: fn(f: CFGFunction) -> CFGFunction = compact_locals(fold_moves(f))
+optimise_function :: fn(f: CFGFunction) -> CFGFunction! = compact_locals(fold_moves(f))
 
 // ============================================================================
 // Pass 0 — fold_moves : copy-fold producer → Move chains
 // ============================================================================
 
-fold_moves :: fn(f: CFGFunction) -> CFGFunction {
+fold_moves :: fn(f: CFGFunction) -> CFGFunction! {
     use_count :: count_uses(f)
-    param_locals: MutableSet<LocalId>: MutableSet<LocalId> {}
+    param_locals: MutableSet<LocalId>!: MutableSet<LocalId> {}
     for p in f.params { param_locals.add(p.local) }
 
     new_blocks: BasicBlock[]!: []
@@ -117,7 +117,7 @@ fold_moves_in_block :: fn(
 // renumbered to -1 (unused) drop entirely.
 // ============================================================================
 
-compact_locals :: fn(f: CFGFunction) -> CFGFunction {
+compact_locals :: fn(f: CFGFunction!) -> CFGFunction! {
     n :: f.locals.len()
     referenced: bool[]!: [false] * n
     // Params keep their slots regardless.

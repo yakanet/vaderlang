@@ -51,7 +51,7 @@ iterator_element_of :: fn(t: Type) -> Type | null {
 // A zero value of `ty` for a local `g$State` field's initial slot — overwritten
 // in `next()` before its first read, but `struct.new` needs every field set.
 // Primitives get their typed zero ; every ref type gets a typed `null`.
-zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
+zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr! {
     if ty is PrimitiveType {
         if ty.name == "bool" { return LoweredBoolLit { .span = span, .type = ty, .value = false } }
         if is_float_name(ty.name) { return LoweredFloatLit { .span = span, .type = ty, .value = 0.0 } }
@@ -74,7 +74,7 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
 // here for the next fn + state struct.
 push_generator_decls :: fn(
     fn_ctx: FnLowerCtx!, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
-    step_type: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
+    step_type: Type, next_body: LoweredBlock!, state_fields: LoweredStructField[],
 ) -> void {
     module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
     next_mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ITERATOR}$${METHOD_NEXT}"
@@ -119,7 +119,7 @@ push_generator_decls :: fn(
 export lower_generator_fn :: fn(
     fn_ctx: FnLowerCtx!, fn_decl: FnDecl, params: LoweredParam[],
     lowered_body: LoweredBlock, return_type: Type,
-) -> LoweredBlock {
+) -> LoweredBlock! {
     span :: fn_decl.span
     element_ty :: generator_element_of(return_type)
     i32_ty :: mk_primitive("i32")

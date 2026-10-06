@@ -1367,7 +1367,7 @@ call_check_stub :: fn(
 // Parse + resolve + check `src`, then find the first `CallExpr` reached
 // by a depth-first walk of the last decl's body via the shared
 // `find_first_in_block` walker.
-first_call_in_last_fn :: fn(src: string) -> CallFixture {
+first_call_in_last_fn :: fn(src: string) -> CallFixture! {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
@@ -1381,7 +1381,7 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
             }
             is AST.BlockExpr -> {
                 hit :: find_first_in_block(last.body, accept_call)
-                call: AST.CallExpr | null = null
+                call: AST.CallExpr! | null = null
                 if hit is AST.CallExpr {
                     call = hit
                 }
@@ -1400,8 +1400,8 @@ accept_call :: fn(e: AST.Expr) -> AST.Expr | null {
 }
 
 CallFixture :: struct {
-    typed: TypedProgram
-    call: AST.CallExpr | null
+    typed: TypedProgram!
+    call: AST.CallExpr! | null
 }
 
 @test
@@ -1652,7 +1652,8 @@ reject_immutable_into_mutable_param :: fn(
     }
     // Return value ignored: the remaining arguments must still be typed.
     _ :: push_immutability_diag_for(
-        expr_is_immutable(c.args[i].value, typed), .ImmutableBorrowIntoMutableParam,
+        value_is_read_only(c.args[i].value, arg_ty, typed),
+        .ImmutableBorrowIntoMutableParam,
         c.args[i].span,
         "this argument is immutable, but the parameter is declared `!` — the callee may mutate it",
         c.args[i].value, typed, diags,

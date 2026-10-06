@@ -46,7 +46,7 @@ export EscapeSite :: struct {
 }
 
 export AnnotatedProject :: struct {
-    project: CFGProject
+    project: CFGProject!
     stats: EscapeStats
 }
 
@@ -62,7 +62,7 @@ export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
     heap_sites: EscapeSite[]!: []
     modules :: MutableMap<string, CFGModule> {}
     for [_, m] in p.modules {
-        functions: CFGFunction[]!: []
+        functions: CFGFunction![]!: []
         for fn_ in m.functions {
             annotated :: annotate_function(fn_)
             for b in annotated.blocks {
@@ -101,7 +101,7 @@ export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
     return AnnotatedProject { .project = CFGProject { ...p, .modules = modules }, .stats = EscapeStats { .total_allocs = total_allocs, .stack_promoted = stack_promoted, .heap_sites = heap_sites } }
 }
 
-annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
+annotate_function :: fn(fn_: CFGFunction!) -> CFGFunction! {
     // Collect alloc-producing locals.
     alloc_locals :: MutableSet<LocalId> {}
     struct_news: LocalId[]!: []

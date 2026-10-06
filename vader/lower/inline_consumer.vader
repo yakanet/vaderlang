@@ -41,7 +41,7 @@ export ConsumerShape :: struct {
 /// @param call  the call expression.
 /// @param type  the call's result type from typecheck.
 /// @return      a block-expression evaluating to the call's result, or null.
-export try_inline_consumer :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
+export try_inline_consumer :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, type: Type) -> LoweredExpr! | null {
     if is_known_non_consumer(ctx, call) {
         return null
     }
@@ -283,8 +283,8 @@ consumer_subst :: fn(
 // ---- the inlined body -------------------------------------------------------
 
 // `{ <arguments, in parameter order>; [let result]; <body>; <result> }`.
-emit_inlined_consumer :: fn(ctx: FnLowerCtx!, call: ConsumerCall, type: Type, span: Span) -> LoweredExpr {
-    stmts: LoweredStmt[]!: []
+emit_inlined_consumer :: fn(ctx: FnLowerCtx!, call: ConsumerCall, type: Type, span: Span) -> LoweredExpr! {
+    stmts: LoweredStmt![]!: []
     chain :: bind_consumer_arguments(ctx, call, stmts)
     decl :: call.target.decl
     body :: decl.body ?? panic("consumer: the callee has no body")
@@ -304,7 +304,7 @@ emit_inlined_consumer :: fn(ctx: FnLowerCtx!, call: ConsumerCall, type: Type, sp
         return result_block(stmts, trailing, type, span)
     }
     // A `return` left the body early: every path assigns the result.
-    inner: LoweredStmt[]!: []
+    inner: LoweredStmt![]!: []
     inner.push_all(lowered.stmts)
     if trailing != null {
         inner.push(assign_consumed(result, type, trailing, span))
@@ -324,7 +324,7 @@ emit_inlined_consumer :: fn(ctx: FnLowerCtx!, call: ConsumerCall, type: Type, sp
     return result_block(stmts, tail, type, span)
 }
 
-result_block :: fn(stmts: LoweredStmt[], trailing: LoweredExpr | null, type: Type, span: Span) -> LoweredExpr =
+result_block :: fn(stmts: LoweredStmt![], trailing: LoweredExpr! | null, type: Type, span: Span) -> LoweredExpr! =
     LoweredBlock {
         .span = span,
         .type = type,
@@ -372,10 +372,10 @@ value_tail :: fn(body: AST.BlockExpr) -> AST.BlockExpr {
 
 // `value` in the call's result slot ; a void result keeps it as it is, a
 // statement.
-slot_result :: fn(ctx: FnLowerCtx!, value: LoweredExpr, type: Type, span: Span) -> LoweredExpr =
+slot_result :: fn(ctx: FnLowerCtx!, value: LoweredExpr!, type: Type, span: Span) -> LoweredExpr! =
     if is_void(type) { value } else { prepare_value_for_slot(ctx, value, type, span) }
 
-assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr, span: Span) -> LoweredStmt {
+assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr!, span: Span) -> LoweredStmt! {
     if is_void(type) {
         return LoweredExprStmt { .span = span, .expr = value }
     }

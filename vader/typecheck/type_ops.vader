@@ -190,24 +190,17 @@ export desugared_param_type :: fn(t: Type, mutable: bool) -> Type {
 /// @param written  the type as written, or null when there is none.
 export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
     // A union carries no marker of its own — the bit is DISTRIBUTED over its
-    // variants, so the default applies variant by variant. `union_of` sorts the
-    // lowered variants by `display_type`, so they cannot be paired positionally
-    // with the written list ; pair them by SHAPE instead (array / tuple /
-    // nominal). Bailing out wholesale on "any variant is marked" is what left
-    // `u8[]! | Err` with a MUTABLE `Err` — the mark on the array leaked onto a
-    // variant nobody marked.
+    // variants, each taking the marker of the written variant it came from
+    // (`written_variant_for`). The variant's CHILDREN take the default too, exactly
+    // as they do outside a union : `Box[] | null` is not `Box![] | null`.
     if t is UnionType {
         wv :: written_union_variants(written)
+        lowered_names :: nominal_names(t.variants)
         out: Type[]!: []
         for v in t.variants {
-            // The variant's CHILDREN take the default too, exactly as they do
-            // outside a union. Setting only the variant's own bit made `Box[] | null`
-            // mean `Box![] | null` — wrapping a type in `| null` silently reopened
-            // every level below the top, and `xs[0].n = 9` went through.
-            w      :: written_variant_for(wv, v)
-            marked :: w is AST.MutableTypeExpr
-            inner  :: if w is AST.MutableTypeExpr { w.inner } else { w }
-            out.push(with_immutable(readonly_children(v, inner), !marked))
+            w :: written_variant_for(wv, v, lowered_names)
+            children :: readonly_children(v, AST.strip_mut_marker(w))
+            out.push(with_immutable(children, w !is AST.MutableTypeExpr))
         }
         return union_of(out)
     }
@@ -242,23 +235,60 @@ same_written_shape :: fn(w: AST.TypeExpr, v: Type) -> bool {
     return v is StructType | TraitType | EnumType | DistinctType | PrimitiveType
 }
 
-// The written variant of the same SHAPE as `v`, marker INTACT — the caller reads the
-// marker for `v`'s own level and the form under it for `v`'s children.
+// The written variant `v` came from, marker INTACT — the caller reads the marker for
+// `v`'s own level and the form under it for `v`'s children.
 //
-// Shape, not position : `union_of` sorts the lowered variants by `display_type`, so
-// the two lists do not line up. Shape is enough for every mixed union the surface can
-// express — two variants of the same shape differing only in their marker would be
-// indistinguishable, and also meaningless (`Cfg | Cfg!` collapses in
-// `collect_variant`). Pairing by shape is what keeps the mark on `u8[]!` in
-// `u8[]! | Err` from leaking onto the `Err` nobody marked.
-written_variant_for :: fn(written: AST.TypeExpr[], v: Type) -> AST.TypeExpr | null {
+// Not by position : `union_of` sorts the lowered variants by `display_type`, so the
+// two lists do not line up. A nominal variant pairs by NAME first — `i64 | Trap!`
+// holds two nominals — then by SHAPE, skipping a written nominal that names a
+// lowered variant : what is left is an alias, whose marker its nominal variants take
+// (`Value! | Trap` marks the `Value` structs, not `Trap`). Shape is what keeps the
+// mark on `u8[]!` in `u8[]! | Err` off the `Err` nobody marked. Two variants of one
+// shape and one name — `Box<i32>! | Box<string>`, two array variants — still pair
+// with the first.
+written_variant_for :: fn(
+    written: AST.TypeExpr[], v: Type, lowered_names: string[],
+) -> AST.TypeExpr | null {
+    name :: nominal_name(v)
+    if name != "" {
+        for w in written {
+            if written_name(w) == name {
+                return w
+            }
+        }
+    }
     for w in written {
-        inner :: if w is AST.MutableTypeExpr { w.inner } else { w }
-        if same_written_shape(inner, v) {
+        inner :: AST.strip_mut_marker(w) ?? continue
+        if same_written_shape(inner, v) && written_name(w) !in lowered_names {
             return w
         }
     }
     return null
+}
+
+// The names of `variants`' nominal variants.
+nominal_names :: fn(variants: Type[]) -> string[] {
+    out: string[]!: []
+    for v in variants {
+        name :: nominal_name(v)
+        if name != "" {
+            out.push(name)
+        }
+    }
+    return out
+}
+
+// The name a nominal variant is written with : `Trap` for `Trap`, `M.Trap!`, `Box<T>`.
+written_name :: fn(w: AST.TypeExpr) -> string = callee_name(AST.strip_mut_marker(w) ?? w)
+
+// @partial: only a nominal type has a name to pair a written variant with.
+nominal_name :: fn(t: Type) -> string = @partial match t {
+    is PrimitiveType -> t.name
+    is StructType    -> t.symbol.name
+    is TraitType     -> t.symbol.name
+    is EnumType      -> t.symbol.name
+    is DistinctType  -> t.symbol.name
+    _                -> ""
 }
 
 // Rebuild `t`'s structural children under the default, pairing each with the

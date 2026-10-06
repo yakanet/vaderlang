@@ -29,7 +29,7 @@ export SymbolTarget :: struct {
     module_id: string
 }
 
-export new_import_target_table :: fn() -> ImportTargetTable {
+export new_import_target_table :: fn() -> ImportTargetTable! {
     return ImportTargetTable {
         .symbol_targets    = MutableMap<i32, SymbolTarget> {},
         .namespace_targets = MutableMap<i32, string> {},

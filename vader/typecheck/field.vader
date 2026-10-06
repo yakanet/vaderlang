@@ -150,12 +150,8 @@ try_impl_method_ufcs :: fn(
 // T3071 — a `self!` method is unavailable on an immutable receiver. Shared by every
 // dispatch path that can pick a `self!` member.
 //
-// A receiver is immutable for either of two independent reasons, and both must be
-// tested: its ACCESS PATH is immutable (a module-level const, later a borrowed
-// param — `expr_is_immutable`), or its own TYPE says so (read-only `T[]`, the
-// pre-existing type-level marker). Only the second one makes
-// `fn(a: i32[]) { a.push(9) }` an error — the promise SPEC.md §"Read-only arrays"
-// has always made about `arr.push(v)` and that nothing enforced until now.
+// A receiver is immutable when its access path is, or its own type says so
+// (`value_is_read_only`) : `fn(a: i32[]) { a.push(9) }`, `make().bump()`.
 //
 // The type is still returned to the caller afterwards: reporting and then
 // pretending the method doesn't exist would pile a spurious "no such field" on top
@@ -167,16 +163,11 @@ reject_mutating_method_on_immutable :: fn(
     if !im.self_mutable {
         return
     }
-    // A read-only `T[]` receiver is an EXPLICIT marker, so it errors regardless of what
-    // the access path says.
-    immutable_by_type :: if recv_ty is ArrayType as a { a.immutable } else { false }
-    if !(immutable_by_type || expr_is_immutable(e.target, typed)) {
+    if !value_is_read_only(e.target, recv_ty, typed) {
         return
     }
-    // Two hints, and only one can apply : the receiver is either reached through a
-    // field or rooted in a parameter / local. Both are built HERE rather than at the
-    // helper, so a `self!` dispatch on a mutable receiver — the overwhelming
-    // majority — pays for neither.
+    // The hint is built only once the receiver is known to be read-only : a `self!`
+    // dispatch on a mutable receiver — the overwhelming majority — pays nothing.
     push_mutating_on_immutable(
         e.target, e.span,
         "`${e.field}` mutates its receiver (declared `self!`), but this receiver is immutable",
@@ -1719,11 +1710,11 @@ accept_field :: fn(e: AST.Expr) -> AST.Expr | null {
 }
 
 FieldFixture :: struct {
-    typed: TypedProgram
-    field: AST.FieldExpr | null
+    typed: TypedProgram!
+    field: AST.FieldExpr! | null
 }
 
-first_field_in_last_fn :: fn(src: string) -> FieldFixture {
+first_field_in_last_fn :: fn(src: string) -> FieldFixture! {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
@@ -1737,7 +1728,7 @@ first_field_in_last_fn :: fn(src: string) -> FieldFixture {
             }
             is AST.BlockExpr -> {
                 hit :: find_first_in_block(b, accept_field)
-                field: AST.FieldExpr | null = null
+                field: AST.FieldExpr! | null = null
                 if hit is AST.FieldExpr {
                     field = hit
                 }

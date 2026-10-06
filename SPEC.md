@@ -1843,6 +1843,18 @@ inferred :: [s]       // no annotation : inferred, owned
 inferred.push(other)  // OK
 ```
 
+**A value is as read-only as the slot that handed it out.** A call to an unmarked return, a local bound from one, and a value read through a read-only field refuse a `self!` method (T3071) and a `!` parameter (T3072), exactly as they refuse a field write (T3070). A function whose caller owns the result says so with `!`:
+
+```vader
+make  :: fn() -> Point = Point { .x = 1 }    // hands out a read-only view
+fresh :: fn() -> Point! = Point { .x = 1 }   // the caller owns it
+
+make().bump()      // T3071
+fresh().bump()     // OK
+p :: make()
+p.bump()           // T3071 — `p` holds the view `make` handed out
+```
+
 #### The marker is per LEVEL
 
 A composite type has one mutability per level, and `!` marks the level it follows. This is why the marker lives on the type rather than on the parameter name — a single flag on the name cannot express four distinct types:
@@ -1888,7 +1900,7 @@ Inside the generic body an unbound `T` asks nothing either: the call that binds 
 
 #### In a union, the marker is distributed
 
-A union carries no mutability of its own — each variant carries its own. `u8[]! | Err` marks **only** the array; `Err` stays read-only. This is why the marker is a suffix: a prefix would read as governing the whole union.
+A union carries no mutability of its own — each variant carries its own. `u8[]! | Err` marks **only** the array; `Err` stays read-only. This is why the marker is a suffix: a prefix would read as governing the whole union. A variant with no marker of its own — a primitive, an enum, `null` — is a value, copied out: it neither grants nor withholds mutation, so an alias `Cell :: Point | i32` written `Cell!` grants it.
 
 Two variants that differ **only** by mutability cannot coexist: `i32[] | i32[]!` is rejected (T3074) — write `i32[]!`, the mutable one, since the union would have to be one or the other at each use. This is an error rather than a silent collapse: which side wins is the author's call, not the compiler's.
 

@@ -792,8 +792,11 @@
               "name": "s"
             },
             "type": {
-              "kind": "IdentExpr",
-              "name": "Sq"
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "IdentExpr",
+                "name": "Sq"
+              }
             },
             "value": {
               "kind": "CallExpr",
@@ -821,8 +824,11 @@
               "name": "r"
             },
             "type": {
-              "kind": "IdentExpr",
-              "name": "Rect"
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "IdentExpr",
+                "name": "Rect"
+              }
             },
             "value": {
               "kind": "CallExpr",

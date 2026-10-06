@@ -96,13 +96,13 @@ BveCtx :: struct {
     candidates: MutableMap<i32, LoweredIdent>
     /// view local `symbol.id`s seen in a NON-len/index position (escaped), or
     /// bound more than once — never elided.
-    disq: MutableSet<i32>
+    disq: MutableSet<i32>!
     /// view local `symbol.id`s already seen as a `let` target (bound-once guard).
-    bound: MutableSet<i32>
+    bound: MutableSet<i32>!
     /// symbol ids reassigned anywhere in the body — a candidate whose receiver
     /// is here is unsafe to elide (the view local's own reassignment is already
     /// caught by `disq`, since the assign target scans as a bare-ident use).
-    reassigned: MutableSet<i32>
+    reassigned: MutableSet<i32>!
 }
 
 bve_elide_body :: fn(
@@ -360,7 +360,7 @@ bve_rewrite_block :: fn(b: LoweredBlock!, ctx: BveCtx) -> void {
         }
     }
     if dropped {
-        kept: LoweredStmt[]!: []
+        kept: LoweredStmt![]!: []
         for s in b.stmts {
             keep: bool = true
             if s is LoweredLet {
@@ -418,7 +418,7 @@ bve_rewrite_stmt :: fn(s: LoweredStmt!, ctx: BveCtx) -> void {
     }
 }
 
-bve_rewrite_expr :: fn(e: LoweredExpr!, ctx: BveCtx) -> LoweredExpr {
+bve_rewrite_expr :: fn(e: LoweredExpr!, ctx: BveCtx) -> LoweredExpr! {
     match e {
         is LoweredArrayLen -> {
             if e.target is LoweredIdent as tid {
@@ -545,7 +545,7 @@ bve_rewrite_expr :: fn(e: LoweredExpr!, ctx: BveCtx) -> LoweredExpr {
 // Rewrite each element IN PLACE — never allocate a fresh array. An arg list that
 // nothing changes must keep its backing buffer, else the lowered tree retains a
 // duplicate array per call site (hundreds of MB across a self-compile).
-bve_rewrite_exprs :: fn(items: LoweredExpr[]!, ctx: BveCtx) -> void {
+bve_rewrite_exprs :: fn(items: LoweredExpr![]!, ctx: BveCtx) -> void {
     for i in 0..<items.len() {
         items[i] = bve_rewrite_expr(items[i], ctx)
     }

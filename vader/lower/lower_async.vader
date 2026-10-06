@@ -45,8 +45,8 @@ import "vader/comptime"
 // resolves to each fn's own param slot).
 mk_async_method_decl :: fn(
     fn_ctx: FnLowerCtx!, module_seg: string, state_sym: Symbol, self_sym: Symbol,
-    state_ty: Type, method: string, return_ty: Type, body: LoweredBlock,
-) -> LoweredFnDecl {
+    state_ty: Type, method: string, return_ty: Type, body: LoweredBlock!,
+) -> LoweredFnDecl! {
     mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ASYNC}$${method}"
     sym :: Symbol {
         .id = next_synthetic_id(fn_ctx), .kind = .Fn, .name = mangled,
@@ -67,7 +67,7 @@ mk_async_method_decl :: fn(
 // `$Async$cancel` fns into `project.synth_decls`.
 push_async_decls :: fn(
     fn_ctx: FnLowerCtx!, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
-    resume_ty: Type, resume_body: LoweredBlock, cancel_body: LoweredBlock,
+    resume_ty: Type, resume_body: LoweredBlock!, cancel_body: LoweredBlock!,
     state_fields: LoweredStructField[],
 ) -> void {
     module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
@@ -89,7 +89,7 @@ push_async_decls :: fn(
 // A `null` trailing (body ends in an explicit `return`) is left untouched.
 async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBlock {
     t :: body.trailing ?? return body
-    stmts: LoweredStmt[]!: []
+    stmts: LoweredStmt![]!: []
     for s in body.stmts { stmts.push(s) }
     if result_is_void {
         stmts.push(LoweredExprStmt { .span = body.span, .expr = t })
@@ -125,7 +125,7 @@ async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBl
 export lower_async_fn :: fn(
     fn_ctx: FnLowerCtx!, fn_decl: FnDecl, params: LoweredParam[],
     lowered_body: LoweredBlock, result_type: Type, is_main: bool,
-) -> LoweredBlock {
+) -> LoweredBlock! {
     span :: fn_decl.span
     i32_ty :: mk_primitive("i32")
 
@@ -236,9 +236,9 @@ export lower_async_fn :: fn(
 // awaits only immediately-ready things), fall back to the inline single-resume
 // driver — no scheduler dependency, and a stray suspension traps loudly.
 async_main_driver :: fn(
-    fn_ctx: FnLowerCtx!, construct: LoweredExpr, async_sym: Symbol,
+    fn_ctx: FnLowerCtx!, construct: LoweredExpr!, async_sym: Symbol,
     suspended_ty: Type, resume_ty: Type, result_type: Type, span: Span,
-) -> LoweredBlock {
+) -> LoweredBlock! {
     async_ty :: mk_trait(async_sym, [result_type])
     run_sym :: fn_ctx.typed.run_async_main_symbol
     if run_sym != null {

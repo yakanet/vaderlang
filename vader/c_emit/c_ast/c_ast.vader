@@ -486,7 +486,7 @@ export binary :: fn(
 /// `&operand`.
 ///
 /// @param operand  the object whose address is taken.
-export address_of :: fn(operand: CExpression) -> CExpression = CAddressOf { .operand = operand }
+export address_of :: fn(operand: CExpression) -> CExpression! = CAddressOf { .operand = operand }
 
 /// `(type) value`.
 ///

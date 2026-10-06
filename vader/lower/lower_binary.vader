@@ -17,7 +17,7 @@ import "toolchain/span"
 // to the variant, so the following `type_check` constant-folds. Returning the
 // cast's inner union value keeps the runtime tag intact (the narrowing is a
 // compile-time view, so the check on the original box is what we want).
-strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr {
+strip_narrowing_cast :: fn(e: LoweredExpr!) -> LoweredExpr! {
     if e is LoweredCast {
         if type_of(e.value) is UnionType { return e.value }
     }
@@ -25,7 +25,7 @@ strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr {
 }
 
 // `!cond` when `negate`, else `cond`.
-maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
+maybe_negate :: fn(cond: LoweredExpr!, negate: bool, span: Span) -> LoweredExpr! {
     if negate {
         return LoweredUnary {
             .span = span,
@@ -37,7 +37,7 @@ maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
     return cond
 }
 
-lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredExpr {
+lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredExpr! {
     // `expr is T` lowers to a runtime tag check ; the RHS is a type
     // expression, not a value. The `bind_as` parsing is handled inside
     // `if x is T as alias` where the if's then-branch consumes the
@@ -77,7 +77,7 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
                     span :: binary.span
                     lo_value :: lower_expr(ctx, range_lit.lower)
                     hi_value :: lower_expr(ctx, range_lit.upper)
-                    bounds: LoweredStmt[]!: []
+                    bounds: LoweredStmt![]!: []
                     hoist :: !is_effect_free_read(hi_value)
                     lo :: if hoist {
                         bind_unless_stable(ctx, lo_value, "in_lo", span, bounds)
@@ -126,7 +126,7 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
         if member is UfcsMember {
             // `contains` takes the collection first: `x` is bound ahead of it unless
             // neither can change what the other reads.
-            prelude: LoweredStmt[]!: []
+            prelude: LoweredStmt![]!: []
             element_value :: lower_expr(ctx, binary.left)
             coll :: lower_expr(ctx, binary.right)
             element :: if reads_independently(element_value, coll) {
@@ -183,7 +183,7 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
     // `string + string` case (user-struct `Add` and `T`/`Any` receivers were
     // handled by `try_lower_op_overload` above).
     if binary.op == .Add && is_string_type(type) {
-        operands: LoweredExpr[]!: []
+        operands: LoweredExpr![]!: []
         collect_concat_operands(ctx, binary.left, operands)
         collect_concat_operands(ctx, binary.right, operands)
         return lower_concat_chain(ctx, operands, binary.span)
@@ -241,7 +241,7 @@ collect_concat_operands :: fn(ctx: FnLowerCtx!, e: Expr, out: LoweredExpr[]!) ->
     out.push(lower_expr(ctx, e))
 }
 
-try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
+try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredExpr! | null {
     info :: op_trait_method(binary.op) ?? return null
     if info is OpTraitInfo {
         left_ty :: ctx.types.expr_type(binary.left)
@@ -262,7 +262,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
         if member is UfcsMember {
             lowered_left  :: lower_expr(ctx, binary.left)
             lowered_right :: lower_expr(ctx, binary.right)
-            call_args: LoweredExpr[]!: []
+            call_args: LoweredExpr![]!: []
             call_args.push(lowered_left)
             call_args.push(lowered_right)
             if info.shape == .DirectCall {
@@ -333,10 +333,10 @@ operator_member :: fn(ctx: FnLowerCtx!, t: Type, info: OpTraitInfo) -> UfcsMembe
 // Comparable share the dispatch + outer-op patterns from `op_trait_method`.
 lower_op_overload_via_vcall :: fn(
     ctx: FnLowerCtx!, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
-) -> LoweredExpr | null {
+) -> LoweredExpr! | null {
     lowered_left  :: lower_expr(ctx, binary.left)
     lowered_right :: lower_expr(ctx, binary.right)
-    args: LoweredExpr[]!: []
+    args: LoweredExpr![]!: []
     args.push(lowered_right)
     // Erased op-trait dispatch (`T`/`Any` operand) : surface every primitive
     // implementor of the op-trait — see `virtually_dispatched_traits`.
@@ -395,7 +395,7 @@ op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
     return null
 }
 
-try_lower_null_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr | null {
+try_lower_null_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr! | null {
     union_operand: Expr | null = null
     if is_null_lit(binary.left) && is_union_with_null(ctx.types.expr_type(binary.right)) {
         union_operand = binary.right

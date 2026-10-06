@@ -33,7 +33,7 @@ RegMachine :: struct {
     frame_return: usize[]!
     /// The closures `defer` pushed, for the whole run ; the live ones are
     /// `defers[0 ..< defer_count]`.
-    defers:      Value[]!
+    defers:      Value![]!
     defer_count: usize
     /// The debugger driving the run, or `null`.
     debug: DebugSession! | null
@@ -59,14 +59,14 @@ reserve_registers :: fn(m: RegMachine!, count: usize) -> void {
 }
 
 // The value of register `at`, boxed.
-register_value :: fn(m: RegMachine, at: usize) -> Value = match m.tags[at] {
+register_value :: fn(m: RegMachine, at: usize) -> Value! = match m.tags[at] {
     .Ref  -> m.refs[at]
     .I32  -> I32Val(i32(m.bits[at]))
     .I64  -> I64Val(m.bits[at])
     .F64  -> F64Val(u64(m.bits[at]).from_bits())
     .Bool -> BoolVal(m.bits[at] != 0)
     .Char -> CharVal(char(u32(m.bits[at])))
-    .Null -> NULL_VALUE
+    .Null -> NullVal {}
 }
 
 // Write a boxed value into register `at`.
@@ -797,7 +797,7 @@ resolve_virtual :: fn(
         return Trap { .message = "virtual.call '${call.vtable_key}' : no impl for type ${type_id} at pc=${origin}" }
     }
     info :: primitive_impl_import(mangle, count)
-    args: Value[]!: []
+    args: Value![]!: []
     for k in 0..<count {
         args.push(register_value(m, at + k))
     }
@@ -858,7 +858,7 @@ run_boxed :: fn(state: VmState, m: RegMachine!, f: RegFunction, pc: usize, base:
 // lands in `at`.
 call_import :: fn(state: VmState, m: RegMachine!, index: i32, at: usize, origin: i32, is_comptime: bool) -> Trap | null {
     info :: state.bc.imports[usize(index)]
-    args: Value[]!: []
+    args: Value![]!: []
     for i in 0..<info.signature.params.len() {
         args.push(register_value(m, at + i))
     }
@@ -933,7 +933,7 @@ run_defers :: fn(
 }
 
 // The fn value a deferred closure holds, checked to take exactly its environment.
-defer_thunk :: fn(state: VmState, closure: Value, origin: i32, label: string) -> FnVal | Trap {
+defer_thunk :: fn(state: VmState, closure: Value!, origin: i32, label: string) -> FnVal! | Trap {
     if closure !is FnVal {
         // The label is built only for the trap.
         return read_fn(closure, origin, "${label} entry")

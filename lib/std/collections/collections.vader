@@ -332,7 +332,7 @@ MutableMap<K, V> implements<K, V> Into<Iterator<[K, V]>> {
 export MutableSet :: struct<T: Hash & Equals> {
     /// Backing map. Defaults empty so `MutableSet<T> {}` is a valid literal.
     @internal
-    inner: MutableMap<T, bool> = MutableMap<T, bool> {}
+    inner: MutableMap<T, bool>! = MutableMap<T, bool> {}
 }
 
 /// Insert `value`. Returns `true` if `value` was newly added, `false` if it

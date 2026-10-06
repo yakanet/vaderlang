@@ -184,7 +184,7 @@ origin_symbol_id :: fn(project: LowerProjectCtx, symbol: Symbol) -> i32 =
 // `value` bound to `instance`'s clone of the parameter `p` — the symbol the
 // inlined body reads.
 bind_instance_param :: fn(
-    ctx: FnLowerCtx!, instance: InlineInstance, owner: TypedProgram, p: AST.FnParam, value: LoweredExpr,
+    ctx: FnLowerCtx!, instance: InlineInstance, owner: TypedProgram, p: AST.FnParam, value: LoweredExpr!,
     slot: Type,
 ) -> LoweredStmt {
     symbol :: lookup_local_symbol(ctx.project, owner.resolved, p.span) ?? panic(
@@ -242,7 +242,7 @@ leave_instance :: fn(instance: InlineInstance!, span: Span) -> LoweredStmt {
 /// @param instance  the inlined instance.
 /// @param span      span of the block when one is built.
 /// @param stmts     the instance's emitted statements.
-wrap_instance_exit :: fn(instance: InlineInstance, span: Span, stmts: LoweredStmt[]) -> LoweredStmt[] {
+wrap_instance_exit :: fn(instance: InlineInstance, span: Span, stmts: LoweredStmt![]) -> LoweredStmt![] {
     if !instance.exited {
         return stmts
     }
@@ -254,7 +254,7 @@ wrap_instance_exit :: fn(instance: InlineInstance, span: Span, stmts: LoweredStm
 /// @param label  the block's label.
 /// @param span   the block's span.
 /// @param stmts  the block's statements.
-labelled_block :: fn(label: string, span: Span, stmts: LoweredStmt[]) -> LoweredStmt =
+labelled_block :: fn(label: string, span: Span, stmts: LoweredStmt![]) -> LoweredStmt! =
     LoweredLabelledBlock { .span = span, .label = label, .body = arm_block(stmts, span) }
 
 // ---- tests ----------------------------------------------------------------

@@ -68,7 +68,7 @@ Parser :: struct {
     eof: usize
 }
 
-new_parser :: fn(s: string) -> Parser {
+new_parser :: fn(s: string) -> Parser! {
     return Parser { .src = s, .bytes = s.bytes(), .pos = 0, .eof = s.bytes().len() }
 }
 

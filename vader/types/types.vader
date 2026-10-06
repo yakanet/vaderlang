@@ -515,9 +515,8 @@ export type_is_immutable :: fn(t: Type) -> bool = match t {
 ///
 /// NOT the complement of `type_is_immutable`: a primitive carries no bit either
 /// way, so neither answers true for it. On a union the bit lives on the variants
-/// (`with_immutable` distributes it), so the union grants mutation only when EVERY
-/// variant does — the same "never grant more than you had" rule as
-/// `narrowing_immutability`.
+/// (`with_immutable` distributes it), so the union grants mutation only when every
+/// variant carrying a bit does (`carries_mutability_bit`).
 ///
 /// @param t  the type to ask.
 export type_grants_mutation :: fn(t: Type) -> bool = match t {
@@ -541,32 +540,44 @@ export type_grants_mutation :: fn(t: Type) -> bool = match t {
 /// @param t  the type to ask.
 export type_may_grant_mutation :: fn(t: Type) -> bool = match t {
     is ArrayType | StructType | TupleType -> !type_is_immutable(t)
-    is UnionType     -> any_variant_may_grant_mutation(t.variants)
+    is UnionType     -> any_variant(t.variants, type_may_grant_mutation)
     is DistinctType  -> type_may_grant_mutation(t.backing)
     is TraitType | SelfType | AnyType | UnresolvedType -> true
     is PrimitiveType | EnumType | FnType | TypeParamType | TypeMetaType | FreeIntType
      | FreeFloatType | FreeCharType | NeverType -> false
 }
 
-any_variant_may_grant_mutation :: fn(variants: Type[]) -> bool {
+any_variant :: fn(variants: Type[], holds: fn(Type) -> bool) -> bool {
     for v in variants {
-        if type_may_grant_mutation(v) {
+        if holds(v) {
             return true
         }
     }
     return false
 }
 
-variants_grant_mutation :: fn(variants: Type[]) -> bool {
-    if variants.len() == 0 {
-        return false
-    }
-    for v in variants {
-        if !type_grants_mutation(v) {
-            return false
-        }
-    }
-    return true
+variants_grant_mutation :: fn(variants: Type[]) -> bool =
+    any_variant(variants, carries_mutability_bit) && !any_variant(variants, type_withholds_mutation)
+
+/// Whether `t` carries a mutability marker of its own level — the three reference
+/// shapes, and a union, whose variants carry theirs. A primitive, an enum or `null` is
+/// a value, copied out : `with_immutable` leaves it alone, so `Value!` over
+/// `ArrayVal | BoolVal` reads as `ArrayVal! | BoolVal`.
+///
+/// @param t  the type to ask.
+export carries_mutability_bit :: fn(t: Type) -> bool =
+    t is ArrayType | StructType | TupleType | UnionType
+
+/// Whether some level `t` hands out is read-only by its own marker : a frozen array,
+/// struct or tuple, or a union holding one (`Point | null` from an unmarked return).
+/// Unlike `type_is_immutable`, which a union answers false, this is the question a
+/// mutation of the VALUE asks.
+///
+/// @param t  the type to ask.
+export type_withholds_mutation :: fn(t: Type) -> bool = if t is UnionType {
+    any_variant(t.variants, type_withholds_mutation)
+} else {
+    type_is_immutable(t)
 }
 
 /// Raw union constructor. Callers that need flattening + dedup must go

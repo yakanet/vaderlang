@@ -23,7 +23,7 @@ as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
 /// matching name exists. The receiver becomes the first arg.
 /// Runs after the trait-virtual probe so virtual dispatch wins for
 /// trait-typed receivers and UFCS picks up the concrete-type residue.
-try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr | null {
+try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr! | null {
     callee_field :: as_field_expr(call.callee) ?? return null
     if callee_field is FieldExpr {
         receiver :: lower_expr(ctx, callee_field.target)
@@ -234,9 +234,9 @@ ufcs_param_types :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type[] {
 // here) ; 0 for an impl member, whose recorded signature already dropped the
 // receiver (there is no slot to prepare it against — it is the impl's for-type).
 build_ufcs_args :: fn(
-    ctx: FnLowerCtx!, receiver: LoweredExpr, call: CallExpr, params: Type[], first_slot: usize,
-) -> LoweredExpr[]! {
-    args: LoweredExpr[]!: []
+    ctx: FnLowerCtx!, receiver: LoweredExpr!, call: CallExpr, params: Type[], first_slot: usize,
+) -> LoweredExpr![]! {
+    args: LoweredExpr![]!: []
     if first_slot == 1 && params.len() > 0 {
         args.push(prepare_value_for_slot(ctx, receiver, params[0], call.span))
     } else {

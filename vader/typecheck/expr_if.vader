@@ -92,7 +92,7 @@ export infer_if :: fn(
             return collapse_if_unresolved(joined, then_ty, else_ty)
         }
         is AST.IfElseIf    -> {
-            inner: AST.Expr: eb.branch
+            inner: AST.Expr!: eb.branch
             else_ty :: check_else_branch_expr(
                 inner, e.cond, expected, typed, diags, check_expr_fn)
             return collapse_if_unresolved(join_branch_types([then_ty, else_ty]), then_ty, else_ty)
@@ -283,7 +283,7 @@ pop_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram!) -> void {
 narrowed_with_scrutinee_immutability :: fn(
     narrowed: Type, scrut: AST.Expr, typed: TypedProgram,
 ) -> Type {
-    if !(narrowed is ArrayType | StructType | TupleType | UnionType) { return narrowed }
+    if !carries_mutability_bit(narrowed) { return narrowed }
     base :: scrutinee_narrow_base(scrut, typed) ?? return narrowed
     return with_immutable(narrowed, narrowing_immutability(base, narrowed))
 }
@@ -466,7 +466,7 @@ accept_if :: fn(e: AST.Expr) -> AST.Expr | null {
     return null
 }
 
-first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
+first_if_in_last_fn :: fn(src: string) -> AST.IfExpr! | null {
     parsed :: parse_source(src, "t.vader")
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
@@ -484,7 +484,7 @@ first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
     return null
 }
 
-checked :: fn(src: string) -> TypedProgram {
+checked :: fn(src: string) -> TypedProgram! {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)

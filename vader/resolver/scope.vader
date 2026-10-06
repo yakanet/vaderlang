@@ -19,7 +19,7 @@ export Scope :: struct {
 
 /// Build a scope whose root frame is `root`. The caller keeps ownership ;
 /// downstream `bind` calls write to push-introduced frames, not the seed.
-export new_scope :: fn(root: MutableMap<string, Symbol>) -> Scope {
+export new_scope :: fn(root: MutableMap<string, Symbol>) -> Scope! {
     return Scope { .frames = [root] }
 }
 

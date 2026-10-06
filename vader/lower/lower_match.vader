@@ -35,12 +35,12 @@ import "toolchain/span"
 /// @return             the lowered block.
 export lower_match :: fn(
     ctx: FnLowerCtx!, expr: MatchExpr, result_type: Type,
-    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
-) -> LoweredExpr {
+    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr!,
+) -> LoweredExpr! {
     scrut_type :: ctx.types.expr_type(expr.scrutinee)
     scrut_value :: recurse(ctx, expr.scrutinee)
 
-    stmts: LoweredStmt[]!: []
+    stmts: LoweredStmt![]!: []
     // Scrutinee-temp elision : when the scrutinee already lowers to a direct
     // local/param read AND no arm carries a guard, reuse that slot instead of
     // spilling to a synthetic `__scrut` temp. Pattern predicates are pure, so
@@ -93,7 +93,7 @@ export lower_match :: fn(
     } else {
         "non-exhaustive match (T3013 should have caught this)"
     }
-    fallback: LoweredBlock: wrap_block(expr.span, LoweredUnreachable {
+    fallback: LoweredBlock!: wrap_block(expr.span, LoweredUnreachable {
         .span = expr.span, .type = result_type, .reason = fallback_reason,
     })
 
@@ -106,7 +106,7 @@ export lower_match :: fn(
         }
     }
 
-    chain: LoweredBlock = fallback
+    chain: LoweredBlock! = fallback
     cursor := arm_count
     for cursor > 0 {
         cursor = cursor - 1
@@ -150,9 +150,9 @@ scrut_ident_symbol :: fn(e: LoweredExpr) -> Symbol | null = if e is LoweredIdent
 
 lower_arm :: fn(
     ctx: FnLowerCtx!, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
-    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
-) -> LoweredBlock {
-    stmts: LoweredStmt[]!: []
+    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr!,
+) -> LoweredBlock! {
+    stmts: LoweredStmt![]!: []
     introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, stmts, arm.span)
     body :: recurse(ctx, arm.body)
     return LoweredBlock {
@@ -163,8 +163,8 @@ lower_arm :: fn(
 
 arm_predicate :: fn(
     ctx: FnLowerCtx!, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
-    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
-) -> LoweredExpr | null {
+    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr!,
+) -> LoweredExpr! | null {
     span :: arm.pattern.span
     scrut_ident :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
     core :: pattern_predicate(ctx, arm.pattern, scrut_ident, scrut_type, span, recurse)
@@ -177,7 +177,7 @@ arm_predicate :: fn(
     // once the pattern predicate has confirmed the type. (`lower_arm`
     // re-introduces the same bindings in the arm body ; the second write
     // to the same slots is idempotent.)
-    binding_stmts: LoweredStmt[]!: []
+    binding_stmts: LoweredStmt![]!: []
     introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, binding_stmts, arm.span)
     guard := recurse(ctx, arm.guard)
     if binding_stmts.len() > 0 {
@@ -194,9 +194,9 @@ arm_predicate :: fn(
 }
 
 pattern_predicate :: fn(
-    ctx: FnLowerCtx!, pattern: Pattern, target: LoweredExpr, target_type: Type, span: Span,
-    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
-) -> LoweredExpr | null {
+    ctx: FnLowerCtx!, pattern: Pattern, target: LoweredExpr!, target_type: Type, span: Span,
+    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr!,
+) -> LoweredExpr! | null {
     match pattern {
         is WildcardPattern -> { return null }
         is IsPattern       -> {
@@ -256,7 +256,7 @@ pattern_predicate :: fn(
             // Disjunction of the alternatives' predicates : `p1 || p2 || …`.
             // A null sub-predicate (an always-true alternative) collapses the
             // whole or-pattern to always-true.
-            parts: LoweredExpr[]!: []
+            parts: LoweredExpr![]!: []
             for sub in pattern.patterns {
                 sub_pred :: pattern_predicate(ctx, sub, target, target_type, span, recurse)
                 if sub_pred == null { return null }
@@ -270,10 +270,10 @@ pattern_predicate :: fn(
 // `field == literal` for every literal field of `pattern`, joined by `&&` ; null
 // when the pattern only binds, so it constrains nothing.
 struct_pattern_predicate :: fn(
-    ctx: FnLowerCtx!, pattern: StructPattern, target: LoweredExpr, span: Span,
-    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr,
-) -> LoweredExpr | null {
-    tests: LoweredExpr[]!: []
+    ctx: FnLowerCtx!, pattern: StructPattern, target: LoweredExpr!, span: Span,
+    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr!,
+) -> LoweredExpr! | null {
+    tests: LoweredExpr![]!: []
     for field in pattern.fields {
         if field.value is PatternLiteral as literal {
             value :: recurse(ctx, literal.value)
@@ -288,7 +288,7 @@ struct_pattern_predicate :: fn(
     return and_all(span, tests)
 }
 
-enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnLowerCtx) -> LoweredExpr {
+enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnLowerCtx) -> LoweredExpr! {
     // `type_expr.vader::type_from_symbol` currently returns a placeholder
     // `StructType` for enum decls (the comment in that file calls it out
     // explicitly). Unwrap the real `EnumType` from `decl_types` here so
@@ -352,7 +352,7 @@ introduce_pattern_bindings :: fn(
 }
 
 walk_pattern_bindings :: fn(
-    ctx: FnLowerCtx!, pattern: Pattern, target: LoweredExpr, target_type: Type,
+    ctx: FnLowerCtx!, pattern: Pattern, target: LoweredExpr!, target_type: Type,
     out: LoweredStmt[]!, span: Span,
 ) -> void {
     match pattern {
@@ -391,7 +391,7 @@ walk_pattern_bindings :: fn(
 
 // Only a union target needs the narrowing cast ; any other shape is already
 // its concrete self and passes through. Single-case `if`, not `match` + `_`.
-narrow_target :: fn(target: LoweredExpr, target_type: Type, inner_type: Type, span: Span) -> LoweredExpr {
+narrow_target :: fn(target: LoweredExpr!, target_type: Type, inner_type: Type, span: Span) -> LoweredExpr! {
     if target_type is UnionType { return LoweredCast { .span = span, .type = inner_type, .value = target } }
     return target
 }
@@ -411,7 +411,7 @@ resolve_pattern_symbol :: fn(ctx: FnLowerCtx!, name_span: Span, name: string) ->
     return found
 }
 
-wrap_block :: fn(span: Span, expr: LoweredExpr) -> LoweredBlock {
+wrap_block :: fn(span: Span, expr: LoweredExpr!) -> LoweredBlock! {
     return LoweredBlock { .span = span, .type = type_of(expr), .stmts = [], .trailing = expr }
 }
 

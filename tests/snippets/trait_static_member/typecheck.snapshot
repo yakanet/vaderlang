@@ -54,16 +54,16 @@
   expr 72:13    IdentExpr      :: Sq!
   expr 72:5     CallExpr       :: void
   expr 72:5     IdentExpr      :: fn(T) -> void
-  expr 73:12    CallExpr       :: Sq!
-  expr 73:12    IdentExpr      :: fn(i32) -> S
-  expr 74:14    CallExpr       :: Rect!
-  expr 74:14    IdentExpr      :: fn(i32) -> S
+  expr 73:13    CallExpr       :: Sq!
+  expr 73:13    IdentExpr      :: fn(i32) -> S
+  expr 74:15    CallExpr       :: Rect!
+  expr 74:15    IdentExpr      :: fn(i32) -> S
   expr 75:23    SeqLitExpr     :: Shape[]!
-  expr 76:17    IdentExpr      :: Sq
+  expr 76:17    IdentExpr      :: Sq!
   expr 76:5     CallExpr       :: void
   expr 76:5     FieldExpr      :: fn(Shape) -> void
   expr 76:5     IdentExpr      :: Shape[]!
-  expr 77:17    IdentExpr      :: Rect
+  expr 77:17    IdentExpr      :: Rect!
   expr 77:5     CallExpr       :: void
   expr 77:5     FieldExpr      :: fn(Shape) -> void
   expr 77:5     IdentExpr      :: Shape[]!

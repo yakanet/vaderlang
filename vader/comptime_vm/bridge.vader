@@ -130,7 +130,7 @@ display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string {
 
 @test test_bridge_u32_array :: fn() -> void {
     s :: empty_span()
-    elems: Vm.Value[]!: [
+    elems: Vm.Value![]!: [
         Vm.I32Val(1),
         Vm.I32Val(2),
         Vm.I32Val(3),

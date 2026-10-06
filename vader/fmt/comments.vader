@@ -58,7 +58,7 @@ export CommentMap :: struct {
 /// String literals are skipped so a `"contains // pseudo-comment"` literal
 /// doesn't fool the scanner.
 /// @param source source code
-export scan_comments :: fn(source: string) -> CommentMap {
+export scan_comments :: fn(source: string) -> CommentMap! {
     out: Comment[]!: []
     sb :: source.bytes()
     n :: sb.len()

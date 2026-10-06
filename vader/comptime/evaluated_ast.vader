@@ -94,7 +94,7 @@ export EvaluatedProject :: struct {
 /// orchestrator skeleton in phase 3 ; phase 4 populates `comptime_decls`.
 /// @param typed  the module's typed program.
 /// @return       a fresh evaluated program with no comptime decls.
-export new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
+export new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram! {
     return EvaluatedProgram {
         .typed          = typed,
         .comptime_decls = MutableMap<i32, ComptimeValue> {},

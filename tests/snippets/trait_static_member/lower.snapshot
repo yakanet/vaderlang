@@ -98,13 +98,13 @@
                 snippet$Sq$Shape$unit :Sq!
               arg0:
                 int(3) :i32
-    let s: Sq =
+    let s: Sq! =
       call :Sq!
         callee:
           snippet$build__Sq :Sq!
         arg0:
           int(4) :i32
-    let r: Rect =
+    let r: Rect! =
       call :Rect!
         callee:
           snippet$build__Rect :Rect!

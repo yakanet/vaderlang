@@ -77,7 +77,7 @@ export ModuleBuilder :: struct {
 /// Fresh, empty builder. `main_index` is held in a 1-element `i32[]` so
 /// `set_main` can mutate it from a member fn that takes `self` by value
 /// (Vader arrays are heap-allocated and shared by reference).
-export new_module_builder :: fn() -> ModuleBuilder {
+export new_module_builder :: fn() -> ModuleBuilder! {
     return ModuleBuilder {
         .strings      = [],
         .string_index = MutableMap<string, i32> {},
@@ -325,7 +325,7 @@ export FunctionBuilder :: struct {
 /// @return                 a FunctionBuilder ready to receive ops.
 export new_function_builder :: fn(
     name: string, params: bc.ValType[], local_count: usize,
-) -> FunctionBuilder {
+) -> FunctionBuilder! {
     return FunctionBuilder {
         .name            = name,
         .params          = params,

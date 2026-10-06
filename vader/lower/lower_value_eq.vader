@@ -31,7 +31,7 @@ import "toolchain/span"
 import "vader/typecheck"
 import "vader/types"
 
-try_lower_value_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr | null {
+try_lower_value_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr! | null {
     left_ty  :: ctx.types.expr_type(binary.left)
     right_ty :: ctx.types.expr_type(binary.right)
     // A distinct over a tuple (`Pair :: [i32, i32]`) compares through its
@@ -47,7 +47,7 @@ try_lower_value_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr | 
         return null
     }
     span :: binary.span
-    stmts: LoweredStmt[]!: []
+    stmts: LoweredStmt![]!: []
     left  :: bind_unless_stable(ctx, lower_expr(ctx, binary.left), "eq_l", span, stmts)
     right :: bind_unless_stable(ctx, lower_expr(ctx, binary.right), "eq_r", span, stmts)
     equal :: value_eq(ctx, left, left_ty, right, right_ty, span)
@@ -61,8 +61,8 @@ try_lower_value_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr | 
 // `try_lower_value_eq`, nothing falls back to `lower_binary` here, so a non-union
 // operand goes through `value_eq` too.
 literal_eq :: fn(
-    ctx: FnLowerCtx!, value: LoweredExpr, literal: LoweredExpr, span: Span,
-) -> LoweredExpr {
+    ctx: FnLowerCtx!, value: LoweredExpr!, literal: LoweredExpr!, span: Span,
+) -> LoweredExpr! {
     value_type :: type_of(value)
     if !compares_by_bits(value_type) {
         return value_eq(ctx, value, value_type, literal, type_of(literal), span)
@@ -103,12 +103,12 @@ compares_by_bits :: fn(t: Type) -> bool {
 // cannot drift.
 value_eq :: fn(
     ctx: FnLowerCtx!,
-    left: LoweredExpr,
+    left: LoweredExpr!,
     left_ty: Type,
-    right: LoweredExpr,
+    right: LoweredExpr!,
     right_ty: Type,
     span: Span,
-) -> LoweredExpr {
+) -> LoweredExpr! {
     if right_ty is UnionType {
         return variant_disjunction(ctx, left, left_ty, right, right_ty, span)
     }
@@ -137,16 +137,16 @@ value_eq :: fn(
 
 // A call to `t`'s `Equals` impl ; null when it has none.
 equals_call :: fn(
-    ctx: FnLowerCtx!, left: LoweredExpr, t: Type, right: LoweredExpr, span: Span,
-) -> LoweredExpr | null {
+    ctx: FnLowerCtx!, left: LoweredExpr!, t: Type, right: LoweredExpr!, span: Span,
+) -> LoweredExpr! | null {
     equals_key :: core_trait_key(TRAIT_EQUALS)
     member :: resolve_impl_member(ctx, t, equals_key, METHOD_EQUALS) ?? return null
     return build_member_call_or_inline(member, [left, right], TY_BOOL, span)
 }
 
 virtual_equals :: fn(
-    ctx: FnLowerCtx!, left: LoweredExpr, right: LoweredExpr, span: Span,
-) -> LoweredExpr {
+    ctx: FnLowerCtx!, left: LoweredExpr!, right: LoweredExpr!, span: Span,
+) -> LoweredExpr! {
     equals_key :: core_trait_key(TRAIT_EQUALS)
     ctx.project.virtually_dispatched_traits.add(equals_key)
     return LoweredVirtualCall {
@@ -162,9 +162,9 @@ virtual_equals :: fn(
 
 // `left == right` folded over the fields of `ty`.
 field_conjunction :: fn(
-    ctx: FnLowerCtx!, left: LoweredExpr, right: LoweredExpr, ty: TupleType, span: Span,
-) -> LoweredExpr {
-    fields: LoweredExpr[]!: []
+    ctx: FnLowerCtx!, left: LoweredExpr!, right: LoweredExpr!, ty: TupleType, span: Span,
+) -> LoweredExpr! {
+    fields: LoweredExpr![]!: []
     for i in 0..<ty.elements.len() {
         elem_ty :: ty.elements[i]
         l :: field_of(left, elem_ty, "_${i}", span)
@@ -174,7 +174,7 @@ field_conjunction :: fn(
     return and_all(span, fields)
 }
 
-field_of :: fn(target: LoweredExpr, ty: Type, field: string, span: Span) -> LoweredExpr =
+field_of :: fn(target: LoweredExpr!, ty: Type, field: string, span: Span) -> LoweredExpr! =
     LoweredFieldAccess {
         .span = span,
         .type = ty,
@@ -187,16 +187,16 @@ field_of :: fn(target: LoweredExpr, ty: Type, field: string, span: Span) -> Lowe
 // type — and the two are equal by its rule. False when they share none.
 variant_disjunction :: fn(
     ctx: FnLowerCtx!,
-    left: LoweredExpr,
+    left: LoweredExpr!,
     left_ty: Type,
-    right: LoweredExpr,
+    right: LoweredExpr!,
     right_ty: Type,
     span: Span,
-) -> LoweredExpr {
-    terms: LoweredExpr[]!: []
+) -> LoweredExpr! {
+    terms: LoweredExpr![]!: []
     for l_variant in union_variants(left_ty) ?? [left_ty] {
         r_variant :: counterpart(right_ty, l_variant) ?? continue
-        parts: LoweredExpr[]!: []
+        parts: LoweredExpr![]!: []
         holds_test(left, left_ty, l_variant, span, parts)
         holds_test(right, right_ty, r_variant, span, parts)
         if !is_null_type(l_variant) {
@@ -213,7 +213,7 @@ variant_disjunction :: fn(
 // union, which always does. A variant with no tag of its own (`is_untagged`) sits
 // only beside `null` (T3087): it is whatever is not `null`.
 holds_test :: fn(
-    value: LoweredExpr, t: Type, variant: Type, span: Span, out: LoweredExpr[]!,
+    value: LoweredExpr!, t: Type, variant: Type, span: Span, out: LoweredExpr[]!,
 ) -> void {
     if t !is UnionType {
         return
@@ -225,7 +225,7 @@ holds_test :: fn(
     out.push(type_check(value, variant, span))
 }
 
-type_check :: fn(value: LoweredExpr, check: Type, span: Span) -> LoweredExpr = LoweredTypeCheck {
+type_check :: fn(value: LoweredExpr!, check: Type, span: Span) -> LoweredExpr! = LoweredTypeCheck {
     .span = span,
     .type = TY_BOOL,
     .value = value,
@@ -233,7 +233,7 @@ type_check :: fn(value: LoweredExpr, check: Type, span: Span) -> LoweredExpr = L
 }
 
 // A part typecheck has proven to compare, yet with no `Equals` to call.
-no_equals :: fn(t: Type, span: Span) -> LoweredExpr = LoweredUnreachable {
+no_equals :: fn(t: Type, span: Span) -> LoweredExpr! = LoweredUnreachable {
     .span = span,
     .type = TY_BOOL,
     .reason = "`==` on `${display_type(t)}`, which has no `Equals`",

@@ -40,8 +40,8 @@ import "toolchain/span"
 /// @return             the lowered stmt (a block wrapping the loop).
 export lower_for_in :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
+    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
 ) -> LoweredStmt {
     span :: for_stmt.span
     // Fast path : `for x in <chain>` where `<chain>` is one or more
@@ -178,7 +178,7 @@ export lower_for_in :: fn(
         },
     }
 
-    loop_stmts: LoweredStmt[]!: []
+    loop_stmts: LoweredStmt![]!: []
     loop_stmts.push(step_let)
     loop_stmts.push(branch_if)
 
@@ -190,7 +190,7 @@ export lower_for_in :: fn(
         .step = [],
     }
 
-    block_stmts: LoweredStmt[]!: []
+    block_stmts: LoweredStmt![]!: []
     block_stmts.push(iter_let)
     block_stmts.push(loop_stmt)
     return LoweredExprStmt {
@@ -213,8 +213,8 @@ resolve_loop_label :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt) -> string | nul
     return instance_label(ctx, if injected != null { injected } else { for_stmt.label })
 }
 
-build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
-    out: LoweredStmt[]!: []
+build_break_stmts :: fn(span: Span) -> LoweredStmt![] {
+    out: LoweredStmt![]!: []
     out.push(LoweredBreak { .span = span, .label = null })
     return out
 }
@@ -230,9 +230,9 @@ build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
 // symbols were minted by the resolver). Returns a list so every bind site splices it.
 bind_loop_var :: fn(
     ctx: FnLowerCtx!, binding_symbol: Symbol, name: string, pattern: AST.LetBinding | null,
-    value: LoweredExpr, value_type: Type, span: Span,
-) -> LoweredStmt[] {
-    out: LoweredStmt[]!: []
+    value: LoweredExpr!, value_type: Type, span: Span,
+) -> LoweredStmt![] {
+    out: LoweredStmt![]!: []
     if pattern is AST.TupleBinding {
         elem_sym :: fresh_synthetic_symbol(ctx, "for_elem")
         out.push(LoweredLet {
@@ -254,15 +254,15 @@ bind_loop_var :: fn(
 // spliced in the generator's own ctx where those leaf symbols don't resolve.
 export emit_for_pattern_destructure :: fn(
     ctx: FnLowerCtx!, tup: AST.TupleBinding, elem_sym: Symbol, elem_type: Type, span: Span,
-) -> LoweredStmt[] {
-    out: LoweredStmt[]!: []
+) -> LoweredStmt![] {
+    out: LoweredStmt![]!: []
     elem_ref :: LoweredIdent { .span = span, .type = elem_type, .symbol = elem_sym }
     emit_let_binding_leaves(ctx, tup, elem_ref, elem_type, span, out)
     return out
 }
 
-build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> LoweredStmt[] {
-    out: LoweredStmt[]!: []
+build_body_stmts :: fn(bind_stmts: LoweredStmt![], user_body: LoweredBlock) -> LoweredStmt![] {
+    out: LoweredStmt![]!: []
     out.push_all(bind_stmts)
     for stmt in user_body.stmts { out.push(stmt) }
     if user_body.trailing is null { return out }
@@ -271,7 +271,7 @@ build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> Lo
 }
 
 WrapResult :: struct {
-    iter:      LoweredExpr
+    iter:      LoweredExpr!
     iter_type: Type
 }
 
@@ -285,7 +285,7 @@ WrapResult :: struct {
 // Returns the input verbatim when it is not a string, or when `chars` is out of
 // reach.
 wrap_string_iter :: fn(
-    ctx: FnLowerCtx!, iter: LoweredExpr, iter_type: Type, span: Span,
+    ctx: FnLowerCtx!, iter: LoweredExpr!, iter_type: Type, span: Span,
 ) -> WrapResult {
     unwrapped :: WrapResult { .iter = iter, .iter_type = iter_type }
     if iter_type !is PrimitiveType {
@@ -379,12 +379,12 @@ erase_genstate_for_dispatch :: fn(ctx: FnLowerCtx, iter_type: Type, element_type
 // synth `next` symbol. The bytecode emit resolves the synth callee
 // via the impl-member mangling once that wiring lands.
 build_step_call :: fn(
-    ctx: FnLowerCtx!, iter_ref: LoweredExpr, iter_type: Type, step_union: Type, span: Span,
-) -> LoweredExpr {
+    ctx: FnLowerCtx!, iter_ref: LoweredExpr!, iter_type: Type, step_union: Type, span: Span,
+) -> LoweredExpr! {
     match iter_type {
         is TraitType -> {
             if iter_type.symbol.name == TRAIT_ITERATOR {
-                args: LoweredExpr[]!: []
+                args: LoweredExpr![]!: []
                 return LoweredVirtualCall {
                     .span = span, .type = step_union,
                     .trait_name = core_trait_key(TRAIT_ITERATOR), .method = METHOD_NEXT,
@@ -430,7 +430,7 @@ build_step_call :: fn(
         ctx.project.referenced_impl_mangles.add(next_name)
     }
     next_symbol :: synth_next_symbol(ctx, next_name)
-    args: LoweredExpr[]!: []
+    args: LoweredExpr![]!: []
     args.push(iter_ref)
     return LoweredCall {
         .span = span, .type = step_union,
@@ -674,9 +674,9 @@ bce_opt_block_unsafe :: fn(
 
 try_lower_for_in_raw_array :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    iter_lowered: LoweredExpr, iter_type: Type,
-    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
+    iter_lowered: LoweredExpr!, iter_type: Type,
+    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
 ) -> LoweredStmt | null {
     array_elem_type: Type = TY_UNRESOLVED
     // Arrays — and array-backed distinct newtypes via `array_backing` — iterate
@@ -748,7 +748,7 @@ try_lower_for_in_raw_array :: fn(
         },
     }
 
-    block_stmts: LoweredStmt[]!: []
+    block_stmts: LoweredStmt![]!: []
     block_stmts.push(arr_let)
     block_stmts.push(len_let)
     block_stmts.push(idx_init)
@@ -771,8 +771,8 @@ try_lower_for_in_raw_array :: fn(
 // the slow path (Iterator step dispatch).
 try_lower_for_in_int_range :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
+    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
 ) -> LoweredStmt | null {
     range :: extract_range(in_form.iter) ?? return null
     raw_lower :: ctx.types.expr_type(range.lower)
@@ -829,7 +829,7 @@ try_lower_for_in_int_range :: fn(
     // The range is built once, at loop entry : the condition reads the upper
     // bound at every test, and the body may rebind what it names, so it gets a
     // local of its own unless it is invariant.
-    hoist_stmts: LoweredStmt[]!: []
+    hoist_stmts: LoweredStmt![]!: []
     hi :: if is_invariant_operand(ctx, hi_raw) {
         hi_raw
     } else {
@@ -865,7 +865,7 @@ try_lower_for_in_int_range :: fn(
 
     // The counter first : its initial value is the lower bound, which is
     // evaluated before the upper one.
-    block_stmts: LoweredStmt[]!: [counter_init]
+    block_stmts: LoweredStmt![]!: [counter_init]
     block_stmts.push_all(hoist_stmts)
     block_stmts.push(loop_stmt)
     return LoweredExprStmt {
@@ -886,7 +886,7 @@ extract_range :: fn(iter: AST.Expr) -> AST.RangeExpr | null {
 // `0..<nu` where `nu: u64`), the typer left it at i32 / FreeInt
 // default. Rewrite the LoweredIntLit's type to the loop counter's
 // width so the dump shows `int(0) :u64` instead of `int(0) :i32`.
-widen_int_lit :: fn(e: LoweredExpr, t: Type) -> LoweredExpr {
+widen_int_lit :: fn(e: LoweredExpr!, t: Type) -> LoweredExpr! {
     if e is LoweredIntLit {
         return LoweredIntLit { .span = e.span, .type = t, .value = e.value }
     }
@@ -917,8 +917,8 @@ cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {
 // std/collections isn't loaded.
 try_lower_for_in_map_set :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    src_value: LoweredExpr, src_type: Type, span: Span,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
+    src_value: LoweredExpr!, src_type: Type, span: Span,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
 ) -> LoweredStmt | null {
     if src_type is StructType {
         // `MutableMap` / `MutableSet` lookups returning null (std/collections not
@@ -948,8 +948,8 @@ try_lower_for_in_map_set :: fn(
 // body → scalar-replaced, zero-alloc) ; for a set, bind the key directly.
 lower_map_set_compact :: fn(
     ctx: FnLowerCtx!, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    src_value: LoweredExpr, src_type: Type, span: Span,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
+    src_value: LoweredExpr!, src_type: Type, span: Span,
+    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
     source: StructType, is_map: bool, is_set: bool, entry_args: Type[],
 ) -> LoweredStmt {
     usize_ty :: mk_primitive("usize")
@@ -970,7 +970,7 @@ lower_map_set_compact :: fn(
     src_ref :: LoweredIdent { .span = span, .type = src_type, .symbol = src_sym }
 
     // The map whose dense arrays we walk : a Map directly, a Set via `.inner`.
-    map_ref: LoweredExpr = src_ref
+    map_ref: LoweredExpr! = src_ref
     if is_set {
         inner_map_type :: map_struct_type(module_export(ctx.project, "std/collections", "MutableMap"), entry_args)
         map_ref = LoweredFieldAccess { .span = span, .type = inner_map_type, .target = src_ref, .field = "inner" }
@@ -1017,7 +1017,7 @@ lower_map_set_compact :: fn(
     // bind value : Set → ekeys[pos] (the key) ; Map → [key, value] tuple. The
     // tuple lowers to the `_0` / `_1` struct layout (mirrors `lower_seq_lit`), so
     // `for [k, v] in m` destructures it positionally like `for [x, y] in zip(...)`.
-    bind_value: LoweredExpr = LoweredIndex { .span = span, .type = binding_value_type, .target = ekeys_ref, .index = pos_ref }
+    bind_value: LoweredExpr! = LoweredIndex { .span = span, .type = binding_value_type, .target = ekeys_ref, .index = pos_ref }
     if is_map {
         bind_value = LoweredStructLit {
             .span = span, .type = pair_type,
@@ -1041,7 +1041,7 @@ lower_map_set_compact :: fn(
         },
     }
     user_body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
-    loop_body_stmts: LoweredStmt[]!: []
+    loop_body_stmts: LoweredStmt![]!: []
     loop_body_stmts.push(oob_if)
     loop_body_stmts.push_all(binding_stmts)
     loop_body_stmts.push(pos_inc)
@@ -1051,7 +1051,7 @@ lower_map_set_compact :: fn(
         .body = LoweredBlock { .span = span, .type = TY_VOID, .stmts = loop_body_stmts, .trailing = null },
         .step = [],
     }
-    all_stmts: LoweredStmt[]!: []
+    all_stmts: LoweredStmt![]!: []
     all_stmts.push(src_let)
     all_stmts.push(ekeys_let)
     if is_map { all_stmts.push(evals_let) }
@@ -1071,8 +1071,8 @@ map_struct_type :: fn(map_sym: Symbol | null, entry_args: Type[]) -> Type {
     return TY_UNRESOLVED
 }
 
-single_stmt_block :: fn(span: Span, stmt: LoweredStmt) -> LoweredBlock {
-    stmts: LoweredStmt[]!: []
+single_stmt_block :: fn(span: Span, stmt: LoweredStmt!) -> LoweredBlock! {
+    stmts: LoweredStmt![]!: []
     stmts.push(stmt)
     return LoweredBlock { .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null }
 }

@@ -172,7 +172,7 @@ new_join_all :: fn<T>(xs: Async<T>[]) = JoinAll<T> {
 /// error. Returns that array verbatim on success, so each element keeps its
 /// original boxed form (no `U[]` rebuild).
 TryJoinAll :: struct<U, E> {
-    inner: JoinAll<U | E>
+    inner: JoinAll<U | E>!
 }
 
 TryJoinAll<U, E> implements Async<(U | E)[] | Error> {

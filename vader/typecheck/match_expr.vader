@@ -20,7 +20,7 @@ AST :: import "toolchain/ast"
 // passes.
 check_pattern_bound_exprs :: fn(
     pat: AST.Pattern!,
-    compared: AST.Expr,
+    compared: AST.Expr!,
     scrut: Type,
     rest: Type,
     typed: TypedProgram!,
@@ -384,7 +384,7 @@ is_never :: fn(t: Type) -> bool {
 // takes.
 pattern_type_of :: fn(ty: AST.Expr, scrut: Type, typed: TypedProgram, diags: Diagnostic[]!) -> Type {
     narrowed :: type_from_expr(ty, typed.resolved, diags)
-    if !(narrowed is ArrayType | StructType | TupleType | UnionType) { return narrowed }
+    if !carries_mutability_bit(narrowed) { return narrowed }
     return with_immutable(narrowed, narrowing_immutability(scrut, narrowed))
 }
 
@@ -505,7 +505,7 @@ bind_struct_pattern :: fn(
 // `compared` only lends its span to the diagnostics.
 check_pattern_literal :: fn(
     literal: AST.Expr!,
-    compared: AST.Expr,
+    compared: AST.Expr!,
     scrut: Type,
     rest: Type,
     typed: TypedProgram!,
@@ -599,8 +599,8 @@ accept_match :: fn(e: AST.Expr) -> AST.Expr | null {
 }
 
 ExpectedMatch :: struct {
-    typed: TypedProgram
-    m: AST.MatchExpr
+    typed: TypedProgram!
+    m: AST.MatchExpr!
 }
 
 expect_match :: fn(src: string) -> ExpectedMatch {
@@ -629,9 +629,9 @@ expect_match :: fn(src: string) -> ExpectedMatch {
     return ExpectedMatch { .typed = result.typed, .m = synthetic_match() }
 }
 
-synthetic_match :: fn() -> AST.MatchExpr {
+synthetic_match :: fn() -> AST.MatchExpr! {
     sp :: empty_span()
-    scrut: AST.Expr: AST.IntLitExpr {
+    scrut: AST.Expr!: AST.IntLitExpr {
         .span = sp,
         .id = AST.UNASSIGNED_NODE_ID,
         .value = 0,

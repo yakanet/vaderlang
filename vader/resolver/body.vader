@@ -75,7 +75,7 @@ export ResolvedFile :: struct {
 /// before walking.
 export resolve_program :: fn(
     program: AST.Program, top_level_seed: MutableMap<string, Symbol>,
-    module_path: string, factory: SymbolFactory,
+    module_path: string, factory: SymbolFactory!,
 ) -> ResolvedFile {
     scopes :: MutableMap<string, FileScope> {}
     scopes[program.file] = FileScope {
@@ -96,7 +96,7 @@ export resolve_program :: fn(
 /// @param factory      mints the locals.
 export resolve_module_programs :: fn(
     programs: AST.Program[], file_scopes: MutableMap<string, FileScope>,
-    module_path: string, factory: SymbolFactory,
+    module_path: string, factory: SymbolFactory!,
 ) -> ResolvedFile {
     state :: ResolveState {
         .file_scopes = file_scopes,
@@ -149,13 +149,13 @@ ResolveState :: struct {
     /// W0015 candidates, in declaration order — one entry per `:=` statement.
     mutable_decls:    MutableDecl[]!
     /// Symbol ids an assignment rebinds. Read once the file is walked.
-    reassigned:       MutableSet<i32>
+    reassigned:       MutableSet<i32>!
     /// Every local and parameter the walk declared, for `rebind_free_locals`.
     declared_locals:  i32[]! = []
     diags:            Diagnostic[]!
-    scope:            Scope
+    scope:            Scope!
     module_path:      string
-    factory:          SymbolFactory
+    factory:          SymbolFactory!
     /// Names two+ wildcard imports of the file being walked both export
     /// (`name -> modules`). Consulted by `walk_expr` to fire R2031 on an
     /// unqualified reference that resolves to one of them.

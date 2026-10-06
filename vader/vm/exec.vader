@@ -66,10 +66,9 @@ Frame :: struct {
 /// keeps the boxed `Value` in the refs column.
 StackTag :: enum(u8) { I32, I64, F64, Bool, Char, Null, Ref }
 
-/// What a `.Null` slot reads back as. A freshly-grown refs column takes a fresh
-/// `NullVal {}` rather than this: the column is `Value![]`, and a module const is
-/// read-only. The filler is never dereferenced (its tag is not `StackTag.Ref`) but
-/// stays valid so the GC's generic scan of the refs array never chases garbage.
+/// What a `.Null` slot reads back as, shared by every read. A slot that STORES a null
+/// (a grown refs column, an element, a field) takes a fresh `NullVal {}` instead :
+/// those slots are `Value!`, and a module const is read-only.
 NULL_VALUE :: NullVal {}
 
 /// True when `t` marks a value `read_i32` accepts (i32 / char / i64 carriers).
@@ -171,16 +170,19 @@ push_val :: fn(frame: Frame!, cursor: usize, value: Value!) -> void {
 }
 
 /// Materialise the stack value at absolute index `idx` as a boxed `Value`.
-peek_val :: fn(frame: Frame, idx: usize) -> Value {
-    match frame.tag[idx] {
-        .Ref  -> { return frame.stack[idx] }
-        .I32  -> { return I32Val(i32(frame.payload[idx])) }
-        .I64  -> { return I64Val(frame.payload[idx]) }
-        .F64  -> { return F64Val(u64(frame.payload[idx]).from_bits()) }
-        .Bool -> { return BoolVal(frame.payload[idx] != 0) }
-        .Char -> { return CharVal(char(u32(frame.payload[idx]))) }
-        .Null -> { return NULL_VALUE }
-    }
+peek_val :: fn(frame: Frame, idx: usize) -> Value =
+    if frame.tag[idx] == .Null { NULL_VALUE } else { peek_owned(frame, idx) }
+
+// `peek_val` for a caller that keeps the value in a `!` slot : a null it stores must
+// be its own.
+peek_owned :: fn(frame: Frame, idx: usize) -> Value! = match frame.tag[idx] {
+    .Ref  -> frame.stack[idx]
+    .I32  -> I32Val(i32(frame.payload[idx]))
+    .I64  -> I64Val(frame.payload[idx])
+    .F64  -> F64Val(u64(frame.payload[idx]).from_bits())
+    .Bool -> BoolVal(frame.payload[idx] != 0)
+    .Char -> CharVal(char(u32(frame.payload[idx])))
+    .Null -> NullVal {}
 }
 
 /// Peek stack slot `idx` as a WRITABLE array handle.
@@ -352,7 +354,7 @@ project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32)
 ///                        (`"call.indirect"`, `"defer.pop_exec"`, …).
 /// @return                `null` on success, `Trap` if out of range.
 /// @error                 `function_index < 0` or `>= functions.len()`.
-validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: i32, op_label: string) -> Trap | null {
+validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: i32, op_label: string) -> Trap! | null {
     if is_fn_index_out_of_range(function_index, functions) {
         return fn_index_trap(function_index, at_pc, op_label)
     }
@@ -535,7 +537,7 @@ export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
 // truncates slots and returns itself (`Narrow`). Non-narrow ValTypes return `v`
 // unchanged — `i32` / `i64` (and the unsigned `u32` / `u64`, read back through the
 // unsigned view) already wrap at their width via native `i32` / `i64` overflow.
-narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
+narrow_mask :: fn(v: Value!, vt: bc.ValType) -> Value! {
     // Only the sub-32-bit widths need masking ; i32/i64 (and the unsigned u32/u64
     // read back through the unsigned view) already wrap at their width.
     if !bc.is_narrow_valtype(vt) { return v }
@@ -625,9 +627,9 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame!) -> Trap | null {
     }
     needed :: usize(length)
     arg_base :: frame.sp - needed
-    elements: Value[]!: [] * needed
+    elements: Value![]!: [] * needed
     for element_index in 0..<needed {
-        elements.push(peek_val(frame, arg_base + element_index))
+        elements.push(peek_owned(frame, arg_base + element_index))
     }
     new_array :: ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
     push_val(frame, arg_base, new_array)
@@ -656,13 +658,13 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame!) -> Trap | nu
     }
     field_count :: type_decl.fields.len()
     arg_base :: frame.sp - field_count
-    fields: Value[]!: []
+    fields: Value![]!: []
     for field_index in 0..<field_count {
         // Narrow-typed field ⇒ truncate to width, mirroring a C narrow struct
         // field ; the literal's field value comes straight off the stack with no
         // intervening narrow `local.set` to mask it (see narrow-int-width plan).
         fvt :: field_valtype(types, type_decl.fields[field_index].type_index)
-        fields.push(narrow_mask(peek_val(frame, arg_base + field_index), fvt))
+        fields.push(narrow_mask(peek_owned(frame, arg_base + field_index), fvt))
     }
     new_struct :: StructVal { .type_id = type_id, .fields = fields }
     push_val(frame, arg_base, new_struct)
@@ -906,7 +908,7 @@ apply_boxed :: fn(
             frame.pc = frame.pc + 1
         }
         is bc.MakeClosure -> {
-            env_value :: peek_val(frame, frame.sp - 1)
+            env_value :: peek_owned(frame, frame.sp - 1)
             push_val(frame, frame.sp - 1, FnVal { .function_index = instr.function_index, .env = env_value })
             frame.pc = frame.pc + 1
         }

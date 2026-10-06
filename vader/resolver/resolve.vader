@@ -113,7 +113,7 @@ export ResolvedProject :: struct {
 /// @param program      the file's program.
 /// @param module_path  the module's id, also its display path.
 /// @param factory      mints the module's symbols.
-export resolve_module :: fn(program: Program, module_path: string, factory: SymbolFactory!) -> ResolvedModule {
+export resolve_module :: fn(program: Program, module_path: string, factory: SymbolFactory!) -> ResolvedModule! {
     collected :: collect_module_no_index(program, module_path, factory)
     file :: SourceFile {
         .path       = program.file,
@@ -149,7 +149,7 @@ export resolve_module_files :: fn(
     files: SourceFile[], module_path: string, display_path: string, factory: SymbolFactory!,
     collected: CollectedModule, name_index: MutableMap<string, LoadedModule>,
     core_seed: MutableMap<string, Symbol>,
-) -> ResolvedModule {
+) -> ResolvedModule! {
     builtins :: make_builtin_scope(factory)
     scopes :: MutableMap<string, FileScope> {}
     programs: Program[]!: []

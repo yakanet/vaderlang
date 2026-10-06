@@ -44,10 +44,10 @@
   fn snippet$count_ls(s: string) -> usize
     return
       block :usize
-        let __fuse_iter_0: StringChars =
-          call :StringChars
+        let __fuse_iter_0: StringChars! =
+          call :StringChars!
             callee:
-              chars :StringChars
+              chars :StringChars!
             arg0:
               s :string
         let pred: fn(char) -> bool = is_l :fn(char) -> bool
@@ -59,7 +59,7 @@
                 callee:
                   std_string$StringChars$Iterator$next :?
                 arg0:
-                  __fuse_iter_0 :StringChars
+                  __fuse_iter_0 :StringChars!
             if :void
               cond:
                 eq :bool

@@ -29,7 +29,7 @@ import "vader/types"
 /// sees a reserved array as the fresh array it is.
 ///
 /// @param stmts  the block's statements so far ; the `let`s are rewritten in place.
-export reserve_push_tail :: fn(stmts: LoweredStmt[]!) -> void {
+export reserve_push_tail :: fn(stmts: LoweredStmt![]!) -> void {
     n :: stmts.len()
     if n < 2 || stmts[n - 2] !is LoweredLet {
         return
@@ -160,7 +160,7 @@ is_push_onto :: fn(e: LoweredExpr, out: Symbol) -> bool =
 
 // How many turns the loop runs, as a `usize`: `bound - start` (one more when the
 // bound is reached), or 0 for a range whose bound sits below its start.
-trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr {
+trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr! {
     start :: turns.start
     bound :: turns.bound
     inclusive :: turns.inclusive
@@ -196,7 +196,7 @@ trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr {
     }
 }
 
-plus_one :: fn(e: LoweredExpr, span: Span) -> LoweredExpr = LoweredBinary {
+plus_one :: fn(e: LoweredExpr!, span: Span) -> LoweredExpr! = LoweredBinary {
     .span = span,
     .type = mk_primitive("usize"),
     .op = .Add,
@@ -220,7 +220,7 @@ reads_local :: fn(e: LoweredExpr, symbol: Symbol) -> bool {
 
 is_usize :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "usize"
 
-usize_lit :: fn(value: i64, span: Span) -> LoweredExpr = LoweredIntLit {
+usize_lit :: fn(value: i64, span: Span) -> LoweredExpr! = LoweredIntLit {
     .span = span,
     .type = mk_primitive("usize"),
     .value = value,
@@ -232,7 +232,7 @@ usize_lit :: fn(value: i64, span: Span) -> LoweredExpr = LoweredIntLit {
 // and an array's length are the values a counter loop starts from or runs to ;
 // a call may not be re-run early. Read early, a value some `let` in between does
 // change only mis-sizes the capacity.
-hoisted :: fn(e: LoweredExpr, lets: LoweredLet[]) -> LoweredExpr | null {
+hoisted :: fn(e: LoweredExpr!, lets: LoweredLet[]) -> LoweredExpr! | null {
     if e is LoweredIntLit {
         return e
     }

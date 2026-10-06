@@ -33,7 +33,7 @@ surface_referenced_intrinsic_externs :: fn(
         // `synth_decls` — the same post-module orphan class as the materialise
         // sites. Drained into this module after the batch merge.
         synth_start :: project_ctx.synth_decls.len()
-        extra: LoweredDecl[]!: []
+        extra: LoweredDecl![]!: []
         for d in decls_list {
             if d is ImplDecl {
                 for ext in surface_stdlib_impl_externs(d, module_typed, project_ctx, decls_list) {
@@ -68,8 +68,8 @@ surface_referenced_intrinsic_externs :: fn(
 /// is the thing the stdlib-skip is meant to avoid.
 surface_stdlib_impl_externs :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, module_decls: Decl[],
-) -> LoweredDecl[] {
-    out: LoweredDecl[]!: []
+) -> LoweredDecl![] {
+    out: LoweredDecl![]!: []
     if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
@@ -165,8 +165,8 @@ vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx!) -
 /// @return             one materialised `LoweredFnDecl` per fresh element mangle.
 surface_array_blanket_members :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
-) -> LoweredDecl[] {
-    out: LoweredDecl[]!: []
+) -> LoweredDecl![] {
+    out: LoweredDecl![]!: []
     if impl_decl.type_params.len() == 0 { return out }
     if !(strip_mut_marker(impl_decl.for_type) is ArrayTypeExpr) { return out }
     impl_trait :: impl_trait_key(project_ctx, impl_decl)

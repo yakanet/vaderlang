@@ -215,7 +215,7 @@ export ImplMethod :: struct {
 /// up types by span.
 export TypedProgram :: struct {
     /// The upstream resolver's output for this module.
-    resolved: ResolvedModule
+    resolved: ResolvedModule!
 
     /// Type of every value-position expression. Keyed by `Expr.id`
     /// (minted by `assign_node_ids` at parse time, re-minted on cloned
@@ -544,8 +544,9 @@ export TypedProgram :: struct {
     /// the typechecker knows which declaration hands the value out, so naming it is
     /// its job — the same reasoning as `field_annotate_hint`.
     ///
-    /// Local Symbol.id → the Symbol of the fn whose RETURN produced its value.
-    local_init_callee: MutableMap<i32, Symbol>
+    /// Local Symbol.id → what produced its value : a call, whose RETURN is the
+    /// lever, or a field path (`body :: d.body`), whose FIELD is.
+    local_init_source: MutableMap<i32, AST.Expr>
     /// Loop-variable Symbol.id → the expression it iterates. Recorded for EVERY
     /// loop variable: one over a collection with a MUTABLE root but read-only
     /// ELEMENTS is rejected by the element's type, never by the path, so it never
@@ -662,7 +663,7 @@ export TypedProject :: struct {
 
 /// Create an empty `TypedProgram` bound to `resolved`. All side-tables
 /// start empty ; the passes fill them in as they walk.
-export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
+export new_typed_program :: fn(resolved: ResolvedModule!) = TypedProgram {
     .resolved        = resolved,
     .expr_types      = MutableMap<usize, Type> {},
     .loop_target_labels = MutableMap<usize, string> {},
@@ -712,7 +713,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .generator_states = MutableMap<u64, GeneratorState> {},
     .extern_symbols  = MutableMap<string, AST.FnDecl> {},
     .let_type_aliases = MutableMap<i32, Type> {},
-    .local_init_callee = MutableMap<i32, Symbol> {},
+    .local_init_source = MutableMap<i32, AST.Expr> {},
     .loop_var_iterable = MutableMap<i32, AST.Expr> {},
     .local_annotation = MutableMap<i32, AST.TypeExpr> {},
     .local_init_index = MutableMap<i32, AST.Expr> {},
@@ -733,7 +734,7 @@ export new_typed_project :: fn() -> TypedProject = TypedProject {
 /// Test helper — empty TypedProgram bound to a synthetic resolved module.
 /// Avoids re-running the parser+resolver pipeline for tests that only
 /// need to exercise the side-table writes.
-export empty_typed_program :: fn() -> TypedProgram {
+export empty_typed_program :: fn() -> TypedProgram! {
     rm :: ResolvedModule {
         .path = "test",
         .display_path = "test",
@@ -758,7 +759,7 @@ export empty_typed_program :: fn() -> TypedProgram {
 
 import "std/testing"
 
-fresh_module :: fn() -> ResolvedModule {
+fresh_module :: fn() -> ResolvedModule! {
     return ResolvedModule {
         .path = "test",
         .display_path = "test",

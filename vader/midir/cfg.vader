@@ -573,7 +573,7 @@ export CFGProject :: struct {
 export CFGModule :: struct {
     module_id:    string
     display_path: string
-    functions:    CFGFunction[]
+    functions:    CFGFunction![]
     /// Bodyless fn declarations (@extern stubs). Bytecode emit routes
     /// these to the import table ; no CFG body exists for them.
     externs: CFGExternDecl[]

@@ -193,7 +193,7 @@ pool_literal_of :: fn(value: LoweredExpr) -> LoweredExpr | null {
         if value.args[0] is LoweredArrayLit as base {
             if value.args[1] is LoweredIntLit as count {
                 if count.value <= 0 { return null }
-                elements: LoweredExpr[]!: []
+                elements: LoweredExpr![]!: []
                 for _ in 0..<count.value {
                     for el in base.elements { elements.push(el) }
                 }
@@ -333,7 +333,7 @@ const_accessor_symbol :: fn(orig_sym: Symbol, synth_id: i32) -> Symbol = Symbol 
 // block whose trailing expression is the const's value, and the origin reuses
 // the const's MonoEntry with the symbol swapped for the `fn_symbol` built by
 // `const_accessor_symbol`.
-synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol) -> LoweredFnDecl {
+synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol) -> LoweredFnDecl! {
     synth_entry :: MonoEntry {
         .id             = cd.origin.id,
         .is_main        = false,
@@ -344,7 +344,7 @@ synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol) -> LoweredFnD
         .type_arguments = cd.origin.type_arguments,
         .module         = cd.origin.module,
     }
-    no_stmts: LoweredStmt[]: []
+    no_stmts: LoweredStmt![]: []
     no_params: LoweredParam[]: []
     return LoweredFnDecl {
         .mangled     = "__const_${cd.mangled}",

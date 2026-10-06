@@ -16,7 +16,7 @@ import "toolchain/span"
 // (`@size_of`, `@type_kind`, …) get baked at evaluation time and reach
 // the lowerer as bound `@comptime const` references ; what remains is
 // the runtime-bound shape, which the bytecode emit consumes.
-lower_intrinsic :: fn(ctx: FnLowerCtx!, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr {
+lower_intrinsic :: fn(ctx: FnLowerCtx!, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr! {
     // `@file("path")` was baked at comptime — substitute the file's
     // contents as a `LoweredStringLit` so downstream phases see the
     // materialised constant rather than re-running the AST.
@@ -56,7 +56,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx!, intrinsic: IntrinsicCallExpr, type: Type
     // the arg's underlying Type.
     folded :: try_fold_static_intrinsic(ctx, intrinsic, type)
     if folded != null { return folded }
-    args: LoweredExpr[]!: []
+    args: LoweredExpr![]!: []
     for arg_expr in intrinsic.args {
         args.push(lower_expr(ctx, arg_expr))
     }
@@ -83,7 +83,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx!, intrinsic: IntrinsicCallExpr, type: Type
 /// `@comptime for` substitution that the early AST-level fold doesn't
 /// see). Returns null when the pattern doesn't match ; caller falls
 /// through to the runtime `LoweredIntrinsicCall`.
-try_late_fold_type_arg :: fn(name: string, args: LoweredExpr[], span: Span, type: Type) -> LoweredExpr | null {
+try_late_fold_type_arg :: fn(name: string, args: LoweredExpr[], span: Span, type: Type) -> LoweredExpr! | null {
     if args.len() != 1 { return null }
     arg :: args[0]
     tc: LoweredTypeConst | null = null
@@ -122,7 +122,7 @@ lookup_file_baked :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr) -> string
 /// fallback handles type-alias idents the typer left as Unresolved.
 try_fold_static_intrinsic :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
-) -> LoweredExpr | null {
+) -> LoweredExpr! | null {
     name :: intrinsic.name
     if name == "satisfies" {
         return try_fold_satisfies(ctx, intrinsic, type)
@@ -194,7 +194,7 @@ struct_decl_for :: fn(ctx: FnLowerCtx, st: StructType) -> StructDecl | null {
     return find_struct_decl_by_name(module_decls(owner_loaded), st.symbol.name)
 }
 
-try_fold_field_index :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr | null {
+try_fold_field_index :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr! | null {
     if intrinsic.args.len() != 2 { return null }
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
     ty :: arg_ty_or_unresolved(arg_or_null)
@@ -225,7 +225,7 @@ static_string_lit :: fn(e: Expr) -> string | null {
 /// typed AST's recorded expr-type is read.
 try_fold_type_of :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
-) -> LoweredExpr | null {
+) -> LoweredExpr! | null {
     if intrinsic.args.len() != 1 { return null }
     arg_type :: expr_type(ctx.types, intrinsic.args[0])
     return LoweredTypeConst {
@@ -248,7 +248,7 @@ type_args_of :: fn(arg_or_null: Type | null) -> Type[] {
 
 try_fold_type_args :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
-) -> LoweredExpr | null {
+) -> LoweredExpr! | null {
     if intrinsic.args.len() != 1 { return null }
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
     // Bound with `::`, not built up in a mutable local : the type args come from a
@@ -256,7 +256,7 @@ try_fold_type_args :: fn(
     // slot (array immutability is invariant). A value-position `if` binds the
     // borrowed list directly — no copy, and nothing to freeze by hand.
     args :: type_args_of(arg_or_null)
-    elements: LoweredExpr[]!: []
+    elements: LoweredExpr![]!: []
     for a in args {
         elements.push(LoweredTypeConst {
             .span = intrinsic.span, .type = TY_TYPE, .value = a,
@@ -280,7 +280,7 @@ try_fold_type_args :: fn(
 ///                   reachable / the struct decl can't be found.
 try_fold_fields :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
-) -> LoweredExpr | null {
+) -> LoweredExpr! | null {
     if intrinsic.args.len() != 1 { return null }
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
     target_ty :: arg_ty_or_unresolved(arg_or_null)
@@ -329,7 +329,7 @@ try_fold_fields :: fn(
     // helper that the generic-instance materialiser uses.
     subst :: build_struct_subst(decl, target_struct.args, owner_typed)
     string_type :: TY_STRING
-    elements: LoweredExpr[]!: []
+    elements: LoweredExpr![]!: []
     for f in decl.fields {
         raw_ty :: resolve_field_type(f.ty, owner_typed, decl, target_struct.args)
         substituted :: substitute(raw_ty, subst)
@@ -359,7 +359,7 @@ try_fold_fields :: fn(
 /// (`has_builtin_impl`).
 try_fold_satisfies :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
-) -> LoweredExpr | null {
+) -> LoweredExpr! | null {
     if intrinsic.args.len() != 2 { return null }
     target_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
     trait_or_null  :: resolve_intrinsic_type_arg(ctx, intrinsic.args[1])

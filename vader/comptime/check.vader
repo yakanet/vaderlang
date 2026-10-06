@@ -28,7 +28,7 @@ AST :: import "toolchain/ast"
 /// @return        the evaluated project, ready to feed the dumper.
 export evaluate_project :: fn(
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[]!,
-) -> EvaluatedProject {
+) -> EvaluatedProject! {
     project :: new_evaluated_project(typed)
     for [module_id, module_typed] in typed.modules {
         program :: new_evaluated_program(module_typed)

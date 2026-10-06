@@ -27,7 +27,7 @@ Vm :: import "vader/vm"
 /// the overlay feeds).
 export ProjectCache :: struct {
     entry_path: string
-    project:    LoadedProject
+    project:    LoadedProject!
     result:     CheckResult
     diags:      Diagnostic[]
     /// Module-name → `LoadedModule` map (`module_index_by_name`), built once per
@@ -53,7 +53,7 @@ export UnionCache :: struct {
 /// passed to every handler ; no globals.
 export ServerState :: struct {
     /// uri → current document text. Empty string for closed documents.
-    docs:                       MutableMap<string, string>
+    docs:                       MutableMap<string, string>!
     /// Last load+typecheck, reused across typed requests. `null` after didOpen /
     /// didClose and after `flush_dirty_diagnostics` rebuilds it ; deliberately
     /// KEPT (stale) across a didChange, so the typed requests that arrive
@@ -75,13 +75,13 @@ export ServerState :: struct {
     /// uri → per-document goto-def + hover index. Rebuilt on every
     /// didOpen / didChange ; entry is removed (not just emptied) on
     /// didClose so a stale index never serves a closed-doc request.
-    indices:                    MutableMap<string, DocIndex>
+    indices:                    MutableMap<string, DocIndex>!
     /// uri → "diagnostics need a (re)publish". Set `true` by `handle_did_change`,
     /// `false` by `handle_did_close` (suppresses a closed doc), drained by
     /// `flush_dirty_diagnostics` once an edit burst settles (see
     /// vader/lsp/main.vader). Decouples the per-keystroke typecheck from the
     /// quiescent-window typecheck — the whole point of the debounce.
-    dirty:                      MutableMap<string, bool>
+    dirty:                      MutableMap<string, bool>!
     /// The roots the host names, searched before a project's own — what the
     /// loader takes as `--include-paths`, for the index and the typed project
     /// alike : `--library-root` alone, when given. Empty otherwise, and the roots
@@ -111,14 +111,14 @@ export ServerState :: struct {
     /// the first request that needs it, dropped on every didOpen / didChange /
     /// didClose of that document : a large dump takes a noticeable fraction of a
     /// second to read, and the editor asks for hints on every scroll.
-    virt_listings:              MutableMap<string, Vm.VirtListing | Vm.VirtParseError>
+    virt_listings:              MutableMap<string, Vm.VirtListing | Vm.VirtParseError>!
     /// uri → the line index of an open `.virt` document, rebuilt on every didOpen
     /// / didChange : each request on it converts a position, and indexing a large
     /// dump costs milliseconds.
-    virt_line_indices:          MutableMap<string, LineIndex>
+    virt_line_indices:          MutableMap<string, LineIndex>!
 }
 
-export new_state :: fn(library_root: string) -> ServerState {
+export new_state :: fn(library_root: string) -> ServerState! {
     return ServerState {
         .docs                    = MutableMap<string, string> {},
         .cache                   = null,
