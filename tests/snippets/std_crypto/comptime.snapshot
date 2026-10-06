@@ -22,9 +22,6 @@
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
-  Index<I, T>
-  IndexSet<I, T>
-  Contains<T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
@@ -54,6 +51,19 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
+  MutableSet<i32>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
   Iterator<i32[]>
   Iterator<T[]>
   Iterator<T[]>
@@ -92,16 +102,6 @@
   Iterator<T>
   Iterator<T>
   Iterator<T>
-  MutableSet<i32>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
-  MutableSet<T>
   Async<T>
   Range<char>
   Range<i32>

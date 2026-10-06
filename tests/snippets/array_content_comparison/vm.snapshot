@@ -1,0 +1,9 @@
+# stdout
+in order    : true false false
+any order   : true false
+contains    : true false
+disjoint    : true false
+through Eq  : true
+IEEE        : true
+# exit
+0

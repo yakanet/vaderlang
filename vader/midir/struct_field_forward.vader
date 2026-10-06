@@ -115,7 +115,7 @@ join_of_predecessors :: fn(
             theirs :: other[obj]
             if theirs == null {
                 doomed.push(obj)
-            } else if !same_fields(theirs, fields) {
+            } else if !theirs.content_equals(fields) {
                 doomed.push(obj)
             }
         }
@@ -124,18 +124,6 @@ join_of_predecessors :: fn(
         }
     }
     return fresh
-}
-
-same_fields :: fn(a: LocalId[], b: LocalId[]) -> bool {
-    if a.len() != b.len() {
-        return false
-    }
-    for i in 0..<a.len() {
-        if a[i] != b[i] {
-            return false
-        }
-    }
-    return true
 }
 
 // The intra-block walk, starting from `built` rather than from nothing. Mutates

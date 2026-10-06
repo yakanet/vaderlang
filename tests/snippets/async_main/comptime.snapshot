@@ -7,9 +7,9 @@
   Ready<string>
   Ready<T>
   Ready<T>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
-  ArrayOps<T>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>

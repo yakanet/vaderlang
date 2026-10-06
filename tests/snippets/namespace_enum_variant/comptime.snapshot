@@ -10,9 +10,9 @@
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
+  ArrayOps<T>
   Div<Rhs, Out>
   Rem<Rhs, Out>
-  ArrayOps<T>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>

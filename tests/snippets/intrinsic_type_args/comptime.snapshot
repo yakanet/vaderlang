@@ -6,9 +6,9 @@
   __genstate_array_iter<T>
   Pair<string, i64>
   Pair<K, V>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
-  ArrayOps<T>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>

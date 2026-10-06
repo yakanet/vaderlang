@@ -43,9 +43,9 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
-  ArrayOps<T>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>

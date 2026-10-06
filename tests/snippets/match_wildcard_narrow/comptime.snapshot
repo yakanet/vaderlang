@@ -17,12 +17,12 @@
   Iterator<T>
   Iterator<T>
   Async<T>
+  ArrayOps<T>
   Range<i32>
   Range<usize>
   Range<T>
   Range<T>
   Range<T>
-  ArrayOps<T>
 
 # Diagnostics
 [28:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`

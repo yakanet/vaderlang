@@ -1,0 +1,28 @@
+// A distinct type over a struct or an array compares through its own `Equals`, a
+// struct's backing `Equals` otherwise — never by the reference it wraps. `Row`
+// opts its array into `==`, unwrapping it (`i32[](self)`) for `content_equals` ;
+// `Color` borrows `Rgb`'s.
+
+module "snippet"
+
+import "std/io"
+
+Rgb :: struct {
+    r: i32
+}
+
+Rgb implements Equals -> self.r == other.r
+
+Color :: Rgb
+
+Row :: i32[]
+
+Row implements Equals -> i32[](self).content_equals(i32[](other))
+
+main :: fn() -> i32 {
+    println("${Row([1, 2]) == Row([1, 2])} ${Row([1, 2]) == Row([2, 1])} ${Row([1]) != Row([1])}")
+    one :: Color(Rgb { .r = 1 })
+    println("${one == Color(Rgb { .r = 1 })} ${one == Color(Rgb { .r = 2 })}")
+    println("${i32[](Row([1, 2]))}")
+    return 0
+}

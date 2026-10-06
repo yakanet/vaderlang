@@ -1676,7 +1676,7 @@ Resolution rule for **arithmetic** operators (`+ - * / %`):
 
 Resolution rule for **equality** (`==` / `!=`):
 1. Primitive operands (numerics, strings, chars, bools, null) use the built-in equality op.
-2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists; **without an impl it is T3043** (`` `X` does not implement `Equals` ``). `==` on a struct that never opted into value equality is almost always a bug, so it is rejected rather than silently comparing references.
+2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists; **without an impl it is T3043** (`` `X` does not implement `Equals` ``). An array has none (*Equality* below), and the detail points at `content_equals`, `is_permutation_of` and `===`. When a generic impl would apply but for a bound (`Box<T> implements<T: Equals> Equals` on a `Box<Raw>`), the detail names the type argument that lacks it. `==` on a struct that never opted into value equality is almost always a bug, so it is rejected rather than silently comparing references.
 3. `==` on a type-parameter operand needs a bound naming `Equals`, as `a + b` needs `Add` — `fn<T: Equals>(a: T, b: T) = a == b`. Without it, **T3043**, also when the parameter is a variant of a union (`T | null == T`). Only `x == null` needs no bound. `x in xs` follows: `T[]` implements `Contains<T>` only for `T: Equals`.
 4. A union operand compares by variant: both sides hold the same variant, and those two values are equal by that variant's own `==`. Every variant but `null` must compare, else **T3043** naming it. A union compares with another union or with one of its members; two sides that share no variant are **T3001**. A variant with no tag of its own to test — a type parameter, or an instance of a generic struct whose body other instances share — may sit only beside `null` (**T3087**). An enum boxes as its integer and a distinct as its backing, so `Color | u8` or `Meters | i64` cannot tell those two variants apart.
 5. Mismatched types are an error. Two numerics of different family or width are T3017. Any other pair of scalars compares by **representation** — a distinct type stands for its backing, through any number of layers — and two different representations are **T3001**: `h == INVALID_HANDLE` with `h: Handle` (`Handle :: CPointer`) against an `isize`, `b == c` with `b: u8` and a `char` variable, `name == 3`. A distinct type against its own backing compares (`path == ""` with `Path :: string`), through the type's `Equals` impl when it has one; two distinct types that are not one another's backing do not (`Meters == Seconds`, both `i64`: T3001). Free literals adopt the other operand's type first, so `b == '/'` and `x == 0` compare.
@@ -1718,16 +1718,33 @@ match u {
 | Tuple | Element by element (see *Tuples*) |
 | Union (`A \| B`, `T \| null`) | Same variant, then that variant's `==`; `null == null` |
 | Type parameter | Through `Equals`: the bound must name it (T3043) |
-| **Struct, array** | **Compile error (T3043) — no built-in `==`; implement `Equals`** |
+| **Struct** | **Compile error (T3043) — no built-in `==`; implement `Equals`** |
+| **Array** | **Compile error (T3043)** — comparing two walks them: `content_equals` (in order), `is_permutation_of` (any order); `===` for identity |
 | Type with `impl Equals` | Delegated to `Equals.equals` |
 | **Trait value, fn value** | **Compile error (T3043)** — a trait value may hold an implementor without `Equals`; narrow it first (`if d is Point`) |
 
 A generic body compares a `T: Equals` through its `Equals`, picked from the receiver's runtime type. When the other operand holds another type — `T` is a union, or the values are typed `Equals` — `equals` answers `false` and `not_equals` `true`, without reaching the impl. An enum or a distinct type is the exception: it boxes as its representation, so it compares as that representation does. A union whose variant has no tag of its own (an instance of a generic struct whose body other instances share) beside another non-null variant does not satisfy `Equals` (T3006).
 
-To compare two structs or arrays, implement `Equals` (or call `equals(a, b)`).
-Structs and arrays have no implicit identity `==`: a bare `a == b` on them is
+To compare two structs, implement `Equals` (`a.equals(b)` calls it directly). A
+struct has no implicit identity `==`: a bare `a == b` on one without `Equals` is
 rejected at compile time, never a silent reference compare. Identity has its own
 operator, `===`.
+
+An array has no `==` at all: comparing two costs a walk of both, so the call says
+so. `std/core` provides, for any `T: Equals` element:
+
+- `a.content_equals(b)` — the same length, and equal elements in the same order;
+- `a.is_permutation_of(b)` — the same elements in some order, each as many times
+  (quadratic);
+- `a.contains_all(b)` — every element of `b` is in `a`, each counting once;
+- `a.is_disjoint(b)` — no element in common.
+
+Nor does an array meet an `Equals` bound: `[1] in rows` (`rows: i32[][]`) and
+`same(a, b)` with `fn<T: Equals>` are T3043 / T3006, and an array of arrays has no
+`content_equals`. A distinct type over an array opts in by implementing `Equals`
+itself (`Row :: i32[]`, `Row implements Equals`), and then compares through that
+impl; `i32[](row)` gives back the array, for the methods above. A distinct over a
+struct with no `Equals` of its own compares through its backing's.
 
 #### Identity: `===` and `!==`
 

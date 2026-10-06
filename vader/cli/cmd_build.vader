@@ -516,7 +516,7 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
     for i in 1..<progs.len() {
         // The targets must agree on WHICH modules exist, name by name — a
         // count alone would pass when one module replaced another.
-        if !same_unit_names(progs[i].unit_names, first.unit_names) {
+        if !progs[i].unit_names.content_equals(first.unit_names) {
             eprintln("vader build --seed-targets: `${display_target(targets[i])}` and "
                 + "`${display_target(targets[0])}` emitted different module sets")
             return 1
@@ -607,18 +607,6 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
         }
     }
     return 0
-}
-
-same_unit_names :: fn(a: string[], b: string[]) -> bool {
-    if a.len() != b.len() {
-        return false
-    }
-    for i in 0..<a.len() {
-        if a[i] != b[i] {
-            return false
-        }
-    }
-    return true
 }
 
 // `<os>-<arch>,<os>-<arch>,…`. EMPTY on failure, after naming the offending

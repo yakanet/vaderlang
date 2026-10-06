@@ -502,7 +502,7 @@ check_compare :: fn(
     if fb != null {
         return fb
     }
-    push_trait_missing(e, left, TRAIT_COMPARABLE, diags)
+    push_trait_missing(e, left, TRAIT_COMPARABLE, typed, diags)
     return TY_BOOL
 }
 
@@ -516,17 +516,28 @@ has_impl_method :: fn(t: Type, name: string, typed: TypedProgram) -> bool {
 
 /// T3043 — operand `t` must implement `trait_name` for this operator, but no
 /// such impl exists. More precise than the generic T3017 : it names the missing
-/// trait, so the fix (write the impl) is obvious. `UnresolvedType` opts out —
-/// a cascade from an earlier error, not a real missing impl.
-push_trait_missing :: fn(e: AST.BinaryExpr, t: Type, trait_name: string, diags: Diagnostic[]!) -> void {
+/// trait. When a generic impl would give it one but for an unmet bound —
+/// `Box<T> implements<T: Equals> Equals` on a `Box<Raw>` — the detail names the
+/// type argument that lacks it ; an array has no `==` at all, and the detail
+/// points at the methods that compare one. `UnresolvedType` opts out — a
+/// cascade from an earlier error, not a real missing impl.
+push_trait_missing :: fn(
+    e: AST.BinaryExpr, t: Type, trait_name: string, typed: TypedProgram, diags: Diagnostic[]!,
+) -> void {
     if t is UnresolvedType {
         return
+    }
+    note :: if trait_name == TRAIT_EQUALS && t is ArrayType {
+        (" ; compare the contents with `content_equals` or `is_permutation_of`, "
+            + "the references with `===`")
+    } else {
+        unmet_impl_bound_note(t, core_trait_key(trait_name), typed)
     }
     diags.push(
         typecheck_error(
             .OperatorTraitNotImplemented,
             e.span,
-            "`${display_type(t)}` does not implement `${trait_name}`",
+            "`${display_type(t)}` does not implement `${trait_name}`${note}",
         ),
     )
 }
@@ -575,7 +586,7 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram!,
     if fb != null {
         return fb
     }
-    push_trait_missing(e, right, TRAIT_CONTAINS, diags)
+    push_trait_missing(e, right, TRAIT_CONTAINS, typed, diags)
     return TY_BOOL
 }
 
@@ -635,7 +646,7 @@ check_equality :: fn(
         incomparable = part_without_equality(right, typed)
     }
     if incomparable != null {
-        push_trait_missing(e, incomparable, TRAIT_EQUALS, diags)
+        push_trait_missing(e, incomparable, TRAIT_EQUALS, typed, diags)
         return TY_BOOL
     }
     // A union compares by variant, against another union or one of its members.

@@ -1,0 +1,9 @@
+// T3003: a cast `T(value)` takes exactly one value, whether the type is named
+// (`i64`) or written in place (`i32[]`).
+module "snippet"
+
+main :: fn() -> i32 {
+    none :: i32[]()
+    two :: i64(1, 2)
+    return 0
+}

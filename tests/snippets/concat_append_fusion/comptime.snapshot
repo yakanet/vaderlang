@@ -11,11 +11,11 @@
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
-  Index<I, T>
-  IndexSet<I, T>
   Ready<string>
   Ready<T>
   Ready<T>
+  Index<I, T>
+  IndexSet<I, T>
   Contains<T>
   Iterator<T>
   Iterator<T>

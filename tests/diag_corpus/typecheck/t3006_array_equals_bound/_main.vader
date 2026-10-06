@@ -1,0 +1,7 @@
+// T3006: an array has no `Equals`, so it meets no `T: Equals` bound — an erased
+// generic body would otherwise compare it through a vtable with no row for it.
+module "snippet"
+
+same :: fn<T: Equals>(a: T, b: T) -> bool = a == b
+
+main :: fn() -> i32 = if same([1, 2], [1, 2]) { 1 } else { 0 }

@@ -321,13 +321,16 @@ type_surface_name :: fn(t: Type) -> string = match t {
 
 
 /// `T(value)` cast-call detector. Returns a `LoweredCast` when the callee
-/// is a type-shaped symbol (builtin primitive, struct, or type alias) with
-/// a single arg. For non-numeric targets the typer already routed the arg
+/// is a type-shaped symbol (builtin primitive, struct, or type alias) or a type
+/// written in place (`i32[](row)`, `(i32 | string)(x)`), with a single arg. For non-numeric targets the typer already routed the arg
 /// through `try_into` ; the lowered arg is then handed back verbatim only when
 /// the cast is a true identity — unwrapping a distinct still stamps its target,
 /// see `emit_value_cast`.
 try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr | null {
     if call.args.len() != 1 { return null }
+    if call.callee !is IdentExpr && ctx.types.expr_type(call.callee) is TypeMetaType {
+        return emit_value_cast(ctx, call, type)
+    }
     callee_ident :: as_ident(call.callee) ?? return null
     callee_symbol :: resolve_ident(ctx, callee_ident.span) ?? return null
     // Follow an import binding first : a renamed import (`{ Info as I }`) and a
@@ -399,7 +402,17 @@ emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredEx
     // well-typed. `bc_type_of(distinct) == bc_type_of(backing)`, so the cast
     // emit is a no-op too. (Unwrap `P(x)` rides the `PrimitiveType` arm above.)
     if type is DistinctType { return LoweredCast { .span = call.span, .type = type, .value = inner } }
-    return inner
+    // Any other target stamps itself too, unless the arg already has it : leaving a
+    // distinct over a struct or an array for its backing (`i32[](row)`), whose
+    // `Display` must be the backing's, or widening into a union (`(i32 | string)(3)`).
+    if equals_type(type_of(inner), type) {
+        return inner
+    }
+    return LoweredCast {
+        .span = call.span,
+        .type = type,
+        .value = inner,
+    }
 }
 
 // Build the `into(arg)` coercion call. `callee_name` is the resolved impl-member

@@ -1,7 +1,6 @@
-// syntax-spec-dx-5 follow-up : arrays have no built-in `==` (no blanket
-// `T[] implements Equals`), so `arr == arr` must be a compile error (T3043),
-// not a clean compile that lowers to a scalar `i32.eq` on the array refs and
-// traps at runtime. Symmetric with a struct that lacks an `Equals` impl.
+// T3043: an array has no `==`. Comparing two walks them, which
+// `content_equals` (in order) or `is_permutation_of` (any order) say ; `===` is
+// the identity test.
 module "snippet"
 
 main :: fn() -> i32 {

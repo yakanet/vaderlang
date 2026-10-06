@@ -11,8 +11,6 @@
   Mul<Rhs, Out>
   Div<Rhs, Out>
   Rem<Rhs, Out>
-  Index<I, T>
-  IndexSet<I, T>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
@@ -43,7 +41,6 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  Contains<T>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -53,6 +50,9 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
   Iterator<char>
   Iterator<[K, V]>
   Iterator<T>

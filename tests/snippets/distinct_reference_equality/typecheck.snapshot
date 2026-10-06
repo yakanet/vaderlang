@@ -1,0 +1,78 @@
+# Typecheck
+
+## tests/snippets/distinct_reference_equality
+  ConstDecl      Color                :: type
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Rgb                  :: Rgb!
+  ConstDecl      Row                  :: type
+  expr 14352:2  UnaryExpr      :: bool
+  expr 14352:3  CallExpr       :: bool
+  expr 14352:4  FieldExpr      :: fn(Rgb) -> bool
+  expr 14352:5  IdentExpr      :: Rgb
+  expr 14352:7  IdentExpr      :: Rgb
+  expr 14:26    BinaryExpr     :: bool
+  expr 14:26    FieldExpr      :: i32
+  expr 14:26    IdentExpr      :: Rgb
+  expr 14:36    FieldExpr      :: i32
+  expr 14:36    IdentExpr      :: Rgb
+  expr 20496:2  UnaryExpr      :: bool
+  expr 20496:3  CallExpr       :: bool
+  expr 20496:4  FieldExpr      :: fn(Row) -> bool
+  expr 20496:5  IdentExpr      :: Row
+  expr 20496:7  IdentExpr      :: Row
+  expr 20:26    ArrayTypeExpr  :: type
+  expr 20:26    CallExpr       :: bool
+  expr 20:26    CallExpr       :: i32[]!
+  expr 20:26    FieldExpr      :: fn(i32[]) -> bool
+  expr 20:32    IdentExpr      :: Row
+  expr 20:53    ArrayTypeExpr  :: type
+  expr 20:53    CallExpr       :: i32[]!
+  expr 20:59    IdentExpr      :: Row
+  expr 23:13    StringLitExpr  :: string
+  expr 23:16    BinaryExpr     :: bool
+  expr 23:16    CallExpr       :: Row
+  expr 23:16    IdentExpr      :: type
+  expr 23:20    SeqLitExpr     :: Row
+  expr 23:31    CallExpr       :: Row
+  expr 23:31    IdentExpr      :: type
+  expr 23:35    SeqLitExpr     :: Row
+  expr 23:46    BinaryExpr     :: bool
+  expr 23:46    CallExpr       :: Row
+  expr 23:46    IdentExpr      :: type
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 23:50    SeqLitExpr     :: Row
+  expr 23:61    CallExpr       :: Row
+  expr 23:61    IdentExpr      :: type
+  expr 23:65    SeqLitExpr     :: Row
+  expr 23:76    BinaryExpr     :: bool
+  expr 23:76    CallExpr       :: Row
+  expr 23:76    IdentExpr      :: type
+  expr 23:80    SeqLitExpr     :: Row
+  expr 23:88    CallExpr       :: Row
+  expr 23:88    IdentExpr      :: type
+  expr 23:92    SeqLitExpr     :: Row
+  expr 24:12    CallExpr       :: Color
+  expr 24:12    IdentExpr      :: type
+  expr 24:18    StructLitExpr  :: Rgb!
+  expr 25:13    StringLitExpr  :: string
+  expr 25:16    BinaryExpr     :: bool
+  expr 25:16    IdentExpr      :: Color
+  expr 25:23    CallExpr       :: Color
+  expr 25:23    IdentExpr      :: type
+  expr 25:29    StructLitExpr  :: Rgb!
+  expr 25:48    BinaryExpr     :: bool
+  expr 25:48    IdentExpr      :: Color
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 25:55    CallExpr       :: Color
+  expr 25:55    IdentExpr      :: type
+  expr 25:61    StructLitExpr  :: Rgb!
+  expr 26:13    StringLitExpr  :: string
+  expr 26:16    ArrayTypeExpr  :: type
+  expr 26:16    CallExpr       :: i32[]!
+  expr 26:22    CallExpr       :: Row
+  expr 26:22    IdentExpr      :: type
+  expr 26:26    SeqLitExpr     :: Row
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void

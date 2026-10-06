@@ -105,6 +105,86 @@ export filled_indexed :: fn<T>(n: usize, make: fn(usize) -> T) -> T[]! {
     return out
 }
 
+// ---- comparison -----------------------------------------------------------
+//
+// An array has no `==` : comparing two walks them, which these names say. `===`
+// is the identity test. `contains_all` and `is_disjoint` are tested in
+// `tests/snippets/array_content_comparison/`, for the reason `+` is : their `in`
+// cannot be materialised from inside `std/core`.
+
+/// Whether `self` and `other` hold equal elements in the same order : the same
+/// length, and `self[i] == other[i]` at every index.
+///
+/// @param other  the array compared with.
+/// @example
+///   assert([1, 2].content_equals([1, 2]), "same contents")
+export content_equals :: fn<T: Equals>(self: T[], other: T[]) -> bool {
+    if self.len() != other.len() {
+        return false
+    }
+    for i in 0..<self.len() {
+        if self[i] != other[i] {
+            return false
+        }
+    }
+    return true
+}
+
+/// Whether `other` holds the elements of `self` in some order, each as many times.
+/// Quadratic : each element of `self` is looked for among the elements of `other`
+/// not yet matched.
+///
+/// @param other  the array compared with.
+/// @example
+///   assert([1, 2, 2].is_permutation_of([2, 1, 2]), "same elements")
+export is_permutation_of :: fn<T: Equals>(self: T[], other: T[]) -> bool {
+    if self.len() != other.len() {
+        return false
+    }
+    matched :: [false] * other.len()
+    for item in self {
+        i :: first_unmatched(other, matched, item) ?? return false
+        matched[i] = true
+    }
+    return true
+}
+
+// The index of the first element of `other` equal to `item` that `matched` does not
+// mark yet ; null when there is none.
+first_unmatched :: fn<T: Equals>(other: T[], matched: bool[], item: T) -> usize | null {
+    for i in 0..<other.len() {
+        if !matched[i] && other[i] == item {
+            return i
+        }
+    }
+    return null
+}
+
+/// Whether every element of `other` is in `self`. Each counts once :
+/// `[1].contains_all([1, 1])` holds.
+///
+/// @param other  the elements looked for.
+export contains_all :: fn<T: Equals>(self: T[], other: T[]) -> bool {
+    for item in other {
+        if item !in self {
+            return false
+        }
+    }
+    return true
+}
+
+/// Whether `self` and `other` share no element.
+///
+/// @param other  the array compared with.
+export is_disjoint :: fn<T: Equals>(self: T[], other: T[]) -> bool {
+    for item in self {
+        if item in other {
+            return false
+        }
+    }
+    return true
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -133,6 +213,19 @@ test_filled_indexed_passes_the_slot_index :: fn() -> void {
     assert_eq(squares[0], 0)
     assert_eq(squares[2], 4)
     assert_eq(squares[3], 9)
+}
+
+@test
+test_content_equals_compares_in_order :: fn() -> void {
+    assert([1, 2, 3].content_equals([1, 2, 3]), "equal contents")
+    assert(![1, 2, 3].content_equals([3, 2, 1]), "another order")
+    assert(![1, 2].content_equals([1, 2, 3]), "another length")
+}
+
+@test
+test_is_permutation_of_counts_each_element :: fn() -> void {
+    assert([1, 2, 2].is_permutation_of([2, 1, 2]), "same elements")
+    assert(![1, 2, 2].is_permutation_of([1, 1, 2]), "another multiplicity")
 }
 
 @test

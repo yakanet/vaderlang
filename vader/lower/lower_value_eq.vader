@@ -1,4 +1,5 @@
-// vader/lower/lower_value_eq — `==` / `!=` on a tuple or a union, compared by value.
+// vader/lower/lower_value_eq — `==` / `!=` on a tuple, a union or a distinct over a
+// reference type, compared by value.
 //
 // Neither has an `Equals` impl to call. A tuple compares field by field: it has no
 // identity to observe, since `t[0] = x` is T3008. A union compares by variant: two
@@ -36,7 +37,9 @@ try_lower_value_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr | 
     // backing: the nominal wrapper carries no identity of its own.
     tuples :: tuple_backing(left_ty) != null && tuple_backing(right_ty) != null
     unions :: left_ty is UnionType || right_ty is UnionType
-    if !tuples && (!unions || compares_by_bits(left_ty) && compares_by_bits(right_ty)) {
+    distincts :: distinct_over_reference(left_ty) || distinct_over_reference(right_ty)
+    bits :: compares_by_bits(left_ty) && compares_by_bits(right_ty)
+    if !tuples && !distincts && (!unions || bits) {
         return null
     }
     span :: binary.span
@@ -68,6 +71,11 @@ literal_eq :: fn(
         .right = literal,
     }
 }
+
+// Whether `t` is a distinct over a struct or an array, which the bare `==` would
+// compare by reference.
+distinct_over_reference :: fn(t: Type) -> bool =
+    t is DistinctType && strip_distinct(t) is StructType | ArrayType
 
 // Whether every value of `t` compares by its bits — the payload of its box — so that
 // a box compare is already `==` : an integer, `bool`, `char`, `string`, an enum. Not

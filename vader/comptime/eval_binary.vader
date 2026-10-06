@@ -298,6 +298,11 @@ compare :: fn(
         }
         _ -> {}
     }
+    // Two structs, tuples or arrays compare through their impl — `Equals`,
+    // `Comparable` — or field by field : the lowered code answers that, on the VM.
+    if (left is ArrayValue || left is StructValue) && same_kind(left, right) {
+        return vm_required(expr.span, "comparison of arrays or structs")
+    }
     return type_mismatch(expr, "comparison operand kinds disagree")
 }
 

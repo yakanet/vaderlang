@@ -6,9 +6,9 @@
   __genstate_gen_map<i32>
   __genstate_gen_filter<i32>
   __genstate_array_iter<T>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
-  ArrayOps<T>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>

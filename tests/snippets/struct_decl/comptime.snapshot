@@ -6,9 +6,9 @@
   __genstate_array_iter<T>
   List<T>
   Buffer<N>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
-  ArrayOps<T>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>

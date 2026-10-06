@@ -694,7 +694,7 @@ export same_expression :: fn(a: CExpression, b: CExpression) -> bool = match a {
     is CCastToTypeOf    -> {
         b is CCastToTypeOf && same_expression(a.model, b.model) && same_expression(a.value, b.value)
     }
-    is CCast            -> b is CCast && same_strings(a.types, b.types) && same_expression(
+    is CCast            -> b is CCast && a.types.content_equals(b.types) && same_expression(
         a.value,
         b.value,
     )
@@ -733,7 +733,7 @@ export same_expression :: fn(a: CExpression, b: CExpression) -> bool = match a {
         a.value,
         b.value,
     )
-    is CStringLiterals  -> b is CStringLiterals && same_strings(a.literals, b.literals)
+    is CStringLiterals  -> b is CStringLiterals && a.literals.content_equals(b.literals)
     is CSequence        -> b is CSequence && same_expressions(a.parts, b.parts)
 }
 
@@ -744,18 +744,6 @@ same_expressions :: fn(a: CExpression[], b: CExpression[]) -> bool {
     }
     for k in 0..<a.len() {
         if !same_expression(a[k], b[k]) {
-            return false
-        }
-    }
-    return true
-}
-
-same_strings :: fn(a: string[], b: string[]) -> bool {
-    if a.len() != b.len() {
-        return false
-    }
-    for k in 0..<a.len() {
-        if a[k] != b[k] {
             return false
         }
     }

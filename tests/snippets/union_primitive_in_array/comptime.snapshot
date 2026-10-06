@@ -4,9 +4,9 @@
 
 ## generic instances
   __genstate_array_iter<T>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
-  ArrayOps<T>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
   Div<Rhs, Out>
