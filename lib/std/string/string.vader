@@ -139,9 +139,8 @@ string implements Contains<string> {
 // reorg — see the header of `unicode.vader` for the frozen split.
 
 /// Comparator suitable for `sort(arr, compare_ascending)` : returns `true`
-/// when `a` lexicographically precedes `b` (byte-wise). Mirrors JS
-/// `s1 < s2`. Will become `Comparable(string)::less` once trait-method
-/// dispatch on bounded type parameters lands (TODO §1.18b).
+/// when `a` precedes `b` byte-wise — by codepoint, since both are UTF-8.
+/// `string` implements no `Comparable`, so this stands in for `a < b`.
 /// @param a  left string.
 /// @param b  right string.
 /// @return   `true` iff `a` strictly precedes `b` ; equal strings → `false`.

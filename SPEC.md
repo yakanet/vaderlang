@@ -321,6 +321,7 @@ STRING_BEGIN  STRING_PART("foo ")  INTERP_OPEN  <expression tokens>  INTERP_CLOS
 Arithmetic   : + - * / %
 Bitwise      : & | ^ ~ << >>
 Comparison   : == != < <= > >=
+Identity     : === !==   (same object; references only — §Equality, *Identity*)
 Membership   : in   (sugar for `right.contains(left)`)
               !in   (sugar for `!right.contains(left)`, parsed as `bang` + `kw_in`)
 Type test    : is Type   (in `match` arms and in `if`/`else` conditions ; narrows the scrutinee)
@@ -1687,9 +1688,9 @@ Resolution rule for **equality** (`==` / `!=`):
 5. Mismatched types are an error. Two numerics of different family or width are T3017. Any other pair of scalars compares by **representation** — a distinct type stands for its backing, through any number of layers — and two different representations are **T3001**: `h == INVALID_HANDLE` with `h: Handle` (`Handle :: CPointer`) against an `isize`, `b == c` with `b: u8` and a `char` variable, `name == 3`. A distinct type against its own backing compares (`path == ""` with `Path :: string`), through the type's `Equals` impl when it has one; two distinct types that are not one another's backing do not (`Meters == Seconds`, both `i64`: T3001). Free literals adopt the other operand's type first, so `b == '/'` and `x == 0` compare.
 
 Resolution rule for **ordering** (`< <= > >=`):
-1. Primitive numerics, strings, and chars use the built-in comparison ops.
+1. Primitive numerics and `char` use the built-in comparison ops — a float by IEEE 754 (every comparison with `nan` is false). A distinct type orders as its backing (§Distinct types).
 2. User-struct operands look up the `Comparable` impl; the lowerer rewrites `a < b` to `compare(a, b) < 0` (and analogously for the other three operators) over the i32 result. A type parameter bounded by `Comparable` dispatches the same way, through its bound; the right operand must be a `T` (T3017 otherwise).
-3. If no impl matches, **T3043** (`` `X` does not implement `Comparable` ``).
+3. If no impl matches, **T3043** (`` `X` does not implement `Comparable` ``). `string`, `bool`, enums, arrays, tuples and unions have none; `compare_ascending` (`std/string`) orders strings by codepoint.
 
 **T3043** is the shared "operator's trait is not implemented" error — it names the missing trait (`Equals` for `==`/`!=`, `Comparable` for `< <= > >=`, `Contains` for `in`) so the fix is obvious. It is distinct from T3017, which stays for plain operand-type mismatches (e.g. `i32 && bool`, mismatched numeric widths). (Arithmetic `+ - * / %` on a type without the matching `Add`/… impl still reports T3017 for now.)
 
@@ -1718,15 +1719,17 @@ match u {
 | Integers, `bool`, `char` | By value |
 | Floats | IEEE 754: `nan != nan`, `0.0 == -0.0` — the same in a union or a generic body |
 | `string` | Structural (compares contents) |
-| `enum` | Discriminant equality (`i32.eq`); every enum implements `Equals` |
+| `enum` | Discriminant equality; every enum implements `Equals` |
 | Distinct type | Its own `Equals` impl, else the backing type's `==` |
 | Tuple | Element by element (see *Tuples*) |
 | Union (`A \| B`, `T \| null`) | Same variant, then that variant's `==`; `null == null` |
 | Type parameter | Through `Equals`: the bound must name it (T3043) |
 | **Struct** | **Compile error (T3043) — no built-in `==`; implement `Equals`** |
-| **Array** | **Compile error (T3043)** — comparing two walks them: `content_equals` (in order), `is_permutation_of` (any order); `===` for identity |
+| **Array** | **Compile error (T3043)** — comparing two walks them: `content_equals` (in order), `is_permutation_of` (any order, quadratic); `===` for identity |
 | Type with `impl Equals` | Delegated to `Equals.equals` |
 | **Trait value, fn value** | **Compile error (T3043)** — a trait value may hold an implementor without `Equals`; narrow it first (`if d is Point`) |
+
+`===` asks another question — whether two references are the same object (*Identity* below).
 
 A generic body compares a `T: Equals` through its `Equals`, picked from the receiver's runtime type. When the other operand holds another type — `T` is a union, or the values are typed `Equals` — `equals` answers `false` without reaching the impl. An enum or a distinct type is the exception: it boxes as its representation, so it compares as that representation does. A union whose variant has no tag of its own (an instance of a generic struct whose body other instances share) beside another non-null variant does not satisfy `Equals` (T3006).
 
@@ -3276,7 +3279,7 @@ Traits: `Display`, `Equals`, `Comparable`, `Step`, `Into<Target>`, `Add`, `Sub`,
 
 Types: `Continuation`, `Range`, `Field` (reflection — see §14).
 
-Primitive trait impls: `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index<usize, char>` (powers `s[i]`), and `Equals`/`Hash`/`Comparable`/`Step` on the integer primitives + `char`. `T[] implements<T> Add<T[]>` concatenates — `a + b` is a fresh array holding `a`'s elements then `b`'s, neither operand touched — mirroring `string + string`; it is written in Vader over `push_all`, not an intrinsic, so it allocates once per application (a chain `a + b + c` allocates twice) and its result is immutable `T[]`. `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. (`%` is a built-in op; the `Rem` trait is declared for user overloading but is **not** impl'd on the primitives.) `Comparable` and `Step` impls are written in Vader (arrow form); the rest are `@intrinsic` and bodies are host-provided.
+Primitive trait impls: `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index<usize, char>` (powers `s[i]`), `Equals` on every primitive (floats, `bool` and `string` included), and `Hash`/`Comparable`/`Step` on the integer primitives + `char`. `T[] implements<T> Add<T[]>` concatenates — `a + b` is a fresh array holding `a`'s elements then `b`'s, neither operand touched — mirroring `string + string`; it is written in Vader over `push_all`, not an intrinsic, so it allocates once per application (a chain `a + b + c` allocates twice) and its result is immutable `T[]`. `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. (`%` is a built-in op; the `Rem` trait is declared for user overloading but is **not** impl'd on the primitives.) The integer `Hash`, `Comparable` and `Step` impls are written in Vader (arrow form); the rest are `@intrinsic` and bodies are host-provided.
 
 The `Contains<T>` trait powers the `in` / `!in` operators:
 
