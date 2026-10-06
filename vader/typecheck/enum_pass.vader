@@ -129,6 +129,12 @@ export check_variant_data :: fn(
         items: StructLitItem![]: v.data ?? []
         check_struct_items(items, v.span, data, typed, diags, check_expr_fn)
     }
+    // T3096 — variant data is a constant table every read shares, as a module
+    // const's value is (ADR 0034).
+    report_mutable_level(
+        "the variant data of `${decl.name}`", data, "variant data is constant",
+        decl.name_span, typed, diags,
+    )
 }
 
 // The data struct `build_enum_type` recorded for `decl` ; null when it has none.

@@ -3,7 +3,8 @@
 // mutable and T3042 cannot fire. The write is still rejected: the path reaches it
 // through a module-level const, whose value is rebuilt per read site, so the
 // element write would hit a throwaway array. This is the case that proves the
-// check keys on the path rather than on the leaf's type. T3070.
+// check keys on the path rather than on the leaf's type. T3070 — and the const
+// itself is T3096, since its field is declared `!`.
 module "snippet"
 
 Cfg :: struct { tags: i32[]! }

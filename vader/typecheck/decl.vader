@@ -1155,22 +1155,17 @@ reject_mutable_module_const :: fn(
     // ordinary `MAX: i32: 42` would look mutable. Scanned at EVERY level, because
     // `Spec![]` is as misleading as `Spec[]!` — writing through it is T3070 either
     // way (a module const's path root is frozen), so the marker promises nothing.
-    if !marks_mutable_anywhere(annotation) {
+    if !marks_unstorable(annotation) {
         return
     }
-    // The one storable shape : the marker on the ARRAY level and nowhere deeper.
-    if annotation is AST.MutableTypeExpr {
-        if annotation.inner is AST.ArrayTypeExpr {
-            if !marks_mutable_anywhere(annotation.inner) {
-                return
-            }
-            diags.push(typecheck_error(
-                .ModuleConstMutableElement, annotation.span,
-                "`${display_type(ty)}` — the marker belongs on the ARRAY level only : its "
-                + "elements are emitted as read-only statics, and keeping the element type "
-                + "read-only is what makes the writable slots safe"))
-            return
-        }
+    // A marker on the array level AND deeper.
+    if annotation is AST.MutableTypeExpr && annotation.inner is AST.ArrayTypeExpr {
+        diags.push(typecheck_error(
+            .ModuleConstMutableElement, annotation.span,
+            "`${display_type(ty)}` — the marker belongs on the ARRAY level only : its "
+            + "elements are emitted as read-only statics, and keeping the element type "
+            + "read-only is what makes the writable slots safe"))
+        return
     }
     // A scalar marker is T3075's business (`i32!` grants nothing anywhere, not
     // just here) — don't double-report.
@@ -1189,6 +1184,119 @@ reject_mutable_module_const :: fn(
         "`${display_type(ty)}` — only an ARRAY of value elements can be a mutable "
         + "module const ; drop the `!` to get the read-only form"))
 }
+
+// T3096 — a module const whose value reaches a level its declarations mark `!` (a
+// struct field `items: i32[]!`, a type argument `Box<Cfg!>`) or a trait value : the
+// const's freeze cannot reach that level, and a write through it lands in a value
+// every read shares. See ADR 0034. A marker T3076 refuses is not reported twice ;
+// T3076 reads the annotation's array and tuple levels, not a type argument's.
+reject_const_reaching_mutable_level :: fn(
+    cd: AST.ConstDecl, ty: Type, value_ty: Type, typed: TypedProgram, diags: Diagnostic[]!,
+) -> void {
+    written :: cd.ty
+    if written != null && marks_unstorable(written) {
+        return
+    }
+    // An empty sequence holds nothing below its own level to write through.
+    value :: cd.value
+    if value is AST.SeqLitExpr && value.elements.len() == 0 {
+        return
+    }
+    // A const holds the variant its value built : under a union annotation the
+    // value's own type is the one to walk (`DEFAULT: Cfg | null: null`).
+    held :: if ty is UnionType { apply_readonly_default(value_ty, null) } else { ty }
+    report_mutable_level(
+        "`${cd.name}`", held, "hand out a fresh value from a fn instead",
+        cd.name_span, typed, diags,
+    )
+}
+
+// T3096 at `span` when `t`, the type of a constant value `subject` names, is a trait
+// value or reaches a mutable level below its own — its own level being frozen, or
+// the storable `X: T[]!`. `advice` ends the detail.
+report_mutable_level :: fn(
+    subject: string, t: Type, advice: string, span: Span, typed: TypedProgram, diags: Diagnostic[]!,
+) -> void {
+    found :: if t is TraitType {
+        "it is a trait value, which a `self!` member mutates through"
+    } else {
+        mutable_level_below(t, typed, MutableSet<i32> {})
+    }
+    level :: found ?? return
+    detail :: "${subject} is `${display_type(t)}`, and ${level} — ${advice}"
+    diags.push(typecheck_error(.ConstValueReachesMutableLevel, span, detail))
+}
+
+// The first level below `t`'s own that grants mutation — a level marked `!`, or a
+// trait value, which a `self!` member mutates through — worded for T3096, or null
+// when every level below is read-only. A struct is walked through its type
+// arguments, then its DECLARED field types, once per struct (`seen`, by symbol id) :
+// the declared fields are finite where a substituted walk is not
+// (`Nest<T> { deeper: Nest<T[]> }`).
+mutable_level_below :: fn(
+    t: Type, typed: TypedProgram, seen: MutableSet<i32>!,
+) -> string | null = match t {
+    is StructType   -> struct_mutable_level(t, typed, seen)
+    is ArrayType    -> level_at(t.element, "an element is", typed, seen)
+    is TupleType    -> first_mutable_level(t.elements, "a tuple element is", typed, seen)
+    is UnionType    -> first_mutable_level(t.variants, "a variant is", typed, seen)
+    is DistinctType -> mutable_level_below(t.backing, typed, seen)
+    is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
+     | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
+     | NeverType | AnyType -> null
+}
+
+// `part`, as the level `what` names, when it grants mutation or is a trait value ;
+// else the first such level below it.
+level_at :: fn(
+    part: Type, what: string, typed: TypedProgram, seen: MutableSet<i32>!,
+) -> string | null {
+    if type_grants_mutation(part) {
+        return "${what} `${display_type(part)}`"
+    }
+    if part is TraitType {
+        return "${what} `${display_type(part)}`, a trait value a `self!` member mutates through"
+    }
+    return mutable_level_below(part, typed, seen)
+}
+
+struct_mutable_level :: fn(
+    t: StructType, typed: TypedProgram, seen: MutableSet<i32>!,
+) -> string | null {
+    in_args :: first_mutable_level(t.args, "a type argument of `${t.symbol.name}` is", typed, seen)
+    if in_args != null {
+        return in_args
+    }
+    if t.symbol.id in seen {
+        return null
+    }
+    seen.add(t.symbol.id)
+    decl :: typed.struct_decls[t.symbol.id] ?? return null
+    for f in decl.fields {
+        declared :: resolved_field_type(t.symbol.id, decl, f.name, typed, []) ?? continue
+        found :: level_at(declared, "`${decl.name}.${f.name}` is", typed, seen) ?? continue
+        return found
+    }
+    return null
+}
+
+first_mutable_level :: fn(
+    parts: Type[], what: string, typed: TypedProgram, seen: MutableSet<i32>!,
+) -> string | null {
+    for part in parts {
+        found :: level_at(part, what, typed, seen) ?? continue
+        return found
+    }
+    return null
+}
+
+// A written marker T3076 refuses : any but the storable `X: T[]!`.
+marks_unstorable :: fn(w: AST.TypeExpr) -> bool =
+    marks_mutable_anywhere(w) && !is_storable_const_marker(w)
+
+// The one marked annotation T3076 accepts : the `!` on the array level, nowhere deeper.
+is_storable_const_marker :: fn(w: AST.TypeExpr) -> bool =
+    w is AST.MutableTypeExpr && w.inner is AST.ArrayTypeExpr && !marks_mutable_anywhere(w.inner)
 
 // Whether the written type carries a `!` at ANY level. `type_expr_marks_mutable`
 // only answers for the level it is handed, and a module const has to be judged on

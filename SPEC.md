@@ -727,6 +727,15 @@ SPECS: Spec[]!:  [Spec { .name = "seed", .code = 0 }]   // OK — slots writable
 // ORIGIN: Spec!: Spec { ... }                           // T3076 — not an array
 ```
 
+Freezing a const reaches only the levels its type spells out. A level its **declarations** mark — a struct field `items: i32[]!`, a type argument `Box<Cfg!>`, the fields of a writable array's elements — keeps its rights, and so does a trait value, which a `self!` member mutates through. A const whose value reaches such a level is **T3096**, and so is an enum whose variant data does — the value is shared by every read. Under a union annotation the value's own variant is judged (`DEFAULT: Cfg | null: null` passes), and an empty sequence (`NONE: Cfg[]: []`) holds nothing to write. A fn that builds a fresh value is the form to use:
+
+```vader
+Cfg :: struct { items: i32[]! }
+
+// CFG :: Cfg { .items = [1, 2] }                     // T3096 — `items` is `i32[]!`
+default_cfg :: fn() -> Cfg! = Cfg { .items = [1, 2] }  // OK — a fresh value per call
+```
+
 **Inference**: an unannotated module-level array const is automatically pinned read-only — it has no runtime storage, so a write through it would be discarded rather than take effect. Annotating the type explicitly (`X: T[]!: [...]`) opts out. An **annotated local** takes the same read-only default; an unannotated one keeps its inferred type and stays owned.
 
 ```vader
@@ -1969,7 +1978,7 @@ Markers on function values are **contravariant**: a function that does not mutat
 
 #### Diagnostics
 
-Calling a `self!` method on a read-only receiver (`x: T` and `c: Trait` included, and `for x in it` over a read-only iterator) is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. Filling a slot that promises mutation with a read-only value is T3077, at any level. On a module const, a marker outside the one storable shape is T3076. Writing the removed `const` qualifier is P1027.
+Calling a `self!` method on a read-only receiver (`x: T` and `c: Trait` included, and `for x in it` over a read-only iterator) is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. Filling a slot that promises mutation with a read-only value is T3077, at any level. On a module const, a marker outside the one storable shape is T3076, and a level its declarations mark `!`, or a trait value, is T3096. Writing the removed `const` qualifier is P1027.
 
 T3070/T3071/T3042 carry the fix as a hint, and it names the **one** declaration that can be reopened — following the wrong one hits a wall, since marking a local bound from a factory is a strengthening and a loop variable takes no marker at all. Ordered from the most specific lever to the least:
 

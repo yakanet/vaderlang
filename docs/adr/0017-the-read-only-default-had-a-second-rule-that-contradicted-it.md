@@ -5,7 +5,8 @@
 Accepted (2026-09-06). The `unify_type_param` item under "Left open" is resolved by
 0032 : a type argument now keeps the argument's rights. The call-argument item is
 resolved by 0033 : a nominal argument keeps its bits and is invariant through a
-mutable struct.
+mutable struct. The `.rodata` writes the permissive rule left open through a module
+const are closed by 0034.
 
 ## Context
 

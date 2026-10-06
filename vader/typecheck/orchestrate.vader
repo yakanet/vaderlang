@@ -2750,10 +2750,6 @@ is_independent_field :: fn(item: AST.StructLitItem) -> bool =
 check_const_value :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, diags: Diagnostic[]!) -> void {
     sym :: lookup_sym_by_name_orch(typed.resolved, cd.name) ?? return
     annot :: typed.decl_types[sym.id]
-    expected: Type | null = null
-    if annot !is null {
-        expected = annot
-    }
     if is_type_expr(cd.value, typed.resolved) {
         if annot is null {
             typed.decl_types[sym.id] = TY_TYPE
@@ -2766,10 +2762,10 @@ check_const_value :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, diags: Diagnos
         typed.resolved.alias_types[sym.id] = alias_for(sym, alias_ty, cd)
         return
     }
-    got :: check_expr(cd.value, expected, typed, diags)
-    if annot is null {
-        typed.decl_types[sym.id] = auto_freeze_module_const(default_if_free(got))
-    }
+    got :: check_expr(cd.value, annot, typed, diags)
+    final :: annot ?? auto_freeze_module_const(default_if_free(got))
+    typed.decl_types[sym.id] = final
+    reject_const_reaching_mutable_level(cd, final, got, typed, diags)
 }
 
 // An UNANNOTATED module const is frozen at every level — the same recursive default

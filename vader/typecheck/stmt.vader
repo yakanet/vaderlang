@@ -1479,6 +1479,12 @@ module_const_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
         return ""
     }
     decl :: typed.const_decls[sym.id] ?? return ""
+    // Only an array has storage a marker can make writable (T3076, T3096) ; any
+    // other const is a value every read shares.
+    if typed.decl_types[sym.id] !is ArrayType {
+        return (" — `${sym.name}` is a module const at ${where_of(decl.name_span)}"
+            + " : hand out a fresh value from a fn instead")
+    }
     ty :: decl.ty
     if ty !is null {
         return " — annotate `${sym.name}!` at ${where_of(ty.span)}"

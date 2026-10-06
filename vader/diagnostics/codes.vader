@@ -133,6 +133,7 @@ export TypecheckCode :: enum(CodeInfo) {
     StaticMemberNotCalled           { .id = "T3093", .message = "a static member is called, not taken as a value" },
     ImplMemberNotInTrait            { .id = "T3094", .message = "an impl member must be declared by its trait" },
     ImplMemberSignatureDiffers      { .id = "T3095", .message = "an impl member must have its trait method's signature" },
+    ConstValueReachesMutableLevel   { .id = "T3096", .message = "a constant value cannot hold a mutable level" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
