@@ -2347,7 +2347,7 @@ register_impl_metadata :: fn(
             }
         }
     }
-    check_impl_missing_methods(id, trait_sym, typed, diags)
+    check_impl_members(id, trait_sym, typed, diags)
     trait_decl :: typed.trait_decls[trait_sym.id]
     for m in id.members {
         declare_impl_method_for_trait(m, for_ty, lookup_trait_method(trait_decl, m.name), typed, diags)
@@ -2450,15 +2450,28 @@ walk_fn_body :: fn(
     }
 }
 
-// T3016 / T3017 : report every trait member the impl doesn't provide, unless the
-// trait declares a default body for it.
-check_impl_missing_methods :: fn(
+// T3036 : report every trait member the impl doesn't provide, unless the trait
+// declares a default body for it. T3094 : report every impl member the trait does
+// not declare — an impl block adds no method of its own to the type. The SAM short
+// form names none of its own ; R2016 reports a trait it cannot fill.
+check_impl_members :: fn(
     id: AST.ImplDecl,
     trait_sym: Symbol,
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> void {
     trait_decl :: typed.trait_decls[trait_sym.id] ?? return
+    for member in id.members {
+        if !member.sam_synthetic && lookup_trait_method(trait_decl, member.name) == null {
+            diags.push(
+                typecheck_error(
+                    .ImplMemberNotInTrait,
+                    member.name_span,
+                    "`${member.name}` is not a member of `${id.trait_name}`",
+                ),
+            )
+        }
+    }
     for required in trait_decl.members {
         if required.body is null {
             if !impl_has_method(id, required.name) {

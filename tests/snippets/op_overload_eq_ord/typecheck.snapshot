@@ -3,11 +3,6 @@
 ## tests/snippets/op_overload_eq_ord
   FnDecl         main                 :: fn() -> i32
   StructDecl     Money                :: Money!
-  expr 16402:2  UnaryExpr      :: bool
-  expr 16402:3  CallExpr       :: bool
-  expr 16402:4  FieldExpr      :: fn(Money) -> bool
-  expr 16402:5  IdentExpr      :: Money
-  expr 16402:7  IdentExpr      :: Money
   expr 16:28    BinaryExpr     :: bool
   expr 16:28    FieldExpr      :: i32
   expr 16:28    IdentExpr      :: Money

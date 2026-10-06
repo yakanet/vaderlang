@@ -192,11 +192,12 @@
                 arg1:
                   __off_3 :usize
                 arg2:
-                  neq :bool
-                    l:
-                      c :Color
-                    r:
-                      int(0) :u8
+                  not :bool
+                    eq :bool
+                      l:
+                        c :Color
+                      r:
+                        int(0) :u8
           ~>
             call :string
               callee:

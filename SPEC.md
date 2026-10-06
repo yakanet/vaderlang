@@ -1466,6 +1466,7 @@ print_it :: fn<T: Display>(x: T) {
 
 - Declaration: `Name :: trait { ... }`.
 - Implementation: `T implements Trait { ... }` (three forms — see below). `T` and `Trait` name declarations, resolved like any other name — a trait imported from another module included. The impl belongs to those declarations, not to their names: when two modules each declare a `Foo`, or an `Animal` trait, an impl of one says nothing about the other.
+- An impl defines its trait's members and nothing else (`T3094`; see *No inherent "associated functions"*).
 - A union satisfies a trait iff all its members satisfy it.
 - Operator overloading via stdlib traits — see *Operator overloading* below.
 - **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in a `Foo implements Trait { … }` block, `Self = Foo`, a written `-> Self` included. Outside trait/impl context, `Self` is undefined (`T3023`).
@@ -1626,27 +1627,30 @@ Countdown<T> implements Iterator<T> {
 A trait method may carry a body:
 
 ```vader
-Equals :: trait {
-    equals     :: fn(self, other: Self) -> bool
-    not_equals :: fn(self, other: Self) -> bool { return !self.equals(other) }
+Comparable :: trait {
+    compare :: fn(self, other: Self) -> i32
+    lt      :: fn(self, other: Self) -> bool { return self.compare(other) < 0 }
 }
 ```
 
-Any impl that doesn't override `not_equals` automatically inherits the body
+Any impl that doesn't override `lt` automatically inherits the body
 above — the resolver clones the trait method's body into the impl at
 declaration time, with `Self → forType` substituted (and trait type-params
 substituted by impl trait-args). References inside the body to other trait
-methods (`self.equals(other)`) resolve through UFCS against the impl scope,
+methods (`self.compare(other)`) resolve through UFCS against the impl scope,
 so they pick up the impl's own member when the user provides one.
 
 ```vader
-Money implements Equals -> self.amount == other.amount
-// Money.not_equals exists implicitly, derived from the cloned default.
+Money implements Comparable -> self.cents.compare(other.cents)
+// Money.lt exists implicitly, derived from the cloned default.
 ```
 
 Stdlib traits that ship with default methods:
-- `Equals.not_equals` (derived from `equals`).
 - `Comparable.lt` / `.lte` / `.gt` / `.gte` (derived from `compare`).
+- `Async.cancel` (does nothing).
+
+`Equals` ships no default method: `a != b` is `!a.equals(b)`, so the two operators
+cannot disagree.
 
 #### Operator overloading
 
@@ -1723,7 +1727,7 @@ match u {
 | Type with `impl Equals` | Delegated to `Equals.equals` |
 | **Trait value, fn value** | **Compile error (T3043)** — a trait value may hold an implementor without `Equals`; narrow it first (`if d is Point`) |
 
-A generic body compares a `T: Equals` through its `Equals`, picked from the receiver's runtime type. When the other operand holds another type — `T` is a union, or the values are typed `Equals` — `equals` answers `false` and `not_equals` `true`, without reaching the impl. An enum or a distinct type is the exception: it boxes as its representation, so it compares as that representation does. A union whose variant has no tag of its own (an instance of a generic struct whose body other instances share) beside another non-null variant does not satisfy `Equals` (T3006).
+A generic body compares a `T: Equals` through its `Equals`, picked from the receiver's runtime type. When the other operand holds another type — `T` is a union, or the values are typed `Equals` — `equals` answers `false` without reaching the impl. An enum or a distinct type is the exception: it boxes as its representation, so it compares as that representation does. A union whose variant has no tag of its own (an instance of a generic struct whose body other instances share) beside another non-null variant does not satisfy `Equals` (T3006).
 
 To compare two structs, implement `Equals` (`a.equals(b)` calls it directly). A
 struct has no implicit identity `==`: a bare `a == b` on one without `Equals` is

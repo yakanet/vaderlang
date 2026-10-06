@@ -5,11 +5,6 @@
   FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point!
   ConstDecl      Shape                :: type
-  expr 13330:2  UnaryExpr      :: bool
-  expr 13330:3  CallExpr       :: bool
-  expr 13330:4  FieldExpr      :: fn(Point) -> bool
-  expr 13330:5  IdentExpr      :: Point
-  expr 13330:7  IdentExpr      :: Point
   expr 13:28    BinaryExpr     :: bool
   expr 13:28    FieldExpr      :: i32
   expr 13:28    IdentExpr      :: Point

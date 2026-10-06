@@ -675,8 +675,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[]! {
     // Served by the VM only — primitive Equals/Display, surfaced there by erased
     // virtual dispatch, materialised as pure Vader natively — plus non-intrinsics.
     // Grouped so a new IntrinsicId variant trips T3013.
-    .StringEquals | .StringNotEquals
-        | .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString | .NotIntrinsic -> {}
+    .StringEquals | .PrimIntEquals | .PrimDisplayToString | .NotIntrinsic -> {}
     }
     // User `@extern` — forward to the real C symbol ; everything else is a
     // host fn the c-emit doesn't recognise (version skew) → trap loudly.

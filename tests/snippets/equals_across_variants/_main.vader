@@ -1,8 +1,8 @@
 // A generic body compares through `Equals` by a virtual call, which picks the impl
 // from the receiver alone. When `T` is a union, the other operand may hold another
-// variant: the call then answers `false` (`true` for `not_equals`) instead of
-// reading it as the receiver's type. `Point` and `Label` share a field layout, so
-// a wrong read would compare `x` with `n` and find them equal.
+// variant: the call then answers `false` instead of reading it as the receiver's
+// type. `Point` and `Label` share a field layout, so a wrong read would compare `x`
+// with `n` and find them equal.
 
 module "snippet"
 
@@ -39,6 +39,6 @@ main :: fn() -> i32 {
     println("${found in numbers}")
     e1: Equals: Point { .x = 1 }
     e2: Equals: Label { .n = 1 }
-    println("${e1.equals(e2)} ${e1.not_equals(e2)}")
+    println("${e1.equals(e2)} ${!e1.equals(e2)}")
     return 0
 }

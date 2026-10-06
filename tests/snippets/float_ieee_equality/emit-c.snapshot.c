@@ -533,7 +533,7 @@ static bool std_core____Contains_contains__f64___string(void* l0, vader_box_t l1
     double l6, l7;
     vader_string_t l8, l9;
     int64_t t0;
-#line 339 "lib/std/core/core.vader"
+#line 337 "lib/std/core/core.vader"
     l2 = l0;
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
@@ -541,7 +541,7 @@ static bool std_core____Contains_contains__f64___string(void* l0, vader_box_t l1
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         l5 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l4];
-#line 340 "lib/std/core/core.vader"
+#line 338 "lib/std/core/core.vader"
         if ((l5.tag == 2u || l5.tag == 20u)) {
             if ((l1.tag == 2u || l1.tag == 20u)) {
                 l6 = ((double) l5.payload.f);
@@ -560,11 +560,11 @@ static bool std_core____Contains_contains__f64___string(void* l0, vader_box_t l1
                 }
             }
         }
-#line 339 "lib/std/core/core.vader"
+#line 337 "lib/std/core/core.vader"
         t0 = (l4 + INT64_C(1));
         l4 = (size_t) (int64_t) t0;
     }
-#line 342 "lib/std/core/core.vader"
+#line 340 "lib/std/core/core.vader"
     return false;
 }
 

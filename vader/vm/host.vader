@@ -24,52 +24,12 @@ import "std/target"
 export HostCallResult :: HostOk | Trap
 export HostOk :: struct { value: Value }
 
-/// The `(fn_ptr, args, nargs)` triple the three `ffi_call_*` arms share.
-/// Pop two strings, run a binary predicate, wrap as `BoolVal`. Used
-/// by `starts_with` / `ends_with` / `contains`.
-host_str_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(string, string) -> bool) -> HostCallResult {
-    a :: stack[arg_base]
-    b :: stack[arg_base + 1]
-    // The labels are interpolated, so they are built only once a read fails.
-    if a is StringVal && b is StringVal {
-        return HostOk { .value = BoolVal(apply(string(a), string(b))) }
-    }
-    a_read :: read_string(a, at_pc, "${label} receiver")
-    if a_read is Trap { return a_read }
-    b_read :: read_string(b, at_pc, "${label} arg")
-    if b_read is Trap { return b_read }
-    return HostOk { .value = BoolVal(apply(string(a_read), string(b_read))) }
-}
-
-/// Two integer args → bool. Reads both via `read_i64` (widening `I32Val`), so
-/// it covers every integer width ; equality on the i64 bit pattern is correct
-/// for signed and unsigned alike.
-host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(i64, i64) -> bool) -> HostCallResult {
-    a :: int_arg(stack[arg_base], at_pc, label, "receiver")
-    b :: int_arg(stack[arg_base + 1], at_pc, label, "arg")
-    if a is Trap { return a }
-    if b is Trap { return b }
-    return HostOk { .value = BoolVal(apply(a, b)) }
-}
-
 // An extern's integer argument `i`, its label built only when it is not one.
 extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: usize) -> I64Val | Trap {
     if v is I64Val {
         return v
     }
     return read_i64(v, at_pc, "extern `${extern_name}` arg ${i}")
-}
-
-// `read_i64` of `v`, its label — `op`, then `what` — built only when it traps.
-int_arg :: fn(v: Value, at_pc: i32, op: string, what: string) -> i64 | Trap {
-    if v is I64Val {
-        return i64(v)
-    }
-    if v is I32Val {
-        return i64(v)
-    }
-    failed :: read_i64(v, at_pc, "${op} ${what}")
-    return if failed is Trap { failed } else { i64(failed) }
 }
 
 
@@ -238,20 +198,24 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // Reached when map key lookups dispatch `key.equals(other)` virtually
     // (the virtual.call intrinsic fallback in exec.vader rebuilds this mangle).
     .StringEquals -> {
-        return host_str_pair_to_bool(stack, arg_base, at_pc, "equals", (a, b) -> a == b)
-    }
-    .StringNotEquals -> {
-        return host_str_pair_to_bool(stack, arg_base, at_pc, "not_equals", (a, b) -> a != b)
+        a :: read_string(stack[arg_base], at_pc, "equals receiver")
+        if a is Trap { return a }
+        b :: read_string(stack[arg_base + 1], at_pc, "equals arg")
+        if b is Trap { return b }
+        return HostOk { .value = BoolVal(string(a) == string(b)) }
     }
     // `@intrinsic <intwidth> implements Equals` — bodyless for every integer
     // width, so an erased map-key lookup (`MutableMap<Any, K>` with integer K)
     // dispatches `key.equals(other)` virtually and surfaces it as a host import
-    // (mirror of the string arms above). Reached e.g. by `MutableSet<i32>`.
+    // (mirror of the string arm above). Reached e.g. by `MutableSet<i32>`.
+    // `read_i64` widens an `I32Val`, so every width compares on its i64 bits —
+    // right for signed and unsigned alike.
     .PrimIntEquals -> {
-        return host_int_pair_to_bool(stack, arg_base, at_pc, "equals", (a: i64, b: i64) -> a == b)
-    }
-    .PrimIntNotEquals -> {
-        return host_int_pair_to_bool(stack, arg_base, at_pc, "not_equals", (a: i64, b: i64) -> a != b)
+        a :: read_i64(stack[arg_base], at_pc, "equals receiver")
+        if a is Trap { return a }
+        b :: read_i64(stack[arg_base + 1], at_pc, "equals arg")
+        if b is Trap { return b }
+        return HostOk { .value = BoolVal(i64(a) == i64(b)) }
     }
     // `<width> implements Display.to_string` for every primitive — the
     // VM emits the SPEC §9 canonical form via `display_value`. Width
@@ -1185,8 +1149,8 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     // Pure : the baked value depends only on the args, never external state.
     .ByteLen | .ByteAt -> false
     .Bytes | .BytesToString | .StringIndexAt | .StringHash
-        | .StringEquals | .StringNotEquals -> false
-    .PrimIntEquals | .PrimIntNotEquals | .PrimDisplayToString -> false
+        | .StringEquals -> false
+    .PrimIntEquals | .PrimDisplayToString -> false
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
     .AbortPanic -> false
     .NotIntrinsic -> false

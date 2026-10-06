@@ -21,11 +21,6 @@
   StructDecl     Point                :: Point!
   FnDecl         shape                :: fn(null | Point | string) -> string
   ConstDecl      STORED               :: i64 | string
-  expr 33809:2  UnaryExpr      :: bool
-  expr 33809:3  CallExpr       :: bool
-  expr 33809:4  FieldExpr      :: fn(Path) -> bool
-  expr 33809:5  IdentExpr      :: Path
-  expr 33809:7  IdentExpr      :: Path
   expr 34:47    BinaryExpr     :: bool
   expr 34:47    CallExpr       :: string
   expr 34:47    CallExpr       :: string

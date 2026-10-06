@@ -11,16 +11,6 @@
         r:
           .x :i32
             other :Point
-  fn snippet$Point$Equals$not_equals(self: Point!, other: Point) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Point$Equals$equals :bool
-          arg0:
-            self :Point
-          arg1:
-            other :Point
   struct snippet$Label { text: string }
   fn snippet$Label$Equals$equals(self: Label!, other: Label) -> bool
     ~>
@@ -31,16 +21,6 @@
         r:
           .text :string
             other :Label
-  fn snippet$Label$Equals$not_equals(self: Label!, other: Label) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Label$Equals$equals :bool
-          arg0:
-            self :Label
-          arg1:
-            other :Label
   fn snippet$Pair$Equals$equals(self: Pair, other: Pair) -> bool
     ~>
       eq :bool
@@ -49,16 +29,6 @@
             self :Pair
         r:
           ._0 :i32
-            other :Pair
-  fn snippet$Pair$Equals$not_equals(self: Pair, other: Pair) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Pair$Equals$equals :bool
-          arg0:
-            self :Pair
-          arg1:
             other :Pair
   fn snippet$main() -> i32
     let p: Point! =
@@ -1341,16 +1311,6 @@
         arg0:
           .value :Any
             other :Box<Any>
-  fn snippet$Box$Equals$not_equals__Any(self: Box<Any>!, other: Box<Any>) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Box$Equals$equals__Any :bool
-          arg0:
-            self :Box<Any>
-          arg1:
-            other :Box<Any>
   fn snippet$Point$Equals$equals(self: Point!, other: Point) -> bool
     ~>
       eq :bool
@@ -1359,16 +1319,6 @@
             self :Point
         r:
           .x :i32
-            other :Point
-  fn snippet$Point$Equals$not_equals(self: Point!, other: Point) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Point$Equals$equals :bool
-          arg0:
-            self :Point
-          arg1:
             other :Point
   fn snippet$same_opt__Point(a: Any | null, b: Any) -> bool
     ~>
@@ -1468,22 +1418,6 @@
             arg1:
               cast → Point
                 other :Any
-  fn snippet$Point$Equals$not_equals$guard(self: Point, other: Any) -> bool
-    ~>
-      or :bool
-        l:
-          not :bool
-            is Point :bool
-              other :Any
-        r:
-          call :bool
-            callee:
-              snippet$Point$Equals$not_equals :bool
-            arg0:
-              self :Point
-            arg1:
-              cast → Point
-                other :Any
   fn snippet$Label$Equals$equals$guard(self: Label, other: Any) -> bool
     ~>
       and :bool
@@ -1494,22 +1428,6 @@
           call :bool
             callee:
               snippet$Label$Equals$equals :bool
-            arg0:
-              self :Label
-            arg1:
-              cast → Label
-                other :Any
-  fn snippet$Label$Equals$not_equals$guard(self: Label, other: Any) -> bool
-    ~>
-      or :bool
-        l:
-          not :bool
-            is Label :bool
-              other :Any
-        r:
-          call :bool
-            callee:
-              snippet$Label$Equals$not_equals :bool
             arg0:
               self :Label
             arg1:

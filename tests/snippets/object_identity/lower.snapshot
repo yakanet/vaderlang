@@ -11,16 +11,6 @@
         r:
           .x :i32
             other :Point
-  fn snippet$Point$Equals$not_equals(self: Point!, other: Point) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Point$Equals$equals :bool
-          arg0:
-            self :Point
-          arg1:
-            other :Point
   struct snippet$Label { text: string }
   fn snippet$main() -> i32
     let p: Point! =
@@ -493,22 +483,6 @@
           call :bool
             callee:
               snippet$Point$Equals$equals :bool
-            arg0:
-              self :Point
-            arg1:
-              cast → Point
-                other :Any
-  fn snippet$Point$Equals$not_equals$guard(self: Point, other: Any) -> bool
-    ~>
-      or :bool
-        l:
-          not :bool
-            is Point :bool
-              other :Any
-        r:
-          call :bool
-            callee:
-              snippet$Point$Equals$not_equals :bool
             arg0:
               self :Point
             arg1:

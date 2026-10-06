@@ -29,7 +29,7 @@ same_through_trait :: fn(a: Equals, b: Equals) -> bool = a.equals(b)
 main :: fn() -> i32 {
     c :: Color.Green
     println("${c == .Green} ${c == .Blue} ${c != .Red}")
-    println("${c.equals(.Green)} ${c.equals(.Blue)} ${c.not_equals(.Red)}")
+    println("${c.equals(.Green)} ${c.equals(.Blue)} ${!c.equals(.Red)}")
     println("${@satisfies(Color, Equals)} ${@satisfies(HttpStatus, Equals)}")
 
     by_color :: MutableMap<Color, i32> {}

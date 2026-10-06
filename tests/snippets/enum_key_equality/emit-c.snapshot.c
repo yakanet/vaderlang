@@ -272,7 +272,7 @@ static int32_t snippet_main(void) {
     l3 = l0 == INT32_C(2);
     l2 = std_core_write_bool(l1, l2, l3);
     l2 = std_core_write_string_at(l1, l2, 1u);
-    l3 = l0 != INT32_C(0);
+    l3 = !(l0 == INT32_C(0));
     l2 = std_core_write_bool(l1, l2, l3);
     t0 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t0);

@@ -10,12 +10,12 @@
 //     Point$Equals$equals$guard(self: Point, other: any) =
 //         other is Point && Point$Equals$equals(self, other as Point)
 //
-// `not_equals` answers `true` there instead. A primitive's guard compares
-// directly: its `Equals` is the built-in `==`, which the native build has no host
-// binding for. A receiver that does not carry its own tag (`carries_own_tag`) keeps
-// its plain entry, since a tag test cannot tell it apart: an enum or a distinct
-// boxes under its representation's tag, and a generic instance whose body other
-// instances share has none (refused beside another variant in a `T: Equals` union).
+// A primitive's guard compares directly: its `Equals` is the built-in `==`, which
+// the native build has no host binding for. A receiver that does not carry its own
+// tag (`carries_own_tag`) keeps its plain entry, since a tag test cannot tell it
+// apart: an enum or a distinct boxes under its representation's tag, and a generic
+// instance whose body other instances share has none (refused beside another
+// variant in a `T: Equals` union).
 
 module "vader/lower"
 
@@ -47,10 +47,7 @@ guard_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx!)
                 continue
             }
             slot :: d.origin.vtable_slot ?? continue
-            if slot.trait_key != equals_key || d.params.len() != 2 {
-                continue
-            }
-            if slot.method != METHOD_EQUALS && slot.method != METHOD_NOT_EQUALS {
+            if slot.trait_key != equals_key || slot.method != METHOD_EQUALS || d.params.len() != 2 {
                 continue
             }
             receiver :: strip_mutability(d.params[0].type)
@@ -60,21 +57,15 @@ guard_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx!)
             unslotted :: MonoEntry { ...d.origin, .vtable_slot = null }
             m.decls[i] = LoweredFnDecl { ...d, .origin = unslotted }
             if guarded.add(d.mangled) {
-                guards.push(guard_for(d, receiver, slot.method, project_ctx))
+                guards.push(guard_for(d, receiver, project_ctx))
             }
         }
         m.decls.push_all(guards)
     }
 }
 
-// `other is R && impl(self, other)` for `equals`, `!(other is R) || impl(self, other)`
-// for `not_equals`.
-guard_for :: fn(
-    d: LoweredFnDecl,
-    receiver: Type,
-    method: string,
-    project_ctx: LowerProjectCtx!,
-) -> LoweredDecl {
+// `other is R && impl(self, other)`.
+guard_for :: fn(d: LoweredFnDecl, receiver: Type, project_ctx: LowerProjectCtx!) -> LoweredDecl {
     span :: empty_span()
     self_param :: guard_param("self", receiver, project_ctx)
     other_param :: guard_param("other", TY_ANY, project_ctx)
@@ -87,14 +78,9 @@ guard_for :: fn(
     }
     same_type :: type_check(other_ref, receiver, span)
     answer :: if receiver is PrimitiveType {
-        equals_primop(method, self_ref, other_as_receiver, span)
+        equals_primop(self_ref, other_as_receiver, span)
     } else {
         mk_lowered_call(fn_symbol_of(d), [self_ref, other_as_receiver], TY_BOOL, span)
-    }
-    trailing :: if method == METHOD_EQUALS {
-        and_all(span, [same_type, answer])
-    } else {
-        or_all(span, [maybe_negate(same_type, true, span), answer])
     }
     // A symbol of its own, so the DCE reaches the guard through the vtable slot only.
     id :: next_project_synthetic_id(project_ctx)
@@ -103,7 +89,7 @@ guard_for :: fn(
         .mangled = symbol.name,
         .params = [self_param, other_param],
         .return_type = TY_BOOL,
-        .body = wrap_as_block(trailing, span),
+        .body = wrap_as_block(and_all(span, [same_type, answer]), span),
         .origin = MonoEntry {
             ...d.origin,
             .mangled = symbol.name,

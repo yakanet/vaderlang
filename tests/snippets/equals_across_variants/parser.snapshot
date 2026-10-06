@@ -755,25 +755,29 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "IdentExpr",
-                              "name": "e1"
-                            },
-                            "field": "not_equals"
-                          },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
+                          "kind": "UnaryExpr",
+                          "op": "not",
+                          "operand": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "FieldExpr",
+                              "target": {
                                 "kind": "IdentExpr",
-                                "name": "e2"
+                                "name": "e1"
                               },
-                              "spread": false
-                            }
-                          ]
+                              "field": "equals"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "IdentExpr",
+                                  "name": "e2"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
                         }
                       }
                     ]

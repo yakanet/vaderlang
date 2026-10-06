@@ -11,16 +11,6 @@
         r:
           .n :i32
             other :Tagged
-  fn snippet$Tagged$Equals$not_equals(self: Tagged!, other: Tagged) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Tagged$Equals$equals :bool
-          arg0:
-            self :Tagged
-          arg1:
-            other :Tagged
   fn snippet$pair(n: i32, s: string) -> [i32, string]
     ~>
       [i32, string]! {
@@ -1017,22 +1007,6 @@
           call :bool
             callee:
               snippet$Tagged$Equals$equals :bool
-            arg0:
-              self :Tagged
-            arg1:
-              cast → Tagged
-                other :Any
-  fn snippet$Tagged$Equals$not_equals$guard(self: Tagged, other: Any) -> bool
-    ~>
-      or :bool
-        l:
-          not :bool
-            is Tagged :bool
-              other :Any
-        r:
-          call :bool
-            callee:
-              snippet$Tagged$Equals$not_equals :bool
             arg0:
               self :Tagged
             arg1:

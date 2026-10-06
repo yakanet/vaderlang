@@ -63,13 +63,7 @@ literal_eq :: fn(
     if !compares_by_bits(value_type) {
         return value_eq(ctx, value, value_type, literal, type_of(literal), span)
     }
-    return LoweredBinary {
-        .span = span,
-        .type = TY_BOOL,
-        .op = .Eq,
-        .left = value,
-        .right = literal,
-    }
+    return equals_primop(value, literal, span)
 }
 
 // Whether `t` is a distinct over a struct or an array, which the bare `==` would
@@ -116,13 +110,8 @@ value_eq :: fn(
                 ?? value_eq(ctx, left, left_ty.backing, right, left_ty.backing, span)
         // An erased type parameter: the boxed receiver's tag picks the impl.
         is AnyType | TypeParamType -> virtual_equals(ctx, left, right, span)
-        is PrimitiveType | EnumType | FreeIntType | FreeFloatType | FreeCharType -> LoweredBinary {
-            .span = span,
-            .type = TY_BOOL,
-            .op = .Eq,
-            .left = left,
-            .right = right,
-        }
+        is PrimitiveType | EnumType | FreeIntType | FreeFloatType | FreeCharType ->
+            equals_primop(left, right, span)
         is TraitType | FnType | SelfType | TypeMetaType | NeverType | UnresolvedType ->
             no_equals(left_ty, span)
     }

@@ -27,17 +27,15 @@ export Display :: trait {
     to_string :: fn(self) -> string
 }
 
-/// Structural equality. Powers the `==` and `!=` operators (the latter
-/// via the default `not_equals` derived from `equals`, Layer 8d — impls
-/// that don't override `not_equals` inherit the negation).
+/// Structural equality. Powers the `==` and `!=` operators : `a != b` is
+/// `!a.equals(b)`, so the two cannot disagree.
 export Equals :: trait {
-    equals     :: fn(self, other: Self) -> bool
-    not_equals :: fn(self, other: Self) -> bool { return !self.equals(other) }
+    equals :: fn(self, other: Self) -> bool
 }
 
-/// Total ordering. Powers `<` / `<=` / `>` / `>=` via the four
-/// `compare`-by-zero helpers ; impls only need to provide `compare` and
-/// the rest follow (Layer 8d default-method injection).
+/// Total ordering. Powers `<` / `<=` / `>` / `>=` : `a < b` is
+/// `a.compare(b) < 0`. Impls only provide `compare` ; `lt` / `lte` / `gt` / `gte`
+/// follow from it as default methods.
 ///
 /// `compare(a, b)` must return :
 ///   `< 0` when `a` is strictly less than `b`,

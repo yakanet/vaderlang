@@ -7,11 +7,6 @@
   FnDecl         pair                 :: fn(i32, string) -> [i32, string]
   StructDecl     Tagged               :: Tagged!
   FnDecl         tagged               :: fn(i32) -> [i32, Tagged]
-  expr 17427:2  UnaryExpr      :: bool
-  expr 17427:3  CallExpr       :: bool
-  expr 17427:4  FieldExpr      :: fn(Tagged) -> bool
-  expr 17427:5  IdentExpr      :: Tagged
-  expr 17427:7  IdentExpr      :: Tagged
   expr 18:49    BinaryExpr     :: bool
   expr 18:49    FieldExpr      :: i32
   expr 18:49    IdentExpr      :: Tagged

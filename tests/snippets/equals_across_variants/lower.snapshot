@@ -11,16 +11,6 @@
         r:
           .x :i32
             other :Point
-  fn snippet$Point$Equals$not_equals(self: Point!, other: Point) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Point$Equals$equals :bool
-          arg0:
-            self :Point
-          arg1:
-            other :Point
   fn snippet$Point$Hash$hash(self: Point!) -> u64
     ~>
       cast → u64
@@ -35,16 +25,6 @@
             self :Label
         r:
           .n :i32
-            other :Label
-  fn snippet$Label$Equals$not_equals(self: Label!, other: Label) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Label$Equals$equals :bool
-          arg0:
-            self :Label
-          arg1:
             other :Label
   fn snippet$Label$Hash$hash(self: Label!) -> u64
     ~>
@@ -286,11 +266,12 @@
                 arg1:
                   __off_7 :usize
                 arg2:
-                  vcall std_core$Equals.not_equals :bool
-                    recv:
-                      e1 :Equals
-                    arg0:
-                      e2 :Equals
+                  not :bool
+                    vcall std_core$Equals.equals :bool
+                      recv:
+                        e1 :Equals
+                      arg0:
+                        e2 :Equals
           ~>
             call :string
               callee:
@@ -432,22 +413,6 @@
             arg1:
               cast → Point
                 other :Any
-  fn snippet$Point$Equals$not_equals$guard(self: Point, other: Any) -> bool
-    ~>
-      or :bool
-        l:
-          not :bool
-            is Point :bool
-              other :Any
-        r:
-          call :bool
-            callee:
-              snippet$Point$Equals$not_equals :bool
-            arg0:
-              self :Point
-            arg1:
-              cast → Point
-                other :Any
   fn snippet$Label$Equals$equals$guard(self: Label, other: Any) -> bool
     ~>
       and :bool
@@ -458,22 +423,6 @@
           call :bool
             callee:
               snippet$Label$Equals$equals :bool
-            arg0:
-              self :Label
-            arg1:
-              cast → Label
-                other :Any
-  fn snippet$Label$Equals$not_equals$guard(self: Label, other: Any) -> bool
-    ~>
-      or :bool
-        l:
-          not :bool
-            is Label :bool
-              other :Any
-        r:
-          call :bool
-            callee:
-              snippet$Label$Equals$not_equals :bool
             arg0:
               self :Label
             arg1:

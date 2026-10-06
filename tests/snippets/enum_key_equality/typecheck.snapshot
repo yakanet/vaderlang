@@ -37,10 +37,11 @@
   expr 32:45    DotVariantExpr :: Color
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(T) -> void
-  expr 32:55    CallExpr       :: bool
-  expr 32:55    FieldExpr      :: fn(Color) -> bool
-  expr 32:55    IdentExpr      :: Color
-  expr 32:68    DotVariantExpr :: Color
+  expr 32:55    UnaryExpr      :: bool
+  expr 32:56    CallExpr       :: bool
+  expr 32:56    FieldExpr      :: fn(Color) -> bool
+  expr 32:56    IdentExpr      :: Color
+  expr 32:65    DotVariantExpr :: Color
   expr 33:13    StringLitExpr  :: string
   expr 33:16    IntrinsicCallExpr :: bool
   expr 33:45    IntrinsicCallExpr :: bool

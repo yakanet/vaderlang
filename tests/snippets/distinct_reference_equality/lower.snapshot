@@ -11,16 +11,6 @@
         r:
           .r :i32
             other :Rgb
-  fn snippet$Rgb$Equals$not_equals(self: Rgb!, other: Rgb) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Rgb$Equals$equals :bool
-          arg0:
-            self :Rgb
-          arg1:
-            other :Rgb
   fn snippet$Row$Equals$equals(self: Row, other: Row) -> bool
     ~>
       call :bool
@@ -31,16 +21,6 @@
             self :Row
         arg1:
           cast → i32[]!
-            other :Row
-  fn snippet$Row$Equals$not_equals(self: Row, other: Row) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Row$Equals$equals :bool
-          arg0:
-            self :Row
-          arg1:
             other :Row
   fn snippet$main() -> i32
     call :void
@@ -344,22 +324,6 @@
           call :bool
             callee:
               snippet$Rgb$Equals$equals :bool
-            arg0:
-              self :Rgb
-            arg1:
-              cast → Rgb
-                other :Any
-  fn snippet$Rgb$Equals$not_equals$guard(self: Rgb, other: Any) -> bool
-    ~>
-      or :bool
-        l:
-          not :bool
-            is Rgb :bool
-              other :Any
-        r:
-          call :bool
-            callee:
-              snippet$Rgb$Equals$not_equals :bool
             arg0:
               self :Rgb
             arg1:

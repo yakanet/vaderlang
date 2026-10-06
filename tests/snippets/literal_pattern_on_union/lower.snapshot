@@ -21,16 +21,6 @@
             arg0:
               cast → string
                 other :Path
-  fn snippet$Path$Equals$not_equals(self: Path, other: Path) -> bool
-    return
-      not :bool
-        call :bool
-          callee:
-            snippet$Path$Equals$equals :bool
-          arg0:
-            self :Path
-          arg1:
-            other :Path
   fn snippet$describe(u: i64 | string) -> string
     ~>
       block :string

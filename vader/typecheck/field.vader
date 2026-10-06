@@ -209,9 +209,9 @@ try_typeparam_bound_method :: fn(
     return member.ty
 }
 
-// `c.equals(d)` / `c.not_equals(d)` on an enum, whose `Equals` is built in
-// (`builtin_equals_member`). Recorded like a bounded receiver's dispatch, which
-// the lowerer turns into the comparison itself.
+// `c.equals(d)` on an enum, whose `Equals` is built in (`builtin_equals_member`).
+// Recorded like a bounded receiver's dispatch, which the lowerer turns into the
+// comparison itself.
 try_builtin_equals_method :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
@@ -346,9 +346,9 @@ trait_type_member :: fn(
     }
 }
 
-// The member `name` of the `Equals` `owner` has built in (`has_builtin_impl`) :
-// an enum's `equals` / `not_equals`. Every variant access (`Color.Red`) asks
-// here, so the name is looked up before anything is built.
+// The member `name` of the `Equals` `owner` has built in (`has_builtin_impl`) : an
+// enum's `equals`. Every variant access (`Color.Red`) asks here, so the name is
+// looked up before anything is built.
 builtin_equals_member :: fn(owner: Type, name: string, typed: TypedProgram) -> TypeMember | null {
     sym :: typed.equals_symbol ?? return null
     if lookup_trait_method(typed.trait_decls[sym.id], name) == null {
@@ -511,9 +511,8 @@ try_trait_method_dispatch :: fn(
     return substitute_self(trait_method, target_ty)
 }
 
-// Struct that implements a trait carrying a same-named method WITH a
-// default body (`Equals.not_equals`, `Comparable.lt`) — synthesise the
-// dispatch from the trait method's signature.
+// Struct that implements a trait carrying a same-named method WITH a default body
+// (`Comparable.lt`) — synthesise the dispatch from the trait method's signature.
 try_default_trait_method_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,

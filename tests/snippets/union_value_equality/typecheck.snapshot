@@ -10,41 +10,21 @@
   FnDecl         same_opt             :: fn(null | T, T) -> bool
   FnDecl         same_pair            :: fn([T, i32], [T, i32]) -> bool
   ConstDecl      Shape                :: type
-  expr 19474:2  UnaryExpr      :: bool
-  expr 19474:3  CallExpr       :: bool
-  expr 19474:4  FieldExpr      :: fn(Point) -> bool
-  expr 19474:5  IdentExpr      :: Point
-  expr 19474:7  IdentExpr      :: Point
   expr 19:28    BinaryExpr     :: bool
   expr 19:28    FieldExpr      :: i32
   expr 19:28    IdentExpr      :: Point
   expr 19:38    FieldExpr      :: i32
   expr 19:38    IdentExpr      :: Point
-  expr 25618:2  UnaryExpr      :: bool
-  expr 25618:3  CallExpr       :: bool
-  expr 25618:4  FieldExpr      :: fn(Label) -> bool
-  expr 25618:5  IdentExpr      :: Label
-  expr 25618:7  IdentExpr      :: Label
   expr 25:28    BinaryExpr     :: bool
   expr 25:28    FieldExpr      :: string
   expr 25:28    IdentExpr      :: Label
   expr 25:41    FieldExpr      :: string
   expr 25:41    IdentExpr      :: Label
-  expr 35870:2  UnaryExpr      :: bool
-  expr 35870:3  CallExpr       :: bool
-  expr 35870:4  FieldExpr      :: fn(Box<T>) -> bool
-  expr 35870:5  IdentExpr      :: Box<T>
-  expr 35870:7  IdentExpr      :: Box<T>
   expr 35:40    BinaryExpr     :: bool
   expr 35:40    FieldExpr      :: T
   expr 35:40    IdentExpr      :: Box<T>
   expr 35:54    FieldExpr      :: T
   expr 35:54    IdentExpr      :: Box<T>
-  expr 40977:2  UnaryExpr      :: bool
-  expr 40977:3  CallExpr       :: bool
-  expr 40977:4  FieldExpr      :: fn(Pair) -> bool
-  expr 40977:5  IdentExpr      :: Pair
-  expr 40977:7  IdentExpr      :: Pair
   expr 40:27    BinaryExpr     :: bool
   expr 40:27    FieldExpr      :: i32
   expr 40:27    IdentExpr      :: Pair

@@ -32,10 +32,9 @@ CORE_MODULE :: "std_core"
 // ZERO per-call string building (only the kind slice allocates). Pinned against
 // `CORE_MODULE` + `primitive_member_mangle` by the colocated tests, so they
 // can't drift from the grammar even though they're spelled out here.
-CORE_PREFIX        :: r"std_core$"
-EQUALS_SUFFIX      :: r"$Equals$equals"
-NOT_EQUALS_SUFFIX  :: r"$Equals$not_equals"
-DISPLAY_SUFFIX     :: r"$Display$to_string"
+CORE_PREFIX    :: r"std_core$"
+EQUALS_SUFFIX  :: r"$Equals$equals"
+DISPLAY_SUFFIX :: r"$Display$to_string"
 
 /// The mangle of a `std/core` primitive `@intrinsic` impl member:
 /// `("i32", "Equals", "equals")` → `"std_core$i32$Equals$equals"`. THE grammar
@@ -49,20 +48,10 @@ DISPLAY_SUFFIX     :: r"$Display$to_string"
 export primitive_member_mangle :: fn(kind: string, trait_: string, method: string) -> string =
     "${CORE_MODULE}$${kind}$${trait_}$${method}"
 
-/// `"equals"` / `"not_equals"` when `mangled` is an integer width's bodyless
-/// `@intrinsic Equals` member, else `""`. Recognises by prefix/suffix strip —
-/// no per-call string building, so the hot map-key `key.equals(other)` path
-/// stays cheap (one kind-slice allocation, matching the old byte-offset parse).
-///
-/// @param mangled  the host import's mangled name.
-/// @return         `"equals"` / `"not_equals"` for an integer `Equals` member,
-///                 `""` otherwise (`string`-Equals has its own arm upstream).
-export int_equals_method :: fn(mangled: string) -> string {
-    eq :: strip_core_member(mangled, EQUALS_SUFFIX)
-    if eq != null && is_int_name(eq) { return "equals" }
-    neq :: strip_core_member(mangled, NOT_EQUALS_SUFFIX)
-    if neq != null && is_int_name(neq) { return "not_equals" }
-    return ""
+// Whether `mangled` is an integer width's bodyless `@intrinsic Equals` member.
+is_int_equals :: fn(mangled: string) -> bool {
+    kind :: strip_core_member(mangled, EQUALS_SUFFIX)
+    return kind != null && is_int_name(kind)
 }
 
 /// True iff `mangled` is a primitive `<T>$Display$to_string` host — one of the
@@ -108,9 +97,9 @@ export IntrinsicId :: enum(u8) {
     // std/core string + bytes
     ByteLen, ByteAt,
     Bytes, BytesToString, StringIndexAt, StringHash,
-    StringEquals, StringNotEquals,
+    StringEquals,
     // primitive members (recognised via the grammar helpers, any width)
-    PrimIntEquals, PrimIntNotEquals, PrimDisplayToString,
+    PrimIntEquals, PrimDisplayToString,
     // std/runtime
     RuntimeCollect, RuntimeCollections, RuntimeBytesUsed, RuntimeBytesCopied,
     // std/runtime — cooperative async scheduler (std/async backend)
@@ -135,9 +124,7 @@ export IntrinsicId :: enum(u8) {
 ///
 /// @param mangled  the import's mangled name (`BcImport.mangled_name`).
 export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
-    eq :: int_equals_method(mangled)
-    if eq == "equals"     { return .PrimIntEquals }
-    if eq == "not_equals" { return .PrimIntNotEquals }
+    if is_int_equals(mangled)        { return .PrimIntEquals }
     if is_display_to_string(mangled) { return .PrimDisplayToString }
 
     if mangled == r"vader_vm$ffi_open"                   { return .FfiOpen }
@@ -152,7 +139,6 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == primitive_member_mangle("string", "Index", "at")  { return .StringIndexAt }
     if mangled == primitive_member_mangle("string", "Hash", "hash") { return .StringHash }
     if mangled == r"std_core$string$Equals$equals"       { return .StringEquals }
-    if mangled == r"std_core$string$Equals$not_equals"   { return .StringNotEquals }
 
     if mangled == r"std_runtime$collect"                 { return .RuntimeCollect }
     if mangled == r"std_runtime$collections"             { return .RuntimeCollections }
@@ -191,7 +177,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     // Allocate: a view header, an interned string, the rendered text.
     .Bytes | .BytesToString | .PrimDisplayToString -> true
     // Served by the VM only; natively these are Vader, never a host call.
-    .StringEquals | .StringNotEquals | .PrimIntEquals | .PrimIntNotEquals -> true
+    .StringEquals | .PrimIntEquals -> true
     // Unclassified — conservatively a safepoint.
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> true
     .SchedNow | .SchedArm | .SchedPark | .AbortPanic -> true
@@ -243,12 +229,11 @@ import "vader/lower"
     assert_eq(primitive_member_mangle("string", "Display", "to_string"), r"std_core$string$Display$to_string")
 }
 
-@test test_int_equals_method :: fn() -> void {
-    assert_eq(int_equals_method(r"std_core$usize$Equals$not_equals"), "not_equals")
-    assert_eq(int_equals_method(r"std_core$i32$Equals$equals"), "equals")
-    assert_eq(int_equals_method(r"std_core$string$Equals$equals"), "")   // string ≠ int width
-    assert_eq(int_equals_method(r"std_io$write"), "")                    // non-core bails on prefix
-    assert_eq(int_equals_method(r"user_mod$Foo$Bar$baz"), "")
+@test test_is_int_equals :: fn() -> void {
+    assert(is_int_equals(r"std_core$i32$Equals$equals"), "i32 equals")
+    assert(!is_int_equals(r"std_core$string$Equals$equals"), "string is no int width")
+    assert(!is_int_equals(r"std_io$write"), "non-core bails on prefix")
+    assert(!is_int_equals(r"user_mod$Foo$Bar$baz"), "user mangle")
 }
 
 @test test_display_classifiers :: fn() -> void {

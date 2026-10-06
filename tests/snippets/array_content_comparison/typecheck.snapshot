@@ -3,11 +3,6 @@
 ## tests/snippets/array_content_comparison
   FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point!
-  expr 14354:2  UnaryExpr      :: bool
-  expr 14354:3  CallExpr       :: bool
-  expr 14354:4  FieldExpr      :: fn(Point) -> bool
-  expr 14354:5  IdentExpr      :: Point
-  expr 14354:7  IdentExpr      :: Point
   expr 14:28    BinaryExpr     :: bool
   expr 14:28    FieldExpr      :: i32
   expr 14:28    IdentExpr      :: Point

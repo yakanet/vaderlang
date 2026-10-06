@@ -131,6 +131,7 @@ export TypecheckCode :: enum(CodeInfo) {
     StaticMemberOnValue             { .id = "T3091", .message = "a static member is called on a type, not on a value" },
     InstanceMemberOnType            { .id = "T3092", .message = "an instance member is called on a value, not on a type" },
     StaticMemberNotCalled           { .id = "T3093", .message = "a static member is called, not taken as a value" },
+    ImplMemberNotInTrait            { .id = "T3094", .message = "an impl member must be declared by its trait" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

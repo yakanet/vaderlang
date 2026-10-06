@@ -350,25 +350,29 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "IdentExpr",
-                              "name": "c"
-                            },
-                            "field": "not_equals"
-                          },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "DotVariantExpr",
-                                "variant": "Red"
+                          "kind": "UnaryExpr",
+                          "op": "not",
+                          "operand": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "c"
                               },
-                              "spread": false
-                            }
-                          ]
+                              "field": "equals"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "DotVariantExpr",
+                                  "variant": "Red"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
                         }
                       }
                     ]

@@ -32,10 +32,10 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
     if arith != null {
         return arith
     }
-    // Equality. `@intrinsic <T> implements Equals` synthesises bodyless `equals`
-    // AND `not_equals` members. Every primitive goes through op_select's
-    // `cmp_eq` / `cmp_ne` — the same authority the operator uses — so
-    // `.equals()` can't drift from `==` (see `primitive_cmp_op`).
+    // Equality. `@intrinsic <T> implements Equals` synthesises a bodyless `equals`
+    // member. Every primitive goes through op_select's `cmp_eq` — the same
+    // authority the operator uses — so `.equals()` can't drift from `==` (see
+    // `primitive_cmp_op`).
     cmp :: primitive_cmp_op(mangled)
     if cmp != null {
         return cmp
@@ -105,20 +105,15 @@ primitive_arith_op :: fn(mangled: string) -> Op | null {
     return null
 }
 
-// Equals / NotEquals op for every primitive, via op_select's `cmp_eq` /
-// `cmp_ne` — same authority as the operator, so `.equals()` / `.not_equals()`
-// can't drift from `==` / `!=`. An integer of any width lands on its class's op
-// (a `u8` on `I32Eq`) : a vtable wrapper built from this answer is what an
-// erased instance reaches when it compares a union member tagged `u8`, and the
-// native build binds no host import for it.
+// The Equals op for every primitive, via op_select's `cmp_eq` — same authority as
+// the operator, so `.equals()` can't drift from `==`. An integer of any width
+// lands on its class's op (a `u8` on `I32Eq`) : a vtable wrapper built from this
+// answer is what an erased instance reaches when it compares a union member
+// tagged `u8`, and the native build binds no host import for it.
 primitive_cmp_op :: fn(mangled: string) -> Op | null {
-    eq :: strip_core_member(mangled, r"$Equals$equals")
+    eq :: strip_core_member(mangled, EQUALS_SUFFIX)
     if eq != null && is_primitive_name(eq) {
         return cmp_eq(val_type_of_primitive_name(eq))
-    }
-    ne :: strip_core_member(mangled, r"$Equals$not_equals")
-    if ne != null && is_primitive_name(ne) {
-        return cmp_ne(val_type_of_primitive_name(ne))
     }
     return null
 }
@@ -141,15 +136,12 @@ import "std/testing"
         ["f32", "Add", "add"], ["f32", "Div", "div"],
         ["f64", "Add", "add"], ["f64", "Sub", "sub"], ["f64", "Mul", "mul"],
         ["f64", "Div", "div"],
-        // equality (op-backed) — equals + not_equals for every primitive
+        // equality (op-backed) — equals for every primitive
         ["i32", "Equals", "equals"], ["i64", "Equals", "equals"],
-        ["u8", "Equals", "equals"], ["usize", "Equals", "not_equals"],
+        ["u8", "Equals", "equals"], ["usize", "Equals", "equals"],
         ["f32", "Equals", "equals"], ["f64", "Equals", "equals"],
         ["bool", "Equals", "equals"], ["char", "Equals", "equals"],
         ["string", "Equals", "equals"],
-        ["f32", "Equals", "not_equals"], ["f64", "Equals", "not_equals"],
-        ["bool", "Equals", "not_equals"], ["char", "Equals", "not_equals"],
-        ["string", "Equals", "not_equals"],
         ["usize", "BufferAlloc", "new_buffer"],
         ["Buffer", "ByteAccess", "load_u8"], ["Buffer", "ByteAccess", "store_u8"],
         ["Buffer", "ByteAccess", "memory_copy"], ["Buffer", "ByteAccess", "intern_string"],
@@ -180,7 +172,6 @@ import "std/testing"
     assert(intrinsic_op_for_mangled(r"std_core$f32$Mul$mul") is F64Mul, "f32 mul → F64Mul")
     assert(intrinsic_op_for_mangled(r"std_core$f32$Equals$equals") is F64Eq, "f32 equals → F64Eq")
     assert(intrinsic_op_for_mangled(r"std_core$u8$Equals$equals") is I32Eq, "u8 equals → I32Eq")
-    assert(intrinsic_op_for_mangled(r"std_core$u64$Equals$not_equals") is I64Ne, "u64 not_equals → I64Ne")
 }
 
 @test test_intrinsic_op_for_mangled_unknown_returns_null :: fn() -> void {

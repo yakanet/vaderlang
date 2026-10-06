@@ -5,11 +5,6 @@
   FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point!
   ConstDecl      Shape                :: type
-  expr 16402:2  UnaryExpr      :: bool
-  expr 16402:3  CallExpr       :: bool
-  expr 16402:4  FieldExpr      :: fn(Point) -> bool
-  expr 16402:5  IdentExpr      :: Point
-  expr 16402:7  IdentExpr      :: Point
   expr 16:28    BinaryExpr     :: bool
   expr 16:28    FieldExpr      :: i32
   expr 16:28    IdentExpr      :: Point
@@ -19,11 +14,6 @@
   expr 18:26    IdentExpr      :: type
   expr 18:30    FieldExpr      :: i32
   expr 18:30    IdentExpr      :: Point
-  expr 24594:2  UnaryExpr      :: bool
-  expr 24594:3  CallExpr       :: bool
-  expr 24594:4  FieldExpr      :: fn(Label) -> bool
-  expr 24594:5  IdentExpr      :: Label
-  expr 24594:7  IdentExpr      :: Label
   expr 24:28    BinaryExpr     :: bool
   expr 24:28    FieldExpr      :: i32
   expr 24:28    IdentExpr      :: Label
@@ -74,9 +64,10 @@
   expr 42:16    FieldExpr      :: fn(Equals) -> bool
   expr 42:16    IdentExpr      :: Equals
   expr 42:26    IdentExpr      :: Equals
-  expr 42:33    CallExpr       :: bool
-  expr 42:33    FieldExpr      :: fn(Equals) -> bool
-  expr 42:33    IdentExpr      :: Equals
-  expr 42:47    IdentExpr      :: Equals
+  expr 42:33    UnaryExpr      :: bool
+  expr 42:34    CallExpr       :: bool
+  expr 42:34    FieldExpr      :: fn(Equals) -> bool
+  expr 42:34    IdentExpr      :: Equals
+  expr 42:44    IdentExpr      :: Equals
   expr 42:5     CallExpr       :: void
   expr 42:5     IdentExpr      :: fn(T) -> void

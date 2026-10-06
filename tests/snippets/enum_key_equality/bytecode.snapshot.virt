@@ -94,15 +94,15 @@ fn 1 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local $eq_8 bool
-  local $arr_53 ref
   local $arr_54 ref
+  local $arr_55 ref
   local __coalesce_6 any
   local if_res i32
-  local $cast_77 i64
+  local $cast_78 i64
   local __p_13 string
   local __p_14 string
-  local $call_134 usize
-  local $cast_148 u64
+  local $call_135 usize
+  local $cast_149 u64
   i32.const 1
   local.set 0   ; c
   i64.const 17
@@ -186,7 +186,8 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; c
   i32.const 0
-  i32.ne
+  i32.eq
+  bool.not
   local.set 3   ; $eq_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -224,12 +225,12 @@ fn 1 snippet$main () -> i32
   array.new 26 0   ; ref[]
   local.set 1   ; __buf_0
   array.new 27 0   ; i32[]
-  local.set 4   ; $arr_53
+  local.set 4   ; $arr_54
   array.new 27 0   ; i32[]
-  local.set 5   ; $arr_54
+  local.set 5   ; $arr_55
   local.get 1   ; __buf_0
-  local.get 4   ; $arr_53
-  local.get 5   ; $arr_54
+  local.get 4   ; $arr_54
+  local.get 5   ; $arr_55
   i64.const 0
   i64.const 0
   i64.const 0
@@ -244,7 +245,7 @@ fn 1 snippet$main () -> i32
   call 36   ; std_collections$MutableMap$IndexSet$set_at__Any__i32
   i64.const 62
   call 3   ; std_core$new_byte_buffer
-  local.set 4   ; $arr_53
+  local.set 4   ; $arr_54
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
@@ -263,13 +264,13 @@ fn 1 snippet$main () -> i32
   end $L0
   local.get 7   ; if_res
   i32.to_i64
-  local.set 8   ; $cast_77
-  local.get 4   ; $arr_53
+  local.set 8   ; $cast_78
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
-  local.get 8   ; $cast_77
+  local.get 8   ; $cast_78
   call 6   ; std_core$write_int
   local.set 2   ; __off_1
-  local.get 4   ; $arr_53
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
   string.const 0   ; " "
   call 5   ; std_core$write_string_at
@@ -290,13 +291,13 @@ fn 1 snippet$main () -> i32
   end $L1
   local.get 7   ; if_res
   i32.to_i64
-  local.set 8   ; $cast_77
-  local.get 4   ; $arr_53
+  local.set 8   ; $cast_78
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
-  local.get 8   ; $cast_77
+  local.get 8   ; $cast_78
   call 6   ; std_core$write_int
   local.set 2   ; __off_1
-  local.get 4   ; $arr_53
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
   string.const 0   ; " "
   call 5   ; std_core$write_string_at
@@ -317,25 +318,25 @@ fn 1 snippet$main () -> i32
   end $L2
   local.get 7   ; if_res
   i32.to_i64
-  local.set 8   ; $cast_77
-  local.get 4   ; $arr_53
+  local.set 8   ; $cast_78
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
-  local.get 8   ; $cast_77
+  local.get 8   ; $cast_78
   call 6   ; std_core$write_int
   local.set 2   ; __off_1
-  local.get 4   ; $arr_53
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
   call 54   ; std_io$println__string
   array.new 19 0   ; u8[]
   local.set 1   ; __buf_0
   array.new 28 0   ; string[]
-  local.set 4   ; $arr_53
+  local.set 4   ; $arr_54
   array.new 27 0   ; i32[]
-  local.set 5   ; $arr_54
+  local.set 5   ; $arr_55
   local.get 1   ; __buf_0
-  local.get 4   ; $arr_53
-  local.get 5   ; $arr_54
+  local.get 4   ; $arr_54
+  local.get 5   ; $arr_55
   i64.const 0
   i64.const 0
   i64.const 0
@@ -383,34 +384,34 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 10   ; __p_14
   call.import 0   ; std_core$byte_len
-  local.set 11   ; $call_134
+  local.set 11   ; $call_135
   local.get 2   ; __off_1
-  local.get 11   ; $call_134
+  local.get 11   ; $call_135
   i64.add
   local.set 2   ; __off_1
   i64.const 22
   local.get 2   ; __off_1
   i64.add
   call 3   ; std_core$new_byte_buffer
-  local.set 4   ; $arr_53
+  local.set 4   ; $arr_54
   i64.const 0
   local.set 2   ; __off_1
-  local.get 4   ; $arr_53
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
   local.get 9   ; __p_13
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.get 4   ; $arr_53
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
   string.const 0   ; " "
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.get 4   ; $arr_53
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
   local.get 10   ; __p_14
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.get 4   ; $arr_53
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
   string.const 0   ; " "
   call 5   ; std_core$write_string_at
@@ -418,13 +419,13 @@ fn 1 snippet$main () -> i32
   local.get 1   ; __buf_0
   call 51   ; std_collections$len__snippet_HttpStatus__string
   usize.to_i64
-  local.set 12   ; $cast_148
-  local.get 4   ; $arr_53
+  local.set 12   ; $cast_149
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
-  local.get 12   ; $cast_148
+  local.get 12   ; $cast_149
   call 7   ; std_core$write_unsigned
   local.set 2   ; __off_1
-  local.get 4   ; $arr_53
+  local.get 4   ; $arr_54
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
   call 54   ; std_io$println__string
