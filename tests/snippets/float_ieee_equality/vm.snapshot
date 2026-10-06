@@ -1,0 +1,10 @@
+# stdout
+union    : true false false true
+in       : true false
+match    : zero other
+generic  : true false true false
+trait    : true
+nullable : true true
+tuple    : true
+# exit
+0

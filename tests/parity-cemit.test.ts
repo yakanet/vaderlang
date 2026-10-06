@@ -390,6 +390,7 @@ const C_PARITY = new Set<string>([
   "literal_pattern_on_union",
   "array_content_comparison",
   "distinct_reference_equality",
+  "float_ieee_equality",
   "generic_enum_same_name",
   // An enum with variant data stores its variant's rank : its value tables and
   // the conversion back to the written value, inside a generic instance too.

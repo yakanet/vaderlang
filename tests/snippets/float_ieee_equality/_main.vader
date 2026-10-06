@@ -1,0 +1,40 @@
+// A float compares by IEEE 754 wherever it travels : `0.0 == -0.0`, and `nan`
+// equals nothing, itself included — in a union, an array searched with `in`, a
+// literal pattern, an erased `T: Equals`, a value typed `Equals`, a nullable
+// field, a tuple. The box that carries it never compares its bits instead.
+
+module "snippet"
+
+import "std/io"
+
+same :: fn<T: Equals>(a: T, b: T) -> bool = a == b
+
+Holder :: struct {
+    v: f64 | null
+}
+
+// @partial: literals cover part of the variant.
+pick :: fn(u: f64 | string) -> string = @partial match u {
+    0.0 -> "zero"
+    _   -> "other"
+}
+
+main :: fn() -> i32 {
+    nz: f64: -0.0
+    nan: f64: 0.0 / 0.0
+    u: f64 | string: nz
+    w: f64 | string: 0.0
+    n: f64 | string: nan
+    println("union    : ${u == w} ${u != w} ${n == n} ${n != n}")
+    us: (f64 | string)[]: [w]
+    println("in       : ${u in us} ${n in [n]}")
+    println("match    : ${pick(u)} ${pick(n)}")
+    println("generic  : ${same(nz, 0.0)} ${same(nan, nan)} ${same(u, w)} ${same(n, n)}")
+    e: Equals: nz
+    println("trait    : ${e.equals(0.0)}")
+    h :: Holder { .v = nz }
+    println("nullable : ${h.v == 0.0} ${h.v != null}")
+    t :: [nz, 1]
+    println("tuple    : ${t == [0.0, 1]}")
+    return 0
+}
