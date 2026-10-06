@@ -21,7 +21,7 @@
         r:
           .text :string
             other :Label
-  fn snippet$Pair$Equals$equals(self: Pair, other: Pair) -> bool
+  fn snippet$Pair$Equals$equals(self: Pair!, other: Pair) -> bool
     ~>
       eq :bool
         l:

@@ -1,0 +1,25 @@
+// Through a mutable struct its type arguments are invariant, as an array's element
+// is : `stash` would store a read-only `Cfg` in the `Box<Cfg!>` its owner then
+// writes through. T3001.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+Box :: struct<T> {
+    item: T
+}
+
+ORIGIN :: Cfg { .n = 1 }
+
+stash :: fn(b: Box<Cfg>!) -> void {
+    b.item = ORIGIN
+}
+
+main :: fn() -> i32 {
+    b :: Box<Cfg!> { .item = Cfg { .n = 2 } }
+    stash(b)
+    b.item.n = 9
+    return b.item.n
+}

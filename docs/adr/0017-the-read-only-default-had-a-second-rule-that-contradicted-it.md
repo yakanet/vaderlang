@@ -3,7 +3,9 @@
 ## Status
 
 Accepted (2026-09-06). The `unify_type_param` item under "Left open" is resolved by
-0032 : a type argument now keeps the argument's rights.
+0032 : a type argument now keeps the argument's rights. The call-argument item is
+resolved by 0033 : a nominal argument keeps its bits and is invariant through a
+mutable struct.
 
 ## Context
 
@@ -152,7 +154,7 @@ Two constraints shaped the fixes and are worth remembering:
 ### Left open, with numbers
 
 - **The restrictive direction**, above: 584 sites.
-- **At a call ARGUMENT, a nominal type argument is still erased.**
+- **At a call ARGUMENT, a nominal type argument is still erased** (resolved by 0033).
   `arg_mutability_cleared` clears the bit inside `Holder<Box>` on the argument path
   deliberately — T3072 owns the top level there, and clearing was how the two
   stopped double-reporting. So `gen_mut(h)` widens where `a: Holder<Box!> = h` is

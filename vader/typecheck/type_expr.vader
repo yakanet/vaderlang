@@ -275,18 +275,26 @@ lower_call_in_type_position :: fn(
     return TY_UNRESOLVED
 }
 
+// Written type arguments — a generic instance's, an impl clause's trait
+// arguments — each with the read-only default any written type takes, which is
+// what SPEC.md promises: "`Map<K, Cfg>` freezes the map and the depth of its values
+// is written `Map<K, Cfg!>`". `readonly_children` stops at nominal boundaries, so
+// without this a plain `Map<K, Cfg>` stored a MUTABLE `Cfg` and the written form
+// said nothing ; and an impl's `Sink<Cfg>` must compare with a slot's.
+written_type_args :: fn(
+    written: AST.TypeExpr[], resolved: ResolvedModule, diags: Diagnostic[]!,
+) -> Type[]! {
+    out: Type[]!: []
+    for a in written {
+        out.push(apply_readonly_default(type_from_expr(a, resolved, diags), a))
+    }
+    return out
+}
+
 lower_generic_inst :: fn(
     e: AST.GenericInstExpr, resolved: ResolvedModule, diags: Diagnostic[]!,
 ) -> Type {
-    // A generic ARGUMENT takes the read-only default like any other written type,
-    // which is what SPEC.md promises: "`Map<K, Cfg>` freezes the map and the depth of
-    // its values is written `Map<K, Cfg!>`". `readonly_children` stops at nominal
-    // boundaries, so without this a plain `Map<K, Cfg>` stored a MUTABLE `Cfg` and
-    // the written form said nothing.
-    args: Type[]!: []
-    for a in e.type_args {
-        args.push(apply_readonly_default(type_from_expr(a, resolved, diags), a))
-    }
+    args :: written_type_args(e.type_args, resolved, diags)
     if e.callee is AST.IdentExpr as id {
         target :: lookup_type_name(id, resolved)
         match target {

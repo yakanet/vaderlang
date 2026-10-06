@@ -1,0 +1,11 @@
+// An index write into an array-backed distinct must fit the backing's element.
+// T3063.
+module "snippet"
+
+Ids :: i32[]
+
+main :: fn() -> i32 {
+    t: Ids!: [1, 2, 3]
+    t[0] = "x"
+    return t[0]
+}

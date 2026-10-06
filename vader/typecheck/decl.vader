@@ -1114,7 +1114,7 @@ declare_const :: fn(
         is null -> {
             if is_type_expr(decl.value, resolved) {
                 alias_ty :: type_from_expr(decl.value, resolved, diags)
-                resolved.alias_types[sym.id] = alias_for(sym, alias_ty, decl.decorators)
+                resolved.alias_types[sym.id] = alias_for(sym, alias_ty, decl)
                 typed.decl_types[sym.id] = TY_TYPE
             }
         }
@@ -1212,13 +1212,21 @@ marks_mutable_anywhere :: fn(w: AST.TypeExpr) -> bool {
 
 
 
-/// Resolve the type a `Name :: <type-expr>` declaration registers. A
-/// **primitive** RHS (`Name :: i64`) becomes a zero-cost `DistinctType`
-/// (nominal newtype) ; a composite RHS (union / struct / array / fn) stays a
-/// transparent alias.
-alias_for :: fn(sym: Symbol, alias_ty: Type, decorators: AST.Decorator[]) -> Type {
-    if distinct_backing(alias_ty, decorators) {
-        return mk_distinct(sym, alias_ty)
+/// Resolve the type a `Name :: <type-expr>` declaration registers. A primitive,
+/// array, struct or tuple RHS (`Name :: i64`, `BigInt :: u32[]`) becomes a
+/// `DistinctType` (nominal newtype) — see `distinct_backing` ; a union or fn RHS
+/// stays a transparent alias.
+///
+/// @param sym       the declared name's symbol.
+/// @param alias_ty  the RHS, resolved.
+/// @param decl      the declaration — its RHS as written, and its decorators.
+/// @return          the distinct type, its backing's children at the read-only
+///                  default a written slot's take (`Grid :: Cfg[]` holds read-only
+///                  `Cfg`s) and its own level left to the slot that names it ; or
+///                  `alias_ty` itself for a transparent alias.
+alias_for :: fn(sym: Symbol, alias_ty: Type, decl: AST.ConstDecl) -> Type {
+    if distinct_backing(alias_ty, decl.decorators) {
+        return mk_distinct(sym, readonly_children(alias_ty, decl.value))
     }
     return alias_ty
 }

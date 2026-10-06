@@ -1,0 +1,44 @@
+// A trait's arguments compare with their rights, both ways : an impl of
+// `Sink<Cfg!>` stores what it is handed, so it serves no slot lending read-only
+// `Cfg`s — neither as the implementing type, nor as a `Sink<Cfg!>` value, nor
+// through a bound naming `Sink<Cfg!>`. Each `feed` would put a module const where
+// its owner writes. T3001, three times.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+Sink :: trait<T> {
+    put :: fn(self!, v: T) -> void
+}
+
+Holder :: struct {
+    c: Cfg!
+}
+
+Holder implements Sink<Cfg!> {
+    put :: fn(self!, v: Cfg!) -> void {
+        self.c = v
+    }
+}
+
+ORIGIN :: Cfg { .n = 1 }
+
+feed :: fn(s: Sink<Cfg>!) -> void {
+    s.put(ORIGIN)
+}
+
+relay :: fn<S: Sink<Cfg!>>(s: S!) -> void {
+    feed(s)
+}
+
+main :: fn() -> i32 {
+    h :: Holder { .c = Cfg { .n = 2 } }
+    feed(h)
+    s: Sink<Cfg!>!: h
+    feed(s)
+    relay(h)
+    h.c.n = 9
+    return h.c.n
+}

@@ -222,7 +222,7 @@ export mismatch_diagnostic_hinted :: fn(
         return typecheck_error(
             fallback,
             span,
-            "expected ${display_type(expected)}, got ${display_type(got)}${hint} — through a mutable array the elements' `!` must match, and a fn cannot take a parameter with other rights than its slot hands it",
+            "expected ${display_type(expected)}, got ${display_type(got)}${hint} — through a mutable array or struct, and in a trait's arguments, the `!` must match ; a fn cannot take a parameter with other rights than its slot hands it",
         )
     }
     if fn_mutability_widens(got, expected) {
@@ -241,8 +241,9 @@ export mismatch_diagnostic_hinted :: fn(
 
 /// True when `from` would GAIN mutation rights that `to` grants and it does not —
 /// the one direction the marker forbids, at every structural level. Under a mutable
-/// array spine the element must not LOSE rights either, and a fn's parameters are
-/// compared the other way round.
+/// array spine the element must not LOSE rights either, nor a mutable struct's type
+/// arguments, nor a trait's ; a distinct answers for its backing, and a fn's
+/// parameters are compared the other way round.
 ///
 /// It has to run ahead of `is_assignable`'s equality short-circuit, because
 /// `equals_type` leaves the struct / tuple bit out of type identity ON PURPOSE (two
@@ -261,8 +262,9 @@ export mismatch_diagnostic_hinted :: fn(
 /// @param from    the value's type.
 /// @param to      the slot's type.
 /// @param strict  false leaves out the positions where a value LOSING rights is the
-///                fault — a mutable array's element, a fn's parameters — for the
-///                caller that only words a diagnostic.
+///                fault — a mutable array's element, a mutable struct's or a trait's
+///                arguments, a fn's parameters — for the caller that only words a
+///                diagnostic.
 mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
     if from is StructType {
         if to is StructType {
@@ -275,7 +277,10 @@ mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
             if from.immutable && !to.immutable {
                 return true
             }
-            return any_widens(from.args, to.args, strict)
+            // Through a mutable struct its type arguments are invariant, as an
+            // array's element is : a `Box<Cfg>!` slot could store a read-only `Cfg`
+            // in the `Box<Cfg!>` its owner then writes through.
+            return any_widens(from.args, to.args, strict, !to.immutable)
         }
         return false
     }
@@ -304,9 +309,26 @@ mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
         }
         return false
     }
+    // A trait value has no bit of its own and its methods may store what they are
+    // handed (`put :: fn(self!, v: T)`), so its arguments are invariant : a
+    // `Sink<Cfg!>` lent as a `Sink<Cfg>` would take in a read-only `Cfg`.
     if from is TraitType {
         if to is TraitType {
-            return any_widens(from.args, to.args, strict)
+            return any_widens(from.args, to.args, strict, true)
+        }
+        return false
+    }
+    // A distinct type's bit is its backing's, spine included : `equals_type` matches
+    // two distincts on their symbol alone, so no `is_assignable_array` sees it.
+    if from is DistinctType {
+        if to is DistinctType {
+            if from.symbol.id != to.symbol.id {
+                return false
+            }
+            if type_is_immutable(from) && !type_is_immutable(to) {
+                return true
+            }
+            return mutability_widens(from.backing, to.backing, strict)
         }
         return false
     }
@@ -339,8 +361,10 @@ mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
 
 // Element-wise `mutability_widens`, for the positions that pair by INDEX — nominal
 // args, tuple elements and union variants. A length mismatch is an ordinary type
-// mismatch, not a mutability story, so it is left to the shape check.
-any_widens :: fn(from: Type[], to: Type[], strict: bool = true) -> bool {
+// mismatch, not a mutability story, so it is left to the shape check. `invariant`
+// also refuses an element that LOSES rights, under `strict` : the arguments of a
+// mutable struct or of a trait, which their holder may store into.
+any_widens :: fn(from: Type[], to: Type[], strict: bool = true, invariant: bool = false) -> bool {
     if from.len() != to.len() {
         return false
     }
@@ -348,9 +372,18 @@ any_widens :: fn(from: Type[], to: Type[], strict: bool = true) -> bool {
         if mutability_widens(from[i], to[i], strict) {
             return true
         }
+        if strict && invariant && mutability_widens(to[i], from[i]) {
+            return true
+        }
     }
     return false
 }
+
+// Whether a trait's arguments as a type implements them, or a bound names them
+// (`have`), match the ones a slot asks for — same shape, and the same rights at
+// every position, since the trait's methods may store what they are handed.
+trait_args_match :: fn(have: Type[], wanted: Type[]) -> bool =
+    struct_args_compatible(have, wanted) && !any_widens(have, wanted, true, true)
 
 /// True when `from` would grant mutation permission that `to` does not — the one
 /// direction the `!` marker forbids between two fn types.

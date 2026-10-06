@@ -7,6 +7,7 @@
 
 module "vader/typecheck"
 
+import "std/collections"
 import "vader/diagnostics"
 import "vader/types"
 AST :: import "toolchain/ast"
@@ -74,8 +75,7 @@ export infer_index :: fn(
     // above, and every other type kind is not indexable.
     @partial match target {
         is StructType -> {
-            declared :: typed.index_target_types[impl_base_key(target)]
-            result_ty :: resolve_index_param(target, declared, typed)
+            result_ty :: index_param(target, typed.index_target_types, typed)
             if result_ty == null {
                 diags.push(typecheck_error(.NotIndexable, e.span,
                     "${display_type(target)} is not indexable"))
@@ -116,34 +116,44 @@ export bounded_trait_args :: fn(bound: AST.Expr, trait_key: string, typed: Typed
 }
 
 /// Resolved key type K for an `m[k]` index target, or null when the
-/// target isn't a struct with a recorded `Index`/`IndexSet` impl.
-/// Used to pin a free-literal index key to K (here) and at index-set
+/// target isn't a struct or a distinct with a recorded `Index`/`IndexSet`
+/// impl. Used to pin a free-literal index key to K (here) and at index-set
 /// sites (`stmt.vader::check_assign`).
-index_key_expected :: fn(target: Type, typed: TypedProgram) -> Type | null {
-    if target is StructType {
-        return resolve_index_param(target, typed.index_key_types[impl_base_key(target)], typed)
-    }
-    return null
-}
+index_key_expected :: fn(target: Type, typed: TypedProgram) -> Type | null =
+    index_param(target, typed.index_key_types, typed)
 
 /// Resolved write-value type V for an `m[k] = v` target, or null when
-/// the target isn't a struct with a recorded `IndexSet` impl. Consumed
-/// by `stmt.vader::check_assign` to pin a free-literal index-set value.
-index_set_value_expected :: fn(target: Type, typed: TypedProgram) -> Type | null {
-    if target is StructType {
-        return resolve_index_param(target, typed.index_set_value_types[impl_base_key(target)], typed)
+/// the target isn't a struct or a distinct with a recorded `IndexSet` impl.
+/// Consumed by `stmt.vader::check_assign` to pin and check the written value.
+index_set_value_expected :: fn(target: Type, typed: TypedProgram) -> Type | null =
+    index_param(target, typed.index_set_value_types, typed)
+
+// The array an `a[i] = v` stores into : `a` itself, or the backing of an
+// array-backed distinct (`Ids :: i32[]`) that does not implement `IndexSet` of
+// its own — the order `try_lower_index_set_assign` dispatches in. Null when the
+// write goes through an `IndexSet` impl.
+stored_array :: fn(t: Type, typed: TypedProgram) -> ArrayType | null {
+    if t is DistinctType && index_set_value_expected(t, typed) != null {
+        return null
     }
-    return null
+    return array_backing(t)
 }
 
-// Substitute the struct's concrete type-args into a recorded
-// Index/IndexSet param template (the un-substituted K or V). Returns
-// the template unchanged when the struct decl is unavailable, null when
-// no impl was recorded.
-resolve_index_param :: fn(st: StructType, tmpl: Type | null, typed: TypedProgram) -> Type | null {
-    if tmpl is null { return null }
-    decl :: typed.struct_decls[st.symbol.id] ?? return tmpl
-    return substitute_by_name(tmpl, decl.type_params, st.args)
+// The `Index` / `IndexSet` parameter `table` records for `target` — the read
+// target, K or V — with a struct's concrete arguments substituted into the
+// template. A distinct takes no arguments, so its entry is the type. Null when
+// `target` is neither, or records no impl ; the template unchanged when the
+// struct decl is unavailable.
+index_param :: fn(target: Type, table: MutableMap<string, Type>, typed: TypedProgram) -> Type | null {
+    if target is DistinctType {
+        return table[impl_base_key(target)]
+    }
+    if target !is StructType {
+        return null
+    }
+    tmpl :: table[impl_base_key(target)] ?? return null
+    decl :: typed.struct_decls[target.symbol.id] ?? return tmpl
+    return substitute_by_name(tmpl, decl.type_params, target.args)
 }
 
 is_integer_index :: fn(t: Type) -> bool {

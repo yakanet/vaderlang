@@ -454,6 +454,12 @@ try_free_fn_ufcs_dispatch :: fn(
             ImplMethod { .ty = free_ufcs.curried, .self_mutable = self_mutable },
             e, target_ty, typed, diags,
         )
+        // Below its own level — T3071's — the receiver is held to the parameter's
+        // rights as any argument is : a `Box<Cfg>` handed to a `Box<Cfg!>!` would
+        // take in a read-only `Cfg` that the callee writes through.
+        if mutability_widens(arg_mutability_cleared(target_ty), first_param) {
+            diags.push(mismatch_diagnostic_hinted(target_ty, first_param, e.target.span, .TypeMismatch, ""))
+        }
     }
     return free_ufcs.curried
 }
@@ -1278,7 +1284,7 @@ try_default_trait_method :: fn(
             // Substitute Self → struct, then trait type-params →
             // recorded impl args, so a default naming the trait's `T`
             // reports the impl's argument instead.
-            sub_self :: substitute_self(trait_member_type(trait_id, m, typed), target_ty)
+            sub_self :: trait_member_type(trait_id, m, typed, target_ty)
             return substitute_trait_typeparams(sub_self, decl, trait_key, target_ty, typed)
         }
     }
@@ -1355,24 +1361,35 @@ pad_trait_default_args :: fn(
 // `t.method()` where `t: <SomeTrait>`. Looks up the method on the
 // trait decl, drops the `self` param, and returns the curried fn
 // type. Null when the trait isn't indexed or the method is missing.
-try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type | null {
+//
+// With `self_ty`, `Self` reads as that type — the impl's, when its members are held
+// to the trait — at the rights the trait writes on it (see `self_slot_type`) ; a
+// `Self` default the impl leaves out (`Out = Self`) is an unmarked slot, read-only.
+try_trait_method :: fn(
+    t: TraitType, name: string, typed: TypedProgram, self_ty: Type | null = null,
+) -> Type | null {
     decl :: typed.trait_decls[t.symbol.id] ?? return null
     m :: lookup_trait_method(decl, name) ?? return null
     owner_resolved :: typed.trait_decl_owners[t.symbol.id] ?? typed.resolved
     padded :: pad_trait_default_args(t.args, decl.type_params, owner_resolved)
-    return substitute_by_name(trait_member_type(t.symbol.id, m, typed), decl.type_params, padded)
+    bound :: substitute_by_name(trait_member_type(t.symbol.id, m, typed, self_ty), decl.type_params, padded)
+    if self_ty == null {
+        return bound
+    }
+    return substitute_self(bound, apply_readonly_default(self_ty, null))
 }
 
 // The type of `m`, a member of the trait `trait_id`, with its receiver dropped.
 // Its signature is read in the trait's own module : std/core's `Iterator<T>.next`
-// names a `T` minted there, which the entry's idents would leave unresolved.
-trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram) -> FnType {
+// names a `T` minted there, which the entry's idents would leave unresolved. With
+// `self_ty`, `Self` reads as that type (`self_slot_type`).
+trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram, self_ty: Type | null = null) -> FnType {
     owner_resolved :: typed.trait_decl_owners[trait_id] ?? typed.resolved
     params: Type[]!: []
     for i in receiver_count(m)..<m.params.len() {
-        params.push(type_from_expr_opt_in(m.params[i].ty, owner_resolved))
+        params.push(type_from_expr_opt_in(m.params[i].ty, owner_resolved, self_ty))
     }
-    return member_fn_type(m, params, type_from_expr_opt_in(m.return_type, owner_resolved))
+    return member_fn_type(m, params, type_from_expr_opt_in(m.return_type, owner_resolved, self_ty))
 }
 
 // A trait member's type with its receiver dropped — `params` are its tail — and
@@ -1385,13 +1402,24 @@ member_fn_type :: fn(m: AST.FnDecl, params: Type[], ret: Type) -> FnType = FnTyp
 }
 
 // A trait member's written param / return type, with the read-only default a
-// free fn's signature takes.
-type_from_expr_opt_in :: fn(e: AST.TypeExpr | null, resolved: ResolvedModule) -> Type {
+// free fn's signature takes — `Self` read as `self_ty` first when one is given.
+type_from_expr_opt_in :: fn(e: AST.TypeExpr | null, resolved: ResolvedModule, self_ty: Type | null = null) -> Type {
     if e is null {
         return TY_VOID
     }
-    return apply_readonly_default(type_from_expr(e, resolved, []), e)
+    if self_ty == null {
+        return apply_readonly_default(type_from_expr(e, resolved, []), e)
+    }
+    return self_slot_type(e, self_ty, resolved, [])
 }
+
+// A written type with `Self` read as `self_ty` BEFORE the read-only default : a
+// `SelfType` carries no marker of its own, so substituting after the default would
+// hand every `Self` the rights of `self_ty` as it comes. This way the written marker
+// decides — `Self` is the read-only `self_ty`, `Self!` the mutable one.
+self_slot_type :: fn(
+    written: AST.TypeExpr, self_ty: Type, resolved: ResolvedModule, diags: Diagnostic[]!,
+) -> Type = apply_readonly_default(substitute_self(type_from_expr(written, resolved, diags), self_ty), written)
 
 UfcsResult :: struct {
     curried: Type

@@ -142,13 +142,18 @@ export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
 /// answers false for them) come back unchanged, and so does a type that already
 /// has the requested bit.
 export with_immutable :: fn(t: Type, immutable: bool) -> Type = match t {
-    is ArrayType  -> if t.immutable == immutable { t } else { mk_array(t.element, immutable) }
-    is StructType -> if t.immutable == immutable { t } else { mk_struct(t.symbol, t.args, immutable) }
-    is TupleType  -> if t.immutable == immutable { t } else { mk_tuple(t.elements, immutable) }
-    is UnionType  -> union_of(with_immutable_each(t.variants, immutable))
+    is ArrayType    -> if t.immutable == immutable { t } else { mk_array(t.element, immutable) }
+    is StructType   -> if t.immutable == immutable { t } else { mk_struct(t.symbol, t.args, immutable) }
+    is TupleType    -> if t.immutable == immutable { t } else { mk_tuple(t.elements, immutable) }
+    is UnionType    -> union_of(with_immutable_each(t.variants, immutable))
+    is DistinctType -> if !carries_mutability_bit(t) || type_is_immutable(t) == immutable {
+        t
+    } else {
+        mk_distinct(t.symbol, with_immutable(t.backing, immutable))
+    }
     is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
      | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
-     | NeverType | AnyType | DistinctType -> t
+     | NeverType | AnyType -> t
 }
 
 with_immutable_each :: fn(variants: Type[], immutable: bool) -> Type[] {
@@ -509,9 +514,10 @@ export struct_implements_trait :: fn(t: Type, trait_key: string, typed: TypedPro
 
 /// True iff `t` implements `wanted` at `wanted`'s own arguments, not merely some
 /// instance of it : `Cell<i64>` implements `Source<i64>`, which is no
-/// `Source<i32>`. The arguments compare without mutability, since the recorded
-/// impl arguments carry no read-only default. A trait written without arguments,
-/// or an impl with none recorded, is decided by `struct_implements_trait` alone.
+/// `Source<i32>`. The arguments compare with their rights, both ways : an impl of
+/// `Sink<Cfg!>` stores what it is handed, so it serves no slot lending read-only
+/// `Cfg`s. A trait written without arguments, or an impl with none recorded, is
+/// decided by `struct_implements_trait` alone.
 ///
 /// @param t       the implementing type.
 /// @param wanted  the trait instance a slot asks for.
@@ -525,10 +531,7 @@ export implements_trait_instance :: fn(t: Type, wanted: TraitType, typed: TypedP
         return true
     }
     impl_args :: resolve_struct_trait_args(t, key, typed) ?? return true
-    return struct_args_compatible(
-        strip_mutability_each(impl_args),
-        strip_mutability_each(wanted.args),
-    )
+    return trait_args_match(impl_args, wanted.args)
 }
 
 /// Why `t` does not implement `trait_key` although an impl of it exists for `t`'s
@@ -781,19 +784,24 @@ literal_family_holds :: fn(got: Type, name: string) -> bool = match got {
 /// @param t  the type to reduce to its shape.
 /// @return   `t` itself when nothing inside it carries a mutability bit.
 export strip_mutability :: fn(t: Type) -> Type = match t {
-    is ArrayType  -> mk_array(strip_mutability(t.element), true)
-    is TupleType  -> mk_tuple(strip_mutability_each(t.elements), true)
-    is StructType -> mk_struct(t.symbol, strip_mutability_each(t.args), true)
-    is TraitType  -> mk_trait(t.symbol, strip_mutability_each(t.args))
-    is UnionType  -> mk_union(strip_mutability_each(t.variants))
-    is FnType     -> FnType {
+    is ArrayType    -> mk_array(strip_mutability(t.element), true)
+    is TupleType    -> mk_tuple(strip_mutability_each(t.elements), true)
+    is StructType   -> mk_struct(t.symbol, strip_mutability_each(t.args), true)
+    is TraitType    -> mk_trait(t.symbol, strip_mutability_each(t.args))
+    is UnionType    -> mk_union(strip_mutability_each(t.variants))
+    is DistinctType -> if carries_mutability_bit(t) {
+        mk_distinct(t.symbol, strip_mutability(t.backing))
+    } else {
+        t
+    }
+    is FnType       -> FnType {
         .params         = strip_mutability_each(t.params),
         .params_mutable = t.params_mutable,
         .return_type    = strip_mutability(t.return_type),
     }
     is PrimitiveType | EnumType | TypeParamType | TypeMetaType | SelfType
      | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
-     | NeverType | AnyType | DistinctType -> t
+     | NeverType | AnyType -> t
 }
 
 strip_mutability_each :: fn(ts: Type[]) -> Type[] {

@@ -105,17 +105,15 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
 }
 
 // A type parameter is the traits its bound names : `x: T` with `T: Display` fits a
-// `Display` slot, `T: Iterator<i32>` an `Iterator<i32>` one.
+// `Display` slot, `T: Iterator<i32>` an `Iterator<i32>` one — at the bound's own
+// rights, as an impl's (`implements_trait_instance`).
 bound_widens_into :: fn(param: TypeParamType, wanted: TraitType, typed: TypedProgram) -> bool {
     bound :: typed.resolved.type_param_bounds[param.symbol.id] ?? return false
     bound_args :: bounded_trait_args(bound, trait_key_of(wanted.symbol), typed) ?? return false
     if wanted.args.len() == 0 || bound_args.len() == 0 {
         return true
     }
-    return struct_args_compatible(
-        strip_mutability_each(bound_args),
-        strip_mutability_each(wanted.args),
-    )
+    return trait_args_match(bound_args, wanted.args)
 }
 
 // ---- tests ----------------------------------------------------------------

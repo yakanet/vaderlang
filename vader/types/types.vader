@@ -447,8 +447,9 @@ export mk_struct :: fn(symbol: Symbol, args: Type[], immutable: bool) -> Type =
 
 export mk_trait :: fn(symbol: Symbol, args: Type[]) -> Type = TraitType { .symbol = symbol, .args = args }
 
-/// Distinct (newtype) over `backing` — see `DistinctType`. `backing` must be
-/// a `PrimitiveType` ; callers (the resolver) guarantee this in v1.
+/// Distinct (newtype) over `backing` — see `DistinctType`. `backing` is a
+/// primitive, an array, a struct or a tuple (`distinct_backing` decides), and
+/// holds the distinct's read-only bit.
 export mk_distinct :: fn(symbol: Symbol, backing: Type) -> Type = DistinctType { .symbol = symbol, .backing = backing }
 
 export mk_array :: fn(element: Type, immutable: bool) -> Type = ArrayType { .element = element, .immutable = immutable }
@@ -535,17 +536,17 @@ export mk_fn :: fn(params: Type[], return_type: Type) -> Type {
 ///
 /// Only the three REFERENCE shapes carry the bit — a primitive, an enum or a
 /// distinct-over-primitive is a value, copied into the slot, so "the referent
-/// is read-only" has no meaning for it. A `DistinctType` answers false even
-/// when its backing is an array or a struct : the bit would then live on the
-/// backing, and every `strip_distinct` / `array_backing` unwrap site would have
-/// to preserve it. Known phase-1 gap, deliberately not covered.
+/// is read-only" has no meaning for it. A `DistinctType` answers for its backing,
+/// where its bit lives : `strip_distinct` and the `*_backing` unwraps hand the
+/// backing out as it is, bit included.
 export type_is_immutable :: fn(t: Type) -> bool = match t {
-    is ArrayType  -> t.immutable
-    is StructType -> t.immutable
-    is TupleType  -> t.immutable
+    is ArrayType    -> t.immutable
+    is StructType   -> t.immutable
+    is TupleType    -> t.immutable
+    is DistinctType -> type_is_immutable(t.backing)
     is PrimitiveType | EnumType | TraitType | UnionType | FnType | TypeParamType
      | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
-     | FreeCharType | NeverType | AnyType | DistinctType -> false
+     | FreeCharType | NeverType | AnyType -> false
 }
 
 /// Whether `t` EXPLICITLY grants mutation at its own level — what `!` writes.
@@ -557,13 +558,14 @@ export type_is_immutable :: fn(t: Type) -> bool = match t {
 ///
 /// @param t  the type to ask.
 export type_grants_mutation :: fn(t: Type) -> bool = match t {
-    is ArrayType  -> !t.immutable
-    is StructType -> !t.immutable
-    is TupleType  -> !t.immutable
-    is UnionType  -> variants_grant_mutation(t.variants)
+    is ArrayType    -> !t.immutable
+    is StructType   -> !t.immutable
+    is TupleType    -> !t.immutable
+    is UnionType    -> variants_grant_mutation(t.variants)
+    is DistinctType -> type_grants_mutation(t.backing)
     is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
      | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
-     | NeverType | AnyType | DistinctType -> false
+     | NeverType | AnyType -> false
 }
 
 /// Whether ANY level of `t` could hand out mutation — the "some variant" dual of
@@ -597,13 +599,15 @@ variants_grant_mutation :: fn(variants: Type[]) -> bool =
     any_variant(variants, carries_mutability_bit) && !any_variant(variants, type_withholds_mutation)
 
 /// Whether `t` carries a mutability marker of its own level — the three reference
-/// shapes, and a union, whose variants carry theirs. A primitive, an enum or `null` is
-/// a value, copied out : `with_immutable` leaves it alone, so `Value!` over
-/// `ArrayVal | BoolVal` reads as `ArrayVal! | BoolVal`.
+/// shapes, a union, whose variants carry theirs, and a distinct over one of them,
+/// whose backing holds its bit. A primitive, an enum or `null` is a value, copied
+/// out : `with_immutable` leaves it alone, so `Value!` over `ArrayVal | BoolVal`
+/// reads as `ArrayVal! | BoolVal`.
 ///
 /// @param t  the type to ask.
 export carries_mutability_bit :: fn(t: Type) -> bool =
-    t is ArrayType | StructType | TupleType | UnionType
+    t is ArrayType | StructType | TupleType | UnionType ||
+        (t is DistinctType && carries_mutability_bit(t.backing))
 
 /// Whether some level `t` hands out is read-only by its own marker : a frozen array,
 /// struct or tuple, or a union holding one (`Point | null` from an unmarked return).
@@ -658,7 +662,7 @@ export display_type :: fn(t: Type) -> string {
         is PrimitiveType  -> { return t.name }
         is TypeParamType  -> { return t.symbol.name }
         is EnumType       -> { return t.symbol.name }
-        is DistinctType   -> { return t.symbol.name }
+        is DistinctType   -> { if !type_grants_mutation(t) { return t.symbol.name } }
         is UnresolvedType -> { return "?" }
         is NeverType      -> { return "never" }
         is FreeIntType    -> { return "{integer}" }
@@ -746,7 +750,10 @@ write_type_mut :: fn(sb: StringBuilder!, t: Type, show_mut: bool) -> void {
             if show_mut && !t.immutable { sb.append_char('!') }
         }
         is EnumType       -> { sb.append(t.symbol.name) }
-        is DistinctType   -> { sb.append(t.symbol.name) }
+        is DistinctType   -> {
+            sb.append(t.symbol.name)
+            if show_mut && type_grants_mutation(t) { sb.append_char('!') }
+        }
         is TraitType      -> { sb.write_named_mut(t.symbol.name, t.args, show_mut) }
         is TypeParamType  -> { sb.append(t.symbol.name) }
         is TypeMetaType   -> { sb.append("type") }

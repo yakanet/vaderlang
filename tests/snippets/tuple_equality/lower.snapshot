@@ -28,8 +28,8 @@
       }
   fn snippet$named(a: i32, b: i32) -> Pair
     ~>
-      cast → Pair
-        Pair {
+      cast → Pair!
+        Pair! {
           _0: a :i32
           _1: b :i32
         }

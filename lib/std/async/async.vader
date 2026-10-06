@@ -116,8 +116,8 @@ JoinAll :: struct<T> {
     wake_at:  i64[]!
 }
 
-JoinAll<T> implements Async<T[]> {
-    resume :: fn(self!) -> T[] | Suspended {
+JoinAll<T> implements Async<T[]!> {
+    resume :: fn(self!) -> T[]! | Suspended {
         n :: self.children.len()
         now :: sched_now()
         next: i64 = NEVER

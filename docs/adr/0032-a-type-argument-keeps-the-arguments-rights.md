@@ -3,7 +3,8 @@
 ## Status
 
 Accepted (2026-10-06). Resolves the `unify_type_param` item that 0017 left open;
-amends 0022, whose generic paragraph assumed the erasure.
+amends 0022, whose generic paragraph assumed the erasure. The nominal-argument item
+left open below is resolved by 0033.
 
 ## Context
 
@@ -72,8 +73,8 @@ Still open:
   where `assert_eq(EXPECTED, got)` passes. Nothing leaks — every later argument is
   checked against the binding — but binding to the fewest rights among the
   covariant occurrences would make the order irrelevant;
-- the argument path clears the bits inside a NOMINAL type argument
-  (`arg_mutability_cleared`), so `gen_mut(h: Holder<Box!>)` accepts a
+- **resolved by 0033** — the argument path clears the bits inside a NOMINAL type
+  argument (`arg_mutability_cleared`), so `gen_mut(h: Holder<Box!>)` accepts a
   `Holder<Box>` — the invariance of a type argument under a mutable struct is the
   same question as element invariance under a mutable array, and has not been
   measured yet.

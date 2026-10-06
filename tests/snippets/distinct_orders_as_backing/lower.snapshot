@@ -146,13 +146,13 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let dim: Tint =
-      cast → Tint
+    let dim: Tint! =
+      cast → Tint!
         Rgb! {
           r: int(1) :i32
         }
-    let bright: Tint =
-      cast → Tint
+    let bright: Tint! =
+      cast → Tint!
         Rgb! {
           r: int(2) :i32
         }
@@ -199,9 +199,9 @@
                         callee:
                           snippet$Rgb$Comparable$compare :i32
                         arg0:
-                          dim :Tint
+                          dim :Tint!
                         arg1:
-                          bright :Tint
+                          bright :Tint!
                     r:
                       int(0) :i32
           assign
@@ -235,9 +235,9 @@
                         callee:
                           snippet$Rgb$Comparable$compare :i32
                         arg0:
-                          bright :Tint
+                          bright :Tint!
                         arg1:
-                          dim :Tint
+                          dim :Tint!
                     r:
                       int(0) :i32
           assign
@@ -271,9 +271,9 @@
                         callee:
                           snippet$Rgb$Comparable$compare :i32
                         arg0:
-                          dim :Tint
+                          dim :Tint!
                         arg1:
-                          dim :Tint
+                          dim :Tint!
                     r:
                       int(0) :i32
           ~>

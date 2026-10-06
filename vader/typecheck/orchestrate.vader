@@ -983,8 +983,7 @@ record_struct_trait_args :: fn(
     typed: TypedProgram!,
     for_ty: Type,
     trait_key: string,
-    // Mutable because that is what `struct_trait_args` stores : a generic
-    // argument takes no read-only default (see `apply_readonly_default`).
+    // Mutable because that is what `struct_trait_args` stores.
     args: Type[]!,
 ) -> void {
     base :: impl_base_key(for_ty)
@@ -1392,12 +1391,11 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram!) -> bool {
         return false
     }
     aliased :: type_from_expr(cd.value, typed.resolved, diag_sink())
-    // `alias_for` (decl.vader, same module) is the shared primitive-RHS distinct
-    // promotion rule ; this cross-project pass is the authoritative writer of
-    // `alias_types`.
+    // `alias_for` (decl.vader, same module) is the shared distinct promotion rule ;
+    // this cross-project pass is the authoritative writer of `alias_types`.
     for s in typed.resolved.symbols {
         if s.name == cd.name {
-            typed.resolved.alias_types[s.id] = alias_for(s, aliased, cd.decorators)
+            typed.resolved.alias_types[s.id] = alias_for(s, aliased, cd)
         }
     }
     return true
@@ -2399,10 +2397,9 @@ record_impl_members :: fn(
     owner: TypedProgram,
     diags: Diagnostic[]!,
 ) -> void {
-    trait_args: Type[]!: []
-    for ta in decl.trait_args {
-        trait_args.push(type_from_expr(ta, owner.resolved, diags))
-    }
+    // With the default a slot's arguments take, so the impl's instance compares
+    // with the slots that ask for it (`implements_trait_instance`).
+    trait_args :: written_type_args(decl.trait_args, owner.resolved, diags)
     index_impl_metadata(typed, for_ty, trait_key, trait_args)
     record_struct_trait_args(typed, for_ty, trait_key, trait_args)
     trait_decl :: typed.trait_decls[trait_sym.id]
@@ -2476,10 +2473,7 @@ check_impl_members :: fn(
 ) -> void {
     trait_decl :: typed.trait_decls[trait_sym.id] ?? return
     // Resolved again by `record_impl_members`, which reports what fails.
-    trait_args: Type[]!: []
-    for a in id.trait_args {
-        trait_args.push(type_from_expr(a, typed.resolved, []))
-    }
+    trait_args :: written_type_args(id.trait_args, typed.resolved, [])
     trait_type :: TraitType { .symbol = trait_sym, .args = trait_args }
     for member in id.members {
         trait_method :: lookup_trait_method(trait_decl, member.name)
@@ -2515,10 +2509,9 @@ check_impl_members :: fn(
 // (its arguments, then the defaults) with `Self` read as `for_ty` : the same number of
 // parameters, each of the same type, and the same return type. The vtable slot and
 // the direct call both assume this shape. The rights follow the trait too : a member
-// may not demand more than the trait lends nor return less than it promises, except
-// where the trait wrote `T` or `Self`. A generic trait method is held to its arity
-// alone, its own type parameters being the impl's to name. A SAM member and a
-// default-method clone copy the trait's signature.
+// may not demand more than the trait lends nor return less than it promises. A generic
+// trait method is held to its arity alone, its own type parameters being the impl's to
+// name. A SAM member and a default-method clone copy the trait's signature.
 check_member_signature :: fn(
     member: AST.FnDecl,
     trait_method: AST.FnDecl,
@@ -2539,17 +2532,13 @@ check_member_signature :: fn(
     if trait_method.type_params.len() > 0 {
         return
     }
-    trait_fn :: try_trait_method(trait_type, member.name, typed) ?? return
-    want :: substitute_self(trait_fn, for_ty)
+    want :: try_trait_method(trait_type, member.name, typed, for_ty) ?? return
     got :: typed.impl_method_decl_types[member.name_span.hash()]
     if want !is FnType || got !is FnType {
         return
     }
     // `want` has no receiver ; `got` keeps the impl's `self`.
     skip :: receiver_count(trait_method)
-    // The trait's signature before its arguments are bound : the positions it wrote
-    // as `T` or `Self` show where `want`'s marker is borrowed rather than promised.
-    written :: trait_member_type(trait_type.symbol.id, trait_method, typed)
     // A call through the trait is checked against the TRAIT's rights : an impl that
     // demands more mutates what the caller lent read-only (a module const, in
     // `.rodata`), and one that returns fewer hands a read-only value to a caller
@@ -2564,7 +2553,7 @@ check_member_signature :: fn(
         if !equals_type_shape(want.params[i], have) {
             detail :: "`${member.name}` parameter `${param.name}`: ${expected_got(want.params[i], have)}"
             diags.push(typecheck_error(.ImplMemberSignatureDiffers, param.span, detail))
-        } else if !is_assignable(want.params[i], have) && !borrows_its_rights(written.params[i]) {
+        } else if !is_assignable(want.params[i], have) {
             detail :: "`${member.name}` parameter `${param.name}` is `${display_type(have)}`, but the trait lends `${display_type(want.params[i])}`"
             diags.push(typecheck_error(.ImplMemberSignatureDiffers, param.span, detail))
         }
@@ -2572,26 +2561,10 @@ check_member_signature :: fn(
     if !equals_type_shape(want.return_type, got.return_type) {
         detail :: "`${member.name}` return: ${expected_got(want.return_type, got.return_type)}"
         diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.name_span, detail))
-    } else if !is_assignable(got.return_type, want.return_type) &&
-        !borrows_its_rights(written.return_type) {
+    } else if !is_assignable(got.return_type, want.return_type) {
         detail :: "`${member.name}` returns `${display_type(got.return_type)}`, but the trait promises `${display_type(want.return_type)}`"
         diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.name_span, detail))
     }
-}
-
-// A position written as a type parameter or `Self` holds the rights of what binds
-// it, and a type argument carries no bit : the `!` it shows once bound is the raw
-// default, not a promise the impl could break.
-borrows_its_rights :: fn(t: Type) -> bool = type_contains_type_param(t) || mentions_self(t)
-
-// @partial: `Self` can only sit under a structural level here ; a nominal one
-// (`Box<Self>`) carries no bit either way.
-mentions_self :: fn(t: Type) -> bool = @partial match t {
-    is SelfType  -> true
-    is ArrayType -> mentions_self(t.element)
-    is TupleType -> t.elements.any_match(mentions_self)
-    is UnionType -> t.variants.any_match(mentions_self)
-    _            -> false
 }
 
 // `expected X, got Y` over two types compared without their `!`.
@@ -2715,12 +2688,12 @@ declare_impl_return :: fn(
     if fd.return_type == null && trait_method !is null {
         written :: trait_method.return_type
         if written !is null {
-            trait_ret :: substitute_self(type_from_expr(written, typed.resolved, diags), for_ty)
-            return apply_readonly_default(trait_ret, written)
+            return self_slot_type(written, for_ty, typed.resolved, diags)
         }
     }
     // A written `-> Self` names `for_ty` too.
-    return substitute_self(declare_fn_return(fd, typed.resolved, diags), for_ty)
+    declared :: fd.return_type ?? return declare_fn_return(fd, typed.resolved, diags)
+    return self_slot_type(declared, for_ty, typed.resolved, diags)
 }
 
 param_type :: fn(
@@ -2745,9 +2718,7 @@ param_type :: fn(
     // — otherwise the impl method's type keeps `other: Self`, and a default-
     // method clone calling it with its own `other` (already substituted to
     // `for_ty`) mismatches `expected Self, got <for_ty>`.
-    return apply_readonly_default(
-        substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty), p.ty,
-    )
+    return self_slot_type(p.ty, for_ty, typed.resolved, diags)
 }
 
 /// True when a const's value can be typed WITHOUT any fn body having been typed
@@ -2792,7 +2763,7 @@ check_const_value :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, diags: Diagnos
         // body-typing pass ALSO writes `alias_types`, so without it the
         // transparent backing would clobber the DistinctType earlier passes
         // registered.
-        typed.resolved.alias_types[sym.id] = alias_for(sym, alias_ty, cd.decorators)
+        typed.resolved.alias_types[sym.id] = alias_for(sym, alias_ty, cd)
         return
     }
     got :: check_expr(cd.value, expected, typed, diags)

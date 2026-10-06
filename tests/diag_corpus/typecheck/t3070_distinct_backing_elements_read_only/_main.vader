@@ -1,0 +1,21 @@
+// A distinct's backing takes the read-only default a written slot's children do :
+// `Grid :: Cfg[]` holds read-only `Cfg`s, so writing a field of one is T3070 —
+// here it would write into `TABLE`.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+Grid :: Cfg[]
+
+TABLE: Cfg[]: [Cfg { .n = 1 }]
+
+poke :: fn(g: Grid) -> void {
+    g[0].n = 9
+}
+
+main :: fn() -> i32 {
+    poke(Grid(TABLE))
+    return TABLE[0].n
+}

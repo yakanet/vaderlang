@@ -47,10 +47,10 @@
   expr 66:9     BinaryExpr     :: i32
   expr 66:9     IdentExpr      :: i32
   expr 68:12    IdentExpr      :: i32
-  expr 72:13    CallExpr       :: Sq!
+  expr 72:13    CallExpr       :: Sq
   expr 72:13    CallExpr       :: i32
   expr 72:13    FieldExpr      :: fn() -> i32
-  expr 72:13    FieldExpr      :: fn(i32) -> Sq!
+  expr 72:13    FieldExpr      :: fn(i32) -> Sq
   expr 72:13    IdentExpr      :: Sq!
   expr 72:5     CallExpr       :: void
   expr 72:5     IdentExpr      :: fn(T) -> void

@@ -19,9 +19,9 @@
   expr 24:42    IdentExpr      :: i32
   expr 24:45    StructLitExpr  :: Tagged!
   expr 24:59    IdentExpr      :: i32
-  expr 25:39    CallExpr       :: Pair
+  expr 25:39    CallExpr       :: Pair!
   expr 25:39    IdentExpr      :: type
-  expr 25:44    SeqLitExpr     :: Pair
+  expr 25:44    SeqLitExpr     :: Pair!
   expr 25:45    IdentExpr      :: i32
   expr 25:48    IdentExpr      :: i32
   expr 29:10    CallExpr       :: [i32, string]

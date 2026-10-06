@@ -767,18 +767,19 @@ check_assign :: fn(
         }
     }
     // T3042 : `arr[i] = v` when arr's static type is read-only `T[]`.
-    // For Array-typed receivers we still write the full IndexExpr
-    // into `expr_types`. For non-Array receivers the
-    // assignment LHS doesn't land in `expr_types` — only its sub-
-    // parts do, since the IndexSet trait dispatch is the read site.
+    // For an array receiver — or an array-backed distinct, `stored_array` — we
+    // still write the full IndexExpr into `expr_types`. For any other receiver
+    // the assignment LHS doesn't land in `expr_types` — only its sub-parts do,
+    // since the IndexSet trait dispatch is the read site.
     if s.target is AST.IndexExpr {
         ix :: s.target
         target_arr_ty :: check_expr_fn(ix.target, null, typed, diags)
         // Pin a free-literal index key to the IndexSet key type K
         // (`m[9000000000] = v`); null for arrays = plain integer index.
         check_expr_fn(ix.index, index_key_expected(target_arr_ty, typed), typed, diags)
-        if target_arr_ty is ArrayType {
-            if target_arr_ty.immutable {
+        arr :: stored_array(target_arr_ty, typed)
+        if arr != null {
+            if arr.immutable {
                 diags.push(
                     typecheck_error(
                         .CannotMutateImmutableArray,
@@ -1073,14 +1074,13 @@ check_destructure_target :: fn(
         // reached through an immutable path. Skipping these would let a
         // destructuring assignment write through a read-only borrow.
         recv_ty :: check_expr_fn(target.target, null, typed, diags)
-        if recv_ty is ArrayType {
-            if recv_ty.immutable {
-                diags.push(typecheck_error(
-                    .CannotMutateImmutableArray, target.target.span,
-                    "cannot mutate `${display_type(recv_ty)}`"
-                        + mutation_fix_hint(target.target, typed)))
-                return
-            }
+        arr :: stored_array(recv_ty, typed)
+        if arr != null && arr.immutable {
+            diags.push(typecheck_error(
+                .CannotMutateImmutableArray, target.target.span,
+                "cannot mutate `${display_type(recv_ty)}`"
+                    + mutation_fix_hint(target.target, typed)))
+            return
         }
         if push_immutable_path_write(target.target, target.span, typed, diags) {
             return

@@ -2,9 +2,9 @@
 
 ## snippet
   struct snippet$Rgb { r: i32, g: i32, b: i32 }
-  fn snippet$Color$Add$add(self: Color, other: Color) -> Color
+  fn snippet$Color$Add$add(self: Color!, other: Color) -> Color
     ~>
-      Color {
+      Color! {
         r:
           div :i32
             l:
@@ -43,14 +43,14 @@
               int(2) :i32
       }
   fn snippet$main() -> i32
-    let red: Color =
-      Color {
+    let red: Color! =
+      Color! {
         r: int(200) :i32
         g: int(0) :i32
         b: int(0) :i32
       }
-    let blue: Color =
-      Color {
+    let blue: Color! =
+      Color! {
         r: int(0) :i32
         g: int(0) :i32
         b: int(200) :i32
@@ -60,9 +60,9 @@
         callee:
           snippet$Color$Add$add :Color
         arg0:
-          red :Color
+          red :Color!
         arg1:
-          blue :Color
+          blue :Color!
     call :void
       callee:
         std_io$println__string :void
@@ -269,7 +269,7 @@
                 __off_6 :usize
     let s: Swatch =
       Swatch {
-        _0: red :Color
+        _0: red :Color!
         _1: int(5) :i32
       }
     call :void

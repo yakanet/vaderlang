@@ -1,0 +1,36 @@
+// An impl's trait arguments are slots like any other, read-only unless marked :
+// `Sink<Cfg>` lends read-only `Cfg`s, so a `put` taking `Cfg!` demands more than
+// the trait lends — a call through `Sink<Cfg>` would store a module const its
+// holder then writes. T3095.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+Sink :: trait<T> {
+    put :: fn(self!, v: T) -> void
+}
+
+Holder :: struct {
+    c: Cfg!
+}
+
+Holder implements Sink<Cfg> {
+    put :: fn(self!, v: Cfg!) -> void {
+        self.c = v
+    }
+}
+
+ORIGIN :: Cfg { .n = 1 }
+
+feed :: fn(s: Sink<Cfg>!) -> void {
+    s.put(ORIGIN)
+}
+
+main :: fn() -> i32 {
+    h :: Holder { .c = Cfg { .n = 2 } }
+    feed(h)
+    h.c.n = 9
+    return h.c.n
+}
