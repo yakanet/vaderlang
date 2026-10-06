@@ -1,0 +1,36 @@
+// An impl member must have its trait method's signature : a missing parameter,
+// a parameter of another type and another return type are each T3095. The vtable
+// slot and a direct call both assume the trait's shape.
+module "snippet"
+
+Scorer :: trait {
+    score :: fn(self, k: i32) -> i32
+}
+
+Point :: struct {
+    x: i32
+}
+
+Label :: struct {
+    s: string
+}
+
+Box :: struct {
+    v: i32
+}
+
+Point implements Scorer {
+    score :: fn(self) -> i32 = self.x
+}
+
+Label implements Scorer {
+    score :: fn(self, k: i64) -> i32 = 1
+}
+
+Box implements Scorer {
+    score :: fn(self, k: i32) -> string = "x"
+}
+
+main :: fn() -> i32 {
+    return 0
+}

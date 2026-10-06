@@ -2347,11 +2347,11 @@ register_impl_metadata :: fn(
             }
         }
     }
-    check_impl_members(id, trait_sym, typed, diags)
     trait_decl :: typed.trait_decls[trait_sym.id]
     for m in id.members {
         declare_impl_method_for_trait(m, for_ty, lookup_trait_method(trait_decl, m.name), typed, diags)
     }
+    check_impl_members(id, trait_sym, for_ty, typed, diags)
     record_impl_members(typed, id, for_ty, trait_sym, trait_key, typed, diags)
 }
 
@@ -2457,12 +2457,22 @@ walk_fn_body :: fn(
 check_impl_members :: fn(
     id: AST.ImplDecl,
     trait_sym: Symbol,
+    for_ty: Type,
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> void {
     trait_decl :: typed.trait_decls[trait_sym.id] ?? return
+    // Resolved again by `record_impl_members`, which reports what fails.
+    trait_args: Type[]!: []
+    for a in id.trait_args {
+        trait_args.push(type_from_expr(a, typed.resolved, []))
+    }
+    trait_type :: TraitType { .symbol = trait_sym, .args = trait_args }
     for member in id.members {
-        if !member.sam_synthetic && lookup_trait_method(trait_decl, member.name) == null {
+        trait_method :: lookup_trait_method(trait_decl, member.name)
+        if trait_method != null {
+            check_member_signature(member, trait_method, trait_type, for_ty, typed, diags)
+        } else if !member.sam_synthetic {
             diags.push(
                 typecheck_error(
                     .ImplMemberNotInTrait,
@@ -2487,6 +2497,57 @@ check_impl_members :: fn(
         }
     }
 }
+
+// T3095 — `member` must have its trait method's signature, as `trait_type` gives it
+// (its arguments, then the defaults) with `Self` read as `for_ty` : the same number of
+// parameters, each of the same type, and the same return type. The vtable slot and
+// the direct call both assume this shape. A generic trait method is held to its
+// arity alone, its own type parameters being the impl's to name. A SAM member and
+// a default-method clone copy the trait's signature.
+check_member_signature :: fn(
+    member: AST.FnDecl,
+    trait_method: AST.FnDecl,
+    trait_type: TraitType,
+    for_ty: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[]!,
+) -> void {
+    if member.sam_synthetic || member.materialized {
+        return
+    }
+    want_count :: trait_method.params.len()
+    if member.params.len() != want_count {
+        detail :: "`${member.name}`: expected ${want_count} parameter(s), got ${member.params.len()}"
+        diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.name_span, detail))
+        return
+    }
+    if trait_method.type_params.len() > 0 {
+        return
+    }
+    trait_fn :: try_trait_method(trait_type, member.name, typed) ?? return
+    want :: substitute_self(trait_fn, for_ty)
+    got :: typed.impl_method_decl_types[member.name_span.hash()]
+    if want !is FnType || got !is FnType {
+        return
+    }
+    // `want` has no receiver ; `got` keeps the impl's `self`.
+    skip :: receiver_count(trait_method)
+    for i in 0..<want.params.len() {
+        if !equals_type_shape(want.params[i], got.params[i + skip]) {
+            name :: member.params[i + skip].name
+            detail :: "`${member.name}` parameter `${name}`: ${expected_got(want.params[i], got.params[i + skip])}"
+            diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.params[i + skip].span, detail))
+        }
+    }
+    if !equals_type_shape(want.return_type, got.return_type) {
+        detail :: "`${member.name}` return: ${expected_got(want.return_type, got.return_type)}"
+        diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.name_span, detail))
+    }
+}
+
+// `expected X, got Y` over two types compared without their `!`.
+expected_got :: fn(want: Type, got: Type) -> string =
+    "expected `${display_type(strip_mutability(want))}`, got `${display_type(strip_mutability(got))}`"
 
 lookup_trait_method :: fn(td: AST.TraitDecl | null, name: string) -> AST.FnDecl | null {
     if td is null {
