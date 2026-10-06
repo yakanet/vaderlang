@@ -59,6 +59,15 @@ export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
     return equals_type(got.element, expected.args[0])
 }
 
+/// True when a `got` value filling a `slot` reaches it as a fresh iterator : an array
+/// only fits an `Iterator` slot through the `.into()` that builds one, so what the
+/// slot's owner advances is that iterator, never the array.
+///
+/// @param got   the value's type.
+/// @param slot  the receiver or parameter type it fills.
+export converts_to_fresh_iterator :: fn(got: Type, slot: Type) -> bool =
+    got is ArrayType && slot is TraitType && slot.symbol.name == TRAIT_ITERATOR
+
 /// True when `got` implements the trait `expected`, at `expected`'s arguments
 /// (or a variant of `expected` if it's a union). Handles struct receivers AND primitives
 /// — `i32 implements Doubler(i32)` is a valid impl whose receiver name

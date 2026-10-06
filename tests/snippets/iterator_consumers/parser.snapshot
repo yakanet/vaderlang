@@ -385,17 +385,20 @@
         {
           "name": "it",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "i64"
-              }
-            ]
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i64"
+                }
+              ]
+            }
           },
           "defaultValue": null,
           "variadic": false
@@ -492,17 +495,20 @@
         {
           "name": "it",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "i64"
-              }
-            ]
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i64"
+                }
+              ]
+            }
           },
           "defaultValue": null,
           "variadic": false
@@ -586,17 +592,20 @@
         {
           "name": "it",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "string"
-              }
-            ]
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "string"
+                }
+              ]
+            }
           },
           "defaultValue": null,
           "variadic": false
@@ -720,26 +729,29 @@
         {
           "name": "it",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
-                "kind": "SeqLitExpr",
-                "elements": [
-                  {
-                    "kind": "IdentExpr",
-                    "name": "i32"
-                  },
-                  {
-                    "kind": "IdentExpr",
-                    "name": "i32"
-                  }
-                ]
-              }
-            ]
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "SeqLitExpr",
+                  "elements": [
+                    {
+                      "kind": "IdentExpr",
+                      "name": "i32"
+                    },
+                    {
+                      "kind": "IdentExpr",
+                      "name": "i32"
+                    }
+                  ]
+                }
+              ]
+            }
           },
           "defaultValue": null,
           "variadic": false
@@ -927,17 +939,20 @@
         {
           "name": "it",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "i64"
-              }
-            ]
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i64"
+                }
+              ]
+            }
           },
           "defaultValue": null,
           "variadic": false
@@ -1034,17 +1049,20 @@
         {
           "name": "it",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "i64"
-              }
-            ]
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i64"
+                }
+              ]
+            }
           },
           "defaultValue": null,
           "variadic": false
@@ -1140,17 +1158,20 @@
         {
           "name": "it",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "i32"
-              }
-            ]
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
+            }
           },
           "defaultValue": null,
           "variadic": false

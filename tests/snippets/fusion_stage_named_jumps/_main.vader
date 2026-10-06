@@ -15,7 +15,7 @@ import "std/iter"
 
 spread :: fn(x: i32) -> i32[] = [x, x + 1]
 
-until_over :: fn(self: Iterator<i32>, limit: i32) -> Iterator<i32> {
+until_over :: fn(self: Iterator<i32>!, limit: i32) -> Iterator<i32> {
     for x in self {
         for j in 0..<3 {
             if x * 10 + j > limit {
@@ -26,7 +26,7 @@ until_over :: fn(self: Iterator<i32>, limit: i32) -> Iterator<i32> {
     }
 }
 
-stop_at :: fn(self: Iterator<i32>, stop: i32) -> Iterator<i32> {
+stop_at :: fn(self: Iterator<i32>!, stop: i32) -> Iterator<i32> {
     for x in self {
         for j in 0..<2 {
             if x == stop {
@@ -37,7 +37,7 @@ stop_at :: fn(self: Iterator<i32>, stop: i32) -> Iterator<i32> {
     }
 }
 
-first_two_of_odd :: fn(self: Iterator<i32>) -> Iterator<i32> {
+first_two_of_odd :: fn(self: Iterator<i32>!) -> Iterator<i32> {
     for x in self {
         for j in 0..<3 {
             if x % 2 == 0 || j == 2 {

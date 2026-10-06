@@ -45,7 +45,7 @@ Once<T> implements Iterator<T> {
     }
 }
 
-walk :: fn(it: Iterator<i32>) -> i32 {
+walk :: fn(it: Iterator<i32>!) -> i32 {
     sum := 0
     cont := true
     for cont {

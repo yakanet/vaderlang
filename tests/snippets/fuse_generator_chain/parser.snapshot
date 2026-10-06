@@ -34,17 +34,20 @@
         {
           "name": "self",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "T"
-              }
-            ]
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "T"
+                }
+              ]
+            }
           },
           "defaultValue": null,
           "variadic": false
@@ -143,17 +146,20 @@
         {
           "name": "self",
           "type": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "T"
-              }
-            ]
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "T"
+                }
+              ]
+            }
           },
           "defaultValue": null,
           "variadic": false

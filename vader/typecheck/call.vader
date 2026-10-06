@@ -894,7 +894,7 @@ export infer_call :: fn(
         report_unbound_type_args(c, callee_ty, bindings, arg_types, expected, n, typed, diags)
         for i in 0..<n {
             want :: substitute_map(callee_ty.params[i], bindings)
-            reject_immutable_into_mutable_param(callee_ty, i, want, c, typed, diags)
+            reject_immutable_into_mutable_param(callee_ty, i, arg_types[i], want, c, typed, diags)
             // A parameter still naming a type parameter of the callee that nothing
             // bound has nothing to check against. One bound to the enclosing fn's
             // `T` does : `pick(x, 0)` hands a literal to that `T`.
@@ -975,7 +975,7 @@ export infer_call :: fn(
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-        reject_immutable_into_mutable_param(callee_ty, i, param_ty, c, typed, diags)
+        reject_immutable_into_mutable_param(callee_ty, i, arg_ty, param_ty, c, typed, diags)
         // T3072 above owns struct mutability at an argument, and says it better (it
         // names the parameter and the annotatable root). Clear the top-level struct
         // bit so the generic assignability check doesn't double-report the same
@@ -1633,7 +1633,7 @@ arg_mutability_cleared_each :: fn(ts: Type[]) -> Type[] {
 // T3071's job, in `field.vader`. `param_ty` is parameter `i` as this call sees it,
 // substituted.
 reject_immutable_into_mutable_param :: fn(
-    callee_ty: FnType, i: usize, param_ty: Type, c: AST.CallExpr,
+    callee_ty: FnType, i: usize, arg_ty: Type, param_ty: Type, c: AST.CallExpr,
     typed: TypedProgram, diags: Diagnostic[]!,
 ) -> void {
     if !param_mutable_at(callee_ty, i) {
@@ -1643,6 +1643,11 @@ reject_immutable_into_mutable_param :: fn(
     // no more: `push :: fn(self!, value: T!)` stores `value` in the receiver, so a
     // `Box![]` demands a mutable `Box` while a `Box[]` or an `i32[]` asks nothing.
     if !type_may_grant_mutation(param_ty) {
+        return
+    }
+    // An array into an `Iterator<T>!` converts to a fresh iterator : the callee
+    // advances that, never the array.
+    if converts_to_fresh_iterator(arg_ty, param_ty) {
         return
     }
     // Return value ignored: the remaining arguments must still be typed.

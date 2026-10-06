@@ -177,12 +177,22 @@ reject_mutating_method_on_immutable :: fn(
     // field or rooted in a parameter / local. Both are built HERE rather than at the
     // helper, so a `self!` dispatch on a mutable receiver — the overwhelming
     // majority — pays for neither.
+    push_mutating_on_immutable(
+        e.target, e.span,
+        "`${e.field}` mutates its receiver (declared `self!`), but this receiver is immutable",
+        typed, diags,
+    )
+}
+
+// T3071 against the receiver `target`, with the hint naming the one declaration
+// that can be reopened.
+push_mutating_on_immutable :: fn(
+    target: AST.Expr, span: Span, detail: string, typed: TypedProgram, diags: Diagnostic[]!,
+) -> void {
     diags.push(
         typecheck_error(
-            .MutatingMethodOnImmutable, e.span,
-            "`${e.field}` mutates its receiver (declared `self!`), but this receiver is immutable"
-                + field_annotate_hint(e.target, typed)
-                + mutation_fix_hint(e.target, typed),
+            .MutatingMethodOnImmutable, span,
+            detail + field_annotate_hint(target, typed) + mutation_fix_hint(target, typed),
         ),
     )
 }
@@ -434,14 +444,6 @@ try_free_fn_ufcs_dispatch :: fn(
         keep_instances_concrete(typed)
     }
     typed.chosen_fns[e.id] = free_ufcs.winner
-    // T3071 on THIS dispatch path too. A mutator declared as a free fn called via
-    // UFCS — `put`, `remove`, `clear`, `append` — is the dominant stdlib style, and
-    // it never reached the check while it lived only in `try_impl_method_ufcs`.
-    self_mutable :: param_mutable_at(free_ufcs.winner.ty, 0)
-    reject_mutating_method_on_immutable(
-        ImplMethod { .ty = free_ufcs.curried, .self_mutable = self_mutable },
-        e, target_ty, typed, diags,
-    )
     // A `T[]` receiver fitting an `Iterator<T>` first param coerces through the
     // very `.into()` the lowerer synthesizes at `lower_ufcs`. Record it on the
     // receiver expr so the LSP surfaces the `.into()` hint here too — the
@@ -451,6 +453,16 @@ try_free_fn_ufcs_dispatch :: fn(
     // only the array→iterator blanket records.
     if try_array_to_iter(target_ty, erase_type_params(first_param)) {
         typed.into_coercions[e.target.id] = first_param
+    }
+    // T3071 on this dispatch path too : a mutator declared as a free fn (`put`,
+    // `remove`, `clear`) is the dominant stdlib style. A receiver converted to a fresh
+    // iterator is exempt — the callee advances that iterator, never `arr`.
+    if !converts_to_fresh_iterator(target_ty, first_param) {
+        self_mutable :: param_mutable_at(free_ufcs.winner.ty, 0)
+        reject_mutating_method_on_immutable(
+            ImplMethod { .ty = free_ufcs.curried, .self_mutable = self_mutable },
+            e, target_ty, typed, diags,
+        )
     }
     return free_ufcs.curried
 }
@@ -508,11 +520,16 @@ try_trait_method_dispatch :: fn(
     if target_ty !is TraitType {
         return null
     }
-    trait_method :: try_trait_method(target_ty, e.field, typed) ?? return null
-    if rejects_static_member(trait_member_decl(target_ty, e.field, typed), e, typed, diags) {
+    member :: trait_type_member(target_ty, target_ty, e.field, typed) ?? return null
+    if rejects_static_member(member.decl, e, typed, diags) {
         return TY_UNRESOLVED
     }
-    return substitute_self(trait_method, target_ty)
+    // `c: Bump` is read-only like any written type : a `self!` member needs `c: Bump!`.
+    reject_mutating_method_on_immutable(
+        ImplMethod { .ty = member.ty, .self_mutable = has_mutable_self(member.decl) },
+        e, target_ty, typed, diags,
+    )
+    return member.ty
 }
 
 // Struct that implements a trait carrying a same-named method WITH a default body

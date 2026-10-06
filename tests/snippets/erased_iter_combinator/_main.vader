@@ -14,7 +14,7 @@ triple  :: fn(x: i32) -> i32 = x * 3
 keep_hi :: fn(x: i32) -> bool = x > 6
 
 // `.map` / `.filter` on the erased `Iterator<i32>` param — a chain + a terminal.
-sum_tripled_hi :: fn(it: Iterator<i32>) -> i32 {
+sum_tripled_hi :: fn(it: Iterator<i32>!) -> i32 {
     total := 0
     for x in it.map(triple).filter(keep_hi) {
         total = total + x
@@ -22,7 +22,7 @@ sum_tripled_hi :: fn(it: Iterator<i32>) -> i32 {
     return total
 }
 
-drain :: fn(it: Iterator<i32>) -> i32[] {
+drain :: fn(it: Iterator<i32>!) -> i32[] {
     return it.map(triple).collect()
 }
 

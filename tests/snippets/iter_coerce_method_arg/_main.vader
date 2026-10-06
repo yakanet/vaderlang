@@ -13,7 +13,7 @@ import "std/io"
 import "std/iter"
 
 // Free fn: reachable as `sum_both(a, b)` and as `a.sum_both(b)`.
-sum_both :: fn(a: Iterator<i32>, b: Iterator<i32>) -> i32 {
+sum_both :: fn(a: Iterator<i32>!, b: Iterator<i32>!) -> i32 {
     total: i32 = 0
     for x in a {
         total += x
@@ -33,7 +33,7 @@ Tally :: struct {
 }
 
 Tally implements Adder {
-    add_all :: fn(self, xs: Iterator<i32>) -> i32 {
+    add_all :: fn(self, xs: Iterator<i32>!) -> i32 {
         out := self.base
         for x in xs {
             out += x

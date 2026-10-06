@@ -1934,7 +1934,7 @@ test("lsp: hover and goto-def follow the overload typecheck chose", async () => 
     { method: "textDocument/definition", position: { line: 6, character: 21 } },
   ]);
   const hover = results[0]!.result as Hover;
-  expect(hover.contents.value).toContain("last :: fn<T>(it: Iterator<T>) -> T | null");
+  expect(hover.contents.value).toContain("last :: fn<T>(it: Iterator<T>!) -> T | null");
   const loc = results[1]!.result as Location;
   expect(loc.uri.split("/").pop()).toBe("iter.vader");
 });
@@ -2004,7 +2004,7 @@ test("lsp: signature help follows the chosen overload and the UFCS receiver", as
   expect(direct.signatures[0]!.label).toBe("pick(s: string) -> i32");
   expect(direct.activeParameter).toBe(0);
   const ufcs = results[1]!.result as SignatureHelp;
-  expect(ufcs.signatures[0]!.label).toBe("fold(self: Iterator<T>, init: U, f: fn(U, T) -> U) -> U");
+  expect(ufcs.signatures[0]!.label).toBe("fold(self: Iterator<T>!, init: U, f: fn(U, T) -> U) -> U");
   expect(ufcs.activeParameter).toBe(2);
 });
 

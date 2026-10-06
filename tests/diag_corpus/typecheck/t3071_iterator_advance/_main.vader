@@ -1,0 +1,49 @@
+// Advancing an iterator mutates it (`next` is `self!`) : a read-only `it` cannot
+// be walked by `for`, nor a trait-typed `c` receive a `self!` member. T3071 on
+// `drain` and `poke` ; the `!` forms are accepted, and so is an array converted
+// to a fresh iterator (`xs.map(…)`, `total(xs)`, `buffered`), which only the
+// iterator's owner advances.
+module "snippet"
+
+import "std/iter"
+
+export Bump :: trait {
+    bump :: fn(self!) -> void
+}
+
+export drain :: fn(it: Iterator<i32>) -> i32 {
+    n := 0
+    for x in it {
+        n += x
+    }
+    return n
+}
+
+export poke :: fn(c: Bump) -> void {
+    c.bump()
+}
+
+export drain_mutable :: fn(it: Iterator<i32>!) -> i32 {
+    n := 0
+    for x in it {
+        n += x
+    }
+    return n
+}
+
+export poke_mutable :: fn(c: Bump!) -> void {
+    c.bump()
+}
+
+export doubled :: fn(xs: i32[]) -> i32[]! = xs.map((x: i32) -> x * 2).collect()
+
+export total :: fn(xs: i32[]) -> i32 = drain_mutable(xs)
+
+export buffered :: fn(xs: i32[]) -> i32 {
+    buf: Iterator<i32>!: xs
+    return drain_mutable(buf)
+}
+
+main :: fn() -> i32 {
+    return 0
+}

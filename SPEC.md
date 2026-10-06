@@ -1438,7 +1438,7 @@ zero :: fn<T: Add>(x: T) -> T {
 
 The same holds for `pick(x, 0)` where `pick` takes two `T`, for `f(2.5)` through a parameter `f: fn(T) -> T`, for `x > 0` with `T: Comparable`, and for `x == 0` with `T: Equals`. A call through a fn-typed parameter binds none of the enclosing fn's type parameters; a local holding a generic fn (`g :: identity`) still binds its own at each call.
 
-Matching an argument against a signature that nothing has instantiated yet is a different question, where a type parameter is still free: choosing an overload, choosing the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>`), and checking the fields of a generic struct literal written without type arguments (`Box { .value = [4, 5] }`). A free literal still needs a type to land on, and such a literal binds none: `Box { .value = 0 }` is T3001 — write `Box<i32> { .value = 0 }`.
+Matching an argument against a signature that nothing has instantiated yet is a different question, where a type parameter is still free: choosing an overload, choosing the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>!`), and checking the fields of a generic struct literal written without type arguments (`Box { .value = [4, 5] }`). A free literal still needs a type to land on, and such a literal binds none: `Box { .value = 0 }` is T3001 — write `Box<i32> { .value = 0 }`.
 
 **Limitations (MVP)**:
 - **No inherent "associated functions"** — a static function belongs to a trait (*Static members* under §Traits), never to a type on its own. Factory functions outside a trait are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap<K, V> { ... }` for struct-literal construction. Post-MVP candidate.
@@ -1497,7 +1497,7 @@ start :: i64.zero()
 - `Type.member(args)` resolves `member` in `Type`'s impls, or through the bound for a type parameter. A static member may take parameters (`unit :: fn(scale: i32) -> Self`).
 - A static member called on a value is **T3091**, and so is one called on the trait itself (`Zero.zero()`: the trait has no impl to pick). An instance member (one taking `self`) called on a type is **T3092**. A static member named without being called (`f :: i64.zero`) is **T3093**: it has no value form.
 - Dispatch is static: the call goes straight to the owner's impl member. A generic function calling one on its type parameter is instantiated per concrete type. A static member has no vtable slot, so a trait mixing static and `self` members still dispatches the latter on a trait-typed value; the static ones are reached through a type only.
-- `std/core` declares `Zero` and `One` (`zero` / `one :: fn() -> Self`, the additive and multiplicative identities), implemented by every numeric primitive — `Zero` by `BigInt` too. `std/iter`'s `sum` is `fn<T: Add & Zero>(self: Iterator<T>) -> T`, and `product` is `fn<T: Mul & One>(self: Iterator<T>) -> T`.
+- `std/core` declares `Zero` and `One` (`zero` / `one :: fn() -> Self`, the additive and multiplicative identities), implemented by every numeric primitive — `Zero` by `BigInt` too. `std/iter`'s `sum` is `fn<T: Add & Zero>(self: Iterator<T>!) -> T`, and `product` is `fn<T: Mul & One>(self: Iterator<T>!) -> T`.
 
 #### Coherence — one impl per (type, trait)
 
@@ -1953,7 +1953,7 @@ Markers on function values are **contravariant**: a function that does not mutat
 
 #### Diagnostics
 
-Calling a `self!` method on a read-only receiver (`x: T` included) is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. Filling a slot that promises mutation with a read-only value is T3077, at any level. On a module const, a marker outside the one storable shape is T3076. Writing the removed `const` qualifier is P1027.
+Calling a `self!` method on a read-only receiver (`x: T` and `c: Trait` included, and `for x in it` over a read-only iterator) is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. Filling a slot that promises mutation with a read-only value is T3077, at any level. On a module const, a marker outside the one storable shape is T3076. Writing the removed `const` qualifier is P1027.
 
 T3070/T3071/T3042 carry the fix as a hint, and it names the **one** declaration that can be reopened — following the wrong one hits a wall, since marking a local bound from a factory is a strengthening and a loop variable takes no marker at all. Ordered from the most specific lever to the least:
 
@@ -2141,7 +2141,7 @@ plus(2, 3)
 UFCS dispatch works against five shapes of receiver–first-param relation, ranked weakest-wins-only-on-tie:
 1. **Concrete match**: the receiver's static type is assignable to the first param. `s.starts_with(p)` where `starts_with :: fn(s: string, prefix: string) -> bool`.
 2. **Symbolic match**: the receiver and the first param share a struct/trait symbol but differ in their type-args (e.g. `MutableList<i32>` against `fn<T>(self: MutableList<T>)`). The generic-fn-dispatch path closes over the type-args at the call site.
-3. **Trait-typed first param**: when the first param has trait type `Trait<T>` and the receiver implements that trait, UFCS dispatches to it. `source.chars().filter(is_bf_char)` resolves through `std/iter.filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T>` because `StringChars` implements `Iterator<char>`. Trait-typeparam unification happens through `unifyTraitParamWithConcrete`.
+3. **Trait-typed first param**: when the first param has trait type `Trait<T>` and the receiver implements that trait, UFCS dispatches to it. `source.chars().filter(is_bf_char)` resolves through `std/iter.filter :: fn<T>(self: Iterator<T>!, pred: fn(T) -> bool) -> Iterator<T>` because `StringChars` implements `Iterator<char>`. Trait-typeparam unification happens through `unifyTraitParamWithConcrete`.
 4. **Union receivers**: `value.method()` on a union-typed `value` falls through to free-fn UFCS when no variant carries a struct field by that name. The first-param type can be the *union itself* (`fn read_i32(v: Value, …)`) — receiver and param match directly.
 5. **`Into<Target>` last-resort coercion**: strictly weaker than every other rank; only fires when no direct candidate exists.
 
@@ -2295,7 +2295,7 @@ The iteration form `for x in expr` accepts three shapes for `expr`:
 1. A built-in array `T[]` — auto-wrapped through `array_iter`.
 2. A value of type `Iterator<T>` — used directly. Two dispatch flavours:
    - **Concrete iter** (`Range<T>`, a user struct implementing `Iterator<T>`) — the `next()` call resolves statically against the impl-method.
-   - **Trait-typed iter** (`Iterator<T>` itself, e.g. a fn param `fn count<T>(it: Iterator<T>)`) — the `next()` call dispatches through the lowerer-synthesised `is StructA -> StructA_next(...)` chain over every materialised impl (see *Method dispatch on trait values* in §4). Lets generic fns drive `for x in it { … }` against any concrete iterator the caller supplies.
+   - **Trait-typed iter** (`Iterator<T>` itself, e.g. a fn param `fn count<T>(it: Iterator<T>!)`) — the `next()` call dispatches through the lowerer-synthesised `is StructA -> StructA_next(...)` chain over every materialised impl (see *Method dispatch on trait values* in §4). Lets generic fns drive `for x in it { … }` against any concrete iterator the caller supplies.
 3. A value implementing `Into<Iterator<T>>` — the for-in lowerer inserts `.into()` to obtain the iterator, then drives the loop over it.
 
 Raw `T[]` arrays are auto-wrapped through `array_iter` (via the shipped `T[] implements Into<Iterator<T>>` impl in `std/core`), and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Into<Iterator<T>>` so `for x in coll { ... }` works without an explicit `.into()`. There is no separate `Iterable` trait today (see the planned note below).
@@ -2303,13 +2303,13 @@ Raw `T[]` arrays are auto-wrapped through `array_iter` (via the shipped `T[] imp
 The same auto-wrap fires at any *concrete* `Iterator<T>` slot — function arguments, `return` expressions, and typed declarations — so `T[]` flows transparently:
 
 ```vader
-walk :: fn(it: Iterator<i32>) -> i32 { ... }
+walk :: fn(it: Iterator<i32>!) -> i32 { ... }
 walk([10, 20, 30])                            // call-arg coercion
 fold :: fn() -> Iterator<i32> { return [1, 2, 3] }   // return coercion
 buf: Iterator<i32> : [4, 5, 6]                // typed-declaration coercion
 ```
 
-The coercion is gated on **canonical symbol identity** of `std/core::Iterator`; a user-defined trait that happens to be named `Iterator` is left alone. The lazy `std/iter` combinators (`map` / `filter` / …, all generators — they `yield` — over `self: Iterator<T>`) resolve **directly on a bare array** through the generator receiver-dispatch path — `arr.map(f)` needs no explicit wrap and there is no array-driven overload (§ `std/iter`). Concrete trait-instance receivers (`Iterator<i32>`, `Iterator<string>`, …) are unaffected.
+The coercion is gated on **canonical symbol identity** of `std/core::Iterator`; a user-defined trait that happens to be named `Iterator` is left alone. The lazy `std/iter` combinators (`map` / `filter` / …, all generators — they `yield` — over `self: Iterator<T>!`) resolve **directly on a bare array** through the generator receiver-dispatch path — `arr.map(f)` needs no explicit wrap and there is no array-driven overload (§ `std/iter`). Concrete trait-instance receivers (`Iterator<i32>`, `Iterator<string>`, …) are unaffected.
 
 ```vader
 // Planned — not yet exported from std/core. Today user types iterate
@@ -3526,28 +3526,30 @@ The element beside `Stop` is **meaningless** and no consumer may read it (`for x
 
 An implementation provides `next` and nothing else: everything that consumes an iterator — `count`, `last`, `is_empty`, `collect`, … — is a free function of `std/iter` over `Iterator<T>`, called with the method syntax (`it.count()`).
 
+**Advancing an iterator mutates it** — `next` is `self!` — so a consumer takes `it: Iterator<T>!`. The `!` is on the iterator; `Iterator<T!>` would grant mutation of the elements instead. Through a read-only `it: Iterator<T>`, both `it.next()` and `for x in it` are **T3071**. A fresh iterator — `xs.map(f)`, a generator call, or the one `.into()` builds from an array — is owned and fills a `!` slot as it is; the array needs no `!`.
+
 `std/iter` provides **lazy combinators** on top of `Iterator<T>`. Each is a generator (it `yield`s) returning `Iterator<U>`: nothing is materialised until a terminal drains the stream, and chains **fuse** through their `Iterator<T>` slots down to a single loop with no intermediate arrays. There is one family — no eager `T[]`-returning overloads and no `.iter()` cursor.
 
 ```vader
-map             :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U)    -> Iterator<U>
-filter          :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T>
-take            :: fn<T>(self: Iterator<T>, n: usize)            -> Iterator<T>
-skip            :: fn<T>(self: Iterator<T>, n: usize)            -> Iterator<T>
-indexed         :: fn<T>(self: Iterator<T>)                      -> Iterator<[T, usize]>
-flat_map        :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[])  -> Iterator<U>
-chain           :: fn<T>(self: Iterator<T>, other: Iterator<T>)  -> Iterator<T>
-zip             :: fn<T, U>(self: T[], other: U[])               -> Iterator<[T, U]>
-window          :: fn<T>(self: T[]!, size: usize)                -> Iterator<T[]>
-chunked         :: fn<T>(self: Iterator<T>, size: usize)         -> Iterator<T[]>
-distinct        :: fn<T: Hash & Equals>(self: Iterator<T>)       -> Iterator<T>
-filter_not_null :: fn<T>(self: Iterator<T | null>)               -> Iterator<T>
+map             :: fn<T, U>(self: Iterator<T>!, f: fn(T) -> U)    -> Iterator<U>
+filter          :: fn<T>(self: Iterator<T>!, pred: fn(T) -> bool) -> Iterator<T>
+take            :: fn<T>(self: Iterator<T>!, n: usize)            -> Iterator<T>
+skip            :: fn<T>(self: Iterator<T>!, n: usize)            -> Iterator<T>
+indexed         :: fn<T>(self: Iterator<T>!)                      -> Iterator<[T, usize]>
+flat_map        :: fn<T, U>(self: Iterator<T>!, f: fn(T) -> U[])  -> Iterator<U>
+chain           :: fn<T>(self: Iterator<T>!, other: Iterator<T>!) -> Iterator<T>
+zip             :: fn<T, U>(self: T[], other: U[])                -> Iterator<[T, U]>
+window          :: fn<T>(self: T[]!, size: usize)                 -> Iterator<T[]>
+chunked         :: fn<T>(self: Iterator<T>!, size: usize)         -> Iterator<T[]>
+distinct        :: fn<T: Hash & Equals>(self: Iterator<T>!)       -> Iterator<T>
+filter_not_null :: fn<T>(self: Iterator<T | null>!)               -> Iterator<T>
 ```
 
 **Terminals** drain the stream to a concrete value — `collect` materialises an array, the rest fold or short-circuit:
 
 ```vader
-collect  :: fn<T>(it: Iterator<T>) -> T[]                    // the way to get a T[] back
-fold     :: fn<T, U>(it: Iterator<T>, init: U, f: fn(U, T) -> U) -> U
+collect  :: fn<T>(it: Iterator<T>!) -> T[]                    // the way to get a T[] back
+fold     :: fn<T, U>(it: Iterator<T>!, init: U, f: fn(U, T) -> U) -> U
 sum / count / last                                           // whole-stream reductions
 is_empty / any_match / all_match / find / find_map           // stop on the first match
 ```
@@ -3561,7 +3563,7 @@ arr.map(f).filter(p).take(10).collect()     // arr : T[] ; `arr.map(f)` is lazy,
 for x in arr.filter(p) { ... }              // a lazy chain also drives for-in directly
 ```
 
-`arr.map(f)` returns a lazy `Iterator<U>`, never an array; call `.collect()` when you want the `T[]`. (`array_iter` is the generator the `into` coercion materialises at a *non-fused* `Iterator<T>` boundary — e.g. passing `arr` to a `fn(it: Iterator<T>)` parameter; you rarely name it directly.)
+`arr.map(f)` returns a lazy `Iterator<U>`, never an array; call `.collect()` when you want the `T[]`. (`array_iter` is the generator the `into` coercion materialises at a *non-fused* `Iterator<T>` boundary — e.g. passing `arr` to a `fn(it: Iterator<T>!)` parameter; you rarely name it directly.)
 
 ### Generators (`yield`)
 

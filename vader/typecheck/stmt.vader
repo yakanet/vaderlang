@@ -677,7 +677,10 @@ check_let :: fn(
         )
     }
     assign_binding_types(s.binding, declared, typed, diags)
-    mark_binding_borrow(s.binding, s.value, typed)
+    // `buf: Iterator<i32>!: xs` walks a fresh iterator : `buf` borrows nothing of `xs`.
+    if !converts_to_fresh_iterator(got, declared) {
+        mark_binding_borrow(s.binding, s.value, typed)
+    }
     record_empty_array_init(s, declared, typed)
 }
 
@@ -1739,6 +1742,7 @@ check_for :: fn(
         }
         is AST.InFor       -> {
             iter_ty :: check_expr_fn(w.iter, null, typed, diags)
+            reject_advancing_immutable(w.iter, iter_ty, typed, diags)
             elem :: for_in_element(iter_ty, typed)
             if elem is UnresolvedType && is_known_non_iterable(iter_ty) {
                 got :: display_type(iter_ty)
@@ -2311,6 +2315,30 @@ complement_narrowed_type :: fn(ty: AST.Expr, current: Type, typed: TypedProgram)
     narrowed :: type_from_expr(ty, typed.resolved, diag_sink_stmt())
     if !(narrowed is ArrayType | StructType | TupleType | UnionType) { return narrowed }
     return with_immutable(narrowed, narrowing_immutability(current, narrowed))
+}
+
+// T3071 — `for x in it` calls `it.next()`, which is `self!` : a read-only iterator
+// cannot be walked.
+reject_advancing_immutable :: fn(
+    iter: AST.Expr, iter_ty: Type, typed: TypedProgram, diags: Diagnostic[]!,
+) -> void {
+    if !expr_is_immutable(iter, typed) || !advances_in_place(iter_ty, typed) {
+        return
+    }
+    push_mutating_on_immutable(
+        iter, iter.span, "`for` advances this iterator through `next`", typed, diags,
+    )
+}
+
+// Whether walking `t` calls `next` on `t` itself rather than on a fresh iterator built
+// from it : an array is walked by index, a string through its chars.
+advances_in_place :: fn(t: Type, typed: TypedProgram) -> bool = match t {
+    is ArrayType | PrimitiveType | AnyType | UnresolvedType | NeverType | SelfType
+        | FreeIntType | FreeFloatType | FreeCharType -> false
+    is TraitType | TypeParamType | StructType | DistinctType | UnionType | EnumType
+        | TupleType | FnType | TypeMetaType -> {
+        satisfies_bound(t, core_trait_key(TRAIT_ITERATOR), typed)
+    }
 }
 
 // Pull the iterator's element type. `T[]` yields `T` directly ;
