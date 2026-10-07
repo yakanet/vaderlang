@@ -50,7 +50,7 @@
   expr 109:23   IndexExpr      :: i32
   expr 109:5    CallExpr       :: void
   expr 109:5    IdentExpr      :: fn(T) -> void
-  expr 110:20   IdentExpr      :: Cell!
+  expr 110:21   IdentExpr      :: Cell!
   expr 110:5    CallExpr       :: void
   expr 110:5    GenericInstExpr :: fn(C, usize) -> void
   expr 110:5    IdentExpr      :: fn(C, usize) -> void

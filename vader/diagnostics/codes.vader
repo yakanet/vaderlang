@@ -109,7 +109,7 @@ export TypecheckCode :: enum(CodeInfo) {
     TypeArgumentNotInferable        { .id = "T3069", .message = "cannot infer type argument — nothing at this call site binds the type parameter" },
     CannotMutateImmutableBinding    { .id = "T3070", .message = "cannot mutate through an immutable access path" },
     MutatingMethodOnImmutable       { .id = "T3071", .message = "this method mutates its receiver (`self!`), but the receiver is immutable" },
-    ImmutableBorrowIntoMutableParam { .id = "T3072", .message = "this argument is immutable, but the parameter is declared `!` (the callee may mutate it)" },
+    ImmutableBorrowIntoMutableParam { .id = "T3072", .message = "this argument is immutable, but its parameter grants mutation" },
     FnValueMutabilityMismatch       { .id = "T3073", .message = "this function mutates a parameter the target slot lends out read-only" },
     UnionMixesMutabilities          { .id = "T3074", .message = "a union mixes the same type at two mutabilities" },
     MutabilityMarkerOnValueType     { .id = "T3075", .message = "a `!` that grants nothing" },

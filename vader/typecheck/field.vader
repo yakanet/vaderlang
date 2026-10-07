@@ -1572,11 +1572,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
         if !receiver_fits_first_param(target_ty, ft.params[0], typed) {
             return null
         }
-        rest: Type[]!: []
-        for i in 1..<ft.params.len() {
-            rest.push(ft.params[i])
-        }
-        return mk_fn_drop_self(ft, rest, ft.return_type)
+        return mk_fn_drop_self(ft)
     }
     bindings :: MutableMap<i32, Type> {}
     unify_type_param(ft.params[0], target_ty, bindings)
@@ -1591,11 +1587,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
     if !receiver_fits_first_param(target_ty, fitted_first, typed) {
         return null
     }
-    rest: Type[]!: []
-    for i in 1..<ft.params.len() {
-        rest.push(substitute_map(ft.params[i], bindings))
-    }
-    return mk_fn_drop_self(ft, rest, substitute_map(ft.return_type, bindings))
+    return mk_fn_drop_self(substitute_fn_map(ft, bindings))
 }
 
 // A receiver fits a UFCS first-param when (a) it is assignable to the param with

@@ -107,7 +107,7 @@ main :: fn() -> i32 {
     cell :: Cell { .slots = [1, 2, 3] }
     cell[slot(2)] -= 1
     println("cell = ${cell[2]}")
-    bump_nth<Cell>(cell, 0)
+    bump_nth<Cell!>(cell, 0)
     println("bounded = ${cell[0]}")
 
     // The rhs rebinds the index through a closure : the write still lands on the

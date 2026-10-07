@@ -168,6 +168,151 @@ with_immutable_each :: fn(variants: Type[], immutable: bool) -> Type[] {
     return out
 }
 
+// `a` and `b` at the rights both hold : the same type, each level read-only when
+// either is. Null when they differ by more than their rights. It is what a type
+// parameter bound by two arguments keeps (`unify_type_param`), and what a join of
+// two such variants keeps (`collect_variant`), so neither lends rights the other
+// lacks.
+least_permissive :: fn(a: Type, b: Type) -> Type | null = bound_rights(a, b, true)
+
+// `a` and `b` with each level read-only when either is (`read_only_wins`), or only
+// when both are — the other bound, which a fn type's parameters take, since a fn
+// accepting what both accept demands what either demands. `a` itself comes back when
+// no level of it changes.
+bound_rights :: fn(a: Type, b: Type, read_only_wins: bool) -> Type | null {
+    match a {
+        is ArrayType -> {
+            if b is ArrayType {
+                element :: bound_rights(a.element, b.element, read_only_wins) ?? return null
+                immutable :: container_bit(a, b, [a.element], [b.element], read_only_wins) ??
+                    return TY_NEVER
+                if element === a.element && immutable == a.immutable {
+                    return a
+                }
+                return mk_array(element, immutable)
+            }
+        }
+        is StructType -> {
+            if b is StructType && b.symbol.id == a.symbol.id {
+                args :: bound_rights_each(a.args, b.args, read_only_wins) ?? return null
+                immutable :: container_bit(a, b, a.args, b.args, read_only_wins) ??
+                    return TY_NEVER
+                if args === a.args && immutable == a.immutable {
+                    return a
+                }
+                return mk_struct(a.symbol, args, immutable)
+            }
+        }
+        is TupleType -> {
+            if b is TupleType {
+                elements :: bound_rights_each(a.elements, b.elements, read_only_wins) ?? return null
+                immutable :: container_bit(a, b, a.elements, b.elements, read_only_wins) ??
+                    return TY_NEVER
+                if elements === a.elements && immutable == a.immutable {
+                    return a
+                }
+                return mk_tuple(elements, immutable)
+            }
+        }
+        is TraitType -> {
+            if b is TraitType && b.symbol.id == a.symbol.id {
+                args :: bound_rights_each(a.args, b.args, read_only_wins) ?? return null
+                immutable :: container_bit(a, b, a.args, b.args, read_only_wins) ??
+                    return TY_NEVER
+                if args === a.args && immutable == a.immutable {
+                    return a
+                }
+                return TraitType { ...a, .args = args, .immutable = immutable }
+            }
+        }
+        is DistinctType -> {
+            if b is DistinctType && b.symbol.id == a.symbol.id {
+                backing :: bound_rights(a.backing, b.backing, read_only_wins) ?? return null
+                return if backing === a.backing { a } else { mk_distinct(a.symbol, backing) }
+            }
+        }
+        // Variants pair by index : `union_of` sorts them on a key blind to the marker.
+        is UnionType -> {
+            if b is UnionType {
+                variants :: bound_rights_each(a.variants, b.variants, read_only_wins) ?? return null
+                return if variants === a.variants { a } else { union_of(variants) }
+            }
+        }
+        is FnType -> {
+            if b is FnType {
+                return bound_fn_rights(a, b, read_only_wins)
+            }
+        }
+        _ -> {}
+    }
+    // Any other pair agrees only with itself.
+    return if equals_type(a, b) { a } else { null }
+}
+
+// The return and the `!` marks take the bound asked for — the least rights keep a
+// mark either fn carries ; the parameters' types take the other one.
+bound_fn_rights :: fn(a: FnType, b: FnType, read_only_wins: bool) -> Type | null {
+    params :: bound_rights_each(a.params, b.params, !read_only_wins) ?? return null
+    ret :: bound_rights(a.return_type, b.return_type, read_only_wins) ?? return null
+    marks: bool[]!: []
+    kept := params === a.params && ret === a.return_type
+    for i in 0..<a.params.len() {
+        mark :: merged_bit(param_mutable_at(a, i), param_mutable_at(b, i), read_only_wins)
+        marks.push(mark)
+        kept = kept && mark == param_mutable_at(a, i)
+    }
+    if kept {
+        return a
+    }
+    return FnType {
+        .params         = params,
+        .params_mutable = if true in marks { marks } else { [] },
+        .return_type    = ret,
+    }
+}
+
+merged_bit :: fn(a: bool, b: bool, read_only_wins: bool) -> bool =
+    if read_only_wins { a || b } else { a && b }
+
+// A container's bit in the bound of `a` and `b`, whose contents are `a_inner` and
+// `b_inner`. A mutable container holds its contents at the rights written, so
+// contents whose rights differ need a read-only one. Under the other bound a
+// read-only container fits neither side : null, and the caller answers `never`,
+// the parameter no argument fills.
+container_bit :: fn(
+    a: Type, b: Type, a_inner: Type[], b_inner: Type[], read_only_wins: bool,
+) -> bool | null {
+    immutable :: merged_bit(type_is_immutable(a), type_is_immutable(b), read_only_wins)
+    if immutable || same_rights_each(a_inner, b_inner) {
+        return immutable
+    }
+    return if read_only_wins { true } else { null }
+}
+
+same_rights_each :: fn(a: Type[], b: Type[]) -> bool {
+    for i in 0..<a.len() {
+        if bound_rights(a[i], b[i], true) !== a[i] || bound_rights(b[i], a[i], true) !== b[i] {
+            return false
+        }
+    }
+    return true
+}
+
+// Pairwise ; `a` itself when no element changes.
+bound_rights_each :: fn(a: Type[], b: Type[], read_only_wins: bool) -> Type[] | null {
+    if a.len() != b.len() {
+        return null
+    }
+    out: Type[]!: []
+    kept := true
+    for i in 0..<a.len() {
+        met :: bound_rights(a[i], b[i], read_only_wins) ?? return null
+        kept = kept && met === a[i]
+        out.push(met)
+    }
+    return if kept { a } else { out }
+}
+
 /// The type of a parameter once its `!` marker is desugared onto the type.
 ///
 /// An unmarked parameter is a read-only borrow. A `!` grants mutation — but only
@@ -438,11 +583,14 @@ collect_variant :: fn(v: Type, into: Type[]!) -> void {
             for i in 0..<into.len() {
                 existing :: into[i]
                 if equals_type(existing, v) {
-                    // Same type under two mutabilities — reachable on struct / tuple,
-                    // where `equals_type` ignores the bit. Keep the LESS permissive
-                    // one : a value that is "either a read-only or a mutable T" can't
-                    // be mutated without knowing which.
-                    if type_is_immutable(v) { into[i] = v }
+                    // Same type under two mutabilities — reachable on struct / tuple /
+                    // trait / fn, where `equals_type` ignores the bit or the marks, at
+                    // any level. Keep the rights both hold (`least_permissive`) : a value
+                    // that is "either a read-only or a mutable T" can't be mutated
+                    // without knowing which.
+                    if existing !== v {
+                        into[i] = least_permissive(existing, v) ?? existing
+                    }
                     return
                 }
             }
@@ -991,6 +1139,7 @@ removed_covers :: fn(removed: Type, t: Type) -> bool {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/resolver/symbol"
 import "vader/types"
 
 @test
@@ -1082,4 +1231,74 @@ test_int_fits_bounds :: fn() -> void {
     // A non-integer target never accepts an integer literal via this path.
     assert(!int_fits(0, "f64"), "int literal never fits f64")
     assert(!int_fits(0, "bool"), "int literal never fits bool")
+}
+
+struct_symbol :: fn(name: string) -> Symbol =
+    SymbolFactory {}.make(.Struct, name, "test", "test", .Public, null)
+
+display_least_permissive :: fn(a: Type, b: Type) -> string {
+    met :: least_permissive(a, b) ?? return "null"
+    return display_type(met)
+}
+
+@test
+test_least_permissive_lowers_each_level :: fn() -> void {
+    i32_ty :: mk_primitive("i32")
+    outer_frozen :: mk_array(mk_array(i32_ty, false), true)
+    inner_frozen :: mk_array(mk_array(i32_ty, true), false)
+    assert_eq(display_least_permissive(outer_frozen, inner_frozen), "i32[][]")
+}
+
+@test
+test_least_permissive_lowers_a_struct_and_its_arguments :: fn() -> void {
+    box :: struct_symbol("Box")
+    i32_ty :: mk_primitive("i32")
+    mutable :: mk_struct(box, [mk_array(i32_ty, false)], false)
+    frozen :: mk_struct(box, [mk_array(i32_ty, true)], true)
+    met :: least_permissive(mutable, frozen) ?? return assert(false, "no least permissive struct")
+    assert_eq(display_type(met), "Box<i32[]>")
+    assert(type_is_immutable(met), "the struct level keeps the read-only bit")
+}
+
+@test
+test_least_permissive_refuses_another_shape :: fn() -> void {
+    i32_array :: mk_array(mk_primitive("i32"), true)
+    assert_eq(display_least_permissive(i32_array, mk_array(TY_STRING, true)), "null")
+}
+
+@test
+test_union_of_keeps_the_least_rights_at_every_level :: fn() -> void {
+    box :: struct_symbol("Box")
+    cfg :: struct_symbol("Cfg")
+    frozen_inside :: mk_struct(box, [mk_struct(cfg, [], true)], false)
+    frozen_outside :: mk_struct(box, [mk_struct(cfg, [], false)], true)
+    assert_eq(display_type(union_of([frozen_inside, frozen_outside])), "Box<Cfg>")
+}
+
+@test
+test_union_of_fns_demands_either_mark :: fn() -> void {
+    cfg :: mk_struct(struct_symbol("Cfg"), [], true)
+    reader :: mk_fn([cfg], TY_VOID)
+    writer :: FnType {
+        .params         = [cfg],
+        .params_mutable = [true],
+        .return_type    = TY_VOID,
+    }
+    assert_eq(display_type(union_of([reader, writer])), display_type(writer))
+}
+
+@test
+test_union_of_fns_keeps_the_least_rights_on_return :: fn() -> void {
+    cfg :: struct_symbol("Cfg")
+    fresh :: mk_fn([], mk_struct(cfg, [], false))
+    shared :: mk_fn([], mk_struct(cfg, [], true))
+    assert_eq(display_type(union_of([fresh, shared])), display_type(shared))
+}
+
+@test
+test_union_of_containers_with_other_contents_is_read_only :: fn() -> void {
+    cfg :: struct_symbol("Cfg")
+    writable :: mk_array(mk_struct(cfg, [], false), false)
+    readable :: mk_array(mk_struct(cfg, [], true), false)
+    assert_eq(display_type(union_of([writable, readable])), "Cfg[]")
 }

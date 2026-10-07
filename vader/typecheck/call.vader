@@ -319,7 +319,10 @@ seed_explicit_type_args :: fn(
     n :: min(decl.type_params.len(), callee.type_args.len())
     for i in 0..<n {
         tp_sym :: typed.resolved.idents[decl.type_params[i].span.hash()] ?? continue
-        bindings[tp_sym.id] = type_from_expr(callee.type_args[i], typed.resolved, diags)
+        written :: callee.type_args[i]
+        bindings[tp_sym.id] = apply_readonly_default(
+            type_from_expr(written, typed.resolved, diags), written,
+        )
         held.add(tp_sym.id)
     }
     return held
@@ -898,9 +901,10 @@ export infer_call :: fn(
             }
         }
         report_unbound_type_args(c, callee_ty, bindings, arg_types, expected, n, typed, diags)
+        instance :: substitute_fn_map(callee_ty, bindings)
         for i in 0..<n {
-            want :: substitute_map(callee_ty.params[i], bindings)
-            reject_immutable_into_mutable_param(callee_ty, i, arg_types[i], want, c, typed, diags)
+            want :: instance.params[i]
+            reject_immutable_into_mutable_param(instance, i, arg_types[i], c, typed, diags)
             // A parameter still naming a type parameter of the callee that nothing
             // bound has nothing to check against. One bound to the enclosing fn's
             // `T` does : `pick(x, 0)` hands a literal to that `T`.
@@ -978,7 +982,7 @@ export infer_call :: fn(
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-        reject_immutable_into_mutable_param(callee_ty, i, arg_ty, param_ty, c, typed, diags)
+        reject_immutable_into_mutable_param(callee_ty, i, arg_ty, c, typed, diags)
         // T3072 above owns struct mutability at an argument, and says it better (it
         // names the parameter and the annotatable root). Clear the top-level struct
         // bit so the generic assignability check doesn't double-report the same
@@ -1595,19 +1599,8 @@ arg_mutability_cleared :: fn(t: Type) -> Type = match t {
 // level, bare or as a variant, has no bit for `arg_mutability_cleared` to clear, so
 // the parameter's top level is set aside instead : T3072 judges a `T` through its
 // bound.
-param_shape_slot :: fn(arg_ty: Type, param_ty: Type) -> Type {
-    if arg_ty is TypeParamType {
-        return with_immutable(param_ty, true)
-    }
-    if arg_ty is UnionType {
-        for v in arg_ty.variants {
-            if v is TypeParamType {
-                return with_immutable(param_ty, true)
-            }
-        }
-    }
-    return param_ty
-}
+param_shape_slot :: fn(arg_ty: Type, param_ty: Type) -> Type =
+    if type_param_at_top(arg_ty) { with_immutable(param_ty, true) } else { param_ty }
 
 arg_mutability_cleared_each :: fn(ts: Type[]) -> Type[] {
     out: Type[]!: []
@@ -1615,19 +1608,22 @@ arg_mutability_cleared_each :: fn(ts: Type[]) -> Type[] {
     return out
 }
 
-// T3071's job, in `field.vader`. `param_ty` is parameter `i` as this call sees it,
+// T3071's job, in `field.vader`. `callee_ty` is the signature as this call sees it,
 // substituted.
 reject_immutable_into_mutable_param :: fn(
-    callee_ty: FnType, i: usize, arg_ty: Type, param_ty: Type, c: AST.CallExpr,
+    callee_ty: FnType, i: usize, arg_ty: Type, c: AST.CallExpr,
     typed: TypedProgram, diags: Diagnostic[]!,
 ) -> void {
+    param_ty :: callee_ty.params[i]
     if !param_mutable_at(callee_ty, i) {
         return
     }
     // A `!` on a type parameter promises as much mutation as `T` is bound to, and
     // no more: `push :: fn(self!, value: T!)` stores `value` in the receiver, so a
     // `Box![]` demands a mutable `Box` while a `Box[]` or an `i32[]` asks nothing.
-    if !type_may_grant_mutation(param_ty) {
+    // An argument filling one variant of a union is held to that variant : `OTHER`
+    // fills the read-only `Other` of `Cfg! | Other`.
+    if !type_may_grant_mutation(filled_variant(arg_ty, param_ty)) {
         return
     }
     // An array into an `Iterator<T>!` converts to a fresh iterator : the callee
@@ -1635,12 +1631,47 @@ reject_immutable_into_mutable_param :: fn(
     if converts_to_fresh_iterator(arg_ty, param_ty) {
         return
     }
-    // Return value ignored: the remaining arguments must still be typed.
-    _ :: push_immutability_diag_for(
-        value_is_read_only(c.args[i].value, arg_ty, typed),
+    if !value_is_read_only(c.args[i].value, arg_ty, typed) {
+        return
+    }
+    diags.push(typecheck_error(
         .ImmutableBorrowIntoMutableParam,
         c.args[i].span,
-        "this argument is immutable, but the parameter is declared `!` — the callee may mutate it",
-        c.args[i].value, typed, diags,
-    )
+        mutable_param_detail(c, callee_ty, i, typed) +
+            mutation_fix_hint(c.args[i].value, typed),
+    ))
+}
+
+// The variant of `param_ty` an argument of type `arg_ty` fills, or `param_ty` itself
+// when it is not a union or no single variant has the argument's type.
+filled_variant :: fn(arg_ty: Type, param_ty: Type) -> Type {
+    if param_ty !is UnionType || arg_ty is UnionType {
+        return param_ty
+    }
+    for v in param_ty.variants {
+        if equals_type(v, arg_ty) {
+            return v
+        }
+    }
+    return param_ty
+}
+
+// Why parameter `i` grants mutation : its `!`, or a type parameter this call binds
+// to a type granting it — a mark the declaration does not carry.
+mutable_param_detail :: fn(
+    c: AST.CallExpr, callee_ty: FnType, i: usize, typed: TypedProgram,
+) -> string {
+    declared :: "the parameter is declared `!` — the callee may mutate it"
+    decl :: callee_decl(c, typed) ?? return declared
+    if decl.params.len() < callee_ty.params.len() {
+        return declared
+    }
+    // A UFCS call's signature has dropped the receiver its declaration still lists.
+    receiver_offset :: decl.params.len() - callee_ty.params.len()
+    param :: decl.params[i + receiver_offset]
+    if AST.param_is_mutable(param) {
+        return declared
+    }
+    return "`${param.name}` takes `${display_type(callee_ty.params[i])}` : this call " +
+        "binds its type parameter to a type granting mutation"
 }

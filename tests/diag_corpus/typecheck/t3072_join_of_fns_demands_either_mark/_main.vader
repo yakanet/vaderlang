@@ -1,0 +1,21 @@
+// A join of `fn(Cfg)` and `fn(Cfg!)` is a `fn(Cfg!)` : the value may be `write`, so
+// a call through it demands a mutable argument, and `CFG` is read-only. T3072.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+CFG :: Cfg { .n = 1 }
+
+read :: fn(c: Cfg) -> void {}
+
+write :: fn(c: Cfg!) -> void {
+    c.n = 5
+}
+
+main :: fn() -> i32 {
+    f :: if CFG.n == 1 { read } else { write }
+    f(CFG)
+    return CFG.n
+}

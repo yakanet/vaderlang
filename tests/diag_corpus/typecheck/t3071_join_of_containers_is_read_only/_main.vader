@@ -1,0 +1,18 @@
+// A join of `Cfg![]!` and `Cfg[]!` is a `Cfg[]` : a mutable array holds its elements
+// at the rights written, so arrays whose elements differ join read-only. A push
+// through the join could otherwise put the read-only `CFG` into `writable`. T3071.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+CFG :: Cfg { .n = 1 }
+
+main :: fn() -> i32 {
+    writable: Cfg![]!: [Cfg { .n = 1 }]
+    readable: Cfg[]!: []
+    joined :: if CFG.n == 1 { readable } else { writable }
+    joined.push(CFG)
+    return i32(writable.len() + readable.len())
+}

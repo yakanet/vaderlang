@@ -33,7 +33,8 @@ through type arguments, tuple elements, a distinct's backing and union variants.
   first one stands, and the argument check reports the mismatch, as before.
 - **A fn type is not lowered.** Its parameters take rights the other way round,
   so the first binding's fn type stands, and the argument check judges the
-  other one against it.
+  other one against it. (0040 replaces this: a fn type takes the bound with its
+  parameters reversed.)
 
 Every argument is then checked against that binding. An argument that must keep
 an array's rights is refused whichever order it comes in. For example,
@@ -75,7 +76,8 @@ Measured on 2026-10-07, at `1a5bf59e2`:
 - **Typecheck time** is unchanged (release builds, minima 493.0 against
   492.8 ms).
 
-Still open. The first three leak today, as they did before this change:
+Still open. The first three leaked, as they did before this change; 0040 closes
+them, and leaves the UFCS order as a false refusal:
 
 - **A UFCS call** binds `T` from its receiver alone and checks the other
   arguments against the substituted signature, without the generic path.
@@ -95,6 +97,7 @@ Still open. The first three leak today, as they did before this change:
   read-only value, as before, where `T` could have kept `x`'s rights. Telling a
   fn parameter's binding from an argument's would take a second record per `T`.
 - **Two fn types bound at different rights**, on a parameter or on the return,
-  keep the first binding. The order can still turn a call into a false refusal
-  there (`pick(make_mutable, get_const)` is T3077, the reverse is accepted), but
-  not a leak, since the argument check compares fn types strictly.
+  kept the first binding. The order could turn a call into a false refusal
+  there (`pick(make_mutable, get_const)` was T3077, the reverse accepted), but
+  not a leak, since the argument check compares fn types strictly. 0040 closes
+  it.

@@ -1,0 +1,17 @@
+// An explicit type argument is a written type, read-only unless marked : `idt<Cfg>`
+// hands back a read-only `Cfg`, and `CFG` is not written through it. T3070.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+CFG :: Cfg { .n = 1 }
+
+idt :: fn<T>(a: T) -> T = a
+
+main :: fn() -> i32 {
+    r :: idt<Cfg>(CFG)
+    r.n = 5
+    return CFG.n
+}

@@ -1,0 +1,18 @@
+// The receiver binds `T = Cfg!`, so the curried `pick` takes `b` as a `Cfg!` : the
+// read-only `CFG` would come back mutable. T3072.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+CFG :: Cfg { .n = 1 }
+
+pick :: fn<T>(a: T, b: T) -> T = b
+
+main :: fn() -> i32 {
+    local :: Cfg { .n = 1 }
+    r :: local.pick(CFG)
+    r.n = 5
+    return CFG.n
+}

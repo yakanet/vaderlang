@@ -2038,8 +2038,11 @@
                 },
                 "typeArgs": [
                   {
-                    "kind": "IdentExpr",
-                    "name": "Cell"
+                    "kind": "MutableTypeExpr",
+                    "inner": {
+                      "kind": "IdentExpr",
+                      "name": "Cell"
+                    }
                   }
                 ]
               },

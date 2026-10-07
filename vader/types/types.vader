@@ -475,13 +475,14 @@ export mk_array :: fn(element: Type, immutable: bool) -> Type = ArrayType { .ele
 /// silently, which is exactly how a marked callback would slip past the
 /// contravariance check.
 ///
-/// A parameter `src` wrote as a bare type parameter lends what it is now bound to :
-/// `fn(T)` with `T` bound to `Cfg!` mutates its argument, and is marked so.
+/// A parameter `src` wrote as a type parameter, bare or as a union variant, lends
+/// what it is now bound to : `fn(T)` with `T` bound to `Cfg!` mutates its argument,
+/// and is marked so, as is `fn(T | null)`.
 ///
 /// @param src     the fn type the result derives from.
 /// @param params  the rewritten parameter types — must keep `src`'s arity and order.
 /// @param ret     the rewritten return type.
-export mk_fn_like :: fn(src: FnType, params: Type[], ret: Type) -> Type {
+export mk_fn_like :: fn(src: FnType, params: Type[], ret: Type) -> FnType {
     if !relays_any(src, params) {
         return FnType { .params = params, .params_mutable = src.params_mutable, .return_type = ret }
     }
@@ -505,9 +506,28 @@ export param_mutable_at :: fn(f: FnType, i: usize) -> bool {
     return f.params_mutable[i]
 }
 
-// Parameter `i`, written as a bare type parameter, now bound to a type granting mutation.
+// Parameter `i`, written with a type parameter at its top level — bare, or as a
+// variant (`T | null`) — now bound, in full, to a type of which some variant grants
+// mutation : marked as `x: Cfg! | Other` would be.
 relays_at :: fn(src: FnType, params: Type[], i: usize) -> bool =
-    src.params[i] is TypeParamType && type_grants_mutation(params[i])
+    type_param_at_top(src.params[i]) && !type_param_at_top(params[i]) &&
+        type_may_grant_mutation(params[i])
+
+/// Whether `t` is a type parameter, or a union holding one as a variant — a `T` at
+/// the top level of a parameter or an argument.
+///
+/// @param t  the type to ask.
+export type_param_at_top :: fn(t: Type) -> bool {
+    if t is UnionType {
+        for v in t.variants {
+            if v is TypeParamType {
+                return true
+            }
+        }
+        return false
+    }
+    return t is TypeParamType
+}
 
 // Scanned first so the common case — nothing to relay — allocates no marker vector.
 relays_any :: fn(src: FnType, params: Type[]) -> bool {
@@ -521,20 +541,20 @@ relays_any :: fn(src: FnType, params: Type[]) -> bool {
 
 /// Rebuild an `FnType` that DROPS its leading parameter (UFCS curries the
 /// receiver away), shifting the marker vector by one so the remaining markers
-/// stay aligned with `params`.
+/// stay aligned with the remaining parameters.
 ///
-/// @param src     the fn type before the receiver is dropped.
-/// @param params  the tail parameter types, `src.params` minus its head.
-/// @param ret     the return type.
-export mk_fn_drop_self :: fn(src: FnType, params: Type[], ret: Type) -> Type {
-    if src.params_mutable.len() == 0 {
-        return mk_fn(params, ret)
+/// @param src  the fn type before the receiver is dropped ; it has one at least.
+export mk_fn_drop_self :: fn(src: FnType) -> FnType {
+    marks: bool[]: if src.params_mutable.len() > 1 {
+        src.params_mutable[1..<src.params_mutable.len()]
+    } else {
+        []
     }
-    tail: bool[]!: []
-    for i in 1..<src.params_mutable.len() {
-        tail.push(src.params_mutable[i])
+    return FnType {
+        .params         = src.params[1..<src.params.len()],
+        .params_mutable = if true in marks { marks } else { [] },
+        .return_type    = src.return_type,
     }
-    return FnType { .params = params, .params_mutable = tail, .return_type = ret }
 }
 
 /// A tuple type. `immutable` is required for the same reason as in `mk_struct`.

@@ -269,70 +269,6 @@ unify_args :: fn(
     for i in 0..<n { unify_type_param(p_args[i], a_args[i], out, held, lowers_rights) }
 }
 
-// The binding a type parameter keeps when two arguments give it `a` and `b` : the
-// same type, each level read-only when either is, so neither argument lends rights
-// the other lacks. Null when they differ by more than their rights — the first
-// binding then stands, and the argument check reports the mismatch.
-//
-// A fn type is kept as the first binding has it : its parameters take rights the
-// other way round, so the argument check judges the other one against it.
-least_permissive :: fn(a: Type, b: Type) -> Type | null {
-    match a {
-        is ArrayType -> {
-            if b is ArrayType {
-                element :: least_permissive(a.element, b.element) ?? return null
-                return mk_array(element, a.immutable || b.immutable)
-            }
-        }
-        is StructType -> {
-            if b is StructType && b.symbol.id == a.symbol.id {
-                args :: least_permissive_each(a.args, b.args) ?? return null
-                return mk_struct(a.symbol, args, a.immutable || b.immutable)
-            }
-        }
-        is TupleType -> {
-            if b is TupleType {
-                elements :: least_permissive_each(a.elements, b.elements) ?? return null
-                return mk_tuple(elements, a.immutable || b.immutable)
-            }
-        }
-        is TraitType -> {
-            if b is TraitType && b.symbol.id == a.symbol.id {
-                args :: least_permissive_each(a.args, b.args) ?? return null
-                return TraitType { ...a, .args = args, .immutable = a.immutable || b.immutable }
-            }
-        }
-        is DistinctType -> {
-            if b is DistinctType && b.symbol.id == a.symbol.id {
-                backing :: least_permissive(a.backing, b.backing) ?? return null
-                return mk_distinct(a.symbol, backing)
-            }
-        }
-        // Variants pair by index : `union_of` sorts them on a key blind to the marker.
-        is UnionType -> {
-            if b is UnionType {
-                variants :: least_permissive_each(a.variants, b.variants) ?? return null
-                return union_of(variants)
-            }
-        }
-        _ -> {}
-    }
-    // Any other pair agrees only with itself.
-    return if equals_type(a, b) { a } else { null }
-}
-
-least_permissive_each :: fn(a: Type[], b: Type[]) -> Type[] | null {
-    if a.len() != b.len() {
-        return null
-    }
-    out: Type[]!: []
-    for i in 0..<a.len() {
-        out.push(least_permissive(a[i], b[i]) ?? return null)
-    }
-    return out
-}
-
-
 /// A variant of a union pattern left unmatched, and the argument type it unifies
 /// with.
 export UnionLeftover :: struct {
@@ -419,9 +355,7 @@ export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
         is TupleType -> { return mk_tuple(substitute_each_map(t.elements, subst), t.immutable) }
         is StructType -> { return mk_struct(t.symbol, substitute_each_map(t.args, subst), t.immutable) }
         is TraitType -> { return TraitType { ...t, .args = substitute_each_map(t.args, subst) } }
-        is FnType -> {
-            return mk_fn_like(t, substitute_each_map(t.params, subst), substitute_map(t.return_type, subst))
-        }
+        is FnType -> { return substitute_fn_map(t, subst) }
         is UnionType -> { return union_of(substitute_each_map(t.variants, subst)) }
         _ -> { return t }
     }
@@ -453,6 +387,12 @@ erase_params_in :: fn(t: Type) -> Type = @partial match t {
     _                -> t
 }
 
+// `f` with every bound type parameter replaced — `substitute_map` on a fn type,
+// typed as one. It is the instance's signature : a `T` bound to a type granting
+// mutation, bare or as a variant, is a `!` parameter there (`mk_fn_like`).
+substitute_fn_map :: fn(f: FnType, subst: MutableMap<i32, Type>) -> FnType =
+    mk_fn_like(f, substitute_each_map(f.params, subst), substitute_map(f.return_type, subst))
+
 erase_each :: fn(types: Type[]) -> Type[] {
     out: Type[]!: []
     for t in types {
@@ -471,7 +411,6 @@ substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[]
 
 import "std/string"
 import "std/testing"
-import "vader/resolver/symbol"
 
 display_leftovers :: fn(pairs: UnionLeftover[]) -> string {
     parts: string[]!: []
@@ -500,39 +439,6 @@ test_union_leftovers_pairs_several_params_by_position :: fn() -> void {
     u :: mk_type_param(fresh_type_param(2, "U"))
     pairs :: union_leftovers([t, u, TY_NULL], [mk_primitive("i32"), TY_STRING, TY_NULL])
     assert_eq(display_leftovers(pairs), "T <- i32, U <- string")
-}
-
-struct_symbol :: fn(name: string) -> Symbol =
-    SymbolFactory {}.make(.Struct, name, "test", "test", .Public, null)
-
-display_least_permissive :: fn(a: Type, b: Type) -> string {
-    met :: least_permissive(a, b) ?? return "null"
-    return display_type(met)
-}
-
-@test
-test_least_permissive_lowers_each_level :: fn() -> void {
-    i32_ty :: mk_primitive("i32")
-    outer_frozen :: mk_array(mk_array(i32_ty, false), true)
-    inner_frozen :: mk_array(mk_array(i32_ty, true), false)
-    assert_eq(display_least_permissive(outer_frozen, inner_frozen), "i32[][]")
-}
-
-@test
-test_least_permissive_lowers_a_struct_and_its_arguments :: fn() -> void {
-    box :: struct_symbol("Box")
-    i32_ty :: mk_primitive("i32")
-    mutable :: mk_struct(box, [mk_array(i32_ty, false)], false)
-    frozen :: mk_struct(box, [mk_array(i32_ty, true)], true)
-    met :: least_permissive(mutable, frozen) ?? return assert(false, "no least permissive struct")
-    assert_eq(display_type(met), "Box<i32[]>")
-    assert(type_is_immutable(met), "the struct level keeps the read-only bit")
-}
-
-@test
-test_least_permissive_refuses_another_shape :: fn() -> void {
-    i32_array :: mk_array(mk_primitive("i32"), true)
-    assert_eq(display_least_permissive(i32_array, mk_array(TY_STRING, true)), "null")
 }
 
 @test
